@@ -29,6 +29,7 @@ type Config struct {
 	Enforcer        *casbin.Enforcer
 	UserIDExtractor UserIDExtractor
 	ErrorHandler    ErrorHandler
+	LoginRedirect   string
 }
 
 // New creates an App from the given Config.
@@ -41,6 +42,10 @@ func New(cfg Config) (*App, error) {
 	eh := cfg.ErrorHandler
 	if eh == nil {
 		eh = DefaultErrorHandler
+	}
+
+	if cfg.LoginRedirect != "" {
+		LoginRedirect = cfg.LoginRedirect
 	}
 
 	return &App{

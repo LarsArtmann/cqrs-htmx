@@ -60,6 +60,18 @@ var _ = Describe("Error Mapping", func() {
 			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrDecodeFailed)
 			Expect(w.Header().Get("HX-Redirect")).To(BeEmpty())
 		})
+
+		It("uses custom LoginRedirect when set", func() {
+			original := cqrshtmx.LoginRedirect
+			cqrshtmx.LoginRedirect = "/auth/signin"
+			defer func() { cqrshtmx.LoginRedirect = original }()
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Request", "true")
+			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrUnauthorized)
+			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
+		})
 	})
 
 	Describe("Sentinel errors", func() {
