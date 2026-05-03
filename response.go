@@ -106,6 +106,38 @@ func (resp *Response) TriggerWithDetail(name string, detail any) *Response {
 	return resp
 }
 
+// NotifySuccess triggers a success notification via HTMX event.
+func (resp *Response) NotifySuccess(message string) *Response {
+	return resp.TriggerWithDetail(NotificationEvent, map[string]string{
+		"level":   "success",
+		"message": message,
+	})
+}
+
+// NotifyError triggers an error notification via HTMX event.
+func (resp *Response) NotifyError(message string) *Response {
+	return resp.TriggerWithDetail(NotificationEvent, map[string]string{
+		"level":   "error",
+		"message": message,
+	})
+}
+
+// NotifyWarning triggers a warning notification via HTMX event.
+func (resp *Response) NotifyWarning(message string) *Response {
+	return resp.TriggerWithDetail(NotificationEvent, map[string]string{
+		"level":   "warning",
+		"message": message,
+	})
+}
+
+// NotifyInfo triggers an info notification via HTMX event.
+func (resp *Response) NotifyInfo(message string) *Response {
+	return resp.TriggerWithDetail(NotificationEvent, map[string]string{
+		"level":   "info",
+		"message": message,
+	})
+}
+
 // Apply finalizes the response headers. Call this before writing the body.
 func (resp *Response) Apply() {
 	if resp.IsHTMX() {
