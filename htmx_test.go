@@ -375,6 +375,72 @@ var _ = Describe("HTMXRequest context", func() {
 			Expect(cqrshtmx.HTMXFromContext(r.Context())).To(BeNil())
 		})
 	})
+
+	Describe("accessor fallback without middleware", func() {
+		It("reads IsHistoryRestore from header directly", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-History-Restore-Request", "true")
+			Expect(cqrshtmx.IsHistoryRestore(r)).To(BeTrue())
+		})
+
+		It("reads HTMXTriggerName from header directly", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Trigger-Name", "my-trigger")
+			Expect(cqrshtmx.HTMXTriggerName(r)).To(Equal("my-trigger"))
+		})
+
+		It("reads HTMXPrompt from header directly", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Prompt", "confirmed")
+			Expect(cqrshtmx.HTMXPrompt(r)).To(Equal("confirmed"))
+		})
+
+		It("reads HTMXCurrentURL from header directly", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Current-URL", "https://example.com/test")
+			Expect(cqrshtmx.HTMXCurrentURL(r)).To(Equal("https://example.com/test"))
+		})
+	})
+})
+
+var _ = Describe("Notification helpers", func() {
+	Describe("Response notification methods", func() {
+		It("NotifySuccess sends success notification", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).NotifySuccess("Done!").Apply()
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("success"))
+			Expect(trigger).To(ContainSubstring("Done!"))
+		})
+
+		It("NotifyError sends error notification", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).NotifyError("Failed").Apply()
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("error"))
+			Expect(trigger).To(ContainSubstring("Failed"))
+		})
+
+		It("NotifyWarning sends warning notification", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).NotifyWarning("Careful").Apply()
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("warning"))
+			Expect(trigger).To(ContainSubstring("Careful"))
+		})
+
+		It("NotifyInfo sends info notification", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).NotifyInfo("FYI").Apply()
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("info"))
+			Expect(trigger).To(ContainSubstring("FYI"))
+		})
+	})
 })
 
 func init() {

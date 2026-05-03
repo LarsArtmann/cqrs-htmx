@@ -397,4 +397,138 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(w.Header().Get("HX-Trigger")).To(Equal("dataLoaded"))
 		})
 	})
+
+	Describe("Notification HandlerOptions", func() {
+		It("NotifySuccess triggers notification on command success", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+				cqrshtmx.NotifySuccess("User created"),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r.Header.Set("HX-Request", "true")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("success"))
+			Expect(trigger).To(ContainSubstring("User created"))
+		})
+
+		It("NotifyError triggers notification", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+				cqrshtmx.NotifyError("Something went wrong"),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r.Header.Set("HX-Request", "true")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("error"))
+		})
+
+		It("NotifyWarning triggers notification", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+				cqrshtmx.NotifyWarning("Check your input"),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r.Header.Set("HX-Request", "true")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("warning"))
+		})
+
+		It("NotifyInfo triggers notification", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+				cqrshtmx.NotifyInfo("Sync started"),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r.Header.Set("HX-Request", "true")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("info"))
+		})
+	})
+
+	Describe("Command with redirect and HTMX", func() {
+		It("sets HTMX redirect for HTMX requests", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+				cqrshtmx.Redirect("/users"),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r.Header.Set("HX-Request", "true")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Header().Get("HX-Redirect")).To(Equal("/users"))
+		})
+	})
 })
