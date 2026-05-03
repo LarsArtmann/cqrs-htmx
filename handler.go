@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -15,7 +14,7 @@ func (a *App) handleCommandDispatch(
 	cmdType command.Type,
 	cfg *handlerConfig,
 ) {
-	ctx := enrichContext(r.Context(), r)
+	ctx := r.Context()
 
 	if err := a.executeAuthorization(r, cfg); err != nil {
 		a.errorHandler(w, r, err)
@@ -53,7 +52,7 @@ func (a *App) handleQueryDispatch(
 	qryType query.Type,
 	cfg *handlerConfig,
 ) {
-	ctx := enrichContext(r.Context(), r)
+	ctx := r.Context()
 
 	if err := a.executeAuthorization(r, cfg); err != nil {
 		a.errorHandler(w, r, err)
@@ -90,8 +89,4 @@ func (a *App) handleQueryDispatch(
 	if cfg.redirect == "" && cfg.trigger == "" && cfg.pushURL == "" {
 		w.WriteHeader(http.StatusNoContent)
 	}
-}
-
-func enrichContext(ctx context.Context, r *http.Request) context.Context {
-	return ctx
 }
