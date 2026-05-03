@@ -4,8 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/larsartmann/cqrs-htmx"
-
+	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

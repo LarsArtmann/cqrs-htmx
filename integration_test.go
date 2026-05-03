@@ -7,13 +7,12 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/larsartmann/cqrs-htmx"
+	"github.com/casbin/casbin/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
-	"github.com/casbin/casbin/v3"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

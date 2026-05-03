@@ -81,28 +81,28 @@ func main() {
 
 ### Authorization
 
-| Option | Description |
-|--------|-------------|
-| `Authorize(resource, action)` | Check Casbin policy before dispatch |
-| `RequireAuth()` | Require authenticated user (no specific permission) |
+| Option                        | Description                                         |
+| ----------------------------- | --------------------------------------------------- |
+| `Authorize(resource, action)` | Check Casbin policy before dispatch                 |
+| `RequireAuth()`               | Require authenticated user (no specific permission) |
 
 ### Request Decoding
 
-| Option | Description |
-|--------|-------------|
-| `DecodeJSON[T](mapper)` | Decode JSON body into a command via mapper function |
-| `DecodeJSONQuery[T](mapper)` | Decode JSON body into a query via mapper function |
-| `DecodeForm[T](mapper)` | Decode form data into a command via mapper function |
+| Option                       | Description                                         |
+| ---------------------------- | --------------------------------------------------- |
+| `DecodeJSON[T](mapper)`      | Decode JSON body into a command via mapper function |
+| `DecodeJSONQuery[T](mapper)` | Decode JSON body into a query via mapper function   |
+| `DecodeForm[T](mapper)`      | Decode form data into a command via mapper function |
 
 ### Response
 
-| Option | Description |
-|--------|-------------|
-| `Render(fn)` | Render query result with custom function |
-| `Redirect(url)` | Redirect after success (HX-Redirect for HTMX, HTTP redirect otherwise) |
-| `Trigger(event)` | Fire HTMX client-side event on success |
-| `TriggerWithDetail(event, detail)` | Fire HTMX event with JSON detail data |
-| `PushURL(url)` | Push URL into browser history |
+| Option                             | Description                                                            |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| `Render(fn)`                       | Render query result with custom function                               |
+| `Redirect(url)`                    | Redirect after success (HX-Redirect for HTMX, HTTP redirect otherwise) |
+| `Trigger(event)`                   | Fire HTMX client-side event on success                                 |
+| `TriggerWithDetail(event, detail)` | Fire HTMX event with JSON detail data                                  |
+| `PushURL(url)`                     | Push URL into browser history                                          |
 
 ## HTMX Response Builder
 
@@ -119,19 +119,19 @@ resp.Trigger("userCreated").
 
 ### Methods
 
-| Method | Header Set |
-|--------|-----------|
-| `PushURL(url)` | `HX-Push-Url` |
-| `ReplaceURL(url)` | `HX-Replace-Url` |
-| `Redirect(url)` | `HX-Redirect` (HTMX) or HTTP redirect |
-| `Refresh()` | `HX-Refresh` |
-| `Reswap(strategy)` | `HX-Reswap` |
-| `Retarget(selector)` | `HX-Retarget` |
-| `Reselect(selector)` | `HX-Reselect` |
-| `Trigger(event)` | `HX-Trigger` |
-| `TriggerAfterSwap(event)` | `HX-Trigger-After-Swap` |
-| `TriggerAfterSettle(event)` | `HX-Trigger-After-Settle` |
-| `TriggerWithDetail(name, detail)` | `HX-Trigger` (JSON) |
+| Method                            | Header Set                            |
+| --------------------------------- | ------------------------------------- |
+| `PushURL(url)`                    | `HX-Push-Url`                         |
+| `ReplaceURL(url)`                 | `HX-Replace-Url`                      |
+| `Redirect(url)`                   | `HX-Redirect` (HTMX) or HTTP redirect |
+| `Refresh()`                       | `HX-Refresh`                          |
+| `Reswap(strategy)`                | `HX-Reswap`                           |
+| `Retarget(selector)`              | `HX-Retarget`                         |
+| `Reselect(selector)`              | `HX-Reselect`                         |
+| `Trigger(event)`                  | `HX-Trigger`                          |
+| `TriggerAfterSwap(event)`         | `HX-Trigger-After-Swap`               |
+| `TriggerAfterSettle(event)`       | `HX-Trigger-After-Settle`             |
+| `TriggerWithDetail(name, detail)` | `HX-Trigger` (JSON)                   |
 
 ### Swap Strategies
 
@@ -172,15 +172,16 @@ evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, payload, opts...)
 
 CQRS error families automatically map to HTTP status codes:
 
-| CQRS Family | HTTP Status |
-|-------------|-------------|
-| Rejection | 400 Bad Request |
-| Conflict | 409 Conflict |
-| Corruption | 422 Unprocessable Entity |
-| Transient | 503 Service Unavailable |
+| CQRS Family    | HTTP Status               |
+| -------------- | ------------------------- |
+| Rejection      | 400 Bad Request           |
+| Conflict       | 409 Conflict              |
+| Corruption     | 422 Unprocessable Entity  |
+| Transient      | 503 Service Unavailable   |
 | Infrastructure | 500 Internal Server Error |
 
 Auth errors map specially:
+
 - `ErrUnauthorized` → 401
 - `ErrForbidden` → 403
 

@@ -4,12 +4,17 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
-	"github.com/cockroachdb/errors"
 )
 
-func (a *App) handleCommandDispatch(w http.ResponseWriter, r *http.Request, cmdType command.Type, cfg *handlerConfig) {
+func (a *App) handleCommandDispatch(
+	w http.ResponseWriter,
+	r *http.Request,
+	cmdType command.Type,
+	cfg *handlerConfig,
+) {
 	ctx := enrichContext(r.Context(), r)
 
 	if err := a.executeAuthorization(r, cfg); err != nil {
@@ -42,7 +47,12 @@ func (a *App) handleCommandDispatch(w http.ResponseWriter, r *http.Request, cmdT
 	}
 }
 
-func (a *App) handleQueryDispatch(w http.ResponseWriter, r *http.Request, qryType query.Type, cfg *handlerConfig) {
+func (a *App) handleQueryDispatch(
+	w http.ResponseWriter,
+	r *http.Request,
+	qryType query.Type,
+	cfg *handlerConfig,
+) {
 	ctx := enrichContext(r.Context(), r)
 
 	if err := a.executeAuthorization(r, cfg); err != nil {
@@ -85,4 +95,3 @@ func (a *App) handleQueryDispatch(w http.ResponseWriter, r *http.Request, qryTyp
 func enrichContext(ctx context.Context, r *http.Request) context.Context {
 	return ctx
 }
-

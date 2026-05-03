@@ -9,12 +9,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/larsartmann/cqrs-htmx"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -117,9 +116,11 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("HTMXMiddleware", func() {
 		It("passes through to the next handler", func() {
 			called := false
-			handler := cqrshtmx.HTMXMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				called = true
-			}))
+			handler := cqrshtmx.HTMXMiddleware(
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					called = true
+				}),
+			)
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)

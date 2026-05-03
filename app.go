@@ -3,10 +3,10 @@ package cqrshtmx
 import (
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/casbin/casbin/v3"
 	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
 // App wires CQRS dispatchers, Casbin authorization, and HTMX response handling
@@ -15,9 +15,9 @@ import (
 // Create one with New, then use Command and Query to build HTTP handlers
 // that automatically handle authorization, dispatch, and HTMX responses.
 type App struct {
-	commands  *command.Dispatcher
-	queries   *query.Dispatcher
-	enforcer  *casbin.Enforcer
+	commands        *command.Dispatcher
+	queries         *query.Dispatcher
+	enforcer        *casbin.Enforcer
 	userIDExtractor UserIDExtractor
 	errorHandler    ErrorHandler
 }

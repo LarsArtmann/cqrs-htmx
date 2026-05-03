@@ -42,7 +42,7 @@ func DecodeJSON[T any](mapper func(T) (command.Command, error)) HandlerOption {
 		cfg.commandDecoder = func(r *http.Request) (command.Command, error) {
 			var req T
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-				return nil, fmt.Errorf("%w: decode JSON: %v", ErrDecodeFailed, err)
+				return nil, fmt.Errorf("%w: decode JSON: %w", ErrDecodeFailed, err)
 			}
 
 			return mapper(req)
@@ -56,7 +56,7 @@ func DecodeJSONQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
 		cfg.queryDecoder = func(r *http.Request) (query.Query, error) {
 			var req T
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-				return nil, fmt.Errorf("%w: decode JSON: %v", ErrDecodeFailed, err)
+				return nil, fmt.Errorf("%w: decode JSON: %w", ErrDecodeFailed, err)
 			}
 
 			return mapper(req)
@@ -70,11 +70,11 @@ func DecodeForm[T any](mapper func(T) (command.Command, error)) HandlerOption {
 		cfg.commandDecoder = func(r *http.Request) (command.Command, error) {
 			var req T
 			if err := r.ParseForm(); err != nil {
-				return nil, fmt.Errorf("%w: parse form: %v", ErrDecodeFailed, err)
+				return nil, fmt.Errorf("%w: parse form: %w", ErrDecodeFailed, err)
 			}
 
 			if err := decodeFormValues(r.Form, &req); err != nil {
-				return nil, fmt.Errorf("%w: decode form values: %v", ErrDecodeFailed, err)
+				return nil, fmt.Errorf("%w: decode form values: %w", ErrDecodeFailed, err)
 			}
 
 			return mapper(req)

@@ -24,3 +24,11 @@ Thumbs.db
 
 # Vendor (not used)
 vendor/
+# Test coverage
+/coverage
+# Build artifacts
+/cqrs-htmx
+# Dependencies
+node_modules/
+# Copy/paste detection report
+/report/jscpd-report.json

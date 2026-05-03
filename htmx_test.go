@@ -5,8 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/larsartmann/cqrs-htmx"
-
+	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -207,7 +206,9 @@ var _ = Describe("HTMX Response Builder", func() {
 
 	Describe("TriggerWithDetail", func() {
 		It("sets HX-Trigger header with JSON detail", func() {
-			cqrshtmx.NewResponse(w, r).TriggerWithDetail("userCreated", map[string]string{"id": "123"}).Apply()
+			cqrshtmx.NewResponse(w, r).
+				TriggerWithDetail("userCreated", map[string]string{"id": "123"}).
+				Apply()
 			triggerHeader := w.Header().Get("HX-Trigger")
 			Expect(triggerHeader).To(ContainSubstring("userCreated"))
 			Expect(triggerHeader).To(ContainSubstring("123"))

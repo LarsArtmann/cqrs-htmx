@@ -51,7 +51,11 @@ func Enforce(enforcer *casbin.Enforcer, subject, resource, action string) error 
 
 // AuthorizeMiddleware returns an HTTP middleware that checks Casbin authorization.
 // The subject is extracted from the context using the configured UserIDExtractor.
-func AuthorizeMiddleware(enforcer *casbin.Enforcer, resource, action string, extractor UserIDExtractor) func(http.Handler) http.Handler {
+func AuthorizeMiddleware(
+	enforcer *casbin.Enforcer,
+	resource, action string,
+	extractor UserIDExtractor,
+) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID := extractor(r)

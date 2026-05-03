@@ -3,8 +3,8 @@ package cqrshtmx
 import (
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 func init() {

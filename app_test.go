@@ -9,14 +9,13 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/larsartmann/cqrs-htmx"
+	"github.com/casbin/casbin/v3"
+	"github.com/casbin/casbin/v3/model"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
-	"github.com/casbin/casbin/v3"
-	"github.com/casbin/casbin/v3/model"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -149,9 +148,9 @@ var _ = Describe("App", func() {
 
 	Describe("Command handler with authorization", func() {
 		var (
-			app    *cqrshtmx.App
-			enf    *casbin.Enforcer
-			disp   *command.Dispatcher
+			app  *cqrshtmx.App
+			enf  *casbin.Enforcer
+			disp *command.Dispatcher
 		)
 
 		BeforeEach(func() {
@@ -336,9 +335,11 @@ var _ = Describe("App", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			var capturedUserID string
-			handler := app.Middleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				capturedUserID = cqrshtmx.UserIDFromContext(r.Context())
-			}))
+			handler := app.Middleware()(
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					capturedUserID = cqrshtmx.UserIDFromContext(r.Context())
+				}),
+			)
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)

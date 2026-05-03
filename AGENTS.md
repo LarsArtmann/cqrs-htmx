@@ -9,13 +9,13 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX and Casbin au
 
 ## Quick Reference
 
-| Item      | Value                                    |
-| --------- | ---------------------------------------- |
-| Language  | Go 1.26                                  |
-| Module    | github.com/larsartmann/cqrs-htmx         |
-| Test      | `go test ./... -count=1`                 |
-| Build     | `go build ./...`                         |
-| Lint      | `golangci-lint run`                      |
+| Item     | Value                            |
+| -------- | -------------------------------- |
+| Language | Go 1.26                          |
+| Module   | github.com/larsartmann/cqrs-htmx |
+| Test     | `go test ./... -count=1`         |
+| Build    | `go build ./...`                 |
+| Lint     | `golangci-lint run`              |
 
 ## Architecture
 
@@ -43,11 +43,11 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency                  | Purpose           |
-| --------------------------- | ----------------- |
-| go-cqrs-lite/core           | CQRS dispatch     |
-| casbin/casbin/v3            | Authorization     |
-| cockroachdb/errors          | Error handling    |
+| Dependency         | Purpose        |
+| ------------------ | -------------- |
+| go-cqrs-lite/core  | CQRS dispatch  |
+| casbin/casbin/v3   | Authorization  |
+| cockroachdb/errors | Error handling |
 
 ## Test Commands
 
