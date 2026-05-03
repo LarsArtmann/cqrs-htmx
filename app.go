@@ -1,0 +1,125 @@
+package cqrshtmx
+
+import (
+	"net/http"
+
+	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/casbin/casbin/v3"
+	"github.com/cockroachdb/errors"
+)
+
+// App wires CQRS dispatchers, Casbin authorization, and HTMX response handling
+// into a cohesive integration layer.
+//
+// Create one with New, then use Command and Query to build HTTP handlers
+// that automatically handle authorization, dispatch, and HTMX responses.
+type App struct {
+	commands  *command.Dispatcher
+	queries   *query.Dispatcher
+	enforcer  *casbin.Enforcer
+	userIDExtractor UserIDExtractor
+	errorHandler    ErrorHandler
+}
+
+// Config configures an App. Commands or Queries must be non-nil.
+type Config struct {
+	Commands        *command.Dispatcher
+	Queries         *query.Dispatcher
+	Enforcer        *casbin.Enforcer
+	UserIDExtractor UserIDExtractor
+	ErrorHandler    ErrorHandler
+}
+
+// New creates an App from the given Config.
+// Returns an error if both Commands and Queries are nil.
+func New(cfg Config) (*App, error) {
+	if cfg.Commands == nil && cfg.Queries == nil {
+		return nil, errors.New("[cqrs-htmx] at least one of Commands or Queries must be non-nil")
+	}
+
+	eh := cfg.ErrorHandler
+	if eh == nil {
+		eh = DefaultErrorHandler
+	}
+
+	return &App{
+		commands:        cfg.Commands,
+		queries:         cfg.Queries,
+		enforcer:        cfg.Enforcer,
+		userIDExtractor: cfg.UserIDExtractor,
+		errorHandler:    eh,
+	}, nil
+}
+
+// Command returns an http.HandlerFunc that dispatches a command.
+//
+// The handler flow:
+//  1. Extract user ID from context (via UserIDExtractor middleware)
+//  2. Check Casbin authorization (if Authorize option is set)
+//  3. Decode the HTTP request into a command.Command (via DecodeJSON, etc.)
+//  4. Dispatch the command through the command.Dispatcher
+//  5. Apply HTMX response headers (redirect, trigger, push URL)
+func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
+	cfg := buildHandlerConfig(opts)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if a.commands == nil {
+			a.errorHandler(w, r, ErrCommandsNil)
+			return
+		}
+
+		if a.userIDExtractor != nil {
+			userID := a.userIDExtractor(r)
+			if userID != "" {
+				r = r.WithContext(WithUserID(r.Context(), userID))
+			}
+		}
+
+		a.handleCommandDispatch(w, r, cmdType, cfg)
+	})
+}
+
+// Query returns an http.HandlerFunc that dispatches a query.
+//
+// The handler flow:
+//  1. Extract user ID from context (via UserIDExtractor middleware)
+//  2. Check Casbin authorization (if Authorize option is set)
+//  3. Decode the HTTP request into a query.Query
+//  4. Dispatch the query through the query.Dispatcher
+//  5. Render the result (via Render option)
+//  6. Apply HTMX response headers
+func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
+	cfg := buildHandlerConfig(opts)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if a.queries == nil {
+			a.errorHandler(w, r, ErrQueriesNil)
+			return
+		}
+
+		if a.userIDExtractor != nil {
+			userID := a.userIDExtractor(r)
+			if userID != "" {
+				r = r.WithContext(WithUserID(r.Context(), userID))
+			}
+		}
+
+		a.handleQueryDispatch(w, r, qryType, cfg)
+	})
+}
+
+// Middleware returns an HTTP middleware that enriches the request context
+// with user identity. Apply this once to your router/mux.
+func (a *App) Middleware() func(http.Handler) http.Handler {
+	return ContextEnrichmentMiddleware(a.userIDExtractor)
+}
+
+func buildHandlerConfig(opts []HandlerOption) *handlerConfig {
+	cfg := &handlerConfig{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	return cfg
+}
