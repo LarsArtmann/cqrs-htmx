@@ -4,9 +4,8 @@ import (
 	"net/http"
 )
 
-// Middleware applies the ContextEnrichment middleware to an HTTP handler.
-// It extracts the user ID from the request using the provided extractor
-// and stores it in the context for downstream CQRS handlers.
+// ContextEnrichmentMiddleware extracts the user ID from the request using
+// the provided extractor and stores it in the context for downstream CQRS handlers.
 func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -22,10 +21,14 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 	}
 }
 
-// HTMXMiddleware detects HTMX requests and adds a flag to the context.
-// This allows downstream handlers to conditionally render partial vs full content.
+// HTMXMiddleware parses HTMX request headers once and stores them in context.
+// Apply this once to your router so downstream handlers can use
+// HTMXFromContext, RenderPartial, and the accessor functions without
+// repeated header parsing.
 func HTMXMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := parseHTMXRequest(r)
+		r = r.WithContext(WithHTMX(r.Context(), h))
 		next.ServeHTTP(w, r)
 	})
 }
