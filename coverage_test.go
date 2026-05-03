@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -18,7 +19,97 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+type mockTemplComponent struct {
+	html string
+}
+
+func (m *mockTemplComponent) Render(_ context.Context, w io.Writer) error {
+	_, err := w.Write([]byte(m.html))
+	return err
+}
+
 var _ = Describe("Coverage Gaps", func() {
+	Describe("RenderTempl", func() {
+		It("renders a fixed templ component", func() {
+			disp := query.NewDispatcher()
+			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+				return "irrelevant", nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			component := &mockTemplComponent{html: "<h1>Hello</h1>"}
+			handler := app.Query("GetUser",
+				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+				cqrshtmx.RenderTempl(component),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodGet, "/page", strings.NewReader(body))
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Body.String()).To(Equal("<h1>Hello</h1>"))
+		})
+	})
+
+	Describe("RenderTemplResult", func() {
+		It("maps result to templ component and renders", func() {
+			disp := query.NewDispatcher()
+			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+				return "Alice", nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Query("GetUser",
+				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
+					return &mockTemplComponent{html: "<p>" + result + "</p>"}
+				}),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(body))
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Body.String()).To(Equal("<p>Alice</p>"))
+		})
+
+		It("returns error for wrong result type", func() {
+			disp := query.NewDispatcher()
+			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+				return 42, nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Query("GetUser",
+				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
+					return &mockTemplComponent{html: result}
+				}),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(body))
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Code).ToNot(Equal(http.StatusOK))
+		})
+	})
+
 	Describe("DecodeForm", func() {
 		It("decodes form data into a command", func() {
 			disp := command.NewDispatcher()

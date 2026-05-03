@@ -1,8 +1,10 @@
 package cqrshtmx
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -18,6 +20,12 @@ type QueryDecoder func(r *http.Request) (query.Query, error)
 
 // RenderFunc renders a query result as an HTTP response.
 type RenderFunc func(w http.ResponseWriter, r *http.Request, result any) error
+
+// TemplComponent matches templ.Component's interface without importing templ.
+// Any type with Render(ctx, w) error satisfies this, including templ-generated components.
+type TemplComponent interface {
+	Render(ctx context.Context, w io.Writer) error
+}
 
 // HandlerOption configures a command or query handler.
 type HandlerOption func(*handlerConfig)
@@ -86,6 +94,46 @@ func DecodeForm[T any](mapper func(T) (command.Command, error)) HandlerOption {
 func Render(fn RenderFunc) HandlerOption {
 	return func(cfg *handlerConfig) {
 		cfg.render = fn
+	}
+}
+
+// RenderTempl renders a fixed templ.Component for query results.
+// The component is created before rendering and ignores the query result.
+//
+// Usage:
+//
+//	app.Query("GetPage", cqrshtmx.DecodeJSONQuery(...),
+//	    cqrshtmx.RenderTempl(myPageComponent()),
+//	)
+func RenderTempl(component TemplComponent) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.render = func(w http.ResponseWriter, r *http.Request, _ any) error {
+			return component.Render(r.Context(), w)
+		}
+	}
+}
+
+// RenderTemplResult creates a templ.Component from the query result and renders it.
+// The mapper function converts the query result into a TemplComponent.
+//
+// Usage:
+//
+//	app.Query("ListUsers", cqrshtmx.DecodeJSONQuery(...),
+//	    cqrshtmx.RenderTemplResult(func(result any) cqrshtmx.TemplComponent {
+//	        return userListPage(result.([]*User))
+//	    }),
+//	)
+func RenderTemplResult[T any](mapper func(T) TemplComponent) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+			typed, ok := result.(T)
+			if !ok {
+				return fmt.Errorf("%w: unexpected result type %T", ErrDecodeFailed, result)
+			}
+
+			component := mapper(typed)
+			return component.Render(r.Context(), w)
+		}
 	}
 }
 
