@@ -2,9 +2,9 @@ package cqrshtmx
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
@@ -34,7 +34,7 @@ func (a *App) handleCommandDispatch(
 	}
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		a.errorHandler(w, r, errors.Wrapf(err, "%s: %s", ErrDispatchFailed, cmdType))
+		a.errorHandler(w, r, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err))
 		return
 	}
 
@@ -73,7 +73,7 @@ func (a *App) handleQueryDispatch(
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		a.errorHandler(w, r, errors.Wrapf(err, "%s: %s", ErrDispatchFailed, qryType))
+		a.errorHandler(w, r, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err))
 		return
 	}
 
