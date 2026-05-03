@@ -1,6 +1,6 @@
 # cqrs-htmx
 
-A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) with [HTMX](https://htmx.org) and [Casbin](https://casbin.org) authorization.
+A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) with [HTMX](https://htmx.org), [templ](https://templ.guide), and [Casbin](https://casbin.org) authorization.
 
 ## Why
 
@@ -12,6 +12,7 @@ Combining CQRS, HTMX, and authorization requires repetitive wiring:
 - CQRS errors → HTTP status codes (HTMX-aware)
 - HTMX partial vs full-page rendering
 - HTMX response headers (triggers, redirects, push URL)
+- templ component rendering for query results
 
 This library handles all of it automatically.
 
@@ -57,23 +58,28 @@ func main() {
         cqrshtmx.DecodeJSON(func(req CreateUserRequest) (command.Command, error) {
             return NewCreateUserCmd(req.Email, req.Name), nil
         }),
-        cqrshtmx.Trigger("userCreated"),
+        cqrshtmx.NotifySuccess("User created"),
         cqrshtmx.PushURL("/users"),
     ))
 
-    // Query dispatch with render
+    // Query dispatch with templ rendering
     mux.Handle("GET /users", app.Query("ListUsers",
         cqrshtmx.Authorize("users", "read"),
         cqrshtmx.DecodeJSONQuery(func(req ListUsersRequest) (query.Query, error) {
             return &ListUsersQuery{}, nil
         }),
-        cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, result any) error {
-            return renderUserList(w, r, result)
+        cqrshtmx.RenderTemplResult(func(result []*User) cqrshtmx.TemplComponent {
+            return userListPage(result)
         }),
     ))
 
-    // Apply context enrichment middleware once
-    http.ListenAndServe(":8080", app.Middleware()(mux))
+    // Apply middleware once to your router
+    handler := cqrshtmx.Chain(
+        cqrshtmx.HTMXMiddleware,
+        app.Middleware(),
+    )(mux)
+
+    http.ListenAndServe(":8080", handler)
 }
 ```
 
@@ -99,10 +105,71 @@ func main() {
 | Option                             | Description                                                            |
 | ---------------------------------- | ---------------------------------------------------------------------- |
 | `Render(fn)`                       | Render query result with custom function                               |
+| `RenderTempl(component)`           | Render a fixed templ.Component (duck-typed)                            |
+| `RenderTemplResult[T](mapper)`     | Map query result to a templ.Component and render                       |
 | `Redirect(url)`                    | Redirect after success (HX-Redirect for HTMX, HTTP redirect otherwise) |
 | `Trigger(event)`                   | Fire HTMX client-side event on success                                 |
 | `TriggerWithDetail(event, detail)` | Fire HTMX event with JSON detail data                                  |
 | `PushURL(url)`                     | Push URL into browser history                                          |
+
+### Notifications
+
+Convenience wrappers around `TriggerWithDetail` with a standard `{level, message}` payload:
+
+| Option                    | Description                |
+| ------------------------- | -------------------------- |
+| `NotifySuccess(message)`  | Success notification       |
+| `NotifyError(message)`    | Error notification         |
+| `NotifyWarning(message)`  | Warning notification       |
+| `NotifyInfo(message)`     | Info notification          |
+
+All use the configurable `NotificationEvent` (default: `"showMessage"`). Client-side JS:
+
+```js
+document.body.addEventListener("showMessage", function(evt) {
+    showNotification(evt.detail.level, evt.detail.message);
+});
+```
+
+## HTMX Request Context
+
+`HTMXMiddleware` parses all HTMX headers once and stores them in context:
+
+```go
+handler := cqrshtmx.Chain(
+    cqrshtmx.HTMXMiddleware,
+    app.Middleware(),
+)(mux)
+```
+
+### HTMXRequest Struct
+
+```go
+h := cqrshtmx.HTMXFromContext(r.Context())
+h.IsHTMX           // bool
+h.IsBoosted        // bool
+h.IsHistoryRestore // bool
+h.Target           // string
+h.TriggerID        // string
+h.TriggerName      // string
+h.Prompt           // string
+h.CurrentURL       // string
+h.RenderPartial()  // bool — IsHTMX && !IsHistoryRestore
+```
+
+### Standalone Accessors (work with or without middleware)
+
+```go
+cqrshtmx.IsHTMXRequest(r)    // bool
+cqrshtmx.IsBoosted(r)        // bool
+cqrshtmx.IsHistoryRestore(r) // bool
+cqrshtmx.RenderPartial(r)    // bool — partial vs full page
+cqrshtmx.HTMXTarget(r)       // string
+cqrshtmx.HTMXTrigger(r)      // string
+cqrshtmx.HTMXTriggerName(r)  // string
+cqrshtmx.HTMXPrompt(r)       // string
+cqrshtmx.HTMXCurrentURL(r)   // string
+```
 
 ## HTMX Response Builder
 
@@ -114,6 +181,7 @@ resp.Trigger("userCreated").
     PushURL("/users/1").
     Retarget("#user-list").
     Reswap(cqrshtmx.SwapInnerHTML).
+    NotifySuccess("User created").
     Apply()
 ```
 
@@ -125,6 +193,7 @@ resp.Trigger("userCreated").
 | `ReplaceURL(url)`                 | `HX-Replace-Url`                      |
 | `Redirect(url)`                   | `HX-Redirect` (HTMX) or HTTP redirect |
 | `Refresh()`                       | `HX-Refresh`                          |
+| `Location(url)`                   | `HX-Location`                         |
 | `Reswap(strategy)`                | `HX-Reswap`                           |
 | `Retarget(selector)`              | `HX-Retarget`                         |
 | `Reselect(selector)`              | `HX-Reselect`                         |
@@ -132,25 +201,36 @@ resp.Trigger("userCreated").
 | `TriggerAfterSwap(event)`         | `HX-Trigger-After-Swap`               |
 | `TriggerAfterSettle(event)`       | `HX-Trigger-After-Settle`             |
 | `TriggerWithDetail(name, detail)` | `HX-Trigger` (JSON)                   |
+| `NotifySuccess(message)`          | `HX-Trigger` (JSON notification)      |
+| `NotifyError(message)`            | `HX-Trigger` (JSON notification)      |
+| `NotifyWarning(message)`          | `HX-Trigger` (JSON notification)      |
+| `NotifyInfo(message)`             | `HX-Trigger` (JSON notification)      |
 
 ### Swap Strategies
 
 `SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `SwapAfterBegin`, `SwapBeforeEnd`, `SwapAfterEnd`, `SwapDelete`, `SwapNone`
 
-## Request Detection
+## templ Integration
+
+First-class support for [templ](https://templ.guide) without importing it as a dependency.
+Uses duck-typing — any type with `Render(ctx context.Context, w io.Writer) error` works.
 
 ```go
-if cqrshtmx.IsHTMXRequest(r) {
-    // Return partial HTML
-} else {
-    // Return full page
-}
+// Render a fixed component
+app.Query("GetPage",
+    cqrshtmx.RenderTempl(myPageComponent()),
+)
 
-target := cqrshtmx.HTMXTarget(r)     // Target element ID
-trigger := cqrshtmx.HTMXTrigger(r)   // Trigger element ID
-prompt := cqrshtmx.HTMXPrompt(r)     // hx-prompt response
-url := cqrshtmx.HTMXCurrentURL(r)    // Current page URL
+// Map query result to a component
+app.Query("ListUsers",
+    cqrshtmx.DecodeJSONQuery(mapper),
+    cqrshtmx.RenderTemplResult(func(result []*User) cqrshtmx.TemplComponent {
+        return userListView(result)
+    }),
+)
 ```
+
+Works seamlessly with [templ-components](https://github.com/larsartmann/templ-components).
 
 ## Context Propagation
 
@@ -185,13 +265,24 @@ Auth errors map specially:
 - `ErrUnauthorized` → 401
 - `ErrForbidden` → 403
 
-For HTMX requests with auth errors, `DefaultErrorHandler` sets `HX-Redirect: /login` instead of returning an error body.
+For HTMX requests with auth errors, `DefaultErrorHandler` sets `HX-Redirect` to `LoginRedirect` (default: `/login`) instead of returning an error body. Configure with:
+
+```go
+cqrshtmx.LoginRedirect = "/auth/signin"  // package-level override
+
+app, _ := cqrshtmx.New(cqrshtmx.Config{
+    LoginRedirect: "/auth/signin",        // or via Config
+})
+```
 
 ## Middleware
 
 ```go
 // Context enrichment (applied once to your router)
 mux := app.Middleware()(router)
+
+// HTMX header parsing (applied once, stores in context)
+mux := cqrshtmx.HTMXMiddleware(mux)
 
 // Standalone Casbin authorization middleware
 mux.Handle("/admin", cqrshtmx.AuthorizeMiddleware(
@@ -200,7 +291,10 @@ mux.Handle("/admin", cqrshtmx.AuthorizeMiddleware(
 )(handler))
 
 // Chain multiple middleware
-chained := cqrshtmx.Chain(mw1, mw2, mw3)(finalHandler)
+chained := cqrshtmx.Chain(
+    cqrshtmx.HTMXMiddleware,
+    app.Middleware(),
+)(mux)
 ```
 
 ## License
