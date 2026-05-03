@@ -74,13 +74,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 			return
 		}
 
-		if a.userIDExtractor != nil {
-			userID := a.userIDExtractor(r)
-			if userID != "" {
-				r = r.WithContext(WithUserID(r.Context(), userID))
-			}
-		}
-
+		r = a.enrichUserID(r)
 		a.handleCommandDispatch(w, r, cmdType, cfg)
 	})
 }
@@ -103,13 +97,7 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 			return
 		}
 
-		if a.userIDExtractor != nil {
-			userID := a.userIDExtractor(r)
-			if userID != "" {
-				r = r.WithContext(WithUserID(r.Context(), userID))
-			}
-		}
-
+		r = a.enrichUserID(r)
 		a.handleQueryDispatch(w, r, qryType, cfg)
 	})
 }
@@ -118,6 +106,25 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 // with user identity. Apply this once to your router/mux.
 func (a *App) Middleware() func(http.Handler) http.Handler {
 	return ContextEnrichmentMiddleware(a.userIDExtractor)
+}
+
+// enrichUserID extracts the user ID if not already present in context.
+// This avoids duplicate extraction when both Middleware() and handlers are used.
+func (a *App) enrichUserID(r *http.Request) *http.Request {
+	if UserIDFromContext(r.Context()) != "" {
+		return r
+	}
+
+	if a.userIDExtractor == nil {
+		return r
+	}
+
+	userID := a.userIDExtractor(r)
+	if userID == "" {
+		return r
+	}
+
+	return r.WithContext(WithUserID(r.Context(), userID))
 }
 
 func buildHandlerConfig(opts []HandlerOption) *handlerConfig {
