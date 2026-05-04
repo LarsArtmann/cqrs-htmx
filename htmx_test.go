@@ -272,19 +272,21 @@ var _ = Describe("HTMXRequest context", func() {
 			r.Header.Set("HX-Current-URL", "https://example.com/page")
 
 			called := false
-			handler := cqrshtmx.HTMXMiddleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				called = true
-				h := cqrshtmx.HTMXFromContext(req.Context())
-				Expect(h).NotTo(BeNil())
-				Expect(h.IsHTMX).To(BeTrue())
-				Expect(h.IsBoosted).To(BeTrue())
-				Expect(h.IsHistoryRestore).To(BeFalse())
-				Expect(h.Target).To(Equal("main"))
-				Expect(h.TriggerID).To(Equal("btn"))
-				Expect(h.TriggerName).To(Equal("action"))
-				Expect(h.Prompt).To(Equal("yes"))
-				Expect(h.CurrentURL).To(Equal("https://example.com/page"))
-			}))
+			handler := cqrshtmx.HTMXMiddleware(
+				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					called = true
+					h := cqrshtmx.HTMXFromContext(req.Context())
+					Expect(h).NotTo(BeNil())
+					Expect(h.IsHTMX).To(BeTrue())
+					Expect(h.IsBoosted).To(BeTrue())
+					Expect(h.IsHistoryRestore).To(BeFalse())
+					Expect(h.Target).To(Equal("main"))
+					Expect(h.TriggerID).To(Equal("btn"))
+					Expect(h.TriggerName).To(Equal("action"))
+					Expect(h.Prompt).To(Equal("yes"))
+					Expect(h.CurrentURL).To(Equal("https://example.com/page"))
+				}),
+			)
 
 			handler.ServeHTTP(httptest.NewRecorder(), r)
 			Expect(called).To(BeTrue())
@@ -295,10 +297,12 @@ var _ = Describe("HTMXRequest context", func() {
 			r.Header.Set("HX-Request", "true")
 			r.Header.Set("HX-History-Restore-Request", "true")
 
-			handler := cqrshtmx.HTMXMiddleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				h := cqrshtmx.HTMXFromContext(req.Context())
-				Expect(h.IsHistoryRestore).To(BeTrue())
-			}))
+			handler := cqrshtmx.HTMXMiddleware(
+				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					h := cqrshtmx.HTMXFromContext(req.Context())
+					Expect(h.IsHistoryRestore).To(BeTrue())
+				}),
+			)
 
 			handler.ServeHTTP(httptest.NewRecorder(), r)
 		})
@@ -327,11 +331,13 @@ var _ = Describe("HTMXRequest context", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.Header.Set("HX-Request", "true")
 
-			handler := cqrshtmx.HTMXMiddleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				Expect(cqrshtmx.RenderPartial(req)).To(BeTrue())
-				h := cqrshtmx.HTMXFromContext(req.Context())
-				Expect(h.RenderPartial()).To(BeTrue())
-			}))
+			handler := cqrshtmx.HTMXMiddleware(
+				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					Expect(cqrshtmx.RenderPartial(req)).To(BeTrue())
+					h := cqrshtmx.HTMXFromContext(req.Context())
+					Expect(h.RenderPartial()).To(BeTrue())
+				}),
+			)
 
 			handler.ServeHTTP(httptest.NewRecorder(), r)
 		})
@@ -358,12 +364,14 @@ var _ = Describe("HTMXRequest context", func() {
 			r.Header.Set("HX-Trigger", "btn")
 			r.Header.Set("HX-Boosted", "true")
 
-			handler := cqrshtmx.HTMXMiddleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				Expect(cqrshtmx.IsHTMXRequest(req)).To(BeTrue())
-				Expect(cqrshtmx.IsBoosted(req)).To(BeTrue())
-				Expect(cqrshtmx.HTMXTarget(req)).To(Equal("main"))
-				Expect(cqrshtmx.HTMXTrigger(req)).To(Equal("btn"))
-			}))
+			handler := cqrshtmx.HTMXMiddleware(
+				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					Expect(cqrshtmx.IsHTMXRequest(req)).To(BeTrue())
+					Expect(cqrshtmx.IsBoosted(req)).To(BeTrue())
+					Expect(cqrshtmx.HTMXTarget(req)).To(Equal("main"))
+					Expect(cqrshtmx.HTMXTrigger(req)).To(Equal("btn"))
+				}),
+			)
 
 			handler.ServeHTTP(httptest.NewRecorder(), r)
 		})

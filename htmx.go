@@ -49,14 +49,14 @@ const (
 // HTMXRequest holds parsed HTMX request headers, stored in context
 // by HTMXMiddleware. Use HTMXFromContext to retrieve it.
 type HTMXRequest struct {
-	IsHTMX         bool
-	IsBoosted      bool
+	IsHTMX           bool
+	IsBoosted        bool
 	IsHistoryRestore bool
-	Target         string
-	TriggerID      string
-	TriggerName    string
-	Prompt         string
-	CurrentURL     string
+	Target           string
+	TriggerID        string
+	TriggerName      string
+	Prompt           string
+	CurrentURL       string
 }
 
 // RenderPartial returns true when a partial HTML response should be rendered.
@@ -68,14 +68,14 @@ func (h *HTMXRequest) RenderPartial() bool {
 // parseHTMXRequest extracts all HTMX headers from the request.
 func parseHTMXRequest(r *http.Request) *HTMXRequest {
 	return &HTMXRequest{
-		IsHTMX:         r.Header.Get(headerRequest) == "true",
-		IsBoosted:      r.Header.Get(headerBoosted) == "true",
+		IsHTMX:           r.Header.Get(headerRequest) == "true",
+		IsBoosted:        r.Header.Get(headerBoosted) == "true",
 		IsHistoryRestore: r.Header.Get(headerHistoryRestore) == "true",
-		Target:         r.Header.Get(headerTarget),
-		TriggerID:      r.Header.Get(headerTriggerID),
-		TriggerName:    r.Header.Get(headerTriggerName),
-		Prompt:         r.Header.Get(headerPrompt),
-		CurrentURL:     r.Header.Get(headerCurrentURL),
+		Target:           r.Header.Get(headerTarget),
+		TriggerID:        r.Header.Get(headerTriggerID),
+		TriggerName:      r.Header.Get(headerTriggerName),
+		Prompt:           r.Header.Get(headerPrompt),
+		CurrentURL:       r.Header.Get(headerCurrentURL),
 	}
 }
 
