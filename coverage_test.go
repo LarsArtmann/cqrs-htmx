@@ -372,6 +372,26 @@ var _ = Describe("Coverage Gaps", func() {
 		})
 	})
 
+	Describe("Command handler with nil commands", func() {
+		It("returns error when command dispatcher is nil", func() {
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: query.NewDispatcher()})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Code).To(Equal(http.StatusInternalServerError))
+		})
+	})
+
 	Describe("SetTriggerWithDetail merge", func() {
 		It("merges with existing JSON trigger data", func() {
 			w := httptest.NewRecorder()
@@ -500,6 +520,148 @@ var _ = Describe("Coverage Gaps", func() {
 
 			handler.ServeHTTP(w, r)
 			Expect(w.Header().Get("HX-Redirect")).To(Equal("/users"))
+		})
+	})
+
+	Describe("NotifyEventBuilder methods", func() {
+		It("Error triggers notification with custom event", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+				cqrshtmx.NotifyWithEvent("showToast").Error("Failed"),
+			)
+
+			r := httptest.NewRequestWithContext(
+				context.Background(),
+				http.MethodPost,
+				"/users",
+				strings.NewReader(`{}`),
+			)
+			r.Header.Set("HX-Request", "true")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("showToast"))
+			Expect(trigger).To(ContainSubstring("error"))
+		})
+
+		It("Warning triggers notification with custom event", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+				cqrshtmx.NotifyWithEvent("showToast").Warning("Careful"),
+			)
+
+			r := httptest.NewRequestWithContext(
+				context.Background(),
+				http.MethodPost,
+				"/users",
+				strings.NewReader(`{}`),
+			)
+			r.Header.Set("HX-Request", "true")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("warning"))
+		})
+
+		It("Info triggers notification with custom event", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+				cqrshtmx.NotifyWithEvent("showToast").Info("FYI"),
+			)
+
+			r := httptest.NewRequestWithContext(
+				context.Background(),
+				http.MethodPost,
+				"/users",
+				strings.NewReader(`{}`),
+			)
+			r.Header.Set("HX-Request", "true")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("info"))
+		})
+	})
+
+	Describe("DefaultErrorHandlerWithRedirect empty loginRedirect", func() {
+		It("uses default /login when empty string is passed", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Request", "true")
+			cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, cqrshtmx.ErrUnauthorized, "")
+			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+		})
+	})
+
+	Describe("HTMX accessor fallback paths without middleware", func() {
+		It("IsHistoryRestore reads from header directly", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-History-Restore-Request", "true")
+			Expect(cqrshtmx.IsHistoryRestore(r)).To(BeTrue())
+		})
+
+		It("HTMXTriggerName reads from header directly", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Trigger-Name", "submit-btn")
+			Expect(cqrshtmx.HTMXTriggerName(r)).To(Equal("submit-btn"))
+		})
+
+		It("HTMXPrompt reads from header directly", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Prompt", "confirmed")
+			Expect(cqrshtmx.HTMXPrompt(r)).To(Equal("confirmed"))
+		})
+
+		It("HTMXCurrentURL reads from header directly", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Current-URL", "https://example.com/page")
+			Expect(cqrshtmx.HTMXCurrentURL(r)).To(Equal("https://example.com/page"))
+		})
+	})
+
+	Describe("setTriggerWithDetail fallback merge", func() {
+		It("falls back to comma when existing header is not JSON", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			resp := cqrshtmx.NewResponse(w, r)
+			w.Header().Set("HX-Trigger", "not-json")
+			resp.TriggerWithDetail("newEvent", map[string]string{"x": "1"})
+			resp.Apply()
+			trigger := w.Header().Get("HX-Trigger")
+			Expect(trigger).To(ContainSubstring("newEvent"))
 		})
 	})
 })

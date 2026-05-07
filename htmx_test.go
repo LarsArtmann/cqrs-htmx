@@ -362,6 +362,10 @@ var _ = Describe("HTMXRequest context", func() {
 			r.Header.Set("HX-Target", "main")
 			r.Header.Set("HX-Trigger", "btn")
 			r.Header.Set("HX-Boosted", "true")
+			r.Header.Set("HX-History-Restore-Request", "true")
+			r.Header.Set("HX-Trigger-Name", "action-btn")
+			r.Header.Set("HX-Prompt", "yes")
+			r.Header.Set("HX-Current-URL", "https://example.com/page")
 
 			handler := cqrshtmx.HTMXMiddleware(
 				http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
@@ -369,6 +373,10 @@ var _ = Describe("HTMXRequest context", func() {
 					Expect(cqrshtmx.IsBoosted(req)).To(BeTrue())
 					Expect(cqrshtmx.HTMXTarget(req)).To(Equal("main"))
 					Expect(cqrshtmx.HTMXTrigger(req)).To(Equal("btn"))
+					Expect(cqrshtmx.IsHistoryRestore(req)).To(BeTrue())
+					Expect(cqrshtmx.HTMXTriggerName(req)).To(Equal("action-btn"))
+					Expect(cqrshtmx.HTMXPrompt(req)).To(Equal("yes"))
+					Expect(cqrshtmx.HTMXCurrentURL(req)).To(Equal("https://example.com/page"))
 				}),
 			)
 
