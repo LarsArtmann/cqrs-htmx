@@ -55,7 +55,7 @@ func (a *App) executePreDispatchChecks(
 func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) {
 	applyHTMXResponse(w, r, cfg)
 
-	if cfg.redirect == "" && cfg.trigger == "" && cfg.pushURL == "" && len(cfg.triggerDetail) == 0 {
+	if cfg.hasNoResponse() {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
@@ -100,7 +100,7 @@ func (a *App) handleQueryDispatch(
 		return
 	}
 
-	if cfg.redirect == "" && cfg.trigger == "" && cfg.pushURL == "" {
+	if cfg.hasNoResponse() {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }

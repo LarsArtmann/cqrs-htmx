@@ -108,32 +108,27 @@ func (resp *Response) TriggerWithDetail(name string, detail any) *Response {
 
 // NotifySuccess triggers a success notification via HTMX event.
 func (resp *Response) NotifySuccess(message string) *Response {
-	return resp.TriggerWithDetail(DefaultNotificationEvent, map[string]string{
-		"level":   "success",
-		"message": message,
-	})
+	return resp.triggerNotification("success", message)
 }
 
 // NotifyError triggers an error notification via HTMX event.
 func (resp *Response) NotifyError(message string) *Response {
-	return resp.TriggerWithDetail(DefaultNotificationEvent, map[string]string{
-		"level":   "error",
-		"message": message,
-	})
+	return resp.triggerNotification("error", message)
 }
 
 // NotifyWarning triggers a warning notification via HTMX event.
 func (resp *Response) NotifyWarning(message string) *Response {
-	return resp.TriggerWithDetail(DefaultNotificationEvent, map[string]string{
-		"level":   "warning",
-		"message": message,
-	})
+	return resp.triggerNotification("warning", message)
 }
 
 // NotifyInfo triggers an info notification via HTMX event.
 func (resp *Response) NotifyInfo(message string) *Response {
+	return resp.triggerNotification("info", message)
+}
+
+func (resp *Response) triggerNotification(level, message string) *Response {
 	return resp.TriggerWithDetail(DefaultNotificationEvent, map[string]string{
-		"level":   "info",
+		"level":   level,
 		"message": message,
 	})
 }

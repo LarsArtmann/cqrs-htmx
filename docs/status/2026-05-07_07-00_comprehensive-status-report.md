@@ -16,32 +16,32 @@ All 18 production features are **FULLY_FUNCTIONAL**. Lint is at **0 issues** (do
 
 ### Production Code (10 source files, 1271 lines)
 
-| File | Lines | Purpose | Status |
-|------|-------|---------|--------|
-| `app.go` | 141 | App builder, Config, Command(), Query(), enrichUserID() | ✅ Complete |
-| `handler.go` | 106 | handleCommandDispatch(), handleQueryDispatch() | ✅ Complete |
-| `options.go` | 249 | HandlerOption, all decoders, Render/RenderTempl, authz helpers | ✅ Complete |
-| `response.go` | 184 | HTMX response builder (fluent API) + notification methods | ✅ Complete |
-| `authz.go` | 76 | Casbin authorization (Authorize, Enforce, AuthorizeMiddleware) | ✅ Complete |
-| `context.go` | 42 | Context enrichment (user ID → CQRS metadata) | ✅ Complete |
-| `errors.go` | 119 | CQRS error → HTTP status mapping, sentinels, LoginRedirect | ✅ Complete |
-| `htmx.go` | 171 | HTMXRequest struct, accessors, context storage, RenderPartial | ✅ Complete |
-| `middleware.go` | 47 | HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain) | ✅ Complete |
-| `notify.go` | 36 | Notification HandlerOptions + DefaultNotificationEvent | ✅ Complete |
+| File            | Lines | Purpose                                                              | Status      |
+| --------------- | ----- | -------------------------------------------------------------------- | ----------- |
+| `app.go`        | 141   | App builder, Config, Command(), Query(), enrichUserID()              | ✅ Complete |
+| `handler.go`    | 106   | handleCommandDispatch(), handleQueryDispatch()                       | ✅ Complete |
+| `options.go`    | 249   | HandlerOption, all decoders, Render/RenderTempl, authz helpers       | ✅ Complete |
+| `response.go`   | 184   | HTMX response builder (fluent API) + notification methods            | ✅ Complete |
+| `authz.go`      | 76    | Casbin authorization (Authorize, Enforce, AuthorizeMiddleware)       | ✅ Complete |
+| `context.go`    | 42    | Context enrichment (user ID → CQRS metadata)                         | ✅ Complete |
+| `errors.go`     | 119   | CQRS error → HTTP status mapping, sentinels, LoginRedirect           | ✅ Complete |
+| `htmx.go`       | 171   | HTMXRequest struct, accessors, context storage, RenderPartial        | ✅ Complete |
+| `middleware.go` | 47    | HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain) | ✅ Complete |
+| `notify.go`     | 36    | Notification HandlerOptions + DefaultNotificationEvent               | ✅ Complete |
 
 ### Test Code (9 test files, 2274 lines, 136 specs)
 
-| File | Lines | Specs | Purpose | Status |
-|------|-------|-------|---------|--------|
-| `suite_test.go` | 14 | 1 | Ginkgo suite entry | ✅ |
-| `app_test.go` | 453 | 21 | App builder, command/query, auth, handler options | ✅ |
-| `bdd_test.go` | 470 | 16 | Consumer integration scenarios (BDD) | ✅ |
-| `htmx_test.go` | 451 | 49 | HTMX accessors, Response builder, SwapStrategy, context | ✅ |
-| `coverage_test.go` | 477 | 24 | Coverage gap tests, edge cases, notification helpers | ✅ |
-| `integration_test.go` | 265 | 8 | Full E2E CQRS + HTMX + Casbin flow | ✅ |
-| `middleware_test.go` | 109 | 4 | ContextEnrichmentMiddleware, Chain | ✅ |
-| `context_test.go` | 55 | 6 | WithUserID, UserIDFromContext, EventOptionsFromContext | ✅ |
-| `errors_test.go` | 80 | 8 | MapError, DefaultErrorHandler, sentinel errors | ✅ |
+| File                  | Lines | Specs | Purpose                                                 | Status |
+| --------------------- | ----- | ----- | ------------------------------------------------------- | ------ |
+| `suite_test.go`       | 14    | 1     | Ginkgo suite entry                                      | ✅     |
+| `app_test.go`         | 453   | 21    | App builder, command/query, auth, handler options       | ✅     |
+| `bdd_test.go`         | 470   | 16    | Consumer integration scenarios (BDD)                    | ✅     |
+| `htmx_test.go`        | 451   | 49    | HTMX accessors, Response builder, SwapStrategy, context | ✅     |
+| `coverage_test.go`    | 477   | 24    | Coverage gap tests, edge cases, notification helpers    | ✅     |
+| `integration_test.go` | 265   | 8     | Full E2E CQRS + HTMX + Casbin flow                      | ✅     |
+| `middleware_test.go`  | 109   | 4     | ContextEnrichmentMiddleware, Chain                      | ✅     |
+| `context_test.go`     | 55    | 6     | WithUserID, UserIDFromContext, EventOptionsFromContext  | ✅     |
+| `errors_test.go`      | 80    | 8     | MapError, DefaultErrorHandler, sentinel errors          | ✅     |
 
 ### Session Accomplishments (9 commits, this session)
 
@@ -70,12 +70,12 @@ All 18 production features are **FULLY_FUNCTIONAL**. Lint is at **0 issues** (do
 
 The TODO_LIST.md was written BEFORE the lint-zero session and the self-review session. Several items are marked `[ ]` but have been completed:
 
-| Item | Marked | Actual Status |
-|------|--------|---------------|
-| Extract `"true"` string constant | `[ ]` | ✅ Done as `headerTrue` in commit from lint-zero session |
-| Add doc comment to SwapStrategy const block | `[ ]` | ✅ Done in lint-zero session |
-| Deduplicate notification test boilerplate | `[ ]` | ✅ Done — `testNotificationTrigger` helper + NotifySuccess converted |
-| Consistent test naming | `[ ]` | ✅ Done — consolidated to `bdd*` prefix |
+| Item                                        | Marked | Actual Status                                                        |
+| ------------------------------------------- | ------ | -------------------------------------------------------------------- |
+| Extract `"true"` string constant            | `[ ]`  | ✅ Done as `headerTrue` in commit from lint-zero session             |
+| Add doc comment to SwapStrategy const block | `[ ]`  | ✅ Done in lint-zero session                                         |
+| Deduplicate notification test boilerplate   | `[ ]`  | ✅ Done — `testNotificationTrigger` helper + NotifySuccess converted |
+| Consistent test naming                      | `[ ]`  | ✅ Done — consolidated to `bdd*` prefix                              |
 
 ### FEATURES.md is STALE
 
@@ -165,48 +165,48 @@ The library compiles, passes all tests, has zero lint issues, and all features w
 
 ### Tier 1: Critical — Do Immediately (1-2 hours total)
 
-| # | Task | Impact | Effort | Rationale |
-|---|------|--------|--------|-----------|
-| 1 | **Update TODO_LIST.md** — Mark 4 stale items as done | High | 5min | Current state is misleading |
-| 2 | **Update FEATURES.md** — Add `DecodeFormQuery`, fix coverage/test count | High | 5min | Public-facing doc is wrong |
-| 3 | **Update README.md** — Add `DecodeFormQuery` to decoder table | Medium | 5min | API docs are incomplete |
-| 4 | **Remove unused first param from `testNotificationTrigger`** | Low | 2min | Dead code in helper |
-| 5 | **Verify XSS safety in DefaultErrorHandler** | High | 5min | Security: confirm `html.EscapeString` is sufficient |
+| #   | Task                                                                    | Impact | Effort | Rationale                                           |
+| --- | ----------------------------------------------------------------------- | ------ | ------ | --------------------------------------------------- |
+| 1   | **Update TODO_LIST.md** — Mark 4 stale items as done                    | High   | 5min   | Current state is misleading                         |
+| 2   | **Update FEATURES.md** — Add `DecodeFormQuery`, fix coverage/test count | High   | 5min   | Public-facing doc is wrong                          |
+| 3   | **Update README.md** — Add `DecodeFormQuery` to decoder table           | Medium | 5min   | API docs are incomplete                             |
+| 4   | **Remove unused first param from `testNotificationTrigger`**            | Low    | 2min   | Dead code in helper                                 |
+| 5   | **Verify XSS safety in DefaultErrorHandler**                            | High   | 5min   | Security: confirm `html.EscapeString` is sufficient |
 
 ### Tier 2: Important — Do This Week (4-8 hours)
 
-| # | Task | Impact | Effort | Rationale |
-|---|------|--------|--------|-----------|
-| 6 | **Move LoginRedirect to per-App** — Eliminate `defaultLoginRedirect` global | High | 1h | Race condition risk |
-| 7 | **Move NotificationEvent to per-App** — Eliminate `DefaultNotificationEvent` global | High | 1h | Race condition risk |
-| 8 | **Extract Casbin interface** — `Enforcer` interface with `Enforce(...)` | Medium | 2h | Testability + decoupling |
-| 9 | **Add godoc examples** — `SwapStrategy`, `Config`, `Response`, `HTMXRequest` | Medium | 2h | GoDoc quality |
-| 10 | **Add CI/CD lint enforcement** — GitHub Actions with `golangci-lint` | High | 1h | Prevent regression |
+| #   | Task                                                                                | Impact | Effort | Rationale                |
+| --- | ----------------------------------------------------------------------------------- | ------ | ------ | ------------------------ |
+| 6   | **Move LoginRedirect to per-App** — Eliminate `defaultLoginRedirect` global         | High   | 1h     | Race condition risk      |
+| 7   | **Move NotificationEvent to per-App** — Eliminate `DefaultNotificationEvent` global | High   | 1h     | Race condition risk      |
+| 8   | **Extract Casbin interface** — `Enforcer` interface with `Enforce(...)`             | Medium | 2h     | Testability + decoupling |
+| 9   | **Add godoc examples** — `SwapStrategy`, `Config`, `Response`, `HTMXRequest`        | Medium | 2h     | GoDoc quality            |
+| 10  | **Add CI/CD lint enforcement** — GitHub Actions with `golangci-lint`                | High   | 1h     | Prevent regression       |
 
 ### Tier 3: Nice to Have — Do Eventually
 
-| # | Task | Impact | Effort | Rationale |
-|---|------|--------|--------|-----------|
-| 11 | **Add dispatch lifecycle hooks** — `OnBeforeDispatch`/`OnAfterDispatch` | High | 3h | Observability |
-| 12 | **Add JSON error response option** — Alternative to plain text | Medium | 1h | API flexibility |
-| 13 | **Add correlation ID propagation** — `WithCorrelationID`/`CorrelationIDFromContext` | Medium | 2h | Distributed tracing |
-| 14 | **Extract test builder** — Reduce boilerplate across test files | Low | 2h | Maintainability |
-| 15 | **Add benchmark tests** — `MapError`, `parseHTMXRequest`, `HTMXMiddleware` | Medium | 1h | Performance baseline |
-| 16 | **Create CONTRIBUTING.md** — Document conventions | Low | 1h | Open source readiness |
-| 17 | **Document `.golangci.yml` decisions** — Inline comments | Low | 15min | Config readability |
-| 18 | **Review `sync.Once` race conditions** — Verify concurrent first-call safety | Medium | 30min | Correctness |
-| 19 | **Add pre-commit hook** — `golangci-lint run` + `go test` | Low | 30min | Developer experience |
-| 20 | **Fix LSP stale cache** — Investigate why exclusions aren't picked up | Low | 1h | DX: removes false warnings |
+| #   | Task                                                                                | Impact | Effort | Rationale                  |
+| --- | ----------------------------------------------------------------------------------- | ------ | ------ | -------------------------- |
+| 11  | **Add dispatch lifecycle hooks** — `OnBeforeDispatch`/`OnAfterDispatch`             | High   | 3h     | Observability              |
+| 12  | **Add JSON error response option** — Alternative to plain text                      | Medium | 1h     | API flexibility            |
+| 13  | **Add correlation ID propagation** — `WithCorrelationID`/`CorrelationIDFromContext` | Medium | 2h     | Distributed tracing        |
+| 14  | **Extract test builder** — Reduce boilerplate across test files                     | Low    | 2h     | Maintainability            |
+| 15  | **Add benchmark tests** — `MapError`, `parseHTMXRequest`, `HTMXMiddleware`          | Medium | 1h     | Performance baseline       |
+| 16  | **Create CONTRIBUTING.md** — Document conventions                                   | Low    | 1h     | Open source readiness      |
+| 17  | **Document `.golangci.yml` decisions** — Inline comments                            | Low    | 15min  | Config readability         |
+| 18  | **Review `sync.Once` race conditions** — Verify concurrent first-call safety        | Medium | 30min  | Correctness                |
+| 19  | **Add pre-commit hook** — `golangci-lint run` + `go test`                           | Low    | 30min  | Developer experience       |
+| 20  | **Fix LSP stale cache** — Investigate why exclusions aren't picked up               | Low    | 1h     | DX: removes false warnings |
 
 ### Tier 4: Future — Consider for v2
 
-| # | Task | Impact | Effort | Rationale |
-|---|------|--------|--------|-----------|
-| 21 | **Add timeout propagation** — Context deadlines for dispatch | Medium | 2h | Production hardening |
-| 22 | **Add request validation middleware** — Schema validation in decode pipeline | Medium | 3h | Consumer convenience |
-| 23 | **Refactor `handlerConfig`** — Split auth/response/decoder into focused structs | Low | 3h | Clarity |
-| 24 | **Add `SwapStrategy` type-safe enum** — Sealed interface pattern | Low | 1h | Type safety |
-| 25 | **Consider functional options for `Config`** — Replace optional struct fields | Low | 2h | Builder pattern |
+| #   | Task                                                                            | Impact | Effort | Rationale            |
+| --- | ------------------------------------------------------------------------------- | ------ | ------ | -------------------- |
+| 21  | **Add timeout propagation** — Context deadlines for dispatch                    | Medium | 2h     | Production hardening |
+| 22  | **Add request validation middleware** — Schema validation in decode pipeline    | Medium | 3h     | Consumer convenience |
+| 23  | **Refactor `handlerConfig`** — Split auth/response/decoder into focused structs | Low    | 3h     | Clarity              |
+| 24  | **Add `SwapStrategy` type-safe enum** — Sealed interface pattern                | Low    | 1h     | Type safety          |
+| 25  | **Consider functional options for `Config`** — Replace optional struct fields   | Low    | 2h     | Builder pattern      |
 
 ---
 
@@ -215,11 +215,13 @@ The library compiles, passes all tests, has zero lint issues, and all features w
 **Is `DefaultErrorHandler`'s XSS protection actually correct?**
 
 `errors.go:118` does:
+
 ```go
 _, _ = w.Write([]byte(html.EscapeString(err.Error())))
 ```
 
 This HTML-escapes the error message before writing. But:
+
 - The `Content-Type` is set to `text/plain; charset=utf-8` — for plain text, HTML escaping is unnecessary and distorts error messages (e.g., `"foo < bar"` becomes `"foo &lt; bar"`).
 - If the content type were `text/html`, HTML escaping would be correct.
 - The real XSS risk is if a consumer passes user input into an error that ends up in an HTML-rendered HTMX response. But the default handler writes plain text, not HTML.
@@ -230,17 +232,17 @@ This HTML-escapes the error message before writing. But:
 
 ## Metrics Dashboard
 
-| Metric | Value | Trend |
-|--------|-------|-------|
-| Production files | 10 | Stable |
-| Production lines | 1271 | Stable |
-| Test files | 9 | Stable |
-| Test lines | 2274 | Stable |
-| Test specs (It()) | 136 | +1 (DecodeFormQuery) |
-| golangci-lint issues | **0** | ↓ from 103 |
-| Coverage | **92.6%** | Stable |
-| Banned dependencies | 0 | Clean |
-| `go vet` issues | 0 | Clean |
-| Race detector | Clean | Clean |
-| Open TODO items | 25 | Prioritized above |
-| Stale docs | 3 (TODO_LIST, FEATURES, README) | Needs update |
+| Metric               | Value                           | Trend                |
+| -------------------- | ------------------------------- | -------------------- |
+| Production files     | 10                              | Stable               |
+| Production lines     | 1271                            | Stable               |
+| Test files           | 9                               | Stable               |
+| Test lines           | 2274                            | Stable               |
+| Test specs (It())    | 136                             | +1 (DecodeFormQuery) |
+| golangci-lint issues | **0**                           | ↓ from 103           |
+| Coverage             | **92.6%**                       | Stable               |
+| Banned dependencies  | 0                               | Clean                |
+| `go vet` issues      | 0                               | Clean                |
+| Race detector        | Clean                           | Clean                |
+| Open TODO items      | 25                              | Prioritized above    |
+| Stale docs           | 3 (TODO_LIST, FEATURES, README) | Needs update         |

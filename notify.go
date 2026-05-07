@@ -5,32 +5,27 @@ var DefaultNotificationEvent = "showMessage"
 
 // NotifySuccess triggers an HTMX notification with success level.
 func NotifySuccess(message string) HandlerOption {
-	return TriggerWithDetail(DefaultNotificationEvent, map[string]string{
-		"level":   "success",
-		"message": message,
-	})
+	return notifyOption("success", message)
 }
 
 // NotifyError triggers an HTMX notification with error level.
 func NotifyError(message string) HandlerOption {
-	return TriggerWithDetail(DefaultNotificationEvent, map[string]string{
-		"level":   "error",
-		"message": message,
-	})
+	return notifyOption("error", message)
 }
 
 // NotifyWarning triggers an HTMX notification with warning level.
 func NotifyWarning(message string) HandlerOption {
-	return TriggerWithDetail(DefaultNotificationEvent, map[string]string{
-		"level":   "warning",
-		"message": message,
-	})
+	return notifyOption("warning", message)
 }
 
 // NotifyInfo triggers an HTMX notification with info level.
 func NotifyInfo(message string) HandlerOption {
+	return notifyOption("info", message)
+}
+
+func notifyOption(level, message string) HandlerOption {
 	return TriggerWithDetail(DefaultNotificationEvent, map[string]string{
-		"level":   "info",
+		"level":   level,
 		"message": message,
 	})
 }
