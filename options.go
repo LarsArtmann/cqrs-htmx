@@ -210,6 +210,9 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 	if cfg.authorize || cfg.requireAuth {
 		userID := UserIDFromContext(r.Context())
 		if userID == "" {
+			if cfg.authorize {
+				return fmt.Errorf("%w: %s/%s", ErrUnauthorized, cfg.resource, cfg.action)
+			}
 			return ErrUnauthorized
 		}
 
