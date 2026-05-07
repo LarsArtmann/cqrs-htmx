@@ -86,10 +86,7 @@ linters:
         - 'github\.com/larsartmann/cqrs-htmx_test\.(testCreateUserCmd|bddCreateUserCmd)$'
     gocritic:
       disabled-checks:
-        - dupImport
         - ifElseChain
-        - octalLiteral
-        - whyNoLint
   exclusions:
     rules:
       - linters:
