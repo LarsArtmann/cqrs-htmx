@@ -82,12 +82,27 @@ linters:
     exhaustruct:
       exclude:
         - os/exec.Cmd
+        - 'github\.com/larsartmann/cqrs-htmx\.(Config|handlerConfig)$'
+        - 'github\.com/larsartmann/cqrs-htmx_test\.(testCreateUserCmd|bddCreateUserCmd)$'
     gocritic:
       disabled-checks:
         - dupImport
         - ifElseChain
         - octalLiteral
         - whyNoLint
+  exclusions:
+    rules:
+      - linters:
+          - gochecknoglobals
+        text: "is a global variable"
+        path: "(errors|notify)\\.go$"
+      - linters:
+          - revive
+        text: "dot-imports"
+        path: "_test\\.go"
+      - linters:
+          - wrapcheck
+        path: "_test\\.go"
 formatters:
   enable:
     - gci
@@ -97,8 +112,3 @@ formatters:
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
-  exclude-rules:
-    - linters:
-        - gochecknoglobals
-      text: "is a global variable"
-      path: "(errors|notify)\\.go$"

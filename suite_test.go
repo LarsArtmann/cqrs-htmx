@@ -8,6 +8,7 @@ import (
 )
 
 func TestCQRSHTMX(t *testing.T) {
+	t.Parallel()
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "CQRS-HTMX Suite")
 }

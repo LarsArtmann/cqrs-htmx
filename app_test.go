@@ -20,6 +20,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const testUserJSONBody = `{"email":"test@example.com","name":"Test"}`
+
 // Test command and query types for integration tests.
 
 type testCreateUserCmd struct {
@@ -89,7 +91,7 @@ var _ = Describe("App", func() {
 		BeforeEach(func() {
 			disp := command.NewDispatcher()
 			dispatched = false
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				dispatched = true
 				return nil
 			})
@@ -97,7 +99,7 @@ var _ = Describe("App", func() {
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(r *http.Request) string { return "test-user" },
+				UserIDExtractor: func(_ *http.Request) string { return "test-user" },
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -156,7 +158,7 @@ var _ = Describe("App", func() {
 		BeforeEach(func() {
 			enf = newTestEnforcer()
 			disp = command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
 
@@ -178,7 +180,7 @@ var _ = Describe("App", func() {
 				}),
 			)
 
-			body := `{"email":"test@example.com","name":"Test"}`
+			body := testUserJSONBody
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
 			r.Header.Set("X-User-ID", "admin")
 			w := httptest.NewRecorder()
@@ -196,7 +198,7 @@ var _ = Describe("App", func() {
 				}),
 			)
 
-			body := `{"email":"test@example.com","name":"Test"}`
+			body := testUserJSONBody
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
 			r.Header.Set("X-User-ID", "viewer")
 			w := httptest.NewRecorder()
@@ -223,7 +225,7 @@ var _ = Describe("App", func() {
 
 		BeforeEach(func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
 
@@ -236,13 +238,13 @@ var _ = Describe("App", func() {
 
 		It("sets HX-Trigger header with Trigger option", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 				cqrshtmx.Trigger("userCreated"),
 			)
 
-			body := `{"email":"test@example.com","name":"Test"}`
+			body := testUserJSONBody
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
 			r.Header.Set("HX-Request", "true")
 			w := httptest.NewRecorder()
@@ -253,7 +255,7 @@ var _ = Describe("App", func() {
 
 		It("sets HX-Push-Url header with PushURL option", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 				cqrshtmx.PushURL("/users"),
@@ -270,7 +272,7 @@ var _ = Describe("App", func() {
 
 		It("sets HX-Redirect header with Redirect option for HTMX requests", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 				cqrshtmx.Redirect("/users"),
@@ -291,7 +293,7 @@ var _ = Describe("App", func() {
 
 		BeforeEach(func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return map[string]string{"email": "test@example.com", "name": "Test"}, nil
 			})
 
@@ -304,10 +306,10 @@ var _ = Describe("App", func() {
 
 		It("dispatches a query and renders the result", func() {
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, result any) error {
+				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
 					return json.NewEncoder(w).Encode(result)
 				}),
 			)
@@ -330,13 +332,13 @@ var _ = Describe("App", func() {
 			disp := command.NewDispatcher()
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(r *http.Request) string { return "user-1" },
+				UserIDExtractor: func(_ *http.Request) string { return "user-1" },
 			})
 			Expect(err).NotTo(HaveOccurred())
 
 			var capturedUserID string
 			handler := app.Middleware()(
-				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 					capturedUserID = cqrshtmx.UserIDFromContext(r.Context())
 				}),
 			)
@@ -375,10 +377,10 @@ var _ = Describe("Authorization", func() {
 		It("allows authorized requests through", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(r *http.Request) string { return "admin" })
+				func(_ *http.Request) string { return "admin" })
 
 			called := false
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 				called = true
 			}))
 
@@ -391,10 +393,10 @@ var _ = Describe("Authorization", func() {
 		It("blocks unauthorized requests", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "create",
-				func(r *http.Request) string { return "viewer" })
+				func(_ *http.Request) string { return "viewer" })
 
 			called := false
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 				called = true
 			}))
 
@@ -408,10 +410,10 @@ var _ = Describe("Authorization", func() {
 		It("blocks unauthenticated requests", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(r *http.Request) string { return "" })
+				func(_ *http.Request) string { return "" })
 
 			called := false
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 				called = true
 			}))
 
@@ -428,7 +430,7 @@ var _ = Describe("Handler Options", func() {
 	Describe("RequireAuth", func() {
 		It("rejects requests without user ID", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
 
@@ -439,7 +441,7 @@ var _ = Describe("Handler Options", func() {
 
 			handler := app.Command("CreateUser",
 				cqrshtmx.RequireAuth(),
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 			)

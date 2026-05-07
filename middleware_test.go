@@ -22,10 +22,10 @@ var _ = Describe("Middleware", func() {
 		})
 
 		It("enriches context with user ID from extractor", func() {
-			extractor := func(r *http.Request) string { return "user-42" }
+			extractor := func(_ *http.Request) string { return "user-42" }
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 				nextCalled = true
 				userID = cqrshtmx.UserIDFromContext(r.Context())
 			}))
@@ -39,10 +39,10 @@ var _ = Describe("Middleware", func() {
 		})
 
 		It("does not set user ID when extractor returns empty", func() {
-			extractor := func(r *http.Request) string { return "" }
+			extractor := func(_ *http.Request) string { return "" }
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 				nextCalled = true
 				userID = cqrshtmx.UserIDFromContext(r.Context())
 			}))
@@ -58,7 +58,7 @@ var _ = Describe("Middleware", func() {
 		It("handles nil extractor gracefully", func() {
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 				nextCalled = true
 				userID = cqrshtmx.UserIDFromContext(r.Context())
 			}))
@@ -92,7 +92,7 @@ var _ = Describe("Middleware", func() {
 				})
 			}
 
-			final := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			final := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 				order = append(order, "handler")
 			})
 

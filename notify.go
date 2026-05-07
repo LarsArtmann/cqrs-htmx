@@ -1,5 +1,6 @@
 package cqrshtmx
 
+// DefaultNotificationEvent is the default HTMX trigger event name for client-side notifications.
 var DefaultNotificationEvent = "showMessage"
 
 // NotifySuccess triggers an HTMX notification with success level.

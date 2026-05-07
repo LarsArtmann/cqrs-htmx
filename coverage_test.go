@@ -28,11 +28,41 @@ func (m *mockTemplComponent) Render(_ context.Context, w io.Writer) error {
 	return err
 }
 
+func testNotificationTrigger(_ string, opt cqrshtmx.HandlerOption, expectedLevel string) {
+	disp := command.NewDispatcher()
+	_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+		return nil
+	})
+
+	app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+	Expect(err).NotTo(HaveOccurred())
+
+	handler := app.Command("CreateUser",
+		cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
+			return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+		}),
+		opt,
+	)
+
+	r := httptest.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"/users",
+		strings.NewReader(`{}`),
+	)
+	r.Header.Set("HX-Request", "true")
+	w := httptest.NewRecorder()
+
+	handler.ServeHTTP(w, r)
+	trigger := w.Header().Get("HX-Trigger")
+	Expect(trigger).To(ContainSubstring(expectedLevel))
+}
+
 var _ = Describe("Coverage Gaps", func() {
 	Describe("RenderTempl", func() {
 		It("renders a fixed templ component", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return "irrelevant", nil
 			})
 
@@ -41,7 +71,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 			component := &mockTemplComponent{html: "<h1>Hello</h1>"}
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
 				cqrshtmx.RenderTempl(component),
@@ -59,7 +89,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("RenderTemplResult", func() {
 		It("maps result to templ component and renders", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return "Alice", nil
 			})
 
@@ -67,7 +97,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
 				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
@@ -85,7 +115,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 		It("returns error for wrong result type", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return 42, nil
 			})
 
@@ -93,7 +123,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
 				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
@@ -114,7 +144,7 @@ var _ = Describe("Coverage Gaps", func() {
 		It("decodes form data into a command", func() {
 			disp := command.NewDispatcher()
 			var received string
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				received = "dispatched"
 				return nil
 			})
@@ -159,7 +189,7 @@ var _ = Describe("Coverage Gaps", func() {
 			}
 
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeForm(func(req formReq) (command.Command, error) {
+				cqrshtmx.DecodeForm(func(_ formReq) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 			)
@@ -208,7 +238,7 @@ var _ = Describe("Coverage Gaps", func() {
 		It("passes through to the next handler", func() {
 			called := false
 			handler := cqrshtmx.HTMXMiddleware(
-				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 					called = true
 				}),
 			)
@@ -232,7 +262,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Query dispatch with no render", func() {
 		It("returns 204 when no render and no HTMX options", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return "result", nil
 			})
 
@@ -240,7 +270,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
 			)
@@ -257,7 +287,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Render function error", func() {
 		It("calls error handler when render fails", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return "result", nil
 			})
 
@@ -265,10 +295,10 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, result any) error {
+				cqrshtmx.Render(func(_ http.ResponseWriter, _ *http.Request, _ any) error {
 					return errors.New("render failed")
 				}),
 			)
@@ -285,7 +315,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Command dispatch error", func() {
 		It("maps handler errors through error handler", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return event.NewRejection("user.exists", "user already exists")
 			})
 
@@ -293,7 +323,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 			)
@@ -310,7 +340,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Query dispatch error", func() {
 		It("maps query handler errors through error handler", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return nil, event.NewRejection("user.not_found", "user not found")
 			})
 
@@ -318,7 +348,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
 			)
@@ -338,7 +368,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
 			)
@@ -371,7 +401,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Query with trigger option", func() {
 		It("sets HTMX trigger on query success with render", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(ctx context.Context, q query.Query) (any, error) {
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return map[string]string{"name": "Test"}, nil
 			})
 
@@ -379,10 +409,10 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(req testGetUserQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, result any) error {
+				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
 					return json.NewEncoder(w).Encode(result)
 				}),
 				cqrshtmx.Trigger("dataLoaded"),
@@ -401,7 +431,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Notification HandlerOptions", func() {
 		It("NotifySuccess triggers notification on command success", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
 
@@ -409,7 +439,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 				cqrshtmx.NotifySuccess("User created"),
@@ -427,88 +457,30 @@ var _ = Describe("Coverage Gaps", func() {
 		})
 
 		It("NotifyError triggers notification", func() {
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
-				return nil
-			})
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+			testNotificationTrigger(
+				"NotifyError",
 				cqrshtmx.NotifyError("Something went wrong"),
+				"error",
 			)
-
-			body := `{}`
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
-			w := httptest.NewRecorder()
-
-			handler.ServeHTTP(w, r)
-			trigger := w.Header().Get("HX-Trigger")
-			Expect(trigger).To(ContainSubstring("error"))
 		})
 
 		It("NotifyWarning triggers notification", func() {
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
-				return nil
-			})
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+			testNotificationTrigger(
+				"NotifyWarning",
 				cqrshtmx.NotifyWarning("Check your input"),
+				"warning",
 			)
-
-			body := `{}`
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
-			w := httptest.NewRecorder()
-
-			handler.ServeHTTP(w, r)
-			trigger := w.Header().Get("HX-Trigger")
-			Expect(trigger).To(ContainSubstring("warning"))
 		})
 
 		It("NotifyInfo triggers notification", func() {
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
-				return nil
-			})
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
-				cqrshtmx.NotifyInfo("Sync started"),
-			)
-
-			body := `{}`
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
-			w := httptest.NewRecorder()
-
-			handler.ServeHTTP(w, r)
-			trigger := w.Header().Get("HX-Trigger")
-			Expect(trigger).To(ContainSubstring("info"))
+			testNotificationTrigger("NotifyInfo", cqrshtmx.NotifyInfo("Sync started"), "info")
 		})
 	})
 
 	Describe("Command with redirect and HTMX", func() {
 		It("sets HTMX redirect for HTMX requests", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
 
@@ -516,7 +488,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 				cqrshtmx.Redirect("/users"),

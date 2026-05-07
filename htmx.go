@@ -32,9 +32,12 @@ type htmxContextKey string
 
 const htmxKey htmxContextKey = "cqrshtmx_htmx_request"
 
+const headerTrue = "true"
+
 // SwapStrategy defines how HTMX swaps content into the DOM.
 type SwapStrategy string
 
+// SwapStrategy constants define HTMX content swap methods.
 const (
 	SwapInnerHTML   SwapStrategy = "innerHTML"
 	SwapOuterHTML   SwapStrategy = "outerHTML"
@@ -68,9 +71,9 @@ func (h *HTMXRequest) RenderPartial() bool {
 // parseHTMXRequest extracts all HTMX headers from the request.
 func parseHTMXRequest(r *http.Request) *HTMXRequest {
 	return &HTMXRequest{
-		IsHTMX:           r.Header.Get(headerRequest) == "true",
-		IsBoosted:        r.Header.Get(headerBoosted) == "true",
-		IsHistoryRestore: r.Header.Get(headerHistoryRestore) == "true",
+		IsHTMX:           r.Header.Get(headerRequest) == headerTrue,
+		IsBoosted:        r.Header.Get(headerBoosted) == headerTrue,
+		IsHistoryRestore: r.Header.Get(headerHistoryRestore) == headerTrue,
 		Target:           r.Header.Get(headerTarget),
 		TriggerID:        r.Header.Get(headerTriggerID),
 		TriggerName:      r.Header.Get(headerTriggerName),
@@ -97,7 +100,7 @@ func IsHTMXRequest(r *http.Request) bool {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.IsHTMX
 	}
-	return r.Header.Get(headerRequest) == "true"
+	return r.Header.Get(headerRequest) == headerTrue
 }
 
 // IsBoosted returns true if the request was sent via hx-boost.
@@ -105,7 +108,7 @@ func IsBoosted(r *http.Request) bool {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.IsBoosted
 	}
-	return r.Header.Get(headerBoosted) == "true"
+	return r.Header.Get(headerBoosted) == headerTrue
 }
 
 // IsHistoryRestore returns true if the request is a history restoration.
@@ -113,7 +116,7 @@ func IsHistoryRestore(r *http.Request) bool {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.IsHistoryRestore
 	}
-	return r.Header.Get(headerHistoryRestore) == "true"
+	return r.Header.Get(headerHistoryRestore) == headerTrue
 }
 
 // RenderPartial returns true when the request is from HTMX and is not
@@ -123,7 +126,8 @@ func RenderPartial(r *http.Request) bool {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.RenderPartial()
 	}
-	return r.Header.Get(headerRequest) == "true" && r.Header.Get(headerHistoryRestore) != "true"
+	return r.Header.Get(headerRequest) == headerTrue &&
+		r.Header.Get(headerHistoryRestore) != headerTrue
 }
 
 // HTMXTarget returns the ID of the target element from the request.

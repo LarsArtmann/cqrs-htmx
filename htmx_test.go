@@ -272,7 +272,7 @@ var _ = Describe("HTMXRequest context", func() {
 
 			called := false
 			handler := cqrshtmx.HTMXMiddleware(
-				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
 					called = true
 					h := cqrshtmx.HTMXFromContext(req.Context())
 					Expect(h).NotTo(BeNil())
@@ -297,7 +297,7 @@ var _ = Describe("HTMXRequest context", func() {
 			r.Header.Set("HX-History-Restore-Request", "true")
 
 			handler := cqrshtmx.HTMXMiddleware(
-				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
 					h := cqrshtmx.HTMXFromContext(req.Context())
 					Expect(h.IsHistoryRestore).To(BeTrue())
 				}),
@@ -331,7 +331,7 @@ var _ = Describe("HTMXRequest context", func() {
 			r.Header.Set("HX-Request", "true")
 
 			handler := cqrshtmx.HTMXMiddleware(
-				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
 					Expect(cqrshtmx.RenderPartial(req)).To(BeTrue())
 					h := cqrshtmx.HTMXFromContext(req.Context())
 					Expect(h.RenderPartial()).To(BeTrue())
@@ -364,7 +364,7 @@ var _ = Describe("HTMXRequest context", func() {
 			r.Header.Set("HX-Boosted", "true")
 
 			handler := cqrshtmx.HTMXMiddleware(
-				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
 					Expect(cqrshtmx.IsHTMXRequest(req)).To(BeTrue())
 					Expect(cqrshtmx.IsBoosted(req)).To(BeTrue())
 					Expect(cqrshtmx.HTMXTarget(req)).To(Equal("main"))

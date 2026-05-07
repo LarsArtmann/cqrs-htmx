@@ -9,7 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
-//nolint:gochecknoglobals // library-level defaults that consumers may customize
 var (
 	defaultLoginRedirect = "/login"
 	registerErrors       sync.Once

@@ -43,10 +43,10 @@ var _ = Describe("Full Integration", func() {
 			disp = command.NewDispatcher()
 			userID = id.NewAggregateID()
 
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
-			_ = disp.Register("DeleteUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("DeleteUser", func(_ context.Context, _ command.Command) error {
 				return event.NewRejection("user.not_found", "user does not exist")
 			})
 
@@ -84,7 +84,7 @@ var _ = Describe("Full Integration", func() {
 		It("denies viewer from creating user", func() {
 			handler := app.Command("CreateUser",
 				cqrshtmx.Authorize("users", "create"),
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: userID}, nil
 				}),
 			)
@@ -101,7 +101,7 @@ var _ = Describe("Full Integration", func() {
 		It("redirects unauthenticated HTMX users to login", func() {
 			handler := app.Command("CreateUser",
 				cqrshtmx.Authorize("users", "create"),
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: userID}, nil
 				}),
 			)
@@ -119,7 +119,7 @@ var _ = Describe("Full Integration", func() {
 		It("maps CQRS rejection errors to 400", func() {
 			handler := app.Command("DeleteUser",
 				cqrshtmx.RequireAuth(),
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &deleteUserCmd{aggID: userID}, nil
 				}),
 			)
@@ -139,7 +139,7 @@ var _ = Describe("Full Integration", func() {
 
 		BeforeEach(func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("ListUsers", func(ctx context.Context, q query.Query) (any, error) {
+			_ = disp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
 				return []map[string]string{
 					{"email": "a@b.com", "name": "Alice"},
 					{"email": "c@d.com", "name": "Carol"},
@@ -155,10 +155,10 @@ var _ = Describe("Full Integration", func() {
 
 		It("renders query results as JSON", func() {
 			handler := app.Query("ListUsers",
-				cqrshtmx.DecodeJSONQuery(func(req listUsersQuery) (query.Query, error) {
+				cqrshtmx.DecodeJSONQuery(func(_ listUsersQuery) (query.Query, error) {
 					return &listUsersQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, result any) error {
+				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
 					w.Header().Set("Content-Type", "application/json")
 					return json.NewEncoder(w).Encode(result)
 				}),
@@ -179,7 +179,7 @@ var _ = Describe("Full Integration", func() {
 
 		BeforeEach(func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
 
@@ -192,7 +192,7 @@ var _ = Describe("Full Integration", func() {
 
 		It("redirects to URL after command success", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 				cqrshtmx.Redirect("/users"),
@@ -213,7 +213,7 @@ var _ = Describe("Full Integration", func() {
 
 		BeforeEach(func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
 
@@ -226,7 +226,7 @@ var _ = Describe("Full Integration", func() {
 
 		It("sets HX-Trigger with detail data", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 				cqrshtmx.TriggerWithDetail("userCreated", map[string]string{"id": "123"}),
@@ -248,7 +248,7 @@ var _ = Describe("Full Integration", func() {
 		It("propagates user ID from middleware to handler", func() {
 			disp := command.NewDispatcher()
 			var receivedUserID string
-			_ = disp.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
+			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
 				receivedUserID = cqrshtmx.UserIDFromContext(ctx)
 				return nil
 			})
@@ -260,7 +260,7 @@ var _ = Describe("Full Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Middleware()(app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
+				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
 			))

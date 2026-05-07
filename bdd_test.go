@@ -3,6 +3,7 @@ package cqrshtmx_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -50,8 +51,8 @@ type bddDashboardQuery struct{}
 func (q *bddDashboardQuery) Type() query.Type { return "GetDashboard" }
 
 type bddUser struct {
-	Email string
-	Name  string
+	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 type bddTemplComponent struct {
@@ -125,7 +126,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			It("rejects an unauthorized viewer", func() {
 				handler := app.Command("CreateUser",
 					cqrshtmx.Authorize("users", "create"),
-					cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
 						return &bddCreateUserCmd{aggID: id.NewAggregateID()}, nil
 					}),
 				)
@@ -144,7 +145,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			It("redirects unauthenticated HTMX users to login", func() {
 				handler := app.Command("CreateUser",
 					cqrshtmx.Authorize("users", "create"),
-					cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
 						return &bddCreateUserCmd{aggID: id.NewAggregateID()}, nil
 					}),
 				)
@@ -164,7 +165,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			It("handles invalid JSON input gracefully", func() {
 				handler := app.Command("CreateUser",
 					cqrshtmx.Authorize("users", "create"),
-					cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
 						return &bddCreateUserCmd{aggID: id.NewAggregateID()}, nil
 					}),
 				)
@@ -369,7 +370,11 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			disp := command.NewDispatcher()
 			var receivedName string
 			_ = disp.Register("CreateUser", func(_ context.Context, cmd command.Command) error {
-				receivedName = cmd.(*bddCreateUserCmd).name
+				c, ok := cmd.(*bddCreateUserCmd)
+				if !ok {
+					return fmt.Errorf("unexpected command type: %T", cmd)
+				}
+				receivedName = c.name
 				return nil
 			})
 
