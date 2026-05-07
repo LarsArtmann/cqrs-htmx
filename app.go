@@ -4,7 +4,6 @@ package cqrshtmx
 import (
 	"net/http"
 
-	"github.com/casbin/casbin/v3"
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
@@ -18,7 +17,7 @@ import (
 type App struct {
 	commands        *command.Dispatcher
 	queries         *query.Dispatcher
-	enforcer        *casbin.Enforcer
+	enforcer        Enforcer
 	userIDExtractor UserIDExtractor
 	errorHandler    ErrorHandler
 	loginRedirect   string
@@ -28,7 +27,7 @@ type App struct {
 type Config struct {
 	Commands        *command.Dispatcher
 	Queries         *query.Dispatcher
-	Enforcer        *casbin.Enforcer
+	Enforcer        Enforcer
 	UserIDExtractor UserIDExtractor
 	ErrorHandler    ErrorHandler
 	LoginRedirect   string

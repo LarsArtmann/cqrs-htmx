@@ -207,20 +207,20 @@ func PushURL(url string) HandlerOption {
 }
 
 func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
-	if cfg.authorize || cfg.requireAuth {
-		userID := UserIDFromContext(r.Context())
-		if userID == "" {
-			if cfg.authorize {
-				return fmt.Errorf("%w: %s/%s", ErrUnauthorized, cfg.resource, cfg.action)
-			}
-			return ErrUnauthorized
-		}
+	if !cfg.authorize && !cfg.requireAuth {
+		return nil
+	}
 
-		if cfg.authorize && a.enforcer != nil {
-			if err := Enforce(a.enforcer, userID, cfg.resource, cfg.action); err != nil {
-				return err
-			}
+	userID := UserIDFromContext(r.Context())
+	if userID == "" {
+		if cfg.authorize {
+			return fmt.Errorf("%w: %s/%s", ErrUnauthorized, cfg.resource, cfg.action)
 		}
+		return ErrUnauthorized
+	}
+
+	if cfg.authorize && a.enforcer != nil {
+		return Enforce(a.enforcer, userID, cfg.resource, cfg.action)
 	}
 
 	return nil

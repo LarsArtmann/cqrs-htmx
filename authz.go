@@ -1,11 +1,16 @@
 package cqrshtmx
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/casbin/casbin/v3"
 	"github.com/cockroachdb/errors"
 )
+
+// Enforcer checks authorization policy. *casbin.Enforcer satisfies this interface.
+type Enforcer interface {
+	Enforce(rvals ...any) (bool, error)
+}
 
 // UserIDExtractor extracts a user ID from an HTTP request.
 // Return an empty string if the user is not authenticated.
@@ -30,11 +35,12 @@ func RequireAuth() HandlerOption {
 	}
 }
 
-// Enforce checks Casbin policy for the given subject, resource, and action.
+// Enforce checks authorization policy for the given subject, resource, and action.
 // Returns ErrForbidden if the policy denies the request.
-func Enforce(enforcer *casbin.Enforcer, subject, resource, action string) error {
+// Returns ErrEnforcerNil if the enforcer is nil.
+func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	if enforcer == nil {
-		return ErrEnforcerNil
+		return fmt.Errorf("%w: %s/%s", ErrEnforcerNil, resource, action)
 	}
 
 	ok, err := enforcer.Enforce(subject, resource, action)
@@ -43,7 +49,7 @@ func Enforce(enforcer *casbin.Enforcer, subject, resource, action string) error 
 	}
 
 	if !ok {
-		return ErrForbidden
+		return fmt.Errorf("%w: %s/%s/%s", ErrForbidden, subject, resource, action)
 	}
 
 	return nil
@@ -52,7 +58,7 @@ func Enforce(enforcer *casbin.Enforcer, subject, resource, action string) error 
 // AuthorizeMiddleware returns an HTTP middleware that checks Casbin authorization.
 // The subject is extracted from the context using the configured UserIDExtractor.
 func AuthorizeMiddleware(
-	enforcer *casbin.Enforcer,
+	enforcer Enforcer,
 	resource, action string,
 	extractor UserIDExtractor,
 ) func(http.Handler) http.Handler {
