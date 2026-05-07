@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                    |
-| Coverage | 93.1% (136 tests)                                                      |
+| Coverage | 93.1% (137 tests)                                                      |
 
 ## Architecture
 
@@ -30,6 +30,7 @@ cqrs-htmx/
 ├── context.go     # Context enrichment (user ID → CQRS metadata)
 ├── errors.go      # CQRS error → HTTP status mapping, sentinels, LoginRedirect
 ├── htmx.go        # HTMXRequest struct, accessors, context storage, RenderPartial
+├── notify.go      # Notification HandlerOptions + DefaultNotificationEvent
 ├── middleware.go   # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
 ```
 
@@ -44,7 +45,9 @@ cqrs-htmx/
 - **templ duck-typing**: `TemplComponent` interface matches `templ.Component` without importing templ
 - **HTMXRequest context**: `HTMXMiddleware` parses headers once, stores in context for downstream use
 - **Notifications**: Standard `{level, message}` trigger pattern for HTMX client-side events
+- **Decoder symmetry**: `DecodeJSON`/`DecodeJSONQuery` and `DecodeForm`/`DecodeFormQuery` pairs for both commands and queries
 - **Ginkgo/Gomega**: Test framework per project standards
+- **Test type consolidation**: All BDD test types use `bdd` prefix (e.g., `bddCreateUserCmd`, `bddTemplComponent`)
 
 ## Dependencies
 
@@ -60,6 +63,10 @@ cqrs-htmx/
 2. **Error wrapping**: Always use `fmt.Errorf("%w: ...", sentinel, err)` — never `errors.Wrapf` with `%s` on sentinels
 3. **UserIDExtractor dedup**: Handlers check context first — if middleware already set user ID, extraction is skipped
 4. **TemplComponent duck-typing**: No import of `a-h/templ` — local interface matches `Render(ctx, w) error`
+5. **headerTrue constant**: Defined in `htmx.go`, used everywhere (including `response.go`) — never hardcode `"true"`
+6. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"` format. Exclusions go under `linters.exclusions.rules`, NOT `issues.exclude-rules` (v1 format silently fails)
+7. **gocritic disabled-checks**: Only `ifElseChain` needs explicit disable; `dupImport`, `octalLiteral`, `whyNoLint` are already disabled by default
+8. **LSP vs CLI discrepancy**: The LSP (`golangci_lint_ls`) shows ~31 stale warnings that `golangci-lint run` (CLI) does not report — this is an unresolved LSP cache issue, not a real lint problem
 
 ## Test Commands
 
