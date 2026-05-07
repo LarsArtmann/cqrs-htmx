@@ -19,12 +19,10 @@ var (
 	ErrForbidden       = errors.New("forbidden: insufficient permissions")
 	ErrDecodeFailed    = errors.New("failed to decode request body")
 	ErrDispatchFailed  = errors.New("command/query dispatch failed")
-	ErrNoUserID        = errors.New("no user ID in context")
 	ErrEnforcerNil     = errors.New("casbin enforcer is required for authorization")
 	ErrCommandsNil     = errors.New("command dispatcher is required")
 	ErrQueriesNil      = errors.New("query dispatcher is required")
 	ErrDecoderMissing  = errors.New("request decoder is required")
-	ErrRendererMissing = errors.New("response renderer is required for query handlers")
 )
 
 func registerErrorClassifications() {
@@ -33,12 +31,10 @@ func registerErrorClassifications() {
 		event.RegisterClassification(ErrForbidden, event.Rejection)
 		event.RegisterClassification(ErrDecodeFailed, event.Rejection)
 		event.RegisterClassification(ErrDispatchFailed, event.Transient)
-		event.RegisterClassification(ErrNoUserID, event.Rejection)
 		event.RegisterClassification(ErrEnforcerNil, event.Infrastructure)
 		event.RegisterClassification(ErrCommandsNil, event.Infrastructure)
 		event.RegisterClassification(ErrQueriesNil, event.Infrastructure)
 		event.RegisterClassification(ErrDecoderMissing, event.Infrastructure)
-		event.RegisterClassification(ErrRendererMissing, event.Infrastructure)
 	})
 }
 
