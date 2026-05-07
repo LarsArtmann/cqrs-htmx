@@ -116,7 +116,7 @@ func (a *App) Middleware() func(http.Handler) http.Handler {
 // enrichUserID extracts the user ID if not already present in context.
 // This avoids duplicate extraction when both Middleware() and handlers are used.
 func (a *App) enrichUserID(r *http.Request) *http.Request {
-	if UserIDFromContext(r.Context()) != "" {
+	if !UserIDFromContext(r.Context()).IsZero() {
 		return r
 	}
 
@@ -124,8 +124,13 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 		return r
 	}
 
-	userID := a.userIDExtractor(r)
-	if userID == "" {
+	userIDStr := a.userIDExtractor(r)
+	if userIDStr == "" {
+		return r
+	}
+
+	userID, err := ParseUserID(userIDStr)
+	if err != nil {
 		return r
 	}
 

@@ -11,9 +11,12 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if extractor != nil {
-				userID := extractor(r)
-				if userID != "" {
-					r = r.WithContext(WithUserID(r.Context(), userID))
+				userIDStr := extractor(r)
+				if userIDStr != "" {
+					userID, err := ParseUserID(userIDStr)
+					if err == nil {
+						r = r.WithContext(WithUserID(r.Context(), userID))
+					}
 				}
 			}
 

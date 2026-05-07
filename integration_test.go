@@ -59,7 +59,7 @@ var _ = Describe("Full Integration", func() {
 
 			body := `{"email":"admin@co.com","name":"Admin"}`
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("X-User", "admin")
+			r.Header.Set("X-User", cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633").String())
 			r.Header.Set("HX-Request", "true")
 			w := httptest.NewRecorder()
 
@@ -79,7 +79,7 @@ var _ = Describe("Full Integration", func() {
 
 			body := `{}`
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("X-User", "viewer")
+			r.Header.Set("X-User", cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2").String())
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -114,7 +114,7 @@ var _ = Describe("Full Integration", func() {
 
 			body := `{}`
 			r := httptest.NewRequest(http.MethodPost, "/users/delete", strings.NewReader(body))
-			r.Header.Set("X-User", "admin")
+			r.Header.Set("X-User", cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633").String())
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -234,8 +234,9 @@ var _ = Describe("Full Integration", func() {
 
 	Describe("App.Middleware integration", func() {
 		It("propagates user ID from middleware to handler", func() {
+			want := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 			disp := command.NewDispatcher()
-			var receivedUserID string
+			var receivedUserID cqrshtmx.UserID
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
 				receivedUserID = cqrshtmx.UserIDFromContext(ctx)
 				return nil
@@ -255,11 +256,11 @@ var _ = Describe("Full Integration", func() {
 
 			body := `{}`
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("X-User-ID", "user-from-middleware")
+			r.Header.Set("X-User-ID", want.String())
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
-			Expect(receivedUserID).To(Equal("user-from-middleware"))
+			Expect(receivedUserID).To(Equal(want))
 		})
 	})
 })

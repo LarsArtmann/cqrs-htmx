@@ -2,24 +2,49 @@ package cqrshtmx
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 )
 
+// UserID is a strongly-typed identifier for users, preventing accidental mixing
+// with other ID types at compile time.
+type UserID = id.UserID
+
+// NewUserID generates a new random UserID backed by a ULID.
+func NewUserID() UserID {
+	return id.NewUserID()
+}
+
+// ParseUserID converts a string to a UserID.
+// Returns an error if the input is not a valid ULID.
+func ParseUserID(s string) (UserID, error) {
+	userID, err := id.ParseUserID(s)
+	if err != nil {
+		return UserID{}, fmt.Errorf("parse user id: %w", err)
+	}
+	return userID, nil
+}
+
+// MustParseUserID converts a string to a UserID, panicking on error.
+func MustParseUserID(s string) UserID {
+	return id.MustParseUserID(s)
+}
+
 type contextKey string
 
 const userIDKey contextKey = "cqrshtmx_user_id"
 
-// WithUserID stores a user ID in the context for downstream CQRS handlers.
-func WithUserID(ctx context.Context, userID string) context.Context {
+// WithUserID stores a strongly-typed user ID in the context for downstream CQRS handlers.
+func WithUserID(ctx context.Context, userID UserID) context.Context {
 	return context.WithValue(ctx, userIDKey, userID)
 }
 
 // UserIDFromContext retrieves the user ID stored by WithUserID.
-// Returns an empty string if no user ID is present.
-func UserIDFromContext(ctx context.Context) string {
-	v, _ := ctx.Value(userIDKey).(string)
+// Returns the zero value of UserID if no user ID is present.
+func UserIDFromContext(ctx context.Context) UserID {
+	v, _ := ctx.Value(userIDKey).(UserID)
 	return v
 }
 
@@ -29,14 +54,9 @@ func UserIDFromContext(ctx context.Context) string {
 // Returns nil options if no user ID is found in context.
 func EventOptionsFromContext(ctx context.Context) []event.Option {
 	userID := UserIDFromContext(ctx)
-	if userID == "" {
+	if userID.IsZero() {
 		return nil
 	}
 
-	parsed, err := id.ParseUserID(userID)
-	if err != nil {
-		return []event.Option{event.WithUserID(id.UserID{})}
-	}
-
-	return []event.Option{event.WithUserID(parsed)}
+	return []event.Option{event.WithUserID(userID)}
 }

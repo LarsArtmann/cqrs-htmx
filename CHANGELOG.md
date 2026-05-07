@@ -11,9 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - BDD test suite using Ginkgo/Gomega (`bdd_test.go`)
 - `DecodeFormQuery` handler option for query parameter form decoding (symmetry with `DecodeForm`)
 - `docs/` directory with architecture reviews, planning docs, and status reports
+- `NewUserID()`, `ParseUserID()`, `MustParseUserID()` helpers; `type UserID = id.UserID` re-export
 
 ### Changed
 
+- **`WithUserID` / `UserIDFromContext`**: context now stores strongly-typed `id.UserID` (ULID-backed branded type) instead of `string`. `UserIDExtractor` still returns `string`; middleware parses to `UserID`. **Breaking change for consumers** passing string literals or plain strings — use `MustParseUserID()` in tests, `ParseUserID()` in production.
 - Extract helper functions (`hasNoResponse`, `hasMinimalResponse`, `decodeJSONBody`, `decodeRequest`, `decodeFormBody`, `notifyOption`, `triggerNotification`) to reduce duplication
 - Extract notification helpers to dedicated `notify.go` module
 - Consolidate duplicate test types across test files into shared helpers
@@ -26,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Use `headerTrue` constant in `Response.Refresh()` instead of hardcoded `"true"`
 - Fix README compile-breaking example (`cqrshtmx.LoginRedirect` → `Config.LoginRedirect`)
 - Fix error wrapping: `errors.Wrapf` with `%s` on sentinels → `fmt.Errorf("%w: ...")` throughout
+- `Enforce(nil, ...)` error now includes all three fields (subject, resource, action) — was missing subject
 
 ### Removed
 

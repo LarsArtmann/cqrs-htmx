@@ -43,6 +43,7 @@ cqrs-htmx/
 - **Error classification**: `sync.Once` lazy-registers all sentinels (not `init()`)
 - **HTMX-aware by default**: All error handling and responses check for HTMX requests
 - **User identity propagation**: `UserIDExtractor` → context → event metadata
+- **Strongly-typed UserID**: `WithUserID(ctx, UserID)` / `UserIDFromContext(ctx) UserID` — context stores `id.UserID` (ULID-backed branded type); `ParseUserID` / `MustParseUserID` helpers exported; `UserIDExtractor` still returns `string` (consumer extracts from JWT/session), middleware parses to `id.UserID`. **Breaking change**: context values are now strongly typed.
 - **templ duck-typing**: `TemplComponent` interface matches `templ.Component` without importing templ
 - **HTMXRequest context**: `HTMXMiddleware` parses headers once, stores in context for downstream use
 - **Notifications**: Standard `{level, message}` trigger pattern for HTMX client-side events; `NotifyWithEvent` builder for custom event names
@@ -77,6 +78,7 @@ cqrs-htmx/
 13. **text/plain error handler**: `DefaultErrorHandlerWithRedirect` writes plain text without HTML escaping — `text/plain` Content-Type prevents browser HTML rendering, and escaping distorts error messages
 14. **AuthorizeMiddleware backward compat**: `loginRedirect` is variadic (optional 4th arg) for backward compatibility — `AuthorizeMiddleware(e, res, act, extractor)` still works
 15. **pkg/errors transitive dep**: `github.com/pkg/errors` is an indirect dep via `cockroachdb/errors` — cannot remove, but it's not directly used
+16. **Strongly-typed UserID**: `WithUserID` / `UserIDFromContext` now use `id.UserID` (ULID-backed). `UserIDExtractor` still returns `string`; middleware parses to `UserID`. **Consumer breaking change**: callers passing string literals or invalid ULIDs will see parse failures — use `MustParseUserID` in tests or `ParseUserID` in production
 
 ## Test Commands
 

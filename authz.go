@@ -40,7 +40,8 @@ func RequireAuth() HandlerOption {
 // Returns ErrEnforcerNil if the enforcer is nil.
 func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	if enforcer == nil {
-		return fmt.Errorf("%w: %s/%s", ErrEnforcerNil, resource, action)
+		return fmt.Errorf("%w: subject=%s resource=%s action=%s",
+			ErrEnforcerNil, subject, resource, action)
 	}
 
 	ok, err := enforcer.Enforce(subject, resource, action)

@@ -239,10 +239,11 @@ User identity flows automatically from HTTP → CQRS metadata:
 
 ```go
 // Set by App.Middleware() or manually
-ctx := cqrshtmx.WithUserID(r.Context(), "user-123")
+userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+ctx := cqrshtmx.WithUserID(r.Context(), userID)
 
 // Retrieve in CQRS handlers
-userID := cqrshtmx.UserIDFromContext(ctx)
+retrieved := cqrshtmx.UserIDFromContext(ctx)
 
 // Build event options from context
 opts := cqrshtmx.EventOptionsFromContext(ctx)

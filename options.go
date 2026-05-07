@@ -212,7 +212,7 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 	}
 
 	userID := UserIDFromContext(r.Context())
-	if userID == "" {
+	if userID.IsZero() {
 		if cfg.authorize {
 			return fmt.Errorf("%w: %s/%s", ErrUnauthorized, cfg.resource, cfg.action)
 		}
@@ -220,7 +220,7 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 	}
 
 	if cfg.authorize && a.enforcer != nil {
-		return Enforce(a.enforcer, userID, cfg.resource, cfg.action)
+		return Enforce(a.enforcer, userID.String(), cfg.resource, cfg.action)
 	}
 
 	return nil

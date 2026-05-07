@@ -20,6 +20,14 @@ import (
 
 const testUserJSONBody = `{"email":"test@example.com","name":"Test"}`
 
+// Test user IDs — valid ULIDs used as Casbin policy subjects.
+//
+//nolint:gochecknoglobals // intentional test fixtures computed once at package init
+var (
+	adminUserID  = cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+	viewerUserID = cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2")
+)
+
 // Test command and query types for integration tests.
 
 type testCreateUserCmd struct {
@@ -49,9 +57,9 @@ func newTestEnforcer() *casbin.Enforcer {
 	m.AddDef("m", "m", "r.sub == p.sub && r.obj == p.obj && r.act == p.act")
 
 	e, _ := casbin.NewEnforcer(m)
-	_, _ = e.AddPolicy("admin", "users", "create")
-	_, _ = e.AddPolicy("admin", "users", "read")
-	_, _ = e.AddPolicy("viewer", "users", "read")
+	_, _ = e.AddPolicy(adminUserID.String(), "users", "create")
+	_, _ = e.AddPolicy(adminUserID.String(), "users", "read")
+	_, _ = e.AddPolicy(viewerUserID.String(), "users", "read")
 
 	return e
 }
@@ -116,7 +124,7 @@ var _ = Describe("App", func() {
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(_ *http.Request) string { return "test-user" },
+				UserIDExtractor: func(_ *http.Request) string { return adminUserID.String() },
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -199,7 +207,7 @@ var _ = Describe("App", func() {
 
 			body := testUserJSONBody
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("X-User-ID", "admin")
+			r.Header.Set("X-User-ID", adminUserID.String())
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -217,7 +225,7 @@ var _ = Describe("App", func() {
 
 			body := testUserJSONBody
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("X-User-ID", "viewer")
+			r.Header.Set("X-User-ID", viewerUserID.String())
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -347,14 +355,15 @@ var _ = Describe("App", func() {
 
 	Describe("App.Middleware", func() {
 		It("returns a context enrichment middleware", func() {
+			want := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 			disp := command.NewDispatcher()
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(_ *http.Request) string { return "user-1" },
+				UserIDExtractor: func(_ *http.Request) string { return want.String() },
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			var capturedUserID string
+			var capturedUserID cqrshtmx.UserID
 			handler := app.Middleware()(
 				http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 					capturedUserID = cqrshtmx.UserIDFromContext(r.Context())
@@ -365,7 +374,7 @@ var _ = Describe("App", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w, r)
 
-			Expect(capturedUserID).To(Equal("user-1"))
+			Expect(capturedUserID).To(Equal(want))
 		})
 	})
 })
@@ -374,22 +383,22 @@ var _ = Describe("Authorization", func() {
 	Describe("Enforce", func() {
 		It("allows permitted actions", func() {
 			e := newTestEnforcer()
-			err := cqrshtmx.Enforce(e, "admin", "users", "create")
+			err := cqrshtmx.Enforce(e, adminUserID.String(), "users", "create")
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("denies non-permitted actions", func() {
 			e := newTestEnforcer()
-			err := cqrshtmx.Enforce(e, "viewer", "users", "create")
+			err := cqrshtmx.Enforce(e, viewerUserID.String(), "users", "create")
 			Expect(err).To(HaveOccurred())
 			Expect(errors.Is(err, cqrshtmx.ErrForbidden)).To(BeTrue())
-			Expect(err.Error()).To(ContainSubstring("viewer/users/create"))
+			Expect(err.Error()).To(ContainSubstring(viewerUserID.String() + "/users/create"))
 		})
 
 		It("returns error for nil enforcer", func() {
 			err := cqrshtmx.Enforce(nil, "admin", "users", "create")
 			Expect(errors.Is(err, cqrshtmx.ErrEnforcerNil)).To(BeTrue())
-			Expect(err.Error()).To(ContainSubstring("users/create"))
+			Expect(err.Error()).To(ContainSubstring("subject=admin resource=users action=create"))
 		})
 	})
 
@@ -397,7 +406,7 @@ var _ = Describe("Authorization", func() {
 		It("allows authorized requests through", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) string { return "admin" })
+				func(_ *http.Request) string { return adminUserID.String() })
 
 			called := false
 			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
@@ -413,7 +422,7 @@ var _ = Describe("Authorization", func() {
 		It("blocks unauthorized requests", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "create",
-				func(_ *http.Request) string { return "viewer" })
+				func(_ *http.Request) string { return viewerUserID.String() })
 
 			called := false
 			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {

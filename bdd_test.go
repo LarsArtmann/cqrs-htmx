@@ -108,7 +108,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 
 				body := `{"email":"alice@example.com","name":"Alice"}`
 				r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-				r.Header.Set("X-User", "admin")
+				adminID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+				r.Header.Set("X-User", adminID.String())
 				r.Header.Set("HX-Request", "true")
 				w := httptest.NewRecorder()
 
@@ -133,7 +134,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 
 				body := `{}`
 				r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-				r.Header.Set("X-User", "viewer")
+				viewerID := cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2")
+				r.Header.Set("X-User", viewerID.String())
 				w := httptest.NewRecorder()
 
 				handler.ServeHTTP(w, r)
@@ -171,7 +173,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 				)
 
 				r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("{bad json"))
-				r.Header.Set("X-User", "admin")
+				adminID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+				r.Header.Set("X-User", adminID.String())
 				w := httptest.NewRecorder()
 
 				handler.ServeHTTP(w, r)
@@ -316,8 +319,9 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 
 	Describe("As a consumer, I want the middleware chain to compose correctly", func() {
 		It("chains HTMX parsing and context enrichment in correct order", func() {
+			want := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 			disp := command.NewDispatcher()
-			var capturedUserID string
+			var capturedUserID cqrshtmx.UserID
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
 				capturedUserID = cqrshtmx.UserIDFromContext(ctx)
 				return nil
@@ -339,20 +343,21 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			))
 
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))
-			r.Header.Set("X-User-ID", "user-42")
+			r.Header.Set("X-User-ID", want.String())
 			r.Header.Set("HX-Request", "true")
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
 
-			Expect(capturedUserID).To(Equal("user-42"))
+			Expect(capturedUserID).To(Equal(want))
 		})
 	})
 
 	Describe("As a consumer, I want user identity to propagate into event metadata", func() {
 		It("builds event options from context with valid user ID", func() {
 			ctx := context.Background()
-			ctx = cqrshtmx.WithUserID(ctx, "01HQAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+			ctx = cqrshtmx.WithUserID(ctx, userID)
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
 
 			Expect(opts).NotTo(BeNil())
