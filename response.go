@@ -53,7 +53,7 @@ func (resp *Response) Redirect(url string) *Response {
 
 // Refresh triggers a full page refresh on the client.
 func (resp *Response) Refresh() *Response {
-	resp.w.Header().Set(headerRefresh, "true")
+	resp.w.Header().Set(headerRefresh, headerTrue)
 	return resp
 }
 
