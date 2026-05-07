@@ -27,7 +27,7 @@ cqrs-htmx/
 ├── options.go     # HandlerOption, decoders, Render/RenderTempl, authz helpers
 ├── response.go    # HTMX response builder (fluent API) + notification methods
 ├── authz.go       # Enforcer interface, Authorize, Enforce, AuthorizeMiddleware
-├── context.go     # Context enrichment (user ID → CQRS metadata)
+├── context.go     # UserID type, ParseUserID/MustParseUserID, context enrichment (UserID → CQRS metadata)
 ├── errors.go      # CQRS error → HTTP status mapping, sentinels, LoginRedirect
 ├── htmx.go        # HTMXRequest struct, accessors, context storage, RenderPartial
 ├── notify.go      # Notification HandlerOptions + NotifyWithEvent builder
@@ -71,14 +71,14 @@ cqrs-htmx/
 6. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"` format. Exclusions go under `linters.exclusions.rules`, NOT `issues.exclude-rules` (v1 format silently fails)
 7. **gocritic disabled-checks**: Only `ifElseChain` needs explicit disable; `dupImport`, `octalLiteral`, `whyNoLint` are already disabled by default
 8. **LSP vs CLI discrepancy**: The LSP (`golangci_lint_ls`) shows ~31 stale warnings that `golangci-lint run` (CLI) does not report — this is an unresolved LSP cache issue, not a real lint problem
-9. **Dead sentinels**: `ErrNoUserID` and `ErrRendererMissing` are exported but never returned by any code path — removal deferred to v2 as a breaking change
-10. **Per-App LoginRedirect**: `Config.LoginRedirect` is threaded into the error handler at `New()` time — if no custom `ErrorHandler` is set, the default handler captures the resolved loginRedirect in a closure
-11. **Enforcer interface**: `*casbin.Enforcer` satisfies `Enforcer` interface automatically. Custom implementations must implement `Enforce(rvals ...any) (bool, error)`
-12. **DefaultNotificationEvent**: Exported var is deprecated (was mutable, race risk). Internal code uses unexported `defaultNotificationEvent` constant. Use `NotifyWithEvent` builder for custom event names
-13. **text/plain error handler**: `DefaultErrorHandlerWithRedirect` writes plain text without HTML escaping — `text/plain` Content-Type prevents browser HTML rendering, and escaping distorts error messages
-14. **AuthorizeMiddleware backward compat**: `loginRedirect` is variadic (optional 4th arg) for backward compatibility — `AuthorizeMiddleware(e, res, act, extractor)` still works
-15. **pkg/errors transitive dep**: `github.com/pkg/errors` is an indirect dep via `cockroachdb/errors` — cannot remove, but it's not directly used
-16. **Strongly-typed UserID**: `WithUserID` / `UserIDFromContext` now use `id.UserID` (ULID-backed). `UserIDExtractor` still returns `string`; middleware parses to `UserID`. **Consumer breaking change**: callers passing string literals or invalid ULIDs will see parse failures — use `MustParseUserID` in tests or `ParseUserID` in production
+9. **Per-App LoginRedirect**: `Config.LoginRedirect` is threaded into the error handler at `New()` time — if no custom `ErrorHandler` is set, the default handler captures the resolved loginRedirect in a closure
+10. **Enforcer interface**: `*casbin.Enforcer` satisfies `Enforcer` interface automatically. Custom implementations must implement `Enforce(rvals ...any) (bool, error)`
+11. **DefaultNotificationEvent**: Exported var is deprecated (was mutable, race risk). Internal code uses unexported `defaultNotificationEvent` constant. Use `NotifyWithEvent` builder for custom event names
+12. **text/plain error handler**: `DefaultErrorHandlerWithRedirect` writes plain text without HTML escaping — `text/plain` Content-Type prevents browser HTML rendering, and escaping distorts error messages
+13. **AuthorizeMiddleware backward compat**: `loginRedirect` is variadic (optional 4th arg) for backward compatibility — `AuthorizeMiddleware(e, res, act, extractor)` still works
+14. **pkg/errors transitive dep**: `github.com/pkg/errors` is an indirect dep via `cockroachdb/errors` — cannot remove, but it's not directly used
+15. **Strongly-typed UserID**: `WithUserID` / `UserIDFromContext` now use `id.UserID` (ULID-backed). `UserIDExtractor` still returns `string`; middleware parses to `UserID`. **Consumer breaking change**: callers passing string literals or invalid ULIDs will see parse failures — use `MustParseUserID` in tests or `ParseUserID` in production
+16. **Middleware silently drops invalid IDs**: `ContextEnrichmentMiddleware` and `App.enrichUserID` parse the extractor's string output to `UserID` — if parsing fails (not a valid ULID), the ID is silently dropped. Auth will fail downstream with `ErrUnauthorized`, not an explicit parse error
 
 ## Test Commands
 
