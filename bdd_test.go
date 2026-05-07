@@ -403,6 +403,37 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 		})
 	})
 
+	Describe("As a consumer, I want to decode form data into queries", func() {
+		It("decodes URL-encoded form data into a query", func() {
+			disp := query.NewDispatcher()
+			_ = disp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
+				return []string{"Alice"}, nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Query("ListUsers",
+				cqrshtmx.DecodeFormQuery(func(_ bddCreateUserReq) (query.Query, error) {
+					return &bddListUsersQuery{}, nil
+				}),
+				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
+					return json.NewEncoder(w).Encode(result)
+				}),
+			)
+
+			form := strings.NewReader("Email=alice%40example.com&Name=Alice")
+			r := httptest.NewRequest(http.MethodGet, "/users", form)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+		})
+	})
+
 	Describe("As a consumer, I want JSON query results rendered as API responses", func() {
 		It("renders query results as JSON for non-HTMX requests", func() {
 			disp := query.NewDispatcher()

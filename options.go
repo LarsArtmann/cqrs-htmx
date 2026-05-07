@@ -90,6 +90,24 @@ func DecodeForm[T any](mapper func(T) (command.Command, error)) HandlerOption {
 	}
 }
 
+// DecodeFormQuery decodes form data into a query using the mapper.
+func DecodeFormQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.queryDecoder = func(r *http.Request) (query.Query, error) {
+			var req T
+			if err := r.ParseForm(); err != nil {
+				return nil, fmt.Errorf("%w: parse form: %w", ErrDecodeFailed, err)
+			}
+
+			if err := decodeFormValues(r.Form, &req); err != nil {
+				return nil, fmt.Errorf("%w: decode form values: %w", ErrDecodeFailed, err)
+			}
+
+			return mapper(req)
+		}
+	}
+}
+
 // Render sets the render function for query results.
 func Render(fn RenderFunc) HandlerOption {
 	return func(cfg *handlerConfig) {
