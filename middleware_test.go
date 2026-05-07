@@ -71,6 +71,23 @@ var _ = Describe("Middleware", func() {
 			Expect(nextCalled).To(BeTrue())
 			Expect(userID).To(BeZero())
 		})
+
+		It("drops unparseable user IDs silently", func() {
+			extractor := func(_ *http.Request) string { return "not-a-ulid" }
+			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
+
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+				nextCalled = true
+				userID = cqrshtmx.UserIDFromContext(r.Context())
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(nextCalled).To(BeTrue())
+			Expect(userID).To(BeZero())
+		})
 	})
 
 	Describe("Chain", func() {
