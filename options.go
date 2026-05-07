@@ -175,12 +175,11 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 		if userID == "" {
 			return ErrUnauthorized
 		}
-	}
 
-	if cfg.authorize && a.enforcer != nil {
-		userID := UserIDFromContext(r.Context())
-		if err := Enforce(a.enforcer, userID, cfg.resource, cfg.action); err != nil {
-			return err
+		if cfg.authorize && a.enforcer != nil {
+			if err := Enforce(a.enforcer, userID, cfg.resource, cfg.action); err != nil {
+				return err
+			}
 		}
 	}
 
