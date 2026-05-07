@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -18,15 +17,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
-
-type mockTemplComponent struct {
-	html string
-}
-
-func (m *mockTemplComponent) Render(_ context.Context, w io.Writer) error {
-	_, err := w.Write([]byte(m.html))
-	return err
-}
 
 func testNotificationTrigger(_ string, opt cqrshtmx.HandlerOption, expectedLevel string) {
 	disp := command.NewDispatcher()
@@ -69,7 +59,7 @@ var _ = Describe("Coverage Gaps", func() {
 			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 			Expect(err).NotTo(HaveOccurred())
 
-			component := &mockTemplComponent{html: "<h1>Hello</h1>"}
+			component := &bddTemplComponent{html: "<h1>Hello</h1>"}
 			handler := app.Query("GetUser",
 				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
@@ -101,7 +91,7 @@ var _ = Describe("Coverage Gaps", func() {
 					return &testGetUserQuery{}, nil
 				}),
 				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
-					return &mockTemplComponent{html: "<p>" + result + "</p>"}
+					return &bddTemplComponent{html: "<p>" + result + "</p>"}
 				}),
 			)
 
@@ -127,7 +117,7 @@ var _ = Describe("Coverage Gaps", func() {
 					return &testGetUserQuery{}, nil
 				}),
 				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
-					return &mockTemplComponent{html: result}
+					return &bddTemplComponent{html: result}
 				}),
 			)
 

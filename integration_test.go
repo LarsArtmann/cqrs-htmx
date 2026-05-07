@@ -17,18 +17,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type deleteUserCmd struct {
-	aggID id.AggregateID
-}
-
-func (c *deleteUserCmd) Type() command.Type          { return "DeleteUser" }
-func (c *deleteUserCmd) AggregateID() id.AggregateID { return c.aggID }
-func (c *deleteUserCmd) IdempotencyKey() string      { return c.aggID.String() }
-
-type listUsersQuery struct{}
-
-func (q *listUsersQuery) Type() query.Type { return "ListUsers" }
-
 var _ = Describe("Full Integration", func() {
 	Describe("End-to-end CQRS + HTMX + Casbin flow", func() {
 		var (
@@ -120,7 +108,7 @@ var _ = Describe("Full Integration", func() {
 			handler := app.Command("DeleteUser",
 				cqrshtmx.RequireAuth(),
 				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &deleteUserCmd{aggID: userID}, nil
+					return &bddDeleteUserCmd{aggID: userID}, nil
 				}),
 			)
 
@@ -155,8 +143,8 @@ var _ = Describe("Full Integration", func() {
 
 		It("renders query results as JSON", func() {
 			handler := app.Query("ListUsers",
-				cqrshtmx.DecodeJSONQuery(func(_ listUsersQuery) (query.Query, error) {
-					return &listUsersQuery{}, nil
+				cqrshtmx.DecodeJSONQuery(func(_ bddListUsersQuery) (query.Query, error) {
+					return &bddListUsersQuery{}, nil
 				}),
 				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
 					w.Header().Set("Content-Type", "application/json")
