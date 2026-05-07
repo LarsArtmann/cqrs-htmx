@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                    |
-| Coverage | 93.1% (137 tests)                                                      |
+| Coverage | 93.5% (138 tests)                                                      |
 
 ## Architecture
 
@@ -39,7 +39,7 @@ cqrs-htmx/
 - **Framework-agnostic**: Works with `net/http`, Gin, Chi, etc.
 - **Casbin v3**: Uses `casbin/casbin/v3` for authorization
 - **go-cqrs-lite/core**: Depends on command, query, event, pkg/id packages
-- **CQRS error classification**: Registers custom sentinels with `event.RegisterClassification` in `init()`
+- **Error classification**: `sync.Once` lazy-registers all sentinels (not `init()`)
 - **HTMX-aware by default**: All error handling and responses check for HTMX requests
 - **User identity propagation**: `UserIDExtractor` → context → event metadata
 - **templ duck-typing**: `TemplComponent` interface matches `templ.Component` without importing templ
@@ -67,6 +67,8 @@ cqrs-htmx/
 6. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"` format. Exclusions go under `linters.exclusions.rules`, NOT `issues.exclude-rules` (v1 format silently fails)
 7. **gocritic disabled-checks**: Only `ifElseChain` needs explicit disable; `dupImport`, `octalLiteral`, `whyNoLint` are already disabled by default
 8. **LSP vs CLI discrepancy**: The LSP (`golangci_lint_ls`) shows ~31 stale warnings that `golangci-lint run` (CLI) does not report — this is an unresolved LSP cache issue, not a real lint problem
+9. **Dead sentinels**: `ErrNoUserID` and `ErrRendererMissing` are exported but never returned by any code path — removal deferred to v2 as a breaking change
+10. **Per-App LoginRedirect**: `Config.LoginRedirect` is threaded into the error handler at `New()` time — if no custom `ErrorHandler` is set, the default handler captures the resolved loginRedirect in a closure
 
 ## Test Commands
 
