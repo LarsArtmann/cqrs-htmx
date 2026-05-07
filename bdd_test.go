@@ -229,11 +229,11 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 				}),
 				cqrshtmx.RenderTemplResult(func(result []bddUser) cqrshtmx.TemplComponent {
 					html := "<ul>"
-					var htmlSb226 strings.Builder
+					var sb strings.Builder
 					for _, u := range result {
-						htmlSb226.WriteString("<li>" + u.Name + "</li>")
+						sb.WriteString("<li>" + u.Name + "</li>")
 					}
-					html += htmlSb226.String()
+					html += sb.String()
 					html += "</ul>"
 					return &bddTemplComponent{html: html}
 				}),
