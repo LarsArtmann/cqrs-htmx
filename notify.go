@@ -1,30 +1,71 @@
 package cqrshtmx
 
+const defaultNotificationEvent = "showMessage"
+
 // DefaultNotificationEvent is the default HTMX trigger event name for client-side notifications.
-var DefaultNotificationEvent = "showMessage"
+//
+// Deprecated: Use NotifyWithEvent to customize the event name per-handler.
+var DefaultNotificationEvent = defaultNotificationEvent
 
 // NotifySuccess triggers an HTMX notification with success level.
 func NotifySuccess(message string) HandlerOption {
-	return notifyOption("success", message)
+	return notifyOption(defaultNotificationEvent, "success", message)
 }
 
 // NotifyError triggers an HTMX notification with error level.
 func NotifyError(message string) HandlerOption {
-	return notifyOption("error", message)
+	return notifyOption(defaultNotificationEvent, "error", message)
 }
 
 // NotifyWarning triggers an HTMX notification with warning level.
 func NotifyWarning(message string) HandlerOption {
-	return notifyOption("warning", message)
+	return notifyOption(defaultNotificationEvent, "warning", message)
 }
 
 // NotifyInfo triggers an HTMX notification with info level.
 func NotifyInfo(message string) HandlerOption {
-	return notifyOption("info", message)
+	return notifyOption(defaultNotificationEvent, "info", message)
 }
 
-func notifyOption(level, message string) HandlerOption {
-	return TriggerWithDetail(DefaultNotificationEvent, map[string]string{
+// NotifyWithEvent returns notification builder using a custom HTMX event name.
+// This allows different handlers to trigger notifications on different client-side events.
+//
+// Usage:
+//
+//	app.Command("CreateUser",
+//	    cqrshtmx.NotifyWithEvent("showToast").Success("User created"),
+//	)
+func NotifyWithEvent(event string) NotifyEventBuilder {
+	return NotifyEventBuilder{event: event}
+}
+
+// NotifyEventBuilder builds notification HandlerOptions with a custom HTMX event name.
+type NotifyEventBuilder struct {
+	event string
+}
+
+// Success triggers a success notification with the custom event name.
+func (b NotifyEventBuilder) Success(message string) HandlerOption {
+	return notifyOption(b.event, "success", message)
+}
+
+// Error triggers an error notification with the custom event name.
+func (b NotifyEventBuilder) Error(message string) HandlerOption {
+	return notifyOption(b.event, "error", message)
+}
+
+// Warning triggers a warning notification with the custom event name.
+func (b NotifyEventBuilder) Warning(message string) HandlerOption {
+	return notifyOption(b.event, "warning", message)
+}
+
+// Info triggers an info notification with the custom event name.
+func (b NotifyEventBuilder) Info(message string) HandlerOption {
+	return notifyOption(b.event, "info", message)
+}
+
+func notifyOption(event, level, message string) HandlerOption {
+	return TriggerWithDetail(event, map[string]string{
 		"level":   level,
 		"message": message,
 	})

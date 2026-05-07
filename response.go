@@ -127,7 +127,7 @@ func (resp *Response) NotifyInfo(message string) *Response {
 }
 
 func (resp *Response) triggerNotification(level, message string) *Response {
-	return resp.TriggerWithDetail(DefaultNotificationEvent, map[string]string{
+	return resp.TriggerWithDetail(defaultNotificationEvent, map[string]string{
 		"level":   level,
 		"message": message,
 	})
