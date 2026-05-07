@@ -62,14 +62,10 @@ var _ = Describe("Error Mapping", func() {
 		})
 
 		It("uses custom LoginRedirect when set", func() {
-			original := cqrshtmx.LoginRedirect
-			cqrshtmx.LoginRedirect = "/auth/signin"
-			defer func() { cqrshtmx.LoginRedirect = original }()
-
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.Header.Set("HX-Request", "true")
-			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrUnauthorized)
+			cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, cqrshtmx.ErrUnauthorized, "/auth/signin")
 			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
 		})
 	})

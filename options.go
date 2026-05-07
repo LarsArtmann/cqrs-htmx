@@ -221,8 +221,12 @@ func decodeFormValues(form url.Values, target any) error {
 
 	encoded, err := json.Marshal(jsonMap)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: marshal form values: %w", ErrDecodeFailed, err)
 	}
 
-	return json.Unmarshal(encoded, target)
+	if err := json.Unmarshal(encoded, target); err != nil {
+		return fmt.Errorf("%w: unmarshal form values: %w", ErrDecodeFailed, err)
+	}
+
+	return nil
 }

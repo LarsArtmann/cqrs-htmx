@@ -20,6 +20,7 @@ type App struct {
 	enforcer        *casbin.Enforcer
 	userIDExtractor UserIDExtractor
 	errorHandler    ErrorHandler
+	loginRedirect   string
 }
 
 // Config configures an App. Commands or Queries must be non-nil.
@@ -39,13 +40,14 @@ func New(cfg Config) (*App, error) {
 		return nil, errors.New("[cqrs-htmx] at least one of Commands or Queries must be non-nil")
 	}
 
+	loginRedirect := cfg.LoginRedirect
+	if loginRedirect == "" {
+		loginRedirect = defaultLoginRedirect
+	}
+
 	eh := cfg.ErrorHandler
 	if eh == nil {
 		eh = DefaultErrorHandler
-	}
-
-	if cfg.LoginRedirect != "" {
-		LoginRedirect = cfg.LoginRedirect
 	}
 
 	return &App{
@@ -54,6 +56,7 @@ func New(cfg Config) (*App, error) {
 		enforcer:        cfg.Enforcer,
 		userIDExtractor: cfg.UserIDExtractor,
 		errorHandler:    eh,
+		loginRedirect:   loginRedirect,
 	}, nil
 }
 

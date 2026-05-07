@@ -1,0 +1,195 @@
+direction: down
+
+title: cqrs-htmx — Current Architecture
+
+# External Input
+HTTPClient: {
+  shape: circle
+  label: "HTTP Client\n(browser/HTMX)"
+}
+
+# Middleware Layer
+Middleware: {
+  shape: rectangle
+  style: {
+    fill: "#E8F5E9"
+  }
+
+  HTMXMiddleware: {
+    shape: rectangle
+    label: "HTMXMiddleware\n(parse headers → context)"
+  }
+  ContextEnrichmentMiddleware: {
+    shape: rectangle
+    label: "ContextEnrichmentMiddleware\n(extract userID → context)"
+  }
+  Chain: {
+    shape: rectangle
+    label: "Chain\n(compose middleware)"
+  }
+}
+
+# App Builder
+App: {
+  shape: rectangle
+  style: {
+    fill: "#E3F2FD"
+  }
+
+  Config: {
+    shape: rectangle
+    label: "Config\nCommands, Queries, Enforcer,\nUserIDExtractor, ErrorHandler"
+  }
+  New: {
+    shape: rectangle
+    label: "New(Config) → *App"
+  }
+  App.Middleware: {
+    shape: rectangle
+    label: "App.Middleware()"
+  }
+}
+
+# Handler Layer
+Handlers: {
+  shape: rectangle
+  style: {
+    fill: "#FFF3E0"
+  }
+
+  Command: {
+    shape: rectangle
+    label: "App.Command(type, opts...)"
+  }
+  Query: {
+    shape: rectangle
+    label: "App.Query(type, opts...)"
+  }
+
+  handleCommandDispatch: {
+    shape: rectangle
+    label: "handleCommandDispatch\n1. authorize\n2. decode\n3. dispatch\n4. apply HTMX response"
+  }
+  handleQueryDispatch: {
+    shape: rectangle
+    label: "handleQueryDispatch\n1. authorize\n2. decode\n3. dispatch\n4. render + HTMX response"
+  }
+}
+
+# Options (Handler Config)
+Options: {
+  shape: rectangle
+  style: {
+    fill: "#F3E5F5"
+  }
+
+  DecodeJSON: "DecodeJSON[T]"
+  DecodeJSONQuery: "DecodeJSONQuery[T]"
+  DecodeForm: "DecodeForm[T]"
+  Authorize: "Authorize(resource, action)"
+  RequireAuth: "RequireAuth()"
+  Render: "Render(func)"
+  RenderTempl: "RenderTempl(component)"
+  RenderTemplResult: "RenderTemplResult[T](mapper)"
+  Redirect: "Redirect(url)"
+  Trigger: "Trigger(event)"
+  TriggerWithDetail: "TriggerWithDetail(event, detail)"
+  PushURL: "PushURL(url)"
+  NotifyOptions: "NotifySuccess/Error/Warning/Info"
+}
+
+# CQRS Dispatchers
+CQRS: {
+  shape: rectangle
+  style: {
+    fill: "#FFEBEE"
+  }
+
+  CommandDispatcher: "command.Dispatcher"
+  QueryDispatcher: "query.Dispatcher"
+}
+
+# Authorization
+Authz: {
+  shape: rectangle
+  style: {
+    fill: "#E0F7FA"
+  }
+
+  CasbinEnforcer: "casbin.Enforcer"
+  Enforce: "Enforce(sub, res, act)"
+  AuthorizeMiddleware: "AuthorizeMiddleware"
+}
+
+# HTMX Context
+HTMX: {
+  shape: rectangle
+  style: {
+    fill: "#F1F8E9"
+  }
+
+  HTMXRequest: "HTMXRequest struct\n(context storage)"
+  Accessors: "IsHTMXRequest, IsBoosted,\nRenderPartial, HTMXTarget, ..."
+}
+
+# Response Builder
+Response: {
+  shape: rectangle
+  style: {
+    fill: "#FFF8E1"
+  }
+
+  ResponseBuilder: "Response (fluent builder)\nPushURL, Redirect, Trigger,\nNotifySuccess, Reswap, ..."
+  applyHTMXResponse: "applyHTMXResponse"
+}
+
+# Error Handling
+Errors: {
+  shape: rectangle
+  style: {
+    fill: "#FCE4EC"
+  }
+
+  Sentinels: "Sentinel Errors\nErrUnauthorized, ErrForbidden,\nErrDecodeFailed, ..."
+  MapError: "MapError(err) → HTTP status"
+  DefaultErrorHandler: "DefaultErrorHandler\n(HTMX-aware)"
+  Classification: "init() → event.RegisterClassification"
+}
+
+# Context
+Context: {
+  shape: rectangle
+  style: {
+    fill: "#E8EAF6"
+  }
+
+  UserIDContext: "WithUserID / UserIDFromContext"
+  EventOptions: "EventOptionsFromContext"
+}
+
+# Connections
+HTTPClient -> Middleware
+Middleware -> Handlers
+App.New -> Handlers
+Options -> Handlers
+
+Command -> handleCommandDispatch
+Query -> handleQueryDispatch
+
+handleCommandDispatch -> CQRS.CommandDispatcher
+handleQueryDispatch -> CQRS.QueryDispatcher
+
+handleCommandDispatch -> Authz.Enforce
+handleQueryDispatch -> Authz.Enforce
+
+Handlers -> Response.applyHTMXResponse
+Response.applyHTMXResponse -> ResponseBuilder
+
+Handlers -> Errors.DefaultErrorHandler
+Errors.DefaultErrorHandler -> Errors.MapError
+
+App.Middleware -> Context.UserIDContext
+Context.UserIDContext -> Context.EventOptions
+
+HTMX.HTMXRequest -> HTMX.Accessors
+Response.ResponseBuilder -> HTMX.Accessors

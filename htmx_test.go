@@ -3,7 +3,6 @@ package cqrshtmx_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"strings"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	. "github.com/onsi/ginkgo/v2"
@@ -450,7 +449,3 @@ var _ = Describe("Notification helpers", func() {
 		})
 	})
 })
-
-func init() {
-	_ = strings.NewReader("")
-}

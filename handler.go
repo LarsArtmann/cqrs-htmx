@@ -16,13 +16,7 @@ func (a *App) handleCommandDispatch(
 ) {
 	ctx := r.Context()
 
-	if err := a.executeAuthorization(r, cfg); err != nil {
-		a.errorHandler(w, r, err)
-		return
-	}
-
-	if cfg.commandDecoder == nil {
-		a.errorHandler(w, r, ErrDecoderMissing)
+	if err := a.executePreDispatchChecks(w, r, cfg); err != nil {
 		return
 	}
 
@@ -37,12 +31,32 @@ func (a *App) handleCommandDispatch(
 		return
 	}
 
+	a.applyCommandResponse(w, r, cfg)
+}
+
+func (a *App) executePreDispatchChecks(
+	w http.ResponseWriter,
+	r *http.Request,
+	cfg *handlerConfig,
+) error {
+	if err := a.executeAuthorization(r, cfg); err != nil {
+		a.errorHandler(w, r, err)
+		return err
+	}
+
+	if cfg.commandDecoder == nil {
+		a.errorHandler(w, r, ErrDecoderMissing)
+		return ErrDecoderMissing
+	}
+
+	return nil
+}
+
+func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) {
 	applyHTMXResponse(w, r, cfg)
 
 	if cfg.redirect == "" && cfg.trigger == "" && cfg.pushURL == "" && len(cfg.triggerDetail) == 0 {
 		w.WriteHeader(http.StatusNoContent)
-	} else if !IsHTMXRequest(r) && cfg.redirect != "" {
-		// HTTP redirect already written by applyHTMXResponse
 	}
 }
 

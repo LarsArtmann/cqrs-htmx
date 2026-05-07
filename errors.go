@@ -1,24 +1,19 @@
 package cqrshtmx
 
 import (
+	"html"
 	"net/http"
+	"sync"
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
-func init() {
-	event.RegisterClassification(ErrUnauthorized, event.Rejection)
-	event.RegisterClassification(ErrForbidden, event.Rejection)
-	event.RegisterClassification(ErrDecodeFailed, event.Rejection)
-	event.RegisterClassification(ErrDispatchFailed, event.Transient)
-	event.RegisterClassification(ErrNoUserID, event.Rejection)
-	event.RegisterClassification(ErrEnforcerNil, event.Infrastructure)
-	event.RegisterClassification(ErrCommandsNil, event.Infrastructure)
-	event.RegisterClassification(ErrQueriesNil, event.Infrastructure)
-	event.RegisterClassification(ErrDecoderMissing, event.Infrastructure)
-	event.RegisterClassification(ErrRendererMissing, event.Infrastructure)
-}
+//nolint:gochecknoglobals // library-level defaults that consumers may customize
+var (
+	defaultLoginRedirect = "/login"
+	registerErrors       sync.Once
+)
 
 // Sentinel errors for HTTP→CQRS integration.
 var (
@@ -34,6 +29,21 @@ var (
 	ErrRendererMissing = errors.New("response renderer is required for query handlers")
 )
 
+func registerErrorClassifications() {
+	registerErrors.Do(func() {
+		event.RegisterClassification(ErrUnauthorized, event.Rejection)
+		event.RegisterClassification(ErrForbidden, event.Rejection)
+		event.RegisterClassification(ErrDecodeFailed, event.Rejection)
+		event.RegisterClassification(ErrDispatchFailed, event.Transient)
+		event.RegisterClassification(ErrNoUserID, event.Rejection)
+		event.RegisterClassification(ErrEnforcerNil, event.Infrastructure)
+		event.RegisterClassification(ErrCommandsNil, event.Infrastructure)
+		event.RegisterClassification(ErrQueriesNil, event.Infrastructure)
+		event.RegisterClassification(ErrDecoderMissing, event.Infrastructure)
+		event.RegisterClassification(ErrRendererMissing, event.Infrastructure)
+	})
+}
+
 // MapError translates a CQRS error into an appropriate HTTP status code.
 //
 // Mapping:
@@ -44,6 +54,8 @@ var (
 //   - Infrastructure    → 500 Internal Server Error
 //   - nil or unknown    → 500 Internal Server Error
 func MapError(err error) int {
+	registerErrorClassifications()
+
 	if err == nil {
 		return http.StatusInternalServerError
 	}
@@ -76,17 +88,27 @@ func MapError(err error) int {
 // ErrorHandler writes an HTTP error response with HTMX awareness.
 type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 
-// LoginRedirect is the URL used by DefaultErrorHandler for HTMX auth redirects.
-// Override before creating an App to customize the login path.
-// Defaults to "/login".
-var LoginRedirect = "/login"
-
 // DefaultErrorHandler maps CQRS errors to HTTP status codes and writes
 // a plain text error response. For HTMX requests with auth errors,
-// it redirects via HX-Redirect to LoginRedirect instead of returning an error body.
+// it redirects via HX-Redirect to the login path instead of returning an error body.
 func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
+	DefaultErrorHandlerWithRedirect(w, r, err, defaultLoginRedirect)
+}
+
+// DefaultErrorHandlerWithRedirect maps CQRS errors to HTTP status codes with a custom login redirect.
+// If loginRedirect is empty, the default "/login" is used.
+func DefaultErrorHandlerWithRedirect(
+	w http.ResponseWriter,
+	r *http.Request,
+	err error,
+	loginRedirect string,
+) {
+	if loginRedirect == "" {
+		loginRedirect = defaultLoginRedirect
+	}
+
 	if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden)) {
-		w.Header().Set("HX-Redirect", LoginRedirect)
+		w.Header().Set("HX-Redirect", loginRedirect)
 		w.WriteHeader(http.StatusSeeOther)
 		return
 	}
@@ -94,5 +116,5 @@ func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	status := MapError(err)
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(status)
-	_, _ = w.Write([]byte(err.Error()))
+	_, _ = w.Write([]byte(html.EscapeString(err.Error())))
 }

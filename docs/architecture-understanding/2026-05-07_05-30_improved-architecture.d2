@@ -1,0 +1,120 @@
+direction: down
+
+title: cqrs-htmx — Improved/Target Architecture
+
+# External Input
+HTTPClient: {
+  shape: circle
+  label: "HTTP Client\n(browser/HTMX)"
+}
+
+# Middleware Pipeline
+MiddlewarePipeline: {
+  shape: rectangle
+  style: {
+    fill: "#E8F5E9"
+  }
+
+  label: "Middleware Pipeline (Chain)"
+
+  HTMXMiddleware: {
+    label: "HTMXMiddleware"
+  }
+  ContextMiddleware: {
+    label: "ContextEnrichmentMiddleware"
+  }
+}
+
+# App Core
+AppCore: {
+  shape: rectangle
+  style: {
+    fill: "#E3F2FD"
+  }
+
+  label: "App (Facade)"
+
+  New: "New(Config) validates & wires"
+  Command: "Command(type, opts...) → HandlerFunc"
+  Query: "Query(type, opts...) → HandlerFunc"
+}
+
+# Unified Dispatch Pipeline
+Pipeline: {
+  shape: rectangle
+  style: {
+    fill: "#FFF3E0"
+  }
+
+  label: "Dispatch Pipeline (extracted)"
+
+  AuthzStep: {
+    label: "Authorization Step"
+    shape: diamond
+  }
+  DecodeStep: {
+    label: "Decode Step"
+    shape: diamond
+  }
+  DispatchStep: {
+    label: "Dispatch Step"
+    shape: diamond
+  }
+  RespondStep: {
+    label: "Respond Step"
+    shape: diamond
+  }
+}
+
+# HTMX Layer (extracted package concern)
+HTMXLayer: {
+  shape: rectangle
+  style: {
+    fill: "#F1F8E9"
+  }
+
+  label: "HTMX Integration"
+
+  RequestContext: "HTMXRequest (context)"
+  ResponseBuilder: "Response Builder (fluent)"
+  Notifications: "Notifications (typed events)"
+}
+
+# Error Handler (improved)
+ErrorHandler: {
+  shape: rectangle
+  style: {
+    fill: "#FCE4EC"
+  }
+
+  label: "Error Handler (interface)"
+
+  DefaultHandler: "DefaultErrorHandler\nXSS-safe, HTMX-aware"
+  StatusMapper: "MapError → HTTP status\n(based on CQRS classification)"
+}
+
+# Authorization (improved)
+AuthzLayer: {
+  shape: rectangle
+  style: {
+    fill: "#E0F7FA"
+  }
+
+  label: "Authorization"
+
+  CasbinAdapter: "Casbin Adapter\n(behind interface)"
+  PolicyChecker: "Authorize / RequireAuth\nHandlerOptions"
+}
+
+# Connections
+HTTPClient -> MiddlewarePipeline
+MiddlewarePipeline -> AppCore
+AppCore -> Pipeline
+
+Pipeline.AuthzStep -> AuthzLayer
+Pipeline.DecodeStep -> Pipeline.DispatchStep
+Pipeline.DispatchStep -> Pipeline.RespondStep
+Pipeline.RespondStep -> HTMXLayer.ResponseBuilder
+Pipeline.RespondStep -> ErrorHandler
+
+HTMXLayer.RequestContext -> Pipeline.RespondStep

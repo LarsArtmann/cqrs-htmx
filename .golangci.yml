@@ -97,3 +97,8 @@ formatters:
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
+  exclude-rules:
+    - linters:
+        - gochecknoglobals
+      text: "is a global variable"
+      path: "(errors|notify)\\.go$"
