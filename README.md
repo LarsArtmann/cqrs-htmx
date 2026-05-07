@@ -116,18 +116,18 @@ func main() {
 
 Convenience wrappers around `TriggerWithDetail` with a standard `{level, message}` payload:
 
-| Option                    | Description                |
-| ------------------------- | -------------------------- |
-| `NotifySuccess(message)`  | Success notification       |
-| `NotifyError(message)`    | Error notification         |
-| `NotifyWarning(message)`  | Warning notification       |
-| `NotifyInfo(message)`     | Info notification          |
+| Option                   | Description          |
+| ------------------------ | -------------------- |
+| `NotifySuccess(message)` | Success notification |
+| `NotifyError(message)`   | Error notification   |
+| `NotifyWarning(message)` | Warning notification |
+| `NotifyInfo(message)`    | Info notification    |
 
 All use the configurable `NotificationEvent` (default: `"showMessage"`). Client-side JS:
 
 ```js
-document.body.addEventListener("showMessage", function(evt) {
-    showNotification(evt.detail.level, evt.detail.message);
+document.body.addEventListener("showMessage", function (evt) {
+  showNotification(evt.detail.level, evt.detail.message);
 });
 ```
 

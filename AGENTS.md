@@ -9,14 +9,14 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 ## Quick Reference
 
-| Item     | Value                            |
-| -------- | -------------------------------- |
-| Language | Go 1.26                          |
-| Module   | github.com/larsartmann/cqrs-htmx |
+| Item     | Value                                                                  |
+| -------- | ---------------------------------------------------------------------- |
+| Language | Go 1.26                                                                |
+| Module   | github.com/larsartmann/cqrs-htmx                                       |
 | Test     | `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
-| Build    | `GONOSUMCHECK='github.com/larsartmann/*' go build ./...` |
-| Lint     | `golangci-lint run`              |
-| Coverage | 92.8% (121 tests)                |
+| Build    | `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
+| Lint     | `golangci-lint run`                                                    |
+| Coverage | 92.8% (121 tests)                                                      |
 
 ## Architecture
 
@@ -48,11 +48,11 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency                  | Purpose           |
-| --------------------------- | ----------------- |
-| go-cqrs-lite/core           | CQRS dispatch     |
-| casbin/casbin/v3            | Authorization     |
-| cockroachdb/errors          | Error handling    |
+| Dependency         | Purpose        |
+| ------------------ | -------------- |
+| go-cqrs-lite/core  | CQRS dispatch  |
+| casbin/casbin/v3   | Authorization  |
+| cockroachdb/errors | Error handling |
 
 ## Key Gotchas
 

@@ -2,6 +2,7 @@ package cqrshtmx
 
 import (
 	"net/http"
+	"slices"
 )
 
 // ContextEnrichmentMiddleware extracts the user ID from the request using
@@ -37,8 +38,8 @@ func HTMXMiddleware(next http.Handler) http.Handler {
 // Middleware are applied left-to-right: Chain(a, b, c) wraps as a(b(c(handler))).
 func Chain(middlewares ...func(http.Handler) http.Handler) func(http.Handler) http.Handler {
 	return func(final http.Handler) http.Handler {
-		for i := len(middlewares) - 1; i >= 0; i-- {
-			final = middlewares[i](final)
+		for _, v := range slices.Backward(middlewares) {
+			final = v(final)
 		}
 
 		return final
