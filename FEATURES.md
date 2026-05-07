@@ -4,32 +4,32 @@
 
 ## Features
 
-|| #   | Feature                   | Status           | Description                                                                                                                                                                                                                                                                |
-| --- | ------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | App Builder               | FULLY_FUNCTIONAL | `New(Config)` creates App with command/query dispatchers, Casbin enforcer, user ID extractor, error handler. Validates at least one dispatcher is set. Per-App LoginRedirect threads into default error handler.                                                          |
+|     | #                         | Feature          | Status                                                                                                                                                                                                                                                                     | Description |
+| --- | ------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| 1   | App Builder               | FULLY_FUNCTIONAL | `New(Config)` creates App with command/query dispatchers, Casbin enforcer, user ID extractor, error handler. Validates at least one dispatcher is set. Per-App LoginRedirect threads into default error handler.                                                           |
 | 2   | Command Dispatch          | FULLY_FUNCTIONAL | `app.Command(type, opts...)` → HTTP handler that decodes request, dispatches command, applies HTMX response. Returns 204 on success with no options.                                                                                                                       |
-| 3   | Query Dispatch            | FULLY_FUNCTIONAL | `app.Query(type, opts...)` → HTTP handler that decodes, dispatches, renders result. Returns 204 when no render function and no HTMX response options.                                                                                                                     |
+| 3   | Query Dispatch            | FULLY_FUNCTIONAL | `app.Query(type, opts...)` → HTTP handler that decodes, dispatches, renders result. Returns 204 when no render function and no HTMX response options.                                                                                                                      |
 | 4   | JSON Decoding             | FULLY_FUNCTIONAL | `DecodeJSON[T]` and `DecodeJSONQuery[T]` generic decoders with mapper functions. Handles invalid JSON → 400. Shared `decodeJSONBody` helper.                                                                                                                               |
-| 5   | Form Decoding             | FULLY_FUNCTIONAL | `DecodeForm[T]` and `DecodeFormQuery[T]` decoders for URL-encoded form data via JSON round-trip. Shared `decodeFormBody` helper. Handles parse errors → 400.                                                                                                             |
+| 5   | Form Decoding             | FULLY_FUNCTIONAL | `DecodeForm[T]` and `DecodeFormQuery[T]` decoders for URL-encoded form data via JSON round-trip. Shared `decodeFormBody` helper. Handles parse errors → 400.                                                                                                               |
 | 6   | Casbin Authorization      | FULLY_FUNCTIONAL | `Authorize(resource, action)` checks Casbin policy. `RequireAuth()` checks authentication only. `Enforce()` for programmatic use.                                                                                                                                          |
 | 7   | Casbin Middleware         | FULLY_FUNCTIONAL | `AuthorizeMiddleware` standalone HTTP middleware for route-level auth.                                                                                                                                                                                                     |
 | 8   | User Identity Propagation | FULLY_FUNCTIONAL | `UserIDExtractor` → context → event metadata. `WithUserID`/`UserIDFromContext` context helpers. `EventOptionsFromContext` builds `event.Option` slice. Deduplication: handlers skip extraction if middleware already set ID.                                               |
 | 9   | HTMX Request Context      | FULLY_FUNCTIONAL | `HTMXMiddleware` parses all HTMX headers once into context. `HTMXRequest` struct with `IsHTMX`, `IsBoosted`, `IsHistoryRestore`, `Target`, `TriggerID`, `TriggerName`, `Prompt`, `CurrentURL`. `RenderPartial()` method.                                                   |
 | 10  | HTMX Accessors            | FULLY_FUNCTIONAL | Standalone `IsHTMXRequest`, `IsBoosted`, `IsHistoryRestore`, `RenderPartial`, `HTMXTarget`, `HTMXTrigger`, `HTMXTriggerName`, `HTMXPrompt`, `HTMXCurrentURL`. Fall back to header parsing when middleware not applied.                                                     |
 | 11  | HTMX Response Builder     | FULLY_FUNCTIONAL | Fluent `Response` builder: `PushURL`, `ReplaceURL`, `Redirect`, `Refresh`, `Location`, `Reswap`, `Retarget`, `Reselect`, `Trigger`, `TriggerAfterSwap`, `TriggerAfterSettle`, `TriggerWithDetail`. HTMX-aware redirect (HX-Redirect vs HTTP). `Apply()` sets content-type. |
-| 12  | Notifications             | FULLY_FUNCTIONAL | `NotifySuccess/Error/Warning/Info` as both `HandlerOption` and `Response` methods. Shared private helpers (`notifyOption`, `triggerNotification`). Standard `{level, message}` payload via `DefaultNotificationEvent` (default: `"showMessage"`).                       |
+| 12  | Notifications             | FULLY_FUNCTIONAL | `NotifySuccess/Error/Warning/Info` as both `HandlerOption` and `Response` methods. Shared private helpers (`notifyOption`, `triggerNotification`). Standard `{level, message}` payload via `DefaultNotificationEvent` (default: `"showMessage"`).                          |
 | 13  | Templ Integration         | FULLY_FUNCTIONAL | `RenderTempl(component)` renders fixed component. `RenderTemplResult[T](mapper)` maps query result to component. Duck-typed `TemplComponent` interface — no templ import required.                                                                                         |
 | 14  | Error Classification      | FULLY_FUNCTIONAL | `sync.Once` lazy-registers all sentinel errors with `event.RegisterClassification`. `MapError` translates CQRS error families → HTTP status codes. Custom `ErrorHandler` support.                                                                                          |
-| 15  | Default Error Handler     | FULLY_FUNCTIONAL | Maps errors → HTTP status. HTMX auth errors → `HX-Redirect` to login page. Plain text response for other errors. Per-App `LoginRedirect` via `DefaultErrorHandlerWithRedirect`. HTML-escaped error messages.                                                              |
+| 15  | Default Error Handler     | FULLY_FUNCTIONAL | Maps errors → HTTP status. HTMX auth errors → `HX-Redirect` to login page. Plain text response for other errors. Per-App `LoginRedirect` via `DefaultErrorHandlerWithRedirect`. HTML-escaped error messages.                                                               |
 | 16  | Middleware Chain          | FULLY_FUNCTIONAL | `Chain(mw1, mw2, ...)` composes middleware left-to-right. `ContextEnrichmentMiddleware` and `HTMXMiddleware` provided.                                                                                                                                                     |
 | 17  | Handler Options           | FULLY_FUNCTIONAL | `Redirect(url)`, `Trigger(event)`, `TriggerWithDetail(event, detail)`, `PushURL(url)` for customizing success responses.                                                                                                                                                   |
 | 18  | Swap Strategies           | FULLY_FUNCTIONAL | All 8 HTMX swap strategies as typed constants: `SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `SwapAfterBegin`, `SwapBeforeEnd`, `SwapAfterEnd`, `SwapDelete`, `SwapNone`.                                                                                           |
-| 19  | Header Constants          | FULLY_FUNCTIONAL | All HTMX header strings are unexported constants in `htmx.go`. Production code uses constants exclusively — no hardcoded header strings.                                                                                                                                    |
+| 19  | Header Constants          | FULLY_FUNCTIONAL | All HTMX header strings are unexported constants in `htmx.go`. Production code uses constants exclusively — no hardcoded header strings.                                                                                                                                   |
 
 ## Missing/Planned
 
-|| #   | Feature                | Status               | Notes                                                                                             |
-| --- | ---------------------- | -------------------- | ------------------------------------------------------------------------------------------------- |
+|     | #                      | Feature              | Status                                                                                            | Notes |
+| --- | ---------------------- | -------------------- | ------------------------------------------------------------------------------------------------- | ----- |
 | 1   | Request Validation     | PLANNED              | No built-in request schema validation — consumers must validate in mapper functions               |
 | 2   | Request Logging        | PLANNED              | No request/response logging middleware                                                            |
 | 3   | Rate Limiting          | PLANNED              | No built-in rate limiting                                                                         |
@@ -41,11 +41,11 @@
 
 ## Metrics
 
-| Metric       | Value  |
-| ------------ | ------ |
-| Coverage     | 92.6%  |
-| Test specs   | 137    |
-| Lint issues  | 0      |
-| Prod files   | 10     |
-| Test files   | 9      |
-| Banned deps  | 0      |
+| Metric      | Value |
+| ----------- | ----- |
+| Coverage    | 92.6% |
+| Test specs  | 137   |
+| Lint issues | 0     |
+| Prod files  | 10    |
+| Test files  | 9     |
+| Banned deps | 0     |
