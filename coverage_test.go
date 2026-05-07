@@ -18,7 +18,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func testNotificationTrigger(_ string, opt cqrshtmx.HandlerOption, expectedLevel string) {
+func testNotificationTrigger(opt cqrshtmx.HandlerOption, expectedLevel string) {
 	disp := command.NewDispatcher()
 	_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 		return nil
@@ -421,7 +421,6 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Notification HandlerOptions", func() {
 		It("NotifySuccess triggers notification on command success", func() {
 			testNotificationTrigger(
-				"NotifySuccess",
 				cqrshtmx.NotifySuccess("User created"),
 				"success",
 			)
@@ -429,7 +428,6 @@ var _ = Describe("Coverage Gaps", func() {
 
 		It("NotifyError triggers notification", func() {
 			testNotificationTrigger(
-				"NotifyError",
 				cqrshtmx.NotifyError("Something went wrong"),
 				"error",
 			)
@@ -437,14 +435,13 @@ var _ = Describe("Coverage Gaps", func() {
 
 		It("NotifyWarning triggers notification", func() {
 			testNotificationTrigger(
-				"NotifyWarning",
 				cqrshtmx.NotifyWarning("Check your input"),
 				"warning",
 			)
 		})
 
 		It("NotifyInfo triggers notification", func() {
-			testNotificationTrigger("NotifyInfo", cqrshtmx.NotifyInfo("Sync started"), "info")
+			testNotificationTrigger(cqrshtmx.NotifyInfo("Sync started"), "info")
 		})
 	})
 

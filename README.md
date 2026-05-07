@@ -99,6 +99,7 @@ func main() {
 | `DecodeJSON[T](mapper)`      | Decode JSON body into a command via mapper function |
 | `DecodeJSONQuery[T](mapper)` | Decode JSON body into a query via mapper function   |
 | `DecodeForm[T](mapper)`      | Decode form data into a command via mapper function |
+| `DecodeFormQuery[T](mapper)` | Decode form data into a query via mapper function   |
 
 ### Response
 
@@ -265,13 +266,11 @@ Auth errors map specially:
 - `ErrUnauthorized` → 401
 - `ErrForbidden` → 403
 
-For HTMX requests with auth errors, `DefaultErrorHandler` sets `HX-Redirect` to `LoginRedirect` (default: `/login`) instead of returning an error body. Configure with:
+For HTMX requests with auth errors, `DefaultErrorHandler` sets `HX-Redirect` to the configured login path (default: `/login`) instead of returning an error body. Configure per-App:
 
 ```go
-cqrshtmx.LoginRedirect = "/auth/signin"  // package-level override
-
 app, _ := cqrshtmx.New(cqrshtmx.Config{
-    LoginRedirect: "/auth/signin",        // or via Config
+    LoginRedirect: "/auth/signin",
 })
 ```
 
