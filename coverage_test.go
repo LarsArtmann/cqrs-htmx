@@ -420,30 +420,11 @@ var _ = Describe("Coverage Gaps", func() {
 
 	Describe("Notification HandlerOptions", func() {
 		It("NotifySuccess triggers notification on command success", func() {
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+			testNotificationTrigger(
+				"NotifySuccess",
 				cqrshtmx.NotifySuccess("User created"),
+				"success",
 			)
-
-			body := `{}`
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
-			w := httptest.NewRecorder()
-
-			handler.ServeHTTP(w, r)
-			trigger := w.Header().Get("HX-Trigger")
-			Expect(trigger).To(ContainSubstring("success"))
-			Expect(trigger).To(ContainSubstring("User created"))
 		})
 
 		It("NotifyError triggers notification", func() {
