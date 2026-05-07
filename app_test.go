@@ -78,6 +78,25 @@ var _ = Describe("App", func() {
 			_, err := cqrshtmx.New(cqrshtmx.Config{})
 			Expect(err).To(HaveOccurred())
 		})
+
+		It("uses Config.LoginRedirect for HTMX auth errors", func() {
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:      command.NewDispatcher(),
+				LoginRedirect: "/auth/signin",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.Authorize("users", "create"),
+			)
+
+			r := httptest.NewRequest(http.MethodPost, "/users", nil)
+			r.Header.Set("HX-Request", "true")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
+		})
 	})
 
 	Describe("Command handler", func() {

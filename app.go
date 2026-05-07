@@ -48,7 +48,9 @@ func New(cfg Config) (*App, error) {
 
 	eh := cfg.ErrorHandler
 	if eh == nil {
-		eh = DefaultErrorHandler
+		eh = func(w http.ResponseWriter, r *http.Request, err error) {
+			DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
+		}
 	}
 
 	return &App{
