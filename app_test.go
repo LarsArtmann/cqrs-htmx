@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,7 +12,6 @@ import (
 	"github.com/casbin/casbin/v3/model"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	. "github.com/onsi/ginkgo/v2"
@@ -453,9 +451,3 @@ var _ = Describe("Handler Options", func() {
 		})
 	})
 })
-
-// Suppress unused import warnings.
-var (
-	_ = io.EOF
-	_ = event.ErrAggregateNotFound
-)
