@@ -107,7 +107,7 @@ func DefaultErrorHandlerWithRedirect(
 	}
 
 	if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden)) {
-		w.Header().Set("HX-Redirect", loginRedirect)
+		w.Header().Set(headerRedirect, loginRedirect)
 		w.WriteHeader(http.StatusSeeOther)
 		return
 	}
