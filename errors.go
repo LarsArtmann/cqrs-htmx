@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"html"
 	"net/http"
 	"sync"
 
@@ -115,5 +114,5 @@ func DefaultErrorHandlerWithRedirect(
 	status := MapError(err)
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(status)
-	_, _ = w.Write([]byte(html.EscapeString(err.Error())))
+	_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
 }
