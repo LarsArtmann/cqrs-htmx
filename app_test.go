@@ -443,6 +443,43 @@ var _ = Describe("Authorization", func() {
 			Expect(called).To(BeFalse())
 			Expect(w.Code).To(Equal(http.StatusUnauthorized))
 		})
+
+		It("redirects unauthenticated HTMX requests to login", func() {
+			e := newTestEnforcer()
+			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
+				func(_ *http.Request) string { return "" })
+
+			called := false
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+				called = true
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Request", "true")
+			handler.ServeHTTP(w, r)
+			Expect(called).To(BeFalse())
+			Expect(w.Code).To(Equal(http.StatusSeeOther))
+			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+		})
+
+		It("uses custom login redirect", func() {
+			e := newTestEnforcer()
+			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
+				func(_ *http.Request) string { return "" }, "/auth/signin")
+
+			called := false
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+				called = true
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Request", "true")
+			handler.ServeHTTP(w, r)
+			Expect(called).To(BeFalse())
+			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
+		})
 	})
 })
 

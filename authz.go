@@ -57,22 +57,29 @@ func Enforce(enforcer Enforcer, subject, resource, action string) error {
 
 // AuthorizeMiddleware returns an HTTP middleware that checks Casbin authorization.
 // The subject is extracted from the context using the configured UserIDExtractor.
+// Auth errors are handled with HTMX awareness (HX-Redirect for auth failures).
 func AuthorizeMiddleware(
 	enforcer Enforcer,
 	resource, action string,
 	extractor UserIDExtractor,
+	loginRedirect ...string,
 ) func(http.Handler) http.Handler {
+	redirect := defaultLoginRedirect
+	if len(loginRedirect) > 0 && loginRedirect[0] != "" {
+		redirect = loginRedirect[0]
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID := extractor(r)
 			if userID == "" {
-				http.Error(w, ErrUnauthorized.Error(), http.StatusUnauthorized)
+				err := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
+				DefaultErrorHandlerWithRedirect(w, r, err, redirect)
 				return
 			}
 
 			if err := Enforce(enforcer, userID, resource, action); err != nil {
-				status := MapError(err)
-				http.Error(w, err.Error(), status)
+				DefaultErrorHandlerWithRedirect(w, r, err, redirect)
 				return
 			}
 
