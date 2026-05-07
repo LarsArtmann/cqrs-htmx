@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Date:** 2026-05-07 | **Source:** Self-review session, full codebase audit
+**Date:** 2026-05-07 | **Updated:** 2026-05-07 | **Source:** Self-review session, full codebase audit
 
 ## Status Legend
 
@@ -17,7 +17,7 @@
 - [x] **Use headerRedirect constant in DefaultErrorHandlerWithRedirect** — Fixed in commit `21c22c9` (errors.go:110)
 - [x] **Fix Config.LoginRedirect dead code** — Was stored but never read; now threads into per-App error handler closure. Commit `ab52b05`.
 - [x] **Fix README compile-breaking example** — `cqrshtmx.LoginRedirect` didn't exist. Fixed in commit `1a44e8c`.
-- [ ] **Verify XSS safety in DefaultErrorHandler** — `html.EscapeString` on `text/plain` Content-Type is arguably unnecessary (distorts `foo < bar`). Decide: remove it or change Content-Type to text/html.
+- [x] **Verify XSS safety in DefaultErrorHandler** — Removed `html.EscapeString` from `text/plain` responses. `text/plain` Content-Type prevents browser HTML rendering; escaping distorted error messages like "foo < bar". Added `//nolint:gosec` with explanation.
 
 ## P1 — Code Quality
 
@@ -27,11 +27,13 @@
 - [x] **Consolidate duplicate test types** — `mockTemplComponent`, `deleteUserCmd`, `listUsersQuery` → use `bdd*` types
 - [x] **Extract helper functions** — `hasNoResponse()`, `hasMinimalResponse()`, `decodeJSONBody`, `decodeRequest`, `decodeFormBody`, `notifyOption`, `triggerNotification`
 - [ ] **Export `HeaderTrue` or provide test helper** — Tests still hardcode `"true"` (34 occurrences); `headerTrue` is unexported
+- [x] **Add error context to authorization errors** — `ErrForbidden`, `ErrEnforcerNil`, and `ErrUnauthorized` (with Authorize) now include resource/action context for debugging
 
 ## P2 — Architecture Improvements
 
-- [ ] **Move remaining mutable globals to per-App config** — `DefaultNotificationEvent` is still a package-level mutable var. Race condition risk with multiple Apps.
-- [ ] **Extract Casbin interface** — `authz.go` uses `*casbin.Enforcer` concrete type. Define `Enforcer interface { Enforce(...) (bool, error) }` for testability.
+- [x] **Move remaining mutable globals to per-App config** — `DefaultNotificationEvent` is now an unexported constant; exported var is deprecated. Added `NotifyWithEvent` builder for custom event names per-handler.
+- [x] **Extract Casbin interface** — `authz.go` now defines `Enforcer interface { Enforce(...any) (bool, error) }`. `*casbin.Enforcer` satisfies it automatically. Enables mock/fake enforcers in consumer tests.
+- [x] **Fix AuthorizeMiddleware ghost system** — Was bypassing App's error handler (raw `http.Error`). Now uses `DefaultErrorHandlerWithRedirect` for HTMX-aware auth error handling. Optional `loginRedirect` parameter.
 - [ ] **Remove dead sentinels** — `ErrNoUserID` and `ErrRendererMissing` are exported but never returned by any code path. Breaking change — defer to v2.
 
 ## P3 — Feature Enhancements
@@ -57,12 +59,13 @@
 - [x] **Casbin authorization** — `Authorize`, `RequireAuth`, `Enforce`, `AuthorizeMiddleware`
 - [x] **HTMX request context** — `HTMXMiddleware`, `HTMXRequest` struct, all accessors with fallback
 - [x] **HTMX response builder** — Fluent `Response` with all HTMX headers supported
-- [x] **Notifications** — Both HandlerOptions and Response methods via shared helpers
+- [x] **Notifications** — Both HandlerOptions and Response methods via shared helpers; `NotifyWithEvent` builder for custom events
 - [x] **Error classification** — `sync.Once` registers all sentinels. `MapError` maps families to HTTP status
 - [x] **Context propagation** — User ID → context → event metadata. Dedup in handlers
 - [x] **Templ duck-typing** — `RenderTempl`, `RenderTemplResult[T]` without importing templ
 - [x] **Middleware chain** — `Chain` composes middleware left-to-right
-- [x] **92.6% test coverage** — 137 tests, race-safe
+- [x] **95.7% test coverage** — 150+ tests, race-safe
 - [x] **0 lint issues** — golangci-lint clean
 - [x] **All header constants consolidated** — No hardcoded HTMX header strings in production code
 - [x] **Per-App LoginRedirect** — Config field now actually works via closure
+- [x] **Enforcer interface** — Enables testability without concrete Casbin dependency
