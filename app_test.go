@@ -234,6 +234,7 @@ var _ = Describe("App", func() {
 
 			handler.ServeHTTP(w, r)
 			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+			Expect(w.Body.String()).To(ContainSubstring("users/create"))
 		})
 	})
 
@@ -382,11 +383,13 @@ var _ = Describe("Authorization", func() {
 			err := cqrshtmx.Enforce(e, "viewer", "users", "create")
 			Expect(err).To(HaveOccurred())
 			Expect(errors.Is(err, cqrshtmx.ErrForbidden)).To(BeTrue())
+			Expect(err.Error()).To(ContainSubstring("viewer/users/create"))
 		})
 
 		It("returns error for nil enforcer", func() {
 			err := cqrshtmx.Enforce(nil, "admin", "users", "create")
 			Expect(errors.Is(err, cqrshtmx.ErrEnforcerNil)).To(BeTrue())
+			Expect(err.Error()).To(ContainSubstring("users/create"))
 		})
 	})
 
