@@ -12,32 +12,32 @@ Library is in excellent shape. 10 production files, 3,827 total lines, 148 tests
 
 ## Metrics
 
-| Metric | Value | Notes |
-|---|---|---|
-| Go version | 1.26.2 | |
-| Test specs | 148 | All passing, race-safe |
-| Coverage | 95.5% | 95.5% of statements |
-| Lint issues | 0 | `golangci-lint run` clean |
-| Build | ✅ Clean | `go build ./...` |
-| Prod files | 10 | `app.go`, `handler.go`, `options.go`, `response.go`, `htmx.go`, `middleware.go`, `errors.go`, `authz.go`, `context.go`, `notify.go` |
-| Test files | 9 | Including `bdd_test.go`, `suite_test.go` |
-| Total lines | 3,827 | |
-| Sentinels | 7 | All actively used |
-| Banned deps | 0 | |
+| Metric      | Value    | Notes                                                                                                                               |
+| ----------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Go version  | 1.26.2   |                                                                                                                                     |
+| Test specs  | 148      | All passing, race-safe                                                                                                              |
+| Coverage    | 95.5%    | 95.5% of statements                                                                                                                 |
+| Lint issues | 0        | `golangci-lint run` clean                                                                                                           |
+| Build       | ✅ Clean | `go build ./...`                                                                                                                    |
+| Prod files  | 10       | `app.go`, `handler.go`, `options.go`, `response.go`, `htmx.go`, `middleware.go`, `errors.go`, `authz.go`, `context.go`, `notify.go` |
+| Test files  | 9        | Including `bdd_test.go`, `suite_test.go`                                                                                            |
+| Total lines | 3,827    |                                                                                                                                     |
+| Sentinels   | 7        | All actively used                                                                                                                   |
+| Banned deps | 0        |                                                                                                                                     |
 
 ### Coverage by Function (Uncovered Only)
 
-| Function | Coverage | File |
-|---|---|---|
-| `NewUserID` | 0.0% | `context.go:16` |
-| `decodeFormValues` | 72.7% | `options.go:251` |
-| `handleQueryDispatch` | 72.7% | `handler.go:63` |
-| `decodeFormBody` | 80.0% | `options.go:100` |
-| `Enforce` | 87.5% | `authz.go:41` |
-| `setTriggerWithDetail` | 88.2% | `response.go:153` |
-| `enrichUserID` | 90.9% | `app.go:118` |
-| `MapError` | 93.3% | `errors.go:50` |
-| Everything else | 100.0% | — |
+| Function               | Coverage | File              |
+| ---------------------- | -------- | ----------------- |
+| `NewUserID`            | 0.0%     | `context.go:16`   |
+| `decodeFormValues`     | 72.7%    | `options.go:251`  |
+| `handleQueryDispatch`  | 72.7%    | `handler.go:63`   |
+| `decodeFormBody`       | 80.0%    | `options.go:100`  |
+| `Enforce`              | 87.5%    | `authz.go:41`     |
+| `setTriggerWithDetail` | 88.2%    | `response.go:153` |
+| `enrichUserID`         | 90.9%    | `app.go:118`      |
+| `MapError`             | 93.3%    | `errors.go:50`    |
+| Everything else        | 100.0%   | —                 |
 
 ---
 
@@ -82,19 +82,20 @@ Library is in excellent shape. 10 production files, 3,827 total lines, 148 tests
 ### 1. Test Coverage — 95.5% (target: 95%+)
 
 8 functions below 100%. Most are minor branch gaps:
+
 - `handleQueryDispatch` at 72.7% — multiple uncovered query handler branches
 - `decodeFormValues` at 72.7% — error branches
 - `NewUserID` at 0% — trivial wrapper, never tested directly
 
 ### 2. Documentation Freshness
 
-| Doc | Status | Issue |
-|---|---|---|
-| `AGENTS.md` | ✅ Current | Updated 2026-05-07 |
-| `CHANGELOG.md` | ✅ Current | [Unreleased] section up to date |
-| `README.md` | ✅ Current | Examples compile, use typed UserID |
-| `TODO_LIST.md` | ⚠️ Stale | Dead sentinel removal still marked TODO (done in `3ec00f8`), coverage listed as 95.7% (now 95.5%) |
-| `FEATURES.md` | ⚠️ Very stale | Metrics say 92.6% coverage, 137 specs — actually 95.5% and 148 specs. User Identity description doesn't mention strong typing. |
+| Doc            | Status        | Issue                                                                                                                          |
+| -------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `AGENTS.md`    | ✅ Current    | Updated 2026-05-07                                                                                                             |
+| `CHANGELOG.md` | ✅ Current    | [Unreleased] section up to date                                                                                                |
+| `README.md`    | ✅ Current    | Examples compile, use typed UserID                                                                                             |
+| `TODO_LIST.md` | ⚠️ Stale      | Dead sentinel removal still marked TODO (done in `3ec00f8`), coverage listed as 95.7% (now 95.5%)                              |
+| `FEATURES.md`  | ⚠️ Very stale | Metrics say 92.6% coverage, 137 specs — actually 95.5% and 148 specs. User Identity description doesn't mention strong typing. |
 
 ### 3. Export `HeaderTrue` — P1 TODO
 
@@ -106,18 +107,18 @@ Library is in excellent shape. 10 production files, 3,827 total lines, 148 tests
 
 ### From TODO_LIST.md P1–P4
 
-| # | Item | Priority | Impact | Effort |
-|---|---|---|---|---|
-| 1 | Dispatch lifecycle hooks (`OnBeforeDispatch`/`OnAfterDispatch`) | P3 | High | Medium |
-| 2 | Request validation middleware | P3 | Medium | Medium |
-| 3 | JSON error response option | P3 | Medium | Low |
-| 4 | Correlation ID propagation | P3 | High | Low |
-| 5 | Timeout propagation | P3 | Medium | Low |
-| 6 | Godoc examples | P4 | Medium | Low |
-| 7 | CONTRIBUTING.md | P4 | Low | Low |
-| 8 | golangci-lint CI/CD | P4 | Medium | Low |
-| 9 | Benchmark tests | P4 | Low | Medium |
-| 10 | Document `.golangci.yml` decisions | P4 | Low | Low |
+| #   | Item                                                            | Priority | Impact | Effort |
+| --- | --------------------------------------------------------------- | -------- | ------ | ------ |
+| 1   | Dispatch lifecycle hooks (`OnBeforeDispatch`/`OnAfterDispatch`) | P3       | High   | Medium |
+| 2   | Request validation middleware                                   | P3       | Medium | Medium |
+| 3   | JSON error response option                                      | P3       | Medium | Low    |
+| 4   | Correlation ID propagation                                      | P3       | High   | Low    |
+| 5   | Timeout propagation                                             | P3       | Medium | Low    |
+| 6   | Godoc examples                                                  | P4       | Medium | Low    |
+| 7   | CONTRIBUTING.md                                                 | P4       | Low    | Low    |
+| 8   | golangci-lint CI/CD                                             | P4       | Medium | Low    |
+| 9   | Benchmark tests                                                 | P4       | Low    | Medium |
+| 10  | Document `.golangci.yml` decisions                              | P4       | Low    | Low    |
 
 ---
 
@@ -126,6 +127,7 @@ Library is in excellent shape. 10 production files, 3,827 total lines, 148 tests
 ### 1. FEATURES.md Metrics Are Wrong
 
 Last updated 2026-05-07 but metrics table says:
+
 - Coverage: `92.6%` → actually `95.5%`
 - Test specs: `137` → actually `148`
 - User Identity description doesn't mention strongly-typed UserID migration
@@ -133,6 +135,7 @@ Last updated 2026-05-07 but metrics table says:
 ### 2. TODO_LIST.md Dead Sentinel Item Still Marked TODO
 
 `3ec00f8` removed `ErrNoUserID` and `ErrRendererMissing` on 2026-05-07, but TODO_LIST.md still shows:
+
 ```
 - [ ] Remove dead sentinels — ErrNoUserID and ErrRendererMissing...
 ```
@@ -237,10 +240,12 @@ Sorted by impact × effort (Pareto order):
 **Should `handleQueryDispatch` and `handleCommandDispatch` share a common pre-dispatch pipeline?**
 
 Currently:
+
 - `handleCommandDispatch` calls `executePreDispatchChecks()` (auth + decoder check) then decodes → dispatches → applies response
 - `handleQueryDispatch` inlines the same auth check and decoder check directly
 
 Both follow the same pattern: auth → decoder check → decode → dispatch → response. But they differ in:
+
 - Command has `executePreDispatchChecks` helper, query doesn't
 - Query has a render step between dispatch and response
 - Query checks `a.queries == nil` inline; command checks `a.commands == nil` inline
@@ -252,15 +257,15 @@ Both follow the same pattern: auth → decoder check → decode → dispatch →
 
 ## Health Check
 
-| Check | Status |
-|---|---|
+| Check                 | Status          |
+| --------------------- | --------------- |
 | `go test ./... -race` | ✅ 148/148 pass |
-| `golangci-lint run` | ✅ 0 issues |
-| `go build ./...` | ✅ Clean |
-| `go vet ./...` | ✅ Clean |
-| Coverage | 95.5% |
-| Race detector | ✅ No races |
-| Banned deps | 0 |
+| `golangci-lint run`   | ✅ 0 issues     |
+| `go build ./...`      | ✅ Clean        |
+| `go vet ./...`        | ✅ Clean        |
+| Coverage              | 95.5%           |
+| Race detector         | ✅ No races     |
+| Banned deps           | 0               |
 
 ## Project File Map
 
