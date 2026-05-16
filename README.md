@@ -1,6 +1,28 @@
 # cqrs-htmx
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx)
+[![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go 1.26+](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://go.dev/)
+
 A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) with [HTMX](https://htmx.org), [templ](https://templ.guide), and [Casbin](https://casbin.org) authorization.
+
+**Framework-agnostic** — works with `net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), or any `http.Handler`-compatible router.
+
+## Features at a Glance
+
+- **Command & Query dispatch** — `app.Command()` / `app.Query()` build `http.HandlerFunc` that decode, authorize, dispatch, and respond
+- **Casbin authorization** — `Authorize(resource, action)` checks policies before dispatch; `RequireAuth()` for auth-only guards
+- **HTMX-aware responses** — fluent response builder with `HX-Trigger`, `HX-Redirect`, `HX-Push-Url`, swap strategies, and notifications
+- **templ integration** — duck-typed `TemplComponent` renders templ components without importing templ
+- **User identity propagation** — HTTP request → context → CQRS event metadata, with strongly-typed `UserID` (ULID-backed)
+- **Correlation IDs** — automatic `X-Correlation-ID` extraction and context propagation
+- **Request validation** — `ValidateCommand`/`ValidateQuery` wrap decoders with validation logic
+- **Dispatch timeout** — `Config.Timeout` wraps dispatch with `context.WithTimeout`
+- **Lifecycle hooks** — `BeforeDispatchHook`/`AfterDispatchHook` for tracing, logging, metrics
+- **Error classification** — CQRS error families automatically map to HTTP status codes
+- **JSON or plain-text error handlers** — pluggable `ErrorHandler` with HTMX-aware auth redirects
+- **Notification system** — `NotifySuccess`/`NotifyError`/`NotifyWarning`/`NotifyInfo` with standard `{level, message}` payload; custom event names via `NotifyWithEvent`
 
 ## Why
 
@@ -83,6 +105,24 @@ func main() {
 }
 ```
 
+## Config
+
+`New(Config)` creates an `App`. `Commands` or `Queries` must be non-nil:
+
+```go
+app, err := cqrshtmx.New(cqrshtmx.Config{
+    Commands:        cmdDisp,          // *command.Dispatcher
+    Queries:         qryDisp,          // *query.Dispatcher
+    Enforcer:        enforcer,         // Enforcer interface (Casbin or custom)
+    UserIDExtractor: extractFunc,      // func(r *http.Request) string
+    LoginRedirect:   "/auth/signin",   // default: "/login"
+    Timeout:         5 * time.Second,  // wraps dispatch only; 0 = no timeout
+    ErrorHandler:    myErrorHandler,   // custom ErrorHandler; default uses plain text + LoginRedirect
+    BeforeDispatch:  beforeHook,       // func(ctx, r) context.Context — tracing, request IDs
+    AfterDispatch:   afterHook,        // func(ctx, r, err) — logging, metrics
+})
+```
+
 ## Handler Options
 
 ### Authorization
@@ -100,6 +140,24 @@ func main() {
 | `DecodeJSONQuery[T](mapper)` | Decode JSON body into a query via mapper function   |
 | `DecodeForm[T](mapper)`      | Decode form data into a command via mapper function |
 | `DecodeFormQuery[T](mapper)` | Decode form data into a query via mapper function   |
+
+### Validation
+
+Wrap your decoder with validation. Must be applied **after** the decoder in the option list:
+
+```go
+app.Command("CreateUser",
+    cqrshtmx.DecodeJSON(createUserMapper),
+    cqrshtmx.ValidateCommand(func(cmd command.Command) error {
+        return validateStruct(cmd)
+    }),
+)
+```
+
+| Option                            | Description                                           |
+| --------------------------------- | ----------------------------------------------------- |
+| `ValidateCommand(validator)`      | Validate decoded command; errors → 400 Bad Request    |
+| `ValidateQuery(validator)`        | Validate decoded query; errors → 400 Bad Request      |
 
 ### Response
 
@@ -124,7 +182,15 @@ Convenience wrappers around `TriggerWithDetail` with a standard `{level, message
 | `NotifyWarning(message)` | Warning notification |
 | `NotifyInfo(message)`    | Info notification    |
 
-All use the configurable `NotificationEvent` (default: `"showMessage"`). Client-side JS:
+All use the default `"showMessage"` event. For custom event names, use the `NotifyWithEvent` builder:
+
+```go
+app.Command("CreateUser",
+    cqrshtmx.NotifyWithEvent("showToast").Success("User created"),
+)
+```
+
+Client-side JS:
 
 ```js
 document.body.addEventListener("showMessage", function (evt) {
@@ -235,19 +301,24 @@ Works seamlessly with [templ-components](https://github.com/larsartmann/templ-co
 
 ## Context Propagation
 
-User identity flows automatically from HTTP → CQRS metadata:
+User identity and correlation IDs flow automatically from HTTP → CQRS metadata:
 
 ```go
-// Set by App.Middleware() or manually
+// User ID (strongly-typed, ULID-backed)
 userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 ctx := cqrshtmx.WithUserID(r.Context(), userID)
-
-// Retrieve in CQRS handlers
 retrieved := cqrshtmx.UserIDFromContext(ctx)
 
-// Build event options from context
+// Correlation ID (auto-extracted from X-Correlation-ID header by middleware)
+ctx = cqrshtmx.WithCorrelationID(ctx, "req-123")
+corrID := cqrshtmx.CorrelationIDFromContext(ctx)
+
+// Build event options from context (includes user ID + correlation ID)
 opts := cqrshtmx.EventOptionsFromContext(ctx)
 evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, payload, opts...)
+
+// Generate a new random UserID
+newID := cqrshtmx.NewUserID()
 ```
 
 ## Error Mapping
@@ -267,7 +338,28 @@ Auth errors map specially:
 - `ErrUnauthorized` → 401
 - `ErrForbidden` → 403
 
-For HTMX requests with auth errors, `DefaultErrorHandler` sets `HX-Redirect` to the configured login path (default: `/login`) instead of returning an error body. Configure per-App:
+### Error Handlers
+
+The default error handler writes plain text and redirects HTMX auth errors to the login page. For JSON APIs:
+
+```go
+app, _ := cqrshtmx.New(cqrshtmx.Config{
+    ErrorHandler: cqrshtmx.JSONErrorHandlerWithRedirect,
+    LoginRedirect: "/auth/signin",
+})
+```
+
+| Handler                                | Format     | Login Redirect |
+| -------------------------------------- | ---------- | -------------- |
+| `DefaultErrorHandler`                  | Plain text | `/login`       |
+| `DefaultErrorHandlerWithRedirect`      | Plain text | Custom         |
+| `JSONErrorHandler`                     | JSON       | `/login`       |
+| `JSONErrorHandlerWithRedirect`         | JSON       | Custom         |
+| `MapError(err)`                        | —          | Returns HTTP status code for any CQRS error |
+
+### Login Redirect
+
+Configure per-App. For HTMX requests with auth errors, the handler sets `HX-Redirect` instead of returning an error body:
 
 ```go
 app, _ := cqrshtmx.New(cqrshtmx.Config{
@@ -296,6 +388,10 @@ chained := cqrshtmx.Chain(
     app.Middleware(),
 )(mux)
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for build/test/lint commands, code style, and PR checklist.
 
 ## License
 
