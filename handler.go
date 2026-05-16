@@ -76,7 +76,7 @@ func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, cfg *
 	}
 }
 
-func (a *App) handleQueryDispatch(
+func (a *App) handleQueryDispatch( //nolint:cyclop // hooks add unavoidable branches
 	w http.ResponseWriter,
 	r *http.Request,
 	qryType query.Type,
