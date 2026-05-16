@@ -77,4 +77,25 @@ var _ = Describe("Error Mapping", func() {
 			Expect(cqrshtmx.ErrEnforcerNil).NotTo(Equal(cqrshtmx.ErrCommandsNil))
 		})
 	})
+
+	Describe("JSONErrorHandler", func() {
+		It("returns JSON with error and status for regular errors", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.ErrDecodeFailed)
+			Expect(w.Header().Get("Content-Type")).To(Equal("application/json; charset=utf-8"))
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("decode"))
+			Expect(w.Body.String()).To(ContainSubstring("400"))
+		})
+
+		It("redirects HTMX auth errors instead of returning JSON", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.ErrUnauthorized)
+			Expect(w.Code).To(Equal(http.StatusSeeOther))
+			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+		})
+	})
 })

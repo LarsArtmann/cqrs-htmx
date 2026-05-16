@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"encoding/json"
 	"net/http"
 	"sync"
 
@@ -111,4 +112,27 @@ func DefaultErrorHandlerWithRedirect(
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(status)
 	_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
+}
+
+// JSONErrorHandler writes errors as JSON responses.
+// For HTMX requests with auth errors, redirects via HX-Redirect instead of returning JSON.
+func JSONErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
+	if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden)) {
+		w.Header().Set(headerRedirect, defaultLoginRedirect)
+		w.WriteHeader(http.StatusSeeOther)
+		return
+	}
+
+	status := MapError(err)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+
+	response := struct {
+		Error  string `json:"error"`
+		Status int    `json:"status"`
+	}{
+		Error:  err.Error(),
+		Status: status,
+	}
+	_ = json.NewEncoder(w).Encode(response)
 }
