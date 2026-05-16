@@ -36,6 +36,20 @@ type contextKey string
 
 const userIDKey contextKey = "cqrshtmx_user_id"
 
+const correlationIDKey contextKey = "cqrshtmx_correlation_id"
+
+// WithCorrelationID stores a correlation/request ID in the context.
+func WithCorrelationID(ctx context.Context, correlationID string) context.Context {
+	return context.WithValue(ctx, correlationIDKey, correlationID)
+}
+
+// CorrelationIDFromContext retrieves the correlation ID stored by WithCorrelationID.
+// Returns an empty string if no correlation ID is present.
+func CorrelationIDFromContext(ctx context.Context) string {
+	v, _ := ctx.Value(correlationIDKey).(string)
+	return v
+}
+
 // WithUserID stores a strongly-typed user ID in the context for downstream CQRS handlers.
 func WithUserID(ctx context.Context, userID UserID) context.Context {
 	return context.WithValue(ctx, userIDKey, userID)

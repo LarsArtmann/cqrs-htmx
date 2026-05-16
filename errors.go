@@ -134,5 +134,5 @@ func JSONErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 		Error:  err.Error(),
 		Status: status,
 	}
-	_ = json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response) //nolint:errchkjson
 }

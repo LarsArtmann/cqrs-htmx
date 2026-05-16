@@ -10,17 +10,24 @@ import (
 func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// Propagate correlation ID from request header if present.
+			if cid := r.Header.Get("X-Correlation-ID"); cid != "" {
+				ctx = WithCorrelationID(ctx, cid)
+			}
+
 			if extractor != nil {
 				userIDStr := extractor(r)
 				if userIDStr != "" {
 					userID, err := ParseUserID(userIDStr)
 					if err == nil {
-						r = r.WithContext(WithUserID(r.Context(), userID))
+						ctx = WithUserID(ctx, userID)
 					}
 				}
 			}
 
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

@@ -37,9 +37,8 @@ const htmxKey htmxContextKey = "cqrshtmx_htmx_request"
 const HeaderTrue = "true"
 
 // headerTrue is the unexported alias for internal consistency.
-// Deprecated: internal use only; new code should use HeaderTrue.
+// Internal use only; new code should use HeaderTrue.
 const headerTrue = HeaderTrue
-
 
 // SwapStrategy defines how HTMX swaps content into the DOM.
 type SwapStrategy string
