@@ -2,6 +2,7 @@
 package cqrshtmx
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/cockroachdb/errors"
@@ -21,6 +22,9 @@ type App struct {
 	userIDExtractor UserIDExtractor
 	errorHandler    ErrorHandler
 	loginRedirect   string
+
+	beforeDispatch BeforeDispatchHook
+	afterDispatch  AfterDispatchHook
 }
 
 // Config configures an App. Commands or Queries must be non-nil.
@@ -31,7 +35,27 @@ type Config struct {
 	UserIDExtractor UserIDExtractor
 	ErrorHandler    ErrorHandler
 	LoginRedirect   string
+
+	// BeforeDispatch is called before dispatching a command or query.
+	// It receives the request context and returns a (possibly modified) context.
+	// Use this for setting up tracing spans, request IDs, or timers.
+	BeforeDispatch BeforeDispatchHook
+
+	// AfterDispatch is called after dispatching a command or query,
+	// regardless of success or failure. The error is nil on success.
+	// Use this for logging, metrics, or teardown.
+	AfterDispatch AfterDispatchHook
 }
+
+// BeforeDispatchHook is called before dispatching a command or query.
+// It receives the request context and returns a (possibly modified) context
+// that will be used for the remainder of the handler.
+type BeforeDispatchHook func(ctx context.Context, r *http.Request) context.Context
+
+// AfterDispatchHook is called after dispatching a command or query,
+// regardless of whether dispatch succeeded or failed.
+// Use this for logging, metrics, or cleanup.
+type AfterDispatchHook func(ctx context.Context, r *http.Request, err error)
 
 // New creates an App from the given Config.
 // Returns an error if both Commands and Queries are nil.
@@ -59,6 +83,8 @@ func New(cfg Config) (*App, error) {
 		userIDExtractor: cfg.UserIDExtractor,
 		errorHandler:    eh,
 		loginRedirect:   loginRedirect,
+		beforeDispatch:  cfg.BeforeDispatch,
+		afterDispatch:   cfg.AfterDispatch,
 	}, nil
 }
 

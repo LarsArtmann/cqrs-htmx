@@ -16,22 +16,38 @@ func (a *App) handleCommandDispatch(
 ) {
 	ctx := r.Context()
 
+	if a.beforeDispatch != nil {
+		ctx = a.beforeDispatch(ctx, r)
+	}
+
 	if err := a.executePreDispatchChecks(w, r, cfg); err != nil {
+		if a.afterDispatch != nil {
+			a.afterDispatch(ctx, r, err)
+		}
 		return
 	}
 
 	cmd, err := cfg.commandDecoder(r)
 	if err != nil {
 		a.errorHandler(w, r, err)
+		if a.afterDispatch != nil {
+			a.afterDispatch(ctx, r, err)
+		}
 		return
 	}
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
 		a.errorHandler(w, r, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err))
+		if a.afterDispatch != nil {
+			a.afterDispatch(ctx, r, err)
+		}
 		return
 	}
 
 	a.applyCommandResponse(w, r, cfg)
+	if a.afterDispatch != nil {
+		a.afterDispatch(ctx, r, nil)
+	}
 }
 
 func (a *App) executePreDispatchChecks(
@@ -68,25 +84,27 @@ func (a *App) handleQueryDispatch(
 ) {
 	ctx := r.Context()
 
-	if err := a.executeAuthorization(r, cfg); err != nil {
-		a.errorHandler(w, r, err)
-		return
-	}
-
-	if cfg.queryDecoder == nil {
-		a.errorHandler(w, r, ErrDecoderMissing)
-		return
+	if a.beforeDispatch != nil {
+		ctx = a.beforeDispatch(ctx, r)
 	}
 
 	qry, err := cfg.queryDecoder(r)
 	if err != nil {
+		err = fmt.Errorf("%w: %s: %w", ErrDecodeFailed, qryType, err)
 		a.errorHandler(w, r, err)
+		if a.afterDispatch != nil {
+			a.afterDispatch(ctx, r, err)
+		}
 		return
 	}
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		a.errorHandler(w, r, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err))
+		qu := fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err)
+		a.errorHandler(w, r, qu)
+		if a.afterDispatch != nil {
+			a.afterDispatch(ctx, r, qu)
+		}
 		return
 	}
 
@@ -95,12 +113,18 @@ func (a *App) handleQueryDispatch(
 	if cfg.render != nil {
 		if renderErr := cfg.render(w, r, result); renderErr != nil {
 			a.errorHandler(w, r, renderErr)
+			if a.afterDispatch != nil {
+				a.afterDispatch(ctx, r, renderErr)
+			}
+			return
 		}
-
-		return
 	}
 
 	if cfg.hasNoResponse() {
 		w.WriteHeader(http.StatusNoContent)
+	}
+
+	if a.afterDispatch != nil {
+		a.afterDispatch(ctx, r, nil)
 	}
 }
