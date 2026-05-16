@@ -12,6 +12,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `DecodeFormQuery` handler option for query parameter form decoding (symmetry with `DecodeForm`)
 - `docs/` directory with architecture reviews, planning docs, and status reports
 - `NewUserID()`, `ParseUserID()`, `MustParseUserID()` helpers; `type UserID = id.UserID` re-export
+- `NotificationLevel` type with `LevelSuccess`, `LevelError`, `LevelWarning`, `LevelInfo` constants
+- `JSONErrorHandlerWithRedirect` for JSON error responses with custom login redirect
+- Dispatch lifecycle hooks: `BeforeDispatchHook` / `AfterDispatchHook` on `Config`
+- Request validation: `ValidateCommand` / `ValidateQuery` HandlerOptions with `ErrValidationFailed`
+- Correlation ID propagation: `WithCorrelationID` / `CorrelationIDFromContext`
+- Timeout propagation: `Config.Timeout` wraps dispatch with `context.WithTimeout`
+- Godoc examples (7 `Example*` functions)
+- Benchmark tests (10 sub-benchmarks)
+- `CONTRIBUTING.md` contribution guide
+- GitHub Actions CI pipeline (build + test + lint + coverage gate)
+- `authMode` typed enum for handler authorization (makes impossible states unrepresentable)
 
 ### Changed
 
@@ -20,6 +31,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Extract notification helpers to dedicated `notify.go` module
 - Consolidate duplicate test types across test files into shared helpers
 - Remove local-path `replace` directives from `go.mod` — resolve from GitHub
+- Notification levels now use `NotificationLevel` type instead of magic strings
+- Remove `headerTrue` alias — use `HeaderTrue` everywhere
+- `"X-Correlation-ID"` header extracted to `headerCorrelationID` constant
+- `JSONErrorHandler` now delegates to `JSONErrorHandlerWithRedirect` with default redirect
+- Authorization config consolidated from 4 fields (`authorize bool` + `requireAuth bool` + `resource` + `action`) to typed `authMode` enum + `resource` + `action`
 
 ### Fixed
 
@@ -29,6 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix README compile-breaking example (`cqrshtmx.LoginRedirect` → `Config.LoginRedirect`)
 - Fix error wrapping: `errors.Wrapf` with `%s` on sentinels → `fmt.Errorf("%w: ...")` throughout
 - `Enforce(nil, ...)` error now includes all three fields (subject, resource, action) — was missing subject
+- `JSONErrorHandler` now respects `Config.LoginRedirect` (was hardcoded to `/login`)
 
 ### Removed
 
@@ -36,6 +53,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Remove redundant gocritic `disabled-checks` entries (`dupImport`, `octalLiteral`, `whyNoLint` — already disabled by default)
 - Remove unused `io` and `event` imports from test files
 - Remove dead sentinels `ErrNoUserID` and `ErrRendererMissing` (exported but never returned by any code path)
+- Remove deprecated `DefaultNotificationEvent` var (race risk, unexported constant used internally)
+- Unexport internal sentinels: `ErrCommandsNil` → `errCommandsNil`, `ErrQueriesNil` → `errQueriesNil`, `ErrDecoderMissing` → `errDecoderMissing`
 
 ## [0.2.0] - 2026-05-07
 

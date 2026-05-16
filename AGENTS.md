@@ -24,7 +24,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 cqrs-htmx/
 ├── app.go         # App builder, Config, Command(), Query(), enrichUserID()
 ├── handler.go     # handleCommandDispatch(), handleQueryDispatch()
-├── options.go     # HandlerOption, decoders, Render/RenderTempl, authz helpers
+├── options.go     # HandlerOption, decoders, Render/RenderTempl, validation, authMode enum, authorization logic
 ├── response.go    # HTMX response builder (fluent API) + notification methods
 ├── authz.go       # Enforcer interface, Authorize, Enforce, AuthorizeMiddleware
 ├── context.go     # UserID type, ParseUserID/MustParseUserID, context enrichment (UserID → CQRS metadata)
@@ -54,7 +54,11 @@ cqrs-htmx/
 - **Timeout support**: `Config.Timeout` wraps only the `Dispatch` call (not decode/auth). Zero or negative = no timeout. Uses single `timeoutCtx()` helper on App
 - **Validation HandlerOptions**: `ValidateCommand`/`ValidateQuery` wrap the decoder — short-circuit on decode errors, wrap validation errors with `ErrValidationFailed` (400 Rejection)
 - **Lifecycle hooks**: `BeforeDispatchHook`/`AfterDispatchHook` on Config for tracing, logging, metrics around dispatch
-- **AuthorizeMiddleware HTMX-aware**: Uses `DefaultErrorHandlerWithRedirect` for consistent auth error handling with HTMX redirect support; optional `loginRedirect` parameter
+- **NotificationLevel type**: `LevelSuccess`, `LevelError`, `LevelWarning`, `LevelInfo` typed constants replace magic strings in notifications
+- **JSONErrorHandlerWithRedirect**: JSON error handler that respects per-App `Config.LoginRedirect` (unlike `JSONErrorHandler` which was hardcoded)
+- **Authorization config**: `authMode` enum (`authNone`, `authRequired`, `authAuthorized`) replaces `authorize bool` + `requireAuth bool` — impossible states are now unrepresentable
+- **Internal sentinels**: `errCommandsNil`, `errQueriesNil`, `errDecoderMissing` are unexported — consumers get HTTP responses, not CQRS errors
+- **No deprecated exports**: `DefaultNotificationEvent` removed (was race-risk deprecated var)
 
 ## Dependencies
 
@@ -76,7 +80,7 @@ cqrs-htmx/
 8. **LSP vs CLI discrepancy**: The LSP (`golangci_lint_ls`) shows ~31 stale warnings that `golangci-lint run` (CLI) does not report — this is an unresolved LSP cache issue, not a real lint problem
 9. **Per-App LoginRedirect**: `Config.LoginRedirect` is threaded into the error handler at `New()` time — if no custom `ErrorHandler` is set, the default handler captures the resolved loginRedirect in a closure
 10. **Enforcer interface**: `*casbin.Enforcer` satisfies `Enforcer` interface automatically. Custom implementations must implement `Enforce(rvals ...any) (bool, error)`
-11. **DefaultNotificationEvent**: Exported var is deprecated (was mutable, race risk). Internal code uses unexported `defaultNotificationEvent` constant. Use `NotifyWithEvent` builder for custom event names
+11. **DefaultNotificationEvent removed**: Was deprecated exported var with race risk. Internal `defaultNotificationEvent` constant used instead. Use `NotifyWithEvent` builder for custom event names
 12. **text/plain error handler**: `DefaultErrorHandlerWithRedirect` writes plain text without HTML escaping — `text/plain` Content-Type prevents browser HTML rendering, and escaping distorts error messages
 13. **AuthorizeMiddleware backward compat**: `loginRedirect` is variadic (optional 4th arg) for backward compatibility — `AuthorizeMiddleware(e, res, act, extractor)` still works
 14. **pkg/errors transitive dep**: `github.com/pkg/errors` is an indirect dep via `cockroachdb/errors` — cannot remove, but it's not directly used

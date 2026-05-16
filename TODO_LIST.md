@@ -34,7 +34,7 @@
 - [x] **Move remaining mutable globals to per-App config** — `DefaultNotificationEvent` is now an unexported constant; exported var is deprecated. Added `NotifyWithEvent` builder for custom event names per-handler.
 - [x] **Extract Casbin interface** — `authz.go` now defines `Enforcer interface { Enforce(...any) (bool, error) }`. `*casbin.Enforcer` satisfies it automatically. Enables mock/fake enforcers in consumer tests.
 - [x] **Fix AuthorizeMiddleware ghost system** — Was bypassing App's error handler (raw `http.Error`). Now uses `DefaultErrorHandlerWithRedirect` for HTMX-aware auth error handling. Optional `loginRedirect` parameter.
-- [~] **Remove dead sentinels** — `ErrNoUserID` and `ErrRendererMissing` are exported but never returned by any code path. Breaking change — defer to v2.
+- [x] **Remove dead sentinels** — `ErrNoUserID` and `ErrRendererMissing` removed. `ErrCommandsNil`, `ErrQueriesNil`, `ErrDecoderMissing` unexported. `DefaultNotificationEvent` removed.
 - [x] **Extract shared test helpers** — `testing_test.go` with 11 helpers covering decoders, handlers, capture utilities. Reduced clone groups by 48% (27→14 at t=25).
 
 ## P3 — Feature Enhancements
@@ -50,7 +50,7 @@
 - [x] **Add godoc examples** — 6 `Example*` functions in `example_test.go`: `New`, `App_Command`, `App_Query`, `NewResponse`, `SwapStrategy`, `HTMXMiddleware`.
 - [x] **Add benchmark tests** — 10 sub-benchmarks in `benchmark_test.go`: `MapError` (6), `ParseHTMXRequest` (2), `CommandDispatch`, `QueryDispatch`.
 - [x] **Create CONTRIBUTING.md** — Document lint config, test patterns, naming conventions
-- [ ] **Add `golangci-lint` to CI/CD** — GitHub Actions enforcement
+- [x] **Add `golangci-lint` to CI/CD** — GitHub Actions enforcement (.github/workflows/ci.yml)
 - [x] **Document `.golangci.yml` decisions** — Inline comments explaining exclusions
 
 ## Already Done
