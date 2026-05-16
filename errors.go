@@ -21,10 +21,11 @@ var (
 	ErrDecodeFailed     = errors.New("failed to decode request body")
 	ErrDispatchFailed   = errors.New("command/query dispatch failed")
 	ErrEnforcerNil      = errors.New("casbin enforcer is required for authorization")
-	ErrCommandsNil      = errors.New("command dispatcher is required")
-	ErrQueriesNil       = errors.New("query dispatcher is required")
-	ErrDecoderMissing   = errors.New("request decoder is required")
 	ErrValidationFailed = errors.New("request validation failed")
+
+	errCommandsNil    = errors.New("command dispatcher is required")
+	errQueriesNil     = errors.New("query dispatcher is required")
+	errDecoderMissing = errors.New("request decoder is required")
 )
 
 func registerErrorClassifications() {
@@ -34,9 +35,9 @@ func registerErrorClassifications() {
 		event.RegisterClassification(ErrDecodeFailed, event.Rejection)
 		event.RegisterClassification(ErrDispatchFailed, event.Transient)
 		event.RegisterClassification(ErrEnforcerNil, event.Infrastructure)
-		event.RegisterClassification(ErrCommandsNil, event.Infrastructure)
-		event.RegisterClassification(ErrQueriesNil, event.Infrastructure)
-		event.RegisterClassification(ErrDecoderMissing, event.Infrastructure)
+		event.RegisterClassification(errCommandsNil, event.Infrastructure)
+		event.RegisterClassification(errQueriesNil, event.Infrastructure)
+		event.RegisterClassification(errDecoderMissing, event.Infrastructure)
 		event.RegisterClassification(ErrValidationFailed, event.Rejection)
 	})
 }
@@ -118,9 +119,26 @@ func DefaultErrorHandlerWithRedirect(
 
 // JSONErrorHandler writes errors as JSON responses.
 // For HTMX requests with auth errors, redirects via HX-Redirect instead of returning JSON.
+// Uses the default login redirect path ("/login").
 func JSONErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
+	JSONErrorHandlerWithRedirect(w, r, err, defaultLoginRedirect)
+}
+
+// JSONErrorHandlerWithRedirect writes errors as JSON responses with a custom login redirect.
+// For HTMX requests with auth errors, redirects via HX-Redirect instead of returning JSON.
+// If loginRedirect is empty, the default "/login" is used.
+func JSONErrorHandlerWithRedirect(
+	w http.ResponseWriter,
+	r *http.Request,
+	err error,
+	loginRedirect string,
+) {
+	if loginRedirect == "" {
+		loginRedirect = defaultLoginRedirect
+	}
+
 	if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden)) {
-		w.Header().Set(headerRedirect, defaultLoginRedirect)
+		w.Header().Set(headerRedirect, loginRedirect)
 		w.WriteHeader(http.StatusSeeOther)
 		return
 	}

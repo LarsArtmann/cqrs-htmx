@@ -53,7 +53,7 @@ func (resp *Response) Redirect(url string) *Response {
 
 // Refresh triggers a full page refresh on the client.
 func (resp *Response) Refresh() *Response {
-	resp.w.Header().Set(headerRefresh, headerTrue)
+	resp.w.Header().Set(headerRefresh, HeaderTrue)
 	return resp
 }
 
@@ -108,27 +108,27 @@ func (resp *Response) TriggerWithDetail(name string, detail any) *Response {
 
 // NotifySuccess triggers a success notification via HTMX event.
 func (resp *Response) NotifySuccess(message string) *Response {
-	return resp.triggerNotification("success", message)
+	return resp.triggerNotification(LevelSuccess, message)
 }
 
 // NotifyError triggers an error notification via HTMX event.
 func (resp *Response) NotifyError(message string) *Response {
-	return resp.triggerNotification("error", message)
+	return resp.triggerNotification(LevelError, message)
 }
 
 // NotifyWarning triggers a warning notification via HTMX event.
 func (resp *Response) NotifyWarning(message string) *Response {
-	return resp.triggerNotification("warning", message)
+	return resp.triggerNotification(LevelWarning, message)
 }
 
 // NotifyInfo triggers an info notification via HTMX event.
 func (resp *Response) NotifyInfo(message string) *Response {
-	return resp.triggerNotification("info", message)
+	return resp.triggerNotification(LevelInfo, message)
 }
 
-func (resp *Response) triggerNotification(level, message string) *Response {
+func (resp *Response) triggerNotification(level NotificationLevel, message string) *Response {
 	return resp.TriggerWithDetail(defaultNotificationEvent, map[string]string{
-		"level":   level,
+		"level":   string(level),
 		"message": message,
 	})
 }

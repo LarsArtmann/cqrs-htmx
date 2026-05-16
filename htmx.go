@@ -36,10 +36,6 @@ const htmxKey htmxContextKey = "cqrshtmx_htmx_request"
 // Use this instead of hardcoding "true" in tests or middleware.
 const HeaderTrue = "true"
 
-// headerTrue is the unexported alias for internal consistency.
-// Internal use only; new code should use HeaderTrue.
-const headerTrue = HeaderTrue
-
 // SwapStrategy defines how HTMX swaps content into the DOM.
 type SwapStrategy string
 
@@ -77,9 +73,9 @@ func (h *HTMXRequest) RenderPartial() bool {
 // parseHTMXRequest extracts all HTMX headers from the request.
 func parseHTMXRequest(r *http.Request) *HTMXRequest {
 	return &HTMXRequest{
-		IsHTMX:           r.Header.Get(headerRequest) == headerTrue,
-		IsBoosted:        r.Header.Get(headerBoosted) == headerTrue,
-		IsHistoryRestore: r.Header.Get(headerHistoryRestore) == headerTrue,
+		IsHTMX:           r.Header.Get(headerRequest) == HeaderTrue,
+		IsBoosted:        r.Header.Get(headerBoosted) == HeaderTrue,
+		IsHistoryRestore: r.Header.Get(headerHistoryRestore) == HeaderTrue,
 		Target:           r.Header.Get(headerTarget),
 		TriggerID:        r.Header.Get(headerTriggerID),
 		TriggerName:      r.Header.Get(headerTriggerName),
@@ -106,7 +102,7 @@ func IsHTMXRequest(r *http.Request) bool {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.IsHTMX
 	}
-	return r.Header.Get(headerRequest) == headerTrue
+	return r.Header.Get(headerRequest) == HeaderTrue
 }
 
 // IsBoosted returns true if the request was sent via hx-boost.
@@ -114,7 +110,7 @@ func IsBoosted(r *http.Request) bool {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.IsBoosted
 	}
-	return r.Header.Get(headerBoosted) == headerTrue
+	return r.Header.Get(headerBoosted) == HeaderTrue
 }
 
 // IsHistoryRestore returns true if the request is a history restoration.
@@ -122,7 +118,7 @@ func IsHistoryRestore(r *http.Request) bool {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.IsHistoryRestore
 	}
-	return r.Header.Get(headerHistoryRestore) == headerTrue
+	return r.Header.Get(headerHistoryRestore) == HeaderTrue
 }
 
 // RenderPartial returns true when the request is from HTMX and is not
@@ -132,8 +128,8 @@ func RenderPartial(r *http.Request) bool {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.RenderPartial()
 	}
-	return r.Header.Get(headerRequest) == headerTrue &&
-		r.Header.Get(headerHistoryRestore) != headerTrue
+	return r.Header.Get(headerRequest) == HeaderTrue &&
+		r.Header.Get(headerHistoryRestore) != HeaderTrue
 }
 
 // HTMXTarget returns the ID of the target element from the request.

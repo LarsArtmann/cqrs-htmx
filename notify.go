@@ -2,29 +2,35 @@ package cqrshtmx
 
 const defaultNotificationEvent = "showMessage"
 
-// DefaultNotificationEvent is the default HTMX trigger event name for client-side notifications.
-//
-// Deprecated: Use NotifyWithEvent to customize the event name per-handler.
-var DefaultNotificationEvent = defaultNotificationEvent
+// NotificationLevel represents the severity level of a notification.
+type NotificationLevel string
+
+// Notification level constants for HTMX client-side notifications.
+const (
+	LevelSuccess NotificationLevel = "success"
+	LevelError   NotificationLevel = "error"
+	LevelWarning NotificationLevel = "warning"
+	LevelInfo    NotificationLevel = "info"
+)
 
 // NotifySuccess triggers an HTMX notification with success level.
 func NotifySuccess(message string) HandlerOption {
-	return notifyOption(defaultNotificationEvent, "success", message)
+	return notifyOption(defaultNotificationEvent, LevelSuccess, message)
 }
 
 // NotifyError triggers an HTMX notification with error level.
 func NotifyError(message string) HandlerOption {
-	return notifyOption(defaultNotificationEvent, "error", message)
+	return notifyOption(defaultNotificationEvent, LevelError, message)
 }
 
 // NotifyWarning triggers an HTMX notification with warning level.
 func NotifyWarning(message string) HandlerOption {
-	return notifyOption(defaultNotificationEvent, "warning", message)
+	return notifyOption(defaultNotificationEvent, LevelWarning, message)
 }
 
 // NotifyInfo triggers an HTMX notification with info level.
 func NotifyInfo(message string) HandlerOption {
-	return notifyOption(defaultNotificationEvent, "info", message)
+	return notifyOption(defaultNotificationEvent, LevelInfo, message)
 }
 
 // NotifyWithEvent returns notification builder using a custom HTMX event name.
@@ -61,12 +67,12 @@ func (b NotifyEventBuilder) Warning(message string) HandlerOption {
 
 // Info triggers an info notification with the custom event name.
 func (b NotifyEventBuilder) Info(message string) HandlerOption {
-	return notifyOption(b.event, "info", message)
+	return notifyOption(b.event, LevelInfo, message)
 }
 
-func notifyOption(event, level, message string) HandlerOption {
+func notifyOption(event string, level NotificationLevel, message string) HandlerOption {
 	return TriggerWithDetail(event, map[string]string{
-		"level":   level,
+		"level":   string(level),
 		"message": message,
 	})
 }

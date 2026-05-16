@@ -109,7 +109,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
-			a.errorHandler(w, r, ErrCommandsNil)
+			a.errorHandler(w, r, errCommandsNil)
 			return
 		}
 
@@ -132,7 +132,7 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.queries == nil {
-			a.errorHandler(w, r, ErrQueriesNil)
+			a.errorHandler(w, r, errQueriesNil)
 			return
 		}
 

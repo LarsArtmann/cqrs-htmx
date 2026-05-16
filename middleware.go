@@ -5,6 +5,8 @@ import (
 	"slices"
 )
 
+const headerCorrelationID = "X-Correlation-ID"
+
 // ContextEnrichmentMiddleware extracts the user ID from the request using
 // the provided extractor and stores it in the context for downstream CQRS handlers.
 func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) http.Handler {
@@ -12,8 +14,7 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
-			// Propagate correlation ID from request header if present.
-			if cid := r.Header.Get("X-Correlation-ID"); cid != "" {
+			if cid := r.Header.Get(headerCorrelationID); cid != "" {
 				ctx = WithCorrelationID(ctx, cid)
 			}
 

@@ -74,7 +74,7 @@ var _ = Describe("Error Mapping", func() {
 		It("has distinct sentinel errors", func() {
 			Expect(cqrshtmx.ErrUnauthorized).NotTo(Equal(cqrshtmx.ErrForbidden))
 			Expect(cqrshtmx.ErrDecodeFailed).NotTo(Equal(cqrshtmx.ErrDispatchFailed))
-			Expect(cqrshtmx.ErrEnforcerNil).NotTo(Equal(cqrshtmx.ErrCommandsNil))
+			Expect(cqrshtmx.ErrEnforcerNil).NotTo(Equal(cqrshtmx.ErrValidationFailed))
 		})
 	})
 

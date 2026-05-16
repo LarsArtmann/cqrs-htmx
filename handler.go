@@ -64,8 +64,8 @@ func (a *App) executePreDispatchChecks(
 	}
 
 	if cfg.commandDecoder == nil {
-		a.errorHandler(w, r, ErrDecoderMissing)
-		return ErrDecoderMissing
+		a.errorHandler(w, r, errDecoderMissing)
+		return errDecoderMissing
 	}
 
 	return nil
