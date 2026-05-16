@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Date:** 2026-05-07 | **Updated:** 2026-05-07 | **Source:** Self-review session, full codebase audit
+**Date:** 2026-05-07 | **Updated:** 2026-05-16 | **Source:** Self-review session, full codebase audit
 
 ## Status Legend
 
@@ -26,7 +26,7 @@
 - [x] **Deduplicate notification test boilerplate** — `testNotificationTrigger` helper + `notifyOption`/`triggerNotification` private helpers
 - [x] **Consolidate duplicate test types** — `mockTemplComponent`, `deleteUserCmd`, `listUsersQuery` → use `bdd*` types
 - [x] **Extract helper functions** — `hasNoResponse()`, `hasMinimalResponse()`, `decodeJSONBody`, `decodeRequest`, `decodeFormBody`, `notifyOption`, `triggerNotification`
-- [~] **Export `HeaderTrue` or provide test helper** — Tests still hardcode `"true"` (34 occurrences); `headerTrue` is unexported. Created `testing_test.go` with helpers but this item still open.
+- [x] **Export `HeaderTrue`** — `HeaderTrue` exported constant in htmx.go. All tests use `cqrshtmx.HeaderTrue` instead of hardcoded `"true"`.
 - [x] **Add error context to authorization errors** — `ErrForbidden`, `ErrEnforcerNil`, and `ErrUnauthorized` (with Authorize) now include resource/action context for debugging
 
 ## P2 — Architecture Improvements
@@ -35,22 +35,22 @@
 - [x] **Extract Casbin interface** — `authz.go` now defines `Enforcer interface { Enforce(...any) (bool, error) }`. `*casbin.Enforcer` satisfies it automatically. Enables mock/fake enforcers in consumer tests.
 - [x] **Fix AuthorizeMiddleware ghost system** — Was bypassing App's error handler (raw `http.Error`). Now uses `DefaultErrorHandlerWithRedirect` for HTMX-aware auth error handling. Optional `loginRedirect` parameter.
 - [~] **Remove dead sentinels** — `ErrNoUserID` and `ErrRendererMissing` are exported but never returned by any code path. Breaking change — defer to v2.
-- [~] **Extract shared test helpers** — `testing_test.go` created with 11 helpers covering decoders, handlers, capture utilities. Reduced clone groups by 48% (27→14 at t=25).
+- [x] **Extract shared test helpers** — `testing_test.go` with 11 helpers covering decoders, handlers, capture utilities. Reduced clone groups by 48% (27→14 at t=25).
 
 ## P3 — Feature Enhancements
 
-- [ ] **Add dispatch lifecycle hooks** — `OnBeforeDispatch` / `OnAfterDispatch` for logging/metrics/tracing
-- [ ] **Add request validation middleware** — Optional schema validation in decode pipeline
-- [ ] **Add JSON error response option** — DefaultErrorHandler only returns plain text
-- [ ] **Add correlation ID propagation** — `WithCorrelationID` / `CorrelationIDFromContext`
-- [ ] **Add timeout propagation** — Library doesn't set deadlines on context
+- [x] **Add dispatch lifecycle hooks** — `BeforeDispatchHook` / `AfterDispatchHook` on `Config`. Tested in `hooks_test.go` with 9 specs.
+- [x] **Add request validation middleware** — `ValidateCommand` / `ValidateQuery` HandlerOptions with `ErrValidationFailed` sentinel. Tested in `validation_test.go` with 6 specs.
+- [x] **Add JSON error response option** — `JSONErrorHandler` writes `{error, status}` JSON. HTMX auth errors redirect via HX-Redirect.
+- [x] **Add correlation ID propagation** — `WithCorrelationID` / `CorrelationIDFromContext`. Auto-extracted from `X-Correlation-ID` header in `ContextEnrichmentMiddleware`.
+- [x] **Add timeout propagation** — `Config.Timeout time.Duration` wraps dispatch with `context.WithTimeout`. Zero/negative = no timeout. Tested in `timeout_test.go` with 7 specs.
 
 ## P4 — Polish
 
-- [ ] **Add godoc examples** — `SwapStrategy`, `Config`, `Response`, `HTMXRequest`
+- [x] **Add godoc examples** — 6 `Example*` functions in `example_test.go`: `New`, `App_Command`, `App_Query`, `NewResponse`, `SwapStrategy`, `HTMXMiddleware`.
+- [x] **Add benchmark tests** — 10 sub-benchmarks in `benchmark_test.go`: `MapError` (6), `ParseHTMXRequest` (2), `CommandDispatch`, `QueryDispatch`.
 - [ ] **Create CONTRIBUTING.md** — Document lint config, test patterns, naming conventions
 - [ ] **Add `golangci-lint` to CI/CD** — GitHub Actions enforcement
-- [ ] **Add benchmark tests** — `MapError`, `parseHTMXRequest`, `HTMXMiddleware`
 - [ ] **Document `.golangci.yml` decisions** — Inline comments explaining exclusions
 
 ## Already Done
@@ -65,7 +65,7 @@
 - [x] **Context propagation** — User ID → context → event metadata. Dedup in handlers
 - [x] **Templ duck-typing** — `RenderTempl`, `RenderTemplResult[T]` without importing templ
 - [x] **Middleware chain** — `Chain` composes middleware left-to-right
-- [x] **95.7% test coverage** — 148 tests, race-safe
+- [x] **95.7% test coverage** — 170 tests, race-safe
 - [x] **0 lint issues** — golangci-lint clean
 - [x] **All header constants consolidated** — No hardcoded HTMX header strings in production code
 - [x] **Per-App LoginRedirect** — Config field now actually works via closure

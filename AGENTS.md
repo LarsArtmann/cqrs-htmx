@@ -51,6 +51,9 @@ cqrs-htmx/
 - **Ginkgo/Gomega**: Test framework per project standards
 - **Test type consolidation**: All BDD test types use `bdd` prefix (e.g., `bddCreateUserCmd`, `bddTemplComponent`)
 - **Error context wrapping**: All authorization errors (`ErrForbidden`, `ErrEnforcerNil`, `ErrUnauthorized` with Authorize) include resource/action for debugging
+- **Timeout support**: `Config.Timeout` wraps only the `Dispatch` call (not decode/auth). Zero or negative = no timeout. Uses single `timeoutCtx()` helper on App
+- **Validation HandlerOptions**: `ValidateCommand`/`ValidateQuery` wrap the decoder — short-circuit on decode errors, wrap validation errors with `ErrValidationFailed` (400 Rejection)
+- **Lifecycle hooks**: `BeforeDispatchHook`/`AfterDispatchHook` on Config for tracing, logging, metrics around dispatch
 - **AuthorizeMiddleware HTMX-aware**: Uses `DefaultErrorHandlerWithRedirect` for consistent auth error handling with HTMX redirect support; optional `loginRedirect` parameter
 
 ## Dependencies
@@ -79,6 +82,10 @@ cqrs-htmx/
 14. **pkg/errors transitive dep**: `github.com/pkg/errors` is an indirect dep via `cockroachdb/errors` — cannot remove, but it's not directly used
 15. **Strongly-typed UserID**: `WithUserID` / `UserIDFromContext` now use `id.UserID` (ULID-backed). `UserIDExtractor` still returns `string`; middleware parses to `UserID`. **Consumer breaking change**: callers passing string literals or invalid ULIDs will see parse failures — use `MustParseUserID` in tests or `ParseUserID` in production
 16. **Middleware silently drops invalid IDs**: `ContextEnrichmentMiddleware` and `App.enrichUserID` parse the extractor's string output to `UserID` — if parsing fails (not a valid ULID), the ID is silently dropped. Auth will fail downstream with `ErrUnauthorized`, not an explicit parse error
+17. **Timeout wraps dispatch only**: `Config.Timeout` applies only to the `Dispatch` call in `handler.go`, not to decode or auth — this is intentional; decode/auth should not be time-bounded by the handler timeout
+18. **Validation order matters**: `ValidateCommand`/`ValidateQuery` must be applied AFTER the decoder option (e.g., `DecodeJSON`) in the `HandlerOption` list — they wrap the existing decoder, so a nil decoder means validation is silently skipped
+19. **Flaky test anti-pattern**: Never use `time.After` + `select` for timeout tests — use `<-ctx.Done()` blocking instead. Also ensure command/query type names in test handlers match decoder output names exactly
+20. **Benchmark/example lint exclusions**: `.golangci.yml` has `linters.exclusions.rules` for `(benchmark|example)_test\.go$` files — `intrange`, `noctx`, `nilnil` are relaxed for these files only; production code has no exclusions
 
 ## Test Commands
 
