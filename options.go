@@ -30,9 +30,17 @@ type TemplComponent interface {
 // HandlerOption configures a command or query handler.
 type HandlerOption func(*handlerConfig)
 
+// authMode defines the authorization mode for a handler.
+type authMode int
+
+const (
+	authNone authMode = iota
+	authRequired
+	authAuthorized
+)
+
 type handlerConfig struct {
-	authorize      bool
-	requireAuth    bool
+	authMode       authMode
 	resource       string
 	action         string
 	commandDecoder CommandDecoder
@@ -267,19 +275,19 @@ func ValidateQuery(validator func(query.Query) error) HandlerOption {
 }
 
 func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
-	if !cfg.authorize && !cfg.requireAuth {
+	if cfg.authMode == authNone {
 		return nil
 	}
 
 	userID := UserIDFromContext(r.Context())
 	if userID.IsZero() {
-		if cfg.authorize {
+		if cfg.authMode == authAuthorized {
 			return fmt.Errorf("%w: %s/%s", ErrUnauthorized, cfg.resource, cfg.action)
 		}
 		return ErrUnauthorized
 	}
 
-	if cfg.authorize && a.enforcer != nil {
+	if cfg.authMode == authAuthorized && a.enforcer != nil {
 		return Enforce(a.enforcer, userID.String(), cfg.resource, cfg.action)
 	}
 

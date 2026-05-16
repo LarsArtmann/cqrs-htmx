@@ -23,7 +23,7 @@ func Authorize(resource, action string) HandlerOption {
 	return func(cfg *handlerConfig) {
 		cfg.resource = resource
 		cfg.action = action
-		cfg.authorize = true
+		cfg.authMode = authAuthorized
 	}
 }
 
@@ -31,7 +31,7 @@ func Authorize(resource, action string) HandlerOption {
 // without checking specific Casbin permissions.
 func RequireAuth() HandlerOption {
 	return func(cfg *handlerConfig) {
-		cfg.requireAuth = true
+		cfg.authMode = authRequired
 	}
 }
 
