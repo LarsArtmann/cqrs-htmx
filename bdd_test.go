@@ -251,9 +251,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 	Describe("As a consumer, I want CQRS domain errors to map correctly to HTTP responses", func() {
 		It("maps a rejection to 400 Bad Request", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("DeleteUser", func(_ context.Context, _ command.Command) error {
-				return event.NewRejection("user.not_found", "user does not exist")
-			})
+			_ = disp.Register("DeleteUser", rejectionHandler("user.not_found", "user does not exist"))
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
@@ -414,9 +412,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 				cqrshtmx.DecodeFormQuery(func(_ bddCreateUserReq) (query.Query, error) {
 					return &bddListUsersQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
-					return json.NewEncoder(w).Encode(result)
-				}),
+				cqrshtmx.Render(encodeJSONResult),
 			)
 
 			form := strings.NewReader("Email=alice%40example.com&Name=Alice")

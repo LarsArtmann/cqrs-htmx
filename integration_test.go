@@ -10,7 +10,6 @@ import (
 	"github.com/casbin/casbin/v3"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	. "github.com/onsi/ginkgo/v2"
@@ -31,12 +30,8 @@ var _ = Describe("Full Integration", func() {
 			disp = command.NewDispatcher()
 			userID = id.NewAggregateID()
 
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
-			_ = disp.Register("DeleteUser", func(_ context.Context, _ command.Command) error {
-				return event.NewRejection("user.not_found", "user does not exist")
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			_ = disp.Register("DeleteUser", rejectionHandler("user.not_found", "user does not exist"))
 
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
@@ -161,9 +156,7 @@ var _ = Describe("Full Integration", func() {
 
 		BeforeEach(func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
@@ -193,9 +186,7 @@ var _ = Describe("Full Integration", func() {
 
 		BeforeEach(func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{

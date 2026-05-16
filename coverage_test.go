@@ -2,7 +2,6 @@ package cqrshtmx_test
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -416,9 +415,7 @@ var _ = Describe("Coverage Gaps", func() {
 				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
-					return json.NewEncoder(w).Encode(result)
-				}),
+				cqrshtmx.Render(encodeJSONResult),
 				cqrshtmx.Trigger("dataLoaded"),
 			)
 
@@ -460,9 +457,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 		It("NotifyWithEvent uses custom event name", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
@@ -491,9 +486,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Command with redirect and HTMX", func() {
 		It("sets HTMX redirect for HTMX requests", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())

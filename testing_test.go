@@ -2,6 +2,7 @@ package cqrshtmx_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/casbin/casbin/v3"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
@@ -113,3 +115,26 @@ func newTestQueryDispatcher(
 	_ = disp.Register(name, handler)
 	return disp
 }
+
+// noOpCommandHandler returns a handler that always succeeds.
+func noOpCommandHandler(_ context.Context, _ command.Command) error { return nil }
+
+// encodeJSONResult writes result as JSON to the response writer.
+func encodeJSONResult(w http.ResponseWriter, _ *http.Request, result any) error {
+	return json.NewEncoder(w).Encode(result)
+}
+
+// rejectionHandler returns a handler that returns a CQRS rejection.
+func rejectionHandler(code, message string) func(context.Context, command.Command) error {
+	return func(_ context.Context, _ command.Command) error {
+		return event.NewRejection(code, message)
+	}
+}
+
+// middlewareCaptureHandler returns an http.Handler that sets called to true.
+func middlewareCaptureHandler(called *bool) http.Handler {
+	return http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		*called = true
+	})
+}
+

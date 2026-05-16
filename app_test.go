@@ -177,9 +177,7 @@ var _ = Describe("App", func() {
 		BeforeEach(func() {
 			enf = newTestEnforcer()
 			disp = command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
@@ -239,9 +237,7 @@ var _ = Describe("App", func() {
 
 		BeforeEach(func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
@@ -317,9 +313,7 @@ var _ = Describe("App", func() {
 				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
-					return json.NewEncoder(w).Encode(result)
-				}),
+				cqrshtmx.Render(encodeJSONResult),
 			)
 
 			body := `{}`
@@ -391,9 +385,7 @@ var _ = Describe("Authorization", func() {
 				func(_ *http.Request) string { return adminUserID.String() })
 
 			called := false
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-				called = true
-			}))
+			handler := middleware(middlewareCaptureHandler(&called))
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -407,9 +399,7 @@ var _ = Describe("Authorization", func() {
 				func(_ *http.Request) string { return viewerUserID.String() })
 
 			called := false
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-				called = true
-			}))
+			handler := middleware(middlewareCaptureHandler(&called))
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -424,9 +414,7 @@ var _ = Describe("Authorization", func() {
 				func(_ *http.Request) string { return "" })
 
 			called := false
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-				called = true
-			}))
+			handler := middleware(middlewareCaptureHandler(&called))
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -441,9 +429,7 @@ var _ = Describe("Authorization", func() {
 				func(_ *http.Request) string { return "" })
 
 			called := false
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-				called = true
-			}))
+			handler := middleware(middlewareCaptureHandler(&called))
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -460,9 +446,7 @@ var _ = Describe("Authorization", func() {
 				func(_ *http.Request) string { return "" }, "/auth/signin")
 
 			called := false
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-				called = true
-			}))
+			handler := middleware(middlewareCaptureHandler(&called))
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -478,9 +462,7 @@ var _ = Describe("Handler Options", func() {
 	Describe("RequireAuth", func() {
 		It("rejects requests without user ID", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands: disp,
