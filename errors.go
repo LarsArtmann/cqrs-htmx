@@ -16,14 +16,15 @@ var (
 
 // Sentinel errors for HTTP→CQRS integration.
 var (
-	ErrUnauthorized   = errors.New("unauthorized: authentication required")
-	ErrForbidden      = errors.New("forbidden: insufficient permissions")
-	ErrDecodeFailed   = errors.New("failed to decode request body")
-	ErrDispatchFailed = errors.New("command/query dispatch failed")
-	ErrEnforcerNil    = errors.New("casbin enforcer is required for authorization")
-	ErrCommandsNil    = errors.New("command dispatcher is required")
-	ErrQueriesNil     = errors.New("query dispatcher is required")
-	ErrDecoderMissing = errors.New("request decoder is required")
+	ErrUnauthorized     = errors.New("unauthorized: authentication required")
+	ErrForbidden        = errors.New("forbidden: insufficient permissions")
+	ErrDecodeFailed     = errors.New("failed to decode request body")
+	ErrDispatchFailed   = errors.New("command/query dispatch failed")
+	ErrEnforcerNil      = errors.New("casbin enforcer is required for authorization")
+	ErrCommandsNil      = errors.New("command dispatcher is required")
+	ErrQueriesNil       = errors.New("query dispatcher is required")
+	ErrDecoderMissing   = errors.New("request decoder is required")
+	ErrValidationFailed = errors.New("request validation failed")
 )
 
 func registerErrorClassifications() {
@@ -36,6 +37,7 @@ func registerErrorClassifications() {
 		event.RegisterClassification(ErrCommandsNil, event.Infrastructure)
 		event.RegisterClassification(ErrQueriesNil, event.Infrastructure)
 		event.RegisterClassification(ErrDecoderMissing, event.Infrastructure)
+		event.RegisterClassification(ErrValidationFailed, event.Rejection)
 	})
 }
 

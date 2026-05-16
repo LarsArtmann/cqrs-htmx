@@ -4,6 +4,7 @@ package cqrshtmx
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -22,6 +23,7 @@ type App struct {
 	userIDExtractor UserIDExtractor
 	errorHandler    ErrorHandler
 	loginRedirect   string
+	timeout         time.Duration
 
 	beforeDispatch BeforeDispatchHook
 	afterDispatch  AfterDispatchHook
@@ -45,6 +47,11 @@ type Config struct {
 	// regardless of success or failure. The error is nil on success.
 	// Use this for logging, metrics, or teardown.
 	AfterDispatch AfterDispatchHook
+
+	// Timeout sets a maximum execution time for command and query handlers.
+	// A zero or negative value means no timeout (default).
+	// When set, dispatch is wrapped in a context with timeout.
+	Timeout time.Duration
 }
 
 // BeforeDispatchHook is called before dispatching a command or query.
@@ -83,6 +90,7 @@ func New(cfg Config) (*App, error) {
 		userIDExtractor: cfg.UserIDExtractor,
 		errorHandler:    eh,
 		loginRedirect:   loginRedirect,
+		timeout:         cfg.Timeout,
 		beforeDispatch:  cfg.BeforeDispatch,
 		afterDispatch:   cfg.AfterDispatch,
 	}, nil
@@ -161,6 +169,32 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 	}
 
 	return r.WithContext(WithUserID(r.Context(), userID))
+}
+
+// dispatchWithTimeout runs a command dispatch with the App's timeout, if configured.
+func (a *App) dispatchWithTimeout(ctx context.Context, fn func(context.Context) error) error {
+	if a.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, a.timeout)
+		defer cancel()
+	}
+	return fn(ctx)
+}
+
+// dispatchQueryWithTimeout runs a query dispatch with the App's timeout, if configured.
+func (a *App) dispatchQueryWithTimeout(
+	ctx context.Context,
+	_ query.Type,
+	qry query.Query,
+) (any, error) {
+	if a.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, a.timeout)
+		defer cancel()
+	}
+
+	result, dispatchErr := a.queries.Dispatch(ctx, qry) //nolint:wrapcheck,golines // error is wrapped by caller
+	return result, dispatchErr
 }
 
 func buildHandlerConfig(opts []HandlerOption) *handlerConfig {

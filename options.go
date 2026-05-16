@@ -206,6 +206,66 @@ func PushURL(url string) HandlerOption {
 	}
 }
 
+// ValidateCommand wraps the command decoder with a validation step.
+// The validator receives the decoded command and may return an error.
+// Validation errors are wrapped with ErrValidationFailed.
+//
+// Usage:
+//
+//	app.Command("CreateUser",
+//	    cqrshtmx.DecodeJSON(...),
+//	    cqrshtmx.ValidateCommand(func(cmd command.Command) error {
+//	        // e.g., check required fields
+//	        return nil
+//	    }),
+//	)
+func ValidateCommand(validator func(command.Command) error) HandlerOption {
+	return func(cfg *handlerConfig) {
+		if cfg.commandDecoder == nil {
+			return
+		}
+
+		original := cfg.commandDecoder
+		cfg.commandDecoder = func(r *http.Request) (command.Command, error) {
+			cmd, err := original(r)
+			if err != nil {
+				return nil, err
+			}
+
+			if valErr := validator(cmd); valErr != nil {
+				return nil, fmt.Errorf("%w: %w", ErrValidationFailed, valErr)
+			}
+
+			return cmd, nil
+		}
+	}
+}
+
+// ValidateQuery wraps the query decoder with a validation step.
+// The validator receives the decoded query and may return an error.
+// Validation errors are wrapped with ErrValidationFailed.
+func ValidateQuery(validator func(query.Query) error) HandlerOption {
+	return func(cfg *handlerConfig) {
+		if cfg.queryDecoder == nil {
+			return
+		}
+
+		original := cfg.queryDecoder
+		cfg.queryDecoder = func(r *http.Request) (query.Query, error) {
+			qry, err := original(r)
+			if err != nil {
+				return nil, err
+			}
+
+			if valErr := validator(qry); valErr != nil {
+				return nil, fmt.Errorf("%w: %w", ErrValidationFailed, valErr)
+			}
+
+			return qry, nil
+		}
+	}
+}
+
 func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 	if !cfg.authorize && !cfg.requireAuth {
 		return nil
