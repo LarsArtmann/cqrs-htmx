@@ -49,9 +49,9 @@
 
 - [x] **Add godoc examples** — 6 `Example*` functions in `example_test.go`: `New`, `App_Command`, `App_Query`, `NewResponse`, `SwapStrategy`, `HTMXMiddleware`.
 - [x] **Add benchmark tests** — 10 sub-benchmarks in `benchmark_test.go`: `MapError` (6), `ParseHTMXRequest` (2), `CommandDispatch`, `QueryDispatch`.
-- [ ] **Create CONTRIBUTING.md** — Document lint config, test patterns, naming conventions
+- [x] **Create CONTRIBUTING.md** — Document lint config, test patterns, naming conventions
 - [ ] **Add `golangci-lint` to CI/CD** — GitHub Actions enforcement
-- [ ] **Document `.golangci.yml` decisions** — Inline comments explaining exclusions
+- [x] **Document `.golangci.yml` decisions** — Inline comments explaining exclusions
 
 ## Already Done
 

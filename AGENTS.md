@@ -13,8 +13,8 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | -------- | ---------------------------------------------------------------------- |
 | Language | Go 1.26                                                                |
 | Module   | github.com/larsartmann/cqrs-htmx                                       |
-| Test     | `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
-| Build    | `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
+| Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
+| Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                    |
 | Coverage | 95.7% (150+ tests)                                                     |
 
@@ -86,19 +86,22 @@ cqrs-htmx/
 18. **Validation order matters**: `ValidateCommand`/`ValidateQuery` must be applied AFTER the decoder option (e.g., `DecodeJSON`) in the `HandlerOption` list — they wrap the existing decoder, so a nil decoder means validation is silently skipped
 19. **Flaky test anti-pattern**: Never use `time.After` + `select` for timeout tests — use `<-ctx.Done()` blocking instead. Also ensure command/query type names in test handlers match decoder output names exactly
 20. **Benchmark/example lint exclusions**: `.golangci.yml` has `linters.exclusions.rules` for `(benchmark|example)_test\.go$` files — `intrange`, `noctx`, `nilnil` are relaxed for these files only; production code has no exclusions
+21. **GOWORK=off required**: A parent `go.work` exists at `../go.work` that doesn't include this module. All `go test`/`go build` commands need `GOWORK=off` or they fail with "directory prefix does not contain modules listed in go.work"
 
 ## Test Commands
 
+**Note:** `GOWORK=off` is required because a parent `go.work` exists that doesn't include this module.
+
 ```bash
 # All tests
-GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1
 
 # With verbose output
-GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -v
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -v
 
 # Race detector
-GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -race
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -race
 
 # Coverage
-GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -coverprofile=coverage.out
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -coverprofile=coverage.out
 ```

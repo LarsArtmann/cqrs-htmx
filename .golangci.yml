@@ -79,27 +79,35 @@ linters:
     - wrapcheck
     - zerologlint
   settings:
+    # Config and handlerConfig are intentionally partial — fields set via options
     exhaustruct:
       exclude:
         - os/exec.Cmd
         - 'github\.com/larsartmann/cqrs-htmx\.(Config|handlerConfig)$'
         - 'github\.com/larsartmann/cqrs-htmx_test\.(testCreateUserCmd|bddCreateUserCmd)$'
+    # ifElseChain disabled to allow early-return patterns without forced restructuring
     gocritic:
       disabled-checks:
         - ifElseChain
   exclusions:
     rules:
+      # Sentinel errors and notification defaults must be package-level vars
+      # for sync.Once initialization and consumer override
       - linters:
           - gochecknoglobals
         text: "is a global variable"
         path: "(errors|notify)\\.go$"
+      # Ginkgo DSL uses dot-imports by convention (.Expect, .Describe, .It)
       - linters:
           - revive
         text: "dot-imports"
         path: "_test\\.go"
+      # Test code wraps errors at the handler level, not at every call site
       - linters:
           - wrapcheck
         path: "_test\\.go"
+      # Benchmarks use for i := 0; i < b.N; i++ (standard pattern, not intrange-compatible)
+      # Examples don't need request context or complex return values
       - linters:
           - intrange
           - noctx
