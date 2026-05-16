@@ -31,7 +31,9 @@ var _ = Describe("Full Integration", func() {
 			userID = id.NewAggregateID()
 
 			_ = disp.Register("CreateUser", noOpCommandHandler)
-			_ = disp.Register("DeleteUser", rejectionHandler("user.not_found", "user does not exist"))
+			_ = disp.Register("DeleteUser", rejectionHandler(
+				"user.not_found", "user does not exist",
+			))
 
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
