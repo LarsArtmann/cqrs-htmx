@@ -52,17 +52,17 @@ type NotifyEventBuilder struct {
 
 // Success triggers a success notification with the custom event name.
 func (b NotifyEventBuilder) Success(message string) HandlerOption {
-	return notifyOption(b.event, "success", message)
+	return notifyOption(b.event, LevelSuccess, message)
 }
 
 // Error triggers an error notification with the custom event name.
 func (b NotifyEventBuilder) Error(message string) HandlerOption {
-	return notifyOption(b.event, "error", message)
+	return notifyOption(b.event, LevelError, message)
 }
 
 // Warning triggers a warning notification with the custom event name.
 func (b NotifyEventBuilder) Warning(message string) HandlerOption {
-	return notifyOption(b.event, "warning", message)
+	return notifyOption(b.event, LevelWarning, message)
 }
 
 // Info triggers an info notification with the custom event name.
