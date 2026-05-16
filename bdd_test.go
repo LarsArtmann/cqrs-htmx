@@ -110,7 +110,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 				r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
 				adminID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 				r.Header.Set("X-User", adminID.String())
-				r.Header.Set("HX-Request", "true")
+				r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 				w := httptest.NewRecorder()
 
 				handler.ServeHTTP(w, r)
@@ -150,7 +150,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 
 				body := `{}`
 				r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-				r.Header.Set("HX-Request", "true")
+				r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 				w := httptest.NewRecorder()
 
 				handler.ServeHTTP(w, r)
@@ -290,7 +290,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 		It("builds a complex HTMX response with fluent chaining", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodPost, "/items", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 
 			resp := cqrshtmx.NewResponse(w, r)
 			resp.Trigger("itemCreated").
@@ -336,7 +336,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))
 			r.Header.Set("X-User-ID", want.String())
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)

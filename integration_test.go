@@ -55,7 +55,7 @@ var _ = Describe("Full Integration", func() {
 			body := `{"email":"admin@co.com","name":"Admin"}`
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
 			r.Header.Set("X-User", cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633").String())
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -87,7 +87,7 @@ var _ = Describe("Full Integration", func() {
 
 			body := `{}`
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -205,7 +205,7 @@ var _ = Describe("Full Integration", func() {
 
 			body := `{}`
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)

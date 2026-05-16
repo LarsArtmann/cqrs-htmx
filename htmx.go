@@ -32,7 +32,14 @@ type htmxContextKey string
 
 const htmxKey htmxContextKey = "cqrshtmx_htmx_request"
 
-const headerTrue = "true"
+// HeaderTrue is the HTMX header value for boolean true headers.
+// Use this instead of hardcoding "true" in tests or middleware.
+const HeaderTrue = "true"
+
+// headerTrue is the unexported alias for internal consistency.
+// Deprecated: internal use only; new code should use HeaderTrue.
+const headerTrue = HeaderTrue
+
 
 // SwapStrategy defines how HTMX swaps content into the DOM.
 type SwapStrategy string

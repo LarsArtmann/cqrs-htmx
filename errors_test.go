@@ -40,7 +40,7 @@ var _ = Describe("Error Mapping", func() {
 		It("sets HX-Redirect for unauthorized HTMX requests", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrUnauthorized)
 			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
 		})
@@ -48,7 +48,7 @@ var _ = Describe("Error Mapping", func() {
 		It("sets HX-Redirect for forbidden HTMX requests", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrForbidden)
 			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
 		})
@@ -56,7 +56,7 @@ var _ = Describe("Error Mapping", func() {
 		It("does not redirect for non-auth HTMX errors", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrDecodeFailed)
 			Expect(w.Header().Get("HX-Redirect")).To(BeEmpty())
 		})
@@ -64,7 +64,7 @@ var _ = Describe("Error Mapping", func() {
 		It("uses custom LoginRedirect when set", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, cqrshtmx.ErrUnauthorized, "/auth/signin")
 			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
 		})

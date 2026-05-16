@@ -99,7 +99,7 @@ var _ = Describe("App", func() {
 			)
 
 			r := httptest.NewRequest(http.MethodPost, "/users", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -254,7 +254,7 @@ var _ = Describe("App", func() {
 
 			body := testUserJSONBody
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -269,7 +269,7 @@ var _ = Describe("App", func() {
 
 			body := `{}`
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -284,7 +284,7 @@ var _ = Describe("App", func() {
 
 			body := `{}`
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -433,7 +433,7 @@ var _ = Describe("Authorization", func() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			handler.ServeHTTP(w, r)
 			Expect(called).To(BeFalse())
 			Expect(w.Code).To(Equal(http.StatusSeeOther))
@@ -450,7 +450,7 @@ var _ = Describe("Authorization", func() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			handler.ServeHTTP(w, r)
 			Expect(called).To(BeFalse())
 			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))

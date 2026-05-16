@@ -37,7 +37,7 @@ func testNotificationTrigger(opt cqrshtmx.HandlerOption, expectedLevel string) {
 		"/users",
 		strings.NewReader(`{}`),
 	)
-	r.Header.Set("HX-Request", "true")
+	r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, r)
@@ -405,7 +405,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 			body := `{}`
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -457,7 +457,7 @@ var _ = Describe("Coverage Gaps", func() {
 				"/users",
 				strings.NewReader(`{}`),
 			)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -482,7 +482,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 			body := `{}`
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, r)
@@ -511,7 +511,7 @@ var _ = Describe("Coverage Gaps", func() {
 		It("uses default /login when empty string is passed", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, cqrshtmx.ErrUnauthorized, "")
 			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
 		})
