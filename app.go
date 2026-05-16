@@ -171,30 +171,13 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 	return r.WithContext(WithUserID(r.Context(), userID))
 }
 
-// dispatchWithTimeout runs a command dispatch with the App's timeout, if configured.
-func (a *App) dispatchWithTimeout(ctx context.Context, fn func(context.Context) error) error {
-	if a.timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, a.timeout)
-		defer cancel()
+// timeoutCtx returns a context with the App's timeout applied, if configured.
+// The caller must call the returned cancel function when done.
+func (a *App) timeoutCtx(ctx context.Context) (context.Context, context.CancelFunc) {
+	if a.timeout <= 0 {
+		return ctx, func() {}
 	}
-	return fn(ctx)
-}
-
-// dispatchQueryWithTimeout runs a query dispatch with the App's timeout, if configured.
-func (a *App) dispatchQueryWithTimeout(
-	ctx context.Context,
-	_ query.Type,
-	qry query.Query,
-) (any, error) {
-	if a.timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, a.timeout)
-		defer cancel()
-	}
-
-	result, dispatchErr := a.queries.Dispatch(ctx, qry) //nolint:wrapcheck,golines // error is wrapped by caller
-	return result, dispatchErr
+	return context.WithTimeout(ctx, a.timeout)
 }
 
 func buildHandlerConfig(opts []HandlerOption) *handlerConfig {

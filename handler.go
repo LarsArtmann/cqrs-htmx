@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -37,9 +36,10 @@ func (a *App) handleCommandDispatch(
 		return
 	}
 
-	if err = a.dispatchWithTimeout(ctx, func(dispatchCtx context.Context) error {
-		return a.commands.Dispatch(dispatchCtx, cmd)
-	}); err != nil {
+	ctx, cancel := a.timeoutCtx(ctx)
+	defer cancel()
+
+	if err = a.commands.Dispatch(ctx, cmd); err != nil {
 		a.errorHandler(w, r, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err))
 		if a.afterDispatch != nil {
 			a.afterDispatch(ctx, r, err)
@@ -101,7 +101,10 @@ func (a *App) handleQueryDispatch( //nolint:cyclop // hooks add unavoidable bran
 		return
 	}
 
-	result, err := a.dispatchQueryWithTimeout(ctx, qryType, qry)
+	ctx, cancel := a.timeoutCtx(ctx)
+	defer cancel()
+
+	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
 		qu := fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err)
 		a.errorHandler(w, r, qu)

@@ -1,4 +1,4 @@
-package cqrshtmx_test //nolint:nilnil,noctx,revive
+package cqrshtmx_test
 
 import (
 	"fmt"
@@ -32,7 +32,8 @@ func ExampleApp_Command() {
 	handler := app.Command("CreateUser",
 		cqrshtmx.DecodeJSON(func(_ struct {
 			Email string `json:"email"`
-		}) (command.Command, error) {
+		},
+		) (command.Command, error) {
 			return nil, nil
 		}),
 		cqrshtmx.Trigger("userCreated"),

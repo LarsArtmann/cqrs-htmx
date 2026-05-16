@@ -1,4 +1,4 @@
-package cqrshtmx_test //nolint:nilnil,noctx,intrange,golines
+package cqrshtmx_test
 
 import (
 	"context"

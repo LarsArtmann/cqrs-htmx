@@ -18,13 +18,9 @@ var _ = Describe("Timeout Support", func() {
 	Describe("Command dispatch with timeout", func() {
 		It("cancels command handler when timeout is exceeded", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("SlowCommand", func(ctx context.Context, _ command.Command) error {
-				select {
-				case <-time.After(5 * time.Second):
-					return nil
-				case <-ctx.Done():
-					return ctx.Err()
-				}
+			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
+				<-ctx.Done()
+				return ctx.Err()
 			})
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
@@ -33,7 +29,7 @@ var _ = Describe("Timeout Support", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Command("SlowCommand", decodeCreateUserJSON())
+			handler := app.Command("CreateUser", decodeCreateUserJSON())
 
 			r := httptest.NewRequest(http.MethodPost, "/slow", strings.NewReader(`{}`))
 			w := httptest.NewRecorder()
@@ -70,13 +66,9 @@ var _ = Describe("Timeout Support", func() {
 	Describe("Query dispatch with timeout", func() {
 		It("cancels query handler when timeout is exceeded", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("SlowQuery", func(ctx context.Context, _ query.Query) (any, error) {
-				select {
-				case <-time.After(5 * time.Second):
-					return "done", nil
-				case <-ctx.Done():
-					return nil, ctx.Err()
-				}
+			_ = disp.Register("GetUser", func(ctx context.Context, _ query.Query) (any, error) {
+				<-ctx.Done()
+				return nil, ctx.Err()
 			})
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
@@ -85,7 +77,7 @@ var _ = Describe("Timeout Support", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Query("SlowQuery", decodeGetUserJSONQuery())
+			handler := app.Query("GetUser", decodeGetUserJSONQuery())
 
 			r := httptest.NewRequest(http.MethodGet, "/slow", strings.NewReader(`{}`))
 			w := httptest.NewRecorder()
