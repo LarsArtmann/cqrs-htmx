@@ -127,9 +127,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			It("rejects an unauthorized viewer", func() {
 				handler := app.Command("CreateUser",
 					cqrshtmx.Authorize("users", "create"),
-					cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
-						return &bddCreateUserCmd{aggID: id.NewAggregateID()}, nil
-					}),
+					decodeBDDCreateUserJSON(),
 				)
 
 				body := `{}`
@@ -147,9 +145,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			It("redirects unauthenticated HTMX users to login", func() {
 				handler := app.Command("CreateUser",
 					cqrshtmx.Authorize("users", "create"),
-					cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
-						return &bddCreateUserCmd{aggID: id.NewAggregateID()}, nil
-					}),
+					decodeBDDCreateUserJSON(),
 				)
 
 				body := `{}`
@@ -167,9 +163,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			It("handles invalid JSON input gracefully", func() {
 				handler := app.Command("CreateUser",
 					cqrshtmx.Authorize("users", "create"),
-					cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
-						return &bddCreateUserCmd{aggID: id.NewAggregateID()}, nil
-					}),
+					decodeBDDCreateUserJSON(),
 				)
 
 				r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("{bad json"))
@@ -337,9 +331,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 				cqrshtmx.HTMXMiddleware,
 				app.Middleware(),
 			)(app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
-					return &bddCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeBDDCreateUserJSON(),
 			))
 
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))

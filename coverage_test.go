@@ -28,9 +28,7 @@ func testNotificationTrigger(opt cqrshtmx.HandlerOption, expectedLevel string) {
 	Expect(err).NotTo(HaveOccurred())
 
 	handler := app.Command("CreateUser",
-		cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-			return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-		}),
+		decodeCreateUserJSON(),
 		opt,
 	)
 
@@ -313,9 +311,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 			)
 
 			body := `{}`
@@ -378,9 +374,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 			)
 
 			body := `{}`
@@ -474,9 +468,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 				cqrshtmx.NotifyWithEvent("showToast").Success("User created"),
 			)
 
@@ -507,9 +499,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
 			)
 

@@ -131,10 +131,7 @@ var _ = Describe("App", func() {
 
 		It("dispatches a command from JSON request body", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-					aggID := id.NewAggregateID()
-					return &testCreateUserCmd{aggID: aggID, email: req.Email, name: req.Name}, nil
-				}),
+				decodeCreateUserJSONWithBody(),
 			)
 
 			body := `{"email":"test@example.com","name":"Test User"}`
@@ -158,10 +155,7 @@ var _ = Describe("App", func() {
 
 		It("returns error for invalid JSON body", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-					aggID := id.NewAggregateID()
-					return &testCreateUserCmd{aggID: aggID, email: req.Email, name: req.Name}, nil
-				}),
+				decodeCreateUserJSONWithBody(),
 			)
 
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("{invalid json"))
@@ -199,10 +193,7 @@ var _ = Describe("App", func() {
 		It("allows admin to create users", func() {
 			handler := app.Command("CreateUser",
 				cqrshtmx.Authorize("users", "create"),
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-					aggID := id.NewAggregateID()
-					return &testCreateUserCmd{aggID: aggID, email: req.Email, name: req.Name}, nil
-				}),
+				decodeCreateUserJSONWithBody(),
 			)
 
 			body := testUserJSONBody
@@ -217,10 +208,7 @@ var _ = Describe("App", func() {
 		It("denies viewer from creating users", func() {
 			handler := app.Command("CreateUser",
 				cqrshtmx.Authorize("users", "create"),
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-					aggID := id.NewAggregateID()
-					return &testCreateUserCmd{aggID: aggID, email: req.Email, name: req.Name}, nil
-				}),
+				decodeCreateUserJSONWithBody(),
 			)
 
 			body := testUserJSONBody
@@ -264,9 +252,7 @@ var _ = Describe("App", func() {
 
 		It("sets HX-Trigger header with Trigger option", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 				cqrshtmx.Trigger("userCreated"),
 			)
 
@@ -281,9 +267,7 @@ var _ = Describe("App", func() {
 
 		It("sets HX-Push-Url header with PushURL option", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 				cqrshtmx.PushURL("/users"),
 			)
 
@@ -298,9 +282,7 @@ var _ = Describe("App", func() {
 
 		It("sets HX-Redirect header with Redirect option for HTMX requests", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
 			)
 
@@ -507,9 +489,7 @@ var _ = Describe("Handler Options", func() {
 
 			handler := app.Command("CreateUser",
 				cqrshtmx.RequireAuth(),
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 			)
 
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))

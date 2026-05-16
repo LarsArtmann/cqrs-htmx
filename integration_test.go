@@ -50,9 +50,7 @@ var _ = Describe("Full Integration", func() {
 		It("allows admin to create user with full HTMX response", func() {
 			handler := app.Command("CreateUser",
 				cqrshtmx.Authorize("users", "create"),
-				cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: userID, email: req.Email, name: req.Name}, nil
-				}),
+				decodeCreateUserJSONWithBodyAndAggID(userID),
 				cqrshtmx.Trigger("userCreated"),
 				cqrshtmx.PushURL("/users/"+userID.String()),
 			)
@@ -72,9 +70,7 @@ var _ = Describe("Full Integration", func() {
 		It("denies viewer from creating user", func() {
 			handler := app.Command("CreateUser",
 				cqrshtmx.Authorize("users", "create"),
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: userID}, nil
-				}),
+				decodeCreateUserJSONWithAggID(userID),
 			)
 
 			body := `{}`
@@ -89,9 +85,7 @@ var _ = Describe("Full Integration", func() {
 		It("redirects unauthenticated HTMX users to login", func() {
 			handler := app.Command("CreateUser",
 				cqrshtmx.Authorize("users", "create"),
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: userID}, nil
-				}),
+				decodeCreateUserJSONWithAggID(userID),
 			)
 
 			body := `{}`
@@ -180,9 +174,7 @@ var _ = Describe("Full Integration", func() {
 
 		It("redirects to URL after command success", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
 			)
 
@@ -214,9 +206,7 @@ var _ = Describe("Full Integration", func() {
 
 		It("sets HX-Trigger with detail data", func() {
 			handler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 				cqrshtmx.TriggerWithDetail("userCreated", map[string]string{"id": "123"}),
 			)
 
@@ -249,9 +239,7 @@ var _ = Describe("Full Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Middleware()(app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
-				}),
+				decodeCreateUserJSON(),
 			))
 
 			body := `{}`
