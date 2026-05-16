@@ -43,9 +43,9 @@
 
 | Metric      | Value |
 | ----------- | ----- |
-| Coverage    | 92.6% |
-| Test specs  | 137   |
+| Coverage    | 95.5% |
+| Test specs  | 148   |
 | Lint issues | 0     |
 | Prod files  | 10    |
-| Test files  | 9     |
+| Test files  | 10    |
 | Banned deps | 0     |

@@ -26,7 +26,7 @@
 - [x] **Deduplicate notification test boilerplate** — `testNotificationTrigger` helper + `notifyOption`/`triggerNotification` private helpers
 - [x] **Consolidate duplicate test types** — `mockTemplComponent`, `deleteUserCmd`, `listUsersQuery` → use `bdd*` types
 - [x] **Extract helper functions** — `hasNoResponse()`, `hasMinimalResponse()`, `decodeJSONBody`, `decodeRequest`, `decodeFormBody`, `notifyOption`, `triggerNotification`
-- [ ] **Export `HeaderTrue` or provide test helper** — Tests still hardcode `"true"` (34 occurrences); `headerTrue` is unexported
+- [~] **Export `HeaderTrue` or provide test helper** — Tests still hardcode `"true"` (34 occurrences); `headerTrue` is unexported. Created `testing_test.go` with helpers but this item still open.
 - [x] **Add error context to authorization errors** — `ErrForbidden`, `ErrEnforcerNil`, and `ErrUnauthorized` (with Authorize) now include resource/action context for debugging
 
 ## P2 — Architecture Improvements
@@ -34,7 +34,8 @@
 - [x] **Move remaining mutable globals to per-App config** — `DefaultNotificationEvent` is now an unexported constant; exported var is deprecated. Added `NotifyWithEvent` builder for custom event names per-handler.
 - [x] **Extract Casbin interface** — `authz.go` now defines `Enforcer interface { Enforce(...any) (bool, error) }`. `*casbin.Enforcer` satisfies it automatically. Enables mock/fake enforcers in consumer tests.
 - [x] **Fix AuthorizeMiddleware ghost system** — Was bypassing App's error handler (raw `http.Error`). Now uses `DefaultErrorHandlerWithRedirect` for HTMX-aware auth error handling. Optional `loginRedirect` parameter.
-- [ ] **Remove dead sentinels** — `ErrNoUserID` and `ErrRendererMissing` are exported but never returned by any code path. Breaking change — defer to v2.
+- [~] **Remove dead sentinels** — `ErrNoUserID` and `ErrRendererMissing` are exported but never returned by any code path. Breaking change — defer to v2.
+- [~] **Extract shared test helpers** — `testing_test.go` created with 11 helpers covering decoders, handlers, capture utilities. Reduced clone groups by 48% (27→14 at t=25).
 
 ## P3 — Feature Enhancements
 
@@ -64,7 +65,7 @@
 - [x] **Context propagation** — User ID → context → event metadata. Dedup in handlers
 - [x] **Templ duck-typing** — `RenderTempl`, `RenderTemplResult[T]` without importing templ
 - [x] **Middleware chain** — `Chain` composes middleware left-to-right
-- [x] **95.7% test coverage** — 150+ tests, race-safe
+- [x] **95.7% test coverage** — 148 tests, race-safe
 - [x] **0 lint issues** — golangci-lint clean
 - [x] **All header constants consolidated** — No hardcoded HTMX header strings in production code
 - [x] **Per-App LoginRedirect** — Config field now actually works via closure
