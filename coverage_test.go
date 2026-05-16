@@ -17,6 +17,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const testQueryResult = "result"
+
 func testNotificationTrigger(opt cqrshtmx.HandlerOption, expectedLevel string) {
 	disp := command.NewDispatcher()
 	_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
@@ -244,7 +246,7 @@ var _ = Describe("Coverage Gaps", func() {
 		It("returns 204 when no render and no HTMX options", func() {
 			disp := query.NewDispatcher()
 			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return "result", nil
+				return testQueryResult, nil
 			})
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
@@ -267,7 +269,7 @@ var _ = Describe("Coverage Gaps", func() {
 		It("calls error handler when render fails", func() {
 			disp := query.NewDispatcher()
 			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return "result", nil
+				return testQueryResult, nil
 			})
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
