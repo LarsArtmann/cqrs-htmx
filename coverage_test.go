@@ -58,9 +58,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 			component := &bddTemplComponent{html: "<h1>Hello</h1>"}
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 				cqrshtmx.RenderTempl(component),
 			)
 
@@ -84,9 +82,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
 					return &bddTemplComponent{html: "<p>" + result + "</p>"}
 				}),
@@ -110,9 +106,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
 					return &bddTemplComponent{html: result}
 				}),
@@ -257,9 +251,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 			)
 
 			body := `{}`
@@ -282,9 +274,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(func(_ http.ResponseWriter, _ *http.Request, _ any) error {
 					return errors.New("render failed")
 				}),
@@ -333,9 +323,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 			)
 
 			body := `{}`
@@ -353,9 +341,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 			)
 
 			body := `{}`
@@ -412,9 +398,7 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Query("GetUser",
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(encodeJSONResult),
 				cqrshtmx.Trigger("dataLoaded"),
 			)
