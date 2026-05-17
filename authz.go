@@ -40,17 +40,20 @@ func RequireAuth() HandlerOption {
 // Returns ErrEnforcerNil if the enforcer is nil.
 func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	if enforcer == nil {
-		return fmt.Errorf("%w: subject=%s resource=%s action=%s",
+		return fmt.Errorf("%w: enforcer is nil for subject=%s resource=%s action=%s",
 			ErrEnforcerNil, subject, resource, action)
 	}
 
 	ok, err := enforcer.Enforce(subject, resource, action)
 	if err != nil {
-		return errors.Wrapf(err, "casbin enforce failed for %s/%s/%s", subject, resource, action)
+		return errors.Wrapf(err,
+			"casbin enforce failed for subject=%s resource=%s action=%s",
+			subject, resource, action)
 	}
 
 	if !ok {
-		return fmt.Errorf("%w: %s/%s/%s", ErrForbidden, subject, resource, action)
+		return fmt.Errorf("%w: subject=%s resource=%s action=%s",
+			ErrForbidden, subject, resource, action)
 	}
 
 	return nil

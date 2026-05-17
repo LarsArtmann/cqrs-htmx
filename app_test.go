@@ -368,7 +368,9 @@ var _ = Describe("Authorization", func() {
 			err := cqrshtmx.Enforce(e, viewerUserID.String(), "users", "create")
 			Expect(err).To(HaveOccurred())
 			Expect(errors.Is(err, cqrshtmx.ErrForbidden)).To(BeTrue())
-			Expect(err.Error()).To(ContainSubstring(viewerUserID.String() + "/users/create"))
+			Expect(err.Error()).To(ContainSubstring(
+				"subject=" + viewerUserID.String() + " resource=users action=create",
+			))
 		})
 
 		It("returns error for nil enforcer", func() {
