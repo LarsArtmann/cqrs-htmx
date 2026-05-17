@@ -8,19 +8,19 @@
 
 **cqrs-htmx** is a Go library/SDK providing HTMX-aware CQRS handler integration with Casbin authorization. The library is in **excellent shape** and ready for v1.0.0 tagging. All planned features are complete, CI is in place, and the API surface has been cleaned from 91 → 70 exports.
 
-| Metric | Now | Last Report | Delta |
-|---|---|---|---|
-| Coverage | 95.5% | 95.7% | -0.2% (new unexported code) |
-| Test specs | 166 It blocks + 6 Examples + 8 Benchmarks | 170 | Recounted accurately |
-| Lint issues | 0 | 0 | Stable |
-| Race issues | 0 | 0 | Stable |
-| Prod files | 10 | 10 | Stable |
-| Test files | 15 | 15 | Stable |
-| Prod LOC | 1,477 | 1,448 | +29 (new types, constants) |
-| Test LOC | 3,328 | 3,328 | Stable |
-| Exports | 70 | 91 | **-21** (API cleanup) |
-| CI | 3 parallel jobs | None | **New** |
-| Dead sentinels | 0 | 3 exported | **Fixed** |
+| Metric         | Now                                       | Last Report | Delta                       |
+| -------------- | ----------------------------------------- | ----------- | --------------------------- |
+| Coverage       | 95.5%                                     | 95.7%       | -0.2% (new unexported code) |
+| Test specs     | 166 It blocks + 6 Examples + 8 Benchmarks | 170         | Recounted accurately        |
+| Lint issues    | 0                                         | 0           | Stable                      |
+| Race issues    | 0                                         | 0           | Stable                      |
+| Prod files     | 10                                        | 10          | Stable                      |
+| Test files     | 15                                        | 15          | Stable                      |
+| Prod LOC       | 1,477                                     | 1,448       | +29 (new types, constants)  |
+| Test LOC       | 3,328                                     | 3,328       | Stable                      |
+| Exports        | 70                                        | 91          | **-21** (API cleanup)       |
+| CI             | 3 parallel jobs                           | None        | **New**                     |
+| Dead sentinels | 0                                         | 3 exported  | **Fixed**                   |
 
 ---
 
@@ -28,13 +28,13 @@
 
 ### This Session (5 commits)
 
-| Commit | What |
-|---|---|
+| Commit    | What                                                                                                                                                                                                        |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `c03b5ac` | API cleanup — unexport 3 internal sentinels, remove `DefaultNotificationEvent`, add `NotificationLevel` enum, `JSONErrorHandlerWithRedirect`, remove `headerTrue` alias, add `headerCorrelationID` constant |
-| `cd476a3` | Auth config consolidation — `authMode` enum replaces `authorize bool` + `requireAuth bool` |
-| `2491c9c` | CI pipeline — GitHub Actions: build + test (race, 95% coverage gate) + golangci-lint |
-| `abc7c96` | Documentation — CHANGELOG, AGENTS.md, TODO_LIST.md for v1.0.0 |
-| *(fix)* | Split brain fix — `NotifyEventBuilder` methods now use `LevelSuccess/Error/Warning` constants instead of raw strings |
+| `cd476a3` | Auth config consolidation — `authMode` enum replaces `authorize bool` + `requireAuth bool`                                                                                                                  |
+| `2491c9c` | CI pipeline — GitHub Actions: build + test (race, 95% coverage gate) + golangci-lint                                                                                                                        |
+| `abc7c96` | Documentation — CHANGELOG, AGENTS.md, TODO_LIST.md for v1.0.0                                                                                                                                               |
+| _(fix)_   | Split brain fix — `NotifyEventBuilder` methods now use `LevelSuccess/Error/Warning` constants instead of raw strings                                                                                        |
 
 ### Cumulative (all sessions)
 
@@ -55,15 +55,15 @@
 
 ~30-40 of 166 It blocks are redundant duplicates across files:
 
-| Concept | Files Testing It | Redundancy |
-|---|---|---|
-| Authorization flow | `app_test`, `bdd_test`, `integration_test`, `coverage_test` | 4 files |
-| HTMX response options | `htmx_test`, `app_test`, `integration_test`, `coverage_test`, `bdd_test` | 5 files |
-| MapError | `errors_test`, `coverage_test`, `bdd_test`, `benchmark_test` | 4 files |
-| Form decoding | `coverage_test`, `bdd_test` | 2 files |
-| Middleware enrichment | `app_test`, `middleware_test`, `integration_test`, `bdd_test` | 4 files |
-| EventOptionsFromContext | `context_test`, `bdd_test` | 2 files |
-| RenderTempl | `coverage_test`, `bdd_test` | 2 files |
+| Concept                 | Files Testing It                                                         | Redundancy |
+| ----------------------- | ------------------------------------------------------------------------ | ---------- |
+| Authorization flow      | `app_test`, `bdd_test`, `integration_test`, `coverage_test`              | 4 files    |
+| HTMX response options   | `htmx_test`, `app_test`, `integration_test`, `coverage_test`, `bdd_test` | 5 files    |
+| MapError                | `errors_test`, `coverage_test`, `bdd_test`, `benchmark_test`             | 4 files    |
+| Form decoding           | `coverage_test`, `bdd_test`                                              | 2 files    |
+| Middleware enrichment   | `app_test`, `middleware_test`, `integration_test`, `bdd_test`            | 4 files    |
+| EventOptionsFromContext | `context_test`, `bdd_test`                                               | 2 files    |
+| RenderTempl             | `coverage_test`, `bdd_test`                                              | 2 files    |
 
 **Impact:** Maintenance burden, not correctness risk. When behavior changes, multiple files need updates.
 
@@ -75,19 +75,19 @@ The `golangci_lint_ls` LSP shows ~23 stale warnings that `golangci-lint run` CLI
 
 ## c) NOT STARTED
 
-| Item | Why Not Started | Priority |
-|---|---|---|
-| Test consolidation (eliminate duplicates) | Maintenance concern, not correctness risk | Medium |
-| `coverage_test.go` rename/merge | Named "Coverage Gaps" — signals tests written for tool, not correctness | Low |
-| `NewUserID()` test coverage | Exported but never tested directly | Low |
-| `JSONErrorHandlerWithRedirect` test coverage | Exported but only tested indirectly via `JSONErrorHandler` | Medium |
-| Multi-value form field test | `decodeFormValues` has an untested branch for `len(values) > 1` | Low |
-| Content-Type string constants | 3 hardcoded Content-Type strings in `errors.go` and `response.go` | Low |
-| `ErrDispatchFailed` → 503 test | Classified as Transient (→503) but no test verifies the specific status code | Low |
-| `RequireAuth` + enforcer present branch | Subtle branch where `authRequired` mode skips enforcer even if present | Low |
-| Request logging middleware | Listed as PLANNED in FEATURES.md | Not requested |
-| Rate limiting | Listed as PLANNED in FEATURES.md | Not requested |
-| Examples directory | No standalone consumer apps | Not requested |
+| Item                                         | Why Not Started                                                              | Priority      |
+| -------------------------------------------- | ---------------------------------------------------------------------------- | ------------- |
+| Test consolidation (eliminate duplicates)    | Maintenance concern, not correctness risk                                    | Medium        |
+| `coverage_test.go` rename/merge              | Named "Coverage Gaps" — signals tests written for tool, not correctness      | Low           |
+| `NewUserID()` test coverage                  | Exported but never tested directly                                           | Low           |
+| `JSONErrorHandlerWithRedirect` test coverage | Exported but only tested indirectly via `JSONErrorHandler`                   | Medium        |
+| Multi-value form field test                  | `decodeFormValues` has an untested branch for `len(values) > 1`              | Low           |
+| Content-Type string constants                | 3 hardcoded Content-Type strings in `errors.go` and `response.go`            | Low           |
+| `ErrDispatchFailed` → 503 test               | Classified as Transient (→503) but no test verifies the specific status code | Low           |
+| `RequireAuth` + enforcer present branch      | Subtle branch where `authRequired` mode skips enforcer even if present       | Low           |
+| Request logging middleware                   | Listed as PLANNED in FEATURES.md                                             | Not requested |
+| Rate limiting                                | Listed as PLANNED in FEATURES.md                                             | Not requested |
+| Examples directory                           | No standalone consumer apps                                                  | Not requested |
 
 ---
 
@@ -151,33 +151,33 @@ There's a `coverage.out` file in the root — this should be in `.gitignore`.
 
 ## f) Top 25 Things We Should Get Done Next
 
-| # | Item | Impact | Effort | Type |
-|---|---|---|---|---|
-| 1 | **Tag v1.0.0** | HIGH | Trivial | Release |
-| 2 | **Make repo public** | HIGH | Trivial | Release |
-| 3 | **Delete `coverage.out` from repo, add to `.gitignore`** | MED | Trivial | Cleanup |
-| 4 | **Fix pre-commit hook permissions** | LOW | Trivial | Fix |
-| 5 | **Test `JSONErrorHandlerWithRedirect` with custom redirect** | MED | 10min | Test quality |
-| 6 | **Test `NewUserID()`** | MED | 5min | Test quality |
-| 7 | **Consolidate auth test duplication** (4 files → 1-2) | MED | Medium | Test quality |
-| 8 | **Consolidate MapError test duplication** (4 files → 1-2) | MED | Low | Test quality |
-| 9 | **Consolidate middleware test duplication** (4 files → 2) | MED | Low | Test quality |
-| 10 | **Consolidate HTMX response test duplication** (5 files → 2) | MED | Medium | Test quality |
-| 11 | **Rename/merge `coverage_test.go`** | MED | Medium | Test quality |
-| 12 | **Extract Content-Type constants** | LOW | 10min | Code quality |
-| 13 | **Extract notification detail map builder** | LOW | 10min | DRY |
-| 14 | **Add multi-value form field test** | LOW | 10min | Test coverage |
-| 15 | **Add `ErrDispatchFailed` → 503 test** | LOW | 5min | Test coverage |
-| 16 | **Test `RequireAuth` + enforcer present branch** | LOW | 5min | Test coverage |
-| 17 | **Consider removing `app.Middleware()` wrapper** | LOW | 5min | API cleanup |
-| 18 | **Add Go module badge to README** | LOW | Trivial | Documentation |
-| 19 | **Add pkg.go/dev link to README** | LOW | Trivial | Documentation |
-| 20 | **Consider `With*` naming for v2** | LOW | Planning | API planning |
-| 21 | **Consider `type UserID id.UserID` for v2** | LOW | Planning | Type safety |
-| 22 | **Consider `ShouldRenderPartial` rename for v2** | LOW | Planning | Naming |
-| 23 | **Add runnable examples directory** | MED | Medium | Documentation |
-| 24 | **Add OpenTelemetry integration via lifecycle hooks** | MED | Medium | Feature |
-| 25 | **Audit indirect dependencies for removal** | LOW | Low | Dependency hygiene |
+| #   | Item                                                         | Impact | Effort   | Type               |
+| --- | ------------------------------------------------------------ | ------ | -------- | ------------------ |
+| 1   | **Tag v1.0.0**                                               | HIGH   | Trivial  | Release            |
+| 2   | **Make repo public**                                         | HIGH   | Trivial  | Release            |
+| 3   | **Delete `coverage.out` from repo, add to `.gitignore`**     | MED    | Trivial  | Cleanup            |
+| 4   | **Fix pre-commit hook permissions**                          | LOW    | Trivial  | Fix                |
+| 5   | **Test `JSONErrorHandlerWithRedirect` with custom redirect** | MED    | 10min    | Test quality       |
+| 6   | **Test `NewUserID()`**                                       | MED    | 5min     | Test quality       |
+| 7   | **Consolidate auth test duplication** (4 files → 1-2)        | MED    | Medium   | Test quality       |
+| 8   | **Consolidate MapError test duplication** (4 files → 1-2)    | MED    | Low      | Test quality       |
+| 9   | **Consolidate middleware test duplication** (4 files → 2)    | MED    | Low      | Test quality       |
+| 10  | **Consolidate HTMX response test duplication** (5 files → 2) | MED    | Medium   | Test quality       |
+| 11  | **Rename/merge `coverage_test.go`**                          | MED    | Medium   | Test quality       |
+| 12  | **Extract Content-Type constants**                           | LOW    | 10min    | Code quality       |
+| 13  | **Extract notification detail map builder**                  | LOW    | 10min    | DRY                |
+| 14  | **Add multi-value form field test**                          | LOW    | 10min    | Test coverage      |
+| 15  | **Add `ErrDispatchFailed` → 503 test**                       | LOW    | 5min     | Test coverage      |
+| 16  | **Test `RequireAuth` + enforcer present branch**             | LOW    | 5min     | Test coverage      |
+| 17  | **Consider removing `app.Middleware()` wrapper**             | LOW    | 5min     | API cleanup        |
+| 18  | **Add Go module badge to README**                            | LOW    | Trivial  | Documentation      |
+| 19  | **Add pkg.go/dev link to README**                            | LOW    | Trivial  | Documentation      |
+| 20  | **Consider `With*` naming for v2**                           | LOW    | Planning | API planning       |
+| 21  | **Consider `type UserID id.UserID` for v2**                  | LOW    | Planning | Type safety        |
+| 22  | **Consider `ShouldRenderPartial` rename for v2**             | LOW    | Planning | Naming             |
+| 23  | **Add runnable examples directory**                          | MED    | Medium   | Documentation      |
+| 24  | **Add OpenTelemetry integration via lifecycle hooks**        | MED    | Medium   | Feature            |
+| 25  | **Audit indirect dependencies for removal**                  | LOW    | Low      | Dependency hygiene |
 
 ---
 
@@ -193,17 +193,17 @@ I recommend: **Tag now. Consolidate tests as the first v1.1 cleanup.** The curre
 
 ## API Surface (70 exports)
 
-| File | Exports |
-|---|---|
-| `app.go` | 8 (`App`, `Config`, `BeforeDispatchHook`, `AfterDispatchHook`, `New`, `Command`, `Query`, `Middleware`) |
-| `htmx.go` | 16 (`HeaderTrue`, `SwapStrategy` + 8 swap constants, `HTMXRequest`, 5 context funcs, 7 accessors) |
-| `authz.go` | 6 (`Enforcer`, `UserIDExtractor`, `Authorize`, `RequireAuth`, `Enforce`, `AuthorizeMiddleware`) |
-| `notify.go` | 11 (`NotificationLevel` + 4 level constants, 4 Notify funcs, `NotifyWithEvent`, `NotifyEventBuilder` + 4 methods) |
-| `errors.go` | 12 (6 sentinels, `MapError`, `ErrorHandler`, 3 error handler funcs + 1 with redirect) |
-| `options.go` | 16 (5 types, 4 decoders, `Render`, `RenderTempl`, `RenderTemplResult`, `Redirect`, `Trigger`, `TriggerWithDetail`, `PushURL`, `ValidateCommand`, `ValidateQuery`) |
-| `context.go` | 9 (`UserID`, 4 UserID funcs, 2 CorrelationID funcs, `WithUserID`, `UserIDFromContext`, `EventOptionsFromContext`) |
-| `response.go` | 20 (`Response`, `NewResponse`, 18 methods) |
-| `middleware.go` | 3 (`ContextEnrichmentMiddleware`, `HTMXMiddleware`, `Chain`) |
+| File            | Exports                                                                                                                                                           |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app.go`        | 8 (`App`, `Config`, `BeforeDispatchHook`, `AfterDispatchHook`, `New`, `Command`, `Query`, `Middleware`)                                                           |
+| `htmx.go`       | 16 (`HeaderTrue`, `SwapStrategy` + 8 swap constants, `HTMXRequest`, 5 context funcs, 7 accessors)                                                                 |
+| `authz.go`      | 6 (`Enforcer`, `UserIDExtractor`, `Authorize`, `RequireAuth`, `Enforce`, `AuthorizeMiddleware`)                                                                   |
+| `notify.go`     | 11 (`NotificationLevel` + 4 level constants, 4 Notify funcs, `NotifyWithEvent`, `NotifyEventBuilder` + 4 methods)                                                 |
+| `errors.go`     | 12 (6 sentinels, `MapError`, `ErrorHandler`, 3 error handler funcs + 1 with redirect)                                                                             |
+| `options.go`    | 16 (5 types, 4 decoders, `Render`, `RenderTempl`, `RenderTemplResult`, `Redirect`, `Trigger`, `TriggerWithDetail`, `PushURL`, `ValidateCommand`, `ValidateQuery`) |
+| `context.go`    | 9 (`UserID`, 4 UserID funcs, 2 CorrelationID funcs, `WithUserID`, `UserIDFromContext`, `EventOptionsFromContext`)                                                 |
+| `response.go`   | 20 (`Response`, `NewResponse`, 18 methods)                                                                                                                        |
+| `middleware.go` | 3 (`ContextEnrichmentMiddleware`, `HTMXMiddleware`, `Chain`)                                                                                                      |
 
 ---
 

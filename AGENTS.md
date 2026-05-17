@@ -9,14 +9,14 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 ## Quick Reference
 
-| Item     | Value                                                                  |
-| -------- | ---------------------------------------------------------------------- |
-| Language | Go 1.26                                                                |
-| Module   | github.com/larsartmann/cqrs-htmx                                       |
+| Item     | Value                                                                             |
+| -------- | --------------------------------------------------------------------------------- |
+| Language | Go 1.26                                                                           |
+| Module   | github.com/larsartmann/cqrs-htmx                                                  |
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
-| Lint     | `golangci-lint run`                                                    |
-| Coverage | 95.7% (150+ tests)                                                     |
+| Lint     | `golangci-lint run`                                                               |
+| Coverage | 95.7% (150+ tests)                                                                |
 
 ## Architecture
 

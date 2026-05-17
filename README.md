@@ -154,10 +154,10 @@ app.Command("CreateUser",
 )
 ```
 
-| Option                            | Description                                           |
-| --------------------------------- | ----------------------------------------------------- |
-| `ValidateCommand(validator)`      | Validate decoded command; errors → 400 Bad Request    |
-| `ValidateQuery(validator)`        | Validate decoded query; errors → 400 Bad Request      |
+| Option                       | Description                                        |
+| ---------------------------- | -------------------------------------------------- |
+| `ValidateCommand(validator)` | Validate decoded command; errors → 400 Bad Request |
+| `ValidateQuery(validator)`   | Validate decoded query; errors → 400 Bad Request   |
 
 ### Response
 
@@ -349,13 +349,13 @@ app, _ := cqrshtmx.New(cqrshtmx.Config{
 })
 ```
 
-| Handler                                | Format     | Login Redirect |
-| -------------------------------------- | ---------- | -------------- |
-| `DefaultErrorHandler`                  | Plain text | `/login`       |
-| `DefaultErrorHandlerWithRedirect`      | Plain text | Custom         |
-| `JSONErrorHandler`                     | JSON       | `/login`       |
-| `JSONErrorHandlerWithRedirect`         | JSON       | Custom         |
-| `MapError(err)`                        | —          | Returns HTTP status code for any CQRS error |
+| Handler                           | Format     | Login Redirect                              |
+| --------------------------------- | ---------- | ------------------------------------------- |
+| `DefaultErrorHandler`             | Plain text | `/login`                                    |
+| `DefaultErrorHandlerWithRedirect` | Plain text | Custom                                      |
+| `JSONErrorHandler`                | JSON       | `/login`                                    |
+| `JSONErrorHandlerWithRedirect`    | JSON       | Custom                                      |
+| `MapError(err)`                   | —          | Returns HTTP status code for any CQRS error |
 
 ### Login Redirect
 

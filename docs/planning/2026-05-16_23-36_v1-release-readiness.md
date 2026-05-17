@@ -44,22 +44,22 @@
 
 ## Step 2: Comprehensive Plan (Medium Granularity, 30-100min each)
 
-| # | Task | Impact | Effort | Type |
-|---|---|---|---|---|
-| 1 | Remove dead sentinels (`ErrNoUserID`, `ErrRendererMissing`) + update tests | HIGH | 30min | API cleanup |
-| 2 | Unexport internal sentinels (`ErrCommandsNil`, `ErrQueriesNil`, `ErrDecoderMissing`) | HIGH | 45min | API cleanup |
-| 3 | Remove deprecated `DefaultNotificationEvent` export | MED | 30min | API cleanup |
-| 4 | Add `NotificationLevel` type (enum: Success, Error, Warning, Info) | MED | 45min | Type safety |
-| 5 | Consolidate auth config into typed state (None/AuthOnly/Authorize) | MED | 60min | Type safety |
-| 6 | Remove `headerTrue` alias, use `HeaderTrue` everywhere | LOW | 15min | Cleanup |
-| 7 | Fix `JSONErrorHandler` to use per-App `LoginRedirect` | HIGH | 45min | Bug fix |
-| 8 | Extract `"X-Correlation-ID"` to constant | LOW | 10min | Cleanup |
-| 9 | Unexport standalone HTMX accessors (7 functions) | MED | 30min | API cleanup |
-| 10 | Split `options.go` — extract form decoding to `decode_form.go` | MED | 30min | File organization |
-| 11 | Add GitHub Actions CI (build + test + lint + coverage) | HIGH | 60min | Infrastructure |
-| 12 | Update all documentation (AGENTS.md, FEATURES.md, TODO_LIST.md, CHANGELOG.md, CONTRIBUTING.md) | MED | 45min | Documentation |
-| 13 | Tag v1.0.0 | HIGH | 5min | Release |
-| 14 | Make repo public | HIGH | 1min | Release |
+| #   | Task                                                                                           | Impact | Effort | Type              |
+| --- | ---------------------------------------------------------------------------------------------- | ------ | ------ | ----------------- |
+| 1   | Remove dead sentinels (`ErrNoUserID`, `ErrRendererMissing`) + update tests                     | HIGH   | 30min  | API cleanup       |
+| 2   | Unexport internal sentinels (`ErrCommandsNil`, `ErrQueriesNil`, `ErrDecoderMissing`)           | HIGH   | 45min  | API cleanup       |
+| 3   | Remove deprecated `DefaultNotificationEvent` export                                            | MED    | 30min  | API cleanup       |
+| 4   | Add `NotificationLevel` type (enum: Success, Error, Warning, Info)                             | MED    | 45min  | Type safety       |
+| 5   | Consolidate auth config into typed state (None/AuthOnly/Authorize)                             | MED    | 60min  | Type safety       |
+| 6   | Remove `headerTrue` alias, use `HeaderTrue` everywhere                                         | LOW    | 15min  | Cleanup           |
+| 7   | Fix `JSONErrorHandler` to use per-App `LoginRedirect`                                          | HIGH   | 45min  | Bug fix           |
+| 8   | Extract `"X-Correlation-ID"` to constant                                                       | LOW    | 10min  | Cleanup           |
+| 9   | Unexport standalone HTMX accessors (7 functions)                                               | MED    | 30min  | API cleanup       |
+| 10  | Split `options.go` — extract form decoding to `decode_form.go`                                 | MED    | 30min  | File organization |
+| 11  | Add GitHub Actions CI (build + test + lint + coverage)                                         | HIGH   | 60min  | Infrastructure    |
+| 12  | Update all documentation (AGENTS.md, FEATURES.md, TODO_LIST.md, CHANGELOG.md, CONTRIBUTING.md) | MED    | 45min  | Documentation     |
+| 13  | Tag v1.0.0                                                                                     | HIGH   | 5min   | Release           |
+| 14  | Make repo public                                                                               | HIGH   | 1min   | Release           |
 
 ---
 
@@ -67,103 +67,103 @@
 
 ### Phase 1: Dead Code Removal (51% impact)
 
-| # | Task | Est |
-|---|---|---|
-| 1.1 | Remove `ErrNoUserId` sentinel from `errors.go` | 2min |
-| 1.2 | Remove `ErrRendererMissing` sentinel from `errors.go` | 2min |
-| 1.3 | Remove their `event.RegisterClassification` calls | 2min |
+| #   | Task                                                              | Est  |
+| --- | ----------------------------------------------------------------- | ---- |
+| 1.1 | Remove `ErrNoUserId` sentinel from `errors.go`                    | 2min |
+| 1.2 | Remove `ErrRendererMissing` sentinel from `errors.go`             | 2min |
+| 1.3 | Remove their `event.RegisterClassification` calls                 | 2min |
 | 1.4 | Remove deprecated `DefaultNotificationEvent` var from `notify.go` | 2min |
-| 1.5 | Search all test files for references to removed exports | 5min |
-| 1.6 | Run tests, fix any compilation errors | 5min |
+| 1.5 | Search all test files for references to removed exports           | 5min |
+| 1.6 | Run tests, fix any compilation errors                             | 5min |
 
 ### Phase 2: Internal Sentinel Unexport (breaking-adjacent)
 
-| # | Task | Est |
-|---|---|---|
-| 2.1 | Unexport `ErrCommandsNil` → `errCommandsNil` in `errors.go` | 2min |
-| 2.2 | Unexport `ErrQueriesNil` → `errQueriesNil` in `errors.go` | 2min |
+| #   | Task                                                              | Est  |
+| --- | ----------------------------------------------------------------- | ---- |
+| 2.1 | Unexport `ErrCommandsNil` → `errCommandsNil` in `errors.go`       | 2min |
+| 2.2 | Unexport `ErrQueriesNil` → `errQueriesNil` in `errors.go`         | 2min |
 | 2.3 | Unexport `ErrDecoderMissing` → `errDecoderMissing` in `errors.go` | 2min |
-| 2.4 | Update all internal references in `handler.go`, `app.go` | 3min |
-| 2.5 | Search and update all test file references | 5min |
-| 2.6 | Run tests, fix compilation errors | 5min |
+| 2.4 | Update all internal references in `handler.go`, `app.go`          | 3min |
+| 2.5 | Search and update all test file references                        | 5min |
+| 2.6 | Run tests, fix compilation errors                                 | 5min |
 
 ### Phase 3: Bug Fix — JSONErrorHandler LoginRedirect
 
-| # | Task | Est |
-|---|---|---|
+| #   | Task                                                                                            | Est   |
+| --- | ----------------------------------------------------------------------------------------------- | ----- |
 | 3.1 | Add `loginRedirect string` param to `JSONErrorHandler` or create `JSONErrorHandlerWithRedirect` | 10min |
-| 3.2 | Thread `Config.LoginRedirect` through to JSON error handler in `app.go` `New()` | 5min |
-| 3.3 | Add test for custom redirect path with `JSONErrorHandler` | 10min |
-| 3.4 | Run tests | 2min |
+| 3.2 | Thread `Config.LoginRedirect` through to JSON error handler in `app.go` `New()`                 | 5min  |
+| 3.3 | Add test for custom redirect path with `JSONErrorHandler`                                       | 10min |
+| 3.4 | Run tests                                                                                       | 2min  |
 
 ### Phase 4: Type Safety — NotificationLevel
 
-| # | Task | Est |
-|---|---|---|
+| #   | Task                                                                                                | Est  |
+| --- | --------------------------------------------------------------------------------------------------- | ---- |
 | 4.1 | Define `NotificationLevel` type with `Success`, `Error`, `Warning`, `Info` constants in `notify.go` | 5min |
-| 4.2 | Update `notifyOption` to use `NotificationLevel` instead of string | 3min |
-| 4.3 | Update `Response.triggerNotification` to use `NotificationLevel` | 3min |
-| 4.4 | Update all test assertions | 5min |
-| 4.5 | Run tests | 2min |
+| 4.2 | Update `notifyOption` to use `NotificationLevel` instead of string                                  | 3min |
+| 4.3 | Update `Response.triggerNotification` to use `NotificationLevel`                                    | 3min |
+| 4.4 | Update all test assertions                                                                          | 5min |
+| 4.5 | Run tests                                                                                           | 2min |
 
 ### Phase 5: Type Safety — Auth Config Consolidation
 
-| # | Task | Est |
-|---|---|---|
-| 5.1 | Define `authMode` type with `authNone`, `authRequired`, `authAuthorized` constants | 5min |
+| #   | Task                                                                                                                                           | Est   |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| 5.1 | Define `authMode` type with `authNone`, `authRequired`, `authAuthorized` constants                                                             | 5min  |
 | 5.2 | Replace `authorize bool` + `requireAuth bool` + `resource string` + `action string` with `authMode` + `resource` + `action` in `handlerConfig` | 10min |
-| 5.3 | Update `Authorize()` and `RequireAuth()` HandlerOptions | 5min |
-| 5.4 | Update `executeAuthorization()` in `options.go` | 10min |
-| 5.5 | Update all auth-related tests | 10min |
-| 5.6 | Run tests | 2min |
+| 5.3 | Update `Authorize()` and `RequireAuth()` HandlerOptions                                                                                        | 5min  |
+| 5.4 | Update `executeAuthorization()` in `options.go`                                                                                                | 10min |
+| 5.5 | Update all auth-related tests                                                                                                                  | 10min |
+| 5.6 | Run tests                                                                                                                                      | 2min  |
 
 ### Phase 6: Minor Cleanups
 
-| # | Task | Est |
-|---|---|---|
-| 6.1 | Remove `headerTrue` alias — use `HeaderTrue` everywhere in `htmx.go`, `response.go`, `errors.go` | 5min |
-| 6.2 | Extract `headerCorrelationID = "X-Correlation-ID"` constant in `middleware.go` | 3min |
-| 6.3 | Unexport standalone HTMX accessors (7 functions → unexported) | 10min |
-| 6.4 | Update all test files referencing unexported accessors | 10min |
-| 6.5 | Run tests | 2min |
+| #   | Task                                                                                             | Est   |
+| --- | ------------------------------------------------------------------------------------------------ | ----- |
+| 6.1 | Remove `headerTrue` alias — use `HeaderTrue` everywhere in `htmx.go`, `response.go`, `errors.go` | 5min  |
+| 6.2 | Extract `headerCorrelationID = "X-Correlation-ID"` constant in `middleware.go`                   | 3min  |
+| 6.3 | Unexport standalone HTMX accessors (7 functions → unexported)                                    | 10min |
+| 6.4 | Update all test files referencing unexported accessors                                           | 10min |
+| 6.5 | Run tests                                                                                        | 2min  |
 
 ### Phase 7: File Organization
 
-| # | Task | Est |
-|---|---|---|
-| 7.1 | Extract form decoding helpers (`decodeFormBody`, `decodeFormValues`) from `options.go` to `decode_form.go` | 5min |
+| #   | Task                                                                                                            | Est   |
+| --- | --------------------------------------------------------------------------------------------------------------- | ----- |
+| 7.1 | Extract form decoding helpers (`decodeFormBody`, `decodeFormValues`) from `options.go` to `decode_form.go`      | 5min  |
 | 7.2 | Extract `executeAuthorization`, `applyHTMXResponse` from `options.go` to `handler.go` or new `authz_handler.go` | 10min |
-| 7.3 | Verify all files under 370 lines | 5min |
-| 7.4 | Run tests + lint | 5min |
+| 7.3 | Verify all files under 370 lines                                                                                | 5min  |
+| 7.4 | Run tests + lint                                                                                                | 5min  |
 
 ### Phase 8: CI/CD
 
-| # | Task | Est |
-|---|---|---|
+| #   | Task                                                                      | Est   |
+| --- | ------------------------------------------------------------------------- | ----- |
 | 8.1 | Create `.github/workflows/ci.yml` — Go build, test (race), lint, coverage | 15min |
-| 8.2 | Add coverage threshold gate (fail if < 95%) | 5min |
-| 8.3 | Verify CI runs correctly on push | 5min |
+| 8.2 | Add coverage threshold gate (fail if < 95%)                               | 5min  |
+| 8.3 | Verify CI runs correctly on push                                          | 5min  |
 
 ### Phase 9: Documentation
 
-| # | Task | Est |
-|---|---|---|
-| 9.1 | Update `CHANGELOG.md` unreleased section with all changes | 10min |
+| #   | Task                                                       | Est   |
+| --- | ---------------------------------------------------------- | ----- |
+| 9.1 | Update `CHANGELOG.md` unreleased section with all changes  | 10min |
 | 9.2 | Update `AGENTS.md` with all new gotchas and export changes | 10min |
-| 9.3 | Update `FEATURES.md` metrics | 5min |
-| 9.4 | Update `TODO_LIST.md` — mark all done | 5min |
-| 9.5 | Update `CONTRIBUTING.md` with new API patterns | 5min |
-| 9.6 | Update `README.md` if needed | 5min |
+| 9.3 | Update `FEATURES.md` metrics                               | 5min  |
+| 9.4 | Update `TODO_LIST.md` — mark all done                      | 5min  |
+| 9.5 | Update `CONTRIBUTING.md` with new API patterns             | 5min  |
+| 9.6 | Update `README.md` if needed                               | 5min  |
 
 ### Phase 10: Release
 
-| # | Task | Est |
-|---|---|---|
+| #    | Task                                      | Est  |
+| ---- | ----------------------------------------- | ---- |
 | 10.1 | Commit all changes with detailed messages | 5min |
-| 10.2 | Push to origin/master | 2min |
-| 10.3 | Wait for CI green | 5min |
-| 10.4 | Tag v1.0.0 | 2min |
-| 10.5 | Make repo public | 1min |
+| 10.2 | Push to origin/master                     | 2min |
+| 10.3 | Wait for CI green                         | 5min |
+| 10.4 | Tag v1.0.0                                | 2min |
+| 10.5 | Make repo public                          | 1min |
 
 ---
 
