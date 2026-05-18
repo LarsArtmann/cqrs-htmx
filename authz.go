@@ -75,14 +75,33 @@ func AuthorizeMiddleware(
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			userID := extractor(r)
-			if userID == "" {
+			var subject string
+
+			if userID := UserIDFromContext(r.Context()); !userID.IsZero() {
+				subject = userID.String()
+			} else if extractor != nil {
+				userIDStr := extractor(r)
+				if userIDStr == "" {
+					err := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
+					DefaultErrorHandlerWithRedirect(w, r, err, redirect)
+					return
+				}
+
+				uid, err := ParseUserID(userIDStr)
+				if err != nil {
+					err := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
+					DefaultErrorHandlerWithRedirect(w, r, err, redirect)
+					return
+				}
+
+				subject = uid.String()
+			} else {
 				err := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
 				DefaultErrorHandlerWithRedirect(w, r, err, redirect)
 				return
 			}
 
-			if err := Enforce(enforcer, userID, resource, action); err != nil {
+			if err := Enforce(enforcer, subject, resource, action); err != nil {
 				DefaultErrorHandlerWithRedirect(w, r, err, redirect)
 				return
 			}

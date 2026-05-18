@@ -32,6 +32,30 @@ func MustParseUserID(s string) UserID {
 	return id.MustParseUserID(s)
 }
 
+// CorrelationID is a strongly-typed correlation identifier, preventing accidental
+// mixing with other ID types at compile time.
+type CorrelationID = id.CorrelationID
+
+// NewCorrelationID generates a new random CorrelationID backed by a ULID.
+func NewCorrelationID() CorrelationID {
+	return id.NewCorrelationID()
+}
+
+// ParseCorrelationID converts a string to a CorrelationID.
+// Returns an error if the input is not a valid ULID.
+func ParseCorrelationID(s string) (CorrelationID, error) {
+	correlationID, err := id.ParseCorrelationID(s)
+	if err != nil {
+		return CorrelationID{}, fmt.Errorf("parse correlation id: %w", err)
+	}
+	return correlationID, nil
+}
+
+// MustParseCorrelationID converts a string to a CorrelationID, panicking on error.
+func MustParseCorrelationID(s string) CorrelationID {
+	return id.MustParseCorrelationID(s)
+}
+
 type contextKey string
 
 const userIDKey contextKey = "cqrshtmx_user_id"
@@ -63,14 +87,28 @@ func UserIDFromContext(ctx context.Context) UserID {
 }
 
 // EventOptionsFromContext builds event.Options from request context,
-// propagating user identity into event metadata for auditing and tracing.
+// propagating user identity and correlation ID into event metadata for
+// auditing, tracing, and distributed request correlation.
 //
-// Returns nil options if no user ID is found in context.
+// Returns nil options if neither user ID nor correlation ID is found.
+// Invalid correlation IDs (non-ULID strings) are silently dropped,
+// matching the behavior of ContextEnrichmentMiddleware for user IDs.
 func EventOptionsFromContext(ctx context.Context) []event.Option {
-	userID := UserIDFromContext(ctx)
-	if userID.IsZero() {
+	var opts []event.Option
+
+	if userID := UserIDFromContext(ctx); !userID.IsZero() {
+		opts = append(opts, event.WithUserID(userID))
+	}
+
+	if cidStr := CorrelationIDFromContext(ctx); cidStr != "" {
+		if cid, err := id.ParseCorrelationID(cidStr); err == nil {
+			opts = append(opts, event.WithCorrelationID(cid))
+		}
+	}
+
+	if len(opts) == 0 {
 		return nil
 	}
 
-	return []event.Option{event.WithUserID(userID)}
+	return opts
 }

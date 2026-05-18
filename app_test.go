@@ -457,6 +457,50 @@ var _ = Describe("Authorization", func() {
 			Expect(called).To(BeFalse())
 			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
 		})
+
+		It("prefers branded UserID from context over extractor", func() {
+			e := newTestEnforcer()
+			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
+				func(_ *http.Request) string { return "" })
+
+			called := false
+			handler := middleware(middlewareCaptureHandler(&called))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r = r.WithContext(cqrshtmx.WithUserID(r.Context(), adminUserID))
+			handler.ServeHTTP(w, r)
+			Expect(called).To(BeTrue())
+		})
+
+		It("rejects unparseable user IDs with 401", func() {
+			e := newTestEnforcer()
+			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
+				func(_ *http.Request) string { return "not-a-ulid" })
+
+			called := false
+			handler := middleware(middlewareCaptureHandler(&called))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+			Expect(called).To(BeFalse())
+			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+		})
+
+		It("rejects requests when extractor is nil and no context user ID", func() {
+			e := newTestEnforcer()
+			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read", nil)
+
+			called := false
+			handler := middleware(middlewareCaptureHandler(&called))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+			Expect(called).To(BeFalse())
+			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+		})
 	})
 })
 
