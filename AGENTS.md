@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 95.7% (150+ tests)                                                                |
+| Coverage | 95.7% (180+ tests)                                                                |
 
 ## Architecture
 
@@ -44,6 +44,7 @@ cqrs-htmx/
 - **HTMX-aware by default**: All error handling and responses check for HTMX requests
 - **User identity propagation**: `UserIDExtractor` → context → event metadata
 - **Strongly-typed UserID**: `WithUserID(ctx, UserID)` / `UserIDFromContext(ctx) UserID` — context stores `id.UserID` (ULID-backed branded type); `ParseUserID` / `MustParseUserID` helpers exported; `UserIDExtractor` still returns `string` (consumer extracts from JWT/session), middleware parses to `id.UserID`. **Breaking change**: context values are now strongly typed.
+- **Strongly-typed CorrelationID**: `WithCorrelationID(ctx, CorrelationID)` / `CorrelationIDFromContext(ctx) CorrelationID` — context stores `id.CorrelationID` (ULID-backed). `ParseCorrelationID` / `MustParseCorrelationID` / `NewCorrelationID` helpers exported. Auto-extracted from `X-Correlation-ID` header by `ContextEnrichmentMiddleware` which silently drops non-ULID values. **Breaking change**: was raw `string`, now branded type.
 - **templ duck-typing**: `TemplComponent` interface matches `templ.Component` without importing templ
 - **HTMXRequest context**: `HTMXMiddleware` parses headers once, stores in context for downstream use
 - **Notifications**: Standard `{level, message}` trigger pattern for HTMX client-side events; `NotifyWithEvent` builder for custom event names
@@ -85,12 +86,15 @@ cqrs-htmx/
 13. **AuthorizeMiddleware backward compat**: `loginRedirect` is variadic (optional 4th arg) for backward compatibility — `AuthorizeMiddleware(e, res, act, extractor)` still works
 14. **pkg/errors transitive dep**: `github.com/pkg/errors` is an indirect dep via `cockroachdb/errors` — cannot remove, but it's not directly used
 15. **Strongly-typed UserID**: `WithUserID` / `UserIDFromContext` now use `id.UserID` (ULID-backed). `UserIDExtractor` still returns `string`; middleware parses to `UserID`. **Consumer breaking change**: callers passing string literals or invalid ULIDs will see parse failures — use `MustParseUserID` in tests or `ParseUserID` in production
-16. **Middleware silently drops invalid IDs**: `ContextEnrichmentMiddleware` and `App.enrichUserID` parse the extractor's string output to `UserID` — if parsing fails (not a valid ULID), the ID is silently dropped. Auth will fail downstream with `ErrUnauthorized`, not an explicit parse error
-17. **Timeout wraps dispatch only**: `Config.Timeout` applies only to the `Dispatch` call in `handler.go`, not to decode or auth — this is intentional; decode/auth should not be time-bounded by the handler timeout
-18. **Validation order matters**: `ValidateCommand`/`ValidateQuery` must be applied AFTER the decoder option (e.g., `DecodeJSON`) in the `HandlerOption` list — they wrap the existing decoder, so a nil decoder means validation is silently skipped
-19. **Flaky test anti-pattern**: Never use `time.After` + `select` for timeout tests — use `<-ctx.Done()` blocking instead. Also ensure command/query type names in test handlers match decoder output names exactly
-20. **Benchmark/example lint exclusions**: `.golangci.yml` has `linters.exclusions.rules` for `(benchmark|example)_test\.go$` files — `intrange`, `noctx`, `nilnil` are relaxed for these files only; production code has no exclusions
-21. **GOWORK=off required**: A parent `go.work` exists at `../go.work` that doesn't include this module. All `go test`/`go build` commands need `GOWORK=off` or they fail with "directory prefix does not contain modules listed in go.work"
+16. **Strongly-typed CorrelationID**: `WithCorrelationID` / `CorrelationIDFromContext` now accept/return `id.CorrelationID` (ULID-backed). `ContextEnrichmentMiddleware` silently drops non-ULID correlation IDs from headers. **Consumer breaking change**: callers passing raw strings or non-ULID values will see compile errors — use `MustParseCorrelationID` in tests, `NewCorrelationID()` to generate, or `ParseCorrelationID` in production
+17. **Context keys are empty-struct sentinel types**: `contextKey string` replaced with private `userIDKey{}`, `correlationIDKey{}`, `htmxKey{}` — standard Go pattern for collision-free context values across packages
+18. **Middleware silently drops invalid IDs**: `ContextEnrichmentMiddleware` and `App.enrichUserID` parse the extractor's string output to `UserID` — if parsing fails (not a valid ULID), the ID is silently dropped. Auth will fail downstream with `ErrUnauthorized`, not an explicit parse error
+19. **Middleware also silently drops invalid correlation IDs**: `ContextEnrichmentMiddleware` calls `ParseCorrelationID` on the `X-Correlation-ID` header — if parsing fails (not a valid ULID), the correlation ID is silently dropped. The `EventOptionsFromContext` function checks `.IsZero()` and silently skips invalid/zero CorrelationID values
+20. **Timeout wraps dispatch only**: `Config.Timeout` applies only to the `Dispatch` call in `handler.go`, not to decode or auth — this is intentional; decode/auth should not be time-bounded by the handler timeout
+21. **Validation order matters**: `ValidateCommand`/`ValidateQuery` must be applied AFTER the decoder option (e.g., `DecodeJSON`) in the `HandlerOption` list — they wrap the existing decoder, so a nil decoder means validation is silently skipped
+22. **Flaky test anti-pattern**: Never use `time.After` + `select` for timeout tests — use `<-ctx.Done()` blocking instead. Also ensure command/query type names in test handlers match decoder output names exactly
+23. **Benchmark/example lint exclusions**: `.golangci.yml` has `linters.exclusions.rules` for `(benchmark|example)_test\.go$` files — `intrange`, `noctx`, `nilnil` are relaxed for these files only; production code has no exclusions
+24. **GOWORK=off required**: A parent `go.work` exists at `../go.work` that doesn't include this module. All `go test`/`go build` commands need `GOWORK=off` or they fail with "directory prefix does not contain modules listed in go.work"
 
 ## Test Commands
 
