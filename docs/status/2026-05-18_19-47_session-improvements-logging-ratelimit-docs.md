@@ -64,13 +64,13 @@ This session directly addressed every item listed under "WHAT WE SHOULD IMPROVE"
 
 **Results** (AMD Ryzen AI MAX+ 395):
 
-| Benchmark | ns/op |
-|-----------|-------|
-| RequestLogging/DefaultFormatter | ~1,559 |
-| RequestLogging/JSONFormatter | ~2,513 |
-| RequestLogging/WithContextIDs | ~1,955 |
-| RateLimiterMiddleware/Global | ~1,659 |
-| RateLimiterMiddleware/PerKey | ~1,838 |
+| Benchmark                        | ns/op  |
+| -------------------------------- | ------ |
+| RequestLogging/DefaultFormatter  | ~1,559 |
+| RequestLogging/JSONFormatter     | ~2,513 |
+| RequestLogging/WithContextIDs    | ~1,955 |
+| RateLimiterMiddleware/Global     | ~1,659 |
+| RateLimiterMiddleware/PerKey     | ~1,838 |
 | RateLimiterMiddleware/RemoteAddr | ~1,679 |
 
 ### 5. README Examples for New Middleware (`README.md`)
@@ -121,11 +121,11 @@ This session directly addressed every item listed under "WHAT WE SHOULD IMPROVE"
 
 ### 9. Lint Fixes (3 issues across 3 files)
 
-| File | Issue | Fix |
-|------|-------|-----|
-| `logging.go` | `errchkjson` — unchecked `json.Marshal` error | Check error, return fallback JSON string |
-| `example_test.go` | `revive` — unused `line` parameter | Rename to `_` |
-| `ratelimit_test.go` | `goconst` — `"192.168.1.1:1234"` repeated 3× | Extract to `const ip1`, add `const ip2` |
+| File                | Issue                                         | Fix                                      |
+| ------------------- | --------------------------------------------- | ---------------------------------------- |
+| `logging.go`        | `errchkjson` — unchecked `json.Marshal` error | Check error, return fallback JSON string |
+| `example_test.go`   | `revive` — unused `line` parameter            | Rename to `_`                            |
+| `ratelimit_test.go` | `goconst` — `"192.168.1.1:1234"` repeated 3×  | Extract to `const ip1`, add `const ip2`  |
 
 ---
 
@@ -222,15 +222,15 @@ I lean toward **D** — the current middleware should stay simple (documented li
 
 ## Metrics Snapshot
 
-| Metric      | Before Session | After Session | Delta |
-| ----------- | -------------- | ------------- | ----- |
-| Test specs  | 197            | 200           | +3    |
-| Prod files  | 12             | 12            | —     |
-| Coverage    | 95.9%          | 95.8%         | -0.1% |
-| Lint issues | 0              | 0             | —     |
-| Benchmarks  | 10             | 16            | +6    |
-| Features    | 25             | 26            | +1    |
-| Godoc examples | 6           | 9             | +3    |
+| Metric         | Before Session | After Session | Delta |
+| -------------- | -------------- | ------------- | ----- |
+| Test specs     | 197            | 200           | +3    |
+| Prod files     | 12             | 12            | —     |
+| Coverage       | 95.9%          | 95.8%         | -0.1% |
+| Lint issues    | 0              | 0             | —     |
+| Benchmarks     | 10             | 16            | +6    |
+| Features       | 25             | 26            | +1    |
+| Godoc examples | 6              | 9             | +3    |
 
 ## File Inventory (Production)
 
@@ -251,17 +251,17 @@ I lean toward **D** — the current middleware should stay simple (documented li
 
 ## Files Changed in This Session
 
-| File                | Change                                                                   |
-| ------------------- | ------------------------------------------------------------------------ |
-| `logging.go`        | Added `JSONLogFormatter`, handled `json.Marshal` error                   |
-| `logging_test.go`   | Added 2 JSON formatter test specs                                        |
-| `ratelimit.go`      | Added `KeyExtractorFromRemoteAddr()`, documented unbounded map growth    |
-| `ratelimit_test.go` | Added per-IP rate limiting spec, extracted constants for lint            |
+| File                | Change                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| `logging.go`        | Added `JSONLogFormatter`, handled `json.Marshal` error                                   |
+| `logging_test.go`   | Added 2 JSON formatter test specs                                                        |
+| `ratelimit.go`      | Added `KeyExtractorFromRemoteAddr()`, documented unbounded map growth                    |
+| `ratelimit_test.go` | Added per-IP rate limiting spec, extracted constants for lint                            |
 | `example_test.go`   | Added `ExampleRequestLogging`, `ExampleJSONLogFormatter`, `ExampleRateLimiterMiddleware` |
-| `benchmark_test.go` | Added `BenchmarkRequestLogging` (3 subs), `BenchmarkRateLimiterMiddleware` (3 subs) |
-| `README.md`         | Added Request Logging + Rate Limiting sections, "Why ULID?" explanation  |
-| `FEATURES.md`       | Added Feature #26, updated metrics (200 specs, 16 benchmarks)            |
-| `AGENTS.md`         | Added Gotcha #25 for rate limiter unbounded map                          |
+| `benchmark_test.go` | Added `BenchmarkRequestLogging` (3 subs), `BenchmarkRateLimiterMiddleware` (3 subs)      |
+| `README.md`         | Added Request Logging + Rate Limiting sections, "Why ULID?" explanation                  |
+| `FEATURES.md`       | Added Feature #26, updated metrics (200 specs, 16 benchmarks)                            |
+| `AGENTS.md`         | Added Gotcha #25 for rate limiter unbounded map                                          |
 
 ---
 
