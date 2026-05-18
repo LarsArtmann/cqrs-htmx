@@ -36,17 +36,16 @@
 
 |     | #                 | Feature     | Status                                            | Notes |
 | --- | ----------------- | ----------- | ------------------------------------------------- | ----- |
-| 1   | Rate Limiting     | PLANNED     | No built-in rate limiting                         |
-| 2   | WebSocket Support | NOT_PLANNED | No SSE or WebSocket helpers for real-time updates |
+| 1   | WebSocket Support | NOT_PLANNED | No SSE or WebSocket helpers for real-time updates |
 
 ## Metrics
 
 | Metric      | Value |
 | ----------- | ----- |
 | Coverage    | 95.7% |
-| Test specs  | 180   |
+| Test specs  | 197   |
 | Lint issues | 0     |
-| Prod files  | 10    |
+| Prod files  | 12    |
 | Test files  | 15    |
 | Benchmarks  | 10    |
 | Godoc       | 6     |

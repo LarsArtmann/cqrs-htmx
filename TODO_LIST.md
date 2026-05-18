@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Date:** 2026-05-07 | **Updated:** 2026-05-16 | **Source:** Self-review session, full codebase audit
+**Date:** 2026-05-07 | **Updated:** 2026-05-18 | **Source:** Self-review session, full codebase audit
 
 ## Status Legend
 
@@ -42,7 +42,11 @@
 - [x] **Add dispatch lifecycle hooks** — `BeforeDispatchHook` / `AfterDispatchHook` on `Config`. Tested in `hooks_test.go` with 9 specs.
 - [x] **Add request validation middleware** — `ValidateCommand` / `ValidateQuery` HandlerOptions with `ErrValidationFailed` sentinel. Tested in `validation_test.go` with 6 specs.
 - [x] **Add JSON error response option** — `JSONErrorHandler` writes `{error, status}` JSON. HTMX auth errors redirect via HX-Redirect.
-- [x] **Add correlation ID propagation** — `WithCorrelationID` / `CorrelationIDFromContext`. Auto-extracted from `X-Correlation-ID` header in `ContextEnrichmentMiddleware`.
+- [x] **Add correlation ID propagation** — `WithCorrelationID` / `CorrelationIDFromContext` (branded `id.CorrelationID`). Auto-extracted from `X-Correlation-ID` header in `ContextEnrichmentMiddleware`.
+- [x] **Fix CorrelationID event metadata pipeline** — `EventOptionsFromContext` now propagates branded `id.CorrelationID` into event metadata.
+- [x] **Fix AuthorizeMiddleware identity parsing** — now uses branded `UserID` from context, falls back to extractor + `ParseUserID()` validation.
+- [x] **Add Request Logging middleware** — `RequestLogging(formatter, writer)` with `DefaultLogFormatter`, captures correlation/user IDs.
+- [x] **Add Rate Limiting middleware** — `RateLimiterMiddleware` with token-bucket per-key via `golang.org/x/time/rate`.
 - [x] **Add timeout propagation** — `Config.Timeout time.Duration` wraps dispatch with `context.WithTimeout`. Zero/negative = no timeout. Tested in `timeout_test.go` with 7 specs.
 
 ## P4 — Polish
@@ -65,7 +69,7 @@
 - [x] **Context propagation** — User ID → context → event metadata. Dedup in handlers
 - [x] **Templ duck-typing** — `RenderTempl`, `RenderTemplResult[T]` without importing templ
 - [x] **Middleware chain** — `Chain` composes middleware left-to-right
-- [x] **95.7% test coverage** — 170 tests, race-safe
+- [x] **95.7% test coverage** — 197 tests, race-safe
 - [x] **0 lint issues** — golangci-lint clean
 - [x] **All header constants consolidated** — No hardcoded HTMX header strings in production code
 - [x] **Per-App LoginRedirect** — Config field now actually works via closure
