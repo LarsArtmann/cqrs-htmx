@@ -8,6 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/core v1.1.0
 	github.com/onsi/ginkgo/v2 v2.28.3
 	github.com/onsi/gomega v1.40.0
+	golang.org/x/time v0.15.0
 )
 
 require (
