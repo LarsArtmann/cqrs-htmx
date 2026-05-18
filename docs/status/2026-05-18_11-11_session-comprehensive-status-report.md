@@ -19,6 +19,7 @@ The session expanded into a holistic improvement pass, implementing two new majo
 **Problem:** `EventOptionsFromContext` only returned `event.WithUserID(...)`. The correlation ID stored by `ContextEnrichmentMiddleware` was invisible to event metadata.
 
 **Fix:**
+
 - Added `CorrelationID` type alias (`type CorrelationID = id.CorrelationID`) with `NewCorrelationID()`, `ParseCorrelationID()`, `MustParseCorrelationID()` helpers.
 - Changed `WithCorrelationID`/`CorrelationIDFromContext` from raw `string` to branded `CorrelationID` — a **breaking change** that makes the API symmetric with `WithUserID`.
 - `ContextEnrichmentMiddleware` now calls `ParseCorrelationID(cidStr)` before storing; non-ULID values are silently dropped (matching UserID behavior).
@@ -32,6 +33,7 @@ The session expanded into a holistic improvement pass, implementing two new majo
 **Problem:** `AuthorizeMiddleware` passed the raw `string` output of `UserIDExtractor` directly to `Enforce()`, bypassing `ParseUserID()` validation. The per-handler path in `options.go:executeAuthorization` parsed through branded `UserID` first.
 
 **Fix:**
+
 - `AuthorizeMiddleware` now checks `UserIDFromContext(r.Context())` first. If a branded `UserID` exists (set by `ContextEnrichmentMiddleware` or `App.enrichUserID`), it uses `.String()`.
 - Falls back to extractor + `ParseUserID()` validation. Unparseable ULIDs now return 401 instead of passing raw strings to Casbin.
 - Handles nil extractor gracefully with 401 Unauthorized.
@@ -42,6 +44,7 @@ The session expanded into a holistic improvement pass, implementing two new majo
 **Problem:** `contextKey string` and `htmxContextKey string` used string values like `"cqrshtmx_user_id"` and `"cqrshtmx_htmx_request"` — collision-prone across packages.
 
 **Fix:**
+
 - Replaced with empty-struct sentinel types: `userIDKey{}`, `correlationIDKey{}`, `htmxKey{}`.
 - Standard Go pattern for collision-free context values. Zero runtime cost.
 - No consumer-facing API change.
@@ -112,7 +115,7 @@ The session expanded into a holistic improvement pass, implementing two new majo
 1. **Rate limiter map grows unbounded** — `perKeyLimiter.limiters` is a `map[string]*rate.Limiter` with no cleanup. Over time this leaks memory for deployments with many unique keys (e.g., per-IP limiting). Add LRU or time-based eviction.
 2. **Logging middleware lacks structured output** — `DefaultLogFormatter` produces plain text. A `JSONLogFormatter` would integrate better with modern log pipelines (ELK, Loki, Datadog).
 3. **README lacks examples for new middleware** — No examples for `RequestLogging` or `RateLimiterMiddleware` usage in README.md. Consumers would need to read godoc.
-4. **CorrelationID ULID enforcement may surprise consumers** — README documents ULID requirement but doesn't explain *why* (type safety, event metadata consistency, collision-free keys).
+4. **CorrelationID ULID enforcement may surprise consumers** — README documents ULID requirement but doesn't explain _why_ (type safety, event metadata consistency, collision-free keys).
 5. **Test counts in FEATURES.md will drift** — Currently hardcoded to 197. Consider removing exact counts or automating.
 6. **No benchmark for new middleware** — `RequestLogging` and `RateLimiterMiddleware` lack benchmarks. Both wrap `ResponseWriter` which adds overhead.
 7. **go.work friction** — `GOWORK=off` is still required on every command due to parent `go.work`. Consider removing the parent work file or adding this module to it.
@@ -122,6 +125,7 @@ The session expanded into a holistic improvement pass, implementing two new majo
 ## f) Top #25 Things We Should Get Done Next
 
 ### Immediate (Next 1-2 Weeks)
+
 1. Add `JSONLogFormatter` for structured request logging
 2. Add README examples for `RequestLogging` and `RateLimiterMiddleware`
 3. Add godoc `Example*` functions for new middleware
@@ -129,6 +133,7 @@ The session expanded into a holistic improvement pass, implementing two new majo
 5. Document rate limiter map cleanup strategy (or implement LRU eviction)
 
 ### Short-term (Next Month)
+
 6. Peer review CorrelationID breaking change impact on known consumers
 7. Add request body size limit middleware
 8. Add CORS middleware (framework-agnostic)
@@ -139,6 +144,7 @@ The session expanded into a holistic improvement pass, implementing two new majo
 13. Add graceful shutdown helper
 
 ### Medium-term (Next Quarter)
+
 14. Investigate `go.work` removal to eliminate `GOWORK=off` requirement
 15. Explore HTMX v2 compatibility
 16. Add SSE helper when HTMX adds native support
@@ -148,6 +154,7 @@ The session expanded into a holistic improvement pass, implementing two new majo
 20. Add property-based tests for rate limiter (gopter)
 
 ### Long-term / Research
+
 21. Integration test with real Casbin policy file loading
 22. Evaluate `contextKey` type aliasing for consumer extensions
 23. Migration guide for v0.x → v1.0+ consumers
@@ -184,37 +191,37 @@ I lean toward **C** but the decision depends on typical deployment topology of c
 
 ## File Inventory (Production)
 
-| #  | File            | Lines | Purpose                                    |
-| -- | --------------- | ----- | ------------------------------------------ |
-| 1  | `app.go`        | ~190  | App builder, Config, Command/Query handlers |
-| 2  | `handler.go`    | ~136  | dispatch orchestration, timeout            |
-| 3  | `options.go`    | ~341  | HandlerOption, decoders, validation, authz |
-| 4  | `response.go`   | ~179  | HTMX response builder (fluent API)         |
-| 5  | `authz.go`      | ~112  | Enforcer, Authorize, Enforce, middleware   |
-| 6  | `context.go`    | ~114  | UserID/CorrelationID context + event opts  |
-| 7  | `errors.go`     | ~158  | Sentinels, MapError, error handlers        |
-| 8  | `htmx.go`       | ~173  | HTMXRequest, accessors, context storage    |
-| 9  | `notify.go`     | ~78   | Notification HandlerOptions + builder      |
-| 10 | `middleware.go` | ~58   | ContextEnrichment, HTMX, Chain             |
-| 11 | `logging.go`    | ~92   | RequestLogging middleware                  |
-| 12 | `ratelimit.go`  | ~108  | RateLimiterMiddleware                      |
+| #   | File            | Lines | Purpose                                     |
+| --- | --------------- | ----- | ------------------------------------------- |
+| 1   | `app.go`        | ~190  | App builder, Config, Command/Query handlers |
+| 2   | `handler.go`    | ~136  | dispatch orchestration, timeout             |
+| 3   | `options.go`    | ~341  | HandlerOption, decoders, validation, authz  |
+| 4   | `response.go`   | ~179  | HTMX response builder (fluent API)          |
+| 5   | `authz.go`      | ~112  | Enforcer, Authorize, Enforce, middleware    |
+| 6   | `context.go`    | ~114  | UserID/CorrelationID context + event opts   |
+| 7   | `errors.go`     | ~158  | Sentinels, MapError, error handlers         |
+| 8   | `htmx.go`       | ~173  | HTMXRequest, accessors, context storage     |
+| 9   | `notify.go`     | ~78   | Notification HandlerOptions + builder       |
+| 10  | `middleware.go` | ~58   | ContextEnrichment, HTMX, Chain              |
+| 11  | `logging.go`    | ~92   | RequestLogging middleware                   |
+| 12  | `ratelimit.go`  | ~108  | RateLimiterMiddleware                       |
 
 ## Commits in This Session
 
-| Hash     | Commit Message                                          |
-| -------- | ------------------------------------------------------- |
-| f9bf7d1  | deps: add golang.org/x/time v0.15.0 for rate limiter    |
-| 8d81d19  | docs: comprehensive status report and TODO completion     |
-| 8456bca  | feat: add RateLimiterMiddleware with per-key token bucket |
-| d054d90  | feat: add RequestLogging middleware with correlation capture |
-| 5c8b06a  | docs: update AGENTS.md and CHANGELOG with CorrelationID   |
-| d36d8dc  | refactor: use empty-struct sentinel types for context keys |
-| 819f543  | fix: correct dead test — Enforce error case               |
-| 0dc4fa9  | docs: update README correlation ID examples               |
-| 75227fc  | test: add E2E correlation ID pipeline test                |
-| 750833f  | feat: store branded CorrelationID in context (breaking)   |
-| 31b70ca  | feat: wire CorrelationID through EventOptionsFromContext  |
+| Hash    | Commit Message                                               |
+| ------- | ------------------------------------------------------------ |
+| f9bf7d1 | deps: add golang.org/x/time v0.15.0 for rate limiter         |
+| 8d81d19 | docs: comprehensive status report and TODO completion        |
+| 8456bca | feat: add RateLimiterMiddleware with per-key token bucket    |
+| d054d90 | feat: add RequestLogging middleware with correlation capture |
+| 5c8b06a | docs: update AGENTS.md and CHANGELOG with CorrelationID      |
+| d36d8dc | refactor: use empty-struct sentinel types for context keys   |
+| 819f543 | fix: correct dead test — Enforce error case                  |
+| 0dc4fa9 | docs: update README correlation ID examples                  |
+| 75227fc | test: add E2E correlation ID pipeline test                   |
+| 750833f | feat: store branded CorrelationID in context (breaking)      |
+| 31b70ca | feat: wire CorrelationID through EventOptionsFromContext     |
 
 ---
 
-*Generated with Crush* | *Assisted-by: Crush:hf:moonshotai/Kimi-K2.6*
+_Generated with Crush_ | _Assisted-by: Crush:hf:moonshotai/Kimi-K2.6_
