@@ -118,5 +118,49 @@ var _ = Describe("Request Logging", func() {
 			r := httptest.NewRequest(http.MethodDelete, "/users/1", nil)
 			Expect(func() { handler.ServeHTTP(w, r) }).NotTo(Panic())
 		})
+
+		It("formats logs as JSON with JSONLogFormatter", func() {
+			var logged string
+			middleware := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
+				logged = line
+			})
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusAccepted)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPut, "/items/42?expand=true", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(logged).To(ContainSubstring(`"method":"PUT"`))
+			Expect(logged).To(ContainSubstring(`"path":"/items/42"`))
+			Expect(logged).To(ContainSubstring(`"query":"expand=true"`))
+			Expect(logged).To(ContainSubstring(`"status":"Accepted"`))
+			Expect(logged).To(ContainSubstring(`"duration"`))
+		})
+
+		It("includes correlation_id and user_id in JSON logs", func() {
+			var logged string
+			middleware := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
+				logged = line
+			})
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/api/users", nil)
+			ctx := cqrshtmx.WithCorrelationID(r.Context(),
+				cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633"))
+			ctx = cqrshtmx.WithUserID(ctx,
+				cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2"))
+			r = r.WithContext(ctx)
+			handler.ServeHTTP(w, r)
+
+			Expect(logged).To(ContainSubstring(`"correlation_id":"01HK1549P84T9XF8R94E960633"`))
+			Expect(logged).To(ContainSubstring(`"user_id":"01HK154ANGZHV2ZW0X3SKSNEN2"`))
+		})
 	})
 })

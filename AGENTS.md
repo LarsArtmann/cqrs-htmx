@@ -95,6 +95,7 @@ cqrs-htmx/
 22. **Flaky test anti-pattern**: Never use `time.After` + `select` for timeout tests — use `<-ctx.Done()` blocking instead. Also ensure command/query type names in test handlers match decoder output names exactly
 23. **Benchmark/example lint exclusions**: `.golangci.yml` has `linters.exclusions.rules` for `(benchmark|example)_test\.go$` files — `intrange`, `noctx`, `nilnil` are relaxed for these files only; production code has no exclusions
 24. **GOWORK=off required**: A parent `go.work` exists at `../go.work` that doesn't include this module. All `go test`/`go build` commands need `GOWORK=off` or they fail with "directory prefix does not contain modules listed in go.work"
+25. **Rate limiter map grows unbounded**: `perKeyLimiter.limiters` is a `map[string]*rate.Limiter` with no cleanup. For deployments with many unique keys (e.g., per-IP limiting), this leaks memory over time. Consider a bounded key space or wrapping with periodic cleanup
 
 ## Test Commands
 

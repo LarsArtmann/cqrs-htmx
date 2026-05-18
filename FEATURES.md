@@ -1,6 +1,6 @@
 # Features Audit — cqrs-htmx
 
-**Date:** 2026-05-16 | **Source:** All .go files analyzed
+**Date:** 2026-05-18 | **Source:** All .go files analyzed
 
 ## Features
 
@@ -30,7 +30,8 @@
 | 22  | Correlation ID            | FULLY_FUNCTIONAL | `WithCorrelationID(ctx, id)` / `CorrelationIDFromContext(ctx)`. Auto-extracted from `X-Correlation-ID` header in `ContextEnrichmentMiddleware`. Propagated into event metadata via `EventOptionsFromContext` as strongly-typed `id.CorrelationID`.                                                              |
 | 23  | Request Validation        | FULLY_FUNCTIONAL | `ValidateCommand(validator)` and `ValidateQuery(validator)` HandlerOptions wrap decoders with validation. `ErrValidationFailed` sentinel → 400. Short-circuits on decode errors.                                                                                                                                |
 | 24  | Timeout Propagation       | FULLY_FUNCTIONAL | `Config.Timeout time.Duration` wraps dispatch with `context.WithTimeout`. Zero/negative = no timeout (default). Timeout applies only to dispatch, not decode/auth.                                                                                                                                              |
-| 25  | Request Logging           | FULLY_FUNCTIONAL | `RequestLogging(formatter, writer)` middleware with `DefaultLogFormatter`. Captures method, path, status, duration, correlation ID, and user ID.                                                                                                                                                                |
+| 25  | Request Logging           | FULLY_FUNCTIONAL | `RequestLogging(formatter, writer)` middleware with `DefaultLogFormatter`. Captures method, path, status, duration, correlation ID, and user ID. `JSONLogFormatter` for structured JSON output.                                                                                                                  |
+| 26  | Rate Limiting             | FULLY_FUNCTIONAL | `RateLimiterMiddleware(cfg)` token-bucket rate limiter per key via `golang.org/x/time/rate`. Global, per-key, and exempt-request modes. `KeyExtractorFromRemoteAddr()` helper. `Retry-After` header on 429 responses.                                                                                         |
 
 ## Missing/Planned
 
@@ -43,10 +44,10 @@
 | Metric      | Value |
 | ----------- | ----- |
 | Coverage    | 95.7% |
-| Test specs  | 197   |
+| Test specs  | 200   |
 | Lint issues | 0     |
 | Prod files  | 12    |
 | Test files  | 15    |
-| Benchmarks  | 10    |
+| Benchmarks  | 16    |
 | Godoc       | 6     |
 | Banned deps | 0     |

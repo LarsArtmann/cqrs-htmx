@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -124,4 +125,65 @@ func ExampleHTMXMiddleware() {
 	mux.ServeHTTP(w, r)
 	// Output: HTMX request
 	// render partial
+}
+
+func ExampleRequestLogging() {
+	mux := http.NewServeMux()
+
+	// Log every request to stdout with the default plain-text formatter.
+	logged := cqrshtmx.RequestLogging(nil, func(_ string) {
+		fmt.Println("logged")
+	})
+
+	mux.Handle("/", logged(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/users", nil)
+	mux.ServeHTTP(w, r)
+	// Output: logged
+}
+
+func ExampleJSONLogFormatter() {
+	mux := http.NewServeMux()
+
+	logged := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
+		fmt.Println(line)
+	})
+
+	mux.Handle("/", logged(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusCreated)
+		}),
+	))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/items", nil)
+	mux.ServeHTTP(w, r)
+}
+
+func ExampleRateLimiterMiddleware() {
+	mux := http.NewServeMux()
+
+	// Allow 10 requests per minute per IP address.
+	limited := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+		Limit:        10,
+		Window:       time.Minute,
+		KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+	})
+
+	mux.Handle("/", limited(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	mux.ServeHTTP(w, r)
+	fmt.Println(w.Code)
+	// Output: 200
 }

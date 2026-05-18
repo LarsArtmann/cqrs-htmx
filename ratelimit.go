@@ -13,6 +13,19 @@ import (
 // Common extractors: RemoteAddr, header value, user ID from context.
 type KeyExtractor func(r *http.Request) string
 
+// KeyExtractorFromRemoteAddr returns a KeyExtractor that uses the request's
+// RemoteAddr as the rate-limit key.
+//
+// WARNING: Behind reverse proxies (nginx, Cloudflare, AWS ALB), RemoteAddr
+// is the proxy's IP, not the client's. Use this only when the server is
+// exposed directly or when the proxy forwards the real client IP in a
+// header (e.g., X-Forwarded-For) and you parse that instead.
+func KeyExtractorFromRemoteAddr() KeyExtractor {
+	return func(r *http.Request) string {
+		return r.RemoteAddr
+	}
+}
+
 // RateLimiterConfig configures the token-bucket rate limiter per key.
 type RateLimiterConfig struct {
 	// Limit is the maximum number of requests per Window.
@@ -34,6 +47,11 @@ type RateLimiterConfig struct {
 //
 // If the rate limit is exceeded the middleware responds with 429 Too Many
 // Requests and a Retry-After header in seconds.
+//
+// NOTE: The internal per-key limiter map grows unbounded. For deployments
+// with many unique keys (e.g., per-IP limiting on public-facing services),
+// consider wrapping this middleware with periodic cleanup or using a bounded
+// key space.
 func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 	if cfg.Limit <= 0 {
 		cfg.Limit = 100

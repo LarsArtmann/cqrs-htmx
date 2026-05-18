@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 )
@@ -35,6 +36,40 @@ func DefaultLogFormatter(r *http.Request, status int, duration time.Duration) st
 
 	return method + " " + path + " → " + http.StatusText(status) +
 		" (" + duration.String() + ")" + extra
+}
+
+// JSONLogFormatter writes a structured JSON log line with method, path, status,
+// duration, and optional correlation ID and user ID when present in context.
+//
+// Output format:
+//
+//	{"method":"GET","path":"/users","status":"OK","duration":"1.234ms","correlation_id":"...","user_id":"..."}
+func JSONLogFormatter(r *http.Request, status int, duration time.Duration) string {
+	entry := map[string]any{
+		"method":   r.Method,
+		"path":     r.URL.Path,
+		"status":   http.StatusText(status),
+		"duration": duration.String(),
+	}
+
+	if r.URL.RawQuery != "" {
+		entry["query"] = r.URL.RawQuery
+	}
+
+	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
+		entry["correlation_id"] = cid.String()
+	}
+
+	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
+		entry["user_id"] = uid.String()
+	}
+
+	b, err := json.Marshal(entry)
+	if err != nil {
+		return `{"error":"json marshal failed"}`
+	}
+
+	return string(b)
 }
 
 // RequestLogging returns HTTP middleware that logs each request.

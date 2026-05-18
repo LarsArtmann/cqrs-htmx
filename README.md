@@ -323,6 +323,17 @@ newID  := cqrshtmx.NewUserID()
 newCID := cqrshtmx.NewCorrelationID()
 ```
 
+### Why ULID?
+
+Both `UserID` and `CorrelationID` are strongly-typed wrappers around [ULID](https://github.com/oklog/ulid). This guarantees:
+
+- **Collision-free keys** — 48-bit timestamp + 80-bit randomness
+- **Lexicographic sortability** — time-ordered without a central coordinator
+- **Type safety** — impossible to pass an arbitrary string where a valid ID is required
+- **Consistency** — event metadata, context values, and Casbin subjects all use the same representation
+
+`ContextEnrichmentMiddleware` silently drops non-ULID values from `X-Correlation-ID` headers (and `UserIDExtractor` outputs that fail parsing). Use `NewUserID()` / `NewCorrelationID()` to generate valid IDs, or `ParseUserID()` / `ParseCorrelationID()` for safe parsing from external input.
+
 ## Error Mapping
 
 CQRS error families automatically map to HTTP status codes:
@@ -390,6 +401,41 @@ chained := cqrshtmx.Chain(
     app.Middleware(),
 )(mux)
 ```
+
+### Request Logging
+
+Log every request with method, path, status, duration, and optional correlation/user IDs:
+
+```go
+handler := cqrshtmx.RequestLogging(nil, func(line string) {
+    log.Println(line)
+})(mux)
+```
+
+Use `JSONLogFormatter` for structured JSON output:
+
+```go
+handler := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
+    log.Println(line)
+})(mux)
+```
+
+### Rate Limiting
+
+Token-bucket rate limiter per key. Global rate limit when `KeyExtractor` is nil:
+
+```go
+handler := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+    Limit:        100,          // requests per Window
+    Window:       time.Minute,
+    Burst:        10,           // max burst (zero defaults to Limit)
+    KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+})(mux)
+```
+
+**Per-IP rate limiting** — use `KeyExtractorFromRemoteAddr`. **Warning:** behind reverse proxies, `RemoteAddr` is the proxy's IP. Parse `X-Forwarded-For` or similar headers if your deployment uses proxies.
+
+**Exempt requests** — return `""` from `KeyExtractor` to skip rate limiting for that request (useful for health checks or internal IPs).
 
 ## Contributing
 

@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -111,4 +112,100 @@ func BenchmarkQueryDispatch(b *testing.B) {
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, r)
 	}
+}
+
+func BenchmarkRequestLogging(b *testing.B) {
+	middleware := cqrshtmx.RequestLogging(nil, func(_ string) {})
+	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	b.Run("DefaultFormatter", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			r := httptest.NewRequest(http.MethodGet, "/users", nil)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+		}
+	})
+
+	b.Run("JSONFormatter", func(b *testing.B) {
+		jsonMw := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(_ string) {})
+		jsonHandler := jsonMw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		for i := 0; i < b.N; i++ {
+			r := httptest.NewRequest(http.MethodGet, "/users", nil)
+			w := httptest.NewRecorder()
+			jsonHandler.ServeHTTP(w, r)
+		}
+	})
+
+	b.Run("WithContextIDs", func(b *testing.B) {
+		uid := cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2")
+		cid := cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633")
+		for i := 0; i < b.N; i++ {
+			r := httptest.NewRequest(http.MethodGet, "/users", nil)
+			ctx := cqrshtmx.WithUserID(r.Context(), uid)
+			ctx = cqrshtmx.WithCorrelationID(ctx, cid)
+			r = r.WithContext(ctx)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+		}
+	})
+}
+
+func BenchmarkRateLimiterMiddleware(b *testing.B) {
+	b.Run("Global", func(b *testing.B) {
+		middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+			Limit:  10000,
+			Window: time.Minute,
+		})
+		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+		}
+	})
+
+	b.Run("PerKey", func(b *testing.B) {
+		middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+			Limit:        10000,
+			Window:       time.Minute,
+			KeyExtractor: func(_ *http.Request) string { return "client-1" },
+		})
+		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+		}
+	})
+
+	b.Run("RemoteAddr", func(b *testing.B) {
+		middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+			Limit:        10000,
+			Window:       time.Minute,
+			KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+		})
+		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.RemoteAddr = "192.168.1.1:1234"
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+		}
+	})
 }
