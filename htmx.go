@@ -28,9 +28,7 @@ const (
 	headerTriggerAfterSwap   = "HX-Trigger-After-Swap"
 )
 
-type htmxContextKey string
-
-const htmxKey htmxContextKey = "cqrshtmx_htmx_request"
+type htmxKey struct{}
 
 // HeaderTrue is the HTMX header value for boolean true headers.
 // Use this instead of hardcoding "true" in tests or middleware.
@@ -86,13 +84,13 @@ func parseHTMXRequest(r *http.Request) *HTMXRequest {
 
 // WithHTMX stores a parsed HTMXRequest in the context.
 func WithHTMX(ctx context.Context, h *HTMXRequest) context.Context {
-	return context.WithValue(ctx, htmxKey, h)
+	return context.WithValue(ctx, htmxKey{}, h)
 }
 
 // HTMXFromContext retrieves the parsed HTMXRequest from context.
 // Returns nil if HTMXMiddleware was not applied.
 func HTMXFromContext(ctx context.Context) *HTMXRequest {
-	h, _ := ctx.Value(htmxKey).(*HTMXRequest)
+	h, _ := ctx.Value(htmxKey{}).(*HTMXRequest)
 	return h
 }
 

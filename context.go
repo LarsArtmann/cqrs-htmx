@@ -56,33 +56,31 @@ func MustParseCorrelationID(s string) CorrelationID {
 	return id.MustParseCorrelationID(s)
 }
 
-type contextKey string
+type userIDKey struct{}
 
-const userIDKey contextKey = "cqrshtmx_user_id"
-
-const correlationIDKey contextKey = "cqrshtmx_correlation_id"
+type correlationIDKey struct{}
 
 // WithCorrelationID stores a strongly-typed correlation ID in the context.
 func WithCorrelationID(ctx context.Context, correlationID CorrelationID) context.Context {
-	return context.WithValue(ctx, correlationIDKey, correlationID)
+	return context.WithValue(ctx, correlationIDKey{}, correlationID)
 }
 
 // CorrelationIDFromContext retrieves the correlation ID stored by WithCorrelationID.
 // Returns the zero value of CorrelationID if no correlation ID is present.
 func CorrelationIDFromContext(ctx context.Context) CorrelationID {
-	v, _ := ctx.Value(correlationIDKey).(CorrelationID)
+	v, _ := ctx.Value(correlationIDKey{}).(CorrelationID)
 	return v
 }
 
 // WithUserID stores a strongly-typed user ID in the context for downstream CQRS handlers.
 func WithUserID(ctx context.Context, userID UserID) context.Context {
-	return context.WithValue(ctx, userIDKey, userID)
+	return context.WithValue(ctx, userIDKey{}, userID)
 }
 
 // UserIDFromContext retrieves the user ID stored by WithUserID.
 // Returns the zero value of UserID if no user ID is present.
 func UserIDFromContext(ctx context.Context) UserID {
-	v, _ := ctx.Value(userIDKey).(UserID)
+	v, _ := ctx.Value(userIDKey{}).(UserID)
 	return v
 }
 
