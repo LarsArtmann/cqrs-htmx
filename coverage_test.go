@@ -236,9 +236,9 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Enforce error case", func() {
 		It("returns error when casbin enforce fails", func() {
 			e := newTestEnforcer()
-			_, _ = e.AddPolicy("admin", "users", "create")
 			err := cqrshtmx.Enforce(e, "admin", "users", "create")
-			Expect(err).NotTo(HaveOccurred())
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, cqrshtmx.ErrForbidden)).To(BeTrue())
 		})
 	})
 
