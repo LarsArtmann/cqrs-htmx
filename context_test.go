@@ -4,6 +4,8 @@ import (
 	"context"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -131,6 +133,28 @@ var _ = Describe("Context", func() {
 			ctx = cqrshtmx.WithCorrelationID(ctx, cqrshtmx.CorrelationID{})
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
 			Expect(opts).To(BeNil())
+		})
+
+		It("produces valid event.Option that NewEvent accepts", func() {
+			ctx := context.Background()
+			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+			cid := cqrshtmx.MustParseCorrelationID("01HK154ANGZHV2ZW0X3SKSNEN2")
+			aggID := id.NewAggregateID()
+			ctx = cqrshtmx.WithUserID(ctx, userID)
+			ctx = cqrshtmx.WithCorrelationID(ctx, cid)
+			opts := cqrshtmx.EventOptionsFromContext(ctx)
+
+			evt, err := event.NewEvent(
+				"UserCreated",
+				aggID,
+				"User",
+				1,
+				[]byte(`{"Name":"Alice"}`),
+				opts...,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(evt).NotTo(BeNil())
+			Expect(evt.Metadata()).NotTo(BeNil())
 		})
 	})
 })
