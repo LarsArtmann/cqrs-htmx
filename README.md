@@ -309,16 +309,18 @@ userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 ctx := cqrshtmx.WithUserID(r.Context(), userID)
 retrieved := cqrshtmx.UserIDFromContext(ctx)
 
-// Correlation ID (auto-extracted from X-Correlation-ID header by middleware)
-ctx = cqrshtmx.WithCorrelationID(ctx, "req-123")
+// Correlation ID (strongly-typed, ULID-backed, auto-extracted from X-Correlation-ID header)
+cid := cqrshtmx.MustParseCorrelationID("01HK154ANGZHV2ZW0X3SKSNEN2")
+ctx = cqrshtmx.WithCorrelationID(ctx, cid)
 corrID := cqrshtmx.CorrelationIDFromContext(ctx)
 
 // Build event options from context (includes user ID + correlation ID)
 opts := cqrshtmx.EventOptionsFromContext(ctx)
 evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, payload, opts...)
 
-// Generate a new random UserID
-newID := cqrshtmx.NewUserID()
+// Generate new random IDs
+newID  := cqrshtmx.NewUserID()
+newCID := cqrshtmx.NewCorrelationID()
 ```
 
 ## Error Mapping
