@@ -17,10 +17,10 @@
 | 9   | HTMX Request Context      | FULLY_FUNCTIONAL | `HTMXMiddleware` parses all HTMX headers once into context. `HTMXRequest` struct with `IsHTMX`, `IsBoosted`, `IsHistoryRestore`, `Target`, `TriggerID`, `TriggerName`, `Prompt`, `CurrentURL`. `RenderPartial()` method.                                                   |
 | 10  | HTMX Accessors            | FULLY_FUNCTIONAL | Standalone `IsHTMXRequest`, `IsBoosted`, `IsHistoryRestore`, `RenderPartial`, `HTMXTarget`, `HTMXTrigger`, `HTMXTriggerName`, `HTMXPrompt`, `HTMXCurrentURL`. Fall back to header parsing when middleware not applied.                                                     |
 | 11  | HTMX Response Builder     | FULLY_FUNCTIONAL | Fluent `Response` builder: `PushURL`, `ReplaceURL`, `Redirect`, `Refresh`, `Location`, `Reswap`, `Retarget`, `Reselect`, `Trigger`, `TriggerAfterSwap`, `TriggerAfterSettle`, `TriggerWithDetail`. HTMX-aware redirect (HX-Redirect vs HTTP). `Apply()` sets content-type. |
-| 12  | Notifications             | FULLY_FUNCTIONAL | `NotifySuccess/Error/Warning/Info` as both `HandlerOption` and `Response` methods. Shared private helpers (`notifyOption`, `triggerNotification`). Standard `{level, message}` payload via `DefaultNotificationEvent` (default: `"showMessage"`).                          |
+| 12  | Notifications             | FULLY_FUNCTIONAL | `NotifySuccess/Error/Warning/Info` as both `HandlerOption` and `Response` methods. Shared private helpers (`notifyOption`, `triggerNotification`). Standard `{level, message}` payload via `defaultNotificationEvent` (default: `"showMessage"`). `NotifyWithEvent` builder for custom event names per-handler.                                             |
 | 13  | Templ Integration         | FULLY_FUNCTIONAL | `RenderTempl(component)` renders fixed component. `RenderTemplResult[T](mapper)` maps query result to component. Duck-typed `TemplComponent` interface — no templ import required.                                                                                         |
 | 14  | Error Classification      | FULLY_FUNCTIONAL | `sync.Once` lazy-registers all sentinel errors with `event.RegisterClassification`. `MapError` translates CQRS error families → HTTP status codes. Custom `ErrorHandler` support.                                                                                          |
-| 15  | Default Error Handler     | FULLY_FUNCTIONAL | Maps errors → HTTP status. HTMX auth errors → `HX-Redirect` to login page. Plain text response for other errors. Per-App `LoginRedirect` via `DefaultErrorHandlerWithRedirect`. HTML-escaped error messages.                                                               |
+| 15  | Default Error Handler     | FULLY_FUNCTIONAL | Maps errors → HTTP status. HTMX auth errors → `HX-Redirect` to login page. Plain text response for other errors. Per-App `LoginRedirect` via `DefaultErrorHandlerWithRedirect`. `text/plain` Content-Type prevents browser HTML rendering — no HTML escaping needed.                                                  |
 | 16  | Middleware Chain          | FULLY_FUNCTIONAL | `Chain(mw1, mw2, ...)` composes middleware left-to-right. `ContextEnrichmentMiddleware` and `HTMXMiddleware` provided.                                                                                                                                                     |
 | 17  | Handler Options           | FULLY_FUNCTIONAL | `Redirect(url)`, `Trigger(event)`, `TriggerWithDetail(event, detail)`, `PushURL(url)` for customizing success responses.                                                                                                                                                   |
 | 18  | Swap Strategies           | FULLY_FUNCTIONAL | All 8 HTMX swap strategies as typed constants: `SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `SwapAfterBegin`, `SwapBeforeEnd`, `SwapAfterEnd`, `SwapDelete`, `SwapNone`.                                                                                           |
@@ -30,21 +30,21 @@
 | 22  | Correlation ID            | FULLY_FUNCTIONAL | `WithCorrelationID(ctx, id)` / `CorrelationIDFromContext(ctx)`. Auto-extracted from `X-Correlation-ID` header in `ContextEnrichmentMiddleware`. Propagated into event metadata via `EventOptionsFromContext` as strongly-typed `id.CorrelationID`.                           |
 | 23  | Request Validation        | FULLY_FUNCTIONAL | `ValidateCommand(validator)` and `ValidateQuery(validator)` HandlerOptions wrap decoders with validation. `ErrValidationFailed` sentinel → 400. Short-circuits on decode errors.                                                                                           |
 | 24  | Timeout Propagation       | FULLY_FUNCTIONAL | `Config.Timeout time.Duration` wraps dispatch with `context.WithTimeout`. Zero/negative = no timeout (default). Timeout applies only to dispatch, not decode/auth.                                                                                                         |
+| 25  | Request Logging           | FULLY_FUNCTIONAL | `RequestLogging(formatter, writer)` middleware with `DefaultLogFormatter`. Captures method, path, status, duration, correlation ID, and user ID.                                                                                                                                |
 
 ## Missing/Planned
 
 |     | #                 | Feature     | Status                                            | Notes |
 | --- | ----------------- | ----------- | ------------------------------------------------- | ----- |
-| 1   | Request Logging   | PLANNED     | No request/response logging middleware            |
-| 2   | Rate Limiting     | PLANNED     | No built-in rate limiting                         |
-| 3   | WebSocket Support | NOT_PLANNED | No SSE or WebSocket helpers for real-time updates |
+| 1   | Rate Limiting     | PLANNED     | No built-in rate limiting                         |
+| 2   | WebSocket Support | NOT_PLANNED | No SSE or WebSocket helpers for real-time updates |
 
 ## Metrics
 
 | Metric      | Value |
 | ----------- | ----- |
 | Coverage    | 95.7% |
-| Test specs  | 170   |
+| Test specs  | 180   |
 | Lint issues | 0     |
 | Prod files  | 10    |
 | Test files  | 15    |

@@ -83,7 +83,7 @@ linters:
     exhaustruct:
       exclude:
         - os/exec.Cmd
-        - 'github\.com/larsartmann/cqrs-htmx\.(Config|handlerConfig)$'
+        - 'github\.com/larsartmann/cqrs-htmx\.(Config|handlerConfig|RateLimiterConfig)$'
         - 'github\.com/larsartmann/cqrs-htmx_test\.(testCreateUserCmd|bddCreateUserCmd)$'
     # ifElseChain disabled to allow early-return patterns without forced restructuring
     gocritic:
