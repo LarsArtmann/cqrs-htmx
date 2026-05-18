@@ -62,15 +62,15 @@ const userIDKey contextKey = "cqrshtmx_user_id"
 
 const correlationIDKey contextKey = "cqrshtmx_correlation_id"
 
-// WithCorrelationID stores a correlation/request ID in the context.
-func WithCorrelationID(ctx context.Context, correlationID string) context.Context {
+// WithCorrelationID stores a strongly-typed correlation ID in the context.
+func WithCorrelationID(ctx context.Context, correlationID CorrelationID) context.Context {
 	return context.WithValue(ctx, correlationIDKey, correlationID)
 }
 
 // CorrelationIDFromContext retrieves the correlation ID stored by WithCorrelationID.
-// Returns an empty string if no correlation ID is present.
-func CorrelationIDFromContext(ctx context.Context) string {
-	v, _ := ctx.Value(correlationIDKey).(string)
+// Returns the zero value of CorrelationID if no correlation ID is present.
+func CorrelationIDFromContext(ctx context.Context) CorrelationID {
+	v, _ := ctx.Value(correlationIDKey).(CorrelationID)
 	return v
 }
 
@@ -100,10 +100,8 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 		opts = append(opts, event.WithUserID(userID))
 	}
 
-	if cidStr := CorrelationIDFromContext(ctx); cidStr != "" {
-		if cid, err := id.ParseCorrelationID(cidStr); err == nil {
-			opts = append(opts, event.WithCorrelationID(cid))
-		}
+	if cid := CorrelationIDFromContext(ctx); !cid.IsZero() {
+		opts = append(opts, event.WithCorrelationID(cid))
 	}
 
 	if len(opts) == 0 {

@@ -35,12 +35,13 @@ var _ = Describe("Context", func() {
 	Describe("WithCorrelationID / CorrelationIDFromContext", func() {
 		It("stores and retrieves a correlation ID", func() {
 			ctx := context.Background()
-			ctx = cqrshtmx.WithCorrelationID(ctx, "01HK1549P84T9XF8R94E960633")
-			Expect(cqrshtmx.CorrelationIDFromContext(ctx)).To(Equal("01HK1549P84T9XF8R94E960633"))
+			want := cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633")
+			ctx = cqrshtmx.WithCorrelationID(ctx, want)
+			Expect(cqrshtmx.CorrelationIDFromContext(ctx)).To(Equal(want))
 		})
 
-		It("returns empty string when no correlation ID is set", func() {
-			Expect(cqrshtmx.CorrelationIDFromContext(context.Background())).To(BeEmpty())
+		It("returns zero value when no correlation ID is set", func() {
+			Expect(cqrshtmx.CorrelationIDFromContext(context.Background())).To(BeZero())
 		})
 	})
 
@@ -97,7 +98,8 @@ var _ = Describe("Context", func() {
 
 		It("propagates correlation ID into event options", func() {
 			ctx := context.Background()
-			ctx = cqrshtmx.WithCorrelationID(ctx, "01HK1549P84T9XF8R94E960633")
+			cid := cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633")
+			ctx = cqrshtmx.WithCorrelationID(ctx, cid)
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
 			Expect(opts).NotTo(BeNil())
 			Expect(opts).To(HaveLen(1))
@@ -107,25 +109,26 @@ var _ = Describe("Context", func() {
 			ctx := context.Background()
 			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 			ctx = cqrshtmx.WithUserID(ctx, userID)
-			ctx = cqrshtmx.WithCorrelationID(ctx, "01HK154ANGZHV2ZW0X3SKSNEN2")
+			cid := cqrshtmx.MustParseCorrelationID("01HK154ANGZHV2ZW0X3SKSNEN2")
+			ctx = cqrshtmx.WithCorrelationID(ctx, cid)
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
 			Expect(opts).NotTo(BeNil())
 			Expect(opts).To(HaveLen(2))
 		})
 
-		It("drops invalid correlation IDs silently", func() {
+		It("ignores zero correlation ID silently", func() {
 			ctx := context.Background()
 			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 			ctx = cqrshtmx.WithUserID(ctx, userID)
-			ctx = cqrshtmx.WithCorrelationID(ctx, "not-a-valid-correlation-id")
+			ctx = cqrshtmx.WithCorrelationID(ctx, cqrshtmx.CorrelationID{})
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
 			Expect(opts).NotTo(BeNil())
 			Expect(opts).To(HaveLen(1))
 		})
 
-		It("returns nil when only invalid correlation ID and no user ID", func() {
+		It("returns nil when only zero correlation ID and no user ID", func() {
 			ctx := context.Background()
-			ctx = cqrshtmx.WithCorrelationID(ctx, "not-a-valid-correlation-id")
+			ctx = cqrshtmx.WithCorrelationID(ctx, cqrshtmx.CorrelationID{})
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
 			Expect(opts).To(BeNil())
 		})

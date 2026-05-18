@@ -14,8 +14,11 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
-			if cid := r.Header.Get(headerCorrelationID); cid != "" {
-				ctx = WithCorrelationID(ctx, cid)
+			if cidStr := r.Header.Get(headerCorrelationID); cidStr != "" {
+				cid, err := ParseCorrelationID(cidStr)
+				if err == nil {
+					ctx = WithCorrelationID(ctx, cid)
+				}
 			}
 
 			if extractor != nil {
