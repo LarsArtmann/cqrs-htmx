@@ -42,20 +42,6 @@ func registerErrorClassifications() {
 	})
 }
 
-var httpAuthStatus = map[error]int{
-	ErrUnauthorized: http.StatusUnauthorized,
-	ErrForbidden:    http.StatusForbidden,
-	ErrCSRFInvalid:  http.StatusForbidden,
-}
-
-var familyToStatus = map[event.Family]int{
-	event.Rejection:      http.StatusBadRequest,
-	event.Conflict:       http.StatusConflict,
-	event.Corruption:     http.StatusUnprocessableEntity,
-	event.Transient:      http.StatusServiceUnavailable,
-	event.Infrastructure: http.StatusInternalServerError,
-}
-
 // MapError translates a CQRS error into an appropriate HTTP status code.
 //
 // Mapping:
@@ -72,15 +58,29 @@ func MapError(err error) int {
 		return http.StatusInternalServerError
 	}
 
-	if status, ok := httpAuthStatus[err]; ok {
-		return status
+	if errors.Is(err, ErrUnauthorized) {
+		return http.StatusUnauthorized
+	}
+
+	if errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid) {
+		return http.StatusForbidden
 	}
 
 	family := event.Classify(err)
-	if status, ok := familyToStatus[family]; ok {
-		return status
+	switch family {
+	case event.Rejection:
+		return http.StatusBadRequest
+	case event.Conflict:
+		return http.StatusConflict
+	case event.Corruption:
+		return http.StatusUnprocessableEntity
+	case event.Transient:
+		return http.StatusServiceUnavailable
+	case event.Infrastructure:
+		return http.StatusInternalServerError
+	default:
+		return http.StatusInternalServerError
 	}
-	return http.StatusInternalServerError
 }
 
 // ErrorHandler writes an HTTP error response with HTMX awareness.

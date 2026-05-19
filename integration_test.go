@@ -310,7 +310,7 @@ var _ = Describe("Full Integration", func() {
 
 			// Step 2: POST with CSRF token in HTMX header
 			w2 := httptest.NewRecorder()
-			body := `{"email":"alice@example.com","name":"Alice"}`
+			body := testUserJSON
 			r2 := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
 			r2.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			r2.Header.Set("X-CSRF-Token", csrfToken)
@@ -340,7 +340,7 @@ var _ = Describe("Full Integration", func() {
 
 			// POST without CSRF token
 			w := httptest.NewRecorder()
-			body := `{"email":"alice@example.com","name":"Alice"}`
+			body := testUserJSON
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
 			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 
@@ -370,7 +370,7 @@ var _ = Describe("Full Integration", func() {
 
 			// Step 2: POST with wrong token
 			w2 := httptest.NewRecorder()
-			body := `{"email":"alice@example.com","name":"Alice"}`
+			body := testUserJSON
 			r2 := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
 			r2.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			r2.Header.Set("X-CSRF-Token", "wrong-token")
@@ -426,7 +426,7 @@ var _ = Describe("Full Integration", func() {
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 					return &bddDashboardQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, result any) error {
+				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, _ any) error {
 					token := cqrshtmx.CSRFTokenFromContext(r.Context())
 					resp := cqrshtmx.NewResponse(w, r)
 					resp.CSRFToken(token).Apply()
