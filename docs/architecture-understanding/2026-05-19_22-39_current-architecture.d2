@@ -1,0 +1,144 @@
+direction: down
+
+title: cqrs-htmx — Current Architecture (2026-05-19)
+
+# Consumer
+Consumer: {
+  shape: circle
+  label: "Consumer\n(Go Application)"
+}
+
+# Middleware Stack (applied once to router)
+Middleware: {
+  shape: rectangle
+  style: {fill: "#E8F5E9"}
+
+  SecurityHeaders: "SecurityHeadersMiddleware\n(X-Content-Type-Options, X-Frame-Options,\nReferrer-Policy, CSP, HSTS)"
+  CSRFMiddleware: "CSRFMiddleware\n(gorilla/csrf: token generation,\nmasked tokens, cookie integrity)"
+  CSRFResponseHeader: "CSRFResponseHeaderMiddleware\n(auto-set X-CSRF-Token header)"
+  HTMXMiddleware: "HTMXMiddleware\n(parse HX-* headers → context)"
+  ContextEnrichment: "ContextEnrichmentMiddleware\n(extract UserID, CorrelationID,\ngenerate RequestID)"
+  RequestLogging: "RequestLogging / RequestLoggingSlog\n(method, path, status, duration)"
+  RateLimiter: "RateLimiterMiddleware\n(token bucket per key,\nTTL eviction)"
+  Chain: "Chain(mw1, mw2, ...)\n(compose left-to-right)"
+}
+
+# App Builder
+App: {
+  shape: rectangle
+  style: {fill: "#E3F2FD"}
+
+  Config: "Config\nCommands, Queries, Enforcer,\nUserIDExtractor, ErrorHandler,\nTimeout, MaxBodySize, Hooks"
+  New: "New(Config) → *App"
+  AppMiddleware: "App.Middleware()\n→ ContextEnrichmentMiddleware"
+}
+
+# Handler Pipeline
+Handlers: {
+  shape: rectangle
+  style: {fill: "#FFF3E0"}
+
+  Command: "App.Command(type, opts...)"
+  Query: "App.Query(type, opts...)"
+
+  DispatchPipeline: {
+    shape: rectangle
+    label: "Dispatch Pipeline"
+
+    PreDispatch: "1. executeAuthorization\n2. executeCSRFValidation"
+    Decode: "3. Decode (JSON/Form → Command/Query)"
+    Dispatch: "4. Dispatch (with timeout)"
+    PostDispatch: "5. Apply HTMX response\n6. AfterDispatchHook"
+  }
+}
+
+# Handler Options
+Options: {
+  shape: rectangle
+  style: {fill: "#F3E5F5"}
+
+  Decoders: "DecodeJSON[T] / DecodeForm[T]\nDecodeJSONQuery[T] / DecodeFormQuery[T]"
+  Auth: "Authorize(res, act)\nRequireAuth()"
+  Render: "Render(func)\nRenderTempl(component)\nRenderTemplResult[T](mapper)"
+  Response: "Redirect / Trigger / PushURL\nNotifySuccess/Error/Warning/Info\nValidateCommand/Query\nWithTimeout / CSRFProtect"
+}
+
+# Response Builder
+Response: {
+  shape: rectangle
+  style: {fill: "#FFF8E1"}
+
+  Builder: "Response (fluent builder)\nPushURL, ReplaceURL, Redirect, Refresh,\nLocation, Reswap, Retarget, Reselect,\nTrigger*, Notify*, CSRFToken"
+  Sanitize: "sanitizeRedirectURL\n(blocks javascript:, absolute URLs)"
+}
+
+# Context Types
+Context: {
+  shape: rectangle
+  style: {fill: "#E8EAF6"}
+
+  IDs: "UserID / CorrelationID / RequestID\n(strongly-typed, ULID-backed)"
+  Storage: "With* / *FromContext\n(empty-struct sentinel keys)"
+  HTMXRequest: "HTMXRequest\n(IsHTMX, IsBoosted, Target,\nTriggerID, Prompt, CurrentURL)"
+  EventOpts: "EventOptionsFromContext\n→ []event.Option"
+}
+
+# Error Handling
+Errors: {
+  shape: rectangle
+  style: {fill: "#FCE4EC"}
+
+  Sentinels: "Sentinel Errors\nErrUnauthorized, ErrForbidden,\nErrDecodeFailed, ErrDispatchFailed,\nErrCSRFConfig, ErrRequestTooLarge"
+  MapError: "MapError(err) → HTTP status\n(Rejection→400, Conflict→409,\nTransient→503, etc.)"
+  Handlers: "DefaultErrorHandler (text/plain)\nJSONErrorHandler (application/json)\nBoth HTMX-aware (HX-Redirect on auth)"
+}
+
+# External Dependencies
+External: {
+  shape: rectangle
+  style: {fill: "#FFEBEE"}
+
+  CQRS: "go-cqrs-lite/core\ncommand.Dispatcher, query.Dispatcher\nevent.Classification"
+  Casbin: "casbin/casbin/v3\nEnforce(rvals...) → (bool, error)"
+  GorillaCSRF: "gorilla/csrf\nProtect(), Token(),\nPlaintextHTTPRequest()"
+  CockroachErrors: "cockroachdb/errors\nerror wrapping + classification"
+  Rate: "golang.org/x/time/rate\nToken bucket"
+}
+
+# usermgmt Submodule
+UserMgmt: {
+  shape: rectangle
+  style: {fill: "#F3E5F5"; stroke-dash: 3}
+
+  Service: "Service\nRegister, Login, Logout,\nAuthenticate, ChangePassword"
+  Store: "InMemoryUserStore + SessionStore\nemail index, atomic Create"
+  Authz: "Authz (Casbin RBAC)\nAsEnforcer → cqrshtmx.Enforcer"
+  HTTP: "AuthHandlers\n(SessionMiddleware)"
+  Lockout: "AccountLockout\n(max attempts + duration)"
+}
+
+# Connections
+Consumer -> Middleware.Chain
+Middleware.Chain -> Handlers
+
+App.New -> Handlers
+Options -> Handlers
+
+Command -> DispatchPipeline
+Query -> DispatchPipeline
+
+DispatchPipeline.PreDispatch -> Errors.Handlers
+DispatchPipeline.Decode -> Options.Decoders
+DispatchPipeline.Dispatch -> External.CQRS
+DispatchPipeline.PostDispatch -> Response.Builder
+
+Response.Builder -> Context.HTMXRequest
+Response.Builder -> Response.Sanitize
+
+External.Casbin -> Errors.Sentinels
+External.GorillaCSRF -> Errors.Sentinels
+
+Context.IDs -> Context.EventOpts
+Context.Storage -> Context.EventOpts
+
+UserMgmt.Authz -> External.Casbin

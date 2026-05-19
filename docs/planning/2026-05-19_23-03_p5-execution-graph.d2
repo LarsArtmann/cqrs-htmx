@@ -1,0 +1,98 @@
+direction: down
+
+title: P5 Execution Plan — Dependency Graph
+
+batch1: {
+  shape: rectangle
+  style: {fill: "#FFCDD2"}
+  label: "Batch 1: Correctness (1%→51%)"
+  t1: "1. Fix ctx mismatch"
+  t2: "2. Test ctx timeout"
+  t3: "3. Rate limiter MaxKeys"
+  t4: "4. Test MaxKeys eviction"
+  t1 -> t2
+  t3 -> t4
+}
+
+batch2: {
+  shape: rectangle
+  style: {fill: "#C8E6C9"}
+  label: "Batch 2: HTMX Accessors"
+  t5: "5. Generic htmxField"
+  t6: "6. Rewrite 8 accessors"
+  t7: "7. Verify"
+  t5 -> t6 -> t7
+}
+
+batch3: {
+  shape: rectangle
+  style: {fill: "#BBDEFB"}
+  label: "Batch 3: Decoders"
+  t8: "8. Generic decodeAndSet"
+  t9: "9. Rewrite 4 decoders"
+  t10: "10. Verify"
+  t8 -> t9 -> t10
+}
+
+batch4: {
+  shape: rectangle
+  style: {fill: "#D1C4E9"}
+  label: "Batch 4: Validation"
+  t11: "11. Generic validate"
+  t12: "12. Rewrite 2 validators"
+  t13: "13. Verify"
+  t11 -> t12 -> t13
+}
+
+batch5: {
+  shape: rectangle
+  style: {fill: "#FFF9C4"}
+  label: "Batch 5: Notification"
+  t14: "14. Unify notify impl"
+}
+
+batch6: {
+  shape: rectangle
+  style: {fill: "#FFE0B2"}
+  label: "Batch 6: Logging"
+  t15: "15. Extract contextFields"
+  t16: "16. Rewrite 3 formatters"
+  t17: "17. Verify"
+  t15 -> t16 -> t17
+}
+
+batch7: {
+  shape: rectangle
+  style: {fill: "#B2DFDB"}
+  label: "Batch 7: Error Handlers"
+  t18: "18. Extract handleErrorCore"
+  t19: "19. Rewrite 2 handlers"
+  t20: "20. Verify"
+  t18 -> t19 -> t20
+}
+
+batch8: {
+  shape: rectangle
+  style: {fill: "#F0F4C3"}
+  label: "Batch 8: Parse IDs"
+  t21: "21. Generic parseID"
+  t22: "22. Rewrite 3 parsers"
+  t21 -> t22
+}
+
+batch9: {
+  shape: rectangle
+  style: {fill: "#D7CCC8"}
+  label: "Batch 9: Polish"
+  t23: "23. Split csrf.go"
+  t24: "24. Fix nil context"
+}
+
+batch10: {
+  shape: rectangle
+  style: {fill: "#F8BBD0"}
+  label: "Batch 10: Final Verification"
+  t25: "25. Full test suite + lint"
+}
+
+batch1 -> batch2 -> batch3 -> batch4 -> batch5 -> batch6 -> batch7 -> batch8 -> batch9 -> batch10

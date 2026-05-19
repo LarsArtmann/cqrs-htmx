@@ -1,0 +1,111 @@
+direction: down
+
+title: cqrs-htmx — Improved Architecture (Post-Dedup)
+
+# Consumer
+Consumer: {
+  shape: circle
+  label: "Consumer\n(Go Application)"
+}
+
+# Middleware Stack
+Middleware: {
+  shape: rectangle
+  style: {fill: "#E8F5E9"}
+
+  SecurityHeaders: "SecurityHeadersMiddleware"
+  CSRFMiddleware: "CSRFMiddleware"
+  HTMXMiddleware: "HTMXMiddleware"
+  ContextEnrichment: "ContextEnrichmentMiddleware"
+  Logging: "RequestLogging / RequestLoggingSlog"
+  RateLimiter: "RateLimiterMiddleware\n(with MaxKeys cap)"
+  Chain: "Chain(mw1, mw2, ...)"
+}
+
+# App Builder
+App: {
+  shape: rectangle
+  style: {fill: "#E3F2FD"}
+
+  Config: "Config"
+  New: "New(Config) → *App"
+}
+
+# Unified Dispatch Pipeline
+Dispatch: {
+  shape: rectangle
+  style: {fill: "#FFF3E0"}
+
+  UnifiedPipeline: "dispatch[T](w, r, type, cfg)\n1. authorize (if configured)\n2. CSRF check (if configured)\n3. decode[T] (generic)\n4. timeout ctx\n5. dispatch\n6. apply response\n7. afterDispatchHook"
+}
+
+# Generic Decoder
+Decoder: {
+  shape: rectangle
+  style: {fill: "#F3E5F5"}
+
+  GenericDecode: "decode[T, R](body, mapper)\n← DecodeJSON / DecodeForm\n← DecodeJSONQuery / DecodeFormQuery\n(4 functions → 1 generic + 4 thin wrappers)"
+  GenericValidate: "validate[T](decoder, validator)\n← ValidateCommand + ValidateQuery\n(2 functions → 1 generic + 2 thin wrappers)"
+}
+
+# Generic HTMX Accessors
+HTMXHelpers: {
+  shape: rectangle
+  style: {fill: "#F1F8E9"}
+
+  GenericAccessor: "htmxField[T](r, extract, header)\n← 8 accessor functions\n(8 functions → 1 generic + 8 one-liners)"
+}
+
+# Unified Notification
+Notifications: {
+  shape: rectangle
+  style: {fill: "#FFF8E1"}
+
+  Core: "notify(level, message, event)\nsingle implementation"
+  Surfaces: "Package-level (4) + NotifyEventBuilder (4)\n+ Response methods (4)\nAll delegate to Core"
+}
+
+# Shared ID Helpers
+IDHelpers: {
+  shape: rectangle
+  style: {fill: "#E8EAF6"}
+
+  ParseGeneric: "parseID[T](s, parseFunc)\n← ParseUserID, ParseCorrelationID, ParseRequestID"
+  ContextGeneric: "withID[T](ctx, key, val)\nfromContext[T](ctx, key)"
+}
+
+# Shared Logging Helper
+LoggingHelper: {
+  shape: rectangle
+  style: {fill: "#E0F7FA"}
+
+  ContextFields: "contextFields(r) map[string]string\nextracts UserID, CorrelationID, RequestID\n← 3 copy-paste blocks → 1 helper"
+}
+
+# Shared Error Core
+ErrorCore: {
+  shape: rectangle
+  style: {fill: "#FCE4EC"}
+
+  Core: "handleErrorWithRedirect(w, r, err, redirect,\nwriteBody func(status, err))\n← DefaultErrorHandler + JSONErrorHandler\nshare redirect/Auth-error logic"
+}
+
+# Split csrf.go
+CSRF: {
+  shape: rectangle
+  style: {fill: "#FFEBEE"}
+
+  Core: "csrf.go\nCSRFConfig, CSRFMiddleware,\nCSRFProtect, executeCSRFValidation"
+  Helpers: "csrf_helpers.go\nCSRFTokenHTMLMeta,\nCSRFTokenHXHeaders,\nCSRFTokenFormField, RotateCSRFToken"
+}
+
+# Connections
+Consumer -> Middleware.Chain
+Middleware.Chain -> Dispatch
+App.New -> Dispatch
+Decoder -> Dispatch
+Notifications -> Dispatch
+HTMXHelpers -> Middleware
+IDHelpers -> Middleware
+LoggingHelper -> Middleware
+ErrorCore -> Dispatch
