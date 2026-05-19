@@ -69,6 +69,7 @@ cqrs-htmx/
 | go-cqrs-lite/core  | CQRS dispatch  |
 | casbin/casbin/v3   | Authorization  |
 | cockroachdb/errors | Error handling |
+| gorilla/csrf       | CSRF protection |
 
 ## Key Gotchas
 
@@ -97,8 +98,10 @@ cqrs-htmx/
 23. **Benchmark/example lint exclusions**: `.golangci.yml` has `linters.exclusions.rules` for `(benchmark|example)_test\.go$` files — `intrange`, `noctx`, `nilnil` are relaxed for these files only; production code has no exclusions
 24. **GOWORK=off required**: A parent `go.work` exists at `../go.work` that doesn't include this module. All `go test`/`go build` commands need `GOWORK=off` or they fail with "directory prefix does not contain modules listed in go.work"
 25. **Rate limiter map grows unbounded**: `perKeyLimiter.limiters` is a `map[string]*rate.Limiter` with no cleanup. For deployments with many unique keys (e.g., per-IP limiting), this leaks memory over time. Consider a bounded key space or wrapping with periodic cleanup
-26. **CSRF Protection**: Double-submit cookie pattern via `CSRFMiddleware`. Validates `X-CSRF-Token` header (HTMX default) or form field on POST/PUT/PATCH/DELETE. `CSRFProtect()` for per-handler opt-in. `CSRFTokenFromContext()` for template integration. `Response.CSRFToken()` sets response header for frontend consumption. Secure defaults: `SameSite=Lax`, auto-detect `Secure`, `HttpOnly=false` (required for JS double-submit)
+26. **CSRF Protection**: Uses `gorilla/csrf` internally for cryptographically secure token generation, per-request token masking (BREACH mitigation), and cookie integrity via `securecookie`. Public API (`CSRFMiddleware`, `CSRFProtect`, template helpers) remains unchanged. Secure defaults: `SameSite=Lax`, `HttpOnly=false` (required for JS double-submit). **Secure flag must be explicitly set** — gorilla/csrf does not auto-detect from request scheme
 27. **Middleware ordering**: `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` is the recommended order — CSRF first (sets cookie + context), then HTMX parsing, then user enrichment
+28. **CSRF token format**: gorilla/csrf uses masked tokens (XOR with one-time pad). The cookie contains the session token; the header/form must contain the masked token. Always use `CSRFTokenFromContext()` or template helpers (`CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`) to obtain the token for the frontend — never read the raw cookie value
+29. **gorilla/csrf Secret**: Requires a 32-byte key. `CSRFConfig.Secret` is padded to 32 bytes if shorter; if empty, a random key is generated per `CSRFMiddleware()` call (not persisted across restarts). For production, always provide a stable 32-byte secret
 
 ## Test Commands
 

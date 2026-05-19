@@ -25,15 +25,16 @@ func (q *getPageQuery) Type() query.Type { return "GetPage" }
 
 func integrationCSRFConfig() cqrshtmx.CSRFConfig {
 	return cqrshtmx.CSRFConfig{
-		Secret:     nil,
-		CookieName: "",
-		HeaderName: "",
-		FieldName:  "",
-		MaxAge:     24 * time.Hour,
-		Secure:     false,
-		SameSite:   http.SameSiteLaxMode,
-		Domain:     "",
-		Path:       "/",
+		Secret:         nil,
+		CookieName:     "",
+		HeaderName:     "",
+		FieldName:      "",
+		MaxAge:         24 * time.Hour,
+		Secure:         false,
+		SameSite:       http.SameSiteLaxMode,
+		Domain:         "",
+		Path:           "/",
+		TrustedOrigins: nil,
 		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, _ error) {
 			w.WriteHeader(http.StatusForbidden)
 		},
@@ -303,14 +304,19 @@ var _ = Describe("Full Integration", func() {
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(cmdHandler)
 
-			// Step 1: GET request to obtain CSRF token
+			// Step 1: GET request to obtain masked CSRF token
+			var csrfToken string
+			tokenHandler := csrfMW(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				csrfToken = cqrshtmx.CSRFTokenFromContext(r.Context())
+				w.WriteHeader(http.StatusOK)
+			}))
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
+			tokenHandler.ServeHTTP(w1, r1)
 
 			cookies := w1.Result().Cookies()
 			Expect(cookies).To(HaveLen(1))
-			csrfToken := cookies[0].Value
+			Expect(csrfToken).NotTo(BeEmpty())
 
 			// Step 2: POST with CSRF token in HTMX header
 			w2 := httptest.NewRecorder()
@@ -489,14 +495,19 @@ var _ = Describe("Full Integration", func() {
 			// Wrap with CSRF middleware (sets context)
 			handler := csrfMW(cmdHandler)
 
-			// Step 1: GET to obtain token
+			// Step 1: GET to obtain masked token
+			var csrfToken string
+			tokenHandler := csrfMW(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				csrfToken = cqrshtmx.CSRFTokenFromContext(r.Context())
+				w.WriteHeader(http.StatusOK)
+			}))
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
+			tokenHandler.ServeHTTP(w1, r1)
 
 			cookies := w1.Result().Cookies()
 			Expect(cookies).To(HaveLen(1))
-			csrfToken := cookies[0].Value
+			Expect(csrfToken).NotTo(BeEmpty())
 
 			// Step 2: POST with token
 			w2 := httptest.NewRecorder()

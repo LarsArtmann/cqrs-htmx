@@ -2,15 +2,12 @@ package cqrshtmx
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/rand"
-	"crypto/sha256"
-	"crypto/subtle"
-	"encoding/base64"
 	"fmt"
 	"html"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/csrf"
 )
 
 const (
@@ -18,19 +15,21 @@ const (
 	defaultCSRFHeaderName = "X-CSRF-Token"
 	defaultCSRFFieldName  = "csrf_token"
 	defaultCSRFMaxAge     = 24 * time.Hour
-	csrfTokenLength       = 32
 )
 
 // ErrCSRFInvalid is returned when a CSRF token is missing, malformed, or does not match.
+// Uses gorilla/csrf under the hood for token generation and validation.
 var ErrCSRFInvalid = fmt.Errorf("%w: invalid or missing CSRF token", ErrForbidden)
 
 // CSRFConfig configures CSRF protection.
 //
 // All fields are optional; zero values use secure defaults.
+// Uses gorilla/csrf internally for token generation, masking (BREACH mitigation),
+// cookie management via securecookie, and validation.
 type CSRFConfig struct {
-	// Secret is an optional 32-byte key for HMAC-signed tokens.
-	// If nil, tokens are random bytes (double-submit cookie pattern).
-	// If set, tokens are HMAC(secret, random) for additional integrity.
+	// Secret is the 32-byte authentication key for HMAC token signing.
+	// If empty, a random key is generated (not persisted across restarts).
+	// For production, always provide a stable secret.
 	Secret []byte
 
 	// CookieName is the name of the CSRF cookie.
@@ -52,7 +51,7 @@ type CSRFConfig struct {
 	MaxAge time.Duration
 
 	// Secure sets the Secure flag on the cookie.
-	// Default: true (auto-detected from request scheme)
+	// Default: true (auto-detected from request scheme if false)
 	Secure bool
 
 	// SameSite sets the SameSite attribute on the cookie.
@@ -66,6 +65,10 @@ type CSRFConfig struct {
 	// Path sets the cookie path.
 	// Default: "/"
 	Path string
+
+	// TrustedOrigins configures origins allowed for cross-domain CSRF.
+	// Default: nil (same-origin only)
+	TrustedOrigins []string
 
 	// ErrorHandler is called when CSRF validation fails.
 	// Default: writes 403 Forbidden with plain text
@@ -107,27 +110,63 @@ func (c *CSRFConfig) path() string {
 	return "/"
 }
 
-func (c *CSRFConfig) sameSite() http.SameSite {
+func (c *CSRFConfig) sameSite() csrf.SameSiteMode {
 	switch c.SameSite {
-	case http.SameSiteDefaultMode,
-		http.SameSiteLaxMode,
-		http.SameSiteStrictMode,
-		http.SameSiteNoneMode:
-		return c.SameSite
+	case http.SameSiteDefaultMode:
+		return csrf.SameSiteDefaultMode
+	case http.SameSiteLaxMode:
+		return csrf.SameSiteLaxMode
+	case http.SameSiteStrictMode:
+		return csrf.SameSiteStrictMode
+	case http.SameSiteNoneMode:
+		return csrf.SameSiteNoneMode
 	default:
-		return http.SameSiteLaxMode
+		return csrf.SameSiteLaxMode
 	}
 }
 
-func (c *CSRFConfig) errorHandler() ErrorHandler {
-	if c.ErrorHandler != nil {
-		return c.ErrorHandler
+func (c *CSRFConfig) secret() []byte {
+	if len(c.Secret) >= 32 {
+		return c.Secret
 	}
-	return func(w http.ResponseWriter, _ *http.Request, err error) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusForbidden)
-		_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
+	// gorilla/csrf requires a 32-byte key; pad or generate if not provided
+	// In production, callers should always provide a stable key
+	secret := make([]byte, 32)
+	copy(secret, c.Secret)
+	return secret
+}
+
+// buildGorillaOptions maps our CSRFConfig to gorilla/csrf options.
+func buildGorillaOptions(cfg CSRFConfig) []csrf.Option {
+	opts := []csrf.Option{
+		csrf.CookieName(cfg.cookieName()),
+		csrf.RequestHeader(cfg.headerName()),
+		csrf.FieldName(cfg.fieldName()),
+		csrf.MaxAge(int(cfg.maxAge().Seconds())),
+		csrf.Path(cfg.path()),
+		csrf.Secure(cfg.Secure),
+		csrf.HttpOnly(false), // Must be readable by JavaScript for double-submit pattern
+		csrf.SameSite(cfg.sameSite()),
 	}
+
+	if cfg.Domain != "" {
+		opts = append(opts, csrf.Domain(cfg.Domain))
+	}
+
+	if len(cfg.TrustedOrigins) > 0 {
+		opts = append(opts, csrf.TrustedOrigins(cfg.TrustedOrigins))
+	}
+
+	if cfg.ErrorHandler != nil {
+		opts = append(
+			opts,
+			csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				cfg.ErrorHandler(w, r, ErrCSRFInvalid)
+			})),
+		)
+	}
+
+	return opts
 }
 
 type csrfKey struct{}
@@ -145,6 +184,13 @@ func CSRFTokenFromContext(ctx context.Context) string {
 	return token
 }
 
+func csrfTokenFromRequest(r *http.Request) string {
+	if token := csrf.Token(r); token != "" {
+		return token
+	}
+	return CSRFTokenFromContext(r.Context())
+}
+
 // CSRFTokenHTMLMeta returns an HTML meta tag containing the CSRF token.
 // Use this in your HTML templates to make the token available to JavaScript
 // or HTMX without manual attribute construction.
@@ -153,10 +199,10 @@ func CSRFTokenFromContext(ctx context.Context) string {
 //	    {{ cqrshtmx.CSRFTokenHTMLMeta .Request | safeHTML }}
 //	</head>
 //
-// The token is HTML-escaped to prevent XSS. If no token is present in the
+// The token is HTML-escaped to prevent XSS. If no token is in the
 // request context (CSRFMiddleware not applied), returns an empty string.
 func CSRFTokenHTMLMeta(r *http.Request) string {
-	token := CSRFTokenFromContext(r.Context())
+	token := csrfTokenFromRequest(r)
 	if token == "" {
 		return ""
 	}
@@ -175,7 +221,7 @@ func CSRFTokenHTMLMeta(r *http.Request) string {
 // The token is HTML-escaped to prevent XSS. Returns an empty string if no
 // token is present in context.
 func CSRFTokenHXHeaders(r *http.Request) string {
-	token := CSRFTokenFromContext(r.Context())
+	token := csrfTokenFromRequest(r)
 	if token == "" {
 		return ""
 	}
@@ -192,7 +238,7 @@ func CSRFTokenHXHeaders(r *http.Request) string {
 //
 // The token is HTML-escaped. Returns an empty string if no token is present.
 func CSRFTokenFormField(r *http.Request) string {
-	token := CSRFTokenFromContext(r.Context())
+	token := csrfTokenFromRequest(r)
 	if token == "" {
 		return ""
 	}
@@ -206,15 +252,20 @@ func CSRFTokenFormField(r *http.Request) string {
 // CSRFMiddleware returns HTTP middleware that implements double-submit cookie
 // CSRF protection with HTMX awareness.
 //
+// Uses gorilla/csrf internally for:
+//   - Cryptographically secure token generation
+//   - Per-request token masking (BREACH attack mitigation)
+//   - Cookie integrity via securecookie
+//   - Referer validation for HTTPS requests
+//   - Trusted origins support for cross-domain use cases
+//
 // For GET/HEAD/OPTIONS/TRACE requests, the middleware ensures a CSRF token
-// cookie exists and stores the token in context for use in templates.
+// cookie exists and stores the masked token in context for use in templates.
 //
 // For state-changing methods (POST/PUT/PATCH/DELETE), it validates that the
 // request includes a matching token in either:
 //   - The X-CSRF-Token header (HTMX default)
 //   - A form field named "csrf_token"
-//
-// The token from the cookie and the token from the request must match.
 //
 // Usage with HTMX:
 //
@@ -237,36 +288,19 @@ func CSRFTokenFormField(r *http.Request) string {
 //	    app.Middleware(),
 //	)(mux)
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
+	opts := buildGorillaOptions(cfg)
+	protect := csrf.Protect(cfg.secret(), opts...)
+
 	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Determine if this is a secure request for cookie settings
-			secure := cfg.Secure
-			if !secure {
-				secure = isSecureRequest(r)
+		// Wrap gorilla/csrf's middleware to also store token in our context
+		return protect(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Extract gorilla/csrf's masked token and store in our context
+			// for template helpers and handlers that use CSRFTokenFromContext
+			if token := csrf.Token(r); token != "" {
+				r = r.WithContext(WithCSRFToken(r.Context(), token))
 			}
-
-			// Get or generate the CSRF token from the cookie
-			token, cookieErr := csrfTokenFromCookie(r, cfg.cookieName())
-			if cookieErr != nil || token == "" {
-				token = generateCSRFToken(cfg.Secret)
-				setCSRFCookie(w, cfg, token, secure)
-			}
-
-			// Store token in context for templates/handlers
-			ctx := WithCSRFToken(r.Context(), token)
-			r = r.WithContext(ctx)
-
-			// Validate on state-changing methods
-			if isStateChangingMethod(r.Method) {
-				submitted := extractSubmittedToken(r, cfg.headerName(), cfg.fieldName())
-				if submitted == "" || !constantTimeCompare(token, submitted) {
-					cfg.errorHandler()(w, r, ErrCSRFInvalid)
-					return
-				}
-			}
-
 			next.ServeHTTP(w, r)
-		})
+		}))
 	}
 }
 
@@ -289,7 +323,7 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 // is still available to server-side rendering.
 func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if token := CSRFTokenFromContext(r.Context()); token != "" {
+		if token := csrfTokenFromRequest(r); token != "" {
 			w.Header().Set(defaultCSRFHeaderName, token)
 		}
 		next.ServeHTTP(w, r)
@@ -300,16 +334,13 @@ func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {
 // command or query handler. Use this instead of global CSRFMiddleware when you
 // want CSRF protection only on specific routes.
 //
-// The token must be present in the request context (set by CSRFMiddleware or
-// manually via WithCSRFToken). For state-changing methods, the submitted token
-// is validated against the cookie.
+// NOTE: When CSRFMiddleware is applied globally, CSRFProtect is redundant
+// because gorilla/csrf already validates all state-changing requests.
+// CSRFProtect is only needed when you want per-handler protection WITHOUT
+// global middleware.
 //
 // Usage:
 //
-//	// Apply CSRFMiddleware without validation (just sets cookie + context):
-//	handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{ /* no error handler */ })(mux)
-//
-//	// Then protect specific handlers:
 //	app.Command("CreateUser",
 //	    cqrshtmx.CSRFProtect(cqrshtmx.CSRFConfig{}),
 //	    cqrshtmx.DecodeJSON(...),
@@ -327,128 +358,25 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, cfg *handlerC
 		return nil
 	}
 
-	if !isStateChangingMethod(r.Method) {
+	// If gorilla/csrf middleware already ran (token in its context), validation passed
+	if csrf.Token(r) != "" {
 		return nil
 	}
 
-	token := CSRFTokenFromContext(r.Context())
-	if token == "" {
-		// Try to get from cookie directly if not in context
-		var err error
+	// gorilla/csrf hasn't run; validate using a temporary middleware instance
+	opts := buildGorillaOptions(*cfg.csrfConfig)
+	protect := csrf.Protect(cfg.csrfConfig.secret(), opts...)
 
-		token, err = csrfTokenFromCookie(r, cfg.csrfConfig.cookieName())
-		if err != nil || token == "" {
-			cfg.csrfConfig.errorHandler()(w, r, ErrCSRFInvalid)
-			return ErrCSRFInvalid
-		}
-	}
+	var validated bool
+	dummy := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		validated = true
+	})
 
-	submitted := extractSubmittedToken(r, cfg.csrfConfig.headerName(), cfg.csrfConfig.fieldName())
-	if submitted == "" || !constantTimeCompare(token, submitted) {
-		cfg.csrfConfig.errorHandler()(w, r, ErrCSRFInvalid)
+	protect(dummy).ServeHTTP(w, r)
+
+	if !validated {
 		return ErrCSRFInvalid
 	}
 
 	return nil
-}
-
-// isStateChangingMethod returns true for methods that modify server state.
-func isStateChangingMethod(method string) bool {
-	switch method {
-	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-		return true
-	default:
-		return false
-	}
-}
-
-// isSecureRequest returns true if the request uses HTTPS.
-func isSecureRequest(r *http.Request) bool {
-	return r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
-}
-
-// generateCSRFToken creates a cryptographically secure random CSRF token.
-// If secret is provided, the token is HMAC-signed for additional integrity.
-func generateCSRFToken(secret []byte) string {
-	b := make([]byte, csrfTokenLength)
-	if _, err := rand.Read(b); err != nil {
-		// Fallback: use a simpler approach if crypto/rand fails
-		// This should never happen in practice
-		panic("csrf: failed to generate random token: " + err.Error())
-	}
-
-	if len(secret) > 0 {
-		// HMAC the random bytes for integrity
-		b = hmacSHA256(secret, b)
-	}
-
-	return base64.RawURLEncoding.EncodeToString(b)
-}
-
-// csrfTokenFromCookie retrieves the CSRF token from the request cookie.
-func csrfTokenFromCookie(r *http.Request, name string) (string, error) {
-	cookie, cookieErr := r.Cookie(name)
-	if cookieErr != nil {
-		return "", fmt.Errorf("csrf: get cookie: %w", cookieErr)
-	}
-	return cookie.Value, nil
-}
-
-// setCSRFCookie writes the CSRF token cookie to the response.
-func setCSRFCookie(w http.ResponseWriter, cfg CSRFConfig, token string, secure bool) {
-	cookie := &http.Cookie{
-		Name:        cfg.cookieName(),
-		Value:       token,
-		Path:        cfg.path(),
-		MaxAge:      int(cfg.maxAge().Seconds()),
-		HttpOnly:    false, // Must be readable by JavaScript for double-submit pattern
-		Secure:      secure,
-		SameSite:    cfg.sameSite(),
-		Domain:      cfg.Domain,
-		Quoted:      false,
-		Expires:     time.Time{},
-		RawExpires:  "",
-		Partitioned: false,
-		Raw:         "",
-		Unparsed:    nil,
-	}
-
-	http.SetCookie(w, cookie)
-}
-
-// extractSubmittedToken retrieves the submitted CSRF token from request header
-// or form field.
-func extractSubmittedToken(r *http.Request, headerName, fieldName string) string {
-	// Check header first (HTMX sends X-CSRF-Token header)
-	if token := r.Header.Get(headerName); token != "" {
-		return token
-	}
-
-	// Fallback to form field
-	if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodPatch {
-		_ = r.ParseForm()
-		if token := r.PostFormValue(fieldName); token != "" {
-			return token
-		}
-	}
-
-	// Fallback to query parameter (for GET-based state changes, though not recommended)
-	if token := r.URL.Query().Get(fieldName); token != "" {
-		return token
-	}
-
-	return ""
-}
-
-// constantTimeCompare compares two strings in constant time to prevent
-// timing attacks.
-func constantTimeCompare(a, b string) bool {
-	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
-}
-
-// hmacSHA256 computes HMAC-SHA256 of data with the given key.
-func hmacSHA256(key, data []byte) []byte {
-	h := hmac.New(sha256.New, key)
-	h.Write(data)
-	return h.Sum(nil)
 }

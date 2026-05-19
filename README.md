@@ -424,14 +424,14 @@ handler := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) 
 
 ### CSRF Protection
 
-Double-submit cookie CSRF protection with HTMX awareness. Validates `X-CSRF-Token` header (or form field) on state-changing methods:
+Double-submit cookie CSRF protection with HTMX awareness. Uses [`gorilla/csrf`](https://github.com/gorilla/csrf) internally for cryptographically secure token generation, per-request token masking (BREACH attack mitigation), and cookie integrity via `securecookie`. Validates `X-CSRF-Token` header (or form field) on state-changing methods:
 
 ```go
 handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
     CookieName: "csrf_token",
     HeaderName: "X-CSRF-Token",
     MaxAge:     24 * time.Hour,
-    Secure:     true, // auto-detected if omitted
+    Secure:     true, // must be explicitly set
     SameSite:   http.SameSiteLaxMode,
 })
 ```
@@ -470,11 +470,9 @@ data := map[string]any{
 
 <!-- HTMX global hx-headers (on <body>) -->
 <body {{ .CSRFHXHeaders }}>
-
-<!-- Standard HTML form hidden field -->
-<form method="POST" action="/game/create">
-    {{ cqrshtmx.CSRFTokenFormField .Request }}
-</form>
+  <!-- Standard HTML form hidden field -->
+  <form method="POST" action="/game/create">{{ cqrshtmx.CSRFTokenFormField .Request }}</form>
+</body>
 ```
 
 **Auto-inject token** (no handler changes needed):

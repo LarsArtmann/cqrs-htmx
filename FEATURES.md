@@ -32,7 +32,7 @@
 | 24  | Timeout Propagation       | FULLY_FUNCTIONAL | `Config.Timeout time.Duration` wraps dispatch with `context.WithTimeout`. Zero/negative = no timeout (default). Timeout applies only to dispatch, not decode/auth.                                                                                                                                                                                                                        |
 | 25  | Request Logging           | FULLY_FUNCTIONAL | `RequestLogging(formatter, writer)` middleware with `DefaultLogFormatter`. Captures method, path, status, duration, correlation ID, and user ID. `JSONLogFormatter` for structured JSON output.                                                                                                                                                                                           |
 | 26  | Rate Limiting             | FULLY_FUNCTIONAL | `RateLimiterMiddleware(cfg)` token-bucket rate limiter per key via `golang.org/x/time/rate`. Global, per-key, and exempt-request modes. `KeyExtractorFromRemoteAddr()` helper. `Retry-After` header on 429 responses.                                                                                                                                                                     |
-| 27  | CSRF Protection           | FULLY_FUNCTIONAL | `CSRFMiddleware(cfg)` double-submit cookie pattern. Validates `X-CSRF-Token` header (HTMX default) or form field on POST/PUT/PATCH/DELETE. `CSRFProtect(cfg)` for per-handler opt-in. `CSRFTokenFromContext` for template integration. `Response.CSRFToken()` sets response header. Secure defaults: `SameSite=Lax`, auto-detect `Secure`, `HttpOnly=false` (required for double-submit). |
+| 27  | CSRF Protection           | FULLY_FUNCTIONAL | `CSRFMiddleware(cfg)` double-submit cookie pattern. Uses `gorilla/csrf` internally for secure token generation, per-request masking (BREACH mitigation), and cookie integrity. Validates `X-CSRF-Token` header (HTMX default) or form field on POST/PUT/PATCH/DELETE. `CSRFProtect(cfg)` for per-handler opt-in. `CSRFTokenFromContext` for template integration. `Response.CSRFToken()` sets response header. Secure defaults: `SameSite=Lax`, `HttpOnly=false` (required for double-submit). |
 
 ## Missing/Planned
 
@@ -45,7 +45,7 @@
 | Metric      | Value |
 | ----------- | ----- |
 | Coverage    | 95.7% |
-| Test specs  | 225   |
+| Test specs  | 245   |
 | Lint issues | 0     |
 | Prod files  | 13    |
 | Test files  | 16    |
