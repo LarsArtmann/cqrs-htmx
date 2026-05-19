@@ -17,10 +17,10 @@ Executed the full 25-item TODO list from the `2026-05-19_21-11_comprehensive-aud
 
 ## Build & Test Matrix
 
-| Module | Build | Tests | Race | Lint | Coverage |
-|--------|-------|-------|------|------|----------|
-| Root (`cqrs-htmx`) | PASS | 289 Ginkgo specs + 9 stdlib tests | PASS | 0 issues | 94.6% |
-| Usermgmt (`cqrs-htmx/usermgmt`) | PASS | 58 tests | PASS | 0 issues | 84.9% |
+| Module                          | Build | Tests                             | Race | Lint     | Coverage |
+| ------------------------------- | ----- | --------------------------------- | ---- | -------- | -------- |
+| Root (`cqrs-htmx`)              | PASS  | 289 Ginkgo specs + 9 stdlib tests | PASS | 0 issues | 94.6%    |
+| Usermgmt (`cqrs-htmx/usermgmt`) | PASS  | 58 tests                          | PASS | 0 issues | 84.9%    |
 
 **Codebase size:** 10,955 total lines (prod + tests across both modules)
 
@@ -30,35 +30,35 @@ Executed the full 25-item TODO list from the `2026-05-19_21-11_comprehensive-aud
 
 ### Root Module Changes (items #1-7, #13-15, #21-22)
 
-| # | Item | Commit | Status |
-|---|------|--------|--------|
-| 1 | statusRecorder SSE/WebSocket support | `09d4a95` | Done — added `Flush()` and `Hijack()` |
-| 2 | Rate limit constants exported | `f2ef7be` | Done — `DefaultRateLimit`, `DefaultRateWindow`, `DefaultRateTTL` |
-| 3 | Content-Type constants | `f2ef7be` | Done — `ContentTypePlain`, `ContentTypeHTML`, `ContentTypeJSON` |
-| 4 | Cookie MaxAge from TTL | `f2ef7be` | Done — `setSessionCookie` uses `defaultSessionTTL` |
-| 5 | Modernize extractToken | `f2ef7be` | Done — `strings.CutPrefix` |
-| 6 | UserIDFromRequest bridge | `03be298` | Done — bridges usermgmt → cqrs-htmx identity |
-| 7 | handleErr DRY helper | `65c2394` | Done — 6 call sites deduplicated |
-| 13-15 | Coverage gap tests | N/A | Already covered — CSRFToken, Notify*, DefaultLogFormatter all had tests |
-| 21 | Nil decoder warnings | `f52459d` | Done — `slog.Warn` in ValidateCommand/Query |
-| 22 | Short CSRF secret warning | `f52459d` | Done — `slog.Warn` in `CSRFConfig.secret()` |
+| #     | Item                                 | Commit    | Status                                                                   |
+| ----- | ------------------------------------ | --------- | ------------------------------------------------------------------------ |
+| 1     | statusRecorder SSE/WebSocket support | `09d4a95` | Done — added `Flush()` and `Hijack()`                                    |
+| 2     | Rate limit constants exported        | `f2ef7be` | Done — `DefaultRateLimit`, `DefaultRateWindow`, `DefaultRateTTL`         |
+| 3     | Content-Type constants               | `f2ef7be` | Done — `ContentTypePlain`, `ContentTypeHTML`, `ContentTypeJSON`          |
+| 4     | Cookie MaxAge from TTL               | `f2ef7be` | Done — `setSessionCookie` uses `defaultSessionTTL`                       |
+| 5     | Modernize extractToken               | `f2ef7be` | Done — `strings.CutPrefix`                                               |
+| 6     | UserIDFromRequest bridge             | `03be298` | Done — bridges usermgmt → cqrs-htmx identity                             |
+| 7     | handleErr DRY helper                 | `65c2394` | Done — 6 call sites deduplicated                                         |
+| 13-15 | Coverage gap tests                   | N/A       | Already covered — CSRFToken, Notify\*, DefaultLogFormatter all had tests |
+| 21    | Nil decoder warnings                 | `f52459d` | Done — `slog.Warn` in ValidateCommand/Query                              |
+| 22    | Short CSRF secret warning            | `f52459d` | Done — `slog.Warn` in `CSRFConfig.secret()`                              |
 
 ### Usermgmt Submodule Changes (items #8-12, #16-20, #23-24)
 
-| # | Item | Commit | Status |
-|---|------|--------|--------|
-| 8 | Immutable bcryptCost | `752bdeb` | Done — `ServiceConfig.BcryptCost`, `SetPasswordWithCost` |
-| 9 | context.Context on all Service methods | `921f81e` | Done — Register, Login, Logout, Authenticate, Authorize, GetUser, UpdateRoles |
-| 10 | Input validation | `f3b53c2` | Done — email format, password 8+, required fields |
-| 11 | TOCTOU race fix | `903a698` | Done — `UserStore.Create()` atomic email check |
-| 12 | Email index | `903a698` | Done — `emails map[string]string`, O(1) FindByEmail |
-| 16 | EnforceAny/AsEnforcer adapter | `8a72a37` | Done — bridges to cqrshtmx.Enforcer interface |
-| 17 | Remove RawEnforcer | `8a72a37` | Done — no more casbin internals leak |
-| 18 | cockroachdb/errors | `d68f785` | Done — consistent error wrapping with root |
-| 19 | Atomic UpdateRoles | `9611324` | Done — `Authz.Apply(PolicyUpdate{...})` |
-| 20 | Structured logging | `d5e45a2` | Done — `ServiceConfig.Logger`, failed login + role updates |
-| 23 | ChangePassword | `5602973` | Done — verifies old password, validates new, rehashes |
-| 24 | Account lockout | `3424c0f` | Done — configurable max attempts + duration, 429 response |
+| #   | Item                                   | Commit    | Status                                                                        |
+| --- | -------------------------------------- | --------- | ----------------------------------------------------------------------------- |
+| 8   | Immutable bcryptCost                   | `752bdeb` | Done — `ServiceConfig.BcryptCost`, `SetPasswordWithCost`                      |
+| 9   | context.Context on all Service methods | `921f81e` | Done — Register, Login, Logout, Authenticate, Authorize, GetUser, UpdateRoles |
+| 10  | Input validation                       | `f3b53c2` | Done — email format, password 8+, required fields                             |
+| 11  | TOCTOU race fix                        | `903a698` | Done — `UserStore.Create()` atomic email check                                |
+| 12  | Email index                            | `903a698` | Done — `emails map[string]string`, O(1) FindByEmail                           |
+| 16  | EnforceAny/AsEnforcer adapter          | `8a72a37` | Done — bridges to cqrshtmx.Enforcer interface                                 |
+| 17  | Remove RawEnforcer                     | `8a72a37` | Done — no more casbin internals leak                                          |
+| 18  | cockroachdb/errors                     | `d68f785` | Done — consistent error wrapping with root                                    |
+| 19  | Atomic UpdateRoles                     | `9611324` | Done — `Authz.Apply(PolicyUpdate{...})`                                       |
+| 20  | Structured logging                     | `d5e45a2` | Done — `ServiceConfig.Logger`, failed login + role updates                    |
+| 23  | ChangePassword                         | `5602973` | Done — verifies old password, validates new, rehashes                         |
+| 24  | Account lockout                        | `3424c0f` | Done — configurable max attempts + duration, 429 response                     |
 
 ---
 
@@ -167,11 +167,13 @@ None. The codebase is in its best shape ever.
 **Should usermgmt remain a separate Go module, or should it be merged into the parent module?**
 
 Arguments for keeping separate:
+
 - Clean dependency boundary — usermgmt has no cqrs-htmx import
 - Consumers can use usermgmt without cqrs-htmx
 - Independent versioning
 
 Arguments for merging:
+
 - The bridge pattern (`UserIDFromRequest` + `AsEnforcer`) is awkward
 - `GOWORK=off` is required for every command — developer friction
 - Most consumers will use both together anyway

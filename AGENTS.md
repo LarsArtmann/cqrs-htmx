@@ -95,7 +95,7 @@ cqrs-htmx/
 | go-cqrs-lite/core  | CQRS dispatch   |
 | casbin/casbin/v3   | Authorization   |
 | cockroachdb/errors | Error handling  |
-| gorilla/csrf       | CSRF protection |
+| gorilla/csrf       | CSRF protection (v1.7.3+) |
 
 ## Key Gotchas
 

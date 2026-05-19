@@ -422,6 +422,9 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, cfg *handlerC
 	})
 
 	rec := httptest.NewRecorder()
+	if r.TLS == nil {
+		r = csrf.PlaintextHTTPRequest(r)
+	}
 	protect(dummy).ServeHTTP(rec, r)
 
 	if !validated {
