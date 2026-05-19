@@ -122,13 +122,15 @@ func writeHTMXAuthRedirect(
 	return true
 }
 
-// DefaultErrorHandlerWithRedirect maps CQRS errors to HTTP status codes with a custom login redirect.
-// If loginRedirect is empty, the default "/login" is used.
-func DefaultErrorHandlerWithRedirect(
+// handleErrorCore handles the common logic for error responses:
+// default login redirect, HTMX auth redirect, and status code mapping.
+// The writeBody callback handles the response body format.
+func handleErrorCore(
 	w http.ResponseWriter,
 	r *http.Request,
 	err error,
 	loginRedirect string,
+	writeBody func(http.ResponseWriter, error, int),
 ) {
 	if loginRedirect == "" {
 		loginRedirect = defaultLoginRedirect
@@ -139,9 +141,22 @@ func DefaultErrorHandlerWithRedirect(
 	}
 
 	status := MapError(err)
-	w.Header().Set("Content-Type", ContentTypePlain)
-	w.WriteHeader(status)
-	_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
+	writeBody(w, err, status)
+}
+
+// DefaultErrorHandlerWithRedirect maps CQRS errors to HTTP status codes with a custom login redirect.
+// If loginRedirect is empty, the default "/login" is used.
+func DefaultErrorHandlerWithRedirect(
+	w http.ResponseWriter,
+	r *http.Request,
+	err error,
+	loginRedirect string,
+) {
+	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, status int) {
+		w.Header().Set("Content-Type", ContentTypePlain)
+		w.WriteHeader(status)
+		_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
+	})
 }
 
 // JSONErrorHandler writes errors as JSON responses.
@@ -160,24 +175,17 @@ func JSONErrorHandlerWithRedirect(
 	err error,
 	loginRedirect string,
 ) {
-	if loginRedirect == "" {
-		loginRedirect = defaultLoginRedirect
-	}
+	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, status int) {
+		w.Header().Set("Content-Type", ContentTypeJSON)
+		w.WriteHeader(status)
 
-	if writeHTMXAuthRedirect(w, r, err, loginRedirect) {
-		return
-	}
-
-	status := MapError(err)
-	w.Header().Set("Content-Type", ContentTypeJSON)
-	w.WriteHeader(status)
-
-	response := struct {
-		Error  string `json:"error"`
-		Status int    `json:"status"`
-	}{
-		Error:  err.Error(),
-		Status: status,
-	}
-	_ = json.NewEncoder(w).Encode(response) //nolint:errchkjson
+		response := struct {
+			Error  string `json:"error"`
+			Status int    `json:"status"`
+		}{
+			Error:  err.Error(),
+			Status: status,
+		}
+		_ = json.NewEncoder(w).Encode(response)
+	})
 }

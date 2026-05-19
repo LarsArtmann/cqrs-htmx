@@ -17,14 +17,19 @@ func NewUserID() UserID {
 	return id.NewUserID()
 }
 
+// parseID is a generic helper that wraps an ID parse function with contextual error messages.
+func parseID[T any](s string, parse func(string) (T, error), label string) (T, error) {
+	v, err := parse(s)
+	if err != nil {
+		return v, fmt.Errorf("parse %s: %w", label, err)
+	}
+	return v, nil
+}
+
 // ParseUserID converts a string to a UserID.
 // Returns an error if the input is not a valid ULID.
 func ParseUserID(s string) (UserID, error) {
-	userID, err := id.ParseUserID(s)
-	if err != nil {
-		return UserID{}, fmt.Errorf("parse user id: %w", err)
-	}
-	return userID, nil
+	return parseID(s, id.ParseUserID, "user id")
 }
 
 // MustParseUserID converts a string to a UserID, panicking on error.
@@ -44,11 +49,7 @@ func NewCorrelationID() CorrelationID {
 // ParseCorrelationID converts a string to a CorrelationID.
 // Returns an error if the input is not a valid ULID.
 func ParseCorrelationID(s string) (CorrelationID, error) {
-	correlationID, err := id.ParseCorrelationID(s)
-	if err != nil {
-		return CorrelationID{}, fmt.Errorf("parse correlation id: %w", err)
-	}
-	return correlationID, nil
+	return parseID(s, id.ParseCorrelationID, "correlation id")
 }
 
 // MustParseCorrelationID converts a string to a CorrelationID, panicking on error.
@@ -74,11 +75,7 @@ func NewRequestID() RequestID {
 // ParseRequestID converts a string to a RequestID.
 // Returns an error if the input is not a valid ULID.
 func ParseRequestID(s string) (RequestID, error) {
-	requestID, err := id.ParseRequestID(s)
-	if err != nil {
-		return RequestID{}, fmt.Errorf("parse request id: %w", err)
-	}
-	return requestID, nil
+	return parseID(s, id.ParseRequestID, "request id")
 }
 
 // MustParseRequestID converts a string to a RequestID, panicking on error.

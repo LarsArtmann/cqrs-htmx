@@ -71,8 +71,12 @@ func (b NotifyEventBuilder) Info(message string) HandlerOption {
 }
 
 func notifyOption(event string, level NotificationLevel, message string) HandlerOption {
-	return TriggerWithDetail(event, map[string]string{
+	return TriggerWithDetail(event, notificationDetail(level, message))
+}
+
+func notificationDetail(level NotificationLevel, message string) map[string]string {
+	return map[string]string{
 		"level":   string(level),
 		"message": message,
-	})
+	}
 }

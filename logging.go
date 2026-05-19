@@ -16,6 +16,22 @@ type LogFormatter func(r *http.Request, status int, duration time.Duration) stri
 // LogWriter receives a formatted log line.
 type LogWriter func(line string)
 
+// contextFields extracts correlation ID, user ID, and request ID from context
+// into a string map. Only non-zero values are included.
+func contextFields(r *http.Request) map[string]string {
+	fields := make(map[string]string)
+	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
+		fields["correlation_id"] = cid.String()
+	}
+	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
+		fields["user_id"] = uid.String()
+	}
+	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+		fields["request_id"] = rid.String()
+	}
+	return fields
+}
+
 // DefaultLogFormatter writes a concise log line with method, path, status,
 // duration, and optional correlation ID and user ID when present in context.
 //
@@ -30,11 +46,12 @@ func DefaultLogFormatter(r *http.Request, status int, duration time.Duration) st
 	}
 
 	var extra string
-	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
-		extra += " [correlation=" + cid.String() + "]"
+	fields := contextFields(r)
+	if v, ok := fields["correlation_id"]; ok {
+		extra += " [correlation=" + v + "]"
 	}
-	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
-		extra += " [user=" + uid.String() + "]"
+	if v, ok := fields["user_id"]; ok {
+		extra += " [user=" + v + "]"
 	}
 
 	return method + " " + path + " → " + http.StatusText(status) +
@@ -59,12 +76,8 @@ func JSONLogFormatter(r *http.Request, status int, duration time.Duration) strin
 		entry["query"] = r.URL.RawQuery
 	}
 
-	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
-		entry["correlation_id"] = cid.String()
-	}
-
-	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
-		entry["user_id"] = uid.String()
+	for key, val := range contextFields(r) {
+		entry[key] = val
 	}
 
 	b, err := json.Marshal(entry)
@@ -150,16 +163,8 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 				attrs = append(attrs, slog.String("query", r.URL.RawQuery))
 			}
 
-			if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
-				attrs = append(attrs, slog.String("correlation_id", cid.String()))
-			}
-
-			if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
-				attrs = append(attrs, slog.String("user_id", uid.String()))
-			}
-
-			if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
-				attrs = append(attrs, slog.String("request_id", rid.String()))
+			for key, val := range contextFields(r) {
+				attrs = append(attrs, slog.String(key, val))
 			}
 
 			logger.LogAttrs(r.Context(), slog.LevelInfo, "http request", attrs...)

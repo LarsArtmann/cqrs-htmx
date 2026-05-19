@@ -93,29 +93,42 @@ func HTMXFromContext(ctx context.Context) *HTMXRequest {
 	return h
 }
 
+// htmxBoolField returns a boolean HTMX header value, preferring the parsed
+// context from HTMXMiddleware and falling back to the raw header.
+func htmxBoolField(r *http.Request, extract func(*HTMXRequest) bool, header string) bool {
+	if h := HTMXFromContext(r.Context()); h != nil {
+		return extract(h)
+	}
+	return r.Header.Get(header) == HeaderTrue
+}
+
+// htmxStringField returns a string HTMX header value, preferring the parsed
+// context from HTMXMiddleware and falling back to the raw header.
+func htmxStringField(r *http.Request, extract func(*HTMXRequest) string, header string) string {
+	if h := HTMXFromContext(r.Context()); h != nil {
+		return extract(h)
+	}
+	return r.Header.Get(header)
+}
+
 // IsHTMXRequest returns true if the request originates from HTMX.
 // Checks the HX-Request header directly — works with or without HTMXMiddleware.
 func IsHTMXRequest(r *http.Request) bool {
-	if h := HTMXFromContext(r.Context()); h != nil {
-		return h.IsHTMX
-	}
-	return r.Header.Get(headerRequest) == HeaderTrue
+	return htmxBoolField(r, func(h *HTMXRequest) bool { return h.IsHTMX }, headerRequest)
 }
 
 // IsBoosted returns true if the request was sent via hx-boost.
 func IsBoosted(r *http.Request) bool {
-	if h := HTMXFromContext(r.Context()); h != nil {
-		return h.IsBoosted
-	}
-	return r.Header.Get(headerBoosted) == HeaderTrue
+	return htmxBoolField(r, func(h *HTMXRequest) bool { return h.IsBoosted }, headerBoosted)
 }
 
 // IsHistoryRestore returns true if the request is a history restoration.
 func IsHistoryRestore(r *http.Request) bool {
-	if h := HTMXFromContext(r.Context()); h != nil {
-		return h.IsHistoryRestore
-	}
-	return r.Header.Get(headerHistoryRestore) == HeaderTrue
+	return htmxBoolField(
+		r,
+		func(h *HTMXRequest) bool { return h.IsHistoryRestore },
+		headerHistoryRestore,
+	)
 }
 
 // RenderPartial returns true when the request is from HTMX and is not
@@ -131,40 +144,29 @@ func RenderPartial(r *http.Request) bool {
 
 // HTMXTarget returns the ID of the target element from the request.
 func HTMXTarget(r *http.Request) string {
-	if h := HTMXFromContext(r.Context()); h != nil {
-		return h.Target
-	}
-	return r.Header.Get(headerTarget)
+	return htmxStringField(r, func(h *HTMXRequest) string { return h.Target }, headerTarget)
 }
 
 // HTMXTrigger returns the ID of the trigger element from the request.
 func HTMXTrigger(r *http.Request) string {
-	if h := HTMXFromContext(r.Context()); h != nil {
-		return h.TriggerID
-	}
-	return r.Header.Get(headerTrigger)
+	return htmxStringField(r, func(h *HTMXRequest) string { return h.TriggerID }, headerTrigger)
 }
 
 // HTMXTriggerName returns the name of the trigger element from the request.
 func HTMXTriggerName(r *http.Request) string {
-	if h := HTMXFromContext(r.Context()); h != nil {
-		return h.TriggerName
-	}
-	return r.Header.Get(headerTriggerName)
+	return htmxStringField(
+		r,
+		func(h *HTMXRequest) string { return h.TriggerName },
+		headerTriggerName,
+	)
 }
 
 // HTMXPrompt returns the user's response from hx-prompt.
 func HTMXPrompt(r *http.Request) string {
-	if h := HTMXFromContext(r.Context()); h != nil {
-		return h.Prompt
-	}
-	return r.Header.Get(headerPrompt)
+	return htmxStringField(r, func(h *HTMXRequest) string { return h.Prompt }, headerPrompt)
 }
 
 // HTMXCurrentURL returns the current URL from the request.
 func HTMXCurrentURL(r *http.Request) string {
-	if h := HTMXFromContext(r.Context()); h != nil {
-		return h.CurrentURL
-	}
-	return r.Header.Get(headerCurrentURL)
+	return htmxStringField(r, func(h *HTMXRequest) string { return h.CurrentURL }, headerCurrentURL)
 }

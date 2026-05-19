@@ -62,48 +62,52 @@ func (c *handlerConfig) hasNoExplicitBody() bool {
 	return c.redirect == "" && c.trigger == "" && c.pushURL == "" && len(c.triggerDetail) == 0
 }
 
+// decodeAndSet creates a HandlerOption that decodes a request body and sets
+// the result on the handlerConfig. It collapses the 4 Decode* variants.
+func decodeAndSet[T any, R any](
+	bodyDec func(*http.Request, int64) (T, error),
+	mapper func(T) (R, error),
+	setter func(*handlerConfig, func(*http.Request) (R, error)),
+) HandlerOption {
+	return func(cfg *handlerConfig) {
+		setter(cfg, func(r *http.Request) (R, error) {
+			return decodeRequest(r, func(r *http.Request) (T, error) {
+				return bodyDec(r, cfg.maxBodySize)
+			}, mapper)
+		})
+	}
+}
+
 // DecodeJSON decodes a JSON request body into a command using the mapper.
 func DecodeJSON[T any](mapper func(T) (command.Command, error)) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.commandDecoder = func(r *http.Request) (command.Command, error) {
-			return decodeRequest(r, func(r *http.Request) (T, error) {
-				return decodeJSONBody[T](r, cfg.maxBodySize)
-			}, mapper)
-		}
-	}
+	return decodeAndSet(decodeJSONBody[T], mapper,
+		func(cfg *handlerConfig, dec func(*http.Request) (command.Command, error)) {
+			cfg.commandDecoder = dec
+		})
 }
 
 // DecodeJSONQuery decodes a JSON request body into a query.
 func DecodeJSONQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.queryDecoder = func(r *http.Request) (query.Query, error) {
-			return decodeRequest(r, func(r *http.Request) (T, error) {
-				return decodeJSONBody[T](r, cfg.maxBodySize)
-			}, mapper)
-		}
-	}
+	return decodeAndSet(decodeJSONBody[T], mapper,
+		func(cfg *handlerConfig, dec func(*http.Request) (query.Query, error)) {
+			cfg.queryDecoder = dec
+		})
 }
 
 // DecodeForm decodes form data into a command using the mapper.
 func DecodeForm[T any](mapper func(T) (command.Command, error)) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.commandDecoder = func(r *http.Request) (command.Command, error) {
-			return decodeRequest(r, func(r *http.Request) (T, error) {
-				return decodeFormBody[T](r, cfg.maxBodySize)
-			}, mapper)
-		}
-	}
+	return decodeAndSet(decodeFormBody[T], mapper,
+		func(cfg *handlerConfig, dec func(*http.Request) (command.Command, error)) {
+			cfg.commandDecoder = dec
+		})
 }
 
 // DecodeFormQuery decodes form data into a query using the mapper.
 func DecodeFormQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.queryDecoder = func(r *http.Request) (query.Query, error) {
-			return decodeRequest(r, func(r *http.Request) (T, error) {
-				return decodeFormBody[T](r, cfg.maxBodySize)
-			}, mapper)
-		}
-	}
+	return decodeAndSet(decodeFormBody[T], mapper,
+		func(cfg *handlerConfig, dec func(*http.Request) (query.Query, error)) {
+			cfg.queryDecoder = dec
+		})
 }
 
 // Render sets the render function for query results.
@@ -185,6 +189,39 @@ func PushURL(url string) HandlerOption {
 	}
 }
 
+// validateDispatch wraps a decoder with a validation step.
+// Validation errors are wrapped with ErrValidationFailed.
+func validateDispatch[T any](
+	getter func(*handlerConfig) func(*http.Request) (T, error),
+	setter func(*handlerConfig, func(*http.Request) (T, error)),
+	validator func(T) error,
+	label string,
+) HandlerOption {
+	return func(cfg *handlerConfig) {
+		original := getter(cfg)
+		if original == nil {
+			slog.Warn("cqrs-htmx: "+label+" applied before decoder",
+				slog.String("hint", "apply after DecodeJSON/DecodeForm"))
+			return
+		}
+
+		setter(cfg, func(r *http.Request) (T, error) {
+			val, err := original(r)
+			if err != nil {
+				var zero T
+				return zero, err
+			}
+
+			if valErr := validator(val); valErr != nil {
+				var zero T
+				return zero, fmt.Errorf("%w: %w", ErrValidationFailed, valErr)
+			}
+
+			return val, nil
+		})
+	}
+}
+
 // ValidateCommand wraps the command decoder with a validation step.
 // The validator receives the decoded command and may return an error.
 // Validation errors are wrapped with ErrValidationFailed.
@@ -199,54 +236,24 @@ func PushURL(url string) HandlerOption {
 //	    }),
 //	)
 func ValidateCommand(validator func(command.Command) error) HandlerOption {
-	return func(cfg *handlerConfig) {
-		if cfg.commandDecoder == nil {
-			slog.Warn("cqrs-htmx: ValidateCommand applied before decoder",
-				slog.String("hint", "apply after DecodeJSON/DecodeForm"))
-			return
-		}
-
-		original := cfg.commandDecoder
-		cfg.commandDecoder = func(r *http.Request) (command.Command, error) {
-			cmd, err := original(r)
-			if err != nil {
-				return nil, err
-			}
-
-			if valErr := validator(cmd); valErr != nil {
-				return nil, fmt.Errorf("%w: %w", ErrValidationFailed, valErr)
-			}
-
-			return cmd, nil
-		}
-	}
+	return validateDispatch(
+		func(cfg *handlerConfig) func(*http.Request) (command.Command, error) { return cfg.commandDecoder },
+		func(cfg *handlerConfig, dec func(*http.Request) (command.Command, error)) { cfg.commandDecoder = dec },
+		validator,
+		"ValidateCommand",
+	)
 }
 
 // ValidateQuery wraps the query decoder with a validation step.
 // The validator receives the decoded query and may return an error.
 // Validation errors are wrapped with ErrValidationFailed.
 func ValidateQuery(validator func(query.Query) error) HandlerOption {
-	return func(cfg *handlerConfig) {
-		if cfg.queryDecoder == nil {
-			slog.Warn("cqrs-htmx: ValidateQuery applied before decoder",
-				slog.String("hint", "apply after DecodeJSONQuery/DecodeFormQuery"))
-			return
-		}
-
-		original := cfg.queryDecoder
-		cfg.queryDecoder = func(r *http.Request) (query.Query, error) {
-			qry, err := original(r)
-			if err != nil {
-				return nil, err
-			}
-
-			if valErr := validator(qry); valErr != nil {
-				return nil, fmt.Errorf("%w: %w", ErrValidationFailed, valErr)
-			}
-
-			return qry, nil
-		}
-	}
+	return validateDispatch(
+		func(cfg *handlerConfig) func(*http.Request) (query.Query, error) { return cfg.queryDecoder },
+		func(cfg *handlerConfig, dec func(*http.Request) (query.Query, error)) { cfg.queryDecoder = dec },
+		validator,
+		"ValidateQuery",
+	)
 }
 
 // WithTimeout sets a per-handler timeout override.
