@@ -135,6 +135,26 @@ func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
 	return a.enforcer.Enforce(sub, dom, obj, string(act))
 }
 
+func (a *Authz) EnforceAny(rvals ...any) (bool, error) {
+	return a.enforcer.Enforce(rvals...)
+}
+
+type enforcerAdapter struct {
+	authz *Authz
+}
+
+func (e *enforcerAdapter) Enforce(rvals ...any) (bool, error) {
+	return e.authz.EnforceAny(rvals...)
+}
+
+// AsEnforcer returns a value that satisfies the cqrshtmx.Enforcer interface.
+// Use this to bridge usermgmt authorization with cqrs-htmx handlers:
+//
+//	app := cqrshtmx.New(cqrshtmx.Config{Enforcer: authz.AsEnforcer()})
+func (a *Authz) AsEnforcer() interface{ Enforce(...any) (bool, error) } {
+	return &enforcerAdapter{authz: a}
+}
+
 func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, error) {
 	allowed, matched, err := a.enforcer.EnforceEx(sub, dom, obj, string(act))
 	if err != nil {
@@ -257,10 +277,6 @@ func (a *Authz) DomainsForUser(userID string) ([]string, error) {
 
 func (a *Authz) UsersForRole(role, domain string) ([]string, error) {
 	return a.enforcer.GetUsersForRole(role, domain)
-}
-
-func (a *Authz) RawEnforcer() *casbin.Enforcer {
-	return a.enforcer
 }
 
 func defaultPolicies() []Policy {

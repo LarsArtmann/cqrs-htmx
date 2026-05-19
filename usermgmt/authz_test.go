@@ -245,43 +245,29 @@ func TestAuthz_UsersForRole(t *testing.T) {
 	}
 }
 
-func TestAuthz_CustomModel(t *testing.T) {
-	basicModel := `[request_definition]
-r = sub, obj, act
-
-[policy_definition]
-p = sub, obj, act
-
-[policy_effect]
-e = some(where (p.eft == allow))
-
-[matchers]
-m = r.sub == p.sub && r.obj == p.obj && r.act == p.act
-`
-	a, err := NewAuthz(EnforcerConfig{
-		ModelString: basicModel,
-	})
-	if err != nil {
-		t.Fatalf("NewAuthz with custom model: %v", err)
+func TestAuthz_EnforceAny(t *testing.T) {
+	a := newTestAuthz(t)
+	if err := a.AddGroupPolicy(
+		GroupPolicy{User: "alice", Role: RoleAdmin, Domain: "tenant1"},
+	); err != nil {
+		t.Fatalf("AddGroupPolicy: %v", err)
 	}
 
-	e := a.RawEnforcer()
-	_, _ = e.AddPolicy("alice", "data1", "read")
-
-	ok, err := e.Enforce("alice", "data1", "read")
+	ok, err := a.EnforceAny("alice", "tenant1", "anything", "execute")
 	if err != nil {
-		t.Fatalf("Enforce alice: %v", err)
+		t.Fatalf("EnforceAny alice: %v", err)
 	}
 	if !ok {
-		t.Error("expected alice to read data1")
+		t.Error("expected admin to be allowed via EnforceAny")
 	}
 
-	ok, err = e.Enforce("bob", "data1", "read")
+	adapter := a.AsEnforcer()
+	ok, err = adapter.Enforce("alice", "tenant1", "anything", "execute")
 	if err != nil {
-		t.Fatalf("Enforce bob: %v", err)
+		t.Fatalf("AsEnforcer alice: %v", err)
 	}
-	if ok {
-		t.Error("expected bob to be denied")
+	if !ok {
+		t.Error("expected admin to be allowed via AsEnforcer")
 	}
 }
 
