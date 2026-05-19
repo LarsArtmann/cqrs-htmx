@@ -7,14 +7,18 @@ import (
 )
 
 type AuthHandlers struct {
-	service    *Service
-	cookieName string
-	secure     bool
+	service      *Service
+	cookieName   string
+	secure       bool
+	sessionMaxAge int
 }
 
 type HandlerConfig struct {
 	CookieName string
 	Secure     bool
+	// SessionMaxAge sets the Max-Age for session cookies in seconds.
+	// Zero defaults to 86400 (24 hours).
+	SessionMaxAge int
 }
 
 func NewAuthHandlers(service *Service, cfg ...HandlerConfig) *AuthHandlers {
@@ -29,9 +33,10 @@ func NewAuthHandlers(service *Service, cfg ...HandlerConfig) *AuthHandlers {
 		config.Secure = cfg[0].Secure
 	}
 	return &AuthHandlers{
-		service:    service,
-		cookieName: config.CookieName,
-		secure:     config.Secure,
+		service:      service,
+		cookieName:   config.CookieName,
+		secure:       config.Secure,
+		sessionMaxAge: config.SessionMaxAge,
 	}
 }
 
@@ -102,6 +107,10 @@ func (h *AuthHandlers) handleMe(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandlers) setSessionCookie(w http.ResponseWriter, token string) {
+	maxAge := h.sessionMaxAge
+	if maxAge <= 0 {
+		maxAge = int(defaultSessionTTL.Seconds())
+	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     h.cookieName,
 		Value:    token,
@@ -109,7 +118,7 @@ func (h *AuthHandlers) setSessionCookie(w http.ResponseWriter, token string) {
 		HttpOnly: true,
 		Secure:   h.secure,
 		SameSite: http.SameSiteStrictMode,
-		MaxAge:   86400,
+		MaxAge:   maxAge,
 	})
 }
 

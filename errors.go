@@ -139,7 +139,7 @@ func DefaultErrorHandlerWithRedirect(
 	}
 
 	status := MapError(err)
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Type", ContentTypePlain)
 	w.WriteHeader(status)
 	_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
 }
@@ -169,7 +169,7 @@ func JSONErrorHandlerWithRedirect(
 	}
 
 	status := MapError(err)
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.WriteHeader(status)
 
 	response := struct {

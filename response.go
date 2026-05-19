@@ -7,6 +7,13 @@ import (
 	"path"
 )
 
+// Content type constants for consistent HTTP response headers.
+const (
+	ContentTypePlain = "text/plain; charset=utf-8"
+	ContentTypeHTML  = "text/html; charset=utf-8"
+	ContentTypeJSON  = "application/json; charset=utf-8"
+)
+
 // Response builds HTMX-aware HTTP responses with fluent method chaining.
 //
 // Usage:
@@ -169,7 +176,7 @@ func (resp *Response) Apply() bool {
 	}
 
 	if resp.IsHTMX() {
-		resp.w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.w.Header().Set("Content-Type", ContentTypeHTML)
 	}
 
 	return false

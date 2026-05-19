@@ -9,6 +9,13 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// Rate limiter defaults.
+const (
+	DefaultRateLimit  = 100
+	DefaultRateWindow = time.Minute
+	DefaultRateTTL    = 10 * time.Minute
+)
+
 // KeyExtractor extracts a rate-limit key from an HTTP request.
 // Return "" if the request should not be rate-limited (always allowed).
 // Common extractors: RemoteAddr, header value, user ID from context.
@@ -65,10 +72,10 @@ type RateLimiterConfig struct {
 // key space.
 func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 	if cfg.Limit <= 0 {
-		cfg.Limit = 100
+		cfg.Limit = DefaultRateLimit
 	}
 	if cfg.Window <= 0 {
-		cfg.Window = time.Minute
+		cfg.Window = DefaultRateWindow
 	}
 	if cfg.Burst <= 0 {
 		cfg.Burst = cfg.Limit
@@ -80,7 +87,7 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 
 	ttl := cfg.TTL
 	if ttl <= 0 {
-		ttl = 10 * time.Minute
+		ttl = DefaultRateTTL
 	}
 
 	lim := newPerKeyLimiter(limit, cfg.Burst, cfg.KeyExtractor, retryAfter, ttl)

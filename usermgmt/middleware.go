@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"net/http"
+	"strings"
 )
 
 type contextKey string
@@ -59,8 +60,8 @@ func extractToken(r *http.Request, cookieName string) string {
 		return c.Value
 	}
 	auth := r.Header.Get("Authorization")
-	if len(auth) > 7 && auth[:7] == "Bearer " {
-		return auth[7:]
+	if token, ok := strings.CutPrefix(auth, "Bearer "); ok {
+		return token
 	}
 	return ""
 }

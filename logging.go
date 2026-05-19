@@ -183,8 +183,10 @@ func (r *statusRecorder) Flush() {
 }
 
 func (r *statusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	if h, ok := r.ResponseWriter.(http.Hijacker); ok {
-		return h.Hijack()
+	h, ok := r.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, http.ErrNotSupported
 	}
-	return nil, nil, http.ErrNotSupported
+	conn, rw, err := h.Hijack()
+	return conn, rw, err //nolint:wrapcheck // delegate to underlying ResponseWriter
 }
