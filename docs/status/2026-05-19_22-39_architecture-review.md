@@ -18,11 +18,11 @@ Consumer → HTTP Handler → [Middleware Chain] → App.Command/Query → [Deco
 
 ### Scalability Concerns
 
-| Concern | Severity | Mitigation |
-|---------|----------|------------|
-| Rate limiter unbounded map | Medium | Add max-keys cap or periodic cleanup |
-| CSRF per-handler Protect() allocation | Low | Cache Protect instance per handler |
-| No circuit breaker pattern | Low | Consumers can add their own via middleware |
+| Concern                               | Severity | Mitigation                                 |
+| ------------------------------------- | -------- | ------------------------------------------ |
+| Rate limiter unbounded map            | Medium   | Add max-keys cap or periodic cleanup       |
+| CSRF per-handler Protect() allocation | Low      | Cache Protect instance per handler         |
+| No circuit breaker pattern            | Low      | Consumers can add their own via middleware |
 
 ### Scalability Rating: **8/10** — Stateless by design, per-handler config, minor bounded-state concern.
 
@@ -59,6 +59,7 @@ cqrs-htmx/             ← Flat package, 15 files, ~100 exports
 ### Modularity Assessment: **Appropriate for library scale**
 
 **Strengths:**
+
 - Each file has a single concern (SRP at file level)
 - `usermgmt/` correctly extracted as independent module
 - `HandlerOption` pattern is composable — consumers mix and match options
@@ -66,6 +67,7 @@ cqrs-htmx/             ← Flat package, 15 files, ~100 exports
 - `ErrorHandler` is injectable — consumers provide their own
 
 **Weaknesses:**
+
 - `csrf.go` (445 lines) combines config, middleware, template helpers, and per-handler protection
 - `options.go` (282 lines) combines decoders, render options, validation, and response options
 - No sub-packages for related but independent concerns (e.g., `htmx/` for pure HTMX helpers)
@@ -81,6 +83,7 @@ cqrs-htmx/             ← Flat package, 15 files, ~100 exports
 The library provides building blocks for consumers to create service-oriented architectures. It doesn't impose a service pattern.
 
 **What it provides for SOA:**
+
 - Middleware composition (`Chain`) enables layered service architecture
 - `Enforcer` interface decouples from specific authorization backends
 - `ErrorHandler` injection enables service-specific error responses
@@ -94,16 +97,16 @@ The library provides building blocks for consumers to create service-oriented ar
 
 The library is designed around composable primitives:
 
-| Primitive | Composition Mechanism |
-|-----------|----------------------|
-| `HandlerOption` | Variadic opts pattern — `DecodeJSON`, `Authorize`, `NotifySuccess`, `WithTimeout` compose freely |
-| `Chain(mw1, mw2, ...)` | Middleware composition left-to-right |
-| `Response` builder | Fluent API — `PushURL().Trigger().NotifySuccess()` chains |
-| `Enforcer` interface | Adapter pattern — `*casbin.Enforcer`, mocks, fakes |
-| `ErrorHandler` | Strategy pattern — inject custom error handling |
-| `UserIDExtractor` | Function type — inject any auth source (JWT, session, API key) |
-| `RenderFunc` / `TemplComponent` | Duck-typed rendering — any template engine |
-| `KeyExtractor` | Function type — any rate-limit key source |
+| Primitive                       | Composition Mechanism                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `HandlerOption`                 | Variadic opts pattern — `DecodeJSON`, `Authorize`, `NotifySuccess`, `WithTimeout` compose freely |
+| `Chain(mw1, mw2, ...)`          | Middleware composition left-to-right                                                             |
+| `Response` builder              | Fluent API — `PushURL().Trigger().NotifySuccess()` chains                                        |
+| `Enforcer` interface            | Adapter pattern — `*casbin.Enforcer`, mocks, fakes                                               |
+| `ErrorHandler`                  | Strategy pattern — inject custom error handling                                                  |
+| `UserIDExtractor`               | Function type — inject any auth source (JWT, session, API key)                                   |
+| `RenderFunc` / `TemplComponent` | Duck-typed rendering — any template engine                                                       |
+| `KeyExtractor`                  | Function type — any rate-limit key source                                                        |
 
 **Composability Rating: 9/10** — Every extension point is an interface or function type.
 
@@ -113,28 +116,28 @@ The library is designed around composable primitives:
 
 ### Make more composable
 
-| # | Recommendation | Impact | Effort |
-|---|---------------|--------|--------|
-| 1 | Split `csrf.go` into `csrf.go` + `csrf_helpers.go` | File readability | Low |
-| 2 | Extract rate limiter max-keys config option | Production safety | Low |
-| 3 | Add `Response.RedirectWithStatus(code int)` for custom redirect codes | Composability | Low |
-| 4 | Consider `WithDecoder(d CommandDecoder)` for fully custom decoders | Extensibility | Low |
+| #   | Recommendation                                                        | Impact            | Effort |
+| --- | --------------------------------------------------------------------- | ----------------- | ------ |
+| 1   | Split `csrf.go` into `csrf.go` + `csrf_helpers.go`                    | File readability  | Low    |
+| 2   | Extract rate limiter max-keys config option                           | Production safety | Low    |
+| 3   | Add `Response.RedirectWithStatus(code int)` for custom redirect codes | Composability     | Low    |
+| 4   | Consider `WithDecoder(d CommandDecoder)` for fully custom decoders    | Extensibility     | Low    |
 
 ### Make more modular
 
-| # | Recommendation | Impact | Effort |
-|---|---------------|--------|--------|
-| 5 | Deduplicate HTMX accessor pattern (8 → 1 generic) | Maintainability | Low |
-| 6 | Deduplicate decoder pattern (4 → 1 generic) | Maintainability | Low |
-| 7 | Deduplicate notification surface (12 → shared impl) | Maintainability | Low |
+| #   | Recommendation                                      | Impact          | Effort |
+| --- | --------------------------------------------------- | --------------- | ------ |
+| 5   | Deduplicate HTMX accessor pattern (8 → 1 generic)   | Maintainability | Low    |
+| 6   | Deduplicate decoder pattern (4 → 1 generic)         | Maintainability | Low    |
+| 7   | Deduplicate notification surface (12 → shared impl) | Maintainability | Low    |
 
 ---
 
 ## Summary
 
-| Dimension | Rating | Key Insight |
-|-----------|--------|-------------|
-| Scalability | 8/10 | Stateless by design, minor bounded-state concern |
-| Modularity | 7/10 | Well-organized flat package, appropriate for library |
-| Composability | 9/10 | Every extension point is injectable |
-| Overall | **8/10** | Excellent library architecture with minor duplication |
+| Dimension     | Rating   | Key Insight                                           |
+| ------------- | -------- | ----------------------------------------------------- |
+| Scalability   | 8/10     | Stateless by design, minor bounded-state concern      |
+| Modularity    | 7/10     | Well-organized flat package, appropriate for library  |
+| Composability | 9/10     | Every extension point is injectable                   |
+| Overall       | **8/10** | Excellent library architecture with minor duplication |

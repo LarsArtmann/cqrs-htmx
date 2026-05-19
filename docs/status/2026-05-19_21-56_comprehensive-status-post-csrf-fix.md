@@ -108,12 +108,14 @@ cqrs-htmx is a Go library (NOT an application) that makes it easy to use go-cqrs
 ### gorilla/csrf v1.7.3 Regression — **FIXED**
 
 **What happened:**
+
 - Commit `fb51985` bumped gorilla/csrf from v1.7.2 to v1.7.3
 - v1.7.3 introduced a breaking behavior change: defaults to HTTPS mode, enforcing strict Origin/Referer checks for ALL requests unless marked plaintext via `csrf.PlaintextHTTPContextKey`
 - All httptest-based tests use plain HTTP (no TLS, no Origin/Referer headers)
 - 7 CSRF test specs failed with 403 instead of expected 200/204
 
 **Affected tests:**
+
 1. `CSRFMiddleware allows POST with valid CSRF token in header`
 2. `CSRFMiddleware allows POST with valid CSRF token in form field`
 3. `CSRFMiddleware validates PUT, PATCH, and DELETE methods`
@@ -123,11 +125,13 @@ cqrs-htmx is a Go library (NOT an application) that makes it easy to use go-cqrs
 7. `End-to-end CQRS + CSRFProtect per-handler allows command dispatch with CSRFProtect and valid token`
 
 **How it was fixed:**
+
 - `CSRFMiddleware` now detects non-TLS requests (`r.TLS == nil`) and wraps them with `csrf.PlaintextHTTPRequest(r)` before passing to gorilla/csrf
 - `executeCSRFValidation` applies the same detection for per-handler CSRF validation
 - This is transparent to consumers — no API changes
 
 **Previous attempt:**
+
 - Commit `ffd748e` downgraded to v1.7.2 (worked but was a workaround)
 - Commit `fb51985` re-upgraded to v1.7.3 without fixing the Origin/Referer checks (broke again)
 - Commits `9dcae5a` + `ec10211` properly fixed it with plaintext HTTP detection
@@ -173,48 +177,48 @@ cqrs-htmx is a Go library (NOT an application) that makes it easy to use go-cqrs
 
 ### P0 — Immediate (This Session)
 
-| #  | Item                                                      | Effort | Impact |
-| -- | --------------------------------------------------------- | ------ | ------ |
-| 1  | Add userID context to usermgmt error returns (8 sites)    | 1h     | HIGH   |
-| 2  | Raise usermgmt test coverage to 90%+                      | 2h     | HIGH   |
-| 3  | Implement rate limiter map cleanup (periodic eviction)     | 30m    | MED    |
-| 4  | Create docs/adr/ with ADR-001 through ADR-005             | 1h     | MED    |
+| #   | Item                                                   | Effort | Impact |
+| --- | ------------------------------------------------------ | ------ | ------ |
+| 1   | Add userID context to usermgmt error returns (8 sites) | 1h     | HIGH   |
+| 2   | Raise usermgmt test coverage to 90%+                   | 2h     | HIGH   |
+| 3   | Implement rate limiter map cleanup (periodic eviction) | 30m    | MED    |
+| 4   | Create docs/adr/ with ADR-001 through ADR-005          | 1h     | MED    |
 
 ### P1 — This Week
 
-| #  | Item                                                      | Effort | Impact |
-| -- | --------------------------------------------------------- | ------ | ------ |
-| 5  | Reduce test clone groups (40 → 15) via shared helpers     | 2h     | MED    |
-| 6  | Add fuzz tests for decoder and form parsing                | 1h     | MED    |
-| 7  | Expand benchmark suite (CSRF, rate limit, middleware)      | 1h     | MED    |
-| 8  | Fix hierarchical-errors blank identifier warnings (5 sites)| 30m    | LOW    |
-| 9  | Create CHANGELOG.md from git history                       | 1h     | MED    |
-| 10 | Add GitHub release workflow (tag-triggered)                 | 1h     | MED    |
+| #   | Item                                                        | Effort | Impact |
+| --- | ----------------------------------------------------------- | ------ | ------ |
+| 5   | Reduce test clone groups (40 → 15) via shared helpers       | 2h     | MED    |
+| 6   | Add fuzz tests for decoder and form parsing                 | 1h     | MED    |
+| 7   | Expand benchmark suite (CSRF, rate limit, middleware)       | 1h     | MED    |
+| 8   | Fix hierarchical-errors blank identifier warnings (5 sites) | 30m    | LOW    |
+| 9   | Create CHANGELOG.md from git history                        | 1h     | MED    |
+| 10  | Add GitHub release workflow (tag-triggered)                 | 1h     | MED    |
 
 ### P2 — Next Sprint
 
-| #  | Item                                                      | Effort | Impact |
-| -- | --------------------------------------------------------- | ------ | ------ |
-| 11 | Migrate to flake.nix build system                          | 2h     | MED    |
-| 12 | Add OpenTelemetry integration for lifecycle hooks           | 2h     | MED    |
-| 13 | Add SSE/EventStream helper for real-time updates            | 3h     | HIGH   |
-| 14 | Add cookie session store (not just in-memory)               | 2h     | HIGH   |
-| 15 | Add password reset flow to usermgmt                         | 2h     | MED    |
-| 16 | Add email verification flow to usermgmt                     | 2h     | MED    |
+| #   | Item                                              | Effort | Impact |
+| --- | ------------------------------------------------- | ------ | ------ |
+| 11  | Migrate to flake.nix build system                 | 2h     | MED    |
+| 12  | Add OpenTelemetry integration for lifecycle hooks | 2h     | MED    |
+| 13  | Add SSE/EventStream helper for real-time updates  | 3h     | HIGH   |
+| 14  | Add cookie session store (not just in-memory)     | 2h     | HIGH   |
+| 15  | Add password reset flow to usermgmt               | 2h     | MED    |
+| 16  | Add email verification flow to usermgmt           | 2h     | MED    |
 
 ### P3 — Backlog
 
-| #  | Item                                                      | Effort | Impact |
-| -- | --------------------------------------------------------- | ------ | ------ |
-| 17 | Move coverage.out to coverage/ directory                    | 5m     | LOW    |
-| 18 | Archive old docs/status/ reports                           | 10m    | LOW    |
-| 19 | Add godoc for all exported types (100% coverage)            | 2h     | MED    |
-| 20 | Add integration tests with real HTTP server (net/http/httptest) | 1h | MED    |
-| 21 | Create visual architecture diagram (D2)                     | 1h     | MED    |
-| 22 | Add configurable session cookie settings (HttpOnly, Secure) | 30m    | MED    |
-| 23 | Add OAuth2/OIDC integration hooks in usermgmt               | 3h     | HIGH   |
-| 24 | Add multi-tenancy support via Casbin domains                | 2h     | MED    |
-| 25 | Performance profiling and optimization pass                 | 2h     | LOW    |
+| #   | Item                                                            | Effort | Impact |
+| --- | --------------------------------------------------------------- | ------ | ------ |
+| 17  | Move coverage.out to coverage/ directory                        | 5m     | LOW    |
+| 18  | Archive old docs/status/ reports                                | 10m    | LOW    |
+| 19  | Add godoc for all exported types (100% coverage)                | 2h     | MED    |
+| 20  | Add integration tests with real HTTP server (net/http/httptest) | 1h     | MED    |
+| 21  | Create visual architecture diagram (D2)                         | 1h     | MED    |
+| 22  | Add configurable session cookie settings (HttpOnly, Secure)     | 30m    | MED    |
+| 23  | Add OAuth2/OIDC integration hooks in usermgmt                   | 3h     | HIGH   |
+| 24  | Add multi-tenancy support via Casbin domains                    | 2h     | MED    |
+| 25  | Performance profiling and optimization pass                     | 2h     | LOW    |
 
 ---
 
@@ -225,11 +229,13 @@ cqrs-htmx is a Go library (NOT an application) that makes it easy to use go-cqrs
 HTMX natively supports SSE via `hx-ext="sse"` and `sse-connect="/stream"`. The current library handles request-response patterns perfectly (command dispatch → HTML response), but real-time updates (notifications, progress, live data) require SSE.
 
 **Arguments for adding SSE:**
+
 - HTMX has first-class SSE support — a library bridging CQRS + HTMX should cover it
 - Event sourcing naturally produces event streams that map to SSE
 - Consumers currently have to build this themselves with no guidance
 
 **Arguments against:**
+
 - SSE is a fundamentally different pattern (long-lived connection) vs request-response
 - Adds complexity to the library's scope
 - Consumers may use WebSocket, Server-Sent Events, or polling — no one-size-fits-all
@@ -249,14 +255,14 @@ Build:            PASS | go vet: CLEAN | lint: 0 issues
 
 ## Dependency Status
 
-| Dependency              | Version  | Status       |
-| ----------------------- | -------- | ------------ |
-| go-cqrs-lite/core       | v1.2.0   | ✅ Current   |
-| casbin/casbin/v3        | v3.10.0  | ✅ Current   |
-| gorilla/csrf            | v1.7.3   | ✅ Fixed     |
-| cockroachdb/errors      | v1.13.0  | ✅ Current   |
-| golang.org/x/time       | v0.15.0  | ✅ Current   |
-| gorilla/securecookie    | v1.1.2   | ✅ Indirect  |
+| Dependency           | Version | Status      |
+| -------------------- | ------- | ----------- |
+| go-cqrs-lite/core    | v1.2.0  | ✅ Current  |
+| casbin/casbin/v3     | v3.10.0 | ✅ Current  |
+| gorilla/csrf         | v1.7.3  | ✅ Fixed    |
+| cockroachdb/errors   | v1.13.0 | ✅ Current  |
+| golang.org/x/time    | v0.15.0 | ✅ Current  |
+| gorilla/securecookie | v1.1.2  | ✅ Indirect |
 
 ## Files Changed This Session (commits since last push)
 

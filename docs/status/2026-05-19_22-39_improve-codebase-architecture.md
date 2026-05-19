@@ -33,6 +33,7 @@ Walked all 15 production modules. Applied the deletion test to each: "If I delet
 
 **Files:** `notify.go:17-78`, `response.go:121-146`
 **Problem:** The notification pattern `{level, message}` → `TriggerWithDetail` is implemented in three places:
+
 1. Package-level: `NotifySuccess/Error/Warning/Info` (4 functions)
 2. `NotifyEventBuilder`: `.Success/.Error/.Warning/.Info` (4 methods)
 3. `Response`: `.NotifySuccess/.NotifyError/.NotifyWarning/.NotifyInfo` (4 methods)
@@ -64,15 +65,15 @@ That's 12 functions doing the same thing: map a level+message to a TriggerWithDe
 
 ## Summary Table
 
-| # | Module | Depth Problem | Impact | Effort |
-|---|--------|--------------|--------|--------|
-| 1 | HTMX accessors | 8 shallow wrappers | Medium | Low |
-| 2 | Decoder pattern | 4 identical structures | High | Low |
-| 3 | Validation wrapping | 2 identical bodies | Medium | Low |
-| 4 | Notification surface | 12 duplicated functions | Medium | Low |
-| 5 | ID type pattern | 18 mechanical wrappers | Medium | Medium |
-| 6 | Logging extraction | 3 copy-paste blocks | Low | Low |
-| 7 | Error handler core | 2 shared skeletons | Low | Low |
+| #   | Module               | Depth Problem           | Impact | Effort |
+| --- | -------------------- | ----------------------- | ------ | ------ |
+| 1   | HTMX accessors       | 8 shallow wrappers      | Medium | Low    |
+| 2   | Decoder pattern      | 4 identical structures  | High   | Low    |
+| 3   | Validation wrapping  | 2 identical bodies      | Medium | Low    |
+| 4   | Notification surface | 12 duplicated functions | Medium | Low    |
+| 5   | ID type pattern      | 18 mechanical wrappers  | Medium | Medium |
+| 6   | Logging extraction   | 3 copy-paste blocks     | Low    | Low    |
+| 7   | Error handler core   | 2 shared skeletons      | Low    | Low    |
 
 ## Recommendation
 

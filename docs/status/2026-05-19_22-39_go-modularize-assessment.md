@@ -4,20 +4,20 @@
 
 ## Current State
 
-| Property | Value |
-|----------|-------|
-| Go modules | 2 (root + usermgmt) |
-| go.work | Yes, at root, includes `.` and `./usermgmt` |
-| Root packages | 1 flat package (`github.com/larsartmann/cqrs-htmx`) |
-| Production files | 15 |
-| Exported symbols | ~100 |
+| Property         | Value                                               |
+| ---------------- | --------------------------------------------------- |
+| Go modules       | 2 (root + usermgmt)                                 |
+| go.work          | Yes, at root, includes `.` and `./usermgmt`         |
+| Root packages    | 1 flat package (`github.com/larsartmann/cqrs-htmx`) |
+| Production files | 15                                                  |
+| Exported symbols | ~100                                                |
 
 ### Module Landscape
 
-| Module | Path | Direct Deps | Internal Deps | Replace |
-|--------|------|-------------|---------------|---------|
-| `cqrs-htmx` | `./` | go-cqrs-lite/core, casbin/v3, gorilla/csrf, cockroachdb/errors, golang.org/x/time | 0 | None |
-| `cqrs-htmx/usermgmt` | `./usermgmt` | casbin/v3, golang.org/x/crypto | 0 (does NOT import parent) | None |
+| Module               | Path         | Direct Deps                                                                       | Internal Deps              | Replace |
+| -------------------- | ------------ | --------------------------------------------------------------------------------- | -------------------------- | ------- |
+| `cqrs-htmx`          | `./`         | go-cqrs-lite/core, casbin/v3, gorilla/csrf, cockroachdb/errors, golang.org/x/time | 0                          | None    |
+| `cqrs-htmx/usermgmt` | `./usermgmt` | casbin/v3, golang.org/x/crypto                                                    | 0 (does NOT import parent) | None    |
 
 ### Starting State Classification: **Partial split** — usermgmt already has its own go.mod. Root is a flat single-package library.
 
@@ -40,7 +40,7 @@ A modularization proposal exists at `docs/modularization/PROPOSAL.md` (dated 202
 
 3. **Flat package = Go convention for small libraries**: The Go standard library and most successful Go libraries (e.g., `chi`, `gorilla/mux`) use a flat package for cohesive APIs. Splitting is only justified when the module has >10K LOC or genuinely independent subsystems.
 
-4. **The 80-symbol surface is manageable**: All symbols are in one namespace, but they're well-named with clear prefixes (CSRF*, HTMX*, Notify*, Authorize*, Enforce*). IDE autocompletion handles this fine.
+4. **The 80-symbol surface is manageable**: All symbols are in one namespace, but they're well-named with clear prefixes (CSRF*, HTMX*, Notify*, Authorize*, Enforce\*). IDE autocompletion handles this fine.
 
 5. **usermgmt split was correct**: The usermgmt submodule has a genuinely separate concern (user management with bcrypt, sessions, RBAC). It has its own types and doesn't import the parent. This is the right granularity for a sub-module.
 

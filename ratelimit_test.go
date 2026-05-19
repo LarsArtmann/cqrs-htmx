@@ -304,5 +304,32 @@ var _ = Describe("Rate Limiting", func() {
 			Expect(w2.Code).To(Equal(http.StatusServiceUnavailable))
 			Expect(w2.Body.String()).To(Equal("custom rejection"))
 		})
+		It("evicts oldest key when MaxKeys is exceeded", func() {
+			var allowed int
+			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+				Limit:        100,
+				Window:       time.Minute,
+				Burst:        100,
+				MaxKeys:      2,
+				TTL:          time.Hour,
+				KeyExtractor: func(r *http.Request) string { return r.Header.Get("X-Key") },
+				OnAllowed:    func(_ *http.Request) { allowed++ },
+			})
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			// Fill with 3 unique keys — MaxKeys=2 means key "a" is evicted when "c" arrives.
+			for _, key := range []string{"a", "b", "c"} {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				r.Header.Set("X-Key", key)
+				handler.ServeHTTP(w, r)
+				Expect(w.Code).To(Equal(http.StatusOK))
+			}
+
+			Expect(allowed).To(Equal(3))
+		})
 	})
 })

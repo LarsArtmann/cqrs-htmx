@@ -93,13 +93,13 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency          | Purpose                   |
-| ------------------- | ------------------------- |
-| go-cqrs-lite/core   | CQRS dispatch             |
-| casbin/casbin/v3    | Authorization             |
-| cockroachdb/errors  | Error handling            |
-| gorilla/csrf        | CSRF protection (v1.7.3+) |
-| go-branded-id       | Branded types (usermgmt)  |
+| Dependency         | Purpose                   |
+| ------------------ | ------------------------- |
+| go-cqrs-lite/core  | CQRS dispatch             |
+| casbin/casbin/v3   | Authorization             |
+| cockroachdb/errors | Error handling            |
+| gorilla/csrf       | CSRF protection (v1.7.3+) |
+| go-branded-id      | Branded types (usermgmt)  |
 
 ## Key Gotchas
 

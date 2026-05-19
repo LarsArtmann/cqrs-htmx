@@ -51,6 +51,10 @@ type RateLimiterConfig struct {
 	// TTL is how long an idle limiter entry is kept before eviction.
 	// Zero defaults to 10 minutes.
 	TTL time.Duration
+	// MaxKeys caps the number of tracked rate-limit keys.
+	// When exceeded, the oldest entry (by last access time) is evicted.
+	// Zero means no cap (unbounded growth).
+	MaxKeys int
 	// OnAllowed is called when a request passes rate limiting.
 	OnAllowed func(r *http.Request)
 	// OnRejected is called when a request is rejected due to rate limiting.
@@ -90,7 +94,7 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 		ttl = DefaultRateTTL
 	}
 
-	lim := newPerKeyLimiter(limit, cfg.Burst, cfg.KeyExtractor, retryAfter, ttl)
+	lim := newPerKeyLimiter(limit, cfg.Burst, cfg.KeyExtractor, retryAfter, ttl, cfg.MaxKeys)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -136,6 +140,7 @@ type perKeyLimiter struct {
 	keyExtractor KeyExtractor
 	limiters     map[string]*limiterEntry
 	ttl          time.Duration
+	maxKeys      int
 }
 
 func newPerKeyLimiter(
@@ -144,6 +149,7 @@ func newPerKeyLimiter(
 	extractor KeyExtractor,
 	retryAfter string,
 	ttl time.Duration,
+	maxKeys int,
 ) *perKeyLimiter {
 	return &perKeyLimiter{
 		mu:           sync.RWMutex{},
@@ -153,6 +159,7 @@ func newPerKeyLimiter(
 		keyExtractor: extractor,
 		limiters:     make(map[string]*limiterEntry),
 		ttl:          ttl,
+		maxKeys:      maxKeys,
 	}
 }
 
@@ -186,22 +193,43 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	// Evict stale entries while holding write lock.
+	p.evictStale()
+
+	if entry, ok := p.limiters[key]; ok {
+		entry.lastUsed = time.Now()
+		return entry.lim
+	}
+
+	p.evictOldestIfAtCapacity()
+
+	lim := rate.NewLimiter(p.limit, p.burst)
+	p.limiters[key] = &limiterEntry{lim: lim, lastUsed: time.Now()}
+
+	return lim
+}
+
+func (p *perKeyLimiter) evictStale() {
 	now := time.Now()
 	for k, v := range p.limiters {
 		if now.Sub(v.lastUsed) > p.ttl {
 			delete(p.limiters, k)
 		}
 	}
+}
 
-	// double-check after acquiring write lock
-	if entry, ok := p.limiters[key]; ok {
-		entry.lastUsed = time.Now()
-		return entry.lim
+func (p *perKeyLimiter) evictOldestIfAtCapacity() {
+	if p.maxKeys <= 0 || len(p.limiters) < p.maxKeys {
+		return
 	}
-
-	lim := rate.NewLimiter(p.limit, p.burst)
-	p.limiters[key] = &limiterEntry{lim: lim, lastUsed: time.Now()}
-
-	return lim
+	var oldestKey string
+	var oldestTime time.Time
+	first := true
+	for k, v := range p.limiters {
+		if first || v.lastUsed.Before(oldestTime) {
+			oldestKey = k
+			oldestTime = v.lastUsed
+			first = false
+		}
+	}
+	delete(p.limiters, oldestKey)
 }

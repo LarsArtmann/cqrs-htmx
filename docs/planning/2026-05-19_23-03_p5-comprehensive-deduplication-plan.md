@@ -9,45 +9,48 @@
 ## Pareto Breakdown
 
 ### 1% → 51% of Result (Correctness + Production Safety)
+
 Tasks 1–4 fix real bugs or production risks. Without these, deduplication is polishing broken glass.
 
 ### 4% → 64% of Result (High-Impact Deduplication)
+
 Tasks 5–14 eliminate the worst duplication. 22 functions collapse to ~5 generics + thin wrappers.
 
 ### 20% → 80% of Result (Medium Deduplication + Polish)
+
 Tasks 15–23 clean up remaining duplication and file organization.
 
 ---
 
 ## Task Table
 
-| # | Tier | Task | Files | Effort | Impact | Customer Value |
-|---|------|------|-------|--------|--------|----------------|
-| 1 | **1%** | Fix context mismatch: pass `ctx` from `handleQueryDispatch` to `applyQueryResponse` | `handler.go:112-167` | 5min | Critical correctness | Bug prevention |
-| 2 | **1%** | Add test for context timeout during query render error | `handler_test.go` or `timeout_test.go` | 10min | High | Regression protection |
-| 3 | **1%** | Add `MaxKeys` to `RateLimiterConfig` + eviction when exceeded | `ratelimit.go` | 10min | High | Production safety |
-| 4 | **1%** | Add test for rate limiter max-keys eviction | `ratelimit_test.go` | 10min | High | Regression protection |
-| 5 | **4%** | Extract generic `htmxBoolField(r, extract func, header) bool` + `htmxStringField(r, extract func, header) string` | `htmx.go` | 8min | High | 8→2 functions |
-| 6 | **4%** | Rewrite 8 HTMX accessor functions to delegate to generic helpers | `htmx.go` | 8min | High | Locality |
-| 7 | **4%** | Run tests to verify HTMX accessor refactor | — | 3min | Medium | Verification |
-| 8 | **4%** | Extract `decodeAndSet[T, R](bodyDec, mapper, setter)` generic decoder | `options.go` | 10min | High | 4→1 + 4 wrappers |
-| 9 | **4%** | Rewrite 4 Decode functions to delegate to generic | `options.go` | 8min | High | Locality |
-| 10 | **4%** | Run tests to verify decoder refactor | — | 3min | Medium | Verification |
-| 11 | **4%** | Extract `validateDispatch[T](decoder, validator, setter)` generic | `options.go` | 10min | High | 2→1 + 2 wrappers |
-| 12 | **4%** | Rewrite ValidateCommand/Query to delegate to generic | `options.go` | 5min | High | Locality |
-| 13 | **4%** | Run tests to verify validation refactor | — | 3min | Medium | Verification |
-| 14 | **4%** | Unify `notifyOption` and `triggerNotification` into single `notify(level, msg, event)` | `notify.go` + `response.go` | 10min | High | 2 impls → 1 |
-| 15 | **20%** | Extract `contextFields(r) map[string]string` from logging formatters | `logging.go` | 8min | Medium | 3 blocks → 1 |
-| 16 | **20%** | Rewrite 3 logging formatters to use `contextFields` | `logging.go` | 10min | Medium | Locality |
-| 17 | **20%** | Run tests to verify logging refactor | — | 3min | Medium | Verification |
-| 18 | **20%** | Extract `handleErrorCore(w, r, err, loginRedirect, writeBody)` from error handlers | `errors.go` | 10min | Medium | 2→1 + 2 wrappers |
-| 19 | **20%** | Rewrite both error handlers to delegate to core | `errors.go` | 8min | Medium | Locality |
-| 20 | **20%** | Run tests to verify error handler refactor | — | 3min | Medium | Verification |
-| 21 | **20%** | Extract `parseID[T](s string, parse func(string) (T, error), label string) (T, error)` generic | `context.go` | 8min | Medium | 3→1 |
-| 22 | **20%** | Rewrite 3 Parse functions to delegate to generic | `context.go` | 5min | Medium | Locality |
-| 23 | **20%** | Split `csrf.go`: move template helpers to `csrf_helpers.go` | `csrf.go` → `csrf.go` + `csrf_helpers.go` | 10min | Low | File readability |
-| 24 | **20%** | Fix nil context in usermgmt tests | `usermgmt/handler_test.go` | 5min | Low | Lint clean |
-| 25 | **20%** | Run full test suite (both modules) + lint | — | 5min | Critical | Final verification |
+| #   | Tier    | Task                                                                                                              | Files                                     | Effort | Impact               | Customer Value        |
+| --- | ------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ------ | -------------------- | --------------------- |
+| 1   | **1%**  | Fix context mismatch: pass `ctx` from `handleQueryDispatch` to `applyQueryResponse`                               | `handler.go:112-167`                      | 5min   | Critical correctness | Bug prevention        |
+| 2   | **1%**  | Add test for context timeout during query render error                                                            | `handler_test.go` or `timeout_test.go`    | 10min  | High                 | Regression protection |
+| 3   | **1%**  | Add `MaxKeys` to `RateLimiterConfig` + eviction when exceeded                                                     | `ratelimit.go`                            | 10min  | High                 | Production safety     |
+| 4   | **1%**  | Add test for rate limiter max-keys eviction                                                                       | `ratelimit_test.go`                       | 10min  | High                 | Regression protection |
+| 5   | **4%**  | Extract generic `htmxBoolField(r, extract func, header) bool` + `htmxStringField(r, extract func, header) string` | `htmx.go`                                 | 8min   | High                 | 8→2 functions         |
+| 6   | **4%**  | Rewrite 8 HTMX accessor functions to delegate to generic helpers                                                  | `htmx.go`                                 | 8min   | High                 | Locality              |
+| 7   | **4%**  | Run tests to verify HTMX accessor refactor                                                                        | —                                         | 3min   | Medium               | Verification          |
+| 8   | **4%**  | Extract `decodeAndSet[T, R](bodyDec, mapper, setter)` generic decoder                                             | `options.go`                              | 10min  | High                 | 4→1 + 4 wrappers      |
+| 9   | **4%**  | Rewrite 4 Decode functions to delegate to generic                                                                 | `options.go`                              | 8min   | High                 | Locality              |
+| 10  | **4%**  | Run tests to verify decoder refactor                                                                              | —                                         | 3min   | Medium               | Verification          |
+| 11  | **4%**  | Extract `validateDispatch[T](decoder, validator, setter)` generic                                                 | `options.go`                              | 10min  | High                 | 2→1 + 2 wrappers      |
+| 12  | **4%**  | Rewrite ValidateCommand/Query to delegate to generic                                                              | `options.go`                              | 5min   | High                 | Locality              |
+| 13  | **4%**  | Run tests to verify validation refactor                                                                           | —                                         | 3min   | Medium               | Verification          |
+| 14  | **4%**  | Unify `notifyOption` and `triggerNotification` into single `notify(level, msg, event)`                            | `notify.go` + `response.go`               | 10min  | High                 | 2 impls → 1           |
+| 15  | **20%** | Extract `contextFields(r) map[string]string` from logging formatters                                              | `logging.go`                              | 8min   | Medium               | 3 blocks → 1          |
+| 16  | **20%** | Rewrite 3 logging formatters to use `contextFields`                                                               | `logging.go`                              | 10min  | Medium               | Locality              |
+| 17  | **20%** | Run tests to verify logging refactor                                                                              | —                                         | 3min   | Medium               | Verification          |
+| 18  | **20%** | Extract `handleErrorCore(w, r, err, loginRedirect, writeBody)` from error handlers                                | `errors.go`                               | 10min  | Medium               | 2→1 + 2 wrappers      |
+| 19  | **20%** | Rewrite both error handlers to delegate to core                                                                   | `errors.go`                               | 8min   | Medium               | Locality              |
+| 20  | **20%** | Run tests to verify error handler refactor                                                                        | —                                         | 3min   | Medium               | Verification          |
+| 21  | **20%** | Extract `parseID[T](s string, parse func(string) (T, error), label string) (T, error)` generic                    | `context.go`                              | 8min   | Medium               | 3→1                   |
+| 22  | **20%** | Rewrite 3 Parse functions to delegate to generic                                                                  | `context.go`                              | 5min   | Medium               | Locality              |
+| 23  | **20%** | Split `csrf.go`: move template helpers to `csrf_helpers.go`                                                       | `csrf.go` → `csrf.go` + `csrf_helpers.go` | 10min  | Low                  | File readability      |
+| 24  | **20%** | Fix nil context in usermgmt tests                                                                                 | `usermgmt/handler_test.go`                | 5min   | Low                  | Lint clean            |
+| 25  | **20%** | Run full test suite (both modules) + lint                                                                         | —                                         | 5min   | Critical             | Final verification    |
 
 ---
 
