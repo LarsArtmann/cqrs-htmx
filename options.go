@@ -64,7 +64,7 @@ func (c *handlerConfig) hasNoExplicitBody() bool {
 
 // decodeAndSet creates a HandlerOption that decodes a request body and sets
 // the result on the handlerConfig. It collapses the 4 Decode* variants.
-func decodeAndSet[T any, R any](
+func decodeAndSet[T, R any](
 	bodyDec func(*http.Request, int64) (T, error),
 	mapper func(T) (R, error),
 	setter func(*handlerConfig, func(*http.Request) (R, error)),
