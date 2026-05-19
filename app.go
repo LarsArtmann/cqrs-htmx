@@ -114,6 +114,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 		}
 
 		r = a.enrichUserID(r)
+		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		a.handleCommandDispatch(w, r, cmdType, cfg)
 	})
 }
@@ -137,6 +138,7 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 		}
 
 		r = a.enrichUserID(r)
+		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		a.handleQueryDispatch(w, r, qryType, cfg)
 	})
 }

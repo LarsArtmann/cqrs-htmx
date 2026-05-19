@@ -4,7 +4,7 @@
 
 ## Status Legend
 
-- [ ] TODO
+- [ ] OPEN
 - [x] DONE
 - [~] PARTIALLY DONE
 - [-] NOT APPLICABLE

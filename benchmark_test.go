@@ -154,6 +154,48 @@ func BenchmarkRequestLogging(b *testing.B) {
 	})
 }
 
+func BenchmarkCSRFMiddleware(b *testing.B) {
+	//nolint:exhaustruct // test config intentionally uses defaults for other fields
+	cfg := cqrshtmx.CSRFConfig{Secret: []byte("a-32-byte-long-secret-key-goes-here")}
+	middleware := cqrshtmx.CSRFMiddleware(cfg)
+	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	b.Run("GET", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+		}
+	})
+
+	b.Run("POST-ValidToken", func(b *testing.B) {
+		// Obtain a token first
+		w1 := httptest.NewRecorder()
+		r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+		handler.ServeHTTP(w1, r1)
+		var token string
+		for _, c := range w1.Result().Cookies() {
+			if c.Name == "csrf_token" {
+				token = c.Value
+				break
+			}
+		}
+
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
+			r.Header.Set("X-CSRF-Token", token)
+			for _, c := range w1.Result().Cookies() {
+				r.AddCookie(c)
+			}
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+		}
+	})
+}
+
 func BenchmarkRateLimiterMiddleware(b *testing.B) {
 	b.Run("Global", func(b *testing.B) {
 		middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{

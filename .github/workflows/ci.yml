@@ -77,6 +77,14 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
           GOFLAGS: "-insecure"
 
+      - name: govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+        env:
+          GONOSUMCHECK: "github.com/larsartmann/*"
+          GOFLAGS: "-insecure"
+
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v3
         if: always()

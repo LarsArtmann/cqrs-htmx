@@ -254,4 +254,3 @@ func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfi
 
 	return resp.Apply()
 }
-

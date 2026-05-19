@@ -49,7 +49,7 @@ type RateLimiterConfig struct {
 // If the rate limit is exceeded the middleware responds with 429 Too Many
 // Requests and a Retry-After header in seconds.
 //
-// NOTE: The internal per-key limiter map grows unbounded. For deployments
+// The internal per-key limiter map grows unbounded. For deployments
 // with many unique keys (e.g., per-IP limiting on public-facing services),
 // consider wrapping this middleware with periodic cleanup or using a bounded
 // key space.

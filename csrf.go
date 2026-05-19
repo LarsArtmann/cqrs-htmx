@@ -268,6 +268,25 @@ func CSRFTokenFormField(r *http.Request) string {
 	) + `">`
 }
 
+// RotateCSRFToken invalidates the current CSRF cookie, forcing a new token
+// to be generated on the next request. Call this on login/logout to prevent
+// CSRF fixation attacks.
+func RotateCSRFToken(w http.ResponseWriter, cfg CSRFConfig) {
+	//nolint:gosec,exhaustruct // HttpOnly=false required for double-submit; http.Cookie has many optional fields
+	cookie := &http.Cookie{
+		Name:     cfg.cookieName(),
+		Value:    "",
+		MaxAge:   -1,
+		Expires:  time.Now().Add(-time.Hour),
+		Path:     cfg.path(),
+		Domain:   cfg.Domain,
+		Secure:   cfg.Secure,
+		HttpOnly: false,
+		SameSite: cfg.SameSite,
+	}
+	http.SetCookie(w, cookie)
+}
+
 // CSRFMiddleware returns HTTP middleware that implements double-submit cookie
 // CSRF protection with HTMX awareness.
 //
@@ -353,7 +372,7 @@ func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {
 // command or query handler. Use this instead of global CSRFMiddleware when you
 // want CSRF protection only on specific routes.
 //
-// NOTE: When CSRFMiddleware is applied globally, CSRFProtect is redundant
+// When CSRFMiddleware is applied globally, CSRFProtect is redundant
 // because gorilla/csrf already validates all state-changing requests.
 // CSRFProtect is only needed when you want per-handler protection WITHOUT
 // global middleware.
