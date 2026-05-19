@@ -201,7 +201,7 @@ func TestHandlers_BadRequestBody(t *testing.T) {
 
 func TestSessionMiddleware_Cookie(t *testing.T) {
 	svc := newTestService(t)
-	reg, _ := svc.Register(RegisterRequest{
+	reg, _ := svc.Register(context.Background(), RegisterRequest{
 		ID: "u1", Email: "mw@t.com", Password: "secret",
 	})
 
@@ -234,7 +234,7 @@ func TestSessionMiddleware_Cookie(t *testing.T) {
 
 func TestSessionMiddleware_BearerToken(t *testing.T) {
 	svc := newTestService(t)
-	reg, _ := svc.Register(RegisterRequest{
+	reg, _ := svc.Register(context.Background(), RegisterRequest{
 		ID: "u1", Email: "bt@t.com", Password: "secret",
 	})
 

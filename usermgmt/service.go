@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -69,7 +70,7 @@ type RegisterResponse struct {
 	Session *Session `json:"session"`
 }
 
-func (s *Service) Register(req RegisterRequest) (*RegisterResponse, error) {
+func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
 	existing, err := s.users.FindByEmail(req.Email)
 	if err == nil && existing != nil {
 		return nil, ErrEmailExists
@@ -110,7 +111,7 @@ type LoginResponse struct {
 	Session *Session `json:"session"`
 }
 
-func (s *Service) Login(req LoginRequest) (*LoginResponse, error) {
+func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
 	user, err := s.users.FindByEmail(req.Email)
 	if err != nil {
 		return nil, ErrInvalidCredentials
@@ -128,11 +129,11 @@ func (s *Service) Login(req LoginRequest) (*LoginResponse, error) {
 	return &LoginResponse{User: user, Session: session}, nil
 }
 
-func (s *Service) Logout(token string) error {
+func (s *Service) Logout(_ context.Context, token string) error {
 	return s.sessions.Delete(token)
 }
 
-func (s *Service) Authenticate(token string) (*User, error) {
+func (s *Service) Authenticate(_ context.Context, token string) (*User, error) {
 	session, err := s.sessions.Find(token)
 	if err != nil {
 		return nil, ErrUnauthorized
@@ -155,15 +156,15 @@ func (s *Service) Authenticate(token string) (*User, error) {
 	return user, nil
 }
 
-func (s *Service) Authorize(sub, dom, obj string, act Action) error {
+func (s *Service) Authorize(_ context.Context, sub, dom, obj string, act Action) error {
 	return s.authz.Authorize(sub, dom, obj, act)
 }
 
-func (s *Service) GetUser(id string) (*User, error) {
+func (s *Service) GetUser(_ context.Context, id string) (*User, error) {
 	return s.users.FindByID(id)
 }
 
-func (s *Service) UpdateRoles(userID string, roles []string, domain string) error {
+func (s *Service) UpdateRoles(_ context.Context, userID string, roles []string, domain string) error {
 	user, err := s.users.FindByID(userID)
 	if err != nil {
 		return err

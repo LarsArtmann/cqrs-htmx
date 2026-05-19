@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"context"
 	"errors"
 	"testing"
 )
@@ -21,7 +22,7 @@ func TestService_Register(t *testing.T) {
 		t.Fatalf("NewService: %v", err)
 	}
 
-	resp, err := svc.Register(RegisterRequest{
+	resp, err := svc.Register(context.Background(), RegisterRequest{
 		ID: "user-1", Email: "test@example.com",
 		Password: "secret123", DisplayName: "Test User",
 	})
@@ -41,9 +42,10 @@ func TestService_Register(t *testing.T) {
 
 func TestService_Register_DuplicateEmail(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
-	_, _ = svc.Register(RegisterRequest{ID: "u1", Email: "a@b.com", Password: "pass"})
+	ctx := context.Background()
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "u1", Email: "a@b.com", Password: "pass"})
 
-	_, err := svc.Register(RegisterRequest{ID: "u2", Email: "a@b.com", Password: "pass"})
+	_, err := svc.Register(ctx, RegisterRequest{ID: "u2", Email: "a@b.com", Password: "pass"})
 	if !errors.Is(err, ErrEmailExists) {
 		t.Errorf("expected ErrEmailExists, got %v", err)
 	}
@@ -51,9 +53,10 @@ func TestService_Register_DuplicateEmail(t *testing.T) {
 
 func TestService_Login(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
-	_, _ = svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	ctx := context.Background()
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
-	resp, err := svc.Login(LoginRequest{Email: "a@b.com", Password: "secret"})
+	resp, err := svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: "secret"})
 	if err != nil {
 		t.Fatalf("Login: %v", err)
 	}
@@ -67,9 +70,10 @@ func TestService_Login(t *testing.T) {
 
 func TestService_Login_WrongPassword(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
-	_, _ = svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	ctx := context.Background()
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
-	_, err := svc.Login(LoginRequest{Email: "a@b.com", Password: "wrong"})
+	_, err := svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: "wrong"})
 	if !errors.Is(err, ErrInvalidCredentials) {
 		t.Errorf("expected ErrInvalidCredentials, got %v", err)
 	}
@@ -77,9 +81,10 @@ func TestService_Login_WrongPassword(t *testing.T) {
 
 func TestService_Authenticate(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
-	reg, _ := svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	ctx := context.Background()
+	reg, _ := svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
-	user, err := svc.Authenticate(reg.Session.Token)
+	user, err := svc.Authenticate(ctx, reg.Session.Token)
 	if err != nil {
 		t.Fatalf("Authenticate: %v", err)
 	}
@@ -90,13 +95,14 @@ func TestService_Authenticate(t *testing.T) {
 
 func TestService_Logout(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
-	reg, _ := svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	ctx := context.Background()
+	reg, _ := svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
-	if err := svc.Logout(reg.Session.Token); err != nil {
+	if err := svc.Logout(ctx, reg.Session.Token); err != nil {
 		t.Fatalf("Logout: %v", err)
 	}
 
-	_, err := svc.Authenticate(reg.Session.Token)
+	_, err := svc.Authenticate(ctx, reg.Session.Token)
 	if err == nil {
 		t.Error("expected error after logout")
 	}
@@ -109,15 +115,16 @@ func TestService_Authorize(t *testing.T) {
 		),
 		BcryptCost: minBcryptCost,
 	})
-	_, _ = svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	ctx := context.Background()
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 	_ = svc.Authz().AddGroupPolicy(GroupPolicy{User: "user-1", Role: RoleOwner, Domain: "game-1"})
 
-	err := svc.Authorize("user-1", "game-1", "game.play_round", ActionExecute)
+	err := svc.Authorize(ctx, "user-1", "game-1", "game.play_round", ActionExecute)
 	if err != nil {
 		t.Fatalf("Authorize: %v", err)
 	}
 
-	err = svc.Authorize("user-1", "other-game", "game.play_round", ActionExecute)
+	err = svc.Authorize(ctx, "user-1", "other-game", "game.play_round", ActionExecute)
 	if err == nil {
 		t.Error("expected forbidden for wrong domain")
 	}
@@ -125,9 +132,10 @@ func TestService_Authorize(t *testing.T) {
 
 func TestService_UpdateRoles(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
-	_, _ = svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	ctx := context.Background()
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
-	if err := svc.UpdateRoles("user-1", []string{RoleAdmin}, "user-1"); err != nil {
+	if err := svc.UpdateRoles(ctx, "user-1", []string{RoleAdmin}, "user-1"); err != nil {
 		t.Fatalf("UpdateRoles: %v", err)
 	}
 
@@ -136,7 +144,7 @@ func TestService_UpdateRoles(t *testing.T) {
 		t.Error("expected admin user to have full access in their domain")
 	}
 
-	user, _ := svc.GetUser("user-1")
+	user, _ := svc.GetUser(ctx, "user-1")
 	if !user.HasRole(RoleAdmin) {
 		t.Error("expected admin role in user object")
 	}

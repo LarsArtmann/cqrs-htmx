@@ -54,7 +54,7 @@ func (h *AuthHandlers) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.service.Register(req)
+	resp, err := h.service.Register(r.Context(), req)
 	if err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
@@ -71,7 +71,7 @@ func (h *AuthHandlers) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.service.Login(req)
+	resp, err := h.service.Login(r.Context(), req)
 	if err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
@@ -88,7 +88,7 @@ func (h *AuthHandlers) handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Logout(token); err != nil {
+	if err := h.service.Logout(r.Context(), token); err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}

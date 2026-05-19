@@ -34,7 +34,7 @@ func SessionMiddleware(service *Service, cookieName string) func(http.Handler) h
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token := extractToken(r, cookieName)
 			if token != "" {
-				if user, err := service.Authenticate(token); err == nil {
+				if user, err := service.Authenticate(r.Context(), token); err == nil {
 					r = r.WithContext(WithUser(r.Context(), user))
 				}
 			}
