@@ -5,7 +5,7 @@ go 1.26.2
 require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/cockroachdb/errors v1.13.0
-	github.com/gorilla/csrf v1.7.3
+	github.com/gorilla/csrf v1.7.2
 	github.com/larsartmann/go-cqrs-lite/core v1.2.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0

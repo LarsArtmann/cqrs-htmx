@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -8,12 +9,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
-func (a *App) handleCommandDispatch(
+// dispatchContext runs the beforeDispatch hook and pre-dispatch checks.
+// Returns the (possibly modified) context, or skips with an error written to the response.
+// The second return value indicates whether pre-dispatch checks passed (nil = continue).
+func (a *App) dispatchContext(
 	w http.ResponseWriter,
 	r *http.Request,
-	cmdType command.Type,
 	cfg *handlerConfig,
-) {
+) (context.Context, error) {
 	ctx := r.Context()
 
 	if a.beforeDispatch != nil {
@@ -22,6 +25,20 @@ func (a *App) handleCommandDispatch(
 
 	if err := a.executePreDispatchChecks(w, r, cfg); err != nil {
 		a.afterDispatchHook(ctx, r, err)
+		return ctx, err
+	}
+
+	return ctx, nil
+}
+
+func (a *App) handleCommandDispatch(
+	w http.ResponseWriter,
+	r *http.Request,
+	cmdType command.Type,
+	cfg *handlerConfig,
+) {
+	ctx, err := a.dispatchContext(w, r, cfg)
+	if err != nil {
 		return
 	}
 
@@ -115,14 +132,8 @@ func (a *App) handleQueryDispatch(
 	qryType query.Type,
 	cfg *handlerConfig,
 ) {
-	ctx := r.Context()
-
-	if a.beforeDispatch != nil {
-		ctx = a.beforeDispatch(ctx, r)
-	}
-
-	if err := a.executePreDispatchChecks(w, r, cfg); err != nil {
-		a.afterDispatchHook(ctx, r, err)
+	ctx, err := a.dispatchContext(w, r, cfg)
+	if err != nil {
 		return
 	}
 
