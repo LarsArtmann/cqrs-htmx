@@ -453,6 +453,41 @@ resp := cqrshtmx.NewResponse(w, r)
 resp.CSRFToken(token).Apply()
 ```
 
+**Template Helpers** (for HTML/templ):
+
+```go
+// In your Go handler, pass helpers to template data:
+data := map[string]any{
+    "CSRFMeta":      cqrshtmx.CSRFTokenHTMLMeta(r),
+    "CSRFHXHeaders": cqrshtmx.CSRFTokenHXHeaders(r),
+    "CSRFToken":     cqrshtmx.CSRFTokenFromContext(r.Context()),
+}
+```
+
+```html
+<!-- HTML meta tag (in <head>) -->
+{{ .CSRFMeta }}
+
+<!-- HTMX global hx-headers (on <body>) -->
+<body {{ .CSRFHXHeaders }}>
+
+<!-- Standard HTML form hidden field -->
+<form method="POST" action="/game/create">
+    {{ cqrshtmx.CSRFTokenFormField .Request }}
+</form>
+```
+
+**Auto-inject token** (no handler changes needed):
+
+```go
+handler := cqrshtmx.Chain(
+    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+    cqrshtmx.CSRFResponseHeaderMiddleware, // auto-sets X-CSRF-Token on every response
+    cqrshtmx.HTMXMiddleware,
+    app.Middleware(),
+)(mux)
+```
+
 **Per-handler CSRF** (instead of global middleware):
 
 ```go
