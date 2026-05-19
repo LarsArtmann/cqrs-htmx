@@ -335,15 +335,19 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	protect := csrf.Protect(cfg.secret(), opts...)
 
 	return func(next http.Handler) http.Handler {
-		// Wrap gorilla/csrf's middleware to also store token in our context
-		return protect(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Extract gorilla/csrf's masked token and store in our context
-			// for template helpers and handlers that use CSRFTokenFromContext
+		inner := protect(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if token := csrf.Token(r); token != "" {
 				r = r.WithContext(WithCSRFToken(r.Context(), token))
 			}
 			next.ServeHTTP(w, r)
 		}))
+
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.TLS == nil {
+				r = csrf.PlaintextHTTPRequest(r)
+			}
+			inner.ServeHTTP(w, r)
+		})
 	}
 }
 
