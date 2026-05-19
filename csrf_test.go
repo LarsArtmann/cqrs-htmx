@@ -2,6 +2,7 @@ package cqrshtmx_test
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -572,6 +573,89 @@ var _ = Describe("CSRF Protection", func() {
 	Describe("ErrCSRFInvalid", func() {
 		It("maps to 403 Forbidden", func() {
 			Expect(cqrshtmx.MapError(cqrshtmx.ErrCSRFInvalid)).To(Equal(http.StatusForbidden))
+		})
+	})
+
+	Describe("RotateCSRFToken", func() {
+		It("sets an expired cookie to invalidate the token", func() {
+			w := httptest.NewRecorder()
+			cfg := cqrshtmx.CSRFConfig{Secret: []byte("a-32-byte-long-secret-key-goes-here")}
+			cqrshtmx.RotateCSRFToken(w, cfg)
+
+			cookies := w.Result().Cookies()
+			Expect(cookies).To(HaveLen(1))
+
+			cookie := cookies[0]
+			Expect(cookie.Name).To(Equal("csrf_token"))
+			Expect(cookie.Value).To(BeEmpty())
+			Expect(cookie.MaxAge).To(Equal(-1))
+			Expect(cookie.Expires).To(BeTemporally("<", time.Now()))
+		})
+
+		It("uses configured cookie name", func() {
+			w := httptest.NewRecorder()
+			cfg := cqrshtmx.CSRFConfig{
+				Secret:     []byte("a-32-byte-long-secret-key-goes-here"),
+				CookieName: "my_token",
+			}
+			cqrshtmx.RotateCSRFToken(w, cfg)
+
+			cookies := w.Result().Cookies()
+			Expect(cookies[0].Name).To(Equal("my_token"))
+		})
+
+		It("copies path, domain, secure, and samesite from config", func() {
+			w := httptest.NewRecorder()
+			cfg := cqrshtmx.CSRFConfig{
+				Secret:   []byte("a-32-byte-long-secret-key-goes-here"),
+				Path:     "/api",
+				Domain:   "example.com",
+				Secure:   true,
+				SameSite: http.SameSiteStrictMode,
+			}
+			cqrshtmx.RotateCSRFToken(w, cfg)
+
+			cookie := w.Result().Cookies()[0]
+			Expect(cookie.Path).To(Equal("/api"))
+			Expect(cookie.Domain).To(Equal("example.com"))
+			Expect(cookie.Secure).To(BeTrue())
+			Expect(cookie.SameSite).To(Equal(http.SameSiteStrictMode))
+		})
+	})
+
+	Describe("CSRFConfig.Validate", func() {
+		It("returns error when Secret is empty", func() {
+			cfg := cqrshtmx.CSRFConfig{}
+			err := cfg.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, cqrshtmx.ErrCSRFConfig)).To(BeTrue())
+		})
+
+		It("returns error when SameSite=None without Secure", func() {
+			cfg := cqrshtmx.CSRFConfig{
+				Secret:   []byte("a-32-byte-long-secret-key-goes-here"),
+				SameSite: http.SameSiteNoneMode,
+				Secure:   false,
+			}
+			err := cfg.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, cqrshtmx.ErrCSRFConfig)).To(BeTrue())
+		})
+
+		It("returns nil for valid config", func() {
+			cfg := cqrshtmx.CSRFConfig{
+				Secret: []byte("a-32-byte-long-secret-key-goes-here"),
+			}
+			Expect(cfg.Validate()).To(Succeed())
+		})
+
+		It("returns nil for SameSite=None with Secure", func() {
+			cfg := cqrshtmx.CSRFConfig{
+				Secret:   []byte("a-32-byte-long-secret-key-goes-here"),
+				SameSite: http.SameSiteNoneMode,
+				Secure:   true,
+			}
+			Expect(cfg.Validate()).To(Succeed())
 		})
 	})
 })

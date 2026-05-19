@@ -138,7 +138,7 @@ func (c *CSRFConfig) Validate() error {
 	}
 
 	if c.SameSite == http.SameSiteNoneMode && !c.Secure {
-		return fmt.Errorf("%w: SameSite=None requires Secure=true", ErrForbidden)
+		return fmt.Errorf("%w: SameSite=None requires Secure=true", ErrCSRFConfig)
 	}
 
 	return nil

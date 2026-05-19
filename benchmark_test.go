@@ -155,7 +155,6 @@ func BenchmarkRequestLogging(b *testing.B) {
 }
 
 func BenchmarkCSRFMiddleware(b *testing.B) {
-	//nolint:exhaustruct // test config intentionally uses defaults for other fields
 	cfg := cqrshtmx.CSRFConfig{Secret: []byte("a-32-byte-long-secret-key-goes-here")}
 	middleware := cqrshtmx.CSRFMiddleware(cfg)
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
