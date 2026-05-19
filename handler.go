@@ -121,10 +121,7 @@ func (a *App) applyQueryResponse(
 
 	if cfg.render != nil {
 		if err := cfg.render(w, r, result); err != nil {
-			a.errorHandler(w, r, err)
-			if a.afterDispatch != nil {
-				a.afterDispatch(r.Context(), r, err)
-			}
+			a.handleErr(w, r, r.Context(), err)
 			return
 		}
 	}

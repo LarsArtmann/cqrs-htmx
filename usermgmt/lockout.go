@@ -43,13 +43,15 @@ func NewAccountLockout(cfg ...LockoutConfig) *AccountLockout {
 }
 
 func (l *AccountLockout) IsLocked(email string) bool {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	lockedAt, ok := l.lockedAt[email]
 	if !ok {
 		return false
 	}
 	if time.Since(lockedAt) > l.config.Duration {
+		delete(l.lockedAt, email)
+		delete(l.attempts, email)
 		return false
 	}
 	return true
