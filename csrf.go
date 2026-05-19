@@ -302,7 +302,7 @@ func generateCSRFToken(secret []byte) string {
 
 // csrfTokenFromCookie retrieves the CSRF token from the request cookie.
 func csrfTokenFromCookie(r *http.Request, name string) (string, error) {
-		cookie, cookieErr := r.Cookie(name)
+	cookie, cookieErr := r.Cookie(name)
 	if cookieErr != nil {
 		return "", fmt.Errorf("csrf: get cookie: %w", cookieErr)
 	}

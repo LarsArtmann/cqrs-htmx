@@ -37,15 +37,15 @@ func defaultTLSConnectionState() tls.ConnectionState {
 		CipherSuite:                 0,
 		CurveID:                     0,
 		NegotiatedProtocol:          "",
-		NegotiatedProtocolIsMutual: false,
+		NegotiatedProtocolIsMutual:  false,
 		ServerName:                  "",
 		PeerCertificates:            nil,
-		VerifiedChains:             nil,
+		VerifiedChains:              nil,
 		SignedCertificateTimestamps: nil,
 		OCSPResponse:                nil,
 		TLSUnique:                   nil,
-		ECHAccepted:                false,
-		HelloRetryRequest:           nil,
+		ECHAccepted:                 false,
+		HelloRetryRequest:           false,
 	}
 }
 
