@@ -144,7 +144,6 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	p.mu.RUnlock()
 
 	if ok && time.Since(entry.lastUsed) < p.ttl {
-		entry.lastUsed = time.Now()
 		return entry.lim
 	}
 
