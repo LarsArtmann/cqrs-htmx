@@ -1,8 +1,10 @@
 package cqrshtmx
 
 import (
+	"bufio"
 	"encoding/json"
 	"log/slog"
+	"net"
 	"net/http"
 	"time"
 )
@@ -172,4 +174,17 @@ func (r *statusRecorder) Write(p []byte) (int, error) {
 	}
 
 	return r.ResponseWriter.Write(p) //nolint:wrapcheck // delegate to underlying ResponseWriter
+}
+
+func (r *statusRecorder) Flush() {
+	if f, ok := r.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+func (r *statusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if h, ok := r.ResponseWriter.(http.Hijacker); ok {
+		return h.Hijack()
+	}
+	return nil, nil, http.ErrNotSupported
 }
