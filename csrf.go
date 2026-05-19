@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"net/http/httptest"
 	"time"
 
 	"github.com/gorilla/csrf"
@@ -123,6 +124,24 @@ func (c *CSRFConfig) sameSite() csrf.SameSiteMode {
 	default:
 		return csrf.SameSiteLaxMode
 	}
+}
+
+// Validate checks the CSRF configuration for common misconfigurations.
+// Returns a non-nil error if the config would produce insecure or broken behavior.
+// Call this in production startup code to fail fast on misconfiguration.
+func (c *CSRFConfig) Validate() error {
+	if len(c.Secret) == 0 {
+		return fmt.Errorf(
+			"%w: CSRFConfig.Secret is empty: tokens will not persist across server restarts",
+			ErrEnforcerNil,
+		)
+	}
+
+	if c.SameSite == http.SameSiteNoneMode && !c.Secure {
+		return fmt.Errorf("%w: SameSite=None requires Secure=true", ErrForbidden)
+	}
+
+	return nil
 }
 
 func (c *CSRFConfig) secret() []byte {
@@ -363,7 +382,9 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, cfg *handlerC
 		return nil
 	}
 
-	// gorilla/csrf hasn't run; validate using a temporary middleware instance
+	// gorilla/csrf hasn't run; validate using a temporary middleware instance.
+	// We capture its response via httptest.ResponseRecorder to avoid writing
+	// directly to w, which would conflict with the caller's error handling.
 	opts := buildGorillaOptions(*cfg.csrfConfig)
 	protect := csrf.Protect(cfg.csrfConfig.secret(), opts...)
 
@@ -372,9 +393,19 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, cfg *handlerC
 		validated = true
 	})
 
-	protect(dummy).ServeHTTP(w, r)
+	rec := httptest.NewRecorder()
+	protect(dummy).ServeHTTP(rec, r)
 
 	if !validated {
+		// gorilla/csrf rejected the request; copy its status and headers
+		// to the real response so the client sees the same result.
+		for k, vv := range rec.Header() {
+			for _, v := range vv {
+				w.Header().Add(k, v)
+			}
+		}
+		w.WriteHeader(rec.Code)
+		_, _ = w.Write(rec.Body.Bytes())
 		return ErrCSRFInvalid
 	}
 

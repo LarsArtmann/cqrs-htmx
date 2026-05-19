@@ -2,11 +2,9 @@ package cqrshtmx
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
@@ -60,30 +58,6 @@ func (c *handlerConfig) hasNoExplicitBody() bool {
 	return c.redirect == "" && c.trigger == "" && c.pushURL == "" && len(c.triggerDetail) == 0
 }
 
-// decodeJSONBody decodes JSON from request body into type T.
-func decodeJSONBody[T any](r *http.Request) (out T, err error) {
-	if decodeErr := json.NewDecoder(r.Body).Decode(&out); decodeErr != nil {
-		return out, fmt.Errorf("%w: decode JSON: %w", ErrDecodeFailed, decodeErr)
-	}
-
-	return out, nil
-}
-
-// decodeRequest decodes and maps a request using the provided decoder and mapper.
-func decodeRequest[T, R any](
-	r *http.Request,
-	decode func(*http.Request) (T, error),
-	mapper func(T) (R, error),
-) (R, error) {
-	req, err := decode(r)
-	if err != nil {
-		var zero R
-		return zero, err
-	}
-
-	return mapper(req)
-}
-
 // DecodeJSON decodes a JSON request body into a command using the mapper.
 func DecodeJSON[T any](mapper func(T) (command.Command, error)) HandlerOption {
 	return func(cfg *handlerConfig) {
@@ -100,19 +74,6 @@ func DecodeJSONQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
 			return decodeRequest(r, decodeJSONBody[T], mapper)
 		}
 	}
-}
-
-// decodeFormBody parses form data and decodes into type T.
-func decodeFormBody[T any](r *http.Request) (out T, err error) {
-	if parseErr := r.ParseForm(); parseErr != nil {
-		return out, fmt.Errorf("%w: parse form: %w", ErrDecodeFailed, parseErr)
-	}
-
-	if decodeErr := decodeFormValues(r.Form, &out); decodeErr != nil {
-		return out, fmt.Errorf("%w: decode form values: %w", ErrDecodeFailed, decodeErr)
-	}
-
-	return out, nil
 }
 
 // DecodeForm decodes form data into a command using the mapper.
@@ -272,26 +233,6 @@ func ValidateQuery(validator func(query.Query) error) HandlerOption {
 	}
 }
 
-func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
-	if cfg.authMode == authNone {
-		return nil
-	}
-
-	userID := UserIDFromContext(r.Context())
-	if userID.IsZero() {
-		if cfg.authMode == authAuthorized {
-			return fmt.Errorf("%w: %s/%s", ErrUnauthorized, cfg.resource, cfg.action)
-		}
-		return ErrUnauthorized
-	}
-
-	if cfg.authMode == authAuthorized && a.enforcer != nil {
-		return Enforce(a.enforcer, userID.String(), cfg.resource, cfg.action)
-	}
-
-	return nil
-}
-
 func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) bool {
 	resp := NewResponse(w, r)
 
@@ -314,26 +255,3 @@ func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfi
 	return resp.Apply()
 }
 
-func decodeFormValues(form url.Values, target any) error {
-	jsonMap := make(map[string]any, len(form))
-	for key, values := range form {
-		if len(values) == 1 {
-			jsonMap[key] = values[0]
-		} else {
-			jsonMap[key] = values
-		}
-	}
-
-	encoded, err := json.Marshal(jsonMap)
-	if err != nil {
-		return fmt.Errorf("%w: marshal form values for keys=%v: %w", ErrDecodeFailed, form, err)
-	}
-
-	if err := json.Unmarshal(encoded, target); err != nil {
-		return fmt.Errorf(
-			"%w: unmarshal form values for target=%T: %w",
-			ErrDecodeFailed, target, err)
-	}
-
-	return nil
-}

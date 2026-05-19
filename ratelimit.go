@@ -85,14 +85,22 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 	}
 }
 
+// limiterEntry holds a rate.Limiter and its last access time for TTL eviction.
+type limiterEntry struct {
+	lim      *rate.Limiter
+	lastUsed time.Time
+}
+
 // perKeyLimiter holds a token-bucket limiter per extracted key.
+// Stale entries are evicted when the map is accessed after their TTL expires.
 type perKeyLimiter struct {
 	mu           sync.RWMutex
 	limit        rate.Limit
 	burst        int
 	retryAfter   string
 	keyExtractor KeyExtractor
-	limiters     map[string]*rate.Limiter
+	limiters     map[string]*limiterEntry
+	ttl          time.Duration
 }
 
 func newPerKeyLimiter(
@@ -107,7 +115,8 @@ func newPerKeyLimiter(
 		burst:        burst,
 		retryAfter:   retryAfter,
 		keyExtractor: extractor,
-		limiters:     make(map[string]*rate.Limiter),
+		limiters:     make(map[string]*limiterEntry),
+		ttl:          10 * time.Minute,
 	}
 }
 
@@ -131,22 +140,33 @@ func (p *perKeyLimiter) allow(r *http.Request) (bool, string) {
 
 func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	p.mu.RLock()
-	lim, ok := p.limiters[key]
+	entry, ok := p.limiters[key]
 	p.mu.RUnlock()
 
-	if ok {
-		return lim
+	if ok && time.Since(entry.lastUsed) < p.ttl {
+		entry.lastUsed = time.Now()
+		return entry.lim
 	}
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	// double-check after acquiring write lock
-	if lim, ok := p.limiters[key]; ok {
-		return lim
+
+	// Evict stale entries while holding write lock.
+	now := time.Now()
+	for k, v := range p.limiters {
+		if now.Sub(v.lastUsed) > p.ttl {
+			delete(p.limiters, k)
+		}
 	}
 
-	lim = rate.NewLimiter(p.limit, p.burst)
-	p.limiters[key] = lim
+	// double-check after acquiring write lock
+	if entry, ok := p.limiters[key]; ok {
+		entry.lastUsed = time.Now()
+		return entry.lim
+	}
+
+	lim := rate.NewLimiter(p.limit, p.burst)
+	p.limiters[key] = &limiterEntry{lim: lim, lastUsed: time.Now()}
 
 	return lim
 }

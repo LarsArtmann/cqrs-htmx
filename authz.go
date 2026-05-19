@@ -60,6 +60,26 @@ func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	return nil
 }
 
+func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
+	if cfg.authMode == authNone {
+		return nil
+	}
+
+	userID := UserIDFromContext(r.Context())
+	if userID.IsZero() {
+		if cfg.authMode == authAuthorized {
+			return fmt.Errorf("%w: %s/%s", ErrUnauthorized, cfg.resource, cfg.action)
+		}
+		return ErrUnauthorized
+	}
+
+	if cfg.authMode == authAuthorized && a.enforcer != nil {
+		return Enforce(a.enforcer, userID.String(), cfg.resource, cfg.action)
+	}
+
+	return nil
+}
+
 // AuthorizeMiddleware returns an HTTP middleware that checks Casbin authorization.
 // The subject is extracted from the context using the configured UserIDExtractor.
 // Auth errors are handled with HTMX awareness (HX-Redirect for auth failures).

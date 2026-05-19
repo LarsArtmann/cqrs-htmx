@@ -1,6 +1,7 @@
 package cqrshtmx_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -59,8 +60,7 @@ func csrfConfigWithSecret(secret []byte) cqrshtmx.CSRFConfig {
 func csrfGETThenPOST(
 	middleware func(http.Handler) http.Handler,
 	headerName, fieldName string,
-	method string,
-) (int, string) {
+) int {
 	var token string
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if token == "" {
@@ -70,17 +70,27 @@ func csrfGETThenPOST(
 	}))
 
 	w1 := httptest.NewRecorder()
-	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1 := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 	handler.ServeHTTP(w1, r1)
 
 	w2 := httptest.NewRecorder()
-	r2 := httptest.NewRequest(method, "/", strings.NewReader("{}"))
+	r2 := httptest.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"/",
+		strings.NewReader("{}"),
+	)
 	if headerName != "" {
 		r2.Header.Set(headerName, token)
 	}
 	if fieldName != "" {
 		body := fieldName + "=" + url.QueryEscape(token)
-		r2 = httptest.NewRequest(method, "/", strings.NewReader(body))
+		r2 = httptest.NewRequestWithContext(
+			context.Background(),
+			http.MethodPost,
+			"/",
+			strings.NewReader(body),
+		)
 		r2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 	for _, c := range w1.Result().Cookies() {
@@ -88,7 +98,7 @@ func csrfGETThenPOST(
 	}
 	handler.ServeHTTP(w2, r2)
 
-	return w2.Code, token
+	return w2.Code
 }
 
 var _ = Describe("CSRF Protection", func() {
@@ -129,13 +139,13 @@ var _ = Describe("CSRF Protection", func() {
 
 		It("allows POST with valid CSRF token in header", func() {
 			mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
-			code, _ := csrfGETThenPOST(mw, "X-CSRF-Token", "", http.MethodPost)
+			code := csrfGETThenPOST(mw, "X-CSRF-Token", "")
 			Expect(code).To(Equal(http.StatusOK))
 		})
 
 		It("allows POST with valid CSRF token in form field", func() {
 			mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
-			code, _ := csrfGETThenPOST(mw, "", "csrf_token", http.MethodPost)
+			code := csrfGETThenPOST(mw, "", "csrf_token")
 			Expect(code).To(Equal(http.StatusOK))
 		})
 
@@ -280,7 +290,7 @@ var _ = Describe("CSRF Protection", func() {
 			mw := cqrshtmx.CSRFMiddleware(csrfConfigWith(func(cfg *cqrshtmx.CSRFConfig) {
 				cfg.HeaderName = "X-Custom-CSRF"
 			}))
-			code, _ := csrfGETThenPOST(mw, "X-Custom-CSRF", "", http.MethodPost)
+			code := csrfGETThenPOST(mw, "X-Custom-CSRF", "")
 			Expect(code).To(Equal(http.StatusOK))
 		})
 
@@ -432,7 +442,7 @@ var _ = Describe("CSRF Protection", func() {
 		It("validates HMAC-signed token correctly", func() {
 			secret := []byte("a-32-byte-long-secret-key-goes-here")
 			mw := cqrshtmx.CSRFMiddleware(csrfConfigWithSecret(secret))
-			code, _ := csrfGETThenPOST(mw, "X-CSRF-Token", "", http.MethodPost)
+			code := csrfGETThenPOST(mw, "X-CSRF-Token", "")
 			Expect(code).To(Equal(http.StatusOK))
 		})
 	})
