@@ -23,6 +23,7 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 - **Error classification** — CQRS error families automatically map to HTTP status codes
 - **JSON or plain-text error handlers** — pluggable `ErrorHandler` with HTMX-aware auth redirects
 - **Notification system** — `NotifySuccess`/`NotifyError`/`NotifyWarning`/`NotifyInfo` with standard `{level, message}` payload; custom event names via `NotifyWithEvent`
+- **CSRF Protection** — double-submit cookie pattern with HTMX-aware `X-CSRF-Token` header validation
 
 ## Why
 
@@ -397,6 +398,7 @@ mux.Handle("/admin", cqrshtmx.AuthorizeMiddleware(
 
 // Chain multiple middleware
 chained := cqrshtmx.Chain(
+    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
     cqrshtmx.HTMXMiddleware,
     app.Middleware(),
 )(mux)
@@ -418,6 +420,46 @@ Use `JSONLogFormatter` for structured JSON output:
 handler := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
     log.Println(line)
 })(mux)
+```
+
+### CSRF Protection
+
+Double-submit cookie CSRF protection with HTMX awareness. Validates `X-CSRF-Token` header (or form field) on state-changing methods:
+
+```go
+handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+    CookieName: "csrf_token",
+    HeaderName: "X-CSRF-Token",
+    MaxAge:     24 * time.Hour,
+    Secure:     true, // auto-detected if omitted
+    SameSite:   http.SameSiteLaxMode,
+})
+```
+
+**HTMX Integration:**
+
+```html
+<!-- Set token globally for all HTMX requests -->
+<body hx-headers='{"X-CSRF-Token":"{{ .CSRFToken }}"}'>
+```
+
+```go
+// Pass token to templates from handler
+token := cqrshtmx.CSRFTokenFromContext(r.Context())
+// ... render template with token
+
+// Or use Response builder
+resp := cqrshtmx.NewResponse(w, r)
+resp.CSRFToken(token).Apply()
+```
+
+**Per-handler CSRF** (instead of global middleware):
+
+```go
+app.Command("CreateUser",
+    cqrshtmx.CSRFProtect(cqrshtmx.CSRFConfig{}),
+    cqrshtmx.DecodeJSON(...),
+)
 ```
 
 ### Rate Limiting

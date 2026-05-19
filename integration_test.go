@@ -19,6 +19,10 @@ import (
 
 const testUserJSON = `{"email":"alice@example.com","name":"Alice"}`
 
+type getPageQuery struct{}
+
+func (q *getPageQuery) Type() query.Type { return "GetPage" }
+
 func integrationCSRFConfig() cqrshtmx.CSRFConfig {
 	return cqrshtmx.CSRFConfig{
 		Secret:     nil,
@@ -424,7 +428,7 @@ var _ = Describe("Full Integration", func() {
 
 			qryHandler := qryApp.Query("GetPage",
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
-					return &bddDashboardQuery{}, nil
+					return &getPageQuery{}, nil
 				}),
 				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, _ any) error {
 					token := cqrshtmx.CSRFTokenFromContext(r.Context())
@@ -440,6 +444,7 @@ var _ = Describe("Full Integration", func() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/page", strings.NewReader("{}"))
+			r.Header.Set("Content-Type", "application/json")
 			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			handler.ServeHTTP(w, r)
 

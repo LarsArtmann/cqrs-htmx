@@ -32,6 +32,7 @@ cqrs-htmx/
 ├── htmx.go        # HTMXRequest struct, accessors, context storage, RenderPartial
 ├── notify.go      # Notification HandlerOptions + NotifyWithEvent builder
 ├── middleware.go   # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
+├── csrf.go        # CSRF token generation, CSRFMiddleware, CSRFProtect, context helpers
 ```
 
 ## Key Decisions
@@ -96,6 +97,8 @@ cqrs-htmx/
 23. **Benchmark/example lint exclusions**: `.golangci.yml` has `linters.exclusions.rules` for `(benchmark|example)_test\.go$` files — `intrange`, `noctx`, `nilnil` are relaxed for these files only; production code has no exclusions
 24. **GOWORK=off required**: A parent `go.work` exists at `../go.work` that doesn't include this module. All `go test`/`go build` commands need `GOWORK=off` or they fail with "directory prefix does not contain modules listed in go.work"
 25. **Rate limiter map grows unbounded**: `perKeyLimiter.limiters` is a `map[string]*rate.Limiter` with no cleanup. For deployments with many unique keys (e.g., per-IP limiting), this leaks memory over time. Consider a bounded key space or wrapping with periodic cleanup
+26. **CSRF Protection**: Double-submit cookie pattern via `CSRFMiddleware`. Validates `X-CSRF-Token` header (HTMX default) or form field on POST/PUT/PATCH/DELETE. `CSRFProtect()` for per-handler opt-in. `CSRFTokenFromContext()` for template integration. `Response.CSRFToken()` sets response header for frontend consumption. Secure defaults: `SameSite=Lax`, auto-detect `Secure`, `HttpOnly=false` (required for JS double-submit)
+27. **Middleware ordering**: `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` is the recommended order — CSRF first (sets cookie + context), then HTMX parsing, then user enrichment
 
 ## Test Commands
 
