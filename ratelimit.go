@@ -66,10 +66,10 @@ type RateLimiterConfig struct {
 // If the rate limit is exceeded the middleware responds with 429 Too Many
 // Requests and a Retry-After header in seconds.
 //
-// The internal per-key limiter map grows unbounded. For deployments
-// with many unique keys (e.g., per-IP limiting on public-facing services),
-// consider wrapping this middleware with periodic cleanup or using a bounded
-// key space.
+// The internal per-key limiter map uses TTL-based eviction (default 10 min).
+// Entries not accessed within the TTL are cleaned up on the next cache miss.
+// For very high cardinality key spaces, consider increasing the TTL or using
+// a bounded key extractor.
 func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 	if cfg.Limit <= 0 {
 		cfg.Limit = DefaultRateLimit
