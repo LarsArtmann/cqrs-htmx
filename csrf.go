@@ -122,7 +122,7 @@ func (c *CSRFConfig) errorHandler() ErrorHandler {
 	if c.ErrorHandler != nil {
 		return c.ErrorHandler
 	}
-	return func(w http.ResponseWriter, r *http.Request, err error) {
+	return func(w http.ResponseWriter, _ *http.Request, err error) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusForbidden)
 		_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
@@ -302,9 +302,9 @@ func generateCSRFToken(secret []byte) string {
 
 // csrfTokenFromCookie retrieves the CSRF token from the request cookie.
 func csrfTokenFromCookie(r *http.Request, name string) (string, error) {
-	cookie, err := r.Cookie(name)
-	if err != nil {
-		return "", err
+		cookie, cookieErr := r.Cookie(name)
+	if cookieErr != nil {
+		return "", fmt.Errorf("csrf: get cookie: %w", cookieErr)
 	}
 	return cookie.Value, nil
 }
@@ -312,14 +312,20 @@ func csrfTokenFromCookie(r *http.Request, name string) (string, error) {
 // setCSRFCookie writes the CSRF token cookie to the response.
 func setCSRFCookie(w http.ResponseWriter, cfg CSRFConfig, token string, secure bool) {
 	cookie := &http.Cookie{
-		Name:     cfg.cookieName(),
-		Value:    token,
-		Path:     cfg.path(),
-		MaxAge:   int(cfg.maxAge().Seconds()),
-		HttpOnly: false, // Must be readable by JavaScript for double-submit pattern
-		Secure:   secure,
-		SameSite: cfg.sameSite(),
-		Domain:   cfg.Domain,
+		Name:        cfg.cookieName(),
+		Value:       token,
+		Path:        cfg.path(),
+		MaxAge:      int(cfg.maxAge().Seconds()),
+		HttpOnly:    false, // Must be readable by JavaScript for double-submit pattern
+		Secure:      secure,
+		SameSite:    cfg.sameSite(),
+		Domain:      cfg.Domain,
+		Quoted:      false,
+		Expires:     time.Time{},
+		RawExpires:  "",
+		Partitioned: false,
+		Raw:         "",
+		Unparsed:    nil,
 	}
 
 	http.SetCookie(w, cookie)

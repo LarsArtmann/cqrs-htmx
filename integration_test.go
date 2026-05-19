@@ -373,9 +373,6 @@ var _ = Describe("Full Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			qryHandler := qryApp.Query("ListUsers",
-				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
-					return &bddListUsersQuery{}, nil
-				}),
 				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
 					w.Header().Set("Content-Type", "application/json")
 					return json.NewEncoder(w).Encode(result)
@@ -403,9 +400,6 @@ var _ = Describe("Full Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			qryHandler := qryApp.Query("GetPage",
-				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
-					return &bddDashboardQuery{}, nil
-				}),
 				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, result any) error {
 					token := cqrshtmx.CSRFTokenFromContext(r.Context())
 					resp := cqrshtmx.NewResponse(w, r)

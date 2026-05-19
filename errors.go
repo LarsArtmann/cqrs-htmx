@@ -42,15 +42,20 @@ func registerErrorClassifications() {
 	})
 }
 
-// MapError translates a CQRS error into an appropriate HTTP status code.
-//
-// Mapping:
-//   - Rejection family  → 400 Bad Request
-//   - Conflict family   → 409 Conflict
-//   - Corruption family → 422 Unprocessable Entity
-//   - Transient family  → 503 Service Unavailable
-//   - Infrastructure    → 500 Internal Server Error
-//   - nil or unknown    → 500 Internal Server Error
+var httpAuthStatus = map[error]int{
+	ErrUnauthorized: http.StatusUnauthorized,
+	ErrForbidden:    http.StatusForbidden,
+	ErrCSRFInvalid:  http.StatusForbidden,
+}
+
+var familyToStatus = map[event.Family]int{
+	event.Rejection:      http.StatusBadRequest,
+	event.Conflict:       http.StatusConflict,
+	event.Corruption:     http.StatusUnprocessableEntity,
+	event.Transient:      http.StatusServiceUnavailable,
+	event.Infrastructure: http.StatusInternalServerError,
+}
+
 func MapError(err error) int {
 	registerErrorClassifications()
 
@@ -58,33 +63,15 @@ func MapError(err error) int {
 		return http.StatusInternalServerError
 	}
 
-	if errors.Is(err, ErrUnauthorized) {
-		return http.StatusUnauthorized
-	}
-
-	if errors.Is(err, ErrForbidden) {
-		return http.StatusForbidden
-	}
-
-	if errors.Is(err, ErrCSRFInvalid) {
-		return http.StatusForbidden
+	if status, ok := httpAuthStatus[err]; ok {
+		return status
 	}
 
 	family := event.Classify(err)
-	switch family {
-	case event.Rejection:
-		return http.StatusBadRequest
-	case event.Conflict:
-		return http.StatusConflict
-	case event.Corruption:
-		return http.StatusUnprocessableEntity
-	case event.Transient:
-		return http.StatusServiceUnavailable
-	case event.Infrastructure:
-		return http.StatusInternalServerError
-	default:
-		return http.StatusInternalServerError
+	if status, ok := familyToStatus[family]; ok {
+		return status
 	}
+	return http.StatusInternalServerError
 }
 
 // ErrorHandler writes an HTTP error response with HTMX awareness.

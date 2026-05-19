@@ -5,17 +5,55 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
+func defaultCSRFConfig() cqrshtmx.CSRFConfig {
+	return cqrshtmx.CSRFConfig{
+		Secret:     nil,
+		CookieName: "",
+		HeaderName: "",
+		FieldName:  "",
+		MaxAge:     24 * time.Hour,
+		Secure:     false,
+		SameSite:   http.SameSiteLaxMode,
+		Domain:     "",
+		Path:       "/",
+		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+			w.WriteHeader(http.StatusForbidden)
+		},
+	}
+}
+
+func defaultTLSConnectionState() tls.ConnectionState {
+	return tls.ConnectionState{
+		Version:                     0,
+		HandshakeComplete:           false,
+		DidResume:                   false,
+		CipherSuite:                 0,
+		CurveID:                     0,
+		NegotiatedProtocol:          "",
+		NegotiatedProtocolIsMutual: false,
+		ServerName:                  "",
+		PeerCertificates:            nil,
+		VerifiedChains:             nil,
+		SignedCertificateTimestamps: nil,
+		OCSPResponse:                nil,
+		TLSUnique:                   nil,
+		ECHAccepted:                false,
+		HelloRetryRequest:           nil,
+	}
+}
+
 var _ = Describe("CSRF Protection", func() {
 	Describe("CSRFMiddleware", func() {
 		It("sets a CSRF token cookie on GET requests", func() {
-			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			}))
 
