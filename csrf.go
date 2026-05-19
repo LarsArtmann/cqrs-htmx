@@ -196,7 +196,11 @@ func CSRFTokenFormField(r *http.Request) string {
 	if token == "" {
 		return ""
 	}
-	return `<input type="hidden" name="` + html.EscapeString(defaultCSRFFieldName) + `" value="` + html.EscapeString(token) + `">`
+	return `<input type="hidden" name="` + html.EscapeString(
+		defaultCSRFFieldName,
+	) + `" value="` + html.EscapeString(
+		token,
+	) + `">`
 }
 
 // CSRFMiddleware returns HTTP middleware that implements double-submit cookie

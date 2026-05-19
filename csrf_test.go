@@ -445,6 +445,185 @@ var _ = Describe("CSRF Protection", func() {
 		})
 	})
 
+	Describe("HMAC-signed tokens with Secret", func() {
+		It("generates a different token when Secret is provided", func() {
+			middleware1 := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			middleware2 := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+				Secret: []byte("a-32-byte-long-secret-key-goes-here"),
+			})
+
+			var token1, token2 string
+			handler1 := middleware1(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				token1 = cqrshtmx.CSRFTokenFromContext(r.Context())
+				w.WriteHeader(http.StatusOK)
+			}))
+			handler2 := middleware2(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				token2 = cqrshtmx.CSRFTokenFromContext(r.Context())
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler1.ServeHTTP(w1, r1)
+
+			w2 := httptest.NewRecorder()
+			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler2.ServeHTTP(w2, r2)
+
+			Expect(token1).NotTo(BeEmpty())
+			Expect(token2).NotTo(BeEmpty())
+			Expect(token1).NotTo(Equal(token2))
+		})
+
+		It("validates HMAC-signed token correctly", func() {
+			secret := []byte("a-32-byte-long-secret-key-goes-here")
+			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+				Secret: secret,
+			})
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			// GET to obtain token
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w1, r1)
+
+			token := w1.Result().Cookies()[0].Value
+
+			// POST with token
+			w2 := httptest.NewRecorder()
+			r2 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
+			r2.Header.Set("X-CSRF-Token", token)
+			for _, c := range w1.Result().Cookies() {
+				r2.AddCookie(c)
+			}
+
+			handler.ServeHTTP(w2, r2)
+			Expect(w2.Code).To(Equal(http.StatusOK))
+		})
+	})
+
+	Describe("Custom Domain and Path", func() {
+		It("sets cookie with custom domain and path", func() {
+			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+				Domain: "example.com",
+				Path:   "/api",
+			})
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			cookies := w.Result().Cookies()
+			Expect(cookies[0].Domain).To(Equal("example.com"))
+			Expect(cookies[0].Path).To(Equal("/api"))
+		})
+	})
+
+	Describe("SameSite=NoneMode", func() {
+		It("sets SameSite=None when configured", func() {
+			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+				SameSite: http.SameSiteNoneMode,
+			})
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			cookies := w.Result().Cookies()
+			Expect(cookies[0].SameSite).To(Equal(http.SameSiteNoneMode))
+		})
+	})
+
+	Describe("CSRFTokenHTMLMeta helper", func() {
+		It("returns meta tag with escaped token", func() {
+			ctx := cqrshtmx.WithCSRFToken(GinkgoT().Context(), "test-token")
+			r := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
+			meta := cqrshtmx.CSRFTokenHTMLMeta(r)
+			Expect(meta).To(Equal(`<meta name="csrf-token" content="test-token">`))
+		})
+
+		It("returns empty string when no token in context", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			meta := cqrshtmx.CSRFTokenHTMLMeta(r)
+			Expect(meta).To(BeEmpty())
+		})
+
+		It("HTML-escapes the token", func() {
+			ctx := cqrshtmx.WithCSRFToken(GinkgoT().Context(), `<script>alert("xss")</script>`)
+			r := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
+			meta := cqrshtmx.CSRFTokenHTMLMeta(r)
+			Expect(meta).To(ContainSubstring(`&lt;script&gt;`))
+			Expect(meta).NotTo(ContainSubstring(`<script>`))
+		})
+	})
+
+	Describe("CSRFTokenHXHeaders helper", func() {
+		It("returns hx-headers attribute with escaped token", func() {
+			ctx := cqrshtmx.WithCSRFToken(GinkgoT().Context(), "test-token")
+			r := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
+			attr := cqrshtmx.CSRFTokenHXHeaders(r)
+			Expect(attr).To(Equal(`hx-headers='{"X-CSRF-Token":"test-token"}'`))
+		})
+
+		It("returns empty string when no token in context", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			attr := cqrshtmx.CSRFTokenHXHeaders(r)
+			Expect(attr).To(BeEmpty())
+		})
+	})
+
+	Describe("CSRFTokenFormField helper", func() {
+		It("returns hidden input with escaped token", func() {
+			ctx := cqrshtmx.WithCSRFToken(GinkgoT().Context(), "test-token")
+			r := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
+			field := cqrshtmx.CSRFTokenFormField(r)
+			Expect(field).To(Equal(`<input type="hidden" name="csrf_token" value="test-token">`))
+		})
+
+		It("returns empty string when no token in context", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			field := cqrshtmx.CSRFTokenFormField(r)
+			Expect(field).To(BeEmpty())
+		})
+	})
+
+	Describe("CSRFResponseHeaderMiddleware", func() {
+		It("sets X-CSRF-Token header when token is in context", func() {
+			middleware := cqrshtmx.CSRFResponseHeaderMiddleware
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			ctx := cqrshtmx.WithCSRFToken(GinkgoT().Context(), "response-token")
+			r := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Header().Get("X-CSRF-Token")).To(Equal("response-token"))
+		})
+
+		It("does not set header when no token is in context", func() {
+			middleware := cqrshtmx.CSRFResponseHeaderMiddleware
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Header().Get("X-CSRF-Token")).To(BeEmpty())
+		})
+	})
+
 	Describe("ErrCSRFInvalid", func() {
 		It("maps to 403 Forbidden", func() {
 			Expect(cqrshtmx.MapError(cqrshtmx.ErrCSRFInvalid)).To(Equal(http.StatusForbidden))
