@@ -1,6 +1,6 @@
 package usermgmt
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 var (
 	ErrUserNotFound       = errors.New("user not found")
