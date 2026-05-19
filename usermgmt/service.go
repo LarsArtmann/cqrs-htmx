@@ -216,20 +216,25 @@ func (s *Service) UpdateRoles(_ context.Context, userID string, roles []string, 
 		return fmt.Errorf("get roles: %w", err)
 	}
 
+	var remove []GroupPolicy
 	for _, role := range currentRoles {
-		if err := s.authz.RemoveGroupPolicy(GroupPolicy{
+		remove = append(remove, GroupPolicy{
 			User: userID, Role: role, Domain: domain,
-		}); err != nil {
-			return fmt.Errorf("revoke role %s: %w", role, err)
-		}
+		})
 	}
 
+	var add []GroupPolicy
 	for _, role := range roles {
-		if err := s.authz.AddGroupPolicy(GroupPolicy{
+		add = append(add, GroupPolicy{
 			User: userID, Role: role, Domain: domain,
-		}); err != nil {
-			return fmt.Errorf("assign role %s: %w", role, err)
-		}
+		})
+	}
+
+	if err := s.authz.Apply(PolicyUpdate{
+		RemoveGroups: remove,
+		AddGroups:    add,
+	}); err != nil {
+		return fmt.Errorf("apply role update: %w", err)
 	}
 
 	user.Roles = roles
