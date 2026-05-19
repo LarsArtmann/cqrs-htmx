@@ -87,14 +87,15 @@ cqrs-htmx/
 - **usermgmt ChangePassword**: `Service.ChangePassword(ctx, userID, oldPassword, newPassword)` — validates old password, minimum length
 - **usermgmt account lockout**: `ServiceConfig.Lockout` — configurable max attempts + duration, returns `ErrAccountLocked` (429)
 - **usermgmt immutable bcryptCost**: `ServiceConfig.BcryptCost` replaces mutable global variable
+- **gorilla/csrf v1.7.3 auto-detect**: `CSRFMiddleware` detects non-TLS requests (`r.TLS == nil`) and marks them as plaintext via `csrf.PlaintextHTTPRequest`, so v1.7.3's strict Origin/Referer checks don't break HTTP deployments or tests
 
 ## Dependencies
 
-| Dependency         | Purpose         |
-| ------------------ | --------------- |
-| go-cqrs-lite/core  | CQRS dispatch   |
-| casbin/casbin/v3   | Authorization   |
-| cockroachdb/errors | Error handling  |
+| Dependency         | Purpose                   |
+| ------------------ | ------------------------- |
+| go-cqrs-lite/core  | CQRS dispatch             |
+| casbin/casbin/v3   | Authorization             |
+| cockroachdb/errors | Error handling            |
 | gorilla/csrf       | CSRF protection (v1.7.3+) |
 
 ## Key Gotchas
@@ -129,6 +130,7 @@ cqrs-htmx/
 28. **CSRF token format**: gorilla/csrf uses masked tokens (XOR with one-time pad). The cookie contains the session token; the header/form must contain the masked token. Always use `CSRFTokenFromContext()` or template helpers (`CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`) to obtain the token for the frontend — never read the raw cookie value
 29. **gorilla/csrf Secret**: Requires a 32-byte key. `CSRFConfig.Secret` is padded to 32 bytes if shorter; if empty, a random key is generated per `CSRFMiddleware()` call (not persisted across restarts). For production, always provide a stable 32-byte secret
 30. **usermgmt submodule**: `usermgmt/` has its own `go.mod` and is an independent Go module. Tests run separately with `cd usermgmt && go test ./...`. Uses bcrypt cost 12 in production (cost 4 in tests via `main_test.go`). Casbin model uses `some(where (p.eft == allow)) && !some(where (p.eft == deny))` — casbin v3 only recognizes this exact ordering, NOT the reverse
+31. **gorilla/csrf v1.7.3 Origin/Referer enforcement**: v1.7.3 defaults to HTTPS mode, enforcing strict Origin/Referer checks even for non-TLS requests. `CSRFMiddleware` and `executeCSRFValidation` automatically detect non-TLS requests (`r.TLS == nil`) and mark them as plaintext via `csrf.PlaintextHTTPRequest`, disabling the strict checks for HTTP deployments. No consumer action needed
 
 ## Test Commands
 
