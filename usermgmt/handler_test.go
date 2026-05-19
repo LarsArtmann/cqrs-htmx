@@ -311,7 +311,7 @@ func TestErrorStatus(t *testing.T) {
 }
 
 func TestUserFromContext_Nil(t *testing.T) {
-	user, ok := UserFromContext(nil)
+	user, ok := UserFromContext(nil) //nolint:staticcheck // intentional nil test
 	if ok || user != nil {
 		t.Error("expected nil/false from nil context")
 	}
@@ -319,7 +319,7 @@ func TestUserFromContext_Nil(t *testing.T) {
 
 func TestUserFromContextOr_Fallback(t *testing.T) {
 	fallback := &User{ID: "fallback"}
-	result := UserFromContextOr(nil, fallback)
+	result := UserFromContextOr(nil, fallback) //nolint:staticcheck // intentional nil test
 	if result != fallback {
 		t.Error("expected fallback")
 	}

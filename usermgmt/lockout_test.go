@@ -17,7 +17,7 @@ func TestAccountLockout_NotLockedByDefault(t *testing.T) {
 func TestAccountLockout_LocksAfterMaxAttempts(t *testing.T) {
 	l := NewAccountLockout(LockoutConfig{MaxAttempts: 3, Duration: time.Minute})
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		if l.RecordFailure("test@example.com") {
 			t.Errorf("expected not locked after attempt %d", i+1)
 		}
