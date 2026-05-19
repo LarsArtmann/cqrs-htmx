@@ -17,7 +17,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const testUserJSON = `{"email":"alice@example.com","name":"Alice"}`
+const (
+	testUserJSON = `{"email":"alice@example.com","name":"Alice"}`
+	emailKey     = "email"
+)
 
 type getPageQuery struct{}
 
@@ -145,8 +148,8 @@ var _ = Describe("Full Integration", func() {
 			disp := query.NewDispatcher()
 			_ = disp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
 				return []map[string]string{
-					{"email": "a@b.com", "name": "Alice"},
-					{"email": "c@d.com", "name": "Carol"},
+					{emailKey: "a@b.com", testNameKey: aliceName},
+					{emailKey: "c@d.com", testNameKey: "Carol"},
 				}, nil
 			})
 
@@ -174,7 +177,7 @@ var _ = Describe("Full Integration", func() {
 
 			handler.ServeHTTP(w, r)
 			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+			Expect(w.Body.String()).To(ContainSubstring(aliceName))
 		})
 	})
 
@@ -396,7 +399,7 @@ var _ = Describe("Full Integration", func() {
 		It("allows GET queries without CSRF token", func() {
 			qryDisp := query.NewDispatcher()
 			_ = qryDisp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
-				return []bddUser{{Email: "alice@example.com", Name: "Alice"}}, nil
+				return []bddUser{{Email: aliceEmail, Name: aliceName}}, nil
 			})
 
 			qryApp, err := cqrshtmx.New(cqrshtmx.Config{Queries: qryDisp})
@@ -420,7 +423,7 @@ var _ = Describe("Full Integration", func() {
 			handler.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+			Expect(w.Body.String()).To(ContainSubstring(aliceName))
 		})
 
 		It("sets CSRF token in response header for frontend consumption", func() {

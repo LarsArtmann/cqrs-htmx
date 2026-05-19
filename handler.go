@@ -25,6 +25,12 @@ func (a *App) handleCommandDispatch(
 		return
 	}
 
+	if cfg.commandDecoder == nil {
+		a.errorHandler(w, r, errDecoderMissing)
+		a.afterDispatchHook(ctx, r, errDecoderMissing)
+		return
+	}
+
 	cmd, err := cfg.commandDecoder(r)
 	if err != nil {
 		a.errorHandler(w, r, err)

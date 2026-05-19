@@ -97,7 +97,7 @@ func BenchmarkCommandDispatch(b *testing.B) {
 func BenchmarkQueryDispatch(b *testing.B) {
 	disp := query.NewDispatcher()
 	_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-		return map[string]string{"email": "test@example.com"}, nil
+		return map[string]string{testEmailKey: testEmailValue}, nil
 	})
 
 	app, _ := cqrshtmx.New(cqrshtmx.Config{Queries: disp})

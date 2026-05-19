@@ -159,6 +159,7 @@ func (resp *Response) Apply() bool {
 	if resp.redirectURL != "" {
 		redirectURL, safe := sanitizeRedirectURL(resp.redirectURL)
 		if safe {
+			//nolint:gosec // G710: sanitizeRedirectURL validates URL is safe (relative path only)
 			http.Redirect(resp.w, resp.r, redirectURL, http.StatusSeeOther)
 			return true
 		}

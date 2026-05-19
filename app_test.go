@@ -18,7 +18,12 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const testUserJSONBody = `{"email":"test@example.com","name":"Test"}`
+const (
+	testUserJSONBody = `{"email":"test@example.com","name":"Test"}`
+	testEmailKey     = "email"
+	testNameKey      = "name"
+	testEmailValue   = "test@example.com"
+)
 
 // Test user IDs — valid ULIDs used as Casbin policy subjects.
 //
@@ -298,7 +303,7 @@ var _ = Describe("App", func() {
 		BeforeEach(func() {
 			disp := query.NewDispatcher()
 			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return map[string]string{"email": "test@example.com", "name": "Test"}, nil
+				return map[string]string{testEmailKey: testEmailValue, testNameKey: "Test"}, nil
 			})
 
 			var err error
@@ -325,7 +330,7 @@ var _ = Describe("App", func() {
 
 			var result map[string]string
 			Expect(json.NewDecoder(w.Body).Decode(&result)).To(Succeed())
-			Expect(result["email"]).To(Equal("test@example.com"))
+			Expect(result[testEmailKey]).To(Equal(testEmailValue))
 		})
 	})
 
@@ -340,7 +345,7 @@ var _ = Describe("App", func() {
 			enf = newTestEnforcer()
 			disp = query.NewDispatcher()
 			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return map[string]string{"email": "test@example.com"}, nil
+				return map[string]string{testEmailKey: testEmailValue}, nil
 			})
 
 			var err error

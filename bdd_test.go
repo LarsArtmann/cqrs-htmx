@@ -19,6 +19,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const (
+	aliceName  = "Alice"
+	aliceEmail = "alice@example.com"
+)
+
 type bddCreateUserReq struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
@@ -210,7 +215,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 		It("maps query results to typed templ components", func() {
 			disp := query.NewDispatcher()
 			users := []bddUser{
-				{Email: "alice@example.com", Name: "Alice"},
+				{Email: aliceEmail, Name: aliceName},
 				{Email: "bob@example.com", Name: "Bob"},
 			}
 			_ = disp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
@@ -242,7 +247,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			handler.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+			Expect(w.Body.String()).To(ContainSubstring(aliceName))
 			Expect(w.Body.String()).To(ContainSubstring("Bob"))
 			Expect(w.Body.String()).To(ContainSubstring("<ul>"))
 		})
@@ -396,7 +401,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			handler.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusNoContent))
-			Expect(receivedName).To(Equal("Alice"))
+			Expect(receivedName).To(Equal(aliceName))
 		})
 	})
 
@@ -404,7 +409,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 		It("decodes URL-encoded form data into a query", func() {
 			disp := query.NewDispatcher()
 			_ = disp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
-				return []string{"Alice"}, nil
+				return []string{aliceName}, nil
 			})
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
@@ -425,7 +430,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			handler.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+			Expect(w.Body.String()).To(ContainSubstring(aliceName))
 		})
 	})
 
@@ -434,7 +439,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			disp := query.NewDispatcher()
 			_ = disp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
 				return []bddUser{
-					{Email: "alice@example.com", Name: "Alice"},
+					{Email: aliceEmail, Name: aliceName},
 				}, nil
 			})
 
@@ -459,7 +464,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			Expect(w.Code).To(Equal(http.StatusOK))
 			var users []bddUser
 			Expect(json.NewDecoder(w.Body).Decode(&users)).To(Succeed())
-			Expect(users[0].Name).To(Equal("Alice"))
+			Expect(users[0].Name).To(Equal(aliceName))
 		})
 	})
 })

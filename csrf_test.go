@@ -30,6 +30,67 @@ func defaultCSRFConfig() cqrshtmx.CSRFConfig {
 	}
 }
 
+// csrfConfigWith returns a copy of defaultCSRFConfig with the given overrides applied.
+func csrfConfigWith(overrides func(*cqrshtmx.CSRFConfig)) cqrshtmx.CSRFConfig {
+	cfg := defaultCSRFConfig()
+	overrides(&cfg)
+	return cfg
+}
+
+// csrfConfigWithSecret returns a CSRFConfig with the given secret and zero MaxAge/SameSite/Path.
+func csrfConfigWithSecret(secret []byte) cqrshtmx.CSRFConfig {
+	return cqrshtmx.CSRFConfig{
+		Secret:         secret,
+		CookieName:     "",
+		HeaderName:     "",
+		FieldName:      "",
+		MaxAge:         0,
+		Secure:         false,
+		SameSite:       0,
+		Domain:         "",
+		Path:           "",
+		TrustedOrigins: nil,
+		ErrorHandler:   nil,
+	}
+}
+
+// csrfGETThenPOST performs the common CSRF test pattern:
+// GET to obtain a masked token, then POST with the token in the specified header/field.
+func csrfGETThenPOST(
+	middleware func(http.Handler) http.Handler,
+	headerName, fieldName string,
+	method string,
+) (int, string) {
+	var token string
+	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if token == "" {
+			token = cqrshtmx.CSRFTokenFromContext(r.Context())
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	w1 := httptest.NewRecorder()
+	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	handler.ServeHTTP(w1, r1)
+
+	w2 := httptest.NewRecorder()
+	r2 := httptest.NewRequest(method, "/", strings.NewReader("{}"))
+	if headerName != "" {
+		r2.Header.Set(headerName, token)
+	}
+	if fieldName != "" {
+		body := fieldName + "=" + url.QueryEscape(token)
+		r2 = httptest.NewRequest(method, "/", strings.NewReader(body))
+		r2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+	for _, c := range w1.Result().Cookies() {
+		r2.AddCookie(c)
+	}
+	handler.ServeHTTP(w2, r2)
+
+	return w2.Code, token
+}
+
 var _ = Describe("CSRF Protection", func() {
 	Describe("CSRFMiddleware", func() {
 		It("sets a CSRF token cookie on GET requests", func() {
@@ -67,66 +128,15 @@ var _ = Describe("CSRF Protection", func() {
 		})
 
 		It("allows POST with valid CSRF token in header", func() {
-			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
-			var token string
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if token == "" {
-					token = cqrshtmx.CSRFTokenFromContext(r.Context())
-				}
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			// First GET to obtain masked token
-			w1 := httptest.NewRecorder()
-			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
-
-			Expect(token).NotTo(BeEmpty())
-
-			// POST with token in header
-			w2 := httptest.NewRecorder()
-			r2 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
-			r2.Header.Set("X-CSRF-Token", token)
-
-			// Copy cookie to POST request
-			for _, c := range w1.Result().Cookies() {
-				r2.AddCookie(c)
-			}
-
-			handler.ServeHTTP(w2, r2)
-			Expect(w2.Code).To(Equal(http.StatusOK))
+			mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
+			code, _ := csrfGETThenPOST(mw, "X-CSRF-Token", "", http.MethodPost)
+			Expect(code).To(Equal(http.StatusOK))
 		})
 
 		It("allows POST with valid CSRF token in form field", func() {
-			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
-			var token string
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if token == "" {
-					token = cqrshtmx.CSRFTokenFromContext(r.Context())
-				}
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			// First GET to obtain masked token
-			w1 := httptest.NewRecorder()
-			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
-
-			Expect(token).NotTo(BeEmpty())
-
-			// POST with token in form field
-			w2 := httptest.NewRecorder()
-			body := "csrf_token=" + url.QueryEscape(token)
-			r2 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-			r2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-			// Copy cookie to POST request
-			for _, c := range w1.Result().Cookies() {
-				r2.AddCookie(c)
-			}
-
-			handler.ServeHTTP(w2, r2)
-			Expect(w2.Code).To(Equal(http.StatusOK))
+			mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
+			code, _ := csrfGETThenPOST(mw, "", "csrf_token", http.MethodPost)
+			Expect(code).To(Equal(http.StatusOK))
 		})
 
 		It("rejects POST without CSRF token", func() {
@@ -250,21 +260,9 @@ var _ = Describe("CSRF Protection", func() {
 		})
 
 		It("uses custom cookie name when configured", func() {
-			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
-				Secret:         nil,
-				CookieName:     "my_csrf",
-				HeaderName:     "",
-				FieldName:      "",
-				MaxAge:         24 * time.Hour,
-				Secure:         false,
-				SameSite:       http.SameSiteLaxMode,
-				Domain:         "",
-				Path:           "/",
-				TrustedOrigins: nil,
-				ErrorHandler: func(w http.ResponseWriter, _ *http.Request, _ error) {
-					w.WriteHeader(http.StatusForbidden)
-				},
-			})
+			middleware := cqrshtmx.CSRFMiddleware(csrfConfigWith(func(cfg *cqrshtmx.CSRFConfig) {
+				cfg.CookieName = "my_csrf"
+			}))
 			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			}))
@@ -279,67 +277,22 @@ var _ = Describe("CSRF Protection", func() {
 		})
 
 		It("uses custom header name when configured", func() {
-			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
-				Secret:         nil,
-				CookieName:     "",
-				HeaderName:     "X-Custom-CSRF",
-				FieldName:      "",
-				MaxAge:         24 * time.Hour,
-				Secure:         false,
-				SameSite:       http.SameSiteLaxMode,
-				Domain:         "",
-				Path:           "/",
-				TrustedOrigins: nil,
-				ErrorHandler: func(w http.ResponseWriter, _ *http.Request, _ error) {
-					w.WriteHeader(http.StatusForbidden)
-				},
-			})
-			var token string
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if token == "" {
-					token = cqrshtmx.CSRFTokenFromContext(r.Context())
-				}
-				w.WriteHeader(http.StatusOK)
+			mw := cqrshtmx.CSRFMiddleware(csrfConfigWith(func(cfg *cqrshtmx.CSRFConfig) {
+				cfg.HeaderName = "X-Custom-CSRF"
 			}))
-
-			// First GET to obtain masked token
-			w1 := httptest.NewRecorder()
-			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
-
-			Expect(token).NotTo(BeEmpty())
-
-			// POST with custom header
-			w2 := httptest.NewRecorder()
-			r2 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
-			r2.Header.Set("X-Custom-CSRF", token)
-			for _, c := range w1.Result().Cookies() {
-				r2.AddCookie(c)
-			}
-
-			handler.ServeHTTP(w2, r2)
-			Expect(w2.Code).To(Equal(http.StatusOK))
+			code, _ := csrfGETThenPOST(mw, "X-Custom-CSRF", "", http.MethodPost)
+			Expect(code).To(Equal(http.StatusOK))
 		})
 
 		It("uses custom error handler on failure", func() {
 			customCalled := false
-			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
-				Secret:         nil,
-				CookieName:     "",
-				HeaderName:     "",
-				FieldName:      "",
-				MaxAge:         24 * time.Hour,
-				Secure:         false,
-				SameSite:       http.SameSiteLaxMode,
-				Domain:         "",
-				Path:           "/",
-				TrustedOrigins: nil,
-				ErrorHandler: func(w http.ResponseWriter, _ *http.Request, _ error) {
+			middleware := cqrshtmx.CSRFMiddleware(csrfConfigWith(func(cfg *cqrshtmx.CSRFConfig) {
+				cfg.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, _ error) {
 					customCalled = true
 					w.WriteHeader(http.StatusTeapot)
 					_, _ = w.Write([]byte("custom csrf error"))
-				},
-			})
+				}
+			}))
 			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			}))
@@ -448,32 +401,10 @@ var _ = Describe("CSRF Protection", func() {
 
 	Describe("HMAC-signed tokens with Secret", func() {
 		It("generates a different token when Secret is provided", func() {
-			middleware1 := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
-				Secret:         nil,
-				CookieName:     "",
-				HeaderName:     "",
-				FieldName:      "",
-				MaxAge:         0,
-				Secure:         false,
-				SameSite:       0,
-				Domain:         "",
-				Path:           "",
-				TrustedOrigins: nil,
-				ErrorHandler:   nil,
-			})
-			middleware2 := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
-				Secret:         []byte("a-32-byte-long-secret-key-goes-here"),
-				CookieName:     "",
-				HeaderName:     "",
-				FieldName:      "",
-				MaxAge:         0,
-				Secure:         false,
-				SameSite:       0,
-				Domain:         "",
-				Path:           "",
-				TrustedOrigins: nil,
-				ErrorHandler:   nil,
-			})
+			middleware1 := cqrshtmx.CSRFMiddleware(csrfConfigWithSecret(nil))
+			middleware2 := cqrshtmx.CSRFMiddleware(
+				csrfConfigWithSecret([]byte("a-32-byte-long-secret-key-goes-here")),
+			)
 
 			var token1, token2 string
 			handler1 := middleware1(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -500,62 +431,19 @@ var _ = Describe("CSRF Protection", func() {
 
 		It("validates HMAC-signed token correctly", func() {
 			secret := []byte("a-32-byte-long-secret-key-goes-here")
-			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
-				Secret:         secret,
-				CookieName:     "",
-				HeaderName:     "",
-				FieldName:      "",
-				MaxAge:         0,
-				Secure:         false,
-				SameSite:       0,
-				Domain:         "",
-				Path:           "",
-				TrustedOrigins: nil,
-				ErrorHandler:   nil,
-			})
-			var token string
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if token == "" {
-					token = cqrshtmx.CSRFTokenFromContext(r.Context())
-				}
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			// GET to obtain masked token
-			w1 := httptest.NewRecorder()
-			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
-
-			Expect(token).NotTo(BeEmpty())
-
-			// POST with token
-			w2 := httptest.NewRecorder()
-			r2 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
-			r2.Header.Set("X-CSRF-Token", token)
-			for _, c := range w1.Result().Cookies() {
-				r2.AddCookie(c)
-			}
-
-			handler.ServeHTTP(w2, r2)
-			Expect(w2.Code).To(Equal(http.StatusOK))
+			mw := cqrshtmx.CSRFMiddleware(csrfConfigWithSecret(secret))
+			code, _ := csrfGETThenPOST(mw, "X-CSRF-Token", "", http.MethodPost)
+			Expect(code).To(Equal(http.StatusOK))
 		})
 	})
 
 	Describe("Custom Domain and Path", func() {
 		It("sets cookie with custom domain and path", func() {
-			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
-				Secret:         nil,
-				CookieName:     "",
-				HeaderName:     "",
-				FieldName:      "",
-				MaxAge:         0,
-				Secure:         false,
-				SameSite:       0,
-				Domain:         "example.com",
-				Path:           "/api",
-				TrustedOrigins: nil,
-				ErrorHandler:   nil,
-			})
+			middleware := cqrshtmx.CSRFMiddleware(csrfConfigWith(func(cfg *cqrshtmx.CSRFConfig) {
+				cfg.Domain = "example.com"
+				cfg.Path = "/api"
+				cfg.ErrorHandler = nil
+			}))
 			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			}))
@@ -572,19 +460,10 @@ var _ = Describe("CSRF Protection", func() {
 
 	Describe("SameSite=NoneMode", func() {
 		It("sets SameSite=None when configured", func() {
-			middleware := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
-				Secret:         nil,
-				CookieName:     "",
-				HeaderName:     "",
-				FieldName:      "",
-				MaxAge:         0,
-				Secure:         false,
-				SameSite:       http.SameSiteNoneMode,
-				Domain:         "",
-				Path:           "",
-				TrustedOrigins: nil,
-				ErrorHandler:   nil,
-			})
+			middleware := cqrshtmx.CSRFMiddleware(csrfConfigWith(func(cfg *cqrshtmx.CSRFConfig) {
+				cfg.SameSite = http.SameSiteNoneMode
+				cfg.ErrorHandler = nil
+			}))
 			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			}))

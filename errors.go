@@ -95,6 +95,29 @@ func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	DefaultErrorHandlerWithRedirect(w, r, err, defaultLoginRedirect)
 }
 
+// isAuthError returns true if the error is an authentication/authorization error
+// that should trigger a login redirect for HTMX requests.
+func isAuthError(err error) bool {
+	return errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) ||
+		errors.Is(err, ErrCSRFInvalid)
+}
+
+// writeHTMXAuthRedirect sets HX-Redirect header and writes 303 See Other.
+// Returns true if the redirect was written, false if the request is not HTMX or the error is not auth-related.
+func writeHTMXAuthRedirect(
+	w http.ResponseWriter,
+	r *http.Request,
+	err error,
+	loginRedirect string,
+) bool {
+	if !IsHTMXRequest(r) || !isAuthError(err) {
+		return false
+	}
+	w.Header().Set(headerRedirect, loginRedirect)
+	w.WriteHeader(http.StatusSeeOther)
+	return true
+}
+
 // DefaultErrorHandlerWithRedirect maps CQRS errors to HTTP status codes with a custom login redirect.
 // If loginRedirect is empty, the default "/login" is used.
 func DefaultErrorHandlerWithRedirect(
@@ -107,10 +130,7 @@ func DefaultErrorHandlerWithRedirect(
 		loginRedirect = defaultLoginRedirect
 	}
 
-	if IsHTMXRequest(r) &&
-		(errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid)) {
-		w.Header().Set(headerRedirect, loginRedirect)
-		w.WriteHeader(http.StatusSeeOther)
+	if writeHTMXAuthRedirect(w, r, err, loginRedirect) {
 		return
 	}
 
@@ -140,10 +160,7 @@ func JSONErrorHandlerWithRedirect(
 		loginRedirect = defaultLoginRedirect
 	}
 
-	if IsHTMXRequest(r) &&
-		(errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid)) {
-		w.Header().Set(headerRedirect, loginRedirect)
-		w.WriteHeader(http.StatusSeeOther)
+	if writeHTMXAuthRedirect(w, r, err, loginRedirect) {
 		return
 	}
 

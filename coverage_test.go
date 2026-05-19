@@ -77,7 +77,7 @@ var _ = Describe("Coverage Gaps", func() {
 		It("maps result to templ component and renders", func() {
 			disp := query.NewDispatcher()
 			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return "Alice", nil
+				return aliceName, nil
 			})
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
@@ -393,7 +393,7 @@ var _ = Describe("Coverage Gaps", func() {
 		It("sets HTMX trigger on query success with render", func() {
 			disp := query.NewDispatcher()
 			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return map[string]string{"name": "Test"}, nil
+				return map[string]string{testNameKey: "Test"}, nil
 			})
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
