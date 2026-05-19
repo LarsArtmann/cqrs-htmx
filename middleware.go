@@ -5,14 +5,30 @@ import (
 	"slices"
 )
 
-const headerCorrelationID = "X-Correlation-ID"
+const (
+	headerCorrelationID = "X-Correlation-ID"
+	headerRequestID     = "X-Request-ID"
+)
 
 // ContextEnrichmentMiddleware extracts the user ID from the request using
 // the provided extractor and stores it in the context for downstream CQRS handlers.
+// It also auto-generates a RequestID (or extracts it from X-Request-ID header)
+// and extracts CorrelationID from X-Correlation-ID header.
 func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
+
+			if ridStr := r.Header.Get(headerRequestID); ridStr != "" {
+				rid, err := ParseRequestID(ridStr)
+				if err == nil {
+					ctx = WithRequestID(ctx, rid)
+				} else {
+					ctx = WithRequestID(ctx, NewRequestID())
+				}
+			} else {
+				ctx = WithRequestID(ctx, NewRequestID())
+			}
 
 			if cidStr := r.Header.Get(headerCorrelationID); cidStr != "" {
 				cid, err := ParseCorrelationID(cidStr)

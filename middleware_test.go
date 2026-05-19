@@ -88,6 +88,54 @@ var _ = Describe("Middleware", func() {
 			Expect(nextCalled).To(BeTrue())
 			Expect(userID).To(BeZero())
 		})
+
+		It("auto-generates RequestID when no header is present", func() {
+			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
+			var captured cqrshtmx.RequestID
+
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+				captured = cqrshtmx.RequestIDFromContext(r.Context())
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(captured.IsZero()).To(BeFalse())
+		})
+
+		It("extracts RequestID from X-Request-ID header", func() {
+			want := cqrshtmx.MustParseRequestID("01HK1549P84T9XF8R94E960633")
+			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
+			var captured cqrshtmx.RequestID
+
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+				captured = cqrshtmx.RequestIDFromContext(r.Context())
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("X-Request-ID", want.String())
+			handler.ServeHTTP(w, r)
+
+			Expect(captured).To(Equal(want))
+		})
+
+		It("drops unparseable RequestID silently and generates new one", func() {
+			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
+			var captured cqrshtmx.RequestID
+
+			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+				captured = cqrshtmx.RequestIDFromContext(r.Context())
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("X-Request-ID", "invalid-id")
+			handler.ServeHTTP(w, r)
+
+			Expect(captured.IsZero()).To(BeFalse())
+		})
 	})
 
 	Describe("Chain", func() {

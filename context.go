@@ -60,6 +60,44 @@ type userIDKey struct{}
 
 type correlationIDKey struct{}
 
+type requestIDKey struct{}
+
+// RequestID is a strongly-typed per-request identifier, preventing accidental
+// mixing with other ID types at compile time.
+type RequestID = id.RequestID
+
+// NewRequestID generates a new random RequestID backed by a ULID.
+func NewRequestID() RequestID {
+	return id.NewRequestID()
+}
+
+// ParseRequestID converts a string to a RequestID.
+// Returns an error if the input is not a valid ULID.
+func ParseRequestID(s string) (RequestID, error) {
+	requestID, err := id.ParseRequestID(s)
+	if err != nil {
+		return RequestID{}, fmt.Errorf("parse request id: %w", err)
+	}
+	return requestID, nil
+}
+
+// MustParseRequestID converts a string to a RequestID, panicking on error.
+func MustParseRequestID(s string) RequestID {
+	return id.MustParseRequestID(s)
+}
+
+// WithRequestID stores a strongly-typed request ID in the context.
+func WithRequestID(ctx context.Context, requestID RequestID) context.Context {
+	return context.WithValue(ctx, requestIDKey{}, requestID)
+}
+
+// RequestIDFromContext retrieves the request ID stored by WithRequestID.
+// Returns the zero value of RequestID if no request ID is present.
+func RequestIDFromContext(ctx context.Context) RequestID {
+	v, _ := ctx.Value(requestIDKey{}).(RequestID)
+	return v
+}
+
 // WithCorrelationID stores a strongly-typed correlation ID in the context.
 func WithCorrelationID(ctx context.Context, correlationID CorrelationID) context.Context {
 	return context.WithValue(ctx, correlationIDKey{}, correlationID)
@@ -85,11 +123,11 @@ func UserIDFromContext(ctx context.Context) UserID {
 }
 
 // EventOptionsFromContext builds event.Options from request context,
-// propagating user identity and correlation ID into event metadata for
+// propagating user identity, correlation ID, and request ID into event metadata for
 // auditing, tracing, and distributed request correlation.
 //
-// Returns nil options if neither user ID nor correlation ID is found.
-// Invalid correlation IDs (non-ULID strings) are silently dropped,
+// Returns nil options if none of user ID, correlation ID, or request ID is found.
+// Invalid IDs (non-ULID strings) are silently dropped,
 // matching the behavior of ContextEnrichmentMiddleware for user IDs.
 func EventOptionsFromContext(ctx context.Context) []event.Option {
 	var opts []event.Option
@@ -100,6 +138,10 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 
 	if cid := CorrelationIDFromContext(ctx); !cid.IsZero() {
 		opts = append(opts, event.WithCorrelationID(cid))
+	}
+
+	if rid := RequestIDFromContext(ctx); !rid.IsZero() {
+		opts = append(opts, event.WithRequestID(rid))
 	}
 
 	if len(opts) == 0 {
