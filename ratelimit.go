@@ -44,6 +44,13 @@ type RateLimiterConfig struct {
 	// TTL is how long an idle limiter entry is kept before eviction.
 	// Zero defaults to 10 minutes.
 	TTL time.Duration
+	// OnAllowed is called when a request passes rate limiting.
+	OnAllowed func(r *http.Request)
+	// OnRejected is called when a request is rejected due to rate limiting.
+	OnRejected func(r *http.Request, retryAfter string)
+	// RejectionHandler writes the response for rejected requests.
+	// Default: writes 429 Too Many Requests with Retry-After header.
+	RejectionHandler func(w http.ResponseWriter, r *http.Request, retryAfter string)
 }
 
 // RateLimiterMiddleware returns HTTP middleware that rate-limits requests
@@ -82,10 +89,23 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			allowed, retryAfter := lim.allow(r)
 			if !allowed {
-				w.Header().Set("Retry-After", retryAfter)
-				w.WriteHeader(http.StatusTooManyRequests)
-				_, _ = w.Write([]byte("rate limit exceeded"))
+				if cfg.OnRejected != nil {
+					cfg.OnRejected(r, retryAfter)
+				}
+
+				if cfg.RejectionHandler != nil {
+					cfg.RejectionHandler(w, r, retryAfter)
+				} else {
+					w.Header().Set("Retry-After", retryAfter)
+					w.WriteHeader(http.StatusTooManyRequests)
+					_, _ = w.Write([]byte("rate limit exceeded"))
+				}
+
 				return
+			}
+
+			if cfg.OnAllowed != nil {
+				cfg.OnAllowed(r)
 			}
 
 			next.ServeHTTP(w, r)

@@ -217,5 +217,92 @@ var _ = Describe("Rate Limiting", func() {
 			handler.ServeHTTP(w2, r2)
 			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
 		})
+
+		It("calls OnAllowed hook for allowed requests", func() {
+			allowedCalled := false
+			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+				Limit:        10,
+				Window:       time.Minute,
+				Burst:        10,
+				KeyExtractor: func(_ *http.Request) string { return "hook-key" },
+				OnAllowed: func(_ *http.Request) {
+					allowedCalled = true
+				},
+			})
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(allowedCalled).To(BeTrue())
+			Expect(w.Code).To(Equal(http.StatusOK))
+		})
+
+		It("calls OnRejected hook for rejected requests", func() {
+			rejectedCalled := false
+			var capturedRetryAfter string
+			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+				Limit:        1,
+				Window:       time.Minute,
+				Burst:        1,
+				KeyExtractor: func(_ *http.Request) string { return "reject-key" },
+				OnRejected: func(_ *http.Request, retryAfter string) {
+					rejectedCalled = true
+					capturedRetryAfter = retryAfter
+				},
+			})
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			// First request succeeds
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w1, r1)
+
+			// Second request is rejected
+			w2 := httptest.NewRecorder()
+			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w2, r2)
+
+			Expect(rejectedCalled).To(BeTrue())
+			Expect(capturedRetryAfter).NotTo(BeEmpty())
+			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
+		})
+
+		It("uses custom RejectionHandler when configured", func() {
+			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+				Limit:        1,
+				Window:       time.Minute,
+				Burst:        1,
+				KeyExtractor: func(_ *http.Request) string { return "custom-reject" },
+				RejectionHandler: func(w http.ResponseWriter, _ *http.Request, _ string) {
+					w.WriteHeader(http.StatusServiceUnavailable)
+					_, _ = w.Write([]byte("custom rejection"))
+				},
+			})
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			// First request succeeds
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w1, r1)
+
+			// Second request uses custom handler
+			w2 := httptest.NewRecorder()
+			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w2, r2)
+
+			Expect(w2.Code).To(Equal(http.StatusServiceUnavailable))
+			Expect(w2.Body.String()).To(Equal("custom rejection"))
+		})
 	})
 })
