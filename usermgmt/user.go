@@ -100,7 +100,7 @@ type Session struct {
 func NewSession(userID string, ttl time.Duration) (*Session, error) {
 	token, err := generateToken()
 	if err != nil {
-		return nil, fmt.Errorf("generate token: %w", err)
+		return nil, fmt.Errorf("generate token for user %q: %w", userID, err)
 	}
 	now := time.Now().UTC()
 	return &Session{

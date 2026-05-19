@@ -119,7 +119,7 @@ func (s *InMemorySessionStore) Create(userID string, ttl time.Duration) (*Sessio
 	defer s.mu.Unlock()
 	session, err := NewSession(userID, ttl)
 	if err != nil {
-		return nil, fmt.Errorf("create session: %w", err)
+		return nil, fmt.Errorf("create session for user %q: %w", userID, err)
 	}
 	s.sessions[session.Token] = session
 	return session, nil

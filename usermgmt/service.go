@@ -243,12 +243,12 @@ func (s *Service) UpdateRoles(
 ) error {
 	user, err := s.users.FindByID(userID)
 	if err != nil {
-		return err
+		return fmt.Errorf("find user %q: %w", userID, err)
 	}
 
 	currentRoles, err := s.authz.RolesForUser(userID, domain)
 	if err != nil {
-		return fmt.Errorf("get roles: %w", err)
+		return fmt.Errorf("get roles for user %q in domain %q: %w", userID, domain, err)
 	}
 
 	var remove []GroupPolicy
@@ -269,7 +269,7 @@ func (s *Service) UpdateRoles(
 		RemoveGroups: remove,
 		AddGroups:    add,
 	}); err != nil {
-		return fmt.Errorf("apply role update: %w", err)
+		return fmt.Errorf("apply role update for user %q: %w", userID, err)
 	}
 
 	s.logAuth("roles_updated", userID, "roles", strings.Join(roles, ","), "domain", domain)
@@ -282,7 +282,7 @@ func (s *Service) UpdateRoles(
 func (s *Service) ChangePassword(_ context.Context, userID, oldPassword, newPassword string) error {
 	user, err := s.users.FindByID(userID)
 	if err != nil {
-		return err
+		return fmt.Errorf("find user %q: %w", userID, err)
 	}
 
 	if !user.CheckPassword(oldPassword) {
@@ -290,11 +290,11 @@ func (s *Service) ChangePassword(_ context.Context, userID, oldPassword, newPass
 	}
 
 	if len(newPassword) < 8 {
-		return fmt.Errorf("%w: password must be at least 8 characters", ErrValidation)
+		return fmt.Errorf("%w: password must be at least 8 characters for user %q", ErrValidation, userID)
 	}
 
 	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {
-		return fmt.Errorf("set password: %w", err)
+		return fmt.Errorf("set password for user %q: %w", userID, err)
 	}
 
 	return s.users.Save(user)
