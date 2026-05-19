@@ -12,7 +12,6 @@ const (
 	headerHistoryRestore = "HX-History-Restore-Request"
 	headerPrompt         = "HX-Prompt"
 	headerTarget         = "HX-Target"
-	headerTriggerID      = "HX-Trigger"
 	headerTriggerName    = "HX-Trigger-Name"
 
 	headerLocation           = "HX-Location"
@@ -75,7 +74,7 @@ func parseHTMXRequest(r *http.Request) *HTMXRequest {
 		IsBoosted:        r.Header.Get(headerBoosted) == HeaderTrue,
 		IsHistoryRestore: r.Header.Get(headerHistoryRestore) == HeaderTrue,
 		Target:           r.Header.Get(headerTarget),
-		TriggerID:        r.Header.Get(headerTriggerID),
+		TriggerID:        r.Header.Get(headerTrigger),
 		TriggerName:      r.Header.Get(headerTriggerName),
 		Prompt:           r.Header.Get(headerPrompt),
 		CurrentURL:       r.Header.Get(headerCurrentURL),
@@ -143,7 +142,7 @@ func HTMXTrigger(r *http.Request) string {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.TriggerID
 	}
-	return r.Header.Get(headerTriggerID)
+	return r.Header.Get(headerTrigger)
 }
 
 // HTMXTriggerName returns the name of the trigger element from the request.

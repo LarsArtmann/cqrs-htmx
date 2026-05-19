@@ -79,7 +79,9 @@ func (a *App) executePreDispatchChecks(
 }
 
 func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) {
-	applyHTMXResponse(w, r, cfg)
+	if applyHTMXResponse(w, r, cfg) {
+		return
+	}
 
 	if cfg.hasNoExplicitBody() {
 		w.WriteHeader(http.StatusNoContent)
@@ -92,7 +94,9 @@ func (a *App) applyQueryResponse(
 	cfg *handlerConfig,
 	result any,
 ) {
-	applyHTMXResponse(w, r, cfg)
+	if applyHTMXResponse(w, r, cfg) {
+		return
+	}
 
 	if cfg.render != nil {
 		if err := cfg.render(w, r, result); err != nil {
