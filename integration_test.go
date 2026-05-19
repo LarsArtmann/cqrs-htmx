@@ -244,4 +244,187 @@ var _ = Describe("Full Integration", func() {
 			Expect(receivedUserID).To(Equal(want))
 		})
 	})
+
+	Describe("End-to-end CQRS + HTMX + CSRF protection", func() {
+		var (
+			app  *cqrshtmx.App
+			disp *command.Dispatcher
+		)
+
+		BeforeEach(func() {
+			disp = command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+
+			var err error
+			app, err = cqrshtmx.New(cqrshtmx.Config{
+				Commands: disp,
+			})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("allows command dispatch with valid CSRF token via HTMX header", func() {
+			// Set up the full middleware chain with CSRF
+			cmdHandler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					return &bddCreateUserCmd{
+						aggID: id.NewAggregateID(),
+						email: req.Email,
+						name:  req.Name,
+					}, nil
+				}),
+				cqrshtmx.NotifySuccess("User created"),
+			)
+
+			// Wrap with CSRF middleware
+			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			handler := csrfMW(cmdHandler)
+
+			// Step 1: GET request to obtain CSRF token
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w1, r1)
+
+			cookies := w1.Result().Cookies()
+			Expect(cookies).To(HaveLen(1))
+			csrfToken := cookies[0].Value
+
+			// Step 2: POST with CSRF token in HTMX header
+			w2 := httptest.NewRecorder()
+			body := `{"email":"alice@example.com","name":"Alice"}`
+			r2 := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r2.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r2.Header.Set("X-CSRF-Token", csrfToken)
+			for _, c := range cookies {
+				r2.AddCookie(c)
+			}
+
+			handler.ServeHTTP(w2, r2)
+
+			Expect(w2.Code).To(Equal(http.StatusOK))
+			Expect(w2.Header().Get("HX-Trigger")).To(ContainSubstring("success"))
+		})
+
+		It("rejects command dispatch without CSRF token", func() {
+			cmdHandler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					return &bddCreateUserCmd{
+						aggID: id.NewAggregateID(),
+						email: req.Email,
+						name:  req.Name,
+					}, nil
+				}),
+			)
+
+			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			handler := csrfMW(cmdHandler)
+
+			// POST without CSRF token
+			w := httptest.NewRecorder()
+			body := `{"email":"alice@example.com","name":"Alice"}`
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusForbidden))
+		})
+
+		It("rejects command dispatch with invalid CSRF token", func() {
+			cmdHandler := app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					return &bddCreateUserCmd{
+						aggID: id.NewAggregateID(),
+						email: req.Email,
+						name:  req.Name,
+					}, nil
+				}),
+			)
+
+			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			handler := csrfMW(cmdHandler)
+
+			// Step 1: GET to obtain token
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w1, r1)
+
+			// Step 2: POST with wrong token
+			w2 := httptest.NewRecorder()
+			body := `{"email":"alice@example.com","name":"Alice"}`
+			r2 := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r2.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r2.Header.Set("X-CSRF-Token", "wrong-token")
+			for _, c := range w1.Result().Cookies() {
+				r2.AddCookie(c)
+			}
+
+			handler.ServeHTTP(w2, r2)
+
+			Expect(w2.Code).To(Equal(http.StatusForbidden))
+		})
+
+		It("allows GET queries without CSRF token", func() {
+			qryDisp := query.NewDispatcher()
+			_ = qryDisp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
+				return []bddUser{{Email: "alice@example.com", Name: "Alice"}}, nil
+			})
+
+			qryApp, err := cqrshtmx.New(cqrshtmx.Config{Queries: qryDisp})
+			Expect(err).NotTo(HaveOccurred())
+
+			qryHandler := qryApp.Query("ListUsers",
+				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
+					return &bddListUsersQuery{}, nil
+				}),
+				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
+					w.Header().Set("Content-Type", "application/json")
+					return json.NewEncoder(w).Encode(result)
+				}),
+			)
+
+			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			handler := csrfMW(qryHandler)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/users", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+		})
+
+		It("sets CSRF token in response header for frontend consumption", func() {
+			qryDisp := query.NewDispatcher()
+			_ = qryDisp.Register("GetPage", func(_ context.Context, _ query.Query) (any, error) {
+				return "page data", nil
+			})
+
+			qryApp, err := cqrshtmx.New(cqrshtmx.Config{Queries: qryDisp})
+			Expect(err).NotTo(HaveOccurred())
+
+			qryHandler := qryApp.Query("GetPage",
+				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
+					return &bddDashboardQuery{}, nil
+				}),
+				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, result any) error {
+					token := cqrshtmx.CSRFTokenFromContext(r.Context())
+					resp := cqrshtmx.NewResponse(w, r)
+					resp.CSRFToken(token).Apply()
+					_, _ = w.Write([]byte("<div>page</div>"))
+					return nil
+				}),
+			)
+
+			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			handler := csrfMW(qryHandler)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/page", nil)
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(w.Header().Get("X-CSRF-Token")).NotTo(BeEmpty())
+		})
+	})
 })

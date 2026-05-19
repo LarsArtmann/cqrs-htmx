@@ -133,6 +133,19 @@ func (resp *Response) triggerNotification(level NotificationLevel, message strin
 	})
 }
 
+// CSRFToken sets the X-CSRF-Token response header so HTMX clients can read
+// the token and include it in subsequent requests via hx-headers.
+//
+// Usage in handlers:
+//
+//	token := cqrshtmx.CSRFTokenFromContext(r.Context())
+//	resp := cqrshtmx.NewResponse(w, r)
+//	resp.CSRFToken(token).Apply()
+func (resp *Response) CSRFToken(token string) *Response {
+	resp.w.Header().Set(defaultCSRFHeaderName, token)
+	return resp
+}
+
 // Apply finalizes the response headers. Call this before writing the body.
 func (resp *Response) Apply() {
 	if resp.IsHTMX() {

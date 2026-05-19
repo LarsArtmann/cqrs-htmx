@@ -63,6 +63,10 @@ func (a *App) executePreDispatchChecks(
 		return err
 	}
 
+	if err := executeCSRFValidation(w, r, cfg); err != nil {
+		return err
+	}
+
 	if cfg.commandDecoder == nil {
 		a.errorHandler(w, r, errDecoderMissing)
 		return errDecoderMissing

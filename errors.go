@@ -66,6 +66,10 @@ func MapError(err error) int {
 		return http.StatusForbidden
 	}
 
+	if errors.Is(err, ErrCSRFInvalid) {
+		return http.StatusForbidden
+	}
+
 	family := event.Classify(err)
 	switch family {
 	case event.Rejection:
@@ -105,7 +109,8 @@ func DefaultErrorHandlerWithRedirect(
 		loginRedirect = defaultLoginRedirect
 	}
 
-	if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden)) {
+	if IsHTMXRequest(r) &&
+		(errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid)) {
 		w.Header().Set(headerRedirect, loginRedirect)
 		w.WriteHeader(http.StatusSeeOther)
 		return
@@ -137,7 +142,8 @@ func JSONErrorHandlerWithRedirect(
 		loginRedirect = defaultLoginRedirect
 	}
 
-	if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden)) {
+	if IsHTMXRequest(r) &&
+		(errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid)) {
 		w.Header().Set(headerRedirect, loginRedirect)
 		w.WriteHeader(http.StatusSeeOther)
 		return

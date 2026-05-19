@@ -50,6 +50,7 @@ type handlerConfig struct {
 	trigger        string
 	triggerDetail  map[string]any
 	pushURL        string
+	csrfConfig     *CSRFConfig
 }
 
 // hasMinimalResponse returns true if no redirect, trigger, or pushURL are configured.
