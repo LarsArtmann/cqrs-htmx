@@ -76,7 +76,9 @@ func TestHandlers_Register_SetsCookie(t *testing.T) {
 
 	found := false
 	for _, c := range w.Result().Cookies() {
-		if c.Name == "session_token" && c.Value != "" && c.HttpOnly && c.SameSite == http.SameSiteStrictMode && !c.Secure {
+		if c.Name == "session_token" && c.Value != "" && c.HttpOnly &&
+			c.SameSite == http.SameSiteStrictMode &&
+			!c.Secure {
 			found = true
 		}
 	}
@@ -206,16 +208,21 @@ func TestSessionMiddleware_Cookie(t *testing.T) {
 	})
 
 	called := false
-	handler := SessionMiddleware(svc, "session_token")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		user, ok := UserFromContext(r.Context())
-		if !ok || user == nil {
-			t.Error("expected user in context")
-		} else if user.ID != "u1" {
-			t.Errorf("expected user ID u1, got %s", user.ID)
-		}
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := SessionMiddleware(
+		svc,
+		"session_token",
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			user, ok := UserFromContext(r.Context())
+			if !ok || user == nil {
+				t.Error("expected user in context")
+			} else if user.ID != "u1" {
+				t.Errorf("expected user ID u1, got %s", user.ID)
+			}
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
@@ -233,16 +240,21 @@ func TestSessionMiddleware_BearerToken(t *testing.T) {
 		ID: "u1", Email: "bt@t.com", Password: "secret",
 	})
 
-	handler := SessionMiddleware(svc, "session_token")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user, ok := UserFromContext(r.Context())
-		if !ok || user == nil {
-			t.Fatal("expected user in context")
-		}
-		if user.ID != "u1" {
-			t.Errorf("expected u1, got %s", user.ID)
-		}
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := SessionMiddleware(
+		svc,
+		"session_token",
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user, ok := UserFromContext(r.Context())
+			if !ok || user == nil {
+				t.Fatal("expected user in context")
+			}
+			if user.ID != "u1" {
+				t.Errorf("expected u1, got %s", user.ID)
+			}
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Authorization", "Bearer "+reg.Session.Token)
@@ -254,14 +266,19 @@ func TestSessionMiddleware_NoToken(t *testing.T) {
 	svc := newTestService(t)
 
 	called := false
-	handler := SessionMiddleware(svc, "session_token")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		_, ok := UserFromContext(r.Context())
-		if ok {
-			t.Error("expected no user in context")
-		}
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := SessionMiddleware(
+		svc,
+		"session_token",
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			_, ok := UserFromContext(r.Context())
+			if ok {
+				t.Error("expected no user in context")
+			}
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
@@ -320,13 +337,18 @@ func TestHandlers_FullFlow(t *testing.T) {
 
 	regResp := registerUser(t, mux)
 
-	meHandler := SessionMiddleware(svc, "session_token")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user, ok := UserFromContext(r.Context())
-		if !ok || user == nil {
-			t.Fatal("no user in context")
-		}
-		writeJSON(w, http.StatusOK, user)
-	}))
+	meHandler := SessionMiddleware(
+		svc,
+		"session_token",
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user, ok := UserFromContext(r.Context())
+			if !ok || user == nil {
+				t.Fatal("no user in context")
+			}
+			writeJSON(w, http.StatusOK, user)
+		}),
+	)
 
 	meReq := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
 	meReq.AddCookie(&http.Cookie{Name: "session_token", Value: regResp.Session.Token})

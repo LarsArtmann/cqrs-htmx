@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 95.7% (180+ tests)                                                                |
+| Coverage | 95.7% (289+ tests)                                                                |
 
 ## Architecture
 
@@ -33,6 +33,19 @@ cqrs-htmx/
 ├── notify.go      # Notification HandlerOptions + NotifyWithEvent builder
 ├── middleware.go   # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
 ├── csrf.go        # CSRF token generation, CSRFMiddleware, CSRFProtect, context helpers
+├── decoder.go     # Body reading, form/JSON decoding, MaxBodySize enforcement
+├── logging.go     # RequestLogging, RequestLoggingSlog, DefaultLogFormatter, JSONLogFormatter
+├── ratelimit.go   # RateLimiterMiddleware, per-key token bucket, TTL eviction, hooks
+├── security.go    # SecurityHeadersMiddleware, SecurityHeadersConfig builder
+├── usermgmt/      # User management submodule (RBAC, sessions, password auth)
+│   ├── go.mod     # Independent Go module
+│   ├── authz.go   # Authz wrapper around Casbin (RBAC with domains)
+│   ├── service.go # Service (register, login, logout, authenticate)
+│   ├── user.go    # User/Session types, bcrypt password hashing
+│   ├── store.go   # In-memory UserStore/SessionStore implementations
+│   ├── http.go    # AuthHandlers (HTTP routes), SessionMiddleware
+│   ├── middleware.go # User context helpers
+│   └── errors.go  # Sentinel errors
 ```
 
 ## Key Decisions
@@ -102,6 +115,7 @@ cqrs-htmx/
 27. **Middleware ordering**: `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` is the recommended order — CSRF first (sets cookie + context), then HTMX parsing, then user enrichment
 28. **CSRF token format**: gorilla/csrf uses masked tokens (XOR with one-time pad). The cookie contains the session token; the header/form must contain the masked token. Always use `CSRFTokenFromContext()` or template helpers (`CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`) to obtain the token for the frontend — never read the raw cookie value
 29. **gorilla/csrf Secret**: Requires a 32-byte key. `CSRFConfig.Secret` is padded to 32 bytes if shorter; if empty, a random key is generated per `CSRFMiddleware()` call (not persisted across restarts). For production, always provide a stable 32-byte secret
+30. **usermgmt submodule**: `usermgmt/` has its own `go.mod` and is an independent Go module. Tests run separately with `cd usermgmt && go test ./...`. Uses bcrypt cost 12 in production (cost 4 in tests via `main_test.go`). Casbin model uses `some(where (p.eft == allow)) && !some(where (p.eft == deny))` — casbin v3 only recognizes this exact ordering, NOT the reverse
 
 ## Test Commands
 
@@ -119,4 +133,14 @@ GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./.
 
 # Coverage
 GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -coverprofile=coverage.out
+```
+
+### usermgmt submodule
+
+```bash
+# All tests
+cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+
+# Build
+cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...
 ```

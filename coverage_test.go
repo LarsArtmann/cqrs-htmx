@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -529,6 +530,223 @@ var _ = Describe("Coverage Gaps", func() {
 			resp.Apply()
 			trigger := w.Header().Get("HX-Trigger")
 			Expect(trigger).To(ContainSubstring("newEvent"))
+		})
+	})
+
+	Describe("NewUserID", func() {
+		It("generates a non-zero user ID", func() {
+			uid := cqrshtmx.NewUserID()
+			Expect(uid.IsZero()).To(BeFalse())
+		})
+
+		It("generates unique IDs", func() {
+			uid1 := cqrshtmx.NewUserID()
+			uid2 := cqrshtmx.NewUserID()
+			Expect(uid1).NotTo(Equal(uid2))
+		})
+	})
+
+	Describe("WithTimeout", func() {
+		It("overrides app-level timeout for a specific handler", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
+				<-ctx.Done()
+				return ctx.Err()
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands: disp,
+				Timeout:  10 * time.Second,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				decodeCreateUserJSON(),
+				cqrshtmx.WithTimeout(50*time.Millisecond),
+			)
+
+			r := httptest.NewRequest(http.MethodPost, "/slow", strings.NewReader(`{}`))
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusServiceUnavailable))
+		})
+
+		It("falls back to app timeout when zero", func() {
+			disp := command.NewDispatcher()
+			dispatched := false
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+				dispatched = true
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands: disp,
+				Timeout:  5 * time.Second,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser",
+				decodeCreateUserJSON(),
+				cqrshtmx.WithTimeout(0),
+			)
+
+			r := httptest.NewRequest(http.MethodPost, "/fast", strings.NewReader(`{}`))
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+
+			Expect(dispatched).To(BeTrue())
+		})
+	})
+
+	Describe("sanitizeRedirectURL edge cases", func() {
+		It("blocks javascript: URLs", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).Redirect("javascript:alert(1)").Apply()
+			Expect(w.Code).ToNot(Equal(http.StatusSeeOther))
+		})
+
+		It("blocks absolute URLs with host", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).Redirect("https://evil.com").Apply()
+			Expect(w.Code).ToNot(Equal(http.StatusSeeOther))
+		})
+
+		It("allows valid relative path redirects", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).Redirect("/dashboard").Apply()
+			Expect(w.Code).To(Equal(http.StatusSeeOther))
+		})
+
+		It("blocks root path redirects", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).Redirect("/").Apply()
+			Expect(w.Code).ToNot(Equal(http.StatusSeeOther))
+		})
+
+		It("blocks empty path redirects", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).Redirect("").Apply()
+			Expect(w.Code).To(Equal(http.StatusOK))
+		})
+
+		It("normalizes path with .. segments", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).Redirect("/a/../b/c").Apply()
+			Expect(w.Code).To(Equal(http.StatusSeeOther))
+		})
+	})
+
+	Describe("decodeFormValues multi-value fields", func() {
+		It("decodes form with multi-value fields into slice", func() {
+			disp := command.NewDispatcher()
+			var receivedEmail string
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+				receivedEmail = "dispatched"
+				return nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			type formReq struct {
+				Tags []string
+			}
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeForm(func(_ formReq) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+			)
+
+			form := url.Values{}
+			form.Set("Tags", "go")
+			form.Add("Tags", "htmx")
+
+			r := httptest.NewRequest(http.MethodPost, "/tags", strings.NewReader(form.Encode()))
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(receivedEmail).To(Equal("dispatched"))
+		})
+
+		It("returns error for form that cannot unmarshal to target type", func() {
+			disp := command.NewDispatcher()
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			type strictForm struct {
+				Count int
+			}
+
+			handler := app.Command("CreateUser",
+				cqrshtmx.DecodeForm(func(_ strictForm) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+				}),
+			)
+
+			form := url.Values{}
+			form.Set("Count", "not-a-number")
+
+			r := httptest.NewRequest(http.MethodPost, "/bad", strings.NewReader(form.Encode()))
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Code).ToNot(Equal(http.StatusNoContent))
+		})
+	})
+
+	Describe("Command dispatch with AfterDispatchHook error", func() {
+		It("still returns success when AfterDispatchHook fails", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands: disp,
+				AfterDispatch: func(_ context.Context, _ *http.Request, _ error) {
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser", decodeCreateUserJSON())
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Code).To(Equal(http.StatusNoContent))
+		})
+	})
+
+	Describe("Query dispatch with PushURL", func() {
+		It("sets HX-Push-URL on query success", func() {
+			disp := query.NewDispatcher()
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
+				return testQueryResult, nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Query("GetUser",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.Render(encodeJSONResult),
+				cqrshtmx.PushURL("/users/1"),
+			)
+
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Header().Get("HX-Push-URL")).To(Equal("/users/1"))
 		})
 	})
 })

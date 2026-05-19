@@ -17,7 +17,9 @@ func TestNewAuthz_DefaultConfig(t *testing.T) {
 
 func TestAuthz_AdminWildcard(t *testing.T) {
 	a := newTestAuthz(t)
-	if err := a.AddGroupPolicy(GroupPolicy{User: "alice", Role: RoleAdmin, Domain: "tenant1"}); err != nil {
+	if err := a.AddGroupPolicy(
+		GroupPolicy{User: "alice", Role: RoleAdmin, Domain: "tenant1"},
+	); err != nil {
 		t.Fatalf("AddGroupPolicy: %v", err)
 	}
 
@@ -54,7 +56,9 @@ func TestAuthz_OwnerInDomain(t *testing.T) {
 		Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
 		Policy{RoleOwner, "*", "game.finish", ActionExecute, EffectAllow},
 	)
-	if err := a.AddGroupPolicy(GroupPolicy{User: "player1", Role: RoleOwner, Domain: "game1"}); err != nil {
+	if err := a.AddGroupPolicy(
+		GroupPolicy{User: "player1", Role: RoleOwner, Domain: "game1"},
+	); err != nil {
 		t.Fatalf("AddGroupPolicy: %v", err)
 	}
 
@@ -84,7 +88,9 @@ func TestAuthz_DenyOverride(t *testing.T) {
 		Policy{"*", "*", "audit.replay", ActionExecute, EffectDeny},
 		Policy{RoleAdmin, "*", "*", ActionAll, EffectAllow},
 	)
-	if err := a.AddGroupPolicy(GroupPolicy{User: "admin1", Role: RoleAdmin, Domain: "*"}); err != nil {
+	if err := a.AddGroupPolicy(
+		GroupPolicy{User: "admin1", Role: RoleAdmin, Domain: "*"},
+	); err != nil {
 		t.Fatalf("AddGroupPolicy: %v", err)
 	}
 
@@ -209,7 +215,9 @@ func TestAuthz_DomainsForUser(t *testing.T) {
 	if err := a.AddGroupPolicy(GroupPolicy{User: "p1", Role: RoleOwner, Domain: "g1"}); err != nil {
 		t.Fatalf("AddGroupPolicy: %v", err)
 	}
-	if err := a.AddGroupPolicy(GroupPolicy{User: "p1", Role: RoleViewer, Domain: "g2"}); err != nil {
+	if err := a.AddGroupPolicy(
+		GroupPolicy{User: "p1", Role: RoleViewer, Domain: "g2"},
+	); err != nil {
 		t.Fatalf("AddGroupPolicy: %v", err)
 	}
 

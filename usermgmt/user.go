@@ -14,8 +14,11 @@ import (
 
 const (
 	sessionTokenBytes = 32
-	bcryptCost        = 12
+	defaultBcryptCost = 12
+	minBcryptCost     = 4
 )
+
+var bcryptCost = defaultBcryptCost
 
 type User struct {
 	ID           string    `json:"id"`

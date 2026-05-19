@@ -1,6 +1,6 @@
 # Features Audit — cqrs-htmx
 
-**Date:** 2026-05-18 | **Source:** All .go files analyzed
+**Date:** 2026-05-19 | **Source:** All .go files analyzed
 
 ## Features
 
@@ -45,10 +45,10 @@
 | Metric      | Value |
 | ----------- | ----- |
 | Coverage    | 95.7% |
-| Test specs  | 245   |
+| Test specs  | 289   |
 | Lint issues | 0     |
-| Prod files  | 13    |
-| Test files  | 16    |
+| Prod files  | 17    |
+| Test files  | 20    |
 | Benchmarks  | 16    |
-| Godoc       | 6     |
+| Godoc       | 9     |
 | Banned deps | 0     |

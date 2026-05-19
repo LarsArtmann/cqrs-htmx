@@ -129,5 +129,49 @@ var _ = Describe("Security Headers Middleware", func() {
 
 			Expect(w.Header().Get("X-Frame-Options")).To(Equal("SAMEORIGIN"))
 		})
+
+		It("allows overriding ContentTypeOptions default", func() {
+			cfg := cqrshtmx.SecurityHeadersConfig{ContentTypeOptions: "none"}
+			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Header().Get("X-Content-Type-Options")).To(Equal("none"))
+		})
+
+		It("allows overriding ReferrerPolicy default", func() {
+			cfg := cqrshtmx.SecurityHeadersConfig{ReferrerPolicy: "no-referrer"}
+			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Header().Get("Referrer-Policy")).To(Equal("no-referrer"))
+		})
+
+		It("sets Permissions-Policy when configured", func() {
+			cfg := cqrshtmx.SecurityHeadersConfig{
+				PermissionsPolicy: "camera=(), microphone=()",
+			}
+			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Header().Get("Permissions-Policy")).To(Equal("camera=(), microphone=()"))
+		})
 	})
 })

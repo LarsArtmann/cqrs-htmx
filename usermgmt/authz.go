@@ -110,7 +110,13 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 	}
 
 	for _, p := range config.Policies {
-		if _, err := e.AddPolicy(p.Subject, p.Domain, p.Object, string(p.Action), string(p.Effect)); err != nil {
+		if _, err := e.AddPolicy(
+			p.Subject,
+			p.Domain,
+			p.Object,
+			string(p.Action),
+			string(p.Effect),
+		); err != nil {
 			return nil, fmt.Errorf("add policy {%s, %s, %s, %s, %s}: %w",
 				p.Subject, p.Domain, p.Object, p.Action, p.Effect, err)
 		}
@@ -162,7 +168,13 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 		}
 	}
 	for _, p := range update.RemovePolicies {
-		if _, err := a.enforcer.RemovePolicy(p.Subject, p.Domain, p.Object, string(p.Action), string(p.Effect)); err != nil {
+		if _, err := a.enforcer.RemovePolicy(
+			p.Subject,
+			p.Domain,
+			p.Object,
+			string(p.Action),
+			string(p.Effect),
+		); err != nil {
 			return fmt.Errorf("remove policy {%s, %s, %s, %s, %s}: %w",
 				p.Subject, p.Domain, p.Object, p.Action, p.Effect, err)
 		}
@@ -173,7 +185,13 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 		}
 	}
 	for _, p := range update.AddPolicies {
-		if _, err := a.enforcer.AddPolicy(p.Subject, p.Domain, p.Object, string(p.Action), string(p.Effect)); err != nil {
+		if _, err := a.enforcer.AddPolicy(
+			p.Subject,
+			p.Domain,
+			p.Object,
+			string(p.Action),
+			string(p.Effect),
+		); err != nil {
 			return fmt.Errorf("add policy {%s, %s, %s, %s, %s}: %w",
 				p.Subject, p.Domain, p.Object, p.Action, p.Effect, err)
 		}
@@ -182,12 +200,24 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 }
 
 func (a *Authz) AddPolicy(p Policy) error {
-	_, err := a.enforcer.AddPolicy(p.Subject, p.Domain, p.Object, string(p.Action), string(p.Effect))
+	_, err := a.enforcer.AddPolicy(
+		p.Subject,
+		p.Domain,
+		p.Object,
+		string(p.Action),
+		string(p.Effect),
+	)
 	return err
 }
 
 func (a *Authz) RemovePolicy(p Policy) error {
-	_, err := a.enforcer.RemovePolicy(p.Subject, p.Domain, p.Object, string(p.Action), string(p.Effect))
+	_, err := a.enforcer.RemovePolicy(
+		p.Subject,
+		p.Domain,
+		p.Object,
+		string(p.Action),
+		string(p.Effect),
+	)
 	return err
 }
 
