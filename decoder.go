@@ -1,19 +1,50 @@
 package cqrshtmx
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 )
 
 // decodeJSONBody decodes JSON from request body into type T.
-func decodeJSONBody[T any](r *http.Request) (out T, err error) {
-	if decodeErr := json.NewDecoder(r.Body).Decode(&out); decodeErr != nil {
+// If maxBodySize > 0, bodies larger than maxBodySize are rejected with ErrRequestTooLarge.
+func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
+	body, readErr := readBody(r, maxBodySize)
+	if readErr != nil {
+		return out, readErr
+	}
+
+	if decodeErr := json.Unmarshal(body, &out); decodeErr != nil {
 		return out, fmt.Errorf("%w: decode JSON: %w", ErrDecodeFailed, decodeErr)
 	}
 
 	return out, nil
+}
+
+// readBody reads the request body, respecting maxBodySize if > 0.
+func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
+	var body []byte
+	var err error
+
+	if maxBodySize > 0 {
+		body, err = io.ReadAll(io.LimitReader(r.Body, maxBodySize+1))
+	} else {
+		body, err = io.ReadAll(r.Body)
+	}
+	_ = r.Body.Close()
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: read body: %w", ErrDecodeFailed, err)
+	}
+
+	if maxBodySize > 0 && int64(len(body)) > maxBodySize {
+		return nil, ErrRequestTooLarge
+	}
+
+	return body, nil
 }
 
 // decodeRequest decodes and maps a request using the provided decoder and mapper.
@@ -32,7 +63,16 @@ func decodeRequest[T, R any](
 }
 
 // decodeFormBody parses form data and decodes into type T.
-func decodeFormBody[T any](r *http.Request) (out T, err error) {
+// If maxBodySize > 0, bodies larger than maxBodySize are rejected with ErrRequestTooLarge.
+func decodeFormBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
+	body, readErr := readBody(r, maxBodySize)
+	if readErr != nil {
+		return out, readErr
+	}
+
+	// Restore body so ParseForm can read it.
+	r.Body = io.NopCloser(bytes.NewReader(body))
+
 	if parseErr := r.ParseForm(); parseErr != nil {
 		return out, fmt.Errorf("%w: parse form: %w", ErrDecodeFailed, parseErr)
 	}

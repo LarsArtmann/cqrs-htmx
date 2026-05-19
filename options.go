@@ -49,6 +49,7 @@ type handlerConfig struct {
 	triggerDetail  map[string]any
 	pushURL        string
 	csrfConfig     *CSRFConfig
+	maxBodySize    int64
 }
 
 // hasNoExplicitBody returns true if the handler has no render function and
@@ -62,7 +63,9 @@ func (c *handlerConfig) hasNoExplicitBody() bool {
 func DecodeJSON[T any](mapper func(T) (command.Command, error)) HandlerOption {
 	return func(cfg *handlerConfig) {
 		cfg.commandDecoder = func(r *http.Request) (command.Command, error) {
-			return decodeRequest(r, decodeJSONBody[T], mapper)
+			return decodeRequest(r, func(r *http.Request) (T, error) {
+				return decodeJSONBody[T](r, cfg.maxBodySize)
+			}, mapper)
 		}
 	}
 }
@@ -71,7 +74,9 @@ func DecodeJSON[T any](mapper func(T) (command.Command, error)) HandlerOption {
 func DecodeJSONQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
 	return func(cfg *handlerConfig) {
 		cfg.queryDecoder = func(r *http.Request) (query.Query, error) {
-			return decodeRequest(r, decodeJSONBody[T], mapper)
+			return decodeRequest(r, func(r *http.Request) (T, error) {
+				return decodeJSONBody[T](r, cfg.maxBodySize)
+			}, mapper)
 		}
 	}
 }
@@ -80,7 +85,9 @@ func DecodeJSONQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
 func DecodeForm[T any](mapper func(T) (command.Command, error)) HandlerOption {
 	return func(cfg *handlerConfig) {
 		cfg.commandDecoder = func(r *http.Request) (command.Command, error) {
-			return decodeRequest(r, decodeFormBody[T], mapper)
+			return decodeRequest(r, func(r *http.Request) (T, error) {
+				return decodeFormBody[T](r, cfg.maxBodySize)
+			}, mapper)
 		}
 	}
 }
@@ -89,7 +96,9 @@ func DecodeForm[T any](mapper func(T) (command.Command, error)) HandlerOption {
 func DecodeFormQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
 	return func(cfg *handlerConfig) {
 		cfg.queryDecoder = func(r *http.Request) (query.Query, error) {
-			return decodeRequest(r, decodeFormBody[T], mapper)
+			return decodeRequest(r, func(r *http.Request) (T, error) {
+				return decodeFormBody[T](r, cfg.maxBodySize)
+			}, mapper)
 		}
 	}
 }

@@ -578,4 +578,60 @@ var _ = Describe("Full Integration", func() {
 			Expect(w2.Code).To(Equal(http.StatusForbidden))
 		})
 	})
+
+	Describe("Body size limits", func() {
+		It("rejects JSON body larger than MaxBodySize", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+
+			limitedApp, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:    disp,
+				MaxBodySize: 10, // 10 bytes
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := limitedApp.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					return &bddCreateUserCmd{
+						aggID: id.NewAggregateID(),
+						email: req.Email,
+						name:  req.Name,
+					}, nil
+				}),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(testUserJSON))
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+		})
+
+		It("allows JSON body within MaxBodySize", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+
+			limitedApp, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:    disp,
+				MaxBodySize: 1024, // 1 KB
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := limitedApp.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					return &bddCreateUserCmd{
+						aggID: id.NewAggregateID(),
+						email: req.Email,
+						name:  req.Name,
+					}, nil
+				}),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(testUserJSON))
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusNoContent))
+		})
+	})
 })

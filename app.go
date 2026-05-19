@@ -24,6 +24,7 @@ type App struct {
 	errorHandler    ErrorHandler
 	loginRedirect   string
 	timeout         time.Duration
+	maxBodySize     int64
 
 	beforeDispatch BeforeDispatchHook
 	afterDispatch  AfterDispatchHook
@@ -52,6 +53,12 @@ type Config struct {
 	// A zero or negative value means no timeout (default).
 	// When set, dispatch is wrapped in a context with timeout.
 	Timeout time.Duration
+
+	// MaxBodySize sets the maximum allowed request body size in bytes.
+	// A zero or negative value means no limit (default).
+	// When set, request bodies larger than this will be rejected with
+	// 413 Request Entity Too Large.
+	MaxBodySize int64
 }
 
 // BeforeDispatchHook is called before dispatching a command or query.
@@ -91,6 +98,7 @@ func New(cfg Config) (*App, error) {
 		errorHandler:    eh,
 		loginRedirect:   loginRedirect,
 		timeout:         cfg.Timeout,
+		maxBodySize:     cfg.MaxBodySize,
 		beforeDispatch:  cfg.BeforeDispatch,
 		afterDispatch:   cfg.AfterDispatch,
 	}, nil
@@ -106,6 +114,7 @@ func New(cfg Config) (*App, error) {
 //  5. Apply HTMX response headers (redirect, trigger, push URL)
 func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
 	cfg := buildHandlerConfig(opts)
+	cfg.maxBodySize = a.maxBodySize
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
@@ -130,6 +139,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 //  6. Apply HTMX response headers
 func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
 	cfg := buildHandlerConfig(opts)
+	cfg.maxBodySize = a.maxBodySize
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.queries == nil {
