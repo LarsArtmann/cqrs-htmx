@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"time"
 
 	"github.com/casbin/casbin/v3"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
@@ -15,6 +16,25 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
+
+const testUserJSON = `{"email":"alice@example.com","name":"Alice"}`
+
+func integrationCSRFConfig() cqrshtmx.CSRFConfig {
+	return cqrshtmx.CSRFConfig{
+		Secret:     nil,
+		CookieName: "",
+		HeaderName: "",
+		FieldName:  "",
+		MaxAge:     24 * time.Hour,
+		Secure:     false,
+		SameSite:   http.SameSiteLaxMode,
+		Domain:     "",
+		Path:       "/",
+		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, _ error) {
+			w.WriteHeader(http.StatusForbidden)
+		},
+	}
+}
 
 var _ = Describe("Full Integration", func() {
 	Describe("End-to-end CQRS + HTMX + Casbin flow", func() {
@@ -276,7 +296,7 @@ var _ = Describe("Full Integration", func() {
 			)
 
 			// Wrap with CSRF middleware
-			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(cmdHandler)
 
 			// Step 1: GET request to obtain CSRF token
@@ -315,7 +335,7 @@ var _ = Describe("Full Integration", func() {
 				}),
 			)
 
-			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(cmdHandler)
 
 			// POST without CSRF token
@@ -340,7 +360,7 @@ var _ = Describe("Full Integration", func() {
 				}),
 			)
 
-			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(cmdHandler)
 
 			// Step 1: GET to obtain token
@@ -382,7 +402,7 @@ var _ = Describe("Full Integration", func() {
 				}),
 			)
 
-			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(qryHandler)
 
 			w := httptest.NewRecorder()
@@ -415,7 +435,7 @@ var _ = Describe("Full Integration", func() {
 				}),
 			)
 
-			csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(qryHandler)
 
 			w := httptest.NewRecorder()

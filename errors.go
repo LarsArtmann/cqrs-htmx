@@ -56,6 +56,15 @@ var familyToStatus = map[event.Family]int{
 	event.Infrastructure: http.StatusInternalServerError,
 }
 
+// MapError translates a CQRS error into an appropriate HTTP status code.
+//
+// Mapping:
+//   - Rejection family  → 400 Bad Request
+//   - Conflict family   → 409 Conflict
+//   - Corruption family → 422 Unprocessable Entity
+//   - Transient family  → 503 Service Unavailable
+//   - Infrastructure    → 500 Internal Server Error
+//   - nil or unknown    → 500 Internal Server Error
 func MapError(err error) int {
 	registerErrorClassifications()
 
