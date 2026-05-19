@@ -201,8 +201,8 @@ func PushURL(url string) HandlerOption {
 func ValidateCommand(validator func(command.Command) error) HandlerOption {
 	return func(cfg *handlerConfig) {
 		if cfg.commandDecoder == nil {
-			slog.Warn("cqrs-htmx: ValidateCommand applied before decoder — validation will be skipped",
-				slog.String("hint", "apply ValidateCommand AFTER DecodeJSON/DecodeForm"))
+			slog.Warn("cqrs-htmx: ValidateCommand applied before decoder",
+				slog.String("hint", "apply after DecodeJSON/DecodeForm"))
 			return
 		}
 
@@ -228,8 +228,8 @@ func ValidateCommand(validator func(command.Command) error) HandlerOption {
 func ValidateQuery(validator func(query.Query) error) HandlerOption {
 	return func(cfg *handlerConfig) {
 		if cfg.queryDecoder == nil {
-			slog.Warn("cqrs-htmx: ValidateQuery applied before decoder — validation will be skipped",
-				slog.String("hint", "apply ValidateQuery AFTER DecodeJSONQuery/DecodeFormQuery"))
+			slog.Warn("cqrs-htmx: ValidateQuery applied before decoder",
+				slog.String("hint", "apply after DecodeJSONQuery/DecodeFormQuery"))
 			return
 		}
 
