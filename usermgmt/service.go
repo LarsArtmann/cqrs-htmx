@@ -3,23 +3,21 @@ package usermgmt
 import (
 	"fmt"
 	"time"
-
-	"github.com/casbin/casbin/v3"
 )
 
 const defaultSessionTTL = 24 * time.Hour
 
 type Service struct {
+	authz      *Authz
 	users      UserStore
 	sessions   SessionStore
-	enforcer   *casbin.Enforcer
 	sessionTTL time.Duration
 }
 
 type ServiceConfig struct {
+	Authz        *Authz
 	UserStore    UserStore
 	SessionStore SessionStore
-	Enforcer     *casbin.Enforcer
 	SessionTTL   time.Duration
 }
 
@@ -33,25 +31,23 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	if cfg.SessionTTL == 0 {
 		cfg.SessionTTL = defaultSessionTTL
 	}
-	if cfg.Enforcer == nil {
-		e, err := NewEnforcer()
+	if cfg.Authz == nil {
+		a, err := NewAuthz()
 		if err != nil {
-			return nil, fmt.Errorf("create enforcer: %w", err)
+			return nil, fmt.Errorf("create authz: %w", err)
 		}
-		cfg.Enforcer = e
+		cfg.Authz = a
 	}
 
 	return &Service{
+		authz:      cfg.Authz,
 		users:      cfg.UserStore,
 		sessions:   cfg.SessionStore,
-		enforcer:   cfg.Enforcer,
 		sessionTTL: cfg.SessionTTL,
 	}, nil
 }
 
-func (s *Service) Enforcer() *casbin.Enforcer {
-	return s.enforcer
-}
+func (s *Service) Authz() *Authz { return s.authz }
 
 type RegisterRequest struct {
 	ID          string `json:"id"`
@@ -82,7 +78,9 @@ func (s *Service) Register(req RegisterRequest) (*RegisterResponse, error) {
 		return nil, fmt.Errorf("save user: %w", err)
 	}
 
-	if err := AssignRole(s.enforcer, user.ID, RoleUser); err != nil {
+	if err := s.authz.AddGroupPolicy(GroupPolicy{
+		User: user.ID, Role: RoleUser, Domain: user.ID,
+	}); err != nil {
 		return nil, fmt.Errorf("assign role: %w", err)
 	}
 
@@ -149,33 +147,37 @@ func (s *Service) Authenticate(token string) (*User, error) {
 	return user, nil
 }
 
-func (s *Service) Authorize(userID, object, action string) (bool, error) {
-	return CheckPermission(s.enforcer, userID, object, action)
+func (s *Service) Authorize(sub, dom, obj string, act Action) error {
+	return s.authz.Authorize(sub, dom, obj, act)
 }
 
 func (s *Service) GetUser(id string) (*User, error) {
 	return s.users.FindByID(id)
 }
 
-func (s *Service) UpdateRoles(userID string, roles []string) error {
+func (s *Service) UpdateRoles(userID string, roles []string, domain string) error {
 	user, err := s.users.FindByID(userID)
 	if err != nil {
 		return err
 	}
 
-	currentRoles, err := RolesForUser(s.enforcer, userID)
+	currentRoles, err := s.authz.RolesForUser(userID, domain)
 	if err != nil {
 		return fmt.Errorf("get roles: %w", err)
 	}
 
 	for _, role := range currentRoles {
-		if err := RevokeRole(s.enforcer, userID, role); err != nil {
+		if err := s.authz.RemoveGroupPolicy(GroupPolicy{
+			User: userID, Role: role, Domain: domain,
+		}); err != nil {
 			return fmt.Errorf("revoke role %s: %w", role, err)
 		}
 	}
 
 	for _, role := range roles {
-		if err := AssignRole(s.enforcer, userID, role); err != nil {
+		if err := s.authz.AddGroupPolicy(GroupPolicy{
+			User: userID, Role: role, Domain: domain,
+		}); err != nil {
 			return fmt.Errorf("assign role %s: %w", role, err)
 		}
 	}

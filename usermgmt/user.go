@@ -27,13 +27,6 @@ type User struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-type Session struct {
-	Token     string    `json:"token"`
-	UserID    string    `json:"user_id"`
-	CreatedAt time.Time `json:"created_at"`
-	ExpiresAt time.Time `json:"expires_at"`
-}
-
 func NewUser(id, email, displayName string) *User {
 	now := time.Now().UTC()
 	return &User{
@@ -56,8 +49,7 @@ func (u *User) SetPassword(password string) error {
 }
 
 func (u *User) CheckPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
-	return err == nil
+	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) == nil
 }
 
 func (u *User) HasRole(role string) bool {
@@ -91,6 +83,13 @@ func (u *User) MarshalJSON() ([]byte, error) {
 		Alias:       (*Alias)(u),
 		HasPassword: u.PasswordHash != "",
 	})
+}
+
+type Session struct {
+	Token     string    `json:"token"`
+	UserID    string    `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 func NewSession(userID string, ttl time.Duration) (*Session, error) {
