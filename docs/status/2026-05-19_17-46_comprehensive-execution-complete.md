@@ -27,40 +27,40 @@
 
 ### a) FULLY DONE ✅ (12 commits)
 
-| #   | Task                                                              | Commit      | Files Changed              | Tests Added |
-| --- | ----------------------------------------------------------------- | ----------- | -------------------------- | ----------- |
-| 1   | Fix data race in `ratelimit.go` (removed `entry.lastUsed` write) | `fdb1187`   | `ratelimit.go`             | —           |
-| 2   | Fix `CSRFConfig.Validate()` sentinel (`ErrEnforcerNil` → `ErrCSRFConfig`) | `f8f6540`  | `csrf.go`, `errors.go`    | —           |
-| 3   | Fix `CSRFConfig.Validate()` SameSite=None returning wrong error   | `134e7b6`   | `csrf.go`                  | —           |
-| 4   | Add `ErrCSRFConfig` sentinel + classification                     | `134e7b6`   | `errors.go`                | —           |
-| 5   | Add tests for `RotateCSRFToken` (3 specs)                         | `134e7b6`   | `csrf_test.go`             | 3           |
-| 6   | Add tests for `CSRFConfig.Validate()` (4 specs)                   | `134e7b6`   | `csrf_test.go`             | 4           |
-| 7   | Add configurable TTL to `RateLimiterConfig`                       | `b7b11a2`   | `ratelimit.go`             | —           |
-| 8   | Add TTL eviction tests (2 specs)                                  | `b7b11a2`   | `ratelimit_test.go`        | 2           |
-| 9   | Add `MaxBodySize` to `Config` + bounded body reading              | `f4d6bc2`   | `app.go`, `decoder.go`, `options.go`, `errors.go` | — |
-| 10  | Add body size limit integration tests (2 specs)                   | `f4d6bc2`   | `integration_test.go`      | 2           |
-| 11  | Add `RequestID` branded type + helpers                            | `bffa615`   | `context.go`               | —           |
-| 12  | Auto-generate `RequestID` in `ContextEnrichmentMiddleware`        | `bffa615`   | `middleware.go`            | —           |
-| 13  | Add `RequestID` middleware tests (3 specs)                        | `bffa615`   | `middleware_test.go`       | 3           |
-| 14  | Add `RequestID` propagation to `EventOptionsFromContext`          | `bffa615`   | `context.go`               | —           |
-| 15  | Add `RequestLoggingSlog` middleware for structured logging         | `f938507`   | `logging.go`               | —           |
-| 16  | Add `RequestLoggingSlog` tests (2 specs)                          | `f938507`   | `logging_test.go`          | 2           |
-| 17  | Add `SecurityHeadersConfig` builder                               | `47dae81`   | `security.go`              | —           |
-| 18  | Add `SecurityHeadersMiddlewareWithConfig` (CSP/HSTS/custom)       | `47dae81`   | `security.go`              | —           |
-| 19  | Add security headers config tests (4 specs)                       | `47dae81`   | `security_test.go`         | 4           |
-| 20  | Add per-handler `WithTimeout` override                            | `d0307d0`   | `options.go`, `app.go`, `handler.go` | — |
-| 21  | Add rate limiter hooks (`OnAllowed`, `OnRejected`, `RejectionHandler`) | `7b6495b` | `ratelimit.go`             | —           |
-| 22  | Add rate limiter hooks tests (3 specs)                            | `7b6495b`   | `ratelimit_test.go`        | 3           |
-| 23  | Update `.golangci.yml` exclusions (CSRFConfig, SecurityHeadersConfig) | multi  | `.golangci.yml`           | —           |
-| 24  | Remove unused `nolint:exhaustruct` from `benchmark_test.go`       | `134e7b6`   | `benchmark_test.go`        | —           |
+| #   | Task                                                                      | Commit    | Files Changed                                     | Tests Added |
+| --- | ------------------------------------------------------------------------- | --------- | ------------------------------------------------- | ----------- |
+| 1   | Fix data race in `ratelimit.go` (removed `entry.lastUsed` write)          | `fdb1187` | `ratelimit.go`                                    | —           |
+| 2   | Fix `CSRFConfig.Validate()` sentinel (`ErrEnforcerNil` → `ErrCSRFConfig`) | `f8f6540` | `csrf.go`, `errors.go`                            | —           |
+| 3   | Fix `CSRFConfig.Validate()` SameSite=None returning wrong error           | `134e7b6` | `csrf.go`                                         | —           |
+| 4   | Add `ErrCSRFConfig` sentinel + classification                             | `134e7b6` | `errors.go`                                       | —           |
+| 5   | Add tests for `RotateCSRFToken` (3 specs)                                 | `134e7b6` | `csrf_test.go`                                    | 3           |
+| 6   | Add tests for `CSRFConfig.Validate()` (4 specs)                           | `134e7b6` | `csrf_test.go`                                    | 4           |
+| 7   | Add configurable TTL to `RateLimiterConfig`                               | `b7b11a2` | `ratelimit.go`                                    | —           |
+| 8   | Add TTL eviction tests (2 specs)                                          | `b7b11a2` | `ratelimit_test.go`                               | 2           |
+| 9   | Add `MaxBodySize` to `Config` + bounded body reading                      | `f4d6bc2` | `app.go`, `decoder.go`, `options.go`, `errors.go` | —           |
+| 10  | Add body size limit integration tests (2 specs)                           | `f4d6bc2` | `integration_test.go`                             | 2           |
+| 11  | Add `RequestID` branded type + helpers                                    | `bffa615` | `context.go`                                      | —           |
+| 12  | Auto-generate `RequestID` in `ContextEnrichmentMiddleware`                | `bffa615` | `middleware.go`                                   | —           |
+| 13  | Add `RequestID` middleware tests (3 specs)                                | `bffa615` | `middleware_test.go`                              | 3           |
+| 14  | Add `RequestID` propagation to `EventOptionsFromContext`                  | `bffa615` | `context.go`                                      | —           |
+| 15  | Add `RequestLoggingSlog` middleware for structured logging                | `f938507` | `logging.go`                                      | —           |
+| 16  | Add `RequestLoggingSlog` tests (2 specs)                                  | `f938507` | `logging_test.go`                                 | 2           |
+| 17  | Add `SecurityHeadersConfig` builder                                       | `47dae81` | `security.go`                                     | —           |
+| 18  | Add `SecurityHeadersMiddlewareWithConfig` (CSP/HSTS/custom)               | `47dae81` | `security.go`                                     | —           |
+| 19  | Add security headers config tests (4 specs)                               | `47dae81` | `security_test.go`                                | 4           |
+| 20  | Add per-handler `WithTimeout` override                                    | `d0307d0` | `options.go`, `app.go`, `handler.go`              | —           |
+| 21  | Add rate limiter hooks (`OnAllowed`, `OnRejected`, `RejectionHandler`)    | `7b6495b` | `ratelimit.go`                                    | —           |
+| 22  | Add rate limiter hooks tests (3 specs)                                    | `7b6495b` | `ratelimit_test.go`                               | 3           |
+| 23  | Update `.golangci.yml` exclusions (CSRFConfig, SecurityHeadersConfig)     | multi     | `.golangci.yml`                                   | —           |
+| 24  | Remove unused `nolint:exhaustruct` from `benchmark_test.go`               | `134e7b6` | `benchmark_test.go`                               | —           |
 
 ### b) PARTIALLY DONE ⚠️ (3 items)
 
-| #   | Task                                        | Why Partial                                      |
-| --- | ------------------------------------------- | ------------------------------------------------ |
+| #   | Task                                                    | Why Partial                                                            |
+| --- | ------------------------------------------------------- | ---------------------------------------------------------------------- |
 | 1   | P2.2 Replace `decodeFormValues` with go-playground/form | Deferred — adds external dependency; needs careful integration testing |
-| 2   | P3.3 Enhance `ErrorHandler` with status code | Deferred — breaking API change; needs `ErrorHandlerV2` design |
-| 3   | P4.4 `GzipMiddleware`                       | Deferred — nice-to-have; no consumer demand yet |
+| 2   | P3.3 Enhance `ErrorHandler` with status code            | Deferred — breaking API change; needs `ErrorHandlerV2` design          |
+| 3   | P4.4 `GzipMiddleware`                                   | Deferred — nice-to-have; no consumer demand yet                        |
 
 ### c) NOT STARTED ❌ (0 items)
 
@@ -74,16 +74,16 @@ Nothing broken. All 272 specs pass. Race detector clean. No regressions introduc
 
 ## 3. Metrics Before vs After
 
-| Metric                  | Before (session start) | After (now) | Delta      |
-| ----------------------- | ---------------------- | ----------- | ---------- |
-| Test Specs              | 256                    | 272         | **+16**    |
-| Coverage                | 93.7%                  | 94.1%       | **+0.4%**  |
-| Go Source Lines         | ~6,200                 | 6,293       | **+93**    |
-| Test Lines              | ~7,100                 | ~7,800      | **+~700**  |
-| Test Files              | 20                     | 20          | **0**      |
-| Source Files            | 16                     | 17          | **+1**     |
-| Sentinels               | 8                      | 9           | **+1**     |
-| Config Structs          | 2                      | 3           | **+1**     |
+| Metric          | Before (session start) | After (now) | Delta     |
+| --------------- | ---------------------- | ----------- | --------- |
+| Test Specs      | 256                    | 272         | **+16**   |
+| Coverage        | 93.7%                  | 94.1%       | **+0.4%** |
+| Go Source Lines | ~6,200                 | 6,293       | **+93**   |
+| Test Lines      | ~7,100                 | ~7,800      | **+~700** |
+| Test Files      | 20                     | 20          | **0**     |
+| Source Files    | 16                     | 17          | **+1**    |
+| Sentinels       | 8                      | 9           | **+1**    |
+| Config Structs  | 2                      | 3           | **+1**    |
 
 ---
 
@@ -91,26 +91,26 @@ Nothing broken. All 272 specs pass. Race detector clean. No regressions introduc
 
 ### 100% Covered Files
 
-| File          | Functions at 100%                                             |
-| ------------- | ------------------------------------------------------------- |
-| `app.go`      | `New`, `Command`, `Query`, `Middleware`, `enrichUserID`, `timeoutCtx`, `afterDispatchHook`, `buildHandlerConfig` |
-| `authz.go`    | `Authorize`, `RequireAuth`, `AuthorizeMiddleware`             |
-| `notify.go`   | `NotifyWithEvent`                                             |
+| File        | Functions at 100%                                                                                                |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| `app.go`    | `New`, `Command`, `Query`, `Middleware`, `enrichUserID`, `timeoutCtx`, `afterDispatchHook`, `buildHandlerConfig` |
+| `authz.go`  | `Authorize`, `RequireAuth`, `AuthorizeMiddleware`                                                                |
+| `notify.go` | `NotifyWithEvent`                                                                                                |
 
 ### Coverage Low Spots (< 90%)
 
-| File          | Function                 | Coverage | Why Low                              |
-| ------------- | ------------------------ | -------- | ------------------------------------ |
-| `context.go`  | `NewUserID`              | 0.0%     | Trivial wrapper — not directly tested |
-| `options.go`  | `WithTimeout`            | 0.0%     | Newly added — no timeout override test yet |
-| `response.go` | `CSRFToken`, `NotifyWithEvent` | 62.5%–88.2% | Some response builder paths untested |
-| `csrf.go`     | `sameSite()`, `CSRFProtect` | 66.7%–89.5% | `SameSiteDefaultMode` path, `CSRFProtect` partially tested |
-| `security.go` | `SecurityHeadersMiddlewareWithConfig` | 66.7%–92.9% | Some config combinations not tested |
-| `decoder.go`  | `readBody`, `decodeFormBody` | 72.7%–90.9% | Error paths (read errors, unmarshal) not fully tested |
-| `handler.go`  | `handleCommandDispatch`, `handleQueryDispatch` | 80.0%–87.5% | Timeout/afterDispatch error paths |
-| `logging.go`  | `DefaultLogFormatter`, `JSONLogFormatter` | 81.2%–90.9% | Some formatter branches untested |
-| `ratelimit.go`| `allow`, `limiter`       | 88.2%    | Eviction and error edge cases        |
-| `errors.go`   | `MapError`               | 88.9%–93.3% | Some sentinel classifications not hit |
+| File           | Function                                       | Coverage    | Why Low                                                    |
+| -------------- | ---------------------------------------------- | ----------- | ---------------------------------------------------------- |
+| `context.go`   | `NewUserID`                                    | 0.0%        | Trivial wrapper — not directly tested                      |
+| `options.go`   | `WithTimeout`                                  | 0.0%        | Newly added — no timeout override test yet                 |
+| `response.go`  | `CSRFToken`, `NotifyWithEvent`                 | 62.5%–88.2% | Some response builder paths untested                       |
+| `csrf.go`      | `sameSite()`, `CSRFProtect`                    | 66.7%–89.5% | `SameSiteDefaultMode` path, `CSRFProtect` partially tested |
+| `security.go`  | `SecurityHeadersMiddlewareWithConfig`          | 66.7%–92.9% | Some config combinations not tested                        |
+| `decoder.go`   | `readBody`, `decodeFormBody`                   | 72.7%–90.9% | Error paths (read errors, unmarshal) not fully tested      |
+| `handler.go`   | `handleCommandDispatch`, `handleQueryDispatch` | 80.0%–87.5% | Timeout/afterDispatch error paths                          |
+| `logging.go`   | `DefaultLogFormatter`, `JSONLogFormatter`      | 81.2%–90.9% | Some formatter branches untested                           |
+| `ratelimit.go` | `allow`, `limiter`                             | 88.2%       | Eviction and error edge cases                              |
+| `errors.go`    | `MapError`                                     | 88.9%–93.3% | Some sentinel classifications not hit                      |
 
 ### Overall Coverage Trend
 
@@ -127,23 +127,23 @@ Target:           95.0%
 
 ### Type Model Enhancements
 
-| Before                           | After                                           | Impact         |
-| -------------------------------- | ----------------------------------------------- | -------------- |
-| `UserID`, `CorrelationID` only   | + `RequestID` (per-request)                     | Observability  |
-| `ErrForbidden` for CSRF config   | `ErrCSRFConfig` (dedicated sentinel)            | Error taxonomy |
-| `ErrEnforcerNil` for CSRF config | Fixed to `ErrCSRFConfig`                        | Bug fix        |
+| Before                           | After                                            | Impact         |
+| -------------------------------- | ------------------------------------------------ | -------------- |
+| `UserID`, `CorrelationID` only   | + `RequestID` (per-request)                      | Observability  |
+| `ErrForbidden` for CSRF config   | `ErrCSRFConfig` (dedicated sentinel)             | Error taxonomy |
+| `ErrEnforcerNil` for CSRF config | Fixed to `ErrCSRFConfig`                         | Bug fix        |
 | No body size limit               | `MaxBodySize` in `Config` + `ErrRequestTooLarge` | DoS prevention |
-| No per-handler timeout           | `WithTimeout` handler option                    | Flexibility    |
+| No per-handler timeout           | `WithTimeout` handler option                     | Flexibility    |
 
 ### Security Hardening
 
-| Before                          | After                                      | Impact      |
-| ------------------------------- | ------------------------------------------ | ----------- |
-| Static security headers only    | `SecurityHeadersConfig` with CSP/HSTS      | Flexibility |
-| No structured logging           | `RequestLoggingSlog` via stdlib `slog`     | Observability |
-| No rate limiter hooks           | `OnAllowed`/`OnRejected`/`RejectionHandler` | Metrics     |
-| Hardcoded 10m TTL               | Configurable `TTL` on `RateLimiterConfig`  | Flexibility |
-| Unbounded body reading          | `io.LimitReader` + `MaxBodySize`           | DoS safety  |
+| Before                       | After                                       | Impact        |
+| ---------------------------- | ------------------------------------------- | ------------- |
+| Static security headers only | `SecurityHeadersConfig` with CSP/HSTS       | Flexibility   |
+| No structured logging        | `RequestLoggingSlog` via stdlib `slog`      | Observability |
+| No rate limiter hooks        | `OnAllowed`/`OnRejected`/`RejectionHandler` | Metrics       |
+| Hardcoded 10m TTL            | Configurable `TTL` on `RateLimiterConfig`   | Flexibility   |
+| Unbounded body reading       | `io.LimitReader` + `MaxBodySize`            | DoS safety    |
 
 ### Middleware Chain
 
@@ -172,11 +172,11 @@ Chain(
 
 ### BuildFlow Pre-commit Failures (Pre-existing)
 
-| Step               | Status | Resolution Needed |
-| ------------------ | ------ | ----------------- |
-| `library-policy`   | FAIL   | `pkg_errors` transitive dep — cannot remove (casbin dep) |
-| `todo-check`       | FAIL   | `security.go` NOTE comment — not a real TODO |
-| `go-structure-linter` | FAIL | Flake.nix / pkg/ dir recommendations — structural decisions |
+| Step                  | Status | Resolution Needed                                           |
+| --------------------- | ------ | ----------------------------------------------------------- |
+| `library-policy`      | FAIL   | `pkg_errors` transitive dep — cannot remove (casbin dep)    |
+| `todo-check`          | FAIL   | `security.go` NOTE comment — not a real TODO                |
+| `go-structure-linter` | FAIL   | Flake.nix / pkg/ dir recommendations — structural decisions |
 
 ### Memory Leak Warning (Pre-existing, Documented)
 
@@ -239,13 +239,16 @@ Adding a status parameter would be a **breaking change** for all consumers who d
 I see three approaches but cannot determine which aligns with the project's API stability policy:
 
 **Option A — New type (`ErrorHandlerV2`)**
+
 ```go
 type ErrorHandlerV2 func(w http.ResponseWriter, r *http.Request, status int, err error)
 ```
+
 - Pros: Fully backward compatible, no migration pressure
 - Cons: Two types forever, consumer confusion about which to use
 
 **Option B — Helper function (non-breaking)**
+
 ```go
 func ErrorHandlerWithStatus(fn func(w http.ResponseWriter, r *http.Request, status int, err error)) ErrorHandler {
     return func(w http.ResponseWriter, r *http.Request, err error) {
@@ -253,10 +256,12 @@ func ErrorHandlerWithStatus(fn func(w http.ResponseWriter, r *http.Request, stat
     }
 }
 ```
+
 - Pros: Zero breaking changes, idiomatic adapter pattern
 - Cons: Status is computed inside adapter, not pre-computed by handler
 
 **Option C — Major version bump**
+
 - Change `ErrorHandler` signature in v2
 - Pros: Clean API, no dual types
 - Cons: All consumers must migrate
@@ -288,33 +293,33 @@ f1acac4 status: comprehensive status report for P1.1–P3.5 execution
 
 ### Modified
 
-| File              | Lines  | Change                |
-| ----------------- | ------ | --------------------- |
-| `csrf.go`         | 432    | Fix sentinel, SameSite |
-| `csrf_test.go`    | 661    | +7 specs              |
-| `ratelimit.go`    | 200    | TTL config, hooks     |
-| `ratelimit_test.go` | 308  | +5 specs              |
-| `errors.go`       | 183    | +ErrRequestTooLarge   |
-| `app.go`          | 212    | +MaxBodySize, timeout |
-| `decoder.go`      | 109    | +readBody, max size   |
-| `options.go`      | 276    | +maxBodySize, timeout |
-| `context.go`      | 152    | +RequestID            |
-| `middleware.go`   | 74     | +RequestID auto-gen   |
-| `middleware_test.go` | 175 | +3 specs              |
-| `logging.go`      | 175    | +RequestLoggingSlog   |
-| `logging_test.go` | 217    | +2 specs              |
-| `security.go`     | 112    | +SecurityHeadersConfig |
-| `security_test.go` | 133   | +4 specs              |
-| `integration_test.go` | 637 | +2 specs              |
-| `benchmark_test.go` | 252  | Remove unused nolint  |
-| `.golangci.yml`   | ~50    | +CSRFConfig, SecurityHeadersConfig exclusions |
+| File                  | Lines | Change                                        |
+| --------------------- | ----- | --------------------------------------------- |
+| `csrf.go`             | 432   | Fix sentinel, SameSite                        |
+| `csrf_test.go`        | 661   | +7 specs                                      |
+| `ratelimit.go`        | 200   | TTL config, hooks                             |
+| `ratelimit_test.go`   | 308   | +5 specs                                      |
+| `errors.go`           | 183   | +ErrRequestTooLarge                           |
+| `app.go`              | 212   | +MaxBodySize, timeout                         |
+| `decoder.go`          | 109   | +readBody, max size                           |
+| `options.go`          | 276   | +maxBodySize, timeout                         |
+| `context.go`          | 152   | +RequestID                                    |
+| `middleware.go`       | 74    | +RequestID auto-gen                           |
+| `middleware_test.go`  | 175   | +3 specs                                      |
+| `logging.go`          | 175   | +RequestLoggingSlog                           |
+| `logging_test.go`     | 217   | +2 specs                                      |
+| `security.go`         | 112   | +SecurityHeadersConfig                        |
+| `security_test.go`    | 133   | +4 specs                                      |
+| `integration_test.go` | 637   | +2 specs                                      |
+| `benchmark_test.go`   | 252   | Remove unused nolint                          |
+| `.golangci.yml`       | ~50   | +CSRFConfig, SecurityHeadersConfig exclusions |
 
 ### New
 
-| File                                        | Purpose                          |
-| ------------------------------------------- | -------------------------------- |
-| `docs/plan/2026-05-19_16-20_comprehensive-execution-plan.md` | Execution plan document |
-| `docs/status/2026-05-19_17-46_comprehensive-execution-complete.md` | This report |
+| File                                                               | Purpose                 |
+| ------------------------------------------------------------------ | ----------------------- |
+| `docs/plan/2026-05-19_16-20_comprehensive-execution-plan.md`       | Execution plan document |
+| `docs/status/2026-05-19_17-46_comprehensive-execution-complete.md` | This report             |
 
 ---
 

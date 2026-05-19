@@ -86,8 +86,7 @@ func BenchmarkCommandDispatch(b *testing.B) {
 	app, _ := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 	handler := app.Command("CreateUser", decodeCreateUserJSON())
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, r)
@@ -106,8 +105,7 @@ func BenchmarkQueryDispatch(b *testing.B) {
 		cqrshtmx.Render(encodeJSONResult),
 	)
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, r)
