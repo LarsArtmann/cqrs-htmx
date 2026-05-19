@@ -124,7 +124,7 @@ var _ = Describe("App", func() {
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(_ *http.Request) string { return adminUserID.String() },
+				UserIDExtractor: func(_ *http.Request) (cqrshtmx.UserID, error) { return adminUserID, nil },
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -183,7 +183,7 @@ var _ = Describe("App", func() {
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
 				Enforcer:        enf,
-				UserIDExtractor: func(r *http.Request) string { return r.Header.Get("X-User-ID") },
+				UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.ParseUserID(r.Header.Get("X-User-ID")) },
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -347,7 +347,7 @@ var _ = Describe("App", func() {
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Queries:         disp,
 				Enforcer:        enf,
-				UserIDExtractor: func(r *http.Request) string { return r.Header.Get("X-User-ID") },
+				UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.ParseUserID(r.Header.Get("X-User-ID")) },
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -424,7 +424,7 @@ var _ = Describe("App", func() {
 			disp := command.NewDispatcher()
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(_ *http.Request) string { return want.String() },
+				UserIDExtractor: func(_ *http.Request) (cqrshtmx.UserID, error) { return want, nil },
 			})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -473,7 +473,7 @@ var _ = Describe("Authorization", func() {
 		It("allows authorized requests through", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) string { return adminUserID.String() })
+				func(_ *http.Request) (cqrshtmx.UserID, error) { return adminUserID, nil })
 
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
@@ -487,7 +487,7 @@ var _ = Describe("Authorization", func() {
 		It("blocks unauthorized requests", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "create",
-				func(_ *http.Request) string { return viewerUserID.String() })
+				func(_ *http.Request) (cqrshtmx.UserID, error) { return viewerUserID, nil })
 
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
@@ -502,7 +502,7 @@ var _ = Describe("Authorization", func() {
 		It("blocks unauthenticated requests", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) string { return "" })
+				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil })
 
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
@@ -517,7 +517,7 @@ var _ = Describe("Authorization", func() {
 		It("redirects unauthenticated HTMX requests to login", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) string { return "" })
+				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil })
 
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
@@ -533,8 +533,13 @@ var _ = Describe("Authorization", func() {
 
 		It("uses custom login redirect", func() {
 			e := newTestEnforcer()
-			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) string { return "" }, "/auth/signin")
+			middleware := cqrshtmx.AuthorizeMiddleware(
+				e,
+				"users",
+				"read",
+				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil },
+				"/auth/signin",
+			)
 
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
@@ -550,7 +555,7 @@ var _ = Describe("Authorization", func() {
 		It("prefers branded UserID from context over extractor", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) string { return "" })
+				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil })
 
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
@@ -565,7 +570,9 @@ var _ = Describe("Authorization", func() {
 		It("rejects unparseable user IDs with 401", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) string { return "not-a-ulid" })
+				func(_ *http.Request) (cqrshtmx.UserID, error) {
+					return cqrshtmx.UserID{}, errors.New("invalid user id")
+				})
 
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))

@@ -87,7 +87,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 				app, err = cqrshtmx.New(cqrshtmx.Config{
 					Commands:        disp,
 					Enforcer:        enforcer,
-					UserIDExtractor: func(r *http.Request) string { return r.Header.Get("X-User") },
+					UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.ParseUserID(r.Header.Get("X-User")) },
 				})
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -323,7 +323,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(r *http.Request) string { return r.Header.Get("X-User-ID") },
+				UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.ParseUserID(r.Header.Get("X-User-ID")) },
 			})
 			Expect(err).NotTo(HaveOccurred())
 

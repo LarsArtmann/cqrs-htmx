@@ -158,13 +158,8 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 		return r
 	}
 
-	userIDStr := a.userIDExtractor(r)
-	if userIDStr == "" {
-		return r
-	}
-
-	userID, err := ParseUserID(userIDStr)
-	if err != nil {
+	userID, err := a.userIDExtractor(r)
+	if err != nil || userID.IsZero() {
 		return r
 	}
 
@@ -178,6 +173,13 @@ func (a *App) timeoutCtx(ctx context.Context) (context.Context, context.CancelFu
 		return ctx, func() {}
 	}
 	return context.WithTimeout(ctx, a.timeout)
+}
+
+// afterDispatchHook calls the afterDispatch hook if configured.
+func (a *App) afterDispatchHook(ctx context.Context, r *http.Request, err error) {
+	if a.afterDispatch != nil {
+		a.afterDispatch(ctx, r, err)
+	}
 }
 
 func buildHandlerConfig(opts []HandlerOption) *handlerConfig {

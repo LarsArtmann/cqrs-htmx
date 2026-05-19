@@ -21,26 +21,20 @@ func (a *App) handleCommandDispatch(
 	}
 
 	if err := a.executePreDispatchChecks(w, r, cfg); err != nil {
-		if a.afterDispatch != nil {
-			a.afterDispatch(ctx, r, err)
-		}
-		return
-	}
-
-	if cfg.commandDecoder == nil {
-		a.errorHandler(w, r, errDecoderMissing)
-		if a.afterDispatch != nil {
-			a.afterDispatch(ctx, r, errDecoderMissing)
-		}
+		a.afterDispatchHook(ctx, r, err)
 		return
 	}
 
 	cmd, err := cfg.commandDecoder(r)
 	if err != nil {
 		a.errorHandler(w, r, err)
-		if a.afterDispatch != nil {
-			a.afterDispatch(ctx, r, err)
-		}
+		a.afterDispatchHook(ctx, r, err)
+		return
+	}
+
+	if cmd == nil {
+		a.errorHandler(w, r, errDecoderMissing)
+		a.afterDispatchHook(ctx, r, errDecoderMissing)
 		return
 	}
 
@@ -49,16 +43,12 @@ func (a *App) handleCommandDispatch(
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
 		a.errorHandler(w, r, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err))
-		if a.afterDispatch != nil {
-			a.afterDispatch(ctx, r, err)
-		}
+		a.afterDispatchHook(ctx, r, err)
 		return
 	}
 
 	a.applyCommandResponse(w, r, cfg)
-	if a.afterDispatch != nil {
-		a.afterDispatch(ctx, r, nil)
-	}
+	a.afterDispatchHook(ctx, r, nil)
 }
 
 func (a *App) executePreDispatchChecks(
@@ -126,27 +116,21 @@ func (a *App) handleQueryDispatch(
 	}
 
 	if err := a.executePreDispatchChecks(w, r, cfg); err != nil {
-		if a.afterDispatch != nil {
-			a.afterDispatch(ctx, r, err)
-		}
+		a.afterDispatchHook(ctx, r, err)
 		return
 	}
 
 	if cfg.queryDecoder == nil {
 		a.errorHandler(w, r, errDecoderMissing)
-		if a.afterDispatch != nil {
-			a.afterDispatch(ctx, r, errDecoderMissing)
-		}
+		a.afterDispatchHook(ctx, r, errDecoderMissing)
 		return
 	}
 
 	qry, err := cfg.queryDecoder(r)
 	if err != nil {
-		err = fmt.Errorf("%w: %s: %w", ErrDecodeFailed, qryType, err)
-		a.errorHandler(w, r, err)
-		if a.afterDispatch != nil {
-			a.afterDispatch(ctx, r, err)
-		}
+		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDecodeFailed, qryType, err)
+		a.errorHandler(w, r, wrappedErr)
+		a.afterDispatchHook(ctx, r, wrappedErr)
 		return
 	}
 
@@ -155,16 +139,12 @@ func (a *App) handleQueryDispatch(
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		qu := fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err)
-		a.errorHandler(w, r, qu)
-		if a.afterDispatch != nil {
-			a.afterDispatch(ctx, r, qu)
-		}
+		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err)
+		a.errorHandler(w, r, wrappedErr)
+		a.afterDispatchHook(ctx, r, wrappedErr)
 		return
 	}
 
 	a.applyQueryResponse(w, r.WithContext(ctx), cfg, result)
-	if a.afterDispatch != nil {
-		a.afterDispatch(ctx, r, nil)
-	}
+	a.afterDispatchHook(ctx, r, nil)
 }

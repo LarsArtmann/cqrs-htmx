@@ -23,7 +23,7 @@ var _ = Describe("Middleware", func() {
 
 		It("enriches context with user ID from extractor", func() {
 			want := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
-			extractor := func(_ *http.Request) string { return want.String() }
+			extractor := func(_ *http.Request) (cqrshtmx.UserID, error) { return want, nil }
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
 
 			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
@@ -40,7 +40,7 @@ var _ = Describe("Middleware", func() {
 		})
 
 		It("does not set user ID when extractor returns empty", func() {
-			extractor := func(_ *http.Request) string { return "" }
+			extractor := func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil }
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
 
 			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
@@ -73,7 +73,7 @@ var _ = Describe("Middleware", func() {
 		})
 
 		It("drops unparseable user IDs silently", func() {
-			extractor := func(_ *http.Request) string { return "not-a-ulid" }
+			extractor := func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil }
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
 
 			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {

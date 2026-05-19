@@ -3,6 +3,8 @@ package cqrshtmx
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"path"
 )
 
 // Response builds HTMX-aware HTTP responses with fluent method chaining.
@@ -20,7 +22,7 @@ type Response struct {
 
 // NewResponse creates an HTMX-aware response builder.
 func NewResponse(w http.ResponseWriter, r *http.Request) *Response {
-	return &Response{w: w, r: r}
+	return &Response{w: w, r: r, redirectURL: ""}
 }
 
 // IsHTMX returns true if the current request is from HTMX.
@@ -155,7 +157,13 @@ func (resp *Response) CSRFToken(token string) *Response {
 // must still write the body.
 func (resp *Response) Apply() bool {
 	if resp.redirectURL != "" {
-		http.Redirect(resp.w, resp.r, resp.redirectURL, http.StatusSeeOther)
+		redirectURL, safe := sanitizeRedirectURL(resp.redirectURL)
+		if safe {
+			http.Redirect(resp.w, resp.r, redirectURL, http.StatusSeeOther)
+			return true
+		}
+		// Unsafe redirect - fall through to render content instead
+		resp.w.WriteHeader(http.StatusBadRequest)
 		return true
 	}
 
@@ -164,6 +172,28 @@ func (resp *Response) Apply() bool {
 	}
 
 	return false
+}
+
+// sanitizeRedirectURL validates that a redirect URL is safe (relative path only).
+// Returns the sanitized URL and whether it's safe to redirect.
+func sanitizeRedirectURL(rawURL string) (string, bool) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "", false
+	}
+
+	// Only allow relative URLs (no scheme, no host)
+	if u.Scheme != "" || u.Host != "" {
+		return "", false
+	}
+
+	// Block URLs with dangerous patterns like javascript:, data:, etc.
+	if u.Opaque != "" {
+		return "", false
+	}
+
+	// Normalize and return the path
+	return path.Clean(u.Path), u.Path != "" && u.Path != "/"
 }
 
 func setTriggerHeader(w http.ResponseWriter, header, event string) {

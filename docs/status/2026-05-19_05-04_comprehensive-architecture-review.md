@@ -22,12 +22,14 @@ A full-architecture review revealed **1 CRITICAL security bug** (queries bypasse
 **Impact:** Any query using `Authorize()` or `RequireAuth()` was **completely unprotected**. Any query using `CSRFProtect()` was unprotected.
 
 **Fix (committed `7654218`):**
+
 - Refactored `executePreDispatchChecks` to handle auth + CSRF only
 - Moved `commandDecoder == nil` check to `handleCommandDispatch`
 - Added `executePreDispatchChecks` + `queryDecoder == nil` check to `handleQueryDispatch`
 - Both paths now consistent: auth → CSRF → decoder → dispatch
 
 **Tests added (4 new specs in `app_test.go`):**
+
 - Authorized queries succeed
 - Unauthorized queries rejected (403)
 - Unauthenticated queries rejected (401)
@@ -38,6 +40,7 @@ A full-architecture review revealed **1 CRITICAL security bug** (queries bypasse
 **Finding:** `Response.Redirect()` called `http.Redirect()` for non-HTMX requests, which writes the response body immediately. Any chained methods (`.Trigger()`, `.PushURL()`) or subsequent `WriteHeader()` calls would fail or be ignored.
 
 **Fix (committed `7654218`):**
+
 - `Response` now tracks `redirectURL` string field
 - `Redirect()` sets the field for non-HTMX instead of writing
 - `Apply()` returns `bool` — true if response was written (redirect), false if caller must still write
@@ -48,6 +51,7 @@ A full-architecture review revealed **1 CRITICAL security bug** (queries bypasse
 **Finding:** `headerTriggerID` and `headerTrigger` both defined as `"HX-Trigger"`. Split brain — same value, two constants, used in different places.
 
 **Fix (committed `7654218`):**
+
 - Removed `headerTriggerID`, consolidated all usage to `headerTrigger`
 - Updated `parseHTMXRequest` and `HTMXTrigger` accessor
 
@@ -83,6 +87,7 @@ A full-architecture review revealed **1 CRITICAL security bug** (queries bypasse
 ### 1. `options.go` File Size — NEEDS SPLIT
 
 At 340 lines, `options.go` violates the 350-line threshold and has too many responsibilities:
+
 - Type definitions (`HandlerOption`, `authMode`, `handlerConfig`, decoders, renderers)
 - Handler config methods (`hasNoExplicitBody`)
 - Decoder functions (`decodeJSONBody`, `decodeFormBody`, `decodeRequest`, `decodeFormValues`)
@@ -91,6 +96,7 @@ At 340 lines, `options.go` violates the 350-line threshold and has too many resp
 - Response application (`applyHTMXResponse`)
 
 **Recommended split:**
+
 - `decoder.go`: `decodeJSONBody`, `decodeFormBody`, `decodeRequest`, `decodeFormValues`
 - `handler_config.go`: `handlerConfig`, `authMode`, `hasNoExplicitBody`, `executeAuthorization`
 - Keep `options.go` for public `HandlerOption` constructors only
@@ -102,6 +108,7 @@ At 61 lines (limit 60). Pre-existing lint issue. The function is clean but sligh
 ### 3. HTMX Auth Error Duplication — PARTIALLY ADDRESSED
 
 `DefaultErrorHandlerWithRedirect` and `JSONErrorHandlerWithRedirect` duplicate the same HTMX auth check logic:
+
 ```go
 if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid)) {
     w.Header().Set(headerRedirect, loginRedirect)
@@ -127,6 +134,7 @@ The extractor returns `string` which is then parsed to `UserID` in multiple plac
 ### 2. `CSRFConfig` Empty Secret Warning
 
 If `CSRFConfig.Secret` is empty, `CSRFMiddleware` generates a random 32-byte key per call. This means:
+
 - Server restarts invalidate all CSRF tokens
 - Multiple `CSRFMiddleware()` calls in tests each get different keys
 - Production deployments without stable secret break sessions across restarts
@@ -229,33 +237,33 @@ Add `.buildflow.yml` to disable incompatible rules.
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Priority | Task                                                                  | Why                                                  |
-| --- | -------- | --------------------------------------------------------------------- | ---------------------------------------------------- |
-| 1   | P0       | **Fix BuildFlow pre-commit hook** — disable incompatible rules        | Every commit needs `--no-verify`                     |
-| 2   | P1       | **Extract `isAuthError` helper** — consolidate duplicated HTMX logic  | DRY violation in 2 error handlers                    |
-| 3   | P1       | **Typed `UserIDExtractor`** — return `(UserID, error)` instead of string | Eliminates parsing duplication, explicit failures   |
-| 4   | P2       | **Split `options.go`** — extract decoder.go + handler_config.go       | File is 340 lines, too many responsibilities         |
-| 5   | P2       | **Warn on empty CSRF Secret** — tokens don't persist across restarts  | Production footgun                                   |
-| 6   | P2       | **Move `registerErrorClassifications` to `init()`**                   | `sync.Once` in hot path is wasteful                  |
-| 7   | P2       | **Add token rotation helper (`RotateCSRFToken`)**                     | Security hardening                                   |
-| 8   | P2       | **Create `example/basic/` with runnable demo**                        | Consumer onboarding                                  |
-| 9   | P3       | **Fix rate limiter unbounded map leak**                               | Memory leak in production                            |
-| 10  | P3       | **Write `SECURITY.md`**                                               | Professional security posture                        |
-| 11  | P3       | **Add `govulncheck` to CI**                                           | Vulnerability scanning                               |
-| 12  | P3       | **Suppres or fix `handler.go:86` funlen**                             | Clean lint output                                    |
-| 13  | P4       | **Add `CSRFConfig` validation** (SameSite=None without Secure)        | Prevent broken configs                               |
-| 14  | P4       | **Document Secure flag + reverse proxy** (`X-Forwarded-Proto`)        | Proxy deployments misconfigure Secure                |
-| 15  | P4       | **Add CSRF middleware benchmarks**                                    | Quantify overhead                                    |
-| 16  | P4       | **Add `CSRFToken` branded type** (`type CSRFToken string`)            | Type safety                                          |
-| 17  | P4       | **Functional options for `CSRFConfig`**                               | Cleaner API                                          |
-| 18  | P4       | **Extract `gorilla/csrf` adapter into internal package**              | Cleaner separation                                   |
-| 19  | P4       | **Document how to test CSRF-protected endpoints**                     | Consumer testing convenience                         |
-| 20  | P4       | **Add configurable token length / entropy**                           | Flexibility for paranoid deployments                 |
-| 21  | P4       | **Support double-submit without cookie** (session-backed)             | Alternative pattern                                  |
-| 22  | P4       | **Add CSRF bypass for trusted origins/internal IPs**                  | Internal API use case                                |
-| 23  | P4       | **Integration test with real `httptest.Server`**                      | More realistic scenarios                             |
-| 24  | P4       | **Add `CSRFMiddleware` warn-only mode**                               | Gradual rollout                                      |
-| 25  | P4       | **Add snapshot testing with `go-snaps`**                              | Reduce brittle assertions                            |
+| #   | Priority | Task                                                                     | Why                                               |
+| --- | -------- | ------------------------------------------------------------------------ | ------------------------------------------------- |
+| 1   | P0       | **Fix BuildFlow pre-commit hook** — disable incompatible rules           | Every commit needs `--no-verify`                  |
+| 2   | P1       | **Extract `isAuthError` helper** — consolidate duplicated HTMX logic     | DRY violation in 2 error handlers                 |
+| 3   | P1       | **Typed `UserIDExtractor`** — return `(UserID, error)` instead of string | Eliminates parsing duplication, explicit failures |
+| 4   | P2       | **Split `options.go`** — extract decoder.go + handler_config.go          | File is 340 lines, too many responsibilities      |
+| 5   | P2       | **Warn on empty CSRF Secret** — tokens don't persist across restarts     | Production footgun                                |
+| 6   | P2       | **Move `registerErrorClassifications` to `init()`**                      | `sync.Once` in hot path is wasteful               |
+| 7   | P2       | **Add token rotation helper (`RotateCSRFToken`)**                        | Security hardening                                |
+| 8   | P2       | **Create `example/basic/` with runnable demo**                           | Consumer onboarding                               |
+| 9   | P3       | **Fix rate limiter unbounded map leak**                                  | Memory leak in production                         |
+| 10  | P3       | **Write `SECURITY.md`**                                                  | Professional security posture                     |
+| 11  | P3       | **Add `govulncheck` to CI**                                              | Vulnerability scanning                            |
+| 12  | P3       | **Suppres or fix `handler.go:86` funlen**                                | Clean lint output                                 |
+| 13  | P4       | **Add `CSRFConfig` validation** (SameSite=None without Secure)           | Prevent broken configs                            |
+| 14  | P4       | **Document Secure flag + reverse proxy** (`X-Forwarded-Proto`)           | Proxy deployments misconfigure Secure             |
+| 15  | P4       | **Add CSRF middleware benchmarks**                                       | Quantify overhead                                 |
+| 16  | P4       | **Add `CSRFToken` branded type** (`type CSRFToken string`)               | Type safety                                       |
+| 17  | P4       | **Functional options for `CSRFConfig`**                                  | Cleaner API                                       |
+| 18  | P4       | **Extract `gorilla/csrf` adapter into internal package**                 | Cleaner separation                                |
+| 19  | P4       | **Document how to test CSRF-protected endpoints**                        | Consumer testing convenience                      |
+| 20  | P4       | **Add configurable token length / entropy**                              | Flexibility for paranoid deployments              |
+| 21  | P4       | **Support double-submit without cookie** (session-backed)                | Alternative pattern                               |
+| 22  | P4       | **Add CSRF bypass for trusted origins/internal IPs**                     | Internal API use case                             |
+| 23  | P4       | **Integration test with real `httptest.Server`**                         | More realistic scenarios                          |
+| 24  | P4       | **Add `CSRFMiddleware` warn-only mode**                                  | Gradual rollout                                   |
+| 25  | P4       | **Add snapshot testing with `go-snaps`**                                 | Reduce brittle assertions                         |
 
 ---
 
@@ -274,6 +282,7 @@ The extractor is the **boundary** between the HTTP world (JWT tokens, session co
 If we change to `(UserID, error)`, consumers with non-ULID identity systems must map their IDs to ULIDs. If we keep `string`, we silently drop invalid IDs which is a security footgun.
 
 **My leaning:** Keep `string` for the extractor (flexibility), but add a **second** optional `UserIDParser` that consumers can provide. Default parser uses `ParseUserID`. This way:
+
 - Consumers with ULID-based auth (our default) get strong typing
 - Consumers with UUID/integer auth can provide a custom parser
 - Invalid IDs are never silently dropped
@@ -284,22 +293,22 @@ But is this over-engineering for a library that already depends on `go-cqrs-lite
 
 ## Metrics
 
-| Metric          | Value  | Δ from last report |
-| --------------- | ------ | ------------------ |
-| Test Specs      | 249    | +4                 |
-| Coverage        | 94.8%  | +0.1%              |
-| Lint Issues     | 1      | 0 new              |
-| Prod Files      | 14     | 0                  |
-| Test Files      | 19     | 0                  |
-| Benchmarks      | 6      | 0                  |
-| Go Dependencies | 10     | 0                  |
+| Metric          | Value | Δ from last report |
+| --------------- | ----- | ------------------ |
+| Test Specs      | 249   | +4                 |
+| Coverage        | 94.8% | +0.1%              |
+| Lint Issues     | 1     | 0 new              |
+| Prod Files      | 14    | 0                  |
+| Test Files      | 19    | 0                  |
+| Benchmarks      | 6     | 0                  |
+| Go Dependencies | 10    | 0                  |
 
 ## Commits This Session
 
-| Commit    | Files Changed | Description                                    |
-|-----------|---------------|------------------------------------------------|
-| `91e07a0` | app_test.go, ratelimit.go | Rate limiter fixes + query auth tests         |
-| `7654218` | handler.go, htmx.go | Query auth fix, Redirect fix, header dedup     |
+| Commit    | Files Changed             | Description                                |
+| --------- | ------------------------- | ------------------------------------------ |
+| `91e07a0` | app_test.go, ratelimit.go | Rate limiter fixes + query auth tests      |
+| `7654218` | handler.go, htmx.go       | Query auth fix, Redirect fix, header dedup |
 
 ---
 

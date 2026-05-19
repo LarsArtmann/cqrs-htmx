@@ -22,12 +22,9 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 			}
 
 			if extractor != nil {
-				userIDStr := extractor(r)
-				if userIDStr != "" {
-					userID, err := ParseUserID(userIDStr)
-					if err == nil {
-						ctx = WithUserID(ctx, userID)
-					}
+				userID, err := extractor(r)
+				if err == nil && !userID.IsZero() {
+					ctx = WithUserID(ctx, userID)
 				}
 			}
 

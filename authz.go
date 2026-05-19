@@ -12,9 +12,10 @@ type Enforcer interface {
 	Enforce(rvals ...any) (bool, error)
 }
 
-// UserIDExtractor extracts a user ID from an HTTP request.
-// Return an empty string if the user is not authenticated.
-type UserIDExtractor func(r *http.Request) string
+// UserIDExtractor extracts a validated user ID from an HTTP request.
+// Return a zero-value UserID and a nil error if the user is not authenticated.
+// Return a non-nil error if authentication data is present but invalid.
+type UserIDExtractor func(r *http.Request) (UserID, error)
 
 // Authorize returns a HandlerOption that checks Casbin permissions.
 // The subject is extracted from the request context (via UserIDExtractor).
@@ -80,24 +81,16 @@ func AuthorizeMiddleware(
 			if userID := UserIDFromContext(r.Context()); !userID.IsZero() {
 				subject = userID.String()
 			} else if extractor != nil {
-				userIDStr := extractor(r)
-				if userIDStr == "" {
-					err := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
-					DefaultErrorHandlerWithRedirect(w, r, err, redirect)
+				uid, err := extractor(r)
+				if err != nil || uid.IsZero() {
+					authErr := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
+					DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
 					return
 				}
-
-				uid, err := ParseUserID(userIDStr)
-				if err != nil {
-					err := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
-					DefaultErrorHandlerWithRedirect(w, r, err, redirect)
-					return
-				}
-
 				subject = uid.String()
 			} else {
-				err := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
-				DefaultErrorHandlerWithRedirect(w, r, err, redirect)
+				authErr := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
+				DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
 				return
 			}
 
