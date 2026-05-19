@@ -9,13 +9,13 @@
 
 ## 1. Overall Health
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| Tests Passing | 249 / 249 | Green |
-| Test Coverage | 94.9% | Green |
-| Race Detector | Clean | Green |
-| go build ./... | Pass | Green |
-| golangci-lint | 7 issues (pre-existing) | Yellow |
+| Metric          | Value                        | Status |
+| --------------- | ---------------------------- | ------ |
+| Tests Passing   | 249 / 249                    | Green  |
+| Test Coverage   | 94.9%                        | Green  |
+| Race Detector   | Clean                        | Green  |
+| go build ./...  | Pass                         | Green  |
+| golangci-lint   | 7 issues (pre-existing)      | Yellow |
 | LSP Diagnostics | 19 stale errors (test files) | Yellow |
 
 **Overall Assessment:** `STABLE` — All critical bugs fixed. Test suite green. 7 pre-existing lint issues (all in test files, non-blocking). 19 LSP diagnostics are **stale** — the test files were reverted to match committed state, but gopls has not re-indexed.
@@ -26,14 +26,16 @@
 
 ### 2.1 P0.1: Fix Nil Decoder Panic in `handleCommandDispatch` ✅
 
-**Bug:** Commit `586d24b` moved the `commandDecoder == nil` check to *after* `cfg.commandDecoder(r)` was called. When no decoder was configured (e.g., `app.Command("CreateUser")` with no `DecodeJSON` option), this caused a nil pointer dereference panic.
+**Bug:** Commit `586d24b` moved the `commandDecoder == nil` check to _after_ `cfg.commandDecoder(r)` was called. When no decoder was configured (e.g., `app.Command("CreateUser")` with no `DecodeJSON` option), this caused a nil pointer dereference panic.
 
 **Impact:** 2 specs panicked:
+
 - `Validation HandlerOption/ValidateCommand/no-op when decoder is not set`
 - `App/Command handler/returns error when decoder is missing`
 
 **Fix Applied (handler.go):**
-- Restored `cfg.commandDecoder == nil` check *before* calling `cfg.commandDecoder(r)`
+
+- Restored `cfg.commandDecoder == nil` check _before_ calling `cfg.commandDecoder(r)`
 - Refactored to use new `dispatchContext()` helper that centralizes `beforeDispatch` hook + `executePreDispatchChecks`
 - Command and query handlers now share the same dispatch context initialization pattern
 
@@ -46,6 +48,7 @@
 **Bug:** 7 CSRF-related specs returned 403 instead of expected 200/204 after gorilla/csrf was bumped from v1.7.2 to v1.7.3.
 
 **Root Cause Identified:** gorilla/csrf v1.7.3 introduced a **breaking behavior change** in CSRF validation:
+
 - v1.7.3 now enforces strict Referer/Origin checks for HTTPS requests by default
 - `httptest.NewRequest` creates requests with an empty `URL.Scheme`, but v1.7.3 now defaults to treating requests as HTTPS unless explicitly marked plaintext via `csrf.PlaintextHTTPContextKey` in the request context
 - The v1.7.3 code path checks `requestURL.Scheme == "https"` (default) and then validates Referer/Origin headers — our tests use plain HTTP requests with no Origin/Referer headers, so they fail with 403
@@ -62,10 +65,12 @@
 | `Integration/CSRFProtect with valid token` | 204 | 403 |
 
 **Fix Applied (go.mod, go.sum):**
+
 - Downgraded `github.com/gorilla/csrf` from `v1.7.3` back to `v1.7.2`
 - `go mod tidy` was not needed — only `go.mod` and `go.sum` checksums changed
 
 **Why downgrade, not adapt tests?**
+
 - v1.7.3's new behavior is a **breaking change disguised as a patch release**
 - Adapting all tests would require wrapping every `httptest.NewRequest` with `csrf.PlaintextHTTPRequest()`, which is a test-only workaround that doesn't address the real concern: the library's consumers will face the same 403s on HTTP deployments behind reverse proxies
 - The proper fix is to explicitly set `requestURL.Scheme = "http"` in our CSRF middleware when `Secure=false`, or to document the v1.7.3 behavior change for consumers
@@ -91,23 +96,23 @@
 
 Everything from the comprehensive execution plan **beyond P0.1 and P0.2** remains not started:
 
-| Phase | Item | Status |
-|-------|------|--------|
-| P1.1 | Fix `executeCSRFValidation` ResponseWriter conflict | Not started |
-| P1.2 | Warn on empty CSRF Secret | Not started |
-| P1.3 | Warn on `Secure=false` | Not started |
-| P1.4 | Extract `isAuthError` helper | Not started |
-| P2.1 | Split `options.go` (340 lines) | Not started |
-| P2.2 | Move `registerErrorClassifications` to `init()` | Not started |
-| P2.3 | Fix `perKeyLimiter` memory leak | Not started |
-| P2.4 | Add `//nolint:funlen` to `handleQueryDispatch` | Not started |
-| P3.1 | Add `RotateCSRFToken()` helper | Not started |
-| P3.2 | Create `example/basic/` directory | Not started |
-| P3.3 | Add CSRF benchmarks | Not started |
-| P3.4 | Write `SECURITY.md` | Not started |
-| P3.5 | Add `govulncheck` to CI | Not started |
-| P3.6 | Fix BuildFlow pre-commit hook | Not started |
-| P4.x | All future work items | Not started |
+| Phase | Item                                                | Status      |
+| ----- | --------------------------------------------------- | ----------- |
+| P1.1  | Fix `executeCSRFValidation` ResponseWriter conflict | Not started |
+| P1.2  | Warn on empty CSRF Secret                           | Not started |
+| P1.3  | Warn on `Secure=false`                              | Not started |
+| P1.4  | Extract `isAuthError` helper                        | Not started |
+| P2.1  | Split `options.go` (340 lines)                      | Not started |
+| P2.2  | Move `registerErrorClassifications` to `init()`     | Not started |
+| P2.3  | Fix `perKeyLimiter` memory leak                     | Not started |
+| P2.4  | Add `//nolint:funlen` to `handleQueryDispatch`      | Not started |
+| P3.1  | Add `RotateCSRFToken()` helper                      | Not started |
+| P3.2  | Create `example/basic/` directory                   | Not started |
+| P3.3  | Add CSRF benchmarks                                 | Not started |
+| P3.4  | Write `SECURITY.md`                                 | Not started |
+| P3.5  | Add `govulncheck` to CI                             | Not started |
+| P3.6  | Fix BuildFlow pre-commit hook                       | Not started |
+| P4.x  | All future work items                               | Not started |
 
 ---
 
@@ -117,15 +122,16 @@ Everything from the comprehensive execution plan **beyond P0.1 and P0.2** remain
 
 Commit `586d24b` ("refactor(auth): change UserIDExtractor to return (UserID, error) and add redirect sanitization") bundled 5 changes, 2 of which were breaking:
 
-| Change | Intent | Actual Result |
-|--------|--------|---------------|
-| UserIDExtractor signature change | Type safety improvement | Correct, but breaking API change |
-| `sanitizeRedirectURL` | Security hardening | Correct, 62.5% coverage (edge cases not tested) |
-| `afterDispatchHook` helper | Code deduplication | Correct, clean refactor |
-| Command decoder nil check reordering | "Semantic clarification" | **PANIC** — nil check moved after dereference |
-| gorilla/csrf v1.7.3 bump | "Patch version update" | **7 tests fail** — breaking behavior change |
+| Change                               | Intent                   | Actual Result                                   |
+| ------------------------------------ | ------------------------ | ----------------------------------------------- |
+| UserIDExtractor signature change     | Type safety improvement  | Correct, but breaking API change                |
+| `sanitizeRedirectURL`                | Security hardening       | Correct, 62.5% coverage (edge cases not tested) |
+| `afterDispatchHook` helper           | Code deduplication       | Correct, clean refactor                         |
+| Command decoder nil check reordering | "Semantic clarification" | **PANIC** — nil check moved after dereference   |
+| gorilla/csrf v1.7.3 bump             | "Patch version update"   | **7 tests fail** — breaking behavior change     |
 
 **Lessons learned:**
+
 1. **Never bundle dependency bumps with code changes** — if tests fail, you can't tell which change caused it
 2. **Never reorder nil checks without running the full test suite** — the `handleCommandDispatch` nil check reordering is a textbook example of "refactoring without testing"
 3. **Patch versions can break things** — gorilla/csrf v1.7.3 was a patch release that changed the core validation behavior
@@ -169,33 +175,33 @@ Commit `586d24b` ("refactor(auth): change UserIDExtractor to return (UserID, err
 
 ## 7. Top 25 Things To Get Done Next
 
-| # | Task | Phase | Effort | Impact |
-|---|------|-------|--------|--------|
-| 1 | **Adapt CSRF tests for v1.7.3 or design proper HTTP/HTTPS detection** | P0 | 30m | Critical |
-| 2 | **Fix rate limiter memory leak (TTL eviction)** | P2.3 | 30m | High |
-| 3 | **Split `options.go` into `decoder.go` + `handler_config.go`** | P2.1 | 20m | High |
-| 4 | **Extract `isAuthError` helper** | P1.4 | 10m | Medium |
-| 5 | **Move `registerErrorClassifications` to `init()`** | P2.2 | 5m | Medium |
-| 6 | **Warn on empty CSRF Secret** | P1.2 | 10m | Medium |
-| 7 | **Warn on `Secure=false`** | P1.3 | 15m | Medium |
-| 8 | **Fix `executeCSRFValidation` ResponseWriter conflict** | P1.1 | 15m | Medium |
-| 9 | **Add `//nolint:funlen` to `handleQueryDispatch`** | P2.4 | 2m | Low |
-| 10 | **Add `RotateCSRFToken()` helper** | P3.1 | 20m | Medium |
-| 11 | **Create `example/basic/` directory** | P3.2 | 30m | High |
-| 12 | **Add CSRF benchmarks** | P3.3 | 20m | Medium |
-| 13 | **Write `SECURITY.md`** | P3.4 | 15m | Medium |
-| 14 | **Add `govulncheck` to CI** | P3.5 | 10m | Medium |
-| 15 | **Fix BuildFlow pre-commit hook** | P3.6 | 15m | Low |
-| 16 | **Improve `sanitizeRedirectURL` test coverage to 100%** | — | 10m | Low |
-| 17 | **Add CSRF config validation (`SameSite=None` without `Secure`)** | P4.1 | 15m | Low |
-| 18 | **Document Secure flag + reverse proxy** | P4.2 | 10m | Low |
-| 19 | **Add `CSRFToken` branded type** | P4.3 | 20m | Low |
-| 20 | **Functional options for `CSRFConfig`** | P4.4 | 30m | Low |
-| 21 | **Extract gorilla/csrf adapter to internal package** | P4.5 | 30m | Low |
-| 22 | **Support double-submit without cookie** | P4.6 | 45m | Low |
-| 23 | **Add CSRF bypass for trusted origins/internal IPs** | P4.7 | 20m | Low |
-| 24 | **Integration test with real `httptest.Server`** | P4.8 | 30m | Low |
-| 25 | **Add snapshot testing with `go-snaps`** | P4.9 | 45m | Low |
+| #   | Task                                                                  | Phase | Effort | Impact   |
+| --- | --------------------------------------------------------------------- | ----- | ------ | -------- |
+| 1   | **Adapt CSRF tests for v1.7.3 or design proper HTTP/HTTPS detection** | P0    | 30m    | Critical |
+| 2   | **Fix rate limiter memory leak (TTL eviction)**                       | P2.3  | 30m    | High     |
+| 3   | **Split `options.go` into `decoder.go` + `handler_config.go`**        | P2.1  | 20m    | High     |
+| 4   | **Extract `isAuthError` helper**                                      | P1.4  | 10m    | Medium   |
+| 5   | **Move `registerErrorClassifications` to `init()`**                   | P2.2  | 5m     | Medium   |
+| 6   | **Warn on empty CSRF Secret**                                         | P1.2  | 10m    | Medium   |
+| 7   | **Warn on `Secure=false`**                                            | P1.3  | 15m    | Medium   |
+| 8   | **Fix `executeCSRFValidation` ResponseWriter conflict**               | P1.1  | 15m    | Medium   |
+| 9   | **Add `//nolint:funlen` to `handleQueryDispatch`**                    | P2.4  | 2m     | Low      |
+| 10  | **Add `RotateCSRFToken()` helper**                                    | P3.1  | 20m    | Medium   |
+| 11  | **Create `example/basic/` directory**                                 | P3.2  | 30m    | High     |
+| 12  | **Add CSRF benchmarks**                                               | P3.3  | 20m    | Medium   |
+| 13  | **Write `SECURITY.md`**                                               | P3.4  | 15m    | Medium   |
+| 14  | **Add `govulncheck` to CI**                                           | P3.5  | 10m    | Medium   |
+| 15  | **Fix BuildFlow pre-commit hook**                                     | P3.6  | 15m    | Low      |
+| 16  | **Improve `sanitizeRedirectURL` test coverage to 100%**               | —     | 10m    | Low      |
+| 17  | **Add CSRF config validation (`SameSite=None` without `Secure`)**     | P4.1  | 15m    | Low      |
+| 18  | **Document Secure flag + reverse proxy**                              | P4.2  | 10m    | Low      |
+| 19  | **Add `CSRFToken` branded type**                                      | P4.3  | 20m    | Low      |
+| 20  | **Functional options for `CSRFConfig`**                               | P4.4  | 30m    | Low      |
+| 21  | **Extract gorilla/csrf adapter to internal package**                  | P4.5  | 30m    | Low      |
+| 22  | **Support double-submit without cookie**                              | P4.6  | 45m    | Low      |
+| 23  | **Add CSRF bypass for trusted origins/internal IPs**                  | P4.7  | 20m    | Low      |
+| 24  | **Integration test with real `httptest.Server`**                      | P4.8  | 30m    | Low      |
+| 25  | **Add snapshot testing with `go-snaps`**                              | P4.9  | 45m    | Low      |
 
 ---
 
@@ -210,6 +216,7 @@ Commit `586d24b` ("refactor(auth): change UserIDExtractor to return (UserID, err
 3. Or using `csrf.PlaintextHTTPRequest()` to mark requests as plaintext
 
 **The dilemma:** Our `CSRFConfig.Secure` field controls the cookie's Secure flag, not the request scheme detection. A consumer with `Secure=false` might still be behind an HTTPS reverse proxy (common pattern: TLS termination at the edge). In that case:
+
 - The cookie should NOT have Secure flag (browser receives HTTP from proxy? No, actually if the proxy terminates TLS, the browser sees HTTPS, so Secure=true is correct...)
 - Actually, the common pattern is: browser → HTTPS → reverse proxy → HTTP → Go server. The Go server sees HTTP requests but the browser sends cookies with Secure flag.
 
@@ -218,6 +225,7 @@ Commit `586d24b` ("refactor(auth): change UserIDExtractor to return (UserID, err
 **So the real fix is:** We need to detect the actual request scheme, not assume HTTPS. gorilla/csrf v1.7.3 assumes HTTPS unless `PlaintextHTTPContextKey` is set. We should set that key when the request scheme is actually HTTP.
 
 **But how do we know the actual scheme?**
+
 - `r.URL.Scheme` is empty for server requests
 - `r.TLS` is nil for HTTP
 - Behind reverse proxy, neither tells us what the browser used
@@ -266,5 +274,5 @@ race detector: clean
 
 ---
 
-*Report generated: 2026-05-19 05:41 CEST*
-*Next action: Decide on gorilla/csrf v1.7.3 adaptation strategy (see Section 8)*
+_Report generated: 2026-05-19 05:41 CEST_
+_Next action: Decide on gorilla/csrf v1.7.3 adaptation strategy (see Section 8)_

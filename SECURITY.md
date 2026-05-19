@@ -34,10 +34,10 @@ csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 
 **Critical settings:**
 
-| Setting | Risk if Wrong |
-|---------|---------------|
-| `Secret` empty | Tokens don't persist across restarts; users get 403s after deploy |
-| `Secure=false` + HTTPS site | Browser rejects cookie (if site is HTTPS) |
+| Setting                          | Risk if Wrong                                                     |
+| -------------------------------- | ----------------------------------------------------------------- |
+| `Secret` empty                   | Tokens don't persist across restarts; users get 403s after deploy |
+| `Secure=false` + HTTPS site      | Browser rejects cookie (if site is HTTPS)                         |
 | `SameSite=None` + `Secure=false` | Browser rejects cookie (modern browsers require Secure with None) |
 
 ### Token Rotation
@@ -107,6 +107,7 @@ If you discover a security vulnerability in cqrs-htmx:
    - Suggested fix (if any)
 
 You can expect:
+
 - Acknowledgment within 48 hours
 - Initial assessment within 7 days
 - Fix release within 30 days for critical issues
@@ -137,11 +138,11 @@ You can expect:
 
 ## Dependencies Security
 
-| Dependency | Purpose | Risk Level |
-|------------|---------|------------|
-| gorilla/csrf | CSRF protection | Low (actively maintained) |
-| casbin/casbin/v3 | Authorization | Low (actively maintained) |
-| cockroachdb/errors | Error handling | Low (actively maintained) |
-| golang.org/x/time/rate | Rate limiting | Low (Go x/ repo) |
+| Dependency             | Purpose         | Risk Level                |
+| ---------------------- | --------------- | ------------------------- |
+| gorilla/csrf           | CSRF protection | Low (actively maintained) |
+| casbin/casbin/v3       | Authorization   | Low (actively maintained) |
+| cockroachdb/errors     | Error handling  | Low (actively maintained) |
+| golang.org/x/time/rate | Rate limiting   | Low (Go x/ repo)          |
 
 Run `govulncheck ./...` regularly to detect known vulnerabilities in dependencies.
