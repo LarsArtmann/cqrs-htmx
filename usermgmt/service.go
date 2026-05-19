@@ -99,11 +99,6 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
-	existing, err := s.users.FindByEmail(req.Email)
-	if err == nil && existing != nil {
-		return nil, ErrEmailExists
-	}
-
 	user := NewUser(req.ID, req.Email, req.DisplayName)
 	if err := user.SetPasswordWithCost(req.Password, s.bcryptCost); err != nil {
 		return nil, fmt.Errorf("set password: %w", err)
@@ -111,8 +106,8 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 
 	user.AddRole(RoleUser)
 
-	if err := s.users.Save(user); err != nil {
-		return nil, fmt.Errorf("save user: %w", err)
+	if err := s.users.Create(user); err != nil {
+		return nil, err
 	}
 
 	if err := s.authz.AddGroupPolicy(GroupPolicy{

@@ -10,6 +10,7 @@ type UserStore interface {
 	FindByID(id string) (*User, error)
 	FindByEmail(email string) (*User, error)
 	Save(user *User) error
+	Create(user *User) error
 	Delete(id string) error
 }
 
@@ -21,12 +22,16 @@ type SessionStore interface {
 }
 
 type InMemoryUserStore struct {
-	mu    sync.RWMutex
-	users map[string]*User
+	mu     sync.RWMutex
+	users  map[string]*User
+	emails map[string]string
 }
 
 func NewInMemoryUserStore() *InMemoryUserStore {
-	return &InMemoryUserStore{users: make(map[string]*User)}
+	return &InMemoryUserStore{
+		users:  make(map[string]*User),
+		emails: make(map[string]string),
+	}
 }
 
 func (s *InMemoryUserStore) FindByID(id string) (*User, error) {
@@ -42,25 +47,51 @@ func (s *InMemoryUserStore) FindByID(id string) (*User, error) {
 func (s *InMemoryUserStore) FindByEmail(email string) (*User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	for _, u := range s.users {
-		if u.Email == email {
-			return u, nil
-		}
+	id, ok := s.emails[email]
+	if !ok {
+		return nil, ErrUserNotFound
 	}
-	return nil, ErrUserNotFound
+	return s.users[id], nil
 }
 
 func (s *InMemoryUserStore) Save(user *User) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	for email, id := range s.emails {
+		if id == user.ID && email != user.Email {
+			delete(s.emails, email)
+		}
+	}
+	if otherID, taken := s.emails[user.Email]; taken && otherID != user.ID {
+		return ErrEmailExists
+	}
 	user.UpdatedAt = time.Now().UTC()
 	s.users[user.ID] = user
+	s.emails[user.Email] = user.ID
+	return nil
+}
+
+func (s *InMemoryUserStore) Create(user *User) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, ok := s.emails[user.Email]; ok {
+		return ErrEmailExists
+	}
+	if _, ok := s.users[user.ID]; ok {
+		return fmt.Errorf("user ID %s already exists", user.ID)
+	}
+	user.UpdatedAt = time.Now().UTC()
+	s.users[user.ID] = user
+	s.emails[user.Email] = user.ID
 	return nil
 }
 
 func (s *InMemoryUserStore) Delete(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if u, ok := s.users[id]; ok {
+		delete(s.emails, u.Email)
+	}
 	delete(s.users, id)
 	return nil
 }

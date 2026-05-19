@@ -97,8 +97,8 @@ func TestInMemoryUserStore(t *testing.T) {
 	u := NewUser("user-1", "test@example.com", "Test User")
 	_ = u.SetPasswordWithCost("pass", minBcryptCost)
 
-	if err := store.Save(u); err != nil {
-		t.Fatalf("Save failed: %v", err)
+	if err := store.Create(u); err != nil {
+		t.Fatalf("Create failed: %v", err)
 	}
 
 	found, err := store.FindByID("user-1")
@@ -128,6 +128,35 @@ func TestInMemoryUserStore(t *testing.T) {
 	_, err = store.FindByID("user-1")
 	if !errors.Is(err, ErrUserNotFound) {
 		t.Errorf("expected ErrUserNotFound after delete, got %v", err)
+	}
+}
+
+func TestInMemoryUserStore_CreateDuplicate(t *testing.T) {
+	store := NewInMemoryUserStore()
+	u1 := NewUser("u1", "dup@test.com", "One")
+	_ = store.Create(u1)
+
+	u2 := NewUser("u2", "dup@test.com", "Two")
+	if err := store.Create(u2); !errors.Is(err, ErrEmailExists) {
+		t.Errorf("expected ErrEmailExists, got %v", err)
+	}
+}
+
+func TestInMemoryUserStore_SaveUpdatesEmailIndex(t *testing.T) {
+	store := NewInMemoryUserStore()
+	u := NewUser("u1", "old@test.com", "Test")
+	_ = store.Create(u)
+
+	updated := NewUser("u1", "new@test.com", "Test")
+	_ = store.Save(updated)
+
+	if _, err := store.FindByEmail("old@test.com"); !errors.Is(err, ErrUserNotFound) {
+		t.Error("expected old email to be gone from index")
+	}
+	if found, err := store.FindByEmail("new@test.com"); err != nil {
+		t.Fatalf("FindByEmail new: %v", err)
+	} else if found.ID != "u1" {
+		t.Errorf("expected u1, got %s", found.ID)
 	}
 }
 
