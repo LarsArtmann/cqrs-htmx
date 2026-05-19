@@ -19,7 +19,7 @@ const (
 )
 
 type User struct {
-	ID           string    `json:"id"`
+	ID           UserID    `json:"id"`
 	Email        string    `json:"email"`
 	DisplayName  string    `json:"display_name,omitempty"`
 	PasswordHash string    `json:"-"`
@@ -28,7 +28,7 @@ type User struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-func NewUser(id, email, displayName string) *User {
+func NewUser(id UserID, email, displayName string) *User {
 	now := time.Now().UTC()
 	return &User{
 		ID:          id,
@@ -92,12 +92,12 @@ func (u *User) MarshalJSON() ([]byte, error) {
 
 type Session struct {
 	Token     string    `json:"token"`
-	UserID    string    `json:"user_id"`
+	UserID    UserID    `json:"user_id"`
 	CreatedAt time.Time `json:"created_at"`
 	ExpiresAt time.Time `json:"expires_at"`
 }
 
-func NewSession(userID string, ttl time.Duration) (*Session, error) {
+func NewSession(userID UserID, ttl time.Duration) (*Session, error) {
 	token, err := generateToken()
 	if err != nil {
 		return nil, fmt.Errorf("generate token for user %q: %w", userID, err)

@@ -73,7 +73,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 func (s *Service) Authz() *Authz { return s.authz }
 
 type RegisterRequest struct {
-	ID          string `json:"id"`
+	ID          UserID `json:"id"`
 	Email       string `json:"email"`
 	Password    string `json:"password"`
 	DisplayName string `json:"display_name"`
@@ -81,10 +81,9 @@ type RegisterRequest struct {
 
 func (r RegisterRequest) Validate() error {
 	var errs []string
-	r.ID = strings.TrimSpace(r.ID)
 	r.Email = strings.TrimSpace(r.Email)
 	r.DisplayName = strings.TrimSpace(r.DisplayName)
-	if r.ID == "" {
+	if r.ID.IsZero() {
 		errs = append(errs, "id is required")
 	}
 	if _, err := mail.ParseAddress(r.Email); err != nil {
@@ -123,7 +122,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	}
 
 	if err := s.authz.AddGroupPolicy(GroupPolicy{
-		User: user.ID, Role: RoleUser, Domain: user.ID,
+		User: user.ID.String(), Role: RoleUser, Domain: user.ID.String(),
 	}); err != nil {
 		return nil, fmt.Errorf("assign role: %w", err)
 	}
@@ -136,7 +135,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	return &RegisterResponse{User: user, Session: session}, nil
 }
 
-func (s *Service) logAuth(event, userID string, attrs ...any) {
+func (s *Service) logAuth(event string, userID UserID, attrs ...any) {
 	args := []any{"event", event, "user_id", userID}
 	args = append(args, attrs...)
 	s.logger.Info("usermgmt: "+event, args...)
@@ -231,13 +230,13 @@ func (s *Service) Authorize(_ context.Context, sub, dom, obj string, act Action)
 	return s.authz.Authorize(sub, dom, obj, act)
 }
 
-func (s *Service) GetUser(_ context.Context, id string) (*User, error) {
+func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 	return s.users.FindByID(id)
 }
 
 func (s *Service) UpdateRoles(
 	_ context.Context,
-	userID string,
+	userID UserID,
 	roles []string,
 	domain string,
 ) error {
@@ -254,14 +253,14 @@ func (s *Service) UpdateRoles(
 	var remove []GroupPolicy
 	for _, role := range currentRoles {
 		remove = append(remove, GroupPolicy{
-			User: userID, Role: role, Domain: domain,
+			User: userID.String(), Role: role, Domain: domain,
 		})
 	}
 
 	var add []GroupPolicy
 	for _, role := range roles {
 		add = append(add, GroupPolicy{
-			User: userID, Role: role, Domain: domain,
+			User: userID.String(), Role: role, Domain: domain,
 		})
 	}
 
@@ -279,7 +278,11 @@ func (s *Service) UpdateRoles(
 	return s.users.Save(user)
 }
 
-func (s *Service) ChangePassword(_ context.Context, userID, oldPassword, newPassword string) error {
+func (s *Service) ChangePassword(
+	_ context.Context,
+	userID UserID,
+	oldPassword, newPassword string,
+) error {
 	user, err := s.users.FindByID(userID)
 	if err != nil {
 		return fmt.Errorf("find user %q: %w", userID, err)
@@ -290,7 +293,11 @@ func (s *Service) ChangePassword(_ context.Context, userID, oldPassword, newPass
 	}
 
 	if len(newPassword) < 8 {
-		return fmt.Errorf("%w: password must be at least 8 characters for user %q", ErrValidation, userID)
+		return fmt.Errorf(
+			"%w: password must be at least 8 characters for user %q",
+			ErrValidation,
+			userID,
+		)
 	}
 
 	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {

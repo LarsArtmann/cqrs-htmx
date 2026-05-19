@@ -7,34 +7,34 @@ import (
 )
 
 type UserStore interface {
-	FindByID(id string) (*User, error)
+	FindByID(id UserID) (*User, error)
 	FindByEmail(email string) (*User, error)
 	Save(user *User) error
 	Create(user *User) error
-	Delete(id string) error
+	Delete(id UserID) error
 }
 
 type SessionStore interface {
-	Create(userID string, ttl time.Duration) (*Session, error)
+	Create(userID UserID, ttl time.Duration) (*Session, error)
 	Find(token string) (*Session, error)
 	Delete(token string) error
-	DeleteByUserID(userID string) error
+	DeleteByUserID(userID UserID) error
 }
 
 type InMemoryUserStore struct {
 	mu     sync.RWMutex
-	users  map[string]*User
-	emails map[string]string
+	users  map[UserID]*User
+	emails map[string]UserID
 }
 
 func NewInMemoryUserStore() *InMemoryUserStore {
 	return &InMemoryUserStore{
-		users:  make(map[string]*User),
-		emails: make(map[string]string),
+		users:  make(map[UserID]*User),
+		emails: make(map[string]UserID),
 	}
 }
 
-func (s *InMemoryUserStore) FindByID(id string) (*User, error) {
+func (s *InMemoryUserStore) FindByID(id UserID) (*User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	u, ok := s.users[id]
@@ -86,7 +86,7 @@ func (s *InMemoryUserStore) Create(user *User) error {
 	return nil
 }
 
-func (s *InMemoryUserStore) Delete(id string) error {
+func (s *InMemoryUserStore) Delete(id UserID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if u, ok := s.users[id]; ok {
@@ -114,7 +114,7 @@ func (s *InMemorySessionStore) WithTTL(ttl time.Duration) *InMemorySessionStore 
 	return s
 }
 
-func (s *InMemorySessionStore) Create(userID string, ttl time.Duration) (*Session, error) {
+func (s *InMemorySessionStore) Create(userID UserID, ttl time.Duration) (*Session, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	session, err := NewSession(userID, ttl)
@@ -142,7 +142,7 @@ func (s *InMemorySessionStore) Delete(token string) error {
 	return nil
 }
 
-func (s *InMemorySessionStore) DeleteByUserID(userID string) error {
+func (s *InMemorySessionStore) DeleteByUserID(userID UserID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for token, session := range s.sessions {
