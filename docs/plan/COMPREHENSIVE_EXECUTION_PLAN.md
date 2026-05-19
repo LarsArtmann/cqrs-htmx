@@ -9,6 +9,7 @@
 ## Executive Summary
 
 Commit `586d24b` introduced 2 bugs that broke the test suite:
+
 1. **Nil decoder panic** — `handleCommandDispatch` no longer checks `cfg.commandDecoder == nil` before calling it
 2. **CSRF regression** — 7 CSRF tests fail with 403 after gorilla/csrf v1.7.3 bump
 
@@ -23,10 +24,12 @@ This plan covers fixing these bugs plus all remaining architectural improvements
 **Bug:** Commit `586d24b` moved the `commandDecoder == nil` check to AFTER `cfg.commandDecoder(r)` is called. When no decoder is configured (e.g., `app.Command("CreateUser")` with no `DecodeJSON` option), `cfg.commandDecoder` is nil and calling it panics.
 
 **Repro:** `go test ./...` — 2 specs panic:
+
 - `Validation HandlerOption/ValidateCommand/no-op when decoder is not set`
 - `App/Command handler/returns error when decoder is missing`
 
 **Fix:** In `handler.go:handleCommandDispatch`, add nil check BEFORE calling `cfg.commandDecoder(r)`:
+
 ```go
 if cfg.commandDecoder == nil {
     a.errorHandler(w, r, errDecoderMissing)
@@ -45,6 +48,7 @@ if cfg.commandDecoder == nil {
 **Bug:** 7 CSRF-related specs return 403 instead of 200 after gorilla/csrf v1.7.3 bump. The token validation flow broke.
 
 **Repro:** `go test ./...` — 7 specs fail:
+
 - `CSRF Protection/CSRFMiddleware/allows POST with valid CSRF token in header`
 - `CSRF Protection/CSRFMiddleware/allows POST with valid CSRF token in form field`
 - `CSRF Protection/CSRFMiddleware/validates PUT, PATCH, and DELETE methods`
@@ -54,11 +58,13 @@ if cfg.commandDecoder == nil {
 - `Full Integration/End-to-end CQRS + CSRFProtect per-handler option/allows command dispatch with CSRFProtect and valid token`
 
 **Root Cause Hypotheses:**
+
 1. gorilla/csrf v1.7.3 changed token format or validation behavior
 2. `executeCSRFValidation` writes to `ResponseWriter` via gorilla/csrf, which may conflict with our error handling
 3. The `CSRFTokenFromContext` fallback in template helpers may not match gorilla/csrf's token format
 
 **Fix Strategy:**
+
 1. Downgrade gorilla/csrf to v1.7.2 to verify if bump caused regression
 2. If downgrade fixes, investigate v1.7.3 changelog for breaking changes
 3. If still broken, the issue is in our integration code, not the bump
@@ -106,6 +112,7 @@ if cfg.commandDecoder == nil {
 ### P1.4 Extract `isAuthError` Helper
 
 **Code Smell:** `DefaultErrorHandlerWithRedirect` and `JSONErrorHandlerWithRedirect` duplicate the same HTMX auth check:
+
 ```go
 if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid)) {
     w.Header().Set(headerRedirect, loginRedirect)
@@ -126,6 +133,7 @@ if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrFor
 ### P2.1 Split `options.go` (340 lines — over threshold)
 
 **Problem:** `options.go` has too many responsibilities:
+
 - Type definitions (HandlerOption, authMode, handlerConfig, decoders, renderers)
 - Handler config methods (hasNoExplicitBody)
 - Decoder functions (decodeJSONBody, decodeFormBody, decodeRequest, decodeFormValues)
@@ -134,6 +142,7 @@ if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrFor
 - Response application (applyHTMXResponse)
 
 **Proposed split:**
+
 - `decoder.go`: `decodeJSONBody`, `decodeFormBody`, `decodeRequest`, `decodeFormValues`
 - `handler_config.go`: `handlerConfig`, `authMode`, `hasNoExplicitBody`, `executeAuthorization`
 - `options.go`: Public `HandlerOption` constructors only
@@ -159,6 +168,7 @@ if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrFor
 **Problem:** `map[string]*rate.Limiter` grows unbounded with no cleanup.
 
 **Fix Options:**
+
 1. Add TTL-based eviction (simplest: check last access time on Allow)
 2. Use a bounded LRU cache (e.g., `container/list` or `golang.org/x/exp/lru`)
 3. Document as known limitation and recommend middleware wrapping
@@ -199,6 +209,7 @@ if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrFor
 **Feature:** Runnable example showing CQRS + HTMX + CSRF end-to-end.
 
 **Contents:**
+
 - `main.go` — HTTP server with middleware chain
 - `templates/index.html` — HTMX form with CSRF token
 - `README.md` — How to run
@@ -213,6 +224,7 @@ if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrFor
 **Feature:** Measure middleware overhead.
 
 **Tests:**
+
 - Benchmark `CSRFMiddleware` with/without gorilla/csrf
 - Benchmark token generation
 - Benchmark validation
@@ -225,6 +237,7 @@ if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrFor
 ### P3.4 Write `SECURITY.md`
 
 **Contents:**
+
 - Security features overview
 - Responsible disclosure process
 - Hardening recommendations
@@ -249,6 +262,7 @@ if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrFor
 **Problem:** Hook enforces incompatible rules (root-level files must be in `internal/` or `pkg/`, demands `flake.nix`, treats NOTE comments as TODOs).
 
 **Fix Options:**
+
 1. Add `.buildflow.yml` config to disable incompatible rules
 2. Remove pre-commit hook, rely on CI only
 3. Make hook non-blocking (warn, don't fail)
@@ -262,18 +276,18 @@ if IsHTMXRequest(r) && (errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrFor
 
 ## Phase 5: Future Work (Nice to Have)
 
-| # | Task | Why |
-|---|------|-----|
-| P4.1 | Add `CSRFConfig` validation (SameSite=None without Secure → error) | Prevent broken configs |
-| P4.2 | Document Secure flag + reverse proxy (`X-Forwarded-Proto`) | Proxy deployments |
-| P4.3 | Add `CSRFToken` branded type (`type CSRFToken string`) | Type safety |
-| P4.4 | Functional options for `CSRFConfig` | Cleaner API |
-| P4.5 | Extract `gorilla/csrf` adapter into internal package | Cleaner separation |
-| P4.6 | Support double-submit without cookie (session-backed) | Alternative pattern |
-| P4.7 | Add CSRF bypass for trusted origins/internal IPs | Internal APIs |
-| P4.8 | Integration test with real `httptest.Server` | More realistic |
-| P4.9 | Add snapshot testing with `go-snaps` | Reduce brittle assertions |
-| P4.10 | Add `CSRFMiddleware` warn-only mode | Gradual rollout |
+| #     | Task                                                               | Why                       |
+| ----- | ------------------------------------------------------------------ | ------------------------- |
+| P4.1  | Add `CSRFConfig` validation (SameSite=None without Secure → error) | Prevent broken configs    |
+| P4.2  | Document Secure flag + reverse proxy (`X-Forwarded-Proto`)         | Proxy deployments         |
+| P4.3  | Add `CSRFToken` branded type (`type CSRFToken string`)             | Type safety               |
+| P4.4  | Functional options for `CSRFConfig`                                | Cleaner API               |
+| P4.5  | Extract `gorilla/csrf` adapter into internal package               | Cleaner separation        |
+| P4.6  | Support double-submit without cookie (session-backed)              | Alternative pattern       |
+| P4.7  | Add CSRF bypass for trusted origins/internal IPs                   | Internal APIs             |
+| P4.8  | Integration test with real `httptest.Server`                       | More realistic            |
+| P4.9  | Add snapshot testing with `go-snaps`                               | Reduce brittle assertions |
+| P4.10 | Add `CSRFMiddleware` warn-only mode                                | Gradual rollout           |
 
 ---
 
@@ -315,17 +329,17 @@ Phase 4 (Features)
 
 ## Current Test Failures (Master @ `586d24b`)
 
-| Spec | Error | Root Cause |
-|------|-------|------------|
-| `ValidateCommand/no-op when decoder is not set` | PANIC: nil pointer | `handleCommandDispatch` calls `cfg.commandDecoder(r)` without nil check |
-| `Command handler/returns error when decoder is missing` | PANIC: nil pointer | Same as above |
-| `CSRFMiddleware/allows POST with valid CSRF token in header` | 403, expected 200 | gorilla/csrf v1.7.3 regression or integration bug |
-| `CSRFMiddleware/allows POST with valid CSRF token in form field` | 403, expected 200 | Same |
-| `CSRFMiddleware/validates PUT, PATCH, and DELETE methods` | 403, expected 200 | Same |
-| `CSRFMiddleware/uses custom header name when configured` | 403, expected 200 | Same |
-| `CSRFMiddleware/HMAC-signed token correctly` | 403, expected 200 | Same |
-| `Integration/CSRF token via HTMX header` | 403, expected 200 | Same |
-| `Integration/CSRFProtect with valid token` | 403, expected 204 | Same |
+| Spec                                                             | Error              | Root Cause                                                              |
+| ---------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------- |
+| `ValidateCommand/no-op when decoder is not set`                  | PANIC: nil pointer | `handleCommandDispatch` calls `cfg.commandDecoder(r)` without nil check |
+| `Command handler/returns error when decoder is missing`          | PANIC: nil pointer | Same as above                                                           |
+| `CSRFMiddleware/allows POST with valid CSRF token in header`     | 403, expected 200  | gorilla/csrf v1.7.3 regression or integration bug                       |
+| `CSRFMiddleware/allows POST with valid CSRF token in form field` | 403, expected 200  | Same                                                                    |
+| `CSRFMiddleware/validates PUT, PATCH, and DELETE methods`        | 403, expected 200  | Same                                                                    |
+| `CSRFMiddleware/uses custom header name when configured`         | 403, expected 200  | Same                                                                    |
+| `CSRFMiddleware/HMAC-signed token correctly`                     | 403, expected 200  | Same                                                                    |
+| `Integration/CSRF token via HTMX header`                         | 403, expected 200  | Same                                                                    |
+| `Integration/CSRFProtect with valid token`                       | 403, expected 204  | Same                                                                    |
 
 ---
 
@@ -341,5 +355,5 @@ Phase 4 (Features)
 
 ---
 
-*Plan created: 2026-05-19*  
-*Next action: Fix P0.1 nil decoder panic, then P0.2 CSRF regression*
+_Plan created: 2026-05-19_  
+_Next action: Fix P0.1 nil decoder panic, then P0.2 CSRF regression_
