@@ -266,6 +266,32 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	}
 }
 
+// CSRFResponseHeaderMiddleware returns HTTP middleware that automatically sets
+// the X-CSRF-Token response header on every request. This eliminates the need
+// for individual handlers to manually call resp.CSRFToken(token).
+//
+// Place this AFTER CSRFMiddleware in the chain so the token is already in context:
+//
+//	handler := cqrshtmx.Chain(
+//	    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+//	    cqrshtmx.CSRFResponseHeaderMiddleware,
+//	    cqrshtmx.HTMXMiddleware,
+//	    app.Middleware(),
+//	)(mux)
+//
+// The header is only set when a token exists in the request context.
+// For HTMX requests, the client reads this header and includes it in
+// subsequent requests via hx-headers. For regular requests, the token
+// is still available to server-side rendering.
+func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if token := CSRFTokenFromContext(r.Context()); token != "" {
+			w.Header().Set(defaultCSRFHeaderName, token)
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 // CSRFProtect returns a HandlerOption that validates CSRF tokens for a specific
 // command or query handler. Use this instead of global CSRFMiddleware when you
 // want CSRF protection only on specific routes.
