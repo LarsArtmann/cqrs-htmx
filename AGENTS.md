@@ -39,13 +39,14 @@ cqrs-htmx/
 ├── security.go    # SecurityHeadersMiddleware, SecurityHeadersConfig builder
 ├── usermgmt/      # User management submodule (RBAC, sessions, password auth)
 │   ├── go.mod     # Independent Go module
-│   ├── authz.go   # Authz wrapper around Casbin (RBAC with domains)
-│   ├── service.go # Service (register, login, logout, authenticate)
-│   ├── user.go    # User/Session types, bcrypt password hashing
-│   ├── store.go   # In-memory UserStore/SessionStore implementations
+│   ├── authz.go   # Authz wrapper around Casbin (RBAC with domains), AsEnforcer adapter
+│   ├── service.go # Service (register, login, logout, authenticate, changePassword, updateRoles)
+│   ├── user.go    # User/Session types, bcrypt password hashing (SetPasswordWithCost)
+│   ├── store.go   # In-memory UserStore/SessionStore with email index, atomic Create
 │   ├── http.go    # AuthHandlers (HTTP routes), SessionMiddleware
-│   ├── middleware.go # User context helpers
-│   └── errors.go  # Sentinel errors
+│   ├── middleware.go # User context helpers, UserIDFromRequest bridge
+│   ├── lockout.go # AccountLockout (configurable max attempts + duration)
+│   └── errors.go  # Sentinel errors (cockroachdb/errors)
 ```
 
 ## Key Decisions
@@ -74,6 +75,18 @@ cqrs-htmx/
 - **Authorization config**: `authMode` enum (`authNone`, `authRequired`, `authAuthorized`) replaces `authorize bool` + `requireAuth bool` — impossible states are now unrepresentable
 - **Internal sentinels**: `errCommandsNil`, `errQueriesNil`, `errDecoderMissing` are unexported — consumers get HTTP responses, not CQRS errors
 - **No deprecated exports**: `DefaultNotificationEvent` removed (was race-risk deprecated var)
+- **usermgmt context.Context**: All Service methods take `context.Context` as first param — enables future cancellation, tracing, logging
+- **usermgmt input validation**: `RegisterRequest.Validate()` and `LoginRequest.Validate()` check email format, password length (8+), required fields
+- **usermgmt atomic Create**: `UserStore.Create()` checks email uniqueness atomically (fixes TOCTOU)
+- **usermgmt email index**: `InMemoryUserStore` has `emails map[string]string` for O(1) `FindByEmail`
+- **usermgmt EnforceAny/AsEnforcer**: Bridge to `cqrshtmx.Enforcer` interface without importing parent module
+- **usermgmt RawEnforcer removed**: Use `AsEnforcer()` instead — prevents leaking casbin internals
+- **usermgmt cockroachdb/errors**: Consistent error wrapping with root project
+- **usermgmt atomic UpdateRoles**: Uses `Authz.Apply(PolicyUpdate{...})` instead of individual remove/add
+- **usermgmt structured logging**: `ServiceConfig.Logger` (defaults to `slog.Default()`) — logs failed logins, role updates
+- **usermgmt ChangePassword**: `Service.ChangePassword(ctx, userID, oldPassword, newPassword)` — validates old password, minimum length
+- **usermgmt account lockout**: `ServiceConfig.Lockout` — configurable max attempts + duration, returns `ErrAccountLocked` (429)
+- **usermgmt immutable bcryptCost**: `ServiceConfig.BcryptCost` replaces mutable global variable
 
 ## Dependencies
 
