@@ -440,7 +440,7 @@ handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 
 ```html
 <!-- Set token globally for all HTMX requests -->
-<body hx-headers='{"X-CSRF-Token":"{{ .CSRFToken }}"}'>
+<body hx-headers='{"X-CSRF-Token":"{{ .CSRFToken }}"}'></body>
 ```
 
 ```go
