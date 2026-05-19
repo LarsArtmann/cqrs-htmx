@@ -83,7 +83,30 @@ func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, cfg *
 	}
 }
 
-func (a *App) handleQueryDispatch( //nolint:cyclop // hooks add unavoidable branches
+func (a *App) applyQueryResponse(
+	w http.ResponseWriter,
+	r *http.Request,
+	cfg *handlerConfig,
+	result any,
+) {
+	applyHTMXResponse(w, r, cfg)
+
+	if cfg.render != nil {
+		if err := cfg.render(w, r, result); err != nil {
+			a.errorHandler(w, r, err)
+			if a.afterDispatch != nil {
+				a.afterDispatch(r.Context(), r, err)
+			}
+			return
+		}
+	}
+
+	if cfg.hasNoResponse() {
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func (a *App) handleQueryDispatch(
 	w http.ResponseWriter,
 	r *http.Request,
 	qryType query.Type,
@@ -126,22 +149,7 @@ func (a *App) handleQueryDispatch( //nolint:cyclop // hooks add unavoidable bran
 		return
 	}
 
-	applyHTMXResponse(w, r, cfg)
-
-	if cfg.render != nil {
-		if renderErr := cfg.render(w, r, result); renderErr != nil {
-			a.errorHandler(w, r, renderErr)
-			if a.afterDispatch != nil {
-				a.afterDispatch(ctx, r, renderErr)
-			}
-			return
-		}
-	}
-
-	if cfg.hasNoResponse() {
-		w.WriteHeader(http.StatusNoContent)
-	}
-
+	a.applyQueryResponse(w, r.WithContext(ctx), cfg, result)
 	if a.afterDispatch != nil {
 		a.afterDispatch(ctx, r, nil)
 	}
