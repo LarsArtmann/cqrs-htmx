@@ -28,7 +28,7 @@ func setupMux(t *testing.T) (*Service, *http.ServeMux) {
 
 func registerUser(t *testing.T, mux *http.ServeMux) *RegisterResponse {
 	t.Helper()
-	body := `{"id":"u1","email":"a@b.com","password":"secret","display_name":"Test"}`
+	body := `{"id":"u1","email":"a@b.com","password":"secret12","display_name":"Test"}`
 	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -62,7 +62,7 @@ func TestHandlers_Register(t *testing.T) {
 
 func TestHandlers_Register_SetsCookie(t *testing.T) {
 	_, mux := setupMux(t)
-	body := `{"id":"u1","email":"cookie@test.com","password":"secret"}`
+	body := `{"id":"u1","email":"cookie@test.com","password":"secret12"}`
 	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -89,7 +89,7 @@ func TestHandlers_Register_DuplicateEmail(t *testing.T) {
 	_, mux := setupMux(t)
 	registerUser(t, mux)
 
-	body := `{"id":"u2","email":"a@b.com","password":"secret"}`
+	body := `{"id":"u2","email":"a@b.com","password":"secret12"}`
 	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -104,7 +104,7 @@ func TestHandlers_Login(t *testing.T) {
 	_, mux := setupMux(t)
 	registerUser(t, mux)
 
-	body := `{"email":"a@b.com","password":"secret"}`
+	body := `{"email":"a@b.com","password":"secret12"}`
 	req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -202,7 +202,7 @@ func TestHandlers_BadRequestBody(t *testing.T) {
 func TestSessionMiddleware_Cookie(t *testing.T) {
 	svc := newTestService(t)
 	reg, _ := svc.Register(context.Background(), RegisterRequest{
-		ID: "u1", Email: "mw@t.com", Password: "secret",
+		ID: "u1", Email: "mw@t.com", Password: "secret12",
 	})
 
 	called := false
@@ -235,7 +235,7 @@ func TestSessionMiddleware_Cookie(t *testing.T) {
 func TestSessionMiddleware_BearerToken(t *testing.T) {
 	svc := newTestService(t)
 	reg, _ := svc.Register(context.Background(), RegisterRequest{
-		ID: "u1", Email: "bt@t.com", Password: "secret",
+		ID: "u1", Email: "bt@t.com", Password: "secret12",
 	})
 
 	handler := SessionMiddleware(
@@ -299,6 +299,7 @@ func TestErrorStatus(t *testing.T) {
 		{ErrForbidden, http.StatusForbidden},
 		{ErrUserNotFound, http.StatusNotFound},
 		{ErrSessionNotFound, http.StatusNotFound},
+		{ErrValidation, http.StatusBadRequest},
 	}
 	for _, tt := range tests {
 		got := errorStatus(tt.err)

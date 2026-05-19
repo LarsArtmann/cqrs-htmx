@@ -10,4 +10,5 @@ var (
 	ErrSessionExpired     = errors.New("session expired")
 	ErrForbidden          = errors.New("access denied")
 	ErrUnauthorized       = errors.New("authentication required")
+	ErrValidation         = errors.New("validation failed")
 )

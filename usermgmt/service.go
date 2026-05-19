@@ -3,6 +3,8 @@ package usermgmt
 import (
 	"context"
 	"fmt"
+	"net/mail"
+	"strings"
 	"time"
 )
 
@@ -65,12 +67,38 @@ type RegisterRequest struct {
 	DisplayName string `json:"display_name"`
 }
 
+func (r RegisterRequest) Validate() error {
+	var errs []string
+	r.ID = strings.TrimSpace(r.ID)
+	r.Email = strings.TrimSpace(r.Email)
+	r.DisplayName = strings.TrimSpace(r.DisplayName)
+	if r.ID == "" {
+		errs = append(errs, "id is required")
+	}
+	if _, err := mail.ParseAddress(r.Email); err != nil {
+		errs = append(errs, "invalid email")
+	}
+	if len(r.Password) < 8 {
+		errs = append(errs, "password must be at least 8 characters")
+	}
+	if len(r.DisplayName) > 100 {
+		errs = append(errs, "display name must be under 100 characters")
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("%w: %s", ErrValidation, strings.Join(errs, "; "))
+	}
+	return nil
+}
+
 type RegisterResponse struct {
 	User    *User    `json:"user"`
 	Session *Session `json:"session"`
 }
 
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
 	existing, err := s.users.FindByEmail(req.Email)
 	if err == nil && existing != nil {
 		return nil, ErrEmailExists
@@ -106,12 +134,30 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+func (r LoginRequest) Validate() error {
+	var errs []string
+	r.Email = strings.TrimSpace(r.Email)
+	if r.Email == "" {
+		errs = append(errs, "email is required")
+	}
+	if r.Password == "" {
+		errs = append(errs, "password is required")
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("%w: %s", ErrValidation, strings.Join(errs, "; "))
+	}
+	return nil
+}
+
 type LoginResponse struct {
 	User    *User    `json:"user"`
 	Session *Session `json:"session"`
 }
 
 func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
 	user, err := s.users.FindByEmail(req.Email)
 	if err != nil {
 		return nil, ErrInvalidCredentials

@@ -43,9 +43,9 @@ func TestService_Register(t *testing.T) {
 func TestService_Register_DuplicateEmail(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
 	ctx := context.Background()
-	_, _ = svc.Register(ctx, RegisterRequest{ID: "u1", Email: "a@b.com", Password: "pass"})
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "u1", Email: "a@b.com", Password: "password"})
 
-	_, err := svc.Register(ctx, RegisterRequest{ID: "u2", Email: "a@b.com", Password: "pass"})
+	_, err := svc.Register(ctx, RegisterRequest{ID: "u2", Email: "a@b.com", Password: "password"})
 	if !errors.Is(err, ErrEmailExists) {
 		t.Errorf("expected ErrEmailExists, got %v", err)
 	}
@@ -54,9 +54,9 @@ func TestService_Register_DuplicateEmail(t *testing.T) {
 func TestService_Login(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
 	ctx := context.Background()
-	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
 
-	resp, err := svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: "secret"})
+	resp, err := svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: "secret12"})
 	if err != nil {
 		t.Fatalf("Login: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestService_Login(t *testing.T) {
 func TestService_Login_WrongPassword(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
 	ctx := context.Background()
-	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
 
 	_, err := svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: "wrong"})
 	if !errors.Is(err, ErrInvalidCredentials) {
@@ -82,7 +82,7 @@ func TestService_Login_WrongPassword(t *testing.T) {
 func TestService_Authenticate(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
 	ctx := context.Background()
-	reg, _ := svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	reg, _ := svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
 
 	user, err := svc.Authenticate(ctx, reg.Session.Token)
 	if err != nil {
@@ -96,7 +96,7 @@ func TestService_Authenticate(t *testing.T) {
 func TestService_Logout(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
 	ctx := context.Background()
-	reg, _ := svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	reg, _ := svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
 
 	if err := svc.Logout(ctx, reg.Session.Token); err != nil {
 		t.Fatalf("Logout: %v", err)
@@ -116,7 +116,7 @@ func TestService_Authorize(t *testing.T) {
 		BcryptCost: minBcryptCost,
 	})
 	ctx := context.Background()
-	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
 	_ = svc.Authz().AddGroupPolicy(GroupPolicy{User: "user-1", Role: RoleOwner, Domain: "game-1"})
 
 	err := svc.Authorize(ctx, "user-1", "game-1", "game.play_round", ActionExecute)
@@ -133,7 +133,7 @@ func TestService_Authorize(t *testing.T) {
 func TestService_UpdateRoles(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
 	ctx := context.Background()
-	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
 
 	if err := svc.UpdateRoles(ctx, "user-1", []string{RoleAdmin}, "user-1"); err != nil {
 		t.Fatalf("UpdateRoles: %v", err)
@@ -147,5 +147,40 @@ func TestService_UpdateRoles(t *testing.T) {
 	user, _ := svc.GetUser(ctx, "user-1")
 	if !user.HasRole(RoleAdmin) {
 		t.Error("expected admin role in user object")
+	}
+}
+
+func TestService_Register_Validation(t *testing.T) {
+	svc, _ := NewService(newTestServiceConfig())
+	ctx := context.Background()
+
+	_, err := svc.Register(ctx, RegisterRequest{ID: "", Email: "a@b.com", Password: "secret12"})
+	if !errors.Is(err, ErrValidation) {
+		t.Errorf("expected ErrValidation for empty ID, got %v", err)
+	}
+
+	_, err = svc.Register(ctx, RegisterRequest{ID: "u1", Email: "invalid", Password: "secret12"})
+	if !errors.Is(err, ErrValidation) {
+		t.Errorf("expected ErrValidation for bad email, got %v", err)
+	}
+
+	_, err = svc.Register(ctx, RegisterRequest{ID: "u1", Email: "a@b.com", Password: "short"})
+	if !errors.Is(err, ErrValidation) {
+		t.Errorf("expected ErrValidation for short password, got %v", err)
+	}
+}
+
+func TestService_Login_Validation(t *testing.T) {
+	svc, _ := NewService(newTestServiceConfig())
+	ctx := context.Background()
+
+	_, err := svc.Login(ctx, LoginRequest{Email: "", Password: "secret12"})
+	if !errors.Is(err, ErrValidation) {
+		t.Errorf("expected ErrValidation for empty email, got %v", err)
+	}
+
+	_, err = svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: ""})
+	if !errors.Is(err, ErrValidation) {
+		t.Errorf("expected ErrValidation for empty password, got %v", err)
 	}
 }
