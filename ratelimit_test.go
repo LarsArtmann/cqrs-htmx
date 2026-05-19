@@ -156,5 +156,66 @@ var _ = Describe("Rate Limiting", func() {
 			handler.ServeHTTP(w3, r3)
 			Expect(w3.Code).To(Equal(http.StatusOK))
 		})
+
+		It("evicts stale entries after TTL expires", func() {
+			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+				Limit:        1,
+				Window:       time.Minute,
+				Burst:        1,
+				KeyExtractor: func(_ *http.Request) string { return "evict-key" },
+				TTL:          5 * time.Millisecond,
+			})
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			// First request should succeed
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w1, r1)
+			Expect(w1.Code).To(Equal(http.StatusOK))
+
+			// Second request should be rate-limited (same entry)
+			w2 := httptest.NewRecorder()
+			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w2, r2)
+			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
+
+			// Wait for TTL to expire
+			time.Sleep(10 * time.Millisecond)
+
+			// Third request should succeed (entry evicted, new limiter created)
+			w3 := httptest.NewRecorder()
+			r3 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w3, r3)
+			Expect(w3.Code).To(Equal(http.StatusOK))
+		})
+
+		It("does not evict entries accessed within TTL", func() {
+			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+				Limit:        1,
+				Window:       time.Minute,
+				Burst:        1,
+				KeyExtractor: func(_ *http.Request) string { return "fresh-key" },
+				TTL:          100 * time.Millisecond,
+			})
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			// First request should succeed
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w1, r1)
+			Expect(w1.Code).To(Equal(http.StatusOK))
+
+			// Access within TTL should still find the same entry (rate-limited)
+			w2 := httptest.NewRecorder()
+			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w2, r2)
+			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
+		})
 	})
 })

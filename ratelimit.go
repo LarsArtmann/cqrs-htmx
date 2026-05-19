@@ -41,6 +41,9 @@ type RateLimiterConfig struct {
 	// If an extractor returns empty string for a request, that request is
 	// exempt from rate limiting (always allowed).
 	KeyExtractor KeyExtractor
+	// TTL is how long an idle limiter entry is kept before eviction.
+	// Zero defaults to 10 minutes.
+	TTL time.Duration
 }
 
 // RateLimiterMiddleware returns HTTP middleware that rate-limits requests
@@ -68,7 +71,12 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 	limit := rate.Limit(float64(cfg.Limit) / cfg.Window.Seconds())
 	retryAfter := strconv.Itoa(int(cfg.Window.Seconds()))
 
-	lim := newPerKeyLimiter(limit, cfg.Burst, cfg.KeyExtractor, retryAfter)
+	ttl := cfg.TTL
+	if ttl <= 0 {
+		ttl = 10 * time.Minute
+	}
+
+	lim := newPerKeyLimiter(limit, cfg.Burst, cfg.KeyExtractor, retryAfter, ttl)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -108,6 +116,7 @@ func newPerKeyLimiter(
 	burst int,
 	extractor KeyExtractor,
 	retryAfter string,
+	ttl time.Duration,
 ) *perKeyLimiter {
 	return &perKeyLimiter{
 		mu:           sync.RWMutex{},
@@ -116,7 +125,7 @@ func newPerKeyLimiter(
 		retryAfter:   retryAfter,
 		keyExtractor: extractor,
 		limiters:     make(map[string]*limiterEntry),
-		ttl:          10 * time.Minute,
+		ttl:          ttl,
 	}
 }
 
