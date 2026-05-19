@@ -329,6 +329,95 @@ var _ = Describe("App", func() {
 		})
 	})
 
+	Describe("Query handler with authorization", func() {
+		var (
+			app  *cqrshtmx.App
+			enf  *casbin.Enforcer
+			disp *query.Dispatcher
+		)
+
+		BeforeEach(func() {
+			enf = newTestEnforcer()
+			disp = query.NewDispatcher()
+			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
+				return map[string]string{"email": "test@example.com"}, nil
+			})
+
+			var err error
+			app, err = cqrshtmx.New(cqrshtmx.Config{
+				Queries:         disp,
+				Enforcer:        enf,
+				UserIDExtractor: func(r *http.Request) string { return r.Header.Get("X-User-ID") },
+			})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("allows authorized queries", func() {
+			handler := app.Query("GetUser",
+				cqrshtmx.Authorize("users", "read"),
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+				cqrshtmx.Render(encodeJSONResult),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(body))
+			r.Header.Set("X-User-ID", adminUserID.String())
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Code).To(Equal(http.StatusOK))
+		})
+
+		It("denies unauthorized queries", func() {
+			handler := app.Query("GetUser",
+				cqrshtmx.Authorize("users", "admin"),
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+				cqrshtmx.Render(encodeJSONResult),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(body))
+			r.Header.Set("X-User-ID", viewerUserID.String())
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Code).To(Equal(http.StatusForbidden))
+		})
+
+		It("rejects unauthenticated queries", func() {
+			handler := app.Query("GetUser",
+				cqrshtmx.Authorize("users", "read"),
+				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+			)
+
+			body := `{}`
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(body))
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Code).To(Equal(http.StatusUnauthorized))
+		})
+
+		It("rejects queries without decoder", func() {
+			handler := app.Query("GetUser",
+				cqrshtmx.Authorize("users", "read"),
+			)
+
+			r := httptest.NewRequest(http.MethodGet, "/users", nil)
+			r.Header.Set("X-User-ID", adminUserID.String())
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, r)
+			Expect(w.Code).NotTo(Equal(http.StatusOK))
+		})
+	})
+
 	Describe("App.Middleware", func() {
 		It("returns a context enrichment middleware", func() {
 			want := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")

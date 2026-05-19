@@ -2,6 +2,7 @@ package cqrshtmx
 
 import (
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -65,8 +66,9 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 
 	// rate.Limiter uses events per second; we convert our window to rps.
 	limit := rate.Limit(float64(cfg.Limit) / cfg.Window.Seconds())
+	retryAfter := strconv.Itoa(int(cfg.Window.Seconds()))
 
-	lim := newPerKeyLimiter(limit, cfg.Burst, cfg.KeyExtractor)
+	lim := newPerKeyLimiter(limit, cfg.Burst, cfg.KeyExtractor, retryAfter)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -88,15 +90,22 @@ type perKeyLimiter struct {
 	mu           sync.RWMutex
 	limit        rate.Limit
 	burst        int
+	retryAfter   string
 	keyExtractor KeyExtractor
 	limiters     map[string]*rate.Limiter
 }
 
-func newPerKeyLimiter(l rate.Limit, burst int, extractor KeyExtractor) *perKeyLimiter {
+func newPerKeyLimiter(
+	l rate.Limit,
+	burst int,
+	extractor KeyExtractor,
+	retryAfter string,
+) *perKeyLimiter {
 	return &perKeyLimiter{
 		mu:           sync.RWMutex{},
 		limit:        l,
 		burst:        burst,
+		retryAfter:   retryAfter,
 		keyExtractor: extractor,
 		limiters:     make(map[string]*rate.Limiter),
 	}
@@ -117,7 +126,7 @@ func (p *perKeyLimiter) allow(r *http.Request) (bool, string) {
 		return true, ""
 	}
 
-	return false, "1"
+	return false, p.retryAfter
 }
 
 func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
