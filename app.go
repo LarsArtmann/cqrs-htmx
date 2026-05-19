@@ -178,13 +178,21 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 	return r.WithContext(WithUserID(r.Context(), userID))
 }
 
-// timeoutCtx returns a context with the App's timeout applied, if configured.
+// timeoutCtx returns a context with the handler's timeout applied, if configured.
+// Falls back to the App's timeout if the handler has no override.
 // The caller must call the returned cancel function when done.
-func (a *App) timeoutCtx(ctx context.Context) (context.Context, context.CancelFunc) {
-	if a.timeout <= 0 {
+func (a *App) timeoutCtx(
+	ctx context.Context,
+	cfg *handlerConfig,
+) (context.Context, context.CancelFunc) {
+	t := cfg.timeout
+	if t <= 0 {
+		t = a.timeout
+	}
+	if t <= 0 {
 		return ctx, func() {}
 	}
-	return context.WithTimeout(ctx, a.timeout)
+	return context.WithTimeout(ctx, t)
 }
 
 // afterDispatchHook calls the afterDispatch hook if configured.

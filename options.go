@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
@@ -50,6 +51,7 @@ type handlerConfig struct {
 	pushURL        string
 	csrfConfig     *CSRFConfig
 	maxBodySize    int64
+	timeout        time.Duration
 }
 
 // hasNoExplicitBody returns true if the handler has no render function and
@@ -239,6 +241,15 @@ func ValidateQuery(validator func(query.Query) error) HandlerOption {
 
 			return qry, nil
 		}
+	}
+}
+
+// WithTimeout sets a per-handler timeout override.
+// If > 0, it takes precedence over the App-level Config.Timeout.
+// Zero or negative means fall back to App config (default: no timeout).
+func WithTimeout(d time.Duration) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.timeout = d
 	}
 }
 

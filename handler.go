@@ -61,7 +61,7 @@ func (a *App) handleCommandDispatch(
 		return
 	}
 
-	ctx, cancel := a.timeoutCtx(ctx)
+	ctx, cancel := a.timeoutCtx(ctx, cfg)
 	defer cancel()
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
@@ -151,7 +151,7 @@ func (a *App) handleQueryDispatch(
 		return
 	}
 
-	ctx, cancel := a.timeoutCtx(ctx)
+	ctx, cancel := a.timeoutCtx(ctx, cfg)
 	defer cancel()
 
 	result, err := a.queries.Dispatch(ctx, qry)
