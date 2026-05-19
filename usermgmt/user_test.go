@@ -27,7 +27,7 @@ func TestNewUser(t *testing.T) {
 
 func TestUser_Password(t *testing.T) {
 	u := NewUser("user-1", "test@example.com", "Test User")
-	if err := u.SetPassword("secret123"); err != nil {
+	if err := u.SetPasswordWithCost("secret123", minBcryptCost); err != nil {
 		t.Fatalf("SetPassword failed: %v", err)
 	}
 	if u.PasswordHash == "" {
@@ -62,7 +62,7 @@ func TestUser_Roles(t *testing.T) {
 
 func TestUser_MarshalJSON(t *testing.T) {
 	u := NewUser("user-1", "test@example.com", "Test User")
-	_ = u.SetPassword("secret")
+	_ = u.SetPasswordWithCost("secret", minBcryptCost)
 	data, err := u.MarshalJSON()
 	if err != nil {
 		t.Fatalf("MarshalJSON: %v", err)
@@ -95,7 +95,7 @@ func TestInMemoryUserStore(t *testing.T) {
 	store := NewInMemoryUserStore()
 
 	u := NewUser("user-1", "test@example.com", "Test User")
-	_ = u.SetPassword("pass")
+	_ = u.SetPasswordWithCost("pass", minBcryptCost)
 
 	if err := store.Save(u); err != nil {
 		t.Fatalf("Save failed: %v", err)

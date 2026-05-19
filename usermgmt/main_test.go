@@ -1,11 +1,18 @@
 package usermgmt
 
-import (
-	"os"
-	"testing"
-)
+import "testing"
 
-func TestMain(m *testing.M) {
-	bcryptCost = minBcryptCost
-	os.Exit(m.Run())
+func newTestServiceConfig() ServiceConfig {
+	return ServiceConfig{
+		BcryptCost: minBcryptCost,
+	}
+}
+
+func newTestServiceWithConfig(t *testing.T, cfg ServiceConfig) *Service {
+	t.Helper()
+	svc, err := NewService(cfg)
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	return svc
 }

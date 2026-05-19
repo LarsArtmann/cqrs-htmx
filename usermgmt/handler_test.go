@@ -11,13 +11,10 @@ import (
 
 func newTestService(t *testing.T) *Service {
 	t.Helper()
-	svc, err := NewService(ServiceConfig{
+	return newTestServiceWithConfig(t, ServiceConfig{
 		Authz: newTestAuthz(t),
+		BcryptCost: minBcryptCost,
 	})
-	if err != nil {
-		t.Fatalf("NewService: %v", err)
-	}
-	return svc
 }
 
 func setupMux(t *testing.T) (*Service, *http.ServeMux) {

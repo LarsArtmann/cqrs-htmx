@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewService_Defaults(t *testing.T) {
-	svc, err := NewService(ServiceConfig{})
+	svc, err := NewService(newTestServiceConfig())
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -16,7 +16,7 @@ func TestNewService_Defaults(t *testing.T) {
 }
 
 func TestService_Register(t *testing.T) {
-	svc, err := NewService(ServiceConfig{})
+	svc, err := NewService(newTestServiceConfig())
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -40,7 +40,7 @@ func TestService_Register(t *testing.T) {
 }
 
 func TestService_Register_DuplicateEmail(t *testing.T) {
-	svc, _ := NewService(ServiceConfig{})
+	svc, _ := NewService(newTestServiceConfig())
 	_, _ = svc.Register(RegisterRequest{ID: "u1", Email: "a@b.com", Password: "pass"})
 
 	_, err := svc.Register(RegisterRequest{ID: "u2", Email: "a@b.com", Password: "pass"})
@@ -50,7 +50,7 @@ func TestService_Register_DuplicateEmail(t *testing.T) {
 }
 
 func TestService_Login(t *testing.T) {
-	svc, _ := NewService(ServiceConfig{})
+	svc, _ := NewService(newTestServiceConfig())
 	_, _ = svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
 	resp, err := svc.Login(LoginRequest{Email: "a@b.com", Password: "secret"})
@@ -66,7 +66,7 @@ func TestService_Login(t *testing.T) {
 }
 
 func TestService_Login_WrongPassword(t *testing.T) {
-	svc, _ := NewService(ServiceConfig{})
+	svc, _ := NewService(newTestServiceConfig())
 	_, _ = svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
 	_, err := svc.Login(LoginRequest{Email: "a@b.com", Password: "wrong"})
@@ -76,7 +76,7 @@ func TestService_Login_WrongPassword(t *testing.T) {
 }
 
 func TestService_Authenticate(t *testing.T) {
-	svc, _ := NewService(ServiceConfig{})
+	svc, _ := NewService(newTestServiceConfig())
 	reg, _ := svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
 	user, err := svc.Authenticate(reg.Session.Token)
@@ -89,7 +89,7 @@ func TestService_Authenticate(t *testing.T) {
 }
 
 func TestService_Logout(t *testing.T) {
-	svc, _ := NewService(ServiceConfig{})
+	svc, _ := NewService(newTestServiceConfig())
 	reg, _ := svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
 	if err := svc.Logout(reg.Session.Token); err != nil {
@@ -103,9 +103,12 @@ func TestService_Logout(t *testing.T) {
 }
 
 func TestService_Authorize(t *testing.T) {
-	svc, _ := NewService(ServiceConfig{Authz: newTestAuthz(t,
-		Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
-	)})
+	svc, _ := NewService(ServiceConfig{
+		Authz: newTestAuthz(t,
+			Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
+		),
+		BcryptCost: minBcryptCost,
+	})
 	_, _ = svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 	_ = svc.Authz().AddGroupPolicy(GroupPolicy{User: "user-1", Role: RoleOwner, Domain: "game-1"})
 
@@ -121,7 +124,7 @@ func TestService_Authorize(t *testing.T) {
 }
 
 func TestService_UpdateRoles(t *testing.T) {
-	svc, _ := NewService(ServiceConfig{})
+	svc, _ := NewService(newTestServiceConfig())
 	_, _ = svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
 	if err := svc.UpdateRoles("user-1", []string{RoleAdmin}, "user-1"); err != nil {

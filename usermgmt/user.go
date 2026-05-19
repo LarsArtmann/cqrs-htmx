@@ -18,8 +18,6 @@ const (
 	minBcryptCost     = 4
 )
 
-var bcryptCost = defaultBcryptCost
-
 type User struct {
 	ID           string    `json:"id"`
 	Email        string    `json:"email"`
@@ -43,7 +41,11 @@ func NewUser(id, email, displayName string) *User {
 }
 
 func (u *User) SetPassword(password string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
+	return u.SetPasswordWithCost(password, defaultBcryptCost)
+}
+
+func (u *User) SetPasswordWithCost(password string, cost int) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), cost)
 	if err != nil {
 		return fmt.Errorf("hash password: %w", err)
 	}

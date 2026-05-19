@@ -12,6 +12,7 @@ type Service struct {
 	users      UserStore
 	sessions   SessionStore
 	sessionTTL time.Duration
+	bcryptCost int
 }
 
 type ServiceConfig struct {
@@ -19,6 +20,7 @@ type ServiceConfig struct {
 	UserStore    UserStore
 	SessionStore SessionStore
 	SessionTTL   time.Duration
+	BcryptCost   int
 }
 
 func NewService(cfg ServiceConfig) (*Service, error) {
@@ -39,11 +41,17 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		cfg.Authz = a
 	}
 
+	cost := cfg.BcryptCost
+	if cost < minBcryptCost {
+		cost = defaultBcryptCost
+	}
+
 	return &Service{
 		authz:      cfg.Authz,
 		users:      cfg.UserStore,
 		sessions:   cfg.SessionStore,
 		sessionTTL: cfg.SessionTTL,
+		bcryptCost: cost,
 	}, nil
 }
 
@@ -68,7 +76,7 @@ func (s *Service) Register(req RegisterRequest) (*RegisterResponse, error) {
 	}
 
 	user := NewUser(req.ID, req.Email, req.DisplayName)
-	if err := user.SetPassword(req.Password); err != nil {
+	if err := user.SetPasswordWithCost(req.Password, s.bcryptCost); err != nil {
 		return nil, fmt.Errorf("set password: %w", err)
 	}
 
