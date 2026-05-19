@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"html"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -148,8 +149,12 @@ func (c *CSRFConfig) secret() []byte {
 	if len(c.Secret) >= 32 {
 		return c.Secret
 	}
-	// gorilla/csrf requires a 32-byte key; pad or generate if not provided
-	// In production, callers should always provide a stable key
+	if len(c.Secret) > 0 {
+		slog.Warn("cqrs-htmx: CSRF secret is shorter than 32 bytes — padding with zeros",
+			slog.Int("provided", len(c.Secret)),
+			slog.String("hint", "use a 32-byte secret for production"),
+		)
+	}
 	secret := make([]byte, 32)
 	copy(secret, c.Secret)
 	return secret

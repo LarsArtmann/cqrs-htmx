@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -200,6 +201,8 @@ func PushURL(url string) HandlerOption {
 func ValidateCommand(validator func(command.Command) error) HandlerOption {
 	return func(cfg *handlerConfig) {
 		if cfg.commandDecoder == nil {
+			slog.Warn("cqrs-htmx: ValidateCommand applied before decoder — validation will be skipped",
+				slog.String("hint", "apply ValidateCommand AFTER DecodeJSON/DecodeForm"))
 			return
 		}
 
@@ -225,6 +228,8 @@ func ValidateCommand(validator func(command.Command) error) HandlerOption {
 func ValidateQuery(validator func(query.Query) error) HandlerOption {
 	return func(cfg *handlerConfig) {
 		if cfg.queryDecoder == nil {
+			slog.Warn("cqrs-htmx: ValidateQuery applied before decoder — validation will be skipped",
+				slog.String("hint", "apply ValidateQuery AFTER DecodeJSONQuery/DecodeFormQuery"))
 			return
 		}
 
