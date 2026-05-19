@@ -95,6 +95,14 @@ func (a *App) handleQueryDispatch( //nolint:cyclop // hooks add unavoidable bran
 		ctx = a.beforeDispatch(ctx, r)
 	}
 
+	if cfg.queryDecoder == nil {
+		a.errorHandler(w, r, errDecoderMissing)
+		if a.afterDispatch != nil {
+			a.afterDispatch(ctx, r, errDecoderMissing)
+		}
+		return
+	}
+
 	qry, err := cfg.queryDecoder(r)
 	if err != nil {
 		err = fmt.Errorf("%w: %s: %w", ErrDecodeFailed, qryType, err)
