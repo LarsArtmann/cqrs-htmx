@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/mail"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ type Service struct {
 	sessions   SessionStore
 	sessionTTL time.Duration
 	bcryptCost int
+	logger     *slog.Logger
 }
 
 type ServiceConfig struct {
@@ -24,6 +26,7 @@ type ServiceConfig struct {
 	SessionStore SessionStore
 	SessionTTL   time.Duration
 	BcryptCost   int
+	Logger       *slog.Logger
 }
 
 func NewService(cfg ServiceConfig) (*Service, error) {
@@ -49,12 +52,18 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		cost = defaultBcryptCost
 	}
 
+	logger := cfg.Logger
+	if logger == nil {
+		logger = slog.Default()
+	}
+
 	return &Service{
 		authz:      cfg.Authz,
 		users:      cfg.UserStore,
 		sessions:   cfg.SessionStore,
 		sessionTTL: cfg.SessionTTL,
 		bcryptCost: cost,
+		logger:     logger,
 	}, nil
 }
 
@@ -124,6 +133,12 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	return &RegisterResponse{User: user, Session: session}, nil
 }
 
+func (s *Service) logAuth(event, userID string, attrs ...any) {
+	args := []any{"event", event, "user_id", userID}
+	args = append(args, attrs...)
+	s.logger.Info("usermgmt: "+event, args...)
+}
+
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -159,6 +174,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 	}
 
 	if !user.CheckPassword(req.Password) {
+		s.logger.Warn("usermgmt: login failed", "email", req.Email, "reason", "invalid_password")
 		return nil, ErrInvalidCredentials
 	}
 
@@ -236,6 +252,8 @@ func (s *Service) UpdateRoles(_ context.Context, userID string, roles []string, 
 	}); err != nil {
 		return fmt.Errorf("apply role update: %w", err)
 	}
+
+	s.logAuth("roles_updated", userID, "roles", strings.Join(roles, ","), "domain", domain)
 
 	user.Roles = roles
 	user.UpdatedAt = time.Now().UTC()
