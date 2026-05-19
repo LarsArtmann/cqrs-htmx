@@ -2,6 +2,7 @@ package cqrshtmx
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -115,6 +116,53 @@ func (r *statusRecorder) WriteHeader(code int) {
 		r.wrote = true
 	}
 	r.ResponseWriter.WriteHeader(code)
+}
+
+// RequestLoggingSlog returns HTTP middleware that logs each request using
+// structured logging via log/slog. It captures method, path, status, duration,
+// and any correlation ID, user ID, or request ID present in the context.
+//
+// Usage:
+//
+//	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+//	middleware := cqrshtmx.RequestLoggingSlog(logger)
+func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+
+			rw := &statusRecorder{ResponseWriter: w, status: 0, wrote: false}
+
+			next.ServeHTTP(rw, r)
+
+			duration := time.Since(start)
+
+			attrs := []slog.Attr{
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+				slog.Int("status", rw.status),
+				slog.Duration("duration", duration),
+			}
+
+			if r.URL.RawQuery != "" {
+				attrs = append(attrs, slog.String("query", r.URL.RawQuery))
+			}
+
+			if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
+				attrs = append(attrs, slog.String("correlation_id", cid.String()))
+			}
+
+			if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
+				attrs = append(attrs, slog.String("user_id", uid.String()))
+			}
+
+			if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+				attrs = append(attrs, slog.String("request_id", rid.String()))
+			}
+
+			logger.LogAttrs(r.Context(), slog.LevelInfo, "http request", attrs...)
+		})
+	}
 }
 
 func (r *statusRecorder) Write(p []byte) (int, error) {

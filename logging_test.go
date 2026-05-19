@@ -1,6 +1,8 @@
 package cqrshtmx_test
 
 import (
+	"bytes"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 
@@ -161,6 +163,55 @@ var _ = Describe("Request Logging", func() {
 
 			Expect(logged).To(ContainSubstring(`"correlation_id":"01HK1549P84T9XF8R94E960633"`))
 			Expect(logged).To(ContainSubstring(`"user_id":"01HK154ANGZHV2ZW0X3SKSNEN2"`))
+		})
+	})
+
+	Describe("RequestLoggingSlog", func() {
+		It("logs requests with structured slog output", func() {
+			var buf bytes.Buffer
+			//nolint:exhaustruct // test config intentionally uses defaults for other fields
+			logger := slog.New(slog.NewJSONHandler(
+				&buf,
+				&slog.HandlerOptions{Level: slog.LevelInfo},
+			))
+			middleware := cqrshtmx.RequestLoggingSlog(logger)
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusCreated)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/users", nil)
+			handler.ServeHTTP(w, r)
+
+			logged := buf.String()
+			Expect(logged).To(ContainSubstring(`"method":"POST"`))
+			Expect(logged).To(ContainSubstring(`"path":"/users"`))
+			Expect(logged).To(ContainSubstring(`"status":201`))
+			Expect(logged).To(ContainSubstring(`"duration"`))
+		})
+
+		It("includes request_id from context in slog output", func() {
+			var buf bytes.Buffer
+			//nolint:exhaustruct // test config intentionally uses defaults for other fields
+			logger := slog.New(slog.NewJSONHandler(
+				&buf,
+				&slog.HandlerOptions{Level: slog.LevelInfo},
+			))
+			middleware := cqrshtmx.RequestLoggingSlog(logger)
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/api", nil)
+			rid := cqrshtmx.MustParseRequestID("01HK1549P84T9XF8R94E960633")
+			r = r.WithContext(cqrshtmx.WithRequestID(r.Context(), rid))
+			handler.ServeHTTP(w, r)
+
+			logged := buf.String()
+			Expect(logged).To(ContainSubstring(`"request_id":"01HK1549P84T9XF8R94E960633"`))
 		})
 	})
 })
