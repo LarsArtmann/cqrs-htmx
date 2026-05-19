@@ -27,6 +27,7 @@ Expect(meta).To(Equal(`<meta name="csrf-token" content="test-token">`))
 ```
 
 **Issues:**
+
 - `ContainSubstring` is weak — misses extra/missing output, wrong ordering
 - Adding a new header requires updating every test that checks headers
 - JSON log assertions break when field order changes
@@ -186,10 +187,11 @@ GOWORK=off UPDATE_SNAPS=true go test ./... -count=1
 - name: Test
   run: go test ./... -count=1
   env:
-    CI: true  # go-snaps auto-detects CI and fails on missing snapshots
+    CI: true # go-snaps auto-detects CI and fails on missing snapshots
 ```
 
 ### Pros
+
 - **Best Ginkgo/Gomega integration** — uses `GinkgoT()` natively
 - **Dynamic value masking** — ULIDs, timestamps, random values don't break snapshots
 - **Built-in JSON/YAML formatters** — pretty-prints for readable diffs
@@ -198,6 +200,7 @@ GOWORK=off UPDATE_SNAPS=true go test ./... -count=1
 - **Inline snapshots** — experimental support for snapshots in source code
 
 ### Cons
+
 - Adds 1 new dependency (`go-snaps` + `match` subpackage)
 - Newer library (but actively maintained since 2022)
 - Snapshot files add noise to git diffs (but are auto-managed)
@@ -235,12 +238,14 @@ UPDATE_SNAPS=true go test ./...
 ```
 
 ### Pros
+
 - **Zero configuration** — one function call
 - **Battle-tested** — used in production since 2017
 - **Very small footprint** — single package, minimal deps
 - **Simple mental model** — `SnapshotT(t, value)` is the entire API
 
 ### Cons
+
 - **No dynamic value masking** — ULIDs and timestamps will break snapshots
 - **No JSON formatting** — snapshots are raw string dumps
 - **Maintenance mode** — last meaningful update 2022
@@ -248,6 +253,7 @@ UPDATE_SNAPS=true go test ./...
 - **Not ideal for HTTP responses** — would need custom serialization
 
 ### Verdict
+
 Too limited for this project. Without dynamic masking, every test with a ULID or timestamp would need manual snapshot updates on every run.
 
 ---
@@ -341,12 +347,14 @@ assertGolden(GinkgoT(), "log_output", []byte(normalizeOutput(logged)))
 ```
 
 ### Pros
+
 - **Zero dependencies** — uses only stdlib + `go-cmp`
 - **Full control** — own the file format, comparison logic, update workflow
 - **Git-friendly** — golden files are plain text, reviewable in PRs
 - **No magic** — explicit, easy to understand
 
 ### Cons
+
 - **Manual file management** — create directories, name files, handle updates
 - **No built-in dynamic masking** — must implement preprocessing yourself
 - **More boilerplate** — helper function, directory setup, env var handling
@@ -354,6 +362,7 @@ assertGolden(GinkgoT(), "log_output", []byte(normalizeOutput(logged)))
 - **Ginkgo integration is clunky** — `GinkgoT()` doesn't expose all `testing.T` methods
 
 ### Verdict
+
 Good for teams that want zero dependencies and full control, but requires more upfront work and ongoing maintenance than `go-snaps`.
 
 ---
@@ -439,17 +448,20 @@ It("returns structured log output", func() {
 ```
 
 ### Pros
+
 - **Zero new dependencies** — uses only Gomega
 - **Native Gomega integration** — fits existing test style perfectly
 - **JSON-aware** — `MatchJSON` ignores field ordering and whitespace
 
 ### Cons
+
 - **Only works for JSON** — HTML, plain text, headers need different approach
 - **Manual preprocessing** — must strip dynamic fields before matching
 - **No HTTP response snapshotting** — doesn't solve the header-checking problem
 - **More code to maintain** — custom matcher implementation
 
 ### Verdict
+
 Too narrow. Only solves JSON assertions, leaving HTML, headers, and status codes as manual assertions.
 
 ---
@@ -460,23 +472,23 @@ Too narrow. Only solves JSON assertions, leaving HTML, headers, and status codes
 
 ### Snapshot These (output-heavy)
 
-| Test Type | Example | Why Snapshot |
-|-----------|---------|-------------|
-| HTML/template output | `CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders` | HTML structure changes are visual diffs |
-| HTTP response bodies | `w.Body.String()` with complex HTML/JSON | Full output is the contract |
-| Log output | JSON log lines with many fields | Field additions/changes are snapshot-worthy |
-| Error messages | `w.Body.String()` on error cases | Error text is part of the UX |
-| Multi-header responses | HTMX responses with 3+ headers | Header combinations are the contract |
+| Test Type              | Example                                   | Why Snapshot                                |
+| ---------------------- | ----------------------------------------- | ------------------------------------------- |
+| HTML/template output   | `CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders` | HTML structure changes are visual diffs     |
+| HTTP response bodies   | `w.Body.String()` with complex HTML/JSON  | Full output is the contract                 |
+| Log output             | JSON log lines with many fields           | Field additions/changes are snapshot-worthy |
+| Error messages         | `w.Body.String()` on error cases          | Error text is part of the UX                |
+| Multi-header responses | HTMX responses with 3+ headers            | Header combinations are the contract        |
 
 ### Keep Explicit (behavioral)
 
-| Test Type | Example | Why Explicit |
-|-----------|---------|-------------|
-| Status codes | `w.Code == 200` | Status codes are the API contract |
-| Mock call counts | `dispatchCount == 1` | Behavior, not output |
-| Error types | `errors.Is(err, ErrForbidden)` | Type safety matters |
-| Nil checks | `cfg.queryDecoder != nil` | Preconditions |
-| Simple single-value headers | `w.Header().Get("Location")` | One assertion is cleaner than a snapshot |
+| Test Type                   | Example                        | Why Explicit                             |
+| --------------------------- | ------------------------------ | ---------------------------------------- |
+| Status codes                | `w.Code == 200`                | Status codes are the API contract        |
+| Mock call counts            | `dispatchCount == 1`           | Behavior, not output                     |
+| Error types                 | `errors.Is(err, ErrForbidden)` | Type safety matters                      |
+| Nil checks                  | `cfg.queryDecoder != nil`      | Preconditions                            |
+| Simple single-value headers | `w.Header().Get("Location")`   | One assertion is cleaner than a snapshot |
 
 ### Migration Strategy
 
@@ -493,18 +505,18 @@ Too narrow. Only solves JSON assertions, leaving HTML, headers, and status codes
 
 ## Comparison Matrix
 
-| Feature | go-snaps | cupaloy | Golden Files | Custom Matcher |
-|---------|----------|---------|--------------|----------------|
-| **Dynamic masking** | ✅ Built-in | ❌ None | ⚠️ Manual | ⚠️ Manual |
-| **Ginkgo native** | ✅ Yes | ✅ Yes | ⚠️ Clunky | ✅ Yes |
-| **JSON formatting** | ✅ Yes | ❌ No | ⚠️ Manual | ✅ Yes |
-| **Auto cleanup** | ✅ Yes | ✅ Yes | ❌ No | ❌ No |
-| **HTTP response helper** | ✅ Easy | ⚠️ Custom | ⚠️ Custom | ❌ No |
-| **Zero deps** | ❌ 1 dep | ❌ 1 dep | ✅ Yes | ✅ Yes |
-| **Active maintenance** | ✅ 2026 | ⚠️ 2022 | N/A (you) | N/A (you) |
-| **CI integration** | ✅ Built-in | ✅ Built-in | ⚠️ Custom | ⚠️ Custom |
-| **Snapshot inline** | ✅ Experimental | ❌ No | ❌ No | ❌ No |
-| **Learning curve** | Low | Very low | Medium | Medium |
+| Feature                  | go-snaps        | cupaloy     | Golden Files | Custom Matcher |
+| ------------------------ | --------------- | ----------- | ------------ | -------------- |
+| **Dynamic masking**      | ✅ Built-in     | ❌ None     | ⚠️ Manual    | ⚠️ Manual      |
+| **Ginkgo native**        | ✅ Yes          | ✅ Yes      | ⚠️ Clunky    | ✅ Yes         |
+| **JSON formatting**      | ✅ Yes          | ❌ No       | ⚠️ Manual    | ✅ Yes         |
+| **Auto cleanup**         | ✅ Yes          | ✅ Yes      | ❌ No        | ❌ No          |
+| **HTTP response helper** | ✅ Easy         | ⚠️ Custom   | ⚠️ Custom    | ❌ No          |
+| **Zero deps**            | ❌ 1 dep        | ❌ 1 dep    | ✅ Yes       | ✅ Yes         |
+| **Active maintenance**   | ✅ 2026         | ⚠️ 2022     | N/A (you)    | N/A (you)      |
+| **CI integration**       | ✅ Built-in     | ✅ Built-in | ⚠️ Custom    | ⚠️ Custom      |
+| **Snapshot inline**      | ✅ Experimental | ❌ No       | ❌ No        | ❌ No          |
+| **Learning curve**       | Low             | Very low    | Medium       | Medium         |
 
 ---
 
@@ -521,15 +533,15 @@ Too narrow. Only solves JSON assertions, leaving HTML, headers, and status codes
 
 ### What to Snapshot First (Priority Order)
 
-| Priority | File | Tests to Snapshot | Impact |
-|----------|------|-------------------|--------|
-| P1 | `integration_test.go` | Full HTTP responses (status + all headers + body) | Highest — 50+ assertions become ~15 snapshots |
-| P2 | `csrf_test.go` | Template helper output (`CSRFTokenHTMLMeta`, etc.) | Medium — HTML string maintenance eliminated |
-| P2 | `logging_test.go` | JSON log output lines | Medium — JSON field changes become visible diffs |
-| P3 | `coverage_test.go` | Error response bodies, notification triggers | Medium — complex multi-field assertions |
-| P4 | `security_test.go` | Header output | Low — already simple, 1-2 assertions each |
-| — | `app_test.go` | Keep explicit | Low — mostly behavior, not output |
-| — | `context_test.go` | Keep explicit | Low — type-level tests, no HTTP output |
+| Priority | File                  | Tests to Snapshot                                  | Impact                                           |
+| -------- | --------------------- | -------------------------------------------------- | ------------------------------------------------ |
+| P1       | `integration_test.go` | Full HTTP responses (status + all headers + body)  | Highest — 50+ assertions become ~15 snapshots    |
+| P2       | `csrf_test.go`        | Template helper output (`CSRFTokenHTMLMeta`, etc.) | Medium — HTML string maintenance eliminated      |
+| P2       | `logging_test.go`     | JSON log output lines                              | Medium — JSON field changes become visible diffs |
+| P3       | `coverage_test.go`    | Error response bodies, notification triggers       | Medium — complex multi-field assertions          |
+| P4       | `security_test.go`    | Header output                                      | Low — already simple, 1-2 assertions each        |
+| —        | `app_test.go`         | Keep explicit                                      | Low — mostly behavior, not output                |
+| —        | `context_test.go`     | Keep explicit                                      | Low — type-level tests, no HTTP output           |
 
 ### Files to Create
 
@@ -545,25 +557,25 @@ cqrs-htmx/
 
 ### Estimated Effort
 
-| Task | Est. Time |
-|------|-----------|
-| Add `go-snaps` dependency | 2 min |
-| Write `SnapResponse` + `SnapJSON` helpers | 10 min |
-| Migrate `integration_test.go` | 20 min |
-| Migrate `csrf_test.go` template helpers | 15 min |
-| Migrate `logging_test.go` | 10 min |
-| Review + update snapshots | 10 min |
-| **Total** | **~70 min** |
+| Task                                      | Est. Time   |
+| ----------------------------------------- | ----------- |
+| Add `go-snaps` dependency                 | 2 min       |
+| Write `SnapResponse` + `SnapJSON` helpers | 10 min      |
+| Migrate `integration_test.go`             | 20 min      |
+| Migrate `csrf_test.go` template helpers   | 15 min      |
+| Migrate `logging_test.go`                 | 10 min      |
+| Review + update snapshots                 | 10 min      |
+| **Total**                                 | **~70 min** |
 
 ### Risk Assessment
 
-| Risk | Mitigation |
-|------|------------|
-| Snapshot files grow large | `go-snaps` auto-cleans obsolete snapshots |
-| ULIDs still break snapshots | Use `match.Custom` with ULID regex |
-| Team unfamiliar with snapshots | Document update workflow in AGENTS.md |
-| CI fails on new snapshots | Set `UPDATE_SNAPS=false` in CI, fail on missing |
-| Accidental snapshot commits | Review `.snap` files in PRs like any code |
+| Risk                           | Mitigation                                      |
+| ------------------------------ | ----------------------------------------------- |
+| Snapshot files grow large      | `go-snaps` auto-cleans obsolete snapshots       |
+| ULIDs still break snapshots    | Use `match.Custom` with ULID regex              |
+| Team unfamiliar with snapshots | Document update workflow in AGENTS.md           |
+| CI fails on new snapshots      | Set `UPDATE_SNAPS=false` in CI, fail on missing |
+| Accidental snapshot commits    | Review `.snap` files in PRs like any code       |
 
 ---
 
@@ -576,5 +588,5 @@ cqrs-htmx/
 
 ---
 
-*Document generated: 2026-05-19*  
-*Next step: Decide on approach, then implement proof-of-concept on one test file*
+_Document generated: 2026-05-19_  
+_Next step: Decide on approach, then implement proof-of-concept on one test file_

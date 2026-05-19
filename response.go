@@ -13,8 +13,9 @@ import (
 //	resp.Trigger("userCreated").PushURL("/users").Apply()
 //	w.Write(htmlBytes)
 type Response struct {
-	w http.ResponseWriter
-	r *http.Request
+	w           http.ResponseWriter
+	r           *http.Request
+	redirectURL string
 }
 
 // NewResponse creates an HTMX-aware response builder.
@@ -40,14 +41,16 @@ func (resp *Response) ReplaceURL(url string) *Response {
 }
 
 // Redirect performs a client-side redirect (HTMX-aware).
-// For HTMX requests, uses HX-Redirect; for regular requests, uses HTTP redirect.
+// For HTMX requests, sets HX-Redirect header.
+// For regular requests, defers the HTTP redirect until Apply() is called,
+// allowing chaining with other response methods.
 func (resp *Response) Redirect(url string) *Response {
 	if resp.IsHTMX() {
 		resp.w.Header().Set(headerRedirect, url)
 		return resp
 	}
 
-	http.Redirect(resp.w, resp.r, url, http.StatusSeeOther)
+	resp.redirectURL = url
 	return resp
 }
 
@@ -146,11 +149,21 @@ func (resp *Response) CSRFToken(token string) *Response {
 	return resp
 }
 
-// Apply finalizes the response headers. Call this before writing the body.
-func (resp *Response) Apply() {
+// Apply finalizes the response. For non-HTMX redirects, writes the redirect
+// response immediately. For HTMX requests, sets Content-Type.
+// Returns true if the response was written (redirect), false if the caller
+// must still write the body.
+func (resp *Response) Apply() bool {
+	if resp.redirectURL != "" {
+		http.Redirect(resp.w, resp.r, resp.redirectURL, http.StatusSeeOther)
+		return true
+	}
+
 	if resp.IsHTMX() {
 		resp.w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	}
+
+	return false
 }
 
 func setTriggerHeader(w http.ResponseWriter, header, event string) {

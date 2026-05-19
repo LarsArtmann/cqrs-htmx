@@ -53,14 +53,11 @@ type handlerConfig struct {
 	csrfConfig     *CSRFConfig
 }
 
-// hasMinimalResponse returns true if no redirect, trigger, or pushURL are configured.
-func (c *handlerConfig) hasMinimalResponse() bool {
-	return c.redirect == "" && c.trigger == "" && c.pushURL == ""
-}
-
-// hasNoResponse returns true if no HTMX response fields are configured.
-func (c *handlerConfig) hasNoResponse() bool {
-	return c.hasMinimalResponse() && len(c.triggerDetail) == 0
+// hasNoExplicitBody returns true if the handler has no render function and
+// no HTMX response fields that would produce body content.
+// When true, the handler should return 204 No Content.
+func (c *handlerConfig) hasNoExplicitBody() bool {
+	return c.redirect == "" && c.trigger == "" && c.pushURL == "" && len(c.triggerDetail) == 0
 }
 
 // decodeJSONBody decodes JSON from request body into type T.
@@ -295,7 +292,7 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 	return nil
 }
 
-func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) {
+func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) bool {
 	resp := NewResponse(w, r)
 
 	if cfg.redirect != "" {
@@ -314,7 +311,7 @@ func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfi
 		resp.PushURL(cfg.pushURL)
 	}
 
-	resp.Apply()
+	return resp.Apply()
 }
 
 func decodeFormValues(form url.Values, target any) error {

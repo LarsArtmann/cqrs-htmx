@@ -27,6 +27,14 @@ func (a *App) handleCommandDispatch(
 		return
 	}
 
+	if cfg.commandDecoder == nil {
+		a.errorHandler(w, r, errDecoderMissing)
+		if a.afterDispatch != nil {
+			a.afterDispatch(ctx, r, errDecoderMissing)
+		}
+		return
+	}
+
 	cmd, err := cfg.commandDecoder(r)
 	if err != nil {
 		a.errorHandler(w, r, err)
@@ -67,18 +75,13 @@ func (a *App) executePreDispatchChecks(
 		return err
 	}
 
-	if cfg.commandDecoder == nil {
-		a.errorHandler(w, r, errDecoderMissing)
-		return errDecoderMissing
-	}
-
 	return nil
 }
 
 func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) {
 	applyHTMXResponse(w, r, cfg)
 
-	if cfg.hasNoResponse() {
+	if cfg.hasNoExplicitBody() {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
@@ -101,7 +104,7 @@ func (a *App) applyQueryResponse(
 		}
 	}
 
-	if cfg.hasNoResponse() {
+	if cfg.hasNoExplicitBody() {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
@@ -116,6 +119,13 @@ func (a *App) handleQueryDispatch(
 
 	if a.beforeDispatch != nil {
 		ctx = a.beforeDispatch(ctx, r)
+	}
+
+	if err := a.executePreDispatchChecks(w, r, cfg); err != nil {
+		if a.afterDispatch != nil {
+			a.afterDispatch(ctx, r, err)
+		}
+		return
 	}
 
 	if cfg.queryDecoder == nil {

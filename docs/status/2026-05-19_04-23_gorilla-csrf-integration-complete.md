@@ -141,6 +141,7 @@ BuildFlow's pre-commit hook is **broken for this project**. It enforces rules th
 ### 4. CSRF Secret Auto-Generation
 
 If `CSRFConfig.Secret` is empty, `CSRFMiddleware` generates a random 32-byte key on EVERY call. This means:
+
 - Every server restart invalidates all existing CSRF tokens
 - Multiple `CSRFMiddleware()` calls in tests each get different keys
 - Production deployments without a stable secret will break user sessions across restarts
@@ -154,6 +155,7 @@ If `CSRFConfig.Secret` is empty, `CSRFMiddleware` generates a random 32-byte key
 ### 1. Fix BuildFlow Pre-commit Hook (P1 — BLOCKING)
 
 The pre-commit hook must be configurable to ignore project-incompatible rules. Options:
+
 - Add a `buildflow.yaml` / `.buildflow.yml` config that disables `go-structure-linter`, `library-policy`, `todo-check`
 - Or: remove the pre-commit hook and rely on CI only
 - Or: configure the hook to be non-blocking (warn, don't fail)
@@ -200,33 +202,33 @@ Add `//nolint:funlen` with justification, or extract hook logic to a helper.
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Priority | Task                                                                      | Why                                                  |
-| --- | -------- | ------------------------------------------------------------------------- | ---------------------------------------------------- |
-| 1   | P0       | **Fix BuildFlow pre-commit hook** — disable incompatible rules            | Every commit needs `--no-verify` right now           |
-| 2   | P1       | **Warn on empty CSRF Secret** — tokens don't persist across restarts      | Production footgun                                   |
-| 3   | P1       | **Warn on Secure=false** — CSRF cookies sent over HTTP                    | Security regression                                  |
-| 4   | P1       | **Fix `executeCSRFValidation` ResponseWriter conflict**                   | Double-write risk on CSRF failure                    |
-| 5   | P2       | Add CSRF middleware benchmark                                             | Quantify overhead                                    |
-| 6   | P2       | Add token rotation helper (`RotateCSRFToken`)                             | Security hardening                                   |
-| 7   | P2       | Expand `SecurityHeadersMiddleware` with HSTS and CSP                      | Defense in depth                                     |
-| 8   | P2       | Create `example/basic/` with runnable CSRF + HTMX demo                    | Consumer onboarding                                  |
-| 9   | P3       | Fix rate limiter unbounded map leak                                       | Memory leak in production                            |
-| 10  | P3       | Suppress or fix `handler.go:86` funlen                                    | Clean lint output                                    |
-| 11  | P3       | Add `govulncheck` to CI pipeline                                          | Vulnerability scanning                               |
-| 12  | P3       | Write `SECURITY.md`                                                       | Professional security posture                        |
-| 13  | P3       | Benchmark gorilla/csrf vs old custom implementation                       | Justify dependency                                   |
-| 14  | P4       | Add `CSRFConfig` validation (e.g., reject SameSite=None without Secure)   | Prevent broken configs                               |
-| 15  | P4       | Document cookie security tradeoffs (Secure, SameSite, Domain)             | Help consumers make informed choices                 |
-| 16  | P4       | Add configurable token length / entropy                                   | Flexibility for paranoid deployments                 |
-| 17  | P4       | Support double-submit without cookie (session-backed tokens)              | Alternative pattern for cookie-averse consumers      |
-| 18  | P4       | Add CSRF bypass for trusted origins/internal IPs                          | Internal API use case                                |
-| 19  | P4       | Integration test with real `httptest.Server` (not just recorder)          | More realistic test scenarios                        |
-| 20  | P4       | Document CSRF + reverse proxy considerations (X-Forwarded-Proto)          | Proxy deployments often misconfigure Secure          |
-| 21  | P4       | Add `CSRFMiddleware` warn-only mode (log but don't reject)               | Gradual rollout                                      |
-| 22  | P4       | Add `CSRFToken` branded type (`type CSRFToken string`)                    | Type safety                                          |
-| 23  | P4       | Functional options for `CSRFConfig` instead of struct literal             | Cleaner API (e.g., `csrf.MaxAge(24*time.Hour)`)     |
-| 24  | P4       | Extract `gorilla/csrf` adapter into internal package                      | Cleaner separation, easier to swap implementations   |
-| 25  | P4       | Document how to test CSRF-protected endpoints (test helper)               | Consumer testing convenience                         |
+| #   | Priority | Task                                                                    | Why                                                |
+| --- | -------- | ----------------------------------------------------------------------- | -------------------------------------------------- |
+| 1   | P0       | **Fix BuildFlow pre-commit hook** — disable incompatible rules          | Every commit needs `--no-verify` right now         |
+| 2   | P1       | **Warn on empty CSRF Secret** — tokens don't persist across restarts    | Production footgun                                 |
+| 3   | P1       | **Warn on Secure=false** — CSRF cookies sent over HTTP                  | Security regression                                |
+| 4   | P1       | **Fix `executeCSRFValidation` ResponseWriter conflict**                 | Double-write risk on CSRF failure                  |
+| 5   | P2       | Add CSRF middleware benchmark                                           | Quantify overhead                                  |
+| 6   | P2       | Add token rotation helper (`RotateCSRFToken`)                           | Security hardening                                 |
+| 7   | P2       | Expand `SecurityHeadersMiddleware` with HSTS and CSP                    | Defense in depth                                   |
+| 8   | P2       | Create `example/basic/` with runnable CSRF + HTMX demo                  | Consumer onboarding                                |
+| 9   | P3       | Fix rate limiter unbounded map leak                                     | Memory leak in production                          |
+| 10  | P3       | Suppress or fix `handler.go:86` funlen                                  | Clean lint output                                  |
+| 11  | P3       | Add `govulncheck` to CI pipeline                                        | Vulnerability scanning                             |
+| 12  | P3       | Write `SECURITY.md`                                                     | Professional security posture                      |
+| 13  | P3       | Benchmark gorilla/csrf vs old custom implementation                     | Justify dependency                                 |
+| 14  | P4       | Add `CSRFConfig` validation (e.g., reject SameSite=None without Secure) | Prevent broken configs                             |
+| 15  | P4       | Document cookie security tradeoffs (Secure, SameSite, Domain)           | Help consumers make informed choices               |
+| 16  | P4       | Add configurable token length / entropy                                 | Flexibility for paranoid deployments               |
+| 17  | P4       | Support double-submit without cookie (session-backed tokens)            | Alternative pattern for cookie-averse consumers    |
+| 18  | P4       | Add CSRF bypass for trusted origins/internal IPs                        | Internal API use case                              |
+| 19  | P4       | Integration test with real `httptest.Server` (not just recorder)        | More realistic test scenarios                      |
+| 20  | P4       | Document CSRF + reverse proxy considerations (X-Forwarded-Proto)        | Proxy deployments often misconfigure Secure        |
+| 21  | P4       | Add `CSRFMiddleware` warn-only mode (log but don't reject)              | Gradual rollout                                    |
+| 22  | P4       | Add `CSRFToken` branded type (`type CSRFToken string`)                  | Type safety                                        |
+| 23  | P4       | Functional options for `CSRFConfig` instead of struct literal           | Cleaner API (e.g., `csrf.MaxAge(24*time.Hour)`)    |
+| 24  | P4       | Extract `gorilla/csrf` adapter into internal package                    | Cleaner separation, easier to swap implementations |
+| 25  | P4       | Document how to test CSRF-protected endpoints (test helper)             | Consumer testing convenience                       |
 
 ---
 
@@ -244,28 +246,28 @@ This means consumers behind reverse proxies (where `r.TLS` is nil because TLS te
 
 ## Metrics
 
-| Metric          | Value     | Δ from last report |
-| --------------- | --------- | ------------------ |
-| Test Specs      | 245       | +20                |
-| Coverage        | 94.7%     | +0.1%              |
-| Lint Issues     | 1 (funlen)| 0 new              |
-| Prod Files      | 14        | 0                  |
-| Test Files      | 19        | +2                 |
-| Benchmarks      | 6         | 0                  |
-| Go Dependencies | 10        | +2 (gorilla/*)     |
+| Metric          | Value      | Δ from last report |
+| --------------- | ---------- | ------------------ |
+| Test Specs      | 245        | +20                |
+| Coverage        | 94.7%      | +0.1%              |
+| Lint Issues     | 1 (funlen) | 0 new              |
+| Prod Files      | 14         | 0                  |
+| Test Files      | 19         | +2                 |
+| Benchmarks      | 6          | 0                  |
+| Go Dependencies | 10         | +2 (gorilla/\*)    |
 
 ## Files Changed in This Session
 
-| File                  | Action  | Lines  | Notes                          |
-| --------------------- | ------- | ------ | ------------------------------ |
-| `csrf.go`             | REWRITE | ~380   | gorilla/csrf integration       |
-| `csrf_test.go`        | FIX     | 688    | Masked token format, URL-escape|
-| `integration_test.go` | FIX     | 578    | Context-extracted tokens       |
-| `README.md`           | UPDATE  | +12    | gorilla/csrf notes             |
-| `AGENTS.md`           | UPDATE  | +5     | New dependency, gotchas        |
-| `FEATURES.md`         | UPDATE  | +2     | Test count, description        |
-| `go.mod`              | ADD     | +2     | gorilla/csrf, securecookie     |
-| `go.sum`              | ADD     | +6     | gorilla/* checksums            |
+| File                  | Action  | Lines | Notes                           |
+| --------------------- | ------- | ----- | ------------------------------- |
+| `csrf.go`             | REWRITE | ~380  | gorilla/csrf integration        |
+| `csrf_test.go`        | FIX     | 688   | Masked token format, URL-escape |
+| `integration_test.go` | FIX     | 578   | Context-extracted tokens        |
+| `README.md`           | UPDATE  | +12   | gorilla/csrf notes              |
+| `AGENTS.md`           | UPDATE  | +5    | New dependency, gotchas         |
+| `FEATURES.md`         | UPDATE  | +2    | Test count, description         |
+| `go.mod`              | ADD     | +2    | gorilla/csrf, securecookie      |
+| `go.sum`              | ADD     | +6    | gorilla/\* checksums            |
 
 ---
 

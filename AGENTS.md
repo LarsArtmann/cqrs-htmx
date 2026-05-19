@@ -64,11 +64,11 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency         | Purpose        |
-| ------------------ | -------------- |
-| go-cqrs-lite/core  | CQRS dispatch  |
-| casbin/casbin/v3   | Authorization  |
-| cockroachdb/errors | Error handling |
+| Dependency         | Purpose         |
+| ------------------ | --------------- |
+| go-cqrs-lite/core  | CQRS dispatch   |
+| casbin/casbin/v3   | Authorization   |
+| cockroachdb/errors | Error handling  |
 | gorilla/csrf       | CSRF protection |
 
 ## Key Gotchas
