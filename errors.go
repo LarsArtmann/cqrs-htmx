@@ -22,6 +22,7 @@ var (
 	ErrDispatchFailed   = errors.New("command/query dispatch failed")
 	ErrEnforcerNil      = errors.New("casbin enforcer is required for authorization")
 	ErrValidationFailed = errors.New("request validation failed")
+	ErrCSRFConfig       = errors.New("invalid CSRF configuration")
 
 	errCommandsNil    = errors.New("command dispatcher is required")
 	errQueriesNil     = errors.New("query dispatcher is required")
@@ -39,6 +40,7 @@ func registerErrorClassifications() {
 		event.RegisterClassification(errQueriesNil, event.Infrastructure)
 		event.RegisterClassification(errDecoderMissing, event.Infrastructure)
 		event.RegisterClassification(ErrValidationFailed, event.Rejection)
+		event.RegisterClassification(ErrCSRFConfig, event.Infrastructure)
 	})
 }
 

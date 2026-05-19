@@ -133,7 +133,7 @@ func (c *CSRFConfig) Validate() error {
 	if len(c.Secret) == 0 {
 		return fmt.Errorf(
 			"%w: CSRFConfig.Secret is empty: tokens will not persist across server restarts",
-			ErrEnforcerNil,
+			ErrCSRFConfig,
 		)
 	}
 
