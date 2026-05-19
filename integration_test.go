@@ -452,4 +452,116 @@ var _ = Describe("Full Integration", func() {
 			Expect(w.Header().Get("X-CSRF-Token")).NotTo(BeEmpty())
 		})
 	})
+
+	Describe("End-to-end CQRS + CSRFProtect per-handler option", func() {
+		var (
+			app  *cqrshtmx.App
+			disp *command.Dispatcher
+		)
+
+		BeforeEach(func() {
+			disp = command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+
+			var err error
+			app, err = cqrshtmx.New(cqrshtmx.Config{
+				Commands: disp,
+			})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("allows command dispatch with CSRFProtect and valid token", func() {
+			// First, set up CSRF middleware to set cookie + context
+			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
+
+			// Then use CSRFProtect on the specific handler
+			cmdHandler := app.Command("CreateUser",
+				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
+				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					return &bddCreateUserCmd{
+						aggID: id.NewAggregateID(),
+						email: req.Email,
+						name:  req.Name,
+					}, nil
+				}),
+			)
+
+			// Wrap with CSRF middleware (sets context)
+			handler := csrfMW(cmdHandler)
+
+			// Step 1: GET to obtain token
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w1, r1)
+
+			cookies := w1.Result().Cookies()
+			Expect(cookies).To(HaveLen(1))
+			csrfToken := cookies[0].Value
+
+			// Step 2: POST with token
+			w2 := httptest.NewRecorder()
+			body := testUserJSON
+			r2 := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r2.Header.Set("X-CSRF-Token", csrfToken)
+			for _, c := range cookies {
+				r2.AddCookie(c)
+			}
+
+			handler.ServeHTTP(w2, r2)
+			Expect(w2.Code).To(Equal(http.StatusNoContent))
+		})
+
+		It("rejects command dispatch with CSRFProtect but no token", func() {
+			cmdHandler := app.Command("CreateUser",
+				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
+				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					return &bddCreateUserCmd{
+						aggID: id.NewAggregateID(),
+						email: req.Email,
+						name:  req.Name,
+					}, nil
+				}),
+			)
+
+			w := httptest.NewRecorder()
+			body := testUserJSON
+			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			cmdHandler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusForbidden))
+		})
+
+		It("rejects command dispatch with CSRFProtect and invalid token", func() {
+			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
+			cmdHandler := app.Command("CreateUser",
+				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
+				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+					return &bddCreateUserCmd{
+						aggID: id.NewAggregateID(),
+						email: req.Email,
+						name:  req.Name,
+					}, nil
+				}),
+			)
+
+			handler := csrfMW(cmdHandler)
+
+			// Step 1: GET to obtain token
+			w1 := httptest.NewRecorder()
+			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w1, r1)
+
+			// Step 2: POST with wrong token
+			w2 := httptest.NewRecorder()
+			body := testUserJSON
+			r2 := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+			r2.Header.Set("X-CSRF-Token", "wrong-token")
+			for _, c := range w1.Result().Cookies() {
+				r2.AddCookie(c)
+			}
+
+			handler.ServeHTTP(w2, r2)
+			Expect(w2.Code).To(Equal(http.StatusForbidden))
+		})
+	})
 })
