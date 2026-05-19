@@ -18,6 +18,7 @@ type Service struct {
 	sessionTTL time.Duration
 	bcryptCost int
 	logger     *slog.Logger
+	lockout    *AccountLockout
 }
 
 type ServiceConfig struct {
@@ -27,6 +28,7 @@ type ServiceConfig struct {
 	SessionTTL   time.Duration
 	BcryptCost   int
 	Logger       *slog.Logger
+	Lockout      *AccountLockout
 }
 
 func NewService(cfg ServiceConfig) (*Service, error) {
@@ -64,6 +66,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		sessionTTL: cfg.SessionTTL,
 		bcryptCost: cost,
 		logger:     logger,
+		lockout:    cfg.Lockout,
 	}, nil
 }
 
@@ -168,6 +171,10 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
+	if s.lockout != nil && s.lockout.IsLocked(req.Email) {
+		s.logger.Warn("usermgmt: login rejected — account locked", "email", req.Email)
+		return nil, ErrAccountLocked
+	}
 	user, err := s.users.FindByEmail(req.Email)
 	if err != nil {
 		return nil, ErrInvalidCredentials
@@ -175,7 +182,14 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 
 	if !user.CheckPassword(req.Password) {
 		s.logger.Warn("usermgmt: login failed", "email", req.Email, "reason", "invalid_password")
+		if s.lockout != nil && s.lockout.RecordFailure(req.Email) {
+			s.logger.Warn("usermgmt: account locked", "email", req.Email)
+		}
 		return nil, ErrInvalidCredentials
+	}
+
+	if s.lockout != nil {
+		s.lockout.Reset(req.Email)
 	}
 
 	session, err := s.sessions.Create(user.ID, s.sessionTTL)

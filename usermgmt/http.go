@@ -154,6 +154,8 @@ func errorStatus(err error) int {
 		return http.StatusConflict
 	case errors.Is(err, ErrValidation):
 		return http.StatusBadRequest
+	case errors.Is(err, ErrAccountLocked):
+		return http.StatusTooManyRequests
 	case errors.Is(err, ErrForbidden):
 		return http.StatusForbidden
 	case errors.Is(err, ErrUserNotFound),

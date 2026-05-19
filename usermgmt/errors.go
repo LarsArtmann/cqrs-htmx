@@ -11,4 +11,5 @@ var (
 	ErrForbidden          = errors.New("access denied")
 	ErrUnauthorized       = errors.New("authentication required")
 	ErrValidation         = errors.New("validation failed")
+	ErrAccountLocked      = errors.New("account locked due to too many failed attempts")
 )

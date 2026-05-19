@@ -300,6 +300,7 @@ func TestErrorStatus(t *testing.T) {
 		{ErrUserNotFound, http.StatusNotFound},
 		{ErrSessionNotFound, http.StatusNotFound},
 		{ErrValidation, http.StatusBadRequest},
+		{ErrAccountLocked, http.StatusTooManyRequests},
 	}
 	for _, tt := range tests {
 		got := errorStatus(tt.err)
