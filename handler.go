@@ -31,6 +31,18 @@ func (a *App) dispatchContext(
 	return ctx, nil
 }
 
+// handleErr calls the error handler and afterDispatch hook, then returns.
+// Centralizes the repeated error handling pattern used across all dispatch paths.
+func (a *App) handleErr(
+	w http.ResponseWriter,
+	r *http.Request,
+	ctx context.Context, //nolint:revive // matches http.Handler param order
+	err error,
+) {
+	a.errorHandler(w, r, err)
+	a.afterDispatchHook(ctx, r, err)
+}
+
 func (a *App) handleCommandDispatch(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -43,21 +55,18 @@ func (a *App) handleCommandDispatch(
 	}
 
 	if cfg.commandDecoder == nil {
-		a.errorHandler(w, r, errDecoderMissing)
-		a.afterDispatchHook(ctx, r, errDecoderMissing)
+		a.handleErr(w, r, ctx, errDecoderMissing)
 		return
 	}
 
 	cmd, err := cfg.commandDecoder(r)
 	if err != nil {
-		a.errorHandler(w, r, err)
-		a.afterDispatchHook(ctx, r, err)
+		a.handleErr(w, r, ctx, err)
 		return
 	}
 
 	if cmd == nil {
-		a.errorHandler(w, r, errDecoderMissing)
-		a.afterDispatchHook(ctx, r, errDecoderMissing)
+		a.handleErr(w, r, ctx, errDecoderMissing)
 		return
 	}
 
@@ -65,8 +74,7 @@ func (a *App) handleCommandDispatch(
 	defer cancel()
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		a.errorHandler(w, r, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err))
-		a.afterDispatchHook(ctx, r, err)
+		a.handleErr(w, r, ctx, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err))
 		return
 	}
 
@@ -138,16 +146,14 @@ func (a *App) handleQueryDispatch(
 	}
 
 	if cfg.queryDecoder == nil {
-		a.errorHandler(w, r, errDecoderMissing)
-		a.afterDispatchHook(ctx, r, errDecoderMissing)
+		a.handleErr(w, r, ctx, errDecoderMissing)
 		return
 	}
 
 	qry, err := cfg.queryDecoder(r)
 	if err != nil {
 		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDecodeFailed, qryType, err)
-		a.errorHandler(w, r, wrappedErr)
-		a.afterDispatchHook(ctx, r, wrappedErr)
+		a.handleErr(w, r, ctx, wrappedErr)
 		return
 	}
 
@@ -156,9 +162,7 @@ func (a *App) handleQueryDispatch(
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err)
-		a.errorHandler(w, r, wrappedErr)
-		a.afterDispatchHook(ctx, r, wrappedErr)
+		a.handleErr(w, r, ctx, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err))
 		return
 	}
 
