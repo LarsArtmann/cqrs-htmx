@@ -39,6 +39,7 @@ cqrs-htmx/
 ├── security.go    # SecurityHeadersMiddleware, SecurityHeadersConfig builder
 ├── usermgmt/      # User management submodule (RBAC, sessions, password auth)
 │   ├── go.mod     # Independent Go module
+│   ├── id.go      # Branded UserID type (go-branded-id), NewUserID constructor
 │   ├── authz.go   # Authz wrapper around Casbin (RBAC with domains), AsEnforcer adapter
 │   ├── service.go # Service (register, login, logout, authenticate, changePassword, updateRoles)
 │   ├── user.go    # User/Session types, bcrypt password hashing (SetPasswordWithCost)
@@ -75,6 +76,7 @@ cqrs-htmx/
 - **Authorization config**: `authMode` enum (`authNone`, `authRequired`, `authAuthorized`) replaces `authorize bool` + `requireAuth bool` — impossible states are now unrepresentable
 - **Internal sentinels**: `errCommandsNil`, `errQueriesNil`, `errDecoderMissing` are unexported — consumers get HTTP responses, not CQRS errors
 - **No deprecated exports**: `DefaultNotificationEvent` removed (was race-risk deprecated var)
+- **usermgmt branded UserID**: `usermgmt/id.go` defines `UserID = brandid.ID[userBrand, string]` via `go-branded-id` — all user ID fields/params in the submodule are strongly typed; `.String()` converts at Casbin boundaries; `NewUserID(s)` constructor for tests. **Breaking change**: `User.ID`, `Session.UserID`, `RegisterRequest.ID`, and all service/store/authz method params that took `string` now take `UserID`
 - **usermgmt context.Context**: All Service methods take `context.Context` as first param — enables future cancellation, tracing, logging
 - **usermgmt input validation**: `RegisterRequest.Validate()` and `LoginRequest.Validate()` check email format, password length (8+), required fields
 - **usermgmt atomic Create**: `UserStore.Create()` checks email uniqueness atomically (fixes TOCTOU)
@@ -91,12 +93,13 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency         | Purpose                   |
-| ------------------ | ------------------------- |
-| go-cqrs-lite/core  | CQRS dispatch             |
-| casbin/casbin/v3   | Authorization             |
-| cockroachdb/errors | Error handling            |
-| gorilla/csrf       | CSRF protection (v1.7.3+) |
+| Dependency          | Purpose                   |
+| ------------------- | ------------------------- |
+| go-cqrs-lite/core   | CQRS dispatch             |
+| casbin/casbin/v3    | Authorization             |
+| cockroachdb/errors  | Error handling            |
+| gorilla/csrf        | CSRF protection (v1.7.3+) |
+| go-branded-id       | Branded types (usermgmt)  |
 
 ## Key Gotchas
 
@@ -131,6 +134,7 @@ cqrs-htmx/
 29. **gorilla/csrf Secret**: Requires a 32-byte key. `CSRFConfig.Secret` is padded to 32 bytes if shorter; if empty, a random key is generated per `CSRFMiddleware()` call (not persisted across restarts). For production, always provide a stable 32-byte secret
 30. **usermgmt submodule**: `usermgmt/` has its own `go.mod` and is an independent Go module. Tests run separately with `cd usermgmt && go test ./...`. Uses bcrypt cost 12 in production (cost 4 in tests via `main_test.go`). Casbin model uses `some(where (p.eft == allow)) && !some(where (p.eft == deny))` — casbin v3 only recognizes this exact ordering, NOT the reverse
 31. **gorilla/csrf v1.7.3 Origin/Referer enforcement**: v1.7.3 defaults to HTTPS mode, enforcing strict Origin/Referer checks even for non-TLS requests. `CSRFMiddleware` and `executeCSRFValidation` automatically detect non-TLS requests (`r.TLS == nil`) and mark them as plaintext via `csrf.PlaintextHTTPRequest`, disabling the strict checks for HTTP deployments. No consumer action needed
+32. **usermgmt branded UserID**: `usermgmt.User` and `usermgmt.Session` fields (`ID`, `UserID`) are branded types (`usermgmt.UserID = brandid.ID[userBrand, string]`), not raw strings. `UserIDFromRequest` still returns `string` for cqrs-htmx compatibility (converts via `.String()`). Use `NewUserID(s)` in tests. `GroupPolicy.User` and `Domain` remain `string` (Casbin boundary)
 
 ## Test Commands
 

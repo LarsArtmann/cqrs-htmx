@@ -49,7 +49,7 @@ func TestHandlers_Register(t *testing.T) {
 	_, mux := setupMux(t)
 
 	resp := registerUser(t, mux)
-	if resp.User.ID != "u1" {
+	if resp.User.ID != NewUserID("u1") {
 		t.Errorf("expected user ID u1, got %s", resp.User.ID)
 	}
 
@@ -118,7 +118,7 @@ func TestHandlers_Login(t *testing.T) {
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
-	if resp.User.ID != "u1" {
+	if resp.User.ID != NewUserID("u1") {
 		t.Errorf("expected user ID u1, got %s", resp.User.ID)
 	}
 }
@@ -202,7 +202,7 @@ func TestHandlers_BadRequestBody(t *testing.T) {
 func TestSessionMiddleware_Cookie(t *testing.T) {
 	svc := newTestService(t)
 	reg, _ := svc.Register(context.Background(), RegisterRequest{
-		ID: "u1", Email: "mw@t.com", Password: "secret12",
+		ID: NewUserID("u1"), Email: "mw@t.com", Password: "secret12",
 	})
 
 	called := false
@@ -215,7 +215,7 @@ func TestSessionMiddleware_Cookie(t *testing.T) {
 			user, ok := UserFromContext(r.Context())
 			if !ok || user == nil {
 				t.Error("expected user in context")
-			} else if user.ID != "u1" {
+			} else if user.ID != NewUserID("u1") {
 				t.Errorf("expected user ID u1, got %s", user.ID)
 			}
 			w.WriteHeader(http.StatusOK)
@@ -235,7 +235,7 @@ func TestSessionMiddleware_Cookie(t *testing.T) {
 func TestSessionMiddleware_BearerToken(t *testing.T) {
 	svc := newTestService(t)
 	reg, _ := svc.Register(context.Background(), RegisterRequest{
-		ID: "u1", Email: "bt@t.com", Password: "secret12",
+		ID: NewUserID("u1"), Email: "bt@t.com", Password: "secret12",
 	})
 
 	handler := SessionMiddleware(
@@ -247,7 +247,7 @@ func TestSessionMiddleware_BearerToken(t *testing.T) {
 			if !ok || user == nil {
 				t.Fatal("expected user in context")
 			}
-			if user.ID != "u1" {
+			if user.ID != NewUserID("u1") {
 				t.Errorf("expected u1, got %s", user.ID)
 			}
 			w.WriteHeader(http.StatusOK)
@@ -318,7 +318,7 @@ func TestUserFromContext_Nil(t *testing.T) {
 }
 
 func TestUserFromContextOr_Fallback(t *testing.T) {
-	fallback := &User{ID: "fallback"}
+	fallback := &User{ID: NewUserID("fallback")}
 	result := UserFromContextOr(nil, fallback) //nolint:staticcheck // intentional nil test
 	if result != fallback {
 		t.Error("expected fallback")
@@ -334,7 +334,7 @@ func TestExtractToken_Empty(t *testing.T) {
 
 func TestUserIDFromRequest(t *testing.T) {
 	t.Run("returns ID when user in context", func(t *testing.T) {
-		user := &User{ID: "u1"}
+		user := &User{ID: NewUserID("u1")}
 		ctx := WithUser(context.Background(), user)
 		req := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
 		if got := UserIDFromRequest(req); got != "u1" {

@@ -193,7 +193,7 @@ func TestAuthz_RolesForUser(t *testing.T) {
 		t.Fatalf("AddGroupPolicy: %v", err)
 	}
 
-	roles, err := a.RolesForUser("p1", "g1")
+	roles, err := a.RolesForUser(NewUserID("p1"), "g1")
 	if err != nil {
 		t.Fatalf("RolesForUser: %v", err)
 	}
@@ -201,7 +201,7 @@ func TestAuthz_RolesForUser(t *testing.T) {
 		t.Errorf("expected [owner], got %v", roles)
 	}
 
-	roles, err = a.RolesForUser("p1", "other")
+	roles, err = a.RolesForUser(NewUserID("p1"), "other")
 	if err != nil {
 		t.Fatalf("RolesForUser: %v", err)
 	}
@@ -221,7 +221,7 @@ func TestAuthz_DomainsForUser(t *testing.T) {
 		t.Fatalf("AddGroupPolicy: %v", err)
 	}
 
-	domains, err := a.DomainsForUser("p1")
+	domains, err := a.DomainsForUser(NewUserID("p1"))
 	if err != nil {
 		t.Fatalf("DomainsForUser: %v", err)
 	}

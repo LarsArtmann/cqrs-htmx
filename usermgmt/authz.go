@@ -259,20 +259,20 @@ func (a *Authz) GroupPolicies() ([][]string, error) {
 	return a.enforcer.GetGroupingPolicy()
 }
 
-func (a *Authz) RolesForUser(userID, domain string) ([]string, error) {
-	return a.enforcer.GetRolesForUser(userID, domain)
+func (a *Authz) RolesForUser(userID UserID, domain string) ([]string, error) {
+	return a.enforcer.GetRolesForUser(userID.String(), domain)
 }
 
-func (a *Authz) ImplicitRolesForUser(userID, domain string) ([]string, error) {
-	return a.enforcer.GetImplicitRolesForUser(userID, domain)
+func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]string, error) {
+	return a.enforcer.GetImplicitRolesForUser(userID.String(), domain)
 }
 
-func (a *Authz) ImplicitPermissionsForUser(userID, domain string) ([][]string, error) {
-	return a.enforcer.GetImplicitPermissionsForUser(userID, domain)
+func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]string, error) {
+	return a.enforcer.GetImplicitPermissionsForUser(userID.String(), domain)
 }
 
-func (a *Authz) DomainsForUser(userID string) ([]string, error) {
-	return a.enforcer.GetDomainsForUser(userID)
+func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
+	return a.enforcer.GetDomainsForUser(userID.String())
 }
 
 func (a *Authz) UsersForRole(role, domain string) ([]string, error) {

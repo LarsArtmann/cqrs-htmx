@@ -65,7 +65,10 @@ func TestService_Login_AccountLockout(t *testing.T) {
 		Lockout:    lockout,
 	})
 	ctx := context.Background()
-	_, _ = svc.Register(ctx, RegisterRequest{ID: "u1", Email: "a@b.com", Password: "secret12"})
+	_, _ = svc.Register(
+		ctx,
+		RegisterRequest{ID: NewUserID("u1"), Email: "a@b.com", Password: "secret12"},
+	)
 
 	_, err := svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: "wrong1"})
 	if !errors.Is(err, ErrInvalidCredentials) {

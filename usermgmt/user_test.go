@@ -7,8 +7,8 @@ import (
 )
 
 func TestNewUser(t *testing.T) {
-	u := NewUser("user-1", "test@example.com", "Test User")
-	if u.ID != "user-1" {
+	u := NewUser(NewUserID("user-1"), "test@example.com", "Test User")
+	if u.ID != NewUserID("user-1") {
 		t.Errorf("expected ID user-1, got %s", u.ID)
 	}
 	if u.Email != "test@example.com" {
@@ -26,7 +26,7 @@ func TestNewUser(t *testing.T) {
 }
 
 func TestUser_Password(t *testing.T) {
-	u := NewUser("user-1", "test@example.com", "Test User")
+	u := NewUser(NewUserID("user-1"), "test@example.com", "Test User")
 	if err := u.SetPasswordWithCost("secret123", minBcryptCost); err != nil {
 		t.Fatalf("SetPassword failed: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestUser_Password(t *testing.T) {
 }
 
 func TestUser_Roles(t *testing.T) {
-	u := NewUser("user-1", "test@example.com", "Test User")
+	u := NewUser(NewUserID("user-1"), "test@example.com", "Test User")
 	u.AddRole(RoleAdmin)
 	if !u.HasRole(RoleAdmin) {
 		t.Error("expected admin role")
@@ -61,7 +61,7 @@ func TestUser_Roles(t *testing.T) {
 }
 
 func TestUser_MarshalJSON(t *testing.T) {
-	u := NewUser("user-1", "test@example.com", "Test User")
+	u := NewUser(NewUserID("user-1"), "test@example.com", "Test User")
 	_ = u.SetPasswordWithCost("secret", minBcryptCost)
 	data, err := u.MarshalJSON()
 	if err != nil {
@@ -73,11 +73,11 @@ func TestUser_MarshalJSON(t *testing.T) {
 }
 
 func TestSession(t *testing.T) {
-	session, err := NewSession("user-1", time.Hour)
+	session, err := NewSession(NewUserID("user-1"), time.Hour)
 	if err != nil {
 		t.Fatalf("NewSession failed: %v", err)
 	}
-	if session.UserID != "user-1" {
+	if session.UserID != NewUserID("user-1") {
 		t.Errorf("expected UserID user-1, got %s", session.UserID)
 	}
 	if session.IsExpired() {
@@ -94,14 +94,14 @@ func TestSession(t *testing.T) {
 func TestInMemoryUserStore(t *testing.T) {
 	store := NewInMemoryUserStore()
 
-	u := NewUser("user-1", "test@example.com", "Test User")
+	u := NewUser(NewUserID("user-1"), "test@example.com", "Test User")
 	_ = u.SetPasswordWithCost("pass", minBcryptCost)
 
 	if err := store.Create(u); err != nil {
 		t.Fatalf("Create failed: %v", err)
 	}
 
-	found, err := store.FindByID("user-1")
+	found, err := store.FindByID(NewUserID("user-1"))
 	if err != nil {
 		t.Fatalf("FindByID failed: %v", err)
 	}
@@ -113,19 +113,19 @@ func TestInMemoryUserStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FindByEmail failed: %v", err)
 	}
-	if byEmail.ID != "user-1" {
+	if byEmail.ID != NewUserID("user-1") {
 		t.Errorf("expected ID user-1, got %s", byEmail.ID)
 	}
 
-	_, err = store.FindByID("nonexistent")
+	_, err = store.FindByID(NewUserID("nonexistent"))
 	if !errors.Is(err, ErrUserNotFound) {
 		t.Errorf("expected ErrUserNotFound, got %v", err)
 	}
 
-	if err := store.Delete("user-1"); err != nil {
+	if err := store.Delete(NewUserID("user-1")); err != nil {
 		t.Fatalf("Delete failed: %v", err)
 	}
-	_, err = store.FindByID("user-1")
+	_, err = store.FindByID(NewUserID("user-1"))
 	if !errors.Is(err, ErrUserNotFound) {
 		t.Errorf("expected ErrUserNotFound after delete, got %v", err)
 	}
@@ -133,10 +133,10 @@ func TestInMemoryUserStore(t *testing.T) {
 
 func TestInMemoryUserStore_CreateDuplicate(t *testing.T) {
 	store := NewInMemoryUserStore()
-	u1 := NewUser("u1", "dup@test.com", "One")
+	u1 := NewUser(NewUserID("u1"), "dup@test.com", "One")
 	_ = store.Create(u1)
 
-	u2 := NewUser("u2", "dup@test.com", "Two")
+	u2 := NewUser(NewUserID("u2"), "dup@test.com", "Two")
 	if err := store.Create(u2); !errors.Is(err, ErrEmailExists) {
 		t.Errorf("expected ErrEmailExists, got %v", err)
 	}
@@ -144,10 +144,10 @@ func TestInMemoryUserStore_CreateDuplicate(t *testing.T) {
 
 func TestInMemoryUserStore_SaveUpdatesEmailIndex(t *testing.T) {
 	store := NewInMemoryUserStore()
-	u := NewUser("u1", "old@test.com", "Test")
+	u := NewUser(NewUserID("u1"), "old@test.com", "Test")
 	_ = store.Create(u)
 
-	updated := NewUser("u1", "new@test.com", "Test")
+	updated := NewUser(NewUserID("u1"), "new@test.com", "Test")
 	_ = store.Save(updated)
 
 	if _, err := store.FindByEmail("old@test.com"); !errors.Is(err, ErrUserNotFound) {
@@ -155,7 +155,7 @@ func TestInMemoryUserStore_SaveUpdatesEmailIndex(t *testing.T) {
 	}
 	if found, err := store.FindByEmail("new@test.com"); err != nil {
 		t.Fatalf("FindByEmail new: %v", err)
-	} else if found.ID != "u1" {
+	} else if found.ID != NewUserID("u1") {
 		t.Errorf("expected u1, got %s", found.ID)
 	}
 }
@@ -163,7 +163,7 @@ func TestInMemoryUserStore_SaveUpdatesEmailIndex(t *testing.T) {
 func TestInMemorySessionStore(t *testing.T) {
 	store := NewInMemorySessionStore()
 
-	session, err := store.Create("user-1", time.Hour)
+	session, err := store.Create(NewUserID("user-1"), time.Hour)
 	if err != nil {
 		t.Fatalf("Create failed: %v", err)
 	}
@@ -172,7 +172,7 @@ func TestInMemorySessionStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Find failed: %v", err)
 	}
-	if found.UserID != "user-1" {
+	if found.UserID != NewUserID("user-1") {
 		t.Errorf("expected UserID user-1, got %s", found.UserID)
 	}
 
@@ -192,11 +192,11 @@ func TestInMemorySessionStore(t *testing.T) {
 
 func TestInMemorySessionStore_DeleteByUserID(t *testing.T) {
 	store := NewInMemorySessionStore()
-	s1, _ := store.Create("user-1", time.Hour)
-	s2, _ := store.Create("user-1", time.Hour)
-	_, _ = store.Create("user-2", time.Hour)
+	s1, _ := store.Create(NewUserID("user-1"), time.Hour)
+	s2, _ := store.Create(NewUserID("user-1"), time.Hour)
+	_, _ = store.Create(NewUserID("user-2"), time.Hour)
 
-	if err := store.DeleteByUserID("user-1"); err != nil {
+	if err := store.DeleteByUserID(NewUserID("user-1")); err != nil {
 		t.Fatalf("DeleteByUserID: %v", err)
 	}
 
