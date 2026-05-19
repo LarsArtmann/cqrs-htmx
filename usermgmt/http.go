@@ -7,9 +7,9 @@ import (
 )
 
 type AuthHandlers struct {
-	service      *Service
-	cookieName   string
-	secure       bool
+	service       *Service
+	cookieName    string
+	secure        bool
 	sessionMaxAge int
 }
 
@@ -33,9 +33,9 @@ func NewAuthHandlers(service *Service, cfg ...HandlerConfig) *AuthHandlers {
 		config.Secure = cfg[0].Secure
 	}
 	return &AuthHandlers{
-		service:      service,
-		cookieName:   config.CookieName,
-		secure:       config.Secure,
+		service:       service,
+		cookieName:    config.CookieName,
+		secure:        config.Secure,
 		sessionMaxAge: config.SessionMaxAge,
 	}
 }

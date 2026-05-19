@@ -82,7 +82,10 @@ func TestService_Login_WrongPassword(t *testing.T) {
 func TestService_Authenticate(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
 	ctx := context.Background()
-	reg, _ := svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
+	reg, _ := svc.Register(
+		ctx,
+		RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"},
+	)
 
 	user, err := svc.Authenticate(ctx, reg.Session.Token)
 	if err != nil {
@@ -96,7 +99,10 @@ func TestService_Authenticate(t *testing.T) {
 func TestService_Logout(t *testing.T) {
 	svc, _ := NewService(newTestServiceConfig())
 	ctx := context.Background()
-	reg, _ := svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
+	reg, _ := svc.Register(
+		ctx,
+		RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"},
+	)
 
 	if err := svc.Logout(ctx, reg.Session.Token); err != nil {
 		t.Fatalf("Logout: %v", err)
@@ -190,11 +196,27 @@ func TestService_ChangePassword(t *testing.T) {
 	ctx := context.Background()
 	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
 
-	if err := svc.ChangePassword(ctx, "user-1", "wrongold", "newsecret1"); !errors.Is(err, ErrInvalidCredentials) {
+	if err := svc.ChangePassword(
+		ctx,
+		"user-1",
+		"wrongold",
+		"newsecret1",
+	); !errors.Is(
+		err,
+		ErrInvalidCredentials,
+	) {
 		t.Errorf("expected ErrInvalidCredentials for wrong old password, got %v", err)
 	}
 
-	if err := svc.ChangePassword(ctx, "user-1", "secret12", "short"); !errors.Is(err, ErrValidation) {
+	if err := svc.ChangePassword(
+		ctx,
+		"user-1",
+		"secret12",
+		"short",
+	); !errors.Is(
+		err,
+		ErrValidation,
+	) {
 		t.Errorf("expected ErrValidation for short new password, got %v", err)
 	}
 

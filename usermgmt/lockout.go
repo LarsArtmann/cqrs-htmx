@@ -16,10 +16,10 @@ type LockoutConfig struct {
 }
 
 type AccountLockout struct {
-	mu        sync.RWMutex
-	config    LockoutConfig
-	attempts  map[string]int
-	lockedAt  map[string]time.Time
+	mu       sync.RWMutex
+	config   LockoutConfig
+	attempts map[string]int
+	lockedAt map[string]time.Time
 }
 
 func NewAccountLockout(cfg ...LockoutConfig) *AccountLockout {

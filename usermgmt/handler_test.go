@@ -12,7 +12,7 @@ import (
 func newTestService(t *testing.T) *Service {
 	t.Helper()
 	return newTestServiceWithConfig(t, ServiceConfig{
-		Authz: newTestAuthz(t),
+		Authz:      newTestAuthz(t),
 		BcryptCost: minBcryptCost,
 	})
 }

@@ -235,7 +235,12 @@ func (s *Service) GetUser(_ context.Context, id string) (*User, error) {
 	return s.users.FindByID(id)
 }
 
-func (s *Service) UpdateRoles(_ context.Context, userID string, roles []string, domain string) error {
+func (s *Service) UpdateRoles(
+	_ context.Context,
+	userID string,
+	roles []string,
+	domain string,
+) error {
 	user, err := s.users.FindByID(userID)
 	if err != nil {
 		return err
