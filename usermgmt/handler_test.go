@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -330,6 +331,24 @@ func TestExtractToken_Empty(t *testing.T) {
 	if token := extractToken(req, "session_token"); token != "" {
 		t.Errorf("expected empty token, got %s", token)
 	}
+}
+
+func TestUserIDFromRequest(t *testing.T) {
+	t.Run("returns ID when user in context", func(t *testing.T) {
+		user := &User{ID: "u1"}
+		ctx := WithUser(context.Background(), user)
+		req := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
+		if got := UserIDFromRequest(req); got != "u1" {
+			t.Errorf("expected u1, got %s", got)
+		}
+	})
+
+	t.Run("returns empty when no user", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		if got := UserIDFromRequest(req); got != "" {
+			t.Errorf("expected empty, got %s", got)
+		}
+	})
 }
 
 func TestHandlers_FullFlow(t *testing.T) {
