@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -60,19 +61,12 @@ func (u *User) CheckPassword(password string) bool {
 }
 
 func (u *User) HasRole(role string) bool {
-	for _, r := range u.Roles {
-		if r == role {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(u.Roles, role)
 }
 
 func (u *User) AddRole(role string) {
-	for _, r := range u.Roles {
-		if r == role {
-			return
-		}
+	if slices.Contains(u.Roles, role) {
+		return
 	}
 	u.Roles = append(u.Roles, role)
 	u.UpdatedAt = time.Now().UTC()

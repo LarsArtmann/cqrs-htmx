@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -158,7 +159,7 @@ func TestInMemoryUserStore(t *testing.T) {
 	}
 
 	_, err = store.FindByID("nonexistent")
-	if err != ErrUserNotFound {
+	if !errors.Is(err, ErrUserNotFound) {
 		t.Errorf("expected ErrUserNotFound, got %v", err)
 	}
 
@@ -166,7 +167,7 @@ func TestInMemoryUserStore(t *testing.T) {
 		t.Fatalf("Delete failed: %v", err)
 	}
 	_, err = store.FindByID("user-1")
-	if err != ErrUserNotFound {
+	if !errors.Is(err, ErrUserNotFound) {
 		t.Errorf("expected ErrUserNotFound after delete, got %v", err)
 	}
 }
@@ -191,7 +192,7 @@ func TestInMemorySessionStore(t *testing.T) {
 	}
 
 	_, err = store.Find("nonexistent")
-	if err != ErrSessionNotFound {
+	if !errors.Is(err, ErrSessionNotFound) {
 		t.Errorf("expected ErrSessionNotFound, got %v", err)
 	}
 
@@ -199,7 +200,7 @@ func TestInMemorySessionStore(t *testing.T) {
 		t.Fatalf("Delete failed: %v", err)
 	}
 	_, err = store.Find(session.Token)
-	if err != ErrSessionNotFound {
+	if !errors.Is(err, ErrSessionNotFound) {
 		t.Errorf("expected ErrSessionNotFound after delete, got %v", err)
 	}
 }
@@ -251,7 +252,7 @@ func TestService_Register_DuplicateEmail(t *testing.T) {
 	_, _ = svc.Register(RegisterRequest{ID: "u1", Email: "a@b.com", Password: "pass"})
 
 	_, err := svc.Register(RegisterRequest{ID: "u2", Email: "a@b.com", Password: "pass"})
-	if err != ErrEmailExists {
+	if !errors.Is(err, ErrEmailExists) {
 		t.Errorf("expected ErrEmailExists, got %v", err)
 	}
 }
@@ -277,7 +278,7 @@ func TestService_Login_WrongPassword(t *testing.T) {
 	_, _ = svc.Register(RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret"})
 
 	_, err := svc.Login(LoginRequest{Email: "a@b.com", Password: "wrong"})
-	if err != ErrInvalidCredentials {
+	if !errors.Is(err, ErrInvalidCredentials) {
 		t.Errorf("expected ErrInvalidCredentials, got %v", err)
 	}
 }

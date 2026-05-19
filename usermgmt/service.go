@@ -10,9 +10,9 @@ import (
 const defaultSessionTTL = 24 * time.Hour
 
 type Service struct {
-	users    UserStore
-	sessions SessionStore
-	enforcer *casbin.Enforcer
+	users      UserStore
+	sessions   SessionStore
+	enforcer   *casbin.Enforcer
 	sessionTTL time.Duration
 }
 
