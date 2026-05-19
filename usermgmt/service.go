@@ -259,3 +259,24 @@ func (s *Service) UpdateRoles(_ context.Context, userID string, roles []string, 
 	user.UpdatedAt = time.Now().UTC()
 	return s.users.Save(user)
 }
+
+func (s *Service) ChangePassword(_ context.Context, userID, oldPassword, newPassword string) error {
+	user, err := s.users.FindByID(userID)
+	if err != nil {
+		return err
+	}
+
+	if !user.CheckPassword(oldPassword) {
+		return ErrInvalidCredentials
+	}
+
+	if len(newPassword) < 8 {
+		return fmt.Errorf("%w: password must be at least 8 characters", ErrValidation)
+	}
+
+	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {
+		return fmt.Errorf("set password: %w", err)
+	}
+
+	return s.users.Save(user)
+}

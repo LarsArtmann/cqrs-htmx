@@ -184,3 +184,29 @@ func TestService_Login_Validation(t *testing.T) {
 		t.Errorf("expected ErrValidation for empty password, got %v", err)
 	}
 }
+
+func TestService_ChangePassword(t *testing.T) {
+	svc, _ := NewService(newTestServiceConfig())
+	ctx := context.Background()
+	_, _ = svc.Register(ctx, RegisterRequest{ID: "user-1", Email: "a@b.com", Password: "secret12"})
+
+	if err := svc.ChangePassword(ctx, "user-1", "wrongold", "newsecret1"); !errors.Is(err, ErrInvalidCredentials) {
+		t.Errorf("expected ErrInvalidCredentials for wrong old password, got %v", err)
+	}
+
+	if err := svc.ChangePassword(ctx, "user-1", "secret12", "short"); !errors.Is(err, ErrValidation) {
+		t.Errorf("expected ErrValidation for short new password, got %v", err)
+	}
+
+	if err := svc.ChangePassword(ctx, "user-1", "secret12", "newsecret1"); err != nil {
+		t.Fatalf("ChangePassword: %v", err)
+	}
+
+	resp, err := svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: "newsecret1"})
+	if err != nil {
+		t.Fatalf("Login with new password: %v", err)
+	}
+	if resp.User.ID != "user-1" {
+		t.Errorf("expected user-1, got %s", resp.User.ID)
+	}
+}
