@@ -36,14 +36,6 @@ func decodeBDDCreateUserJSON() cqrshtmx.HandlerOption {
 	})
 }
 
-// decodeBDDCreateUserJSONWithBody returns a HandlerOption that decodes a request to
-// a bddCreateUserCmd, populating email and name from the request body.
-func decodeBDDCreateUserJSONWithBody() cqrshtmx.HandlerOption {
-	return cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-		return &bddCreateUserCmd{aggID: id.NewAggregateID(), email: req.Email, name: req.Name}, nil
-	})
-}
-
 // decodeGetUserJSONQuery returns a HandlerOption that decodes a JSON query request.
 func decodeGetUserJSONQuery() cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
