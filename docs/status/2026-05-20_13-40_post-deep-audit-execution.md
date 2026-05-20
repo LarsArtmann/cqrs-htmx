@@ -9,16 +9,16 @@
 
 The project is in **excellent shape**. A deep audit identified 7 improvement areas; all 7 were executed this session. Coverage increased, godoc was added across the entire usermgmt submodule, magic strings were extracted as constants, test types were consolidated, and lint is clean. One real bug was found (swallowed errors in `Authz.Apply`) and is documented below.
 
-| Metric | Root | usermgmt | Total |
-|--------|------|----------|-------|
-| Coverage | **95.9%** | **92.1%** | — |
-| Test specs | 34 Ginkgo specs | 100 Go tests | **134** |
-| Lint issues | 0 (production) | 0 | **0** |
-| Race detector | Clean | Clean | **Clean** |
-| Production LOC | 2,687 | 1,420 | **4,107** |
-| Test files | 20 | 7 | **27** |
-| Benchmarks | 16 | 0 | **16** |
-| Examples | 9 | 0 | **9** |
+| Metric         | Root            | usermgmt     | Total     |
+| -------------- | --------------- | ------------ | --------- |
+| Coverage       | **95.9%**       | **92.1%**    | —         |
+| Test specs     | 34 Ginkgo specs | 100 Go tests | **134**   |
+| Lint issues    | 0 (production)  | 0            | **0**     |
+| Race detector  | Clean           | Clean        | **Clean** |
+| Production LOC | 2,687           | 1,420        | **4,107** |
+| Test files     | 20              | 7            | **27**    |
+| Benchmarks     | 16              | 0            | **16**    |
+| Examples       | 9               | 0            | **9**     |
 
 ---
 
@@ -205,33 +205,33 @@ Common Go pattern, but could silently drop encoding errors (e.g., channel values
 
 ## F) Top 25 Things We Should Get Done Next
 
-| # | Priority | Item | Est. Effort | Impact |
-|---|----------|------|-------------|--------|
-| 1 | P0 | Fix `Authz.Apply()` swallowed errors for RemoveGroups/AddGroups | 30min | Correctness |
-| 2 | P0 | Commit `golangci-lint fmt` formatting changes (18 files) | 5min | Consistency |
-| 3 | P1 | Remove unused `InMemorySessionStore.ttl` field | 10min | Cleanup |
-| 4 | P1 | Fix 7 test-only lint warnings (nolint comments or refactor) | 20min | Hygiene |
-| 5 | P1 | Add GitHub Actions CI (build + test + lint) | 1hr | Automation |
-| 6 | P1 | Make `writeJSON` return or log encoding errors | 15min | Robustness |
-| 7 | P1 | Remove stale `report/` and `reports/` directories | 5min | Cleanup |
-| 8 | P2 | Add benchmarks for usermgmt (bcrypt, session creation, authz enforce) | 1hr | Performance |
-| 9 | P2 | Resolve usermgmt vs cqrshtmx UserID type split | 2hr | Architecture |
-| 10 | P2 | Integration tests between root module and usermgmt | 2hr | Coverage |
-| 11 | P2 | Context-aware bcrypt (goroutine + cancel channel) | 1hr | Cancellation |
-| 12 | P2 | Add `//nolint` or CI config to suppress test-only warnings | 15min | CI hygiene |
-| 13 | P2 | Rate limiter eviction optimization (min-heap) | 2hr | Performance |
-| 14 | P2 | Add usermgmt godoc examples (ExampleNewService, ExampleAuthz) | 1hr | Documentation |
-| 15 | P2 | Evaluate go-branded-id for numeric IDs (SQL backend prep) | 30min | Research |
-| 16 | P3 | Add persistent store interface implementations (SQLite, Postgres) | 4hr | Feature |
-| 17 | P3 | Consolidate `docs/status/archive/` or gitignore it | 10min | Cleanup |
-| 18 | P3 | OpenAPI spec generation for HTTP endpoints | 2hr | Documentation |
-| 19 | P3 | Add structured error types (not just sentinels) for better error matching | 2hr | API quality |
-| 20 | P3 | Session refresh/token rotation | 2hr | Security |
-| 21 | P3 | Multi-factor authentication hooks | 3hr | Security |
-| 22 | P4 | Add OAuth2/OIDC integration layer | 4hr | Feature |
-| 23 | P4 | Rate limiter middleware for usermgmt login endpoint | 1hr | Security |
-| 24 | P4 | WebSocket/SSE helper for real-time notifications | 3hr | Feature |
-| 25 | P4 | Example application repository consuming this library | 4hr | Documentation |
+| #   | Priority | Item                                                                      | Est. Effort | Impact        |
+| --- | -------- | ------------------------------------------------------------------------- | ----------- | ------------- |
+| 1   | P0       | Fix `Authz.Apply()` swallowed errors for RemoveGroups/AddGroups           | 30min       | Correctness   |
+| 2   | P0       | Commit `golangci-lint fmt` formatting changes (18 files)                  | 5min        | Consistency   |
+| 3   | P1       | Remove unused `InMemorySessionStore.ttl` field                            | 10min       | Cleanup       |
+| 4   | P1       | Fix 7 test-only lint warnings (nolint comments or refactor)               | 20min       | Hygiene       |
+| 5   | P1       | Add GitHub Actions CI (build + test + lint)                               | 1hr         | Automation    |
+| 6   | P1       | Make `writeJSON` return or log encoding errors                            | 15min       | Robustness    |
+| 7   | P1       | Remove stale `report/` and `reports/` directories                         | 5min        | Cleanup       |
+| 8   | P2       | Add benchmarks for usermgmt (bcrypt, session creation, authz enforce)     | 1hr         | Performance   |
+| 9   | P2       | Resolve usermgmt vs cqrshtmx UserID type split                            | 2hr         | Architecture  |
+| 10  | P2       | Integration tests between root module and usermgmt                        | 2hr         | Coverage      |
+| 11  | P2       | Context-aware bcrypt (goroutine + cancel channel)                         | 1hr         | Cancellation  |
+| 12  | P2       | Add `//nolint` or CI config to suppress test-only warnings                | 15min       | CI hygiene    |
+| 13  | P2       | Rate limiter eviction optimization (min-heap)                             | 2hr         | Performance   |
+| 14  | P2       | Add usermgmt godoc examples (ExampleNewService, ExampleAuthz)             | 1hr         | Documentation |
+| 15  | P2       | Evaluate go-branded-id for numeric IDs (SQL backend prep)                 | 30min       | Research      |
+| 16  | P3       | Add persistent store interface implementations (SQLite, Postgres)         | 4hr         | Feature       |
+| 17  | P3       | Consolidate `docs/status/archive/` or gitignore it                        | 10min       | Cleanup       |
+| 18  | P3       | OpenAPI spec generation for HTTP endpoints                                | 2hr         | Documentation |
+| 19  | P3       | Add structured error types (not just sentinels) for better error matching | 2hr         | API quality   |
+| 20  | P3       | Session refresh/token rotation                                            | 2hr         | Security      |
+| 21  | P3       | Multi-factor authentication hooks                                         | 3hr         | Security      |
+| 22  | P4       | Add OAuth2/OIDC integration layer                                         | 4hr         | Feature       |
+| 23  | P4       | Rate limiter middleware for usermgmt login endpoint                       | 1hr         | Security      |
+| 24  | P4       | WebSocket/SSE helper for real-time notifications                          | 3hr         | Feature       |
+| 25  | P4       | Example application repository consuming this library                     | 4hr         | Documentation |
 
 ---
 
@@ -240,12 +240,14 @@ Common Go pattern, but could silently drop encoding errors (e.g., channel values
 **Should `usermgmt.UserID` use the same ULID-backed branded type as `cqrshtmx.UserID`?**
 
 Currently:
+
 - `cqrshtmx.UserID` = `id.UserID` = `brandid.ID[userBrand, string]` (ULID-backed, from `go-cqrs-lite/core/pkg/id`)
 - `usermgmt.UserID` = `brandid.ID[userBrand, string]` (string-backed, from `go-branded-id`)
 
 They have the **same underlying representation** but are **different types** from **different packages**. They cannot be compared or assigned without `.String()` conversion. The bridge is `UserIDFromRequest()` → `string` → `cqrshtmx.MustParseUserID()`.
 
 **Why I can't resolve this:**
+
 - If usermgmt imports `go-cqrs-lite/core/pkg/id`, it gains a heavy transitive dependency
 - If cqrs-htmx depends on usermgmt's UserID, it creates a circular dependency risk
 - A shared `go-branded-id` package is the clean solution but requires the consumer to import both
@@ -257,30 +259,30 @@ They have the **same underlying representation** but are **different types** fro
 
 ## Session Metrics
 
-| Action | Count |
-|--------|-------|
-| Commits made | 5 |
-| Production files modified | 15 |
-| Test files modified | 8 |
-| New test files created | 1 (coverage_test.go) |
-| Lines of godoc added | ~165 |
-| Constants extracted | 11 |
-| Test types consolidated | 8 types → 1 file |
-| Coverage gained (usermgmt) | +1.7% (90.4% → 92.1%) |
-| Bugs found | 1 (Authz.Apply swallowed errors) |
-| Bugs fixed | 0 (documented, not yet fixed) |
-| Lint issues resolved | 3 (gci, unparam, revive) |
-| Remaining lint issues | 7 (test-only) |
+| Action                     | Count                            |
+| -------------------------- | -------------------------------- |
+| Commits made               | 5                                |
+| Production files modified  | 15                               |
+| Test files modified        | 8                                |
+| New test files created     | 1 (coverage_test.go)             |
+| Lines of godoc added       | ~165                             |
+| Constants extracted        | 11                               |
+| Test types consolidated    | 8 types → 1 file                 |
+| Coverage gained (usermgmt) | +1.7% (90.4% → 92.1%)            |
+| Bugs found                 | 1 (Authz.Apply swallowed errors) |
+| Bugs fixed                 | 0 (documented, not yet fixed)    |
+| Lint issues resolved       | 3 (gci, unparam, revive)         |
+| Remaining lint issues      | 7 (test-only)                    |
 
 ## Dependency Health
 
-| Dependency | Version | Status |
-|------------|---------|--------|
-| casbin/casbin/v3 | v3.10.0 | Current |
-| cockroachdb/errors | v1.13.0 | Current |
-| gorilla/csrf | v1.7.3 | Current (archived project ⚠️) |
-| go-cqrs-lite/core | v1.2.0 | Private, current |
-| golang.org/x/time | v0.15.0 | Current |
-| golang.org/x/crypto | v0.51.0 | Current |
+| Dependency          | Version | Status                        |
+| ------------------- | ------- | ----------------------------- |
+| casbin/casbin/v3    | v3.10.0 | Current                       |
+| cockroachdb/errors  | v1.13.0 | Current                       |
+| gorilla/csrf        | v1.7.3  | Current (archived project ⚠️) |
+| go-cqrs-lite/core   | v1.2.0  | Private, current              |
+| golang.org/x/time   | v0.15.0 | Current                       |
+| golang.org/x/crypto | v0.51.0 | Current                       |
 
 **⚠️ gorilla/csrf is archived** — The gorilla organization archived all repositories in 2023. While v1.7.3 is stable and functional, no security patches will be released. Long-term, this should be replaced with an actively maintained CSRF library.

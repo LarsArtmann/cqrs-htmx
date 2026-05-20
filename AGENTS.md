@@ -55,7 +55,7 @@ cqrs-htmx/
 - **Framework-agnostic**: Works with `net/http`, Gin, Chi, etc.
 - **Enforcer interface**: `authz.go` defines `Enforcer` interface matching Casbin's `Enforce(...any) (bool, error)` — `*casbin.Enforcer` satisfies it automatically, but consumers can provide mock/fake enforcers
 - **Casbin v3**: Uses `casbin/casbin/v3` for authorization
-- **go-cqrs-lite/core**: Depends on command, query, event, pkg/id packages
+- **go-cqrs-lite/core v1.4.0**: Depends on command, query, event, pkg/id packages. v1.4.0 adds `CatalogDispatcher` mixin, `TypedHandler[T]`/`RegisterTyped[T]`, `NewEvents`/`DecodePayloads` batch helpers, `Publisher`/`Subscriber` ISP interfaces
 - **Error classification**: `sync.Once` lazy-registers all sentinels (not `init()`)
 - **HTMX-aware by default**: All error handling and responses check for HTMX requests
 - **User identity propagation**: `UserIDExtractor` → context → event metadata
@@ -95,7 +95,7 @@ cqrs-htmx/
 
 | Dependency         | Purpose                   |
 | ------------------ | ------------------------- |
-| go-cqrs-lite/core  | CQRS dispatch             |
+| go-cqrs-lite/core  | CQRS dispatch (v1.4.0)  |
 | casbin/casbin/v3   | Authorization             |
 | cockroachdb/errors | Error handling            |
 | gorilla/csrf       | CSRF protection (v1.7.3+) |
