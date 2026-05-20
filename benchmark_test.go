@@ -240,8 +240,7 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 func BenchmarkSecurityHeadersMiddleware(b *testing.B) {
 	middleware := cqrshtmx.SecurityHeadersMiddleware(okHandler())
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
 		middleware.ServeHTTP(w, r)

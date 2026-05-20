@@ -17,11 +17,7 @@ func TestNewAuthz_DefaultConfig(t *testing.T) {
 
 func TestAuthz_AdminWildcard(t *testing.T) {
 	a := newTestAuthz(t)
-	if err := a.AddGroupPolicy(
-		GroupPolicy{Subject: "alice", Role: RoleAdmin, Domain: "tenant1"},
-	); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
-	}
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "alice", Role: RoleAdmin, Domain: "tenant1"})
 
 	tests := []struct{ obj, act string }{
 		{"game.play_round", "execute"},
@@ -30,25 +26,13 @@ func TestAuthz_AdminWildcard(t *testing.T) {
 		{"anything.at.all", "whatever"},
 	}
 	for _, tt := range tests {
-		ok, err := a.Enforce("alice", "tenant1", tt.obj, Action(tt.act))
-		if err != nil {
-			t.Errorf("Enforce(alice, tenant1, %s, %s) error: %v", tt.obj, tt.act, err)
-		} else if !ok {
-			t.Errorf("Enforce(alice, tenant1, %s, %s) = false, want true", tt.obj, tt.act)
-		}
+		assertEnforce(t, a, "alice", "tenant1", tt.obj, Action(tt.act), true)
 	}
 }
 
 func TestAuthz_PublicAccess(t *testing.T) {
 	a := newTestAuthz(t, Policy{"*", "*", "game.get", ActionRead, EffectAllow})
-
-	ok, err := a.Enforce("anyone", "any-domain", "game.get", ActionRead)
-	if err != nil {
-		t.Fatalf("Enforce error: %v", err)
-	}
-	if !ok {
-		t.Error("expected public read access to game.get")
-	}
+	assertEnforce(t, a, "anyone", "any-domain", "game.get", ActionRead, true)
 }
 
 func TestAuthz_OwnerInDomain(t *testing.T) {
@@ -56,31 +40,12 @@ func TestAuthz_OwnerInDomain(t *testing.T) {
 		Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
 		Policy{RoleOwner, "*", "game.finish", ActionExecute, EffectAllow},
 	)
-	if err := a.AddGroupPolicy(
-		GroupPolicy{Subject: "player1", Role: RoleOwner, Domain: "game1"},
-	); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
-	}
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "player1", Role: RoleOwner, Domain: "game1"})
 
-	ok, _ := a.Enforce("player1", "game1", "game.play_round", ActionExecute)
-	if !ok {
-		t.Error("owner should execute game.play_round in their domain")
-	}
-
-	ok, _ = a.Enforce("player1", "game1", "game.finish", ActionExecute)
-	if !ok {
-		t.Error("owner should execute game.finish in their domain")
-	}
-
-	ok, _ = a.Enforce("player1", "other-game", "game.play_round", ActionExecute)
-	if ok {
-		t.Error("owner should NOT have access in other domain")
-	}
-
-	ok, _ = a.Enforce("stranger", "game1", "game.play_round", ActionExecute)
-	if ok {
-		t.Error("non-owner should NOT have access")
-	}
+	assertEnforce(t, a, "player1", "game1", "game.play_round", ActionExecute, true)
+	assertEnforce(t, a, "player1", "game1", "game.finish", ActionExecute, true)
+	assertEnforce(t, a, "player1", "other-game", "game.play_round", ActionExecute, false)
+	assertEnforce(t, a, "stranger", "game1", "game.play_round", ActionExecute, false)
 }
 
 func TestAuthz_DenyOverride(t *testing.T) {
@@ -88,30 +53,15 @@ func TestAuthz_DenyOverride(t *testing.T) {
 		Policy{"*", "*", "audit.replay", ActionExecute, EffectDeny},
 		Policy{RoleAdmin, "*", "*", ActionAll, EffectAllow},
 	)
-	if err := a.AddGroupPolicy(
-		GroupPolicy{Subject: "admin1", Role: RoleAdmin, Domain: "*"},
-	); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
-	}
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "admin1", Role: RoleAdmin, Domain: "*"})
 
-	ok, _ := a.Enforce("admin1", "*", "audit.replay", ActionExecute)
-	if ok {
-		t.Error("deny should override admin allow for audit.replay")
-	}
-
-	ok, _ = a.Enforce("admin1", "*", "anything.else", ActionExecute)
-	if !ok {
-		t.Error("admin should be allowed for non-denied resources")
-	}
+	assertEnforce(t, a, "admin1", "*", "audit.replay", ActionExecute, false)
+	assertEnforce(t, a, "admin1", "*", "anything.else", ActionExecute, true)
 }
 
 func TestAuthz_EnforceEx(t *testing.T) {
 	a := newTestAuthz(t, Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow})
-	if err := a.AddGroupPolicy(
-		GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"},
-	); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
-	}
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"})
 
 	result, err := a.EnforceEx("p1", "g1", "game.play_round", ActionExecute)
 	if err != nil {
@@ -142,60 +92,35 @@ func TestAuthz_Apply(t *testing.T) {
 		Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
 	)
 
-	err := a.Apply(PolicyUpdate{
-		AddGroups: []GroupPolicy{
-			{Subject: "p1", Role: RoleOwner, Domain: "g1"},
-		},
-	})
-	if err != nil {
+	if err := a.Apply(PolicyUpdate{
+		AddGroups: []GroupPolicy{{Subject: "p1", Role: RoleOwner, Domain: "g1"}},
+	}); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
+	assertEnforce(t, a, "p1", "g1", "game.play_round", ActionExecute, true)
 
-	ok, _ := a.Enforce("p1", "g1", "game.play_round", ActionExecute)
-	if !ok {
-		t.Error("expected access after Apply")
-	}
-
-	err = a.Apply(PolicyUpdate{
-		RemoveGroups: []GroupPolicy{
-			{Subject: "p1", Role: RoleOwner, Domain: "g1"},
-		},
-	})
-	if err != nil {
+	if err := a.Apply(PolicyUpdate{
+		RemoveGroups: []GroupPolicy{{Subject: "p1", Role: RoleOwner, Domain: "g1"}},
+	}); err != nil {
 		t.Fatalf("Apply remove: %v", err)
 	}
-
-	ok, _ = a.Enforce("p1", "g1", "game.play_round", ActionExecute)
-	if ok {
-		t.Error("expected denied after removing group")
-	}
+	assertEnforce(t, a, "p1", "g1", "game.play_round", ActionExecute, false)
 }
 
 func TestAuthz_ApplyPolicies(t *testing.T) {
 	a := newTestAuthz(t)
 
-	err := a.Apply(PolicyUpdate{
-		AddPolicies: []Policy{
-			{"*", "*", "game.create", ActionExecute, EffectAllow},
-		},
-	})
-	if err != nil {
+	if err := a.Apply(PolicyUpdate{
+		AddPolicies: []Policy{{"*", "*", "game.create", ActionExecute, EffectAllow}},
+	}); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
-
-	ok, _ := a.Enforce("anyone", "any-domain", "game.create", ActionExecute)
-	if !ok {
-		t.Error("expected public access after adding policy")
-	}
+	assertEnforce(t, a, "anyone", "any-domain", "game.create", ActionExecute, true)
 }
 
 func TestAuthz_RolesForUser(t *testing.T) {
 	a := newTestAuthz(t)
-	if err := a.AddGroupPolicy(
-		GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"},
-	); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
-	}
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"})
 
 	roles, err := a.RolesForUser(NewUserID("p1"), "g1")
 	if err != nil {
@@ -216,16 +141,8 @@ func TestAuthz_RolesForUser(t *testing.T) {
 
 func TestAuthz_DomainsForUser(t *testing.T) {
 	a := newTestAuthz(t)
-	if err := a.AddGroupPolicy(
-		GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"},
-	); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
-	}
-	if err := a.AddGroupPolicy(
-		GroupPolicy{Subject: "p1", Role: RoleViewer, Domain: "g2"},
-	); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
-	}
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"})
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "p1", Role: RoleViewer, Domain: "g2"})
 
 	domains, err := a.DomainsForUser(NewUserID("p1"))
 	if err != nil {
@@ -238,11 +155,7 @@ func TestAuthz_DomainsForUser(t *testing.T) {
 
 func TestAuthz_UsersForRole(t *testing.T) {
 	a := newTestAuthz(t)
-	if err := a.AddGroupPolicy(
-		GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"},
-	); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
-	}
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"})
 
 	users, err := a.UsersForRole(RoleOwner, "g1")
 	if err != nil {
@@ -255,11 +168,7 @@ func TestAuthz_UsersForRole(t *testing.T) {
 
 func TestAuthz_EnforceAny(t *testing.T) {
 	a := newTestAuthz(t)
-	if err := a.AddGroupPolicy(
-		GroupPolicy{Subject: "alice", Role: RoleAdmin, Domain: "tenant1"},
-	); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
-	}
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "alice", Role: RoleAdmin, Domain: "tenant1"})
 
 	ok, err := a.EnforceAny("alice", "tenant1", "anything", "execute")
 	if err != nil {
@@ -350,22 +259,14 @@ func TestAuthz_AddAndRemovePolicy(t *testing.T) {
 	if err := a.AddPolicy(Policy{"*", "*", "game.create", ActionExecute, EffectAllow}); err != nil {
 		t.Fatalf("AddPolicy: %v", err)
 	}
-
-	ok, _ := a.Enforce("anyone", "any-domain", "game.create", ActionExecute)
-	if !ok {
-		t.Error("expected access after AddPolicy")
-	}
+	assertEnforce(t, a, "anyone", "any-domain", "game.create", ActionExecute, true)
 
 	if err := a.RemovePolicy(
 		Policy{"*", "*", "game.create", ActionExecute, EffectAllow},
 	); err != nil {
 		t.Fatalf("RemovePolicy: %v", err)
 	}
-
-	ok, _ = a.Enforce("anyone", "any-domain", "game.create", ActionExecute)
-	if ok {
-		t.Error("expected denied after RemovePolicy")
-	}
+	assertEnforce(t, a, "anyone", "any-domain", "game.create", ActionExecute, false)
 }
 
 func TestAuthz_RemoveGroupPolicy(t *testing.T) {
@@ -377,11 +278,7 @@ func TestAuthz_RemoveGroupPolicy(t *testing.T) {
 	); err != nil {
 		t.Fatalf("RemoveGroupPolicy: %v", err)
 	}
-
-	ok, _ := a.Enforce("p1", "g1", "anything", ActionAll)
-	if ok {
-		t.Error("expected denied after RemoveGroupPolicy")
-	}
+	assertEnforce(t, a, "p1", "g1", "anything", ActionAll, false)
 }
 
 func newTestAuthz(t *testing.T, extra ...Policy) *Authz {

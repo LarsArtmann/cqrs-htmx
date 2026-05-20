@@ -36,11 +36,8 @@ var _ = Describe("Lifecycle Hooks", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Command("CreateUser", decodeCreateUserJSON())
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("{}"))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			serve(app.Command("CreateUser", decodeCreateUserJSON()),
+				newPostRequest("/users", "{}"))
 			Expect(capturedContext.Value(testKey("test-key"))).To(Equal("test-value"))
 		})
 
@@ -60,11 +57,8 @@ var _ = Describe("Lifecycle Hooks", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Query("GetUser", decodeGetUserJSONQuery())
-			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader("{}"))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			serve(app.Query("GetUser", decodeGetUserJSONQuery()),
+				httptest.NewRequest(http.MethodGet, "/user", strings.NewReader("{}")))
 			Expect(capturedContext.Value(queryKey("query-key"))).To(Equal("query-value"))
 		})
 	})
@@ -74,9 +68,10 @@ var _ = Describe("Lifecycle Hooks", func() {
 			var afterCalled bool
 			var afterErr error
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register(
+				"CreateUser",
+				func(_ context.Context, _ command.Command) error { return nil },
+			)
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands: disp,
@@ -87,11 +82,8 @@ var _ = Describe("Lifecycle Hooks", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Command("CreateUser", decodeCreateUserJSON())
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("{}"))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			serve(app.Command("CreateUser", decodeCreateUserJSON()),
+				newPostRequest("/users", "{}"))
 			Expect(afterCalled).To(BeTrue())
 			Expect(afterErr).NotTo(HaveOccurred())
 		})
@@ -113,11 +105,8 @@ var _ = Describe("Lifecycle Hooks", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Command("CreateUser", decodeCreateUserJSON())
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("{}"))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			serve(app.Command("CreateUser", decodeCreateUserJSON()),
+				newPostRequest("/users", "{}"))
 			Expect(afterCalled).To(BeTrue())
 			Expect(afterErr).To(HaveOccurred())
 		})
@@ -131,18 +120,16 @@ var _ = Describe("Lifecycle Hooks", func() {
 				capturedCID = cqrshtmx.CorrelationIDFromContext(ctx)
 				return nil
 			})
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-			})
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Middleware()(app.Command("CreateUser", decodeCreateUserJSON()))
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("{}"))
-			r.Header.Set("X-Correlation-ID", "01HK1549P84T9XF8R94E960633")
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			r := newPostRequest(
+				"/users",
+				"{}",
+				withHeader("X-Correlation-ID", "01HK1549P84T9XF8R94E960633"),
+			)
+			serve(handler, r)
 			Expect(capturedCID.String()).To(Equal("01HK1549P84T9XF8R94E960633"))
 		})
 
@@ -153,18 +140,12 @@ var _ = Describe("Lifecycle Hooks", func() {
 				capturedCID = cqrshtmx.CorrelationIDFromContext(ctx)
 				return nil
 			})
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-			})
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Middleware()(app.Command("CreateUser", decodeCreateUserJSON()))
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("{}"))
-			r.Header.Set("X-Correlation-ID", "not-a-ulid")
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			r := newPostRequest("/users", "{}", withHeader("X-Correlation-ID", "not-a-ulid"))
+			serve(handler, r)
 			Expect(capturedCID.IsZero()).To(BeTrue())
 		})
 

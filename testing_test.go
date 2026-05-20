@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
@@ -13,6 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
+	. "github.com/onsi/gomega"
 )
 
 // --- Shared test types ---
@@ -206,4 +209,66 @@ func newTestEnforcer() *casbin.Enforcer {
 	_, _ = e.AddPolicy(viewerUserID.String(), "users", "read")
 
 	return e
+}
+
+// --- App creation helpers ---
+
+func newCommandApp(opts ...func(*cqrshtmx.Config)) (*cqrshtmx.App, *command.Dispatcher) {
+	disp := command.NewDispatcher()
+	_ = disp.Register("CreateUser", noOpCommandHandler)
+	cfg := cqrshtmx.Config{Commands: disp}
+	for _, o := range opts {
+		o(&cfg)
+	}
+	app, err := cqrshtmx.New(cfg)
+	Expect(err).NotTo(HaveOccurred())
+	return app, disp
+}
+
+// --- Request/response helpers ---
+
+type testResponse struct {
+	*httptest.ResponseRecorder
+}
+
+func newPostJSONRequest(path, body string, opts ...func(*http.Request)) *http.Request {
+	r := httptest.NewRequest(http.MethodPost, path, strings.NewReader(body))
+	r.Header.Set("Content-Type", "application/json")
+	for _, o := range opts {
+		o(r)
+	}
+	return r
+}
+
+func newPostRequest(path, body string, opts ...func(*http.Request)) *http.Request {
+	r := httptest.NewRequest(http.MethodPost, path, strings.NewReader(body))
+	for _, o := range opts {
+		o(r)
+	}
+	return r
+}
+
+func withHTMX(r *http.Request) {
+	r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+}
+
+func withUserHeader(header string, uid cqrshtmx.UserID) func(*http.Request) {
+	return func(r *http.Request) { r.Header.Set(header, uid.String()) }
+}
+
+func withHeader(key, value string) func(*http.Request) {
+	return func(r *http.Request) { r.Header.Set(key, value) }
+}
+
+func serve(handler http.Handler, r *http.Request) *testResponse {
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+	return &testResponse{w}
+}
+
+func (r *testResponse) code() int { return r.Code }
+
+func assertStatusCode(handler http.Handler, r *http.Request, expected int) {
+	w := serve(handler, r)
+	ExpectWithOffset(1, w.code()).To(Equal(expected))
 }

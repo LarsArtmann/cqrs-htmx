@@ -21,21 +21,38 @@ func setupMux(t *testing.T) (*Service, *http.ServeMux) {
 
 func registerUser(t *testing.T, mux *http.ServeMux) *RegisterResponse {
 	t.Helper()
-	body := `{"id":"u1","email":"a@b.com","password":"secret12","display_name":"Test"}`
-	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, req)
-
+	w := postJSON(t, mux, "/auth/register",
+		`{"id":"u1","email":"a@b.com","password":"secret12","display_name":"Test"}`)
 	if w.Code != http.StatusCreated {
 		t.Fatalf("register: expected 201, got %d: %s", w.Code, w.Body.String())
 	}
-
 	var resp RegisterResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("unmarshal register response: %v", err)
 	}
 	return &resp
+}
+
+func assertCookie(
+	t *testing.T,
+	w *httptest.ResponseRecorder,
+	name string,
+	check func(*http.Cookie) bool,
+) {
+	t.Helper()
+	for _, c := range w.Result().Cookies() {
+		if c.Name == name && check(c) {
+			return
+		}
+	}
+	t.Errorf("expected cookie %q matching condition", name)
+}
+
+func assertStatusCode(t *testing.T, w *httptest.ResponseRecorder, expected int) {
+	t.Helper()
+	if w.Code != expected {
+		t.Errorf("expected %d, got %d: %s", expected, w.Code, w.Body.String())
+	}
 }
 
 func TestHandlers_Register(t *testing.T) {
@@ -46,66 +63,35 @@ func TestHandlers_Register(t *testing.T) {
 		t.Errorf("expected user ID u1, got %s", resp.User.ID)
 	}
 
-	found := false
 	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader("{}"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	_ = found
 }
 
 func TestHandlers_Register_SetsCookie(t *testing.T) {
 	_, mux := setupMux(t)
-	body := `{"id":"u1","email":"cookie@test.com","password":"secret12"}`
-	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, req)
-
-	if w.Code != http.StatusCreated {
-		t.Fatalf("expected 201, got %d", w.Code)
-	}
-
-	found := false
-	for _, c := range w.Result().Cookies() {
-		if c.Name == "session_token" && c.Value != "" && c.HttpOnly &&
-			c.SameSite == http.SameSiteStrictMode &&
-			!c.Secure {
-			found = true
-		}
-	}
-	if !found {
-		t.Error("expected session_token cookie with correct attributes")
-	}
+	w := postJSON(t, mux, "/auth/register",
+		`{"id":"u1","email":"cookie@test.com","password":"secret12"}`)
+	assertStatusCode(t, w, http.StatusCreated)
+	assertCookie(t, w, "session_token", func(c *http.Cookie) bool {
+		return c.Value != "" && c.HttpOnly && c.SameSite == http.SameSiteStrictMode && !c.Secure
+	})
 }
 
 func TestHandlers_Register_DuplicateEmail(t *testing.T) {
 	_, mux := setupMux(t)
 	registerUser(t, mux)
-
-	body := `{"id":"u2","email":"a@b.com","password":"secret12"}`
-	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, req)
-
-	if w.Code != http.StatusConflict {
-		t.Errorf("expected 409, got %d", w.Code)
-	}
+	w := postJSON(t, mux, "/auth/register",
+		`{"id":"u2","email":"a@b.com","password":"secret12"}`)
+	assertStatusCode(t, w, http.StatusConflict)
 }
 
 func TestHandlers_Login(t *testing.T) {
 	_, mux := setupMux(t)
 	registerUser(t, mux)
 
-	body := `{"email":"a@b.com","password":"secret12"}`
-	req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
-	}
+	w := postJSON(t, mux, "/auth/login", `{"email":"a@b.com","password":"secret12"}`)
+	assertStatusCode(t, w, http.StatusOK)
 
 	var resp LoginResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
@@ -119,16 +105,8 @@ func TestHandlers_Login(t *testing.T) {
 func TestHandlers_Login_WrongPassword(t *testing.T) {
 	_, mux := setupMux(t)
 	registerUser(t, mux)
-
-	body := `{"email":"a@b.com","password":"wrong"}`
-	req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, req)
-
-	if w.Code != http.StatusUnauthorized {
-		t.Errorf("expected 401, got %d", w.Code)
-	}
+	w := postJSON(t, mux, "/auth/login", `{"email":"a@b.com","password":"wrong"}`)
+	assertStatusCode(t, w, http.StatusUnauthorized)
 }
 
 func TestHandlers_Logout(t *testing.T) {
@@ -139,57 +117,47 @@ func TestHandlers_Logout(t *testing.T) {
 	req.AddCookie(&http.Cookie{Name: "session_token", Value: resp.Session.Token})
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
-	}
-
-	cleared := false
-	for _, c := range w.Result().Cookies() {
-		if c.Name == "session_token" && c.MaxAge == -1 {
-			cleared = true
-		}
-	}
-	if !cleared {
-		t.Error("expected cleared session_token cookie")
-	}
+	assertStatusCode(t, w, http.StatusOK)
+	assertCookie(t, w, "session_token", func(c *http.Cookie) bool { return c.MaxAge == -1 })
 }
 
 func TestHandlers_Logout_NoSession(t *testing.T) {
 	_, mux := setupMux(t)
-
 	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-
-	if w.Code != http.StatusUnauthorized {
-		t.Errorf("expected 401, got %d", w.Code)
-	}
+	assertStatusCode(t, w, http.StatusUnauthorized)
 }
 
 func TestHandlers_Me_Unauthenticated(t *testing.T) {
 	_, mux := setupMux(t)
-
 	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-
-	if w.Code != http.StatusUnauthorized {
-		t.Errorf("expected 401, got %d", w.Code)
-	}
+	assertStatusCode(t, w, http.StatusUnauthorized)
 }
 
 func TestHandlers_BadRequestBody(t *testing.T) {
 	_, mux := setupMux(t)
+	w := postJSON(t, mux, "/auth/register", "not json")
+	assertStatusCode(t, w, http.StatusBadRequest)
+}
 
-	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader("not json"))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("expected 400, got %d", w.Code)
+func wrapSessionMiddleware(
+	t *testing.T,
+	svc *Service,
+	token string,
+	handler http.HandlerFunc,
+) *httptest.ResponseRecorder {
+	t.Helper()
+	h := NewSessionMiddleware(svc, "session_token")(handler)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	if token != "" {
+		req.AddCookie(&http.Cookie{Name: "session_token", Value: token})
 	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	return w
 }
 
 func TestNewSessionMiddleware_Cookie(t *testing.T) {
@@ -199,11 +167,11 @@ func TestNewSessionMiddleware_Cookie(t *testing.T) {
 	})
 
 	called := false
-	handler := NewSessionMiddleware(
+	w := wrapSessionMiddleware(
+		t,
 		svc,
-		"session_token",
-	)(
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reg.Session.Token,
+		http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 			called = true
 			user, ok := UserFromContext(r.Context())
 			if !ok || user == nil {
@@ -211,18 +179,12 @@ func TestNewSessionMiddleware_Cookie(t *testing.T) {
 			} else if user.ID != NewUserID("u1") {
 				t.Errorf("expected user ID u1, got %s", user.ID)
 			}
-			w.WriteHeader(http.StatusOK)
 		}),
 	)
-
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
-	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
-
 	if !called {
 		t.Error("expected handler called")
 	}
+	_ = w
 }
 
 func TestNewSessionMiddleware_BearerToken(t *testing.T) {
@@ -231,10 +193,7 @@ func TestNewSessionMiddleware_BearerToken(t *testing.T) {
 		ID: NewUserID("u1"), Email: "bt@t.com", Password: "secret12",
 	})
 
-	handler := NewSessionMiddleware(
-		svc,
-		"session_token",
-	)(
+	h := NewSessionMiddleware(svc, "session_token")(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user, ok := UserFromContext(r.Context())
 			if !ok || user == nil {
@@ -250,17 +209,17 @@ func TestNewSessionMiddleware_BearerToken(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Authorization", "Bearer "+reg.Session.Token)
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	h.ServeHTTP(w, req)
 }
 
 func TestNewSessionMiddleware_NoToken(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
 
 	called := false
-	handler := NewSessionMiddleware(
+	wrapSessionMiddleware(
+		t,
 		svc,
-		"session_token",
-	)(
+		"",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			called = true
 			_, ok := UserFromContext(r.Context())
@@ -270,11 +229,6 @@ func TestNewSessionMiddleware_NoToken(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		}),
 	)
-
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
-
 	if !called {
 		t.Error("expected handler called")
 	}
@@ -362,13 +316,9 @@ func TestUserIDFromRequest(t *testing.T) {
 
 func TestHandlers_FullFlow(t *testing.T) {
 	svc, mux := setupMux(t)
-
 	regResp := registerUser(t, mux)
 
-	meHandler := NewSessionMiddleware(
-		svc,
-		"session_token",
-	)(
+	meHandler := NewSessionMiddleware(svc, "session_token")(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user, ok := UserFromContext(r.Context())
 			if !ok || user == nil {
@@ -382,88 +332,43 @@ func TestHandlers_FullFlow(t *testing.T) {
 	meReq.AddCookie(&http.Cookie{Name: "session_token", Value: regResp.Session.Token})
 	meW := httptest.NewRecorder()
 	meHandler.ServeHTTP(meW, meReq)
-
-	if meW.Code != http.StatusOK {
-		t.Errorf("me: expected 200, got %d", meW.Code)
-	}
+	assertStatusCode(t, meW, http.StatusOK)
 
 	logoutReq := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	logoutReq.AddCookie(&http.Cookie{Name: "session_token", Value: regResp.Session.Token})
 	logoutW := httptest.NewRecorder()
 	mux.ServeHTTP(logoutW, logoutReq)
-
-	if logoutW.Code != http.StatusOK {
-		t.Errorf("logout: expected 200, got %d", logoutW.Code)
-	}
+	assertStatusCode(t, logoutW, http.StatusOK)
 }
 
 func TestNewAuthHandler_SessionMaxAge(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
 	h := NewAuthHandler(svc, HandlerConfig{Secure: false, SessionMaxAge: 3600})
-
-	body := `{"id":"u1","email":"maxage@test.com","password":"secret12"}`
-	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
-	mux.ServeHTTP(w, req)
 
-	if w.Code != http.StatusCreated {
-		t.Fatalf("expected 201, got %d", w.Code)
-	}
-
-	found := false
-	for _, c := range w.Result().Cookies() {
-		if c.Name == "session_token" && c.MaxAge == 3600 {
-			found = true
-		}
-	}
-	if !found {
-		t.Error("expected session cookie with MaxAge=3600")
-	}
+	w := postJSON(t, mux, "/auth/register",
+		`{"id":"u1","email":"maxage@test.com","password":"secret12"}`)
+	assertStatusCode(t, w, http.StatusCreated)
+	assertCookie(t, w, "session_token", func(c *http.Cookie) bool { return c.MaxAge == 3600 })
 }
 
 func TestNewAuthHandler_CustomCookieName(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
 	h := NewAuthHandler(svc, HandlerConfig{CookieName: "my_session", Secure: false})
-
-	body := `{"id":"u1","email":"cookie@test.com","password":"secret12"}`
-	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
-	mux.ServeHTTP(w, req)
 
-	if w.Code != http.StatusCreated {
-		t.Fatalf("expected 201, got %d", w.Code)
-	}
-
-	found := false
-	for _, c := range w.Result().Cookies() {
-		if c.Name == "my_session" && c.Value != "" {
-			found = true
-		}
-	}
-	if !found {
-		t.Error("expected session cookie named 'my_session'")
-	}
+	w := postJSON(t, mux, "/auth/register",
+		`{"id":"u1","email":"cookie@test.com","password":"secret12"}`)
+	assertStatusCode(t, w, http.StatusCreated)
+	assertCookie(t, w, "my_session", func(c *http.Cookie) bool { return c.Value != "" })
 }
 
 func TestHandlers_Login_InvalidJSON(t *testing.T) {
 	_, mux := setupMux(t)
-
-	req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader("not json"))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("expected 400, got %d", w.Code)
-	}
+	w := postJSON(t, mux, "/auth/login", "not json")
+	assertStatusCode(t, w, http.StatusBadRequest)
 }
 
 func TestHandlers_Logout_ServiceError(t *testing.T) {
@@ -479,23 +384,16 @@ func TestHandlers_Me_Authenticated(t *testing.T) {
 	svc, mux := setupMux(t)
 	regResp := registerUser(t, mux)
 
-	user, err := svc.Authenticate(context.Background(), regResp.Session.Token)
+	_, err := svc.Authenticate(context.Background(), regResp.Session.Token)
 	if err != nil {
 		t.Fatalf("authenticate: %v", err)
 	}
-	_ = user
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
 	req.AddCookie(&http.Cookie{Name: "session_token", Value: regResp.Session.Token})
 
-	meHandler := NewSessionMiddleware(
-		svc,
-		"session_token",
-	)(
+	meHandler := NewSessionMiddleware(svc, "session_token")(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			h := NewAuthHandler(svc, HandlerConfig{Secure: false})
-			h2 := h
-			_ = h2
 			u, ok := UserFromContext(r.Context())
 			if !ok || u == nil {
 				writeError(w, http.StatusUnauthorized, "not authenticated")
@@ -506,8 +404,5 @@ func TestHandlers_Me_Authenticated(t *testing.T) {
 	)
 	w := httptest.NewRecorder()
 	meHandler.ServeHTTP(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
-	}
+	assertStatusCode(t, w, http.StatusOK)
 }

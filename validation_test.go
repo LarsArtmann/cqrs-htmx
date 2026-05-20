@@ -17,73 +17,47 @@ import (
 var _ = Describe("Validation HandlerOption", func() {
 	Describe("ValidateCommand", func() {
 		It("allows valid commands through", func() {
+			var dispatched bool
 			disp := command.NewDispatcher()
-			dispatched := false
 			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
-
 			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Command("CreateUser",
+			serve(app.Command("CreateUser",
 				decodeCreateUserJSON(),
-				cqrshmx.ValidateCommand(func(_ command.Command) error {
-					return nil
-				}),
-			)
-
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+				cqrshmx.ValidateCommand(func(_ command.Command) error { return nil }),
+			), newPostRequest("/users", `{}`))
 			Expect(dispatched).To(BeTrue())
 		})
 
 		It("rejects commands that fail validation", func() {
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", noOpCommandHandler)
-
-			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser",
+			app, _ := newCommandApp()
+			w := serve(app.Command("CreateUser",
 				decodeCreateUserJSON(),
 				cqrshmx.ValidateCommand(func(_ command.Command) error {
 					return errors.New("email is required")
 				}),
-			)
-
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			), newPostRequest("/users", `{}`))
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
 			Expect(w.Body.String()).To(ContainSubstring("email is required"))
 		})
 
 		It("no-op when decoder is not set", func() {
-			disp := command.NewDispatcher()
 			var decoded bool
+			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				decoded = true
 				return nil
 			})
-
 			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Command("CreateUser",
-				// No decoder set — ValidateCommand is a no-op
+			w := serve(app.Command("CreateUser",
 				cqrshmx.ValidateCommand(func(_ command.Command) error {
 					return errors.New("should not run")
 				}),
-			)
-
-			r := httptest.NewRequest(http.MethodPost, "/users", nil)
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
-			// Should fail with decoder missing, not validation
-			Expect(w.Code).NotTo(Equal(http.StatusBadRequest))
+			), newPostRequest("/users", ""))
+			Expect(w.code()).NotTo(Equal(http.StatusBadRequest))
 			Expect(decoded).To(BeFalse())
 		})
 	})
@@ -94,24 +68,16 @@ var _ = Describe("Validation HandlerOption", func() {
 			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return testQueryResult, nil
 			})
-
 			app, err := cqrshmx.New(cqrshmx.Config{Queries: disp})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Query("GetUser",
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			w := serve(app.Query("GetUser",
 				decodeGetUserJSONQuery(),
-				cqrshmx.ValidateQuery(func(_ query.Query) error {
-					return nil
-				}),
+				cqrshmx.ValidateQuery(func(_ query.Query) error { return nil }),
 				cqrshmx.Render(encodeJSONResult),
-			)
-
-			body := `{}`
-			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(body))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Code).To(Equal(http.StatusOK))
+			), r)
+			Expect(w.code()).To(Equal(http.StatusOK))
 		})
 
 		It("rejects queries that fail validation", func() {
@@ -119,23 +85,17 @@ var _ = Describe("Validation HandlerOption", func() {
 			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return testQueryResult, nil
 			})
-
 			app, err := cqrshmx.New(cqrshmx.Config{Queries: disp})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Query("GetUser",
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			w := serve(app.Query("GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshmx.ValidateQuery(func(_ query.Query) error {
 					return errors.New("page must be positive")
 				}),
-			)
-
-			body := `{}`
-			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(body))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			), r)
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
 			Expect(w.Body.String()).To(ContainSubstring("page must be positive"))
 		})
 
@@ -144,25 +104,18 @@ var _ = Describe("Validation HandlerOption", func() {
 			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
 				return testQueryResult, nil
 			})
-
 			app, err := cqrshmx.New(cqrshmx.Config{Queries: disp})
 			Expect(err).NotTo(HaveOccurred())
 
-			handler := app.Query("GetUser",
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			w := serve(app.Query("GetUser",
 				cqrshmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return nil, errors.New("decode failed")
 				}),
 				cqrshmx.ValidateQuery(func(_ query.Query) error {
 					return errors.New("should not run")
 				}),
-			)
-
-			body := `{}`
-			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(body))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
-			// Should show decode error, not validation error
+			), r)
 			Expect(w.Body.String()).To(ContainSubstring("decode"))
 			Expect(w.Body.String()).NotTo(ContainSubstring("should not run"))
 		})

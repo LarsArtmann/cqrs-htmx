@@ -12,97 +12,79 @@ import (
 
 var _ = Describe("Rate Limiting", func() {
 	Describe("RateLimiterMiddleware", func() {
+		assertRateLimit := func(cfg cqrshtmx.RateLimiterConfig, requests int) []int {
+			middleware := cqrshtmx.RateLimiterMiddleware(cfg)
+			handler := middleware(okHandler())
+			var codes []int
+			for range requests {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				handler.ServeHTTP(w, r)
+				codes = append(codes, w.Code)
+			}
+			return codes
+		}
+
 		It("allows requests under the limit", func() {
-			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
 				Limit:        10,
 				Window:       time.Minute,
 				Burst:        2,
 				KeyExtractor: func(_ *http.Request) string { return "test-key" },
-			})
-
-			handler := middleware(okHandler())
-
-			for range 2 {
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/", nil)
-				handler.ServeHTTP(w, r)
-				Expect(w.Code).To(Equal(http.StatusOK))
-			}
+			}, 2)
+			Expect(codes).To(Equal([]int{http.StatusOK, http.StatusOK}))
 		})
 
 		It("blocks requests over the limit", func() {
-			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
 				Limit:        1,
 				Window:       time.Minute,
 				Burst:        1,
 				KeyExtractor: func(_ *http.Request) string { return "test-key" },
-			})
-
-			handler := middleware(okHandler())
-
-			w1 := httptest.NewRecorder()
-			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
-			Expect(w1.Code).To(Equal(http.StatusOK))
-
-			w2 := httptest.NewRecorder()
-			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w2, r2)
-			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
-			Expect(w2.Header().Get("Retry-After")).NotTo(BeEmpty())
+			}, 2)
+			Expect(codes[0]).To(Equal(http.StatusOK))
+			Expect(codes[1]).To(Equal(http.StatusTooManyRequests))
 		})
 
-		It("allows empty key extractor (global rate limit)", func() {
-			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
-				Limit:  1,
-				Window: time.Minute,
-				Burst:  1,
-			})
-
-			handler := middleware(okHandler())
-
-			w1 := httptest.NewRecorder()
-			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
-			Expect(w1.Code).To(Equal(http.StatusOK))
-
-			w2 := httptest.NewRecorder()
-			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w2, r2)
-			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
-		})
-
-		It("skips rate limiting when key extractor returns empty", func() {
+		It("includes Retry-After header on rejection", func() {
 			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
 				Limit:        1,
 				Window:       time.Minute,
 				Burst:        1,
-				KeyExtractor: func(_ *http.Request) string { return "" },
+				KeyExtractor: func(_ *http.Request) string { return "retry-key" },
 			})
-
 			handler := middleware(okHandler())
+			handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+			Expect(w.Header().Get("Retry-After")).NotTo(BeEmpty())
+		})
 
-			for range 3 {
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/", nil)
-				handler.ServeHTTP(w, r)
-				Expect(w.Code).To(Equal(http.StatusOK))
-			}
+		It("allows empty key extractor (global rate limit)", func() {
+			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
+				Limit:  1,
+				Window: time.Minute,
+				Burst:  1,
+			}, 2)
+			Expect(codes[0]).To(Equal(http.StatusOK))
+			Expect(codes[1]).To(Equal(http.StatusTooManyRequests))
+		})
+
+		It("skips rate limiting when key extractor returns empty", func() {
+			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
+				Limit:        1,
+				Window:       time.Minute,
+				Burst:        1,
+				KeyExtractor: func(_ *http.Request) string { return "" },
+			}, 3)
+			Expect(codes).To(Equal([]int{http.StatusOK, http.StatusOK, http.StatusOK}))
 		})
 
 		It("uses sensible defaults when config is zero", func() {
-			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
 				KeyExtractor: func(_ *http.Request) string { return "key" },
-			})
-
-			handler := middleware(okHandler())
-
-			for range 3 {
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/", nil)
-				handler.ServeHTTP(w, r)
-				Expect(w.Code).To(Equal(http.StatusOK))
-			}
+			}, 3)
+			Expect(codes).To(Equal([]int{http.StatusOK, http.StatusOK, http.StatusOK}))
 		})
 
 		It("rate-limits per RemoteAddr with KeyExtractorFromRemoteAddr", func() {
@@ -145,47 +127,34 @@ var _ = Describe("Rate Limiting", func() {
 				KeyExtractor: func(_ *http.Request) string { return "evict-key" },
 				TTL:          5 * time.Millisecond,
 			})
-
 			handler := middleware(okHandler())
 
-			w1 := httptest.NewRecorder()
-			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
-			Expect(w1.Code).To(Equal(http.StatusOK))
-
-			w2 := httptest.NewRecorder()
-			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w2, r2)
-			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
+			codes := make([]int, 2)
+			for i := range 2 {
+				w := httptest.NewRecorder()
+				handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+				codes[i] = w.Code
+			}
+			Expect(codes[0]).To(Equal(http.StatusOK))
+			Expect(codes[1]).To(Equal(http.StatusTooManyRequests))
 
 			time.Sleep(10 * time.Millisecond)
 
-			w3 := httptest.NewRecorder()
-			r3 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w3, r3)
-			Expect(w3.Code).To(Equal(http.StatusOK))
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+			Expect(w.Code).To(Equal(http.StatusOK))
 		})
 
 		It("does not evict entries accessed within TTL", func() {
-			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
 				Limit:        1,
 				Window:       time.Minute,
 				Burst:        1,
 				KeyExtractor: func(_ *http.Request) string { return "fresh-key" },
 				TTL:          100 * time.Millisecond,
-			})
-
-			handler := middleware(okHandler())
-
-			w1 := httptest.NewRecorder()
-			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w1, r1)
-			Expect(w1.Code).To(Equal(http.StatusOK))
-
-			w2 := httptest.NewRecorder()
-			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w2, r2)
-			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
+			}, 2)
+			Expect(codes[0]).To(Equal(http.StatusOK))
+			Expect(codes[1]).To(Equal(http.StatusTooManyRequests))
 		})
 
 		It("calls OnAllowed hook for allowed requests", func() {

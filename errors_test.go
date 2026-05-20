@@ -15,51 +15,60 @@ var _ = Describe("Error Mapping", func() {
 			Expect(cqrshtmx.MapError(err)).To(Equal(expectedStatus))
 		},
 		Entry("nil error returns 500", nil, http.StatusInternalServerError),
+		Entry("Rejection errors to 400", cqrshtmx.ErrDecodeFailed, http.StatusBadRequest),
+		Entry("nil error to 500", nil, http.StatusInternalServerError),
 	)
 
-	Describe("MapError with CQRS event errors", func() {
-		It("maps Rejection errors to 400", func() {
-			err := cqrshtmx.ErrDecodeFailed
-			Expect(cqrshtmx.MapError(err)).To(Equal(http.StatusBadRequest))
-		})
-
-		It("maps nil error to 500", func() {
-			Expect(cqrshtmx.MapError(nil)).To(Equal(http.StatusInternalServerError))
-		})
-	})
-
 	Describe("DefaultErrorHandler", func() {
-		It("writes a plain text error response", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrDecodeFailed)
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(w.Body.String()).To(ContainSubstring("failed to decode"))
-		})
-
-		It("sets HX-Redirect for unauthorized HTMX requests", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrUnauthorized)
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
-		})
-
-		It("sets HX-Redirect for forbidden HTMX requests", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrForbidden)
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
-		})
-
-		It("does not redirect for non-auth HTMX errors", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			cqrshtmx.DefaultErrorHandler(w, r, cqrshtmx.ErrDecodeFailed)
-			Expect(w.Header().Get("HX-Redirect")).To(BeEmpty())
-		})
+		DescribeTable(
+			"error handler responses",
+			func(err error, h func(http.ResponseWriter, *http.Request, error), isHTMX bool, check func(*httptest.ResponseRecorder)) {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				if isHTMX {
+					r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+				}
+				h(w, r, err)
+				check(w)
+			},
+			Entry("plain text error response",
+				cqrshtmx.ErrDecodeFailed, cqrshtmx.DefaultErrorHandler, false,
+				func(w *httptest.ResponseRecorder) {
+					Expect(w.Code).To(Equal(http.StatusBadRequest))
+					Expect(w.Body.String()).To(ContainSubstring("failed to decode"))
+				}),
+			Entry("HX-Redirect for unauthorized HTMX",
+				cqrshtmx.ErrUnauthorized, cqrshtmx.DefaultErrorHandler, true,
+				func(w *httptest.ResponseRecorder) {
+					Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+				}),
+			Entry("HX-Redirect for forbidden HTMX",
+				cqrshtmx.ErrForbidden, cqrshtmx.DefaultErrorHandler, true,
+				func(w *httptest.ResponseRecorder) {
+					Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+				}),
+			Entry("no redirect for non-auth HTMX errors",
+				cqrshtmx.ErrDecodeFailed, cqrshtmx.DefaultErrorHandler, true,
+				func(w *httptest.ResponseRecorder) {
+					Expect(w.Header().Get("HX-Redirect")).To(BeEmpty())
+				}),
+			Entry("JSON error response",
+				cqrshtmx.ErrDecodeFailed, cqrshtmx.JSONErrorHandler, false,
+				func(w *httptest.ResponseRecorder) {
+					Expect(
+						w.Header().Get("Content-Type"),
+					).To(Equal("application/json; charset=utf-8"))
+					Expect(w.Code).To(Equal(http.StatusBadRequest))
+					Expect(w.Body.String()).To(ContainSubstring("decode"))
+					Expect(w.Body.String()).To(ContainSubstring("400"))
+				}),
+			Entry("JSON handler redirects HTMX auth errors",
+				cqrshtmx.ErrUnauthorized, cqrshtmx.JSONErrorHandler, true,
+				func(w *httptest.ResponseRecorder) {
+					Expect(w.Code).To(Equal(http.StatusSeeOther))
+					Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+				}),
+		)
 
 		It("uses custom LoginRedirect when set", func() {
 			w := httptest.NewRecorder()
@@ -75,27 +84,6 @@ var _ = Describe("Error Mapping", func() {
 			Expect(cqrshtmx.ErrUnauthorized).NotTo(Equal(cqrshtmx.ErrForbidden))
 			Expect(cqrshtmx.ErrDecodeFailed).NotTo(Equal(cqrshtmx.ErrDispatchFailed))
 			Expect(cqrshtmx.ErrEnforcerNil).NotTo(Equal(cqrshtmx.ErrValidationFailed))
-		})
-	})
-
-	Describe("JSONErrorHandler", func() {
-		It("returns JSON with error and status for regular errors", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.ErrDecodeFailed)
-			Expect(w.Header().Get("Content-Type")).To(Equal("application/json; charset=utf-8"))
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
-			Expect(w.Body.String()).To(ContainSubstring("decode"))
-			Expect(w.Body.String()).To(ContainSubstring("400"))
-		})
-
-		It("redirects HTMX auth errors instead of returning JSON", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.ErrUnauthorized)
-			Expect(w.Code).To(Equal(http.StatusSeeOther))
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
 		})
 	})
 })

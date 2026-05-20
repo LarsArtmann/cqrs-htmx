@@ -21,28 +21,71 @@ var _ = Describe("Security Headers Middleware", func() {
 		Expect(w.Header().Get(header)).To(Equal(expected))
 	}
 
-	It("sets X-Content-Type-Options to nosniff", func() {
-		assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{}, "X-Content-Type-Options", "nosniff")
-	})
+	DescribeTable("default security headers",
+		func(header, expected string) {
+			assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{}, header, expected)
+		},
+		Entry("X-Content-Type-Options", "X-Content-Type-Options", "nosniff"),
+		Entry("X-Frame-Options", "X-Frame-Options", "DENY"),
+		Entry("Referrer-Policy", "Referrer-Policy", "strict-origin-when-cross-origin"),
+	)
 
-	It("sets X-Frame-Options to DENY", func() {
-		assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{}, "X-Frame-Options", "DENY")
-	})
-
-	It("sets Referrer-Policy to strict-origin-when-cross-origin", func() {
-		assertSecurityHeader(
-			cqrshtmx.SecurityHeadersConfig{},
+	DescribeTable(
+		"configurable security headers",
+		func(cfg cqrshtmx.SecurityHeadersConfig, header, expected string) {
+			assertSecurityHeader(cfg, header, expected)
+		},
+		Entry(
+			"CSP",
+			cqrshtmx.SecurityHeadersConfig{ContentSecurityPolicy: "default-src 'self'"},
+			"Content-Security-Policy",
+			"default-src 'self'",
+		),
+		Entry(
+			"custom headers",
+			cqrshtmx.SecurityHeadersConfig{Custom: map[string]string{"X-Custom-Header": "value"}},
+			"X-Custom-Header",
+			"value",
+		),
+		Entry(
+			"override FrameOptions",
+			cqrshtmx.SecurityHeadersConfig{FrameOptions: "SAMEORIGIN"},
+			"X-Frame-Options",
+			"SAMEORIGIN",
+		),
+		Entry(
+			"override ContentTypeOptions",
+			cqrshtmx.SecurityHeadersConfig{ContentTypeOptions: "none"},
+			"X-Content-Type-Options",
+			"none",
+		),
+		Entry(
+			"override ReferrerPolicy",
+			cqrshtmx.SecurityHeadersConfig{ReferrerPolicy: "no-referrer"},
 			"Referrer-Policy",
-			"strict-origin-when-cross-origin",
-		)
+			"no-referrer",
+		),
+		Entry(
+			"Permissions-Policy",
+			cqrshtmx.SecurityHeadersConfig{PermissionsPolicy: "camera=(), microphone=()"},
+			"Permissions-Policy",
+			"camera=(), microphone=()",
+		),
+	)
+
+	It("sets HSTS when configured", func() {
+		assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{
+			StrictTransportSecurity: "max-age=63072000; includeSubDomains",
+		}, "Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 	})
 
 	It("preserves existing headers set by downstream handlers", func() {
-		middleware := cqrshtmx.SecurityHeadersMiddleware
-		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-		}))
+		handler := cqrshtmx.SecurityHeadersMiddleware(
+			http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+			}),
+		)
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -50,65 +93,5 @@ var _ = Describe("Security Headers Middleware", func() {
 
 		Expect(w.Header().Get("Content-Type")).To(Equal("application/json"))
 		Expect(w.Header().Get("X-Content-Type-Options")).To(Equal("nosniff"))
-	})
-
-	Describe("SecurityHeadersMiddlewareWithConfig", func() {
-		It("sets CSP when configured", func() {
-			assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{
-				ContentSecurityPolicy: "default-src 'self'",
-			}, "Content-Security-Policy", "default-src 'self'")
-		})
-
-		It("sets HSTS when configured", func() {
-			cfg := cqrshtmx.SecurityHeadersConfig{
-				StrictTransportSecurity: "max-age=63072000; includeSubDomains",
-			}
-			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
-			handler := middleware(okHandler())
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Header().Get("Strict-Transport-Security")).To(
-				Equal("max-age=63072000; includeSubDomains"),
-			)
-		})
-
-		It("sets custom headers when configured", func() {
-			assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{
-				Custom: map[string]string{"X-Custom-Header": "value"},
-			}, "X-Custom-Header", "value")
-		})
-
-		It("allows overriding defaults", func() {
-			assertSecurityHeader(
-				cqrshtmx.SecurityHeadersConfig{FrameOptions: "SAMEORIGIN"},
-				"X-Frame-Options",
-				"SAMEORIGIN",
-			)
-		})
-
-		It("allows overriding ContentTypeOptions default", func() {
-			assertSecurityHeader(
-				cqrshtmx.SecurityHeadersConfig{ContentTypeOptions: "none"},
-				"X-Content-Type-Options",
-				"none",
-			)
-		})
-
-		It("allows overriding ReferrerPolicy default", func() {
-			assertSecurityHeader(
-				cqrshtmx.SecurityHeadersConfig{ReferrerPolicy: "no-referrer"},
-				"Referrer-Policy",
-				"no-referrer",
-			)
-		})
-
-		It("sets Permissions-Policy when configured", func() {
-			assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{
-				PermissionsPolicy: "camera=(), microphone=()",
-			}, "Permissions-Policy", "camera=(), microphone=()")
-		})
 	})
 })

@@ -42,21 +42,17 @@ func TestService_Register(t *testing.T) {
 }
 
 func TestService_Register_DuplicateEmail(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
-	ctx := context.Background()
+	svc := newTestService(t)
 	registerTestUser(t, svc, "u1", "a@b.com", "password")
 
-	_, err := svc.Register(
-		ctx,
+	_, err := svc.Register(context.Background(),
 		RegisterRequest{ID: NewUserID("u2"), Email: "a@b.com", Password: "password"},
 	)
 	assertErrorIs(t, err, ErrEmailExists, "ErrEmailExists")
 }
 
 func TestService_Login(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
-	ctx := context.Background()
-	registerTestUser(t, svc, "user-1", "a@b.com", "secret12")
+	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "a@b.com", "secret12")
 
 	resp, err := svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: "secret12"})
 	if err != nil {
@@ -71,18 +67,14 @@ func TestService_Login(t *testing.T) {
 }
 
 func TestService_Login_WrongPassword(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
-	ctx := context.Background()
-	registerTestUser(t, svc, "user-1", "a@b.com", "secret12")
+	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "a@b.com", "secret12")
 
 	_, err := svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: "wrong"})
 	assertErrorIs(t, err, ErrInvalidCredentials, "ErrInvalidCredentials")
 }
 
 func TestService_Authenticate(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
-	ctx := context.Background()
-	reg := registerTestUser(t, svc, "user-1", "a@b.com", "secret12")
+	svc, ctx, reg := newTestServiceWithUser(t, "user-1", "a@b.com", "secret12")
 
 	user, err := svc.Authenticate(ctx, reg.Session.Token)
 	if err != nil {
@@ -94,9 +86,7 @@ func TestService_Authenticate(t *testing.T) {
 }
 
 func TestService_Logout(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
-	ctx := context.Background()
-	reg := registerTestUser(t, svc, "user-1", "a@b.com", "secret12")
+	svc, ctx, reg := newTestServiceWithUser(t, "user-1", "a@b.com", "secret12")
 
 	if err := svc.Logout(ctx, reg.Session.Token); err != nil {
 		t.Fatalf("Logout: %v", err)
@@ -110,7 +100,8 @@ func TestService_Logout(t *testing.T) {
 
 func TestService_Authorize(t *testing.T) {
 	svc, _ := NewService(ServiceConfig{
-		Authz: newTestAuthz(t,
+		Authz: newTestAuthz(
+			t,
 			Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
 		),
 		BcryptCost: minBcryptCost,
@@ -132,9 +123,7 @@ func TestService_Authorize(t *testing.T) {
 }
 
 func TestService_UpdateRoles(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
-	ctx := context.Background()
-	registerTestUser(t, svc, "user-1", "a@b.com", "secret12")
+	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "a@b.com", "secret12")
 
 	if err := svc.UpdateRoles(ctx, NewUserID("user-1"), []Role{RoleAdmin}, "user-1"); err != nil {
 		t.Fatalf("UpdateRoles: %v", err)
@@ -152,53 +141,41 @@ func TestService_UpdateRoles(t *testing.T) {
 }
 
 func TestService_Register_Validation(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
+	svc := newTestService(t)
 	ctx := context.Background()
 
 	_, err := svc.Register(
 		ctx,
 		RegisterRequest{ID: NewUserID(""), Email: "a@b.com", Password: "secret12"},
 	)
-	if !errors.Is(err, ErrValidation) {
-		t.Errorf("expected ErrValidation for empty ID, got %v", err)
-	}
+	assertErrorIs(t, err, ErrValidation, "empty ID")
 
 	_, err = svc.Register(
 		ctx,
 		RegisterRequest{ID: NewUserID("u1"), Email: "invalid", Password: "secret12"},
 	)
-	if !errors.Is(err, ErrValidation) {
-		t.Errorf("expected ErrValidation for bad email, got %v", err)
-	}
+	assertErrorIs(t, err, ErrValidation, "bad email")
 
 	_, err = svc.Register(
 		ctx,
 		RegisterRequest{ID: NewUserID("u1"), Email: "a@b.com", Password: "short"},
 	)
-	if !errors.Is(err, ErrValidation) {
-		t.Errorf("expected ErrValidation for short password, got %v", err)
-	}
+	assertErrorIs(t, err, ErrValidation, "short password")
 }
 
 func TestService_Login_Validation(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
+	svc := newTestService(t)
 	ctx := context.Background()
 
 	_, err := svc.Login(ctx, LoginRequest{Email: "", Password: "secret12"})
-	if !errors.Is(err, ErrValidation) {
-		t.Errorf("expected ErrValidation for empty email, got %v", err)
-	}
+	assertErrorIs(t, err, ErrValidation, "empty email")
 
 	_, err = svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: ""})
-	if !errors.Is(err, ErrValidation) {
-		t.Errorf("expected ErrValidation for empty password, got %v", err)
-	}
+	assertErrorIs(t, err, ErrValidation, "empty password")
 }
 
 func TestService_ChangePassword(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
-	ctx := context.Background()
-	registerTestUser(t, svc, "user-1", "a@b.com", "secret12")
+	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "a@b.com", "secret12")
 
 	if err := svc.ChangePassword(
 		ctx,
@@ -238,9 +215,7 @@ func TestService_ChangePassword(t *testing.T) {
 }
 
 func TestService_Authenticate_ExpiredSession(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
-	ctx := context.Background()
-	reg := registerTestUser(t, svc, "u1", "exp@test.com", "secret12")
+	svc, ctx, reg := newTestServiceWithUser(t, "u1", "exp@test.com", "secret12")
 
 	sessions := svc.sessions.(*InMemorySessionStore)
 	sessions.mu.Lock()
@@ -254,9 +229,7 @@ func TestService_Authenticate_ExpiredSession(t *testing.T) {
 }
 
 func TestService_Authenticate_UserDeleted(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
-	ctx := context.Background()
-	reg := registerTestUser(t, svc, "u1", "del@test.com", "secret12")
+	svc, ctx, reg := newTestServiceWithUser(t, "u1", "del@test.com", "secret12")
 
 	svc.users.Delete(NewUserID("u1"))
 
@@ -265,7 +238,7 @@ func TestService_Authenticate_UserDeleted(t *testing.T) {
 }
 
 func TestService_ChangePassword_UserNotFound(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
+	svc := newTestService(t)
 	ctx := context.Background()
 
 	err := svc.ChangePassword(ctx, NewUserID("nonexistent"), "old", "newpass12")
@@ -273,7 +246,7 @@ func TestService_ChangePassword_UserNotFound(t *testing.T) {
 }
 
 func TestService_UpdateRoles_UserNotFound(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
+	svc := newTestService(t)
 	ctx := context.Background()
 
 	err := svc.UpdateRoles(ctx, NewUserID("nonexistent"), []Role{RoleAdmin}, "dom")
@@ -283,7 +256,7 @@ func TestService_UpdateRoles_UserNotFound(t *testing.T) {
 }
 
 func TestService_Register_NoDisplayName(t *testing.T) {
-	svc, _ := NewService(newTestServiceConfig())
+	svc := newTestService(t)
 	ctx := context.Background()
 
 	resp, err := svc.Register(ctx, RegisterRequest{

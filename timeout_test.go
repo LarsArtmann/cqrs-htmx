@@ -14,149 +14,102 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func newTimeoutCommandApp(
+	handler func(context.Context, command.Command) error,
+	timeout time.Duration,
+) *cqrshtmx.App {
+	disp := command.NewDispatcher()
+	_ = disp.Register("CreateUser", handler)
+	app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp, Timeout: timeout})
+	Expect(err).NotTo(HaveOccurred())
+	return app
+}
+
+func newTimeoutQueryApp(
+	handler func(context.Context, query.Query) (any, error),
+	timeout time.Duration,
+) *cqrshtmx.App {
+	disp := query.NewDispatcher()
+	_ = disp.Register("GetUser", handler)
+	app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp, Timeout: timeout})
+	Expect(err).NotTo(HaveOccurred())
+	return app
+}
+
 var _ = Describe("Timeout Support", func() {
 	Describe("Command dispatch with timeout", func() {
 		It("cancels command handler when timeout is exceeded", func() {
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
+			app := newTimeoutCommandApp(func(ctx context.Context, _ command.Command) error {
 				<-ctx.Done()
 				return ctx.Err()
-			})
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-				Timeout:  50 * time.Millisecond,
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser", decodeCreateUserJSON())
+			}, 50*time.Millisecond)
 
 			r := httptest.NewRequest(http.MethodPost, "/slow", strings.NewReader(`{}`))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Code).To(Equal(http.StatusServiceUnavailable))
+			w := serve(app.Command("CreateUser", decodeCreateUserJSON()), r)
+			Expect(w.code()).To(Equal(http.StatusServiceUnavailable))
 		})
 
 		It("completes command within timeout", func() {
-			disp := command.NewDispatcher()
-			dispatched := false
-			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-				Timeout:  5 * time.Second,
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser", decodeCreateUserJSON())
+			var dispatched bool
+			app := newTimeoutCommandApp(trackingCommandHandler(&dispatched), 5*time.Second)
 
 			r := httptest.NewRequest(http.MethodPost, "/fast", strings.NewReader(`{}`))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			w := serve(app.Command("CreateUser", decodeCreateUserJSON()), r)
 			Expect(dispatched).To(BeTrue())
-			Expect(w.Code).To(Equal(http.StatusNoContent))
+			Expect(w.code()).To(Equal(http.StatusNoContent))
 		})
 	})
 
 	Describe("Query dispatch with timeout", func() {
 		It("cancels query handler when timeout is exceeded", func() {
-			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(ctx context.Context, _ query.Query) (any, error) {
+			app := newTimeoutQueryApp(func(ctx context.Context, _ query.Query) (any, error) {
 				<-ctx.Done()
 				return nil, ctx.Err()
-			})
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Queries: disp,
-				Timeout: 50 * time.Millisecond,
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Query("GetUser", decodeGetUserJSONQuery())
+			}, 50*time.Millisecond)
 
 			r := httptest.NewRequest(http.MethodGet, "/slow", strings.NewReader(`{}`))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Code).To(Equal(http.StatusServiceUnavailable))
+			w := serve(app.Query("GetUser", decodeGetUserJSONQuery()), r)
+			Expect(w.code()).To(Equal(http.StatusServiceUnavailable))
 		})
 
 		It("completes query within timeout", func() {
-			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
+			app := newTimeoutQueryApp(func(_ context.Context, _ query.Query) (any, error) {
 				return testQueryResult, nil
-			})
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Queries: disp,
-				Timeout: 5 * time.Second,
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Query("GetUser",
-				decodeGetUserJSONQuery(),
-				cqrshtmx.Render(encodeJSONResult),
-			)
+			}, 5*time.Second)
 
 			r := httptest.NewRequest(http.MethodGet, "/fast", strings.NewReader(`{}`))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Code).To(Equal(http.StatusOK))
+			w := serve(app.Query("GetUser",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.Render(encodeJSONResult),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusOK))
 		})
 	})
 
 	Describe("Timeout edge cases", func() {
 		It("does not apply timeout when zero", func() {
-			disp := command.NewDispatcher()
-			dispatched := false
-			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-				Timeout:  0,
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser", decodeCreateUserJSON())
-
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			var dispatched bool
+			app := newTimeoutCommandApp(trackingCommandHandler(&dispatched), 0)
+			serve(app.Command("CreateUser", decodeCreateUserJSON()),
+				newPostRequest("/users", `{}`))
 			Expect(dispatched).To(BeTrue())
 		})
 
 		It("does not apply timeout when negative", func() {
-			disp := command.NewDispatcher()
-			dispatched := false
-			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
-
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-				Timeout:  -1 * time.Second,
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser", decodeCreateUserJSON())
-
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			var dispatched bool
+			app := newTimeoutCommandApp(trackingCommandHandler(&dispatched), -1*time.Second)
+			serve(app.Command("CreateUser", decodeCreateUserJSON()),
+				newPostRequest("/users", `{}`))
 			Expect(dispatched).To(BeTrue())
 		})
 
 		It("timeout context respects BeforeDispatch modifications", func() {
-			disp := command.NewDispatcher()
 			var hasDeadline bool
+			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
 				_, hasDeadline = ctx.Deadline()
 				return nil
 			})
-
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands: disp,
 				Timeout:  1 * time.Second,
@@ -165,13 +118,8 @@ var _ = Describe("Timeout Support", func() {
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
-
-			handler := app.Command("CreateUser", decodeCreateUserJSON())
-
-			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{}`))
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-
+			serve(app.Command("CreateUser", decodeCreateUserJSON()),
+				newPostRequest("/users", `{}`))
 			Expect(hasDeadline).To(BeTrue())
 		})
 	})

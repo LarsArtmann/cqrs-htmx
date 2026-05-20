@@ -3,6 +3,7 @@ package cqrshtmx_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	. "github.com/onsi/ginkgo/v2"
@@ -10,81 +11,54 @@ import (
 )
 
 var _ = Describe("HTMX", func() {
-	Describe("IsHTMXRequest", func() {
-		It("returns true when HX-Request header is set", func() {
+	DescribeTable(
+		"bool accessors",
+		func(header string, setHeader bool, accessor func(*http.Request) bool, expected bool) {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			Expect(cqrshtmx.IsHTMXRequest(r)).To(BeTrue())
-		})
+			if setHeader {
+				r.Header.Set(header, cqrshtmx.HeaderTrue)
+			}
+			Expect(accessor(r)).To(Equal(expected))
+		},
+		Entry("IsHTMXRequest true", "HX-Request", true, cqrshtmx.IsHTMXRequest, true),
+		Entry("IsHTMXRequest absent", "HX-Request", false, cqrshtmx.IsHTMXRequest, false),
+		Entry("IsBoosted true", "HX-Boosted", true, cqrshtmx.IsBoosted, true),
+		Entry("IsBoosted absent", "HX-Boosted", false, cqrshtmx.IsBoosted, false),
+		Entry(
+			"IsHistoryRestore true",
+			"HX-History-Restore-Request",
+			true,
+			cqrshtmx.IsHistoryRestore,
+			true,
+		),
+	)
 
-		It("returns false when HX-Request header is absent", func() {
+	DescribeTable(
+		"string accessors",
+		func(header, value string, accessor func(*http.Request) string, expected string) {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			Expect(cqrshtmx.IsHTMXRequest(r)).To(BeFalse())
-		})
+			if value != "" {
+				r.Header.Set(header, value)
+			}
+			Expect(accessor(r)).To(Equal(expected))
+		},
+		Entry("HTMXTarget set", "HX-Target", "user-list", cqrshtmx.HTMXTarget, "user-list"),
+		Entry("HTMXTarget empty", "HX-Target", "", cqrshtmx.HTMXTarget, ""),
+		Entry("HTMXTrigger set", "HX-Trigger", "submit-btn", cqrshtmx.HTMXTrigger, "submit-btn"),
+		Entry("HTMXPrompt set", "HX-Prompt", "yes", cqrshtmx.HTMXPrompt, "yes"),
+		Entry(
+			"HTMXCurrentURL set",
+			"HX-Current-URL",
+			"https://example.com/users",
+			cqrshtmx.HTMXCurrentURL,
+			"https://example.com/users",
+		),
+	)
 
-		It("returns false when HX-Request header is not 'true'", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", "false")
-			Expect(cqrshtmx.IsHTMXRequest(r)).To(BeFalse())
-		})
-	})
-
-	Describe("IsBoosted", func() {
-		It("returns true when HX-Boosted header is set", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Boosted", cqrshtmx.HeaderTrue)
-			Expect(cqrshtmx.IsBoosted(r)).To(BeTrue())
-		})
-
-		It("returns false when HX-Boosted header is absent", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			Expect(cqrshtmx.IsBoosted(r)).To(BeFalse())
-		})
-	})
-
-	Describe("IsHistoryRestore", func() {
-		It("returns true when HX-History-Restore-Request header is set", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-History-Restore-Request", cqrshtmx.HeaderTrue)
-			Expect(cqrshtmx.IsHistoryRestore(r)).To(BeTrue())
-		})
-	})
-
-	Describe("HTMXTarget", func() {
-		It("returns the target element ID", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Target", "user-list")
-			Expect(cqrshtmx.HTMXTarget(r)).To(Equal("user-list"))
-		})
-
-		It("returns empty string when not set", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			Expect(cqrshtmx.HTMXTarget(r)).To(BeEmpty())
-		})
-	})
-
-	Describe("HTMXTrigger", func() {
-		It("returns the trigger element ID", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Trigger", "submit-btn")
-			Expect(cqrshtmx.HTMXTrigger(r)).To(Equal("submit-btn"))
-		})
-	})
-
-	Describe("HTMXPrompt", func() {
-		It("returns the prompt response", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Prompt", "yes")
-			Expect(cqrshtmx.HTMXPrompt(r)).To(Equal("yes"))
-		})
-	})
-
-	Describe("HTMXCurrentURL", func() {
-		It("returns the current URL", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Current-URL", "https://example.com/users")
-			Expect(cqrshtmx.HTMXCurrentURL(r)).To(Equal("https://example.com/users"))
-		})
+	It("returns false when HX-Request header is not 'true'", func() {
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		r.Header.Set("HX-Request", "false")
+		Expect(cqrshtmx.IsHTMXRequest(r)).To(BeFalse())
 	})
 })
 
@@ -99,37 +73,86 @@ var _ = Describe("HTMX Response Builder", func() {
 		r = httptest.NewRequest(http.MethodGet, "/", nil)
 	})
 
+	assertHeader := func(resp *cqrshtmx.Response, header, expected string) {
+		resp.Apply()
+		Expect(w.Header().Get(header)).To(Equal(expected))
+	}
+
 	Describe("NewResponse", func() {
 		It("creates a response builder", func() {
-			resp := cqrshtmx.NewResponse(w, r)
-			Expect(resp).NotTo(BeNil())
+			Expect(cqrshtmx.NewResponse(w, r)).NotTo(BeNil())
 		})
 	})
+
+	DescribeTable(
+		"header setters",
+		func(build func(*cqrshtmx.Response) *cqrshtmx.Response, header, expected string) {
+			assertHeader(build(cqrshtmx.NewResponse(w, r)), header, expected)
+		},
+		Entry(
+			"PushURL",
+			func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.PushURL("/users/1") },
+			"HX-Push-Url",
+			"/users/1",
+		),
+		Entry(
+			"ReplaceURL",
+			func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.ReplaceURL("/users/1") },
+			"HX-Replace-Url",
+			"/users/1",
+		),
+		Entry(
+			"Refresh",
+			func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.Refresh() },
+			"HX-Refresh",
+			cqrshtmx.HeaderTrue,
+		),
+		Entry(
+			"Reswap",
+			func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.Reswap(cqrshtmx.SwapAfterEnd) },
+			"HX-Reswap",
+			"afterend",
+		),
+		Entry(
+			"Retarget",
+			func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.Retarget("#modal") },
+			"HX-Retarget",
+			"#modal",
+		),
+		Entry(
+			"Reselect",
+			func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.Reselect("#content") },
+			"HX-Reselect",
+			"#content",
+		),
+		Entry(
+			"Trigger",
+			func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.Trigger("userCreated") },
+			"HX-Trigger",
+			"userCreated",
+		),
+		Entry(
+			"TriggerAfterSwap",
+			func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.TriggerAfterSwap("dataLoaded") },
+			"HX-Trigger-After-Swap",
+			"dataLoaded",
+		),
+		Entry(
+			"TriggerAfterSettle",
+			func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.TriggerAfterSettle("animationDone") },
+			"HX-Trigger-After-Settle",
+			"animationDone",
+		),
+	)
 
 	Describe("IsHTMX", func() {
 		It("returns true for HTMX requests", func() {
 			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			resp := cqrshtmx.NewResponse(w, r)
-			Expect(resp.IsHTMX()).To(BeTrue())
+			Expect(cqrshtmx.NewResponse(w, r).IsHTMX()).To(BeTrue())
 		})
 
 		It("returns false for regular requests", func() {
-			resp := cqrshtmx.NewResponse(w, r)
-			Expect(resp.IsHTMX()).To(BeFalse())
-		})
-	})
-
-	Describe("PushURL", func() {
-		It("sets HX-Push-Url header", func() {
-			cqrshtmx.NewResponse(w, r).PushURL("/users/1").Apply()
-			Expect(w.Header().Get("HX-Push-Url")).To(Equal("/users/1"))
-		})
-	})
-
-	Describe("ReplaceURL", func() {
-		It("sets HX-Replace-Url header", func() {
-			cqrshtmx.NewResponse(w, r).ReplaceURL("/users/1").Apply()
-			Expect(w.Header().Get("HX-Replace-Url")).To(Equal("/users/1"))
+			Expect(cqrshtmx.NewResponse(w, r).IsHTMX()).To(BeFalse())
 		})
 	})
 
@@ -149,57 +172,10 @@ var _ = Describe("HTMX Response Builder", func() {
 		})
 	})
 
-	Describe("Refresh", func() {
-		It("sets HX-Refresh header", func() {
-			cqrshtmx.NewResponse(w, r).Refresh().Apply()
-			Expect(w.Header().Get("HX-Refresh")).To(Equal(cqrshtmx.HeaderTrue))
-		})
-	})
-
-	Describe("Reswap", func() {
-		It("sets HX-Reswap header", func() {
-			cqrshtmx.NewResponse(w, r).Reswap(cqrshtmx.SwapAfterEnd).Apply()
-			Expect(w.Header().Get("HX-Reswap")).To(Equal("afterend"))
-		})
-	})
-
-	Describe("Retarget", func() {
-		It("sets HX-Retarget header", func() {
-			cqrshtmx.NewResponse(w, r).Retarget("#modal").Apply()
-			Expect(w.Header().Get("HX-Retarget")).To(Equal("#modal"))
-		})
-	})
-
-	Describe("Reselect", func() {
-		It("sets HX-Reselect header", func() {
-			cqrshtmx.NewResponse(w, r).Reselect("#content").Apply()
-			Expect(w.Header().Get("HX-Reselect")).To(Equal("#content"))
-		})
-	})
-
 	Describe("Trigger", func() {
-		It("sets HX-Trigger header", func() {
-			cqrshtmx.NewResponse(w, r).Trigger("userCreated").Apply()
-			Expect(w.Header().Get("HX-Trigger")).To(Equal("userCreated"))
-		})
-
 		It("appends multiple triggers", func() {
 			cqrshtmx.NewResponse(w, r).Trigger("evt1").Trigger("evt2").Apply()
 			Expect(w.Header().Get("HX-Trigger")).To(Equal("evt1,evt2"))
-		})
-	})
-
-	Describe("TriggerAfterSwap", func() {
-		It("sets HX-Trigger-After-Swap header", func() {
-			cqrshtmx.NewResponse(w, r).TriggerAfterSwap("dataLoaded").Apply()
-			Expect(w.Header().Get("HX-Trigger-After-Swap")).To(Equal("dataLoaded"))
-		})
-	})
-
-	Describe("TriggerAfterSettle", func() {
-		It("sets HX-Trigger-After-Settle header", func() {
-			cqrshtmx.NewResponse(w, r).TriggerAfterSettle("animationDone").Apply()
-			Expect(w.Header().Get("HX-Trigger-After-Settle")).To(Equal("animationDone"))
 		})
 	})
 
@@ -391,69 +367,69 @@ var _ = Describe("HTMXRequest context", func() {
 		})
 	})
 
-	Describe("accessor fallback without middleware", func() {
-		It("reads IsHistoryRestore from header directly", func() {
+	DescribeTable(
+		"accessor fallback without middleware",
+		func(header, value string, accessor func(*http.Request) string, expected string) {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-History-Restore-Request", cqrshtmx.HeaderTrue)
-			Expect(cqrshtmx.IsHistoryRestore(r)).To(BeTrue())
-		})
-
-		It("reads HTMXTriggerName from header directly", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Trigger-Name", "my-trigger")
-			Expect(cqrshtmx.HTMXTriggerName(r)).To(Equal("my-trigger"))
-		})
-
-		It("reads HTMXPrompt from header directly", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Prompt", "confirmed")
-			Expect(cqrshtmx.HTMXPrompt(r)).To(Equal("confirmed"))
-		})
-
-		It("reads HTMXCurrentURL from header directly", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Current-URL", "https://example.com/test")
-			Expect(cqrshtmx.HTMXCurrentURL(r)).To(Equal("https://example.com/test"))
-		})
-	})
+			r.Header.Set(header, value)
+			Expect(accessor(r)).To(Equal(expected))
+		},
+		Entry(
+			"IsHistoryRestore",
+			"HX-History-Restore-Request",
+			cqrshtmx.HeaderTrue,
+			func(r *http.Request) string { return strconv.FormatBool(cqrshtmx.IsHistoryRestore(r)) },
+			"true",
+		),
+		Entry(
+			"HTMXTriggerName",
+			"HX-Trigger-Name",
+			"my-trigger",
+			cqrshtmx.HTMXTriggerName,
+			"my-trigger",
+		),
+		Entry("HTMXPrompt", "HX-Prompt", "confirmed", cqrshtmx.HTMXPrompt, "confirmed"),
+		Entry(
+			"HTMXCurrentURL",
+			"HX-Current-URL",
+			"https://example.com/test",
+			cqrshtmx.HTMXCurrentURL,
+			"https://example.com/test",
+		),
+	)
 })
 
-var _ = Describe("Notification helpers", func() {
-	Describe("Response notification methods", func() {
-		It("NotifySuccess sends success notification", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			cqrshtmx.NewResponse(w, r).NotifySuccess("Done!").Apply()
-			trigger := w.Header().Get("HX-Trigger")
-			Expect(trigger).To(ContainSubstring("success"))
-			Expect(trigger).To(ContainSubstring("Done!"))
-		})
-
-		It("NotifyError sends error notification", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			cqrshtmx.NewResponse(w, r).NotifyError("Failed").Apply()
-			trigger := w.Header().Get("HX-Trigger")
-			Expect(trigger).To(ContainSubstring("error"))
-			Expect(trigger).To(ContainSubstring("Failed"))
-		})
-
-		It("NotifyWarning sends warning notification", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			cqrshtmx.NewResponse(w, r).NotifyWarning("Careful").Apply()
-			trigger := w.Header().Get("HX-Trigger")
-			Expect(trigger).To(ContainSubstring("warning"))
-			Expect(trigger).To(ContainSubstring("Careful"))
-		})
-
-		It("NotifyInfo sends info notification", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			cqrshtmx.NewResponse(w, r).NotifyInfo("FYI").Apply()
-			trigger := w.Header().Get("HX-Trigger")
-			Expect(trigger).To(ContainSubstring("info"))
-			Expect(trigger).To(ContainSubstring("FYI"))
-		})
-	})
-})
+var _ = DescribeTable("notification methods",
+	func(notify func(*cqrshtmx.Response) *cqrshtmx.Response, level, message string) {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		notify(cqrshtmx.NewResponse(w, r)).Apply()
+		trigger := w.Header().Get("HX-Trigger")
+		Expect(trigger).To(ContainSubstring(level))
+		Expect(trigger).To(ContainSubstring(message))
+	},
+	Entry(
+		"NotifySuccess",
+		func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifySuccess("Done!") },
+		"success",
+		"Done!",
+	),
+	Entry(
+		"NotifyError",
+		func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifyError("Failed") },
+		"error",
+		"Failed",
+	),
+	Entry(
+		"NotifyWarning",
+		func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifyWarning("Careful") },
+		"warning",
+		"Careful",
+	),
+	Entry(
+		"NotifyInfo",
+		func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifyInfo("FYI") },
+		"info",
+		"FYI",
+	),
+)

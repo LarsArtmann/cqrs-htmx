@@ -21,121 +21,79 @@ var _ = Describe("Middleware", func() {
 			userID = cqrshtmx.UserID{}
 		})
 
-		It("enriches context with user ID from extractor", func() {
-			want := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
-			extractor := staticExtractor(want)
+		assertMiddleware := func(
+			extractor cqrshtmx.UserIDExtractor,
+			assertions func(cqrshtmx.UserID),
+		) {
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
-
 			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 				nextCalled = true
 				userID = cqrshtmx.UserIDFromContext(r.Context())
 			}))
-
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w, r)
-
 			Expect(nextCalled).To(BeTrue())
-			Expect(userID).To(Equal(want))
+			assertions(userID)
+		}
+
+		It("enriches context with user ID from extractor", func() {
+			want := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+			assertMiddleware(staticExtractor(want), func(got cqrshtmx.UserID) {
+				Expect(got).To(Equal(want))
+			})
 		})
 
 		It("does not set user ID when extractor returns empty", func() {
-			extractor := func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil }
-			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
-
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				nextCalled = true
-				userID = cqrshtmx.UserIDFromContext(r.Context())
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(nextCalled).To(BeTrue())
-			Expect(userID).To(BeZero())
+			assertMiddleware(
+				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil },
+				func(got cqrshtmx.UserID) { Expect(got).To(BeZero()) },
+			)
 		})
 
 		It("handles nil extractor gracefully", func() {
-			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
-
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				nextCalled = true
-				userID = cqrshtmx.UserIDFromContext(r.Context())
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(nextCalled).To(BeTrue())
-			Expect(userID).To(BeZero())
+			assertMiddleware(nil, func(got cqrshtmx.UserID) { Expect(got).To(BeZero()) })
 		})
 
 		It("drops unparseable user IDs silently", func() {
-			extractor := func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil }
-			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
-
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				nextCalled = true
-				userID = cqrshtmx.UserIDFromContext(r.Context())
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(nextCalled).To(BeTrue())
-			Expect(userID).To(BeZero())
+			assertMiddleware(
+				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil },
+				func(got cqrshtmx.UserID) { Expect(got).To(BeZero()) },
+			)
 		})
 
-		It("auto-generates RequestID when no header is present", func() {
-			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
-			var captured cqrshtmx.RequestID
-
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				captured = cqrshtmx.RequestIDFromContext(r.Context())
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(captured.IsZero()).To(BeFalse())
-		})
-
-		It("extracts RequestID from X-Request-ID header", func() {
-			want := cqrshtmx.MustParseRequestID("01HK1549P84T9XF8R94E960633")
-			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
-			var captured cqrshtmx.RequestID
-
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				captured = cqrshtmx.RequestIDFromContext(r.Context())
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("X-Request-ID", want.String())
-			handler.ServeHTTP(w, r)
-
-			Expect(captured).To(Equal(want))
-		})
-
-		It("drops unparseable RequestID silently and generates new one", func() {
-			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
-			var captured cqrshtmx.RequestID
-
-			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				captured = cqrshtmx.RequestIDFromContext(r.Context())
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("X-Request-ID", "invalid-id")
-			handler.ServeHTTP(w, r)
-
-			Expect(captured.IsZero()).To(BeFalse())
-		})
+		DescribeTable("RequestID handling",
+			func(setupRequest func(*http.Request), assertRequestID func(cqrshtmx.RequestID)) {
+				middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
+				var captured cqrshtmx.RequestID
+				handler := middleware(
+					http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+						captured = cqrshtmx.RequestIDFromContext(r.Context())
+					}),
+				)
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				setupRequest(r)
+				handler.ServeHTTP(w, r)
+				assertRequestID(captured)
+			},
+			Entry("auto-generates when no header",
+				func(_ *http.Request) {},
+				func(rid cqrshtmx.RequestID) { Expect(rid.IsZero()).To(BeFalse()) }),
+			Entry("extracts from X-Request-ID header",
+				func(r *http.Request) {
+					r.Header.Set(
+						"X-Request-ID",
+						cqrshtmx.MustParseRequestID("01HK1549P84T9XF8R94E960633").String(),
+					)
+				},
+				func(rid cqrshtmx.RequestID) {
+					Expect(rid).To(Equal(cqrshtmx.MustParseRequestID("01HK1549P84T9XF8R94E960633")))
+				}),
+			Entry("drops unparseable and generates new",
+				func(r *http.Request) { r.Header.Set("X-Request-ID", "invalid-id") },
+				func(rid cqrshtmx.RequestID) { Expect(rid.IsZero()).To(BeFalse()) }),
+		)
 	})
 
 	Describe("Chain", func() {
