@@ -213,7 +213,15 @@ func policyArgs(p Policy) []any {
 }
 
 func policyWrapErr(msg string, p Policy) string {
-	return fmt.Sprintf("%s {%s, %s, %s, %s, %s}", msg, p.Subject, p.Domain, p.Object, p.Action, p.Effect)
+	return fmt.Sprintf(
+		"%s {%s, %s, %s, %s, %s}",
+		msg,
+		p.Subject,
+		p.Domain,
+		p.Object,
+		p.Action,
+		p.Effect,
+	)
 }
 
 // Apply atomically applies a batch of group and policy additions/removals.

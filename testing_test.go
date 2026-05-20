@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
@@ -130,6 +128,16 @@ func decodeBDDCreateUserJSONWithBody() cqrshtmx.HandlerOption {
 	})
 }
 
+func decodeBDDCreateUserFormMapper() func(bddCreateUserReq) (command.Command, error) {
+	return func(req bddCreateUserReq) (command.Command, error) {
+		return &bddCreateUserCmd{
+			aggID: id.NewAggregateID(),
+			email: req.Email,
+			name:  req.Name,
+		}, nil
+	}
+}
+
 // --- Handler helpers ---
 
 func noOpCommandHandler(_ context.Context, _ command.Command) error { return nil }
@@ -198,33 +206,4 @@ func newTestEnforcer() *casbin.Enforcer {
 	_, _ = e.AddPolicy(viewerUserID.String(), "users", "read")
 
 	return e
-}
-
-// --- HTTP request helpers ---
-
-func newPostRequest(body string) *http.Request {
-	return httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
-}
-
-func newGetRequest(body string) *http.Request {
-	return httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(body))
-}
-
-func newGetRequestWithPath(path, body string) *http.Request {
-	return httptest.NewRequest(http.MethodGet, path, strings.NewReader(body))
-}
-
-func withHTMX(r *http.Request) *http.Request {
-	r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-	return r
-}
-
-func withUser(r *http.Request, uid cqrshtmx.UserID) *http.Request {
-	r.Header.Set("X-User", uid.String())
-	return r
-}
-
-func withUserID(r *http.Request, uid cqrshtmx.UserID) *http.Request {
-	r.Header.Set("X-User-ID", uid.String())
-	return r
 }

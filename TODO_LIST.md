@@ -114,6 +114,16 @@
 - [x] **Fix SessionMaxAge not copied in NewAuthHandlers** — `http.go:NewAuthHandlers` did not copy `SessionMaxAge` from `HandlerConfig`, always defaulting to 86400.
 - [x] **usermgmt test coverage 85% → 95.6%** — Added tests for untested authz methods (ImplicitRoles, ImplicitPermissions, Policies, GroupPolicies, AddPolicy, RemovePolicy, RemoveGroupPolicy), store paths (duplicate ID, WithTTL), http config (SessionMaxAge, custom CookieName), and UserID type operations.
 
+### New Items from 2026-05-20 Session (Part 2)
+
+- [x] **Error wrapping consistency** — `fmt.Errorf` → `cockroachdb/errors` for sentinel-only wraps (`errors.WithMessagef`) and inner-error wraps (`errors.Wrapf`). Double-wrapping keeps `fmt.Errorf("%w: %w")` for `errors.Is` compatibility.
+- [x] **Extract security header constants** — 9 unexported constants in `security.go` (6 header names + 3 defaults).
+- [x] **Extract magic string constants** — `logFieldCorrelationID`, `logFieldUserID`, `logFieldRequestID` (logging.go), `headerRetryAfter`, `rateLimitExceededMsg` (ratelimit.go), `notificationKeyLevel`, `notificationKeyMessage` (notify.go).
+- [x] **Consolidate test type declarations** — All shared test types moved to `testing_test.go`; duplicates removed from `app_test.go`, `bdd_test.go`, `integration_test.go`.
+- [x] **Add godoc to all usermgmt exported symbols** — ~70 symbols across 9 files.
+- [x] **Raise usermgmt coverage to 92.1%** — Added 16 targeted tests for uncovered paths.
+- [x] **Fix UserIDFromRequest godoc** — Updated to clarify it returns `string`, not `cqrshtmx.UserID`.
+
 ### Open Items
 
 - [ ] **Resolve usermgmt vs cqrshtmx UserID type split** — `usermgmt.UserID` (string-backed) vs `cqrshtmx.UserID` (ULID-backed) are incompatible types. Decision depends on whether usermgmt is standalone or always paired with cqrs-htmx.

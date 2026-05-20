@@ -83,10 +83,7 @@ var _ = Describe("App", func() {
 		BeforeEach(func() {
 			disp := command.NewDispatcher()
 			dispatched = false
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				dispatched = true
-				return nil
-			})
+			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
@@ -150,7 +147,7 @@ var _ = Describe("App", func() {
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
 				Enforcer:        enf,
-				UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.ParseUserID(r.Header.Get("X-User-ID")) },
+				UserIDExtractor: headerExtractor("X-User-ID"),
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -314,7 +311,7 @@ var _ = Describe("App", func() {
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Queries:         disp,
 				Enforcer:        enf,
-				UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.ParseUserID(r.Header.Get("X-User-ID")) },
+				UserIDExtractor: headerExtractor("X-User-ID"),
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})

@@ -19,10 +19,7 @@ var _ = Describe("Validation HandlerOption", func() {
 		It("allows valid commands through", func() {
 			disp := command.NewDispatcher()
 			dispatched := false
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				dispatched = true
-				return nil
-			})
+			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 
 			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())

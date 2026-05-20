@@ -575,10 +575,7 @@ var _ = Describe("Coverage Gaps", func() {
 		It("falls back to app timeout when zero", func() {
 			disp := command.NewDispatcher()
 			dispatched := false
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				dispatched = true
-				return nil
-			})
+			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands: disp,

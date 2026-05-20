@@ -11,31 +11,47 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func newLoggingCapture(wrapped http.Handler) (http.Handler, *string) {
+	var logged string
+	middleware := cqrshtmx.RequestLogging(nil, func(line string) {
+		logged = line
+	})
+	return middleware(wrapped), &logged
+}
+
+func newSlogCapture() (func(http.Handler) http.Handler, *bytes.Buffer) {
+	var buf bytes.Buffer
+	//nolint:exhaustruct // test config intentionally uses defaults for other fields
+	logger := slog.New(slog.NewJSONHandler(
+		&buf,
+		&slog.HandlerOptions{Level: slog.LevelInfo},
+	))
+	return cqrshtmx.RequestLoggingSlog(logger), &buf
+}
+
+func withContextIDs(r *http.Request) *http.Request {
+	ctx := cqrshtmx.WithCorrelationID(r.Context(),
+		cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633"))
+	ctx = cqrshtmx.WithUserID(ctx,
+		cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2"))
+	return r.WithContext(ctx)
+}
+
 var _ = Describe("Request Logging", func() {
 	Describe("RequestLoggingMiddleware", func() {
 		It("logs requests with default formatter", func() {
-			var logged string
-			middleware := cqrshtmx.RequestLogging(nil, func(line string) {
-				logged = line
-			})
-
-			handler := middleware(createdHandler())
+			handler, logged := newLoggingCapture(createdHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodPost, "/users", nil)
 			handler.ServeHTTP(w, r)
 
-			Expect(logged).To(ContainSubstring("POST /users"))
-			Expect(logged).To(ContainSubstring("Created"))
+			Expect(*logged).To(ContainSubstring("POST /users"))
+			Expect(*logged).To(ContainSubstring("Created"))
 		})
 
 		It("captures correlation ID from context", func() {
-			var logged string
-			middleware := cqrshtmx.RequestLogging(nil, func(line string) {
-				logged = line
-			})
-
-			handler := middleware(okHandler())
+			handler, logged := newLoggingCapture(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/items", nil)
@@ -43,16 +59,11 @@ var _ = Describe("Request Logging", func() {
 				cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633")))
 			handler.ServeHTTP(w, r)
 
-			Expect(logged).To(ContainSubstring("correlation=01HK1549P84T9XF8R94E960633"))
+			Expect(*logged).To(ContainSubstring("correlation=01HK1549P84T9XF8R94E960633"))
 		})
 
 		It("captures user ID from context", func() {
-			var logged string
-			middleware := cqrshtmx.RequestLogging(nil, func(line string) {
-				logged = line
-			})
-
-			handler := middleware(okHandler())
+			handler, logged := newLoggingCapture(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
@@ -60,28 +71,19 @@ var _ = Describe("Request Logging", func() {
 				cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2")))
 			handler.ServeHTTP(w, r)
 
-			Expect(logged).To(ContainSubstring("user=01HK154ANGZHV2ZW0X3SKSNEN2"))
+			Expect(*logged).To(ContainSubstring("user=01HK154ANGZHV2ZW0X3SKSNEN2"))
 		})
 
 		It("captures both correlation ID and user ID", func() {
-			var logged string
-			middleware := cqrshtmx.RequestLogging(nil, func(line string) {
-				logged = line
-			})
-
-			handler := middleware(okHandler())
+			handler, logged := newLoggingCapture(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
-			ctx := cqrshtmx.WithCorrelationID(r.Context(),
-				cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633"))
-			ctx = cqrshtmx.WithUserID(ctx,
-				cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2"))
-			r = r.WithContext(ctx)
+			r = withContextIDs(r)
 			handler.ServeHTTP(w, r)
 
-			Expect(logged).To(ContainSubstring("correlation=01HK1549P84T9XF8R94E960633"))
-			Expect(logged).To(ContainSubstring("user=01HK154ANGZHV2ZW0X3SKSNEN2"))
+			Expect(*logged).To(ContainSubstring("correlation=01HK1549P84T9XF8R94E960633"))
+			Expect(*logged).To(ContainSubstring("user=01HK154ANGZHV2ZW0X3SKSNEN2"))
 		})
 
 		It("defaults to 200 status when handler writes body without explicit status", func() {
@@ -144,11 +146,7 @@ var _ = Describe("Request Logging", func() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/api/users", nil)
-			ctx := cqrshtmx.WithCorrelationID(r.Context(),
-				cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633"))
-			ctx = cqrshtmx.WithUserID(ctx,
-				cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2"))
-			r = r.WithContext(ctx)
+			r = withContextIDs(r)
 			handler.ServeHTTP(w, r)
 
 			Expect(logged).To(ContainSubstring(`"correlation_id":"01HK1549P84T9XF8R94E960633"`))
@@ -158,13 +156,7 @@ var _ = Describe("Request Logging", func() {
 
 	Describe("RequestLoggingSlog", func() {
 		It("logs requests with structured slog output", func() {
-			var buf bytes.Buffer
-			//nolint:exhaustruct // test config intentionally uses defaults for other fields
-			logger := slog.New(slog.NewJSONHandler(
-				&buf,
-				&slog.HandlerOptions{Level: slog.LevelInfo},
-			))
-			middleware := cqrshtmx.RequestLoggingSlog(logger)
+			middleware, buf := newSlogCapture()
 
 			handler := middleware(createdHandler())
 
@@ -180,13 +172,7 @@ var _ = Describe("Request Logging", func() {
 		})
 
 		It("includes request_id from context in slog output", func() {
-			var buf bytes.Buffer
-			//nolint:exhaustruct // test config intentionally uses defaults for other fields
-			logger := slog.New(slog.NewJSONHandler(
-				&buf,
-				&slog.HandlerOptions{Level: slog.LevelInfo},
-			))
-			middleware := cqrshtmx.RequestLoggingSlog(logger)
+			middleware, buf := newSlogCapture()
 
 			handler := middleware(okHandler())
 
@@ -200,13 +186,7 @@ var _ = Describe("Request Logging", func() {
 			Expect(logged).To(ContainSubstring(`"request_id":"01HK1549P84T9XF8R94E960633"`))
 		})
 		It("includes query string in slog output", func() {
-			var buf bytes.Buffer
-			//nolint:exhaustruct // test config intentionally uses defaults for other fields
-			logger := slog.New(slog.NewJSONHandler(
-				&buf,
-				&slog.HandlerOptions{Level: slog.LevelInfo},
-			))
-			middleware := cqrshtmx.RequestLoggingSlog(logger)
+			middleware, buf := newSlogCapture()
 
 			handler := middleware(okHandler())
 
@@ -219,23 +199,13 @@ var _ = Describe("Request Logging", func() {
 		})
 
 		It("includes correlation_id and user_id in slog output", func() {
-			var buf bytes.Buffer
-			//nolint:exhaustruct // test config intentionally uses defaults for other fields
-			logger := slog.New(slog.NewJSONHandler(
-				&buf,
-				&slog.HandlerOptions{Level: slog.LevelInfo},
-			))
-			middleware := cqrshtmx.RequestLoggingSlog(logger)
+			middleware, buf := newSlogCapture()
 
 			handler := middleware(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
-			ctx := cqrshtmx.WithCorrelationID(r.Context(),
-				cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633"))
-			ctx = cqrshtmx.WithUserID(ctx,
-				cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2"))
-			r = r.WithContext(ctx)
+			r = withContextIDs(r)
 			handler.ServeHTTP(w, r)
 
 			logged := buf.String()
@@ -244,13 +214,7 @@ var _ = Describe("Request Logging", func() {
 		})
 
 		It("defaults to 200 status when handler writes body without explicit status", func() {
-			var buf bytes.Buffer
-			//nolint:exhaustruct // test config intentionally uses defaults for other fields
-			logger := slog.New(slog.NewJSONHandler(
-				&buf,
-				&slog.HandlerOptions{Level: slog.LevelInfo},
-			))
-			middleware := cqrshtmx.RequestLoggingSlog(logger)
+			middleware, buf := newSlogCapture()
 
 			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				_, _ = w.Write([]byte("hello"))
@@ -267,7 +231,7 @@ var _ = Describe("Request Logging", func() {
 
 	Describe("statusRecorder", func() {
 		It("delegates Push to underlying http.Pusher", func() {
-			handler := cqrshtmx.RequestLogging(nil, func(line string) {})
+			handler := cqrshtmx.RequestLogging(nil, func(_ string) {})
 			pushHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				if pusher, ok := w.(http.Pusher); ok {
 					_ = pusher.Push("/style.css", nil)

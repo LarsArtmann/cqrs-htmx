@@ -41,10 +41,7 @@ var _ = Describe("Timeout Support", func() {
 		It("completes command within timeout", func() {
 			disp := command.NewDispatcher()
 			dispatched := false
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				dispatched = true
-				return nil
-			})
+			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands: disp,
@@ -115,10 +112,7 @@ var _ = Describe("Timeout Support", func() {
 		It("does not apply timeout when zero", func() {
 			disp := command.NewDispatcher()
 			dispatched := false
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				dispatched = true
-				return nil
-			})
+			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands: disp,
@@ -138,10 +132,7 @@ var _ = Describe("Timeout Support", func() {
 		It("does not apply timeout when negative", func() {
 			disp := command.NewDispatcher()
 			dispatched := false
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				dispatched = true
-				return nil
-			})
+			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands: disp,

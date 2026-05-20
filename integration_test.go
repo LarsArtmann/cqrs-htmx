@@ -63,7 +63,7 @@ var _ = Describe("Full Integration", func() {
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
 				Enforcer:        enf,
-				UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.ParseUserID(r.Header.Get("X-User")) },
+				UserIDExtractor: headerExtractor("X-User"),
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -251,7 +251,7 @@ var _ = Describe("Full Integration", func() {
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.ParseUserID(r.Header.Get("X-User-ID")) },
+				UserIDExtractor: headerExtractor("X-User-ID"),
 			})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -289,13 +289,7 @@ var _ = Describe("Full Integration", func() {
 		It("allows command dispatch with valid CSRF token via HTMX header", func() {
 			// Set up the full middleware chain with CSRF
 			cmdHandler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-					return &bddCreateUserCmd{
-						aggID: id.NewAggregateID(),
-						email: req.Email,
-						name:  req.Name,
-					}, nil
-				}),
+				decodeBDDCreateUserJSONWithBody(),
 				cqrshtmx.NotifySuccess("User created"),
 			)
 
@@ -335,13 +329,7 @@ var _ = Describe("Full Integration", func() {
 
 		It("rejects command dispatch without CSRF token", func() {
 			cmdHandler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-					return &bddCreateUserCmd{
-						aggID: id.NewAggregateID(),
-						email: req.Email,
-						name:  req.Name,
-					}, nil
-				}),
+				decodeBDDCreateUserJSONWithBody(),
 			)
 
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
@@ -360,13 +348,7 @@ var _ = Describe("Full Integration", func() {
 
 		It("rejects command dispatch with invalid CSRF token", func() {
 			cmdHandler := app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-					return &bddCreateUserCmd{
-						aggID: id.NewAggregateID(),
-						email: req.Email,
-						name:  req.Name,
-					}, nil
-				}),
+				decodeBDDCreateUserJSONWithBody(),
 			)
 
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
@@ -482,13 +464,7 @@ var _ = Describe("Full Integration", func() {
 			// Then use CSRFProtect on the specific handler
 			cmdHandler := app.Command("CreateUser",
 				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
-				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-					return &bddCreateUserCmd{
-						aggID: id.NewAggregateID(),
-						email: req.Email,
-						name:  req.Name,
-					}, nil
-				}),
+				decodeBDDCreateUserJSONWithBody(),
 			)
 
 			// Wrap with CSRF middleware (sets context)
@@ -524,13 +500,7 @@ var _ = Describe("Full Integration", func() {
 		It("rejects command dispatch with CSRFProtect but no token", func() {
 			cmdHandler := app.Command("CreateUser",
 				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
-				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-					return &bddCreateUserCmd{
-						aggID: id.NewAggregateID(),
-						email: req.Email,
-						name:  req.Name,
-					}, nil
-				}),
+				decodeBDDCreateUserJSONWithBody(),
 			)
 
 			w := httptest.NewRecorder()
@@ -545,13 +515,7 @@ var _ = Describe("Full Integration", func() {
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
 			cmdHandler := app.Command("CreateUser",
 				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
-				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-					return &bddCreateUserCmd{
-						aggID: id.NewAggregateID(),
-						email: req.Email,
-						name:  req.Name,
-					}, nil
-				}),
+				decodeBDDCreateUserJSONWithBody(),
 			)
 
 			handler := csrfMW(cmdHandler)
@@ -587,13 +551,7 @@ var _ = Describe("Full Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := limitedApp.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-					return &bddCreateUserCmd{
-						aggID: id.NewAggregateID(),
-						email: req.Email,
-						name:  req.Name,
-					}, nil
-				}),
+				decodeBDDCreateUserJSONWithBody(),
 			)
 
 			w := httptest.NewRecorder()
@@ -614,13 +572,7 @@ var _ = Describe("Full Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := limitedApp.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-					return &bddCreateUserCmd{
-						aggID: id.NewAggregateID(),
-						email: req.Email,
-						name:  req.Name,
-					}, nil
-				}),
+				decodeBDDCreateUserJSONWithBody(),
 			)
 
 			w := httptest.NewRecorder()

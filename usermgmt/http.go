@@ -61,27 +61,37 @@ func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
-	h.handleAuthEndpoint(w, r, func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
-		var regReq RegisterRequest
-		if err := json.Unmarshal(req, &regReq); err != nil {
-			return nil, err
-		}
-		resp, err := h.service.Register(ctx, regReq)
-		if err != nil {
-			return nil, err
-		}
-		return &LoginResponse{User: resp.User, Session: resp.Session}, nil
-	}, http.StatusCreated)
+	h.handleAuthEndpoint(
+		w,
+		r,
+		func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
+			var regReq RegisterRequest
+			if err := json.Unmarshal(req, &regReq); err != nil {
+				return nil, err
+			}
+			resp, err := h.service.Register(ctx, regReq)
+			if err != nil {
+				return nil, err
+			}
+			return &LoginResponse{User: resp.User, Session: resp.Session}, nil
+		},
+		http.StatusCreated,
+	)
 }
 
 func (h *AuthHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	h.handleAuthEndpoint(w, r, func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
-		var loginReq LoginRequest
-		if err := json.Unmarshal(req, &loginReq); err != nil {
-			return nil, err
-		}
-		return h.service.Login(ctx, loginReq)
-	}, http.StatusOK)
+	h.handleAuthEndpoint(
+		w,
+		r,
+		func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
+			var loginReq LoginRequest
+			if err := json.Unmarshal(req, &loginReq); err != nil {
+				return nil, err
+			}
+			return h.service.Login(ctx, loginReq)
+		},
+		http.StatusOK,
+	)
 }
 
 func (h *AuthHandler) handleAuthEndpoint(

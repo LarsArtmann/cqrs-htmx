@@ -12,8 +12,8 @@ import (
 
 const (
 	logFieldCorrelationID = "correlation_id"
-	logFieldUserID       = "user_id"
-	logFieldRequestID    = "request_id"
+	logFieldUserID        = "user_id"
+	logFieldRequestID     = "request_id"
 )
 
 // LogFormatter decides what string to write for a request/response pair.

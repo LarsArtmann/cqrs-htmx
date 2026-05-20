@@ -45,13 +45,13 @@
 
 ## Metrics
 
-| Metric      | Value |
-| ----------- | ----- |
-| Coverage    | 94.8% |
-| Test specs  | 289   |
-| Lint issues | 0     |
-| Prod files  | 15    |
-| Test files  | 20    |
-| Benchmarks  | 16    |
-| Godoc       | 9     |
-| Banned deps | 0     |
+| Metric      | Root  | usermgmt |
+| ----------- | ----- | -------- |
+| Coverage    | 95.9% | 92.1%    |
+| Test specs  | 34+   | 70+      |
+| Lint issues | 0     | 0        |
+| Prod files  | 17    | 9        |
+| Test files  | 20    | 7        |
+| Benchmarks  | 16    | 0        |
+| Godoc       | 9     | ~70      |
+| Banned deps | 0     | 0        |

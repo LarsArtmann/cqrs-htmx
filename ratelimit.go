@@ -9,6 +9,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// Rate limiter defaults.
 const (
 	DefaultRateLimit  = 100
 	DefaultRateWindow = time.Minute
