@@ -136,9 +136,7 @@ func ExampleRequestLogging() {
 	})
 
 	mux.Handle("/", logged(
-		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}),
+		okHandler(),
 	))
 
 	w := httptest.NewRecorder()
@@ -155,9 +153,7 @@ func ExampleJSONLogFormatter() {
 	})
 
 	mux.Handle("/", logged(
-		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusCreated)
-		}),
+		createdHandler(),
 	))
 
 	w := httptest.NewRecorder()
@@ -176,9 +172,7 @@ func ExampleRateLimiterMiddleware() {
 	})
 
 	mux.Handle("/", limited(
-		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}),
+		okHandler(),
 	))
 
 	w := httptest.NewRecorder()

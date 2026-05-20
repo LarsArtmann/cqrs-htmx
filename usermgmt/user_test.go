@@ -118,17 +118,13 @@ func TestInMemoryUserStore(t *testing.T) {
 	}
 
 	_, err = store.FindByID(NewUserID("nonexistent"))
-	if !errors.Is(err, ErrUserNotFound) {
-		t.Errorf("expected ErrUserNotFound, got %v", err)
-	}
+	assertErrorIs(t, err, ErrUserNotFound, "ErrUserNotFound")
 
 	if err := store.Delete(NewUserID("user-1")); err != nil {
 		t.Fatalf("Delete failed: %v", err)
 	}
 	_, err = store.FindByID(NewUserID("user-1"))
-	if !errors.Is(err, ErrUserNotFound) {
-		t.Errorf("expected ErrUserNotFound after delete, got %v", err)
-	}
+	assertErrorIs(t, err, ErrUserNotFound, "ErrUserNotFound")
 }
 
 func TestInMemoryUserStore_CreateDuplicate(t *testing.T) {
@@ -177,17 +173,13 @@ func TestInMemorySessionStore(t *testing.T) {
 	}
 
 	_, err = store.Find("nonexistent")
-	if !errors.Is(err, ErrSessionNotFound) {
-		t.Errorf("expected ErrSessionNotFound, got %v", err)
-	}
+	assertErrorIs(t, err, ErrSessionNotFound, "ErrSessionNotFound")
 
 	if err := store.Delete(session.Token); err != nil {
 		t.Fatalf("Delete failed: %v", err)
 	}
 	_, err = store.Find(session.Token)
-	if !errors.Is(err, ErrSessionNotFound) {
-		t.Errorf("expected ErrSessionNotFound after delete, got %v", err)
-	}
+	assertErrorIs(t, err, ErrSessionNotFound, "ErrSessionNotFound")
 }
 
 func TestInMemorySessionStore_DeleteByUserID(t *testing.T) {

@@ -36,6 +36,14 @@ func decodeBDDCreateUserJSON() cqrshtmx.HandlerOption {
 	})
 }
 
+// decodeBDDCreateUserJSONWithBody returns a HandlerOption that decodes a request to
+// a bddCreateUserCmd, populating email and name from the request body.
+func decodeBDDCreateUserJSONWithBody() cqrshtmx.HandlerOption {
+	return cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
+		return &bddCreateUserCmd{aggID: id.NewAggregateID(), email: req.Email, name: req.Name}, nil
+	})
+}
+
 // decodeGetUserJSONQuery returns a HandlerOption that decodes a JSON query request.
 func decodeGetUserJSONQuery() cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
@@ -77,4 +85,23 @@ func middlewareCaptureHandler(called *bool) http.Handler {
 	return http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		*called = true
 	})
+}
+
+// okHandler returns an http.Handler that writes 200 OK.
+func okHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+}
+
+// createdHandler returns an http.Handler that writes 201 Created.
+func createdHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+	})
+}
+
+// staticExtractor returns a UserIDExtractor that always returns the given user ID.
+func staticExtractor(uid cqrshtmx.UserID) cqrshtmx.UserIDExtractor {
+	return func(_ *http.Request) (cqrshtmx.UserID, error) { return uid, nil }
 }

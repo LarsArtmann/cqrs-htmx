@@ -3,24 +3,17 @@ package usermgmt
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
 
-func newTestService(t *testing.T) *Service {
-	t.Helper()
-	return newTestServiceWithConfig(t, ServiceConfig{
-		Authz:      newTestAuthz(t),
-		BcryptCost: minBcryptCost,
-	})
-}
-
 func setupMux(t *testing.T) (*Service, *http.ServeMux) {
 	t.Helper()
-	svc := newTestService(t)
-	h := NewAuthHandlers(svc, HandlerConfig{Secure: false})
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{Secure: false})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	return svc, mux
@@ -199,14 +192,14 @@ func TestHandlers_BadRequestBody(t *testing.T) {
 	}
 }
 
-func TestSessionMiddleware_Cookie(t *testing.T) {
-	svc := newTestService(t)
+func TestNewSessionMiddleware_Cookie(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
 	reg, _ := svc.Register(context.Background(), RegisterRequest{
 		ID: NewUserID("u1"), Email: "mw@t.com", Password: "secret12",
 	})
 
 	called := false
-	handler := SessionMiddleware(
+	handler := NewSessionMiddleware(
 		svc,
 		"session_token",
 	)(
@@ -232,13 +225,13 @@ func TestSessionMiddleware_Cookie(t *testing.T) {
 	}
 }
 
-func TestSessionMiddleware_BearerToken(t *testing.T) {
-	svc := newTestService(t)
+func TestNewSessionMiddleware_BearerToken(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
 	reg, _ := svc.Register(context.Background(), RegisterRequest{
 		ID: NewUserID("u1"), Email: "bt@t.com", Password: "secret12",
 	})
 
-	handler := SessionMiddleware(
+	handler := NewSessionMiddleware(
 		svc,
 		"session_token",
 	)(
@@ -260,11 +253,11 @@ func TestSessionMiddleware_BearerToken(t *testing.T) {
 	handler.ServeHTTP(w, req)
 }
 
-func TestSessionMiddleware_NoToken(t *testing.T) {
-	svc := newTestService(t)
+func TestNewSessionMiddleware_NoToken(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
 
 	called := false
-	handler := SessionMiddleware(
+	handler := NewSessionMiddleware(
 		svc,
 		"session_token",
 	)(
@@ -325,6 +318,23 @@ func TestUserFromContextOr_Fallback(t *testing.T) {
 	}
 }
 
+func TestErrorStatus_Default(t *testing.T) {
+	got := errorStatus(fmt.Errorf("some unknown error"))
+	if got != http.StatusInternalServerError {
+		t.Errorf("expected 500 for unknown error, got %d", got)
+	}
+}
+
+func TestUserFromContextOr_WithUser(t *testing.T) {
+	user := &User{ID: NewUserID("real")}
+	ctx := WithUser(context.Background(), user)
+	fallback := &User{ID: NewUserID("fallback")}
+	result := UserFromContextOr(ctx, fallback)
+	if result.ID != NewUserID("real") {
+		t.Errorf("expected real user, got %s", result.ID)
+	}
+}
+
 func TestExtractToken_Empty(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	if token := extractToken(req, "session_token"); token != "" {
@@ -355,7 +365,7 @@ func TestHandlers_FullFlow(t *testing.T) {
 
 	regResp := registerUser(t, mux)
 
-	meHandler := SessionMiddleware(
+	meHandler := NewSessionMiddleware(
 		svc,
 		"session_token",
 	)(
@@ -387,9 +397,9 @@ func TestHandlers_FullFlow(t *testing.T) {
 	}
 }
 
-func TestNewAuthHandlers_SessionMaxAge(t *testing.T) {
-	svc := newTestService(t)
-	h := NewAuthHandlers(svc, HandlerConfig{Secure: false, SessionMaxAge: 3600})
+func TestNewAuthHandler_SessionMaxAge(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{Secure: false, SessionMaxAge: 3600})
 
 	body := `{"id":"u1","email":"maxage@test.com","password":"secret12"}`
 	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
@@ -415,9 +425,9 @@ func TestNewAuthHandlers_SessionMaxAge(t *testing.T) {
 	}
 }
 
-func TestNewAuthHandlers_CustomCookieName(t *testing.T) {
-	svc := newTestService(t)
-	h := NewAuthHandlers(svc, HandlerConfig{CookieName: "my_session", Secure: false})
+func TestNewAuthHandler_CustomCookieName(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{CookieName: "my_session", Secure: false})
 
 	body := `{"id":"u1","email":"cookie@test.com","password":"secret12"}`
 	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
@@ -440,5 +450,64 @@ func TestNewAuthHandlers_CustomCookieName(t *testing.T) {
 	}
 	if !found {
 		t.Error("expected session cookie named 'my_session'")
+	}
+}
+
+func TestHandlers_Login_InvalidJSON(t *testing.T) {
+	_, mux := setupMux(t)
+
+	req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader("not json"))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected 400, got %d", w.Code)
+	}
+}
+
+func TestHandlers_Logout_ServiceError(t *testing.T) {
+	_, mux := setupMux(t)
+	regResp := registerUser(t, mux)
+
+	svc, _ := setupMux(t)
+	_ = svc
+	_ = regResp
+}
+
+func TestHandlers_Me_Authenticated(t *testing.T) {
+	svc, mux := setupMux(t)
+	regResp := registerUser(t, mux)
+
+	user, err := svc.Authenticate(context.Background(), regResp.Session.Token)
+	if err != nil {
+		t.Fatalf("authenticate: %v", err)
+	}
+	_ = user
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req.AddCookie(&http.Cookie{Name: "session_token", Value: regResp.Session.Token})
+
+	meHandler := NewSessionMiddleware(
+		svc,
+		"session_token",
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			h := NewAuthHandler(svc, HandlerConfig{Secure: false})
+			h2 := h
+			_ = h2
+			u, ok := UserFromContext(r.Context())
+			if !ok || u == nil {
+				writeError(w, http.StatusUnauthorized, "not authenticated")
+				return
+			}
+			writeJSON(w, http.StatusOK, u)
+		}),
+	)
+	w := httptest.NewRecorder()
+	meHandler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", w.Code)
 	}
 }

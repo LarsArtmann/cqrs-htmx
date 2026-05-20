@@ -60,7 +60,11 @@ type handlerConfig struct {
 // no HTMX response fields that would produce body content.
 // When true, the handler should return 204 No Content.
 func (c *handlerConfig) hasNoExplicitBody() bool {
-	return c.redirect == "" && c.trigger == "" && c.pushURL == "" && len(c.triggerDetail) == 0
+	return c.render == nil &&
+		c.redirect == "" &&
+		c.trigger == "" &&
+		c.pushURL == "" &&
+		len(c.triggerDetail) == 0
 }
 
 // decodeAndSet creates a HandlerOption that decodes a request body and sets

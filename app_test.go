@@ -129,7 +129,7 @@ var _ = Describe("App", func() {
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(_ *http.Request) (cqrshtmx.UserID, error) { return adminUserID, nil },
+				UserIDExtractor: staticExtractor(adminUserID),
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -429,7 +429,7 @@ var _ = Describe("App", func() {
 			disp := command.NewDispatcher()
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
-				UserIDExtractor: func(_ *http.Request) (cqrshtmx.UserID, error) { return want, nil },
+				UserIDExtractor: staticExtractor(want),
 			})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -478,7 +478,7 @@ var _ = Describe("Authorization", func() {
 		It("allows authorized requests through", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) (cqrshtmx.UserID, error) { return adminUserID, nil })
+				staticExtractor(adminUserID))
 
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
@@ -492,7 +492,7 @@ var _ = Describe("Authorization", func() {
 		It("blocks unauthorized requests", func() {
 			e := newTestEnforcer()
 			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "create",
-				func(_ *http.Request) (cqrshtmx.UserID, error) { return viewerUserID, nil })
+				staticExtractor(viewerUserID))
 
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))

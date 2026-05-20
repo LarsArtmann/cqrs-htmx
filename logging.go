@@ -3,6 +3,7 @@ package cqrshtmx
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -105,7 +106,7 @@ func RequestLogging(
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			rw := &statusRecorder{ResponseWriter: w, status: 0, wrote: false}
+			rw := newStatusRecorder(w)
 
 			next.ServeHTTP(rw, r)
 
@@ -133,6 +134,17 @@ func (r *statusRecorder) WriteHeader(code int) {
 	r.ResponseWriter.WriteHeader(code)
 }
 
+func newStatusRecorder(w http.ResponseWriter) *statusRecorder {
+	return &statusRecorder{ResponseWriter: w, status: 0, wrote: false}
+}
+
+func (r *statusRecorder) Push(target string, opts *http.PushOptions) error {
+	if pusher, ok := r.ResponseWriter.(http.Pusher); ok {
+		return fmt.Errorf("push %q: %w", target, pusher.Push(target, opts))
+	}
+	return http.ErrNotSupported
+}
+
 // RequestLoggingSlog returns HTTP middleware that logs each request using
 // structured logging via log/slog. It captures method, path, status, duration,
 // and any correlation ID, user ID, or request ID present in the context.
@@ -146,7 +158,7 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			rw := &statusRecorder{ResponseWriter: w, status: 0, wrote: false}
+			rw := newStatusRecorder(w)
 
 			next.ServeHTTP(rw, r)
 

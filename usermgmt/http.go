@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type AuthHandlers struct {
+type AuthHandler struct {
 	service       *Service
 	cookieName    string
 	secure        bool
@@ -21,7 +21,7 @@ type HandlerConfig struct {
 	SessionMaxAge int
 }
 
-func NewAuthHandlers(service *Service, cfg ...HandlerConfig) *AuthHandlers {
+func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 	config := HandlerConfig{
 		CookieName: "session_token",
 		Secure:     true,
@@ -33,7 +33,7 @@ func NewAuthHandlers(service *Service, cfg ...HandlerConfig) *AuthHandlers {
 		config.Secure = cfg[0].Secure
 		config.SessionMaxAge = cfg[0].SessionMaxAge
 	}
-	return &AuthHandlers{
+	return &AuthHandler{
 		service:       service,
 		cookieName:    config.CookieName,
 		secure:        config.Secure,
@@ -41,14 +41,14 @@ func NewAuthHandlers(service *Service, cfg ...HandlerConfig) *AuthHandlers {
 	}
 }
 
-func (h *AuthHandlers) RegisterRoutes(mux *http.ServeMux) {
+func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/register", h.handleRegister)
 	mux.HandleFunc("POST /auth/login", h.handleLogin)
 	mux.HandleFunc("POST /auth/logout", h.handleLogout)
 	mux.HandleFunc("GET /auth/me", h.handleMe)
 }
 
-func (h *AuthHandlers) handleRegister(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
@@ -65,7 +65,7 @@ func (h *AuthHandlers) handleRegister(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, resp)
 }
 
-func (h *AuthHandlers) handleLogin(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
@@ -82,7 +82,7 @@ func (h *AuthHandlers) handleLogin(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-func (h *AuthHandlers) handleLogout(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
 	token := extractToken(r, h.cookieName)
 	if token == "" {
 		writeError(w, http.StatusUnauthorized, "no session")
@@ -98,7 +98,7 @@ func (h *AuthHandlers) handleLogout(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "logged_out"})
 }
 
-func (h *AuthHandlers) handleMe(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) handleMe(w http.ResponseWriter, r *http.Request) {
 	user, ok := UserFromContext(r.Context())
 	if !ok || user == nil {
 		writeError(w, http.StatusUnauthorized, "not authenticated")
@@ -107,7 +107,7 @@ func (h *AuthHandlers) handleMe(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, user)
 }
 
-func (h *AuthHandlers) setSessionCookie(w http.ResponseWriter, token string) {
+func (h *AuthHandler) setSessionCookie(w http.ResponseWriter, token string) {
 	maxAge := h.sessionMaxAge
 	if maxAge <= 0 {
 		maxAge = int(defaultSessionTTL.Seconds())
@@ -123,7 +123,7 @@ func (h *AuthHandlers) setSessionCookie(w http.ResponseWriter, token string) {
 	})
 }
 
-func (h *AuthHandlers) clearSessionCookie(w http.ResponseWriter) {
+func (h *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     h.cookieName,
 		Value:    "",

@@ -10,43 +10,31 @@ import (
 )
 
 var _ = Describe("Security Headers Middleware", func() {
-	It("sets X-Content-Type-Options to nosniff", func() {
-		middleware := cqrshtmx.SecurityHeadersMiddleware
-		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
+	assertSecurityHeader := func(cfg cqrshtmx.SecurityHeadersConfig, header, expected string) {
+		middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
+		handler := middleware(okHandler())
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
 		handler.ServeHTTP(w, r)
 
-		Expect(w.Header().Get("X-Content-Type-Options")).To(Equal("nosniff"))
+		Expect(w.Header().Get(header)).To(Equal(expected))
+	}
+
+	It("sets X-Content-Type-Options to nosniff", func() {
+		assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{}, "X-Content-Type-Options", "nosniff")
 	})
 
 	It("sets X-Frame-Options to DENY", func() {
-		middleware := cqrshtmx.SecurityHeadersMiddleware
-		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		handler.ServeHTTP(w, r)
-
-		Expect(w.Header().Get("X-Frame-Options")).To(Equal("DENY"))
+		assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{}, "X-Frame-Options", "DENY")
 	})
 
 	It("sets Referrer-Policy to strict-origin-when-cross-origin", func() {
-		middleware := cqrshtmx.SecurityHeadersMiddleware
-		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
-
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		handler.ServeHTTP(w, r)
-
-		Expect(w.Header().Get("Referrer-Policy")).To(Equal("strict-origin-when-cross-origin"))
+		assertSecurityHeader(
+			cqrshtmx.SecurityHeadersConfig{},
+			"Referrer-Policy",
+			"strict-origin-when-cross-origin",
+		)
 	})
 
 	It("preserves existing headers set by downstream handlers", func() {
@@ -66,20 +54,9 @@ var _ = Describe("Security Headers Middleware", func() {
 
 	Describe("SecurityHeadersMiddlewareWithConfig", func() {
 		It("sets CSP when configured", func() {
-			cfg := cqrshtmx.SecurityHeadersConfig{
+			assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{
 				ContentSecurityPolicy: "default-src 'self'",
-			}
-			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Header().Get("Content-Security-Policy")).To(Equal("default-src 'self'"))
-			Expect(w.Header().Get("X-Content-Type-Options")).To(Equal("nosniff"))
+			}, "Content-Security-Policy", "default-src 'self'")
 		})
 
 		It("sets HSTS when configured", func() {
@@ -87,9 +64,7 @@ var _ = Describe("Security Headers Middleware", func() {
 				StrictTransportSecurity: "max-age=63072000; includeSubDomains",
 			}
 			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -101,77 +76,39 @@ var _ = Describe("Security Headers Middleware", func() {
 		})
 
 		It("sets custom headers when configured", func() {
-			cfg := cqrshtmx.SecurityHeadersConfig{
+			assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{
 				Custom: map[string]string{"X-Custom-Header": "value"},
-			}
-			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Header().Get("X-Custom-Header")).To(Equal("value"))
+			}, "X-Custom-Header", "value")
 		})
 
 		It("allows overriding defaults", func() {
-			cfg := cqrshtmx.SecurityHeadersConfig{FrameOptions: "SAMEORIGIN"}
-			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Header().Get("X-Frame-Options")).To(Equal("SAMEORIGIN"))
+			assertSecurityHeader(
+				cqrshtmx.SecurityHeadersConfig{FrameOptions: "SAMEORIGIN"},
+				"X-Frame-Options",
+				"SAMEORIGIN",
+			)
 		})
 
 		It("allows overriding ContentTypeOptions default", func() {
-			cfg := cqrshtmx.SecurityHeadersConfig{ContentTypeOptions: "none"}
-			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Header().Get("X-Content-Type-Options")).To(Equal("none"))
+			assertSecurityHeader(
+				cqrshtmx.SecurityHeadersConfig{ContentTypeOptions: "none"},
+				"X-Content-Type-Options",
+				"none",
+			)
 		})
 
 		It("allows overriding ReferrerPolicy default", func() {
-			cfg := cqrshtmx.SecurityHeadersConfig{ReferrerPolicy: "no-referrer"}
-			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Header().Get("Referrer-Policy")).To(Equal("no-referrer"))
+			assertSecurityHeader(
+				cqrshtmx.SecurityHeadersConfig{ReferrerPolicy: "no-referrer"},
+				"Referrer-Policy",
+				"no-referrer",
+			)
 		})
 
 		It("sets Permissions-Policy when configured", func() {
-			cfg := cqrshtmx.SecurityHeadersConfig{
+			assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{
 				PermissionsPolicy: "camera=(), microphone=()",
-			}
-			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			handler.ServeHTTP(w, r)
-
-			Expect(w.Header().Get("Permissions-Policy")).To(Equal("camera=(), microphone=()"))
+			}, "Permissions-Policy", "camera=(), microphone=()")
 		})
 	})
 })

@@ -29,7 +29,7 @@ func UserFromContextOr(ctx context.Context, fallback *User) *User {
 	return fallback
 }
 
-func SessionMiddleware(service *Service, cookieName string) func(http.Handler) http.Handler {
+func NewSessionMiddleware(service *Service, cookieName string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token := extractToken(r, cookieName)

@@ -23,7 +23,7 @@ type User struct {
 	Email        string    `json:"email"`
 	DisplayName  string    `json:"display_name,omitempty"`
 	PasswordHash string    `json:"-"`
-	Roles        []string  `json:"roles"`
+	Roles        []Role    `json:"roles"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -34,7 +34,7 @@ func NewUser(id UserID, email, displayName string) *User {
 		ID:          id,
 		Email:       email,
 		DisplayName: displayName,
-		Roles:       []string{RoleViewer},
+		Roles:       []Role{RoleViewer},
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -57,11 +57,11 @@ func (u *User) CheckPassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) == nil
 }
 
-func (u *User) HasRole(role string) bool {
+func (u *User) HasRole(role Role) bool {
 	return slices.Contains(u.Roles, role)
 }
 
-func (u *User) AddRole(role string) {
+func (u *User) AddRole(role Role) {
 	if slices.Contains(u.Roles, role) {
 		return
 	}
@@ -69,7 +69,7 @@ func (u *User) AddRole(role string) {
 	u.UpdatedAt = time.Now().UTC()
 }
 
-func (u *User) RemoveRole(role string) {
+func (u *User) RemoveRole(role Role) {
 	for i, r := range u.Roles {
 		if r == role {
 			u.Roles = append(u.Roles[:i], u.Roles[i+1:]...)

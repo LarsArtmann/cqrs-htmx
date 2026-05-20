@@ -114,9 +114,7 @@ func BenchmarkQueryDispatch(b *testing.B) {
 
 func BenchmarkRequestLogging(b *testing.B) {
 	middleware := cqrshtmx.RequestLogging(nil, func(_ string) {})
-	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := middleware(okHandler())
 
 	b.Run("DefaultFormatter", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -128,9 +126,7 @@ func BenchmarkRequestLogging(b *testing.B) {
 
 	b.Run("JSONFormatter", func(b *testing.B) {
 		jsonMw := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(_ string) {})
-		jsonHandler := jsonMw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
+		jsonHandler := jsonMw(okHandler())
 		for i := 0; i < b.N; i++ {
 			r := httptest.NewRequest(http.MethodGet, "/users", nil)
 			w := httptest.NewRecorder()
@@ -155,9 +151,7 @@ func BenchmarkRequestLogging(b *testing.B) {
 func BenchmarkCSRFMiddleware(b *testing.B) {
 	cfg := cqrshtmx.CSRFConfig{Secret: []byte("a-32-byte-long-secret-key-goes-here")}
 	middleware := cqrshtmx.CSRFMiddleware(cfg)
-	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := middleware(okHandler())
 
 	b.Run("GET", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -199,9 +193,7 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 			Limit:  10000,
 			Window: time.Minute,
 		})
-		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
+		handler := middleware(okHandler())
 
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -217,9 +209,7 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 			Window:       time.Minute,
 			KeyExtractor: func(_ *http.Request) string { return "client-1" },
 		})
-		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
+		handler := middleware(okHandler())
 
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -235,9 +225,7 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 			Window:       time.Minute,
 			KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
 		})
-		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
+		handler := middleware(okHandler())
 
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -247,4 +235,15 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 			handler.ServeHTTP(w, r)
 		}
 	})
+}
+
+func BenchmarkSecurityHeadersMiddleware(b *testing.B) {
+	middleware := cqrshtmx.SecurityHeadersMiddleware(okHandler())
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		w := httptest.NewRecorder()
+		middleware.ServeHTTP(w, r)
+	}
 }

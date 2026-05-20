@@ -11,14 +11,14 @@ const (
 )
 
 type LockoutConfig struct {
-	MaxAttempts int
+	MaxAttempts uint
 	Duration    time.Duration
 }
 
 type AccountLockout struct {
 	mu       sync.RWMutex
 	config   LockoutConfig
-	attempts map[string]int
+	attempts map[string]uint
 	lockedAt map[string]time.Time
 }
 
@@ -37,7 +37,7 @@ func NewAccountLockout(cfg ...LockoutConfig) *AccountLockout {
 	}
 	return &AccountLockout{
 		config:   config,
-		attempts: make(map[string]int),
+		attempts: make(map[string]uint),
 		lockedAt: make(map[string]time.Time),
 	}
 }

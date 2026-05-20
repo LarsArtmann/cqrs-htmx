@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/http/httptest"
 	"time"
 
 	"github.com/gorilla/csrf"
@@ -214,10 +213,10 @@ func csrfTokenFromRequest(r *http.Request) string {
 	return CSRFTokenFromContext(r.Context())
 }
 
-// RotateCSRFToken invalidates the current CSRF cookie, forcing a new token
+// InvalidateCSRFCookie invalidates the current CSRF cookie, forcing a new token
 // to be generated on the next request. Call this on login/logout to prevent
 // CSRF fixation attacks.
-func RotateCSRFToken(w http.ResponseWriter, cfg CSRFConfig) {
+func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 	//nolint:gosec,exhaustruct // HttpOnly=false required for double-submit; http.Cookie has many optional fields
 	cookie := &http.Cookie{
 		Name:     cfg.cookieName(),
@@ -316,71 +315,4 @@ func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
-}
-
-// CSRFProtect returns a HandlerOption that validates CSRF tokens for a specific
-// command or query handler. Use this instead of global CSRFMiddleware when you
-// want CSRF protection only on specific routes.
-//
-// When CSRFMiddleware is applied globally, CSRFProtect is redundant
-// because gorilla/csrf already validates all state-changing requests.
-// CSRFProtect is only needed when you want per-handler protection WITHOUT
-// global middleware.
-//
-// Usage:
-//
-//	app.Command("CreateUser",
-//	    cqrshtmx.CSRFProtect(cqrshtmx.CSRFConfig{}),
-//	    cqrshtmx.DecodeJSON(...),
-//	)
-func CSRFProtect(cfg CSRFConfig) HandlerOption {
-	opts := buildGorillaOptions(cfg)
-	protect := csrf.Protect(cfg.secret(), opts...)
-	return func(hc *handlerConfig) {
-		hc.csrfConfig = &cfg
-		hc.csrfProtect = protect
-	}
-}
-
-// executeCSRFValidation checks CSRF for per-handler protection (CSRFProtect option).
-// Returns nil if no CSRF config is set on the handler or validation passes.
-func executeCSRFValidation(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) error {
-	if cfg.csrfConfig == nil {
-		return nil
-	}
-
-	// If gorilla/csrf middleware already ran (token in its context), validation passed
-	if csrf.Token(r) != "" {
-		return nil
-	}
-
-	// gorilla/csrf hasn't run; validate using the cached middleware instance.
-	// We capture its response via httptest.ResponseRecorder to avoid writing
-	// directly to w, which would conflict with the caller's error handling.
-	protect := cfg.csrfProtect
-	var validated bool
-	dummy := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-		validated = true
-	})
-
-	rec := httptest.NewRecorder()
-	if r.TLS == nil {
-		r = csrf.PlaintextHTTPRequest(r)
-	}
-	protect(dummy).ServeHTTP(rec, r)
-
-	if !validated {
-		// gorilla/csrf rejected the request; copy its status and headers
-		// to the real response so the client sees the same result.
-		for k, vv := range rec.Header() {
-			for _, v := range vv {
-				w.Header().Add(k, v)
-			}
-		}
-		w.WriteHeader(rec.Code)
-		_, _ = w.Write(rec.Body.Bytes())
-		return ErrCSRFInvalid
-	}
-
-	return nil
 }

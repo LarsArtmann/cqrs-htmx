@@ -25,6 +25,7 @@ func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error
 }
 
 // readBody reads the request body, respecting maxBodySize if > 0.
+// When maxBodySize <= 0, the entire body is read with no size limit.
 func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
 	var body []byte
 	var err error

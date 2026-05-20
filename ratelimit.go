@@ -37,12 +37,12 @@ func KeyExtractorFromRemoteAddr() KeyExtractor {
 // RateLimiterConfig configures the token-bucket rate limiter per key.
 type RateLimiterConfig struct {
 	// Limit is the maximum number of requests per Window.
-	Limit int
+	Limit uint
 	// Window is the time period for which Limit applies.
 	Window time.Duration
 	// Burst is the maximum burst size (can be greater than Limit).
 	// Zero defaults to Limit.
-	Burst int
+	Burst uint
 	// KeyExtractor produces the rate-limit key from a request.
 	// If nil, all requests share a single key —effectively a global rate limit.
 	// If an extractor returns empty string for a request, that request is
@@ -54,7 +54,7 @@ type RateLimiterConfig struct {
 	// MaxKeys caps the number of tracked rate-limit keys.
 	// When exceeded, the oldest entry (by last access time) is evicted.
 	// Zero means no cap (unbounded growth).
-	MaxKeys int
+	MaxKeys uint
 	// OnAllowed is called when a request passes rate limiting.
 	OnAllowed func(r *http.Request)
 	// OnRejected is called when a request is rejected due to rate limiting.
@@ -75,13 +75,13 @@ type RateLimiterConfig struct {
 // For very high cardinality key spaces, consider increasing the TTL or using
 // a bounded key extractor.
 func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handler {
-	if cfg.Limit <= 0 {
-		cfg.Limit = DefaultRateLimit
+	if cfg.Limit == 0 {
+		cfg.Limit = uint(DefaultRateLimit)
 	}
 	if cfg.Window <= 0 {
 		cfg.Window = DefaultRateWindow
 	}
-	if cfg.Burst <= 0 {
+	if cfg.Burst == 0 {
 		cfg.Burst = cfg.Limit
 	}
 
@@ -94,7 +94,10 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 		ttl = DefaultRateTTL
 	}
 
-	lim := newPerKeyLimiter(limit, cfg.Burst, cfg.KeyExtractor, retryAfter, ttl, cfg.MaxKeys)
+	lim := newPerKeyLimiter(
+		limit, int(cfg.Burst),
+		cfg.KeyExtractor, retryAfter, ttl, int(cfg.MaxKeys),
+	)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

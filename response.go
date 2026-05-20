@@ -113,6 +113,10 @@ func (resp *Response) TriggerAfterSettle(event string) *Response {
 }
 
 // TriggerWithDetail fires a client-side event with JSON detail data.
+//
+// Calling both Trigger and TriggerWithDetail on the same header
+// is unsupported — TriggerWithDetail uses JSON serialization which
+// overwrites the simple event name set by Trigger. Use one or the other.
 func (resp *Response) TriggerWithDetail(name string, detail any) *Response {
 	setTriggerWithDetail(resp.w, headerTrigger, name, detail)
 	return resp
@@ -198,7 +202,7 @@ func sanitizeRedirectURL(rawURL string) (string, bool) {
 	}
 
 	// Normalize and return the path
-	return path.Clean(u.Path), u.Path != "" && u.Path != "/"
+	return path.Clean(u.Path), u.Path != ""
 }
 
 func setTriggerHeader(w http.ResponseWriter, header, event string) {

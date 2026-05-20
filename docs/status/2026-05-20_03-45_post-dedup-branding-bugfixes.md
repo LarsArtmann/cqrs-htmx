@@ -10,17 +10,17 @@ cqrs-htmx is a **Go library** (not an application) that makes it easy to use go-
 
 **Overall Health: 🟢 EXCELLENT (Grade: A)**
 
-| Metric             | Root Module     | usermgmt Submodule |
-| ------------------ | --------------- | ------------------ |
-| Coverage           | **95.6%**       | **88.5%**          |
-| Test specs         | 289             | 80+                |
-| Lint issues        | 0               | 0                  |
-| Race detector      | ✅ Clean        | ✅ Clean           |
-| Prod Go files      | 16 (2,890 lines) | 9 (1,445 lines)  |
-| Test Go files      | 19 (5,450 lines) | 7 (1,393 lines)  |
-| Build              | ✅ Clean        | ✅ Clean           |
-| TODO/FIXME in code | 0               | 0                  |
-| Hardcoded secrets  | 0               | 0                  |
+| Metric             | Root Module      | usermgmt Submodule |
+| ------------------ | ---------------- | ------------------ |
+| Coverage           | **95.6%**        | **88.5%**          |
+| Test specs         | 289              | 80+                |
+| Lint issues        | 0                | 0                  |
+| Race detector      | ✅ Clean         | ✅ Clean           |
+| Prod Go files      | 16 (2,890 lines) | 9 (1,445 lines)    |
+| Test Go files      | 19 (5,450 lines) | 7 (1,393 lines)    |
+| Build              | ✅ Clean         | ✅ Clean           |
+| TODO/FIXME in code | 0                | 0                  |
+| Hardcoded secrets  | 0                | 0                  |
 
 ---
 
@@ -71,16 +71,16 @@ cqrs-htmx is a **Go library** (not an application) that makes it easy to use go-
 
 ### Bugs Fixed This Session (since `b827417`)
 
-| Bug | Fix | Commit |
-|-----|-----|--------|
+| Bug                                                   | Fix                                 | Commit    |
+| ----------------------------------------------------- | ----------------------------------- | --------- |
 | gorilla/csrf v1.7.3 breaks httptest (7 test failures) | Auto-detect non-TLS, mark plaintext | `9dcae5a` |
-| `applyQueryResponse` bypassed `handleErr` helper | Route through centralized helper | `3a7f04b` |
-| AccountLockout maps grew unbounded | Evict expired entries in `IsLocked` | `b27fe2c` |
-| Error messages in usermgmt lost userID context | Added `userID` to 8 error sites | `98fd897` |
-| Rate limiter could grow unbounded | Added `MaxKeys` cap with eviction | `b41deb5` |
-| CSRF `Protect()` allocated per-request | Cache instance on `handlerConfig` | `cb50931` |
-| `SessionMaxAge` silently ignored in `NewAuthHandlers` | Copy from `HandlerConfig` | `cb50931` |
-| Duplicate code across 8 files (40 clone groups) | 6 generic helpers extracted | `d5a272e` |
+| `applyQueryResponse` bypassed `handleErr` helper      | Route through centralized helper    | `3a7f04b` |
+| AccountLockout maps grew unbounded                    | Evict expired entries in `IsLocked` | `b27fe2c` |
+| Error messages in usermgmt lost userID context        | Added `userID` to 8 error sites     | `98fd897` |
+| Rate limiter could grow unbounded                     | Added `MaxKeys` cap with eviction   | `b41deb5` |
+| CSRF `Protect()` allocated per-request                | Cache instance on `handlerConfig`   | `cb50931` |
+| `SessionMaxAge` silently ignored in `NewAuthHandlers` | Copy from `HandlerConfig`           | `cb50931` |
+| Duplicate code across 8 files (40 clone groups)       | 6 generic helpers extracted         | `d5a272e` |
 
 ---
 
@@ -195,48 +195,48 @@ cqrs-htmx is a **Go library** (not an application) that makes it easy to use go-
 
 ### P0 — This Session (High Impact, Low Effort)
 
-| #  | Item                                                    | Effort | Impact |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 1  | Split `csrf.go` → config + middleware + validation      | 15m    | HIGH   |
-| 2  | Extract `minPasswordLength` constant in usermgmt        | 3m     | MED    |
-| 3  | `type Role string` with constants in usermgmt           | 15m    | HIGH   |
-| 4  | `GroupPolicy.User` → `UserID` type                      | 5m     | MED    |
-| 5  | `RateLimiterConfig.Limit/Burst` → `uint`               | 10m    | LOW    |
+| #   | Item                                               | Effort | Impact |
+| --- | -------------------------------------------------- | ------ | ------ |
+| 1   | Split `csrf.go` → config + middleware + validation | 15m    | HIGH   |
+| 2   | Extract `minPasswordLength` constant in usermgmt   | 3m     | MED    |
+| 3   | `type Role string` with constants in usermgmt      | 15m    | HIGH   |
+| 4   | `GroupPolicy.User` → `UserID` type                 | 5m     | MED    |
+| 5   | `RateLimiterConfig.Limit/Burst` → `uint`           | 10m    | LOW    |
 
 ### P1 — This Week
 
-| #  | Item                                                    | Effort | Impact |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 6  | Raise usermgmt coverage to 92%+                         | 2h     | HIGH   |
-| 7  | Integration tests root ↔ usermgmt                       | 2h     | HIGH   |
-| 8  | Create `docs/adr/` with numbered ADRs                   | 1h     | MED    |
-| 9  | Add fuzz tests for decoder and form parsing              | 1h     | MED    |
-| 10 | Resolve UserID type split decision                       | 30m    | HIGH   |
+| #   | Item                                        | Effort | Impact |
+| --- | ------------------------------------------- | ------ | ------ |
+| 6   | Raise usermgmt coverage to 92%+             | 2h     | HIGH   |
+| 7   | Integration tests root ↔ usermgmt           | 2h     | HIGH   |
+| 8   | Create `docs/adr/` with numbered ADRs       | 1h     | MED    |
+| 9   | Add fuzz tests for decoder and form parsing | 1h     | MED    |
+| 10  | Resolve UserID type split decision          | 30m    | HIGH   |
 
 ### P2 — Next Sprint
 
-| #  | Item                                                    | Effort | Impact |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 11 | Rate limiter O(log n) eviction (min-heap)                | 2h     | MED    |
-| 12 | Migrate to flake.nix build system                        | 2h     | MED    |
-| 13 | Expand benchmark suite (CSRF, rate limit, middleware)    | 1h     | MED    |
-| 14 | Fix `RenderPartial` split brain (context vs header)      | 30m    | LOW    |
-| 15 | Add cookie session store (not just in-memory)            | 2h     | HIGH   |
-| 16 | Add password reset flow to usermgmt                      | 2h     | MED    |
+| #   | Item                                                  | Effort | Impact |
+| --- | ----------------------------------------------------- | ------ | ------ |
+| 11  | Rate limiter O(log n) eviction (min-heap)             | 2h     | MED    |
+| 12  | Migrate to flake.nix build system                     | 2h     | MED    |
+| 13  | Expand benchmark suite (CSRF, rate limit, middleware) | 1h     | MED    |
+| 14  | Fix `RenderPartial` split brain (context vs header)   | 30m    | LOW    |
+| 15  | Add cookie session store (not just in-memory)         | 2h     | HIGH   |
+| 16  | Add password reset flow to usermgmt                   | 2h     | MED    |
 
 ### P3 — Backlog
 
-| #  | Item                                                    | Effort | Impact |
-| -- | ------------------------------------------------------- | ------ | ------ |
-| 17 | Add email verification flow to usermgmt                  | 2h     | MED    |
-| 18 | Add SSE/EventStream helper for real-time updates         | 3h     | HIGH   |
-| 19 | Add OAuth2/OIDC integration hooks in usermgmt            | 3h     | HIGH   |
-| 20 | Move `coverage.out` to `coverage/` directory             | 5m     | LOW    |
-| 21 | Archive old `docs/status/` reports (42 → 10)             | 30m    | LOW    |
-| 22 | Add 100% godoc coverage for all exported types            | 2h     | MED    |
-| 23 | Performance profiling and optimization pass              | 2h     | LOW    |
-| 24 | Add multi-tenancy support via Casbin domains             | 2h     | MED    |
-| 25 | Create visual architecture diagram (D2) for README       | 1h     | MED    |
+| #   | Item                                               | Effort | Impact |
+| --- | -------------------------------------------------- | ------ | ------ |
+| 17  | Add email verification flow to usermgmt            | 2h     | MED    |
+| 18  | Add SSE/EventStream helper for real-time updates   | 3h     | HIGH   |
+| 19  | Add OAuth2/OIDC integration hooks in usermgmt      | 3h     | HIGH   |
+| 20  | Move `coverage.out` to `coverage/` directory       | 5m     | LOW    |
+| 21  | Archive old `docs/status/` reports (42 → 10)       | 30m    | LOW    |
+| 22  | Add 100% godoc coverage for all exported types     | 2h     | MED    |
+| 23  | Performance profiling and optimization pass        | 2h     | LOW    |
+| 24  | Add multi-tenancy support via Casbin domains       | 2h     | MED    |
+| 25  | Create visual architecture diagram (D2) for README | 1h     | MED    |
 
 ---
 
@@ -245,15 +245,18 @@ cqrs-htmx is a **Go library** (not an application) that makes it easy to use go-
 **Should `usermgmt.UserID` switch from `brandid.ID[userBrand, string]` to `id.UserID` (ULID-backed) to unify with the root module?**
 
 Current state:
+
 - `cqrshtmx.UserID` = `id.UserID` (ULID-backed, 26 chars, from `go-cqrs-lite`)
 - `usermgmt.UserID` = `brandid.ID[userBrand, string]` (string-backed, any format)
 
 **For unification (switch to ULID):**
+
 - Single type across the ecosystem — no conversion at the boundary
 - Stronger guarantee: all user IDs are valid ULIDs
 - But: `usermgmt` becomes dependent on `go-cqrs-lite/core/pkg/id`, breaking its independence
 
 **Against (keep string-backed):**
+
 - `usermgmt` stays self-contained — no `go-cqrs-lite` dependency
 - More flexible: consumers can use UUIDs, integers, or any format
 - But: requires conversion when bridging between modules, and the type mismatch is confusing
@@ -264,14 +267,14 @@ Current state:
 
 ## Dependency Status
 
-| Dependency              | Version   | Status       |
-| ----------------------- | --------- | ------------ |
-| go-cqrs-lite/core       | v1.2.0    | ✅ Current   |
-| casbin/casbin/v3        | v3.10.0   | ✅ Current   |
-| gorilla/csrf            | v1.7.3    | ✅ Fixed     |
-| cockroachdb/errors      | v1.13.0   | ✅ Current   |
-| golang.org/x/time       | v0.15.0   | ✅ Current   |
-| go-branded-id           | v0.1.0    | ✅ New (usermgmt only) |
+| Dependency         | Version | Status                 |
+| ------------------ | ------- | ---------------------- |
+| go-cqrs-lite/core  | v1.2.0  | ✅ Current             |
+| casbin/casbin/v3   | v3.10.0 | ✅ Current             |
+| gorilla/csrf       | v1.7.3  | ✅ Fixed               |
+| cockroachdb/errors | v1.13.0 | ✅ Current             |
+| golang.org/x/time  | v0.15.0 | ✅ Current             |
+| go-branded-id      | v0.1.0  | ✅ New (usermgmt only) |
 
 ## Recent Commits (since last push)
 

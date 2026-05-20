@@ -20,9 +20,7 @@ var _ = Describe("Rate Limiting", func() {
 				KeyExtractor: func(_ *http.Request) string { return "test-key" },
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
 			for range 2 {
 				w := httptest.NewRecorder()
@@ -40,17 +38,13 @@ var _ = Describe("Rate Limiting", func() {
 				KeyExtractor: func(_ *http.Request) string { return "test-key" },
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
-			// First request should succeed
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w1, r1)
 			Expect(w1.Code).To(Equal(http.StatusOK))
 
-			// Second request should be rate-limited
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w2, r2)
@@ -65,17 +59,13 @@ var _ = Describe("Rate Limiting", func() {
 				Burst:  1,
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
-			// First request should succeed
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w1, r1)
 			Expect(w1.Code).To(Equal(http.StatusOK))
 
-			// Second request should be rate-limited (same key = "")
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w2, r2)
@@ -90,9 +80,7 @@ var _ = Describe("Rate Limiting", func() {
 				KeyExtractor: func(_ *http.Request) string { return "" },
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
 			for range 3 {
 				w := httptest.NewRecorder()
@@ -107,11 +95,8 @@ var _ = Describe("Rate Limiting", func() {
 				KeyExtractor: func(_ *http.Request) string { return "key" },
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
-			// Defaults: Limit=100, Burst=100. Should easily allow 3 requests.
 			for range 3 {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -131,25 +116,20 @@ var _ = Describe("Rate Limiting", func() {
 				KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
-			// First request from IP1 should succeed
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
 			r1.RemoteAddr = ip1
 			handler.ServeHTTP(w1, r1)
 			Expect(w1.Code).To(Equal(http.StatusOK))
 
-			// Second request from IP1 should be rate-limited
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
 			r2.RemoteAddr = ip1
 			handler.ServeHTTP(w2, r2)
 			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
 
-			// Request from IP2 should still succeed (different key)
 			w3 := httptest.NewRecorder()
 			r3 := httptest.NewRequest(http.MethodGet, "/", nil)
 			r3.RemoteAddr = ip2
@@ -166,26 +146,20 @@ var _ = Describe("Rate Limiting", func() {
 				TTL:          5 * time.Millisecond,
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
-			// First request should succeed
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w1, r1)
 			Expect(w1.Code).To(Equal(http.StatusOK))
 
-			// Second request should be rate-limited (same entry)
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w2, r2)
 			Expect(w2.Code).To(Equal(http.StatusTooManyRequests))
 
-			// Wait for TTL to expire
 			time.Sleep(10 * time.Millisecond)
 
-			// Third request should succeed (entry evicted, new limiter created)
 			w3 := httptest.NewRecorder()
 			r3 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w3, r3)
@@ -201,17 +175,13 @@ var _ = Describe("Rate Limiting", func() {
 				TTL:          100 * time.Millisecond,
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
-			// First request should succeed
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w1, r1)
 			Expect(w1.Code).To(Equal(http.StatusOK))
 
-			// Access within TTL should still find the same entry (rate-limited)
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w2, r2)
@@ -230,9 +200,7 @@ var _ = Describe("Rate Limiting", func() {
 				},
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -256,16 +224,12 @@ var _ = Describe("Rate Limiting", func() {
 				},
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
-			// First request succeeds
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w1, r1)
 
-			// Second request is rejected
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w2, r2)
@@ -287,16 +251,12 @@ var _ = Describe("Rate Limiting", func() {
 				},
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
-			// First request succeeds
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w1, r1)
 
-			// Second request uses custom handler
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w2, r2)
@@ -316,11 +276,8 @@ var _ = Describe("Rate Limiting", func() {
 				OnAllowed:    func(_ *http.Request) { allowed++ },
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
-			// Fill with 3 unique keys — MaxKeys=2 means key "a" is evicted when "c" arrives.
 			for _, key := range []string{"a", "b", "c"} {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)

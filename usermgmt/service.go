@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-const defaultSessionTTL = 24 * time.Hour
+const (
+	defaultSessionTTL = 24 * time.Hour
+	minPasswordLength = 8
+)
 
 type Service struct {
 	authz      *Authz
@@ -79,6 +82,13 @@ type RegisterRequest struct {
 	DisplayName string `json:"display_name"`
 }
 
+func formatValidationErrors(errs []string) error {
+	if len(errs) == 0 {
+		return nil
+	}
+	return fmt.Errorf("%w: %s", ErrValidation, strings.Join(errs, "; "))
+}
+
 func (r RegisterRequest) Validate() error {
 	var errs []string
 	r.Email = strings.TrimSpace(r.Email)
@@ -89,16 +99,13 @@ func (r RegisterRequest) Validate() error {
 	if _, err := mail.ParseAddress(r.Email); err != nil {
 		errs = append(errs, "invalid email")
 	}
-	if len(r.Password) < 8 {
+	if len(r.Password) < minPasswordLength {
 		errs = append(errs, "password must be at least 8 characters")
 	}
 	if len(r.DisplayName) > 100 {
 		errs = append(errs, "display name must be under 100 characters")
 	}
-	if len(errs) > 0 {
-		return fmt.Errorf("%w: %s", ErrValidation, strings.Join(errs, "; "))
-	}
-	return nil
+	return formatValidationErrors(errs)
 }
 
 type RegisterResponse struct {
@@ -122,7 +129,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	}
 
 	if err := s.authz.AddGroupPolicy(GroupPolicy{
-		User: user.ID.String(), Role: RoleUser, Domain: user.ID.String(),
+		Subject: user.ID.String(), Role: RoleUser, Domain: user.ID.String(),
 	}); err != nil {
 		return nil, fmt.Errorf("assign role: %w", err)
 	}
@@ -155,10 +162,7 @@ func (r LoginRequest) Validate() error {
 	if r.Password == "" {
 		errs = append(errs, "password is required")
 	}
-	if len(errs) > 0 {
-		return fmt.Errorf("%w: %s", ErrValidation, strings.Join(errs, "; "))
-	}
-	return nil
+	return formatValidationErrors(errs)
 }
 
 type LoginResponse struct {
@@ -237,7 +241,7 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 func (s *Service) UpdateRoles(
 	_ context.Context,
 	userID UserID,
-	roles []string,
+	roles []Role,
 	domain string,
 ) error {
 	user, err := s.users.FindByID(userID)
@@ -253,14 +257,14 @@ func (s *Service) UpdateRoles(
 	var remove []GroupPolicy
 	for _, role := range currentRoles {
 		remove = append(remove, GroupPolicy{
-			User: userID.String(), Role: role, Domain: domain,
+			Subject: userID.String(), Role: role, Domain: domain,
 		})
 	}
 
 	var add []GroupPolicy
 	for _, role := range roles {
 		add = append(add, GroupPolicy{
-			User: userID.String(), Role: role, Domain: domain,
+			Subject: userID.String(), Role: role, Domain: domain,
 		})
 	}
 
@@ -271,11 +275,19 @@ func (s *Service) UpdateRoles(
 		return fmt.Errorf("apply role update for user %q: %w", userID, err)
 	}
 
-	s.logAuth("roles_updated", userID, "roles", strings.Join(roles, ","), "domain", domain)
+	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
 
 	user.Roles = roles
 	user.UpdatedAt = time.Now().UTC()
 	return s.users.Save(user)
+}
+
+func formatRoles(roles []Role) string {
+	strs := make([]string, len(roles))
+	for i, r := range roles {
+		strs[i] = string(r)
+	}
+	return strings.Join(strs, ",")
 }
 
 func (s *Service) ChangePassword(
@@ -292,7 +304,7 @@ func (s *Service) ChangePassword(
 		return ErrInvalidCredentials
 	}
 
-	if len(newPassword) < 8 {
+	if len(newPassword) < minPasswordLength {
 		return fmt.Errorf(
 			"%w: password must be at least 8 characters for user %q",
 			ErrValidation,

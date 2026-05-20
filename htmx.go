@@ -55,10 +55,14 @@ type HTMXRequest struct {
 	IsBoosted        bool
 	IsHistoryRestore bool
 	Target           string
-	TriggerID        string
-	TriggerName      string
-	Prompt           string
-	CurrentURL       string
+	// TriggerID is the id attribute of the element that triggered the request.
+	// Maps to the HX-Trigger header.
+	TriggerID string
+	// TriggerName is the name attribute of the element that triggered the request.
+	// Maps to the HX-Trigger-Name header.
+	TriggerName string
+	Prompt      string
+	CurrentURL  string
 }
 
 // RenderPartial returns true when a partial HTML response should be rendered.

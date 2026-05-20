@@ -23,7 +23,7 @@ var _ = Describe("Middleware", func() {
 
 		It("enriches context with user ID from extractor", func() {
 			want := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
-			extractor := func(_ *http.Request) (cqrshtmx.UserID, error) { return want, nil }
+			extractor := staticExtractor(want)
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(extractor)
 
 			handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {

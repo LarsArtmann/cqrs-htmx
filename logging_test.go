@@ -19,9 +19,7 @@ var _ = Describe("Request Logging", func() {
 				logged = line
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusCreated)
-			}))
+			handler := middleware(createdHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodPost, "/users", nil)
@@ -37,9 +35,7 @@ var _ = Describe("Request Logging", func() {
 				logged = line
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/items", nil)
@@ -56,9 +52,7 @@ var _ = Describe("Request Logging", func() {
 				logged = line
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
@@ -75,9 +69,7 @@ var _ = Describe("Request Logging", func() {
 				logged = line
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
@@ -148,9 +140,7 @@ var _ = Describe("Request Logging", func() {
 				logged = line
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/api/users", nil)
@@ -176,9 +166,7 @@ var _ = Describe("Request Logging", func() {
 			))
 			middleware := cqrshtmx.RequestLoggingSlog(logger)
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusCreated)
-			}))
+			handler := middleware(createdHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodPost, "/users", nil)
@@ -200,9 +188,7 @@ var _ = Describe("Request Logging", func() {
 			))
 			middleware := cqrshtmx.RequestLoggingSlog(logger)
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := middleware(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/api", nil)

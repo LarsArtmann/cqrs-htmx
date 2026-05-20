@@ -5,6 +5,17 @@ import (
 	"net/http"
 )
 
+// csrfTokenFormatted returns a formatted string using the CSRF token from the
+// request, or an empty string if no token is present. The format function
+// receives the HTML-escaped token.
+func csrfTokenFormatted(r *http.Request, format func(escaped string) string) string {
+	token := csrfTokenFromRequest(r)
+	if token == "" {
+		return ""
+	}
+	return format(html.EscapeString(token))
+}
+
 // CSRFTokenHTMLMeta returns an HTML meta tag containing the CSRF token.
 // Use this in your HTML templates to make the token available to JavaScript
 // or HTMX without manual attribute construction.
@@ -16,11 +27,9 @@ import (
 // The token is HTML-escaped to prevent XSS. If no token is in the
 // request context (CSRFMiddleware not applied), returns an empty string.
 func CSRFTokenHTMLMeta(r *http.Request) string {
-	token := csrfTokenFromRequest(r)
-	if token == "" {
-		return ""
-	}
-	return `<meta name="csrf-token" content="` + html.EscapeString(token) + `">`
+	return csrfTokenFormatted(r, func(tok string) string {
+		return `<meta name="csrf-token" content="` + tok + `">`
+	})
 }
 
 // CSRFTokenHXHeaders returns an HTMX hx-headers attribute with the CSRF token.
@@ -35,11 +44,9 @@ func CSRFTokenHTMLMeta(r *http.Request) string {
 // The token is HTML-escaped to prevent XSS. Returns an empty string if no
 // token is present in context.
 func CSRFTokenHXHeaders(r *http.Request) string {
-	token := csrfTokenFromRequest(r)
-	if token == "" {
-		return ""
-	}
-	return `hx-headers='{"X-CSRF-Token":"` + html.EscapeString(token) + `"}'`
+	return csrfTokenFormatted(r, func(tok string) string {
+		return `hx-headers='{"X-CSRF-Token":"` + tok + `"}'`
+	})
 }
 
 // CSRFTokenFormField returns a hidden input HTML element containing the CSRF token.
@@ -52,13 +59,9 @@ func CSRFTokenHXHeaders(r *http.Request) string {
 //
 // The token is HTML-escaped. Returns an empty string if no token is present.
 func CSRFTokenFormField(r *http.Request) string {
-	token := csrfTokenFromRequest(r)
-	if token == "" {
-		return ""
-	}
-	return `<input type="hidden" name="` + html.EscapeString(
-		defaultCSRFFieldName,
-	) + `" value="` + html.EscapeString(
-		token,
-	) + `">`
+	return csrfTokenFormatted(r, func(tok string) string {
+		return `<input type="hidden" name="` + html.EscapeString(
+			defaultCSRFFieldName,
+		) + `" value="` + tok + `">`
+	})
 }

@@ -22,11 +22,13 @@ const (
 	EffectDeny  Effect = "deny"
 )
 
+type Role string
+
 const (
-	RoleAdmin  = "admin"
-	RoleUser   = "user"
-	RoleViewer = "viewer"
-	RoleOwner  = "owner"
+	RoleAdmin  Role = "admin"
+	RoleUser   Role = "user"
+	RoleViewer Role = "viewer"
+	RoleOwner  Role = "owner"
 )
 
 const defaultModel = `[request_definition]
@@ -46,7 +48,7 @@ m = (p.sub == "*" || g(r.sub, p.sub, r.dom)) && (p.dom == "*" || r.dom == p.dom)
 `
 
 type Policy struct {
-	Subject string
+	Subject Role
 	Domain  string
 	Object  string
 	Action  Action
@@ -54,18 +56,18 @@ type Policy struct {
 }
 
 type GroupPolicy struct {
-	User   string
-	Role   string
-	Domain string
+	Subject string
+	Role    Role
+	Domain  string
 }
 
 type EnforceResult struct {
-	Allowed     bool
-	MatchedRule []string
-	Subject     string
-	Domain      string
-	Object      string
-	Action      Action
+	Allowed      bool
+	MatchedRules []string
+	Subject      string
+	Domain       string
+	Object       string
+	Action       Action
 }
 
 type PolicyUpdate struct {
@@ -110,21 +112,15 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 	}
 
 	for _, p := range config.Policies {
-		if _, err := e.AddPolicy(
-			p.Subject,
-			p.Domain,
-			p.Object,
-			string(p.Action),
-			string(p.Effect),
-		); err != nil {
+		if _, err := e.AddPolicy(policyArgs(p)...); err != nil {
 			return nil, fmt.Errorf("add policy {%s, %s, %s, %s, %s}: %w",
 				p.Subject, p.Domain, p.Object, p.Action, p.Effect, err)
 		}
 	}
 
 	for _, g := range config.Groups {
-		if _, err := e.AddGroupingPolicy(g.User, g.Role, g.Domain); err != nil {
-			return nil, fmt.Errorf("add group {%s, %s, %s}: %w", g.User, g.Role, g.Domain, err)
+		if _, err := e.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
+			return nil, fmt.Errorf("add group {%s, %s, %s}: %w", g.Subject, g.Role, g.Domain, err)
 		}
 	}
 
@@ -161,12 +157,12 @@ func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, err
 		return nil, err
 	}
 	return &EnforceResult{
-		Allowed:     allowed,
-		MatchedRule: matched,
-		Subject:     sub,
-		Domain:      dom,
-		Object:      obj,
-		Action:      act,
+		Allowed:      allowed,
+		MatchedRules: matched,
+		Subject:      sub,
+		Domain:       dom,
+		Object:       obj,
+		Action:       act,
 	}, nil
 }
 
@@ -181,37 +177,33 @@ func (a *Authz) Authorize(sub, dom, obj string, act Action) error {
 	return nil
 }
 
+// policyArgs converts a Policy to the variadic args expected by casbin
+// policy methods (AddPolicy, RemovePolicy, etc.).
+func policyArgs(p Policy) []any {
+	return []any{string(p.Subject), p.Domain, p.Object, string(p.Action), string(p.Effect)}
+}
+
 func (a *Authz) Apply(update PolicyUpdate) error {
 	for _, g := range update.RemoveGroups {
-		if _, err := a.enforcer.RemoveGroupingPolicy(g.User, g.Role, g.Domain); err != nil {
-			return fmt.Errorf("remove group {%s, %s, %s}: %w", g.User, g.Role, g.Domain, err)
+		if _, err := a.enforcer.RemoveGroupingPolicy(
+			g.Subject,
+			string(g.Role),
+			g.Domain,
+		); err != nil {
 		}
 	}
 	for _, p := range update.RemovePolicies {
-		if _, err := a.enforcer.RemovePolicy(
-			p.Subject,
-			p.Domain,
-			p.Object,
-			string(p.Action),
-			string(p.Effect),
-		); err != nil {
+		if _, err := a.enforcer.RemovePolicy(policyArgs(p)...); err != nil {
 			return fmt.Errorf("remove policy {%s, %s, %s, %s, %s}: %w",
 				p.Subject, p.Domain, p.Object, p.Action, p.Effect, err)
 		}
 	}
 	for _, g := range update.AddGroups {
-		if _, err := a.enforcer.AddGroupingPolicy(g.User, g.Role, g.Domain); err != nil {
-			return fmt.Errorf("add group {%s, %s, %s}: %w", g.User, g.Role, g.Domain, err)
+		if _, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
 		}
 	}
 	for _, p := range update.AddPolicies {
-		if _, err := a.enforcer.AddPolicy(
-			p.Subject,
-			p.Domain,
-			p.Object,
-			string(p.Action),
-			string(p.Effect),
-		); err != nil {
+		if _, err := a.enforcer.AddPolicy(policyArgs(p)...); err != nil {
 			return fmt.Errorf("add policy {%s, %s, %s, %s, %s}: %w",
 				p.Subject, p.Domain, p.Object, p.Action, p.Effect, err)
 		}
@@ -220,34 +212,22 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 }
 
 func (a *Authz) AddPolicy(p Policy) error {
-	_, err := a.enforcer.AddPolicy(
-		p.Subject,
-		p.Domain,
-		p.Object,
-		string(p.Action),
-		string(p.Effect),
-	)
+	_, err := a.enforcer.AddPolicy(policyArgs(p)...)
 	return err
 }
 
 func (a *Authz) RemovePolicy(p Policy) error {
-	_, err := a.enforcer.RemovePolicy(
-		p.Subject,
-		p.Domain,
-		p.Object,
-		string(p.Action),
-		string(p.Effect),
-	)
+	_, err := a.enforcer.RemovePolicy(policyArgs(p)...)
 	return err
 }
 
 func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
-	_, err := a.enforcer.AddGroupingPolicy(g.User, g.Role, g.Domain)
+	_, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	return err
 }
 
 func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
-	_, err := a.enforcer.RemoveGroupingPolicy(g.User, g.Role, g.Domain)
+	_, err := a.enforcer.RemoveGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	return err
 }
 
@@ -259,12 +239,28 @@ func (a *Authz) GroupPolicies() ([][]string, error) {
 	return a.enforcer.GetGroupingPolicy()
 }
 
-func (a *Authz) RolesForUser(userID UserID, domain string) ([]string, error) {
-	return a.enforcer.GetRolesForUser(userID.String(), domain)
+func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
+	roles, err := a.enforcer.GetRolesForUser(userID.String(), domain)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]Role, len(roles))
+	for i, r := range roles {
+		result[i] = Role(r)
+	}
+	return result, nil
 }
 
-func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]string, error) {
-	return a.enforcer.GetImplicitRolesForUser(userID.String(), domain)
+func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, error) {
+	roles, err := a.enforcer.GetImplicitRolesForUser(userID.String(), domain)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]Role, len(roles))
+	for i, r := range roles {
+		result[i] = Role(r)
+	}
+	return result, nil
 }
 
 func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]string, error) {
@@ -275,8 +271,8 @@ func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 	return a.enforcer.GetDomainsForUser(userID.String())
 }
 
-func (a *Authz) UsersForRole(role, domain string) ([]string, error) {
-	return a.enforcer.GetUsersForRole(role, domain)
+func (a *Authz) UsersForRole(role Role, domain string) ([]string, error) {
+	return a.enforcer.GetUsersForRole(string(role), domain)
 }
 
 func defaultPolicies() []Policy {

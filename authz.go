@@ -80,6 +80,11 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 	return nil
 }
 
+func handleUnauthorized(w http.ResponseWriter, r *http.Request, resource, action, redirect string) {
+	authErr := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
+	DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
+}
+
 // AuthorizeMiddleware returns an HTTP middleware that checks Casbin authorization.
 // The subject is extracted from the context using the configured UserIDExtractor.
 // Auth errors are handled with HTMX awareness (HX-Redirect for auth failures).
@@ -103,14 +108,12 @@ func AuthorizeMiddleware(
 			} else if extractor != nil {
 				uid, err := extractor(r)
 				if err != nil || uid.IsZero() {
-					authErr := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
-					DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
+					handleUnauthorized(w, r, resource, action, redirect)
 					return
 				}
 				subject = uid.String()
 			} else {
-				authErr := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
-				DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
+				handleUnauthorized(w, r, resource, action, redirect)
 				return
 			}
 

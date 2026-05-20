@@ -621,11 +621,11 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(w.Code).To(Equal(http.StatusSeeOther))
 		})
 
-		It("blocks root path redirects", func() {
+		It("allows root path redirects", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			cqrshtmx.NewResponse(w, r).Redirect("/").Apply()
-			Expect(w.Code).ToNot(Equal(http.StatusSeeOther))
+			Expect(w.Code).To(Equal(http.StatusSeeOther))
 		})
 
 		It("blocks empty path redirects", func() {
