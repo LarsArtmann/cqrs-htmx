@@ -237,8 +237,8 @@ func TestUserID_NewUserID(t *testing.T) {
 	if id.IsZero() {
 		t.Error("expected non-zero UserID")
 	}
-	if id.String() != "user-123" {
-		t.Errorf("expected 'user-123', got %q", id.String())
+	if id.Get() != "user-123" {
+		t.Errorf("expected 'user-123', got %q", id.Get())
 	}
 }
 
