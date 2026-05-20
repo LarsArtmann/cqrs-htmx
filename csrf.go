@@ -334,8 +334,11 @@ func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {
 //	    cqrshtmx.DecodeJSON(...),
 //	)
 func CSRFProtect(cfg CSRFConfig) HandlerOption {
+	opts := buildGorillaOptions(cfg)
+	protect := csrf.Protect(cfg.secret(), opts...)
 	return func(hc *handlerConfig) {
 		hc.csrfConfig = &cfg
+		hc.csrfProtect = protect
 	}
 }
 
@@ -351,12 +354,10 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, cfg *handlerC
 		return nil
 	}
 
-	// gorilla/csrf hasn't run; validate using a temporary middleware instance.
+	// gorilla/csrf hasn't run; validate using the cached middleware instance.
 	// We capture its response via httptest.ResponseRecorder to avoid writing
 	// directly to w, which would conflict with the caller's error handling.
-	opts := buildGorillaOptions(*cfg.csrfConfig)
-	protect := csrf.Protect(cfg.csrfConfig.secret(), opts...)
-
+	protect := cfg.csrfProtect
 	var validated bool
 	dummy := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		validated = true

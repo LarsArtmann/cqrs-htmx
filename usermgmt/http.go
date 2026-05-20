@@ -31,6 +31,7 @@ func NewAuthHandlers(service *Service, cfg ...HandlerConfig) *AuthHandlers {
 			config.CookieName = cfg[0].CookieName
 		}
 		config.Secure = cfg[0].Secure
+		config.SessionMaxAge = cfg[0].SessionMaxAge
 	}
 	return &AuthHandlers{
 		service:       service,

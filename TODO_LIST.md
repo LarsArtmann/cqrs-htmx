@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Date:** 2026-05-07 | **Updated:** 2026-05-19 | **Source:** Self-review session, full codebase audit + comprehensive 9-skill review
+**Date:** 2026-05-07 | **Updated:** 2026-05-20 | **Source:** Self-review session, full codebase audit + comprehensive 9-skill review
 
 ## Status Legend
 
@@ -73,7 +73,7 @@
 - [x] **Context propagation** — User ID → context → event metadata. Dedup in handlers
 - [x] **Templ duck-typing** — `RenderTempl`, `RenderTemplResult[T]` without importing templ
 - [x] **Middleware chain** — `Chain` composes middleware left-to-right
-- [x] **94.7% test coverage** — 289 specs, race-safe
+- [x] **94.8% test coverage** — 289 specs, race-safe, usermgmt 95.6%
 - [x] **0 lint issues** — golangci-lint clean
 - [x] **All header constants consolidated** — No hardcoded HTMX header strings in production code
 - [x] **Per-App LoginRedirect** — Config field now actually works via closure
@@ -83,27 +83,40 @@
 
 ### Correctness
 
-- [ ] **Fix context mismatch in `applyQueryResponse`** — `handler.go:124` uses `r.Context()` instead of the enriched `ctx` from timeout wrapping. Low risk (render rarely fails from timeout), but inconsistent with `handleCommandDispatch`.
-- [ ] **Fix nil context in usermgmt tests** — `usermgmt/handler_test.go:314,322` uses `nil` context; `gopls SA1012` warns. Should use `context.TODO()`.
+- [x] **Fix context mismatch in `applyQueryResponse`** — Verified already correct: caller at `handler.go:166` passes `r.WithContext(ctx)`, so `r.Context()` inside `applyQueryResponse` IS the enriched context. No bug.
+- [x] **Fix nil context in usermgmt tests** — Replaced `nil` with `context.TODO()` in `handler_test.go`. Silences SA1012.
 
 ### Production Safety
 
-- [ ] **Add max-keys cap to rate limiter** — `ratelimit.go` `perKeyLimiter.limiters` map grows unbounded under pathological key patterns. Add `MaxKeys int` to `RateLimiterConfig` with eviction when exceeded.
-- [ ] **Cache CSRF Protect instance** — `csrf.go:413-444` `executeCSRFValidation` creates `csrf.Protect()` per request when `CSRFProtect` is used. Cache the Protect instance at handler creation time.
+- [x] **Add max-keys cap to rate limiter** — `MaxKeys int` added to `RateLimiterConfig` with O(n) eviction. `evictOldestIfAtCapacity()` extracted to keep complexity under cyclop threshold.
+- [x] **Cache CSRF Protect instance** — `handlerConfig.csrfProtect` field caches the middleware. `CSRFProtect()` builds it once. `executeCSRFValidation` reuses the cached instance.
 
 ### Deduplication (High Impact)
 
-- [ ] **Generic HTMX accessor** — Collapse 8 accessor functions in `htmx.go:96-170` to a single `htmxField[T]` generic helper.
-- [ ] **Generic decoder** — Collapse `DecodeJSON`/`DecodeJSONQuery`/`DecodeForm`/`DecodeFormQuery` in `options.go:66-107` to a single generic decoder.
-- [ ] **Generic validation** — Collapse `ValidateCommand`/`ValidateQuery` in `options.go:201-250` to a single generic validation wrapper.
-- [ ] **Unified notification implementation** — Merge `notifyOption` and `triggerNotification` in `notify.go`+`response.go` to a single implementation.
+- [x] **Generic HTMX accessor** — `htmxBoolField`/`htmxStringField` generic helpers. 8 accessors delegate to 2 generics.
+- [x] **Generic decoder** — `decodeAndSet[T,R]` generic decoder. 4 public functions remain as ergonomic wrappers.
+- [x] **Generic validation** — `validateDispatch[T]` generic validator. `ValidateCommand`/`ValidateQuery` are thin wrappers.
+- [x] **Unified notification implementation** — `notificationDetail()` shared helper extracted.
 
 ### Deduplication (Medium Impact)
 
-- [ ] **Shared logging context extraction** — Extract `appendContextAttrs(r)` helper from `logging.go` (3 blocks).
-- [ ] **Shared error handler core** — Extract `handleErrorWithRedirect(w, r, err, redirect, writeBody)` from `errors.go:127-183`.
-- [ ] **Generic ID helpers** — Collapse `ParseUserID`/`ParseCorrelationID`/`ParseRequestID` to a `parseID[T]` generic.
+- [x] **Shared logging context extraction** — `contextFields(r)` helper extracts correlation/user/request IDs. Used by 3 formatters.
+- [x] **Shared error handler core** — `handleErrorCore(w, r, err, redirect, writeBody)` extracted. Used by both Default and JSON error handlers.
+- [x] **Generic ID helpers** — `parseID[T]` generic helper. `ParseUserID`/`ParseCorrelationID`/`ParseRequestID` delegate to 1 generic.
 
 ### File Organization
 
-- [ ] **Split `csrf.go` (445 lines)** — Move template helpers (`CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`, `CSRFTokenFormField`, `RotateCSRFToken`) to `csrf_helpers.go`.
+- [x] **Split `csrf.go`** — Template helpers moved to `csrf_helpers.go`.
+
+### New Items from 2026-05-20 Session
+
+- [x] **Branded UserID migration** — `usermgmt/id.go` with `UserID = brandid.ID[userBrand, string]` via `go-branded-id`. All user ID fields/params strongly typed. 17/18 violations fixed (TriggerID intentionally skipped — DOM element ID, not domain entity).
+- [x] **Fix SessionMaxAge not copied in NewAuthHandlers** — `http.go:NewAuthHandlers` did not copy `SessionMaxAge` from `HandlerConfig`, always defaulting to 86400.
+- [x] **usermgmt test coverage 85% → 95.6%** — Added tests for untested authz methods (ImplicitRoles, ImplicitPermissions, Policies, GroupPolicies, AddPolicy, RemovePolicy, RemoveGroupPolicy), store paths (duplicate ID, WithTTL), http config (SessionMaxAge, custom CookieName), and UserID type operations.
+
+### Open Items
+
+- [ ] **Resolve usermgmt vs cqrshtmx UserID type split** — `usermgmt.UserID` (string-backed) vs `cqrshtmx.UserID` (ULID-backed) are incompatible types. Decision depends on whether usermgmt is standalone or always paired with cqrs-htmx.
+- [ ] **Rate limiter eviction O(n)** — `evictOldestIfAtCapacity()` does linear scan. Could use min-heap or LRU for O(log n).
+- [ ] **Evaluate go-branded-id for numeric IDs** — Future SQL store backends could use `brandid.ID[Brand, int64]`.
+- [ ] **Integration tests between root module and usermgmt** — Full register → cqrs dispatch with user context flow.

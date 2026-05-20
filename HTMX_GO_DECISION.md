@@ -4,14 +4,14 @@
 
 ## Why Not
 
-| Aspect | `angelofallars/htmx-go` | `cqrs-htmx` (current) |
-|--------|------------------------|----------------------|
-| **Type** | Standalone HTMX helper | CQRS-integrated framework |
-| **Response builder** | `NewResponse().Write(w)` | `NewResponse(w, r).Apply()` — integrates with redirect sanitization, CSRF, request-aware `IsHTMX()` |
-| **Templ integration** | Direct `templ` import | Duck-typed `TemplComponent` — no forced dependency |
-| **Triggers** | `TriggerObject`, swap modifiers | `TriggerWithDetail`, `NotifyWithEvent` builder |
-| **Swap strategies** | Fluent modifiers (`After()`, `Scroll()`) | Basic constants |
-| **HTMX request parsing** | Standalone functions | Context-cached via `HTMXMiddleware` + fallback |
+| Aspect                   | `angelofallars/htmx-go`                  | `cqrs-htmx` (current)                                                                               |
+| ------------------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Type**                 | Standalone HTMX helper                   | CQRS-integrated framework                                                                           |
+| **Response builder**     | `NewResponse().Write(w)`                 | `NewResponse(w, r).Apply()` — integrates with redirect sanitization, CSRF, request-aware `IsHTMX()` |
+| **Templ integration**    | Direct `templ` import                    | Duck-typed `TemplComponent` — no forced dependency                                                  |
+| **Triggers**             | `TriggerObject`, swap modifiers          | `TriggerWithDetail`, `NotifyWithEvent` builder                                                      |
+| **Swap strategies**      | Fluent modifiers (`After()`, `Scroll()`) | Basic constants                                                                                     |
+| **HTMX request parsing** | Standalone functions                     | Context-cached via `HTMXMiddleware` + fallback                                                      |
 
 ### Adding this dependency creates problems
 

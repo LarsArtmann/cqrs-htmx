@@ -386,3 +386,59 @@ func TestHandlers_FullFlow(t *testing.T) {
 		t.Errorf("logout: expected 200, got %d", logoutW.Code)
 	}
 }
+
+func TestNewAuthHandlers_SessionMaxAge(t *testing.T) {
+	svc := newTestService(t)
+	h := NewAuthHandlers(svc, HandlerConfig{Secure: false, SessionMaxAge: 3600})
+
+	body := `{"id":"u1","email":"maxage@test.com","password":"secret12"}`
+	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d", w.Code)
+	}
+
+	found := false
+	for _, c := range w.Result().Cookies() {
+		if c.Name == "session_token" && c.MaxAge == 3600 {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("expected session cookie with MaxAge=3600")
+	}
+}
+
+func TestNewAuthHandlers_CustomCookieName(t *testing.T) {
+	svc := newTestService(t)
+	h := NewAuthHandlers(svc, HandlerConfig{CookieName: "my_session", Secure: false})
+
+	body := `{"id":"u1","email":"cookie@test.com","password":"secret12"}`
+	req := httptest.NewRequest(http.MethodPost, "/auth/register", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d", w.Code)
+	}
+
+	found := false
+	for _, c := range w.Result().Cookies() {
+		if c.Name == "my_session" && c.Value != "" {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("expected session cookie named 'my_session'")
+	}
+}

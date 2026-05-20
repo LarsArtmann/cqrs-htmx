@@ -51,6 +51,7 @@ type handlerConfig struct {
 	triggerDetail  map[string]any
 	pushURL        string
 	csrfConfig     *CSRFConfig
+	csrfProtect    func(http.Handler) http.Handler
 	maxBodySize    int64
 	timeout        time.Duration
 }

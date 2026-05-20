@@ -207,3 +207,68 @@ func TestInMemorySessionStore_DeleteByUserID(t *testing.T) {
 		t.Error("expected s2 deleted")
 	}
 }
+
+func TestInMemoryUserStore_CreateDuplicateID(t *testing.T) {
+	store := NewInMemoryUserStore()
+	u := NewUser(NewUserID("dup-id"), "a@b.com", "Test")
+	_ = store.Create(u)
+
+	u2 := NewUser(NewUserID("dup-id"), "other@b.com", "Other")
+	if err := store.Create(u2); err == nil {
+		t.Error("expected error for duplicate user ID")
+	}
+}
+
+func TestInMemorySessionStore_WithTTL(t *testing.T) {
+	store := NewInMemorySessionStore().WithTTL(5 * time.Minute)
+	s, err := store.Create(NewUserID("u1"), time.Hour)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if s == nil {
+		t.Fatal("expected non-nil session")
+	}
+}
+
+func TestUser_SetPassword(t *testing.T) {
+	u := NewUser(NewUserID("u1"), "a@b.com", "Test")
+	if err := u.SetPassword("secret123"); err != nil {
+		t.Fatalf("SetPassword: %v", err)
+	}
+	if !u.CheckPassword("secret123") {
+		t.Error("expected password to match after SetPassword")
+	}
+}
+
+func TestUserID_NewUserID(t *testing.T) {
+	id := NewUserID("user-123")
+	if id.IsZero() {
+		t.Error("expected non-zero UserID")
+	}
+	if id.String() != "user-123" {
+		t.Errorf("expected 'user-123', got %q", id.String())
+	}
+}
+
+func TestUserID_IsZero(t *testing.T) {
+	var id UserID
+	if !id.IsZero() {
+		t.Error("expected zero UserID to be IsZero")
+	}
+	id = NewUserID("nonempty")
+	if id.IsZero() {
+		t.Error("expected non-zero UserID to not be IsZero")
+	}
+}
+
+func TestUserID_Equal(t *testing.T) {
+	a := NewUserID("same")
+	b := NewUserID("same")
+	c := NewUserID("different")
+	if !a.Equal(b) {
+		t.Error("expected equal UserIDs")
+	}
+	if a.Equal(c) {
+		t.Error("expected different UserIDs to not be equal")
+	}
+}

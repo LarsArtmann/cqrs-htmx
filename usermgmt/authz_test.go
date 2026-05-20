@@ -271,6 +271,111 @@ func TestAuthz_EnforceAny(t *testing.T) {
 	}
 }
 
+func TestAuthz_ImplicitRolesForUser(t *testing.T) {
+	a := newTestAuthz(t,
+		Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
+	)
+	_ = a.AddGroupPolicy(GroupPolicy{User: "p1", Role: RoleOwner, Domain: "g1"})
+
+	roles, err := a.ImplicitRolesForUser(NewUserID("p1"), "g1")
+	if err != nil {
+		t.Fatalf("ImplicitRolesForUser: %v", err)
+	}
+	if len(roles) != 1 || roles[0] != RoleOwner {
+		t.Errorf("expected [owner], got %v", roles)
+	}
+
+	roles, err = a.ImplicitRolesForUser(NewUserID("p1"), "other")
+	if err != nil {
+		t.Fatalf("ImplicitRolesForUser: %v", err)
+	}
+	if len(roles) != 0 {
+		t.Errorf("expected no implicit roles in other domain, got %v", roles)
+	}
+}
+
+func TestAuthz_ImplicitPermissionsForUser(t *testing.T) {
+	a := newTestAuthz(t,
+		Policy{RoleOwner, "g1", "game.play_round", ActionExecute, EffectAllow},
+	)
+	_ = a.AddGroupPolicy(GroupPolicy{User: "p1", Role: RoleOwner, Domain: "g1"})
+
+	perms, err := a.ImplicitPermissionsForUser(NewUserID("p1"), "g1")
+	if err != nil {
+		t.Fatalf("ImplicitPermissionsForUser: %v", err)
+	}
+	if len(perms) == 0 {
+		t.Error("expected implicit permissions for owner in g1")
+	}
+}
+
+func TestAuthz_Policies(t *testing.T) {
+	a := newTestAuthz(t,
+		Policy{"*", "*", "game.get", ActionRead, EffectAllow},
+	)
+
+	policies, err := a.Policies()
+	if err != nil {
+		t.Fatalf("Policies: %v", err)
+	}
+	if len(policies) < 2 {
+		t.Errorf("expected at least 2 policies (admin + custom), got %d", len(policies))
+	}
+}
+
+func TestAuthz_GroupPolicies(t *testing.T) {
+	a := newTestAuthz(t)
+	_ = a.AddGroupPolicy(GroupPolicy{User: "p1", Role: RoleOwner, Domain: "g1"})
+
+	groups, err := a.GroupPolicies()
+	if err != nil {
+		t.Fatalf("GroupPolicies: %v", err)
+	}
+	if len(groups) != 1 {
+		t.Errorf("expected 1 group policy, got %d", len(groups))
+	}
+}
+
+func TestAuthz_AddAndRemovePolicy(t *testing.T) {
+	a := newTestAuthz(t)
+
+	if err := a.AddPolicy(Policy{"*", "*", "game.create", ActionExecute, EffectAllow}); err != nil {
+		t.Fatalf("AddPolicy: %v", err)
+	}
+
+	ok, _ := a.Enforce("anyone", "any-domain", "game.create", ActionExecute)
+	if !ok {
+		t.Error("expected access after AddPolicy")
+	}
+
+	if err := a.RemovePolicy(
+		Policy{"*", "*", "game.create", ActionExecute, EffectAllow},
+	); err != nil {
+		t.Fatalf("RemovePolicy: %v", err)
+	}
+
+	ok, _ = a.Enforce("anyone", "any-domain", "game.create", ActionExecute)
+	if ok {
+		t.Error("expected denied after RemovePolicy")
+	}
+}
+
+func TestAuthz_RemoveGroupPolicy(t *testing.T) {
+	a := newTestAuthz(t)
+	_ = a.AddGroupPolicy(GroupPolicy{User: "p1", Role: RoleOwner, Domain: "g1"})
+
+	if err := a.RemoveGroupPolicy(
+		GroupPolicy{User: "p1", Role: RoleOwner, Domain: "g1"},
+	); err != nil {
+		t.Fatalf("RemoveGroupPolicy: %v", err)
+	}
+
+	ok, _ := a.Enforce("p1", "g1", "anything", ActionAll)
+	if ok {
+		t.Error("expected denied after RemoveGroupPolicy")
+	}
+}
+
 func newTestAuthz(t *testing.T, extra ...Policy) *Authz {
 	t.Helper()
 	policies := append([]Policy{{RoleAdmin, "*", "*", ActionAll, EffectAllow}}, extra...)
