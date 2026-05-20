@@ -78,7 +78,8 @@ var _ = Describe("Timeout Support", func() {
 			}, 5*time.Second)
 
 			r := httptest.NewRequest(http.MethodGet, "/fast", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(encodeJSONResult),
 			), r)

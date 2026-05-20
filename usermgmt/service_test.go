@@ -45,7 +45,8 @@ func TestService_Register_DuplicateEmail(t *testing.T) {
 	svc := newTestService(t)
 	registerTestUser(t, svc, "u1", "a@b.com", "password")
 
-	_, err := svc.Register(context.Background(),
+	_, err := svc.Register(
+		context.Background(),
 		RegisterRequest{ID: NewUserID("u2"), Email: "a@b.com", Password: "password"},
 	)
 	assertErrorIs(t, err, ErrEmailExists, "ErrEmailExists")

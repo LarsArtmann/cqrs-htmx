@@ -97,7 +97,7 @@ cqrs-htmx/
 
 | Dependency         | Purpose                   |
 | ------------------ | ------------------------- |
-| go-cqrs-lite/core  | CQRS dispatch (v1.4.0)  |
+| go-cqrs-lite/core  | CQRS dispatch (v1.4.0)    |
 | casbin/casbin/v3   | Authorization             |
 | cockroachdb/errors | Error handling            |
 | gorilla/csrf       | CSRF protection (v1.7.3+) |

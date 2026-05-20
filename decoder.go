@@ -103,7 +103,8 @@ func decodeFormValues(form url.Values, target any) error {
 	if err := json.Unmarshal(encoded, target); err != nil {
 		return fmt.Errorf(
 			"%w: unmarshal form values for target=%T: %w",
-			ErrDecodeFailed, target, err)
+			ErrDecodeFailed, target, err,
+		)
 	}
 
 	return nil

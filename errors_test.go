@@ -10,7 +10,8 @@ import (
 )
 
 var _ = Describe("Error Mapping", func() {
-	DescribeTable("MapError maps CQRS error families to HTTP status codes",
+	DescribeTable(
+		"MapError maps CQRS error families to HTTP status codes",
 		func(err error, expectedStatus int) {
 			Expect(cqrshtmx.MapError(err)).To(Equal(expectedStatus))
 		},

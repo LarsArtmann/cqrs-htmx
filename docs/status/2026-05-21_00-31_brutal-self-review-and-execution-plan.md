@@ -52,12 +52,12 @@ No. All removals were intentional: deprecated vars, dead sentinels, duplicate co
 
 ### 10. Split brains?
 
-| # | Split Brain | Severity | Status |
-|---|-------------|----------|--------|
-| 1 | **`std/errors` vs `cockroachdb/errors` in `http.go`** | Medium | `http.go:7` imports `std/errors` while all other files use `cockroachdb/errors` |
-| 2 | **`usermgmt.UserID` (string-backed) vs `cqrshtmx.UserID` (ULID-backed)** | Medium | Design decision — documented, bridge exists |
-| 3 | **`usermgmt.ErrForbidden` vs `cqrshtmx.ErrForbidden`** | Low | Different packages, different semantics (Casbin vs HTTP). Both are sentinel errors with distinct messages |
-| 4 | **`RateLimiterConfig.Limit` is `uint` but `perKeyLimiter.maxKeys` is `int`** | Low | Inconsistent signedness across layers |
+| #   | Split Brain                                                                  | Severity | Status                                                                                                    |
+| --- | ---------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------- |
+| 1   | **`std/errors` vs `cockroachdb/errors` in `http.go`**                        | Medium   | `http.go:7` imports `std/errors` while all other files use `cockroachdb/errors`                           |
+| 2   | **`usermgmt.UserID` (string-backed) vs `cqrshtmx.UserID` (ULID-backed)**     | Medium   | Design decision — documented, bridge exists                                                               |
+| 3   | **`usermgmt.ErrForbidden` vs `cqrshtmx.ErrForbidden`**                       | Low      | Different packages, different semantics (Casbin vs HTTP). Both are sentinel errors with distinct messages |
+| 4   | **`RateLimiterConfig.Limit` is `uint` but `perKeyLimiter.maxKeys` is `int`** | Low      | Inconsistent signedness across layers                                                                     |
 
 ### 11. How are we doing on tests?
 
@@ -71,37 +71,37 @@ No. All removals were intentional: deprecated vars, dead sentinels, duplicate co
 
 ## a) FULLY DONE
 
-| # | Item | Verification |
-|---|------|-------------|
-| 1 | **go-cqrs-lite/core v1.4.0 upgrade** | Build PASS, Tests PASS |
-| 2 | **go-branded-id v0.3.0 upgrade** | Build PASS, Tests PASS |
-| 3 | **Apply() error propagation fix** | Build PASS, Tests PASS |
-| 4 | **Breaking change analysis** | Zero impact confirmed |
-| 5 | **30 production files deep-reviewed** | All files read line-by-line |
-| 6 | **AGENTS.md updated with versions** | Committed |
-| 7 | **All 30 features FULLY_FUNCTIONAL** | FEATURES.md confirms |
+| #   | Item                                  | Verification                |
+| --- | ------------------------------------- | --------------------------- |
+| 1   | **go-cqrs-lite/core v1.4.0 upgrade**  | Build PASS, Tests PASS      |
+| 2   | **go-branded-id v0.3.0 upgrade**      | Build PASS, Tests PASS      |
+| 3   | **Apply() error propagation fix**     | Build PASS, Tests PASS      |
+| 4   | **Breaking change analysis**          | Zero impact confirmed       |
+| 5   | **30 production files deep-reviewed** | All files read line-by-line |
+| 6   | **AGENTS.md updated with versions**   | Committed                   |
+| 7   | **All 30 features FULLY_FUNCTIONAL**  | FEATURES.md confirms        |
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's Done | What's Missing |
-|---|------|-------------|----------------|
-| 1 | **go-cqrs-lite v1.4.0 feature adoption** | Dep upgraded | `CatalogDispatcher`, `TypedHandler[T]`, `Publisher`/`Subscriber` ISP not yet used |
-| 2 | **go-branded-id v0.3.0 feature adoption** | Dep upgraded | `BrandNamer`, `ValidateID` not yet adopted |
-| 3 | **Test lint cleanup** | Identified all 7 issues | Not fixed yet |
+| #   | Item                                      | What's Done             | What's Missing                                                                    |
+| --- | ----------------------------------------- | ----------------------- | --------------------------------------------------------------------------------- |
+| 1   | **go-cqrs-lite v1.4.0 feature adoption**  | Dep upgraded            | `CatalogDispatcher`, `TypedHandler[T]`, `Publisher`/`Subscriber` ISP not yet used |
+| 2   | **go-branded-id v0.3.0 feature adoption** | Dep upgraded            | `BrandNamer`, `ValidateID` not yet adopted                                        |
+| 3   | **Test lint cleanup**                     | Identified all 7 issues | Not fixed yet                                                                     |
 
 ## c) NOT STARTED
 
-| # | Item | Priority |
-|---|------|----------|
-| 1 | Root+usermgmt integration test (register → dispatch E2E) | P0 |
-| 2 | Adopt `CatalogDispatcher` for catalog introspection | P1 |
-| 3 | Adopt `TypedHandler[T]` for type-safe query dispatch | P1 |
-| 4 | Fix `std/errors` import in `http.go` | P1 |
-| 5 | Fix 7 pre-existing test lint warnings | P2 |
-| 6 | Resolve UserID type split decision | P1 |
-| 7 | Add `BrandNamer` to root module marker types | P3 |
-| 8 | Rate limiter O(n) eviction improvement | P3 |
-| 9 | CI pipeline validation with new deps | P1 |
+| #   | Item                                                     | Priority |
+| --- | -------------------------------------------------------- | -------- |
+| 1   | Root+usermgmt integration test (register → dispatch E2E) | P0       |
+| 2   | Adopt `CatalogDispatcher` for catalog introspection      | P1       |
+| 3   | Adopt `TypedHandler[T]` for type-safe query dispatch     | P1       |
+| 4   | Fix `std/errors` import in `http.go`                     | P1       |
+| 5   | Fix 7 pre-existing test lint warnings                    | P2       |
+| 6   | Resolve UserID type split decision                       | P1       |
+| 7   | Add `BrandNamer` to root module marker types             | P3       |
+| 8   | Rate limiter O(n) eviction improvement                   | P3       |
+| 9   | CI pipeline validation with new deps                     | P1       |
 
 ## d) TOTALLY FUCKED UP
 
@@ -137,33 +137,33 @@ No. All removals were intentional: deprecated vars, dead sentinels, duplicate co
 
 ## f) Top 25 Things We Should Get Done Next
 
-| # | Priority | Item | Effort | Impact |
-|---|----------|------|--------|--------|
-| 1 | **P0** | **Integration test: root + usermgmt E2E flow** | M | Critical |
-| 2 | **P0** | **Fix `std/errors` import in `http.go` → `cockroachdb/errors`** | S | High |
-| 3 | **P1** | **Fix 7 test lint warnings (noctx, prealloc, unparam, gochecknoglobals)** | S | Medium |
-| 4 | **P1** | **Adopt `CatalogDispatcher` catalog introspection on App** | S | High |
-| 5 | **P1** | **Adopt `TypedHandler[T]` for type-safe query dispatch** | M | High |
-| 6 | **P1** | **Validate CI pipeline with new dependency versions** | S | High |
-| 7 | **P1** | **Resolve `usermgmt.UserID` vs `cqrshtmx.UserID` type split** | M | Medium |
-| 8 | **P1** | **Make `CSRFConfig.Secure` default to `true` with warning** | S | Medium |
-| 9 | **P2** | **Extract shared `errorStatus` → reuse root's `MapError`** | S | Medium |
-| 10 | **P2** | **Make `Apply()` use Casbin batch methods for true atomicity** | M | Medium |
-| 11 | **P2** | **Test `policyWrapErr` paths (currently 0% coverage)** | S | Medium |
-| 12 | **P2** | **Test `statusRecorder.Hijack()` (0% coverage)** | S | Low |
-| 13 | **P2** | **Test `sanitizeRedirectURL` error paths (75%)** | S | Low |
-| 14 | **P2** | **Test `sameSite()` CSRF helper (66.7%)** | S | Low |
-| 15 | **P2** | **Test `csrfTokenFromRequest` fallback path (66.7%)** | S | Low |
-| 16 | **P2** | **Test `fieldName()` CSRF helper (66.7%)** | S | Low |
-| 17 | **P2** | **Usermgmt: test `handleLogout` (77.8%)** | S | Low |
-| 18 | **P2** | **Usermgmt: test `handleMe` (80%)** | S | Low |
-| 19 | **P2** | **Usermgmt: test `RolesForUser` error path (75%)** | S | Low |
-| 20 | **P3** | **Adopt `BrandNamer` for root module marker types** | S | Low |
-| 21 | **P3** | **Adopt `ValidateID` from go-branded-id** | S | Low |
-| 22 | **P3** | **Rate limiter eviction O(n) → min-heap** | M | Low |
-| 23 | **P3** | **Fuzz tests for CSRF token validation** | M | Low |
-| 24 | **P3** | **Adopt `Publisher`/`Subscriber` ISP from go-cqrs-lite v1.4.0** | S | Low |
-| 25 | **P3** | **Consider `encoding/json/v2` for Go 1.25+** | M | Low |
+| #   | Priority | Item                                                                      | Effort | Impact   |
+| --- | -------- | ------------------------------------------------------------------------- | ------ | -------- |
+| 1   | **P0**   | **Integration test: root + usermgmt E2E flow**                            | M      | Critical |
+| 2   | **P0**   | **Fix `std/errors` import in `http.go` → `cockroachdb/errors`**           | S      | High     |
+| 3   | **P1**   | **Fix 7 test lint warnings (noctx, prealloc, unparam, gochecknoglobals)** | S      | Medium   |
+| 4   | **P1**   | **Adopt `CatalogDispatcher` catalog introspection on App**                | S      | High     |
+| 5   | **P1**   | **Adopt `TypedHandler[T]` for type-safe query dispatch**                  | M      | High     |
+| 6   | **P1**   | **Validate CI pipeline with new dependency versions**                     | S      | High     |
+| 7   | **P1**   | **Resolve `usermgmt.UserID` vs `cqrshtmx.UserID` type split**             | M      | Medium   |
+| 8   | **P1**   | **Make `CSRFConfig.Secure` default to `true` with warning**               | S      | Medium   |
+| 9   | **P2**   | **Extract shared `errorStatus` → reuse root's `MapError`**                | S      | Medium   |
+| 10  | **P2**   | **Make `Apply()` use Casbin batch methods for true atomicity**            | M      | Medium   |
+| 11  | **P2**   | **Test `policyWrapErr` paths (currently 0% coverage)**                    | S      | Medium   |
+| 12  | **P2**   | **Test `statusRecorder.Hijack()` (0% coverage)**                          | S      | Low      |
+| 13  | **P2**   | **Test `sanitizeRedirectURL` error paths (75%)**                          | S      | Low      |
+| 14  | **P2**   | **Test `sameSite()` CSRF helper (66.7%)**                                 | S      | Low      |
+| 15  | **P2**   | **Test `csrfTokenFromRequest` fallback path (66.7%)**                     | S      | Low      |
+| 16  | **P2**   | **Test `fieldName()` CSRF helper (66.7%)**                                | S      | Low      |
+| 17  | **P2**   | **Usermgmt: test `handleLogout` (77.8%)**                                 | S      | Low      |
+| 18  | **P2**   | **Usermgmt: test `handleMe` (80%)**                                       | S      | Low      |
+| 19  | **P2**   | **Usermgmt: test `RolesForUser` error path (75%)**                        | S      | Low      |
+| 20  | **P3**   | **Adopt `BrandNamer` for root module marker types**                       | S      | Low      |
+| 21  | **P3**   | **Adopt `ValidateID` from go-branded-id**                                 | S      | Low      |
+| 22  | **P3**   | **Rate limiter eviction O(n) → min-heap**                                 | M      | Low      |
+| 23  | **P3**   | **Fuzz tests for CSRF token validation**                                  | M      | Low      |
+| 24  | **P3**   | **Adopt `Publisher`/`Subscriber` ISP from go-cqrs-lite v1.4.0**           | S      | Low      |
+| 25  | **P3**   | **Consider `encoding/json/v2` for Go 1.25+**                              | M      | Low      |
 
 ## g) Top #1 Question I Cannot Figure Out Myself
 
@@ -180,18 +180,18 @@ These are fundamentally different types with different constraints. Unifying the
 
 ## Metrics Summary
 
-| Metric | Root | usermgmt |
-|--------|------|----------|
-| Coverage | 95.9% | 92.1% |
-| Production files | 17 | 9 |
-| Total prod lines | ~3,300 | ~1,800 |
-| Test files | 20 | 7 |
-| Benchmarks | 16 | 0 |
-| Lint issues | 0 | 0 |
-| Godoc examples | 9 | ~70 symbols |
+| Metric           | Root   | usermgmt    |
+| ---------------- | ------ | ----------- |
+| Coverage         | 95.9%  | 92.1%       |
+| Production files | 17     | 9           |
+| Total prod lines | ~3,300 | ~1,800      |
+| Test files       | 20     | 7           |
+| Benchmarks       | 16     | 0           |
+| Lint issues      | 0      | 0           |
+| Godoc examples   | 9      | ~70 symbols |
 
 ## Files Changed This Session
 
-| File | Change |
-|------|--------|
+| File                | Change                                                                          |
+| ------------------- | ------------------------------------------------------------------------------- |
 | `usermgmt/authz.go` | Fixed silent error swallowing in `Apply()` — group policy ops now return errors |

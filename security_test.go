@@ -21,7 +21,8 @@ var _ = Describe("Security Headers Middleware", func() {
 		Expect(w.Header().Get(header)).To(Equal(expected))
 	}
 
-	DescribeTable("default security headers",
+	DescribeTable(
+		"default security headers",
 		func(header, expected string) {
 			assertSecurityHeader(cqrshtmx.SecurityHeadersConfig{}, header, expected)
 		},

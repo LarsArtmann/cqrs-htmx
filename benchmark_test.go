@@ -100,7 +100,8 @@ func BenchmarkQueryDispatch(b *testing.B) {
 	})
 
 	app, _ := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
-	handler := app.Query("GetUser",
+	handler := app.Query(
+		"GetUser",
 		decodeGetUserJSONQuery(),
 		cqrshtmx.Render(encodeJSONResult),
 	)

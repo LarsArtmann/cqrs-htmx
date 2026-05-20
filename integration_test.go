@@ -66,14 +66,16 @@ var _ = Describe("Full Integration", func() {
 		})
 
 		It("allows admin to create user with full HTMX response", func() {
-			handler := app.Command("CreateUser",
+			handler := app.Command(
+				"CreateUser",
 				cqrshtmx.Authorize("users", "create"),
 				decodeCreateUserJSONWithBodyAndAggID(userID),
 				cqrshtmx.Trigger("userCreated"),
 				cqrshtmx.PushURL("/users/"+userID.String()),
 			)
 
-			r := newPostRequest("/users", `{"email":"admin@co.com","name":"Admin"}`,
+			r := newPostRequest(
+				"/users", `{"email":"admin@co.com","name":"Admin"}`,
 				withUserHeader("X-User", adminUserID),
 				withHTMX,
 			)
@@ -84,18 +86,21 @@ var _ = Describe("Full Integration", func() {
 		})
 
 		It("denies viewer from creating user", func() {
-			handler := app.Command("CreateUser",
+			handler := app.Command(
+				"CreateUser",
 				cqrshtmx.Authorize("users", "create"),
 				decodeCreateUserJSONWithAggID(userID),
 			)
-			assertStatusCode(handler,
+			assertStatusCode(
+				handler,
 				newPostRequest("/users", `{}`, withUserHeader("X-User", viewerUserID)),
 				http.StatusForbidden,
 			)
 		})
 
 		It("redirects unauthenticated HTMX users to login", func() {
-			handler := app.Command("CreateUser",
+			handler := app.Command(
+				"CreateUser",
 				cqrshtmx.Authorize("users", "create"),
 				decodeCreateUserJSONWithAggID(userID),
 			)
@@ -106,13 +111,15 @@ var _ = Describe("Full Integration", func() {
 		})
 
 		It("maps CQRS rejection errors to 400", func() {
-			handler := app.Command("DeleteUser",
+			handler := app.Command(
+				"DeleteUser",
 				cqrshtmx.RequireAuth(),
 				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 					return &bddDeleteUserCmd{aggID: userID}, nil
 				}),
 			)
-			assertStatusCode(handler,
+			assertStatusCode(
+				handler,
 				newPostRequest("/users/delete", `{}`, withUserHeader("X-User", adminUserID)),
 				http.StatusBadRequest,
 			)
@@ -136,7 +143,8 @@ var _ = Describe("Full Integration", func() {
 		})
 
 		It("renders query results as JSON", func() {
-			handler := app.Query("ListUsers",
+			handler := app.Query(
+				"ListUsers",
 				cqrshtmx.DecodeJSONQuery(func(_ bddListUsersQuery) (query.Query, error) {
 					return &bddListUsersQuery{}, nil
 				}),
@@ -154,7 +162,8 @@ var _ = Describe("Full Integration", func() {
 	Describe("Command with redirect", func() {
 		It("redirects to URL after command success", func() {
 			app := newCommandApp()
-			handler := app.Command("CreateUser",
+			handler := app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
 			)
@@ -167,7 +176,8 @@ var _ = Describe("Full Integration", func() {
 	Describe("TriggerWithDetail handler option", func() {
 		It("sets HX-Trigger with detail data", func() {
 			app := newCommandApp()
-			handler := app.Command("CreateUser",
+			handler := app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.TriggerWithDetail("userCreated", map[string]string{"id": "123"}),
 			)
@@ -215,7 +225,8 @@ var _ = Describe("Full Integration", func() {
 
 		It("allows command dispatch with valid CSRF token via HTMX header", func() {
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
-			handler := csrfMW(app.Command("CreateUser",
+			handler := csrfMW(app.Command(
+				"CreateUser",
 				decodeBDDCreateUserJSONWithBody(),
 				cqrshtmx.NotifySuccess("User created"),
 			))
@@ -293,7 +304,8 @@ var _ = Describe("Full Integration", func() {
 			for _, c := range w1.Result().Cookies() {
 				r2.AddCookie(c)
 			}
-			handler := csrfMW(qryApp.Query("ListUsers",
+			handler := csrfMW(qryApp.Query(
+				"ListUsers",
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 					return &bddListUsersQuery{}, nil
 				}),
@@ -317,7 +329,8 @@ var _ = Describe("Full Integration", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
-			handler := csrfMW(qryApp.Query("GetPage",
+			handler := csrfMW(qryApp.Query(
+				"GetPage",
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 					return &getPageQuery{}, nil
 				}),
@@ -363,7 +376,8 @@ var _ = Describe("Full Integration", func() {
 
 		It("allows command dispatch with CSRFProtect and valid token", func() {
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
-			handler := csrfMW(app.Command("CreateUser",
+			handler := csrfMW(app.Command(
+				"CreateUser",
 				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
 				decodeBDDCreateUserJSONWithBody(),
 			))
@@ -387,7 +401,8 @@ var _ = Describe("Full Integration", func() {
 		})
 
 		It("rejects command dispatch with CSRFProtect but no token", func() {
-			handler := app.Command("CreateUser",
+			handler := app.Command(
+				"CreateUser",
 				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
 				decodeBDDCreateUserJSONWithBody(),
 			)
@@ -397,7 +412,8 @@ var _ = Describe("Full Integration", func() {
 
 		It("rejects command dispatch with CSRFProtect and invalid token", func() {
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
-			handler := csrfMW(app.Command("CreateUser",
+			handler := csrfMW(app.Command(
+				"CreateUser",
 				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
 				decodeBDDCreateUserJSONWithBody(),
 			))
@@ -420,7 +436,8 @@ var _ = Describe("Full Integration", func() {
 	})
 
 	Describe("Body size limits", func() {
-		DescribeTable("MaxBodySize",
+		DescribeTable(
+			"MaxBodySize",
 			func(maxBodySize int64, body string, expectedCode int) {
 				disp := command.NewDispatcher()
 				_ = disp.Register("CreateUser", noOpCommandHandler)

@@ -62,7 +62,8 @@ var _ = Describe("Middleware", func() {
 			)
 		})
 
-		DescribeTable("RequestID handling",
+		DescribeTable(
+			"RequestID handling",
 			func(setupRequest func(*http.Request), assertRequestID func(cqrshtmx.RequestID)) {
 				middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
 				var captured cqrshtmx.RequestID

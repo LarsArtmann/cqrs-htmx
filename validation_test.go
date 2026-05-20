@@ -23,7 +23,8 @@ var _ = Describe("Validation HandlerOption", func() {
 			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
 
-			serve(app.Command("CreateUser",
+			serve(app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshmx.ValidateCommand(func(_ command.Command) error { return nil }),
 			), newPostRequest("/users", `{}`))
@@ -32,7 +33,8 @@ var _ = Describe("Validation HandlerOption", func() {
 
 		It("rejects commands that fail validation", func() {
 			app := newCommandApp()
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshmx.ValidateCommand(func(_ command.Command) error {
 					return errors.New("email is required")
@@ -52,7 +54,8 @@ var _ = Describe("Validation HandlerOption", func() {
 			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
 
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				cqrshmx.ValidateCommand(func(_ command.Command) error {
 					return errors.New("should not run")
 				}),
@@ -72,7 +75,8 @@ var _ = Describe("Validation HandlerOption", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshmx.ValidateQuery(func(_ query.Query) error { return nil }),
 				cqrshmx.Render(encodeJSONResult),
@@ -89,7 +93,8 @@ var _ = Describe("Validation HandlerOption", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshmx.ValidateQuery(func(_ query.Query) error {
 					return errors.New("page must be positive")
@@ -108,7 +113,8 @@ var _ = Describe("Validation HandlerOption", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				cqrshmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return nil, errors.New("decode failed")
 				}),

@@ -146,7 +146,8 @@ func (c *CSRFConfig) secret() []byte {
 		return c.Secret
 	}
 	if len(c.Secret) > 0 {
-		slog.Warn("cqrs-htmx: CSRF secret is shorter than 32 bytes — padding with zeros",
+		slog.Warn(
+			"cqrs-htmx: CSRF secret is shorter than 32 bytes — padding with zeros",
 			slog.Int("provided", len(c.Secret)),
 			slog.String("hint", "use a 32-byte secret for production"),
 		)

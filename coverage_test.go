@@ -61,7 +61,8 @@ var _ = Describe("Coverage Gaps", func() {
 				return "irrelevant", nil
 			})
 			r := httptest.NewRequest(http.MethodGet, "/page", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.RenderTempl(&bddTemplComponent{html: "<h1>Hello</h1>"}),
 			), r)
@@ -75,7 +76,8 @@ var _ = Describe("Coverage Gaps", func() {
 				return aliceName, nil
 			})
 			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
 					return &bddTemplComponent{html: "<p>" + result + "</p>"}
@@ -89,7 +91,8 @@ var _ = Describe("Coverage Gaps", func() {
 				return 42, nil
 			})
 			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.RenderTemplResult(func(result string) cqrshtmx.TemplComponent {
 					return &bddTemplComponent{html: result}
@@ -111,7 +114,8 @@ var _ = Describe("Coverage Gaps", func() {
 			form.Set("Name", "Test User")
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(form.Encode()))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			serve(app.Command("CreateUser",
+			serve(app.Command(
+				"CreateUser",
 				cqrshtmx.DecodeForm(func(req testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{
 						aggID: id.NewAggregateID(),
@@ -128,7 +132,8 @@ var _ = Describe("Coverage Gaps", func() {
 			Expect(app).NotTo(BeNil())
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("%%%invalid"))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				cqrshtmx.DecodeForm(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
@@ -214,7 +219,8 @@ var _ = Describe("Coverage Gaps", func() {
 				return testQueryResult, nil
 			})
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(func(_ http.ResponseWriter, _ *http.Request, _ any) error {
 					return errors.New("render failed")
@@ -285,7 +291,8 @@ var _ = Describe("Coverage Gaps", func() {
 			})
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(encodeJSONResult),
 				cqrshtmx.Trigger("dataLoaded"),
@@ -295,7 +302,8 @@ var _ = Describe("Coverage Gaps", func() {
 	})
 
 	Describe("Notification HandlerOptions", func() {
-		DescribeTable("notification triggers on command success",
+		DescribeTable(
+			"notification triggers on command success",
 			func(opt cqrshtmx.HandlerOption, expectedLevel string) {
 				testNotificationTrigger(opt, expectedLevel)
 			},
@@ -314,7 +322,8 @@ var _ = Describe("Coverage Gaps", func() {
 				strings.NewReader(`{}`),
 			)
 			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.NotifyWithEvent("showToast").Success("User created"),
 			), r)
@@ -327,7 +336,8 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("Command with redirect and HTMX", func() {
 		It("sets HTMX redirect for HTMX requests", func() {
 			app := newCommandApp()
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
 			), newPostRequest("/users", `{}`, withHTMX))
@@ -336,7 +346,8 @@ var _ = Describe("Coverage Gaps", func() {
 	})
 
 	Describe("NotifyEventBuilder methods", func() {
-		DescribeTable("NotifyEventBuilder triggers notification",
+		DescribeTable(
+			"NotifyEventBuilder triggers notification",
 			func(opt cqrshtmx.HandlerOption, level string) {
 				testNotificationTrigger(opt, level)
 			},
@@ -384,7 +395,8 @@ var _ = Describe("Coverage Gaps", func() {
 				<-ctx.Done()
 				return ctx.Err()
 			})
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.WithTimeout(50*time.Millisecond),
 			), newPostRequest("/slow", `{}`))
@@ -397,7 +409,8 @@ var _ = Describe("Coverage Gaps", func() {
 			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp, Timeout: 5 * time.Second})
 			Expect(err).NotTo(HaveOccurred())
-			serve(app.Command("CreateUser",
+			serve(app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.WithTimeout(0),
 			), newPostRequest("/fast", `{}`))
@@ -405,7 +418,8 @@ var _ = Describe("Coverage Gaps", func() {
 		})
 	})
 
-	DescribeTable("sanitizeRedirectURL edge cases",
+	DescribeTable(
+		"sanitizeRedirectURL edge cases",
 		func(url string, expectRedirect bool) {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -436,7 +450,8 @@ var _ = Describe("Coverage Gaps", func() {
 			form.Add("Tags", "htmx")
 			r := httptest.NewRequest(http.MethodPost, "/tags", strings.NewReader(form.Encode()))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			serve(app.Command("CreateUser",
+			serve(app.Command(
+				"CreateUser",
 				cqrshtmx.DecodeForm(func(_ struct {
 					Tags []string
 				},
@@ -453,7 +468,8 @@ var _ = Describe("Coverage Gaps", func() {
 			form.Set("Count", "not-a-number")
 			r := httptest.NewRequest(http.MethodPost, "/bad", strings.NewReader(form.Encode()))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				cqrshtmx.DecodeForm(func(_ struct{ Count int }) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
@@ -484,7 +500,8 @@ var _ = Describe("Coverage Gaps", func() {
 			})
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(encodeJSONResult),
 				cqrshtmx.PushURL("/users/1"),

@@ -399,7 +399,8 @@ var _ = Describe("HTMXRequest context", func() {
 	)
 })
 
-var _ = DescribeTable("notification methods",
+var _ = DescribeTable(
+	"notification methods",
 	func(notify func(*cqrshtmx.Response) *cqrshtmx.Response, level, message string) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)

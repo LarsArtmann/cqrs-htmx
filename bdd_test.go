@@ -53,7 +53,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			})
 
 			It("successfully creates a user with full authorization and HTMX notification", func() {
-				handler := app.Command("CreateUser",
+				handler := app.Command(
+					"CreateUser",
 					cqrshtmx.Authorize("users", "create"),
 					decodeBDDCreateUserJSONWithBody(),
 					cqrshtmx.NotifySuccess("User created successfully"),
@@ -74,7 +75,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			})
 
 			It("rejects an unauthorized viewer", func() {
-				handler := app.Command("CreateUser",
+				handler := app.Command(
+					"CreateUser",
 					cqrshtmx.Authorize("users", "create"),
 					decodeBDDCreateUserJSON(),
 				)
@@ -85,7 +87,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			})
 
 			It("redirects unauthenticated HTMX users to login", func() {
-				handler := app.Command("CreateUser",
+				handler := app.Command(
+					"CreateUser",
 					cqrshtmx.Authorize("users", "create"),
 					decodeBDDCreateUserJSON(),
 				)
@@ -96,7 +99,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			})
 
 			It("handles invalid JSON input gracefully", func() {
-				handler := app.Command("CreateUser",
+				handler := app.Command(
+					"CreateUser",
 					cqrshtmx.Authorize("users", "create"),
 					decodeBDDCreateUserJSON(),
 				)
@@ -120,7 +124,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 
 			component := &bddTemplComponent{html: "<div class='dashboard'>Welcome</div>"}
 			r := httptest.NewRequest(http.MethodGet, "/dashboard", strings.NewReader(`{}`))
-			w := serve(app.Query("GetDashboard",
+			w := serve(app.Query(
+				"GetDashboard",
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 					return &bddDashboardQuery{}, nil
 				}),
@@ -144,7 +149,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			w := serve(app.Query("ListUsers",
+			w := serve(app.Query(
+				"ListUsers",
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 					return &bddListUsersQuery{}, nil
 				}),
@@ -175,7 +181,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			)
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
-			w := serve(app.Command("DeleteUser",
+			w := serve(app.Command(
+				"DeleteUser",
 				cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
 					return &bddDeleteUserCmd{aggID: id.NewAggregateID()}, nil
 				}),
@@ -287,7 +294,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			r := httptest.NewRequest(http.MethodPost, "/users",
 				strings.NewReader("Email=alice%40example.com&Name=Alice"))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			serve(app.Command("CreateUser",
+			serve(app.Command(
+				"CreateUser",
 				cqrshtmx.DecodeForm(decodeBDDCreateUserFormMapper()),
 			), r)
 			Expect(receivedName).To(Equal(aliceName))
@@ -306,7 +314,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			r := httptest.NewRequest(http.MethodGet, "/users",
 				strings.NewReader("Email=alice%40example.com&Name=Alice"))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			w := serve(app.Query("ListUsers",
+			w := serve(app.Query(
+				"ListUsers",
 				cqrshtmx.DecodeFormQuery(func(_ bddCreateUserReq) (query.Query, error) {
 					return &bddListUsersQuery{}, nil
 				}),
@@ -327,7 +336,8 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			r := httptest.NewRequest(http.MethodGet, "/api/users", strings.NewReader(`{}`))
-			w := serve(app.Query("ListUsers",
+			w := serve(app.Query(
+				"ListUsers",
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 					return &bddListUsersQuery{}, nil
 				}),

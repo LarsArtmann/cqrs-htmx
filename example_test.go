@@ -30,7 +30,8 @@ func ExampleApp_Command() {
 	disp := command.NewDispatcher()
 	app, _ := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 
-	handler := app.Command("CreateUser",
+	handler := app.Command(
+		"CreateUser",
 		cqrshtmx.DecodeJSON(func(_ struct {
 			Email string `json:"email"`
 		},
@@ -50,7 +51,8 @@ func ExampleApp_Query() {
 	disp := query.NewDispatcher()
 	app, _ := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 
-	handler := app.Query("GetUser",
+	handler := app.Query(
+		"GetUser",
 		cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 			return nil, nil
 		}),

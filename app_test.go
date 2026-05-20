@@ -107,7 +107,8 @@ var _ = Describe("App", func() {
 		})
 
 		It("allows admin to create users", func() {
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				cqrshtmx.Authorize("users", "create"),
 				decodeCreateUserJSONWithBody(),
 			), newPostJSONRequest(testUserJSONBody,
@@ -116,7 +117,8 @@ var _ = Describe("App", func() {
 		})
 
 		It("denies viewer from creating users", func() {
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				cqrshtmx.Authorize("users", "create"),
 				decodeCreateUserJSONWithBody(),
 			), newPostJSONRequest(testUserJSONBody,
@@ -125,7 +127,8 @@ var _ = Describe("App", func() {
 		})
 
 		It("rejects unauthenticated users", func() {
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				cqrshtmx.Authorize("users", "create"),
 			), newPostRequest("/users", ""))
 			Expect(w.code()).To(Equal(http.StatusUnauthorized))
@@ -139,7 +142,8 @@ var _ = Describe("App", func() {
 		BeforeEach(func() { app = newCommandApp() })
 
 		It("sets HX-Trigger header with Trigger option", func() {
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.Trigger("userCreated"),
 			), newPostRequest("/users", testUserJSONBody, withHTMX))
@@ -147,7 +151,8 @@ var _ = Describe("App", func() {
 		})
 
 		It("sets HX-Push-Url header with PushURL option", func() {
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.PushURL("/users"),
 			), newPostRequest("/users", `{}`, withHTMX))
@@ -155,7 +160,8 @@ var _ = Describe("App", func() {
 		})
 
 		It("sets HX-Redirect header with Redirect option for HTMX requests", func() {
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
 			), newPostRequest("/users", `{}`, withHTMX))
@@ -173,7 +179,8 @@ var _ = Describe("App", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
 				}),
@@ -208,7 +215,8 @@ var _ = Describe("App", func() {
 		It("allows authorized queries", func() {
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			r.Header.Set("X-User-ID", adminUserID.String())
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				cqrshtmx.Authorize("users", "read"),
 				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
@@ -221,7 +229,8 @@ var _ = Describe("App", func() {
 		It("denies unauthorized queries", func() {
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			r.Header.Set("X-User-ID", viewerUserID.String())
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				cqrshtmx.Authorize("users", "admin"),
 				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
@@ -233,7 +242,8 @@ var _ = Describe("App", func() {
 
 		It("rejects unauthenticated queries", func() {
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			w := serve(app.Query("GetUser",
+			w := serve(app.Query(
+				"GetUser",
 				cqrshtmx.Authorize("users", "read"),
 				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
 					return &testGetUserQuery{}, nil
@@ -411,7 +421,8 @@ var _ = Describe("Handler Options", func() {
 	Describe("RequireAuth", func() {
 		It("rejects requests without user ID", func() {
 			app := newCommandApp()
-			w := serve(app.Command("CreateUser",
+			w := serve(app.Command(
+				"CreateUser",
 				cqrshtmx.RequireAuth(),
 				decodeCreateUserJSON(),
 			), newPostRequest("/users", `{}`))

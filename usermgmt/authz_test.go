@@ -36,7 +36,8 @@ func TestAuthz_PublicAccess(t *testing.T) {
 }
 
 func TestAuthz_OwnerInDomain(t *testing.T) {
-	a := newTestAuthz(t,
+	a := newTestAuthz(
+		t,
 		Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
 		Policy{RoleOwner, "*", "game.finish", ActionExecute, EffectAllow},
 	)
@@ -49,7 +50,8 @@ func TestAuthz_OwnerInDomain(t *testing.T) {
 }
 
 func TestAuthz_DenyOverride(t *testing.T) {
-	a := newTestAuthz(t,
+	a := newTestAuthz(
+		t,
 		Policy{"*", "*", "audit.replay", ActionExecute, EffectDeny},
 		Policy{RoleAdmin, "*", "*", ActionAll, EffectAllow},
 	)
@@ -88,7 +90,8 @@ func TestAuthz_Authorize_ReturnsErrForbidden(t *testing.T) {
 }
 
 func TestAuthz_Apply(t *testing.T) {
-	a := newTestAuthz(t,
+	a := newTestAuthz(
+		t,
 		Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
 	)
 
@@ -189,7 +192,8 @@ func TestAuthz_EnforceAny(t *testing.T) {
 }
 
 func TestAuthz_ImplicitRolesForUser(t *testing.T) {
-	a := newTestAuthz(t,
+	a := newTestAuthz(
+		t,
 		Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
 	)
 	_ = a.AddGroupPolicy(GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"})
@@ -212,7 +216,8 @@ func TestAuthz_ImplicitRolesForUser(t *testing.T) {
 }
 
 func TestAuthz_ImplicitPermissionsForUser(t *testing.T) {
-	a := newTestAuthz(t,
+	a := newTestAuthz(
+		t,
 		Policy{RoleOwner, "g1", "game.play_round", ActionExecute, EffectAllow},
 	)
 	_ = a.AddGroupPolicy(GroupPolicy{Subject: "p1", Role: RoleOwner, Domain: "g1"})
@@ -227,7 +232,8 @@ func TestAuthz_ImplicitPermissionsForUser(t *testing.T) {
 }
 
 func TestAuthz_Policies(t *testing.T) {
-	a := newTestAuthz(t,
+	a := newTestAuthz(
+		t,
 		Policy{"*", "*", "game.get", ActionRead, EffectAllow},
 	)
 
