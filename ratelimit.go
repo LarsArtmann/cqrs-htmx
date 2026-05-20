@@ -9,11 +9,13 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// Rate limiter defaults.
 const (
 	DefaultRateLimit  = 100
 	DefaultRateWindow = time.Minute
 	DefaultRateTTL    = 10 * time.Minute
+
+	headerRetryAfter     = "Retry-After"
+	rateLimitExceededMsg = "rate limit exceeded"
 )
 
 // KeyExtractor extracts a rate-limit key from an HTTP request.
@@ -110,9 +112,9 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 				if cfg.RejectionHandler != nil {
 					cfg.RejectionHandler(w, r, retryAfter)
 				} else {
-					w.Header().Set("Retry-After", retryAfter)
+					w.Header().Set(headerRetryAfter, retryAfter)
 					w.WriteHeader(http.StatusTooManyRequests)
-					_, _ = w.Write([]byte("rate limit exceeded"))
+					_, _ = w.Write([]byte(rateLimitExceededMsg))
 				}
 
 				return

@@ -10,6 +10,12 @@ import (
 	"time"
 )
 
+const (
+	logFieldCorrelationID = "correlation_id"
+	logFieldUserID       = "user_id"
+	logFieldRequestID    = "request_id"
+)
+
 // LogFormatter decides what string to write for a request/response pair.
 // The returned string is written as a single log line.
 type LogFormatter func(r *http.Request, status int, duration time.Duration) string
@@ -22,13 +28,13 @@ type LogWriter func(line string)
 func contextFields(r *http.Request) map[string]string {
 	fields := make(map[string]string)
 	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
-		fields["correlation_id"] = cid.String()
+		fields[logFieldCorrelationID] = cid.String()
 	}
 	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
-		fields["user_id"] = uid.String()
+		fields[logFieldUserID] = uid.String()
 	}
 	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
-		fields["request_id"] = rid.String()
+		fields[logFieldRequestID] = rid.String()
 	}
 	return fields
 }
@@ -48,10 +54,10 @@ func DefaultLogFormatter(r *http.Request, status int, duration time.Duration) st
 
 	var extra string
 	fields := contextFields(r)
-	if v, ok := fields["correlation_id"]; ok {
+	if v, ok := fields[logFieldCorrelationID]; ok {
 		extra += " [correlation=" + v + "]"
 	}
-	if v, ok := fields["user_id"]; ok {
+	if v, ok := fields[logFieldUserID]; ok {
 		extra += " [user=" + v + "]"
 	}
 

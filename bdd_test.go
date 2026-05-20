@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -24,49 +23,9 @@ const (
 	aliceEmail = "alice@example.com"
 )
 
-type bddCreateUserReq struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-}
-
-type bddCreateUserCmd struct {
-	aggID id.AggregateID
-	email string
-	name  string
-}
-
-func (c *bddCreateUserCmd) Type() command.Type          { return "CreateUser" }
-func (c *bddCreateUserCmd) AggregateID() id.AggregateID { return c.aggID }
-func (c *bddCreateUserCmd) IdempotencyKey() string      { return c.aggID.String() }
-
-type bddListUsersQuery struct{}
-
-func (q *bddListUsersQuery) Type() query.Type { return "ListUsers" }
-
-type bddDeleteUserCmd struct {
-	aggID id.AggregateID
-}
-
-func (c *bddDeleteUserCmd) Type() command.Type          { return "DeleteUser" }
-func (c *bddDeleteUserCmd) AggregateID() id.AggregateID { return c.aggID }
-func (c *bddDeleteUserCmd) IdempotencyKey() string      { return c.aggID.String() }
-
-type bddDashboardQuery struct{}
-
-func (q *bddDashboardQuery) Type() query.Type { return "GetDashboard" }
-
 type bddUser struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
-}
-
-type bddTemplComponent struct {
-	html string
-}
-
-func (m *bddTemplComponent) Render(_ context.Context, w io.Writer) error {
-	_, err := w.Write([]byte(m.html))
-	return err
 }
 
 var _ = Describe("BDD: Consumer Integration Scenarios", func() {
@@ -83,16 +42,13 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 				enforcer = newTestEnforcer()
 				disp := command.NewDispatcher()
 				dispatched = false
-				_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-					dispatched = true
-					return nil
-				})
+				_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 
 				var err error
 				app, err = cqrshtmx.New(cqrshtmx.Config{
 					Commands:        disp,
 					Enforcer:        enforcer,
-					UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.ParseUserID(r.Header.Get("X-User")) },
+					UserIDExtractor: headerExtractor("X-User"),
 				})
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -100,13 +56,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			It("successfully creates a user with full authorization and HTMX notification", func() {
 				handler := app.Command("CreateUser",
 					cqrshtmx.Authorize("users", "create"),
-					cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-						return &bddCreateUserCmd{
-							aggID: id.NewAggregateID(),
-							email: req.Email,
-							name:  req.Name,
-						}, nil
-					}),
+					decodeBDDCreateUserJSONWithBody(),
 					cqrshtmx.NotifySuccess("User created successfully"),
 					cqrshtmx.PushURL("/users"),
 				)

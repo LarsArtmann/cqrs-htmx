@@ -22,10 +22,6 @@ const (
 	emailKey     = "email"
 )
 
-type getPageQuery struct{}
-
-func (q *getPageQuery) Type() query.Type { return "GetPage" }
-
 func integrationCSRFConfig() cqrshtmx.CSRFConfig {
 	return cqrshtmx.CSRFConfig{
 		Secret:         nil,

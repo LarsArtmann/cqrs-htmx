@@ -9,10 +9,8 @@ import (
 	"strings"
 
 	"github.com/casbin/casbin/v3"
-	"github.com/casbin/casbin/v3/model"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -32,42 +30,6 @@ var (
 	adminUserID  = cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 	viewerUserID = cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2")
 )
-
-// Test command and query types for integration tests.
-
-type testCreateUserCmd struct {
-	aggID id.AggregateID
-	email string
-	name  string
-}
-
-func (c *testCreateUserCmd) Type() command.Type          { return "CreateUser" }
-func (c *testCreateUserCmd) AggregateID() id.AggregateID { return c.aggID }
-func (c *testCreateUserCmd) IdempotencyKey() string      { return c.aggID.String() }
-
-type testCreateUserRequest struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-}
-
-type testGetUserQuery struct{}
-
-func (q *testGetUserQuery) Type() query.Type { return "GetUser" }
-
-func newTestEnforcer() *casbin.Enforcer {
-	m := model.NewModel()
-	m.AddDef("r", "r", "sub, obj, act")
-	m.AddDef("p", "p", "sub, obj, act")
-	m.AddDef("e", "e", "some(where (p.eft == allow))")
-	m.AddDef("m", "m", "r.sub == p.sub && r.obj == p.obj && r.act == p.act")
-
-	e, _ := casbin.NewEnforcer(m)
-	_, _ = e.AddPolicy(adminUserID.String(), "users", "create")
-	_, _ = e.AddPolicy(adminUserID.String(), "users", "read")
-	_, _ = e.AddPolicy(viewerUserID.String(), "users", "read")
-
-	return e
-}
 
 var _ = Describe("App", func() {
 	Describe("New", func() {
