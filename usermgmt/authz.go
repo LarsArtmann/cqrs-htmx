@@ -232,6 +232,7 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 			string(g.Role),
 			g.Domain,
 		); err != nil {
+			return errors.Wrapf(err, "remove group {%s, %s, %s}", g.Subject, g.Role, g.Domain)
 		}
 	}
 	for _, p := range update.RemovePolicies {
@@ -241,6 +242,7 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 	}
 	for _, g := range update.AddGroups {
 		if _, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
+			return errors.Wrapf(err, "add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)
 		}
 	}
 	for _, p := range update.AddPolicies {
