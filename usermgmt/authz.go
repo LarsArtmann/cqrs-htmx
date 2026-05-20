@@ -1,10 +1,9 @@
 package usermgmt
 
 import (
-	"fmt"
-
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
+	"github.com/cockroachdb/errors"
 )
 
 type Action string
@@ -103,24 +102,24 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 
 	m, err := model.NewModelFromString(modelStr)
 	if err != nil {
-		return nil, fmt.Errorf("parse casbin model: %w", err)
+		return nil, errors.Wrapf(err, "parse casbin model")
 	}
 
 	e, err := casbin.NewEnforcer(m)
 	if err != nil {
-		return nil, fmt.Errorf("create enforcer: %w", err)
+		return nil, errors.Wrapf(err, "create enforcer")
 	}
 
 	for _, p := range config.Policies {
 		if _, err := e.AddPolicy(policyArgs(p)...); err != nil {
-			return nil, fmt.Errorf("add policy {%s, %s, %s, %s, %s}: %w",
-				p.Subject, p.Domain, p.Object, p.Action, p.Effect, err)
+			return nil, errors.Wrapf(err, "add policy {%s, %s, %s, %s, %s}",
+				p.Subject, p.Domain, p.Object, p.Action, p.Effect)
 		}
 	}
 
 	for _, g := range config.Groups {
 		if _, err := e.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
-			return nil, fmt.Errorf("add group {%s, %s, %s}: %w", g.Subject, g.Role, g.Domain, err)
+			return nil, errors.Wrapf(err, "add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)
 		}
 	}
 
@@ -169,10 +168,10 @@ func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, err
 func (a *Authz) Authorize(sub, dom, obj string, act Action) error {
 	ok, err := a.Enforce(sub, dom, obj, act)
 	if err != nil {
-		return fmt.Errorf("authorize %s/%s/%s/%s: %w", sub, dom, obj, act, err)
+		return errors.Wrapf(err, "authorize %s/%s/%s/%s", sub, dom, obj, act)
 	}
 	if !ok {
-		return fmt.Errorf("%w: %s cannot %s %s in domain %s", ErrForbidden, sub, act, obj, dom)
+		return errors.WithMessagef(ErrForbidden, "%s cannot %s %s in domain %s", sub, act, obj, dom)
 	}
 	return nil
 }
@@ -194,8 +193,8 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 	}
 	for _, p := range update.RemovePolicies {
 		if _, err := a.enforcer.RemovePolicy(policyArgs(p)...); err != nil {
-			return fmt.Errorf("remove policy {%s, %s, %s, %s, %s}: %w",
-				p.Subject, p.Domain, p.Object, p.Action, p.Effect, err)
+			return errors.Wrapf(err, "remove policy {%s, %s, %s, %s, %s}",
+				p.Subject, p.Domain, p.Object, p.Action, p.Effect)
 		}
 	}
 	for _, g := range update.AddGroups {
@@ -204,8 +203,8 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 	}
 	for _, p := range update.AddPolicies {
 		if _, err := a.enforcer.AddPolicy(policyArgs(p)...); err != nil {
-			return fmt.Errorf("add policy {%s, %s, %s, %s, %s}: %w",
-				p.Subject, p.Domain, p.Object, p.Action, p.Effect, err)
+			return errors.Wrapf(err, "add policy {%s, %s, %s, %s, %s}",
+				p.Subject, p.Domain, p.Object, p.Action, p.Effect)
 		}
 	}
 	return nil

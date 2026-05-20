@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
@@ -153,7 +154,7 @@ func RenderTemplResult[T any](mapper func(T) TemplComponent) HandlerOption {
 		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
 			typed, ok := result.(T)
 			if !ok {
-				return fmt.Errorf("%w: unexpected result type %T", ErrDecodeFailed, result)
+				return errors.WithMessagef(ErrDecodeFailed, "unexpected result type %T", result)
 			}
 
 			component := mapper(typed)

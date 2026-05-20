@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/cockroachdb/errors"
@@ -41,8 +40,13 @@ func RequireAuth() HandlerOption {
 // Returns ErrEnforcerNil if the enforcer is nil.
 func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	if enforcer == nil {
-		return fmt.Errorf("%w: enforcer is nil for subject=%s resource=%s action=%s",
-			ErrEnforcerNil, subject, resource, action)
+		return errors.WithMessagef(
+			ErrEnforcerNil,
+			"enforcer is nil for subject=%s resource=%s action=%s",
+			subject,
+			resource,
+			action,
+		)
 	}
 
 	ok, err := enforcer.Enforce(subject, resource, action)
@@ -53,8 +57,8 @@ func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	}
 
 	if !ok {
-		return fmt.Errorf("%w: subject=%s resource=%s action=%s",
-			ErrForbidden, subject, resource, action)
+		return errors.WithMessagef(ErrForbidden, "subject=%s resource=%s action=%s",
+			subject, resource, action)
 	}
 
 	return nil
@@ -68,7 +72,7 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 	userID := UserIDFromContext(r.Context())
 	if userID.IsZero() {
 		if cfg.authMode == authAuthorized {
-			return fmt.Errorf("%w: %s/%s", ErrUnauthorized, cfg.resource, cfg.action)
+			return errors.WithMessagef(ErrUnauthorized, "%s/%s", cfg.resource, cfg.action)
 		}
 		return ErrUnauthorized
 	}
@@ -81,7 +85,7 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 }
 
 func handleUnauthorized(w http.ResponseWriter, r *http.Request, resource, action, redirect string) {
-	authErr := fmt.Errorf("%w: %s/%s", ErrUnauthorized, resource, action)
+	authErr := errors.WithMessagef(ErrUnauthorized, "%s/%s", resource, action)
 	DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
 }
 

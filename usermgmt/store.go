@@ -1,9 +1,10 @@
 package usermgmt
 
 import (
-	"fmt"
 	"sync"
 	"time"
+
+	"github.com/cockroachdb/errors"
 )
 
 type UserStore interface {
@@ -78,7 +79,7 @@ func (s *InMemoryUserStore) Create(user *User) error {
 		return ErrEmailExists
 	}
 	if _, ok := s.users[user.ID]; ok {
-		return fmt.Errorf("user ID %s already exists", user.ID)
+		return errors.Newf("user ID %s already exists", user.ID)
 	}
 	user.UpdatedAt = time.Now().UTC()
 	s.users[user.ID] = user
@@ -119,7 +120,7 @@ func (s *InMemorySessionStore) Create(userID UserID, ttl time.Duration) (*Sessio
 	defer s.mu.Unlock()
 	session, err := NewSession(userID, ttl)
 	if err != nil {
-		return nil, fmt.Errorf("create session for user %q: %w", userID, err)
+		return nil, errors.Wrapf(err, "create session for user %q", userID)
 	}
 	s.sessions[session.Token] = session
 	return session, nil

@@ -2,11 +2,12 @@ package usermgmt
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/mail"
 	"strings"
 	"time"
+
+	"github.com/cockroachdb/errors"
 )
 
 const (
@@ -47,7 +48,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	if cfg.Authz == nil {
 		a, err := NewAuthz()
 		if err != nil {
-			return nil, fmt.Errorf("create authz: %w", err)
+			return nil, errors.Wrapf(err, "create authz")
 		}
 		cfg.Authz = a
 	}
@@ -86,7 +87,8 @@ func formatValidationErrors(errs []string) error {
 	if len(errs) == 0 {
 		return nil
 	}
-	return fmt.Errorf("%w: %s", ErrValidation, strings.Join(errs, "; "))
+
+	return errors.WithMessagef(ErrValidation, "%s", strings.Join(errs, "; "))
 }
 
 func (r RegisterRequest) Validate() error {
@@ -119,7 +121,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	}
 	user := NewUser(req.ID, req.Email, req.DisplayName)
 	if err := user.SetPasswordWithCost(req.Password, s.bcryptCost); err != nil {
-		return nil, fmt.Errorf("set password: %w", err)
+		return nil, errors.Wrapf(err, "set password")
 	}
 
 	user.AddRole(RoleUser)
@@ -131,12 +133,12 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	if err := s.authz.AddGroupPolicy(GroupPolicy{
 		Subject: user.ID.String(), Role: RoleUser, Domain: user.ID.String(),
 	}); err != nil {
-		return nil, fmt.Errorf("assign role: %w", err)
+		return nil, errors.Wrapf(err, "assign role")
 	}
 
 	session, err := s.sessions.Create(user.ID, s.sessionTTL)
 	if err != nil {
-		return nil, fmt.Errorf("create session: %w", err)
+		return nil, errors.Wrapf(err, "create session")
 	}
 
 	return &RegisterResponse{User: user, Session: session}, nil
@@ -197,7 +199,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 
 	session, err := s.sessions.Create(user.ID, s.sessionTTL)
 	if err != nil {
-		return nil, fmt.Errorf("create session: %w", err)
+		return nil, errors.Wrapf(err, "create session")
 	}
 
 	return &LoginResponse{User: user, Session: session}, nil
@@ -246,12 +248,12 @@ func (s *Service) UpdateRoles(
 ) error {
 	user, err := s.users.FindByID(userID)
 	if err != nil {
-		return fmt.Errorf("find user %q: %w", userID, err)
+		return errors.Wrapf(err, "find user %q", userID)
 	}
 
 	currentRoles, err := s.authz.RolesForUser(userID, domain)
 	if err != nil {
-		return fmt.Errorf("get roles for user %q in domain %q: %w", userID, domain, err)
+		return errors.Wrapf(err, "get roles for user %q in domain %q", userID, domain)
 	}
 
 	var remove []GroupPolicy
@@ -272,7 +274,7 @@ func (s *Service) UpdateRoles(
 		RemoveGroups: remove,
 		AddGroups:    add,
 	}); err != nil {
-		return fmt.Errorf("apply role update for user %q: %w", userID, err)
+		return errors.Wrapf(err, "apply role update for user %q", userID)
 	}
 
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
@@ -297,7 +299,7 @@ func (s *Service) ChangePassword(
 ) error {
 	user, err := s.users.FindByID(userID)
 	if err != nil {
-		return fmt.Errorf("find user %q: %w", userID, err)
+		return errors.Wrapf(err, "find user %q", userID)
 	}
 
 	if !user.CheckPassword(oldPassword) {
@@ -305,15 +307,12 @@ func (s *Service) ChangePassword(
 	}
 
 	if len(newPassword) < minPasswordLength {
-		return fmt.Errorf(
-			"%w: password must be at least 8 characters for user %q",
-			ErrValidation,
-			userID,
-		)
+		return errors.WithMessagef(ErrValidation,
+			"password must be at least 8 characters for user %q", userID)
 	}
 
 	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {
-		return fmt.Errorf("set password for user %q: %w", userID, err)
+		return errors.Wrapf(err, "set password for user %q", userID)
 	}
 
 	return s.users.Save(user)

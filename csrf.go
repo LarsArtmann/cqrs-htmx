@@ -2,11 +2,11 @@ package cqrshtmx
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	"github.com/gorilla/csrf"
 )
 
@@ -19,7 +19,7 @@ const (
 
 // ErrCSRFInvalid is returned when a CSRF token is missing, malformed, or does not match.
 // Uses gorilla/csrf under the hood for token generation and validation.
-var ErrCSRFInvalid = fmt.Errorf("%w: invalid or missing CSRF token", ErrForbidden)
+var ErrCSRFInvalid = errors.WithMessage(ErrForbidden, "invalid or missing CSRF token")
 
 // CSRFConfig configures CSRF protection.
 //
@@ -130,14 +130,12 @@ func (c *CSRFConfig) sameSite() csrf.SameSiteMode {
 // Call this in production startup code to fail fast on misconfiguration.
 func (c *CSRFConfig) Validate() error {
 	if len(c.Secret) == 0 {
-		return fmt.Errorf(
-			"%w: CSRFConfig.Secret is empty: tokens will not persist across server restarts",
-			ErrCSRFConfig,
-		)
+		return errors.WithMessagef(ErrCSRFConfig,
+			"CSRFConfig.Secret is empty: tokens will not persist across server restarts")
 	}
 
 	if c.SameSite == http.SameSiteNoneMode && !c.Secure {
-		return fmt.Errorf("%w: SameSite=None requires Secure=true", ErrCSRFConfig)
+		return errors.WithMessage(ErrCSRFConfig, "SameSite=None requires Secure=true")
 	}
 
 	return nil

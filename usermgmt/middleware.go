@@ -43,11 +43,14 @@ func NewSessionMiddleware(service *Service, cookieName string) func(http.Handler
 	}
 }
 
-// UserIDFromRequest extracts the authenticated user's ID from the request context.
-// Returns empty string if no user is authenticated. Useful as a UserIDExtractor
-// for cqrs-htmx's ContextEnrichmentMiddleware to bridge identity between packages:
+// UserIDFromRequest extracts the authenticated user's ID as a string from the
+// request context. Returns empty string if no user is authenticated.
 //
-//	cqrshtmx.ContextEnrichmentMiddleware(usermgmt.UserIDFromRequest)
+// To bridge with cqrs-htmx's ContextEnrichmentMiddleware, wrap it:
+//
+//	cqrshtmx.ContextEnrichmentMiddleware(func(r *http.Request) (cqrshtmx.UserID, error) {
+//	    return cqrshtmx.MustParseUserID(usermgmt.UserIDFromRequest(r)), nil
+//	})
 func UserIDFromRequest(r *http.Request) string {
 	if user, ok := UserFromContext(r.Context()); ok && user != nil {
 		return user.ID.String()

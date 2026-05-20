@@ -2,6 +2,19 @@ package cqrshtmx
 
 import "net/http"
 
+const (
+	headerContentTypeOptions = "X-Content-Type-Options"
+	headerFrameOptions       = "X-Frame-Options"
+	headerReferrerPolicy     = "Referrer-Policy"
+	headerCSP                = "Content-Security-Policy"
+	headerHSTS               = "Strict-Transport-Security"
+	headerPermissionsPolicy  = "Permissions-Policy"
+
+	defaultContentTypeOptions = "nosniff"
+	defaultFrameOptions       = "DENY"
+	defaultReferrerPolicy     = "strict-origin-when-cross-origin"
+)
+
 // SecurityHeadersConfig configures which security headers to set.
 // All fields are optional; zero values use secure defaults.
 type SecurityHeadersConfig struct {
@@ -37,21 +50,21 @@ func (c *SecurityHeadersConfig) contentTypeOptions() string {
 	if c.ContentTypeOptions != "" {
 		return c.ContentTypeOptions
 	}
-	return "nosniff"
+	return defaultContentTypeOptions
 }
 
 func (c *SecurityHeadersConfig) frameOptions() string {
 	if c.FrameOptions != "" {
 		return c.FrameOptions
 	}
-	return "DENY"
+	return defaultFrameOptions
 }
 
 func (c *SecurityHeadersConfig) referrerPolicy() string {
 	if c.ReferrerPolicy != "" {
 		return c.ReferrerPolicy
 	}
-	return "strict-origin-when-cross-origin"
+	return defaultReferrerPolicy
 }
 
 // SecurityHeadersMiddleware returns HTTP middleware that sets security headers
@@ -86,20 +99,20 @@ func SecurityHeadersMiddlewareWithConfig(
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("X-Content-Type-Options", cfg.contentTypeOptions())
-			w.Header().Set("X-Frame-Options", cfg.frameOptions())
-			w.Header().Set("Referrer-Policy", cfg.referrerPolicy())
+			w.Header().Set(headerContentTypeOptions, cfg.contentTypeOptions())
+			w.Header().Set(headerFrameOptions, cfg.frameOptions())
+			w.Header().Set(headerReferrerPolicy, cfg.referrerPolicy())
 
 			if cfg.ContentSecurityPolicy != "" {
-				w.Header().Set("Content-Security-Policy", cfg.ContentSecurityPolicy)
+				w.Header().Set(headerCSP, cfg.ContentSecurityPolicy)
 			}
 
 			if cfg.StrictTransportSecurity != "" {
-				w.Header().Set("Strict-Transport-Security", cfg.StrictTransportSecurity)
+				w.Header().Set(headerHSTS, cfg.StrictTransportSecurity)
 			}
 
 			if cfg.PermissionsPolicy != "" {
-				w.Header().Set("Permissions-Policy", cfg.PermissionsPolicy)
+				w.Header().Set(headerPermissionsPolicy, cfg.PermissionsPolicy)
 			}
 
 			for k, v := range cfg.Custom {
