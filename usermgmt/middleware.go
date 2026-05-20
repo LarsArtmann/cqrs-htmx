@@ -59,7 +59,7 @@ func NewSessionMiddleware(service *Service, cookieName string) func(http.Handler
 //	})
 func UserIDFromRequest(r *http.Request) string {
 	if user, ok := UserFromContext(r.Context()); ok && user != nil {
-		return user.ID.String()
+		return user.ID.Get()
 	}
 	return ""
 }

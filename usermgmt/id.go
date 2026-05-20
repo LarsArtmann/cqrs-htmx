@@ -4,6 +4,8 @@ import brandid "github.com/larsartmann/go-branded-id"
 
 type userBrand struct{}
 
+func (userBrand) Name() string { return "User" }
+
 // UserID is a branded type for user identifiers backed by ULID strings.
 // Use NewUserID to construct instances from string values.
 type UserID = brandid.ID[userBrand, string]

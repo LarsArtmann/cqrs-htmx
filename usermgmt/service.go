@@ -149,7 +149,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	}
 
 	if err := s.authz.AddGroupPolicy(GroupPolicy{
-		Subject: user.ID.String(), Role: RoleUser, Domain: user.ID.String(),
+		Subject: user.ID.Get(), Role: RoleUser, Domain: user.ID.Get(),
 	}); err != nil {
 		return nil, errors.Wrapf(err, "assign role")
 	}
@@ -289,14 +289,14 @@ func (s *Service) UpdateRoles(
 	var remove []GroupPolicy
 	for _, role := range currentRoles {
 		remove = append(remove, GroupPolicy{
-			Subject: userID.String(), Role: role, Domain: domain,
+			Subject: userID.Get(), Role: role, Domain: domain,
 		})
 	}
 
 	var add []GroupPolicy
 	for _, role := range roles {
 		add = append(add, GroupPolicy{
-			Subject: userID.String(), Role: role, Domain: domain,
+			Subject: userID.Get(), Role: role, Domain: domain,
 		})
 	}
 

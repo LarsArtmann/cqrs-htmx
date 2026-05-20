@@ -295,7 +295,7 @@ func convertRoles(roles []string) []Role {
 
 // RolesForUser returns the directly assigned roles for a user in the given domain.
 func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
-	roles, err := a.enforcer.GetRolesForUser(userID.String(), domain)
+	roles, err := a.enforcer.GetRolesForUser(userID.Get(), domain)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 
 // ImplicitRolesForUser returns all roles inherited (transitively) by the user in the domain.
 func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, error) {
-	roles, err := a.enforcer.GetImplicitRolesForUser(userID.String(), domain)
+	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get(), domain)
 	if err != nil {
 		return nil, err
 	}
@@ -314,12 +314,12 @@ func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, erro
 // ImplicitPermissionsForUser returns all permissions the user has in the domain,
 // including those inherited through role hierarchy.
 func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]string, error) {
-	return a.enforcer.GetImplicitPermissionsForUser(userID.String(), domain)
+	return a.enforcer.GetImplicitPermissionsForUser(userID.Get(), domain)
 }
 
 // DomainsForUser returns all domains the user has roles in.
 func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
-	return a.enforcer.GetDomainsForUser(userID.String())
+	return a.enforcer.GetDomainsForUser(userID.Get())
 }
 
 // UsersForRole returns all user IDs that have the given role in the domain.
