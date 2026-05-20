@@ -1,11 +1,13 @@
 package usermgmt
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 )
 
+// AuthHandler provides HTTP endpoints for user registration, login, logout, and identity.
 type AuthHandler struct {
 	service       *Service
 	cookieName    string
@@ -13,14 +15,18 @@ type AuthHandler struct {
 	sessionMaxAge int
 }
 
+// HandlerConfig controls cookie and session settings for AuthHandler.
 type HandlerConfig struct {
+	// CookieName is the session cookie name. Defaults to "session_token".
 	CookieName string
-	Secure     bool
+	// Secure sets the cookie Secure flag. Defaults to true.
+	Secure bool
 	// SessionMaxAge sets the Max-Age for session cookies in seconds.
 	// Zero defaults to 86400 (24 hours).
 	SessionMaxAge int
 }
 
+// NewAuthHandler creates an AuthHandler for the given Service with optional config.
 func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 	config := HandlerConfig{
 		CookieName: "session_token",
@@ -41,6 +47,12 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 	}
 }
 
+// RegisterRoutes registers the auth endpoints on the given ServeMux:
+//
+//	POST /auth/register — create account
+//	POST /auth/login    — authenticate
+//	POST /auth/logout   — clear session
+//	GET  /auth/me       — return current user
 func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/register", h.handleRegister)
 	mux.HandleFunc("POST /auth/login", h.handleLogin)
@@ -49,37 +61,49 @@ func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
-	var req RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	resp, err := h.service.Register(r.Context(), req)
-	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
-		return
-	}
-
-	h.setSessionCookie(w, resp.Session.Token)
-	writeJSON(w, http.StatusCreated, resp)
+	h.handleAuthEndpoint(w, r, func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
+		var regReq RegisterRequest
+		if err := json.Unmarshal(req, &regReq); err != nil {
+			return nil, err
+		}
+		resp, err := h.service.Register(ctx, regReq)
+		if err != nil {
+			return nil, err
+		}
+		return &LoginResponse{User: resp.User, Session: resp.Session}, nil
+	}, http.StatusCreated)
 }
 
 func (h *AuthHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	var req LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	h.handleAuthEndpoint(w, r, func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
+		var loginReq LoginRequest
+		if err := json.Unmarshal(req, &loginReq); err != nil {
+			return nil, err
+		}
+		return h.service.Login(ctx, loginReq)
+	}, http.StatusOK)
+}
+
+func (h *AuthHandler) handleAuthEndpoint(
+	w http.ResponseWriter,
+	r *http.Request,
+	process func(context.Context, json.RawMessage) (*LoginResponse, error),
+	successStatus int,
+) {
+	var raw json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	resp, err := h.service.Login(r.Context(), req)
+	resp, err := process(r.Context(), raw)
 	if err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}
 
 	h.setSessionCookie(w, resp.Session.Token)
-	writeJSON(w, http.StatusOK, resp)
+	writeJSON(w, successStatus, resp)
 }
 
 func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {

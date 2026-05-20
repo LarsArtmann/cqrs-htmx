@@ -10,10 +10,13 @@ type contextKey string
 
 const userContextKey contextKey = "usermgmt:user"
 
+// WithUser stores the authenticated User in the context.
 func WithUser(ctx context.Context, user *User) context.Context {
 	return context.WithValue(ctx, userContextKey, user)
 }
 
+// UserFromContext retrieves the authenticated User from the context.
+// Returns the user and true if found, or nil and false otherwise.
 func UserFromContext(ctx context.Context) (*User, bool) {
 	if ctx == nil {
 		return nil, false
@@ -22,6 +25,7 @@ func UserFromContext(ctx context.Context) (*User, bool) {
 	return user, ok
 }
 
+// UserFromContextOr returns the user from context, or the provided fallback.
 func UserFromContextOr(ctx context.Context, fallback *User) *User {
 	if user, ok := UserFromContext(ctx); ok {
 		return user
@@ -29,6 +33,8 @@ func UserFromContextOr(ctx context.Context, fallback *User) *User {
 	return fallback
 }
 
+// NewSessionMiddleware returns HTTP middleware that authenticates requests
+// via session cookie or Bearer token and stores the User in context.
 func NewSessionMiddleware(service *Service, cookieName string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

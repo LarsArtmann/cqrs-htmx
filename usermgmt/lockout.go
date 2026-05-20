@@ -10,11 +10,15 @@ const (
 	defaultLockoutDur  = 15 * time.Minute
 )
 
+// LockoutConfig controls the account lockout behaviour.
 type LockoutConfig struct {
+	// MaxAttempts is the number of failed logins before the account is locked.
 	MaxAttempts uint
-	Duration    time.Duration
+	// Duration is how long the lockout lasts before it automatically resets.
+	Duration time.Duration
 }
 
+// AccountLockout tracks failed login attempts per email and enforces temporary lockouts.
 type AccountLockout struct {
 	mu       sync.RWMutex
 	config   LockoutConfig
@@ -22,6 +26,8 @@ type AccountLockout struct {
 	lockedAt map[string]time.Time
 }
 
+// NewAccountLockout creates an AccountLockout. An optional LockoutConfig can be
+// provided; zero-valued fields fall back to defaults (5 attempts, 15 minutes).
 func NewAccountLockout(cfg ...LockoutConfig) *AccountLockout {
 	config := LockoutConfig{
 		MaxAttempts: defaultMaxAttempts,
@@ -42,6 +48,8 @@ func NewAccountLockout(cfg ...LockoutConfig) *AccountLockout {
 	}
 }
 
+// IsLocked reports whether the account for the given email is currently locked.
+// Expired lockouts are automatically cleared.
 func (l *AccountLockout) IsLocked(email string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -57,6 +65,8 @@ func (l *AccountLockout) IsLocked(email string) bool {
 	return true
 }
 
+// RecordFailure increments the failure counter for the email and returns true
+// if the account has just been locked (i.e. the threshold was reached).
 func (l *AccountLockout) RecordFailure(email string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -72,6 +82,7 @@ func (l *AccountLockout) RecordFailure(email string) bool {
 	return false
 }
 
+// Reset clears the failure counter and lockout for the given email.
 func (l *AccountLockout) Reset(email string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
