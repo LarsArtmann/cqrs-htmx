@@ -199,5 +199,104 @@ var _ = Describe("Request Logging", func() {
 			logged := buf.String()
 			Expect(logged).To(ContainSubstring(`"request_id":"01HK1549P84T9XF8R94E960633"`))
 		})
+		It("includes query string in slog output", func() {
+			var buf bytes.Buffer
+			//nolint:exhaustruct // test config intentionally uses defaults for other fields
+			logger := slog.New(slog.NewJSONHandler(
+				&buf,
+				&slog.HandlerOptions{Level: slog.LevelInfo},
+			))
+			middleware := cqrshtmx.RequestLoggingSlog(logger)
+
+			handler := middleware(okHandler())
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/api?expand=true", nil)
+			handler.ServeHTTP(w, r)
+
+			logged := buf.String()
+			Expect(logged).To(ContainSubstring(`"query":"expand=true"`))
+		})
+
+		It("includes correlation_id and user_id in slog output", func() {
+			var buf bytes.Buffer
+			//nolint:exhaustruct // test config intentionally uses defaults for other fields
+			logger := slog.New(slog.NewJSONHandler(
+				&buf,
+				&slog.HandlerOptions{Level: slog.LevelInfo},
+			))
+			middleware := cqrshtmx.RequestLoggingSlog(logger)
+
+			handler := middleware(okHandler())
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
+			ctx := cqrshtmx.WithCorrelationID(r.Context(),
+				cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633"))
+			ctx = cqrshtmx.WithUserID(ctx,
+				cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2"))
+			r = r.WithContext(ctx)
+			handler.ServeHTTP(w, r)
+
+			logged := buf.String()
+			Expect(logged).To(ContainSubstring(`"correlation_id":"01HK1549P84T9XF8R94E960633"`))
+			Expect(logged).To(ContainSubstring(`"user_id":"01HK154ANGZHV2ZW0X3SKSNEN2"`))
+		})
+
+		It("defaults to 200 status when handler writes body without explicit status", func() {
+			var buf bytes.Buffer
+			//nolint:exhaustruct // test config intentionally uses defaults for other fields
+			logger := slog.New(slog.NewJSONHandler(
+				&buf,
+				&slog.HandlerOptions{Level: slog.LevelInfo},
+			))
+			middleware := cqrshtmx.RequestLoggingSlog(logger)
+
+			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				_, _ = w.Write([]byte("hello"))
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			logged := buf.String()
+			Expect(logged).To(ContainSubstring(`"status":200`))
+		})
+	})
+
+	Describe("statusRecorder", func() {
+		It("delegates Push to underlying http.Pusher", func() {
+			handler := cqrshtmx.RequestLogging(nil, func(line string) {})
+			pushHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				if pusher, ok := w.(http.Pusher); ok {
+					_ = pusher.Push("/style.css", nil)
+				}
+			})
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler(pushHandler).ServeHTTP(w, r)
+		})
+
+		It("delegates Flush to underlying http.Flusher", func() {
+			var logged string
+			middleware := cqrshtmx.RequestLogging(nil, func(line string) {
+				logged = line
+			})
+
+			flushHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				if flusher, ok := w.(http.Flusher); ok {
+					flusher.Flush()
+				}
+				w.WriteHeader(http.StatusOK)
+			})
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/stream", nil)
+			middleware(flushHandler).ServeHTTP(w, r)
+
+			Expect(logged).To(ContainSubstring("OK"))
+		})
 	})
 })
