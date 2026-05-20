@@ -22,7 +22,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 ```
 cqrs-htmx/
-├── app.go         # App builder, Config, Command(), Query(), enrichUserID()
+├── app.go         # App builder, Config, Command(), Query(), enrichUserID(), CommandCatalogEntries(), QueryCatalogEntries()
 ├── handler.go     # handleCommandDispatch(), handleQueryDispatch()
 ├── options.go     # HandlerOption, decoders, Render/RenderTempl, validation, authMode enum, authorization logic
 ├── response.go    # HTMX response builder (fluent API) + notification methods
@@ -89,7 +89,9 @@ cqrs-htmx/
 - **usermgmt ChangePassword**: `Service.ChangePassword(ctx, userID, oldPassword, newPassword)` — validates old password, minimum length
 - **usermgmt account lockout**: `ServiceConfig.Lockout` — configurable max attempts + duration, returns `ErrAccountLocked` (429)
 - **usermgmt immutable bcryptCost**: `ServiceConfig.BcryptCost` replaces mutable global variable
-- **gorilla/csrf v1.7.3 auto-detect**: `CSRFMiddleware` detects non-TLS requests (`r.TLS == nil`) and marks them as plaintext via `csrf.PlaintextHTTPRequest`, so v1.7.3's strict Origin/Referer checks don't break HTTP deployments or tests
+- **CatalogEntries exposure**: `App.CommandCatalogEntries()` and `App.QueryCatalogEntries()` delegate to the embedded `dispatcher.CatalogDispatcher` in go-cqrs-lite v1.4.0. Returns `nil` if the respective dispatcher is not configured. Uses `//nolint:staticcheck` because the upstream `CatalogMeta` type is deprecated in favor of the zero-cost catalog API
+- **Zero lint warnings**: All pre-existing lint warnings (gochecknoglobals, noctx, prealloc, unparam) fixed. Pre-commit hook should pass without `--no-verify`
+- **usermgmt unified error import**: `usermgmt/http.go` uses `cockroachdb/errors` consistently (not `std/errors`) — prevents split brain with `errors.Is` across the submodule
 
 ## Dependencies
 
@@ -138,6 +140,8 @@ cqrs-htmx/
 33. **usermgmt SessionMaxAge bug (fixed)**: `NewAuthHandlers` previously did not copy `SessionMaxAge` from `HandlerConfig` — always defaulted to 86400 regardless of the provided value. Fixed in 2026-05-20 session
 34. **usermgmt coverage**: 95.6% as of 2026-05-20 (up from 85%). All authz, store, http, and UserID type paths tested
 35. **usermgmt `GroupPolicy.User`/`Domain` remain `string`**: These are Casbin boundary types. `UserID.String()` converts at the boundary. Intentional design decision — Casbin is an external system
+36. **CatalogMeta deprecation**: `command.CatalogMeta` and `query.CatalogMeta` are deprecated in go-cqrs-lite v1.4.0 in favor of the zero-cost catalog API. `App.CommandCatalogEntries()` and `App.QueryCatalogEntries()` wrap these with `//nolint:staticcheck` since the `CatalogEntries()` method on `Dispatcher` is not deprecated — only the metadata struct is
+37. **Pre-commit hook now passes**: All 7 pre-existing lint warnings (gochecknoglobals x2, noctx x2, prealloc x1, unparam x2) have been fixed. `git commit` should work without `--no-verify`
 
 ## Test Commands
 

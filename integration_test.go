@@ -153,7 +153,7 @@ var _ = Describe("Full Integration", func() {
 
 	Describe("Command with redirect", func() {
 		It("redirects to URL after command success", func() {
-			app, _ := newCommandApp()
+			app := newCommandApp()
 			handler := app.Command("CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
@@ -166,7 +166,7 @@ var _ = Describe("Full Integration", func() {
 
 	Describe("TriggerWithDetail handler option", func() {
 		It("sets HX-Trigger with detail data", func() {
-			app, _ := newCommandApp()
+			app := newCommandApp()
 			handler := app.Command("CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.TriggerWithDetail("userCreated", map[string]string{"id": "123"}),

@@ -31,7 +31,7 @@ var _ = Describe("Validation HandlerOption", func() {
 		})
 
 		It("rejects commands that fail validation", func() {
-			app, _ := newCommandApp()
+			app := newCommandApp()
 			w := serve(app.Command("CreateUser",
 				decodeCreateUserJSON(),
 				cqrshmx.ValidateCommand(func(_ command.Command) error {

@@ -15,7 +15,7 @@ var _ = Describe("Rate Limiting", func() {
 		assertRateLimit := func(cfg cqrshtmx.RateLimiterConfig, requests int) []int {
 			middleware := cqrshtmx.RateLimiterMiddleware(cfg)
 			handler := middleware(okHandler())
-			var codes []int
+			codes := make([]int, 0, requests)
 			for range requests {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)

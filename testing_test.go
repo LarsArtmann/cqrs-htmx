@@ -213,16 +213,13 @@ func newTestEnforcer() *casbin.Enforcer {
 
 // --- App creation helpers ---
 
-func newCommandApp(opts ...func(*cqrshtmx.Config)) (*cqrshtmx.App, *command.Dispatcher) {
+func newCommandApp() *cqrshtmx.App {
 	disp := command.NewDispatcher()
 	_ = disp.Register("CreateUser", noOpCommandHandler)
 	cfg := cqrshtmx.Config{Commands: disp}
-	for _, o := range opts {
-		o(&cfg)
-	}
 	app, err := cqrshtmx.New(cfg)
 	Expect(err).NotTo(HaveOccurred())
-	return app, disp
+	return app
 }
 
 // --- Request/response helpers ---
@@ -231,8 +228,10 @@ type testResponse struct {
 	*httptest.ResponseRecorder
 }
 
-func newPostJSONRequest(path, body string, opts ...func(*http.Request)) *http.Request {
-	r := httptest.NewRequest(http.MethodPost, path, strings.NewReader(body))
+func newPostJSONRequest(body string, opts ...func(*http.Request)) *http.Request {
+	r := httptest.NewRequestWithContext(
+		context.Background(), http.MethodPost, "/users", strings.NewReader(body),
+	)
 	r.Header.Set("Content-Type", "application/json")
 	for _, o := range opts {
 		o(r)
@@ -241,7 +240,9 @@ func newPostJSONRequest(path, body string, opts ...func(*http.Request)) *http.Re
 }
 
 func newPostRequest(path, body string, opts ...func(*http.Request)) *http.Request {
-	r := httptest.NewRequest(http.MethodPost, path, strings.NewReader(body))
+	r := httptest.NewRequestWithContext(
+		context.Background(), http.MethodPost, path, strings.NewReader(body),
+	)
 	for _, o := range opts {
 		o(r)
 	}

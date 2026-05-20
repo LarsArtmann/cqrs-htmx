@@ -71,21 +71,21 @@ var _ = Describe("App", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			w := serve(app.Command("CreateUser", decodeCreateUserJSONWithBody()),
-				newPostJSONRequest("/users", `{"email":"test@example.com","name":"Test User"}`))
+				newPostJSONRequest(`{"email":"test@example.com","name":"Test User"}`))
 			Expect(w.code()).To(Equal(http.StatusNoContent))
 			Expect(dispatched).To(BeTrue())
 		})
 
 		It("returns error when decoder is missing", func() {
-			app, _ := newCommandApp()
+			app := newCommandApp()
 			w := serve(app.Command("CreateUser"), newPostRequest("/users", ""))
 			Expect(w.code()).NotTo(Equal(http.StatusNoContent))
 		})
 
 		It("returns error for invalid JSON body", func() {
-			app, _ := newCommandApp()
+			app := newCommandApp()
 			w := serve(app.Command("CreateUser", decodeCreateUserJSONWithBody()),
-				newPostJSONRequest("/users", "{invalid json"))
+				newPostJSONRequest("{invalid json"))
 			Expect(w.code()).To(Equal(http.StatusBadRequest))
 		})
 	})
@@ -110,7 +110,7 @@ var _ = Describe("App", func() {
 			w := serve(app.Command("CreateUser",
 				cqrshtmx.Authorize("users", "create"),
 				decodeCreateUserJSONWithBody(),
-			), newPostJSONRequest("/users", testUserJSONBody,
+			), newPostJSONRequest(testUserJSONBody,
 				withUserHeader("X-User-ID", adminUserID)))
 			Expect(w.code()).To(Equal(http.StatusNoContent))
 		})
@@ -119,7 +119,7 @@ var _ = Describe("App", func() {
 			w := serve(app.Command("CreateUser",
 				cqrshtmx.Authorize("users", "create"),
 				decodeCreateUserJSONWithBody(),
-			), newPostJSONRequest("/users", testUserJSONBody,
+			), newPostJSONRequest(testUserJSONBody,
 				withUserHeader("X-User-ID", viewerUserID)))
 			Expect(w.code()).To(Equal(http.StatusForbidden))
 		})
@@ -136,7 +136,7 @@ var _ = Describe("App", func() {
 	Describe("Command handler with HTMX response options", func() {
 		var app *cqrshtmx.App
 
-		BeforeEach(func() { app, _ = newCommandApp() })
+		BeforeEach(func() { app = newCommandApp() })
 
 		It("sets HX-Trigger header with Trigger option", func() {
 			w := serve(app.Command("CreateUser",
@@ -410,7 +410,7 @@ var _ = Describe("Authorization", func() {
 var _ = Describe("Handler Options", func() {
 	Describe("RequireAuth", func() {
 		It("rejects requests without user ID", func() {
-			app, _ := newCommandApp()
+			app := newCommandApp()
 			w := serve(app.Command("CreateUser",
 				cqrshtmx.RequireAuth(),
 				decodeCreateUserJSON(),

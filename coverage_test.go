@@ -326,7 +326,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 	Describe("Command with redirect and HTMX", func() {
 		It("sets HTMX redirect for HTMX requests", func() {
-			app, _ := newCommandApp()
+			app := newCommandApp()
 			w := serve(app.Command("CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
@@ -491,5 +491,35 @@ var _ = Describe("Coverage Gaps", func() {
 			), r)
 			Expect(w.Header().Get("HX-Push-URL")).To(Equal("/users/1"))
 		})
+	})
+})
+
+var _ = Describe("CatalogEntries", func() {
+	It("returns empty map from command dispatcher", func() {
+		app := newCommandApp()
+		entries := app.CommandCatalogEntries()
+		Expect(entries).To(BeEmpty())
+	})
+
+	It("returns nil from query dispatcher when not configured", func() {
+		app := newCommandApp()
+		entries := app.QueryCatalogEntries()
+		Expect(entries).To(BeNil())
+	})
+
+	It("returns empty map from query dispatcher", func() {
+		qd := query.NewDispatcher()
+		app, err := cqrshtmx.New(cqrshtmx.Config{Queries: qd})
+		Expect(err).NotTo(HaveOccurred())
+		entries := app.QueryCatalogEntries()
+		Expect(entries).To(BeEmpty())
+	})
+
+	It("returns nil from command dispatcher when not configured", func() {
+		qd := query.NewDispatcher()
+		app, err := cqrshtmx.New(cqrshtmx.Config{Queries: qd})
+		Expect(err).NotTo(HaveOccurred())
+		entries := app.CommandCatalogEntries()
+		Expect(entries).To(BeNil())
 	})
 })

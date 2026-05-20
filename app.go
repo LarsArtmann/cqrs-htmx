@@ -159,6 +159,28 @@ func (a *App) Middleware() func(http.Handler) http.Handler {
 	return ContextEnrichmentMiddleware(a.userIDExtractor)
 }
 
+// CommandCatalogEntries returns all registered command catalog entries.
+// Returns nil if no command dispatcher is configured.
+//
+//nolint:staticcheck // wrapping upstream CatalogMeta; deprecation is on the type, not the method
+func (a *App) CommandCatalogEntries() map[command.Type]command.CatalogMeta {
+	if a.commands == nil {
+		return nil
+	}
+	return a.commands.CatalogEntries()
+}
+
+// QueryCatalogEntries returns all registered query catalog entries.
+// Returns nil if no query dispatcher is configured.
+//
+//nolint:staticcheck // wrapping upstream CatalogMeta; deprecation is on the type, not the method
+func (a *App) QueryCatalogEntries() map[query.Type]query.CatalogMeta {
+	if a.queries == nil {
+		return nil
+	}
+	return a.queries.CatalogEntries()
+}
+
 // enrichUserID extracts the user ID if not already present in context.
 // This avoids duplicate extraction when both Middleware() and handlers are used.
 func (a *App) enrichUserID(r *http.Request) *http.Request {

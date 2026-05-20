@@ -203,7 +203,7 @@ func TestNewService_WithLogger(t *testing.T) {
 }
 
 func TestUserFromContext_NilContext(t *testing.T) {
-	user, ok := UserFromContext(nil)
+	user, ok := UserFromContext(nil) //nolint:staticcheck // intentionally testing nil-safety
 	if ok || user != nil {
 		t.Error("expected nil/false from nil context")
 	}

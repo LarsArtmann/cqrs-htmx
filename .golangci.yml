@@ -102,6 +102,11 @@ linters:
           - revive
         text: "dot-imports"
         path: "_test\\.go"
+      # Test fixture IDs (MustParseUserID results) are immutable package-level vars
+      # used in Ginkgo closures — they cannot be consts due to function call initialization
+      - linters:
+          - gochecknoglobals
+        path: "app_test\\.go$"
       # Test code wraps errors at the handler level, not at every call site
       - linters:
           - wrapcheck
