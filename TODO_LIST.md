@@ -127,20 +127,25 @@
 ### Open Items
 
 - [ ] **Resolve usermgmt vs cqrshtmx UserID type split** — `usermgmt.UserID` (string-backed) vs `cqrshtmx.UserID` (ULID-backed) are incompatible types. Decision depends on whether usermgmt is standalone or always paired with cqrs-htmx.
-- [ ] **Rate limiter eviction O(n)** — `evictOldestIfAtCapacity()` does linear scan. Could use min-heap or LRU for O(log n).
 - [ ] **Evaluate go-branded-id for numeric IDs** — Future SQL store backends could use `brandid.ID[Brand, int64]`.
-- [ ] **Integration tests between root module and usermgmt** — Requires separate Go module that imports both. Full register → cqrs dispatch with user context flow.
-- [ ] **Adopt TypedHandler[T] from go-cqrs-lite v1.4.0** — Add `QueryTyped[T]()` on App for compile-time type safety instead of `any` returns.
-- [ ] **CSRFConfig.Secure default** — Currently defaults to `false` (insecure). Should warn at runtime or default to `true`.
-- [ ] **errorStatus dedup** — `usermgmt/http.go` and root `errors.go` both map sentinels → HTTP status. Extract shared mapping.
-- [ ] **RateLimiterConfig signedness** — `Limit`/`Burst`/`MaxKeys` are `uint` on config but `int` internally. Unify.
-- [ ] **Usermgmt HTTP timeout** — `handleAuthEndpoint` has no timeout; long-running service calls could hang.
-- [ ] **BrandNamer adoption** — Add `Name()` to root module marker types (`userMarker`, `correlationMarker`, `requestMarker`) for debug visibility with go-branded-id v0.3.0.
-- [ ] **ValidateID adoption** — Use go-branded-id's validation in `ParseUserID`/`ParseCorrelationID`.
-- [ ] **Publisher/Subscriber ISP** — Adopt go-cqrs-lite v1.4.0 event interfaces for cleaner event dispatch.
-- [ ] **CSRF fuzz tests** — Add fuzz targets for token validation edge cases.
-- [ ] **usermgmt authz coverage** — `policyWrapErr` (0%), `Apply` (69.2%), `EnforceEx` (75%), `RolesForUser` (75%) need test paths.
-- [ ] **usermgmt handler coverage** — `handleLogout` (77.8%), `handleMe` (80%), `handleLogin` (80%) need edge case tests.
+- [ ] **Adopt TypedHandler[T] from go-cqrs-lite v1.4.0** — Requires top-level generic function (Go methods can't have type params on non-generic types). API design decision needed.
+- [ ] **BrandNamer for root module marker types** — BLOCKED: upstream `go-cqrs-lite/core/pkg/id` marker types (`userMarker`, `correlationMarker`) are unexported.
+
+### Items Completed in 2026-05-22 Session
+
+- [x] **Integration tests between root module and usermgmt** — `integration_test/` as separate Go module. Tests `AsEnforcer()` bridge and `UserIDFromRequest` bridge with `.Get()` for cross-module ID conversion.
+- [x] **Rate limiter eviction O(n) → O(log n)** — Replaced linear scan with `container/heap` min-heap. `evictionHeap` tracks entries by `lastUsed`. Eviction is now O(log n).
+- [x] **CSRFConfig.Secure warning** — `CSRFMiddleware` now emits `slog.Warn` when `Secure=false`, with hint to set `Secure=true` in production.
+- [x] **RateLimiterConfig signedness unify** — Changed `perKeyLimiter.burst` and `perKeyLimiter.maxKeys` from `int` to `uint` to match `RateLimiterConfig` fields. Conversion to `int` only at `rate.NewLimiter` boundary.
+- [x] **Usermgmt HTTP timeout** — `HandlerConfig.Timeout` adds `context.WithTimeout` to `handleAuthEndpoint` and `handleLogout`. Zero means no timeout (default).
+- [x] **CSRF fuzz tests** — `FuzzCSRFConfigValidation` added to `fuzz_test.go`. Tests all CSRFConfig methods with arbitrary inputs.
+- [x] **policyWrapErr coverage** — Now at 100%. Added `TestPolicyWrapErr` in `usermgmt/coverage_test.go`.
+- [x] **usermgmt handler/authz/service coverage** — Added 20+ tests covering `handleLogout` success/no-session, `handleMe` with/without user, `handleLogin` success/wrong-password, `handleRegister` success, `EnforceEx` denied result fields, `Apply` remove policies, `Login` account locked, `Login` user not found, `Register` duplicate user ID, `SessionMiddleware` cookie/bearer/invalid token paths, `UserFromContextOr`, `UserIDFromRequest`, `errorStatus` all cases, `NewAuthHandler` defaults. Usermgmt coverage: 91.2% → 92.4%.
+- [x] **Logging Push/Hijack coverage** — Added `mockPusher`, `pusherRecorder`, `hijackRecorder` test helpers. Tests verify Push delegation to underlying `http.Pusher` and `ErrNotSupported` fallback, plus Hijack delegation.
+- [x] **Root coverage** — 96.1% → 97.0%.
+- [x] **errorStatus dedup** — NOT RECOMMENDED: would couple usermgmt to go-cqrs-lite's event classification system. The modules serve different purposes.
+- [x] **ValidateID adoption** — NOT NEEDED: `ParseUserID` already validates ULID format via `id.ParseUserID`. `ValidateID` only checks non-zero, which is already done at usage sites via `IsZero()`.
+- [x] **Publisher/Subscriber ISP** — NOT APPLICABLE: cqrs-htmx dispatches commands/queries, doesn't publish events. The Publisher/Subscriber interfaces are for event sourcing infrastructure.
 
 ### New Items from 2026-05-21 Session
 
