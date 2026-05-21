@@ -19,11 +19,17 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Build
+      - name: Build root module
         run: go build ./...
         env:
+          GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
-          GOFLAGS: "-insecure"
+
+      - name: Build usermgmt submodule
+        run: cd usermgmt && go build ./...
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
 
   test:
     runs-on: ubuntu-latest
@@ -34,17 +40,29 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Test
+      - name: Test root module
         run: go test ./... -count=1 -race -coverprofile=coverage.out
         env:
+          GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
-          GOFLAGS: "-insecure"
+
+      - name: Test usermgmt submodule
+        run: cd usermgmt && go test ./... -count=1 -race -coverprofile=coverage.out
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Coverage check
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "Coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 95) { print \"Coverage ${COVERAGE}% is below 95% threshold\"; exit 1 } }"
+          echo "Root coverage: ${COVERAGE}%"
+          awk "BEGIN { if ($COVERAGE < 95) { print \"Root coverage ${COVERAGE}% is below 95% threshold\"; exit 1 } }"
+
+      - name: Usermgmt coverage check
+        run: |
+          COVERAGE=$(go tool cover -func=usermgmt/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          echo "Usermgmt coverage: ${COVERAGE}%"
+          awk "BEGIN { if ($COVERAGE < 90) { print \"Usermgmt coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
 
   lint:
     runs-on: ubuntu-latest
@@ -59,6 +77,8 @@ jobs:
         uses: golangci/golangci-lint-action@v7
         with:
           version: v2.11
+        env:
+          GOWORK: off
 
   security:
     runs-on: ubuntu-latest
@@ -74,16 +94,16 @@ jobs:
         with:
           args: "-no-fail -fmt sarif -out results.sarif ./..."
         env:
+          GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
-          GOFLAGS: "-insecure"
 
       - name: govulncheck
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
           govulncheck ./...
         env:
+          GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
-          GOFLAGS: "-insecure"
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v3

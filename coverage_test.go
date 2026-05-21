@@ -436,6 +436,9 @@ var _ = Describe("Coverage Gaps", func() {
 		Entry("allows root path", "/", true),
 		Entry("blocks empty path", "", false),
 		Entry("normalizes path with .. segments", "/a/../b/c", true),
+		Entry("blocks data: URLs", "data:text/html,<script>alert(1)</script>", false),
+		Entry("blocks scheme-relative URLs", "//evil.com", false),
+		Entry("blocks unparseable URLs", "://\x00bad", false),
 	)
 
 	Describe("decodeFormValues multi-value fields", func() {

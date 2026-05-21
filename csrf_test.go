@@ -629,3 +629,39 @@ var _ = Describe("CSRF Protection", func() {
 		})
 	})
 })
+
+var _ = Describe("CSRF config defaults", func() {
+	It("uses default field name when empty", func() {
+		cfg := cqrshtmx.CSRFConfig{Secret: []byte("01234567890123456789012345678901")}
+		mw := cqrshtmx.CSRFMiddleware(cfg)
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		w := httptest.NewRecorder()
+		r := httptest.NewRequestWithContext(
+			context.Background(), http.MethodGet, "/", nil,
+		)
+		handler.ServeHTTP(w, r)
+		Expect(w.Code).To(Equal(http.StatusOK))
+	})
+
+	It("uses default SameSite when zero", func() {
+		cfg := cqrshtmx.CSRFConfig{
+			Secret:   []byte("01234567890123456789012345678901"),
+			SameSite: 0,
+		}
+		Expect(cfg.Validate()).To(Succeed())
+	})
+
+	It("reads token from context when gorilla context has none", func() {
+		token := cqrshtmx.CSRFTokenFromContext(
+			cqrshtmx.WithCSRFToken(context.Background(), "fallback-token"),
+		)
+		Expect(token).To(Equal("fallback-token"))
+	})
+
+	It("returns empty token from empty context", func() {
+		token := cqrshtmx.CSRFTokenFromContext(context.Background())
+		Expect(token).To(BeEmpty())
+	})
+})

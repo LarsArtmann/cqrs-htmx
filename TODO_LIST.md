@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Date:** 2026-05-07 | **Updated:** 2026-05-20 | **Source:** Self-review session, full codebase audit + comprehensive 9-skill review
+**Date:** 2026-05-07 | **Updated:** 2026-05-21 | **Source:** Self-review session, full codebase audit + comprehensive 9-skill review
 
 ## Status Legend
 
@@ -129,4 +129,24 @@
 - [ ] **Resolve usermgmt vs cqrshtmx UserID type split** — `usermgmt.UserID` (string-backed) vs `cqrshtmx.UserID` (ULID-backed) are incompatible types. Decision depends on whether usermgmt is standalone or always paired with cqrs-htmx.
 - [ ] **Rate limiter eviction O(n)** — `evictOldestIfAtCapacity()` does linear scan. Could use min-heap or LRU for O(log n).
 - [ ] **Evaluate go-branded-id for numeric IDs** — Future SQL store backends could use `brandid.ID[Brand, int64]`.
-- [ ] **Integration tests between root module and usermgmt** — Full register → cqrs dispatch with user context flow.
+- [ ] **Integration tests between root module and usermgmt** — Requires separate Go module that imports both. Full register → cqrs dispatch with user context flow.
+- [ ] **Adopt TypedHandler[T] from go-cqrs-lite v1.4.0** — Add `QueryTyped[T]()` on App for compile-time type safety instead of `any` returns.
+- [ ] **CSRFConfig.Secure default** — Currently defaults to `false` (insecure). Should warn at runtime or default to `true`.
+- [ ] **errorStatus dedup** — `usermgmt/http.go` and root `errors.go` both map sentinels → HTTP status. Extract shared mapping.
+- [ ] **RateLimiterConfig signedness** — `Limit`/`Burst`/`MaxKeys` are `uint` on config but `int` internally. Unify.
+- [ ] **Usermgmt HTTP timeout** — `handleAuthEndpoint` has no timeout; long-running service calls could hang.
+- [ ] **BrandNamer adoption** — Add `Name()` to root module marker types (`userMarker`, `correlationMarker`, `requestMarker`) for debug visibility with go-branded-id v0.3.0.
+- [ ] **ValidateID adoption** — Use go-branded-id's validation in `ParseUserID`/`ParseCorrelationID`.
+- [ ] **Publisher/Subscriber ISP** — Adopt go-cqrs-lite v1.4.0 event interfaces for cleaner event dispatch.
+- [ ] **CSRF fuzz tests** — Add fuzz targets for token validation edge cases.
+- [ ] **usermgmt authz coverage** — `policyWrapErr` (0%), `Apply` (69.2%), `EnforceEx` (75%), `RolesForUser` (75%) need test paths.
+- [ ] **usermgmt handler coverage** — `handleLogout` (77.8%), `handleMe` (80%), `handleLogin` (80%) need edge case tests.
+
+### New Items from 2026-05-21 Session
+
+- [x] **Fix std/errors import in usermgmt/http.go** — Replaced with `cockroachdb/errors` to eliminate split brain.
+- [x] **Eliminate all 7 lint warnings** — gochecknoglobals (excluded), noctx (NewRequestWithContext), prealloc (make), unparam (simplified helpers). golangci-lint now reports 0 issues.
+- [x] **Expose CatalogEntries on App** — `CommandCatalogEntries()` and `QueryCatalogEntries()` delegate to go-cqrs-lite v1.4.0's embedded `CatalogDispatcher`.
+- [x] **Fix CI pipeline** — Added `GOWORK=off`, removed broken `GOFLAGS=-insecure`, added usermgmt build/test jobs.
+- [x] **CSRF helper coverage** — Added tests for `fieldName()`, `sameSite()`, `CSRFTokenFromContext` edge cases.
+- [x] **Redirect URL coverage** — Added `data:`, scheme-relative, and unparseable URL test cases.
