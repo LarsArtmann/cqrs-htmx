@@ -34,3 +34,6 @@ node_modules/
 /report/jscpd-report.json
 # Sensitive files
 *.db
+
+# Example binaries
+examples/datastar-demo/datastar-demo
