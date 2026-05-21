@@ -14,11 +14,16 @@ import (
 func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
 	body, readErr := readBody(r, maxBodySize)
 	if readErr != nil {
-		return out, readErr
+		return out, fmt.Errorf("maxBodySize=%d: %w", maxBodySize, readErr)
 	}
 
 	if decodeErr := json.Unmarshal(body, &out); decodeErr != nil {
-		return out, fmt.Errorf("%w: decode JSON: %w", ErrDecodeFailed, decodeErr)
+		return out, fmt.Errorf(
+			"maxBodySize=%d: %w: decode JSON: %w",
+			maxBodySize,
+			ErrDecodeFailed,
+			decodeErr,
+		)
 	}
 
 	return out, nil
@@ -68,18 +73,28 @@ func decodeRequest[T, R any](
 func decodeFormBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
 	body, readErr := readBody(r, maxBodySize)
 	if readErr != nil {
-		return out, readErr
+		return out, fmt.Errorf("maxBodySize=%d: %w", maxBodySize, readErr)
 	}
 
 	// Restore body so ParseForm can read it.
 	r.Body = io.NopCloser(bytes.NewReader(body))
 
 	if parseErr := r.ParseForm(); parseErr != nil {
-		return out, fmt.Errorf("%w: parse form: %w", ErrDecodeFailed, parseErr)
+		return out, fmt.Errorf(
+			"maxBodySize=%d: %w: parse form: %w",
+			maxBodySize,
+			ErrDecodeFailed,
+			parseErr,
+		)
 	}
 
 	if decodeErr := decodeFormValues(r.Form, &out); decodeErr != nil {
-		return out, fmt.Errorf("%w: decode form values: %w", ErrDecodeFailed, decodeErr)
+		return out, fmt.Errorf(
+			"maxBodySize=%d: %w: decode form values: %w",
+			maxBodySize,
+			ErrDecodeFailed,
+			decodeErr,
+		)
 	}
 
 	return out, nil

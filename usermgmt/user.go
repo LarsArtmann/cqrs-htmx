@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"slices"
 	"time"
 
@@ -52,7 +53,7 @@ func (u *User) SetPassword(password string) error {
 func (u *User) SetPasswordWithCost(password string, cost int) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), cost)
 	if err != nil {
-		return errors.Wrapf(err, "hash password")
+		return fmt.Errorf("cost=%d: %w", cost, err)
 	}
 	u.PasswordHash = string(hash)
 	return nil

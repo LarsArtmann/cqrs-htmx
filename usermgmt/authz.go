@@ -182,7 +182,7 @@ func (a *Authz) AsEnforcer() interface{ Enforce(...any) (bool, error) } {
 func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, error) {
 	allowed, matched, err := a.enforcer.EnforceEx(sub, dom, obj, string(act))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("sub=%s dom=%s obj=%s: %w", sub, dom, obj, err)
 	}
 	return &EnforceResult{
 		Allowed:      allowed,
@@ -299,7 +299,7 @@ func convertRoles(roles []string) []Role {
 func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 	roles, err := a.enforcer.GetRolesForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("domain=%s: %w", domain, err)
 	}
 	return convertRoles(roles), nil
 }
@@ -308,7 +308,7 @@ func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, error) {
 	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("domain=%s: %w", domain, err)
 	}
 	return convertRoles(roles), nil
 }
