@@ -270,6 +270,12 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 //	    app.Middleware(),
 //	)(mux)
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
+	if !cfg.Secure {
+		slog.Warn(
+			"cqrs-htmx: CSRFConfig.Secure is false — cookies will be sent over plain HTTP",
+			slog.String("hint", "set Secure=true in production"),
+		)
+	}
 	opts := buildGorillaOptions(cfg)
 	protect := csrf.Protect(cfg.secret(), opts...)
 

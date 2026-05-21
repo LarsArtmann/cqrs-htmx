@@ -5,6 +5,7 @@ go 1.26.2
 require (
 	github.com/larsartmann/cqrs-htmx v0.0.0
 	github.com/larsartmann/cqrs-htmx/usermgmt v0.0.0
+	github.com/larsartmann/go-cqrs-lite/core v1.4.0
 )
 
 require (
@@ -21,8 +22,7 @@ require (
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/go-branded-id v0.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/core v1.2.0 // indirect
+	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.1.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
