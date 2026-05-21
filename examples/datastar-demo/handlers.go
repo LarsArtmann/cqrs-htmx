@@ -54,7 +54,11 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 		todo := findTodo(cqrs, todoID)
 
 		sse := datastar.NewSSE(w, r)
-		sse.PatchElements(renderTodo(todo), datastar.WithSelectorID("todo-list"), datastar.WithModeAppend())
+		sse.PatchElements(
+			renderTodo(todo),
+			datastar.WithSelectorID("todo-list"),
+			datastar.WithModeAppend(),
+		)
 		sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
 		sse.MarshalAndPatchSignals(map[string]any{
 			"title": "",
@@ -153,7 +157,11 @@ func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 		}
 
 		sse := datastar.NewSSE(w, r)
-		sse.PatchElements(renderTodoList(todos), datastar.WithSelectorID("todo-list"), datastar.WithModeInner())
+		sse.PatchElements(
+			renderTodoList(todos),
+			datastar.WithSelectorID("todo-list"),
+			datastar.WithModeInner(),
+		)
 		sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
 	}
 }
@@ -175,7 +183,11 @@ func handleEventStream(cqrs *CQRS) http.HandlerFunc {
 				}
 				switch evt.Kind {
 				case "todo_created":
-					sse.PatchElements(evt.Data, datastar.WithSelectorID("todo-list"), datastar.WithModeAppend())
+					sse.PatchElements(
+						evt.Data,
+						datastar.WithSelectorID("todo-list"),
+						datastar.WithModeAppend(),
+					)
 					sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
 				case "todo_updated":
 					sse.PatchElements(evt.Data)

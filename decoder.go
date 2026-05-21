@@ -43,7 +43,12 @@ func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
 	_ = r.Body.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: read body (maxBodySize=%d): %w", ErrDecodeFailed, maxBodySize, err)
+		return nil, fmt.Errorf(
+			"%w: read body (maxBodySize=%d): %w",
+			ErrDecodeFailed,
+			maxBodySize,
+			err,
+		)
 	}
 
 	if maxBodySize > 0 && int64(len(body)) > maxBodySize {

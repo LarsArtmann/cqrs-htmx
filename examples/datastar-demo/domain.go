@@ -198,7 +198,7 @@ func (p *Projector) Stats() (total, active, completed int) {
 			active++
 		}
 	}
-	return
+	return total, active, completed
 }
 
 func (p *Projector) GetByID(id string) (Todo, bool) {
@@ -229,10 +229,10 @@ type BroadcastEvent struct {
 }
 
 type CQRS struct {
-	Commands *command.Dispatcher
-	Queries  *query.Dispatcher
-	Events   *EventStore
-	Read     *Projector
+	Commands  *command.Dispatcher
+	Queries   *query.Dispatcher
+	Events    *EventStore
+	Read      *Projector
 	Broadcast chan BroadcastEvent
 }
 
@@ -409,7 +409,7 @@ var botTodos = []string{
 // SimulateUser runs a bot that performs random todo actions as a background goroutine.
 // All events go through the normal CQRS pipeline and broadcast to every connected SSE client.
 func SimulateUser(ctx context.Context, cqrs *CQRS, name string) {
-	r := func() { time.Sleep(time.Duration(800 + time.Now().UnixNano()%2200) * time.Millisecond) }
+	r := func() { time.Sleep(time.Duration(800+time.Now().UnixNano()%2200) * time.Millisecond) }
 
 	userCtx := ContextWithUser(ctx, &UserContext{Name: name})
 
