@@ -1,165 +1,104 @@
 # Dependency Analysis: cqrs-htmx
 
-> **Date:** 2026-05-14
-> **State:** Pre-modularization baseline
+> **Date:** 2026-05-22
+> **State:** Updated with current module structure
 
 ---
 
-## Current State (Single Module)
-
-### External Dependencies
-
-```
-github.com/larsartmann/cqrs-htmx
-├── github.com/casbin/casbin/v3 v3.10.0          (test only — never imported in source)
-├── github.com/cockroachdb/errors v1.13.0          (production)
-├── github.com/larsartmann/go-cqrs-lite/core v1.1.0 (production)
-├── github.com/onsi/ginkgo/v2 v2.28.3              (test)
-├── github.com/onsi/gomega v1.40.0                  (test)
-└── (22 indirect dependencies)
-```
-
-### Internal File Dependency Graph
-
-```
-app.go
-├── authz.go       (Enforcer, UserIDExtractor)
-├── context.go     (UserIDFromContext, ParseUserID, WithUserID)
-├── errors.go      (ErrCommandsNil, ErrQueriesNil, ErrorHandler, defaultLoginRedirect)
-├── options.go     (HandlerOption, buildHandlerConfig)
-└── handler.go     (handleCommandDispatch, handleQueryDispatch)
-
-handler.go
-├── authz.go       (Enforce via App.executeAuthorization)
-├── context.go     (UserIDFromContext)
-├── errors.go      (ErrDispatchFailed, ErrDecoderMissing)
-├── options.go     (handlerConfig, CommandDecoder, QueryDecoder, RenderFunc)
-└── response.go    (NewResponse, applyHTMXResponse)
-
-authz.go
-├── errors.go      (ErrForbidden, ErrUnauthorized, ErrEnforcerNil, DefaultErrorHandlerWithRedirect)
-├── options.go     (HandlerOption, handlerConfig)
-└── htmx.go        (indirect via errors.go → headerRedirect)
-
-errors.go
-├── htmx.go        (IsHTMXRequest, headerRedirect)
-└── go-cqrs-lite/core/event (classification system)
-
-options.go
-├── errors.go      (ErrDecodeFailed)
-├── context.go     (UserIDFromContext)
-├── response.go    (NewResponse, applyHTMXResponse)
-├── htmx.go        (header constants)
-└── go-cqrs-lite/core/command, query
-
-notify.go
-└── options.go     (HandlerOption, TriggerWithDetail)
-
-middleware.go
-├── context.go     (ParseUserID, WithUserID)
-├── htmx.go        (parseHTMXRequest, WithHTMX)
-└── authz.go       (UserIDExtractor type)
-
-context.go
-└── go-cqrs-lite/core/event, pkg/id
-
-htmx.go
-└── (stdlib only — zero internal/external deps)
-
-response.go
-├── htmx.go        (IsHTMXRequest, header constants, SwapStrategy)
-└── notify.go      (defaultNotificationEvent constant)
-```
-
-### Coupling Analysis
-
-| File            | Depends On (count)                            |                                    Dependents (count) | Coupling Level                  |
-| --------------- | --------------------------------------------- | ----------------------------------------------------: | ------------------------------- |
-| `htmx.go`       | 0                                             | 6 (errors, options, response, middleware, + indirect) | **Low** — leaf node             |
-| `context.go`    | 2 (external)                                  |         5 (app, handler, options, middleware, errors) | Low — utility                   |
-| `notify.go`     | 1 (options)                                   |                                          1 (response) | Low — narrow                    |
-| `middleware.go` | 3 (context, htmx, authz)                      |                                                     0 | Low — consumed externally       |
-| `response.go`   | 2 (htmx, notify)                              |                                  2 (options, handler) | Medium — core to both paths     |
-| `errors.go`     | 2 (htmx, event)                               |            5 (app, handler, authz, options, coverage) | Medium — cross-cutting          |
-| `authz.go`      | 2 (errors, options)                           |                          3 (app, handler, middleware) | High — depends on handlerConfig |
-| `options.go`    | 4 (errors, context, response, htmx)           |                       4 (app, handler, authz, notify) | **High** — central hub          |
-| `handler.go`    | 5 (authz, context, errors, options, response) |                                               1 (app) | High — dispatch orchestrator    |
-| `app.go`        | 5 (authz, context, errors, options, handler)  |                                                     0 | High — entry point              |
-
-### Key Insight
-
-`options.go` is the **coupling hub** — it defines `handlerConfig` which is the shared mutable state for the entire handler pipeline. Every module that produces `HandlerOption` values must know about `handlerConfig`. This makes `authz.go` and `notify.go` impossible to extract without either:
-
-1. Moving `handlerConfig` to a shared types module, OR
-2. Introducing an interface abstraction for handler configuration
-
----
-
-## Proposed State (After htmx/ Extraction)
+## Module Structure (4 Modules)
 
 ```
 github.com/larsartmann/cqrs-htmx (root)
-├── github.com/larsartmann/cqrs-htmx/htmx  (NEW)
-├── github.com/cockroachdb/errors
-├── github.com/larsartmann/go-cqrs-lite/core
-└── (test deps)
+├── casbin/casbin/v3 v3.10.0
+├── cockroachdb/errors v1.13.0
+├── gorilla/csrf v1.7.3
+├── larsartmann/go-cqrs-lite/core v1.4.0
+├── onsi/ginkgo/v2 v2.29.0 (test)
+├── onsi/gomega v1.41.0 (test)
+└── golang.org/x/time v0.15.0
 
-github.com/larsartmann/cqrs-htmx/htmx
-└── (zero external deps — stdlib only)
+github.com/larsartmann/cqrs-htmx/usermgmt
+├── casbin/casbin/v3 v3.10.0
+├── cockroachdb/errors v1.13.0
+├── larsartmann/go-branded-id v0.3.0
+└── golang.org/x/crypto v0.51.0
+
+github.com/larsartmann/cqrs-htmx/integration_test
+├── cqrs-htmx (root) → replace ../
+├── cqrs-htmx/usermgmt → replace ../usermgmt
+└── larsartmann/go-cqrs-lite/core v1.4.0 (needs tidy: should be direct)
+
+github.com/larsartmann/cqrs-htmx/examples/datastar-demo
+├── larsartmann/go-cqrs-lite/core v1.5.0  ⚠️ version mismatch (root uses v1.4.0)
+└── starfederation/datastar-go v1.2.1
 ```
 
-### Dependency DAG (Post-Extraction)
+## Root Module Internal File Dependency Graph
 
 ```
-root (app, handler, options, authz, errors, context, middleware, notify)
- │
- └──→ htmx (htmx.go, response.go)
-       └──→ (nothing — leaf)
+Layer 0 (leaf, zero internal deps):
+  htmx.go       — stdlib only (HTMX types, constants, context, accessors)
+  context.go    — go-cqrs-lite/core deps only (UserID, CorrelationID, RequestID)
+  ratelimit.go  — x/time/rate only (rate limiter middleware)
+  security.go   — stdlib only (security headers middleware)
+  httputil.go   — stdlib only (WriteJSON helper)
+
+Layer 1:
+  logging.go  → context.go
+  decoder.go  → errors.go
+
+Layer 2 (cross-cutting cycle):
+  errors.go   → htmx.go (IsHTMXRequest, headerRedirect)
+              → response.go (ContentTypePlain, ContentTypeJSON)
+              → csrf.go (ErrCSRFInvalid)
+  csrf.go     → errors.go (ErrForbidden)
+  response.go → htmx.go (IsHTMXRequest, SwapStrategy, HeaderTrue, headers)
+              → notify.go (NotificationLevel, notificationDetail, defaultNotificationEvent)
+              → csrf.go (defaultCSRFHeaderName)
+
+Layer 3:
+  authz.go         → errors.go, options.go, context.go
+  options.go       → errors.go, response.go, decoder.go, context.go, csrf.go
+  csrf_handler.go  → csrf.go, options.go
+  middleware.go     → authz.go, context.go, htmx.go
+
+Layer 4:
+  notify.go → options.go
+
+Layer 5 (entry points):
+  app.go     → authz.go, context.go, errors.go, options.go, middleware.go
+  handler.go → options.go, errors.go, csrf_handler.go, response.go, authz.go
 ```
 
-### What Moves to `htmx/`
+## Coupling Analysis
 
-| Symbol                         | Type      | Notes                                |
-| ------------------------------ | --------- | ------------------------------------ |
-| `HTMXRequest`                  | struct    | Core HTMX request type               |
-| `SwapStrategy`                 | type      | String-based swap strategy           |
-| `SwapInnerHTML` ... `SwapNone` | constants | 8 swap strategy values               |
-| `IsHTMXRequest`                | func      | HTMX detection                       |
-| `IsBoosted`                    | func      | Boost detection                      |
-| `IsHistoryRestore`             | func      | History restore detection            |
-| `RenderPartial`                | func      | Partial render detection             |
-| `HTMXTarget`                   | func      | Target element accessor              |
-| `HTMXTrigger`                  | func      | Trigger ID accessor                  |
-| `HTMXTriggerName`              | func      | Trigger name accessor                |
-| `HTMXPrompt`                   | func      | Prompt accessor                      |
-| `HTMXCurrentURL`               | func      | Current URL accessor                 |
-| `WithHTMX`                     | func      | Context storage                      |
-| `HTMXFromContext`              | func      | Context retrieval                    |
-| `Response`                     | struct    | HTMX response builder                |
-| `NewResponse`                  | func      | Response constructor                 |
-| `Response.*` (all methods)     | methods   | 20+ fluent builder methods           |
-| `defaultNotificationEvent`     | const     | "showMessage" — moves from notify.go |
-| All HTMX header constants      | const     | `HX-Request`, `HX-Redirect`, etc.    |
+| File | Internal Deps | Dependents | Level |
+|------|:------------:|:----------:|-------|
+| `htmx.go` | 0 | 6 | Leaf — standalone |
+| `context.go` | 0 | 6 | Leaf — utility |
+| `ratelimit.go` | 0 | 0 | Leaf — standalone |
+| `security.go` | 0 | 0 | Leaf — standalone |
+| `httputil.go` | 0 | 2 | Leaf — utility |
+| `logging.go` | 1 | 0 | Low — consumed externally |
+| `decoder.go` | 1 | 1 | Low — narrow |
+| `notify.go` | 1 | 1 | Low — narrow |
+| `csrf.go` | 1 | 3 | Medium — cycle participant |
+| `response.go` | 3 | 3 | Medium — cycle participant |
+| `errors.go` | 3 | 10 | **High** — most depended-upon |
+| `authz.go` | 3 | 3 | Medium — handlerConfig coupling |
+| `middleware.go` | 3 | 1 | Medium — consumed externally |
+| `csrf_handler.go` | 2 | 1 | Medium — bridge |
+| `options.go` | 5 | 4 | **Highest** — handlerConfig hub |
+| `handler.go` | 5 | 1 | High — dispatch orchestrator |
+| `app.go` | 5 | 0 | High — entry point |
 
-### What Stays in Root (with re-exports)
+## Key Insight
 
-All of the above symbols will be re-exported from the root package for backward compatibility.
+The coupling hub is `options.go` (handlerConfig). Combined with the `errors.go` ↔ `response.go` ↔ `csrf.go` cycle, no further module extraction is feasible without significant refactoring.
 
-| Symbol                                                   | Type                | Reason it stays                        |
-| -------------------------------------------------------- | ------------------- | -------------------------------------- |
-| `App`, `Config`, `New`                                   | types/func          | Core CQRS wiring                       |
-| `HandlerOption`                                          | type                | Depends on `handlerConfig`             |
-| `handlerConfig`                                          | struct (unexported) | Shared mutable config — coupling hub   |
-| `Authorize`, `RequireAuth`                               | func                | Return `HandlerOption`                 |
-| `Enforce`, `AuthorizeMiddleware`                         | func                | Authorization enforcement              |
-| `Enforcer`                                               | interface           | Casbin duck-type                       |
-| `UserIDExtractor`                                        | type                | Used by middleware + app               |
-| `DecodeJSON/Query/Form/FormQuery`                        | func                | Generic decoders → `HandlerOption`     |
-| `Render`, `RenderTempl`, `RenderTemplResult`             | func                | Rendering → `HandlerOption`            |
-| `Redirect`, `Trigger`, `TriggerWithDetail`, `PushURL`    | func                | Response options → `HandlerOption`     |
-| `NotifySuccess/Error/Warning/Info`                       | func                | Notification options → `HandlerOption` |
-| `NotifyWithEvent`, `NotifyEventBuilder`                  | func/type           | Notification builder → `HandlerOption` |
-| `ErrorHandler`, `MapError`, `DefaultErrorHandler*`       | func/type           | Error classification                   |
-| `Err*` sentinels (8)                                     | var                 | CQRS error classification              |
-| `UserID`, `NewUserID`, `ParseUserID`, etc.               | func/type           | Context identity                       |
-| `ContextEnrichmentMiddleware`, `HTMXMiddleware`, `Chain` | func                | HTTP middleware                        |
+## Hygiene Issues
+
+1. `integration_test/go.mod` — needs `go mod tidy` (go-cqrs-lite/core should be direct)
+2. `examples/datastar-demo/go.mod` — version mismatch (core v1.5.0 vs root's v1.4.0)
+3. `go.work` — only covers root + usermgmt, not integration_test
+4. CI — only tests root + usermgmt, not integration_test or datastar-demo

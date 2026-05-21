@@ -1,436 +1,235 @@
 # Modularization Proposal: cqrs-htmx
 
-> **Status:** Phase 4 complete — self-reviewed, revised recommendation
-> **Date:** 2026-05-14
+> **Status:** Phase 3 complete — updated assessment with 2026-05-22 state
+> **Date:** 2026-05-22
+> **Supersedes:** PROPOSAL.md (2026-05-14), go-modularize-assessment.md (2026-05-19)
 
 ---
 
 ## 1. Executive Summary
 
-### Why Consider Modularization
+### What Changed Since Last Assessment
 
-`cqrs-htmx` is a single-package Go library (`github.com/larsartmann/cqrs-htmx`) with ~80 exported symbols across 10 source files. While functional and well-tested (96% coverage, 137 specs), the flat structure creates concerns:
+The project has grown from 15 to 18 production files, added CSRF protection, rate limiting, security headers, request logging, and request decoding. The internal coupling has deepened — specifically:
 
-- **API surface overload**: Consumers see all 80+ symbols at once — HTMX headers, Casbin authorization, CQRS wiring, request decoding, templ rendering, notifications, error handling, middleware, context helpers
-- **Dependency overreach**: Consumers who only want HTMX response helpers must also pull in `go-cqrs-lite/core` and its transitive dependency tree
-- **Coupling inside the package**: `app.go` directly references types from `authz.go`, `context.go`, `errors.go`, `options.go`, `handler.go` — the dispatch pipeline is tightly woven
-- **No compile-time boundaries**: Any file can import any other file's internals (unexported symbols) — there's no architectural enforcement
+- `response.go` now depends on `notify.go` (notification types) and `csrf.go` (CSRF header names)
+- `errors.go` now depends on `response.go` (ContentType constants) and `csrf.go` (ErrCSRFInvalid)
+- This creates a cycle: `errors.go` → `response.go` → `csrf.go` → `errors.go`
 
-### What Changes
+The module count grew from 2 to 4, with `integration_test/` and `examples/datastar-demo/` added.
 
-Split the single package into **4 semi-independent sub-modules**, each with its own `go.mod`, coordinated via a `go.work` file:
+### Recommendation: Module Hygiene Over Splitting
 
-| Module                 | Purpose                                                                | External Dependencies                                  |
-| ---------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------ |
-| `cqrs-htmx` (root)     | App builder, command/query dispatch pipeline, handler options          | `go-cqrs-lite/core`, `casbin/v3`, `cockroachdb/errors` |
-| `cqrs-htmx/htmx`       | HTMX request parsing, response builder, swap strategies                | **Zero external deps** (stdlib only)                   |
-| `cqrs-htmx/authz`      | Enforcer interface, Authorize/Enforce/RequireAuth, AuthorizeMiddleware | `cockroachdb/errors`                                   |
-| `cqrs-htmx/middleware` | ContextEnrichmentMiddleware, HTMXMiddleware, Chain                     | **Zero external deps** (stdlib only)                   |
+**Do NOT extract `htmx/` as a separate go.mod.** The coupling has deepened since the original proposal, and the extraction is no longer clean. Instead, focus on:
 
-### Expected Benefits
-
-1. **Dependency isolation**: Consumers using only `htmx` or `middleware` sub-modules get zero transitive deps from CQRS/Casbin
-2. **Smaller API surfaces**: Each module exports a focused set of symbols
-3. **Compile-time boundaries**: Import cycles between modules are impossible by Go's module system
-4. **Independent versioning**: Bug fixes to the HTMX response builder don't require bumping the main module
-5. **Faster CI**: Only changed modules need rebuilding/testing
+1. Fix module hygiene (integration_test, go.work, CI)
+2. Resolve the datastar-demo ownership question
+3. Fix existing lint warnings
 
 ---
 
-## 2. Current State Analysis
+## 2. Current State Analysis (2026-05-22)
 
 ### 2.1 Module Landscape
 
-| Property         | Value                                  |
-| ---------------- | -------------------------------------- |
-| Go modules       | 1 (root only)                          |
-| Go version       | 1.26.2                                 |
-| Packages         | 1 (`github.com/larsartmann/cqrs-htmx`) |
-| Source files     | 10 (production) + 8 (test)             |
-| Exported symbols | ~80                                    |
-| Test coverage    | 96% (137 specs)                        |
-| Lint issues      | 0                                      |
+| Module | Path | Files (prod) | Exported Symbols | Direct External Deps | Internal Deps | Replace | go.work | State |
+|--------|------|------|---------|---------|---------|---------|---------|-------|
+| Root | `./` | 18 | 151 | casbin/v3, cockroachdb/errors, gorilla/csrf, go-cqrs-lite/core, x/time | 0 | None | Yes | Clean but large |
+| usermgmt | `./usermgmt` | 12 | 95 | casbin/v3, cockroachdb/errors, go-branded-id, x/crypto | 0 | None | Yes | Clean |
+| integration_test | `./integration_test` | 2 | 0 | root, usermgmt, go-cqrs-lite/core | root + usermgmt | Yes (→ ../) | No | **Needs go mod tidy** |
+| datastar-demo | `./examples/datastar-demo` | 3 | 0 | go-cqrs-lite/core v1.5.0, datastar-go | **None (doesn't use root!)** | None | No | **Version mismatch** |
 
-### 2.2 External Dependencies
+### 2.2 Classification: Partial Split
 
-| Dependency                                 | Type   | Used By                                                         |
-| ------------------------------------------ | ------ | --------------------------------------------------------------- |
-| `github.com/casbin/casbin/v3`              | Direct | `go.mod` (but never imported in source — interface duck-typing) |
-| `github.com/cockroachdb/errors`            | Direct | `app.go`, `authz.go`, `errors.go`                               |
-| `github.com/larsartmann/go-cqrs-lite/core` | Direct | `app.go`, `context.go`, `errors.go`, `handler.go`, `options.go` |
-| `github.com/onsi/ginkgo/v2`                | Test   | All test files                                                  |
-| `github.com/onsi/gomega`                   | Test   | All test files                                                  |
+The root + usermgmt split is clean and well-executed. However:
+- integration_test has stale go.mod (needs tidy)
+- datastar-demo doesn't import the root library at all — it's a standalone go-cqrs-lite + datastar example
+- go.work only covers root + usermgmt, not integration_test or datastar-demo
+- CI only tests root + usermgmt, not integration_test or datastar-demo
 
-### 2.3 Internal Dependency Graph
+### 2.3 Root Module Internal Dependency Graph (2026-05-22)
 
 ```
-app.go ──────→ authz.go (Enforcer, UserIDExtractor)
-    │──────→ context.go (UserIDFromContext, ParseUserID, WithUserID)
-    │──────→ errors.go (ErrCommandsNil, ErrQueriesNil, ErrorHandler)
-    │──────→ options.go (HandlerOption)
-    │──────→ handler.go (unexported dispatch methods)
+Layer 0 (leaf, zero internal deps):
+  htmx.go, context.go, ratelimit.go, security.go, httputil.go
 
-handler.go ──→ authz.go (Enforce)
-    │──────→ context.go (UserIDFromContext)
-    │──────→ errors.go (ErrDispatchFailed, ErrDecoderMissing)
-    │──────→ options.go (handlerConfig, decoders)
-    │──────→ response.go (NewResponse, applyHTMXResponse)
+Layer 1 (depends on Layer 0 only):
+  logging.go → context.go
+  decoder.go → errors.go
 
-authz.go ────→ errors.go (ErrForbidden, ErrUnauthorized, ErrEnforcerNil)
-    │──────→ options.go (HandlerOption, handlerConfig)
-    │──────→ htmx.go (headerRedirect — via errors.go chain)
+Layer 2 (cross-cutting, coupled):
+  errors.go    → htmx.go, response.go, csrf.go
+  csrf.go      → errors.go
+  response.go  → htmx.go, notify.go, csrf.go
 
-errors.go ───→ htmx.go (IsHTMXRequest, headerRedirect)
+Layer 3 (depends on Layer 2):
+  authz.go         → errors.go, options.go, context.go
+  options.go       → errors.go, response.go, decoder.go, context.go, csrf.go
+  csrf_handler.go  → csrf.go, options.go
+  middleware.go     → authz.go, context.go, htmx.go
 
-options.go ──→ errors.go (ErrDecodeFailed)
-    │──────→ context.go (UserIDFromContext)
-    │──────→ response.go (NewResponse, applyHTMXResponse)
-    │──────→ htmx.go (header constants)
+Layer 4 (depends on Layer 3):
+  notify.go → options.go
 
-notify.go ───→ options.go (HandlerOption, TriggerWithDetail)
-
-middleware.go → context.go (ParseUserID, WithUserID)
-    │──────→ htmx.go (parseHTMXRequest, WithHTMX)
-    │──────→ authz.go (UserIDExtractor type)
-
-context.go ──→ (go-cqrs-lite/core/event, id)
-
-htmx.go ─────→ (stdlib only — standalone)
-
-response.go ─→ htmx.go (IsHTMXRequest, header constants, SwapStrategy)
+Layer 5 (entry points):
+  app.go     → authz.go, context.go, errors.go, options.go, middleware.go
+  handler.go → options.go, errors.go, csrf_handler.go, response.go, authz.go
 ```
 
-### 2.4 Coupling Hotspots
+### 2.4 Critical Cycles
 
-| Hotspot                                   | Description                                                                                                                          | Risk                                                                    |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| `handlerConfig` struct                    | Defined in `options.go`, used by `app.go`, `authz.go`, `handler.go`, `notify.go` — the shared mutable config for all handler options | High — any module boundary must handle this shared type                 |
-| `headerTrue` / `headerRedirect` constants | Defined in `htmx.go`, used by `errors.go`, `options.go`, `response.go`                                                               | Medium — constants can be duplicated or shared via a types module       |
-| `applyHTMXResponse` function              | Defined in `handler.go` (unexported), called from `options.go` render funcs                                                          | Medium — tight coupling between handler pipeline and response rendering |
-| `UserIDExtractor` type                    | Defined in `authz.go`, used by `middleware.go` and `app.go`                                                                          | Low — type alias, easy to share                                         |
-| Error classification                      | `errors.go` uses `go-cqrs-lite/core/event` classification — deeply tied to CQRS                                                      | Low — only matters if splitting errors out                              |
+```
+errors.go → response.go (ContentTypePlain/ContentTypeJSON)
+response.go → csrf.go (defaultCSRFHeaderName)
+csrf.go → errors.go (ErrForbidden)
+```
 
-### 2.5 God-Package Assessment
+These three files form an inseparable group at the module level.
 
-The root package is **not a god-package** by the 15-file/30-symbol threshold, but with 10 files and ~80 exported symbols, it has a **wide API surface**. The symbols cluster into 7 natural concerns (see §3.2), suggesting the package is doing "too many things" for a single Go package.
+### 2.5 Coupling Hubs
+
+| File | Depends On | Dependents | Coupling |
+|------|-----------|------------|----------|
+| `options.go` | 5 files | 4 files | **Highest** — handlerConfig is shared mutable state |
+| `errors.go` | 3 files | 10 files | **Highest** — most depended-upon |
+| `context.go` | 0 (external only) | 6 files | Low — utility |
+| `htmx.go` | 0 (stdlib only) | 6 files | Low — leaf |
 
 ---
 
-## 3. Proposed Module Structure
+## 3. Why Further Module Splitting Is Not Recommended
 
-### 3.1 Module Definitions
+### 3.1 The htmx/ Extraction Is No Longer Clean
 
-#### Module 1: `cqrs-htmx` (root — Core)
+The original 2026-05-14 proposal identified htmx/ (htmx.go + response.go) as the only clean extraction. Since then:
 
-| Field                 | Content                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Path**              | `github.com/larsartmann/cqrs-htmx`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| **Purpose**           | App builder, CQRS dispatch pipeline, handler options, error classification                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **Production deps**   | `cqrs-htmx/htmx`, `cqrs-htmx/authz`, `cqrs-htmx/middleware`, `go-cqrs-lite/core`, `cockroachdb/errors`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **Test deps**         | `casbin/casbin/v3`, `onsi/ginkgo/v2`, `onsi/gomega`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| **Public API**        | `App`, `Config`, `New()`, `App.Command()`, `App.Query()`, `App.Middleware()`, `HandlerOption`, `CommandDecoder`, `QueryDecoder`, `RenderFunc`, `TemplComponent`, `DecodeJSON`, `DecodeJSONQuery`, `DecodeForm`, `DecodeFormQuery`, `Render`, `RenderTempl`, `RenderTemplResult`, `Redirect`, `Trigger`, `TriggerWithDetail`, `PushURL`, `NotifySuccess`, `NotifyError`, `NotifyWarning`, `NotifyInfo`, `NotifyWithEvent`, `NotifyEventBuilder`, `ErrorHandler`, `MapError`, `DefaultErrorHandler`, `DefaultErrorHandlerWithRedirect`, `ErrUnauthorized`, `ErrForbidden`, `ErrDecodeFailed`, `ErrDispatchFailed`, `ErrEnforcerNil`, `ErrCommandsNil`, `ErrQueriesNil`, `ErrDecoderMissing`, `UserID`, `NewUserID`, `ParseUserID`, `MustParseUserID`, `WithUserID`, `UserIDFromContext`, `EventOptionsFromContext` |
-| **Internal packages** | None                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **Files**             | `app.go`, `handler.go`, `options.go`, `notify.go`, `errors.go`, `context.go`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+- `response.go:145-147` uses `NotificationLevel`, `notificationDetail()`, `defaultNotificationEvent` from `notify.go`
+- `response.go:158` uses `defaultCSRFHeaderName` from `csrf.go`
+- `errors.go:156,179` uses `ContentTypePlain`, `ContentTypeJSON` from `response.go`
 
-#### Module 2: `cqrs-htmx/htmx`
+To extract htmx/, you would need to:
+1. Move notification types to htmx/ (breaks notify.go)
+2. Remove CSRFToken() from Response (breaking API change)
+3. Move ContentType constants to httputil.go (creates cross-module constant sharing)
+4. Break the errors.go ↔ csrf.go ↔ response.go cycle
 
-| Field                 | Content                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Path**              | `github.com/larsartmann/cqrs-htmx/htmx`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| **Purpose**           | HTMX request parsing, response builder, swap strategies — zero external dependencies                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **Production deps**   | None (stdlib only)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **Test deps**         | `onsi/ginkgo/v2`, `onsi/gomega`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **Public API**        | `HTMXRequest`, `SwapStrategy`, `SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `SwapAfterBegin`, `SwapBeforeEnd`, `SwapAfterEnd`, `SwapDelete`, `SwapNone`, `IsHTMXRequest`, `IsBoosted`, `IsHistoryRestore`, `RenderPartial`, `HTMXTarget`, `HTMXTrigger`, `HTMXTriggerName`, `HTMXPrompt`, `HTMXCurrentURL`, `WithHTMX`, `HTMXFromContext`, `Response`, `NewResponse`, `Response.IsHTMX`, `Response.PushURL`, `Response.ReplaceURL`, `Response.Redirect`, `Response.Refresh`, `Response.Location`, `Response.Reswap`, `Response.Retarget`, `Response.Reselect`, `Response.Trigger`, `Response.TriggerAfterSwap`, `Response.TriggerAfterSettle`, `Response.TriggerWithDetail`, `Response.NotifySuccess`, `Response.NotifyError`, `Response.NotifyWarning`, `Response.NotifyInfo`, `Response.Apply` |
-| **Internal packages** | None                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **Files**             | `htmx.go`, `response.go`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+This is more disruptive than beneficial for a library of this size.
 
-#### Module 3: `cqrs-htmx/authz`
+### 3.2 Library, Not Application
 
-| Field                 | Content                                                                                     |
-| --------------------- | ------------------------------------------------------------------------------------------- |
-| **Path**              | `github.com/larsartmann/cqrs-htmx/authz`                                                    |
-| **Purpose**           | Casbin-compatible authorization — Enforcer interface, policy enforcement, HTTP middleware   |
-| **Production deps**   | `cqrs-htmx/htmx` (for `IsHTMXRequest` in error handling), `cockroachdb/errors`              |
-| **Test deps**         | `casbin/casbin/v3`, `onsi/ginkgo/v2`, `onsi/gomega`                                         |
-| **Public API**        | `Enforcer`, `UserIDExtractor`, `Authorize`, `RequireAuth`, `Enforce`, `AuthorizeMiddleware` |
-| **Internal packages** | None                                                                                        |
-| **Files**             | `authz.go` (split from root)                                                                |
+The library is called "cqrs-htmx" — CQRS is the core purpose. Consumers who import it expect CQRS + HTMX together. The "HTMX-only" use case is an edge case for a library explicitly named for CQRS integration.
 
-#### Module 4: `cqrs-htmx/middleware`
+### 3.3 Flat Package = Go Convention for Libraries
 
-| Field                 | Content                                                                                      |
-| --------------------- | -------------------------------------------------------------------------------------------- |
-| **Path**              | `github.com/larsartmann/cqrs-htmx/middleware`                                                |
-| **Purpose**           | HTTP middleware — context enrichment, HTMX header parsing, middleware chaining               |
-| **Production deps**   | `cqrs-htmx/htmx` (for `HTMXRequest` parsing), `cqrs-htmx/authz` (for `UserIDExtractor` type) |
-| **Test deps**         | `onsi/ginkgo/v2`, `onsi/gomega`                                                              |
-| **Public API**        | `ContextEnrichmentMiddleware`, `HTMXMiddleware`, `Chain`                                     |
-| **Internal packages** | None                                                                                         |
-| **Files**             | `middleware.go` (split from root)                                                            |
+18 files / 151 symbols in a single package is within Go norms for a cohesive library. Well-named symbols with clear prefixes (CSRF*, HTMX*, Notify*, Authorize*, Enforce*) provide sufficient organization.
 
-### 3.2 Dependency DAG
+### 3.4 New Files Are Independent Concerns
 
-```
-                    ┌─────────────┐
-                    │ cqrs-htmx   │  (root — core)
-                    │ (app, opts, │
-                    │  dispatch)  │
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
-              │            │            │
-              ▼            ▼            ▼
-      ┌───────────┐ ┌───────────┐ ┌──────────────┐
-      │   htmx    │ │   authz   │ │  middleware   │
-      │ (request, │ │ (casbin,  │ │ (enrich,     │
-      │  response)│ │  enforce) │ │  chain, htmx)│
-      └───────────┘ └─────┬─────┘ └──────┬───────┘
-                         │               │
-                         │    ┌──────────┘
-                         │    │
-                         ▼    ▼
-                      ┌───────────┐
-                      │   htmx    │  (shared leaf)
-                      └───────────┘
-```
+The recently added files (ratelimit.go, security.go, logging.go, decoder.go) are leaf nodes with minimal coupling. They could theoretically form sub-modules, but each is a single file (125-268 lines) — too small for a separate go.mod.
 
-**DAG verification**: All arrows point downward. No cycles. The `htmx` module is a leaf with zero internal deps.
+---
 
-### 3.3 Replace / Workspace Strategy
+## 4. Proposed Actions: Module Hygiene
 
-**Recommended: `go.work` at repo root.**
+### 4.1 Fix integration_test Module
+
+- Run `go mod tidy` to fix stale go.mod (go-cqrs-lite/core should be direct)
+- Verify tests pass
+
+### 4.2 Resolve datastar-demo Ownership
+
+**Problem:** datastar-demo doesn't import cqrs-htmx at all. It's a standalone go-cqrs-lite + datastar example with version mismatches (core v1.5.0 vs root's v1.4.0, go-branded-id v0.1.0 vs v0.3.0).
+
+**Options:**
+- A) Update to import cqrs-htmx and demonstrate library usage
+- B) Upgrade deps to match root module versions
+- C) Move to go-cqrs-lite repo (where it belongs)
+
+**Recommendation:** Option B — upgrade deps. The demo is valuable as a go-cqrs-lite example, and restructuring it to use cqrs-htmx would change its nature entirely. Keep it as a companion example.
+
+### 4.3 Update go.work
+
+Add integration_test to go.work for consistent local development:
 
 ```go
-// go.work
 go 1.26.2
 
 use (
     .
-    ./htmx
-    ./authz
-    ./middleware
+    ./usermgmt
+    ./integration_test
 )
 ```
 
-Rationale:
+Do NOT add datastar-demo — it doesn't import any sibling modules, so go.work provides no benefit.
 
-- 4 modules in same repo — `go.work` is cleaner than per-module `replace` directives
-- Each module's `go.mod` stays clean — no `replace` directives
-- `go.work` is auto-ignored by consumers using published versions
-- `go mod tidy` works both with and without the workspace
+### 4.4 Update CI
 
-### 3.4 Test Dependency Isolation
+Add integration_test and datastar-demo to CI pipeline:
+- Build and test integration_test
+- Build datastar-demo (no tests to run — it's a main package)
 
-| Module                 | Production go.mod                                                                                      | Test-only deps                            |
-| ---------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
-| `cqrs-htmx` (root)     | `go-cqrs-lite/core`, `cockroachdb/errors`, `cqrs-htmx/htmx`, `cqrs-htmx/authz`, `cqrs-htmx/middleware` | `casbin/casbin/v3`, `ginkgo/v2`, `gomega` |
-| `cqrs-htmx/htmx`       | _(empty — stdlib only)_                                                                                | `ginkgo/v2`, `gomega`                     |
-| `cqrs-htmx/authz`      | `cockroachdb/errors`, `cqrs-htmx/htmx`                                                                 | `casbin/casbin/v3`, `ginkgo/v2`, `gomega` |
-| `cqrs-htmx/middleware` | `cqrs-htmx/htmx`, `cqrs-htmx/authz`                                                                    | `ginkgo/v2`, `gomega`                     |
+### 4.5 Fix Lint Warnings
 
-**Test helpers strategy**: Shared test types (`testCreateUserCmd`, `bddTemplComponent`, `newTestEnforcer()`) remain in the root module's `_test.go` files. Sub-module tests define their own local helpers. No shared `testhelpers` module — the test surface is small enough to justify localized helpers.
-
-### 3.5 Interface Extraction
-
-| Module       | Interface Role                                                       | Implementation                             |
-| ------------ | -------------------------------------------------------------------- | ------------------------------------------ |
-| `htmx`       | Pure types and utilities — no interfaces needed                      | N/A                                        |
-| `authz`      | `Enforcer` interface already exists — stays here                     | `*casbin.Enforcer` satisfies it externally |
-| `middleware` | `UserIDExtractor` type stays in `authz` (referenced by `middleware`) | Consumers provide extractor                |
-| `root`       | `TemplComponent` duck-types `templ.Component` — stays here           | Consumer's templ components satisfy it     |
-
-No additional interface extraction needed — the existing design already follows the interface/impl pattern.
-
-### 3.6 Versioning Strategy
-
-**Recommended: Independent semver per module.**
-
-| Module                 | Tag Format          | Initial Version       |
-| ---------------------- | ------------------- | --------------------- |
-| `cqrs-htmx` (root)     | `v1.2.0`            | Continue from current |
-| `cqrs-htmx/htmx`       | `htmx/v0.1.0`       | New — start at v0     |
-| `cqrs-htmx/authz`      | `authz/v0.1.0`      | New — start at v0     |
-| `cqrs-htmx/middleware` | `middleware/v0.1.0` | New — start at v0     |
-
-Rationale:
-
-- This is a published library with external consumers
-- Sub-modules are new extractions — v0 signals instability
-- Root module continues its existing version trajectory
-- Each sub-module can stabilize at its own pace
-
-### 3.7 Migration Strategy (Ordered Steps)
-
-1. **Create `htmx/` sub-module** — Extract `htmx.go` + `response.go` (zero external deps, leaf node)
-2. **Create `authz/` sub-module** — Extract `authz.go` (depends only on `htmx` + `cockroachdb/errors`)
-3. **Create `middleware/` sub-module** — Extract `middleware.go` (depends on `htmx` + `authz`)
-4. **Wire root module** — Update `app.go`, `handler.go`, `options.go`, `notify.go`, `errors.go`, `context.go` to import from sub-modules
-5. **Create `go.work`** — Coordinate all modules
-6. **Migrate tests** — Split test files per module, create localized helpers
-7. **Update CI/build** — Verify `go work sync`, `go build ./...`, `go test ./...`
-8. **Update documentation** — README, AGENTS.md, FEATURES.md
-
-### 3.8 Risk Assessment
-
-| Risk                                                                                                     | Likelihood | Impact | Mitigation                                                                |
-| -------------------------------------------------------------------------------------------------------- | ---------- | ------ | ------------------------------------------------------------------------- |
-| **Consumer breaking change** — import paths change from `cqrshtmx.IsHTMXRequest` to `htmx.IsHTMXRequest` | High       | High   | Root module re-exports all symbols for backward compatibility during v1.x |
-| **Circular dependency** — `authz` → `htmx` and `htmx` → `authz`                                          | Low        | High   | DAG verified; `htmx` has zero deps                                        |
-| **`handlerConfig` shared type** — needs to be in root since all handler options modify it                | Medium     | Medium | Keep `handlerConfig` in root module; sub-modules don't reference it       |
-| **Test complexity** — shared test helpers across modules                                                 | Medium     | Low    | Localize helpers per module; small test surface                           |
-| **CI slowdown** — multiple `go.mod` files                                                                | Low        | Low    | `go.work` handles this transparently                                      |
-| **Versioning confusion** — which version bump for which change?                                          | Medium     | Medium | Document tagging conventions; automate with CI checks                     |
-
-### 3.9 Build System Impact
-
-| File                | Change Required                                                       |
-| ------------------- | --------------------------------------------------------------------- |
-| `go.work`           | New file — coordinates all 4 modules                                  |
-| `htmx/go.mod`       | New — stdlib only                                                     |
-| `authz/go.mod`      | New — `cockroachdb/errors` + `cqrs-htmx/htmx`                         |
-| `middleware/go.mod` | New — `cqrs-htmx/htmx` + `cqrs-htmx/authz`                            |
-| `go.mod` (root)     | Add sub-module deps, remove some direct deps that move to sub-modules |
-| `.golangci.yml`     | Update paths if per-module linting desired                            |
-| CI/CD               | Add per-module build/test steps                                       |
+10 existing lint warnings (revive missing docs, errcheck, forcetypeassert, recvcheck, exhaustruct, noctx) should be fixed before declaring the modularization complete.
 
 ---
 
-## 4. Critical Decision: Backward Compatibility
+## 5. When to Revisit Modularization
 
-The single biggest risk is **breaking existing consumers** who import `github.com/larsartmann/cqrs-htmx` and use symbols like `IsHTMXRequest`, `NewResponse`, `Enforce`, etc.
-
-### Strategy: Root Re-exports
-
-The root module (`github.com/larsartmann/cqrs-htmx`) **re-exports** all public symbols from sub-modules:
-
-```go
-// app.go (root)
-package cqrshtmx
-
-// Re-export from sub-modules for backward compatibility
-type HTMXRequest = htmx.HTMXRequest
-type Response = htmx.Response
-type Enforcer = authz.Enforcer
-// ... etc
-```
-
-This means:
-
-- **Existing consumers**: Zero changes — all imports still work
-- **New consumers**: Can import sub-modules directly for smaller dependency trees
-- **Deprecation path**: Mark re-exports as deprecated in v2, remove in v3
-
-### Cost of Re-exports
-
-- Root module's go.mod still depends on everything (transitively through sub-modules)
-- Consumers who only want `htmx` features can now `import "github.com/larsartmann/cqrs-htmx/htmx"` to avoid CQRS/Casbin deps
-- The re-export pattern is idiomatic Go (used by `io/fs`, `net/http`, etc.)
+- Library exceeds 10,000 LOC
+- Consumer feedback about dependency overreach
+- New subsystem with zero overlap (e.g., SSE/WebSocket helpers)
+- Extracting `htmx` as a standalone library for non-CQRS use cases
+- The ContentType/notification cycle is broken through refactoring
 
 ---
 
-## 5. Alternative Considered and Dismissed
+## 6. Dependency Graph (Current State)
 
-### Alternative A: Package-only split (no separate go.mod files)
+```
+                    ┌──────────────────────┐
+                    │     cqrs-htmx         │  (root)
+                    │  18 files, 151 syms   │
+                    │  casbin, errors,      │
+                    │  csrf, cqrs-lite,     │
+                    │  x/time               │
+                    └──────────┬────────────┘
+                               │ (go.work)
+                    ┌──────────┴────────────┐
+                    │                       │
+           ┌────────┴────────┐    ┌─────────┴──────────┐
+           │   usermgmt      │    │  integration_test   │
+           │  12 files, 95   │    │  4 tests            │
+           │  casbin, crypto, │    │  imports root +     │
+           │  branded-id      │    │  usermgmt          │
+           │  (independent)   │    │  (replace directive)│
+           └─────────────────┘    └─────────────────────┘
 
-Split into sub-packages (`/htmx`, `/authz`, `/middleware`) within the same module.
-
-**Dismissed because:**
-
-- No dependency isolation — `go.mod` still lists all transitive deps
-- No compile-time boundary enforcement beyond Go's package-level visibility
-- No independent versioning
-- The main benefit (smaller API surface per package) is achievable, but the dependency overreach problem remains
-
-### Alternative B: Full library split (separate repos)
-
-Split into separate GitHub repos: `cqrs-htmx-htmx`, `cqrs-htmx-authz`, etc.
-
-**Dismissed because:**
-
-- Massive coordination overhead for a small library
-- CI complexity — cross-repo dependency management
-- Premature for a library with ~10 source files
-- Consumer friction — multiple imports from different repos
-
-### Alternative C: No split — status quo
-
-Keep the single flat package.
-
-**Valid arguments for this:**
-
-- Small codebase (10 files, ~1500 LOC)
-- Already well-organized by file naming
-- No actual import cycles or build problems
-- Go's single-package design works fine at this scale
-
-**Why we still recommend splitting:**
-
-- The dependency overreach problem is real — consumers who just want HTMX response helpers should not need go-cqrs-lite
-- The API surface (80+ symbols) is large for a single import
-- The split creates natural architectural boundaries that prevent future coupling
-- The independent versioning benefit will grow as the library matures
+    ┌─────────────────────────┐
+    │   datastar-demo         │  (standalone — doesn't use root)
+    │  go-cqrs-lite v1.5.0    │
+    │  datastar-go            │
+    │  (version mismatch)     │
+    └─────────────────────────┘
+```
 
 ---
 
-## 6. Self-Review Findings (Phase 4)
+## 7. Self-Review Findings (Phase 4)
 
-### 6.1 What I Forgot
+### 7.1 What I Forgot
 
-1. **`Authorize` and `RequireAuth` return `HandlerOption`** — these functions are defined in `authz.go` but return `HandlerOption` (defined in `options.go`) and modify `handlerConfig` (also in `options.go`). This means `authz` cannot be a separate module unless `handlerConfig` and `HandlerOption` are also in `authz` or a shared types module. **This is a hard coupling that invalidates the original `authz` module proposal.**
+1. **datastar-demo version mismatch** — go-cqrs-lite/core v1.5.0 vs root's v1.4.0. The demo could break if v1.5.0 has breaking changes.
+2. **CI doesn't test integration_test** — these cross-module tests could regress without detection.
+3. **integration_test uses replace directives while root uses go.work** — inconsistent strategy.
 
-2. **`AuthorizeMiddleware` uses `DefaultErrorHandlerWithRedirect`** — defined in `errors.go`. The authz module would depend on the error handler from root, creating a circular dependency.
+### 7.2 What Could Be Improved
 
-3. **`response.go` uses `defaultNotificationEvent` from `notify.go`** — `response.go`'s `triggerNotification` method references `defaultNotificationEvent`. If `response.go` moves to `htmx/`, it can't reference `notify.go` which stays in root.
+1. **Consistent replace strategy** — integration_test should use go.work (if added) or replace directives, not mix.
+2. **datastar-demo should at minimum have matching dep versions** — even if it doesn't import root.
+3. **The 151-symbol API surface** could benefit from sub-package organization (not sub-modules) in a future iteration.
 
-4. **`errors.go` uses `headerRedirect` from `htmx.go`** — the constant is unexported. If `htmx.go` moves to a sub-module, `errors.go` can't access it. Options: (a) export it, (b) duplicate it, (c) keep errors in the htmx module.
+### 7.3 Decision: Hygiene First
 
-### 6.2 Revised Assessment: The Coupling Is Deeper Than Expected
-
-After re-reading every file, the actual coupling chain is:
-
-```
-authz.go → options.go (handlerConfig, HandlerOption) → root
-authz.go → errors.go (sentinels, DefaultErrorHandlerWithRedirect) → root
-errors.go → htmx.go (headerRedirect constant) → htmx
-notify.go → options.go (HandlerOption, TriggerWithDetail) → root
-response.go → notify.go (defaultNotificationEvent) → notify
-options.go → response.go (NewResponse, applyHTMXResponse) → response
-```
-
-The original 4-module split assumed `authz` could be cleanly extracted. **It cannot** — `Authorize()` and `RequireAuth()` are `HandlerOption` constructors, tightly bound to the handler config pattern. Similarly, `errors.go` is deeply entangled with both CQRS classification and HTMX headers.
-
-### 6.3 Revised Module Structure
-
-Given the coupling analysis, the **only clean extraction** is the `htmx` module. The rest must stay together:
-
-| Module             | Purpose                                                                                | External Dependencies                                       |
-| ------------------ | -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `cqrs-htmx` (root) | App builder, dispatch pipeline, handler options, authz, errors, context, notifications | `go-cqrs-lite/core`, `cockroachdb/errors`, `cqrs-htmx/htmx` |
-| `cqrs-htmx/htmx`   | HTMX request parsing, response builder, swap strategies                                | **Zero external deps** (stdlib only)                        |
-
-**What changed from original proposal:**
-
-- `authz/` module: **Removed** — `Authorize`/`RequireAuth` are `HandlerOption` constructors that cannot be separated from the handler config
-- `middleware/` module: **Removed** — `ContextEnrichmentMiddleware` uses `ParseUserID`/`WithUserID` (root) and `UserIDExtractor` (root). `HTMXMiddleware` uses `parseHTMXRequest`/`WithHTMX` (htmx). Too coupled for a clean split.
-- Only `htmx/` survives — it's the only module with zero coupling to the root
-
-### 6.4 Resolved Issue: `response.go` → `notify.go` Coupling
-
-`response.go` uses `defaultNotificationEvent` (constant from `notify.go`). Solution: move `defaultNotificationEvent` to `response.go` or `htmx.go` where it's used. The notification event name is an HTMX concern, not a CQRS concern. `notify.go`'s exported `DefaultNotificationEvent` var can remain in root (deprecated) while the actual constant moves to `htmx/`.
-
-### 6.5 What Could Still Be Improved
-
-1. **Package-only split** (within same module): Even without separate go.mod files, sub-packages like `htmx/`, `authz/`, `middleware/` would improve API organization. This is Alternative A from §5, but now recognized as a **better first step** than full module extraction.
-2. **`handlerConfig` abstraction**: If we introduced a proper `HandlerConfig` interface, `authz` could define auth options without depending on the concrete config struct. This is a pre-requisite for any future authz module extraction.
-3. **Test file organization**: The test files are heavily cross-referencing. A package split would require careful test migration.
-
-### 6.6 Final Recommendation
-
-**Start with `htmx/` module extraction only.** This is the highest-value, lowest-risk change:
-
-- Zero coupling to root — clean DAG
-- Biggest dependency win — consumers who only want HTMX helpers get zero transitive deps
-- Clean test migration — `htmx_test.go` tests only `htmx.go`, `response.go` is tested by `htmx_test.go` too
-- Backward compatible — root re-exports all HTMX symbols
-
-The `authz` and `middleware` extractions should be **deferred** until the handler config abstraction is improved. Package-only splits (sub-packages within same module) can be explored as an intermediate step.
+The right next step is fixing module hygiene, not adding complexity. The current structure is sound.

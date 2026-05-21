@@ -128,8 +128,8 @@ cqrs-htmx/
 21. **Validation order matters**: `ValidateCommand`/`ValidateQuery` must be applied AFTER the decoder option (e.g., `DecodeJSON`) in the `HandlerOption` list — they wrap the existing decoder, so a nil decoder means validation is silently skipped
 22. **Flaky test anti-pattern**: Never use `time.After` + `select` for timeout tests — use `<-ctx.Done()` blocking instead. Also ensure command/query type names in test handlers match decoder output names exactly
 23. **Benchmark/example lint exclusions**: `.golangci.yml` has `linters.exclusions.rules` for `(benchmark|example)_test\.go$` files — `intrange`, `noctx`, `nilnil` are relaxed for these files only; production code has no exclusions
-24. **GOWORK=off required**: A parent `go.work` exists at `../go.work` that doesn't include this module. All `go test`/`go build` commands need `GOWORK=off` or they fail with "directory prefix does not contain modules listed in go.work"
-25. **Rate limiter MaxKeys cap**: `MaxKeys int` on `RateLimiterConfig` caps tracked keys. When exceeded, oldest entry evicted (O(n) scan — consider min-heap for large key spaces). Zero = no cap (backward compatible)
+24. **GOWORK=off required for CI/local testing**: The project's `go.work` covers root + usermgmt + integration_test. `GOWORK=off` is needed for commands that should use each module's own go.mod (CI, scripts). `go.work` takes precedence locally and provides `replace` semantics automatically
+25. **Rate limiter MaxKeys cap**: `MaxKeys int` on `RateLimiterConfig` caps tracked keys. When exceeded, oldest entry evicted via O(log n) min-heap (`container/heap`). Zero = no cap (backward compatible)
 26. **CSRF Protection**: Uses `gorilla/csrf` internally. `CSRFProtect(cfg)` caches the middleware instance per handler (not per request). Secure defaults: `SameSite=Lax`, `HttpOnly=false` (required for JS double-submit). **Secure flag must be explicitly set**
 27. **Middleware ordering**: `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` is the recommended order — CSRF first (sets cookie + context), then HTMX parsing, then user enrichment
 28. **CSRF token format**: gorilla/csrf uses masked tokens (XOR with one-time pad). The cookie contains the session token; the header/form must contain the masked token. Always use `CSRFTokenFromContext()` or template helpers (`CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`) to obtain the token for the frontend — never read the raw cookie value
@@ -141,18 +141,21 @@ cqrs-htmx/
 34. **usermgmt coverage**: 95.6% as of 2026-05-20 (up from 85%). All authz, store, http, and UserID type paths tested
 35. **usermgmt `GroupPolicy.User`/`Domain` remain `string`**: These are Casbin boundary types. `UserID.String()` converts at the boundary. Intentional design decision — Casbin is an external system
 36. **CatalogMeta deprecation**: `command.CatalogMeta` and `query.CatalogMeta` are deprecated in go-cqrs-lite v1.4.0 in favor of the zero-cost catalog API. `App.CommandCatalogEntries()` and `App.QueryCatalogEntries()` wrap these with `//nolint:staticcheck` since the `CatalogEntries()` method on `Dispatcher` is not deprecated — only the metadata struct is
-37. **Pre-commit hook now passes**: All 7 pre-existing lint warnings (gochecknoglobals x2, noctx x2, prealloc x1, unparam x2) have been fixed. `git commit` should work without `--no-verify`
+37. **Zero lint warnings**: `golangci-lint run` reports 0 issues. All pre-existing warnings fixed including revive missing docs, errcheck, forcetypeassert, recvcheck, exhaustruct, noctx
 38. **Rate limiter uses min-heap eviction**: `evictionHeap` (container/heap) replaces O(n) linear scan with O(log n) eviction. Heap entries track `lastUsed` time; stale entries are checked at heap root before full scan
 39. **RateLimiterConfig signedness unified**: `perKeyLimiter.burst` and `perKeyLimiter.maxKeys` changed from `int` to `uint` to match config fields. Conversion to `int` only at `rate.NewLimiter` boundary
 40. **Usermgmt HTTP timeout**: `HandlerConfig.Timeout` adds optional `context.WithTimeout` to `handleAuthEndpoint` and `handleLogout`. Zero means no timeout (backward compatible)
 41. **CSRFConfig.Secure warning**: `CSRFMiddleware` emits `slog.Warn` when `Secure=false` to alert developers in development
-42. **Integration test module**: `integration_test/` is a third Go module that imports both root and usermgmt. Tests `AsEnforcer()` bridge and cross-module `UserID` conversion via `.Get()` (not `.String()` which includes brand prefix)
+42. **Integration test module**: `integration_test/` is a third Go module that imports both root and usermgmt. Tests `AsEnforcer()` bridge and cross-module `UserID` conversion via `.Get()` (not `.String()` which includes brand prefix). Uses `replace` directives for local development; also included in `go.work`
 43. **Root coverage 97.0%** (up from 96.1%), **usermgmt coverage 91.2%**
 44. **usermgmt BrandNamer**: `userBrand` implements `BrandNamer` with `Name() string { return "User" }`. `.String()` returns "User:ULID", `.Get()` returns raw ULID. Cross-module bridges MUST use `.Get()` for cqrshtmx `ParseUserID` compatibility
+45. **go.work includes integration_test**: `go.work` lists root, usermgmt, and integration_test. datastar-demo is NOT included (it doesn't import sibling modules). integration_test keeps its `replace` directives for `GOWORK=off` CI usage
+46. **datastar-demo is standalone**: `examples/datastar-demo/` has its own go.mod but does NOT import the cqrs-htmx root library. It's a go-cqrs-lite + datastar SSE example. Uses go-cqrs-lite/core v1.5.0 (root uses v1.4.0)
+47. **CI tests all 4 modules**: CI builds root, usermgmt, integration_test, and datastar-demo. Tests run for root, usermgmt, and integration_test (datastar-demo is a main package with no tests)
 
 ## Test Commands
 
-**Note:** `GOWORK=off` is required because a parent `go.work` exists that doesn't include this module.
+**Note:** `GOWORK=off` is required so each module uses its own go.mod (not the workspace-level resolution).
 
 ```bash
 # All tests (root)
@@ -182,5 +185,12 @@ cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...
 
 ```bash
 # All tests
-cd integration_test && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go mod tidy && go test ./... -count=1 -race
+cd integration_test && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+```
+
+### datastar-demo example
+
+```bash
+# Build only (no tests — it's a main package)
+cd examples/datastar-demo && GOWORK=off go build ./...
 ```
