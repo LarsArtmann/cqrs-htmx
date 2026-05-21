@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 95.7% (289+ tests)                                                                |
+| Coverage | 97.0% root, 91.2% usermgmt (330+ tests)                                              |
 
 ## Architecture
 
@@ -142,23 +142,30 @@ cqrs-htmx/
 35. **usermgmt `GroupPolicy.User`/`Domain` remain `string`**: These are Casbin boundary types. `UserID.String()` converts at the boundary. Intentional design decision — Casbin is an external system
 36. **CatalogMeta deprecation**: `command.CatalogMeta` and `query.CatalogMeta` are deprecated in go-cqrs-lite v1.4.0 in favor of the zero-cost catalog API. `App.CommandCatalogEntries()` and `App.QueryCatalogEntries()` wrap these with `//nolint:staticcheck` since the `CatalogEntries()` method on `Dispatcher` is not deprecated — only the metadata struct is
 37. **Pre-commit hook now passes**: All 7 pre-existing lint warnings (gochecknoglobals x2, noctx x2, prealloc x1, unparam x2) have been fixed. `git commit` should work without `--no-verify`
+38. **Rate limiter uses min-heap eviction**: `evictionHeap` (container/heap) replaces O(n) linear scan with O(log n) eviction. Heap entries track `lastUsed` time; stale entries are checked at heap root before full scan
+39. **RateLimiterConfig signedness unified**: `perKeyLimiter.burst` and `perKeyLimiter.maxKeys` changed from `int` to `uint` to match config fields. Conversion to `int` only at `rate.NewLimiter` boundary
+40. **Usermgmt HTTP timeout**: `HandlerConfig.Timeout` adds optional `context.WithTimeout` to `handleAuthEndpoint` and `handleLogout`. Zero means no timeout (backward compatible)
+41. **CSRFConfig.Secure warning**: `CSRFMiddleware` emits `slog.Warn` when `Secure=false` to alert developers in development
+42. **Integration test module**: `integration_test/` is a third Go module that imports both root and usermgmt. Tests `AsEnforcer()` bridge and cross-module `UserID` conversion via `.Get()` (not `.String()` which includes brand prefix)
+43. **Root coverage 97.0%** (up from 96.1%), **usermgmt coverage 91.2%**
+44. **usermgmt BrandNamer**: `userBrand` implements `BrandNamer` with `Name() string { return "User" }`. `.String()` returns "User:ULID", `.Get()` returns raw ULID. Cross-module bridges MUST use `.Get()` for cqrshtmx `ParseUserID` compatibility
 
 ## Test Commands
 
 **Note:** `GOWORK=off` is required because a parent `go.work` exists that doesn't include this module.
 
 ```bash
-# All tests
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1
+# All tests (root)
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1
 
 # With verbose output
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -v
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -v
 
 # Race detector
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -race
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Coverage
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' GOFLAGS=-insecure go test ./... -count=1 -coverprofile=coverage.out
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -coverprofile=coverage.out
 ```
 
 ### usermgmt submodule
@@ -169,4 +176,11 @@ cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... 
 
 # Build
 cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...
+```
+
+### integration_test module
+
+```bash
+# All tests
+cd integration_test && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go mod tidy && go test ./... -count=1 -race
 ```
