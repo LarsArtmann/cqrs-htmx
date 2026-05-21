@@ -118,11 +118,7 @@ func BenchmarkRequestLogging(b *testing.B) {
 	handler := middleware(okHandler())
 
 	b.Run("DefaultFormatter", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			r := httptest.NewRequest(http.MethodGet, "/users", nil)
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-		}
+		benchGET(b, handler, "/users")
 	})
 
 	b.Run("JSONFormatter", func(b *testing.B) {
@@ -155,11 +151,7 @@ func BenchmarkCSRFMiddleware(b *testing.B) {
 	handler := middleware(okHandler())
 
 	b.Run("GET", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-		}
+		benchGET(b, handler, "/")
 	})
 
 	b.Run("POST-ValidToken", func(b *testing.B) {
@@ -245,5 +237,14 @@ func BenchmarkSecurityHeadersMiddleware(b *testing.B) {
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
 		middleware.ServeHTTP(w, r)
+	}
+}
+
+func benchGET(b *testing.B, h http.Handler, path string) {
+	b.Helper()
+	for i := 0; i < b.N; i++ {
+		r := httptest.NewRequest(http.MethodGet, path, nil)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
 	}
 }
