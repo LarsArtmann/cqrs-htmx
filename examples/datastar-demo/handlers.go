@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 	"github.com/starfederation/datastar-go/datastar"
@@ -50,22 +51,9 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 			return
 		}
 
-		todoID := cmd.AggregateID().String()
-		todo := findTodo(cqrs, todoID)
-
 		sse := datastar.NewSSE(w, r)
-		sse.PatchElements(
-			renderTodo(todo),
-			datastar.WithSelectorID("todo-list"),
-			datastar.WithModeAppend(),
-		)
-		sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
 		sse.MarshalAndPatchSignals(map[string]any{
 			"title": "",
-			"notification": map[string]string{
-				"level":   "success",
-				"message": fmt.Sprintf("Created: %s", todo.Title),
-			},
 		})
 	}
 }
@@ -96,11 +84,7 @@ func handleToggleTodo(cqrs *CQRS) http.HandlerFunc {
 			return
 		}
 
-		todo := findTodo(cqrs, s.ID)
-
-		sse := datastar.NewSSE(w, r)
-		sse.PatchElements(renderTodo(todo))
-		sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -130,15 +114,7 @@ func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 			return
 		}
 
-		sse := datastar.NewSSE(w, r)
-		sse.RemoveElement("#todo-" + s.ID)
-		sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
-		sse.MarshalAndPatchSignals(map[string]any{
-			"notification": map[string]string{
-				"level":   "info",
-				"message": "Todo deleted",
-			},
-		})
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -166,36 +142,55 @@ func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 	}
 }
 
-// handleEventStream is the real-time SSE endpoint that ALL connected clients share.
-// It listens to the broadcast channel (fed by domain events from any source) and
-// pushes DOM patches + event log entries to every connected browser.
+// handleEventStream is the real-time SSE endpoint shared by ALL connected clients.
+// Each client gets its own channel via Broadcaster.Subscribe().
+// Domain events from any source (user actions, bots) are fanned out to every client.
 func handleEventStream(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ch := cqrs.Broadcast.Subscribe()
+		defer cqrs.Broadcast.Unsubscribe(ch)
+
 		sse := datastar.NewSSE(w, r)
 
 		for {
 			select {
 			case <-r.Context().Done():
 				return
-			case evt := <-cqrs.Broadcast:
+			case evt := <-ch:
 				if sse.IsClosed() {
 					return
 				}
+
 				switch evt.Kind {
 				case "todo_created":
-					sse.PatchElements(
-						evt.Data,
-						datastar.WithSelectorID("todo-list"),
-						datastar.WithModeAppend(),
-					)
-					sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
-				case "todo_updated":
-					sse.PatchElements(evt.Data)
-					sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
+					if evt.User == "you" {
+						sse.MarshalAndPatchSignals(map[string]any{
+							"title": "",
+							"notification": map[string]string{
+								"level":   "success",
+								"message": fmt.Sprintf("Created: %s", extractTitle(evt.Data)),
+							},
+						})
+					}
 				case "todo_deleted":
-					sse.RemoveElement(evt.Data)
-					sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
+					if evt.User == "you" {
+						sse.MarshalAndPatchSignals(map[string]any{
+							"notification": map[string]string{
+								"level":   "info",
+								"message": "Todo deleted",
+							},
+						})
+					}
 				}
+
+				todos := cqrs.Read.List()
+				sse.PatchElements(
+					renderTodoList(todos),
+					datastar.WithSelectorID("todo-list"),
+					datastar.WithModeInner(),
+				)
+				sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
+
 				sse.PatchElements(
 					renderEventLog(evt),
 					datastar.WithSelectorID("event-log"),
@@ -207,38 +202,23 @@ func handleEventStream(cqrs *CQRS) http.HandlerFunc {
 }
 
 // handleSimulate starts background goroutines that act as simulated users.
-// Each bot creates, toggles, and deletes todos through the same CQRS pipeline.
+// Returns immediately — the bots keep running and all updates flow through the broadcast.
 func handleSimulate(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithCancel(context.Background())
-
+		ctx := context.Background()
 		for _, name := range botNames {
 			go SimulateUser(ctx, cqrs, name)
 		}
 
 		sse := datastar.NewSSE(w, r)
 		sse.MarshalAndPatchSignals(map[string]any{
+			"simulating": true,
 			"notification": map[string]string{
 				"level":   "warning",
 				"message": fmt.Sprintf("Simulating %d users: %v", len(botNames), botNames),
 			},
-			"simulating": true,
 		})
-
-		<-r.Context().Done()
-		cancel()
 	}
-}
-
-func findTodo(cqrs *CQRS, id string) Todo {
-	result, _ := cqrs.Queries.Dispatch(context.Background(), query.MustNew("ListTodos"))
-	todos, _ := result.([]Todo)
-	for _, t := range todos {
-		if t.ID == id {
-			return t
-		}
-	}
-	return Todo{ID: id}
 }
 
 // --- HTML Renderers ---
@@ -277,11 +257,26 @@ func renderStats(cqrs *CQRS) string {
 </div>`, total, active, completed)
 }
 
-// renderEventLog renders a broadcast event as an event-log entry with user attribution.
 func renderEventLog(evt BroadcastEvent) string {
 	return fmt.Sprintf(`<div class="event-entry">
 	<span class="event-type">%s</span>
 	<span class="event-user">%s</span>
 	<span class="event-time">%s</span>
 </div>`, evt.Kind, evt.User, evt.Time.Format("15:04:05"))
+}
+
+// extractTitle pulls the text content from <span class="todo-title">...</span>
+func extractTitle(html string) string {
+	const marker = `<span class="todo-title">`
+	const end = `</span>`
+	i := strings.Index(html, marker)
+	if i < 0 {
+		return ""
+	}
+	rest := html[i+len(marker):]
+	j := strings.Index(rest, end)
+	if j < 0 {
+		return rest
+	}
+	return rest[:j]
 }
