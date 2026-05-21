@@ -2,7 +2,6 @@ package cqrshtmx_test
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -148,10 +147,7 @@ var _ = Describe("Full Integration", func() {
 				cqrshtmx.DecodeJSONQuery(func(_ bddListUsersQuery) (query.Query, error) {
 					return &bddListUsersQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
-					w.Header().Set("Content-Type", "application/json")
-					return json.NewEncoder(w).Encode(result)
-				}),
+				cqrshtmx.Render(encodeJSONResult),
 			)
 			w := serve(handler, newPostRequest("/users", `{}`))
 			Expect(w.code()).To(Equal(http.StatusOK))
@@ -215,13 +211,7 @@ var _ = Describe("Full Integration", func() {
 	Describe("End-to-end CQRS + HTMX + CSRF protection", func() {
 		var app *cqrshtmx.App
 
-		BeforeEach(func() {
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", noOpCommandHandler)
-			var err error
-			app, err = cqrshtmx.New(cqrshtmx.Config{Commands: disp})
-			Expect(err).NotTo(HaveOccurred())
-		})
+		BeforeEach(func() { app = newCommandApp() })
 
 		It("allows command dispatch with valid CSRF token via HTMX header", func() {
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
@@ -309,10 +299,7 @@ var _ = Describe("Full Integration", func() {
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 					return &bddListUsersQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
-					w.Header().Set("Content-Type", "application/json")
-					return json.NewEncoder(w).Encode(result)
-				}),
+				cqrshtmx.Render(encodeJSONResult),
 			))
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, r2)
@@ -366,13 +353,7 @@ var _ = Describe("Full Integration", func() {
 	Describe("End-to-end CQRS + CSRFProtect per-handler option", func() {
 		var app *cqrshtmx.App
 
-		BeforeEach(func() {
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", noOpCommandHandler)
-			var err error
-			app, err = cqrshtmx.New(cqrshtmx.Config{Commands: disp})
-			Expect(err).NotTo(HaveOccurred())
-		})
+		BeforeEach(func() { app = newCommandApp() })
 
 		It("allows command dispatch with CSRFProtect and valid token", func() {
 			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())

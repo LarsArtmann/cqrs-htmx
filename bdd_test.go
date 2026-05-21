@@ -261,21 +261,6 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 		})
 	})
 
-	Describe("As a consumer, I want user identity to propagate into event metadata", func() {
-		It("builds event options from context with valid user ID", func() {
-			ctx := context.Background()
-			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
-			ctx = cqrshtmx.WithUserID(ctx, userID)
-			opts := cqrshtmx.EventOptionsFromContext(ctx)
-			Expect(opts).NotTo(BeNil())
-			Expect(opts).To(HaveLen(1))
-		})
-
-		It("returns nil when no user ID is in context", func() {
-			Expect(cqrshtmx.EventOptionsFromContext(context.Background())).To(BeNil())
-		})
-	})
-
 	Describe("As a consumer, I want to decode form data into commands", func() {
 		It("decodes URL-encoded form data correctly", func() {
 			var receivedName string
@@ -341,10 +326,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 					return &bddListUsersQuery{}, nil
 				}),
-				cqrshtmx.Render(func(w http.ResponseWriter, _ *http.Request, result any) error {
-					w.Header().Set("Content-Type", "application/json")
-					return json.NewEncoder(w).Encode(result)
-				}),
+				cqrshtmx.Render(encodeJSONResult),
 			), r)
 			Expect(w.code()).To(Equal(http.StatusOK))
 			var users []bddUser

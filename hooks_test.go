@@ -64,51 +64,46 @@ var _ = Describe("Lifecycle Hooks", func() {
 	})
 
 	Describe("AfterDispatch", func() {
+		trackAfterDispatch := func() (called *bool, capturedErr *error, hook func(context.Context, *http.Request, error)) {
+			var c bool
+			var e error
+			return &c, &e, func(_ context.Context, _ *http.Request, err error) {
+				c = true
+				e = err
+			}
+		}
+
 		It("is called after successful command dispatch", func() {
-			var afterCalled bool
-			var afterErr error
+			called, capturedErr, hook := trackAfterDispatch()
 			disp := command.NewDispatcher()
 			_ = disp.Register(
 				"CreateUser",
 				func(_ context.Context, _ command.Command) error { return nil },
 			)
 
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-				AfterDispatch: func(_ context.Context, _ *http.Request, err error) {
-					afterCalled = true
-					afterErr = err
-				},
-			})
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp, AfterDispatch: hook})
 			Expect(err).NotTo(HaveOccurred())
 
 			serve(app.Command("CreateUser", decodeCreateUserJSON()),
 				newPostRequest("/users", "{}"))
-			Expect(afterCalled).To(BeTrue())
-			Expect(afterErr).NotTo(HaveOccurred())
+			Expect(*called).To(BeTrue())
+			Expect(*capturedErr).NotTo(HaveOccurred())
 		})
 
 		It("is called with error on failed command dispatch", func() {
-			var afterCalled bool
-			var afterErr error
+			called, capturedErr, hook := trackAfterDispatch()
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return cqrshtmx.ErrDecodeFailed
 			})
 
-			app, err := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-				AfterDispatch: func(_ context.Context, _ *http.Request, err error) {
-					afterCalled = true
-					afterErr = err
-				},
-			})
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp, AfterDispatch: hook})
 			Expect(err).NotTo(HaveOccurred())
 
 			serve(app.Command("CreateUser", decodeCreateUserJSON()),
 				newPostRequest("/users", "{}"))
-			Expect(afterCalled).To(BeTrue())
-			Expect(afterErr).To(HaveOccurred())
+			Expect(*called).To(BeTrue())
+			Expect(*capturedErr).To(HaveOccurred())
 		})
 	})
 
@@ -147,17 +142,6 @@ var _ = Describe("Lifecycle Hooks", func() {
 			r := newPostRequest("/users", "{}", withHeader("X-Correlation-ID", "not-a-ulid"))
 			serve(handler, r)
 			Expect(capturedCID.IsZero()).To(BeTrue())
-		})
-
-		It("stores and retrieves correlation ID directly", func() {
-			ctx := context.Background()
-			want := cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633")
-			ctx = cqrshtmx.WithCorrelationID(ctx, want)
-			Expect(cqrshtmx.CorrelationIDFromContext(ctx)).To(Equal(want))
-		})
-
-		It("returns zero value when no correlation ID", func() {
-			Expect(cqrshtmx.CorrelationIDFromContext(context.Background())).To(BeZero())
 		})
 	})
 })

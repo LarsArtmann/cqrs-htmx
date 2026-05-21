@@ -11,6 +11,8 @@ import (
 )
 
 var _ = Describe("HTTP Utilities", func() {
+	const testRemoteAddr = "10.0.0.1:1234"
+
 	Describe("WriteJSON", func() {
 		It("writes JSON with the given status code", func() {
 			w := httptest.NewRecorder()
@@ -36,28 +38,23 @@ var _ = Describe("HTTP Utilities", func() {
 	})
 
 	Describe("ClientIP", func() {
-		It("extracts first IP from X-Forwarded-For", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("X-Forwarded-For", "1.2.3.4, 5.6.7.8")
-			r.RemoteAddr = "10.0.0.1:1234"
-
-			Expect(cqrshtmx.ClientIP(r)).To(Equal("1.2.3.4"))
-		})
-
-		It("uses X-Real-IP when X-Forwarded-For is empty", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("X-Real-IP", "9.8.7.6")
-			r.RemoteAddr = "10.0.0.1:1234"
-
-			Expect(cqrshtmx.ClientIP(r)).To(Equal("9.8.7.6"))
-		})
-
-		It("falls back to RemoteAddr with SplitHostPort", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.RemoteAddr = "10.0.0.1:1234"
-
-			Expect(cqrshtmx.ClientIP(r)).To(Equal("10.0.0.1"))
-		})
+		DescribeTable(
+			"extracts IP from headers",
+			func(headerName, headerValue, expectedIP string) {
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				if headerName != "" {
+					r.Header.Set(headerName, headerValue)
+				}
+				r.RemoteAddr = testRemoteAddr
+				Expect(cqrshtmx.ClientIP(r)).To(Equal(expectedIP))
+			},
+			Entry("extracts first IP from X-Forwarded-For",
+				"X-Forwarded-For", "1.2.3.4, 5.6.7.8", "1.2.3.4"),
+			Entry("uses X-Real-IP when X-Forwarded-For is empty",
+				"X-Real-IP", "9.8.7.6", "9.8.7.6"),
+			Entry("falls back to RemoteAddr with SplitHostPort",
+				"", "", "10.0.0.1"),
+		)
 
 		It("returns RemoteAddr as-is when SplitHostPort fails", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)

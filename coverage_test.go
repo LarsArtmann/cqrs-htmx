@@ -359,11 +359,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 	Describe("DefaultErrorHandlerWithRedirect empty loginRedirect", func() {
 		It("uses default /login when empty string is passed", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, cqrshtmx.ErrUnauthorized, "")
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+			assertHTMXErrorRedirect(cqrshtmx.ErrUnauthorized, "", "/login")
 		})
 	})
 

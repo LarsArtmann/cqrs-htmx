@@ -44,7 +44,7 @@ var _ = Describe("Middleware", func() {
 			})
 		})
 
-		It("does not set user ID when extractor returns empty", func() {
+		It("does not set user ID when extractor returns empty or zero value", func() {
 			assertMiddleware(
 				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil },
 				func(got cqrshtmx.UserID) { Expect(got).To(BeZero()) },
@@ -53,13 +53,6 @@ var _ = Describe("Middleware", func() {
 
 		It("handles nil extractor gracefully", func() {
 			assertMiddleware(nil, func(got cqrshtmx.UserID) { Expect(got).To(BeZero()) })
-		})
-
-		It("drops unparseable user IDs silently", func() {
-			assertMiddleware(
-				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil },
-				func(got cqrshtmx.UserID) { Expect(got).To(BeZero()) },
-			)
 		})
 
 		DescribeTable(
@@ -101,27 +94,21 @@ var _ = Describe("Middleware", func() {
 		It("applies middleware left-to-right", func() {
 			var order []string
 
-			mw1 := func(next http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					order = append(order, "mw1-before")
-					next.ServeHTTP(w, r)
-					order = append(order, "mw1-after")
-				})
-			}
-
-			mw2 := func(next http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					order = append(order, "mw2-before")
-					next.ServeHTTP(w, r)
-					order = append(order, "mw2-after")
-				})
+			tracingMW := func(name string) func(http.Handler) http.Handler {
+				return func(next http.Handler) http.Handler {
+					return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						order = append(order, name+"-before")
+						next.ServeHTTP(w, r)
+						order = append(order, name+"-after")
+					})
+				}
 			}
 
 			final := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 				order = append(order, "handler")
 			})
 
-			chained := cqrshtmx.Chain(mw1, mw2)(final)
+			chained := cqrshtmx.Chain(tracingMW("mw1"), tracingMW("mw2"))(final)
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			chained.ServeHTTP(w, r)

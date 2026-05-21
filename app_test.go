@@ -218,9 +218,7 @@ var _ = Describe("App", func() {
 			w := serve(app.Query(
 				"GetUser",
 				cqrshtmx.Authorize("users", "read"),
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(encodeJSONResult),
 			), r)
 			Expect(w.code()).To(Equal(http.StatusOK))
@@ -232,9 +230,7 @@ var _ = Describe("App", func() {
 			w := serve(app.Query(
 				"GetUser",
 				cqrshtmx.Authorize("users", "admin"),
-				cqrshtmx.DecodeJSONQuery(func(_ testGetUserQuery) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(encodeJSONResult),
 			), r)
 			Expect(w.code()).To(Equal(http.StatusForbidden))

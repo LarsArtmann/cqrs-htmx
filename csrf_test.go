@@ -56,6 +56,27 @@ func csrfConfigWithSecret(secret []byte) cqrshtmx.CSRFConfig {
 	}
 }
 
+// csrfTokenOnceHandler wraps a middleware with a handler that captures the CSRF token once.
+func csrfTokenOnceHandler(middleware func(http.Handler) http.Handler, token *string) http.Handler {
+	return middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if *token == "" {
+			*token = cqrshtmx.CSRFTokenFromContext(r.Context())
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+}
+
+// csrfTokenCaptureHandler wraps a middleware with a handler that always captures the CSRF token.
+func csrfTokenCaptureHandler(
+	middleware func(http.Handler) http.Handler,
+	token *string,
+) http.Handler {
+	return middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		*token = cqrshtmx.CSRFTokenFromContext(r.Context())
+		w.WriteHeader(http.StatusOK)
+	}))
+}
+
 // csrfGETThenPOST performs the common CSRF test pattern:
 // GET to obtain a masked token, then POST with the token in the specified header/field.
 func csrfGETThenPOST(
@@ -63,12 +84,7 @@ func csrfGETThenPOST(
 	headerName, fieldName string,
 ) int {
 	var token string
-	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if token == "" {
-			token = cqrshtmx.CSRFTokenFromContext(r.Context())
-		}
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := csrfTokenOnceHandler(middleware, &token)
 
 	w1 := httptest.NewRecorder()
 	r1 := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
@@ -124,10 +140,7 @@ var _ = Describe("CSRF Protection", func() {
 			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
 			var capturedToken string
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				capturedToken = cqrshtmx.CSRFTokenFromContext(r.Context())
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := csrfTokenCaptureHandler(middleware, &capturedToken)
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -203,10 +216,7 @@ var _ = Describe("CSRF Protection", func() {
 
 			// Context should have a valid masked token
 			var capturedToken string
-			handler2 := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				capturedToken = cqrshtmx.CSRFTokenFromContext(r.Context())
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler2 := csrfTokenCaptureHandler(middleware, &capturedToken)
 
 			w3 := httptest.NewRecorder()
 			r3 := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -219,12 +229,7 @@ var _ = Describe("CSRF Protection", func() {
 		It("validates PUT, PATCH, and DELETE methods", func() {
 			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
 			var token string
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if token == "" {
-					token = cqrshtmx.CSRFTokenFromContext(r.Context())
-				}
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := csrfTokenOnceHandler(middleware, &token)
 
 			// First GET to obtain masked token
 			w1 := httptest.NewRecorder()

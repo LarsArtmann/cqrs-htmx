@@ -146,6 +146,7 @@ func decodeBDDCreateUserFormMapper() func(bddCreateUserReq) (command.Command, er
 func noOpCommandHandler(_ context.Context, _ command.Command) error { return nil }
 
 func encodeJSONResult(w http.ResponseWriter, _ *http.Request, result any) error {
+	w.Header().Set("Content-Type", "application/json")
 	return json.NewEncoder(w).Encode(result)
 }
 
@@ -272,4 +273,12 @@ func (r *testResponse) code() int { return r.Code }
 func assertStatusCode(handler http.Handler, r *http.Request, expected int) {
 	w := serve(handler, r)
 	ExpectWithOffset(1, w.code()).To(Equal(expected))
+}
+
+func assertHTMXErrorRedirect(err error, loginRedirect, expectedRedirect string) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+	cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
+	ExpectWithOffset(1, w.Header().Get("HX-Redirect")).To(Equal(expectedRedirect))
 }
