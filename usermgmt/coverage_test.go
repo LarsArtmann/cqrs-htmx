@@ -208,3 +208,259 @@ func TestUserFromContext_NilContext(t *testing.T) {
 		t.Error("expected nil/false from nil context")
 	}
 }
+
+func TestPolicyWrapErr(t *testing.T) {
+	p := Policy{RoleAdmin, "domain1", "resource", ActionExecute, EffectAllow}
+	got := policyWrapErr("test msg", p)
+	if got != "test msg {admin, domain1, resource, execute, allow}" {
+		t.Errorf("unexpected policyWrapErr output: %s", got)
+	}
+}
+
+func TestHandlers_Login_Success(t *testing.T) {
+	svc, mux := setupMux(t)
+
+	registerTestUser(t, svc, "u1", "login@test.com", "secret12")
+
+	w := postJSON(t, mux, "/auth/login", `{"email":"login@test.com","password":"secret12"}`)
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 for login, got %d: %s", w.Code, w.Body.String())
+	}
+	if w.Header().Get("Set-Cookie") == "" {
+		t.Error("expected Set-Cookie header after login")
+	}
+}
+
+func TestHandlers_Register_Success(t *testing.T) {
+	_, mux := setupMux(t)
+
+	w := postJSON(t, mux, "/auth/register",
+		`{"id":"u2","email":"reg@test.com","password":"secret12","display_name":"Reg"}`)
+	if w.Code != http.StatusCreated {
+		t.Errorf("expected 201 for register, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandlers_Logout_Success(t *testing.T) {
+	svc, mux := setupMux(t)
+
+	reg := registerTestUser(t, svc, "u1", "logout@test.com", "secret12")
+
+	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
+	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 for logout, got %d", w.Code)
+	}
+}
+
+func TestHandlers_Me_WithUser(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{Secure: false})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	reg := registerTestUser(t, svc, "u1", "me@test.com", "secret12")
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req = req.WithContext(WithUser(req.Context(), reg.User))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 for /me with user, got %d", w.Code)
+	}
+}
+
+func TestHandlers_Me_NilUserInContext(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{Secure: false})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req = req.WithContext(WithUser(req.Context(), nil))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401 for nil user in context, got %d", w.Code)
+	}
+}
+
+func TestAuthz_EnforceEx_Error(t *testing.T) {
+	a, _ := NewAuthz(EnforcerConfig{
+		ModelString: defaultModel,
+		Policies:    []Policy{},
+	})
+
+	result, err := a.EnforceEx("nobody", "dom", "secret", ActionRead)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Allowed {
+		t.Error("expected denied for nobody")
+	}
+	if result.Subject != "nobody" || result.Domain != "dom" {
+		t.Errorf("unexpected result fields: %+v", result)
+	}
+}
+
+func TestAuthz_Apply_RemovePolicies(t *testing.T) {
+	a := newTestAuthz(
+		t,
+		Policy{"*", "*", "res.action", ActionExecute, EffectAllow},
+	)
+
+	if err := a.Apply(PolicyUpdate{
+		RemovePolicies: []Policy{{"*", "*", "res.action", ActionExecute, EffectAllow}},
+	}); err != nil {
+		t.Fatalf("Apply remove policies: %v", err)
+	}
+
+	ok, _ := a.Enforce("anyone", "dom", "res.action", ActionExecute)
+	if ok {
+		t.Error("expected denied after removing policy")
+	}
+}
+
+func TestService_Login_AccountLocked(t *testing.T) {
+	svc, _ := NewService(ServiceConfig{
+		BcryptCost: minBcryptCost,
+		Lockout:    NewAccountLockout(LockoutConfig{MaxAttempts: 2, Duration: time.Hour}),
+	})
+	ctx := context.Background()
+
+	registerTestUser(t, svc, "u1", "locked@test.com", "secret12")
+
+	svc.Login(ctx, LoginRequest{Email: "locked@test.com", Password: "wrong1"})
+	svc.Login(ctx, LoginRequest{Email: "locked@test.com", Password: "wrong2"})
+
+	_, err := svc.Login(ctx, LoginRequest{Email: "locked@test.com", Password: "secret12"})
+	assertErrorIs(t, err, ErrAccountLocked, "ErrAccountLocked")
+}
+
+func TestService_Login_UserNotFound(t *testing.T) {
+	svc := newTestService(t)
+	_, err := svc.Login(
+		context.Background(),
+		LoginRequest{Email: "nobody@test.com", Password: "secret12"},
+	)
+	assertErrorIs(t, err, ErrInvalidCredentials, "ErrInvalidCredentials")
+}
+
+func TestService_Register_DuplicateUserID(t *testing.T) {
+	svc := newTestService(t)
+	ctx := context.Background()
+
+	registerTestUser(t, svc, "u1", "first@test.com", "secret12")
+
+	_, err := svc.Register(ctx, RegisterRequest{
+		ID: NewUserID("u1"), Email: "second@test.com", Password: "secret12",
+	})
+	if err == nil {
+		t.Error("expected error for duplicate user ID")
+	}
+}
+
+func TestSessionMiddleware_WithCookie(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	reg := registerTestUser(t, svc, "u1", "mid@test.com", "secret12")
+
+	var called bool
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /protected", func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		user, ok := UserFromContext(r.Context())
+		if !ok || user == nil {
+			t.Error("expected user in context")
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+
+	handler := NewSessionMiddleware(svc, "session_token")(mux)
+	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if !called {
+		t.Error("expected handler to be called")
+	}
+}
+
+func TestSessionMiddleware_WithBearerToken(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	reg := registerTestUser(t, svc, "u1", "bearer@test.com", "secret12")
+
+	var called bool
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /protected", func(_ http.ResponseWriter, r *http.Request) {
+		called = true
+		user, ok := UserFromContext(r.Context())
+		if !ok || user == nil {
+			t.Error("expected user in context")
+		}
+	})
+
+	handler := NewSessionMiddleware(svc, "session_token")(mux)
+	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	req.Header.Set("Authorization", "Bearer "+reg.Session.Token)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if !called {
+		t.Error("expected handler to be called")
+	}
+}
+
+func TestSessionMiddleware_InvalidToken(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+
+	var called bool
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /protected", func(_ http.ResponseWriter, r *http.Request) {
+		called = true
+		_, ok := UserFromContext(r.Context())
+		if ok {
+			t.Error("expected no user in context with invalid token")
+		}
+	})
+
+	handler := NewSessionMiddleware(svc, "session_token")(mux)
+	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	req.AddCookie(&http.Cookie{Name: "session_token", Value: "invalid-token"})
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if !called {
+		t.Error("expected handler to be called even with invalid token")
+	}
+}
+
+func TestUserFromContextOr(t *testing.T) {
+	fallback := &User{ID: NewUserID("fallback")}
+	result := UserFromContextOr(context.Background(), fallback)
+	if result.ID != NewUserID("fallback") {
+		t.Error("expected fallback user")
+	}
+
+	ctx := WithUser(context.Background(), &User{ID: NewUserID("real")})
+	result = UserFromContextOr(ctx, fallback)
+	if result.ID != NewUserID("real") {
+		t.Error("expected real user from context")
+	}
+}
+
+func TestNewAuthHandler_Defaults(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc)
+	if h.cookieName != "session_token" {
+		t.Errorf("expected default cookie name, got %q", h.cookieName)
+	}
+	if !h.secure {
+		t.Error("expected secure=true by default")
+	}
+}

@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"container/heap"
 	"net/http"
 	"strconv"
 	"sync"
@@ -98,10 +99,9 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 	}
 
 	lim := newPerKeyLimiter(
-		limit, int(cfg.Burst),
-		cfg.KeyExtractor, retryAfter, ttl, int(cfg.MaxKeys),
+		limit, cfg.Burst,
+		cfg.KeyExtractor, retryAfter, ttl, cfg.MaxKeys,
 	)
-
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			allowed, retryAfter := lim.allow(r)
@@ -141,21 +141,22 @@ type limiterEntry struct {
 type perKeyLimiter struct {
 	mu           sync.RWMutex
 	limit        rate.Limit
-	burst        int
+	burst        uint
 	retryAfter   string
 	keyExtractor KeyExtractor
 	limiters     map[string]*limiterEntry
+	heap         *evictionHeap
 	ttl          time.Duration
-	maxKeys      int
+	maxKeys      uint
 }
 
 func newPerKeyLimiter(
 	l rate.Limit,
-	burst int,
+	burst uint,
 	extractor KeyExtractor,
 	retryAfter string,
 	ttl time.Duration,
-	maxKeys int,
+	maxKeys uint,
 ) *perKeyLimiter {
 	return &perKeyLimiter{
 		mu:           sync.RWMutex{},
@@ -164,6 +165,7 @@ func newPerKeyLimiter(
 		retryAfter:   retryAfter,
 		keyExtractor: extractor,
 		limiters:     make(map[string]*limiterEntry),
+		heap:         &evictionHeap{},
 		ttl:          ttl,
 		maxKeys:      maxKeys,
 	}
@@ -208,34 +210,59 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 
 	p.evictOldestIfAtCapacity()
 
-	lim := rate.NewLimiter(p.limit, p.burst)
-	p.limiters[key] = &limiterEntry{lim: lim, lastUsed: time.Now()}
+	lim := rate.NewLimiter(p.limit, int(p.burst))
+	newEntry := &limiterEntry{lim: lim, lastUsed: time.Now()}
+	p.limiters[key] = newEntry
+	heap.Push(p.heap, &evictionEntry{key: key, lastUsed: newEntry.lastUsed})
 
 	return lim
 }
 
 func (p *perKeyLimiter) evictStale() {
 	now := time.Now()
-	for k, v := range p.limiters {
-		if now.Sub(v.lastUsed) > p.ttl {
-			delete(p.limiters, k)
+	for p.heap.Len() > 0 {
+		oldest := (*p.heap)[0]
+		if now.Sub(oldest.lastUsed) <= p.ttl {
+			break
+		}
+		heap.Pop(p.heap)
+		if entry, ok := p.limiters[oldest.key]; ok && entry.lastUsed.Equal(oldest.lastUsed) {
+			delete(p.limiters, oldest.key)
 		}
 	}
 }
 
 func (p *perKeyLimiter) evictOldestIfAtCapacity() {
-	if p.maxKeys <= 0 || len(p.limiters) < p.maxKeys {
+	if p.maxKeys == 0 || uint(len(p.limiters)) < p.maxKeys {
 		return
 	}
-	var oldestKey string
-	var oldestTime time.Time
-	first := true
-	for k, v := range p.limiters {
-		if first || v.lastUsed.Before(oldestTime) {
-			oldestKey = k
-			oldestTime = v.lastUsed
-			first = false
+	for p.heap.Len() > 0 {
+		oldest := heap.Pop(p.heap).(*evictionEntry)
+		if entry, ok := p.limiters[oldest.key]; ok && entry.lastUsed.Equal(oldest.lastUsed) {
+			delete(p.limiters, oldest.key)
+			return
 		}
 	}
-	delete(p.limiters, oldestKey)
+}
+
+// --- Min-heap for O(log n) eviction ---
+
+type evictionEntry struct {
+	key      string
+	lastUsed time.Time
+}
+
+type evictionHeap []*evictionEntry
+
+func (h evictionHeap) Len() int           { return len(h) }
+func (h evictionHeap) Less(i, j int) bool { return h[i].lastUsed.Before(h[j].lastUsed) }
+func (h evictionHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *evictionHeap) Push(x any)        { *h = append(*h, x.(*evictionEntry)) }
+func (h *evictionHeap) Pop() any {
+	old := *h
+	n := len(old)
+	item := old[n-1]
+	old[n-1] = nil
+	*h = old[:n-1]
+	return item
 }

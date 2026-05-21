@@ -30,7 +30,7 @@ func TestIntegration_UserIDExtraction_Bridge(t *testing.T) {
 		t.Fatalf("Authenticate: %v", err)
 	}
 
-	userIDStr := user.ID.String()
+	userIDStr := user.ID.Get()
 	parsedID, parseErr := cqrshtmx.ParseUserID(userIDStr)
 	if parseErr != nil {
 		t.Fatalf("ParseUserID(%q): %v", userIDStr, parseErr)
@@ -65,7 +65,7 @@ func TestIntegration_UserIDFromRequest_Bridge(t *testing.T) {
 		t.Fatalf("Authenticate: %v", err)
 	}
 
-	if user.ID.String() != uid.String() {
-		t.Errorf("expected %q, got %q", uid.String(), user.ID.String())
+	if user.ID.Get() != uid.String() {
+		t.Errorf("expected %q, got %q", uid.String(), user.ID.Get())
 	}
 }

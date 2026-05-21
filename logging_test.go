@@ -231,10 +231,31 @@ var _ = Describe("Request Logging", func() {
 
 	Describe("statusRecorder", func() {
 		It("delegates Push to underlying http.Pusher", func() {
+			var pushedTarget string
+			pusher := &mockPusher{pushFunc: func(target string, _ *http.PushOptions) error {
+				pushedTarget = target
+				return nil
+			}}
 			handler := cqrshtmx.RequestLogging(nil, func(_ string) {})
 			pushHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				if pusher, ok := w.(http.Pusher); ok {
-					_ = pusher.Push("/style.css", nil)
+				if p, ok := w.(http.Pusher); ok {
+					_ = p.Push("/style.css", nil)
+				}
+			})
+
+			w := newPusherRecorder(pusher)
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler(pushHandler).ServeHTTP(w, r)
+
+			Expect(pushedTarget).To(Equal("/style.css"))
+		})
+
+		It("returns ErrNotSupported when underlying ResponseWriter has no Pusher", func() {
+			handler := cqrshtmx.RequestLogging(nil, func(_ string) {})
+			pushHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				if p, ok := w.(http.Pusher); ok {
+					err := p.Push("/style.css", nil)
+					Expect(err).To(Equal(http.ErrNotSupported))
 				}
 			})
 
@@ -261,6 +282,19 @@ var _ = Describe("Request Logging", func() {
 			middleware(flushHandler).ServeHTTP(w, r)
 
 			Expect(logged).To(ContainSubstring("OK"))
+		})
+
+		It("delegates Hijack to underlying http.Hijacker", func() {
+			handler := cqrshtmx.RequestLogging(nil, func(_ string) {})
+			hijackHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				if h, ok := w.(http.Hijacker); ok {
+					_, _, _ = h.Hijack()
+				}
+			})
+
+			w := newHijackRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler(hijackHandler).ServeHTTP(w, r)
 		})
 	})
 })

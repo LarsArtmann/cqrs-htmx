@@ -282,3 +282,38 @@ func assertHTMXErrorRedirect(err error, loginRedirect, expectedRedirect string) 
 	cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
 	ExpectWithOffset(1, w.Header().Get("HX-Redirect")).To(Equal(expectedRedirect))
 }
+
+// --- HTTP interface mock helpers ---
+
+type mockPusher struct {
+	http.ResponseWriter
+	pushFunc func(target string, opts *http.PushOptions) error
+}
+
+func (m *mockPusher) Push(target string, opts *http.PushOptions) error {
+	return m.pushFunc(target, opts)
+}
+
+func newPusherRecorder(p *mockPusher) *pusherRecorder {
+	return &pusherRecorder{
+		ResponseRecorder: httptest.NewRecorder(),
+		pusher:           p,
+	}
+}
+
+type pusherRecorder struct {
+	*httptest.ResponseRecorder
+	pusher *mockPusher
+}
+
+func (r *pusherRecorder) Push(target string, opts *http.PushOptions) error {
+	return r.pusher.Push(target, opts)
+}
+
+type hijackRecorder struct {
+	*httptest.ResponseRecorder
+}
+
+func newHijackRecorder() *hijackRecorder {
+	return &hijackRecorder{ResponseRecorder: httptest.NewRecorder()}
+}

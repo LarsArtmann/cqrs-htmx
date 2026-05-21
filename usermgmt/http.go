@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/cockroachdb/errors"
 )
@@ -14,6 +15,7 @@ type AuthHandler struct {
 	cookieName    string
 	secure        bool
 	sessionMaxAge int
+	timeout       time.Duration
 }
 
 // HandlerConfig controls cookie and session settings for AuthHandler.
@@ -25,6 +27,9 @@ type HandlerConfig struct {
 	// SessionMaxAge sets the Max-Age for session cookies in seconds.
 	// Zero defaults to 86400 (24 hours).
 	SessionMaxAge int
+	// Timeout sets a maximum execution time for auth endpoint handlers.
+	// Zero means no timeout (default).
+	Timeout time.Duration
 }
 
 // NewAuthHandler creates an AuthHandler for the given Service with optional config.
@@ -45,6 +50,7 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 		cookieName:    config.CookieName,
 		secure:        config.Secure,
 		sessionMaxAge: config.SessionMaxAge,
+		timeout:       config.Timeout,
 	}
 }
 
@@ -107,7 +113,14 @@ func (h *AuthHandler) handleAuthEndpoint(
 		return
 	}
 
-	resp, err := process(r.Context(), raw)
+	ctx := r.Context()
+	if h.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, h.timeout)
+		defer cancel()
+	}
+
+	resp, err := process(ctx, raw)
 	if err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
@@ -124,7 +137,14 @@ func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Logout(r.Context(), token); err != nil {
+	ctx := r.Context()
+	if h.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, h.timeout)
+		defer cancel()
+	}
+
+	if err := h.service.Logout(ctx, token); err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}
