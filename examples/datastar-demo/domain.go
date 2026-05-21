@@ -228,18 +228,57 @@ type BroadcastEvent struct {
 	Time time.Time
 }
 
+type Broadcaster struct {
+	mu   sync.Mutex
+	subs map[chan BroadcastEvent]struct{}
+}
+
+func NewBroadcaster() *Broadcaster {
+	return &Broadcaster{subs: make(map[chan BroadcastEvent]struct{})}
+}
+
+func (b *Broadcaster) Subscribe() chan BroadcastEvent {
+	ch := make(chan BroadcastEvent, 64)
+	b.mu.Lock()
+	b.subs[ch] = struct{}{}
+	b.mu.Unlock()
+	return ch
+}
+
+func (b *Broadcaster) Unsubscribe(ch chan BroadcastEvent) {
+	b.mu.Lock()
+	delete(b.subs, ch)
+	b.mu.Unlock()
+}
+
+func (b *Broadcaster) Send(evt BroadcastEvent) {
+	b.mu.Lock()
+	subs := make([]chan BroadcastEvent, 0, len(b.subs))
+	for ch := range b.subs {
+		subs = append(subs, ch)
+	}
+	b.mu.Unlock()
+
+	for _, ch := range subs {
+		select {
+		case ch <- evt:
+		default:
+		}
+	}
+}
+
 type CQRS struct {
 	Commands  *command.Dispatcher
 	Queries   *query.Dispatcher
 	Events    *EventStore
 	Read      *Projector
-	Broadcast chan BroadcastEvent
+	Broadcast *Broadcaster
 }
 
 func NewCQRS() *CQRS {
 	events := NewEventStore()
 	read := NewProjector()
-	broadcast := make(chan BroadcastEvent, 64)
+	broadcast := NewBroadcaster()
 
 	events.Subscribe(read.Apply)
 	events.Subscribe(func(e DomainEvent) {
@@ -259,10 +298,7 @@ func NewCQRS() *CQRS {
 			evt.Kind = "todo_deleted"
 			evt.Data = "#todo-" + e.AggregateID
 		}
-		select {
-		case broadcast <- evt:
-		default:
-		}
+		broadcast.Send(evt)
 	})
 
 	cmdDisp := command.NewDispatcher()
