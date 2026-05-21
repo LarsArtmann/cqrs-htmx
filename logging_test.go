@@ -232,10 +232,13 @@ var _ = Describe("Request Logging", func() {
 	Describe("statusRecorder", func() {
 		It("delegates Push to underlying http.Pusher", func() {
 			var pushedTarget string
-			pusher := &mockPusher{pushFunc: func(target string, _ *http.PushOptions) error {
-				pushedTarget = target
-				return nil
-			}}
+			pusher := &mockPusher{
+				ResponseWriter: httptest.NewRecorder(),
+				pushFunc: func(target string, _ *http.PushOptions) error {
+					pushedTarget = target
+					return nil
+				},
+			}
 			handler := cqrshtmx.RequestLogging(nil, func(_ string) {})
 			pushHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				if p, ok := w.(http.Pusher); ok {

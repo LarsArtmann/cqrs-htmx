@@ -147,6 +147,7 @@ func (r *StatusRecorder) Status() int { return r.status }
 // WroteHeader reports whether WriteHeader has been called.
 func (r *StatusRecorder) WroteHeader() bool { return r.wrote }
 
+// WriteHeader records the status code and delegates to the underlying ResponseWriter.
 func (r *StatusRecorder) WriteHeader(code int) {
 	if !r.wrote {
 		r.status = code
@@ -155,6 +156,7 @@ func (r *StatusRecorder) WriteHeader(code int) {
 	r.ResponseWriter.WriteHeader(code)
 }
 
+// Push delegates HTTP/2 server push to the underlying Pusher, if available.
 func (r *StatusRecorder) Push(target string, opts *http.PushOptions) error {
 	if pusher, ok := r.ResponseWriter.(http.Pusher); ok {
 		return fmt.Errorf("push %q: %w", target, pusher.Push(target, opts))
@@ -210,12 +212,14 @@ func (r *StatusRecorder) Write(p []byte) (int, error) {
 	return r.ResponseWriter.Write(p) //nolint:wrapcheck // delegate to underlying ResponseWriter
 }
 
+// Flush delegates to the underlying Flusher, if available.
 func (r *StatusRecorder) Flush() {
 	if f, ok := r.ResponseWriter.(http.Flusher); ok {
 		f.Flush()
 	}
 }
 
+// Hijack delegates to the underlying Hijacker, if available.
 func (r *StatusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	h, ok := r.ResponseWriter.(http.Hijacker)
 	if !ok {

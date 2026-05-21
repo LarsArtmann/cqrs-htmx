@@ -31,6 +31,17 @@ jobs:
           GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Build integration_test submodule
+        run: cd integration_test && go build ./...
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Build datastar-demo example
+        run: cd examples/datastar-demo && go build ./...
+        env:
+          GOWORK: off
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -48,6 +59,12 @@ jobs:
 
       - name: Test usermgmt submodule
         run: cd usermgmt && go test ./... -count=1 -race -coverprofile=coverage.out
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Test integration_test submodule
+        run: cd integration_test && go test ./... -count=1 -race
         env:
           GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"

@@ -237,8 +237,12 @@ func (p *perKeyLimiter) evictOldestIfAtCapacity() {
 		return
 	}
 	for p.heap.Len() > 0 {
-		oldest := heap.Pop(p.heap).(*evictionEntry)
-		if entry, ok := p.limiters[oldest.key]; ok && entry.lastUsed.Equal(oldest.lastUsed) {
+		oldest, ok := heap.Pop(p.heap).(*evictionEntry)
+		if !ok {
+			continue
+		}
+		if entry, exists := p.limiters[oldest.key]; exists &&
+			entry.lastUsed.Equal(oldest.lastUsed) {
 			delete(p.limiters, oldest.key)
 			return
 		}
@@ -254,10 +258,17 @@ type evictionEntry struct {
 
 type evictionHeap []*evictionEntry
 
-func (h evictionHeap) Len() int           { return len(h) }
-func (h evictionHeap) Less(i, j int) bool { return h[i].lastUsed.Before(h[j].lastUsed) }
-func (h evictionHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *evictionHeap) Push(x any)        { *h = append(*h, x.(*evictionEntry)) }
+func (h *evictionHeap) Len() int           { return len(*h) }
+func (h *evictionHeap) Less(i, j int) bool { return (*h)[i].lastUsed.Before((*h)[j].lastUsed) }
+func (h *evictionHeap) Swap(i, j int)      { (*h)[i], (*h)[j] = (*h)[j], (*h)[i] }
+func (h *evictionHeap) Push(x any) {
+	entry, ok := x.(*evictionEntry)
+	if !ok {
+		return
+	}
+	*h = append(*h, entry)
+}
+
 func (h *evictionHeap) Pop() any {
 	old := *h
 	n := len(old)

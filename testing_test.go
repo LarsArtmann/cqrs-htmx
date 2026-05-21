@@ -277,7 +277,7 @@ func assertStatusCode(handler http.Handler, r *http.Request, expected int) {
 
 func assertHTMXErrorRedirect(err error, loginRedirect, expectedRedirect string) {
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 	r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 	cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
 	ExpectWithOffset(1, w.Header().Get("HX-Redirect")).To(Equal(expectedRedirect))
