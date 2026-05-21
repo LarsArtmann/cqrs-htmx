@@ -112,27 +112,42 @@ func RequestLogging(
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			rw := newStatusRecorder(w)
+			rw := NewStatusRecorder(w)
 
 			next.ServeHTTP(rw, r)
 
 			duration := time.Since(start)
 
 			if writer != nil {
-				writer(formatter(r, rw.status, duration))
+				writer(formatter(r, rw.Status(), duration))
 			}
 		})
 	}
 }
 
-// statusRecorder wraps http.ResponseWriter to capture the status code.
-type statusRecorder struct {
+// StatusRecorder wraps http.ResponseWriter to capture the HTTP status code.
+// It also implements http.Pusher, http.Flusher, and http.Hijacker by delegating
+// to the underlying ResponseWriter when available.
+type StatusRecorder struct {
 	http.ResponseWriter
 	status int
 	wrote  bool
 }
 
-func (r *statusRecorder) WriteHeader(code int) {
+// NewStatusRecorder wraps w to capture the status code. The initial status is
+// 0 (unset) — callers should check WroteHeader() before relying on Status().
+func NewStatusRecorder(w http.ResponseWriter) *StatusRecorder {
+	return &StatusRecorder{ResponseWriter: w, status: 0, wrote: false}
+}
+
+// Status returns the captured HTTP status code, or 0 if WriteHeader has not
+// been called.
+func (r *StatusRecorder) Status() int { return r.status }
+
+// WroteHeader reports whether WriteHeader has been called.
+func (r *StatusRecorder) WroteHeader() bool { return r.wrote }
+
+func (r *StatusRecorder) WriteHeader(code int) {
 	if !r.wrote {
 		r.status = code
 		r.wrote = true
@@ -140,11 +155,7 @@ func (r *statusRecorder) WriteHeader(code int) {
 	r.ResponseWriter.WriteHeader(code)
 }
 
-func newStatusRecorder(w http.ResponseWriter) *statusRecorder {
-	return &statusRecorder{ResponseWriter: w, status: 0, wrote: false}
-}
-
-func (r *statusRecorder) Push(target string, opts *http.PushOptions) error {
+func (r *StatusRecorder) Push(target string, opts *http.PushOptions) error {
 	if pusher, ok := r.ResponseWriter.(http.Pusher); ok {
 		return fmt.Errorf("push %q: %w", target, pusher.Push(target, opts))
 	}
@@ -164,7 +175,7 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			rw := newStatusRecorder(w)
+			rw := NewStatusRecorder(w)
 
 			next.ServeHTTP(rw, r)
 
@@ -173,7 +184,7 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 			attrs := []slog.Attr{
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
-				slog.Int("status", rw.status),
+				slog.Int("status", rw.Status()),
 				slog.Duration("duration", duration),
 			}
 
@@ -190,7 +201,7 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 	}
 }
 
-func (r *statusRecorder) Write(p []byte) (int, error) {
+func (r *StatusRecorder) Write(p []byte) (int, error) {
 	if !r.wrote {
 		r.status = http.StatusOK
 		r.wrote = true
@@ -199,13 +210,13 @@ func (r *statusRecorder) Write(p []byte) (int, error) {
 	return r.ResponseWriter.Write(p) //nolint:wrapcheck // delegate to underlying ResponseWriter
 }
 
-func (r *statusRecorder) Flush() {
+func (r *StatusRecorder) Flush() {
 	if f, ok := r.ResponseWriter.(http.Flusher); ok {
 		f.Flush()
 	}
 }
 
-func (r *statusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+func (r *StatusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	h, ok := r.ResponseWriter.(http.Hijacker)
 	if !ok {
 		return nil, nil, http.ErrNotSupported
