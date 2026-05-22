@@ -32,16 +32,17 @@ The module count grew from 2 to 4, with `integration_test/` and `examples/datast
 
 ### 2.1 Module Landscape
 
-| Module | Path | Files (prod) | Exported Symbols | Direct External Deps | Internal Deps | Replace | go.work | State |
-|--------|------|------|---------|---------|---------|---------|---------|-------|
-| Root | `./` | 18 | 151 | casbin/v3, cockroachdb/errors, gorilla/csrf, go-cqrs-lite/core, x/time | 0 | None | Yes | Clean but large |
-| usermgmt | `./usermgmt` | 12 | 95 | casbin/v3, cockroachdb/errors, go-branded-id, x/crypto | 0 | None | Yes | Clean |
-| integration_test | `./integration_test` | 2 | 0 | root, usermgmt, go-cqrs-lite/core | root + usermgmt | Yes (→ ../) | No | **Needs go mod tidy** |
-| datastar-demo | `./examples/datastar-demo` | 3 | 0 | go-cqrs-lite/core v1.5.0, datastar-go | **None (doesn't use root!)** | None | No | **Version mismatch** |
+| Module           | Path                       | Files (prod) | Exported Symbols | Direct External Deps                                                   | Internal Deps                | Replace     | go.work | State                 |
+| ---------------- | -------------------------- | ------------ | ---------------- | ---------------------------------------------------------------------- | ---------------------------- | ----------- | ------- | --------------------- |
+| Root             | `./`                       | 18           | 151              | casbin/v3, cockroachdb/errors, gorilla/csrf, go-cqrs-lite/core, x/time | 0                            | None        | Yes     | Clean but large       |
+| usermgmt         | `./usermgmt`               | 12           | 95               | casbin/v3, cockroachdb/errors, go-branded-id, x/crypto                 | 0                            | None        | Yes     | Clean                 |
+| integration_test | `./integration_test`       | 2            | 0                | root, usermgmt, go-cqrs-lite/core                                      | root + usermgmt              | Yes (→ ../) | No      | **Needs go mod tidy** |
+| datastar-demo    | `./examples/datastar-demo` | 3            | 0                | go-cqrs-lite/core v1.5.0, datastar-go                                  | **None (doesn't use root!)** | None        | No      | **Version mismatch**  |
 
 ### 2.2 Classification: Partial Split
 
 The root + usermgmt split is clean and well-executed. However:
+
 - integration_test has stale go.mod (needs tidy)
 - datastar-demo doesn't import the root library at all — it's a standalone go-cqrs-lite + datastar example
 - go.work only covers root + usermgmt, not integration_test or datastar-demo
@@ -88,12 +89,12 @@ These three files form an inseparable group at the module level.
 
 ### 2.5 Coupling Hubs
 
-| File | Depends On | Dependents | Coupling |
-|------|-----------|------------|----------|
-| `options.go` | 5 files | 4 files | **Highest** — handlerConfig is shared mutable state |
-| `errors.go` | 3 files | 10 files | **Highest** — most depended-upon |
-| `context.go` | 0 (external only) | 6 files | Low — utility |
-| `htmx.go` | 0 (stdlib only) | 6 files | Low — leaf |
+| File         | Depends On        | Dependents | Coupling                                            |
+| ------------ | ----------------- | ---------- | --------------------------------------------------- |
+| `options.go` | 5 files           | 4 files    | **Highest** — handlerConfig is shared mutable state |
+| `errors.go`  | 3 files           | 10 files   | **Highest** — most depended-upon                    |
+| `context.go` | 0 (external only) | 6 files    | Low — utility                                       |
+| `htmx.go`    | 0 (stdlib only)   | 6 files    | Low — leaf                                          |
 
 ---
 
@@ -108,6 +109,7 @@ The original 2026-05-14 proposal identified htmx/ (htmx.go + response.go) as the
 - `errors.go:156,179` uses `ContentTypePlain`, `ContentTypeJSON` from `response.go`
 
 To extract htmx/, you would need to:
+
 1. Move notification types to htmx/ (breaks notify.go)
 2. Remove CSRFToken() from Response (breaking API change)
 3. Move ContentType constants to httputil.go (creates cross-module constant sharing)
@@ -121,7 +123,7 @@ The library is called "cqrs-htmx" — CQRS is the core purpose. Consumers who im
 
 ### 3.3 Flat Package = Go Convention for Libraries
 
-18 files / 151 symbols in a single package is within Go norms for a cohesive library. Well-named symbols with clear prefixes (CSRF*, HTMX*, Notify*, Authorize*, Enforce*) provide sufficient organization.
+18 files / 151 symbols in a single package is within Go norms for a cohesive library. Well-named symbols with clear prefixes (CSRF*, HTMX*, Notify*, Authorize*, Enforce\*) provide sufficient organization.
 
 ### 3.4 New Files Are Independent Concerns
 
@@ -141,6 +143,7 @@ The recently added files (ratelimit.go, security.go, logging.go, decoder.go) are
 **Problem:** datastar-demo doesn't import cqrs-htmx at all. It's a standalone go-cqrs-lite + datastar example with version mismatches (core v1.5.0 vs root's v1.4.0, go-branded-id v0.1.0 vs v0.3.0).
 
 **Options:**
+
 - A) Update to import cqrs-htmx and demonstrate library usage
 - B) Upgrade deps to match root module versions
 - C) Move to go-cqrs-lite repo (where it belongs)
@@ -166,6 +169,7 @@ Do NOT add datastar-demo — it doesn't import any sibling modules, so go.work p
 ### 4.4 Update CI
 
 Add integration_test and datastar-demo to CI pipeline:
+
 - Build and test integration_test
 - Build datastar-demo (no tests to run — it's a main package)
 

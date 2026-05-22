@@ -72,25 +72,25 @@ Layer 5 (entry points):
 
 ## Coupling Analysis
 
-| File | Internal Deps | Dependents | Level |
-|------|:------------:|:----------:|-------|
-| `htmx.go` | 0 | 6 | Leaf — standalone |
-| `context.go` | 0 | 6 | Leaf — utility |
-| `ratelimit.go` | 0 | 0 | Leaf — standalone |
-| `security.go` | 0 | 0 | Leaf — standalone |
-| `httputil.go` | 0 | 2 | Leaf — utility |
-| `logging.go` | 1 | 0 | Low — consumed externally |
-| `decoder.go` | 1 | 1 | Low — narrow |
-| `notify.go` | 1 | 1 | Low — narrow |
-| `csrf.go` | 1 | 3 | Medium — cycle participant |
-| `response.go` | 3 | 3 | Medium — cycle participant |
-| `errors.go` | 3 | 10 | **High** — most depended-upon |
-| `authz.go` | 3 | 3 | Medium — handlerConfig coupling |
-| `middleware.go` | 3 | 1 | Medium — consumed externally |
-| `csrf_handler.go` | 2 | 1 | Medium — bridge |
-| `options.go` | 5 | 4 | **Highest** — handlerConfig hub |
-| `handler.go` | 5 | 1 | High — dispatch orchestrator |
-| `app.go` | 5 | 0 | High — entry point |
+| File              | Internal Deps | Dependents | Level                           |
+| ----------------- | :-----------: | :--------: | ------------------------------- |
+| `htmx.go`         |       0       |     6      | Leaf — standalone               |
+| `context.go`      |       0       |     6      | Leaf — utility                  |
+| `ratelimit.go`    |       0       |     0      | Leaf — standalone               |
+| `security.go`     |       0       |     0      | Leaf — standalone               |
+| `httputil.go`     |       0       |     2      | Leaf — utility                  |
+| `logging.go`      |       1       |     0      | Low — consumed externally       |
+| `decoder.go`      |       1       |     1      | Low — narrow                    |
+| `notify.go`       |       1       |     1      | Low — narrow                    |
+| `csrf.go`         |       1       |     3      | Medium — cycle participant      |
+| `response.go`     |       3       |     3      | Medium — cycle participant      |
+| `errors.go`       |       3       |     10     | **High** — most depended-upon   |
+| `authz.go`        |       3       |     3      | Medium — handlerConfig coupling |
+| `middleware.go`   |       3       |     1      | Medium — consumed externally    |
+| `csrf_handler.go` |       2       |     1      | Medium — bridge                 |
+| `options.go`      |       5       |     4      | **Highest** — handlerConfig hub |
+| `handler.go`      |       5       |     1      | High — dispatch orchestrator    |
+| `app.go`          |       5       |     0      | High — entry point              |
 
 ## Key Insight
 
