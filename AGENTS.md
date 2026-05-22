@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 96.6% root, 91.3% usermgmt (340+ tests)                                           |
+| Coverage | 96.6% root, 88.6% usermgmt (340+ tests)                                           |
 
 ## Architecture
 
@@ -89,6 +89,11 @@ cqrs-htmx/
 - **usermgmt ChangePassword**: `Service.ChangePassword(ctx, userID, oldPassword, newPassword)` — validates old password, minimum length
 - **usermgmt account lockout**: `ServiceConfig.Lockout` — configurable max attempts + duration, returns `ErrAccountLocked` (429)
 - **usermgmt immutable bcryptCost**: `ServiceConfig.BcryptCost` replaces mutable global variable
+- **usermgmt store interfaces accept context.Context**: `UserStore` and `SessionStore` methods take `context.Context` as first param. Enables future cancellation, tracing, timeout propagation. **Breaking change** for custom implementations
+- **usermgmt Register compensating transaction**: Rolls back user+role on partial failures during registration
+- **usermgmt EvictExpired/EvictStale**: `InMemorySessionStore.EvictExpired()` and `AccountLockout.EvictStale()` for periodic cleanup of stale entries
+- **usermgmt TokenMatches**: `Session.TokenMatches(token)` — constant-time comparison without expiration check, extracted from `Valid()`
+- **usermgmt zero lint**: `.golangci.yml` with appropriate test exclusions, all code passes with 0 issues
 - **CatalogEntries exposure**: `App.CommandCatalogEntries()` and `App.QueryCatalogEntries()` delegate to the embedded `dispatcher.CatalogDispatcher` in go-cqrs-lite v1.4.0. Returns `nil` if the respective dispatcher is not configured. Uses `//nolint:staticcheck` because the upstream `CatalogMeta` type is deprecated in favor of the zero-cost catalog API
 - **Zero lint warnings**: All pre-existing lint warnings (gochecknoglobals, noctx, prealloc, unparam) fixed. Pre-commit hook should pass without `--no-verify`
 - **usermgmt unified error import**: `usermgmt/http.go` uses `cockroachdb/errors` consistently (not `std/errors`) — prevents split brain with `errors.Is` across the submodule
@@ -158,7 +163,16 @@ cqrs-htmx/
 51. **HandlerConfig.Timeout propagation**: `NewAuthHandler` copies `cfg[0].Timeout` to the handler config. Was a bug — timeout from config was silently dropped before 2026-05-22 fix
 52. **HandlerConfig.Secure zero-value caveat**: `Secure` defaults to `true` when NO config is passed, but `HandlerConfig{}` (zero-value Secure=false) overrides it to false. Always set `Secure: true` explicitly in production. Documented on `HandlerConfig` type
 53. **WriteJSON returns error**: `WriteJSON` returns `error` from `json.Encoder.Encode` (was silently swallowed). Callers should check the return value
-54. **usermgmt coverage 91.3%** (up from 91.2%), **root coverage 96.6%**
+54. **usermgmt coverage 88.6%** (context threading + new methods reduced from 91.3%), **root coverage 96.6%**
+55. **usermgmt zero lint**: `usermgmt/.golangci.yml` with test exclusions (gosec G104/G124, goconst, paralleltest, unparam, noctx, exhaustruct, wrapcheck for test files). All production code and test code pass with 0 issues
+56. **usermgmt Session.TokenMatches**: Extracted from `Valid()` — constant-time token comparison without expiration check. Use `!s.IsExpired() && s.TokenMatches(token)` or `s.Valid(token)` (which delegates to both)
+57. **usermgmt InMemorySessionStore.EvictExpired()**: Maintenance method that removes expired sessions and returns count. Prevents unbounded memory growth in the in-memory store
+58. **usermgmt AccountLockout.EvictStale()**: Removes expired lockout entries from internal maps. Call periodically to prevent unbounded growth
+59. **usermgmt contextKey is empty struct**: `userContextKeyType struct{}` replaces `contextKey string` — standard Go sentinel type pattern, collision-free
+60. **usermgmt timeout before body read**: `handleAuthEndpoint` creates timeout context BEFORE reading the request body, ensuring the entire operation is bounded
+61. **usermgmt store interfaces take context.Context**: `UserStore` and `SessionStore` interface methods now accept `context.Context` as first parameter. **Breaking change**: all implementations must update signatures. `InMemoryUserStore` and `InMemorySessionStore` ignore the context (use `_`)
+62. **usermgmt Register compensating transaction**: `Service.Register` rolls back user creation if role assignment fails, and rolls back both user and role if session creation fails. Best-effort cleanup — rollback errors are discarded with `_`
+63. **golines default is 100 chars**: `usermgmt/.golangci.yml` uses golines formatter which defaults to 100-char line length. Long function signatures and assertions must be split
 
 ## Test Commands
 

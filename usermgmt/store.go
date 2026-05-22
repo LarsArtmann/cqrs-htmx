@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -9,19 +10,19 @@ import (
 
 // UserStore is the persistence interface for User aggregates.
 type UserStore interface {
-	FindByID(id UserID) (*User, error)
-	FindByEmail(email string) (*User, error)
-	Save(user *User) error
-	Create(user *User) error
-	Delete(id UserID) error
+	FindByID(ctx context.Context, id UserID) (*User, error)
+	FindByEmail(ctx context.Context, email string) (*User, error)
+	Save(ctx context.Context, user *User) error
+	Create(ctx context.Context, user *User) error
+	Delete(ctx context.Context, id UserID) error
 }
 
 // SessionStore is the persistence interface for Session entities.
 type SessionStore interface {
-	Create(userID UserID, ttl time.Duration) (*Session, error)
-	Find(token string) (*Session, error)
-	Delete(token string) error
-	DeleteByUserID(userID UserID) error
+	Create(ctx context.Context, userID UserID, ttl time.Duration) (*Session, error)
+	Find(ctx context.Context, token string) (*Session, error)
+	Delete(ctx context.Context, token string) error
+	DeleteByUserID(ctx context.Context, userID UserID) error
 }
 
 // InMemoryUserStore is a thread-safe, in-memory implementation of UserStore.
@@ -44,7 +45,7 @@ func NewInMemoryUserStore() *InMemoryUserStore {
 }
 
 // FindByID returns the user with the given ID, or ErrUserNotFound.
-func (s *InMemoryUserStore) FindByID(id UserID) (*User, error) {
+func (s *InMemoryUserStore) FindByID(_ context.Context, id UserID) (*User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	u, ok := s.users[id]
@@ -55,7 +56,7 @@ func (s *InMemoryUserStore) FindByID(id UserID) (*User, error) {
 }
 
 // FindByEmail returns the user with the given email, or ErrUserNotFound.
-func (s *InMemoryUserStore) FindByEmail(email string) (*User, error) {
+func (s *InMemoryUserStore) FindByEmail(_ context.Context, email string) (*User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	id, ok := s.emails[email]
@@ -67,7 +68,7 @@ func (s *InMemoryUserStore) FindByEmail(email string) (*User, error) {
 
 // Save updates an existing user. It returns ErrEmailExists if another user
 // already claims the email.
-func (s *InMemoryUserStore) Save(user *User) error {
+func (s *InMemoryUserStore) Save(_ context.Context, user *User) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for email, id := range s.emails {
@@ -86,7 +87,7 @@ func (s *InMemoryUserStore) Save(user *User) error {
 
 // Create atomically inserts a new user. It returns ErrEmailExists if the email
 // is already taken, or an error if the user ID already exists.
-func (s *InMemoryUserStore) Create(user *User) error {
+func (s *InMemoryUserStore) Create(_ context.Context, user *User) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, ok := s.emails[user.Email]; ok {
@@ -102,7 +103,7 @@ func (s *InMemoryUserStore) Create(user *User) error {
 }
 
 // Delete removes the user and its email index entry.
-func (s *InMemoryUserStore) Delete(id UserID) error {
+func (s *InMemoryUserStore) Delete(_ context.Context, id UserID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if u, ok := s.users[id]; ok {
@@ -114,8 +115,8 @@ func (s *InMemoryUserStore) Delete(id UserID) error {
 
 // InMemorySessionStore is a thread-safe, in-memory implementation of SessionStore.
 //
-// Warning: Not suitable for production. Sessions are lost on process restart and the
-// sessions map grows without bound. Expired sessions are never cleaned up automatically.
+// Warning: Not suitable for production. Sessions are lost on process restart.
+// Expired sessions accumulate unless EvictExpired is called periodically.
 // Use a persistent store (Redis, SQL, etc.) in production.
 type InMemorySessionStore struct {
 	mu       sync.RWMutex
@@ -138,7 +139,9 @@ func (s *InMemorySessionStore) WithTTL(ttl time.Duration) *InMemorySessionStore 
 }
 
 // Create generates a new session for the user with the given TTL.
-func (s *InMemorySessionStore) Create(userID UserID, ttl time.Duration) (*Session, error) {
+func (s *InMemorySessionStore) Create(
+	_ context.Context, userID UserID, ttl time.Duration,
+) (*Session, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	session, err := NewSession(userID, ttl)
@@ -150,7 +153,7 @@ func (s *InMemorySessionStore) Create(userID UserID, ttl time.Duration) (*Sessio
 }
 
 // Find returns the session for the given token, or ErrSessionNotFound.
-func (s *InMemorySessionStore) Find(token string) (*Session, error) {
+func (s *InMemorySessionStore) Find(_ context.Context, token string) (*Session, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	session, ok := s.sessions[token]
@@ -161,7 +164,7 @@ func (s *InMemorySessionStore) Find(token string) (*Session, error) {
 }
 
 // Delete removes the session with the given token.
-func (s *InMemorySessionStore) Delete(token string) error {
+func (s *InMemorySessionStore) Delete(_ context.Context, token string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.sessions, token)
@@ -169,7 +172,7 @@ func (s *InMemorySessionStore) Delete(token string) error {
 }
 
 // DeleteByUserID removes all sessions belonging to the given user.
-func (s *InMemorySessionStore) DeleteByUserID(userID UserID) error {
+func (s *InMemorySessionStore) DeleteByUserID(_ context.Context, userID UserID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for token, session := range s.sessions {
@@ -178,4 +181,21 @@ func (s *InMemorySessionStore) DeleteByUserID(userID UserID) error {
 		}
 	}
 	return nil
+}
+
+// EvictExpired removes all expired sessions from the store and returns the
+// number of sessions evicted. This is a maintenance method for the in-memory
+// store — call periodically to prevent unbounded memory growth.
+func (s *InMemorySessionStore) EvictExpired() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	now := time.Now().UTC()
+	evicted := 0
+	for token, session := range s.sessions {
+		if now.After(session.ExpiresAt) {
+			delete(s.sessions, token)
+			evicted++
+		}
+	}
+	return evicted
 }

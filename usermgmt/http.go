@@ -115,17 +115,17 @@ func (h *AuthHandler) handleAuthEndpoint(
 	process func(context.Context, json.RawMessage) (*LoginResponse, error),
 	successStatus int,
 ) {
-	var raw json.RawMessage
-	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
 	ctx := r.Context()
 	if h.timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, h.timeout)
 		defer cancel()
+	}
+
+	var raw json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
 	}
 
 	resp, err := process(ctx, raw)

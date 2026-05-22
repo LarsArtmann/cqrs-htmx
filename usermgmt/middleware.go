@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-type contextKey string
+type userContextKeyType struct{}
 
-const userContextKey contextKey = "usermgmt:user"
+var userContextKey userContextKeyType //nolint:gochecknoglobals // sentinel type for context keys, standard Go pattern
 
 // WithUser stores the authenticated User in the context.
 func WithUser(ctx context.Context, user *User) context.Context {

@@ -236,7 +236,7 @@ func TestService_Authenticate_ExpiredSession(t *testing.T) {
 func TestService_Authenticate_UserDeleted(t *testing.T) {
 	svc, ctx, reg := newTestServiceWithUser(t, "u1", "del@test.com", "secret12")
 
-	svc.users.Delete(NewUserID("u1")) //nolint:errcheck // test cleanup
+	svc.users.Delete(context.Background(), NewUserID("u1")) //nolint:errcheck // test cleanup
 
 	_, err := svc.Authenticate(ctx, reg.Session.Token)
 	assertErrorIs(t, err, ErrUserNotFound, "ErrUserNotFound")
