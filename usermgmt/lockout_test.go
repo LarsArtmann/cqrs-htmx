@@ -85,3 +85,31 @@ func TestService_Login_AccountLockout(t *testing.T) {
 		t.Errorf("expected ErrAccountLocked after max attempts, got %v", err)
 	}
 }
+
+func TestAccountLockout_EvictStale(t *testing.T) {
+	l := NewAccountLockout(LockoutConfig{MaxAttempts: 1, Duration: 50 * time.Millisecond})
+
+	l.RecordFailure("expired@test.com")
+	if !l.IsLocked("expired@test.com") {
+		t.Fatal("expected locked")
+	}
+
+	time.Sleep(60 * time.Millisecond)
+
+	l.RecordFailure("fresh@test.com")
+
+	evicted := l.EvictStale()
+	if evicted != 1 {
+		t.Errorf("expected 1 eviction, got %d", evicted)
+	}
+	if l.IsLocked("expired@test.com") {
+		t.Error("expected expired entry to be evicted")
+	}
+	if !l.IsLocked("fresh@test.com") {
+		t.Error("expected fresh entry to remain")
+	}
+
+	if l.EvictStale() != 0 {
+		t.Error("expected 0 evictions on clean state")
+	}
+}

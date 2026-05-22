@@ -138,8 +138,10 @@ type RegisterResponse struct {
 }
 
 // Register validates the request, creates the user, assigns the "user" role,
-// and opens a session.
-func (s *Service) Register(_ context.Context, req RegisterRequest) (*RegisterResponse, error) {
+// Register validates the request, creates the user, assigns the "user" role,
+// and opens a session. Partial failures are compensated: if role assignment or
+// session creation fails after the user is created, the user and role are rolled back.
+func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -150,18 +152,22 @@ func (s *Service) Register(_ context.Context, req RegisterRequest) (*RegisterRes
 
 	user.AddRole(RoleUser)
 
-	if err := s.users.Create(user); err != nil {
+	if err := s.users.Create(ctx, user); err != nil {
 		return nil, fmt.Errorf("create user: %w", err)
 	}
 
-	if err := s.authz.AddGroupPolicy(GroupPolicy{
+	policy := GroupPolicy{
 		Subject: user.ID.Get(), Role: RoleUser, Domain: user.ID.Get(),
-	}); err != nil {
+	}
+	if err := s.authz.AddGroupPolicy(policy); err != nil {
+		_ = s.users.Delete(ctx, user.ID)
 		return nil, errors.Wrapf(err, "assign role")
 	}
 
-	session, err := s.sessions.Create(user.ID, s.sessionTTL)
+	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
+		_ = s.authz.RemoveGroupPolicy(policy)
+		_ = s.users.Delete(ctx, user.ID)
 		return nil, errors.Wrapf(err, "create session")
 	}
 
@@ -203,7 +209,7 @@ type LoginResponse struct {
 
 // Login validates credentials, enforces account lockout, and opens a session.
 // Returns ErrInvalidCredentials, ErrAccountLocked, or ErrValidation on failure.
-func (s *Service) Login(_ context.Context, req LoginRequest) (*LoginResponse, error) {
+func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -211,7 +217,7 @@ func (s *Service) Login(_ context.Context, req LoginRequest) (*LoginResponse, er
 		s.logger.Warn("usermgmt: login rejected — account locked", "email", req.Email)
 		return nil, ErrAccountLocked
 	}
-	user, err := s.users.FindByEmail(req.Email)
+	user, err := s.users.FindByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, ErrInvalidCredentials
 	}
@@ -228,7 +234,7 @@ func (s *Service) Login(_ context.Context, req LoginRequest) (*LoginResponse, er
 		s.lockout.Reset(req.Email)
 	}
 
-	session, err := s.sessions.Create(user.ID, s.sessionTTL)
+	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
 		return nil, errors.Wrapf(err, "create session")
 	}
@@ -237,8 +243,8 @@ func (s *Service) Login(_ context.Context, req LoginRequest) (*LoginResponse, er
 }
 
 // Logout deletes the session associated with the given token.
-func (s *Service) Logout(_ context.Context, token string) error {
-	if err := s.sessions.Delete(token); err != nil {
+func (s *Service) Logout(ctx context.Context, token string) error {
+	if err := s.sessions.Delete(ctx, token); err != nil {
 		return fmt.Errorf("logout: %w", err)
 	}
 	return nil
@@ -246,14 +252,14 @@ func (s *Service) Logout(_ context.Context, token string) error {
 
 // Authenticate validates a session token and returns the associated User.
 // Expired or invalid tokens result in ErrSessionExpired or ErrUnauthorized.
-func (s *Service) Authenticate(_ context.Context, token string) (*User, error) {
-	session, err := s.sessions.Find(token)
+func (s *Service) Authenticate(ctx context.Context, token string) (*User, error) {
+	session, err := s.sessions.Find(ctx, token)
 	if err != nil {
 		return nil, ErrUnauthorized
 	}
 
 	if session.IsExpired() {
-		_ = s.sessions.Delete(token)
+		_ = s.sessions.Delete(ctx, token)
 		return nil, ErrSessionExpired
 	}
 
@@ -261,7 +267,7 @@ func (s *Service) Authenticate(_ context.Context, token string) (*User, error) {
 		return nil, ErrUnauthorized
 	}
 
-	user, err := s.users.FindByID(session.UserID)
+	user, err := s.users.FindByID(ctx, session.UserID)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
@@ -276,8 +282,8 @@ func (s *Service) Authorize(_ context.Context, sub, dom, obj string, act Action)
 }
 
 // GetUser retrieves a user by ID.
-func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
-	u, err := s.users.FindByID(id)
+func (s *Service) GetUser(ctx context.Context, id UserID) (*User, error) {
+	u, err := s.users.FindByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get user: %w", err)
 	}
@@ -286,12 +292,12 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 
 // UpdateRoles replaces the user's roles in both the Casbin policy and the user store.
 func (s *Service) UpdateRoles(
-	_ context.Context,
+	ctx context.Context,
 	userID UserID,
 	roles []Role,
 	domain string,
 ) error {
-	user, err := s.users.FindByID(userID)
+	user, err := s.users.FindByID(ctx, userID)
 	if err != nil {
 		return errors.Wrapf(err, "find user %q", userID)
 	}
@@ -326,7 +332,7 @@ func (s *Service) UpdateRoles(
 
 	user.Roles = roles
 	user.UpdatedAt = time.Now().UTC()
-	if err := s.users.Save(user); err != nil {
+	if err := s.users.Save(ctx, user); err != nil {
 		return fmt.Errorf("save user %q after role update: %w", userID, err)
 	}
 	return nil
@@ -343,11 +349,11 @@ func formatRoles(roles []Role) string {
 // ChangePassword verifies the old password, validates the new password length,
 // and updates the stored hash.
 func (s *Service) ChangePassword(
-	_ context.Context,
+	ctx context.Context,
 	userID UserID,
 	oldPassword, newPassword string,
 ) error {
-	user, err := s.users.FindByID(userID)
+	user, err := s.users.FindByID(ctx, userID)
 	if err != nil {
 		return errors.Wrapf(err, "find user %q", userID)
 	}
@@ -369,7 +375,7 @@ func (s *Service) ChangePassword(
 		return errors.Wrapf(err, "set password for user %q", userID)
 	}
 
-	if err := s.users.Save(user); err != nil {
+	if err := s.users.Save(ctx, user); err != nil {
 		return fmt.Errorf("save user %q after password change: %w", userID, err)
 	}
 	return nil

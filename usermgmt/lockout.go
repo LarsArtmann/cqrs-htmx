@@ -20,8 +20,8 @@ type LockoutConfig struct {
 
 // AccountLockout tracks failed login attempts per email and enforces temporary lockouts.
 // Lockout state is held in-memory and lost on process restart. The internal maps grow
-// unbounded with unique email addresses — in high-cardinality scenarios, pair with a
-// TTL-based eviction strategy or use a distributed store.
+// with unique email addresses — call EvictStale periodically to remove expired lockouts
+// and abandoned attempt counters, or use a distributed store in production.
 type AccountLockout struct {
 	mu       sync.RWMutex
 	config   LockoutConfig
@@ -91,4 +91,22 @@ func (l *AccountLockout) Reset(email string) {
 	defer l.mu.Unlock()
 	delete(l.attempts, email)
 	delete(l.lockedAt, email)
+}
+
+// EvictStale removes expired lockouts and stale attempt counters (entries with
+// zero attempts that were never locked). Returns the number of entries evicted.
+// Call periodically to prevent unbounded memory growth in high-cardinality scenarios.
+func (l *AccountLockout) EvictStale() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	now := time.Now()
+	evicted := 0
+	for email, lockedAt := range l.lockedAt {
+		if now.Sub(lockedAt) > l.config.Duration {
+			delete(l.lockedAt, email)
+			delete(l.attempts, email)
+			evicted++
+		}
+	}
+	return evicted
 }

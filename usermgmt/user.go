@@ -133,12 +133,15 @@ func (s *Session) IsExpired() bool {
 	return time.Now().UTC().After(s.ExpiresAt)
 }
 
+// TokenMatches performs a constant-time comparison of the provided token
+// against the session token. It does NOT check expiration — call IsExpired separately.
+func (s *Session) TokenMatches(token string) bool {
+	return subtle.ConstantTimeCompare([]byte(s.Token), []byte(token)) == 1
+}
+
 // Valid performs a constant-time comparison of the token and checks expiration.
 func (s *Session) Valid(token string) bool {
-	if s.IsExpired() {
-		return false
-	}
-	return subtle.ConstantTimeCompare([]byte(s.Token), []byte(token)) == 1
+	return !s.IsExpired() && s.TokenMatches(token)
 }
 
 func generateToken() (string, error) {

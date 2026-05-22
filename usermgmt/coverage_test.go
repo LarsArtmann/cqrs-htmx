@@ -131,12 +131,12 @@ func TestService_Register_DisplayNameTooLong(t *testing.T) {
 func TestStore_Save_EmailTakenByOtherUser(t *testing.T) {
 	store := NewInMemoryUserStore()
 	u1 := NewUser(NewUserID("u1"), "a@b.com", "One")
-	_ = store.Create(u1)
+	_ = store.Create(context.Background(), u1)
 	u2 := NewUser(NewUserID("u2"), "c@d.com", "Two")
-	_ = store.Create(u2)
+	_ = store.Create(context.Background(), u2)
 
 	u2.Email = "a@b.com"
-	if err := store.Save(u2); !errors.Is(err, ErrEmailExists) {
+	if err := store.Save(context.Background(), u2); !errors.Is(err, ErrEmailExists) {
 		t.Errorf("expected ErrEmailExists, got %v", err)
 	}
 }
@@ -177,7 +177,7 @@ func TestHandlers_Logout_DeletedSession(t *testing.T) {
 
 	reg := registerTestUser(t, svc, "u1", "lo@test.com", "secret12")
 
-	_ = svc.sessions.Delete(reg.Session.Token)
+	_ = svc.sessions.Delete(context.Background(), reg.Session.Token)
 
 	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
