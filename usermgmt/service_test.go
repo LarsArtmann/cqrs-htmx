@@ -219,7 +219,10 @@ func TestService_ChangePassword(t *testing.T) {
 func TestService_Authenticate_ExpiredSession(t *testing.T) {
 	svc, ctx, reg := newTestServiceWithUser(t, "u1", "exp@test.com", "secret12")
 
-	sessions := svc.sessions.(*InMemorySessionStore)
+	sessions, ok := svc.sessions.(*InMemorySessionStore)
+	if !ok {
+		t.Fatal("expected *InMemorySessionStore")
+	}
 	sessions.mu.Lock()
 	for _, s := range sessions.sessions {
 		s.ExpiresAt = time.Now().Add(-time.Hour)
@@ -233,7 +236,7 @@ func TestService_Authenticate_ExpiredSession(t *testing.T) {
 func TestService_Authenticate_UserDeleted(t *testing.T) {
 	svc, ctx, reg := newTestServiceWithUser(t, "u1", "del@test.com", "secret12")
 
-	svc.users.Delete(NewUserID("u1"))
+	svc.users.Delete(NewUserID("u1")) //nolint:errcheck // test cleanup
 
 	_, err := svc.Authenticate(ctx, reg.Session.Token)
 	assertErrorIs(t, err, ErrUserNotFound, "ErrUserNotFound")

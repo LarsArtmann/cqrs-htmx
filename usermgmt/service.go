@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/mail"
 	"strings"
@@ -138,7 +139,7 @@ type RegisterResponse struct {
 
 // Register validates the request, creates the user, assigns the "user" role,
 // and opens a session.
-func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
+func (s *Service) Register(_ context.Context, req RegisterRequest) (*RegisterResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -150,7 +151,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	user.AddRole(RoleUser)
 
 	if err := s.users.Create(user); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create user: %w", err)
 	}
 
 	if err := s.authz.AddGroupPolicy(GroupPolicy{
@@ -168,7 +169,8 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 }
 
 func (s *Service) logAuth(event string, userID UserID, attrs ...any) {
-	args := []any{"event", event, "user_id", userID}
+	args := make([]any, 0, 4+len(attrs))
+	args = append(args, "event", event, "user_id", userID)
 	args = append(args, attrs...)
 	s.logger.Info("usermgmt: "+event, args...)
 }
@@ -201,7 +203,7 @@ type LoginResponse struct {
 
 // Login validates credentials, enforces account lockout, and opens a session.
 // Returns ErrInvalidCredentials, ErrAccountLocked, or ErrValidation on failure.
-func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
+func (s *Service) Login(_ context.Context, req LoginRequest) (*LoginResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -236,7 +238,10 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 
 // Logout deletes the session associated with the given token.
 func (s *Service) Logout(_ context.Context, token string) error {
-	return s.sessions.Delete(token)
+	if err := s.sessions.Delete(token); err != nil {
+		return fmt.Errorf("logout: %w", err)
+	}
+	return nil
 }
 
 // Authenticate validates a session token and returns the associated User.
@@ -272,7 +277,11 @@ func (s *Service) Authorize(_ context.Context, sub, dom, obj string, act Action)
 
 // GetUser retrieves a user by ID.
 func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
-	return s.users.FindByID(id)
+	u, err := s.users.FindByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("get user: %w", err)
+	}
+	return u, nil
 }
 
 // UpdateRoles replaces the user's roles in both the Casbin policy and the user store.
@@ -317,7 +326,10 @@ func (s *Service) UpdateRoles(
 
 	user.Roles = roles
 	user.UpdatedAt = time.Now().UTC()
-	return s.users.Save(user)
+	if err := s.users.Save(user); err != nil {
+		return fmt.Errorf("save user %q after role update: %w", userID, err)
+	}
+	return nil
 }
 
 func formatRoles(roles []Role) string {
@@ -357,5 +369,8 @@ func (s *Service) ChangePassword(
 		return errors.Wrapf(err, "set password for user %q", userID)
 	}
 
-	return s.users.Save(user)
+	if err := s.users.Save(user); err != nil {
+		return fmt.Errorf("save user %q after password change: %w", userID, err)
+	}
+	return nil
 }

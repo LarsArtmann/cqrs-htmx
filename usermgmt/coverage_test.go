@@ -203,7 +203,8 @@ func TestNewService_WithLogger(t *testing.T) {
 }
 
 func TestUserFromContext_NilContext(t *testing.T) {
-	var nilCtx context.Context //nolint:staticcheck // intentionally testing nil-safety
+	var nilCtx context.Context // intentionally testing nil-safety
+	_ = nilCtx
 	user, ok := UserFromContext(nilCtx)
 	if ok || user != nil {
 		t.Error("expected nil/false from nil context")
@@ -336,7 +337,9 @@ func TestService_Login_AccountLocked(t *testing.T) {
 
 	registerTestUser(t, svc, "u1", "locked@test.com", "secret12")
 
+	//nolint:errcheck // intentionally triggering lockout
 	svc.Login(ctx, LoginRequest{Email: "locked@test.com", Password: "wrong1"})
+	//nolint:errcheck // intentionally triggering lockout
 	svc.Login(ctx, LoginRequest{Email: "locked@test.com", Password: "wrong2"})
 
 	_, err := svc.Login(ctx, LoginRequest{Email: "locked@test.com", Password: "secret12"})
