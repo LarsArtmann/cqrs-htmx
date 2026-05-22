@@ -19,6 +19,10 @@ type AuthHandler struct {
 }
 
 // HandlerConfig controls cookie and session settings for AuthHandler.
+// When passed to NewAuthHandler, all fields replace the defaults.
+// Note: Secure defaults to true when no config is provided, but passing
+// HandlerConfig{} without setting Secure will set it to false.
+// Always set Secure: true explicitly in production.
 type HandlerConfig struct {
 	// CookieName is the session cookie name. Defaults to "session_token".
 	CookieName string
@@ -44,6 +48,7 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 		}
 		config.Secure = cfg[0].Secure
 		config.SessionMaxAge = cfg[0].SessionMaxAge
+		config.Timeout = cfg[0].Timeout
 	}
 	return &AuthHandler{
 		service:       service,
@@ -215,7 +220,8 @@ func errorStatus(err error) int {
 	case errors.Is(err, ErrForbidden):
 		return http.StatusForbidden
 	case errors.Is(err, ErrUserNotFound),
-		errors.Is(err, ErrSessionNotFound):
+		errors.Is(err, ErrSessionNotFound),
+		errors.Is(err, ErrUserIDExists):
 		return http.StatusNotFound
 	default:
 		return http.StatusInternalServerError

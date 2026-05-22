@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 97.0% root, 91.2% usermgmt (330+ tests)                                              |
+| Coverage | 96.6% root, 91.3% usermgmt (340+ tests)                                              |
 
 ## Architecture
 
@@ -152,6 +152,13 @@ cqrs-htmx/
 45. **go.work includes integration_test**: `go.work` lists root, usermgmt, and integration_test. datastar-demo is NOT included (it doesn't import sibling modules). integration_test keeps its `replace` directives for `GOWORK=off` CI usage
 46. **datastar-demo is standalone**: `examples/datastar-demo/` has its own go.mod but does NOT import the cqrs-htmx root library. It's a go-cqrs-lite + datastar SSE example. Uses go-cqrs-lite/core v1.5.0 (root uses v1.4.0)
 47. **CI tests all 4 modules**: CI builds root, usermgmt, integration_test, and datastar-demo. Tests run for root, usermgmt, and integration_test (datastar-demo is a main package with no tests)
+48. **Validate uses pointer receiver**: `RegisterRequest.Validate()` and `LoginRequest.Validate()` use `*T` receivers — trimmed Email/DisplayName are persisted in-place to the caller's struct. Was a value receiver bug, fixed 2026-05-22
+49. **Max password length 128**: `maxPasswordLength = 128` enforced in both `RegisterRequest.Validate()` and `Service.ChangePassword()`. Prevents bcrypt CPU abuse (bcrypt only uses first 72 bytes anyway)
+50. **ErrUserIDExists sentinel**: `store.Create` returns typed `ErrUserIDExists` (not untyped `errors.Newf`). Mapped to HTTP 404 in `errorStatus`. Consistent with `ErrEmailExists` pattern
+51. **HandlerConfig.Timeout propagation**: `NewAuthHandler` copies `cfg[0].Timeout` to the handler config. Was a bug — timeout from config was silently dropped before 2026-05-22 fix
+52. **HandlerConfig.Secure zero-value caveat**: `Secure` defaults to `true` when NO config is passed, but `HandlerConfig{}` (zero-value Secure=false) overrides it to false. Always set `Secure: true` explicitly in production. Documented on `HandlerConfig` type
+53. **WriteJSON returns error**: `WriteJSON` returns `error` from `json.Encoder.Encode` (was silently swallowed). Callers should check the return value
+54. **usermgmt coverage 91.3%** (up from 91.2%), **root coverage 96.6%**
 
 ## Test Commands
 

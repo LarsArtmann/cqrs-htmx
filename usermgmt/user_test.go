@@ -206,8 +206,8 @@ func TestInMemoryUserStore_CreateDuplicateID(t *testing.T) {
 	_ = store.Create(u)
 
 	u2 := NewUser(NewUserID("dup-id"), "other@b.com", "Other")
-	if err := store.Create(u2); err == nil {
-		t.Error("expected error for duplicate user ID")
+	if err := store.Create(u2); !errors.Is(err, ErrUserIDExists) {
+		t.Errorf("expected ErrUserIDExists, got %v", err)
 	}
 }
 

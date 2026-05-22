@@ -246,6 +246,7 @@ func TestErrorStatus(t *testing.T) {
 		{ErrForbidden, http.StatusForbidden},
 		{ErrUserNotFound, http.StatusNotFound},
 		{ErrSessionNotFound, http.StatusNotFound},
+		{ErrUserIDExists, http.StatusNotFound},
 		{ErrValidation, http.StatusBadRequest},
 		{ErrAccountLocked, http.StatusTooManyRequests},
 	}

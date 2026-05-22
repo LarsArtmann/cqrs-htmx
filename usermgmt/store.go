@@ -26,6 +26,9 @@ type SessionStore interface {
 
 // InMemoryUserStore is a thread-safe, in-memory implementation of UserStore.
 // It maintains an email index for O(1) lookups by email.
+//
+// Warning: Not suitable for production. Data is lost on process restart and memory
+// grows unbounded as users are added. Use a persistent store (SQL, etc.) in production.
 type InMemoryUserStore struct {
 	mu     sync.RWMutex
 	users  map[UserID]*User
@@ -90,7 +93,7 @@ func (s *InMemoryUserStore) Create(user *User) error {
 		return ErrEmailExists
 	}
 	if _, ok := s.users[user.ID]; ok {
-		return errors.Newf("user ID %s already exists", user.ID)
+		return ErrUserIDExists
 	}
 	user.UpdatedAt = time.Now().UTC()
 	s.users[user.ID] = user
@@ -110,6 +113,10 @@ func (s *InMemoryUserStore) Delete(id UserID) error {
 }
 
 // InMemorySessionStore is a thread-safe, in-memory implementation of SessionStore.
+//
+// Warning: Not suitable for production. Sessions are lost on process restart and the
+// sessions map grows without bound. Expired sessions are never cleaned up automatically.
+// Use a persistent store (Redis, SQL, etc.) in production.
 type InMemorySessionStore struct {
 	mu       sync.RWMutex
 	sessions map[string]*Session
