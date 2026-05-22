@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	defaultSessionTTL  = 24 * time.Hour
-	minPasswordLength  = 8
-	maxPasswordLength  = 128
+	defaultSessionTTL = 24 * time.Hour
+	minPasswordLength = 8
+	maxPasswordLength = 128
 )
 
 // Service orchestrates user registration, authentication, authorization, and session management.

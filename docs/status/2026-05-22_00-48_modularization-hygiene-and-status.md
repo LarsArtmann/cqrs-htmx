@@ -7,18 +7,18 @@
 
 ## TL;DR
 
-| Metric | Value |
-|--------|-------|
-| Root coverage | **96.6%** (116 test cases) |
-| Usermgmt coverage | **91.2%** (39 test cases) |
-| Integration tests | **4 passing** |
-| Lint warnings | **0** |
-| Build | **All 4 modules pass** |
-| Race detector | **Clean** |
-| Git status | **Clean** (on master) |
-| Production files | 30 (18 root + 12 usermgmt) |
-| Total LOC | 11,615 (8,285 root + 3,330 usermgmt) |
-| Exported symbols | 246 (151 root + 95 usermgmt) |
+| Metric            | Value                                |
+| ----------------- | ------------------------------------ |
+| Root coverage     | **96.6%** (116 test cases)           |
+| Usermgmt coverage | **91.2%** (39 test cases)            |
+| Integration tests | **4 passing**                        |
+| Lint warnings     | **0**                                |
+| Build             | **All 4 modules pass**               |
+| Race detector     | **Clean**                            |
+| Git status        | **Clean** (on master)                |
+| Production files  | 30 (18 root + 12 usermgmt)           |
+| Total LOC         | 11,615 (8,285 root + 3,330 usermgmt) |
+| Exported symbols  | 246 (151 root + 95 usermgmt)         |
 
 ---
 
@@ -35,15 +35,15 @@
 
 All 10 lint warnings fixed:
 
-| File | Linter | Fix |
-|------|--------|-----|
+| File                         | Linter                | Fix                                                            |
+| ---------------------------- | --------------------- | -------------------------------------------------------------- |
 | `logging.go:150,158,213,219` | revive (missing docs) | Added doc comments to `WriteHeader`, `Push`, `Flush`, `Hijack` |
-| `httputil.go:15` | errcheck | Checked `json.Encode` return value |
-| `ratelimit.go:240` | forcetypeassert | Checked `heap.Pop().(*evictionEntry)` |
-| `ratelimit.go:260` | forcetypeassert | Checked `x.(*evictionEntry)` in `Push` |
-| `ratelimit.go:255` | recvcheck | Changed `evictionHeap` to all pointer receivers |
-| `logging_test.go:235` | exhaustruct | Added `ResponseWriter` field to `mockPusher` literal |
-| `testing_test.go:280` | noctx | Changed to `httptest.NewRequestWithContext` |
+| `httputil.go:15`             | errcheck              | Checked `json.Encode` return value                             |
+| `ratelimit.go:240`           | forcetypeassert       | Checked `heap.Pop().(*evictionEntry)`                          |
+| `ratelimit.go:260`           | forcetypeassert       | Checked `x.(*evictionEntry)` in `Push`                         |
+| `ratelimit.go:255`           | recvcheck             | Changed `evictionHeap` to all pointer receivers                |
+| `logging_test.go:235`        | exhaustruct           | Added `ResponseWriter` field to `mockPusher` literal           |
+| `testing_test.go:280`        | noctx                 | Changed to `httptest.NewRequestWithContext`                    |
 
 ### 3. Modularization Assessment (This Session)
 
@@ -76,31 +76,32 @@ All 10 lint warnings fixed:
 
 21 functions below 100% coverage. Key gaps:
 
-| Function | Coverage | Gap |
-|----------|----------|-----|
-| `logging.go:223` Hijack | 60.0% | Error path (non-Hijacker underlying writer) |
-| `csrf.go:113` sameSite | 66.7% | Default case |
-| `csrf.go:208` csrfTokenFromRequest | 66.7% | Context fallback path |
-| `httputil.go:12` WriteJSON | 75.0% | Error branch after errcheck fix |
-| `ratelimit.go:264` Push | 75.0% | Eviction heap Push type assertion failure |
-| `response.go:188` sanitizeRedirectURL | 87.5% | Edge cases (opaque, host, scheme) |
+| Function                              | Coverage | Gap                                         |
+| ------------------------------------- | -------- | ------------------------------------------- |
+| `logging.go:223` Hijack               | 60.0%    | Error path (non-Hijacker underlying writer) |
+| `csrf.go:113` sameSite                | 66.7%    | Default case                                |
+| `csrf.go:208` csrfTokenFromRequest    | 66.7%    | Context fallback path                       |
+| `httputil.go:12` WriteJSON            | 75.0%    | Error branch after errcheck fix             |
+| `ratelimit.go:264` Push               | 75.0%    | Eviction heap Push type assertion failure   |
+| `response.go:188` sanitizeRedirectURL | 87.5%    | Edge cases (opaque, host, scheme)           |
 
 ### 2. Coverage Gaps — Usermgmt (91.2%)
 
 22 functions below 100% coverage. Key gaps:
 
-| Function | Coverage | Gap |
-|----------|----------|-----|
-| `http.go:133` handleLogout | 64.3% | Error paths, timeout path |
-| `authz.go:228` Apply | 69.2% | Policy update failure, remove-only path |
-| `user.go:140` generateToken | 75.0% | Token generation error |
-| `authz.go:182` EnforceEx | 75.0% | Denied + error paths |
-| `http.go:104` handleAuthEndpoint | 80.0% | Timeout path, error paths |
-| `service.go:136` Register | 78.6% | Duplicate ID, validation failure |
+| Function                         | Coverage | Gap                                     |
+| -------------------------------- | -------- | --------------------------------------- |
+| `http.go:133` handleLogout       | 64.3%    | Error paths, timeout path               |
+| `authz.go:228` Apply             | 69.2%    | Policy update failure, remove-only path |
+| `user.go:140` generateToken      | 75.0%    | Token generation error                  |
+| `authz.go:182` EnforceEx         | 75.0%    | Denied + error paths                    |
+| `http.go:104` handleAuthEndpoint | 80.0%    | Timeout path, error paths               |
+| `service.go:136` Register        | 78.6%    | Duplicate ID, validation failure        |
 
 ### 3. Magic Strings in usermgmt
 
 Identified but not extracted:
+
 - `"Bearer "` prefix in middleware.go
 - `"session_token"` cookie name in http.go
 - Password-related messages in service.go
@@ -169,53 +170,53 @@ No regressions, no broken tests, no failing builds, no lint warnings. Clean stat
 
 ### P0 — Build/Test Integrity
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Push all changes to origin/master | Uncommitted hygiene work goes live | 1 min |
-| 2 | Verify CI passes on GitHub (all 4 modules) | Confirm pipeline works in CI | 5 min |
-| 3 | Fix `usermgmt/coverage_test.go:206` nil context (gopls SA1012) | Static analysis hygiene | 2 min |
+| #   | Task                                                           | Impact                             | Effort |
+| --- | -------------------------------------------------------------- | ---------------------------------- | ------ |
+| 1   | Push all changes to origin/master                              | Uncommitted hygiene work goes live | 1 min  |
+| 2   | Verify CI passes on GitHub (all 4 modules)                     | Confirm pipeline works in CI       | 5 min  |
+| 3   | Fix `usermgmt/coverage_test.go:206` nil context (gopls SA1012) | Static analysis hygiene            | 2 min  |
 
 ### P1 — Coverage
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 4 | Root: add `Hijack` error path test (60% → 100%) | logging.go coverage | 10 min |
-| 5 | Root: add `sameSite` default case test (66.7% → 100%) | csrf.go coverage | 5 min |
-| 6 | Root: add `csrfTokenFromRequest` context fallback test (66.7% → 100%) | csrf.go coverage | 5 min |
-| 7 | Root: add `WriteJSON` error branch test (75% → 100%) | httputil.go coverage | 5 min |
-| 8 | Usermgmt: add `handleLogout` error/timeout tests (64.3% → 100%) | http.go coverage | 15 min |
-| 9 | Usermgmt: add `Apply` failure path tests (69.2% → 100%) | authz.go coverage | 10 min |
-| 10 | Usermgmt: add `EnforceEx` denied+error tests (75% → 100%) | authz.go coverage | 10 min |
+| #   | Task                                                                  | Impact               | Effort |
+| --- | --------------------------------------------------------------------- | -------------------- | ------ |
+| 4   | Root: add `Hijack` error path test (60% → 100%)                       | logging.go coverage  | 10 min |
+| 5   | Root: add `sameSite` default case test (66.7% → 100%)                 | csrf.go coverage     | 5 min  |
+| 6   | Root: add `csrfTokenFromRequest` context fallback test (66.7% → 100%) | csrf.go coverage     | 5 min  |
+| 7   | Root: add `WriteJSON` error branch test (75% → 100%)                  | httputil.go coverage | 5 min  |
+| 8   | Usermgmt: add `handleLogout` error/timeout tests (64.3% → 100%)       | http.go coverage     | 15 min |
+| 9   | Usermgmt: add `Apply` failure path tests (69.2% → 100%)               | authz.go coverage    | 10 min |
+| 10  | Usermgmt: add `EnforceEx` denied+error tests (75% → 100%)             | authz.go coverage    | 10 min |
 
 ### P2 — Code Quality
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 11 | Extract magic strings in usermgmt (`"Bearer "`, `"session_token"`, etc.) | Maintainability | 15 min |
-| 12 | Migrate from deprecated `CatalogMeta` to zero-cost catalog API | Future-proofing | 30 min |
-| 13 | Upgrade root `go-cqrs-lite/core` v1.4.0 → v1.5.0 | Version alignment | 15 min |
-| 14 | Resolve `usermgmt/` `writeJSON` duplication decision | Architecture clarity | 10 min |
-| 15 | Consolidate `ErrForbidden`/`ErrUnauthorized` across modules | Consistency | 20 min |
+| #   | Task                                                                     | Impact               | Effort |
+| --- | ------------------------------------------------------------------------ | -------------------- | ------ |
+| 11  | Extract magic strings in usermgmt (`"Bearer "`, `"session_token"`, etc.) | Maintainability      | 15 min |
+| 12  | Migrate from deprecated `CatalogMeta` to zero-cost catalog API           | Future-proofing      | 30 min |
+| 13  | Upgrade root `go-cqrs-lite/core` v1.4.0 → v1.5.0                         | Version alignment    | 15 min |
+| 14  | Resolve `usermgmt/` `writeJSON` duplication decision                     | Architecture clarity | 10 min |
+| 15  | Consolidate `ErrForbidden`/`ErrUnauthorized` across modules              | Consistency          | 20 min |
 
 ### P3 — Documentation & DX
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 16 | Update README.md to mention all 4 modules | Consumer clarity | 10 min |
-| 17 | Update FEATURES.md with current feature inventory | Onboarding | 15 min |
-| 18 | Update TODO_LIST.md with current task statuses | Planning | 10 min |
-| 19 | Add basic HTMX + templ example that uses the library | DX | 30 min |
-| 20 | Clarify datastar-demo ownership (move to go-cqrs-lite?) | Repo hygiene | 5 min |
+| #   | Task                                                    | Impact           | Effort |
+| --- | ------------------------------------------------------- | ---------------- | ------ |
+| 16  | Update README.md to mention all 4 modules               | Consumer clarity | 10 min |
+| 17  | Update FEATURES.md with current feature inventory       | Onboarding       | 15 min |
+| 18  | Update TODO_LIST.md with current task statuses          | Planning         | 10 min |
+| 19  | Add basic HTMX + templ example that uses the library    | DX               | 30 min |
+| 20  | Clarify datastar-demo ownership (move to go-cqrs-lite?) | Repo hygiene     | 5 min  |
 
 ### P4 — Future
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 21 | Explore SSE/WebSocket helper submodule | New capability | 2 hrs |
-| 22 | Investigate `TypedHandler[T]` adoption for cqrs-htmx consumers | Type safety | 1 hr |
-| 23 | Add more integration tests (cross-module scenarios) | Reliability | 30 min |
-| 24 | Consider package-level organization within root (sub-packages) | API surface | 4 hrs |
-| 25 | Create v1.0.0 release checklist | Release readiness | 1 hr |
+| #   | Task                                                           | Impact            | Effort |
+| --- | -------------------------------------------------------------- | ----------------- | ------ |
+| 21  | Explore SSE/WebSocket helper submodule                         | New capability    | 2 hrs  |
+| 22  | Investigate `TypedHandler[T]` adoption for cqrs-htmx consumers | Type safety       | 1 hr   |
+| 23  | Add more integration tests (cross-module scenarios)            | Reliability       | 30 min |
+| 24  | Consider package-level organization within root (sub-packages) | API surface       | 4 hrs  |
+| 25  | Create v1.0.0 release checklist                                | Release readiness | 1 hr   |
 
 ---
 
@@ -224,12 +225,14 @@ No regressions, no broken tests, no failing builds, no lint warnings. Clean stat
 **What is the intended relationship between `examples/datastar-demo/` and the `cqrs-htmx` library?**
 
 The datastar-demo:
+
 - Has its own `go.mod` (v1.5.0 go-cqrs-lite, datastar-go)
 - Does NOT import `github.com/larsartmann/cqrs-htmx` at all
 - Is a standalone go-cqrs-lite + Datastar SSE example
 - Lives under `examples/` but demonstrates a different library's capabilities
 
 Options:
+
 1. **Keep as-is** — it's a companion example showing the CQRS pattern that cqrs-htmx builds upon
 2. **Restructure to use cqrs-htmx** — make it demonstrate the library (but it uses Datastar, not HTMX)
 3. **Move to go-cqrs-lite repo** — it's actually a go-cqrs-lite example, not a cqrs-htmx example
@@ -269,15 +272,15 @@ github.com/larsartmann/cqrs-htmx/examples/datastar-demo
 
 ## Key Metrics Trend
 
-| Metric | 2026-05-19 | 2026-05-22 | Delta |
-|--------|-----------|-----------|-------|
-| Root coverage | 97.0% | 96.6% | -0.4% (errcheck fix added code) |
-| Usermgmt coverage | 91.2% | 91.2% | — |
-| Lint warnings | 10 | 0 | **-10** |
-| CI modules tested | 2 | 4 | **+2** |
-| go.work modules | 2 | 3 | **+1** |
-| Production files | 30 | 30 | — |
-| Exported symbols | 246 | 246 | — |
+| Metric            | 2026-05-19 | 2026-05-22 | Delta                           |
+| ----------------- | ---------- | ---------- | ------------------------------- |
+| Root coverage     | 97.0%      | 96.6%      | -0.4% (errcheck fix added code) |
+| Usermgmt coverage | 91.2%      | 91.2%      | —                               |
+| Lint warnings     | 10         | 0          | **-10**                         |
+| CI modules tested | 2          | 4          | **+2**                          |
+| go.work modules   | 2          | 3          | **+1**                          |
+| Production files  | 30         | 30         | —                               |
+| Exported symbols  | 246        | 246        | —                               |
 
 ---
 

@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 96.6% root, 91.3% usermgmt (340+ tests)                                              |
+| Coverage | 96.6% root, 91.3% usermgmt (340+ tests)                                           |
 
 ## Architecture
 

@@ -16,31 +16,31 @@ Fix module hygiene across all 4 Go modules: tidy integration_test, upgrade datas
 
 ### Tier 1: Foundational (1% → 51% impact)
 
-| #  | Task | Dependencies | Effort | Verification | Rollback |
-|----|------|-------------|--------|-------------|----------|
-| T1 | Fix integration_test go.mod (go mod tidy) | None | 2 min | `go build ./...` passes in integration_test | `git checkout -- integration_test/go.mod integration_test/go.sum` |
-| T2 | Upgrade datastar-demo deps to match root | None | 5 min | `go build ./...` passes in datastar-demo | `git checkout -- examples/datastar-demo/go.mod examples/datastar-demo/go.sum` |
+| #   | Task                                      | Dependencies | Effort | Verification                                | Rollback                                                                      |
+| --- | ----------------------------------------- | ------------ | ------ | ------------------------------------------- | ----------------------------------------------------------------------------- |
+| T1  | Fix integration_test go.mod (go mod tidy) | None         | 2 min  | `go build ./...` passes in integration_test | `git checkout -- integration_test/go.mod integration_test/go.sum`             |
+| T2  | Upgrade datastar-demo deps to match root  | None         | 5 min  | `go build ./...` passes in datastar-demo    | `git checkout -- examples/datastar-demo/go.mod examples/datastar-demo/go.sum` |
 
 ### Tier 2: High Leverage (4% → 64% impact)
 
-| #  | Task | Dependencies | Effort | Verification | Rollback |
-|----|------|-------------|--------|-------------|----------|
-| T3 | Update go.work to include integration_test | T1 | 2 min | `go work sync` succeeds, all modules build | `git checkout -- go.work go.work.sum` |
-| T4 | Update CI to test all 4 modules | T1, T2 | 10 min | CI pipeline passes | `git checkout -- .github/workflows/ci.yml` |
+| #   | Task                                       | Dependencies | Effort | Verification                               | Rollback                                   |
+| --- | ------------------------------------------ | ------------ | ------ | ------------------------------------------ | ------------------------------------------ |
+| T3  | Update go.work to include integration_test | T1           | 2 min  | `go work sync` succeeds, all modules build | `git checkout -- go.work go.work.sum`      |
+| T4  | Update CI to test all 4 modules            | T1, T2       | 10 min | CI pipeline passes                         | `git checkout -- .github/workflows/ci.yml` |
 
 ### Tier 3: Broad Value (20% → 80% impact)
 
-| #  | Task | Dependencies | Effort | Verification | Rollback |
-|----|------|-------------|--------|-------------|----------|
-| T5 | Fix 10 lint warnings (revive, errcheck, forcetypeassert, recvcheck, exhaustruct, noctx) | None | 15 min | `golangci-lint run` reports 0 issues | Fix forward or `git checkout -- <files>` |
-| T6 | Run full test suite across all modules | T1, T2, T3 | 5 min | All tests pass with race detection | N/A (read-only verification) |
+| #   | Task                                                                                    | Dependencies | Effort | Verification                         | Rollback                                 |
+| --- | --------------------------------------------------------------------------------------- | ------------ | ------ | ------------------------------------ | ---------------------------------------- |
+| T5  | Fix 10 lint warnings (revive, errcheck, forcetypeassert, recvcheck, exhaustruct, noctx) | None         | 15 min | `golangci-lint run` reports 0 issues | Fix forward or `git checkout -- <files>` |
+| T6  | Run full test suite across all modules                                                  | T1, T2, T3   | 5 min  | All tests pass with race detection   | N/A (read-only verification)             |
 
 ### Tier 4: Polish
 
-| #  | Task | Dependencies | Effort | Verification | Rollback |
-|----|------|-------------|--------|-------------|----------|
-| T7 | Update AGENTS.md with modularization findings | T6 | 5 min | AGENTS.md reflects current state | `git checkout -- AGENTS.md` |
-| T8 | Update modularization docs | T6 | 5 min | Docs reflect final state | `git checkout -- docs/modularization/` |
+| #   | Task                                          | Dependencies | Effort | Verification                     | Rollback                               |
+| --- | --------------------------------------------- | ------------ | ------ | -------------------------------- | -------------------------------------- |
+| T7  | Update AGENTS.md with modularization findings | T6           | 5 min  | AGENTS.md reflects current state | `git checkout -- AGENTS.md`            |
+| T8  | Update modularization docs                    | T6           | 5 min  | Docs reflect final state         | `git checkout -- docs/modularization/` |
 
 ---
 
@@ -95,6 +95,7 @@ Do NOT add datastar-demo (it doesn't import sibling modules).
 ### T5: Fix lint warnings
 
 10 warnings to fix:
+
 1. logging.go:150 — WriteHeader missing doc
 2. logging.go:158 — Push missing doc
 3. logging.go:213 — Flush missing doc
@@ -109,6 +110,7 @@ Do NOT add datastar-demo (it doesn't import sibling modules).
 ### T4: Update CI
 
 Add steps for:
+
 - Build + test integration_test
 - Build datastar-demo
 
@@ -125,9 +127,9 @@ cd examples/datastar-demo && GOWORK=off go build ./...
 
 ## Risk Assessment
 
-| Risk | Likelihood | Mitigation |
-|------|-----------|------------|
-| go.work breaks consumer builds | Low | go.work ignored by consumers; only affects local dev |
-| datastar-demo v1.5.0 has breaking changes from v1.4.0 | Low | Demo already builds and runs on v1.5.0 |
-| integration_test replace directives conflict with go.work | Medium | Remove replace directives from integration_test after adding to go.work |
-| CI changes break pipeline | Low | Test locally first |
+| Risk                                                      | Likelihood | Mitigation                                                              |
+| --------------------------------------------------------- | ---------- | ----------------------------------------------------------------------- |
+| go.work breaks consumer builds                            | Low        | go.work ignored by consumers; only affects local dev                    |
+| datastar-demo v1.5.0 has breaking changes from v1.4.0     | Low        | Demo already builds and runs on v1.5.0                                  |
+| integration_test replace directives conflict with go.work | Medium     | Remove replace directives from integration_test after adding to go.work |
+| CI changes break pipeline                                 | Low        | Test locally first                                                      |
