@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	defaultSessionTTL = 24 * time.Hour
-	minPasswordLength = 8
+	defaultSessionTTL  = 24 * time.Hour
+	minPasswordLength  = 8
+	maxPasswordLength  = 128
 )
 
 // Service orchestrates user registration, authentication, authorization, and session management.
@@ -86,6 +87,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 }
 
 // Authz returns the underlying authorization engine for direct policy queries.
+// Mutations to the returned Authz affect the Service's authorization behavior.
 func (s *Service) Authz() *Authz { return s.authz }
 
 // RegisterRequest is the input for user registration.
@@ -106,7 +108,8 @@ func formatValidationErrors(errs []string) error {
 
 // Validate checks the RegisterRequest fields and returns ErrValidation with
 // a joined list of problems if any field is invalid.
-func (r RegisterRequest) Validate() error {
+// It trims leading/trailing whitespace from Email and DisplayName in-place.
+func (r *RegisterRequest) Validate() error {
 	var errs []string
 	r.Email = strings.TrimSpace(r.Email)
 	r.DisplayName = strings.TrimSpace(r.DisplayName)
@@ -118,6 +121,8 @@ func (r RegisterRequest) Validate() error {
 	}
 	if len(r.Password) < minPasswordLength {
 		errs = append(errs, "password must be at least 8 characters")
+	} else if len(r.Password) > maxPasswordLength {
+		errs = append(errs, "password must be under 128 characters")
 	}
 	if len(r.DisplayName) > 100 {
 		errs = append(errs, "display name must be under 100 characters")
@@ -175,7 +180,8 @@ type LoginRequest struct {
 }
 
 // Validate checks that email and password are non-empty.
-func (r LoginRequest) Validate() error {
+// It trims leading/trailing whitespace from Email in-place.
+func (r *LoginRequest) Validate() error {
 	var errs []string
 	r.Email = strings.TrimSpace(r.Email)
 	if r.Email == "" {
@@ -341,6 +347,10 @@ func (s *Service) ChangePassword(
 	if len(newPassword) < minPasswordLength {
 		return errors.WithMessagef(ErrValidation,
 			"password must be at least 8 characters for user %q", userID)
+	}
+	if len(newPassword) > maxPasswordLength {
+		return errors.WithMessagef(ErrValidation,
+			"password must be under 128 characters for user %q", userID)
 	}
 
 	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {

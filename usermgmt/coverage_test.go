@@ -203,7 +203,8 @@ func TestNewService_WithLogger(t *testing.T) {
 }
 
 func TestUserFromContext_NilContext(t *testing.T) {
-	user, ok := UserFromContext(nil) //nolint:staticcheck // intentionally testing nil-safety
+	var nilCtx context.Context //nolint:staticcheck // intentionally testing nil-safety
+	user, ok := UserFromContext(nilCtx)
 	if ok || user != nil {
 		t.Error("expected nil/false from nil context")
 	}
@@ -360,9 +361,7 @@ func TestService_Register_DuplicateUserID(t *testing.T) {
 	_, err := svc.Register(ctx, RegisterRequest{
 		ID: NewUserID("u1"), Email: "second@test.com", Password: "secret12",
 	})
-	if err == nil {
-		t.Error("expected error for duplicate user ID")
-	}
+	assertErrorIs(t, err, ErrUserIDExists, "ErrUserIDExists for duplicate user ID")
 }
 
 func TestSessionMiddleware_WithCookie(t *testing.T) {
@@ -462,5 +461,13 @@ func TestNewAuthHandler_Defaults(t *testing.T) {
 	}
 	if !h.secure {
 		t.Error("expected secure=true by default")
+	}
+}
+
+func TestNewAuthHandler_TimeoutPropagated(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{Timeout: 5 * time.Second})
+	if h.timeout != 5*time.Second {
+		t.Errorf("expected 5s timeout, got %v", h.timeout)
 	}
 }

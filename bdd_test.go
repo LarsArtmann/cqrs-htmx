@@ -155,14 +155,15 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 					return &bddListUsersQuery{}, nil
 				}),
 				cqrshtmx.RenderTemplResult(func(result []bddUser) cqrshtmx.TemplComponent {
-					html := "<ul>"
 					var sb strings.Builder
+					sb.WriteString("<ul>")
 					for _, u := range result {
-						sb.WriteString("<li>" + u.Name + "</li>")
+						sb.WriteString("<li>")
+						sb.WriteString(u.Name)
+						sb.WriteString("</li>")
 					}
-					html += sb.String()
-					html += "</ul>"
-					return &bddTemplComponent{html: html}
+					sb.WriteString("</ul>")
+					return &bddTemplComponent{html: sb.String()}
 				}),
 			), r)
 			Expect(w.code()).To(Equal(http.StatusOK))

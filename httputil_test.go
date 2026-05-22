@@ -17,7 +17,8 @@ var _ = Describe("HTTP Utilities", func() {
 		It("writes JSON with the given status code", func() {
 			w := httptest.NewRecorder()
 
-			cqrshtmx.WriteJSON(w, http.StatusCreated, map[string]string{"name": "test"})
+			data := map[string]string{"name": "test"}
+			Expect(cqrshtmx.WriteJSON(w, http.StatusCreated, data)).To(Succeed())
 
 			Expect(w.Code).To(Equal(http.StatusCreated))
 			Expect(w.Header().Get("Content-Type")).To(Equal("application/json"))
@@ -30,7 +31,7 @@ var _ = Describe("HTTP Utilities", func() {
 		It("writes an empty object for nil value", func() {
 			w := httptest.NewRecorder()
 
-			cqrshtmx.WriteJSON(w, http.StatusOK, nil)
+			Expect(cqrshtmx.WriteJSON(w, http.StatusOK, nil)).To(Succeed())
 
 			Expect(w.Code).To(Equal(http.StatusOK))
 			Expect(w.Body.String()).To(Equal("null\n"))

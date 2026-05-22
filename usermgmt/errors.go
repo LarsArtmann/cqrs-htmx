@@ -5,6 +5,8 @@ import "github.com/cockroachdb/errors"
 var (
 	// ErrUserNotFound is returned when a user cannot be located by ID.
 	ErrUserNotFound = errors.New("user not found")
+	// ErrUserIDExists is returned when attempting to create a user with an ID that already exists.
+	ErrUserIDExists = errors.New("user ID already exists")
 	// ErrEmailExists is returned when attempting to register an email that is already taken.
 	ErrEmailExists = errors.New("email already registered")
 	// ErrInvalidCredentials is returned when login fails due to wrong email or password.

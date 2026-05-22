@@ -19,6 +19,9 @@ type LockoutConfig struct {
 }
 
 // AccountLockout tracks failed login attempts per email and enforces temporary lockouts.
+// Lockout state is held in-memory and lost on process restart. The internal maps grow
+// unbounded with unique email addresses — in high-cardinality scenarios, pair with a
+// TTL-based eviction strategy or use a distributed store.
 type AccountLockout struct {
 	mu       sync.RWMutex
 	config   LockoutConfig

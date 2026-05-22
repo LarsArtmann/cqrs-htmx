@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 )
@@ -254,6 +255,69 @@ func TestService_UpdateRoles_UserNotFound(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for nonexistent user")
 	}
+}
+
+func TestService_Register_TrimmedEmail(t *testing.T) {
+	svc := newTestService(t)
+	ctx := context.Background()
+
+	resp, err := svc.Register(ctx, RegisterRequest{
+		ID:       NewUserID("u1"),
+		Email:    "  spaced@test.com  ",
+		Password: "secret12",
+	})
+	if err != nil {
+		t.Fatalf("Register with trimmed email: %v", err)
+	}
+	if resp.User.Email != "spaced@test.com" {
+		t.Errorf("expected trimmed email 'spaced@test.com', got %q", resp.User.Email)
+	}
+}
+
+func TestService_Login_TrimmedEmail(t *testing.T) {
+	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "trim@test.com", "secret12")
+
+	_, err := svc.Login(ctx, LoginRequest{Email: "  trim@test.com  ", Password: "secret12"})
+	if err != nil {
+		t.Fatalf("Login with trimmed email: %v", err)
+	}
+}
+
+func TestService_Register_TrimmedDisplayName(t *testing.T) {
+	svc := newTestService(t)
+	ctx := context.Background()
+
+	resp, err := svc.Register(ctx, RegisterRequest{
+		ID:          NewUserID("u1"),
+		Email:       "trimdisplay@test.com",
+		Password:    "secret12",
+		DisplayName: "  Spaced Name  ",
+	})
+	if err != nil {
+		t.Fatalf("Register with trimmed display name: %v", err)
+	}
+	if resp.User.DisplayName != "Spaced Name" {
+		t.Errorf("expected trimmed display name 'Spaced Name', got %q", resp.User.DisplayName)
+	}
+}
+
+func TestService_Register_PasswordTooLong(t *testing.T) {
+	svc := newTestService(t)
+	ctx := context.Background()
+
+	_, err := svc.Register(ctx, RegisterRequest{
+		ID:       NewUserID("u1"),
+		Email:    "longpw@test.com",
+		Password: strings.Repeat("x", 129),
+	})
+	assertErrorIs(t, err, ErrValidation, "ErrValidation for too-long password")
+}
+
+func TestService_ChangePassword_NewPasswordTooLong(t *testing.T) {
+	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "longchange@test.com", "secret12")
+
+	err := svc.ChangePassword(ctx, NewUserID("user-1"), "secret12", strings.Repeat("y", 129))
+	assertErrorIs(t, err, ErrValidation, "ErrValidation for too-long new password")
 }
 
 func TestService_Register_NoDisplayName(t *testing.T) {
