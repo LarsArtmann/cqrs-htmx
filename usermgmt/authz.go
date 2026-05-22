@@ -1,3 +1,5 @@
+// Package usermgmt provides user registration, authentication, authorization (RBAC via Casbin),
+// session management, and account lockout for Go web applications.
 package usermgmt
 
 import (
@@ -154,12 +156,20 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 // Enforce checks whether the subject is allowed to perform the action on the
 // object within the given domain.
 func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
-	return a.enforcer.Enforce(sub, dom, obj, string(act))
+	ok, err := a.enforcer.Enforce(sub, dom, obj, string(act))
+	if err != nil {
+		return false, fmt.Errorf("enforce %s/%s/%s/%s: %w", sub, dom, obj, act, err)
+	}
+	return ok, nil
 }
 
 // EnforceAny passes arbitrary values directly to the Casbin enforcer.
 func (a *Authz) EnforceAny(rvals ...any) (bool, error) {
-	return a.enforcer.Enforce(rvals...)
+	ok, err := a.enforcer.Enforce(rvals...)
+	if err != nil {
+		return false, fmt.Errorf("enforce any: %w", err)
+	}
+	return ok, nil
 }
 
 type enforcerAdapter struct {
@@ -224,7 +234,10 @@ func policyWrapErr(msg string, p Policy) string {
 	)
 }
 
-// Apply atomically applies a batch of group and policy additions/removals.
+// Apply applies a batch of group and policy additions/removals sequentially.
+// Operations are applied in order: remove groups, remove policies, add groups, add policies.
+// If any operation fails mid-way, the policy state is partially updated — callers
+// should treat this as a best-effort operation.
 func (a *Authz) Apply(update PolicyUpdate) error {
 	for _, g := range update.RemoveGroups {
 		if _, err := a.enforcer.RemoveGroupingPolicy(
@@ -256,35 +269,55 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 // AddPolicy adds a single RBAC policy rule.
 func (a *Authz) AddPolicy(p Policy) error {
 	_, err := a.enforcer.AddPolicy(policyArgs(p)...)
-	return err
+	if err != nil {
+		return fmt.Errorf("add policy: %w", err)
+	}
+	return nil
 }
 
 // RemovePolicy removes a single RBAC policy rule.
 func (a *Authz) RemovePolicy(p Policy) error {
 	_, err := a.enforcer.RemovePolicy(policyArgs(p)...)
-	return err
+	if err != nil {
+		return fmt.Errorf("remove policy: %w", err)
+	}
+	return nil
 }
 
 // AddGroupPolicy assigns a role to a subject in a domain.
 func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
 	_, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain)
-	return err
+	if err != nil {
+		return fmt.Errorf("add group %s/%s/%s: %w", g.Subject, g.Role, g.Domain, err)
+	}
+	return nil
 }
 
 // RemoveGroupPolicy removes a role assignment from a subject in a domain.
 func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 	_, err := a.enforcer.RemoveGroupingPolicy(g.Subject, string(g.Role), g.Domain)
-	return err
+	if err != nil {
+		return fmt.Errorf("remove group %s/%s/%s: %w", g.Subject, g.Role, g.Domain, err)
+	}
+	return nil
 }
 
 // Policies returns all stored policy rules.
 func (a *Authz) Policies() ([][]string, error) {
-	return a.enforcer.GetPolicy()
+	p, err := a.enforcer.GetPolicy()
+	if err != nil {
+		return nil, fmt.Errorf("get policies: %w", err)
+	}
+	return p, nil
 }
 
 // GroupPolicies returns all stored group (role) policies.
 func (a *Authz) GroupPolicies() ([][]string, error) {
-	return a.enforcer.GetGroupingPolicy()
+	g, err := a.enforcer.GetGroupingPolicy()
+	if err != nil {
+		return nil, fmt.Errorf("get group policies: %w", err)
+	}
+	return g, nil
 }
 
 func convertRoles(roles []string) []Role {
@@ -316,17 +349,29 @@ func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, erro
 // ImplicitPermissionsForUser returns all permissions the user has in the domain,
 // including those inherited through role hierarchy.
 func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]string, error) {
-	return a.enforcer.GetImplicitPermissionsForUser(userID.Get(), domain)
+	p, err := a.enforcer.GetImplicitPermissionsForUser(userID.Get(), domain)
+	if err != nil {
+		return nil, fmt.Errorf("implicit permissions domain=%s: %w", domain, err)
+	}
+	return p, nil
 }
 
 // DomainsForUser returns all domains the user has roles in.
 func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
-	return a.enforcer.GetDomainsForUser(userID.Get())
+	d, err := a.enforcer.GetDomainsForUser(userID.Get())
+	if err != nil {
+		return nil, fmt.Errorf("domains for user: %w", err)
+	}
+	return d, nil
 }
 
 // UsersForRole returns all user IDs that have the given role in the domain.
 func (a *Authz) UsersForRole(role Role, domain string) ([]string, error) {
-	return a.enforcer.GetUsersForRole(string(role), domain)
+	u, err := a.enforcer.GetUsersForRole(string(role), domain)
+	if err != nil {
+		return nil, fmt.Errorf("users for role %s domain=%s: %w", role, domain, err)
+	}
+	return u, nil
 }
 
 func defaultPolicies() []Policy {

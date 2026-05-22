@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -36,10 +37,12 @@ type HandlerConfig struct {
 	Timeout time.Duration
 }
 
+const defaultCookieName = "session_token"
+
 // NewAuthHandler creates an AuthHandler for the given Service with optional config.
 func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 	config := HandlerConfig{
-		CookieName: "session_token",
+		CookieName: defaultCookieName,
 		Secure:     true,
 	}
 	if len(cfg) > 0 {
@@ -79,7 +82,7 @@ func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
 			var regReq RegisterRequest
 			if err := json.Unmarshal(req, &regReq); err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unmarshal register request: %w", err)
 			}
 			resp, err := h.service.Register(ctx, regReq)
 			if err != nil {
@@ -98,7 +101,7 @@ func (h *AuthHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
 			var loginReq LoginRequest
 			if err := json.Unmarshal(req, &loginReq); err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unmarshal login request: %w", err)
 			}
 			return h.service.Login(ctx, loginReq)
 		},
@@ -172,6 +175,7 @@ func (h *AuthHandler) setSessionCookie(w http.ResponseWriter, token string) {
 	if maxAge <= 0 {
 		maxAge = int(defaultSessionTTL.Seconds())
 	}
+	//nolint:gosec,exhaustruct // G124: Secure configurable; zero-valued Cookie fields intentional
 	http.SetCookie(w, &http.Cookie{
 		Name:     h.cookieName,
 		Value:    token,
@@ -184,6 +188,7 @@ func (h *AuthHandler) setSessionCookie(w http.ResponseWriter, token string) {
 }
 
 func (h *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
+	//nolint:gosec,exhaustruct // clearing cookie; zero-valued fields intentional
 	http.SetCookie(w, &http.Cookie{
 		Name:     h.cookieName,
 		Value:    "",
@@ -198,7 +203,8 @@ func (h *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
+	// After WriteHeader, nothing useful can be done — the response is committed.
+	_ = json.NewEncoder(w).Encode(v) //nolint:errchkjson // response already committed
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {

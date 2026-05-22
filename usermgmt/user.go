@@ -92,13 +92,17 @@ func (u *User) RemoveRole(role Role) {
 // MarshalJSON adds a computed "has_password" field while omitting the raw hash.
 func (u *User) MarshalJSON() ([]byte, error) {
 	type Alias User
-	return json.Marshal(&struct {
+	data, err := json.Marshal(&struct {
 		*Alias
 		HasPassword bool `json:"has_password"`
 	}{
 		Alias:       (*Alias)(u),
 		HasPassword: u.PasswordHash != "",
 	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal user: %w", err)
+	}
+	return data, nil
 }
 
 // Session represents an authenticated session tied to a user.
@@ -140,7 +144,7 @@ func (s *Session) Valid(token string) bool {
 func generateToken() (string, error) {
 	b := make([]byte, sessionTokenBytes)
 	if _, err := rand.Read(b); err != nil {
-		return "", err
+		return "", fmt.Errorf("generate session token: %w", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }

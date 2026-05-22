@@ -1,0 +1,135 @@
+version: "2"
+run:
+  timeout: 5m
+  go: 1.26.2
+  allow-parallel-runners: true
+  allow-serial-runners: true
+  issues-exit-code: 1
+  tests: true
+output:
+  formats: {}
+linters:
+  enable:
+    - bodyclose
+    - contextcheck
+    - copyloopvar
+    - cyclop
+    - dupl
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exhaustruct
+    - forcetypeassert
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gochecksumtype
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - gosec
+    - govet
+    - ineffassign
+    - interfacebloat
+    - intrange
+    - loggercheck
+    - maintidx
+    - mirror
+    - misspell
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - noctx
+    - nolintlint
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - protogetter
+    - reassign
+    - recvcheck
+    - revive
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - staticcheck
+    - thelper
+    - unconvert
+    - unparam
+    - unused
+    - usetesting
+    - wastedassign
+    - wrapcheck
+  settings:
+    exhaustruct:
+      exclude:
+        # Structs with intentional partial initialization — fields set via options/defaults
+        - 'github\.com/larsartmann/cqrs-htmx/usermgmt\.EnforcerConfig$'
+        - 'github\.com/larsartmann/cqrs-htmx/usermgmt\.HandlerConfig$'
+        - 'github\.com/larsartmann/cqrs-htmx/usermgmt\.ServiceConfig$'
+        - 'github\.com/larsartmann/cqrs-htmx/usermgmt\.PolicyUpdate$'
+        - 'github\.com/larsartmann/cqrs-htmx/usermgmt\.RegisterRequest$'
+        - 'github\.com/larsartmann/cqrs-htmx/usermgmt\.User$'
+        - 'github\.com/larsartmann/cqrs-htmx/usermgmt\.AccountLockout$'
+        - 'github\.com/larsartmann/cqrs-htmx/usermgmt\.InMemoryUserStore$'
+        - 'github\.com/larsartmann/cqrs-htmx/usermgmt\.InMemorySessionStore$'
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+  exclusions:
+    rules:
+      # Sentinel errors must be package-level vars
+      - linters:
+          - gochecknoglobals
+        text: "is a global variable"
+        path: "errors\\.go$"
+      # Test code does not wrap errors at every call site
+      - linters:
+          - wrapcheck
+        path: "_test\\.go"
+      # Test code uses partial struct literals for brevity
+      - linters:
+          - exhaustruct
+        path: "_test\\.go"
+      # Test code uses repeated test fixture strings (emails, passwords, cookie names)
+      - linters:
+          - goconst
+        path: "_test\\.go"
+      # paralleltest: adding t.Parallel() to every test is low-value noise
+      - linters:
+          - paralleltest
+        path: "_test\\.go"
+      # unparam in tests: test helpers often have unused params/returns by design
+      - linters:
+          - unparam
+        path: "_test\\.go"
+      # Test code intentionally creates cookies without Secure/HttpOnly for testing
+      - linters:
+          - gosec
+        text: "G124"
+        path: "_test\\.go"
+      # Test code intentionally ignores error returns for lockout/cleanup scenarios
+      - linters:
+          - gosec
+        text: "G104"
+        path: "_test\\.go"
+      # Test code uses standard test patterns that don't need request context
+      - linters:
+          - noctx
+        path: "_test\\.go"
+formatters:
+  enable:
+    - gci
+    - goimports
+    - gofumpt
+    - golines
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 10

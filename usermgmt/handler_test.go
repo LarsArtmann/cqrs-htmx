@@ -3,7 +3,7 @@ package usermgmt
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -274,7 +274,7 @@ func TestUserFromContextOr_Fallback(t *testing.T) {
 }
 
 func TestErrorStatus_Default(t *testing.T) {
-	got := errorStatus(fmt.Errorf("some unknown error"))
+	got := errorStatus(errors.New("some unknown error"))
 	if got != http.StatusInternalServerError {
 		t.Errorf("expected 500 for unknown error, got %d", got)
 	}
