@@ -699,4 +699,98 @@ var _ = Describe("Root Coverage Gaps", func() {
 			Expect(cqrshtmx.ClientIP(r)).To(Equal("malformed"))
 		})
 	})
+
+	Describe("StatusRecorder Hijack non-Hijacker fallback", func() {
+		It("returns ErrNotSupported when underlying writer has no Hijacker", func() {
+			rec := httptest.NewRecorder()
+			sr := cqrshtmx.NewStatusRecorder(rec)
+			_, _, err := sr.Hijack()
+			Expect(err).To(Equal(http.ErrNotSupported))
+		})
+	})
+
+	Describe("CSRF sameSite all branches", func() {
+		It("maps SameSiteDefaultMode", func() {
+			cfg := cqrshtmx.CSRFConfig{
+				Secret:   []byte(strings.Repeat("x", 32)),
+				SameSite: http.SameSiteDefaultMode,
+			}
+			mw := cqrshtmx.CSRFMiddleware(cfg)
+			handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+			Expect(w.Code).To(Equal(http.StatusOK))
+		})
+	})
+
+	Describe("csrfTokenFromRequest context fallback", func() {
+		It("falls back to context token when gorilla has none", func() {
+			ctx := cqrshtmx.WithCSRFToken(context.Background(), "ctx-token")
+			r := httptest.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
+			token := cqrshtmx.CSRFTokenFromContext(r.Context())
+			Expect(token).To(Equal("ctx-token"))
+		})
+	})
+
+	Describe("Enforce with enforcer error", func() {
+		It("wraps error from enforcer", func() {
+			enforcer := newFailingEnforcer(errors.New("internal error"))
+			err := cqrshtmx.Enforce(enforcer, "user1", "resource", "read")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("casbin enforce failed"))
+			Expect(err.Error()).To(ContainSubstring("internal error"))
+		})
+	})
+
+	Describe("applyQueryResponse render error", func() {
+		It("calls error handler when render fails", func() {
+			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
+				return testQueryResult, nil
+			})
+			renderErr := errors.New("render failed")
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			w := serve(app.Query(
+				"GetUser",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.Render(func(_ http.ResponseWriter, _ *http.Request, _ any) error {
+					return renderErr
+				}),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusServiceUnavailable))
+		})
+	})
+
+	Describe("StatusRecorder Push with actual pusher error", func() {
+		It("wraps error from underlying Pusher", func() {
+			w := newPusherRecorder(&mockPusher{
+				ResponseWriter: httptest.NewRecorder(),
+				pushFunc: func(_ string, _ *http.PushOptions) error {
+					return errors.New("push failed")
+				},
+			})
+			sr := cqrshtmx.NewStatusRecorder(w)
+			err := sr.Push("/target", nil)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("push failed"))
+		})
+	})
+
+	Describe("MapError conflict family", func() {
+		It("returns 409 for conflict family errors", func() {
+			err := fmt.Errorf("wrap: %w", event.NewConflict("test.conflict", "conflict occurred"))
+			status := cqrshtmx.MapError(err)
+			Expect(status).To(Equal(http.StatusConflict))
+		})
+	})
+
+	Describe("MapError transient family", func() {
+		It("returns 503 for transient family errors", func() {
+			err := fmt.Errorf("wrap: %w", event.NewTransient("test.transient", "temporary failure"))
+			status := cqrshtmx.MapError(err)
+			Expect(status).To(Equal(http.StatusServiceUnavailable))
+		})
+	})
 })
