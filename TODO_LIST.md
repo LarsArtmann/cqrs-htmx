@@ -126,10 +126,24 @@
 
 ### Open Items
 
-- [ ] **Resolve usermgmt vs cqrshtmx UserID type split** — `usermgmt.UserID` (string-backed) vs `cqrshtmx.UserID` (ULID-backed) are incompatible types. Decision depends on whether usermgmt is standalone or always paired with cqrs-htmx.
-- [ ] **Evaluate go-branded-id for numeric IDs** — Future SQL store backends could use `brandid.ID[Brand, int64]`.
-- [ ] **Adopt TypedHandler[T] from go-cqrs-lite v1.4.0** — Requires top-level generic function (Go methods can't have type params on non-generic types). API design decision needed.
-- [ ] **BrandNamer for root module marker types** — BLOCKED: upstream `go-cqrs-lite/core/pkg/id` marker types (`userMarker`, `correlationMarker`) are unexported.
+- [x] **Resolve usermgmt vs cqrshtmx UserID type split** — Decided: intentionally separate types (ADR 0002). `usermgmt.UserID` is string-backed for standalone use; `cqrshtmx.UserID` is ULID-backed via go-cqrs-lite. Bridge via `.Get()` for string conversion. No migration needed.
+- [x] **Evaluate go-branded-id for numeric IDs** — Evaluated (ADR 0003). Future SQL stores should use `brandid.ID[Brand, int64]` for auto-increment PKs. Documented pattern ready for implementation.
+- [ ] **Adopt TypedHandler[T] from go-cqrs-lite v1.5.0** — Upstream has `command.RegisterTyped[T]` and `query.RegisterTyped[T]`. cqrs-htmx needs `DispatchTyped[T]` wrapper for type-safe query results. API design decision: top-level generic function vs method on generic App.
+- [ ] **BrandNamer for root module marker types** — BLOCKED: upstream `go-cqrs-lite/core/pkg/id` marker types (`userMarker`, `correlationMarker`) are unexported. Requires upstream change.
+
+### Items Completed in 2026-05-23 Session
+
+- [x] **Mock stores for usermgmt testing** — `mock_test.go` with `mockUserStore` and `mockSessionStore` using function-field pattern. Enables testing error paths without Casbin/SQL.
+- [x] **Usermgmt coverage 88.6% → 91.0%** — 30+ new tests for Register rollback, Logout error, ChangePassword edges, GetUser/UpdateRoles errors, Login lockout, handler validation, session expiry.
+- [x] **Root coverage 96.6% → 96.7%** — WriteJSON error, MapError nil/unknown, Enforce nil enforcer, sanitizeRedirectURL edges, handleCommandDispatch auth denied, rate limiter eviction, ClientIP edges.
+- [x] **go-cqrs-lite v1.4.0 → v1.5.0** — All 3 modules upgraded. Clean upgrade, no breaking changes.
+- [x] **Extract constants in usermgmt** — `bearerPrefix`, `errMsgPasswordTooShort`, `errMsgPasswordTooLong`, `maxDisplayNameLength` constants extracted from magic strings.
+- [x] **Usermgmt fuzz tests** — `FuzzRegisterRequest_Validate`, `FuzzLoginRequest_Validate` for arbitrary input validation.
+- [x] **Usermgmt benchmarks** — `BenchmarkService_Login`, `BenchmarkService_Register`, `BenchmarkSession_TokenMatches`.
+- [x] **Integration test expansion** — `TestUsermgmtBridge_FullRegisterAuthCycle` cross-module flow.
+- [x] **Integration test lint config** — `.golangci.yml` for integration_test module.
+- [x] **ADR 0003: numeric IDs for SQL stores** — Documented pattern for future SQL store backends.
+- [x] **CONTRIBUTING.md update** — Multi-module structure, GOWORK=off commands, 4-module table.
 
 ### Items Completed in 2026-05-22 Session
 
