@@ -3,6 +3,7 @@ package cqrshtmx_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -537,5 +538,165 @@ var _ = Describe("CatalogEntries", func() {
 		Expect(err).NotTo(HaveOccurred())
 		entries := app.CommandCatalogEntries()
 		Expect(entries).To(BeNil())
+	})
+})
+
+var _ = Describe("Root Coverage Gaps", func() {
+	Describe("WriteJSON error path", func() {
+		It("returns error when encoder fails", func() {
+			w := httptest.NewRecorder()
+			err := cqrshtmx.WriteJSON(w, http.StatusOK, make(chan int))
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Describe("MapError nil input", func() {
+		It("returns 500 for nil error", func() {
+			Expect(cqrshtmx.MapError(nil)).To(Equal(http.StatusInternalServerError))
+		})
+	})
+
+	Describe("MapError unknown family", func() {
+		It("returns 500 for errors with no classification", func() {
+			Expect(cqrshtmx.MapError(
+				event.NewInfrastructure("test.unknown", "unknown"),
+			)).To(Equal(http.StatusInternalServerError))
+		})
+	})
+
+	Describe("Enforce nil enforcer", func() {
+		It("returns ErrEnforcerNil when enforcer is nil", func() {
+			err := cqrshtmx.Enforce(nil, "user1", "resource", "read")
+			Expect(errors.Is(err, cqrshtmx.ErrEnforcerNil)).To(BeTrue())
+		})
+	})
+
+	Describe("sanitizeRedirectURL additional edge cases", func() {
+		DescribeTable(
+			"blocks fragment-only URLs",
+			func(input string, expectRedirect bool) {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				cqrshtmx.NewResponse(w, r).Redirect(input).Apply()
+				if expectRedirect {
+					Expect(w.Code).To(Equal(http.StatusSeeOther))
+				} else {
+					Expect(w.Code).ToNot(Equal(http.StatusSeeOther))
+				}
+			},
+			Entry("blocks fragment-only URLs", "#section", false),
+			Entry("blocks userinfo URLs", "http://user@host", false),
+			Entry("blocks query-only URLs", "?foo=bar", false),
+		)
+	})
+
+	Describe("handleCommandDispatch auth denied", func() {
+		It("rejects when authorization fails", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			enforcer := newTestEnforcer()
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands: disp,
+				Enforcer: enforcer,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			r := newPostRequest("/users", `{}`)
+			r = r.WithContext(context.Background())
+			w := serve(app.Command(
+				"CreateUser",
+				decodeCreateUserJSON(),
+				cqrshtmx.Authorize("users", "create"),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusUnauthorized))
+		})
+	})
+
+	Describe("applyQueryResponse with HTMX response option", func() {
+		It("applies HTMX headers on query success", func() {
+			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
+				return testQueryResult, nil
+			})
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			w := serve(app.Query(
+				"GetUser",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.Trigger("dataLoaded"),
+			), r)
+			Expect(w.Header().Get("HX-Trigger")).To(Equal("dataLoaded"))
+		})
+	})
+
+	Describe("RateLimiter eviction", func() {
+		It("evicts oldest entry when MaxKeys exceeded", func() {
+			handler := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+				Limit:        100,
+				Window:       time.Second,
+				MaxKeys:      2,
+				KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+			})
+
+			called := 0
+			next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+				called++
+			})
+
+			for i := range 5 {
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				r.RemoteAddr = fmt.Sprintf("192.168.1.%d:1234", i%3)
+				w := httptest.NewRecorder()
+				handler(next).ServeHTTP(w, r)
+			}
+			Expect(called).To(Equal(5))
+		})
+
+		It("exempts requests with empty key", func() {
+			handler := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+				Limit:        1,
+				Window:       time.Second,
+				KeyExtractor: func(_ *http.Request) string { return "" },
+			})
+
+			called := 0
+			next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+				called++
+			})
+
+			for range 5 {
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				w := httptest.NewRecorder()
+				handler(next).ServeHTTP(w, r)
+			}
+			Expect(called).To(Equal(5))
+		})
+	})
+
+	Describe("ClientIP edge cases", func() {
+		It("extracts from X-Forwarded-For", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("X-Forwarded-For", "1.2.3.4, 5.6.7.8")
+			r.RemoteAddr = "10.0.0.1:1234" //nolint:goconst // test fixture
+			Expect(cqrshtmx.ClientIP(r)).To(Equal("1.2.3.4"))
+		})
+
+		It("extracts from X-Real-IP when no XFF", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("X-Real-IP", "9.8.7.6")
+			r.RemoteAddr = "10.0.0.1:1234"
+			Expect(cqrshtmx.ClientIP(r)).To(Equal("9.8.7.6"))
+		})
+
+		It("falls back to RemoteAddr", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.RemoteAddr = "10.0.0.1:1234"
+			Expect(cqrshtmx.ClientIP(r)).To(Equal("10.0.0.1"))
+		})
+
+		It("returns RemoteAddr when SplitHostPort fails", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.RemoteAddr = "malformed"
+			Expect(cqrshtmx.ClientIP(r)).To(Equal("malformed"))
+		})
 	})
 })

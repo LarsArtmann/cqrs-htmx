@@ -59,10 +59,14 @@ github.com/larsartmann/go-branded-id v0.3.0 h1:3uE01+ymNTfsvtLMRSiux+6TjPZX5+frq
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-cqrs-lite/core v1.4.0 h1:DqiJMYhyyGkDxc5hKTw0cuRjK/FV0yuZrXHfVseTO7g=
 github.com/larsartmann/go-cqrs-lite/core v1.4.0/go.mod h1:OHp7BFahJut/OW95LOYA67YJ2478EMPu/gm6DBCR6VQ=
+github.com/larsartmann/go-cqrs-lite/core v1.5.0 h1:w9BY5GrM09PecMQU6gG40C7b64p5Hb04K36N4ydt0Eo=
+github.com/larsartmann/go-cqrs-lite/core v1.5.0/go.mod h1:yI424QtMFG+vRTu5NkuIw6XhNvoZbooxtRs+IVQff6g=
 github.com/larsartmann/go-cqrs-lite/memory v1.1.0 h1:tI7V9X2Qe9ZhpVQ4+wRS61qBnC5FjYrqQDz0HVQ2aA4=
 github.com/larsartmann/go-cqrs-lite/memory v1.1.0/go.mod h1:ujm4qED6iakUok0ei6GdYqz+BYThLeNCLDT10hLLTC4=
+github.com/larsartmann/go-cqrs-lite/memory v1.2.0 h1:8wevS8yNTxGQvyHAAeiNaMvk5TrnjYQdN1/YtVSyff0=
 github.com/larsartmann/go-cqrs-lite/testhelpers v1.1.0 h1:9kIR5i4RXySzmGHWF0S3BCsPug+JsrGgxLItkepJq+M=
 github.com/larsartmann/go-cqrs-lite/testhelpers v1.1.0/go.mod h1:tmzWfqDyap1LuEVCyGwi2xBXB+tXXMzRoYddwPPDToA=
+github.com/larsartmann/go-cqrs-lite/testhelpers v1.2.0 h1:6Om1Hr1Eh8kOQ1E3h4YaU4sDueiiOeykcck23ws/3Xo=
 github.com/larsartmann/go-error-family v0.1.1 h1:/i7s/2okA2ROEhxoiuBJqzX4zSz/SQaYwfoVpsYJICc=
 github.com/larsartmann/go-error-family v0.1.1/go.mod h1:iUN9N/5VyaUZ8OkUQKnoiXioUdtAmcONNaxnzC3X4e8=
 github.com/maruel/natural v1.1.1 h1:Hja7XhhmvEFhcByqDoHz9QZbkWey+COd9xWfCfn1ioo=

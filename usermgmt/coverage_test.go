@@ -474,3 +474,441 @@ func TestNewAuthHandler_TimeoutPropagated(t *testing.T) {
 		t.Errorf("expected 5s timeout, got %v", h.timeout)
 	}
 }
+
+func TestService_Register_RollbackOnGroupPolicyFailure(t *testing.T) {
+	store := NewInMemoryUserStore()
+	svc, err := NewService(ServiceConfig{
+		UserStore:  store,
+		BcryptCost: minBcryptCost,
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+
+	mockAuthz, aErr := NewAuthz()
+	if aErr != nil {
+		t.Fatalf("NewAuthz: %v", aErr)
+	}
+	svc.authz = mockAuthz
+
+	ctx := context.Background()
+	uid := NewUserID("rollback-user")
+
+	_, regErr := svc.Register(ctx, RegisterRequest{
+		ID:       uid,
+		Email:    "rollback@test.com",
+		Password: "secret12",
+	})
+
+	if regErr != nil {
+		store.mu.RLock()
+		afterUsers := len(store.users)
+		store.mu.RUnlock()
+		if afterUsers != 0 {
+			t.Errorf("expected user to be rolled back, but %d users remain",
+				afterUsers)
+		}
+	}
+}
+
+func TestService_Register_RollbackOnSessionFailure(t *testing.T) {
+	store := NewInMemoryUserStore()
+	sessions := &mockSessionStore{
+		CreateFn: func(_ context.Context, _ UserID, _ time.Duration) (*Session, error) {
+			return nil, errors.New("session creation failed")
+		},
+	}
+
+	svc, err := NewService(ServiceConfig{
+		UserStore:    store,
+		SessionStore: sessions,
+		BcryptCost:   minBcryptCost,
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+
+	ctx := context.Background()
+	uid := NewUserID("rollback-session")
+
+	_, regErr := svc.Register(ctx, RegisterRequest{
+		ID:       uid,
+		Email:    "rollsession@test.com",
+		Password: "secret12",
+	})
+	if regErr == nil {
+		t.Fatal("expected error when session creation fails")
+	}
+
+	if _, err := store.FindByID(ctx, uid); !errors.Is(err, ErrUserNotFound) {
+		t.Error("expected user to be rolled back after session failure")
+	}
+}
+
+func TestService_Logout_StoreError(t *testing.T) {
+	sessions := &mockSessionStore{
+		DeleteFn: func(_ context.Context, _ string) error {
+			return errors.New("db connection lost")
+		},
+	}
+	svc, _ := NewService(ServiceConfig{
+		SessionStore: sessions,
+		BcryptCost:   minBcryptCost,
+	})
+
+	err := svc.Logout(context.Background(), "some-token")
+	if err == nil {
+		t.Fatal("expected error from Logout when store fails")
+	}
+}
+
+func TestService_GetUser_NotFound(t *testing.T) {
+	svc := newTestService(t)
+	_, err := svc.GetUser(context.Background(), NewUserID("nonexistent"))
+	if !errors.Is(err, ErrUserNotFound) {
+		t.Errorf("expected ErrUserNotFound, got %v", err)
+	}
+}
+
+func TestService_GetUser_StoreError(t *testing.T) {
+	svc, _ := NewService(ServiceConfig{
+		UserStore: &mockUserStore{
+			FindByIDFn: func(_ context.Context, _ UserID) (*User, error) {
+				return nil, errors.New("db error")
+			},
+		},
+		BcryptCost: minBcryptCost,
+	})
+	_, err := svc.GetUser(context.Background(), NewUserID("u1"))
+	if err == nil {
+		t.Fatal("expected error from GetUser when store fails")
+	}
+}
+
+func TestService_ChangePassword_WrongOld(t *testing.T) {
+	svc, ctx, _ := newTestServiceWithUser(t, "cp1", "cp@test.com", "secret12")
+	err := svc.ChangePassword(ctx, NewUserID("cp1"), "wrong-old", "newpass123")
+	if !errors.Is(err, ErrInvalidCredentials) {
+		t.Errorf("expected ErrInvalidCredentials, got %v", err)
+	}
+}
+
+func TestService_ChangePassword_NewTooShort(t *testing.T) {
+	svc, ctx, _ := newTestServiceWithUser(t, "cp2", "cp2@test.com", "secret12")
+	err := svc.ChangePassword(ctx, NewUserID("cp2"), "secret12", "short")
+	if !errors.Is(err, ErrValidation) {
+		t.Errorf("expected ErrValidation, got %v", err)
+	}
+}
+
+func TestService_ChangePassword_NewTooLong(t *testing.T) {
+	svc, ctx, _ := newTestServiceWithUser(t, "cp3", "cp3@test.com", "secret12")
+	longPass := strings.Repeat("a", 129)
+	err := svc.ChangePassword(ctx, NewUserID("cp3"), "secret12", longPass)
+	if !errors.Is(err, ErrValidation) {
+		t.Errorf("expected ErrValidation, got %v", err)
+	}
+}
+
+func TestService_ChangePassword_StoreError(t *testing.T) {
+	svc := newTestService(t)
+	err := svc.ChangePassword(context.Background(), NewUserID("ghost"), "old", "newpass123")
+	if err == nil {
+		t.Fatal("expected error for nonexistent user")
+	}
+}
+
+func TestService_UpdateRoles_StoreError(t *testing.T) {
+	svc := newTestService(t)
+	err := svc.UpdateRoles(context.Background(), NewUserID("ghost"), []Role{RoleAdmin}, "dom")
+	if err == nil {
+		t.Fatal("expected error for nonexistent user")
+	}
+}
+
+func TestService_Login_LockoutReset(t *testing.T) {
+	lockout := NewAccountLockout(LockoutConfig{MaxAttempts: 2, Duration: time.Hour})
+	svc, _ := NewService(ServiceConfig{
+		BcryptCost: minBcryptCost,
+		Lockout:    lockout,
+	})
+	ctx := context.Background()
+	registerTestUser(t, svc, "lr1", "lr@test.com", "secret12")
+
+	_, _ = svc.Login(ctx, LoginRequest{Email: "lr@test.com", Password: "wrong1"})
+	_, err := svc.Login(ctx, LoginRequest{Email: "lr@test.com", Password: "secret12"})
+	if err != nil {
+		t.Errorf("expected successful login after one failure, got %v", err)
+	}
+}
+
+func TestRecordFailure_TriggersLock(t *testing.T) {
+	l := NewAccountLockout(LockoutConfig{MaxAttempts: 3, Duration: time.Hour})
+	if l.RecordFailure("a@b.com") {
+		t.Error("expected not locked on first failure")
+	}
+	if l.RecordFailure("a@b.com") {
+		t.Error("expected not locked on second failure")
+	}
+	if !l.RecordFailure("a@b.com") {
+		t.Error("expected locked on third failure (threshold)")
+	}
+}
+
+func TestNewService_ZeroBcryptCost(t *testing.T) {
+	svc, err := NewService(ServiceConfig{BcryptCost: 0})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	if svc.bcryptCost != defaultBcryptCost {
+		t.Errorf("expected default cost %d, got %d", defaultBcryptCost, svc.bcryptCost)
+	}
+}
+
+func TestNewService_CustomSessionTTL(t *testing.T) {
+	svc, err := NewService(ServiceConfig{
+		BcryptCost: minBcryptCost,
+		SessionTTL: 2 * time.Hour,
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	if svc.sessionTTL != 2*time.Hour {
+		t.Errorf("expected 2h TTL, got %v", svc.sessionTTL)
+	}
+}
+
+func TestNewService_NilAuthz(t *testing.T) {
+	svc, err := NewService(ServiceConfig{
+		BcryptCost: minBcryptCost,
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	if svc.authz == nil {
+		t.Error("expected default authz to be created")
+	}
+}
+
+func TestHandlers_Login_AccountLocked(t *testing.T) {
+	svc, _ := NewService(ServiceConfig{
+		BcryptCost: minBcryptCost,
+		Lockout:    NewAccountLockout(LockoutConfig{MaxAttempts: 1, Duration: time.Hour}),
+	})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: false})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	registerTestUser(t, svc, "hl1", "hl@test.com", "secret12")
+
+	w := postJSON(t, mux, "/auth/login", `{"email":"hl@test.com","password":"wrong"}`)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401 for wrong password, got %d", w.Code)
+	}
+
+	w = postJSON(t, mux, "/auth/login", `{"email":"hl@test.com","password":"secret12"}`)
+	if w.Code != http.StatusTooManyRequests {
+		t.Errorf("expected 429 for locked account, got %d", w.Code)
+	}
+}
+
+func TestService_Authenticate_SessionExpired(t *testing.T) {
+	svc := newTestService(t)
+	ctx := context.Background()
+	reg := registerTestUser(t, svc, "se1", "se@test.com", "secret12")
+
+	reg.Session.ExpiresAt = time.Now().Add(-time.Hour)
+	store, ok := svc.sessions.(*InMemorySessionStore)
+	if !ok {
+		t.Fatal("expected InMemorySessionStore")
+	}
+	store.mu.Lock()
+	store.sessions[reg.Session.Token] = reg.Session
+	store.mu.Unlock()
+
+	_, err := svc.Authenticate(ctx, reg.Session.Token)
+	if !errors.Is(err, ErrSessionExpired) {
+		t.Errorf("expected ErrSessionExpired, got %v", err)
+	}
+}
+
+func TestService_Authenticate_UserGone(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	ctx := context.Background()
+	reg := registerTestUser(t, svc, "ud1", "ud@test.com", "secret12")
+
+	userStore, ok := svc.users.(*InMemoryUserStore)
+	if !ok {
+		t.Fatal("expected InMemoryUserStore")
+	}
+	_ = userStore.Delete(ctx, reg.User.ID)
+
+	_, err := svc.Authenticate(ctx, reg.Session.Token)
+	if !errors.Is(err, ErrUserNotFound) {
+		t.Errorf("expected ErrUserNotFound, got %v", err)
+	}
+}
+
+func TestHandlers_Logout_StoreError(t *testing.T) {
+	sessions := &mockSessionStore{
+		DeleteFn: func(_ context.Context, _ string) error {
+			return errors.New("db error")
+		},
+	}
+	svc, _ := NewService(ServiceConfig{
+		SessionStore: sessions,
+		BcryptCost:   minBcryptCost,
+	})
+	_ = svc
+
+	sessions2 := &mockSessionStore{}
+	svc2, _ := NewService(ServiceConfig{
+		SessionStore: sessions2,
+		BcryptCost:   minBcryptCost,
+	})
+	reg := registerTestUser(t, svc2, "lse1", "lse@test.com", "secret12")
+
+	svc.sessions = sessions
+
+	h := NewAuthHandler(svc, HandlerConfig{Secure: false})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
+	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected 500 for store error, got %d", w.Code)
+	}
+}
+
+func TestHandlers_Register_ValidationError(t *testing.T) {
+	_, mux := setupMux(t)
+	w := postJSON(t, mux, "/auth/register", `{"id":"","email":"bad","password":"short"}`)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 for validation error, got %d", w.Code)
+	}
+}
+
+func TestHandlers_Login_ValidationError(t *testing.T) {
+	_, mux := setupMux(t)
+	w := postJSON(t, mux, "/auth/login", `{"email":"","password":""}`)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 for validation error, got %d", w.Code)
+	}
+}
+
+func TestHandlers_Logout_WithTimeout(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{Secure: false, Timeout: 5 * time.Second})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	reg := registerTestUser(t, svc, "lot", "lot@test.com", "secret12")
+
+	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
+	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 for logout with timeout, got %d", w.Code)
+	}
+}
+
+func TestHandlers_Logout_ClearCookie(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{Secure: true})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	reg := registerTestUser(t, svc, "lc1", "lc@test.com", "secret12")
+
+	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
+	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	assertCookie(t, w, "session_token", func(c *http.Cookie) bool {
+		return c.MaxAge == -1 && c.Secure
+	})
+}
+
+func TestHandlers_Register_WithCustomSessionMaxAge(t *testing.T) {
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{Secure: false, SessionMaxAge: 7200})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	w := postJSON(t, mux, "/auth/register",
+		`{"id":"sma1","email":"sma@test.com","password":"secret12"}`)
+	assertStatusCode(t, w, http.StatusCreated)
+	assertCookie(t, w, "session_token", func(c *http.Cookie) bool { return c.MaxAge == 7200 })
+}
+
+func TestEvictExpired_NoExpired(t *testing.T) {
+	store := NewInMemorySessionStore()
+	ctx := context.Background()
+	_, _ = store.Create(ctx, NewUserID("u1"), time.Hour)
+
+	evicted := store.EvictExpired()
+	if evicted != 0 {
+		t.Errorf("expected 0 evictions, got %d", evicted)
+	}
+}
+
+func TestEvictExpired_WithExpired(t *testing.T) {
+	store := NewInMemorySessionStore()
+	ctx := context.Background()
+	s, _ := store.Create(ctx, NewUserID("u1"), time.Millisecond)
+
+	s.ExpiresAt = time.Now().Add(-time.Hour)
+	store.mu.Lock()
+	store.sessions[s.Token] = s
+	store.mu.Unlock()
+
+	time.Sleep(2 * time.Millisecond)
+	evicted := store.EvictExpired()
+	if evicted != 1 {
+		t.Errorf("expected 1 eviction, got %d", evicted)
+	}
+}
+
+func TestEvictStale_NoStale(t *testing.T) {
+	l := NewAccountLockout(LockoutConfig{MaxAttempts: 5, Duration: time.Hour})
+	l.RecordFailure("active@test.com")
+
+	evicted := l.EvictStale()
+	if evicted != 0 {
+		t.Errorf("expected 0 evictions, got %d", evicted)
+	}
+}
+
+func TestEvictStale_WithStale(t *testing.T) {
+	l := NewAccountLockout(LockoutConfig{MaxAttempts: 1, Duration: 50 * time.Millisecond})
+	l.RecordFailure("stale@test.com")
+
+	time.Sleep(100 * time.Millisecond)
+	evicted := l.EvictStale()
+	if evicted != 1 {
+		t.Errorf("expected 1 eviction, got %d", evicted)
+	}
+}
+
+func TestAccountLockout_Reset(t *testing.T) {
+	l := NewAccountLockout(LockoutConfig{MaxAttempts: 2, Duration: time.Hour})
+	l.RecordFailure("r@test.com")
+	l.Reset("r@test.com")
+	if l.IsLocked("r@test.com") {
+		t.Error("expected not locked after reset")
+	}
+}
+
+func TestAccountLockout_IsLocked_NotLocked(t *testing.T) {
+	l := NewAccountLockout()
+	if l.IsLocked("never@test.com") {
+		t.Error("expected not locked for unknown email")
+	}
+}

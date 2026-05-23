@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const bearerPrefix = "Bearer "
+
 type userContextKeyType struct{}
 
 var userContextKey userContextKeyType //nolint:gochecknoglobals // sentinel type for context keys, standard Go pattern
@@ -69,7 +71,7 @@ func extractToken(r *http.Request, cookieName string) string {
 		return c.Value
 	}
 	auth := r.Header.Get("Authorization")
-	if token, ok := strings.CutPrefix(auth, "Bearer "); ok {
+	if token, ok := strings.CutPrefix(auth, bearerPrefix); ok {
 		return token
 	}
 	return ""

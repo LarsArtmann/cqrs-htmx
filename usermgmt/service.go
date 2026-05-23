@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/mail"
+	"strconv"
 	"strings"
 	"time"
 
@@ -12,9 +13,12 @@ import (
 )
 
 const (
-	defaultSessionTTL = 24 * time.Hour
-	minPasswordLength = 8
-	maxPasswordLength = 128
+	defaultSessionTTL      = 24 * time.Hour
+	minPasswordLength      = 8
+	maxPasswordLength      = 128
+	maxDisplayNameLength   = 100
+	errMsgPasswordTooShort = "password must be at least 8 characters"
+	errMsgPasswordTooLong  = "password must be under 128 characters"
 )
 
 // Service orchestrates user registration, authentication, authorization, and session management.
@@ -121,12 +125,13 @@ func (r *RegisterRequest) Validate() error {
 		errs = append(errs, "invalid email")
 	}
 	if len(r.Password) < minPasswordLength {
-		errs = append(errs, "password must be at least 8 characters")
+		errs = append(errs, errMsgPasswordTooShort)
 	} else if len(r.Password) > maxPasswordLength {
-		errs = append(errs, "password must be under 128 characters")
+		errs = append(errs, errMsgPasswordTooLong)
 	}
-	if len(r.DisplayName) > 100 {
-		errs = append(errs, "display name must be under 100 characters")
+	if len(r.DisplayName) > maxDisplayNameLength {
+		errs = append(errs,
+			"display name must be under "+strconv.Itoa(maxDisplayNameLength)+" characters")
 	}
 	return formatValidationErrors(errs)
 }
@@ -364,11 +369,11 @@ func (s *Service) ChangePassword(
 
 	if len(newPassword) < minPasswordLength {
 		return errors.WithMessagef(ErrValidation,
-			"password must be at least 8 characters for user %q", userID)
+			errMsgPasswordTooShort+" for user %q", userID)
 	}
 	if len(newPassword) > maxPasswordLength {
 		return errors.WithMessagef(ErrValidation,
-			"password must be under 128 characters for user %q", userID)
+			errMsgPasswordTooLong+" for user %q", userID)
 	}
 
 	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {
