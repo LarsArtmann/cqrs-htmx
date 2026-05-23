@@ -35,12 +35,12 @@ This is a **library/SDK**, not an application. There is no `main` package. Consu
 
 The project uses a **multi-module Go workspace** with 4 modules:
 
-| Module | Path | Go Module |
-|--------|------|-----------|
-| Root | `./` | `github.com/larsartmann/cqrs-htmx` |
-| Usermgmt | `./usermgmt/` | `github.com/larsartmann/cqrs-htmx/usermgmt` |
-| Integration | `./integration_test/` | separate test module |
-| Datastar Demo | `./examples/datastar-demo/` | example app |
+| Module        | Path                        | Go Module                                   |
+| ------------- | --------------------------- | ------------------------------------------- |
+| Root          | `./`                        | `github.com/larsartmann/cqrs-htmx`          |
+| Usermgmt      | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt` |
+| Integration   | `./integration_test/`       | separate test module                        |
+| Datastar Demo | `./examples/datastar-demo/` | example app                                 |
 
 ```
 cqrs-htmx/

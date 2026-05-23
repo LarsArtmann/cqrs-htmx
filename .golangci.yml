@@ -1,129 +1,126 @@
 version: "2"
 run:
-  timeout: 5m
-  go: 1.26.2
-  build-tags:
-    - goexperiment.arenas
-    - goexperiment.goroutineleakprofile
-    - goexperiment.jsonv2
-    - goexperiment.runtimesecret
-    - goexperiment.simd
-  allow-parallel-runners: true
-  allow-serial-runners: true
-  issues-exit-code: 1
-  tests: true
+    timeout: 5m
+    go: 1.26.2
+    build-tags:
+        - goexperiment.arenas
+        - goexperiment.goroutineleakprofile
+        - goexperiment.jsonv2
+        - goexperiment.runtimesecret
+        - goexperiment.simd
+    allow-parallel-runners: true
+    allow-serial-runners: true
+    issues-exit-code: 1
+    tests: true
 output:
-  formats: {}
+    formats: {}
 linters:
-  enable:
-    - bodyclose
-    - contextcheck
-    - copyloopvar
-    - cyclop
-    - dupl
-    - durationcheck
-    - errcheck
-    - errchkjson
-    - errname
-    - errorlint
-    - exhaustive
-    - exhaustruct
-    - forcetypeassert
-    - funlen
-    - ginkgolinter
-    - gochecknoglobals
-    - gochecknoinits
-    - gochecksumtype
-    - gocognit
-    - goconst
-    - gocritic
-    - gocyclo
-    - gosec
-    - gosmopolitan
-    - govet
-    - ineffassign
-    - interfacebloat
-    - intrange
-    - loggercheck
-    - maintidx
-    - mirror
-    - misspell
-    - musttag
-    - nakedret
-    - nestif
-    - nilerr
-    - nilnesserr
-    - nilnil
-    - noctx
-    - nolintlint
-    - paralleltest
-    - perfsprint
-    - prealloc
-    - predeclared
-    - protogetter
-    - reassign
-    - recvcheck
-    - revive
-    - rowserrcheck
-    - sloglint
-    - spancheck
-    - sqlclosecheck
-    - staticcheck
-    - testifylint
-    - thelper
-    - unconvert
-    - unparam
-    - unused
-    - usetesting
-    - wastedassign
-    - wrapcheck
-    - zerologlint
-  settings:
-    # Config and handlerConfig are intentionally partial — fields set via options
-    exhaustruct:
-      exclude:
-        - os/exec.Cmd
-        - 'github\.com/larsartmann/cqrs-htmx\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig)$'
-        - 'github\.com/larsartmann/cqrs-htmx_test\.(testCreateUserCmd|bddCreateUserCmd)$'
-    # ifElseChain disabled to allow early-return patterns without forced restructuring
-    gocritic:
-      disabled-checks:
-        - ifElseChain
-  exclusions:
-    rules:
-      # Sentinel errors and notification defaults must be package-level vars
-      # for sync.Once initialization and consumer override
-      - linters:
-          - gochecknoglobals
-        text: "is a global variable"
-        path: "(errors|notify)\\.go$"
-      # Ginkgo DSL uses dot-imports by convention (.Expect, .Describe, .It)
-      - linters:
-          - revive
-        text: "dot-imports"
-        path: "_test\\.go"
-      # Test fixture IDs (MustParseUserID results) are immutable package-level vars
-      # used in Ginkgo closures — they cannot be consts due to function call initialization
-      - linters:
-          - gochecknoglobals
-        path: "app_test\\.go$"
-      # Test code wraps errors at the handler level, not at every call site
-      - linters:
-          - wrapcheck
-        path: "_test\\.go"
-      # Benchmarks use for i := 0; i < b.N; i++ (standard pattern, not intrange-compatible)
-      # Examples don't need request context or complex return values
-      - linters:
-          - intrange
-          - noctx
-          - nilnil
-        path: "(benchmark|example)_test\\.go$"
+    enable:
+        - bodyclose
+        - contextcheck
+        - copyloopvar
+        - cyclop
+        - dupl
+        - durationcheck
+        - errcheck
+        - errchkjson
+        - errname
+        - errorlint
+        - exhaustive
+        - exhaustruct
+        - forcetypeassert
+        - funlen
+        - ginkgolinter
+        - gochecknoglobals
+        - gochecknoinits
+        - gochecksumtype
+        - gocognit
+        - goconst
+        - gocritic
+        - gocyclo
+        - gosec
+        - gosmopolitan
+        - govet
+        - ineffassign
+        - interfacebloat
+        - intrange
+        - loggercheck
+        - maintidx
+        - mirror
+        - misspell
+        - musttag
+        - nakedret
+        - nestif
+        - nilerr
+        - nilnesserr
+        - nilnil
+        - noctx
+        - nolintlint
+        - paralleltest
+        - perfsprint
+        - prealloc
+        - predeclared
+        - protogetter
+        - reassign
+        - recvcheck
+        - revive
+        - rowserrcheck
+        - sloglint
+        - spancheck
+        - sqlclosecheck
+        - staticcheck
+        - testifylint
+        - thelper
+        - unconvert
+        - unparam
+        - unused
+        - usetesting
+        - wastedassign
+        - wrapcheck
+        - zerologlint
+    settings:
+        exhaustruct:
+            exclude:
+                - os/exec.Cmd
+                - github\.com/larsartmann/cqrs-htmx\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig)$
+                - github\.com/larsartmann/cqrs-htmx_test\.(testCreateUserCmd|bddCreateUserCmd)$
+        gocritic:
+            disabled-checks:
+                - ifElseChain
+    exclusions:
+        generated: lax
+        rules:
+            - path: (errors|notify)\.go$
+              text: is a global variable
+              linters:
+                - gochecknoglobals
+            - path: _test\.go
+              text: dot-imports
+              linters:
+                - revive
+            - path: app_test\.go$
+              linters:
+                - gochecknoglobals
+            - path: _test\.go
+              linters:
+                - wrapcheck
+            - path: (benchmark|example)_test\.go$
+              linters:
+                - intrange
+                - noctx
+                - nilnil
+        paths:
+            - _mock\.go$
 formatters:
-  enable:
-    - gci
-    - goimports
-    - gofumpt
-    - golines
+    enable:
+        - gci
+        - goimports
+        - gofumpt
+        - golines
+    exclusions:
+        generated: lax
+        paths:
+            - _mock\.go$
 issues:
-  max-issues-per-linter: 50
-  max-same-issues: 10
+    max-issues-per-linter: 50
+    max-same-issues: 10
