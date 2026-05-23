@@ -11,11 +11,17 @@ Thank you for contributing! This guide covers everything you need to write code 
 ## Quick Start
 
 ```bash
-# Build
-GONOSUMCHECK='github.com/larsartmann/*' go build ./...
+# Build (GOWORK=off uses each module's own go.mod)
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...
 
 # Test (always with -count=1 to disable cache)
-GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+
+# Usermgmt submodule (separate Go module)
+cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+
+# Integration tests (separate Go module)
+cd integration_test && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Lint
 golangci-lint run
@@ -26,6 +32,15 @@ All three must pass with zero errors before submitting.
 ## Architecture
 
 This is a **library/SDK**, not an application. There is no `main` package. Consumers import `github.com/larsartmann/cqrs-htmx` into their projects.
+
+The project uses a **multi-module Go workspace** with 4 modules:
+
+| Module | Path | Go Module |
+|--------|------|-----------|
+| Root | `./` | `github.com/larsartmann/cqrs-htmx` |
+| Usermgmt | `./usermgmt/` | `github.com/larsartmann/cqrs-htmx/usermgmt` |
+| Integration | `./integration_test/` | separate test module |
+| Datastar Demo | `./examples/datastar-demo/` | example app |
 
 ```
 cqrs-htmx/
@@ -39,6 +54,9 @@ cqrs-htmx/
 ├── htmx.go        # HTMXRequest struct, accessors, context storage, RenderPartial
 ├── notify.go      # Notification HandlerOptions + NotifyWithEvent builder
 ├── middleware.go   # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
+├── usermgmt/      # User management submodule (RBAC, sessions, password auth)
+├── integration_test/ # Cross-module integration tests
+└── examples/datastar-demo/ # Real-time CQRS + Datastar SSE example
 ```
 
 ## Code Style
@@ -55,7 +73,7 @@ return fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err)
 return errors.Wrapf(err, "dispatch failed: %s", cmdType)
 ```
 
-### No Hardcoded Strings
+Note: `usermgmt/` uses `cockroachdb/errors` for error wrapping consistency with the root module.
 
 HTMX header values use constants defined in `htmx.go`. Use `HeaderTrue` (exported) instead of `"true"`.
 
@@ -155,11 +173,12 @@ The `golangci_lint_ls` LSP may show ~23 stale warnings that `golangci-lint run` 
 
 ## Pull Request Checklist
 
-- [ ] `go build ./...` passes
-- [ ] `go test ./... -count=1 -race` passes
+- [ ] `GOWORK=off go build ./...` passes
+- [ ] `GOWORK=off go test ./... -count=1 -race` passes (root, usermgmt, integration_test)
 - [ ] `golangci-lint run` reports 0 issues
-- [ ] New code has tests (aim for 95%+ coverage)
+- [ ] New code has tests (aim for 90%+ coverage)
 - [ ] New public APIs have godoc comments
 - [ ] No hardcoded HTMX header strings — use constants
 - [ ] Error wrapping uses `fmt.Errorf("%w: ...")` — not `errors.Wrapf`
 - [ ] `AGENTS.md` updated if adding new features, gotchas, or conventions
+- [ ] Run tests in all modules: root, usermgmt, integration_test

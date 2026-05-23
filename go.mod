@@ -6,7 +6,7 @@ require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/cockroachdb/errors v1.13.0
 	github.com/gorilla/csrf v1.7.3
-	github.com/larsartmann/go-cqrs-lite/core v1.4.0
+	github.com/larsartmann/go-cqrs-lite/core v1.5.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	golang.org/x/time v0.15.0

@@ -5,7 +5,7 @@ go 1.26.2
 require (
 	github.com/larsartmann/cqrs-htmx v0.0.0
 	github.com/larsartmann/cqrs-htmx/usermgmt v0.0.0
-	github.com/larsartmann/go-cqrs-lite/core v1.4.0
+	github.com/larsartmann/go-cqrs-lite/core v1.5.0
 )
 
 require (
