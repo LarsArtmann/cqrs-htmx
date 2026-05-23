@@ -138,6 +138,14 @@ func (c *CSRFConfig) Validate() error {
 		return errors.WithMessage(ErrCSRFConfig, "SameSite=None requires Secure=true")
 	}
 
+	for _, origin := range c.TrustedOrigins {
+		if origin == "" || origin == "*" {
+			return errors.WithMessagef(ErrCSRFConfig,
+				"TrustedOrigins contains unsafe entry %q — use specific domain names only",
+				origin)
+		}
+	}
+
 	return nil
 }
 

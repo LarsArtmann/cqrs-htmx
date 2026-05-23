@@ -632,6 +632,34 @@ var _ = Describe("CSRF Protection", func() {
 			}
 			Expect(cfg.Validate()).To(Succeed())
 		})
+
+		It("returns error when TrustedOrigins contains wildcard", func() {
+			cfg := cqrshtmx.CSRFConfig{
+				Secret:         []byte("a-32-byte-long-secret-key-goes-here"),
+				TrustedOrigins: []string{"*"},
+			}
+			err := cfg.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, cqrshtmx.ErrCSRFConfig)).To(BeTrue())
+		})
+
+		It("returns error when TrustedOrigins contains empty string", func() {
+			cfg := cqrshtmx.CSRFConfig{
+				Secret:         []byte("a-32-byte-long-secret-key-goes-here"),
+				TrustedOrigins: []string{""},
+			}
+			err := cfg.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, cqrshtmx.ErrCSRFConfig)).To(BeTrue())
+		})
+
+		It("returns nil for specific TrustedOrigins domains", func() {
+			cfg := cqrshtmx.CSRFConfig{
+				Secret:         []byte("a-32-byte-long-secret-key-goes-here"),
+				TrustedOrigins: []string{"https://example.com", "https://api.example.com"},
+			}
+			Expect(cfg.Validate()).To(Succeed())
+		})
 	})
 })
 
