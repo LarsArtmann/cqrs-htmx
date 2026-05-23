@@ -11,19 +11,22 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 
 ## Features at a Glance
 
-- **Command & Query dispatch** — `app.Command()` / `app.Query()` build `http.HandlerFunc` that decode, authorize, dispatch, and respond
+- **Command & Query dispatch** — `app.Command()` / `app.Query()` return `http.HandlerFunc` that decode, authorize, dispatch, and respond
 - **Casbin authorization** — `Authorize(resource, action)` checks policies before dispatch; `RequireAuth()` for auth-only guards
 - **HTMX-aware responses** — fluent response builder with `HX-Trigger`, `HX-Redirect`, `HX-Push-Url`, swap strategies, and notifications
 - **templ integration** — duck-typed `TemplComponent` renders templ components without importing templ
-- **User identity propagation** — HTTP request → context → CQRS event metadata, with strongly-typed `UserID` (ULID-backed)
-- **Correlation IDs** — automatic `X-Correlation-ID` extraction and context propagation
+- **User identity propagation** — HTTP request → context → CQRS event metadata, with strongly-typed `UserID` and `CorrelationID` (ULID-backed)
 - **Request validation** — `ValidateCommand`/`ValidateQuery` wrap decoders with validation logic
 - **Dispatch timeout** — `Config.Timeout` wraps dispatch with `context.WithTimeout`
 - **Lifecycle hooks** — `BeforeDispatchHook`/`AfterDispatchHook` for tracing, logging, metrics
 - **Error classification** — CQRS error families automatically map to HTTP status codes
 - **JSON or plain-text error handlers** — pluggable `ErrorHandler` with HTMX-aware auth redirects
 - **Notification system** — `NotifySuccess`/`NotifyError`/`NotifyWarning`/`NotifyInfo` with standard `{level, message}` payload; custom event names via `NotifyWithEvent`
-- **CSRF Protection** — double-submit cookie pattern with HTMX-aware `X-CSRF-Token` header validation
+- **CSRF protection** — double-submit cookie pattern with HTMX-aware `X-CSRF-Token` header validation
+- **Rate limiting** — per-key token-bucket with min-heap eviction, configurable burst, and hook callbacks
+- **Security headers** — automatic `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, plus optional CSP/HSTS/Permissions-Policy
+- **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
+- **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers
 
 ## Why
 
@@ -36,6 +39,7 @@ Combining CQRS, HTMX, and authorization requires repetitive wiring:
 - HTMX partial vs full-page rendering
 - HTMX response headers (triggers, redirects, push URL)
 - templ component rendering for query results
+- CSRF protection, rate limiting, security headers
 
 This library handles all of it automatically.
 
@@ -43,6 +47,12 @@ This library handles all of it automatically.
 
 ```bash
 go get github.com/larsartmann/cqrs-htmx
+```
+
+For the user management submodule:
+
+```bash
+go get github.com/larsartmann/cqrs-htmx/usermgmt
 ```
 
 ## Quick Start
@@ -96,8 +106,10 @@ func main() {
         }),
     ))
 
-    // Apply middleware once to your router
+    // Apply middleware stack
     handler := cqrshtmx.Chain(
+        cqrshtmx.SecurityHeadersMiddleware,
+        cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
         cqrshtmx.HTMXMiddleware,
         app.Middleware(),
     )(mux)
@@ -124,6 +136,17 @@ app, err := cqrshtmx.New(cqrshtmx.Config{
 })
 ```
 
+### Catalog Introspection
+
+`App` exposes catalog metadata for registered commands and queries:
+
+```go
+app.CommandCatalogEntries() // map[command.Type]command.CatalogMeta
+app.QueryCatalogEntries()   // map[query.Type]query.CatalogMeta
+```
+
+Returns `nil` if the respective dispatcher is not configured.
+
 ## Handler Options
 
 ### Authorization
@@ -141,6 +164,8 @@ app, err := cqrshtmx.New(cqrshtmx.Config{
 | `DecodeJSONQuery[T](mapper)` | Decode JSON body into a query via mapper function   |
 | `DecodeForm[T](mapper)`      | Decode form data into a command via mapper function |
 | `DecodeFormQuery[T](mapper)` | Decode form data into a query via mapper function   |
+
+All decoders enforce `Config.MaxBodySize` when set (returns `ErrRequestTooLarge` / 413 when exceeded).
 
 ### Validation
 
@@ -197,6 +222,17 @@ Client-side JS:
 document.body.addEventListener("showMessage", function (evt) {
   showNotification(evt.detail.level, evt.detail.message);
 });
+```
+
+### Per-Handler Timeout
+
+Override the global `Config.Timeout` per handler:
+
+```go
+app.Command("SlowOperation",
+    cqrshtmx.WithTimeout(30*time.Second),
+    cqrshtmx.DecodeJSON(mapper),
+)
 ```
 
 ## HTMX Request Context
@@ -302,18 +338,23 @@ Works seamlessly with [templ-components](https://github.com/larsartmann/templ-co
 
 ## Context Propagation
 
-User identity and correlation IDs flow automatically from HTTP → CQRS metadata:
+User identity, correlation IDs, and request IDs flow automatically from HTTP → CQRS metadata.
+All ID types are **strongly-typed** wrappers around [ULID](https://github.com/oklog/ulid) — collision-free, lexicographically sortable, and impossible to confuse with raw strings.
 
 ```go
-// User ID (strongly-typed, ULID-backed)
+// User ID
 userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 ctx := cqrshtmx.WithUserID(r.Context(), userID)
 retrieved := cqrshtmx.UserIDFromContext(ctx)
 
-// Correlation ID (strongly-typed, ULID-backed, auto-extracted from X-Correlation-ID header)
+// Correlation ID (auto-extracted from X-Correlation-ID header)
 cid := cqrshtmx.MustParseCorrelationID("01HK154ANGZHV2ZW0X3SKSNEN2")
 ctx = cqrshtmx.WithCorrelationID(ctx, cid)
 corrID := cqrshtmx.CorrelationIDFromContext(ctx)
+
+// Request ID
+reqID := cqrshtmx.NewRequestID()
+ctx = cqrshtmx.WithRequestID(ctx, reqID)
 
 // Build event options from context (includes user ID + correlation ID)
 opts := cqrshtmx.EventOptionsFromContext(ctx)
@@ -322,11 +363,10 @@ evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, payload, opts...)
 // Generate new random IDs
 newID  := cqrshtmx.NewUserID()
 newCID := cqrshtmx.NewCorrelationID()
+newRID := cqrshtmx.NewRequestID()
 ```
 
 ### Why ULID?
-
-Both `UserID` and `CorrelationID` are strongly-typed wrappers around [ULID](https://github.com/oklog/ulid). This guarantees:
 
 - **Collision-free keys** — 48-bit timestamp + 80-bit randomness
 - **Lexicographic sortability** — time-ordered without a central coordinator
@@ -398,6 +438,7 @@ mux.Handle("/admin", cqrshtmx.AuthorizeMiddleware(
 
 // Chain multiple middleware
 chained := cqrshtmx.Chain(
+    cqrshtmx.SecurityHeadersMiddleware,
     cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
     cqrshtmx.HTMXMiddleware,
     app.Middleware(),
@@ -406,20 +447,21 @@ chained := cqrshtmx.Chain(
 
 ### Request Logging
 
-Log every request with method, path, status, duration, and optional correlation/user IDs:
+Log every request with method, path, status, duration, and context IDs:
 
 ```go
+// Plain text or custom format
 handler := cqrshtmx.RequestLogging(nil, func(line string) {
     log.Println(line)
 })(mux)
-```
 
-Use `JSONLogFormatter` for structured JSON output:
-
-```go
+// Structured JSON
 handler := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
     log.Println(line)
 })(mux)
+
+// slog integration (recommended for production)
+handler := cqrshtmx.RequestLoggingSlog(slog.Default())(mux)
 ```
 
 ### CSRF Protection
@@ -431,10 +473,26 @@ handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
     CookieName: "csrf_token",
     HeaderName: "X-CSRF-Token",
     MaxAge:     24 * time.Hour,
-    Secure:     true, // must be explicitly set
+    Secure:     true,
     SameSite:   http.SameSiteLaxMode,
 })
 ```
+
+**CSRFConfig fields:**
+
+| Field            | Default            | Description                                  |
+| ---------------- | ------------------ | -------------------------------------------- |
+| `Secret`         | random (ephemeral) | 32-byte HMAC key; empty = random per-restart |
+| `CookieName`     | `"csrf_token"`     | Cookie name                                  |
+| `HeaderName`     | `"X-CSRF-Token"`   | Header/field name to validate                |
+| `FieldName`      | `"csrf_token"`     | Form field name                              |
+| `MaxAge`         | 24h                | Token lifetime                               |
+| `Secure`         | false              | Set `true` in production (HTTPS only)        |
+| `SameSite`       | `Lax`              | Cross-site cookie policy                     |
+| `Domain`         | `""`               | Cookie domain (host-only by default)         |
+| `Path`           | `"/"`              | Cookie path                                  |
+| `TrustedOrigins` | `nil`              | Additional trusted origins                   |
+| `ErrorHandler`   | 403 plain text     | Custom error handler for CSRF failures       |
 
 **HTMX Integration:**
 
@@ -446,7 +504,6 @@ handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 ```go
 // Pass token to templates from handler
 token := cqrshtmx.CSRFTokenFromContext(r.Context())
-// ... render template with token
 
 // Or use Response builder
 resp := cqrshtmx.NewResponse(w, r)
@@ -456,23 +513,12 @@ resp.CSRFToken(token).Apply()
 **Template Helpers** (for HTML/templ):
 
 ```go
-// In your Go handler, pass helpers to template data:
 data := map[string]any{
-    "CSRFMeta":      cqrshtmx.CSRFTokenHTMLMeta(r),
-    "CSRFHXHeaders": cqrshtmx.CSRFTokenHXHeaders(r),
+    "CSRFMeta":      cqrshtmx.CSRFTokenHTMLMeta(r),     // <meta name="csrf-token" content="...">
+    "CSRFHXHeaders": cqrshtmx.CSRFTokenHXHeaders(r),    // hx-headers='{"X-CSRF-Token":"..."}'
+    "CSRFFormField": cqrshtmx.CSRFTokenFormField(r),    // <input type="hidden" name="..." value="...">
     "CSRFToken":     cqrshtmx.CSRFTokenFromContext(r.Context()),
 }
-```
-
-```html
-<!-- HTML meta tag (in <head>) -->
-{{ .CSRFMeta }}
-
-<!-- HTMX global hx-headers (on <body>) -->
-<body {{ .CSRFHXHeaders }}>
-  <!-- Standard HTML form hidden field -->
-  <form method="POST" action="/game/create">{{ cqrshtmx.CSRFTokenFormField .Request }}</form>
-</body>
 ```
 
 **Auto-inject token** (no handler changes needed):
@@ -508,9 +554,297 @@ handler := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
 })(mux)
 ```
 
-**Per-IP rate limiting** — use `KeyExtractorFromRemoteAddr`. **Warning:** behind reverse proxies, `RemoteAddr` is the proxy's IP. Parse `X-Forwarded-For` or similar headers if your deployment uses proxies.
+**RateLimiterConfig fields:**
 
-**Exempt requests** — return `""` from `KeyExtractor` to skip rate limiting for that request (useful for health checks or internal IPs).
+| Field              | Default       | Description                                              |
+| ------------------ | ------------- | -------------------------------------------------------- |
+| `Limit`            | 100           | Requests per `Window`                                    |
+| `Window`           | 1 minute      | Rate window                                              |
+| `Burst`            | = `Limit`     | Max burst size                                           |
+| `KeyExtractor`     | nil (global)  | `func(*http.Request) string`; nil = single global bucket |
+| `TTL`              | 10 minutes    | Idle limiter eviction time                               |
+| `MaxKeys`          | 0 (unbounded) | Cap on tracked keys; oldest evicted via min-heap         |
+| `OnAllowed`        | nil           | Hook called on allowed requests                          |
+| `OnRejected`       | nil           | Hook called on rejected requests (includes retry-after)  |
+| `RejectionHandler` | default 429   | Custom handler for rejected requests                     |
+
+**Per-IP rate limiting** — use `KeyExtractorFromRemoteAddr`. Behind reverse proxies, use `ClientIP(r)` which respects `X-Forwarded-For` and `X-Real-IP`.
+
+**Exempt requests** — return `""` from `KeyExtractor` to skip rate limiting for that request.
+
+### Security Headers
+
+Defense-in-depth headers on every response. Recommended for all production deployments:
+
+```go
+handler := cqrshtmx.SecurityHeadersMiddleware(mux)
+```
+
+Defaults: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
+
+For custom headers:
+
+```go
+handler := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
+    ContentSecurityPolicy:   "default-src 'self'",
+    StrictTransportSecurity: "max-age=31536000; includeSubDomains",
+    PermissionsPolicy:       "camera=(), microphone=(), geolocation=()",
+    Custom: map[string]string{
+        "X-Custom-Header": "value",
+    },
+})(mux)
+```
+
+## Utilities
+
+### WriteJSON
+
+Encode and write JSON responses in one call:
+
+```go
+if err := cqrshtmx.WriteJSON(w, http.StatusOK, user); err != nil {
+    // handle encode error
+}
+```
+
+### ClientIP
+
+Extract client IP from `X-Forwarded-For` → `X-Real-IP` → `RemoteAddr`:
+
+```go
+ip := cqrshtmx.ClientIP(r)
+```
+
+**Warning:** trusts proxy headers without validation. Only use behind a trusted reverse proxy that strips/overwrites these headers.
+
+## User Management (`usermgmt`)
+
+An independent submodule with complete authentication and RBAC, built on [Casbin](https://casbin.org):
+
+```bash
+go get github.com/larsartmann/cqrs-htmx/usermgmt
+```
+
+### Setup
+
+```go
+import (
+    "github.com/larsartmann/cqrs-htmx/usermgmt"
+)
+
+// Create stores
+userStore := usermgmt.NewInMemoryUserStore()
+sessionStore := usermgmt.NewInMemorySessionStore()
+
+// Create RBAC engine
+authz, _ := usermgmt.NewAuthz(usermgmt.EnforcerConfig{
+    Policies: []usermgmt.Policy{
+        {Subject: "role:admin", Domain: "*", Object: "*", Action: usermgmt.ActionAll, Effect: usermgmt.EffectAllow},
+    },
+    Groups: []usermgmt.GroupPolicy{
+        {Subject: userID.String(), Role: "admin", Domain: "*"},
+    },
+})
+
+// Create service
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+    Authz:       authz,
+    UserStore:   userStore,
+    SessionStore: sessionStore,
+    SessionTTL:  24 * time.Hour,
+    BcryptCost:  12,
+    Lockout:     usermgmt.LockoutConfig{MaxAttempts: 5, Duration: 15 * time.Minute},
+})
+
+// Create HTTP handlers
+authHandler := usermgmt.NewAuthHandler(svc, usermgmt.HandlerConfig{
+    Secure:       true,
+    SessionMaxAge: 24 * time.Hour,
+})
+
+// Register routes: POST /auth/register, POST /auth/login, POST /auth/logout, GET /auth/me
+mux := http.NewServeMux()
+authHandler.RegisterRoutes(mux)
+
+// Session middleware (validates cookie, loads user into context)
+handler := usermgmt.NewSessionMiddleware(svc, "session_token")(mux)
+```
+
+### Service Methods
+
+| Method                                                          | Description                                        |
+| --------------------------------------------------------------- | -------------------------------------------------- |
+| `Register(ctx, RegisterRequest)` → `(*RegisterResponse, error)` | Create user + assign default role + create session |
+| `Login(ctx, LoginRequest)` → `(*LoginResponse, error)`          | Authenticate + create session                      |
+| `Logout(ctx, token)` → `error`                                  | Delete session                                     |
+| `Authenticate(ctx, token)` → `(*User, error)`                   | Validate session, return user                      |
+| `Authorize(ctx, sub, dom, obj, act)` → `error`                  | Check RBAC policy                                  |
+| `GetUser(ctx, id)` → `(*User, error)`                           | Find user by ID                                    |
+| `UpdateRoles(ctx, userID, roles, domain)` → `error`             | Atomically update user's roles in a domain         |
+| `ChangePassword(ctx, userID, old, new)` → `error`               | Validate old password, set new                     |
+
+### Input Validation
+
+`RegisterRequest` and `LoginRequest` have `Validate()` methods:
+
+```go
+req := usermgmt.RegisterRequest{
+    Email:       "user@example.com",
+    Password:    "securepassword",
+    DisplayName: "Alice",
+}
+if err := req.Validate(); err != nil {
+    // handle validation error
+}
+```
+
+Checks: email format, password length (8–128 chars), required fields. Trims whitespace on `Email` and `DisplayName` in-place.
+
+### Authz (RBAC Engine)
+
+Domain-aware Casbin RBAC with typed constants:
+
+```go
+authz, _ := usermgmt.NewAuthz(usermgmt.EnforcerConfig{
+    Policies: []usermgmt.Policy{
+        {Subject: "role:admin", Domain: "acme", Object: "documents", Action: usermgmt.ActionExecute, Effect: usermgmt.EffectAllow},
+    },
+})
+
+// Check permission
+allowed, _ := authz.Enforce(userID.String(), "acme", "documents", "read")
+
+// Query roles
+roles, _ := authz.RolesForUser(userID.String(), "acme")
+
+// Atomic policy update
+authz.Apply(usermgmt.PolicyUpdate{
+    AddPolicies:    []usermgmt.Policy{{...}},
+    RemovePolicies: []usermgmt.Policy{{...}},
+    AddGroups:      []usermgmt.GroupPolicy{{...}},
+    RemoveGroups:   []usermgmt.GroupPolicy{{...}},
+})
+
+// Bridge to parent cqrs-htmx Enforcer interface
+enforcer := authz.AsEnforcer()
+```
+
+### Predefined Constants
+
+| Type     | Values                                             |
+| -------- | -------------------------------------------------- |
+| `Action` | `ActionExecute`, `ActionRead`, `ActionAll`         |
+| `Effect` | `EffectAllow`, `EffectDeny`                        |
+| `Role`   | `RoleAdmin`, `RoleUser`, `RoleViewer`, `RoleOwner` |
+
+### Account Lockout
+
+Configurable failed-login tracking with automatic expiry:
+
+```go
+lockout := usermgmt.NewAccountLockout(usermgmt.LockoutConfig{
+    MaxAttempts: 5,
+    Duration:    15 * time.Minute,
+})
+
+// Integrated into Service via ServiceConfig.Lockout
+// Automatic cleanup: lockout.EvictStale() removes expired entries
+```
+
+### Store Interfaces
+
+```go
+type UserStore interface {
+    FindByID(ctx context.Context, id UserID) (*User, error)
+    FindByEmail(ctx context.Context, email string) (*User, error)
+    Save(ctx context.Context, user *User) error
+    Create(ctx context.Context, user *User) error  // atomic, checks email uniqueness
+    Delete(ctx context.Context, id UserID) error
+}
+
+type SessionStore interface {
+    Create(ctx context.Context, userID UserID, ttl time.Duration) (*Session, error)
+    Find(ctx context.Context, token string) (*Session, error)
+    Delete(ctx context.Context, token string) error
+    DeleteByUserID(ctx context.Context, userID UserID) error
+}
+```
+
+In-memory implementations: `InMemoryUserStore` (with O(1) email index), `InMemorySessionStore` (with `EvictExpired()` cleanup).
+
+### Strongly-Typed UserID
+
+All user IDs in the submodule use `usermgmt.UserID` — a branded ULID type via `go-branded-id`:
+
+```go
+uid := usermgmt.NewUserID("01HK1549P84T9XF8R94E960633")
+uid.String() // "User:01HK1549P84T9XF8R94E960633" (brand-prefixed)
+uid.Get()    // "01HK1549P84T9XF8R94E960633"       (raw ULID, for cqrs-htmx bridge)
+```
+
+### User Context
+
+```go
+// Set user in context (done by SessionMiddleware)
+ctx := usermgmt.WithUser(r.Context(), user)
+
+// Retrieve
+user, ok := usermgmt.UserFromContext(ctx)
+user = usermgmt.UserFromContextOr(ctx, fallback)
+
+// Bridge to cqrs-htmx UserIDExtractor
+func extractor(r *http.Request) string {
+    return usermgmt.UserIDFromRequest(r) // reads from context, returns string
+}
+```
+
+## Architecture
+
+```
+cqrs-htmx/
+├── app.go              # App builder, Config, Command(), Query(), lifecycle hooks
+├── handler.go          # Command/query dispatch handlers
+├── options.go          # HandlerOption, decoders, renderers, validation, auth modes
+├── response.go         # HTMX response builder (fluent API), ContentType constants
+├── authz.go            # Enforcer interface, Authorize, RequireAuth, AuthorizeMiddleware
+├── context.go          # UserID, CorrelationID, RequestID — strongly-typed context helpers
+├── errors.go           # CQRS error → HTTP status mapping, sentinels, error handlers
+├── htmx.go             # HTMXRequest struct, accessors, swap strategies
+├── notify.go           # Notification HandlerOptions, NotifyWithEvent builder
+├── middleware.go        # ContextEnrichmentMiddleware, HTMXMiddleware, Chain
+├── csrf.go             # CSRFMiddleware, CSRFConfig, token context helpers
+├── csrf_handler.go     # CSRFProtect (per-handler CSRF)
+├── csrf_helpers.go     # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
+├── decoder.go          # Body reading, form/JSON decoding, MaxBodySize
+├── httputil.go         # WriteJSON, ClientIP
+├── logging.go          # RequestLogging, RequestLoggingSlog, StatusRecorder
+├── ratelimit.go        # RateLimiterMiddleware, token bucket, min-heap eviction
+├── security.go         # SecurityHeadersMiddleware, SecurityHeadersConfig
+├── usermgmt/           # User management submodule (independent Go module)
+│   ├── id.go           # Branded UserID type
+│   ├── authz.go        # Casbin RBAC with domains, PolicyUpdate, AsEnforcer bridge
+│   ├── service.go      # Service (register, login, logout, authenticate, changePassword)
+│   ├── user.go         # User/Session types, bcrypt hashing, Session.TokenMatches
+│   ├── store.go        # In-memory stores with email index, EvictExpired
+│   ├── http.go         # AuthHandlers, RegisterRoutes, SessionMiddleware
+│   ├── middleware.go    # User context helpers, UserIDFromRequest bridge
+│   ├── lockout.go      # AccountLockout (configurable attempts + duration)
+│   └── errors.go       # Sentinel errors (cockroachdb/errors)
+├── integration_test/   # Cross-module integration tests (independent Go module)
+└── examples/
+    └── datastar-demo/  # Standalone datastar + go-cqrs-lite SSE example
+```
+
+## Dependencies
+
+| Dependency               | Purpose                              |
+| ------------------------ | ------------------------------------ |
+| go-cqrs-lite/core v1.4.0 | CQRS command/query dispatch          |
+| casbin/casbin/v3         | Authorization                        |
+| cockroachdb/errors       | Error handling with sentinel support |
+| gorilla/csrf v1.7.3      | CSRF protection                      |
+| golang.org/x/time        | Token-bucket rate limiting           |
+| go-branded-id            | Branded types (usermgmt)             |
 
 ## Contributing
 
