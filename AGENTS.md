@@ -32,8 +32,11 @@ cqrs-htmx/
 ├── htmx.go        # HTMXRequest struct, accessors, context storage, RenderPartial
 ├── notify.go      # Notification HandlerOptions + NotifyWithEvent builder
 ├── middleware.go   # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
-├── csrf.go        # CSRF token generation, CSRFMiddleware, CSRFProtect, context helpers
-├── decoder.go     # Body reading, form/JSON decoding, MaxBodySize enforcement
+├── csrf.go          # CSRF token generation, CSRFMiddleware, CSRFConfig, context helpers
+├── csrf_handler.go  # CSRFProtect (per-handler CSRF HandlerOption)
+├── csrf_helpers.go  # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
+├── decoder.go       # Body reading, form/JSON decoding, MaxBodySize enforcement
+├── httputil.go      # WriteJSON, ClientIP
 ├── logging.go     # RequestLogging, RequestLoggingSlog, DefaultLogFormatter, JSONLogFormatter
 ├── ratelimit.go   # RateLimiterMiddleware, per-key token bucket, TTL eviction, hooks
 ├── security.go    # SecurityHeadersMiddleware, SecurityHeadersConfig builder
