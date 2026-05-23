@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 96.6% root, 88.6% usermgmt (340+ tests)                                           |
+| Coverage | 96.7% root, 91.0% usermgmt (360+ tests)                                           |
 
 ## Architecture
 
@@ -58,7 +58,7 @@ cqrs-htmx/
 - **Framework-agnostic**: Works with `net/http`, Gin, Chi, etc.
 - **Enforcer interface**: `authz.go` defines `Enforcer` interface matching Casbin's `Enforce(...any) (bool, error)` — `*casbin.Enforcer` satisfies it automatically, but consumers can provide mock/fake enforcers
 - **Casbin v3**: Uses `casbin/casbin/v3` for authorization
-- **go-cqrs-lite/core v1.4.0**: Depends on command, query, event, pkg/id packages. v1.4.0 adds `CatalogDispatcher` mixin, `TypedHandler[T]`/`RegisterTyped[T]`, `NewEvents`/`DecodePayloads` batch helpers, `Publisher`/`Subscriber` ISP interfaces
+- **go-cqrs-lite/core v1.5.0**: Depends on command, query, event, pkg/id packages. v1.5.0 adds `RegisterTyped[T]`, `DispatchTyped[T]`, `NewEvents`/`DecodePayloads` batch helpers, `Publisher`/`Subscriber` ISP interfaces, `CatalogDispatcher` mixin
 - **Error classification**: `sync.Once` lazy-registers all sentinels (not `init()`)
 - **HTMX-aware by default**: All error handling and responses check for HTMX requests
 - **User identity propagation**: `UserIDExtractor` → context → event metadata
@@ -105,7 +105,7 @@ cqrs-htmx/
 
 | Dependency         | Purpose                   |
 | ------------------ | ------------------------- |
-| go-cqrs-lite/core  | CQRS dispatch (v1.4.0)    |
+| go-cqrs-lite/core  | CQRS dispatch (v1.5.0)    |
 | casbin/casbin/v3   | Authorization             |
 | cockroachdb/errors | Error handling            |
 | gorilla/csrf       | CSRF protection (v1.7.3+) |
@@ -158,7 +158,7 @@ cqrs-htmx/
 43. **Root coverage 97.0%** (up from 96.1%), **usermgmt coverage 91.2%**
 44. **usermgmt BrandNamer**: `userBrand` implements `BrandNamer` with `Name() string { return "User" }`. `.String()` returns "User:ULID", `.Get()` returns raw ULID. Cross-module bridges MUST use `.Get()` for cqrshtmx `ParseUserID` compatibility
 45. **go.work includes integration_test**: `go.work` lists root, usermgmt, and integration_test. datastar-demo is NOT included (it doesn't import sibling modules). integration_test keeps its `replace` directives for `GOWORK=off` CI usage
-46. **datastar-demo is standalone**: `examples/datastar-demo/` has its own go.mod but does NOT import the cqrs-htmx root library. It's a go-cqrs-lite + datastar SSE example. Uses go-cqrs-lite/core v1.5.0 (root uses v1.4.0)
+46. **datastar-demo is standalone**: `examples/datastar-demo/` has its own go.mod but does NOT import the cqrs-htmx root library. It's a go-cqrs-lite + datastar SSE example. All modules now use go-cqrs-lite/core v1.5.0
 47. **CI tests all 4 modules**: CI builds root, usermgmt, integration_test, and datastar-demo. Tests run for root, usermgmt, and integration_test (datastar-demo is a main package with no tests)
 48. **Validate uses pointer receiver**: `RegisterRequest.Validate()` and `LoginRequest.Validate()` use `*T` receivers — trimmed Email/DisplayName are persisted in-place to the caller's struct. Was a value receiver bug, fixed 2026-05-22
 49. **Max password length 128**: `maxPasswordLength = 128` enforced in both `RegisterRequest.Validate()` and `Service.ChangePassword()`. Prevents bcrypt CPU abuse (bcrypt only uses first 72 bytes anyway)
