@@ -128,7 +128,7 @@
 
 - [x] **Resolve usermgmt vs cqrshtmx UserID type split** — Decided: intentionally separate types (ADR 0002). `usermgmt.UserID` is string-backed for standalone use; `cqrshtmx.UserID` is ULID-backed via go-cqrs-lite. Bridge via `.Get()` for string conversion. No migration needed.
 - [x] **Evaluate go-branded-id for numeric IDs** — Evaluated (ADR 0003). Future SQL stores should use `brandid.ID[Brand, int64]` for auto-increment PKs. Documented pattern ready for implementation.
-- [ ] **Adopt TypedHandler[T] from go-cqrs-lite v1.5.0** — Upstream has `command.RegisterTyped[T]` and `query.RegisterTyped[T]`. cqrs-htmx needs `DispatchTyped[T]` wrapper for type-safe query results. API design decision: top-level generic function vs method on generic App.
+- [x] **Adopt TypedHandler[T] from go-cqrs-lite v1.5.0** — NOT NEEDED: cqrs-htmx's HTTP layer already provides typed rendering via `RenderTemplResult[T]`. The upstream `query.DispatchTyped[T]` is available for non-HTTP contexts. No additional wrapper required.
 - [ ] **BrandNamer for root module marker types** — BLOCKED: upstream `go-cqrs-lite/core/pkg/id` marker types (`userMarker`, `correlationMarker`) are unexported. Requires upstream change.
 
 ### Items Completed in 2026-05-23 Session
