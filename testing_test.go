@@ -317,3 +317,15 @@ type hijackRecorder struct {
 func newHijackRecorder() *hijackRecorder {
 	return &hijackRecorder{ResponseRecorder: httptest.NewRecorder()}
 }
+
+type errorEnforcer struct {
+	err error
+}
+
+func (e *errorEnforcer) Enforce(...any) (bool, error) {
+	return false, e.err
+}
+
+func newFailingEnforcer(err error) cqrshtmx.Enforcer {
+	return &errorEnforcer{err: err}
+}
