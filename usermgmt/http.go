@@ -3,12 +3,11 @@ package usermgmt
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/cockroachdb/errors"
 )
 
 // AuthHandler provides HTTP endpoints for user registration, login, logout, and identity.

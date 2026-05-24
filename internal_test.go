@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/csrf"
+	"github.com/justinas/nosurf"
 )
 
 func TestAuthModeString(t *testing.T) {
@@ -27,25 +27,19 @@ func TestAuthModeString(t *testing.T) {
 	}
 }
 
-func TestCSRFTokenFromRequestWithGorillaToken(t *testing.T) {
+func TestCSRFTokenFromRequestWithNosurfToken(t *testing.T) {
 	t.Parallel()
-	secret := make([]byte, 32)
-	for i := range secret {
-		secret[i] = byte(i)
-	}
-	mw := csrf.Protect(secret, csrf.CookieName("csrf_test"))
-
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := nosurf.New(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := csrfTokenFromRequest(r)
 		if token == "" {
-			t.Error("csrfTokenFromRequest returned empty when gorilla token is set")
+			t.Error("csrfTokenFromRequest returned empty when nosurf token is set")
 		}
 		w.WriteHeader(http.StatusOK)
-	})
+	}))
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	mw(inner).ServeHTTP(w, r)
+	handler.ServeHTTP(w, r)
 }
 
 func TestCSRFTokenFromRequestFallback(t *testing.T) {
@@ -58,51 +52,76 @@ func TestCSRFTokenFromRequestFallback(t *testing.T) {
 	}
 }
 
-func TestSameSiteDefaultCase(t *testing.T) {
+func TestConfigureNosurfHandlerWithDomain(t *testing.T) {
 	t.Parallel()
-	cfg := CSRFConfig{SameSite: http.SameSite(99)}
-	result := cfg.sameSite()
-	if result != csrf.SameSiteLaxMode {
-		t.Errorf("sameSite(unknown) = %v, want Lax", result)
-	}
-}
-
-func TestBuildGorillaOptionsWithDomain(t *testing.T) {
-	t.Parallel()
+	dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	handler := nosurf.New(dummy)
 	cfg := CSRFConfig{
-		Secret:   make([]byte, 32),
 		Domain:   "example.com",
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}
-	opts := buildGorillaOptions(cfg)
-	if len(opts) < 9 {
-		t.Errorf("buildGorillaOptions with domain returned %d opts, want >= 9", len(opts))
+	configureNosurfHandler(handler, cfg)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
+	handler.ServeHTTP(w, r)
+
+	cookies := w.Result().Cookies()
+	if len(cookies) == 0 {
+		t.Fatal("expected a cookie to be set")
+	}
+	if cookies[0].Domain != "example.com" {
+		t.Errorf("cookie domain = %q, want %q", cookies[0].Domain, "example.com")
 	}
 }
 
-func TestBuildGorillaOptionsWithTrustedOrigins(t *testing.T) {
+func TestConfigureNosurfHandlerWithTrustedOrigins(t *testing.T) {
 	t.Parallel()
+	dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	handler := nosurf.New(dummy)
 	cfg := CSRFConfig{
-		Secret:         make([]byte, 32),
 		Secure:         true,
 		TrustedOrigins: []string{"https://example.com"},
 	}
-	opts := buildGorillaOptions(cfg)
-	if len(opts) < 9 {
-		t.Errorf("buildGorillaOptions with trusted origins returned %d opts, want >= 9", len(opts))
+	configureNosurfHandler(handler, cfg)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
+	handler.ServeHTTP(w, r)
+
+	cookies := w.Result().Cookies()
+	if len(cookies) == 0 {
+		t.Fatal("expected a cookie to be set")
 	}
 }
 
-func TestBuildGorillaOptionsWithErrorHandler(t *testing.T) {
+func TestConfigureNosurfHandlerWithErrorHandler(t *testing.T) {
 	t.Parallel()
+	customCalled := false
+	dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	handler := nosurf.New(dummy)
 	cfg := CSRFConfig{
-		Secret:       make([]byte, 32),
-		ErrorHandler: func(http.ResponseWriter, *http.Request, error) {},
+		ErrorHandler: func(http.ResponseWriter, *http.Request, error) {
+			customCalled = true
+		},
 	}
-	opts := buildGorillaOptions(cfg)
-	if len(opts) < 9 {
-		t.Errorf("buildGorillaOptions with error handler returned %d opts, want >= 9", len(opts))
+	configureNosurfHandler(handler, cfg)
+
+	// POST without token to trigger failure handler
+	w := httptest.NewRecorder()
+	r := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/", nil)
+	r.Header.Set("Sec-Fetch-Site", "same-origin")
+	handler.ServeHTTP(w, r)
+
+	if !customCalled {
+		t.Error("expected custom error handler to be called")
 	}
 }
 

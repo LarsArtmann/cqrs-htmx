@@ -9,7 +9,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -117,7 +117,8 @@ type Session struct {
 func NewSession(userID UserID, ttl time.Duration) (*Session, error) {
 	token, err := generateToken()
 	if err != nil {
-		return nil, errors.Wrapf(err, "generate token for user %q", userID)
+		return nil, event.NewTransient("token_gen_failed",
+			fmt.Sprintf("generate token for user %q", userID)).WithCause(err)
 	}
 	now := time.Now().UTC()
 	return &Session{

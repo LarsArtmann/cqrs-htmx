@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/gorilla/csrf"
+	"github.com/justinas/nosurf"
 )
 
 // CSRFProtect returns a HandlerOption that validates CSRF tokens for a specific
@@ -12,7 +12,7 @@ import (
 // want CSRF protection only on specific routes.
 //
 // When CSRFMiddleware is applied globally, CSRFProtect is redundant
-// because gorilla/csrf already validates all state-changing requests.
+// because nosurf already validates all state-changing requests.
 // CSRFProtect is only needed when you want per-handler protection WITHOUT
 // global middleware.
 //
@@ -23,36 +23,48 @@ import (
 //	    cqrshtmx.DecodeJSON(...),
 //	)
 func CSRFProtect(cfg CSRFConfig) HandlerOption {
-	opts := buildGorillaOptions(cfg)
-	protect := csrf.Protect(cfg.secret(), opts...)
 	return func(hc *handlerConfig) {
 		hc.csrfConfig = &cfg
-		hc.csrfProtect = protect
 	}
 }
 
 // executeCSRFValidation checks CSRF for per-handler protection (CSRFProtect option).
 // Returns nil if no CSRF config is set on the handler or validation passes.
-func executeCSRFValidation(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) error {
-	if cfg.csrfConfig == nil {
+func executeCSRFValidation(w http.ResponseWriter, r *http.Request, hc *handlerConfig) error {
+	if hc.csrfConfig == nil {
 		return nil
 	}
 
-	if csrf.Token(r) != "" {
+	if nosurf.Token(r) != "" {
 		return nil
 	}
 
-	protect := cfg.csrfProtect
 	var validated bool
 	dummy := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		validated = true
 	})
 
+	handler := nosurf.New(dummy)
+	configureNosurfHandler(handler, *hc.csrfConfig)
+
 	rec := httptest.NewRecorder()
-	if r.TLS == nil {
-		r = csrf.PlaintextHTTPRequest(r)
+
+	// For plain HTTP requests without origin headers, set Sec-Fetch-Site
+	// to allow nosurf to skip origin validation.
+	if r.TLS == nil &&
+		r.Header.Get("Sec-Fetch-Site") == "" &&
+		r.Header.Get("Origin") == "" &&
+		r.Header.Get("Referer") == "" {
+		r.Header.Set("Sec-Fetch-Site", "same-origin")
 	}
-	protect(dummy).ServeHTTP(rec, r)
+
+	needsTranslation := hc.csrfConfig.headerName() != defaultCSRFHeaderName ||
+		hc.csrfConfig.fieldName() != defaultCSRFFieldName
+	if needsTranslation {
+		translateCSRFHeaders(r, *hc.csrfConfig)
+	}
+
+	handler.ServeHTTP(rec, r)
 
 	if !validated {
 		for k, vv := range rec.Header() {

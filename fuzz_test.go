@@ -86,24 +86,22 @@ func FuzzSanitizeRedirectURL(f *testing.F) {
 
 func FuzzCSRFConfigValidation(f *testing.F) {
 	f.Add("", "", "X-CSRF-Token", "csrf_token")
-	f.Add("secret123456789012345678901234", "my_csrf", "X-Token", "field")
-	f.Add("short", "", "", "")
-	f.Add("a", "b", "c", "d")
+	f.Add("my_csrf", "X-Token", "field", "")
+	f.Add("", "", "", "")
+	f.Add("b", "c", "d", "e")
 
-	f.Fuzz(func(_ *testing.T, secret, cookieName, headerName, fieldName string) {
+	f.Fuzz(func(_ *testing.T, cookieName, headerName, fieldName, domain string) {
 		cfg := CSRFConfig{
-			Secret:     []byte(secret),
 			CookieName: cookieName,
 			HeaderName: headerName,
 			FieldName:  fieldName,
+			Domain:     domain,
 		}
 		_ = cfg.cookieName()
 		_ = cfg.headerName()
 		_ = cfg.fieldName()
 		_ = cfg.maxAge()
 		_ = cfg.path()
-		_ = cfg.sameSite()
-		_ = cfg.secret()
 		_ = cfg.Validate()
 	})
 }

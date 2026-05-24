@@ -2,10 +2,11 @@ package cqrshtmx
 
 import (
 	"encoding/json"
+	"errors"
+	stderrors "errors"
 	"net/http"
 	"sync"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -17,35 +18,26 @@ var (
 
 // Sentinel errors for HTTP→CQRS integration.
 var (
-	ErrUnauthorized     = errors.New("unauthorized: authentication required")
-	ErrForbidden        = errors.New("forbidden: insufficient permissions")
-	ErrDecodeFailed     = errors.New("failed to decode request body")
+	ErrUnauthorized     = event.NewRejection("unauthorized", "unauthorized: authentication required")
+	ErrForbidden        = event.NewRejection("forbidden", "forbidden: insufficient permissions")
+	ErrDecodeFailed     = event.NewRejection("decode_failed", "failed to decode request body")
 	ErrDispatchFailed   = errors.New("command/query dispatch failed")
-	ErrEnforcerNil      = errors.New("casbin enforcer is required for authorization")
-	ErrValidationFailed = errors.New("request validation failed")
-	ErrCSRFConfig       = errors.New("invalid CSRF configuration")
-	ErrRequestTooLarge  = errors.New("request body exceeds maximum size")
-	ErrMethodNotAllowed = errors.New("HTTP method not allowed")
+	ErrEnforcerNil      = event.NewInfrastructure("enforcer_nil", "casbin enforcer is required for authorization")
+	ErrValidationFailed = event.NewRejection("validation_failed", "request validation failed")
+	ErrCSRFConfig       = event.NewInfrastructure("csrf_config", "invalid CSRF configuration")
+	ErrRequestTooLarge  = event.NewRejection("request_too_large", "request body exceeds maximum size")
+	ErrMethodNotAllowed = event.NewRejection("method_not_allowed", "HTTP method not allowed")
 
-	errCommandsNil    = errors.New("command dispatcher is required")
-	errQueriesNil     = errors.New("query dispatcher is required")
-	errDecoderMissing = errors.New("request decoder is required")
+	errCommandsNil    = event.NewInfrastructure("commands_nil", "command dispatcher is required")
+	errQueriesNil     = event.NewInfrastructure("queries_nil", "query dispatcher is required")
+	errDecoderMissing = event.NewInfrastructure("decoder_missing", "request decoder is required")
 )
 
 func registerErrorClassifications() {
 	registerErrors.Do(func() {
-		errorfamily.RegisterClassification(ErrUnauthorized, event.Rejection)
-		errorfamily.RegisterClassification(ErrForbidden, event.Rejection)
-		errorfamily.RegisterClassification(ErrDecodeFailed, event.Rejection)
-		errorfamily.RegisterClassification(ErrDispatchFailed, event.Transient)
-		errorfamily.RegisterClassification(ErrEnforcerNil, event.Infrastructure)
-		errorfamily.RegisterClassification(errCommandsNil, event.Infrastructure)
-		errorfamily.RegisterClassification(errQueriesNil, event.Infrastructure)
-		errorfamily.RegisterClassification(errDecoderMissing, event.Infrastructure)
-		errorfamily.RegisterClassification(ErrValidationFailed, event.Rejection)
-		errorfamily.RegisterClassification(ErrCSRFConfig, event.Infrastructure)
-		errorfamily.RegisterClassification(ErrRequestTooLarge, event.Rejection)
-		errorfamily.RegisterClassification(ErrMethodNotAllowed, event.Rejection)
+		// ErrDispatchFailed is a plain sentinel — register for Transient classification
+		// when it appears as the root error (no inner *event.Error).
+		errorfamily.RegisterClassification(ErrDispatchFailed, errorfamily.Transient)
 	})
 }
 
@@ -58,8 +50,6 @@ func registerErrorClassifications() {
 //   - Transient family  → 503 Service Unavailable
 //   - Infrastructure    → 500 Internal Server Error
 //   - nil or unknown    → 500 Internal Server Error
-//
-
 func MapError(err error) int {
 	registerErrorClassifications()
 
@@ -76,13 +66,13 @@ func MapError(err error) int {
 
 func explicitErrorStatus(err error) int {
 	switch {
-	case errors.Is(err, ErrUnauthorized):
+	case isErr(err, ErrUnauthorized):
 		return http.StatusUnauthorized
-	case errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid):
+	case isErr(err, ErrForbidden) || isErr(err, ErrCSRFInvalid):
 		return http.StatusForbidden
-	case errors.Is(err, ErrRequestTooLarge):
+	case isErr(err, ErrRequestTooLarge):
 		return http.StatusRequestEntityTooLarge
-	case errors.Is(err, ErrMethodNotAllowed):
+	case isErr(err, ErrMethodNotAllowed):
 		return http.StatusMethodNotAllowed
 	default:
 		return 0
@@ -119,9 +109,12 @@ func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 // isAuthError returns true if the error is an authentication/authorization error
 // that should trigger a login redirect for HTMX requests.
 func isAuthError(err error) bool {
-	return errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) ||
-		errors.Is(err, ErrCSRFInvalid)
+	return isErr(err, ErrUnauthorized) || isErr(err, ErrForbidden) ||
+		isErr(err, ErrCSRFInvalid)
 }
+
+// isErr wraps stdlib errors.Is for internal use.
+func isErr(err, target error) bool { return stderrors.Is(err, target) }
 
 // writeHTMXAuthRedirect sets HX-Redirect header and writes 303 See Other.
 // Returns true if the redirect was written, false if the request is not HTMX or the error is not auth-related.
@@ -203,6 +196,8 @@ func JSONErrorHandlerWithRedirect(
 			Error:  err.Error(),
 			Status: status,
 		}
-		_ = json.NewEncoder(w).Encode(response)
+
+		encoder := json.NewEncoder(w)
+		_ = encoder.Encode(response)
 	})
 }

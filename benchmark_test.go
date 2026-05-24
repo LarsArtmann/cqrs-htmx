@@ -146,7 +146,7 @@ func BenchmarkRequestLogging(b *testing.B) {
 }
 
 func BenchmarkCSRFMiddleware(b *testing.B) {
-	cfg := cqrshtmx.CSRFConfig{Secret: []byte("a-32-byte-long-secret-key-goes-here")}
+	cfg := cqrshtmx.CSRFConfig{}
 	middleware := cqrshtmx.CSRFMiddleware(cfg)
 	handler := middleware(okHandler())
 
@@ -155,14 +155,22 @@ func BenchmarkCSRFMiddleware(b *testing.B) {
 	})
 
 	b.Run("POST-ValidToken", func(b *testing.B) {
-		// Obtain a token first
+		// Obtain a masked token from context via GET
 		w1 := httptest.NewRecorder()
 		r1 := httptest.NewRequest(http.MethodGet, "/", nil)
-		handler.ServeHTTP(w1, r1)
 		var token string
+		captureMw := cqrshtmx.CSRFMiddleware(cfg)
+		captureHandler := captureMw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token = cqrshtmx.CSRFTokenFromContext(r.Context())
+			w.WriteHeader(http.StatusOK)
+		}))
+		captureHandler.ServeHTTP(w1, r1)
+
+		// Get the cookie from the capture handler
+		var cookie *http.Cookie
 		for _, c := range w1.Result().Cookies() {
 			if c.Name == "csrf_token" {
-				token = c.Value
+				cookie = c
 				break
 			}
 		}
@@ -171,8 +179,9 @@ func BenchmarkCSRFMiddleware(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
 			r.Header.Set("X-CSRF-Token", token)
-			for _, c := range w1.Result().Cookies() {
-				r.AddCookie(c)
+			r.Header.Set("Sec-Fetch-Site", "same-origin")
+			if cookie != nil {
+				r.AddCookie(cookie)
 			}
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, r)

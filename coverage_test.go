@@ -712,7 +712,6 @@ var _ = Describe("Root Coverage Gaps", func() {
 	Describe("CSRF sameSite all branches", func() {
 		It("maps SameSiteDefaultMode", func() {
 			cfg := cqrshtmx.CSRFConfig{
-				Secret:   []byte(strings.Repeat("x", 32)),
 				SameSite: http.SameSiteDefaultMode,
 			}
 			mw := cqrshtmx.CSRFMiddleware(cfg)

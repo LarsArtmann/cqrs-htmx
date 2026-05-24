@@ -1,9 +1,10 @@
 package cqrshtmx
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 // Enforcer checks authorization policy. *casbin.Enforcer satisfies this interface.
@@ -40,25 +41,22 @@ func RequireAuth() HandlerOption {
 // Returns ErrEnforcerNil if the enforcer is nil.
 func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	if enforcer == nil {
-		return errors.WithMessagef(
-			ErrEnforcerNil,
-			"enforcer is nil for subject=%s resource=%s action=%s",
-			subject,
-			resource,
-			action,
-		)
+		return event.NewInfrastructure("enforcer_nil",
+			fmt.Sprintf("enforcer is nil for subject=%s resource=%s action=%s",
+				subject, resource, action)).WithCause(ErrEnforcerNil)
 	}
 
 	ok, err := enforcer.Enforce(subject, resource, action)
 	if err != nil {
-		return errors.Wrapf(err,
-			"casbin enforce failed for subject=%s resource=%s action=%s",
-			subject, resource, action)
+		return event.NewTransient("enforce_failed",
+			fmt.Sprintf("casbin enforce failed for subject=%s resource=%s action=%s",
+				subject, resource, action)).WithCause(err)
 	}
 
 	if !ok {
-		return errors.WithMessagef(ErrForbidden, "subject=%s resource=%s action=%s",
-			subject, resource, action)
+		return event.NewRejection("forbidden",
+			fmt.Sprintf("subject=%s resource=%s action=%s", subject, resource, action)).
+			WithCause(ErrForbidden)
 	}
 
 	return nil
@@ -72,7 +70,8 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 	userID := UserIDFromContext(r.Context())
 	if userID.IsZero() {
 		if cfg.authMode == authAuthorized {
-			return errors.WithMessagef(ErrUnauthorized, "%s/%s", cfg.resource, cfg.action)
+			return event.NewRejection("unauthorized",
+				fmt.Sprintf("%s/%s", cfg.resource, cfg.action)).WithCause(ErrUnauthorized)
 		}
 		return ErrUnauthorized
 	}
@@ -85,7 +84,8 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 }
 
 func handleUnauthorized(w http.ResponseWriter, r *http.Request, resource, action, redirect string) {
-	authErr := errors.WithMessagef(ErrUnauthorized, "%s/%s", resource, action)
+	authErr := event.NewRejection("unauthorized",
+		fmt.Sprintf("%s/%s", resource, action)).WithCause(ErrUnauthorized)
 	DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
 }
 

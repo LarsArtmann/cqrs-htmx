@@ -2,13 +2,14 @@ package usermgmt
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/mail"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 const (
@@ -64,7 +65,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	if cfg.Authz == nil {
 		a, err := NewAuthz()
 		if err != nil {
-			return nil, errors.Wrapf(err, "create authz")
+			return nil, event.NewTransient("internal", "create authz").WithCause(err)
 		}
 		cfg.Authz = a
 	}
@@ -107,7 +108,7 @@ func formatValidationErrors(errs []string) error {
 		return nil
 	}
 
-	return errors.WithMessagef(ErrValidation, "%s", strings.Join(errs, "; "))
+	return event.NewRejection("validation", strings.Join(errs, "; ")).WithCause(ErrValidation)
 }
 
 // Validate checks the RegisterRequest fields and returns ErrValidation with
@@ -150,13 +151,13 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	}
 	user := NewUser(req.ID, req.Email, req.DisplayName)
 	if err := user.SetPasswordWithCost(req.Password, s.bcryptCost); err != nil {
-		return nil, errors.Wrapf(err, "set password")
+		return nil, event.NewTransient("internal", "set password").WithCause(err)
 	}
 
 	user.AddRole(RoleUser)
 
 	if err := s.users.Create(ctx, user); err != nil {
-		return nil, errors.Wrapf(err, "create user")
+		return nil, event.NewTransient("internal", "create user").WithCause(err)
 	}
 
 	policy := GroupPolicy{
@@ -164,14 +165,14 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	}
 	if err := s.authz.AddGroupPolicy(policy); err != nil {
 		_ = s.users.Delete(ctx, user.ID)
-		return nil, errors.Wrapf(err, "assign role")
+		return nil, event.NewTransient("internal", "assign role").WithCause(err)
 	}
 
 	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
 		_ = s.authz.RemoveGroupPolicy(policy)
 		_ = s.users.Delete(ctx, user.ID)
-		return nil, errors.Wrapf(err, "create session")
+		return nil, event.NewTransient("internal", "create session").WithCause(err)
 	}
 
 	return &RegisterResponse{User: user, Session: session}, nil
@@ -241,7 +242,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 
 	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
-		return nil, errors.Wrapf(err, "create session")
+		return nil, event.NewTransient("internal", "create session").WithCause(err)
 	}
 
 	return &LoginResponse{User: user, Session: session}, nil
@@ -250,7 +251,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 // Logout deletes the session associated with the given token.
 func (s *Service) Logout(ctx context.Context, token string) error {
 	if err := s.sessions.Delete(ctx, token); err != nil {
-		return errors.Wrapf(err, "logout")
+		return event.NewTransient("internal", "logout").WithCause(err)
 	}
 	return nil
 }
@@ -291,7 +292,7 @@ func (s *Service) Authorize(_ context.Context, sub, dom, obj string, act Action)
 func (s *Service) GetUser(ctx context.Context, id UserID) (*User, error) {
 	u, err := s.users.FindByID(ctx, id)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get user")
+		return nil, event.NewTransient("internal", "get user").WithCause(err)
 	}
 	return u, nil
 }
@@ -305,12 +306,13 @@ func (s *Service) UpdateRoles(
 ) error {
 	user, err := s.users.FindByID(ctx, userID)
 	if err != nil {
-		return errors.Wrapf(err, "find user %q", userID)
+		return event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err)
 	}
 
 	currentRoles, err := s.authz.RolesForUser(userID, domain)
 	if err != nil {
-		return errors.Wrapf(err, "get roles for user %q in domain %q", userID, domain)
+		return event.NewTransient("internal", fmt.Sprintf("get roles for user %q in domain %q", userID, domain)).
+			WithCause(err)
 	}
 
 	var remove []GroupPolicy
@@ -331,7 +333,7 @@ func (s *Service) UpdateRoles(
 		RemoveGroups: remove,
 		AddGroups:    add,
 	}); err != nil {
-		return errors.Wrapf(err, "apply role update for user %q", userID)
+		return event.NewTransient("internal", fmt.Sprintf("apply role update for user %q", userID)).WithCause(err)
 	}
 
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
@@ -339,7 +341,7 @@ func (s *Service) UpdateRoles(
 	user.Roles = roles
 	user.UpdatedAt = time.Now().UTC()
 	if err := s.users.Save(ctx, user); err != nil {
-		return errors.Wrapf(err, "save user %q after role update", userID)
+		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).WithCause(err)
 	}
 	return nil
 }
@@ -361,7 +363,7 @@ func (s *Service) ChangePassword(
 ) error {
 	user, err := s.users.FindByID(ctx, userID)
 	if err != nil {
-		return errors.Wrapf(err, "find user %q", userID)
+		return event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err)
 	}
 
 	if !user.CheckPassword(oldPassword) {
@@ -369,20 +371,20 @@ func (s *Service) ChangePassword(
 	}
 
 	if len(newPassword) < minPasswordLength {
-		return errors.WithMessagef(ErrValidation,
-			errMsgPasswordTooShort+" for user %q", userID)
+		return event.NewRejection("validation", fmt.Sprintf(errMsgPasswordTooShort+" for user %q", userID)).
+			WithCause(ErrValidation)
 	}
 	if len(newPassword) > maxPasswordLength {
-		return errors.WithMessagef(ErrValidation,
-			errMsgPasswordTooLong+" for user %q", userID)
+		return event.NewRejection("validation", fmt.Sprintf(errMsgPasswordTooLong+" for user %q", userID)).
+			WithCause(ErrValidation)
 	}
 
 	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {
-		return errors.Wrapf(err, "set password for user %q", userID)
+		return event.NewTransient("internal", fmt.Sprintf("set password for user %q", userID)).WithCause(err)
 	}
 
 	if err := s.users.Save(ctx, user); err != nil {
-		return errors.Wrapf(err, "save user %q after password change", userID)
+		return event.NewTransient("internal", fmt.Sprintf("save user %q after password change", userID)).WithCause(err)
 	}
 	return nil
 }
