@@ -306,6 +306,10 @@ func WithSuccessStatus(code int) HandlerOption {
 }
 
 func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) bool {
+	if cfg.redirect == "" && cfg.trigger == "" && cfg.pushURL == "" && len(cfg.triggerDetail) == 0 {
+		return false
+	}
+
 	resp := NewResponse(w, r)
 
 	if cfg.redirect != "" {

@@ -2,10 +2,10 @@ package cqrshtmx
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
-	"strings"
 )
 
 // Content type constants for consistent HTTP response headers.
@@ -191,9 +191,14 @@ func (resp *Response) Body(data []byte) *Response {
 
 // WriteString writes the given string as the response body.
 // Calls Apply first if not already applied.
+// Uses io.StringWriter when available to avoid []byte(string) allocation.
 func (resp *Response) WriteString(s string) *Response {
 	resp.Apply()
-	_, _ = resp.w.Write([]byte(s))
+	if sw, ok := resp.w.(io.StringWriter); ok {
+		_, _ = sw.WriteString(s)
+	} else {
+		_, _ = resp.w.Write([]byte(s))
+	}
 	return resp
 }
 
@@ -253,31 +258,41 @@ func sanitizeRedirectURL(rawURL string) (string, bool) {
 
 	cleaned := path.Clean(u.Path)
 
-	// Block paths that tried to escape above root.
-	// e.g., "/../../etc/passwd" cleans to "/etc/passwd" (escaped),
-	// but "/a/../b/c" cleans to "/b/c" (legitimate normalization).
-	// Detection: count ".." segments and ensure depth never goes negative.
-	depth := 0
-	for _, segment := range splitPath(u.Path) {
-		switch segment {
-		case "..":
-			depth--
-		case ".", "":
-			// no change
-		default:
-			depth++
-		}
-		if depth < 0 {
-			return "", false
-		}
+	if pathEscapesRoot(u.Path) {
+		return "", false
 	}
 
 	return cleaned, u.Path != ""
 }
 
-func splitPath(p string) []string {
-	parts := strings.Split(p, "/")
-	return parts
+// pathEscapesRoot checks whether a URL path contains ".." segments that would
+// escape above the root. Legitimate normalizations like "/a/../b" are allowed,
+// but "/../../etc/passwd" is rejected.
+func pathEscapesRoot(p string) bool {
+	depth := 0
+	for i := 0; i < len(p); {
+		if p[i] != '/' {
+			j := i + 1
+			for j < len(p) && p[j] != '/' {
+				j++
+			}
+			seg := p[i:j]
+			switch seg {
+			case "..":
+				depth--
+			case ".", "":
+			default:
+				depth++
+			}
+			if depth < 0 {
+				return true
+			}
+			i = j
+		} else {
+			i++
+		}
+	}
+	return false
 }
 
 func setTriggerHeader(w http.ResponseWriter, header, event string) {
@@ -291,15 +306,14 @@ func setTriggerHeader(w http.ResponseWriter, header, event string) {
 }
 
 func setTriggerWithDetail(w http.ResponseWriter, header, name string, detail any) {
-	data := map[string]any{name: detail}
+	existing := w.Header().Get(header)
 
-	encoded, err := json.Marshal(data)
+	encoded, err := json.Marshal(map[string]any{name: detail})
 	if err != nil {
 		w.Header().Set(header, name)
 		return
 	}
 
-	existing := w.Header().Get(header)
 	if existing == "" {
 		w.Header().Set(header, string(encoded))
 		return
