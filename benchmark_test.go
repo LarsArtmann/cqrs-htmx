@@ -248,3 +248,39 @@ func benchGET(b *testing.B, h http.Handler, path string) {
 		h.ServeHTTP(w, r)
 	}
 }
+
+func BenchmarkResponseJSON(b *testing.B) {
+	data := map[string]string{"s": "ok", "message": "hello world"}
+	for b.Loop() {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		cqrshtmx.NewResponse(w, r).JSON(data)
+	}
+}
+
+func BenchmarkResponseWriteString(b *testing.B) {
+	for b.Loop() {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		cqrshtmx.NewResponse(w, r).WriteString("hello world")
+	}
+}
+
+func BenchmarkResponseBody(b *testing.B) {
+	body := []byte("hello world")
+	for b.Loop() {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		cqrshtmx.NewResponse(w, r).Body(body)
+	}
+}
+
+func BenchmarkHealthHandler(b *testing.B) {
+	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
+	handler := app.HealthHandler()
+	for b.Loop() {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/health", nil)
+		handler.ServeHTTP(w, r)
+	}
+}

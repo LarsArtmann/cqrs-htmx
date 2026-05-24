@@ -25,6 +25,7 @@ var (
 	ErrValidationFailed = errors.New("request validation failed")
 	ErrCSRFConfig       = errors.New("invalid CSRF configuration")
 	ErrRequestTooLarge  = errors.New("request body exceeds maximum size")
+	ErrMethodNotAllowed = errors.New("HTTP method not allowed")
 
 	errCommandsNil    = errors.New("command dispatcher is required")
 	errQueriesNil     = errors.New("query dispatcher is required")
@@ -44,6 +45,7 @@ func registerErrorClassifications() {
 		errorfamily.RegisterClassification(ErrValidationFailed, event.Rejection)
 		errorfamily.RegisterClassification(ErrCSRFConfig, event.Infrastructure)
 		errorfamily.RegisterClassification(ErrRequestTooLarge, event.Rejection)
+		errorfamily.RegisterClassification(ErrMethodNotAllowed, event.Rejection)
 	})
 }
 
@@ -65,19 +67,29 @@ func MapError(err error) int {
 		return http.StatusInternalServerError
 	}
 
-	if errors.Is(err, ErrUnauthorized) {
+	if status := explicitErrorStatus(err); status != 0 {
+		return status
+	}
+
+	return familyStatus(event.Classify(err))
+}
+
+func explicitErrorStatus(err error) int {
+	switch {
+	case errors.Is(err, ErrUnauthorized):
 		return http.StatusUnauthorized
-	}
-
-	if errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid) {
+	case errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid):
 		return http.StatusForbidden
-	}
-
-	if errors.Is(err, ErrRequestTooLarge) {
+	case errors.Is(err, ErrRequestTooLarge):
 		return http.StatusRequestEntityTooLarge
+	case errors.Is(err, ErrMethodNotAllowed):
+		return http.StatusMethodNotAllowed
+	default:
+		return 0
 	}
+}
 
-	family := event.Classify(err)
+func familyStatus(family event.Family) int {
 	switch family {
 	case event.Rejection:
 		return http.StatusBadRequest

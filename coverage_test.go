@@ -886,9 +886,9 @@ var _ = Describe("Root Coverage Gaps", func() {
 			It("encodes and writes JSON body", func() {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)
-				cqrshtmx.NewResponse(w, r).JSON(map[string]string{"status": "ok"})
+				cqrshtmx.NewResponse(w, r).JSON(map[string]string{"s": "ok"})
 				Expect(w.Header().Get("Content-Type")).To(ContainSubstring("application/json"))
-				Expect(w.Body.String()).To(ContainSubstring(`"status":"ok"`))
+				Expect(w.Body.String()).To(ContainSubstring(`"s":"ok"`))
 			})
 		})
 
@@ -1035,6 +1035,132 @@ var _ = Describe("Root Coverage Gaps", func() {
 				cqrshtmx.WithSuccessStatus(http.StatusOK),
 			), r)
 			Expect(w.code()).To(Equal(http.StatusOK))
+		})
+	})
+
+	Describe("RequireMethod HandlerOption", func() {
+		It("rejects wrong HTTP method with 405", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser", decodeCreateUserJSON(), cqrshtmx.RequireMethod(http.MethodPost))
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			w := serve(handler, r)
+			Expect(w.code()).To(Equal(http.StatusMethodNotAllowed))
+		})
+
+		It("allows correct HTTP method", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser", decodeCreateUserJSON(), cqrshtmx.RequireMethod(http.MethodPost))
+			w := serve(handler, newPostRequest("/users", `{}`))
+			Expect(w.code()).To(Equal(http.StatusNoContent))
+		})
+	})
+
+	Describe("HX-Redirect sanitization", func() {
+		It("sanitizes redirect for HTMX requests", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			cqrshtmx.NewResponse(w, r).Redirect("/../../etc/passwd")
+			Expect(w.Header().Get("HX-Redirect")).To(BeEmpty())
+		})
+
+		It("allows safe redirect for HTMX requests", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			cqrshtmx.NewResponse(w, r).Redirect("/users")
+			Expect(w.Header().Get("HX-Redirect")).To(Equal("/users"))
+		})
+	})
+
+	Describe("Recommended security constants", func() {
+		It("provides recommended HSTS value", func() {
+			Expect(cqrshtmx.RecommendedHSTS).To(ContainSubstring("max-age="))
+		})
+
+		It("provides recommended CSP value", func() {
+			Expect(cqrshtmx.RecommendedCSP).To(ContainSubstring("default-src"))
+		})
+
+		It("applies recommended HSTS in security middleware", func() {
+			handler := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
+				StrictTransportSecurity: cqrshtmx.RecommendedHSTS,
+			})(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+			Expect(w.Header().Get("Strict-Transport-Security")).To(Equal(cqrshtmx.RecommendedHSTS))
+		})
+	})
+
+	Describe("X-Request-ID response header propagation", func() {
+		It("sets X-Request-ID in response when generated", func() {
+			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
+			next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			})
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			middleware(next).ServeHTTP(w, r)
+			Expect(w.Header().Get("X-Request-ID")).NotTo(BeEmpty())
+		})
+
+		It("propagates provided X-Request-ID in response", func() {
+			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
+			next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			})
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("X-Request-ID", "01HK1549P84T9XF8R94E960633")
+			middleware(next).ServeHTTP(w, r)
+			Expect(w.Header().Get("X-Request-ID")).To(Equal("01HK1549P84T9XF8R94E960633"))
+		})
+	})
+
+	Describe("ErrMethodNotAllowed mapping", func() {
+		It("maps to 405", func() {
+			Expect(cqrshtmx.MapError(cqrshtmx.ErrMethodNotAllowed)).To(Equal(http.StatusMethodNotAllowed))
+		})
+	})
+
+	Describe("enrichUserID logs extractor errors", func() {
+		It("continues when extractor returns error", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:        disp,
+				UserIDExtractor: func(_ *http.Request) (id.UserID, error) { return id.UserID{}, errors.New("broken") },
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser", decodeCreateUserJSON())
+			w := serve(handler, newPostRequest("/users", `{}`))
+			Expect(w.code()).To(Equal(http.StatusNoContent))
+		})
+	})
+
+	Describe("HealthHandler", func() {
+		It("returns 200 when dispatchers are configured", func() {
+			app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/health", nil)
+			app.HealthHandler().ServeHTTP(w, r)
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(w.Body.String()).To(ContainSubstring("ok"))
 		})
 	})
 })

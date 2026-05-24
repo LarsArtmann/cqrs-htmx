@@ -3,7 +3,6 @@ package cqrshtmx
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -159,7 +158,7 @@ func (r *StatusRecorder) WriteHeader(code int) {
 // Push delegates HTTP/2 server push to the underlying Pusher, if available.
 func (r *StatusRecorder) Push(target string, opts *http.PushOptions) error {
 	if pusher, ok := r.ResponseWriter.(http.Pusher); ok {
-		return fmt.Errorf("push %q: %w", target, pusher.Push(target, opts))
+		return pusher.Push(target, opts) //nolint:wrapcheck // delegate to underlying Pusher
 	}
 	return http.ErrNotSupported
 }

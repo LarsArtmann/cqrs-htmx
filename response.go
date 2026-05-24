@@ -56,7 +56,10 @@ func (resp *Response) ReplaceURL(url string) *Response {
 // allowing chaining with other response methods.
 func (resp *Response) Redirect(url string) *Response {
 	if resp.IsHTMX() {
-		resp.w.Header().Set(headerRedirect, url)
+		sanitized, safe := sanitizeRedirectURL(url)
+		if safe {
+			resp.w.Header().Set(headerRedirect, sanitized)
+		}
 		return resp
 	}
 

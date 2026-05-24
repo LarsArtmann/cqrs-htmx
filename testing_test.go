@@ -1,9 +1,11 @@
 package cqrshtmx_test
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -316,6 +318,10 @@ type hijackRecorder struct {
 
 func newHijackRecorder() *hijackRecorder {
 	return &hijackRecorder{ResponseRecorder: httptest.NewRecorder()}
+}
+
+func (h *hijackRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return nil, nil, nil
 }
 
 type errorEnforcer struct {
