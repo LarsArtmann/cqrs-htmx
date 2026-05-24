@@ -6,7 +6,8 @@ require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/cockroachdb/errors v1.13.0
 	github.com/gorilla/csrf v1.7.3
-	github.com/larsartmann/go-cqrs-lite/core v1.5.0
+	github.com/larsartmann/go-cqrs-lite/core v1.5.1-0.20260524045324-a331d5578987
+	github.com/larsartmann/go-error-family v0.1.1
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	golang.org/x/time v0.15.0
@@ -29,7 +30,6 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
-	github.com/larsartmann/go-error-family v0.1.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect

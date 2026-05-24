@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/cockroachdb/errors"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
@@ -32,17 +33,17 @@ var (
 
 func registerErrorClassifications() {
 	registerErrors.Do(func() {
-		event.RegisterClassification(ErrUnauthorized, event.Rejection)
-		event.RegisterClassification(ErrForbidden, event.Rejection)
-		event.RegisterClassification(ErrDecodeFailed, event.Rejection)
-		event.RegisterClassification(ErrDispatchFailed, event.Transient)
-		event.RegisterClassification(ErrEnforcerNil, event.Infrastructure)
-		event.RegisterClassification(errCommandsNil, event.Infrastructure)
-		event.RegisterClassification(errQueriesNil, event.Infrastructure)
-		event.RegisterClassification(errDecoderMissing, event.Infrastructure)
-		event.RegisterClassification(ErrValidationFailed, event.Rejection)
-		event.RegisterClassification(ErrCSRFConfig, event.Infrastructure)
-		event.RegisterClassification(ErrRequestTooLarge, event.Rejection)
+		errorfamily.RegisterClassification(ErrUnauthorized, event.Rejection)
+		errorfamily.RegisterClassification(ErrForbidden, event.Rejection)
+		errorfamily.RegisterClassification(ErrDecodeFailed, event.Rejection)
+		errorfamily.RegisterClassification(ErrDispatchFailed, event.Transient)
+		errorfamily.RegisterClassification(ErrEnforcerNil, event.Infrastructure)
+		errorfamily.RegisterClassification(errCommandsNil, event.Infrastructure)
+		errorfamily.RegisterClassification(errQueriesNil, event.Infrastructure)
+		errorfamily.RegisterClassification(errDecoderMissing, event.Infrastructure)
+		errorfamily.RegisterClassification(ErrValidationFailed, event.Rejection)
+		errorfamily.RegisterClassification(ErrCSRFConfig, event.Infrastructure)
+		errorfamily.RegisterClassification(ErrRequestTooLarge, event.Rejection)
 	})
 }
 

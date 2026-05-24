@@ -8,6 +8,7 @@ import (
 
 	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
@@ -161,9 +162,7 @@ func (a *App) Middleware() func(http.Handler) http.Handler {
 
 // CommandCatalogEntries returns all registered command catalog entries.
 // Returns nil if no command dispatcher is configured.
-//
-//nolint:staticcheck // wrapping upstream CatalogMeta; deprecation is on the type, not the method
-func (a *App) CommandCatalogEntries() map[command.Type]command.CatalogMeta {
+func (a *App) CommandCatalogEntries() map[command.Type]dispatcher.CatalogEntry {
 	if a.commands == nil {
 		return nil
 	}
@@ -172,9 +171,7 @@ func (a *App) CommandCatalogEntries() map[command.Type]command.CatalogMeta {
 
 // QueryCatalogEntries returns all registered query catalog entries.
 // Returns nil if no query dispatcher is configured.
-//
-//nolint:staticcheck // wrapping upstream CatalogMeta; deprecation is on the type, not the method
-func (a *App) QueryCatalogEntries() map[query.Type]query.CatalogMeta {
+func (a *App) QueryCatalogEntries() map[query.Type]dispatcher.CatalogEntry {
 	if a.queries == nil {
 		return nil
 	}
