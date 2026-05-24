@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/cockroachdb/errors"
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/core/event"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 var (
@@ -57,7 +57,7 @@ func registerErrorClassifications() {
 //   - Infrastructure    → 500 Internal Server Error
 //   - nil or unknown    → 500 Internal Server Error
 //
-//nolint:cyclop // auth checks + family switch are inherently branching
+
 func MapError(err error) int {
 	registerErrorClassifications()
 
