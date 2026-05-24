@@ -52,12 +52,11 @@ func DefaultLogFormatter(r *http.Request, status int, duration time.Duration) st
 	}
 
 	var extra string
-	fields := contextFields(r)
-	if v, ok := fields[logFieldCorrelationID]; ok {
-		extra += " [correlation=" + v + "]"
+	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
+		extra += " [correlation=" + cid.String() + "]"
 	}
-	if v, ok := fields[logFieldUserID]; ok {
-		extra += " [user=" + v + "]"
+	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
+		extra += " [user=" + uid.String() + "]"
 	}
 
 	return method + " " + path + " → " + http.StatusText(status) +

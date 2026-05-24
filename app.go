@@ -225,6 +225,10 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 	return r.WithContext(WithUserID(r.Context(), userID))
 }
 
+// noopCancel is a pre-allocated no-op cancel function returned by timeoutCtx
+// when no timeout is configured, avoiding a closure allocation per dispatch.
+var noopCancel = func() {} //nolint:gochecknoglobals // pre-allocated to avoid per-request closure allocation
+
 // timeoutCtx returns a context with the handler's timeout applied, if configured.
 // Falls back to the App's timeout if the handler has no override.
 // The caller must call the returned cancel function when done.
@@ -237,7 +241,7 @@ func (a *App) timeoutCtx(
 		t = a.timeout
 	}
 	if t <= 0 {
-		return ctx, func() {}
+		return ctx, noopCancel
 	}
 	return context.WithTimeout(ctx, t)
 }
