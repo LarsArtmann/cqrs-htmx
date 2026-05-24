@@ -949,7 +949,8 @@ var _ = Describe("Root Coverage Gaps", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			var capturedErr error
-			handler := app.Command("CreateUser",
+			handler := app.Command(
+				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.OnError(func(_ *http.Request, err error) { capturedErr = err }),
 			)
@@ -1004,7 +1005,8 @@ var _ = Describe("Root Coverage Gaps", func() {
 	})
 
 	Describe("sanitizeRedirectURL traversal blocks", func() {
-		DescribeTable("blocks traversal",
+		DescribeTable(
+			"blocks traversal",
 			func(input string, expected bool) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)
