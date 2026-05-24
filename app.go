@@ -105,6 +105,22 @@ func New(cfg Config) (*App, error) {
 	}, nil
 }
 
+// MustNew is like New but panics on error. Useful for init-time setup where
+// failure is a programmer error.
+func MustNew(cfg Config) *App {
+	app, err := New(cfg)
+	if err != nil {
+		panic(err)
+	}
+	return app
+}
+
+// HasCommands returns true if the App has a command dispatcher configured.
+func (a *App) HasCommands() bool { return a.commands != nil }
+
+// HasQueries returns true if the App has a query dispatcher configured.
+func (a *App) HasQueries() bool { return a.queries != nil }
+
 // Command returns an http.HandlerFunc that dispatches a command.
 //
 // The handler flow:
@@ -115,7 +131,9 @@ func New(cfg Config) (*App, error) {
 //  5. Apply HTMX response headers (redirect, trigger, push URL)
 func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
 	cfg := buildHandlerConfig(opts)
-	cfg.maxBodySize = a.maxBodySize
+	if cfg.maxBodySize == 0 {
+		cfg.maxBodySize = a.maxBodySize
+	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
@@ -140,7 +158,9 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 //  6. Apply HTMX response headers
 func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
 	cfg := buildHandlerConfig(opts)
-	cfg.maxBodySize = a.maxBodySize
+	if cfg.maxBodySize == 0 {
+		cfg.maxBodySize = a.maxBodySize
+	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.queries == nil {

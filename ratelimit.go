@@ -38,6 +38,13 @@ func KeyExtractorFromRemoteAddr() KeyExtractor {
 	}
 }
 
+// KeyExtractorFromClientIP returns a KeyExtractor that uses ClientIP to
+// resolve the real client IP, respecting X-Forwarded-For and X-Real-IP
+// headers. Use this when deployed behind a trusted reverse proxy.
+func KeyExtractorFromClientIP() KeyExtractor {
+	return ClientIP
+}
+
 // RateLimiterConfig configures the token-bucket rate limiter per key.
 type RateLimiterConfig struct {
 	// Limit is the maximum number of requests per Window.
@@ -78,7 +85,48 @@ type RateLimiterConfig struct {
 // Entries not accessed within the TTL are cleaned up on the next cache miss.
 // For very high cardinality key spaces, consider increasing the TTL or using
 // a bounded key extractor.
+//
+// The returned middleware has an ActiveKeys method for monitoring.
+// RateLimiter wraps rate-limiting middleware and exposes monitoring.
+type RateLimiter struct {
+	middleware func(http.Handler) http.Handler
+	limiter    *perKeyLimiter
+}
+
+// ActiveKeys returns the number of currently tracked rate-limit keys.
+func (rl *RateLimiter) ActiveKeys() int {
+	return rl.limiter.Len()
+}
+
+// Middleware returns the underlying middleware function.
+func (rl *RateLimiter) Middleware() func(http.Handler) http.Handler {
+	return rl.middleware
+}
+
+// NewRateLimiter creates a RateLimiter with monitoring capabilities.
+// Use this when you need to track the number of active rate-limit keys.
+// For simple usage without monitoring, use RateLimiterMiddleware instead.
+func NewRateLimiter(cfg RateLimiterConfig) *RateLimiter {
+	return buildRateLimiter(cfg)
+}
+
+// RateLimiterMiddleware returns HTTP middleware that rate-limits requests
+// using a token bucket per key.
+//
+// If the rate limit is exceeded the middleware responds with 429 Too Many
+// Requests and a Retry-After header in seconds.
+//
+// The internal per-key limiter map uses TTL-based eviction (default 10 min).
+// Entries not accessed within the TTL are cleaned up on the next cache miss.
+// For very high cardinality key spaces, consider increasing the TTL or using
+// a bounded key extractor.
+//
+// For monitoring, use NewRateLimiter instead.
 func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handler {
+	return buildRateLimiter(cfg).Middleware()
+}
+
+func buildRateLimiter(cfg RateLimiterConfig) *RateLimiter {
 	if cfg.Limit == 0 {
 		cfg.Limit = uint(DefaultRateLimit)
 	}
@@ -89,7 +137,6 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 		cfg.Burst = cfg.Limit
 	}
 
-	// rate.Limiter uses events per second; we convert our window to rps.
 	limit := rate.Limit(float64(cfg.Limit) / cfg.Window.Seconds())
 	retryAfter := strconv.Itoa(int(cfg.Window.Seconds()))
 
@@ -102,7 +149,8 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 		limit, cfg.Burst,
 		cfg.KeyExtractor, retryAfter, ttl, cfg.MaxKeys,
 	)
-	return func(next http.Handler) http.Handler {
+
+	mw := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			allowed, retryAfter := lim.allow(r)
 			if !allowed {
@@ -128,6 +176,8 @@ func RateLimiterMiddleware(cfg RateLimiterConfig) func(http.Handler) http.Handle
 			next.ServeHTTP(w, r)
 		})
 	}
+
+	return &RateLimiter{middleware: mw, limiter: lim}
 }
 
 // limiterEntry holds a rate.Limiter and its last access time for TTL eviction.
@@ -216,6 +266,13 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	heap.Push(p.heap, &evictionEntry{key: key, lastUsed: newEntry.lastUsed})
 
 	return lim
+}
+
+// Len returns the number of active rate-limited keys.
+func (p *perKeyLimiter) Len() int {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return len(p.limiters)
 }
 
 func (p *perKeyLimiter) evictStale() {

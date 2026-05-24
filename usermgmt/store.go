@@ -113,6 +113,13 @@ func (s *InMemoryUserStore) Delete(_ context.Context, id UserID) error {
 	return nil
 }
 
+// Count returns the number of stored users.
+func (s *InMemoryUserStore) Count() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return len(s.users)
+}
+
 // InMemorySessionStore is a thread-safe, in-memory implementation of SessionStore.
 //
 // Warning: Not suitable for production. Sessions are lost on process restart.
@@ -121,21 +128,13 @@ func (s *InMemoryUserStore) Delete(_ context.Context, id UserID) error {
 type InMemorySessionStore struct {
 	mu       sync.RWMutex
 	sessions map[string]*Session
-	ttl      time.Duration
 }
 
-// NewInMemorySessionStore creates an empty InMemorySessionStore with the default TTL.
+// NewInMemorySessionStore creates an empty InMemorySessionStore.
 func NewInMemorySessionStore() *InMemorySessionStore {
 	return &InMemorySessionStore{
 		sessions: make(map[string]*Session),
-		ttl:      defaultSessionTTL,
 	}
-}
-
-// WithTTL sets the default session TTL and returns the receiver for chaining.
-func (s *InMemorySessionStore) WithTTL(ttl time.Duration) *InMemorySessionStore {
-	s.ttl = ttl
-	return s
 }
 
 // Create generates a new session for the user with the given TTL.
@@ -198,4 +197,11 @@ func (s *InMemorySessionStore) EvictExpired() int {
 		}
 	}
 	return evicted
+}
+
+// Count returns the number of active sessions.
+func (s *InMemorySessionStore) Count() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return len(s.sessions)
 }

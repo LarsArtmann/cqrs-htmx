@@ -158,7 +158,7 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
 	ok, err := a.enforcer.Enforce(sub, dom, obj, string(act))
 	if err != nil {
-		return false, fmt.Errorf("enforce %s/%s/%s/%s: %w", sub, dom, obj, act, err)
+		return false, errors.Wrapf(err, "enforce %s/%s/%s/%s", sub, dom, obj, act)
 	}
 	return ok, nil
 }
@@ -167,7 +167,7 @@ func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
 func (a *Authz) EnforceAny(rvals ...any) (bool, error) {
 	ok, err := a.enforcer.Enforce(rvals...)
 	if err != nil {
-		return false, fmt.Errorf("enforce any: %w", err)
+		return false, errors.Wrapf(err, "enforce any")
 	}
 	return ok, nil
 }
@@ -192,7 +192,7 @@ func (a *Authz) AsEnforcer() interface{ Enforce(...any) (bool, error) } {
 func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, error) {
 	allowed, matched, err := a.enforcer.EnforceEx(sub, dom, obj, string(act))
 	if err != nil {
-		return nil, fmt.Errorf("sub=%s dom=%s obj=%s: %w", sub, dom, obj, err)
+		return nil, errors.Wrapf(err, "sub=%s dom=%s obj=%s", sub, dom, obj)
 	}
 	return &EnforceResult{
 		Allowed:      allowed,
@@ -270,7 +270,7 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 func (a *Authz) AddPolicy(p Policy) error {
 	_, err := a.enforcer.AddPolicy(policyArgs(p)...)
 	if err != nil {
-		return fmt.Errorf("add policy: %w", err)
+		return errors.Wrapf(err, "add policy")
 	}
 	return nil
 }
@@ -279,7 +279,7 @@ func (a *Authz) AddPolicy(p Policy) error {
 func (a *Authz) RemovePolicy(p Policy) error {
 	_, err := a.enforcer.RemovePolicy(policyArgs(p)...)
 	if err != nil {
-		return fmt.Errorf("remove policy: %w", err)
+		return errors.Wrapf(err, "remove policy")
 	}
 	return nil
 }
@@ -288,7 +288,7 @@ func (a *Authz) RemovePolicy(p Policy) error {
 func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
 	_, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
-		return fmt.Errorf("add group %s/%s/%s: %w", g.Subject, g.Role, g.Domain, err)
+		return errors.Wrapf(err, "add group %s/%s/%s", g.Subject, g.Role, g.Domain)
 	}
 	return nil
 }
@@ -297,7 +297,7 @@ func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
 func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 	_, err := a.enforcer.RemoveGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
-		return fmt.Errorf("remove group %s/%s/%s: %w", g.Subject, g.Role, g.Domain, err)
+		return errors.Wrapf(err, "remove group %s/%s/%s", g.Subject, g.Role, g.Domain)
 	}
 	return nil
 }
@@ -306,7 +306,7 @@ func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 func (a *Authz) Policies() ([][]string, error) {
 	p, err := a.enforcer.GetPolicy()
 	if err != nil {
-		return nil, fmt.Errorf("get policies: %w", err)
+		return nil, errors.Wrapf(err, "get policies")
 	}
 	return p, nil
 }
@@ -315,7 +315,7 @@ func (a *Authz) Policies() ([][]string, error) {
 func (a *Authz) GroupPolicies() ([][]string, error) {
 	g, err := a.enforcer.GetGroupingPolicy()
 	if err != nil {
-		return nil, fmt.Errorf("get group policies: %w", err)
+		return nil, errors.Wrapf(err, "get group policies")
 	}
 	return g, nil
 }
@@ -332,7 +332,7 @@ func convertRoles(roles []string) []Role {
 func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 	roles, err := a.enforcer.GetRolesForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, fmt.Errorf("domain=%s: %w", domain, err)
+		return nil, errors.Wrapf(err, "domain=%s", domain)
 	}
 	return convertRoles(roles), nil
 }
@@ -341,7 +341,7 @@ func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, error) {
 	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, fmt.Errorf("domain=%s: %w", domain, err)
+		return nil, errors.Wrapf(err, "domain=%s", domain)
 	}
 	return convertRoles(roles), nil
 }
@@ -351,7 +351,7 @@ func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, erro
 func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]string, error) {
 	p, err := a.enforcer.GetImplicitPermissionsForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, fmt.Errorf("implicit permissions domain=%s: %w", domain, err)
+		return nil, errors.Wrapf(err, "implicit permissions domain=%s", domain)
 	}
 	return p, nil
 }
@@ -360,7 +360,7 @@ func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]st
 func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 	d, err := a.enforcer.GetDomainsForUser(userID.Get())
 	if err != nil {
-		return nil, fmt.Errorf("domains for user: %w", err)
+		return nil, errors.Wrapf(err, "domains for user")
 	}
 	return d, nil
 }
@@ -369,7 +369,7 @@ func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 func (a *Authz) UsersForRole(role Role, domain string) ([]string, error) {
 	u, err := a.enforcer.GetUsersForRole(string(role), domain)
 	if err != nil {
-		return nil, fmt.Errorf("users for role %s domain=%s: %w", role, domain, err)
+		return nil, errors.Wrapf(err, "users for role %s domain=%s", role, domain)
 	}
 	return u, nil
 }

@@ -73,6 +73,10 @@ func MapError(err error) int {
 		return http.StatusForbidden
 	}
 
+	if errors.Is(err, ErrRequestTooLarge) {
+		return http.StatusRequestEntityTooLarge
+	}
+
 	family := event.Classify(err)
 	switch family {
 	case event.Rejection:

@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func setupMux(t *testing.T) (*Service, *http.ServeMux) {
@@ -406,4 +407,50 @@ func TestHandlers_Me_Authenticated(t *testing.T) {
 	w := httptest.NewRecorder()
 	meHandler.ServeHTTP(w, req)
 	assertStatusCode(t, w, http.StatusOK)
+}
+
+func TestLoginRequest_MaxPasswordLength(t *testing.T) {
+	req := LoginRequest{Email: "test@example.com", Password: strings.Repeat("x", 129)}
+	if err := req.Validate(); err == nil {
+		t.Fatal("expected validation error for password > 128 chars")
+	}
+}
+
+func TestInMemoryUserStore_Count(t *testing.T) {
+	store := NewInMemoryUserStore()
+	if store.Count() != 0 {
+		t.Fatalf("expected 0, got %d", store.Count())
+	}
+	uid := NewUserID("01H4Z000000000000000000000")
+	user := NewUser(uid, "test@example.com", "Test")
+	if err := user.SetPasswordWithCost("password123", 4); err != nil {
+		t.Fatalf("SetPasswordWithCost: %v", err)
+	}
+	if err := store.Create(context.Background(), user); err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if store.Count() != 1 {
+		t.Fatalf("expected 1, got %d", store.Count())
+	}
+}
+
+func TestInMemorySessionStore_Count(t *testing.T) {
+	store := NewInMemorySessionStore()
+	if store.Count() != 0 {
+		t.Fatalf("expected 0, got %d", store.Count())
+	}
+	uid := NewUserID("01H4Z000000000000000000000")
+	s, err := store.Create(context.Background(), uid, time.Hour)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if store.Count() != 1 {
+		t.Fatalf("expected 1, got %d", store.Count())
+	}
+	if err := store.Delete(context.Background(), s.Token); err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+	if store.Count() != 0 {
+		t.Fatalf("expected 0, got %d", store.Count())
+	}
 }

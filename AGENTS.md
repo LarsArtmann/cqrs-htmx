@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 96.7% root, 91.0% usermgmt (360+ tests)                                           |
+| Coverage | 96.7% root, 91.0% usermgmt (380+ tests)                                           |
 
 ## Architecture
 
@@ -100,6 +100,25 @@ cqrs-htmx/
 - **CatalogEntries exposure**: `App.CommandCatalogEntries()` and `App.QueryCatalogEntries()` delegate to the embedded `dispatcher.CatalogDispatcher` in go-cqrs-lite v1.4.0. Returns `nil` if the respective dispatcher is not configured. Uses `//nolint:staticcheck` because the upstream `CatalogMeta` type is deprecated in favor of the zero-cost catalog API
 - **Zero lint warnings**: All pre-existing lint warnings (gochecknoglobals, noctx, prealloc, unparam) fixed. Pre-commit hook should pass without `--no-verify`
 - **usermgmt unified error import**: `usermgmt/http.go` uses `cockroachdb/errors` consistently (not `std/errors`) — prevents split brain with `errors.Is` across the submodule
+- **DefaultMaxBodySize**: `decoder.go` defines `DefaultMaxBodySize` (10 MB). When `Config.MaxBodySize` and per-handler `WithMaxBodySize` are both zero, requests are limited to this default. **Behavior change**: previously zero meant unlimited
+- **MapError 413**: `ErrRequestTooLarge` now maps to 413 (was 400 via error-family Rejection)
+- **sanitizeRedirectURL depth check**: Blocks paths where `..` segments would escape above root (e.g., `/../../etc/passwd`) while allowing legitimate normalization (e.g., `/a/../b`)
+- **usermgmt maxAuthBodySize**: `handleAuthEndpoint` limits request body to 1 MB via `io.LimitReader`
+- **usermgmt LoginRequest maxPasswordLength**: Validates password length ≤ 128 at login (prevents bcrypt DoS)
+- **usermgmt InMemorySessionStore dead code removed**: `ttl` field and `WithTTL` method removed — were never used (TTL passed directly to `Create`)
+- **usermgmt error wrapping consistency**: `service.go` and `authz.go` use `errors.Wrapf` (cockroachdb/errors) consistently instead of `fmt.Errorf`
+- **Response builder fluent methods**: `Status`, `Header`, `ContentType`, `JSON`, `Body`, `WriteString` added for fluent response building
+- **WithMaxBodySize HandlerOption**: Per-handler body size override, takes precedence over App-level `Config.MaxBodySize`
+- **WithSuccessStatus HandlerOption**: Per-handler success status code (default 204 No Content). Common values: 200 OK, 201 Created
+- **OnError HandlerOption**: Per-handler error callback, invoked after App-level error handler
+- **IsAuthenticated helper**: `IsAuthenticated(r)` checks for non-zero UserID in context
+- **MustNew convenience**: `MustNew(cfg)` panics on error — for init-time setup
+- **HasCommands/HasQueries**: `App.HasCommands()` and `App.HasQueries()` report dispatcher availability
+- **KeyExtractorFromClientIP**: Rate limiter key extractor using `ClientIP()` (respects X-Forwarded-For)
+- **NewRateLimiter**: Returns `*RateLimiter` with `ActiveKeys()` monitoring. `RateLimiterMiddleware` still returns `func(http.Handler) http.Handler` for backward compat
+- **InMemoryUserStore.Count/InMemorySessionStore.Count**: Monitoring methods for in-memory stores
+- **authMode.String()**: Human-readable debug names for auth modes (none/required/authorized)
+- **CSRFConfig.Validate Secure warning**: Now warns when `Secure=false` via slog
 
 ## Dependencies
 
