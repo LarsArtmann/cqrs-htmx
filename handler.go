@@ -36,7 +36,7 @@ func (a *App) dispatchContext(
 func (a *App) handleErr(
 	w http.ResponseWriter,
 	r *http.Request,
-	ctx context.Context, //nolint:revive // matches http.Handler param order
+	ctx context.Context,
 	err error,
 ) {
 	a.errorHandler(w, r, err)
