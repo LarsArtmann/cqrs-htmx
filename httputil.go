@@ -3,9 +3,9 @@ package cqrshtmx
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
-	"strings"
+
+	httputil "github.com/larsartmann/httputil"
 )
 
 // WriteJSON encodes v as JSON and writes it to w with the given HTTP status code
@@ -19,28 +19,7 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return nil
 }
 
-// ClientIP extracts the client IP address from the request using the following
-// precedence: X-Forwarded-For (first entry), X-Real-IP, then RemoteAddr with
-// net.SplitHostPort. This handles requests behind reverse proxies (nginx,
-// Cloudflare, etc.) and direct connections.
-//
-// Warning: This function trusts X-Forwarded-For and X-Real-IP headers without
-// validation. In deployments without a trusted reverse proxy, clients can spoof
-// these headers to bypass IP-based rate limiting or logging. Only use behind a
-// proxy that strips/overwrites these headers.
+// ClientIP delegates to httputil.ClientIP for client IP extraction.
 func ClientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		if ip, _, ok := strings.Cut(xff, ","); ok {
-			return strings.TrimSpace(ip)
-		}
-		return strings.TrimSpace(xff)
-	}
-	if xri := r.Header.Get("X-Real-IP"); xri != "" {
-		return strings.TrimSpace(xri)
-	}
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		return r.RemoteAddr
-	}
-	return host
+	return httputil.ClientIP(r)
 }
