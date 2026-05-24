@@ -183,3 +183,49 @@ func ExampleRateLimiterMiddleware() {
 	fmt.Println(w.Code)
 	// Output: 200
 }
+
+func ExampleRequireMethod() {
+	disp := command.NewDispatcher()
+	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: disp})
+
+	handler := app.Command("CreateUser", cqrshtmx.RequireMethod(http.MethodPost))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/users", nil)
+	handler.ServeHTTP(w, r)
+	fmt.Println(w.Code)
+	// Output: 405
+}
+
+func ExampleApp_HealthHandler() {
+	disp := command.NewDispatcher()
+	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: disp})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/health", nil)
+	app.HealthHandler().ServeHTTP(w, r)
+	fmt.Println(w.Code)
+	// Output: 200
+}
+
+func ExampleResponse_JSON() {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/api/status", nil)
+	cqrshtmx.NewResponse(w, r).JSON(map[string]string{"s": "ok"})
+	fmt.Println(w.Header().Get("Content-Type"))
+	// Output: application/json; charset=utf-8
+}
+
+func ExampleRecommendedHSTS() {
+	handler := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
+		StrictTransportSecurity: cqrshtmx.RecommendedHSTS,
+	})(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	handler.ServeHTTP(w, r)
+	fmt.Println(w.Header().Get("Strict-Transport-Security") != "")
+	// Output: true
+}

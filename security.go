@@ -13,6 +13,15 @@ const (
 	defaultContentTypeOptions = "nosniff"
 	defaultFrameOptions       = "DENY"
 	defaultReferrerPolicy     = "strict-origin-when-cross-origin"
+
+	// RecommendedHSTS is a recommended Strict-Transport-Security value for production.
+	// Use: SecurityHeadersConfig{StrictTransportSecurity: RecommendedHSTS}
+	RecommendedHSTS = "max-age=31536000; includeSubDomains"
+
+	// RecommendedCSP is a baseline Content-Security-Policy for HTMX applications.
+	// Allows scripts from self (required for HTMX) and styles from self.
+	// Use: SecurityHeadersConfig{ContentSecurityPolicy: RecommendedCSP}
+	RecommendedCSP = "default-src 'self'; script-src 'self'; style-src 'self'"
 )
 
 // SecurityHeadersConfig configures which security headers to set.
@@ -31,11 +40,11 @@ type SecurityHeadersConfig struct {
 	ReferrerPolicy string
 
 	// ContentSecurityPolicy sets Content-Security-Policy.
-	// Default: "" (not set)
+	// Default: "" (not set). See RecommendedCSP for a sensible baseline.
 	ContentSecurityPolicy string
 
 	// StrictTransportSecurity sets Strict-Transport-Security.
-	// Default: "" (not set)
+	// Default: "" (not set). See RecommendedHSTS for a production value.
 	StrictTransportSecurity string
 
 	// PermissionsPolicy sets Permissions-Policy.

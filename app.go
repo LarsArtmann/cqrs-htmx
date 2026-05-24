@@ -3,6 +3,7 @@ package cqrshtmx
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -210,7 +211,14 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 	}
 
 	userID, err := a.userIDExtractor(r)
-	if err != nil || userID.IsZero() {
+	if err != nil {
+		slog.Warn(
+			"cqrs-htmx: UserIDExtractor returned error",
+			slog.String("error", err.Error()),
+		)
+		return r
+	}
+	if userID.IsZero() {
 		return r
 	}
 
@@ -238,6 +246,28 @@ func (a *App) timeoutCtx(
 func (a *App) afterDispatchHook(ctx context.Context, r *http.Request, err error) {
 	if a.afterDispatch != nil {
 		a.afterDispatch(ctx, r, err)
+	}
+}
+
+// HealthHandler returns an HTTP handler that reports dispatcher availability.
+// Returns 200 OK with JSON when healthy, 503 Service Unavailable when not.
+//
+// Usage:
+//
+//	mux.Handle("/health", app.HealthHandler())
+func (a *App) HealthHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		hasDispatchers := a.commands != nil || a.queries != nil
+		if !hasDispatchers {
+			w.Header().Set("Content-Type", ContentTypeJSON)
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(`{"status":"unhealthy","error":"no dispatchers configured"}`))
+			return
+		}
+
+		w.Header().Set("Content-Type", ContentTypeJSON)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	}
 }
 

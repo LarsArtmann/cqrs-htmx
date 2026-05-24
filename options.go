@@ -69,6 +69,7 @@ type handlerConfig struct {
 	maxBodySize    int64
 	timeout        time.Duration
 	successStatus  int
+	requireMethod  string
 	onError        func(*http.Request, error)
 }
 
@@ -332,5 +333,20 @@ func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfi
 func OnError(fn func(r *http.Request, err error)) HandlerOption {
 	return func(cfg *handlerConfig) {
 		cfg.onError = fn
+	}
+}
+
+// RequireMethod returns a HandlerOption that rejects requests with the wrong HTTP method.
+// Returns 405 Method Not Allowed for mismatched methods.
+//
+// Usage:
+//
+//	app.Command("CreateUser",
+//	    cqrshtmx.DecodeJSON(...),
+//	    cqrshtmx.RequireMethod(http.MethodPost),
+//	)
+func RequireMethod(method string) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.requireMethod = method
 	}
 }

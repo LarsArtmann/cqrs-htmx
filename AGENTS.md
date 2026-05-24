@@ -16,7 +16,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 96.7% root, 91.0% usermgmt (380+ tests)                                           |
+| Coverage | 97.3% root, 91.1% usermgmt (390+ tests)                                           |
 
 ## Architecture
 
@@ -108,6 +108,13 @@ cqrs-htmx/
 - **usermgmt InMemorySessionStore dead code removed**: `ttl` field and `WithTTL` method removed — were never used (TTL passed directly to `Create`)
 - **usermgmt error wrapping consistency**: `service.go` and `authz.go` use `errors.Wrapf` (cockroachdb/errors) consistently instead of `fmt.Errorf`
 - **Response builder fluent methods**: `Status`, `Header`, `ContentType`, `JSON`, `Body`, `WriteString` added for fluent response building
+- **RecommendedCSP/RecommendedHSTS**: Exported constants in `security.go` — sensible CSP and HSTS defaults for consumers. Not enforced by default (library principle)
+- **RequireMethod HandlerOption**: `RequireMethod(method)` rejects wrong HTTP methods with 405. Opt-in (HTMX patterns like `hx-get` for commands are valid)
+- **HealthHandler**: `App.HealthHandler()` returns 200/503 JSON for load balancer health checks
+- **HX-Redirect sanitization**: `Response.Redirect()` sanitizes URLs for both HTMX and non-HTMX requests
+- **X-Request-ID propagation**: `ContextEnrichmentMiddleware` sets `X-Request-ID` response header
+- **ErrMethodNotAllowed**: Sentinel error for method validation, maps to 405
+- **NotificationLevel.String()**: `fmt.Stringer` implementation for structured logging
 - **WithMaxBodySize HandlerOption**: Per-handler body size override, takes precedence over App-level `Config.MaxBodySize`
 - **WithSuccessStatus HandlerOption**: Per-handler success status code (default 204 No Content). Common values: 200 OK, 201 Created
 - **OnError HandlerOption**: Per-handler error callback, invoked after App-level error handler
@@ -195,6 +202,17 @@ cqrs-htmx/
 61. **usermgmt store interfaces take context.Context**: `UserStore` and `SessionStore` interface methods now accept `context.Context` as first parameter. **Breaking change**: all implementations must update signatures. `InMemoryUserStore` and `InMemorySessionStore` ignore the context (use `_`)
 62. **usermgmt Register compensating transaction**: `Service.Register` rolls back user creation if role assignment fails, and rolls back both user and role if session creation fails. Best-effort cleanup — rollback errors are discarded with `_`
 63. **golines default is 100 chars**: `usermgmt/.golangci.yml` uses golines formatter which defaults to 100-char line length. Long function signatures and assertions must be split
+64. **RecommendedCSP/RecommendedHSTS**: Exported constants in `security.go` for consumers to use in `SecurityHeadersConfig`. Not set by default (library shouldn't enforce CSP/HSTS). CSP baseline: `default-src 'self'; script-src 'self'; style-src 'self'`. HSTS: `max-age=31536000; includeSubDomains`
+65. **RequireMethod HandlerOption**: `RequireMethod(method)` rejects wrong HTTP methods with 405. Opt-in (not enforced by default — HTMX patterns like `hx-get` for commands are valid)
+66. **HX-Redirect sanitization**: `Response.Redirect()` now sanitizes URLs for both HTMX and non-HTMX requests via `sanitizeRedirectURL`. Previously, HX-Redirect was set without sanitization
+67. **X-Request-ID response propagation**: `ContextEnrichmentMiddleware` sets `X-Request-ID` response header when a request ID is generated or extracted from the incoming request
+68. **enrichUserID logs extractor errors**: `App.enrichUserID()` now logs a `slog.Warn` when the `UserIDExtractor` returns an error, instead of silently swallowing it
+69. **ErrMethodNotAllowed**: New sentinel error maps to 405. Registered as `Rejection` family. Used by `RequireMethod` HandlerOption
+70. **HealthHandler**: `App.HealthHandler()` returns `200 OK` with JSON `{"status":"ok"}` when dispatchers are configured, `503` when not. Use for load balancer health checks
+71. **NotificationLevel.String()**: `NotificationLevel` now implements `fmt.Stringer` — returns the string representation for logging
+72. **MapError refactored**: Split into `explicitErrorStatus()` and `familyStatus()` helpers to keep cyclomatic complexity under 12
+73. **StatusRecorder.Push no longer wraps**: `Push()` returns the underlying Pusher's error directly (not wrapped) — preserves `errors.Is()` matching
+74. **Root coverage 97.3%** (up from 96.7%), **usermgmt coverage 91.1%**
 
 ## Test Commands
 

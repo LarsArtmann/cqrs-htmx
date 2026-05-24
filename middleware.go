@@ -44,6 +44,11 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 				}
 			}
 
+			rid := RequestIDFromContext(ctx)
+			if !rid.IsZero() {
+				w.Header().Set(headerRequestID, rid.String())
+			}
+
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

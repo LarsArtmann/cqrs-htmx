@@ -91,6 +91,12 @@ func (a *App) executePreDispatchChecks(
 	r *http.Request,
 	cfg *handlerConfig,
 ) error {
+	if cfg.requireMethod != "" && r.Method != cfg.requireMethod {
+		a.errorHandler(w, r, fmt.Errorf("%w: got %s, want %s",
+			ErrMethodNotAllowed, r.Method, cfg.requireMethod))
+		return ErrMethodNotAllowed
+	}
+
 	if err := a.executeAuthorization(r, cfg); err != nil {
 		a.errorHandler(w, r, err)
 		return err
