@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/pkg/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
@@ -77,7 +77,10 @@ type AfterDispatchHook func(ctx context.Context, r *http.Request, err error)
 // Returns an error if both Commands and Queries are nil.
 func New(cfg Config) (*App, error) {
 	if cfg.Commands == nil && cfg.Queries == nil {
-		return nil, errors.New("[cqrs-htmx] at least one of Commands or Queries must be non-nil")
+		return nil, event.NewInfrastructure(
+			"config_invalid",
+			"[cqrs-htmx] at least one of Commands or Queries must be non-nil",
+		)
 	}
 
 	loginRedirect := cfg.LoginRedirect

@@ -23,7 +23,6 @@ const (
 
 func integrationCSRFConfig() cqrshtmx.CSRFConfig {
 	return cqrshtmx.CSRFConfig{
-		Secret:   nil,
 		MaxAge:   24 * time.Hour,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,

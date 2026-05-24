@@ -2,12 +2,13 @@ package cqrshtmx
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/cockroachdb/errors"
-	"github.com/gorilla/csrf"
+	"github.com/justinas/nosurf"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 const (
@@ -18,20 +19,15 @@ const (
 )
 
 // ErrCSRFInvalid is returned when a CSRF token is missing, malformed, or does not match.
-// Uses gorilla/csrf under the hood for token generation and validation.
-var ErrCSRFInvalid = errors.WithMessage(ErrForbidden, "invalid or missing CSRF token")
+// Uses justinas/nosurf under the hood for token generation and validation.
+var ErrCSRFInvalid = event.NewRejection("csrf_invalid", "invalid or missing CSRF token").WithCause(ErrForbidden)
 
 // CSRFConfig configures CSRF protection.
 //
 // All fields are optional; zero values use secure defaults.
-// Uses gorilla/csrf internally for token generation, masking (BREACH mitigation),
-// cookie management via securecookie, and validation.
+// Uses justinas/nosurf internally for token generation, masking (BREACH mitigation),
+// cookie management, and validation.
 type CSRFConfig struct {
-	// Secret is the 32-byte authentication key for HMAC token signing.
-	// If empty, a random key is generated (not persisted across restarts).
-	// For production, always provide a stable secret.
-	Secret []byte
-
 	// CookieName is the name of the CSRF cookie.
 	// Default: "csrf_token"
 	CookieName string
@@ -51,7 +47,7 @@ type CSRFConfig struct {
 	MaxAge time.Duration
 
 	// Secure sets the Secure flag on the cookie.
-	// Default: true (auto-detected from request scheme if false)
+	// Default: false (auto-detected from request scheme)
 	Secure bool
 
 	// SameSite sets the SameSite attribute on the cookie.
@@ -110,39 +106,20 @@ func (c *CSRFConfig) path() string {
 	return "/"
 }
 
-func (c *CSRFConfig) sameSite() csrf.SameSiteMode {
-	switch c.SameSite {
-	case http.SameSiteDefaultMode:
-		return csrf.SameSiteDefaultMode
-	case http.SameSiteLaxMode:
-		return csrf.SameSiteLaxMode
-	case http.SameSiteStrictMode:
-		return csrf.SameSiteStrictMode
-	case http.SameSiteNoneMode:
-		return csrf.SameSiteNoneMode
-	default:
-		return csrf.SameSiteLaxMode
-	}
-}
-
 // Validate checks the CSRF configuration for common misconfigurations.
 // Returns a non-nil error if the config would produce insecure or broken behavior.
 // Call this in production startup code to fail fast on misconfiguration.
 func (c *CSRFConfig) Validate() error {
-	if len(c.Secret) == 0 {
-		return errors.WithMessagef(ErrCSRFConfig,
-			"CSRFConfig.Secret is empty: tokens will not persist across server restarts")
-	}
-
 	if c.SameSite == http.SameSiteNoneMode && !c.Secure {
-		return errors.WithMessage(ErrCSRFConfig, "SameSite=None requires Secure=true")
+		return event.NewInfrastructure("csrf_samesite_insecure", "SameSite=None requires Secure=true").
+			WithCause(ErrCSRFConfig)
 	}
 
 	for _, origin := range c.TrustedOrigins {
 		if origin == "" || origin == "*" {
-			return errors.WithMessagef(ErrCSRFConfig,
-				"TrustedOrigins contains unsafe entry %q — use specific domain names only",
-				origin)
+			return event.NewInfrastructure("csrf_unsafe_origin",
+				fmt.Sprintf("TrustedOrigins contains unsafe entry %q — use specific domain names only",
+					origin)).WithCause(ErrCSRFConfig)
 		}
 	}
 
@@ -154,53 +131,43 @@ func (c *CSRFConfig) Validate() error {
 	return nil
 }
 
-func (c *CSRFConfig) secret() []byte {
-	if len(c.Secret) >= 32 {
-		return c.Secret
+// configureNosurfHandler applies CSRFConfig settings to a nosurf handler.
+func configureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
+	//nolint:gosec,exhaustruct // HttpOnly=false required for double-submit; http.Cookie has many optional fields
+	cookie := http.Cookie{
+		Name:     cfg.cookieName(),
+		Path:     cfg.path(),
+		Secure:   cfg.Secure,
+		HttpOnly: false,
+		SameSite: cfg.SameSite,
+		MaxAge:   int(cfg.maxAge().Seconds()),
 	}
-	if len(c.Secret) > 0 {
-		slog.Warn(
-			"cqrs-htmx: CSRF secret is shorter than 32 bytes — padding with zeros",
-			slog.Int("provided", len(c.Secret)),
-			slog.String("hint", "use a 32-byte secret for production"),
-		)
-	}
-	secret := make([]byte, 32)
-	copy(secret, c.Secret)
-	return secret
-}
-
-// buildGorillaOptions maps our CSRFConfig to gorilla/csrf options.
-func buildGorillaOptions(cfg CSRFConfig) []csrf.Option {
-	opts := []csrf.Option{
-		csrf.CookieName(cfg.cookieName()),
-		csrf.RequestHeader(cfg.headerName()),
-		csrf.FieldName(cfg.fieldName()),
-		csrf.MaxAge(int(cfg.maxAge().Seconds())),
-		csrf.Path(cfg.path()),
-		csrf.Secure(cfg.Secure),
-		csrf.HttpOnly(false), // Must be readable by JavaScript for double-submit pattern
-		csrf.SameSite(cfg.sameSite()),
-	}
-
 	if cfg.Domain != "" {
-		opts = append(opts, csrf.Domain(cfg.Domain))
+		cookie.Domain = cfg.Domain
 	}
+	handler.SetBaseCookie(cookie)
+
+	handler.SetIsTLSFunc(func(r *http.Request) bool {
+		return r.TLS != nil
+	})
 
 	if len(cfg.TrustedOrigins) > 0 {
-		opts = append(opts, csrf.TrustedOrigins(cfg.TrustedOrigins))
+		origins, err := nosurf.StaticOrigins(cfg.TrustedOrigins...)
+		if err != nil {
+			slog.Error(
+				"cqrs-htmx: invalid TrustedOrigins",
+				slog.String("error", err.Error()),
+			)
+		} else {
+			handler.SetIsAllowedOriginFunc(origins)
+		}
 	}
 
 	if cfg.ErrorHandler != nil {
-		opts = append(
-			opts,
-			csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				cfg.ErrorHandler(w, r, ErrCSRFInvalid)
-			})),
-		)
+		handler.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			cfg.ErrorHandler(w, r, ErrCSRFInvalid)
+		}))
 	}
-
-	return opts
 }
 
 type csrfKey struct{}
@@ -219,7 +186,7 @@ func CSRFTokenFromContext(ctx context.Context) string {
 }
 
 func csrfTokenFromRequest(r *http.Request) string {
-	if token := csrf.Token(r); token != "" {
+	if token := nosurf.Token(r); token != "" {
 		return token
 	}
 	return CSRFTokenFromContext(r.Context())
@@ -247,11 +214,10 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 // CSRFMiddleware returns HTTP middleware that implements double-submit cookie
 // CSRF protection with HTMX awareness.
 //
-// Uses gorilla/csrf internally for:
-//   - Cryptographically secure token generation
+// Uses justinas/nosurf internally for:
+//   - Cryptographically secure token generation (crypto/rand)
 //   - Per-request token masking (BREACH attack mitigation)
-//   - Cookie integrity via securecookie
-//   - Referer validation for HTTPS requests
+//   - Same-origin validation via Origin/Referer/Sec-Fetch-Site headers
 //   - Trusted origins support for cross-domain use cases
 //
 // For GET/HEAD/OPTIONS/TRACE requests, the middleware ensures a CSRF token
@@ -289,23 +255,56 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 			slog.String("hint", "set Secure=true in production"),
 		)
 	}
-	opts := buildGorillaOptions(cfg)
-	protect := csrf.Protect(cfg.secret(), opts...)
 
 	return func(next http.Handler) http.Handler {
-		inner := protect(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if token := csrf.Token(r); token != "" {
+		inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if token := nosurf.Token(r); token != "" {
 				r = r.WithContext(WithCSRFToken(r.Context(), token))
 			}
 			next.ServeHTTP(w, r)
-		}))
+		})
+
+		handler := nosurf.New(inner)
+		configureNosurfHandler(handler, cfg)
+
+		needsTranslation := cfg.headerName() != defaultCSRFHeaderName ||
+			cfg.fieldName() != defaultCSRFFieldName
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.TLS == nil {
-				r = csrf.PlaintextHTTPRequest(r)
+			// For plain HTTP requests without origin headers, set Sec-Fetch-Site
+			// to allow nosurf to skip origin validation. This matches the behavior
+			// of gorilla/csrf's PlaintextHTTPRequest for HTTP deployments.
+			if r.TLS == nil &&
+				r.Header.Get("Sec-Fetch-Site") == "" &&
+				r.Header.Get("Origin") == "" &&
+				r.Header.Get("Referer") == "" {
+				r.Header.Set("Sec-Fetch-Site", "same-origin")
 			}
-			inner.ServeHTTP(w, r)
+
+			// Translate custom header/field names to nosurf defaults.
+			if needsTranslation {
+				translateCSRFHeaders(r, cfg)
+			}
+
+			handler.ServeHTTP(w, r)
 		})
+	}
+}
+
+// translateCSRFHeaders maps custom header/field names to nosurf's default
+// "X-CSRF-Token" header. nosurf hardcodes its header and field names,
+// so we translate before passing the request to nosurf.
+func translateCSRFHeaders(r *http.Request, cfg CSRFConfig) {
+	if cfg.headerName() != defaultCSRFHeaderName {
+		if token := r.Header.Get(cfg.headerName()); token != "" {
+			r.Header.Set(defaultCSRFHeaderName, token)
+			return
+		}
+	}
+	if cfg.fieldName() != defaultCSRFFieldName {
+		if token := r.PostFormValue(cfg.fieldName()); token != "" {
+			r.Header.Set(defaultCSRFHeaderName, token)
+		}
 	}
 }
 

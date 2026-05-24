@@ -7,7 +7,7 @@ import (
 
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
-	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 // Action represents an authorization action verb (e.g. "read", "execute").
@@ -129,24 +129,34 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 
 	m, err := model.NewModelFromString(modelStr)
 	if err != nil {
-		return nil, errors.Wrapf(err, "parse casbin model")
+		return nil, event.NewTransient("casbin_error", "parse casbin model").WithCause(err)
 	}
 
 	e, err := casbin.NewEnforcer(m)
 	if err != nil {
-		return nil, errors.Wrapf(err, "create enforcer")
+		return nil, event.NewTransient("casbin_error", "create enforcer").WithCause(err)
 	}
 
 	for _, p := range config.Policies {
 		if _, err := e.AddPolicy(policyArgs(p)...); err != nil {
-			return nil, errors.Wrapf(err, "add policy {%s, %s, %s, %s, %s}",
-				p.Subject, p.Domain, p.Object, p.Action, p.Effect)
+			return nil, event.NewTransient(
+				"casbin_error",
+				fmt.Sprintf(
+					"add policy {%s, %s, %s, %s, %s}",
+					p.Subject,
+					p.Domain,
+					p.Object,
+					p.Action,
+					p.Effect,
+				),
+			).WithCause(err)
 		}
 	}
 
 	for _, g := range config.Groups {
 		if _, err := e.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
-			return nil, errors.Wrapf(err, "add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)
+			return nil, event.NewTransient("casbin_error", fmt.Sprintf("add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)).
+				WithCause(err)
 		}
 	}
 
@@ -158,7 +168,8 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
 	ok, err := a.enforcer.Enforce(sub, dom, obj, string(act))
 	if err != nil {
-		return false, errors.Wrapf(err, "enforce %s/%s/%s/%s", sub, dom, obj, act)
+		return false, event.NewTransient("casbin_error", fmt.Sprintf("enforce %s/%s/%s/%s", sub, dom, obj, act)).
+			WithCause(err)
 	}
 	return ok, nil
 }
@@ -167,7 +178,7 @@ func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
 func (a *Authz) EnforceAny(rvals ...any) (bool, error) {
 	ok, err := a.enforcer.Enforce(rvals...)
 	if err != nil {
-		return false, errors.Wrapf(err, "enforce any")
+		return false, event.NewTransient("casbin_error", "enforce any").WithCause(err)
 	}
 	return ok, nil
 }
@@ -192,7 +203,8 @@ func (a *Authz) AsEnforcer() interface{ Enforce(...any) (bool, error) } {
 func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, error) {
 	allowed, matched, err := a.enforcer.EnforceEx(sub, dom, obj, string(act))
 	if err != nil {
-		return nil, errors.Wrapf(err, "sub=%s dom=%s obj=%s", sub, dom, obj)
+		return nil, event.NewTransient("casbin_error", fmt.Sprintf("sub=%s dom=%s obj=%s", sub, dom, obj)).
+			WithCause(err)
 	}
 	return &EnforceResult{
 		Allowed:      allowed,
@@ -208,10 +220,12 @@ func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, err
 func (a *Authz) Authorize(sub, dom, obj string, act Action) error {
 	ok, err := a.Enforce(sub, dom, obj, act)
 	if err != nil {
-		return errors.Wrapf(err, "authorize %s/%s/%s/%s", sub, dom, obj, act)
+		return event.NewTransient("casbin_error", fmt.Sprintf("authorize %s/%s/%s/%s", sub, dom, obj, act)).
+			WithCause(err)
 	}
 	if !ok {
-		return errors.WithMessagef(ErrForbidden, "%s cannot %s %s in domain %s", sub, act, obj, dom)
+		return event.NewRejection("forbidden", fmt.Sprintf("%s cannot %s %s in domain %s", sub, act, obj, dom)).
+			WithCause(ErrForbidden)
 	}
 	return nil
 }
@@ -245,22 +259,24 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 			string(g.Role),
 			g.Domain,
 		); err != nil {
-			return errors.Wrapf(err, "remove group {%s, %s, %s}", g.Subject, g.Role, g.Domain)
+			return event.NewTransient("casbin_error", fmt.Sprintf("remove group {%s, %s, %s}", g.Subject, g.Role, g.Domain)).
+				WithCause(err)
 		}
 	}
 	for _, p := range update.RemovePolicies {
 		if _, err := a.enforcer.RemovePolicy(policyArgs(p)...); err != nil {
-			return errors.Wrapf(err, policyWrapErr("remove policy", p))
+			return event.NewTransient("casbin_error", policyWrapErr("remove policy", p)).WithCause(err)
 		}
 	}
 	for _, g := range update.AddGroups {
 		if _, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
-			return errors.Wrapf(err, "add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)
+			return event.NewTransient("casbin_error", fmt.Sprintf("add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)).
+				WithCause(err)
 		}
 	}
 	for _, p := range update.AddPolicies {
 		if _, err := a.enforcer.AddPolicy(policyArgs(p)...); err != nil {
-			return errors.Wrapf(err, policyWrapErr("add policy", p))
+			return event.NewTransient("casbin_error", policyWrapErr("add policy", p)).WithCause(err)
 		}
 	}
 	return nil
@@ -270,7 +286,7 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 func (a *Authz) AddPolicy(p Policy) error {
 	_, err := a.enforcer.AddPolicy(policyArgs(p)...)
 	if err != nil {
-		return errors.Wrapf(err, "add policy")
+		return event.NewTransient("casbin_error", "add policy").WithCause(err)
 	}
 	return nil
 }
@@ -279,7 +295,7 @@ func (a *Authz) AddPolicy(p Policy) error {
 func (a *Authz) RemovePolicy(p Policy) error {
 	_, err := a.enforcer.RemovePolicy(policyArgs(p)...)
 	if err != nil {
-		return errors.Wrapf(err, "remove policy")
+		return event.NewTransient("casbin_error", "remove policy").WithCause(err)
 	}
 	return nil
 }
@@ -288,7 +304,8 @@ func (a *Authz) RemovePolicy(p Policy) error {
 func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
 	_, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
-		return errors.Wrapf(err, "add group %s/%s/%s", g.Subject, g.Role, g.Domain)
+		return event.NewTransient("casbin_error", fmt.Sprintf("add group %s/%s/%s", g.Subject, g.Role, g.Domain)).
+			WithCause(err)
 	}
 	return nil
 }
@@ -297,7 +314,8 @@ func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
 func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 	_, err := a.enforcer.RemoveGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
-		return errors.Wrapf(err, "remove group %s/%s/%s", g.Subject, g.Role, g.Domain)
+		return event.NewTransient("casbin_error", fmt.Sprintf("remove group %s/%s/%s", g.Subject, g.Role, g.Domain)).
+			WithCause(err)
 	}
 	return nil
 }
@@ -306,7 +324,7 @@ func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 func (a *Authz) Policies() ([][]string, error) {
 	p, err := a.enforcer.GetPolicy()
 	if err != nil {
-		return nil, errors.Wrapf(err, "get policies")
+		return nil, event.NewTransient("casbin_error", "get policies").WithCause(err)
 	}
 	return p, nil
 }
@@ -315,7 +333,7 @@ func (a *Authz) Policies() ([][]string, error) {
 func (a *Authz) GroupPolicies() ([][]string, error) {
 	g, err := a.enforcer.GetGroupingPolicy()
 	if err != nil {
-		return nil, errors.Wrapf(err, "get group policies")
+		return nil, event.NewTransient("casbin_error", "get group policies").WithCause(err)
 	}
 	return g, nil
 }
@@ -332,7 +350,7 @@ func convertRoles(roles []string) []Role {
 func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 	roles, err := a.enforcer.GetRolesForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, errors.Wrapf(err, "domain=%s", domain)
+		return nil, event.NewTransient("casbin_error", fmt.Sprintf("domain=%s", domain)).WithCause(err)
 	}
 	return convertRoles(roles), nil
 }
@@ -341,7 +359,7 @@ func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, error) {
 	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, errors.Wrapf(err, "domain=%s", domain)
+		return nil, event.NewTransient("casbin_error", fmt.Sprintf("domain=%s", domain)).WithCause(err)
 	}
 	return convertRoles(roles), nil
 }
@@ -351,7 +369,8 @@ func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, erro
 func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]string, error) {
 	p, err := a.enforcer.GetImplicitPermissionsForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, errors.Wrapf(err, "implicit permissions domain=%s", domain)
+		return nil, event.NewTransient("casbin_error", fmt.Sprintf("implicit permissions domain=%s", domain)).
+			WithCause(err)
 	}
 	return p, nil
 }
@@ -360,7 +379,7 @@ func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]st
 func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 	d, err := a.enforcer.GetDomainsForUser(userID.Get())
 	if err != nil {
-		return nil, errors.Wrapf(err, "domains for user")
+		return nil, event.NewTransient("casbin_error", "domains for user").WithCause(err)
 	}
 	return d, nil
 }
@@ -369,7 +388,8 @@ func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 func (a *Authz) UsersForRole(role Role, domain string) ([]string, error) {
 	u, err := a.enforcer.GetUsersForRole(string(role), domain)
 	if err != nil {
-		return nil, errors.Wrapf(err, "users for role %s domain=%s", role, domain)
+		return nil, event.NewTransient("casbin_error", fmt.Sprintf("users for role %s domain=%s", role, domain)).
+			WithCause(err)
 	}
 	return u, nil
 }

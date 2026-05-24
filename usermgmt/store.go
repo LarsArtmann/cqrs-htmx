@@ -2,10 +2,11 @@ package usermgmt
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
-	"github.com/cockroachdb/errors"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
 // UserStore is the persistence interface for User aggregates.
@@ -145,7 +146,8 @@ func (s *InMemorySessionStore) Create(
 	defer s.mu.Unlock()
 	session, err := NewSession(userID, ttl)
 	if err != nil {
-		return nil, errors.Wrapf(err, "create session for user %q", userID)
+		return nil, event.NewTransient("session_create_failed",
+			fmt.Sprintf("create session for user %q", userID)).WithCause(err)
 	}
 	s.sessions[session.Token] = session
 	return session, nil

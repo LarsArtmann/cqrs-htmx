@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cockroachdb/errors"
 	"github.com/larsartmann/go-cqrs-lite/core/command"
+	"github.com/larsartmann/go-cqrs-lite/core/event"
 	"github.com/larsartmann/go-cqrs-lite/core/query"
 )
 
@@ -65,7 +65,6 @@ type handlerConfig struct {
 	triggerDetail  map[string]any
 	pushURL        string
 	csrfConfig     *CSRFConfig
-	csrfProtect    func(http.Handler) http.Handler
 	maxBodySize    int64
 	timeout        time.Duration
 	successStatus  int
@@ -170,7 +169,8 @@ func RenderTemplResult[T any](mapper func(T) TemplComponent) HandlerOption {
 		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
 			typed, ok := result.(T)
 			if !ok {
-				return errors.WithMessagef(ErrDecodeFailed, "unexpected result type %T", result)
+				return event.NewRejection("unexpected_result_type",
+					fmt.Sprintf("unexpected result type %T", result)).WithCause(ErrDecodeFailed)
 			}
 
 			component := mapper(typed)
