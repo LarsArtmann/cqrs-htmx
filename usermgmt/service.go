@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/mail"
 	"strconv"
@@ -143,7 +142,6 @@ type RegisterResponse struct {
 }
 
 // Register validates the request, creates the user, assigns the "user" role,
-// Register validates the request, creates the user, assigns the "user" role,
 // and opens a session. Partial failures are compensated: if role assignment or
 // session creation fails after the user is created, the user and role are rolled back.
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
@@ -158,7 +156,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	user.AddRole(RoleUser)
 
 	if err := s.users.Create(ctx, user); err != nil {
-		return nil, fmt.Errorf("create user: %w", err)
+		return nil, errors.Wrapf(err, "create user")
 	}
 
 	policy := GroupPolicy{
@@ -202,6 +200,8 @@ func (r *LoginRequest) Validate() error {
 	}
 	if r.Password == "" {
 		errs = append(errs, "password is required")
+	} else if len(r.Password) > maxPasswordLength {
+		errs = append(errs, errMsgPasswordTooLong)
 	}
 	return formatValidationErrors(errs)
 }
@@ -250,7 +250,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 // Logout deletes the session associated with the given token.
 func (s *Service) Logout(ctx context.Context, token string) error {
 	if err := s.sessions.Delete(ctx, token); err != nil {
-		return fmt.Errorf("logout: %w", err)
+		return errors.Wrapf(err, "logout")
 	}
 	return nil
 }
@@ -263,6 +263,7 @@ func (s *Service) Authenticate(ctx context.Context, token string) (*User, error)
 		return nil, ErrUnauthorized
 	}
 
+	// Proactively clean up expired sessions from the store.
 	if session.IsExpired() {
 		_ = s.sessions.Delete(ctx, token)
 		return nil, ErrSessionExpired
@@ -290,7 +291,7 @@ func (s *Service) Authorize(_ context.Context, sub, dom, obj string, act Action)
 func (s *Service) GetUser(ctx context.Context, id UserID) (*User, error) {
 	u, err := s.users.FindByID(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("get user: %w", err)
+		return nil, errors.Wrapf(err, "get user")
 	}
 	return u, nil
 }
@@ -338,7 +339,7 @@ func (s *Service) UpdateRoles(
 	user.Roles = roles
 	user.UpdatedAt = time.Now().UTC()
 	if err := s.users.Save(ctx, user); err != nil {
-		return fmt.Errorf("save user %q after role update: %w", userID, err)
+		return errors.Wrapf(err, "save user %q after role update", userID)
 	}
 	return nil
 }
@@ -381,7 +382,7 @@ func (s *Service) ChangePassword(
 	}
 
 	if err := s.users.Save(ctx, user); err != nil {
-		return fmt.Errorf("save user %q after password change: %w", userID, err)
+		return errors.Wrapf(err, "save user %q after password change", userID)
 	}
 	return nil
 }

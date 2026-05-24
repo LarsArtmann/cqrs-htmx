@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 )
 
 // Content type constants for consistent HTTP response headers.
@@ -159,6 +160,53 @@ func (resp *Response) CSRFToken(token string) *Response {
 	return resp
 }
 
+// Status sets the HTTP status code for the response.
+func (resp *Response) Status(code int) *Response {
+	resp.w.WriteHeader(code)
+	return resp
+}
+
+// Header sets a custom response header.
+func (resp *Response) Header(key, value string) *Response {
+	resp.w.Header().Set(key, value)
+	return resp
+}
+
+// ContentType sets the Content-Type header.
+func (resp *Response) ContentType(ct string) *Response {
+	resp.w.Header().Set("Content-Type", ct)
+	return resp
+}
+
+// Body writes the given bytes as the response body.
+// Calls Apply first if not already applied.
+func (resp *Response) Body(data []byte) *Response {
+	resp.Apply()
+	_, _ = resp.w.Write(data)
+	return resp
+}
+
+// WriteString writes the given string as the response body.
+// Calls Apply first if not already applied.
+func (resp *Response) WriteString(s string) *Response {
+	resp.Apply()
+	_, _ = resp.w.Write([]byte(s))
+	return resp
+}
+
+// JSON encodes v as JSON, sets Content-Type, and writes it as the response body.
+// Calls Apply first if not already applied.
+func (resp *Response) JSON(v any) *Response {
+	resp.ContentType(ContentTypeJSON)
+	resp.Apply()
+	encoded, err := json.Marshal(v)
+	if err != nil {
+		return resp
+	}
+	_, _ = resp.w.Write(encoded)
+	return resp
+}
+
 // Apply finalizes the response. For non-HTMX redirects, writes the redirect
 // response immediately. For HTMX requests, sets Content-Type.
 // Returns true if the response was written (redirect), false if the caller
@@ -185,24 +233,48 @@ func (resp *Response) Apply() bool {
 
 // sanitizeRedirectURL validates that a redirect URL is safe (relative path only).
 // Returns the sanitized URL and whether it's safe to redirect.
+// Blocks absolute URLs, scheme/host references, and paths that escape above root.
 func sanitizeRedirectURL(rawURL string) (string, bool) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return "", false
 	}
 
-	// Only allow relative URLs (no scheme, no host)
 	if u.Scheme != "" || u.Host != "" {
 		return "", false
 	}
 
-	// Block URLs with dangerous patterns like javascript:, data:, etc.
 	if u.Opaque != "" {
 		return "", false
 	}
 
-	// Normalize and return the path
-	return path.Clean(u.Path), u.Path != ""
+	cleaned := path.Clean(u.Path)
+
+	// Block paths that tried to escape above root.
+	// e.g., "/../../etc/passwd" cleans to "/etc/passwd" (escaped),
+	// but "/a/../b/c" cleans to "/b/c" (legitimate normalization).
+	// Detection: count ".." segments and ensure depth never goes negative.
+	depth := 0
+	for _, segment := range splitPath(u.Path) {
+		switch segment {
+		case "..":
+			depth--
+		case ".", "":
+			// no change
+		default:
+			depth++
+		}
+		if depth < 0 {
+			return "", false
+		}
+	}
+
+	return cleaned, u.Path != ""
+}
+
+func splitPath(p string) []string {
+	parts := strings.Split(p, "/")
+	return parts
 }
 
 func setTriggerHeader(w http.ResponseWriter, header, event string) {

@@ -146,6 +146,11 @@ func (c *CSRFConfig) Validate() error {
 		}
 	}
 
+	if !c.Secure {
+		slog.Warn("cqrs-htmx: CSRFConfig.Validate: Secure is false — CSRF cookies will be sent over plain HTTP",
+			slog.String("hint", "set Secure=true in production"))
+	}
+
 	return nil
 }
 

@@ -130,3 +130,9 @@ func AuthorizeMiddleware(
 		})
 	}
 }
+
+// IsAuthenticated returns true if the request has a non-zero UserID in context.
+// This works with both ContextEnrichmentMiddleware and per-handler extraction.
+func IsAuthenticated(r *http.Request) bool {
+	return !UserIDFromContext(r.Context()).IsZero()
+}

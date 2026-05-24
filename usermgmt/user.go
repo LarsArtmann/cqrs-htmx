@@ -82,7 +82,7 @@ func (u *User) AddRole(role Role) {
 func (u *User) RemoveRole(role Role) {
 	for i, r := range u.Roles {
 		if r == role {
-			u.Roles = append(u.Roles[:i], u.Roles[i+1:]...)
+			u.Roles = slices.Delete(u.Roles, i, i+1)
 			u.UpdatedAt = time.Now().UTC()
 			return
 		}

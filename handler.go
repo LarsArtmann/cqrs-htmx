@@ -37,9 +37,13 @@ func (a *App) handleErr(
 	w http.ResponseWriter,
 	r *http.Request,
 	ctx context.Context,
+	cfg *handlerConfig,
 	err error,
 ) {
 	a.errorHandler(w, r, err)
+	if cfg.onError != nil {
+		cfg.onError(r, err)
+	}
 	a.afterDispatchHook(ctx, r, err)
 }
 
@@ -55,18 +59,18 @@ func (a *App) handleCommandDispatch(
 	}
 
 	if cfg.commandDecoder == nil {
-		a.handleErr(w, r, ctx, errDecoderMissing)
+		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
 		return
 	}
 
 	cmd, err := cfg.commandDecoder(r)
 	if err != nil {
-		a.handleErr(w, r, ctx, err)
+		a.handleErr(w, r, ctx, cfg, err)
 		return
 	}
 
 	if cmd == nil {
-		a.handleErr(w, r, ctx, errDecoderMissing)
+		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
 		return
 	}
 
@@ -74,11 +78,11 @@ func (a *App) handleCommandDispatch(
 	defer cancel()
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		a.handleErr(w, r, ctx, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err))
+		a.handleErr(w, r, ctx, cfg, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err))
 		return
 	}
 
-	a.applyCommandResponse(w, r, cfg)
+	a.applyCommandResponse(w, r.WithContext(ctx), cfg)
 	a.afterDispatchHook(ctx, r, nil)
 }
 
@@ -105,7 +109,11 @@ func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, cfg *
 	}
 
 	if cfg.hasNoExplicitBody() {
-		w.WriteHeader(http.StatusNoContent)
+		status := cfg.successStatus
+		if status == 0 {
+			status = http.StatusNoContent
+		}
+		w.WriteHeader(status)
 	}
 }
 
@@ -121,13 +129,17 @@ func (a *App) applyQueryResponse(
 
 	if cfg.render != nil {
 		if err := cfg.render(w, r, result); err != nil {
-			a.handleErr(w, r, r.Context(), err)
+			a.handleErr(w, r, r.Context(), cfg, err)
 			return
 		}
 	}
 
 	if cfg.hasNoExplicitBody() {
-		w.WriteHeader(http.StatusNoContent)
+		status := cfg.successStatus
+		if status == 0 {
+			status = http.StatusNoContent
+		}
+		w.WriteHeader(status)
 	}
 }
 
@@ -143,14 +155,14 @@ func (a *App) handleQueryDispatch(
 	}
 
 	if cfg.queryDecoder == nil {
-		a.handleErr(w, r, ctx, errDecoderMissing)
+		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
 		return
 	}
 
 	qry, err := cfg.queryDecoder(r)
 	if err != nil {
 		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDecodeFailed, qryType, err)
-		a.handleErr(w, r, ctx, wrappedErr)
+		a.handleErr(w, r, ctx, cfg, wrappedErr)
 		return
 	}
 
@@ -159,7 +171,7 @@ func (a *App) handleQueryDispatch(
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		a.handleErr(w, r, ctx, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err))
+		a.handleErr(w, r, ctx, cfg, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err))
 		return
 	}
 

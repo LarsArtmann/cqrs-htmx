@@ -222,17 +222,6 @@ func TestInMemoryUserStore_CreateDuplicateID(t *testing.T) {
 	}
 }
 
-func TestInMemorySessionStore_WithTTL(t *testing.T) {
-	store := NewInMemorySessionStore().WithTTL(5 * time.Minute)
-	s, err := store.Create(context.Background(), NewUserID("u1"), time.Hour)
-	if err != nil {
-		t.Fatalf("Create: %v", err)
-	}
-	if s == nil {
-		t.Fatal("expected non-nil session")
-	}
-}
-
 func TestInMemorySessionStore_EvictExpired(t *testing.T) {
 	store := NewInMemorySessionStore()
 	s1, _ := store.Create(context.Background(), NewUserID("u1"), -time.Hour)

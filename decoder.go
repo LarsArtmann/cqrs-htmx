@@ -9,6 +9,10 @@ import (
 	"net/url"
 )
 
+// DefaultMaxBodySize is the default maximum request body size (10 MB).
+// Used when neither App.Config.MaxBodySize nor a per-handler WithMaxBodySize is set.
+const DefaultMaxBodySize int64 = 10 << 20
+
 // decodeJSONBody decodes JSON from request body into type T.
 // If maxBodySize > 0, bodies larger than maxBodySize are rejected with ErrRequestTooLarge.
 func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
@@ -30,16 +34,13 @@ func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error
 }
 
 // readBody reads the request body, respecting maxBodySize if > 0.
-// When maxBodySize <= 0, the entire body is read with no size limit.
+// When maxBodySize <= 0, DefaultMaxBodySize is used.
 func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
-	var body []byte
-	var err error
-
-	if maxBodySize > 0 {
-		body, err = io.ReadAll(io.LimitReader(r.Body, maxBodySize+1))
-	} else {
-		body, err = io.ReadAll(r.Body)
+	if maxBodySize <= 0 {
+		maxBodySize = DefaultMaxBodySize
 	}
+
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxBodySize+1))
 	_ = r.Body.Close()
 
 	if err != nil {

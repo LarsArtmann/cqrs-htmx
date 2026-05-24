@@ -793,4 +793,246 @@ var _ = Describe("Root Coverage Gaps", func() {
 			Expect(status).To(Equal(http.StatusServiceUnavailable))
 		})
 	})
+
+	Describe("MapError ErrRequestTooLarge", func() {
+		It("returns 413 for body size exceeded", func() {
+			status := cqrshtmx.MapError(cqrshtmx.ErrRequestTooLarge)
+			Expect(status).To(Equal(http.StatusRequestEntityTooLarge))
+		})
+	})
+
+	Describe("sanitizeRedirectURL blocks traversal after clean", func() {
+		It("blocks paths with remaining .. after clean", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			cqrshtmx.NewResponse(w, r).Redirect("/../../../etc/passwd").Apply()
+			Expect(w.Code).ToNot(Equal(http.StatusSeeOther))
+		})
+	})
+
+	Describe("IsAuthenticated helper", func() {
+		It("returns false when no user ID in context", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			Expect(cqrshtmx.IsAuthenticated(r)).To(BeFalse())
+		})
+
+		It("returns true when user ID is in context", func() {
+			uid := cqrshtmx.NewUserID()
+			ctx := cqrshtmx.WithUserID(context.Background(), uid)
+			r := httptest.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
+			Expect(cqrshtmx.IsAuthenticated(r)).To(BeTrue())
+		})
+	})
+
+	Describe("MustNew convenience function", func() {
+		It("panics on invalid config", func() {
+			Expect(func() { cqrshtmx.MustNew(cqrshtmx.Config{}) }).To(Panic())
+		})
+
+		It("returns app on valid config", func() {
+			app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
+			Expect(app).NotTo(BeNil())
+		})
+	})
+
+	Describe("HasCommands and HasQueries", func() {
+		It("reports correctly for command-only app", func() {
+			app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
+			Expect(app.HasCommands()).To(BeTrue())
+			Expect(app.HasQueries()).To(BeFalse())
+		})
+
+		It("reports correctly for query-only app", func() {
+			app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: query.NewDispatcher()})
+			Expect(app.HasCommands()).To(BeFalse())
+			Expect(app.HasQueries()).To(BeTrue())
+		})
+	})
+
+	Describe("Response builder enhancements", func() {
+		Describe("Status", func() {
+			It("sets the status code", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				resp := cqrshtmx.NewResponse(w, r)
+				result := resp.Status(http.StatusCreated)
+				Expect(result).To(Equal(resp))
+			})
+		})
+
+		Describe("Header", func() {
+			It("sets a custom header", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				resp := cqrshtmx.NewResponse(w, r)
+				result := resp.Header("X-Custom", "value")
+				Expect(result).To(Equal(resp))
+				Expect(w.Header().Get("X-Custom")).To(Equal("value"))
+			})
+		})
+
+		Describe("ContentType", func() {
+			It("sets Content-Type header", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				resp := cqrshtmx.NewResponse(w, r)
+				result := resp.ContentType("text/xml")
+				Expect(result).To(Equal(resp))
+				Expect(w.Header().Get("Content-Type")).To(Equal("text/xml"))
+			})
+		})
+
+		Describe("JSON", func() {
+			It("encodes and writes JSON body", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				cqrshtmx.NewResponse(w, r).JSON(map[string]string{"status": "ok"})
+				Expect(w.Header().Get("Content-Type")).To(ContainSubstring("application/json"))
+				Expect(w.Body.String()).To(ContainSubstring(`"status":"ok"`))
+			})
+		})
+
+		Describe("WriteString", func() {
+			It("writes string body", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				cqrshtmx.NewResponse(w, r).WriteString("hello world")
+				Expect(w.Body.String()).To(Equal("hello world"))
+			})
+		})
+
+		Describe("Body", func() {
+			It("writes byte body", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				cqrshtmx.NewResponse(w, r).Body([]byte("raw bytes"))
+				Expect(w.Body.String()).To(Equal("raw bytes"))
+			})
+		})
+	})
+
+	Describe("WithMaxBodySize HandlerOption", func() {
+		It("allows per-handler override of max body size", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:    disp,
+				MaxBodySize: 1,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			smallBody := `{"email":"test@test.com"}`
+			handler := app.Command("CreateUser", decodeBDDCreateUserJSONWithBody(), cqrshtmx.WithMaxBodySize(1024))
+			w := serve(handler, newPostRequest("/users", smallBody))
+			Expect(w.code()).To(Equal(http.StatusNoContent))
+		})
+	})
+
+	Describe("WithSuccessStatus HandlerOption", func() {
+		It("returns custom success status code", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := app.Command("CreateUser", decodeCreateUserJSON(), cqrshtmx.WithSuccessStatus(http.StatusCreated))
+			w := serve(handler, newPostRequest("/users", `{}`))
+			Expect(w.code()).To(Equal(http.StatusCreated))
+		})
+	})
+
+	Describe("OnError HandlerOption", func() {
+		It("calls per-handler error callback on failure", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			var capturedErr error
+			handler := app.Command("CreateUser",
+				decodeCreateUserJSON(),
+				cqrshtmx.OnError(func(_ *http.Request, err error) { capturedErr = err }),
+			)
+			w := serve(handler, newPostRequest("/users", `{invalid json`))
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(capturedErr).To(HaveOccurred())
+		})
+	})
+
+	Describe("DefaultMaxBodySize", func() {
+		It("has a reasonable default", func() {
+			Expect(cqrshtmx.DefaultMaxBodySize).To(BeNumerically(">", 0))
+		})
+	})
+
+	Describe("KeyExtractorFromClientIP", func() {
+		It("extracts from X-Forwarded-For", func() {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("X-Forwarded-For", "1.2.3.4, 5.6.7.8")
+			r.RemoteAddr = "10.0.0.1:1234"
+			extractor := cqrshtmx.KeyExtractorFromClientIP()
+			Expect(extractor(r)).To(Equal("1.2.3.4"))
+		})
+	})
+
+	Describe("NewRateLimiter monitoring", func() {
+		It("reports active keys", func() {
+			rl := cqrshtmx.NewRateLimiter(cqrshtmx.RateLimiterConfig{
+				Limit:        100,
+				Window:       time.Second,
+				KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+			})
+			Expect(rl.ActiveKeys()).To(Equal(0))
+
+			mw := rl.Middleware()
+			next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {})
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.RemoteAddr = "1.2.3.4:1234"
+			mw(next).ServeHTTP(httptest.NewRecorder(), r)
+			Expect(rl.ActiveKeys()).To(Equal(1))
+		})
+	})
+
+	Describe("Response JSON marshal error", func() {
+		It("handles non-encodable values gracefully", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			resp := cqrshtmx.NewResponse(w, r)
+			result := resp.JSON(make(chan int))
+			Expect(result).To(Equal(resp))
+		})
+	})
+
+	Describe("sanitizeRedirectURL traversal blocks", func() {
+		DescribeTable("blocks traversal",
+			func(input string, expected bool) {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				cqrshtmx.NewResponse(w, r).Redirect(input).Apply()
+				if expected {
+					Expect(w.Code).To(Equal(http.StatusSeeOther))
+				} else {
+					Expect(w.Code).ToNot(Equal(http.StatusSeeOther))
+				}
+			},
+			Entry("blocks escape above root", "/../../../etc/passwd", false),
+			Entry("allows legitimate normalization", "/a/../b/c", true),
+			Entry("blocks deep traversal", "/../../../../../etc/passwd", false),
+		)
+	})
+
+	Describe("WithSuccessStatus for query", func() {
+		It("returns custom status for query success without body", func() {
+			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
+				return "ok", nil
+			})
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			w := serve(app.Query(
+				"GetUser",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.WithSuccessStatus(http.StatusOK),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusOK))
+		})
+	})
 })

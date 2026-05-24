@@ -40,6 +40,19 @@ const (
 	authAuthorized
 )
 
+func (m authMode) String() string {
+	switch m {
+	case authNone:
+		return "none"
+	case authRequired:
+		return "required"
+	case authAuthorized:
+		return "authorized"
+	default:
+		return "unknown"
+	}
+}
+
 type handlerConfig struct {
 	authMode       authMode
 	resource       string
@@ -55,6 +68,8 @@ type handlerConfig struct {
 	csrfProtect    func(http.Handler) http.Handler
 	maxBodySize    int64
 	timeout        time.Duration
+	successStatus  int
+	onError        func(*http.Request, error)
 }
 
 // hasNoExplicitBody returns true if the handler has no render function and
@@ -271,6 +286,24 @@ func WithTimeout(d time.Duration) HandlerOption {
 	}
 }
 
+// WithMaxBodySize sets a per-handler maximum request body size override.
+// If > 0, it takes precedence over the App-level Config.MaxBodySize.
+// Zero or negative means fall back to App config (default: 10 MB).
+func WithMaxBodySize(n int64) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.maxBodySize = n
+	}
+}
+
+// WithSuccessStatus sets the HTTP status code for successful responses
+// when no explicit body is written. Default is 204 No Content.
+// Common values: 200 OK, 201 Created.
+func WithSuccessStatus(code int) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.successStatus = code
+	}
+}
+
 func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) bool {
 	resp := NewResponse(w, r)
 
@@ -291,4 +324,13 @@ func applyHTMXResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfi
 	}
 
 	return resp.Apply()
+}
+
+// OnError returns a HandlerOption that registers a per-handler error callback.
+// The callback is invoked after the App-level error handler, allowing handlers
+// to add custom logging, metrics, or cleanup for specific routes.
+func OnError(fn func(r *http.Request, err error)) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.onError = fn
+	}
 }

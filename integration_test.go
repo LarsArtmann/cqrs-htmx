@@ -431,7 +431,7 @@ var _ = Describe("Full Integration", func() {
 				handler := app.Command("CreateUser", decodeBDDCreateUserJSONWithBody())
 				assertStatusCode(handler, newPostRequest("/users", body), expectedCode)
 			},
-			Entry("rejects body larger than limit", int64(10), testUserJSON, http.StatusBadRequest),
+			Entry("rejects body larger than limit", int64(10), testUserJSON, http.StatusRequestEntityTooLarge),
 			Entry("allows body within limit", int64(1024), testUserJSON, http.StatusNoContent),
 		)
 	})

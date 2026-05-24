@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -109,6 +110,8 @@ func (h *AuthHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
+const maxAuthBodySize = 1 << 20 // 1 MB
+
 func (h *AuthHandler) handleAuthEndpoint(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -123,7 +126,7 @@ func (h *AuthHandler) handleAuthEndpoint(
 	}
 
 	var raw json.RawMessage
-	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
+	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&raw); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
