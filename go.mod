@@ -1,11 +1,11 @@
 module github.com/larsartmann/cqrs-htmx
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/justinas/nosurf v1.2.0
-	github.com/larsartmann/go-cqrs-lite/core v1.5.1-0.20260524045324-a331d5578987
+	github.com/larsartmann/go-cqrs-lite/core v1.5.1-0.20260525214246-549f17ac088c
 	github.com/larsartmann/go-error-family v0.1.1
 	github.com/larsartmann/httputil v0.0.0-20260524180505-e54f2c3f373f
 	github.com/onsi/ginkgo/v2 v2.29.0

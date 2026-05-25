@@ -186,7 +186,7 @@ func (a *App) Middleware() func(http.Handler) http.Handler {
 
 // CommandCatalogEntries returns all registered command catalog entries.
 // Returns nil if no command dispatcher is configured.
-func (a *App) CommandCatalogEntries() map[command.Type]dispatcher.CatalogEntry {
+func (a *App) CommandCatalogEntries() map[command.Type]dispatcher.HandlerMeta {
 	if a.commands == nil {
 		return nil
 	}
@@ -195,7 +195,7 @@ func (a *App) CommandCatalogEntries() map[command.Type]dispatcher.CatalogEntry {
 
 // QueryCatalogEntries returns all registered query catalog entries.
 // Returns nil if no query dispatcher is configured.
-func (a *App) QueryCatalogEntries() map[query.Type]dispatcher.CatalogEntry {
+func (a *App) QueryCatalogEntries() map[query.Type]dispatcher.HandlerMeta {
 	if a.queries == nil {
 		return nil
 	}
