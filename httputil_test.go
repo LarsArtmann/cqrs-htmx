@@ -17,7 +17,7 @@ var _ = Describe("HTTP Utilities", func() {
 		It("writes JSON with the given status code", func() {
 			w := httptest.NewRecorder()
 
-			data := map[string]string{"name": "test"}
+			data := map[string]string{testNameKey: "test"}
 			Expect(cqrshtmx.WriteJSON(w, http.StatusCreated, data)).To(Succeed())
 
 			Expect(w.Code).To(Equal(http.StatusCreated))
@@ -25,7 +25,7 @@ var _ = Describe("HTTP Utilities", func() {
 
 			var result map[string]string
 			Expect(json.Unmarshal(w.Body.Bytes(), &result)).To(Succeed())
-			Expect(result["name"]).To(Equal("test"))
+			Expect(result[testNameKey]).To(Equal("test"))
 		})
 
 		It("writes an empty object for nil value", func() {

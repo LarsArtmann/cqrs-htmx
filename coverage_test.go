@@ -106,7 +106,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("RenderJSON", func() {
 		It("renders query result as JSON with 200", func() {
 			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return map[string]string{"name": "Alice"}, nil
+				return map[string]string{testNameKey: "Alice"}, nil
 			})
 			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
 			w := serve(app.Query(
@@ -136,7 +136,7 @@ var _ = Describe("Coverage Gaps", func() {
 	Describe("RenderJSONStatus", func() {
 		It("renders query result as JSON with custom status", func() {
 			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return map[string]string{"name": "Alice"}, nil
+				return map[string]string{testNameKey: "Alice"}, nil
 			})
 			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
 			w := serve(app.Query(
