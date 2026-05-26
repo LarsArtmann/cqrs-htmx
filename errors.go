@@ -168,6 +168,36 @@ func DefaultErrorHandlerWithRedirect(
 	})
 }
 
+// formatErrorWithRequestID returns the error message, prefixed with the request ID
+// when one is present in the request context.
+func formatErrorWithRequestID(r *http.Request, err error) string {
+	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+		return "[request_id: " + rid.String() + "] " + err.Error()
+	}
+	return err.Error()
+}
+
+// DefaultErrorHandlerWithRequestID is like DefaultErrorHandler but prefixes the
+// error message with the request ID when one is present in context.
+func DefaultErrorHandlerWithRequestID(w http.ResponseWriter, r *http.Request, err error) {
+	DefaultErrorHandlerWithRedirectAndRequestID(w, r, err, defaultLoginRedirect)
+}
+
+// DefaultErrorHandlerWithRedirectAndRequestID is like DefaultErrorHandlerWithRedirect
+// but prefixes the error message with the request ID when one is present in context.
+func DefaultErrorHandlerWithRedirectAndRequestID(
+	w http.ResponseWriter,
+	r *http.Request,
+	err error,
+	loginRedirect string,
+) {
+	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, status int) {
+		w.Header().Set("Content-Type", ContentTypePlain)
+		w.WriteHeader(status)
+		_, _ = w.Write([]byte(formatErrorWithRequestID(r, err))) //nolint:gosec // text/plain prevents HTML rendering
+	})
+}
+
 // JSONErrorHandler writes errors as JSON responses.
 // For HTMX requests with auth errors, redirects via HX-Redirect instead of returning JSON.
 // Uses the default login redirect path ("/login").

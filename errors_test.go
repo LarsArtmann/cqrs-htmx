@@ -109,6 +109,36 @@ var _ = Describe("Error Mapping", func() {
 		})
 	})
 
+	Describe("Plain text error handler with request ID", func() {
+		It("prefixes error with request_id when present", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			rid := cqrshtmx.MustParseRequestID("01HK154ANGZHV2ZW0X3SKSNEN2")
+			r = r.WithContext(cqrshtmx.WithRequestID(r.Context(), rid))
+
+			cqrshtmx.DefaultErrorHandlerWithRequestID(w, r, cqrshtmx.ErrDecodeFailed)
+			Expect(w.Body.String()).To(ContainSubstring("[request_id: " + rid.String() + "]"))
+			Expect(w.Body.String()).To(ContainSubstring("failed to decode"))
+		})
+
+		It("falls back to plain error when request_id absent", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+			cqrshtmx.DefaultErrorHandlerWithRequestID(w, r, cqrshtmx.ErrDecodeFailed)
+			Expect(w.Body.String()).To(ContainSubstring("failed to decode request body"))
+			Expect(w.Body.String()).NotTo(ContainSubstring("request_id"))
+		})
+
+		It("uses custom redirect for HTMX auth errors", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			cqrshtmx.DefaultErrorHandlerWithRedirectAndRequestID(w, r, cqrshtmx.ErrUnauthorized, "/auth/signin")
+			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
+		})
+	})
+
 	Describe("Sentinel errors", func() {
 		It("has distinct sentinel errors", func() {
 			Expect(cqrshtmx.ErrUnauthorized).NotTo(Equal(cqrshtmx.ErrForbidden))
