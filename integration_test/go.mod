@@ -1,11 +1,11 @@
 module github.com/larsartmann/cqrs-htmx/integration_test
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/larsartmann/cqrs-htmx v1.0.0
 	github.com/larsartmann/cqrs-htmx/usermgmt v0.0.0
-	github.com/larsartmann/go-cqrs-lite/core v1.5.1-0.20260524045324-a331d5578987
+	github.com/larsartmann/go-cqrs-lite/core v1.5.1-0.20260525214246-549f17ac088c
 )
 
 require (
