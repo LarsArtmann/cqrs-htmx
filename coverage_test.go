@@ -103,6 +103,52 @@ var _ = Describe("Coverage Gaps", func() {
 		})
 	})
 
+	Describe("RenderJSON", func() {
+		It("renders query result as JSON with 200", func() {
+			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
+				return map[string]string{"name": "Alice"}, nil
+			})
+			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
+			w := serve(app.Query(
+				"GetUser",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.RenderJSON[map[string]string](),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusOK))
+			Expect(w.Header().Get("Content-Type")).To(Equal("application/json"))
+			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+		})
+
+		It("returns error for mismatched result type", func() {
+			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
+				return 42, nil
+			})
+			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
+			w := serve(app.Query(
+				"GetUser",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.RenderJSON[string](),
+			), r)
+			Expect(w.code()).ToNot(Equal(http.StatusOK))
+		})
+	})
+
+	Describe("RenderJSONStatus", func() {
+		It("renders query result as JSON with custom status", func() {
+			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
+				return map[string]string{"name": "Alice"}, nil
+			})
+			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
+			w := serve(app.Query(
+				"GetUser",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.RenderJSONStatus[map[string]string](http.StatusCreated),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusCreated))
+			Expect(w.Header().Get("Content-Type")).To(Equal("application/json"))
+		})
+	})
+
 	Describe("DecodeForm", func() {
 		It("decodes form data into a command", func() {
 			var received string

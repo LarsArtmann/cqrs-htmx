@@ -340,6 +340,45 @@ func OnError(fn func(r *http.Request, err error)) HandlerOption {
 	}
 }
 
+// RenderJSON renders query results as JSON with 200 OK and
+// Content-Type: application/json. Use the type parameter to enforce
+// compile-time documentation and runtime type checking.
+//
+// Usage:
+//
+//	app.Query("GetUser", cqrshtmx.DecodeJSONQuery(...),
+//	    cqrshtmx.RenderJSON[User](),
+//	)
+func RenderJSON[T any]() HandlerOption {
+	return renderJSONWithStatus[T](http.StatusOK)
+}
+
+// RenderJSONStatus renders query results as JSON with a custom HTTP status code
+// and Content-Type: application/json.
+//
+// Usage:
+//
+//	app.Query("CreateUser", cqrshtmx.DecodeJSONQuery(...),
+//	    cqrshtmx.RenderJSONStatus[User](http.StatusCreated),
+//	)
+func RenderJSONStatus[T any](status int) HandlerOption {
+	return renderJSONWithStatus[T](status)
+}
+
+func renderJSONWithStatus[T any](status int) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+			typed, ok := result.(T)
+			if !ok {
+				return event.NewRejection("unexpected_result_type",
+					fmt.Sprintf("unexpected result type %T", result)).WithCause(ErrDecodeFailed)
+			}
+
+			return WriteJSON(w, status, typed)
+		}
+	}
+}
+
 // RequireMethod returns a HandlerOption that rejects requests with the wrong HTTP method.
 // Returns 405 Method Not Allowed for mismatched methods.
 //
