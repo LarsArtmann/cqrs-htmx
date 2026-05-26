@@ -3,7 +3,6 @@ package cqrshtmx
 import (
 	"encoding/json"
 	"errors"
-	stderrors "errors"
 	"net/http"
 	"sync"
 
@@ -114,7 +113,7 @@ func isAuthError(err error) bool {
 }
 
 // isErr wraps stdlib errors.Is for internal use.
-func isErr(err, target error) bool { return stderrors.Is(err, target) }
+func isErr(err, target error) bool { return errors.Is(err, target) }
 
 // writeHTMXAuthRedirect sets HX-Redirect header and writes 303 See Other.
 // Returns true if the redirect was written, false if the request is not HTMX or the error is not auth-related.
