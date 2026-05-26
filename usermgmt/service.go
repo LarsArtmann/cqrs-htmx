@@ -333,7 +333,8 @@ func (s *Service) UpdateRoles(
 		RemoveGroups: remove,
 		AddGroups:    add,
 	}); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("apply role update for user %q", userID)).WithCause(err)
+		return event.NewTransient("internal", fmt.Sprintf("apply role update for user %q", userID)).
+			WithCause(err)
 	}
 
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
@@ -341,7 +342,8 @@ func (s *Service) UpdateRoles(
 	user.Roles = roles
 	user.UpdatedAt = time.Now().UTC()
 	if err := s.users.Save(ctx, user); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).WithCause(err)
+		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).
+			WithCause(err)
 	}
 	return nil
 }
@@ -380,11 +382,13 @@ func (s *Service) ChangePassword(
 	}
 
 	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("set password for user %q", userID)).WithCause(err)
+		return event.NewTransient("internal", fmt.Sprintf("set password for user %q", userID)).
+			WithCause(err)
 	}
 
 	if err := s.users.Save(ctx, user); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("save user %q after password change", userID)).WithCause(err)
+		return event.NewTransient("internal", fmt.Sprintf("save user %q after password change", userID)).
+			WithCause(err)
 	}
 	return nil
 }
