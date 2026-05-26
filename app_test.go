@@ -57,6 +57,35 @@ var _ = Describe("App", func() {
 			w := serve(handler, r)
 			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
 		})
+
+		It("includes request_id in errors when IncludeRequestIDInErrors is true", func() {
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:                 command.NewDispatcher(),
+				IncludeRequestIDInErrors: true,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			rid := cqrshtmx.MustParseRequestID("01HK154ANGZHV2ZW0X3SKSNEN2")
+			r := newPostRequest("/users", "")
+			r = r.WithContext(cqrshtmx.WithRequestID(r.Context(), rid))
+			w := serve(app.Command("CreateUser"), r)
+			Expect(w.Body.String()).To(ContainSubstring("[request_id: " + rid.String() + "]"))
+		})
+
+		It("does not affect custom ErrorHandler", func() {
+			called := false
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:                 command.NewDispatcher(),
+				IncludeRequestIDInErrors: true,
+				ErrorHandler: func(_ http.ResponseWriter, _ *http.Request, _ error) {
+					called = true
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			r := newPostRequest("/users", "")
+			w := serve(app.Command("CreateUser"), r)
+			Expect(called).To(BeTrue())
+			Expect(w.Body.String()).To(BeEmpty())
+		})
 	})
 
 	Describe("Command handler", func() {

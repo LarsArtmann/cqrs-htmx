@@ -61,6 +61,12 @@ type Config struct {
 	// When set, request bodies larger than this will be rejected with
 	// 413 Request Entity Too Large.
 	MaxBodySize int64
+
+	// IncludeRequestIDInErrors makes the default error handler include the
+	// request ID in error responses when one is present in the request context.
+	// This helps clients correlate errors with server logs.
+	// Only applies when ErrorHandler is not set (uses the default handler).
+	IncludeRequestIDInErrors bool
 }
 
 // BeforeDispatchHook is called before dispatching a command or query.
@@ -90,8 +96,14 @@ func New(cfg Config) (*App, error) {
 
 	eh := cfg.ErrorHandler
 	if eh == nil {
-		eh = func(w http.ResponseWriter, r *http.Request, err error) {
-			DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
+		if cfg.IncludeRequestIDInErrors {
+			eh = func(w http.ResponseWriter, r *http.Request, err error) {
+				DefaultErrorHandlerWithRedirectAndRequestID(w, r, err, loginRedirect)
+			}
+		} else {
+			eh = func(w http.ResponseWriter, r *http.Request, err error) {
+				DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
+			}
 		}
 	}
 
