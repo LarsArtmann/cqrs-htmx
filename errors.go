@@ -188,12 +188,12 @@ func JSONErrorHandlerWithRedirect(
 		w.Header().Set("Content-Type", ContentTypeJSON)
 		w.WriteHeader(status)
 
-		response := struct {
-			Error  string `json:"error"`
-			Status int    `json:"status"`
-		}{
-			Error:  err.Error(),
-			Status: status,
+		response := map[string]any{
+			"error":  err.Error(),
+			"status": status,
+		}
+		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+			response["request_id"] = rid.String()
 		}
 
 		encoder := json.NewEncoder(w)
