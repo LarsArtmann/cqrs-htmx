@@ -40,6 +40,7 @@ cqrs-htmx/
 ├── logging.go     # RequestLogging, RequestLoggingSlog, DefaultLogFormatter, JSONLogFormatter
 ├── ratelimit.go   # RateLimiterMiddleware, per-key token bucket, TTL eviction, hooks
 ├── security.go    # SecurityHeadersMiddleware, SecurityHeadersConfig builder
+├── recovery.go    # RecoveryMiddleware, App.RecoveryMiddleware() — panic recovery with stack trace logging
 ├── usermgmt/      # User management submodule (RBAC, sessions, password auth)
 │   ├── go.mod     # Independent Go module
 │   ├── id.go      # Branded UserID type (go-branded-id), NewUserID constructor
@@ -213,6 +214,11 @@ cqrs-htmx/
 72. **MapError refactored**: Split into `explicitErrorStatus()` and `familyStatus()` helpers to keep cyclomatic complexity under 12
 73. **StatusRecorder.Push no longer wraps**: `Push()` returns the underlying Pusher's error directly (not wrapped) — preserves `errors.Is()` matching
 74. **Root coverage 97.3%** (up from 96.7%), **usermgmt coverage 91.1%**
+75. **JSON error response request_id**: `JSONErrorHandlerWithRedirect` includes `"request_id"` field when a RequestID is present in context. Enables client-to-server log correlation
+76. **Plain-text error handlers with request ID**: `DefaultErrorHandlerWithRequestID` and `DefaultErrorHandlerWithRedirectAndRequestID` prefix error messages with `[request_id: RID]` when available
+77. **Config.IncludeRequestIDInErrors**: When `true` and no custom `ErrorHandler` is set, `New()` selects the request-ID-aware default handler automatically
+78. **RenderJSON HandlerOptions**: `RenderJSON[T]()` renders query results as JSON with 200 OK. `RenderJSONStatus[T](status)` renders with a custom status code (e.g., 201 Created). Both use `WriteJSON` and include runtime type assertion for compile-time documentation
+79. **Panic recovery middleware**: `RecoveryMiddleware` recovers from panics, logs stack trace via `slog.ErrorContext`, and writes 500. `App.RecoveryMiddleware()` uses the App's configured `ErrorHandler` so panics get identical treatment to dispatch errors (JSON responses, custom redirects, request ID correlation). `http.ErrAbortHandler` is re-raised without recovery (Go net/http convention)
 
 ## Test Commands
 

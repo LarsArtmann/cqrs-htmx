@@ -131,8 +131,9 @@ app, err := cqrshtmx.New(cqrshtmx.Config{
     LoginRedirect:   "/auth/signin",   // default: "/login"
     Timeout:         5 * time.Second,  // wraps dispatch only; 0 = no timeout
     ErrorHandler:    myErrorHandler,   // custom ErrorHandler; default uses plain text + LoginRedirect
-    BeforeDispatch:  beforeHook,       // func(ctx, r) context.Context — tracing, request IDs
-    AfterDispatch:   afterHook,        // func(ctx, r, err) — logging, metrics
+    BeforeDispatch:           beforeHook,       // func(ctx, r) context.Context — tracing, request IDs
+    AfterDispatch:            afterHook,        // func(ctx, r, err) — logging, metrics
+    IncludeRequestIDInErrors: true,             // prefix errors with request_id for log correlation
 })
 ```
 
@@ -192,6 +193,8 @@ app.Command("CreateUser",
 | `Render(fn)`                       | Render query result with custom function                               |
 | `RenderTempl(component)`           | Render a fixed templ.Component (duck-typed)                            |
 | `RenderTemplResult[T](mapper)`     | Map query result to a templ.Component and render                       |
+| `RenderJSON[T]()`                  | Render query result as JSON (200 OK)                                   |
+| `RenderJSONStatus[T](status)`      | Render query result as JSON with custom status                         |
 | `Redirect(url)`                    | Redirect after success (HX-Redirect for HTMX, HTTP redirect otherwise) |
 | `Trigger(event)`                   | Fire HTMX client-side event on success                                 |
 | `TriggerWithDetail(event, detail)` | Fire HTMX event with JSON detail data                                  |
@@ -403,13 +406,15 @@ app, _ := cqrshtmx.New(cqrshtmx.Config{
 })
 ```
 
-| Handler                           | Format     | Login Redirect                              |
-| --------------------------------- | ---------- | ------------------------------------------- |
-| `DefaultErrorHandler`             | Plain text | `/login`                                    |
-| `DefaultErrorHandlerWithRedirect` | Plain text | Custom                                      |
-| `JSONErrorHandler`                | JSON       | `/login`                                    |
-| `JSONErrorHandlerWithRedirect`    | JSON       | Custom                                      |
-| `MapError(err)`                   | —          | Returns HTTP status code for any CQRS error |
+| Handler                                        | Format     | Login Redirect                              |
+| ---------------------------------------------- | ---------- | ------------------------------------------- |
+| `DefaultErrorHandler`                          | Plain text | `/login`                                    |
+| `DefaultErrorHandlerWithRedirect`              | Plain text | Custom                                      |
+| `DefaultErrorHandlerWithRequestID`             | Plain text | `/login` (includes request_id when present) |
+| `DefaultErrorHandlerWithRedirectAndRequestID`  | Plain text | Custom (includes request_id when present)   |
+| `JSONErrorHandler`                             | JSON       | `/login`                                    |
+| `JSONErrorHandlerWithRedirect`                 | JSON       | Custom                                      |
+| `MapError(err)`                                | —          | Returns HTTP status code for any CQRS error |
 
 ### Login Redirect
 
@@ -430,6 +435,11 @@ mux := app.Middleware()(router)
 // HTMX header parsing (applied once, stores in context)
 mux := cqrshtmx.HTMXMiddleware(mux)
 
+// Panic recovery (catches panics, logs stack trace, writes 500)
+mux := cqrshtmx.RecoveryMiddleware(mux)
+// Or use App.RecoveryMiddleware() for App-configured error handling:
+mux := app.RecoveryMiddleware()(mux)
+
 // Standalone Casbin authorization middleware
 mux.Handle("/admin", cqrshtmx.AuthorizeMiddleware(
     enforcer, "admin", "access",
@@ -439,6 +449,7 @@ mux.Handle("/admin", cqrshtmx.AuthorizeMiddleware(
 // Chain multiple middleware
 chained := cqrshtmx.Chain(
     cqrshtmx.SecurityHeadersMiddleware,
+    cqrshtmx.RecoveryMiddleware,
     cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
     cqrshtmx.HTMXMiddleware,
     app.Middleware(),
