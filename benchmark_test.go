@@ -293,3 +293,40 @@ func BenchmarkHealthHandler(b *testing.B) {
 		handler.ServeHTTP(w, r)
 	}
 }
+
+func BenchmarkRecoveryMiddleware(b *testing.B) {
+	handler := cqrshtmx.RecoveryMiddleware(okHandler())
+	for b.Loop() {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		handler.ServeHTTP(w, r)
+	}
+}
+
+func BenchmarkAppRecoveryMiddleware(b *testing.B) {
+	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
+	handler := app.RecoveryMiddleware()(okHandler())
+	for b.Loop() {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		handler.ServeHTTP(w, r)
+	}
+}
+
+func BenchmarkRenderJSON(b *testing.B) {
+	disp := query.NewDispatcher()
+	_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
+		return map[string]string{testNameKey: testNameKey}, nil
+	})
+	app, _ := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+	handler := app.Query(
+		"GetUser",
+		decodeGetUserJSONQuery(),
+		cqrshtmx.RenderJSON[map[string]string](),
+	)
+	for b.Loop() {
+		r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, r)
+	}
+}
