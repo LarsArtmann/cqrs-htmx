@@ -76,6 +76,39 @@ var _ = Describe("Error Mapping", func() {
 		})
 	})
 
+	Describe("JSON error handler with request ID", func() {
+		It("includes request_id when present in context", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			rid := cqrshtmx.MustParseRequestID("01HK154ANGZHV2ZW0X3SKSNEN2")
+			r = r.WithContext(cqrshtmx.WithRequestID(r.Context(), rid))
+
+			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.ErrDecodeFailed)
+			Expect(w.Body.String()).To(ContainSubstring("request_id"))
+			Expect(w.Body.String()).To(ContainSubstring(rid.String()))
+		})
+
+		It("omits request_id when not in context", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.ErrDecodeFailed)
+			Expect(w.Body.String()).NotTo(ContainSubstring("request_id"))
+		})
+
+		It("does not include request_id body for HTMX auth errors", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			rid := cqrshtmx.MustParseRequestID("01HK154ANGZHV2ZW0X3SKSNEN2")
+			r = r.WithContext(cqrshtmx.WithRequestID(r.Context(), rid))
+
+			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.ErrUnauthorized)
+			Expect(w.Code).To(Equal(http.StatusSeeOther))
+			Expect(w.Body.String()).To(BeEmpty())
+		})
+	})
+
 	Describe("Sentinel errors", func() {
 		It("has distinct sentinel errors", func() {
 			Expect(cqrshtmx.ErrUnauthorized).NotTo(Equal(cqrshtmx.ErrForbidden))
