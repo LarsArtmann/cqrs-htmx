@@ -18,19 +18,19 @@ Plus: fixed all pre-existing usermgmt lint issues, updated documentation, and ad
 
 ## Changes Made (11 commits)
 
-| Commit | Type | Description |
-|--------|------|-------------|
-| `ee278b5` | fix | Remove duplicate `errors` import in `errors.go` |
-| `af35b78` | feat | Include `request_id` in JSON error responses |
-| `972f292` | feat | Add plain-text error handlers with request ID correlation |
-| `b4c752b` | feat | Add `Config.IncludeRequestIDInErrors` option |
-| `5a40c4f` | feat | Add `RenderJSON` and `RenderJSONStatus` HandlerOptions |
-| `6bcb811` | feat | Add panic recovery middleware (`RecoveryMiddleware`, `App.RecoveryMiddleware()`) |
-| `dfb6469` | feat | Add benchmarks for recovery and RenderJSON |
-| `f89e72d` | docs | Document RenderJSON, recovery middleware, and request ID correlation in README + AGENTS.md |
-| `776f101` | chore | Tidy `integration_test` module dependencies |
-| `03d81d9` | style | Fix all usermgmt lint issues (golines + perfsprint) |
-| `78202dc` | docs | Update CHANGELOG with new features |
+| Commit    | Type  | Description                                                                                |
+| --------- | ----- | ------------------------------------------------------------------------------------------ |
+| `ee278b5` | fix   | Remove duplicate `errors` import in `errors.go`                                            |
+| `af35b78` | feat  | Include `request_id` in JSON error responses                                               |
+| `972f292` | feat  | Add plain-text error handlers with request ID correlation                                  |
+| `b4c752b` | feat  | Add `Config.IncludeRequestIDInErrors` option                                               |
+| `5a40c4f` | feat  | Add `RenderJSON` and `RenderJSONStatus` HandlerOptions                                     |
+| `6bcb811` | feat  | Add panic recovery middleware (`RecoveryMiddleware`, `App.RecoveryMiddleware()`)           |
+| `dfb6469` | feat  | Add benchmarks for recovery and RenderJSON                                                 |
+| `f89e72d` | docs  | Document RenderJSON, recovery middleware, and request ID correlation in README + AGENTS.md |
+| `776f101` | chore | Tidy `integration_test` module dependencies                                                |
+| `03d81d9` | style | Fix all usermgmt lint issues (golines + perfsprint)                                        |
+| `78202dc` | docs  | Update CHANGELOG with new features                                                         |
 
 **Files changed:** 14 files (+3 new: `recovery.go`, `recovery_test.go`, `CODE_OF_CONDUCT.md`)
 
@@ -70,11 +70,11 @@ Plus: fixed all pre-existing usermgmt lint issues, updated documentation, and ad
 
 ## Quality Metrics
 
-| Module | Specs | Coverage | Lint | Race |
-|--------|-------|----------|------|------|
-| root | 395 | 96.9% | 0 issues | Pass |
-| usermgmt | 70+ | 91.1% | 0 issues | Pass |
-| integration_test | 3 | — | 0 issues | Pass |
+| Module           | Specs | Coverage | Lint     | Race |
+| ---------------- | ----- | -------- | -------- | ---- |
+| root             | 395   | 96.9%    | 0 issues | Pass |
+| usermgmt         | 70+   | 91.1%    | 0 issues | Pass |
+| integration_test | 3     | —        | 0 issues | Pass |
 
 **Root coverage note:** 96.9% (down from 97.3%) due to new `recovery.go` error paths not fully exercised. The recovery middleware itself is tested; the slight drop comes from `DefaultErrorHandler` vs `App.errorHandler` branch coverage in the App method variant.
 

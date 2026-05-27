@@ -406,15 +406,15 @@ app, _ := cqrshtmx.New(cqrshtmx.Config{
 })
 ```
 
-| Handler                                        | Format     | Login Redirect                              |
-| ---------------------------------------------- | ---------- | ------------------------------------------- |
-| `DefaultErrorHandler`                          | Plain text | `/login`                                    |
-| `DefaultErrorHandlerWithRedirect`              | Plain text | Custom                                      |
-| `DefaultErrorHandlerWithRequestID`             | Plain text | `/login` (includes request_id when present) |
-| `DefaultErrorHandlerWithRedirectAndRequestID`  | Plain text | Custom (includes request_id when present)   |
-| `JSONErrorHandler`                             | JSON       | `/login`                                    |
-| `JSONErrorHandlerWithRedirect`                 | JSON       | Custom                                      |
-| `MapError(err)`                                | —          | Returns HTTP status code for any CQRS error |
+| Handler                                       | Format     | Login Redirect                              |
+| --------------------------------------------- | ---------- | ------------------------------------------- |
+| `DefaultErrorHandler`                         | Plain text | `/login`                                    |
+| `DefaultErrorHandlerWithRedirect`             | Plain text | Custom                                      |
+| `DefaultErrorHandlerWithRequestID`            | Plain text | `/login` (includes request_id when present) |
+| `DefaultErrorHandlerWithRedirectAndRequestID` | Plain text | Custom (includes request_id when present)   |
+| `JSONErrorHandler`                            | JSON       | `/login`                                    |
+| `JSONErrorHandlerWithRedirect`                | JSON       | Custom                                      |
+| `MapError(err)`                               | —          | Returns HTTP status code for any CQRS error |
 
 ### Login Redirect
 
