@@ -3,6 +3,7 @@ package cqrshtmx
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/core/command"
@@ -40,6 +41,11 @@ func (a *App) handleErr(
 	cfg *handlerConfig,
 	err error,
 ) {
+	slog.WarnContext(ctx, "cqrs-htmx: dispatch error",
+		slog.String("method", r.Method),
+		slog.String("path", r.URL.Path),
+		slog.String("error", err.Error()),
+	)
 	a.errorHandler(w, r, err)
 	if cfg.onError != nil {
 		cfg.onError(r, err)
