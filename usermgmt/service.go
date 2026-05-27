@@ -165,14 +165,20 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 		Subject: user.ID.Get(), Role: RoleUser, Domain: user.ID.Get(),
 	}
 	if err := s.authz.AddGroupPolicy(policy); err != nil {
-		_ = s.users.Delete(ctx, user.ID)
+		if delErr := s.users.Delete(ctx, user.ID); delErr != nil {
+			s.logAuth("register_rollback_delete_failed", user.ID, "rollback_error", delErr)
+		}
 		return nil, event.NewTransient("internal", "assign role").WithCause(err)
 	}
 
 	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
-		_ = s.authz.RemoveGroupPolicy(policy)
-		_ = s.users.Delete(ctx, user.ID)
+		if rmErr := s.authz.RemoveGroupPolicy(policy); rmErr != nil {
+			s.logAuth("register_rollback_policy_failed", user.ID, "rollback_error", rmErr)
+		}
+		if delErr := s.users.Delete(ctx, user.ID); delErr != nil {
+			s.logAuth("register_rollback_delete_failed", user.ID, "rollback_error", delErr)
+		}
 		return nil, event.NewTransient("internal", "create session").WithCause(err)
 	}
 
