@@ -68,14 +68,14 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// RecoveryMiddleware returns HTTP middleware that recovers from panics using
+// RecoverHandler returns HTTP middleware that recovers from panics using
 // the App's configured ErrorHandler and LoginRedirect. Use this instead of
 // the standalone RecoveryMiddleware when you want panics to be handled with
 // the same error response format as dispatch errors (e.g., JSON error handler,
 // custom login redirect, or request ID correlation).
 //
 // http.ErrAbortHandler is re-raised without recovery.
-func (a *App) RecoveryMiddleware() func(http.Handler) http.Handler {
+func (a *App) RecoverHandler() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer func() {

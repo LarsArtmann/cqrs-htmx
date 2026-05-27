@@ -305,7 +305,7 @@ func BenchmarkRecoveryMiddleware(b *testing.B) {
 
 func BenchmarkAppRecoveryMiddleware(b *testing.B) {
 	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
-	handler := app.RecoveryMiddleware()(okHandler())
+	handler := app.RecoverHandler()(okHandler())
 	for b.Loop() {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
