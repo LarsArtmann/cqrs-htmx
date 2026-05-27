@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"encoding/json"
 	"html"
 	"net/http"
 )
@@ -44,9 +45,15 @@ func CSRFTokenHTMLMeta(r *http.Request) string {
 // The token is HTML-escaped to prevent XSS. Returns an empty string if no
 // token is present in context.
 func CSRFTokenHXHeaders(r *http.Request) string {
-	return csrfTokenFormatted(r, func(tok string) string {
-		return `hx-headers='{"X-CSRF-Token":"` + tok + `"}'`
-	})
+	token := csrfTokenFromRequest(r)
+	if token == "" {
+		return ""
+	}
+	jsonVal, err := json.Marshal(map[string]string{"X-CSRF-Token": token})
+	if err != nil {
+		return ""
+	}
+	return `hx-headers='` + html.EscapeString(string(jsonVal)) + `'`
 }
 
 // CSRFTokenFormField returns a hidden input HTML element containing the CSRF token.
