@@ -203,12 +203,13 @@ func (resp *Response) WriteString(s string) *Response {
 }
 
 // JSON encodes v as JSON, sets Content-Type, and writes it as the response body.
-// Calls Apply first if not already applied.
+// Calls Apply first if not already applied. Writes HTTP 500 on marshal failure.
 func (resp *Response) JSON(v any) *Response {
 	resp.ContentType(ContentTypeJSON)
 	resp.Apply()
 	encoded, err := json.Marshal(v)
 	if err != nil {
+		http.Error(resp.w, "json marshal error", http.StatusInternalServerError)
 		return resp
 	}
 	_, _ = resp.w.Write(encoded)
