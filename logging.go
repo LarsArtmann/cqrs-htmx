@@ -201,6 +201,8 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 	}
 }
 
+// Write implements io.Writer. It sets the status to 200 on first write if no
+// explicit status was recorded via WriteHeader.
 func (r *StatusRecorder) Write(p []byte) (int, error) {
 	if !r.wrote {
 		r.status = http.StatusOK

@@ -50,10 +50,19 @@ cqrs-htmx/
 ├── response.go    # HTMX response builder (fluent API) + notification methods
 ├── authz.go       # Enforcer interface, Authorize, Enforce, AuthorizeMiddleware
 ├── context.go     # UserID type, context enrichment (UserID → CQRS metadata)
-├── errors.go      # CQRS error → HTTP status mapping, sentinels, LoginRedirect
+├── errors.go      # Error → HTTP status mapping (go-error-family), sentinels, error handlers
 ├── htmx.go        # HTMXRequest struct, accessors, context storage, RenderPartial
 ├── notify.go      # Notification HandlerOptions + NotifyWithEvent builder
 ├── middleware.go   # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
+├── csrf.go            # CSRFMiddleware, CSRFConfig, token context helpers (justinas/nosurf)
+├── csrf_handler.go    # CSRFProtect (per-handler CSRF)
+├── csrf_helpers.go    # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
+├── decoder.go         # Body reading, form/JSON decoding, MaxBodySize
+├── httputil.go         # WriteJSON, ClientIP (delegates to larsartmann/httputil)
+├── logging.go          # RequestLogging, RequestLoggingSlog, StatusRecorder
+├── ratelimit.go        # RateLimiterMiddleware, token bucket, min-heap eviction
+├── security.go         # SecurityHeadersMiddleware, SecurityHeadersConfig
+├── recovery.go         # RecoveryMiddleware, panic recovery with stack logging
 ├── usermgmt/      # User management submodule (RBAC, sessions, password auth)
 ├── integration_test/ # Cross-module integration tests
 └── examples/datastar-demo/ # Real-time CQRS + Datastar SSE example
@@ -73,7 +82,7 @@ return fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err)
 return errors.Wrapf(err, "dispatch failed: %s", cmdType)
 ```
 
-Note: `usermgmt/` uses `cockroachdb/errors` for error wrapping consistency with the root module.
+Note: Both root and `usermgmt/` use `go-error-family` (via `go-cqrs-lite/core/event`) for error classification. Use `fmt.Errorf` with `%w` for wrapping.
 
 HTMX header values use constants defined in `htmx.go`. Use `HeaderTrue` (exported) instead of `"true"`.
 
