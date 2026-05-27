@@ -294,7 +294,7 @@ func (s *Service) GetUser(ctx context.Context, id UserID) (*User, error) {
 	u, err := s.users.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			return nil, err
+			return nil, fmt.Errorf("get user %q: %w", id, err)
 		}
 		return nil, event.NewTransient("internal", "get user").WithCause(err)
 	}
@@ -311,7 +311,7 @@ func (s *Service) UpdateRoles(
 	user, err := s.users.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			return err
+			return fmt.Errorf("update roles: find user %q: %w", userID, err)
 		}
 		return event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err)
 	}
