@@ -21,7 +21,7 @@ var _ = Describe("HTTP Utilities", func() {
 			Expect(cqrshtmx.WriteJSON(w, http.StatusCreated, data)).To(Succeed())
 
 			Expect(w.Code).To(Equal(http.StatusCreated))
-			Expect(w.Header().Get("Content-Type")).To(Equal("application/json"))
+			Expect(w.Header().Get("Content-Type")).To(Equal(cqrshtmx.ContentTypeJSON))
 
 			var result map[string]string
 			Expect(json.Unmarshal(w.Body.Bytes(), &result)).To(Succeed())

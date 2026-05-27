@@ -115,7 +115,7 @@ var _ = Describe("Coverage Gaps", func() {
 				cqrshtmx.RenderJSON[map[string]string](),
 			), r)
 			Expect(w.code()).To(Equal(http.StatusOK))
-			Expect(w.Header().Get("Content-Type")).To(Equal("application/json"))
+			Expect(w.Header().Get("Content-Type")).To(Equal(cqrshtmx.ContentTypeJSON))
 			Expect(w.Body.String()).To(ContainSubstring("Alice"))
 		})
 
@@ -145,7 +145,7 @@ var _ = Describe("Coverage Gaps", func() {
 				cqrshtmx.RenderJSONStatus[map[string]string](http.StatusCreated),
 			), r)
 			Expect(w.code()).To(Equal(http.StatusCreated))
-			Expect(w.Header().Get("Content-Type")).To(Equal("application/json"))
+			Expect(w.Header().Get("Content-Type")).To(Equal(cqrshtmx.ContentTypeJSON))
 		})
 	})
 

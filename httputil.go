@@ -11,7 +11,7 @@ import (
 // WriteJSON encodes v as JSON and writes it to w with the given HTTP status code
 // and Content-Type: application/json header. Returns any encoding error.
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(v); err != nil {
 		return fmt.Errorf("encode JSON response: %w", err)

@@ -113,3 +113,23 @@ func TestAccountLockout_EvictStale(t *testing.T) {
 		t.Error("expected 0 evictions on clean state")
 	}
 }
+
+func TestAccountLockout_CaseInsensitive(t *testing.T) {
+	l := NewAccountLockout(LockoutConfig{MaxAttempts: 3, Duration: time.Minute})
+
+	l.RecordFailure("Test@Example.COM")
+	l.RecordFailure("TEST@EXAMPLE.COM")
+	l.RecordFailure("test@example.com")
+
+	if !l.IsLocked("Test@Example.COM") {
+		t.Error("expected locked for mixed case")
+	}
+	if !l.IsLocked("test@example.com") {
+		t.Error("expected locked for lowercase")
+	}
+
+	l.Reset("TEST@EXAMPLE.COM")
+	if l.IsLocked("test@example.com") {
+		t.Error("expected reset to clear all case variants")
+	}
+}

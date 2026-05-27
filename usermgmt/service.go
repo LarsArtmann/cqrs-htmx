@@ -116,7 +116,7 @@ func formatValidationErrors(errs []string) error {
 // It trims leading/trailing whitespace from Email and DisplayName in-place.
 func (r *RegisterRequest) Validate() error {
 	var errs []string
-	r.Email = strings.TrimSpace(r.Email)
+	r.Email = strings.ToLower(strings.TrimSpace(r.Email))
 	r.DisplayName = strings.TrimSpace(r.DisplayName)
 	if r.ID.IsZero() {
 		errs = append(errs, "id is required")
@@ -195,7 +195,7 @@ type LoginRequest struct {
 // It trims leading/trailing whitespace from Email in-place.
 func (r *LoginRequest) Validate() error {
 	var errs []string
-	r.Email = strings.TrimSpace(r.Email)
+	r.Email = strings.ToLower(strings.TrimSpace(r.Email))
 	if r.Email == "" {
 		errs = append(errs, "email is required")
 	}

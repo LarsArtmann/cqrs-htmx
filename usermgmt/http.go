@@ -37,7 +37,10 @@ type HandlerConfig struct {
 	Timeout time.Duration
 }
 
-const defaultCookieName = "session_token"
+const (
+	defaultCookieName = "session_token"
+	contentTypeJSON   = "application/json; charset=utf-8"
+)
 
 // NewAuthHandler creates an AuthHandler for the given Service with optional config.
 func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
@@ -203,7 +206,7 @@ func (h *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", contentTypeJSON)
 	w.WriteHeader(status)
 	// After WriteHeader, nothing useful can be done — the response is committed.
 	_ = json.NewEncoder(w).Encode(v) //nolint:errchkjson // response already committed

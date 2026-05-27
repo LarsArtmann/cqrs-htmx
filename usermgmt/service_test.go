@@ -339,3 +339,32 @@ func TestService_Register_NoDisplayName(t *testing.T) {
 		t.Errorf("expected empty display name, got %q", resp.User.DisplayName)
 	}
 }
+
+func TestService_Register_DuplicateEmail_CaseInsensitive(t *testing.T) {
+	svc := newTestService(t)
+	ctx := context.Background()
+
+	_, err := svc.Register(ctx, RegisterRequest{
+		ID: NewUserID("u1"), Email: "Case@Test.COM", Password: "secret12",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	_, err = svc.Register(ctx, RegisterRequest{
+		ID: NewUserID("u2"), Email: "case@test.com", Password: "secret12",
+	})
+	assertErrorIs(t, err, ErrEmailExists, "ErrEmailExists for case-insensitive duplicate")
+}
+
+func TestService_Login_CaseInsensitive(t *testing.T) {
+	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "CASE@TEST.COM", "secret12")
+
+	resp, err := svc.Login(ctx, LoginRequest{Email: "case@test.com", Password: "secret12"})
+	if err != nil {
+		t.Fatalf("Login with case-insensitive email: %v", err)
+	}
+	if resp.User.ID != NewUserID("user-1") {
+		t.Errorf("expected user ID user-1, got %s", resp.User.ID)
+	}
+}
