@@ -129,7 +129,6 @@
             };
           };
 
-          formatter = pkgs.nixfmt;
         };
     };
 }
