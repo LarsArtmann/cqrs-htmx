@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,12 +11,16 @@ import (
 
 // WriteJSON encodes v as JSON and writes it to w with the given HTTP status code
 // and Content-Type: application/json header. Returns any encoding error.
+// Buffers the JSON before writing headers so a failed encode doesn't commit
+// a success status code.
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
-	w.Header().Set("Content-Type", ContentTypeJSON)
-	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(v); err != nil {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(v); err != nil {
 		return fmt.Errorf("encode JSON response: %w", err)
 	}
+	w.Header().Set("Content-Type", ContentTypeJSON)
+	w.WriteHeader(status)
+	_, _ = buf.WriteTo(w)
 	return nil
 }
 
