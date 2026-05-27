@@ -53,7 +53,7 @@ func (s *InMemoryUserStore) FindByID(_ context.Context, id UserID) (*User, error
 	if !ok {
 		return nil, ErrUserNotFound
 	}
-	return u, nil
+	return u.Clone(), nil
 }
 
 // FindByEmail returns the user with the given email, or ErrUserNotFound.
@@ -64,7 +64,7 @@ func (s *InMemoryUserStore) FindByEmail(_ context.Context, email string) (*User,
 	if !ok {
 		return nil, ErrUserNotFound
 	}
-	return s.users[id], nil
+	return s.users[id].Clone(), nil
 }
 
 // Save updates an existing user. It returns ErrEmailExists if another user

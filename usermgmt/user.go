@@ -43,6 +43,18 @@ func NewUser(id UserID, email, displayName string) *User {
 	}
 }
 
+// Clone returns a deep copy of the user. The Roles slice is copied to prevent
+// aliasing with the stored object.
+func (u *User) Clone() *User {
+	if u == nil {
+		return nil
+	}
+	cp := *u
+	cp.Roles = make([]Role, len(u.Roles))
+	copy(cp.Roles, u.Roles)
+	return &cp
+}
+
 // SetPassword hashes the password with the default bcrypt cost (12).
 func (u *User) SetPassword(password string) error {
 	return u.SetPasswordWithCost(password, defaultBcryptCost)
