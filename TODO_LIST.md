@@ -19,7 +19,7 @@
 
 ### Future Enhancements (Not Started)
 
-- [ ] **Upgrade usermgmt to go-cqrs-lite/core v1.5.1** — Root module is on v1.5.1 pre-release; usermgmt still on v1.5.0. Align versions when v1.5.1 is formally released.
+- [x] **Upgrade usermgmt to go-cqrs-lite/core v1.6.0** — Both modules now aligned on v1.6.0.
 - [ ] **SQL store backend for usermgmt** — Pattern documented in ADR 0003 (numeric IDs via `brandid.ID[Brand, int64]`). Not yet implemented.
 - [ ] **OpenTelemetry integration** — Lifecycle hooks (`BeforeDispatchHook`/`AfterDispatchHook`) enable tracing. No official OTel middleware yet.
 - [ ] **WebSocket/SSE helpers** — NOT_PLANNED per FEATURES.md. Would require significant API surface.
@@ -45,3 +45,4 @@ _168 items completed. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://git
 | 2026-05-25+ | gorilla/csrf→nosurf, cockroachdb/errors→go-error-family, httputil delegation |
 | 2026-05-27  | RecoveryMiddleware, RenderJSON, request ID in errors, benchmarks             |
 | 2026-05-27b | 10 bug fixes: GetUser 404, rate limiter TTL, CSRF JSON, store copies, authz ordering, WriteJSON buffer, password DRY, rollback logging, SessionMiddleware logging |
+| 2026-05-27c | HandlerConfig.Secure *bool, CSRFConfig.Validate(), Response.JSON 500, correlation ID logging, RecoverHandler rename, go-cqrs-lite v1.6.0, dispatch logging, usermgmt writeJSON buffer, tests |
