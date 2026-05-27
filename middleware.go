@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"log/slog"
 	"net/http"
 	"slices"
 )
@@ -34,6 +35,12 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 				cid, err := ParseCorrelationID(cidStr)
 				if err == nil {
 					ctx = WithCorrelationID(ctx, cid)
+				} else {
+					slog.Debug("cqrs-htmx: invalid correlation ID header",
+						slog.String("header", headerCorrelationID),
+						slog.String("value", cidStr),
+						slog.String("error", err.Error()),
+					)
 				}
 			}
 
