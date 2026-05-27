@@ -55,25 +55,23 @@ type SecurityHeadersConfig struct {
 	Custom map[string]string
 }
 
-func (c *SecurityHeadersConfig) contentTypeOptions() string {
-	if c.ContentTypeOptions != "" {
-		return c.ContentTypeOptions
+func withDefault(val, def string) string {
+	if val != "" {
+		return val
 	}
-	return defaultContentTypeOptions
+	return def
+}
+
+func (c *SecurityHeadersConfig) contentTypeOptions() string {
+	return withDefault(c.ContentTypeOptions, defaultContentTypeOptions)
 }
 
 func (c *SecurityHeadersConfig) frameOptions() string {
-	if c.FrameOptions != "" {
-		return c.FrameOptions
-	}
-	return defaultFrameOptions
+	return withDefault(c.FrameOptions, defaultFrameOptions)
 }
 
 func (c *SecurityHeadersConfig) referrerPolicy() string {
-	if c.ReferrerPolicy != "" {
-		return c.ReferrerPolicy
-	}
-	return defaultReferrerPolicy
+	return withDefault(c.ReferrerPolicy, defaultReferrerPolicy)
 }
 
 // SecurityHeadersMiddleware returns HTTP middleware that sets security headers
