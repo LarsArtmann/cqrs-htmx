@@ -232,6 +232,22 @@ var _ = Describe("SwapStrategy constants", func() {
 		Expect(string(cqrshtmx.SwapDelete)).To(Equal("delete"))
 		Expect(string(cqrshtmx.SwapNone)).To(Equal("none"))
 	})
+
+	It("validates known strategies", func() {
+		Expect(cqrshtmx.SwapInnerHTML.Valid()).To(BeTrue())
+		Expect(cqrshtmx.SwapOuterHTML.Valid()).To(BeTrue())
+		Expect(cqrshtmx.SwapBeforeBegin.Valid()).To(BeTrue())
+		Expect(cqrshtmx.SwapAfterBegin.Valid()).To(BeTrue())
+		Expect(cqrshtmx.SwapBeforeEnd.Valid()).To(BeTrue())
+		Expect(cqrshtmx.SwapAfterEnd.Valid()).To(BeTrue())
+		Expect(cqrshtmx.SwapDelete.Valid()).To(BeTrue())
+		Expect(cqrshtmx.SwapNone.Valid()).To(BeTrue())
+	})
+
+	It("rejects unknown strategies", func() {
+		Expect(cqrshtmx.SwapStrategy("invalid").Valid()).To(BeFalse())
+		Expect(cqrshtmx.SwapStrategy("").Valid()).To(BeFalse())
+	})
 })
 
 var _ = Describe("HTMXRequest context", func() {

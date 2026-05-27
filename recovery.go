@@ -10,6 +10,33 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/event"
 )
 
+// shouldRePanic reports whether a recovered value is http.ErrAbortHandler,
+// which must be re-raised per net/http convention.
+func shouldRePanic(rec any) bool {
+	if err, ok := rec.(error); ok {
+		return errors.Is(err, http.ErrAbortHandler)
+	}
+	return false
+}
+
+// writePanicResponse logs the panic and writes a 500 response via handler.
+func writePanicResponse(
+	w http.ResponseWriter,
+	r *http.Request,
+	rec any,
+	handler ErrorHandler,
+) {
+	slog.ErrorContext(
+		r.Context(), "panic recovered",
+		slog.Any("panic", rec),
+		slog.String("method", r.Method),
+		slog.String("path", r.URL.Path),
+		slog.String("stack", string(debug.Stack())),
+	)
+
+	handler(w, r, event.NewInfrastructure("panic", fmt.Sprintf("panic: %v", rec)))
+}
+
 // RecoveryMiddleware returns HTTP middleware that recovers from panics in
 // downstream handlers. Recovered panics are logged with a stack trace and
 // written as 500 Internal Server Error using DefaultErrorHandler.
@@ -27,23 +54,13 @@ import (
 //	)(mux)
 func RecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//nolint:contextcheck // defer after panic has no context param to pass
 		defer func() {
 			if rec := recover(); rec != nil {
-				if err, ok := rec.(error); ok && errors.Is(err, http.ErrAbortHandler) {
+				if shouldRePanic(rec) {
 					panic(rec)
 				}
 
-				slog.ErrorContext(
-					r.Context(), "panic recovered",
-					slog.Any("panic", rec),
-					slog.String("method", r.Method),
-					slog.String("path", r.URL.Path),
-					slog.String("stack", string(debug.Stack())),
-				)
-
-				DefaultErrorHandler(w, r,
-					event.NewInfrastructure("panic", fmt.Sprintf("panic: %v", rec)))
+				writePanicResponse(w, r, rec, DefaultErrorHandler)
 			}
 		}()
 
@@ -61,23 +78,13 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 func (a *App) RecoveryMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			//nolint:contextcheck // defer after panic has no context param to pass
 			defer func() {
 				if rec := recover(); rec != nil {
-					if err, ok := rec.(error); ok && errors.Is(err, http.ErrAbortHandler) {
+					if shouldRePanic(rec) {
 						panic(rec)
 					}
 
-					slog.ErrorContext(
-						r.Context(), "panic recovered",
-						slog.Any("panic", rec),
-						slog.String("method", r.Method),
-						slog.String("path", r.URL.Path),
-						slog.String("stack", string(debug.Stack())),
-					)
-
-					a.errorHandler(w, r,
-						event.NewInfrastructure("panic", fmt.Sprintf("panic: %v", rec)))
+					writePanicResponse(w, r, rec, a.errorHandler)
 				}
 			}()
 

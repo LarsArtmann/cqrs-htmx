@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"strings"
 	"sync"
 	"time"
 )
@@ -29,6 +30,11 @@ type AccountLockout struct {
 	lockedAt map[string]time.Time
 }
 
+// normalizeEmail lowercases and trims whitespace from an email address.
+func normalizeEmail(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
+}
+
 // NewAccountLockout creates an AccountLockout. An optional LockoutConfig can be
 // provided; zero-valued fields fall back to defaults (5 attempts, 15 minutes).
 func NewAccountLockout(cfg ...LockoutConfig) *AccountLockout {
@@ -54,15 +60,23 @@ func NewAccountLockout(cfg ...LockoutConfig) *AccountLockout {
 // IsLocked reports whether the account for the given email is currently locked.
 // Expired lockouts are automatically cleared.
 func (l *AccountLockout) IsLocked(email string) bool {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	lockedAt, ok := l.lockedAt[email]
+	normalized := normalizeEmail(email)
+
+	l.mu.RLock()
+	lockedAt, ok := l.lockedAt[normalized]
+	l.mu.RUnlock()
 	if !ok {
 		return false
 	}
 	if time.Since(lockedAt) > l.config.Duration {
-		delete(l.lockedAt, email)
-		delete(l.attempts, email)
+		l.mu.Lock()
+		defer l.mu.Unlock()
+		// Double-check after acquiring write lock.
+		if lockedAt2, ok2 := l.lockedAt[normalized]; ok2 &&
+			time.Since(lockedAt2) > l.config.Duration {
+			delete(l.lockedAt, normalized)
+			delete(l.attempts, normalized)
+		}
 		return false
 	}
 	return true
@@ -71,15 +85,17 @@ func (l *AccountLockout) IsLocked(email string) bool {
 // RecordFailure increments the failure counter for the email and returns true
 // if the account has just been locked (i.e. the threshold was reached).
 func (l *AccountLockout) RecordFailure(email string) bool {
+	normalized := normalizeEmail(email)
+
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	if lockedAt, ok := l.lockedAt[email]; ok && time.Since(lockedAt) > l.config.Duration {
-		delete(l.lockedAt, email)
-		l.attempts[email] = 0
+	if lockedAt, ok := l.lockedAt[normalized]; ok && time.Since(lockedAt) > l.config.Duration {
+		delete(l.lockedAt, normalized)
+		l.attempts[normalized] = 0
 	}
-	l.attempts[email]++
-	if l.attempts[email] >= l.config.MaxAttempts {
-		l.lockedAt[email] = time.Now()
+	l.attempts[normalized]++
+	if l.attempts[normalized] >= l.config.MaxAttempts {
+		l.lockedAt[normalized] = time.Now()
 		return true
 	}
 	return false
@@ -87,10 +103,12 @@ func (l *AccountLockout) RecordFailure(email string) bool {
 
 // Reset clears the failure counter and lockout for the given email.
 func (l *AccountLockout) Reset(email string) {
+	normalized := normalizeEmail(email)
+
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	delete(l.attempts, email)
-	delete(l.lockedAt, email)
+	delete(l.attempts, normalized)
+	delete(l.lockedAt, normalized)
 }
 
 // EvictStale removes expired lockouts and stale attempt counters (entries with

@@ -65,13 +65,13 @@ func MapError(err error) int {
 
 func explicitErrorStatus(err error) int {
 	switch {
-	case isErr(err, ErrUnauthorized):
+	case errors.Is(err, ErrUnauthorized):
 		return http.StatusUnauthorized
-	case isErr(err, ErrForbidden) || isErr(err, ErrCSRFInvalid):
+	case errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid):
 		return http.StatusForbidden
-	case isErr(err, ErrRequestTooLarge):
+	case errors.Is(err, ErrRequestTooLarge):
 		return http.StatusRequestEntityTooLarge
-	case isErr(err, ErrMethodNotAllowed):
+	case errors.Is(err, ErrMethodNotAllowed):
 		return http.StatusMethodNotAllowed
 	default:
 		return 0
@@ -108,12 +108,9 @@ func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 // isAuthError returns true if the error is an authentication/authorization error
 // that should trigger a login redirect for HTMX requests.
 func isAuthError(err error) bool {
-	return isErr(err, ErrUnauthorized) || isErr(err, ErrForbidden) ||
-		isErr(err, ErrCSRFInvalid)
+	return errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) ||
+		errors.Is(err, ErrCSRFInvalid)
 }
-
-// isErr wraps stdlib errors.Is for internal use.
-func isErr(err, target error) bool { return errors.Is(err, target) }
 
 // writeHTMXAuthRedirect sets HX-Redirect header and writes 303 See Other.
 // Returns true if the redirect was written, false if the request is not HTMX or the error is not auth-related.

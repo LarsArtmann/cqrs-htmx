@@ -48,6 +48,16 @@ const (
 	SwapNone        SwapStrategy = "none"
 )
 
+// Valid reports whether s is a known HTMX swap strategy.
+func (s SwapStrategy) Valid() bool {
+	switch s {
+	case SwapInnerHTML, SwapOuterHTML, SwapBeforeBegin, SwapAfterBegin,
+		SwapBeforeEnd, SwapAfterEnd, SwapDelete, SwapNone:
+		return true
+	}
+	return false
+}
+
 // HTMXRequest holds parsed HTMX request headers, stored in context
 // by HTMXMiddleware. Use HTMXFromContext to retrieve it.
 type HTMXRequest struct {
