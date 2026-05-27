@@ -11,214 +11,150 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 | Item     | Value                                                                             |
 | -------- | --------------------------------------------------------------------------------- |
-| Language | Go 1.26                                                                           |
+| Language | Go 1.26.3                                                                         |
 | Module   | github.com/larsartmann/cqrs-htmx                                                  |
 | Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
 | Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
 | Lint     | `golangci-lint run`                                                               |
-| Coverage | 97.3% root, 91.1% usermgmt (390+ tests)                                           |
+| Coverage | 96.9% root, 91.1% usermgmt (390+ tests)                                           |
 
 ## Architecture
 
 ```
 cqrs-htmx/
-├── app.go         # App builder, Config, Command(), Query(), enrichUserID(), CommandCatalogEntries(), QueryCatalogEntries()
-├── handler.go     # handleCommandDispatch(), handleQueryDispatch()
-├── options.go     # HandlerOption, decoders, Render/RenderTempl, validation, authMode enum, authorization logic
-├── response.go    # HTMX response builder (fluent API) + notification methods
-├── authz.go       # Enforcer interface, Authorize, Enforce, AuthorizeMiddleware
-├── context.go     # UserID type, ParseUserID/MustParseUserID, context enrichment (UserID → CQRS metadata)
-├── errors.go      # CQRS error → HTTP status mapping, sentinels, LoginRedirect
-├── htmx.go        # HTMXRequest struct, accessors, context storage, RenderPartial
-├── notify.go      # Notification HandlerOptions + NotifyWithEvent builder
-├── middleware.go   # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
-├── csrf.go          # CSRF token generation, CSRFMiddleware, CSRFConfig, context helpers
-├── csrf_handler.go  # CSRFProtect (per-handler CSRF HandlerOption)
-├── csrf_helpers.go  # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
-├── decoder.go       # Body reading, form/JSON decoding, MaxBodySize enforcement
-├── httputil.go      # WriteJSON, ClientIP
-├── logging.go     # RequestLogging, RequestLoggingSlog, DefaultLogFormatter, JSONLogFormatter
-├── ratelimit.go   # RateLimiterMiddleware, per-key token bucket, TTL eviction, hooks
-├── security.go    # SecurityHeadersMiddleware, SecurityHeadersConfig builder
-├── recovery.go    # RecoveryMiddleware, App.RecoveryMiddleware() — panic recovery with stack trace logging
-├── usermgmt/      # User management submodule (RBAC, sessions, password auth)
-│   ├── go.mod     # Independent Go module
-│   ├── id.go      # Branded UserID type (go-branded-id), NewUserID constructor
-│   ├── authz.go   # Authz wrapper around Casbin (RBAC with domains), AsEnforcer adapter
-│   ├── service.go # Service (register, login, logout, authenticate, changePassword, updateRoles)
-│   ├── user.go    # User/Session types, bcrypt password hashing (SetPasswordWithCost)
-│   ├── store.go   # In-memory UserStore/SessionStore with email index, atomic Create
-│   ├── http.go    # AuthHandlers (HTTP routes), SessionMiddleware
-│   ├── middleware.go # User context helpers, UserIDFromRequest bridge
-│   ├── lockout.go # AccountLockout (configurable max attempts + duration)
-│   └── errors.go  # Sentinel errors (cockroachdb/errors)
+├── app.go            # App builder, Config, Command(), Query(), enrichUserID(), catalog entries
+├── handler.go        # handleCommandDispatch(), handleQueryDispatch()
+├── options.go        # HandlerOption, decoders, Render/RenderTempl, validation, authMode enum
+├── response.go       # HTMX response builder (fluent API) + notification methods
+├── authz.go          # Enforcer interface, Authorize, Enforce, AuthorizeMiddleware
+├── context.go        # UserID/CorrelationID/RequestID types, Parse*/MustParse*, context helpers
+├── errors.go         # Error → HTTP status mapping, sentinels, LoginRedirect (go-error-family)
+├── htmx.go           # HTMXRequest struct, accessors, context storage, RenderPartial
+├── notify.go         # Notification HandlerOptions + NotifyWithEvent builder
+├── middleware.go      # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
+├── csrf.go           # CSRF middleware, CSRFConfig, context helpers (justinas/nosurf)
+├── csrf_handler.go   # CSRFProtect (per-handler CSRF HandlerOption)
+├── csrf_helpers.go   # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
+├── decoder.go        # Body reading, form/JSON decoding, MaxBodySize enforcement
+├── httputil.go       # WriteJSON, ClientIP (delegates to larsartmann/httputil)
+├── logging.go        # RequestLogging, RequestLoggingSlog, formatters
+├── ratelimit.go      # RateLimiterMiddleware, per-key token bucket, min-heap eviction
+├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, RecommendedCSP/HSTS
+├── recovery.go       # RecoveryMiddleware, App.RecoveryMiddleware() — panic recovery
+├── usermgmt/         # User management submodule (RBAC, sessions, password auth)
+│   ├── go.mod        # Independent Go module
+│   ├── id.go         # Branded UserID type (go-branded-id), NewUserID constructor
+│   ├── authz.go      # Authz wrapper around Casbin (RBAC with domains), AsEnforcer adapter
+│   ├── service.go    # Service (register, login, logout, authenticate, changePassword, updateRoles)
+│   ├── user.go       # User/Session types, bcrypt password hashing
+│   ├── store.go      # In-memory UserStore/SessionStore with email index, atomic Create
+│   ├── http.go       # AuthHandlers (HTTP routes), SessionMiddleware
+│   ├── middleware.go  # User context helpers, UserIDFromRequest bridge
+│   ├── lockout.go    # AccountLockout (configurable max attempts + duration)
+│   └── errors.go     # Sentinel errors
+├── integration_test/ # Cross-module integration tests (3rd Go module)
+└── examples/
+    └── datastar-demo/ # Standalone go-cqrs-lite + datastar SSE example (4th Go module)
 ```
 
-## Key Decisions
+### Module Layout
 
-- **Framework-agnostic**: Works with `net/http`, Gin, Chi, etc.
-- **Enforcer interface**: `authz.go` defines `Enforcer` interface matching Casbin's `Enforce(...any) (bool, error)` — `*casbin.Enforcer` satisfies it automatically, but consumers can provide mock/fake enforcers
-- **Casbin v3**: Uses `casbin/casbin/v3` for authorization
-- **go-cqrs-lite/core v1.5.0**: Depends on command, query, event, pkg/id packages. v1.5.0 adds `RegisterTyped[T]`, `DispatchTyped[T]`, `NewEvents`/`DecodePayloads` batch helpers, `Publisher`/`Subscriber` ISP interfaces, `CatalogDispatcher` mixin
-- **Error classification**: `sync.Once` lazy-registers all sentinels (not `init()`)
-- **HTMX-aware by default**: All error handling and responses check for HTMX requests
-- **User identity propagation**: `UserIDExtractor` → context → event metadata
-- **Strongly-typed UserID**: `WithUserID(ctx, UserID)` / `UserIDFromContext(ctx) UserID` — context stores `id.UserID` (ULID-backed branded type); `ParseUserID` / `MustParseUserID` helpers exported; `UserIDExtractor` still returns `string` (consumer extracts from JWT/session), middleware parses to `id.UserID`. **Breaking change**: context values are now strongly typed.
-- **Strongly-typed CorrelationID**: `WithCorrelationID(ctx, CorrelationID)` / `CorrelationIDFromContext(ctx) CorrelationID` — context stores `id.CorrelationID` (ULID-backed). `ParseCorrelationID` / `MustParseCorrelationID` / `NewCorrelationID` helpers exported. Auto-extracted from `X-Correlation-ID` header by `ContextEnrichmentMiddleware` which silently drops non-ULID values. **Breaking change**: was raw `string`, now branded type.
-- **templ duck-typing**: `TemplComponent` interface matches `templ.Component` without importing templ
-- **HTMXRequest context**: `HTMXMiddleware` parses headers once, stores in context for downstream use
-- **Notifications**: Standard `{level, message}` trigger pattern for HTMX client-side events; `NotifyWithEvent` builder for custom event names
-- **Decoder symmetry**: `DecodeJSON`/`DecodeJSONQuery` and `DecodeForm`/`DecodeFormQuery` pairs for both commands and queries
-- **Ginkgo/Gomega**: Test framework per project standards
-- **Test type consolidation**: All BDD test types use `bdd` prefix (e.g., `bddCreateUserCmd`, `bddTemplComponent`)
-- **Error context wrapping**: All authorization errors (`ErrForbidden`, `ErrEnforcerNil`, `ErrUnauthorized` with Authorize) include resource/action for debugging
-- **Timeout support**: `Config.Timeout` wraps only the `Dispatch` call (not decode/auth). Zero or negative = no timeout. Uses single `timeoutCtx()` helper on App
-- **Validation HandlerOptions**: `ValidateCommand`/`ValidateQuery` wrap the decoder — short-circuit on decode errors, wrap validation errors with `ErrValidationFailed` (400 Rejection)
-- **Lifecycle hooks**: `BeforeDispatchHook`/`AfterDispatchHook` on Config for tracing, logging, metrics around dispatch
-- **NotificationLevel type**: `LevelSuccess`, `LevelError`, `LevelWarning`, `LevelInfo` typed constants replace magic strings in notifications
-- **JSONErrorHandlerWithRedirect**: JSON error handler that respects per-App `Config.LoginRedirect` (unlike `JSONErrorHandler` which was hardcoded)
-- **Authorization config**: `authMode` enum (`authNone`, `authRequired`, `authAuthorized`) replaces `authorize bool` + `requireAuth bool` — impossible states are now unrepresentable
-- **Internal sentinels**: `errCommandsNil`, `errQueriesNil`, `errDecoderMissing` are unexported — consumers get HTTP responses, not CQRS errors
-- **No deprecated exports**: `DefaultNotificationEvent` removed (was race-risk deprecated var)
-- **usermgmt branded UserID**: `usermgmt/id.go` defines `UserID = brandid.ID[userBrand, string]` via `go-branded-id` — all user ID fields/params in the submodule are strongly typed; `.String()` converts at Casbin boundaries; `NewUserID(s)` constructor for tests. **Breaking change**: `User.ID`, `Session.UserID`, `RegisterRequest.ID`, and all service/store/authz method params that took `string` now take `UserID`
-- **usermgmt context.Context**: All Service methods take `context.Context` as first param — enables future cancellation, tracing, logging
-- **usermgmt input validation**: `RegisterRequest.Validate()` and `LoginRequest.Validate()` check email format, password length (8+), required fields
-- **usermgmt atomic Create**: `UserStore.Create()` checks email uniqueness atomically (fixes TOCTOU)
-- **usermgmt email index**: `InMemoryUserStore` has `emails map[string]string` for O(1) `FindByEmail`
-- **usermgmt EnforceAny/AsEnforcer**: Bridge to `cqrshtmx.Enforcer` interface without importing parent module
-- **usermgmt RawEnforcer removed**: Use `AsEnforcer()` instead — prevents leaking casbin internals
-- **usermgmt cockroachdb/errors**: Consistent error wrapping with root project
-- **usermgmt atomic UpdateRoles**: Uses `Authz.Apply(PolicyUpdate{...})` instead of individual remove/add
-- **usermgmt structured logging**: `ServiceConfig.Logger` (defaults to `slog.Default()`) — logs failed logins, role updates
-- **usermgmt ChangePassword**: `Service.ChangePassword(ctx, userID, oldPassword, newPassword)` — validates old password, minimum length
-- **usermgmt account lockout**: `ServiceConfig.Lockout` — configurable max attempts + duration, returns `ErrAccountLocked` (429)
-- **usermgmt immutable bcryptCost**: `ServiceConfig.BcryptCost` replaces mutable global variable
-- **usermgmt store interfaces accept context.Context**: `UserStore` and `SessionStore` methods take `context.Context` as first param. Enables future cancellation, tracing, timeout propagation. **Breaking change** for custom implementations
-- **usermgmt Register compensating transaction**: Rolls back user+role on partial failures during registration
-- **usermgmt EvictExpired/EvictStale**: `InMemorySessionStore.EvictExpired()` and `AccountLockout.EvictStale()` for periodic cleanup of stale entries
-- **usermgmt TokenMatches**: `Session.TokenMatches(token)` — constant-time comparison without expiration check, extracted from `Valid()`
-- **usermgmt zero lint**: `.golangci.yml` with appropriate test exclusions, all code passes with 0 issues
-- **CatalogEntries exposure**: `App.CommandCatalogEntries()` and `App.QueryCatalogEntries()` delegate to the embedded `dispatcher.CatalogDispatcher` in go-cqrs-lite v1.4.0. Returns `nil` if the respective dispatcher is not configured. Uses `//nolint:staticcheck` because the upstream `CatalogMeta` type is deprecated in favor of the zero-cost catalog API
-- **Zero lint warnings**: All pre-existing lint warnings (gochecknoglobals, noctx, prealloc, unparam) fixed. Pre-commit hook should pass without `--no-verify`
-- **usermgmt unified error import**: `usermgmt/http.go` uses `cockroachdb/errors` consistently (not `std/errors`) — prevents split brain with `errors.Is` across the submodule
-- **DefaultMaxBodySize**: `decoder.go` defines `DefaultMaxBodySize` (10 MB). When `Config.MaxBodySize` and per-handler `WithMaxBodySize` are both zero, requests are limited to this default. **Behavior change**: previously zero meant unlimited
-- **MapError 413**: `ErrRequestTooLarge` now maps to 413 (was 400 via error-family Rejection)
-- **sanitizeRedirectURL depth check**: Blocks paths where `..` segments would escape above root (e.g., `/../../etc/passwd`) while allowing legitimate normalization (e.g., `/a/../b`)
-- **usermgmt maxAuthBodySize**: `handleAuthEndpoint` limits request body to 1 MB via `io.LimitReader`
-- **usermgmt LoginRequest maxPasswordLength**: Validates password length ≤ 128 at login (prevents bcrypt DoS)
-- **usermgmt InMemorySessionStore dead code removed**: `ttl` field and `WithTTL` method removed — were never used (TTL passed directly to `Create`)
-- **usermgmt error wrapping consistency**: `service.go` and `authz.go` use `errors.Wrapf` (cockroachdb/errors) consistently instead of `fmt.Errorf`
-- **Response builder fluent methods**: `Status`, `Header`, `ContentType`, `JSON`, `Body`, `WriteString` added for fluent response building
-- **RecommendedCSP/RecommendedHSTS**: Exported constants in `security.go` — sensible CSP and HSTS defaults for consumers. Not enforced by default (library principle)
-- **RequireMethod HandlerOption**: `RequireMethod(method)` rejects wrong HTTP methods with 405. Opt-in (HTMX patterns like `hx-get` for commands are valid)
-- **HealthHandler**: `App.HealthHandler()` returns 200/503 JSON for load balancer health checks
-- **HX-Redirect sanitization**: `Response.Redirect()` sanitizes URLs for both HTMX and non-HTMX requests
-- **X-Request-ID propagation**: `ContextEnrichmentMiddleware` sets `X-Request-ID` response header
-- **ErrMethodNotAllowed**: Sentinel error for method validation, maps to 405
-- **NotificationLevel.String()**: `fmt.Stringer` implementation for structured logging
-- **WithMaxBodySize HandlerOption**: Per-handler body size override, takes precedence over App-level `Config.MaxBodySize`
-- **WithSuccessStatus HandlerOption**: Per-handler success status code (default 204 No Content). Common values: 200 OK, 201 Created
-- **OnError HandlerOption**: Per-handler error callback, invoked after App-level error handler
-- **IsAuthenticated helper**: `IsAuthenticated(r)` checks for non-zero UserID in context
-- **MustNew convenience**: `MustNew(cfg)` panics on error — for init-time setup
-- **HasCommands/HasQueries**: `App.HasCommands()` and `App.HasQueries()` report dispatcher availability
-- **KeyExtractorFromClientIP**: Rate limiter key extractor using `ClientIP()` (respects X-Forwarded-For)
-- **NewRateLimiter**: Returns `*RateLimiter` with `ActiveKeys()` monitoring. `RateLimiterMiddleware` still returns `func(http.Handler) http.Handler` for backward compat
-- **InMemoryUserStore.Count/InMemorySessionStore.Count**: Monitoring methods for in-memory stores
-- **authMode.String()**: Human-readable debug names for auth modes (none/required/authorized)
-- **CSRFConfig.Validate Secure warning**: Now warns when `Secure=false` via slog
+| Module           | go.mod                                              | Tests | Notes                             |
+| ---------------- | --------------------------------------------------- | ----- | --------------------------------- |
+| Root             | `github.com/larsartmann/cqrs-htmx`                  | Yes   | Core library                      |
+| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt`         | Yes   | Independent submodule             |
+| integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges        |
+| datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package) |
 
 ## Dependencies
 
-| Dependency         | Purpose                   |
-| ------------------ | ------------------------- |
-| go-cqrs-lite/core  | CQRS dispatch (v1.5.0)    |
-| casbin/casbin/v3   | Authorization             |
-| cockroachdb/errors | Error handling            |
-| gorilla/csrf       | CSRF protection (v1.7.3+) |
-| go-branded-id      | Branded types (usermgmt)  |
+| Dependency               | Purpose              | Used in          |
+| ------------------------ | -------------------- | ---------------- |
+| go-cqrs-lite/core v1.5.1 | CQRS dispatch        | All modules      |
+| casbin/casbin/v3         | Authorization        | Root, usermgmt   |
+| justinas/nosurf v1.2.0   | CSRF protection      | Root             |
+| go-error-family v0.1.1   | Error classification | Root             |
+| larsartmann/httputil     | ClientIP extraction  | Root             |
+| go-branded-id            | Branded types        | usermgmt         |
+| golang.org/x/crypto      | bcrypt               | usermgmt         |
+| golang.org/x/time        | Rate limiting        | Root             |
+| onsi/ginkgo/v2 + gomega  | BDD test framework   | All test modules |
+
+## Key Decisions
+
+### Architecture
+
+- **Framework-agnostic**: Works with `net/http`, Gin, Chi, etc. — no router dependency
+- **Enforcer interface**: `authz.go` defines `Enforcer{ Enforce(...any) (bool, error) }` — `*casbin.Enforcer` satisfies it automatically; enables mock/fake enforcers
+- **templ duck-typing**: `TemplComponent` interface matches `templ.Component` without importing templ
+- **authMode enum**: `authNone`/`authRequired`/`authAuthorized` — impossible states unrepresentable
+- **Library principle**: Never enforce defaults that consumers might disagree with (no mandatory CSP/HSTS, no mandatory CSRF)
+- **Root module is intentionally a single flat package**: 19 files form a cohesive "HTMX-aware CQRS HTTP integration" library. The errors↔response↔csrf cycle prevents further splitting. Sub-package extraction would harm consumer UX. See `docs/modularization/PROPOSAL.md` for full analysis
+- **Root ↔ usermgmt: zero mutual imports**: Clean module boundary. Cross-module bridging happens in `integration_test/` only
+
+### Error Handling
+
+- **go-error-family**: Replaced `cockroachdb/errors` for error classification. `sync.Once` lazy-registers sentinels
+- **Error → HTTP mapping**: `MapError` classifies errors into families (Rejection, NotFound, Conflict, etc.) → HTTP status
+- **HTMX-aware errors**: All error handlers check for HTMX requests; auth errors use HX-Redirect
+- **Request ID in errors**: `Config.IncludeRequestIDInErrors` auto-selects request-ID-aware error handlers
+- **text/plain default**: `DefaultErrorHandlerWithRedirect` uses text/plain (no HTML escaping needed)
+
+### CSRF
+
+- **justinas/nosurf**: Replaced gorilla/csrf. Simpler API, no secret management needed
+- **Custom header/field translation**: `translateCSRFHeaders` maps consumer-defined names to nosurf defaults
+- **Per-handler CSRF**: `CSRFProtect(cfg)` caches nosurf instance per handler config
+
+### Type Safety
+
+- **Strongly-typed IDs**: `UserID`, `CorrelationID`, `RequestID` are all ULID-backed branded types via `go-cqrs-lite/pkg/id`
+- **usermgmt UserID**: Separate branded type via `go-branded-id` (string-backed, not ULID). Bridge: `.Get()` for cross-module conversion
+- **Context key sentinels**: Empty-struct types (`userIDKey{}`, `correlationIDKey{}`, `htmxKey{}`) — collision-free
+
+### Dispatch
+
+- **Timeout wraps dispatch only**: `Config.Timeout` applies to `Dispatch`, not decode/auth — intentional separation
+- **Lifecycle hooks**: `BeforeDispatchHook`/`AfterDispatchHook` for tracing, logging, metrics
+- **Validation order**: `ValidateCommand`/`ValidateQuery` must come AFTER decoder in HandlerOption list
 
 ## Key Gotchas
 
-1. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-2. **Error wrapping**: Always use `fmt.Errorf("%w: ...", sentinel, err)` — never `errors.Wrapf` with `%s` on sentinels
-3. **UserIDExtractor dedup**: Handlers check context first — if middleware already set user ID, extraction is skipped
-4. **TemplComponent duck-typing**: No import of `a-h/templ` — local interface matches `Render(ctx, w) error`
-5. **headerTrue constant**: Defined in `htmx.go`, used everywhere (including `response.go`) — never hardcode `"true"`
-6. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"` format. Exclusions go under `linters.exclusions.rules`, NOT `issues.exclude-rules` (v1 format silently fails)
-7. **gocritic disabled-checks**: Only `ifElseChain` needs explicit disable; `dupImport`, `octalLiteral`, `whyNoLint` are already disabled by default
-8. **LSP vs CLI discrepancy**: The LSP (`golangci_lint_ls`) shows ~31 stale warnings that `golangci-lint run` (CLI) does not report — this is an unresolved LSP cache issue, not a real lint problem
-9. **Per-App LoginRedirect**: `Config.LoginRedirect` is threaded into the error handler at `New()` time — if no custom `ErrorHandler` is set, the default handler captures the resolved loginRedirect in a closure
-10. **Enforcer interface**: `*casbin.Enforcer` satisfies `Enforcer` interface automatically. Custom implementations must implement `Enforce(rvals ...any) (bool, error)`
-11. **DefaultNotificationEvent removed**: Was deprecated exported var with race risk. Internal `defaultNotificationEvent` constant used instead. Use `NotifyWithEvent` builder for custom event names
-12. **text/plain error handler**: `DefaultErrorHandlerWithRedirect` writes plain text without HTML escaping — `text/plain` Content-Type prevents browser HTML rendering, and escaping distorts error messages
-13. **AuthorizeMiddleware backward compat**: `loginRedirect` is variadic (optional 4th arg) for backward compatibility — `AuthorizeMiddleware(e, res, act, extractor)` still works
-14. **pkg/errors transitive dep**: `github.com/pkg/errors` is an indirect dep via `cockroachdb/errors` — cannot remove, but it's not directly used
-15. **Strongly-typed UserID**: `WithUserID` / `UserIDFromContext` now use `id.UserID` (ULID-backed). `UserIDExtractor` still returns `string`; middleware parses to `UserID`. **Consumer breaking change**: callers passing string literals or invalid ULIDs will see parse failures — use `MustParseUserID` in tests or `ParseUserID` in production
-16. **Strongly-typed CorrelationID**: `WithCorrelationID` / `CorrelationIDFromContext` now accept/return `id.CorrelationID` (ULID-backed). `ContextEnrichmentMiddleware` silently drops non-ULID correlation IDs from headers. **Consumer breaking change**: callers passing raw strings or non-ULID values will see compile errors — use `MustParseCorrelationID` in tests, `NewCorrelationID()` to generate, or `ParseCorrelationID` in production
-17. **Context keys are empty-struct sentinel types**: `contextKey string` replaced with private `userIDKey{}`, `correlationIDKey{}`, `htmxKey{}` — standard Go pattern for collision-free context values across packages
-18. **Middleware silently drops invalid IDs**: `ContextEnrichmentMiddleware` and `App.enrichUserID` parse the extractor's string output to `UserID` — if parsing fails (not a valid ULID), the ID is silently dropped. Auth will fail downstream with `ErrUnauthorized`, not an explicit parse error
-19. **Middleware also silently drops invalid correlation IDs**: `ContextEnrichmentMiddleware` calls `ParseCorrelationID` on the `X-Correlation-ID` header — if parsing fails (not a valid ULID), the correlation ID is silently dropped. The `EventOptionsFromContext` function checks `.IsZero()` and silently skips invalid/zero CorrelationID values
-20. **Timeout wraps dispatch only**: `Config.Timeout` applies only to the `Dispatch` call in `handler.go`, not to decode or auth — this is intentional; decode/auth should not be time-bounded by the handler timeout
-21. **Validation order matters**: `ValidateCommand`/`ValidateQuery` must be applied AFTER the decoder option (e.g., `DecodeJSON`) in the `HandlerOption` list — they wrap the existing decoder, so a nil decoder means validation is silently skipped
-22. **Flaky test anti-pattern**: Never use `time.After` + `select` for timeout tests — use `<-ctx.Done()` blocking instead. Also ensure command/query type names in test handlers match decoder output names exactly
-23. **Benchmark/example lint exclusions**: `.golangci.yml` has `linters.exclusions.rules` for `(benchmark|example)_test\.go$` files — `intrange`, `noctx`, `nilnil` are relaxed for these files only; production code has no exclusions
-24. **GOWORK=off required for CI/local testing**: The project's `go.work` covers root + usermgmt + integration_test. `GOWORK=off` is needed for commands that should use each module's own go.mod (CI, scripts). `go.work` takes precedence locally and provides `replace` semantics automatically
-25. **Rate limiter MaxKeys cap**: `MaxKeys int` on `RateLimiterConfig` caps tracked keys. When exceeded, oldest entry evicted via O(log n) min-heap (`container/heap`). Zero = no cap (backward compatible)
-26. **CSRF Protection**: Uses `gorilla/csrf` internally. `CSRFProtect(cfg)` caches the middleware instance per handler (not per request). Secure defaults: `SameSite=Lax`, `HttpOnly=false` (required for JS double-submit). **Secure flag must be explicitly set**
-27. **Middleware ordering**: `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` is the recommended order — CSRF first (sets cookie + context), then HTMX parsing, then user enrichment
-28. **CSRF token format**: gorilla/csrf uses masked tokens (XOR with one-time pad). The cookie contains the session token; the header/form must contain the masked token. Always use `CSRFTokenFromContext()` or template helpers (`CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`) to obtain the token for the frontend — never read the raw cookie value
-29. **gorilla/csrf Secret**: Requires a 32-byte key. `CSRFConfig.Secret` is padded to 32 bytes if shorter; if empty, a random key is generated per `CSRFMiddleware()` call (not persisted across restarts). For production, always provide a stable 32-byte secret
-30. **usermgmt submodule**: `usermgmt/` has its own `go.mod` and is an independent Go module. Tests run separately with `cd usermgmt && go test ./...`. Uses bcrypt cost 12 in production (cost 4 in tests via `main_test.go`). Casbin model uses `some(where (p.eft == allow)) && !some(where (p.eft == deny))` — casbin v3 only recognizes this exact ordering, NOT the reverse
-31. **gorilla/csrf v1.7.3 Origin/Referer enforcement**: v1.7.3 defaults to HTTPS mode, enforcing strict Origin/Referer checks even for non-TLS requests. `CSRFMiddleware` and `executeCSRFValidation` automatically detect non-TLS requests (`r.TLS == nil`) and mark them as plaintext via `csrf.PlaintextHTTPRequest`, disabling the strict checks for HTTP deployments. No consumer action needed
-32. **usermgmt branded UserID**: `usermgmt.User` and `usermgmt.Session` fields (`ID`, `UserID`) are branded types (`usermgmt.UserID = brandid.ID[userBrand, string]`), not raw strings. `UserIDFromRequest` still returns `string` for cqrs-htmx compatibility (converts via `.String()`). Use `NewUserID(s)` in tests. `GroupPolicy.User` and `Domain` remain `string` (Casbin boundary)
-33. **usermgmt SessionMaxAge bug (fixed)**: `NewAuthHandlers` previously did not copy `SessionMaxAge` from `HandlerConfig` — always defaulted to 86400 regardless of the provided value. Fixed in 2026-05-20 session
-34. **usermgmt coverage**: 95.6% as of 2026-05-20 (up from 85%). All authz, store, http, and UserID type paths tested
-35. **usermgmt `GroupPolicy.User`/`Domain` remain `string`**: These are Casbin boundary types. `UserID.String()` converts at the boundary. Intentional design decision — Casbin is an external system
-36. **CatalogMeta deprecation**: `command.CatalogMeta` and `query.CatalogMeta` are deprecated in go-cqrs-lite v1.4.0 in favor of the zero-cost catalog API. `App.CommandCatalogEntries()` and `App.QueryCatalogEntries()` wrap these with `//nolint:staticcheck` since the `CatalogEntries()` method on `Dispatcher` is not deprecated — only the metadata struct is
-37. **Zero lint warnings**: `golangci-lint run` reports 0 issues. All pre-existing warnings fixed including revive missing docs, errcheck, forcetypeassert, recvcheck, exhaustruct, noctx
-38. **Rate limiter uses min-heap eviction**: `evictionHeap` (container/heap) replaces O(n) linear scan with O(log n) eviction. Heap entries track `lastUsed` time; stale entries are checked at heap root before full scan
-39. **RateLimiterConfig signedness unified**: `perKeyLimiter.burst` and `perKeyLimiter.maxKeys` changed from `int` to `uint` to match config fields. Conversion to `int` only at `rate.NewLimiter` boundary
-40. **Usermgmt HTTP timeout**: `HandlerConfig.Timeout` adds optional `context.WithTimeout` to `handleAuthEndpoint` and `handleLogout`. Zero means no timeout (backward compatible)
-41. **CSRFConfig.Secure warning**: `CSRFMiddleware` emits `slog.Warn` when `Secure=false` to alert developers in development
-42. **Integration test module**: `integration_test/` is a third Go module that imports both root and usermgmt. Tests `AsEnforcer()` bridge and cross-module `UserID` conversion via `.Get()` (not `.String()` which includes brand prefix). Uses `replace` directives for local development; also included in `go.work`
-43. **Root coverage 97.0%** (up from 96.1%), **usermgmt coverage 91.2%**
-44. **usermgmt BrandNamer**: `userBrand` implements `BrandNamer` with `Name() string { return "User" }`. `.String()` returns "User:ULID", `.Get()` returns raw ULID. Cross-module bridges MUST use `.Get()` for cqrshtmx `ParseUserID` compatibility
-45. **go.work includes integration_test**: `go.work` lists root, usermgmt, and integration_test. datastar-demo is NOT included (it doesn't import sibling modules). integration_test keeps its `replace` directives for `GOWORK=off` CI usage
-46. **datastar-demo is standalone**: `examples/datastar-demo/` has its own go.mod but does NOT import the cqrs-htmx root library. It's a go-cqrs-lite + datastar SSE example. All modules now use go-cqrs-lite/core v1.5.0
-47. **CI tests all 4 modules**: CI builds root, usermgmt, integration_test, and datastar-demo. Tests run for root, usermgmt, and integration_test (datastar-demo is a main package with no tests)
-48. **Validate uses pointer receiver**: `RegisterRequest.Validate()` and `LoginRequest.Validate()` use `*T` receivers — trimmed Email/DisplayName are persisted in-place to the caller's struct. Was a value receiver bug, fixed 2026-05-22
-49. **Max password length 128**: `maxPasswordLength = 128` enforced in both `RegisterRequest.Validate()` and `Service.ChangePassword()`. Prevents bcrypt CPU abuse (bcrypt only uses first 72 bytes anyway)
-50. **ErrUserIDExists sentinel**: `store.Create` returns typed `ErrUserIDExists` (not untyped `errors.Newf`). Mapped to HTTP 404 in `errorStatus`. Consistent with `ErrEmailExists` pattern
-51. **HandlerConfig.Timeout propagation**: `NewAuthHandler` copies `cfg[0].Timeout` to the handler config. Was a bug — timeout from config was silently dropped before 2026-05-22 fix
-52. **HandlerConfig.Secure zero-value caveat**: `Secure` defaults to `true` when NO config is passed, but `HandlerConfig{}` (zero-value Secure=false) overrides it to false. Always set `Secure: true` explicitly in production. Documented on `HandlerConfig` type
-53. **WriteJSON returns error**: `WriteJSON` returns `error` from `json.Encoder.Encode` (was silently swallowed). Callers should check the return value
-54. **usermgmt coverage 88.6%** (context threading + new methods reduced from 91.3%), **root coverage 96.6%**
-55. **usermgmt zero lint**: `usermgmt/.golangci.yml` with test exclusions (gosec G104/G124, goconst, paralleltest, unparam, noctx, exhaustruct, wrapcheck for test files). All production code and test code pass with 0 issues
-56. **usermgmt Session.TokenMatches**: Extracted from `Valid()` — constant-time token comparison without expiration check. Use `!s.IsExpired() && s.TokenMatches(token)` or `s.Valid(token)` (which delegates to both)
-57. **usermgmt InMemorySessionStore.EvictExpired()**: Maintenance method that removes expired sessions and returns count. Prevents unbounded memory growth in the in-memory store
-58. **usermgmt AccountLockout.EvictStale()**: Removes expired lockout entries from internal maps. Call periodically to prevent unbounded growth
-59. **usermgmt contextKey is empty struct**: `userContextKeyType struct{}` replaces `contextKey string` — standard Go sentinel type pattern, collision-free
-60. **usermgmt timeout before body read**: `handleAuthEndpoint` creates timeout context BEFORE reading the request body, ensuring the entire operation is bounded
-61. **usermgmt store interfaces take context.Context**: `UserStore` and `SessionStore` interface methods now accept `context.Context` as first parameter. **Breaking change**: all implementations must update signatures. `InMemoryUserStore` and `InMemorySessionStore` ignore the context (use `_`)
-62. **usermgmt Register compensating transaction**: `Service.Register` rolls back user creation if role assignment fails, and rolls back both user and role if session creation fails. Best-effort cleanup — rollback errors are discarded with `_`
-63. **golines default is 100 chars**: `usermgmt/.golangci.yml` uses golines formatter which defaults to 100-char line length. Long function signatures and assertions must be split
-64. **RecommendedCSP/RecommendedHSTS**: Exported constants in `security.go` for consumers to use in `SecurityHeadersConfig`. Not set by default (library shouldn't enforce CSP/HSTS). CSP baseline: `default-src 'self'; script-src 'self'; style-src 'self'`. HSTS: `max-age=31536000; includeSubDomains`
-65. **RequireMethod HandlerOption**: `RequireMethod(method)` rejects wrong HTTP methods with 405. Opt-in (not enforced by default — HTMX patterns like `hx-get` for commands are valid)
-66. **HX-Redirect sanitization**: `Response.Redirect()` now sanitizes URLs for both HTMX and non-HTMX requests via `sanitizeRedirectURL`. Previously, HX-Redirect was set without sanitization
-67. **X-Request-ID response propagation**: `ContextEnrichmentMiddleware` sets `X-Request-ID` response header when a request ID is generated or extracted from the incoming request
-68. **enrichUserID logs extractor errors**: `App.enrichUserID()` now logs a `slog.Warn` when the `UserIDExtractor` returns an error, instead of silently swallowing it
-69. **ErrMethodNotAllowed**: New sentinel error maps to 405. Registered as `Rejection` family. Used by `RequireMethod` HandlerOption
-70. **HealthHandler**: `App.HealthHandler()` returns `200 OK` with JSON `{"status":"ok"}` when dispatchers are configured, `503` when not. Use for load balancer health checks
-71. **NotificationLevel.String()**: `NotificationLevel` now implements `fmt.Stringer` — returns the string representation for logging
-72. **MapError refactored**: Split into `explicitErrorStatus()` and `familyStatus()` helpers to keep cyclomatic complexity under 12
-73. **StatusRecorder.Push no longer wraps**: `Push()` returns the underlying Pusher's error directly (not wrapped) — preserves `errors.Is()` matching
-74. **Root coverage 97.3%** (up from 96.7%), **usermgmt coverage 91.1%**
-75. **JSON error response request_id**: `JSONErrorHandlerWithRedirect` includes `"request_id"` field when a RequestID is present in context. Enables client-to-server log correlation
-76. **Plain-text error handlers with request ID**: `DefaultErrorHandlerWithRequestID` and `DefaultErrorHandlerWithRedirectAndRequestID` prefix error messages with `[request_id: RID]` when available
-77. **Config.IncludeRequestIDInErrors**: When `true` and no custom `ErrorHandler` is set, `New()` selects the request-ID-aware default handler automatically
-78. **RenderJSON HandlerOptions**: `RenderJSON[T]()` renders query results as JSON with 200 OK. `RenderJSONStatus[T](status)` renders with a custom status code (e.g., 201 Created). Both use `WriteJSON` and include runtime type assertion for compile-time documentation
-79. **Panic recovery middleware**: `RecoveryMiddleware` recovers from panics, logs stack trace via `slog.ErrorContext`, and writes 500. `App.RecoveryMiddleware()` uses the App's configured `ErrorHandler` so panics get identical treatment to dispatch errors (JSON responses, custom redirects, request ID correlation). `http.ErrAbortHandler` is re-raised without recovery (Go net/http convention)
+### Module & Build
+
+1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
+2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
+3. **go-cqrs-lite version alignment**: All 4 modules now use v1.5.1-pre. datastar-demo was migrated from `command.Core`/`query.Core` → `command.BasicCommand`/`query.BasicQuery`
+4. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
+5. **LSP vs CLI discrepancy**: LSP shows ~31 stale warnings; CLI reports 0 — unresolved LSP cache issue
+
+### Type System
+
+6. **UserID breaking change**: `WithUserID`/`UserIDFromContext` use `id.UserID` (ULID-backed). `UserIDExtractor` still returns `string`. Use `ParseUserID`/`MustParseUserID`
+7. **CorrelationID breaking change**: Branded `id.CorrelationID`. Non-ULID header values silently dropped by middleware
+8. **usermgmt UserID is different type**: `usermgmt.UserID = brandid.ID[userBrand, string]` — NOT the same as root `id.UserID`. Cross-module bridge uses `.Get()` (not `.String()` which includes brand prefix)
+9. **GroupPolicy.User/Domain remain string**: Casbin boundary types. Intentional.
+
+### HTTP & Security
+
+10. **CSRF middleware ordering**: `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` — CSRF first, then HTMX, then enrichment
+11. **nosurf custom headers**: Must use `translateCSRFHeaders` to map consumer header/field names to nosurf defaults
+12. **HX-Redirect sanitization**: `Response.Redirect()` sanitizes URLs for both HTMX and non-HTMX requests
+13. **HandlerConfig.Secure zero-value**: `Secure` defaults to `true` when NO config passed, but `HandlerConfig{}` (zero-value) overrides to false. Set explicitly in production
+14. **Max password length 128**: Enforced in `RegisterRequest.Validate()` and `Service.ChangePassword()`. Prevents bcrypt CPU abuse
+
+### Error Handling
+
+15. **Error wrapping format**: Use `fmt.Errorf("%w: ...", sentinel, err)` for sentinel wraps. go-error-family for classification
+16. **Middleware silently drops invalid IDs**: Parse failures → ID silently dropped → auth fails downstream with `ErrUnauthorized`
+17. **DefaultMaxBodySize**: 10 MB when both `Config.MaxBodySize` and per-handler `WithMaxBodySize` are zero
+
+### Testing
+
+18. **Flaky test anti-pattern**: Never use `time.After` + `select` for timeouts — use `<-ctx.Done()` blocking
+19. **Test type consolidation**: All BDD types use `bdd` prefix (e.g., `bddCreateUserCmd`)
+20. **Benchmark/example lint exclusions**: `.golangci.yml` relaxes `intrange`, `noctx`, `nilnil` for benchmark/example test files only
+21. **usermgmt golines**: `.golangci.yml` uses golines formatter (100-char default). Long signatures must be split
 
 ## Test Commands
 

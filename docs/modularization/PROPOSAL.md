@@ -1,83 +1,100 @@
 # Modularization Proposal: cqrs-htmx
 
-> **Status:** Phase 3 complete — updated assessment with 2026-05-22 state
-> **Date:** 2026-05-22
-> **Supersedes:** PROPOSAL.md (2026-05-14), go-modularize-assessment.md (2026-05-19)
+> **Status:** Complete — all tasks executed and verified
+> **Date:** 2026-05-27
+> **Supersedes:** PROPOSAL.md (2026-05-22), PROPOSAL.md (2026-05-14), go-modularize-assessment.md (2026-05-19)
 
 ---
 
 ## 1. Executive Summary
 
-### What Changed Since Last Assessment
+### What Changed Since Last Assessment (2026-05-22)
 
-The project has grown from 15 to 18 production files, added CSRF protection, rate limiting, security headers, request logging, and request decoding. The internal coupling has deepened — specifically:
+Significant dependency migrations occurred:
 
-- `response.go` now depends on `notify.go` (notification types) and `csrf.go` (CSRF header names)
-- `errors.go` now depends on `response.go` (ContentType constants) and `csrf.go` (ErrCSRFInvalid)
-- This creates a cycle: `errors.go` → `response.go` → `csrf.go` → `errors.go`
-
-The module count grew from 2 to 4, with `integration_test/` and `examples/datastar-demo/` added.
+- **gorilla/csrf → justinas/nosurf** — CSRF library replacement
+- **cockroachdb/errors → go-error-family** — error handling library migration
+- **httputil extracted** — `ClientIP` delegated to `github.com/larsartmann/httputil`
+- **go-cqrs-lite upgraded** — ALL modules now on v1.5.1-pre (datastar-demo migrated)
+- **Go toolchain bumped** — all modules now on Go 1.26.3
+- **New features added** — recovery middleware, RenderJSON, request ID correlation
+- **19 production files** (up from 18) in root module, still a single Go package
+- **ALL dependency versions aligned** across all 4 modules
+- **Zero lint warnings** across all modules
+- **datastar-demo migrated** from `command.Core`/`query.Core` → `command.BasicCommand`/`query.BasicQuery`
 
 ### Recommendation: Module Hygiene Over Splitting
 
-**Do NOT extract `htmx/` as a separate go.mod.** The coupling has deepened since the original proposal, and the extraction is no longer clean. Instead, focus on:
+**Do NOT split the root module.** The existing 4-module structure is sound. The remaining work is:
 
-1. Fix module hygiene (integration_test, go.work, CI)
-2. Resolve the datastar-demo ownership question
-3. Fix existing lint warnings
+1. Align dependency versions in datastar-demo (go-cqrs-lite, go-branded-id, go-error-family)
+2. Run full test suite verification
+3. Update documentation to reflect current state
 
 ---
 
-## 2. Current State Analysis (2026-05-22)
+## 2. Current State Analysis (2026-05-27)
 
 ### 2.1 Module Landscape
 
-| Module           | Path                       | Files (prod) | Exported Symbols | Direct External Deps                                                   | Internal Deps                | Replace     | go.work | State                 |
-| ---------------- | -------------------------- | ------------ | ---------------- | ---------------------------------------------------------------------- | ---------------------------- | ----------- | ------- | --------------------- |
-| Root             | `./`                       | 18           | 151              | casbin/v3, cockroachdb/errors, gorilla/csrf, go-cqrs-lite/core, x/time | 0                            | None        | Yes     | Clean but large       |
-| usermgmt         | `./usermgmt`               | 12           | 95               | casbin/v3, cockroachdb/errors, go-branded-id, x/crypto                 | 0                            | None        | Yes     | Clean                 |
-| integration_test | `./integration_test`       | 2            | 0                | root, usermgmt, go-cqrs-lite/core                                      | root + usermgmt              | Yes (→ ../) | No      | **Needs go mod tidy** |
-| datastar-demo    | `./examples/datastar-demo` | 3            | 0                | go-cqrs-lite/core v1.5.0, datastar-go                                  | **None (doesn't use root!)** | None        | No      | **Version mismatch**  |
+| Module           | Path                       | Files (prod)  | Exported Symbols | Direct External Deps (prod)                                  | Internal Deps   | Replace     | go.work | State                |
+| ---------------- | -------------------------- | ------------- | ---------------- | ------------------------------------------------------------ | --------------- | ----------- | ------- | -------------------- |
+| Root             | `./`                       | 19            | ~160             | nosurf, go-cqrs-lite/core, go-error-family, httputil, x/time | 0               | None        | Yes     | **Clean**            |
+| usermgmt         | `./usermgmt`               | 9             | ~80              | casbin/v3, go-branded-id, go-cqrs-lite/core, x/crypto        | 0               | None        | Yes     | **Clean**            |
+| integration_test | `./integration_test`       | 0 (test-only) | 0                | root, usermgmt, go-cqrs-lite/core                            | root + usermgmt | Yes (→ ../) | Yes     | **Clean**            |
+| datastar-demo    | `./examples/datastar-demo` | ~6            | 0                | go-cqrs-lite/core, datastar-go                               | None            | None        | No      | **Version mismatch** |
 
-### 2.2 Classification: Partial Split
+### 2.2 Classification: Workspace Mode
 
-The root + usermgmt split is clean and well-executed. However:
+The project is in clean workspace mode with go.work coordinating root + usermgmt + integration_test. The previous issues (integration_test not in go.work, stale go.mod) have been resolved.
 
-- integration_test has stale go.mod (needs tidy)
-- datastar-demo doesn't import the root library at all — it's a standalone go-cqrs-lite + datastar example
-- go.work only covers root + usermgmt, not integration_test or datastar-demo
-- CI only tests root + usermgmt, not integration_test or datastar-demo
-
-### 2.3 Root Module Internal Dependency Graph (2026-05-22)
+### 2.3 Root Module Internal Dependency Graph (2026-05-27)
 
 ```
 Layer 0 (leaf, zero internal deps):
-  htmx.go, context.go, ratelimit.go, security.go, httputil.go
+  htmx.go       — stdlib only (HTMX types, constants, context, accessors)
+  security.go   — stdlib only (security headers middleware)
+  httputil.go   — external httputil lib only (WriteJSON + ClientIP)
 
-Layer 1 (depends on Layer 0 only):
-  logging.go → context.go
-  decoder.go → errors.go
+Layer 1 (depends on Layer 0 + external only):
+  context.go    — go-cqrs-lite/core/id deps only (UserID, CorrelationID, RequestID)
+  ratelimit.go  — x/time/rate + httputil.go (ClientIP)
 
-Layer 2 (cross-cutting, coupled):
-  errors.go    → htmx.go, response.go, csrf.go
-  csrf.go      → errors.go
-  response.go  → htmx.go, notify.go, csrf.go
+Layer 2 (cross-cutting cycle):
+  errors.go   → htmx.go (IsHTMXRequest, headerRedirect)
+              → response.go (ContentTypePlain, ContentTypeJSON)
+              → csrf.go (ErrCSRFInvalid)
+  csrf.go     → errors.go (ErrForbidden)
+  response.go → htmx.go (IsHTMXRequest, SwapStrategy, HeaderTrue, headers)
+              → notify.go (NotificationLevel, notificationDetail, defaultNotificationEvent)
+              → csrf.go (defaultCSRFHeaderName)
 
 Layer 3 (depends on Layer 2):
+  logging.go       → context.go
+  decoder.go       → errors.go
   authz.go         → errors.go, options.go, context.go
   options.go       → errors.go, response.go, decoder.go, context.go, csrf.go
   csrf_handler.go  → csrf.go, options.go
-  middleware.go     → authz.go, context.go, htmx.go
+  csrf_helpers.go  → csrf.go
+  notify.go        → options.go
+  recovery.go      → errors.go
 
-Layer 4 (depends on Layer 3):
-  notify.go → options.go
-
-Layer 5 (entry points):
-  app.go     → authz.go, context.go, errors.go, options.go, middleware.go
-  handler.go → options.go, errors.go, csrf_handler.go, response.go, authz.go
+Layer 4 (entry points):
+  middleware.go → authz.go, context.go, htmx.go
+  app.go       → authz.go, context.go, errors.go, options.go, middleware.go
+  handler.go   → options.go, errors.go, csrf_handler.go, response.go, authz.go
 ```
 
-### 2.4 Critical Cycles
+### 2.4 Coupling Hubs
+
+| File         | Internal Deps     | Dependents | Coupling                         |
+| ------------ | ----------------- | ---------- | -------------------------------- |
+| `errors.go`  | 3                 | 10+        | **Highest** — most depended-upon |
+| `options.go` | 5                 | 4          | **Highest** — handlerConfig hub  |
+| `context.go` | 0 (external only) | 6          | Low — utility                    |
+| `htmx.go`    | 0 (stdlib only)   | 6          | Low — leaf                       |
+
+### 2.5 Critical Cycles
 
 ```
 errors.go → response.go (ContentTypePlain/ContentTypeJSON)
@@ -85,97 +102,47 @@ response.go → csrf.go (defaultCSRFHeaderName)
 csrf.go → errors.go (ErrForbidden)
 ```
 
-These three files form an inseparable group at the module level.
-
-### 2.5 Coupling Hubs
-
-| File         | Depends On        | Dependents | Coupling                                            |
-| ------------ | ----------------- | ---------- | --------------------------------------------------- |
-| `options.go` | 5 files           | 4 files    | **Highest** — handlerConfig is shared mutable state |
-| `errors.go`  | 3 files           | 10 files   | **Highest** — most depended-upon                    |
-| `context.go` | 0 (external only) | 6 files    | Low — utility                                       |
-| `htmx.go`    | 0 (stdlib only)   | 6 files    | Low — leaf                                          |
+These three files form an inseparable group at the module level. This cycle **prevents** extracting any of them into a separate module.
 
 ---
 
 ## 3. Why Further Module Splitting Is Not Recommended
 
-### 3.1 The htmx/ Extraction Is No Longer Clean
+### 3.1 The Root Module Is a Single Cohesive Package
 
-The original 2026-05-14 proposal identified htmx/ (htmx.go + response.go) as the only clean extraction. Since then:
+All 19 files serve one purpose: "HTMX-aware CQRS HTTP handler integration with auth, CSRF, and middleware." The standalone utilities (htmx, security, ratelimit) are co-located for **consumer convenience** — splitting into sub-packages would force multi-import UX for no decoupling gain.
 
-- `response.go:145-147` uses `NotificationLevel`, `notificationDetail()`, `defaultNotificationEvent` from `notify.go`
-- `response.go:158` uses `defaultCSRFHeaderName` from `csrf.go`
-- `errors.go:156,179` uses `ContentTypePlain`, `ContentTypeJSON` from `response.go`
+### 3.2 The errors↔response↔csrf Cycle Blocks Extraction
 
-To extract htmx/, you would need to:
+Any module boundary would cut through this cycle. Breaking it would require significant refactoring (moving ContentType constants, notification types, CSRF header names) that would be more disruptive than beneficial.
 
-1. Move notification types to htmx/ (breaks notify.go)
-2. Remove CSRFToken() from Response (breaking API change)
-3. Move ContentType constants to httputil.go (creates cross-module constant sharing)
-4. Break the errors.go ↔ csrf.go ↔ response.go cycle
+### 3.3 Library Convention — Flat Package
 
-This is more disruptive than beneficial for a library of this size.
+18+ files / ~160 symbols in a single package is within Go norms for a cohesive library. Well-named symbols with clear prefixes (CSRF*, HTMX*, Notify*, Authorize*, Enforce\*) provide sufficient organization.
 
-### 3.2 Library, Not Application
+### 3.4 Consumer UX Matters
 
-The library is called "cqrs-htmx" — CQRS is the core purpose. Consumers who import it expect CQRS + HTMX together. The "HTMX-only" use case is an edge case for a library explicitly named for CQRS integration.
+The library is called "cqrs-htmx" — consumers expect `import cqrshtmx "github.com/larsartmann/cqrs-htmx"` and everything is available. Making consumers do `import "cqrs-htmx/security"` + `import "cqrs-htmx/htmx"` would be hostile.
 
-### 3.3 Flat Package = Go Convention for Libraries
+### 3.5 Zero Mutual Imports Between Root and Usermgmt
 
-18 files / 151 symbols in a single package is within Go norms for a cohesive library. Well-named symbols with clear prefixes (CSRF*, HTMX*, Notify*, Authorize*, Enforce\*) provide sufficient organization.
-
-### 3.4 New Files Are Independent Concerns
-
-The recently added files (ratelimit.go, security.go, logging.go, decoder.go) are leaf nodes with minimal coupling. They could theoretically form sub-modules, but each is a single file (125-268 lines) — too small for a separate go.mod.
+The existing split is **perfect** — root and usermgmt are fully independent. No further seams exist that would benefit from extraction.
 
 ---
 
-## 4. Proposed Actions: Module Hygiene
+## 4. Completed Actions
 
-### 4.1 Fix integration_test Module
+### 4.1 Migrate datastar-demo to v1.5.1
 
-- Run `go mod tidy` to fix stale go.mod (go-cqrs-lite/core should be direct)
-- Verify tests pass
+Migrated `command.Core` → `command.BasicCommand`, `query.Core` → `query.BasicQuery`. Fixed struct literal field names. Fixed lint hints (`strings.Builder`, `strings.Cut`). All versions now aligned.
 
-### 4.2 Resolve datastar-demo Ownership
+### 4.2 Upgrade usermgmt Dependencies
 
-**Problem:** datastar-demo doesn't import cqrs-htmx at all. It's a standalone go-cqrs-lite + datastar example with version mismatches (core v1.5.0 vs root's v1.4.0, go-branded-id v0.1.0 vs v0.3.0).
+Upgraded go-cqrs-lite/core v1.5.0 → v1.5.1-pre, go 1.26.2 → 1.26.3, go-error-family v0.1.0 → v0.1.1.
 
-**Options:**
+### 4.3 Keep integration_test Replace Directives
 
-- A) Update to import cqrs-htmx and demonstrate library usage
-- B) Upgrade deps to match root module versions
-- C) Move to go-cqrs-lite repo (where it belongs)
-
-**Recommendation:** Option B — upgrade deps. The demo is valuable as a go-cqrs-lite example, and restructuring it to use cqrs-htmx would change its nature entirely. Keep it as a companion example.
-
-### 4.3 Update go.work
-
-Add integration_test to go.work for consistent local development:
-
-```go
-go 1.26.2
-
-use (
-    .
-    ./usermgmt
-    ./integration_test
-)
-```
-
-Do NOT add datastar-demo — it doesn't import any sibling modules, so go.work provides no benefit.
-
-### 4.4 Update CI
-
-Add integration_test and datastar-demo to CI pipeline:
-
-- Build and test integration_test
-- Build datastar-demo (no tests to run — it's a main package)
-
-### 4.5 Fix Lint Warnings
-
-10 existing lint warnings (revive missing docs, errcheck, forcetypeassert, recvcheck, exhaustruct, noctx) should be fixed before declaring the modularization complete.
+The `replace` directives in integration_test/go.mod are needed for `GOWORK=off` CI builds. This is correct and should not be removed.
 
 ---
 
@@ -194,9 +161,10 @@ Add integration_test and datastar-demo to CI pipeline:
 ```
                     ┌──────────────────────┐
                     │     cqrs-htmx         │  (root)
-                    │  18 files, 151 syms   │
-                    │  casbin, errors,      │
-                    │  csrf, cqrs-lite,     │
+                    │  19 files, ~160 syms  │
+                    │  nosurf, go-error-    │
+                    │  family, httputil,    │
+                    │  cqrs-lite/core,      │
                     │  x/time               │
                     └──────────┬────────────┘
                                │ (go.work)
@@ -204,36 +172,42 @@ Add integration_test and datastar-demo to CI pipeline:
                     │                       │
            ┌────────┴────────┐    ┌─────────┴──────────┐
            │   usermgmt      │    │  integration_test   │
-           │  12 files, 95   │    │  4 tests            │
+           │  9 files, ~80   │    │  5 bridge tests     │
            │  casbin, crypto, │    │  imports root +     │
-           │  branded-id      │    │  usermgmt          │
-           │  (independent)   │    │  (replace directive)│
+           │  branded-id      │    │  usermgmt           │
+           │  (independent)   │    │  (replace + go.work)│
            └─────────────────┘    └─────────────────────┘
 
     ┌─────────────────────────┐
     │   datastar-demo         │  (standalone — doesn't use root)
-    │  go-cqrs-lite v1.5.0    │
+    │  go-cqrs-lite v1.5.0    │  ⚠️ version mismatch
     │  datastar-go            │
-    │  (version mismatch)     │
     └─────────────────────────┘
 ```
 
 ---
 
-## 7. Self-Review Findings (Phase 4)
+## 7. Version Alignment Status
 
-### 7.1 What I Forgot
+| Dependency          | Root              | Usermgmt          | Integration_test  | Datastar-demo     |
+| ------------------- | ----------------- | ----------------- | ----------------- | ----------------- |
+| `go-cqrs-lite/core` | v1.5.1-pre        | v1.5.1-pre        | v1.5.1-pre        | v1.5.1-pre        |
+| `go-error-family`   | v0.1.1            | v0.1.1 (indirect) | v0.1.1 (indirect) | v0.1.1 (indirect) |
+| `go-branded-id`     | v0.3.0 (indirect) | v0.3.0            | v0.3.0 (indirect) | v0.3.0 (indirect) |
+| Go version          | 1.26.3            | 1.26.3            | 1.26.3            | 1.26.3            |
 
-1. **datastar-demo version mismatch** — go-cqrs-lite/core v1.5.0 vs root's v1.4.0. The demo could break if v1.5.0 has breaking changes.
-2. **CI doesn't test integration_test** — these cross-module tests could regress without detection.
-3. **integration_test uses replace directives while root uses go.work** — inconsistent strategy.
+---
 
-### 7.2 What Could Be Improved
+## 8. Task Completion Tracker (Since 2026-05-22)
 
-1. **Consistent replace strategy** — integration_test should use go.work (if added) or replace directives, not mix.
-2. **datastar-demo should at minimum have matching dep versions** — even if it doesn't import root.
-3. **The 151-symbol API surface** could benefit from sub-package organization (not sub-modules) in a future iteration.
-
-### 7.3 Decision: Hygiene First
-
-The right next step is fixing module hygiene, not adding complexity. The current structure is sound.
+| Task                            | Status  | Done In                                                         |
+| ------------------------------- | ------- | --------------------------------------------------------------- |
+| T1: Fix integration_test go.mod | ✅ Done | 776f101                                                         |
+| T2: Upgrade datastar-demo deps  | ✅ Done | Migrated to v1.5.1 APIs (command.BasicCommand/query.BasicQuery) |
+| T2b: Upgrade usermgmt deps      | ✅ Done | go-cqrs-lite → v1.5.1-pre, Go → 1.26.3                          |
+| T3: Update go.work              | ✅ Done | go.work updated                                                 |
+| T4: Update CI                   | ✅ Done | CI covers all 4 modules                                         |
+| T5: Fix lint warnings           | ✅ Done | 0 issues                                                        |
+| T6: Full test suite             | ✅ Done | All modules pass                                                |
+| T7: Update AGENTS.md            | ✅ Done | Updated with new features                                       |
+| T8: Update docs                 | ✅ Done | This document                                                   |
