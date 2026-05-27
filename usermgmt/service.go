@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/mail"
@@ -292,6 +293,9 @@ func (s *Service) Authorize(_ context.Context, sub, dom, obj string, act Action)
 func (s *Service) GetUser(ctx context.Context, id UserID) (*User, error) {
 	u, err := s.users.FindByID(ctx, id)
 	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return nil, err
+		}
 		return nil, event.NewTransient("internal", "get user").WithCause(err)
 	}
 	return u, nil
@@ -306,6 +310,9 @@ func (s *Service) UpdateRoles(
 ) error {
 	user, err := s.users.FindByID(ctx, userID)
 	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return err
+		}
 		return event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err)
 	}
 
