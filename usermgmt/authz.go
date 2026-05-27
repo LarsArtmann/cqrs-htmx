@@ -249,10 +249,25 @@ func policyWrapErr(msg string, p Policy) string {
 }
 
 // Apply applies a batch of group and policy additions/removals sequentially.
-// Operations are applied in order: remove groups, remove policies, add groups, add policies.
-// If any operation fails mid-way, the policy state is partially updated — callers
-// should treat this as a best-effort operation.
+// Operations are applied in order: add groups, add policies, remove groups, remove policies.
+// Add-first ordering ensures that if remove fails mid-way, the user retains access
+// rather than losing all permissions. If any operation fails mid-way, the policy
+// state is partially updated — callers should treat this as a best-effort operation.
 func (a *Authz) Apply(update PolicyUpdate) error {
+	for _, g := range update.AddGroups {
+		if _, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
+			return event.NewTransient("casbin_error", fmt.Sprintf("add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)).
+				WithCause(err)
+		}
+	}
+	for _, p := range update.AddPolicies {
+		if _, err := a.enforcer.AddPolicy(policyArgs(p)...); err != nil {
+			return event.NewTransient(
+				"casbin_error",
+				policyWrapErr("add policy", p),
+			).WithCause(err)
+		}
+	}
 	for _, g := range update.RemoveGroups {
 		if _, err := a.enforcer.RemoveGroupingPolicy(
 			g.Subject,
@@ -269,17 +284,6 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 				"casbin_error",
 				policyWrapErr("remove policy", p),
 			).WithCause(err)
-		}
-	}
-	for _, g := range update.AddGroups {
-		if _, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
-			return event.NewTransient("casbin_error", fmt.Sprintf("add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)).
-				WithCause(err)
-		}
-	}
-	for _, p := range update.AddPolicies {
-		if _, err := a.enforcer.AddPolicy(policyArgs(p)...); err != nil {
-			return event.NewTransient("casbin_error", policyWrapErr("add policy", p)).WithCause(err)
 		}
 	}
 	return nil
