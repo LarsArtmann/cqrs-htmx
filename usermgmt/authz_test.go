@@ -110,6 +110,22 @@ func TestAuthz_Apply(t *testing.T) {
 	assertEnforce(t, a, "p1", "g1", "game.play_round", ActionExecute, false)
 }
 
+func TestAuthz_Apply_AddBeforeRemove(t *testing.T) {
+	a := newTestAuthz(
+		t,
+		Policy{RoleAdmin, "*", "*", ActionAll, EffectAllow},
+	)
+	addTestGroupPolicy(t, a, GroupPolicy{Subject: "u1", Role: RoleUser, Domain: "d1"})
+
+	if err := a.Apply(PolicyUpdate{
+		AddGroups:    []GroupPolicy{{Subject: "u1", Role: RoleAdmin, Domain: "d1"}},
+		RemoveGroups: []GroupPolicy{{Subject: "u1", Role: RoleUser, Domain: "d1"}},
+	}); err != nil {
+		t.Fatalf("Apply: %v", err)
+	}
+	assertEnforce(t, a, "u1", "d1", "anything", ActionExecute, true)
+}
+
 func TestAuthz_ApplyPolicies(t *testing.T) {
 	a := newTestAuthz(t)
 
