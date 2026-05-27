@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -44,6 +45,11 @@ func NewSessionMiddleware(service *Service, cookieName string) func(http.Handler
 			if token != "" {
 				if user, err := service.Authenticate(r.Context(), token); err == nil {
 					r = r.WithContext(WithUser(r.Context(), user))
+				} else {
+					slog.DebugContext(r.Context(), "session authentication failed",
+						"error", err,
+						"cookie_name", cookieName,
+					)
 				}
 			}
 			next.ServeHTTP(w, r)
