@@ -22,6 +22,16 @@ const (
 	errMsgPasswordTooLong  = "password must be under 128 characters"
 )
 
+func validatePassword(password string) error {
+	if len(password) < minPasswordLength {
+		return event.NewRejection("validation", errMsgPasswordTooShort).WithCause(ErrValidation)
+	}
+	if len(password) > maxPasswordLength {
+		return event.NewRejection("validation", errMsgPasswordTooLong).WithCause(ErrValidation)
+	}
+	return nil
+}
+
 // Service orchestrates user registration, authentication, authorization, and session management.
 type Service struct {
 	authz      *Authz
@@ -125,10 +135,9 @@ func (r *RegisterRequest) Validate() error {
 	if _, err := mail.ParseAddress(r.Email); err != nil {
 		errs = append(errs, "invalid email")
 	}
-	if len(r.Password) < minPasswordLength {
-		errs = append(errs, errMsgPasswordTooShort)
-	} else if len(r.Password) > maxPasswordLength {
-		errs = append(errs, errMsgPasswordTooLong)
+	if err := validatePassword(r.Password); err != nil {
+		errStr := err.Error()
+		errs = append(errs, errStr)
 	}
 	if len(r.DisplayName) > maxDisplayNameLength {
 		errs = append(errs,
@@ -385,13 +394,8 @@ func (s *Service) ChangePassword(
 		return ErrInvalidCredentials
 	}
 
-	if len(newPassword) < minPasswordLength {
-		return event.NewRejection("validation", fmt.Sprintf(errMsgPasswordTooShort+" for user %q", userID)).
-			WithCause(ErrValidation)
-	}
-	if len(newPassword) > maxPasswordLength {
-		return event.NewRejection("validation", fmt.Sprintf(errMsgPasswordTooLong+" for user %q", userID)).
-			WithCause(ErrValidation)
+	if err := validatePassword(newPassword); err != nil {
+		return err
 	}
 
 	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {
