@@ -65,22 +65,22 @@ type TodoDeletedPayload struct {
 // --- Commands ---
 
 type CreateTodoCmd struct {
-	*command.Core
+	*command.BasicCommand
 	Title string
 }
 
 type ToggleTodoCmd struct {
-	*command.Core
+	*command.BasicCommand
 }
 
 type DeleteTodoCmd struct {
-	*command.Core
+	*command.BasicCommand
 }
 
 // --- Queries ---
 
 type ListTodosQry struct {
-	*query.Core
+	*query.BasicQuery
 }
 
 // --- Event Store (in-memory) ---
@@ -332,7 +332,7 @@ func (c *CQRS) registerCommandHandlers() {
 			return fmt.Errorf("unexpected command type: %T", cmd)
 		}
 
-		todoID := tc.AggregateID().String()
+		todoID := cmd.AggregateID().String()
 		payload, _ := json.Marshal(TodoCreatedPayload{
 			ID:        todoID,
 			Title:     tc.Title,
@@ -401,7 +401,7 @@ func NewCreateTodo(title string) (*CreateTodoCmd, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &CreateTodoCmd{Core: core, Title: title}, nil
+	return &CreateTodoCmd{BasicCommand: core, Title: title}, nil
 }
 
 func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
@@ -413,7 +413,7 @@ func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ToggleTodoCmd{Core: core}, nil
+	return &ToggleTodoCmd{BasicCommand: core}, nil
 }
 
 func NewDeleteTodo(todoID string) (*DeleteTodoCmd, error) {
@@ -425,7 +425,7 @@ func NewDeleteTodo(todoID string) (*DeleteTodoCmd, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &DeleteTodoCmd{Core: core}, nil
+	return &DeleteTodoCmd{BasicCommand: core}, nil
 }
 
 // --- Simulator ---
