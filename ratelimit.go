@@ -240,16 +240,14 @@ func (p *perKeyLimiter) allow(r *http.Request) (bool, string) {
 }
 
 func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
-	p.mu.RLock()
-	entry, ok := p.limiters[key]
-	p.mu.RUnlock()
-
-	if ok && time.Since(entry.lastUsed) < p.ttl {
-		return entry.lim
-	}
-
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
+	entry, ok := p.limiters[key]
+	if ok && time.Since(entry.lastUsed) < p.ttl {
+		entry.lastUsed = time.Now()
+		return entry.lim
+	}
 
 	p.evictStale()
 
