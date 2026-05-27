@@ -357,6 +357,63 @@ func TestService_Register_DuplicateEmail_CaseInsensitive(t *testing.T) {
 	assertErrorIs(t, err, ErrEmailExists, "ErrEmailExists for case-insensitive duplicate")
 }
 
+func TestValidatePassword(t *testing.T) {
+	tests := []struct {
+		name    string
+		pw      string
+		wantErr bool
+	}{
+		{"empty", "", true},
+		{"too short", "abc", true},
+		{"boundary short", "1234567", true},
+		{"boundary valid", "12345678", false},
+		{"normal", "secret12", false},
+		{"at max", strings.Repeat("x", 128), false},
+		{"over max", strings.Repeat("x", 129), true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validatePassword(tt.pw)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validatePassword(%q) error = %v, wantErr %v", tt.name, err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUser_Clone(t *testing.T) {
+	original := &User{
+		ID:          NewUserID("u1"),
+		Email:       "clone@test.com",
+		DisplayName: "Original",
+		Roles:       []Role{RoleUser},
+	}
+
+	cloned := original.Clone()
+	if cloned == original {
+		t.Error("Clone returned same pointer")
+	}
+	if cloned.Email != original.Email {
+		t.Errorf("Clone email = %q, want %q", cloned.Email, original.Email)
+	}
+
+	cloned.Email = "modified@test.com"
+	cloned.Roles[0] = RoleAdmin
+	if original.Email != "clone@test.com" {
+		t.Error("Clone mutation affected original Email")
+	}
+	if original.Roles[0] != RoleUser {
+		t.Error("Clone mutation affected original Roles")
+	}
+}
+
+func TestUser_Clone_Nil(t *testing.T) {
+	var u *User
+	if u.Clone() != nil {
+		t.Error("expected nil Clone for nil User")
+	}
+}
+
 func TestService_Login_CaseInsensitive(t *testing.T) {
 	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "CASE@TEST.COM", "secret12")
 
