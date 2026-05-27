@@ -249,11 +249,8 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 //	    app.Middleware(),
 //	)(mux)
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
-	if !cfg.Secure {
-		slog.Warn(
-			"cqrs-htmx: CSRFConfig.Secure is false — cookies will be sent over plain HTTP",
-			slog.String("hint", "set Secure=true in production"),
-		)
+	if err := cfg.Validate(); err != nil {
+		slog.Error("cqrs-htmx: CSRFConfig validation failed", slog.String("error", err.Error()))
 	}
 
 	return func(next http.Handler) http.Handler {
