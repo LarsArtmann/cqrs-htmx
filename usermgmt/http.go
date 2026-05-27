@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -225,10 +226,14 @@ func (h *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(v); err != nil {
+		http.Error(w, "json encode error", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", contentTypeJSON)
 	w.WriteHeader(status)
-	// After WriteHeader, nothing useful can be done — the response is committed.
-	_ = json.NewEncoder(w).Encode(v) //nolint:errchkjson // response already committed
+	_, _ = w.Write(buf.Bytes())
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {
