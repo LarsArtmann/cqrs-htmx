@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-05-27 | **Coverage:** 96.9% root, 91.1% usermgmt | **Lint:** 0 issues
+**Updated:** 2026-05-27 | **Coverage:** 96.9% root, 91.2% usermgmt | **Lint:** 0 issues
 
 ## Status Legend
 
@@ -44,3 +44,4 @@ _168 items completed. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://git
 | 2026-05-24  | Perf optimizations (7 alloc reductions), security hardening                  |
 | 2026-05-25+ | gorilla/csrf→nosurf, cockroachdb/errors→go-error-family, httputil delegation |
 | 2026-05-27  | RecoveryMiddleware, RenderJSON, request ID in errors, benchmarks             |
+| 2026-05-27b | 10 bug fixes: GetUser 404, rate limiter TTL, CSRF JSON, store copies, authz ordering, WriteJSON buffer, password DRY, rollback logging, SessionMiddleware logging |
