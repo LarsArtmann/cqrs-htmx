@@ -53,7 +53,7 @@ func CSRFTokenHXHeaders(r *http.Request) string {
 	if err != nil {
 		return ""
 	}
-	return `hx-headers='` + html.EscapeString(string(jsonVal)) + `'`
+	return `hx-headers='` + string(jsonVal) + `'`
 }
 
 // CSRFTokenFormField returns a hidden input HTML element containing the CSRF token.

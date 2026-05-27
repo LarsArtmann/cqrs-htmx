@@ -240,28 +240,35 @@ func (p *perKeyLimiter) allow(r *http.Request) (bool, string) {
 }
 
 func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
+	p.mu.RLock()
 	entry, ok := p.limiters[key]
+	p.mu.RUnlock()
+
 	if ok && time.Since(entry.lastUsed) < p.ttl {
-		entry.lastUsed = time.Now()
 		return entry.lim
 	}
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	p.evictStale()
 
 	if entry, ok := p.limiters[key]; ok {
+		if time.Since(entry.lastUsed) < p.ttl {
+			return entry.lim
+		}
 		entry.lastUsed = time.Now()
+		heap.Push(p.heap, &evictionEntry{key: key, lastUsed: entry.lastUsed})
 		return entry.lim
 	}
 
 	p.evictOldestIfAtCapacity()
 
 	lim := rate.NewLimiter(p.limit, int(p.burst))
-	newEntry := &limiterEntry{lim: lim, lastUsed: time.Now()}
+	now := time.Now()
+	newEntry := &limiterEntry{lim: lim, lastUsed: now}
 	p.limiters[key] = newEntry
-	heap.Push(p.heap, &evictionEntry{key: key, lastUsed: newEntry.lastUsed})
+	heap.Push(p.heap, &evictionEntry{key: key, lastUsed: now})
 
 	return lim
 }
