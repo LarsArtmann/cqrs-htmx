@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased] - 2026-05-18
+## [Unreleased] - 2026-05-27
+
+### Changed
+
+- **CSRF: replaced `gorilla/csrf` with `justinas/nosurf`**: Simpler API, no secret management required, no HMAC/securecookie. Token generation uses `crypto/rand` with origin validation instead. `CSRFConfig.Secret` field removed. `RotateCSRFToken` removed (nosurf rotates automatically). Custom header/field translation via `translateCSRFHeaders`.
+- **Error handling: replaced `cockroachdb/errors` with `go-error-family`**: Error classification now uses `github.com/larsartmann/go-error-family` via `go-cqrs-lite/core/event`. `sync.Once` registers sentinels with `event.RegisterClassification`.
+- **`ClientIP` delegated to `larsartmann/httputil`**: `httputil.ClientIP(r)` replaces the local implementation.
+- **go-cqrs-lite/core upgraded to v1.5.1**: `CatalogEntry` → `HandlerMeta` for API compatibility.
 
 ### Added
 

@@ -78,8 +78,8 @@ func main() {
         Commands:        cmdDisp,
         Queries:         qryDisp,
         Enforcer:        enforcer,
-        UserIDExtractor: func(r *http.Request) string {
-            return r.Header.Get("X-User-ID")
+        UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) {
+            return cqrshtmx.ParseUserID(r.Header.Get("X-User-ID"))
         },
     })
 
@@ -127,13 +127,14 @@ app, err := cqrshtmx.New(cqrshtmx.Config{
     Commands:        cmdDisp,          // *command.Dispatcher
     Queries:         qryDisp,          // *query.Dispatcher
     Enforcer:        enforcer,         // Enforcer interface (Casbin or custom)
-    UserIDExtractor: extractFunc,      // func(r *http.Request) string
+    UserIDExtractor: extractFunc,      // func(r *http.Request) (UserID, error)
     LoginRedirect:   "/auth/signin",   // default: "/login"
     Timeout:         5 * time.Second,  // wraps dispatch only; 0 = no timeout
     ErrorHandler:    myErrorHandler,   // custom ErrorHandler; default uses plain text + LoginRedirect
     BeforeDispatch:           beforeHook,       // func(ctx, r) context.Context — tracing, request IDs
     AfterDispatch:            afterHook,        // func(ctx, r, err) — logging, metrics
     IncludeRequestIDInErrors: true,             // prefix errors with request_id for log correlation
+    MaxBodySize:              10 << 20,         // max request body (default 10 MB)
 })
 ```
 
@@ -142,8 +143,8 @@ app, err := cqrshtmx.New(cqrshtmx.Config{
 `App` exposes catalog metadata for registered commands and queries:
 
 ```go
-app.CommandCatalogEntries() // map[command.Type]command.CatalogMeta
-app.QueryCatalogEntries()   // map[query.Type]query.CatalogMeta
+app.CommandCatalogEntries() // map[command.Type]dispatcher.HandlerMeta
+app.QueryCatalogEntries()   // map[query.Type]dispatcher.HandlerMeta
 ```
 
 Returns `nil` if the respective dispatcher is not configured.
@@ -237,6 +238,24 @@ app.Command("SlowOperation",
     cqrshtmx.DecodeJSON(mapper),
 )
 ```
+
+### Per-Handler Options
+
+| Option                    | Description                                            |
+| ------------------------- | ------------------------------------------------------ |
+| `WithMaxBodySize(n)`      | Override `Config.MaxBodySize` per handler              |
+| `WithSuccessStatus(code)` | Custom success status (default 204; e.g., 201 Created) |
+| `RequireMethod(method)`   | Reject wrong HTTP methods with 405                     |
+| `OnError(fn)`             | Per-handler error callback after App-level handler     |
+
+### Convenience Helpers
+
+| Helper                                   | Description                                  |
+| ---------------------------------------- | -------------------------------------------- |
+| `App.HealthHandler()`                    | 200/503 JSON health check for load balancers |
+| `App.HasCommands()` / `App.HasQueries()` | Report dispatcher availability               |
+| `MustNew(cfg)`                           | Panics on error — for init-time setup        |
+| `IsAuthenticated(r)`                     | Checks for non-zero UserID in context        |
 
 ## HTMX Request Context
 
@@ -477,7 +496,7 @@ handler := cqrshtmx.RequestLoggingSlog(slog.Default())(mux)
 
 ### CSRF Protection
 
-Double-submit cookie CSRF protection with HTMX awareness. Uses [`gorilla/csrf`](https://github.com/gorilla/csrf) internally for cryptographically secure token generation, per-request token masking (BREACH attack mitigation), and cookie integrity via `securecookie`. Validates `X-CSRF-Token` header (or form field) on state-changing methods:
+Double-submit cookie CSRF protection with HTMX awareness. Uses [`justinas/nosurf`](https://github.com/justinas/nosurf) internally for token generation and origin validation. Validates `X-CSRF-Token` header (or form field) on state-changing methods:
 
 ```go
 handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
@@ -491,19 +510,18 @@ handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 
 **CSRFConfig fields:**
 
-| Field            | Default            | Description                                  |
-| ---------------- | ------------------ | -------------------------------------------- |
-| `Secret`         | random (ephemeral) | 32-byte HMAC key; empty = random per-restart |
-| `CookieName`     | `"csrf_token"`     | Cookie name                                  |
-| `HeaderName`     | `"X-CSRF-Token"`   | Header/field name to validate                |
-| `FieldName`      | `"csrf_token"`     | Form field name                              |
-| `MaxAge`         | 24h                | Token lifetime                               |
-| `Secure`         | false              | Set `true` in production (HTTPS only)        |
-| `SameSite`       | `Lax`              | Cross-site cookie policy                     |
-| `Domain`         | `""`               | Cookie domain (host-only by default)         |
-| `Path`           | `"/"`              | Cookie path                                  |
-| `TrustedOrigins` | `nil`              | Additional trusted origins                   |
-| `ErrorHandler`   | 403 plain text     | Custom error handler for CSRF failures       |
+| Field            | Default          | Description                            |
+| ---------------- | ---------------- | -------------------------------------- |
+| `CookieName`     | `"csrf_token"`   | Cookie name                            |
+| `HeaderName`     | `"X-CSRF-Token"` | Header/field name to validate          |
+| `FieldName`      | `"csrf_token"`   | Form field name                        |
+| `MaxAge`         | 24h              | Token lifetime                         |
+| `Secure`         | false            | Set `true` in production (HTTPS only)  |
+| `SameSite`       | `Lax`            | Cross-site cookie policy               |
+| `Domain`         | `""`             | Cookie domain (host-only by default)   |
+| `Path`           | `"/"`            | Cookie path                            |
+| `TrustedOrigins` | `nil`            | Additional trusted origins             |
+| `ErrorHandler`   | 403 plain text   | Custom error handler for CSRF failures |
 
 **HTMX Integration:**
 
@@ -804,8 +822,8 @@ user, ok := usermgmt.UserFromContext(ctx)
 user = usermgmt.UserFromContextOr(ctx, fallback)
 
 // Bridge to cqrs-htmx UserIDExtractor
-func extractor(r *http.Request) string {
-    return usermgmt.UserIDFromRequest(r) // reads from context, returns string
+func extractor(r *http.Request) (cqrshtmx.UserID, error) {
+    return cqrshtmx.MustParseUserID(usermgmt.UserIDFromRequest(r)), nil // reads from context, returns string
 }
 ```
 
@@ -827,10 +845,11 @@ cqrs-htmx/
 ├── csrf_handler.go     # CSRFProtect (per-handler CSRF)
 ├── csrf_helpers.go     # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
 ├── decoder.go          # Body reading, form/JSON decoding, MaxBodySize
-├── httputil.go         # WriteJSON, ClientIP
+├── httputil.go         # WriteJSON, ClientIP (delegates to larsartmann/httputil)
 ├── logging.go          # RequestLogging, RequestLoggingSlog, StatusRecorder
 ├── ratelimit.go        # RateLimiterMiddleware, token bucket, min-heap eviction
 ├── security.go         # SecurityHeadersMiddleware, SecurityHeadersConfig
+├── recovery.go         # RecoveryMiddleware, panic recovery with stack logging
 ├── usermgmt/           # User management submodule (independent Go module)
 │   ├── id.go           # Branded UserID type
 │   ├── authz.go        # Casbin RBAC with domains, PolicyUpdate, AsEnforcer bridge
@@ -840,7 +859,7 @@ cqrs-htmx/
 │   ├── http.go         # AuthHandlers, RegisterRoutes, SessionMiddleware
 │   ├── middleware.go    # User context helpers, UserIDFromRequest bridge
 │   ├── lockout.go      # AccountLockout (configurable attempts + duration)
-│   └── errors.go       # Sentinel errors (cockroachdb/errors)
+│   └── errors.go       # Sentinel errors (go-error-family)
 ├── integration_test/   # Cross-module integration tests (independent Go module)
 └── examples/
     └── datastar-demo/  # Standalone datastar + go-cqrs-lite SSE example
@@ -848,14 +867,15 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency               | Purpose                              |
-| ------------------------ | ------------------------------------ |
-| go-cqrs-lite/core v1.4.0 | CQRS command/query dispatch          |
-| casbin/casbin/v3         | Authorization                        |
-| cockroachdb/errors       | Error handling with sentinel support |
-| gorilla/csrf v1.7.3      | CSRF protection                      |
-| golang.org/x/time        | Token-bucket rate limiting           |
-| go-branded-id            | Branded types (usermgmt)             |
+| Dependency               | Purpose                     |
+| ------------------------ | --------------------------- |
+| go-cqrs-lite/core v1.5.1 | CQRS command/query dispatch |
+| casbin/casbin/v3         | Authorization               |
+| go-error-family          | Error classification        |
+| justinas/nosurf          | CSRF protection             |
+| larsartmann/httputil     | ClientIP extraction         |
+| golang.org/x/time        | Token-bucket rate limiting  |
+| go-branded-id            | Branded types (usermgmt)    |
 
 ## Contributing
 
