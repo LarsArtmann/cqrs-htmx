@@ -7,7 +7,7 @@
 - **Version:** Unreleased (post-v1.0.0 development)
 - **Coverage:** 96.9% root, 91.1% usermgmt
 - **Lint:** 0 issues
-- **Dependencies:** go-cqrs-lite/core v1.5.1, justinas/nosurf, go-error-family, larsartmann/httputil
+- **Dependencies:** go-cqrs-lite/core v1.6.0, justinas/nosurf, go-error-family, larsartmann/httputil
 - **Test suite:** 390+ specs, race-safe, fuzz tests, benchmarks
 
 ---
@@ -18,11 +18,11 @@ _Focus: Align modules, stabilize deps, prepare for broader adoption._
 
 | Area  | Item                                                                        | Priority | Status             |
 | ----- | --------------------------------------------------------------------------- | -------- | ------------------ |
-| Deps  | Align usermgmt to go-cqrs-lite/core v1.5.1                                  | High     | Open               |
-| Deps  | Move go-cqrs-lite/core to formal v1.5.1 release (currently pre-release)     | High     | Blocked (upstream) |
+| Deps  | Align usermgmt to go-cqrs-lite/core v1.6.0                                  | High     | Done               |
+| Deps  | Move go-cqrs-lite/core to formal v1.6.0 release                             | High     | Done               |
 | Types | BrandNamer for root module marker types (`userMarker`, `correlationMarker`) | Medium   | Blocked (upstream) |
 | Docs  | Add comprehensive godoc package examples with runnable snippets             | Medium   | Open               |
-| Docs  | README.md refresh — reflect nosurf, go-error-family, httputil migration     | Medium   | Open               |
+| Docs  | README.md refresh — reflect nosurf, go-error-family, httputil migration     | Medium   | Done               |
 | Test  | Expand integration_test module to cover more cross-module bridges           | Low      | Open               |
 | Perf  | Profile hot paths (dispatch, decode) for allocation reduction               | Low      | Open               |
 

@@ -48,7 +48,7 @@
 | 18  | CSRF Protection      | FULLY_FUNCTIONAL | `CSRFMiddleware` using justinas/nosurf. `CSRFProtect` per-handler. Template helpers: `CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`, `CSRFTokenFormField`. Custom header/field translation. |
 | 19  | Security Headers     | FULLY_FUNCTIONAL | `SecurityHeadersMiddleware` with configurable CSP, HSTS, X-Frame-Options, etc. `RecommendedCSP`/`RecommendedHSTS` constants.                                                           |
 | 20  | Rate Limiting        | FULLY_FUNCTIONAL | `RateLimiterMiddleware` with token-bucket per key. Min-heap O(log n) eviction. `MaxKeys` cap. `Retry-After` header. `ActiveKeys()` monitoring.                                         |
-| 21  | Panic Recovery       | FULLY_FUNCTIONAL | `RecoveryMiddleware` recovers panics, logs stack trace, writes 500. `App.RecoveryMiddleware()` uses App's ErrorHandler. Re-raises `http.ErrAbortHandler`.                              |
+| 21  | Panic Recovery       | FULLY_FUNCTIONAL | `RecoveryMiddleware` recovers panics, logs stack trace, writes 500. `App.RecoverHandler()` uses App's ErrorHandler. Re-raises `http.ErrAbortHandler`.                              |
 
 ### Context & Identity
 
@@ -96,7 +96,7 @@
 | 39  | RBAC Authorization | FULLY_FUNCTIONAL | Casbin RBAC with domains. `AsEnforcer()` bridge to parent `Enforcer` interface. `ImplicitRoles`, `ImplicitPermissions`, `Policies`.                        |
 | 40  | In-Memory Stores   | FULLY_FUNCTIONAL | `InMemoryUserStore` (email index, atomic Create, `Count()`). `InMemorySessionStore` (TTL, `EvictExpired()`, `Count()`). Both accept `context.Context`.     |
 | 41  | Account Lockout    | FULLY_FUNCTIONAL | Configurable max attempts + duration. `ErrAccountLocked` → 429. `EvictStale()` for periodic cleanup.                                                       |
-| 42  | HTTP Handlers      | FULLY_FUNCTIONAL | `AuthHandlers` with session cookies. `SessionMiddleware` (cookie + bearer). Configurable timeout, secure flag, cookie name.                                |
+| 42  | HTTP Handlers      | FULLY_FUNCTIONAL | `AuthHandlers` with session cookies. `SessionMiddleware` (cookie + bearer). Configurable timeout, `*bool` Secure via `PtrBool()`, cookie name.             |
 | 43  | Input Validation   | FULLY_FUNCTIONAL | `RegisterRequest.Validate()` and `LoginRequest.Validate()`. Email format, password 8-128 chars, required fields. Pointer receivers persist trimmed values. |
 
 ---

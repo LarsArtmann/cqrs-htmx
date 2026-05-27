@@ -13,9 +13,13 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | -------- | --------------------------------------------------------------------------------- |
 | Language | Go 1.26.3                                                                         |
 | Module   | github.com/larsartmann/cqrs-htmx                                                  |
-| Test     | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
-| Build    | `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
-| Lint     | `golangci-lint run`                                                               |
+| Test     | `nix run .#test` or `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
+| Build    | `nix run .#build` or `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
+| Lint     | `nix run .#lint` or `golangci-lint run`                                          |
+| Coverage | `nix run .#coverage`                                                             |
+| Fmt      | `nix fmt`                                                                        |
+| Flake    | `nix flake check` (formatting + devShells + apps)                                |
+| DevShell | `nix develop` (go, gopls, golangci-lint)                                         |
 | Coverage | 96.9% root, 91.1% usermgmt (390+ tests)                                           |
 
 ## Architecture
@@ -40,7 +44,7 @@ cqrs-htmx/
 ├── logging.go        # RequestLogging, RequestLoggingSlog, formatters
 ├── ratelimit.go      # RateLimiterMiddleware, per-key token bucket, min-heap eviction
 ├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, RecommendedCSP/HSTS
-├── recovery.go       # RecoveryMiddleware, App.RecoveryMiddleware() — panic recovery
+├── recovery.go       # RecoveryMiddleware (package-level), App.RecoverHandler() — panic recovery
 ├── usermgmt/         # User management submodule (RBAC, sessions, password auth)
 │   ├── go.mod        # Independent Go module
 │   ├── id.go         # Branded UserID type (go-branded-id), NewUserID constructor
@@ -70,7 +74,7 @@ cqrs-htmx/
 
 | Dependency               | Purpose              | Used in          |
 | ------------------------ | -------------------- | ---------------- |
-| go-cqrs-lite/core v1.5.1 | CQRS dispatch        | All modules      |
+| go-cqrs-lite/core v1.6.0 | CQRS dispatch        | All modules      |
 | casbin/casbin/v3         | Authorization        | Root, usermgmt   |
 | justinas/nosurf v1.2.0   | CSRF protection      | Root             |
 | go-error-family v0.1.1   | Error classification | Root             |
@@ -105,6 +109,7 @@ cqrs-htmx/
 - **justinas/nosurf**: Replaced gorilla/csrf. Simpler API, no secret management needed
 - **Custom header/field translation**: `translateCSRFHeaders` maps consumer-defined names to nosurf defaults
 - **Per-handler CSRF**: `CSRFProtect(cfg)` caches nosurf instance per handler config
+- **CSRFConfig.Validate()**: Called automatically by `CSRFMiddleware` — logs errors for SameSite=None+Secure=false and unsafe TrustedOrigins
 
 ### Type Safety
 
@@ -117,6 +122,14 @@ cqrs-htmx/
 - **Timeout wraps dispatch only**: `Config.Timeout` applies to `Dispatch`, not decode/auth — intentional separation
 - **Lifecycle hooks**: `BeforeDispatchHook`/`AfterDispatchHook` for tracing, logging, metrics
 - **Validation order**: `ValidateCommand`/`ValidateQuery` must come AFTER decoder in HandlerOption list
+- **Dispatch error logging**: `handleErr` logs method, path, and error at warn level before calling error handler
+- **Response.JSON error handling**: Returns HTTP 500 on json.Marshal failure instead of empty body
+- **usermgmt writeJSON**: Buffers before WriteHeader so encode failures don't commit success status
+
+### Recovery
+
+- **Package-level RecoveryMiddleware**: Uses `DefaultErrorHandler` for panics
+- **App.RecoverHandler()**: Uses the App's configured error handler (renamed from RecoveryMiddleware to avoid naming collision)
 
 ## Key Gotchas
 
@@ -124,9 +137,11 @@ cqrs-htmx/
 
 1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-3. **go-cqrs-lite version alignment**: All 4 modules now use v1.5.1-pre. datastar-demo was migrated from `command.Core`/`query.Core` → `command.BasicCommand`/`query.BasicQuery`
+3. **go-cqrs-lite version alignment**: All 4 modules now use v1.6.0. datastar-demo was migrated from `command.Core`/`query.Core` → `command.BasicCommand`/`query.BasicQuery`
 4. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
 5. **LSP vs CLI discrepancy**: LSP shows ~31 stale warnings; CLI reports 0 — unresolved LSP cache issue
+6. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
+7. **Private Go deps block nix sandbox builds**: `go-cqrs-lite` is private; `buildGoModule` can't fetch in sandbox. All build/test/lint runs via `writeShellApplication` apps that use the host Go toolchain
 
 ### Type System
 
@@ -140,13 +155,13 @@ cqrs-htmx/
 10. **CSRF middleware ordering**: `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` — CSRF first, then HTMX, then enrichment
 11. **nosurf custom headers**: Must use `translateCSRFHeaders` to map consumer header/field names to nosurf defaults
 12. **HX-Redirect sanitization**: `Response.Redirect()` sanitizes URLs for both HTMX and non-HTMX requests
-13. **HandlerConfig.Secure zero-value**: `Secure` defaults to `true` when NO config passed, but `HandlerConfig{}` (zero-value) overrides to false. Set explicitly in production
+13. **HandlerConfig.Secure uses *bool**: `Secure` is `*bool` in usermgmt — nil defaults to true. Use `PtrBool(false)` to explicitly disable. The zero-value `HandlerConfig{}` is now safe
 14. **Max password length 128**: Enforced in `RegisterRequest.Validate()` and `Service.ChangePassword()`. Prevents bcrypt CPU abuse
 
 ### Error Handling
 
 15. **Error wrapping format**: Use `fmt.Errorf("%w: ...", sentinel, err)` for sentinel wraps. go-error-family for classification
-16. **Middleware silently drops invalid IDs**: Parse failures → ID silently dropped → auth fails downstream with `ErrUnauthorized`
+16. **Middleware logs invalid IDs**: Correlation ID parse failures logged at debug level. Request ID parse failures silently generate a new ID
 17. **DefaultMaxBodySize**: 10 MB when both `Config.MaxBodySize` and per-handler `WithMaxBodySize` are zero
 
 ### Testing
@@ -158,7 +173,21 @@ cqrs-htmx/
 
 ## Test Commands
 
-**Note:** `GOWORK=off` is required so each module uses its own go.mod (not the workspace-level resolution).
+### Via Nix (preferred)
+
+```bash
+nix run .#test       # All tests across all modules (with -race)
+nix run .#build      # Build all modules
+nix run .#lint       # Lint root + usermgmt
+nix run .#coverage   # Coverage report for root + usermgmt
+nix fmt              # Format all Go + Nix files
+nix flake check      # Verify formatting, devShells, and apps
+nix develop          # Enter dev shell (go, gopls, golangci-lint)
+```
+
+### Manual (GOWORK=off required)
+
+`GOWORK=off` is required so each module uses its own go.mod (not the workspace-level resolution).
 
 ```bash
 # All tests (root)
