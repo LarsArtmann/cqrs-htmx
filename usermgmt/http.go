@@ -21,20 +21,43 @@ type AuthHandler struct {
 
 // HandlerConfig controls cookie and session settings for AuthHandler.
 // When passed to NewAuthHandler, all fields replace the defaults.
-// Note: Secure defaults to true when no config is provided, but passing
-// HandlerConfig{} without setting Secure will set it to false.
-// Always set Secure: true explicitly in production.
+// Secure defaults to true. To set false, pass Secure: ptrBool(false).
 type HandlerConfig struct {
 	// CookieName is the session cookie name. Defaults to "session_token".
 	CookieName string
-	// Secure sets the cookie Secure flag. Defaults to true.
-	Secure bool
+	// Secure sets the cookie Secure flag. Defaults to true when nil.
+	// Use ptrBool(false) to explicitly disable.
+	Secure *bool
 	// SessionMaxAge sets the Max-Age for session cookies in seconds.
 	// Zero defaults to 86400 (24 hours).
 	SessionMaxAge int
 	// Timeout sets a maximum execution time for auth endpoint handlers.
 	// Zero means no timeout (default).
 	Timeout time.Duration
+}
+
+// PtrBool returns a pointer to the given bool value.
+// Useful for HandlerConfig.Secure: PtrBool(false) sets Secure to false.
+func PtrBool(v bool) *bool { return &v }
+
+func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
+	result := HandlerConfig{
+		CookieName: defaultCookieName,
+		Secure:     PtrBool(true),
+	}
+	if cfg.CookieName != "" {
+		result.CookieName = cfg.CookieName
+	}
+	if cfg.Secure != nil {
+		result.Secure = cfg.Secure
+	}
+	if cfg.SessionMaxAge != 0 {
+		result.SessionMaxAge = cfg.SessionMaxAge
+	}
+	if cfg.Timeout != 0 {
+		result.Timeout = cfg.Timeout
+	}
+	return result
 }
 
 const (
@@ -44,22 +67,18 @@ const (
 
 // NewAuthHandler creates an AuthHandler for the given Service with optional config.
 func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
-	config := HandlerConfig{
-		CookieName: defaultCookieName,
-		Secure:     true,
-	}
+	config := applyConfigDefaults(HandlerConfig{})
 	if len(cfg) > 0 {
-		if cfg[0].CookieName != "" {
-			config.CookieName = cfg[0].CookieName
-		}
-		config.Secure = cfg[0].Secure
-		config.SessionMaxAge = cfg[0].SessionMaxAge
-		config.Timeout = cfg[0].Timeout
+		config = applyConfigDefaults(cfg[0])
+	}
+	secure := true
+	if config.Secure != nil {
+		secure = *config.Secure
 	}
 	return &AuthHandler{
 		service:       service,
 		cookieName:    config.CookieName,
-		secure:        config.Secure,
+		secure:        secure,
 		sessionMaxAge: config.SessionMaxAge,
 		timeout:       config.Timeout,
 	}

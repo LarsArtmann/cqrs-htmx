@@ -14,7 +14,7 @@ import (
 func setupMux(t *testing.T) (*Service, *http.ServeMux) {
 	t.Helper()
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: false})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	return svc, mux
@@ -345,7 +345,7 @@ func TestHandlers_FullFlow(t *testing.T) {
 
 func TestNewAuthHandler_SessionMaxAge(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: false, SessionMaxAge: 3600})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false), SessionMaxAge: 3600})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -357,7 +357,7 @@ func TestNewAuthHandler_SessionMaxAge(t *testing.T) {
 
 func TestNewAuthHandler_CustomCookieName(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{CookieName: "my_session", Secure: false})
+	h := NewAuthHandler(svc, HandlerConfig{CookieName: "my_session", Secure: PtrBool(false)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
