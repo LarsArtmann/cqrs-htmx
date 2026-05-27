@@ -241,11 +241,11 @@ func renderTodoList(todos []Todo) string {
 	if len(todos) == 0 {
 		return `<li class="empty-state">No todos yet. Add one above!</li>`
 	}
-	html := ""
+	var b strings.Builder
 	for _, t := range todos {
-		html += renderTodo(t)
+		b.WriteString(renderTodo(t))
 	}
-	return html
+	return b.String()
 }
 
 func renderStats(cqrs *CQRS) string {
@@ -269,14 +269,17 @@ func renderEventLog(evt BroadcastEvent) string {
 func extractTitle(html string) string {
 	const marker = `<span class="todo-title">`
 	const end = `</span>`
-	i := strings.Index(html, marker)
-	if i < 0 {
-		return ""
+	rest, ok := strings.CutPrefix(html, marker)
+	if !ok {
+		if i := strings.Index(html, marker); i >= 0 {
+			rest = html[i+len(marker):]
+		} else {
+			return ""
+		}
 	}
-	rest := html[i+len(marker):]
-	j := strings.Index(rest, end)
-	if j < 0 {
+	before, _, found := strings.Cut(rest, end)
+	if !found {
 		return rest
 	}
-	return rest[:j]
+	return before
 }
