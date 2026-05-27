@@ -34,7 +34,8 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 					panic(rec)
 				}
 
-				slog.ErrorContext(r.Context(), "panic recovered",
+				slog.ErrorContext(
+					r.Context(), "panic recovered",
 					slog.Any("panic", rec),
 					slog.String("method", r.Method),
 					slog.String("path", r.URL.Path),
@@ -67,7 +68,8 @@ func (a *App) RecoveryMiddleware() func(http.Handler) http.Handler {
 						panic(rec)
 					}
 
-					slog.ErrorContext(r.Context(), "panic recovered",
+					slog.ErrorContext(
+						r.Context(), "panic recovered",
 						slog.Any("panic", rec),
 						slog.String("method", r.Method),
 						slog.String("path", r.URL.Path),
