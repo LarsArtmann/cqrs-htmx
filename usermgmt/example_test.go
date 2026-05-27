@@ -23,7 +23,7 @@ func ExampleNewService() {
 func ExampleNewAuthHandler() {
 	service, _ := usermgmt.NewService(usermgmt.ServiceConfig{})
 	handler := usermgmt.NewAuthHandler(service, usermgmt.HandlerConfig{
-		Secure: true,
+		Secure: usermgmt.PtrBool(true),
 	})
 
 	mux := http.NewServeMux()
