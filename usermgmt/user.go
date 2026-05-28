@@ -112,6 +112,24 @@ func (u *User) touch() {
 	u.UpdatedAt = time.Now().UTC()
 }
 
+// IsPasswordSet reports whether the user has a password configured.
+func (u *User) IsPasswordSet() bool {
+	return u.PasswordHash != ""
+}
+
+// SetEmail updates the user's email address and records the change timestamp.
+// Callers should validate the email format before calling this method.
+func (u *User) SetEmail(email string) {
+	u.Email = email
+	u.touch()
+}
+
+// SetDisplayName updates the user's display name and records the change timestamp.
+func (u *User) SetDisplayName(name string) {
+	u.DisplayName = name
+	u.touch()
+}
+
 // HasRole reports whether the user has the specified role.
 func (u *User) HasRole(role Role) bool {
 	return slices.Contains(u.Roles, role)
@@ -152,7 +170,7 @@ func (u *User) MarshalJSON() ([]byte, error) {
 		HasPassword bool `json:"has_password"`
 	}{
 		Alias:       (*Alias)(u),
-		HasPassword: u.PasswordHash != "",
+		HasPassword: u.IsPasswordSet(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal user: %w", err)
