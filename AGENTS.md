@@ -50,8 +50,8 @@ cqrs-htmx/
 │   ├── id.go         # Branded UserID type (go-branded-id), NewUserID constructor
 │   ├── authz.go      # Authz wrapper around Casbin (RBAC with domains), AsEnforcer adapter
 │   ├── service.go    # Service (register, login, logout, authenticate, changePassword, updateRoles)
-│   ├── user.go       # User/Session types, bcrypt password hashing
-│   ├── store.go      # In-memory UserStore/SessionStore with email index, atomic Create
+│   ├── user.go       # User/Session types, bcrypt, domain methods (SetRoles, ChangePassword, AddRole, RemoveRole)
+│   ├── store.go      # In-memory UserStore/SessionStore with email index, atomic Create (pure persistence, no timestamps)
 │   ├── http.go       # AuthHandlers (HTTP routes), SessionMiddleware
 │   ├── middleware.go  # User context helpers, UserIDFromRequest bridge
 │   ├── lockout.go    # AccountLockout (configurable max attempts + duration)
@@ -130,6 +130,12 @@ cqrs-htmx/
 
 - **Package-level RecoveryMiddleware**: Uses `DefaultErrorHandler` for panics
 - **App.RecoverHandler()**: Uses the App's configured error handler (renamed from RecoveryMiddleware to avoid naming collision)
+
+### Domain Model (usermgmt)
+
+- **Rich User entity**: `User` has behavior methods — `SetRoles(roles)`, `ChangePassword(old, new, cost)`, `AddRole`, `RemoveRole`, `HasRole`, `SetPassword`, `CheckPassword`. Service layer never directly mutates `user.Roles` or `user.UpdatedAt`
+- **Service delegates to domain**: `Service.UpdateRoles` → `user.SetRoles()`, `Service.ChangePassword` → `user.ChangePassword()`. No read-modify-save pattern at the service level
+- **Timestamp ownership**: `UpdatedAt` is set by domain methods (`SetRoles`, `ChangePassword`, `AddRole`, `RemoveRole`), NOT by the store. `InMemoryUserStore.Save`/`Create` are pure persistence — no timestamp side-effects
 
 ## Key Gotchas
 

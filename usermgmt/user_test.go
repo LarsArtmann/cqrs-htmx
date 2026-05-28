@@ -61,6 +61,68 @@ func TestUser_Roles(t *testing.T) {
 	}
 }
 
+func TestUser_SetRoles(t *testing.T) {
+	u := NewUser(NewUserID("user-1"), "test@example.com", "Test User")
+	before := u.UpdatedAt
+
+	u.SetRoles([]Role{RoleAdmin, RoleOwner})
+
+	if len(u.Roles) != 2 {
+		t.Fatalf("expected 2 roles, got %d", len(u.Roles))
+	}
+	if u.Roles[0] != RoleAdmin || u.Roles[1] != RoleOwner {
+		t.Errorf("expected [admin, owner], got %v", u.Roles)
+	}
+	if !u.UpdatedAt.After(before) {
+		t.Error("expected UpdatedAt to be updated")
+	}
+
+	original := u.Roles
+	u.SetRoles([]Role{RoleUser})
+	if len(original) != 2 {
+		t.Error("expected original slice to not be mutated by SetRoles")
+	}
+}
+
+func TestUser_ChangePassword(t *testing.T) {
+	u := NewUser(NewUserID("user-1"), "test@example.com", "Test User")
+	_ = u.SetPasswordWithCost("oldpass12", minBcryptCost)
+	before := u.UpdatedAt
+
+	t.Run("success", func(t *testing.T) {
+		matched, err := u.ChangePassword("oldpass12", "newpass12", minBcryptCost)
+		if err != nil {
+			t.Fatalf("ChangePassword: %v", err)
+		}
+		if !matched {
+			t.Error("expected matched=true")
+		}
+		if !u.CheckPassword("newpass12") {
+			t.Error("expected new password to work")
+		}
+		if !u.UpdatedAt.After(before) {
+			t.Error("expected UpdatedAt to be updated")
+		}
+	})
+
+	t.Run("wrong old password", func(t *testing.T) {
+		matched, err := u.ChangePassword("wrongpass", "another1", minBcryptCost)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if matched {
+			t.Error("expected matched=false for wrong old password")
+		}
+	})
+
+	t.Run("new password too short", func(t *testing.T) {
+		_, err := u.ChangePassword("newpass12", "short", minBcryptCost)
+		if err == nil {
+			t.Error("expected validation error for short password")
+		}
+	})
+}
+
 func TestUser_MarshalJSON(t *testing.T) {
 	u := NewUser(NewUserID("user-1"), "test@example.com", "Test User")
 	_ = u.SetPasswordWithCost("secret", minBcryptCost)
