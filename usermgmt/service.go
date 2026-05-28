@@ -361,8 +361,7 @@ func (s *Service) UpdateRoles(
 
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
 
-	user.Roles = roles
-	user.UpdatedAt = time.Now().UTC()
+	user.SetRoles(roles)
 	if err := s.users.Save(ctx, user); err != nil {
 		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).
 			WithCause(err)
@@ -390,17 +389,12 @@ func (s *Service) ChangePassword(
 		return event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err)
 	}
 
-	if !user.CheckPassword(oldPassword) {
-		return ErrInvalidCredentials
-	}
-
-	if err := validatePassword(newPassword); err != nil {
+	matched, err := user.ChangePassword(oldPassword, newPassword, s.bcryptCost)
+	if err != nil {
 		return err
 	}
-
-	if err := user.SetPasswordWithCost(newPassword, s.bcryptCost); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("set password for user %q", userID)).
-			WithCause(err)
+	if !matched {
+		return ErrInvalidCredentials
 	}
 
 	if err := s.users.Save(ctx, user); err != nil {

@@ -76,6 +76,23 @@ func (u *User) CheckPassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) == nil
 }
 
+// ChangePassword verifies the old password, validates the new one, and updates the hash.
+// Returns false if the old password is incorrect (no error).
+// Returns an error if the new password fails validation or hashing.
+func (u *User) ChangePassword(oldPassword, newPassword string, cost int) (bool, error) {
+	if !u.CheckPassword(oldPassword) {
+		return false, nil
+	}
+	if err := validatePassword(newPassword); err != nil {
+		return false, err
+	}
+	if err := u.SetPasswordWithCost(newPassword, cost); err != nil {
+		return false, fmt.Errorf("change password: %w", err)
+	}
+	u.UpdatedAt = time.Now().UTC()
+	return true, nil
+}
+
 // HasRole reports whether the user has the specified role.
 func (u *User) HasRole(role Role) bool {
 	return slices.Contains(u.Roles, role)
@@ -87,6 +104,13 @@ func (u *User) AddRole(role Role) {
 		return
 	}
 	u.Roles = append(u.Roles, role)
+	u.UpdatedAt = time.Now().UTC()
+}
+
+// SetRoles replaces the user's role list and updates UpdatedAt.
+func (u *User) SetRoles(roles []Role) {
+	u.Roles = make([]Role, len(roles))
+	copy(u.Roles, roles)
 	u.UpdatedAt = time.Now().UTC()
 }
 
