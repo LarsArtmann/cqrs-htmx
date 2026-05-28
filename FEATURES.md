@@ -48,7 +48,7 @@
 | 18  | CSRF Protection      | FULLY_FUNCTIONAL | `CSRFMiddleware` using justinas/nosurf. `CSRFProtect` per-handler. Template helpers: `CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`, `CSRFTokenFormField`. Custom header/field translation. |
 | 19  | Security Headers     | FULLY_FUNCTIONAL | `SecurityHeadersMiddleware` with configurable CSP, HSTS, X-Frame-Options, etc. `RecommendedCSP`/`RecommendedHSTS` constants.                                                           |
 | 20  | Rate Limiting        | FULLY_FUNCTIONAL | `RateLimiterMiddleware` with token-bucket per key. Min-heap O(log n) eviction. `MaxKeys` cap. `Retry-After` header. `ActiveKeys()` monitoring.                                         |
-| 21  | Panic Recovery       | FULLY_FUNCTIONAL | `RecoveryMiddleware` recovers panics, logs stack trace, writes 500. `App.RecoverHandler()` uses App's ErrorHandler. Re-raises `http.ErrAbortHandler`.                              |
+| 21  | Panic Recovery       | FULLY_FUNCTIONAL | `RecoveryMiddleware` recovers panics, logs stack trace, writes 500. `App.RecoverHandler()` uses App's ErrorHandler. Re-raises `http.ErrAbortHandler`.                                  |
 
 ### Context & Identity
 
@@ -92,6 +92,8 @@
 | #   | Feature            | Status           | Description                                                                                                                                                |
 | --- | ------------------ | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 37  | User Service       | FULLY_FUNCTIONAL | Register, Login, Logout, Authenticate, ChangePassword, UpdateRoles. `context.Context` first param. Compensating transactions on Register rollback.         |
+| 37b | Domain Model       | FULLY_FUNCTIONAL | Rich `User` entity: `SetRoles`, `ChangePassword`, `SetEmail`, `SetDisplayName`, `AddRole`, `RemoveRole`, `IsPasswordSet`. No direct field mutations in service. |
+| 37c | Domain Events      | FULLY_FUNCTIONAL | Optional `EventHandler` callback. Emits `UserRegisteredEvent`, `UserLoggedInEvent`, `PasswordChangedEvent`, `RolesUpdatedEvent`. Panic-safe.              |
 | 38  | Branded UserID     | FULLY_FUNCTIONAL | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.String()` at Casbin boundaries. `NewUserID(s)` constructor.                                  |
 | 39  | RBAC Authorization | FULLY_FUNCTIONAL | Casbin RBAC with domains. `AsEnforcer()` bridge to parent `Enforcer` interface. `ImplicitRoles`, `ImplicitPermissions`, `Policies`.                        |
 | 40  | In-Memory Stores   | FULLY_FUNCTIONAL | `InMemoryUserStore` (email index, atomic Create, `Count()`). `InMemorySessionStore` (TTL, `EvictExpired()`, `Count()`). Both accept `context.Context`.     |

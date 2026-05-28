@@ -40,3 +40,23 @@ func BenchmarkSession_TokenMatches(b *testing.B) {
 		_ = s.TokenMatches(s.Token)
 	}
 }
+
+func BenchmarkUser_ChangePassword(b *testing.B) {
+	u := NewUser(NewUserID("bench"), "bench@test.com", "Bench")
+	_ = u.SetPasswordWithCost("oldpass12", minBcryptCost)
+	b.ResetTimer()
+	for range b.N {
+		_, _ = u.ChangePassword("oldpass12", "newpass12", minBcryptCost)
+		// Reset for next iteration
+		_ = u.SetPasswordWithCost("oldpass12", minBcryptCost)
+	}
+}
+
+func BenchmarkUser_SetRoles(b *testing.B) {
+	u := NewUser(NewUserID("bench"), "bench@test.com", "Bench")
+	roles := []Role{RoleAdmin, RoleUser, RoleViewer, RoleOwner}
+	b.ResetTimer()
+	for range b.N {
+		u.SetRoles(roles)
+	}
+}

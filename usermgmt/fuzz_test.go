@@ -36,3 +36,15 @@ func FuzzLoginRequest_Validate(f *testing.F) {
 		_ = req.Validate()
 	})
 }
+
+func FuzzUser_ChangePassword(f *testing.F) {
+	f.Add("oldpass12", "newpass12")
+	f.Add("short", "short")
+	f.Add("", strings.Repeat("x", 129))
+
+	f.Fuzz(func(_ *testing.T, oldPassword, newPassword string) {
+		u := NewUser(NewUserID("fuzz"), "fuzz@test.com", "Fuzz")
+		_ = u.SetPasswordWithCost("oldpass12", minBcryptCost)
+		_, _ = u.ChangePassword(oldPassword, newPassword, minBcryptCost)
+	})
+}

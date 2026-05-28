@@ -46,7 +46,8 @@ func NewSessionMiddleware(service *Service, cookieName string) func(http.Handler
 				if user, err := service.Authenticate(r.Context(), token); err == nil {
 					r = r.WithContext(WithUser(r.Context(), user))
 				} else {
-					slog.DebugContext(r.Context(), "session authentication failed",
+					slog.DebugContext(
+						r.Context(), "session authentication failed",
 						"error", err,
 						"cookie_name", cookieName,
 					)
