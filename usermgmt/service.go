@@ -14,23 +14,9 @@ import (
 )
 
 const (
-	defaultSessionTTL      = 24 * time.Hour
-	minPasswordLength      = 8
-	maxPasswordLength      = 128
-	maxDisplayNameLength   = 100
-	errMsgPasswordTooShort = "password must be at least 8 characters"
-	errMsgPasswordTooLong  = "password must be under 128 characters"
+	defaultSessionTTL    = 24 * time.Hour
+	maxDisplayNameLength = 100
 )
-
-func validatePassword(password string) error {
-	if len(password) < minPasswordLength {
-		return event.NewRejection("validation", errMsgPasswordTooShort).WithCause(ErrValidation)
-	}
-	if len(password) > maxPasswordLength {
-		return event.NewRejection("validation", errMsgPasswordTooLong).WithCause(ErrValidation)
-	}
-	return nil
-}
 
 // Service orchestrates user registration, authentication, authorization, and session management.
 type Service struct {
