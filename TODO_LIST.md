@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-05-27 | **Coverage:** 96.9% root, 91.2% usermgmt | **Lint:** 0 issues
+**Updated:** 2026-05-28 | **Coverage:** 96.5% root, 91.0% usermgmt | **Lint:** 0 issues
 
 ## Status Legend
 
@@ -46,3 +46,4 @@ _168 items completed. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://git
 | 2026-05-27  | RecoveryMiddleware, RenderJSON, request ID in errors, benchmarks                                                                                                                              |
 | 2026-05-27b | 10 bug fixes: GetUser 404, rate limiter TTL, CSRF JSON, store copies, authz ordering, WriteJSON buffer, password DRY, rollback logging, SessionMiddleware logging                             |
 | 2026-05-27c | HandlerConfig.Secure \*bool, CSRFConfig.Validate(), Response.JSON 500, correlation ID logging, RecoverHandler rename, go-cqrs-lite v1.6.0, dispatch logging, usermgmt writeJSON buffer, tests |
+| 2026-05-28  | Domain model enrichment: SetRoles, ChangePassword, SetEmail, SetDisplayName, IsPasswordSet, touch(). Domain events: 4 event types with optional EventHandler. Fuzz + benchmarks. CRUD eliminated. |
