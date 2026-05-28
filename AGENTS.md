@@ -133,9 +133,10 @@ cqrs-htmx/
 
 ### Domain Model (usermgmt)
 
-- **Rich User entity**: `User` has behavior methods — `SetRoles(roles)`, `ChangePassword(old, new, cost)`, `AddRole`, `RemoveRole`, `HasRole`, `SetPassword`, `CheckPassword`. Service layer never directly mutates `user.Roles` or `user.UpdatedAt`
+- **Rich User entity**: `User` has behavior methods — `SetRoles(roles)`, `ChangePassword(old, new, cost)`, `SetEmail(email)`, `SetDisplayName(name)`, `AddRole`, `RemoveRole`, `HasRole`, `SetPassword`, `CheckPassword`, `IsPasswordSet`. Service layer never directly mutates `user.Roles`, `user.Email`, `user.DisplayName`, or `user.UpdatedAt`
 - **Service delegates to domain**: `Service.UpdateRoles` → `user.SetRoles()`, `Service.ChangePassword` → `user.ChangePassword()`. No read-modify-save pattern at the service level
-- **Timestamp ownership**: `UpdatedAt` is set by domain methods (`SetRoles`, `ChangePassword`, `AddRole`, `RemoveRole`), NOT by the store. `InMemoryUserStore.Save`/`Create` are pure persistence — no timestamp side-effects
+- **Timestamp ownership**: `UpdatedAt` is set by `User.touch()` helper, called from all mutation domain methods. `InMemoryUserStore.Save`/`Create` are pure persistence — no timestamp side-effects
+- **Validation co-location**: `validatePassword()` and password constants live in `user.go` alongside `ChangePassword` that uses them. Request validation (`RegisterRequest.Validate`, `LoginRequest.Validate`) stays in `service.go`
 
 ## Key Gotchas
 
