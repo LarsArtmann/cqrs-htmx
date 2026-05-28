@@ -26,7 +26,8 @@ type Service struct {
 	sessionTTL time.Duration
 	bcryptCost int
 	logger     *slog.Logger
-	lockout    *AccountLockout
+	lockout       *AccountLockout
+	eventHandler  EventHandler
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -46,6 +47,9 @@ type ServiceConfig struct {
 	Logger *slog.Logger
 	// Lockout, if provided, enables account lockout after repeated login failures.
 	Lockout *AccountLockout
+	// EventHandler, if provided, is called after successful domain operations.
+	// See events.go for the event types that may be passed.
+	EventHandler EventHandler
 }
 
 // NewService creates a Service from the given config, applying defaults for nil/zero fields.
@@ -83,8 +87,9 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		sessions:   cfg.SessionStore,
 		sessionTTL: cfg.SessionTTL,
 		bcryptCost: cost,
-		logger:     logger,
-		lockout:    cfg.Lockout,
+		logger:       logger,
+		lockout:      cfg.Lockout,
+		eventHandler: cfg.EventHandler,
 	}, nil
 }
 
@@ -177,6 +182,12 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 		return nil, event.NewTransient("internal", "create session").WithCause(err)
 	}
 
+	s.emit(user.ID, UserRegisteredEvent{
+		Email:       user.Email,
+		DisplayName: user.DisplayName,
+		Roles:       append([]Role(nil), user.Roles...),
+		OccurredAt:  time.Now().UTC(),
+	})
 	return &RegisterResponse{User: user, Session: session}, nil
 }
 
@@ -185,6 +196,18 @@ func (s *Service) logAuth(event string, userID UserID, attrs ...any) {
 	args = append(args, "event", event, "user_id", userID)
 	args = append(args, attrs...)
 	s.logger.Info("usermgmt: "+event, args...)
+}
+
+func (s *Service) emit(userID UserID, evt any) {
+	if s.eventHandler == nil {
+		return
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			s.logger.Warn("usermgmt: event handler panicked", "user_id", userID, "recover", r)
+		}
+	}()
+	s.eventHandler(userID, evt)
 }
 
 // LoginRequest is the input for user login.
@@ -247,6 +270,10 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 		return nil, event.NewTransient("internal", "create session").WithCause(err)
 	}
 
+	s.emit(user.ID, UserLoggedInEvent{
+		Email:      user.Email,
+		OccurredAt: time.Now().UTC(),
+	})
 	return &LoginResponse{User: user, Session: session}, nil
 }
 
@@ -347,6 +374,12 @@ func (s *Service) UpdateRoles(
 
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
 
+	s.emit(userID, RolesUpdatedEvent{
+		Roles:      append([]Role(nil), roles...),
+		Domain:     domain,
+		OccurredAt: time.Now().UTC(),
+	})
+
 	user.SetRoles(roles)
 	if err := s.users.Save(ctx, user); err != nil {
 		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).
@@ -387,5 +420,6 @@ func (s *Service) ChangePassword(
 		return event.NewTransient("internal", fmt.Sprintf("save user %q after password change", userID)).
 			WithCause(err)
 	}
+	s.emit(userID, PasswordChangedEvent{OccurredAt: time.Now().UTC()})
 	return nil
 }
