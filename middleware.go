@@ -36,7 +36,8 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 				if err == nil {
 					ctx = WithCorrelationID(ctx, cid)
 				} else {
-					slog.Debug("cqrs-htmx: invalid correlation ID header",
+					slog.Debug(
+						"cqrs-htmx: invalid correlation ID header",
 						slog.String("header", headerCorrelationID),
 						slog.String("value", cidStr),
 						slog.String("error", err.Error()),

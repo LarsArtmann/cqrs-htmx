@@ -9,18 +9,18 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 ## Quick Reference
 
-| Item     | Value                                                                             |
-| -------- | --------------------------------------------------------------------------------- |
-| Language | Go 1.26.3                                                                         |
-| Module   | github.com/larsartmann/cqrs-htmx                                                  |
+| Item     | Value                                                                                                 |
+| -------- | ----------------------------------------------------------------------------------------------------- |
+| Language | Go 1.26.3                                                                                             |
+| Module   | github.com/larsartmann/cqrs-htmx                                                                      |
 | Test     | `nix run .#test` or `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
-| Build    | `nix run .#build` or `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
-| Lint     | `nix run .#lint` or `golangci-lint run`                                          |
-| Coverage | `nix run .#coverage`                                                             |
-| Fmt      | `nix fmt`                                                                        |
-| Flake    | `nix flake check` (formatting + devShells + apps)                                |
-| DevShell | `nix develop` (go, gopls, golangci-lint)                                         |
-| Coverage | 96.9% root, 91.1% usermgmt (390+ tests)                                           |
+| Build    | `nix run .#build` or `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`              |
+| Lint     | `nix run .#lint` or `golangci-lint run`                                                               |
+| Coverage | `nix run .#coverage`                                                                                  |
+| Fmt      | `nix fmt`                                                                                             |
+| Flake    | `nix flake check` (formatting + devShells + apps)                                                     |
+| DevShell | `nix develop` (go, gopls, golangci-lint)                                                              |
+| Coverage | 96.9% root, 91.1% usermgmt (390+ tests)                                                               |
 
 ## Architecture
 
@@ -162,7 +162,7 @@ cqrs-htmx/
 10. **CSRF middleware ordering**: `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` — CSRF first, then HTMX, then enrichment
 11. **nosurf custom headers**: Must use `translateCSRFHeaders` to map consumer header/field names to nosurf defaults
 12. **HX-Redirect sanitization**: `Response.Redirect()` sanitizes URLs for both HTMX and non-HTMX requests
-13. **HandlerConfig.Secure uses *bool**: `Secure` is `*bool` in usermgmt — nil defaults to true. Use `PtrBool(false)` to explicitly disable. The zero-value `HandlerConfig{}` is now safe
+13. **HandlerConfig.Secure uses \*bool**: `Secure` is `*bool` in usermgmt — nil defaults to true. Use `PtrBool(false)` to explicitly disable. The zero-value `HandlerConfig{}` is now safe
 14. **Max password length 128**: Enforced in `RegisterRequest.Validate()` and `Service.ChangePassword()`. Prevents bcrypt CPU abuse
 
 ### Error Handling

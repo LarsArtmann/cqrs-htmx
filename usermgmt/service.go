@@ -20,14 +20,14 @@ const (
 
 // Service orchestrates user registration, authentication, authorization, and session management.
 type Service struct {
-	authz      *Authz
-	users      UserStore
-	sessions   SessionStore
-	sessionTTL time.Duration
-	bcryptCost int
-	logger     *slog.Logger
-	lockout       *AccountLockout
-	eventHandler  EventHandler
+	authz        *Authz
+	users        UserStore
+	sessions     SessionStore
+	sessionTTL   time.Duration
+	bcryptCost   int
+	logger       *slog.Logger
+	lockout      *AccountLockout
+	eventHandler EventHandler
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -82,11 +82,11 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	}
 
 	return &Service{
-		authz:      cfg.Authz,
-		users:      cfg.UserStore,
-		sessions:   cfg.SessionStore,
-		sessionTTL: cfg.SessionTTL,
-		bcryptCost: cost,
+		authz:        cfg.Authz,
+		users:        cfg.UserStore,
+		sessions:     cfg.SessionStore,
+		sessionTTL:   cfg.SessionTTL,
+		bcryptCost:   cost,
 		logger:       logger,
 		lockout:      cfg.Lockout,
 		eventHandler: cfg.EventHandler,

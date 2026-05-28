@@ -41,7 +41,8 @@ func (a *App) handleErr(
 	cfg *handlerConfig,
 	err error,
 ) {
-	slog.WarnContext(ctx, "cqrs-htmx: dispatch error",
+	slog.WarnContext(
+		ctx, "cqrs-htmx: dispatch error",
 		slog.String("method", r.Method),
 		slog.String("path", r.URL.Path),
 		slog.String("error", err.Error()),

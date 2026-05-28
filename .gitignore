@@ -37,3 +37,5 @@ node_modules/
 
 # Example binaries
 examples/datastar-demo/datastar-demo
+# Nix build output
+/result
