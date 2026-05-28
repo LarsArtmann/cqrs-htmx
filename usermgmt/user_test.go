@@ -123,6 +123,67 @@ func TestUser_ChangePassword(t *testing.T) {
 	})
 }
 
+func TestUser_SetRoles_Nil(t *testing.T) {
+	u := NewUser(NewUserID("u1"), "a@b.com", "Test")
+	before := u.UpdatedAt
+
+	u.SetRoles(nil)
+
+	if len(u.Roles) != 0 {
+		t.Errorf("expected empty roles, got %v", u.Roles)
+	}
+	if !u.UpdatedAt.After(before) {
+		t.Error("expected UpdatedAt to be updated")
+	}
+}
+
+func TestUser_SetRoles_Empty(t *testing.T) {
+	u := NewUser(NewUserID("u1"), "a@b.com", "Test")
+	u.SetRoles([]Role{})
+	if len(u.Roles) != 0 {
+		t.Errorf("expected empty roles, got %v", u.Roles)
+	}
+}
+
+func TestUser_SetEmail(t *testing.T) {
+	u := NewUser(NewUserID("u1"), "old@test.com", "Test")
+	before := u.UpdatedAt
+
+	u.SetEmail("new@test.com")
+
+	if u.Email != "new@test.com" {
+		t.Errorf("expected new@test.com, got %s", u.Email)
+	}
+	if !u.UpdatedAt.After(before) {
+		t.Error("expected UpdatedAt to be updated")
+	}
+}
+
+func TestUser_SetDisplayName(t *testing.T) {
+	u := NewUser(NewUserID("u1"), "a@b.com", "Old Name")
+	before := u.UpdatedAt
+
+	u.SetDisplayName("New Name")
+
+	if u.DisplayName != "New Name" {
+		t.Errorf("expected 'New Name', got %s", u.DisplayName)
+	}
+	if !u.UpdatedAt.After(before) {
+		t.Error("expected UpdatedAt to be updated")
+	}
+}
+
+func TestUser_IsPasswordSet(t *testing.T) {
+	u := NewUser(NewUserID("u1"), "a@b.com", "Test")
+	if u.IsPasswordSet() {
+		t.Error("expected no password initially")
+	}
+	_ = u.SetPasswordWithCost("secret123", minBcryptCost)
+	if !u.IsPasswordSet() {
+		t.Error("expected password to be set")
+	}
+}
+
 func TestUser_MarshalJSON(t *testing.T) {
 	u := NewUser(NewUserID("user-1"), "test@example.com", "Test User")
 	_ = u.SetPasswordWithCost("secret", minBcryptCost)
