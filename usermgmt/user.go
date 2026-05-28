@@ -17,7 +17,22 @@ const (
 	sessionTokenBytes = 32
 	defaultBcryptCost = 12
 	minBcryptCost     = 4
+
+	minPasswordLength      = 8
+	maxPasswordLength      = 128
+	errMsgPasswordTooShort = "password must be at least 8 characters"
+	errMsgPasswordTooLong  = "password must be under 128 characters"
 )
+
+func validatePassword(password string) error {
+	if len(password) < minPasswordLength {
+		return event.NewRejection("validation", errMsgPasswordTooShort).WithCause(ErrValidation)
+	}
+	if len(password) > maxPasswordLength {
+		return event.NewRejection("validation", errMsgPasswordTooLong).WithCause(ErrValidation)
+	}
+	return nil
+}
 
 // User represents a registered user with authentication and authorization data.
 type User struct {
@@ -89,8 +104,12 @@ func (u *User) ChangePassword(oldPassword, newPassword string, cost int) (bool, 
 	if err := u.SetPasswordWithCost(newPassword, cost); err != nil {
 		return false, fmt.Errorf("change password: %w", err)
 	}
-	u.UpdatedAt = time.Now().UTC()
+	u.touch()
 	return true, nil
+}
+
+func (u *User) touch() {
+	u.UpdatedAt = time.Now().UTC()
 }
 
 // HasRole reports whether the user has the specified role.
@@ -104,14 +123,14 @@ func (u *User) AddRole(role Role) {
 		return
 	}
 	u.Roles = append(u.Roles, role)
-	u.UpdatedAt = time.Now().UTC()
+	u.touch()
 }
 
 // SetRoles replaces the user's role list and updates UpdatedAt.
 func (u *User) SetRoles(roles []Role) {
 	u.Roles = make([]Role, len(roles))
 	copy(u.Roles, roles)
-	u.UpdatedAt = time.Now().UTC()
+	u.touch()
 }
 
 // RemoveRole removes the first occurrence of the role and updates UpdatedAt.
@@ -119,7 +138,7 @@ func (u *User) RemoveRole(role Role) {
 	for i, r := range u.Roles {
 		if r == role {
 			u.Roles = slices.Delete(u.Roles, i, i+1)
-			u.UpdatedAt = time.Now().UTC()
+			u.touch()
 			return
 		}
 	}

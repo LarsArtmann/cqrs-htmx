@@ -132,11 +132,12 @@ func TestStore_Save_EmailTakenByOtherUser(t *testing.T) {
 	store := NewInMemoryUserStore()
 	u1 := NewUser(NewUserID("u1"), "a@b.com", "One")
 	_ = store.Create(context.Background(), u1)
+
 	u2 := NewUser(NewUserID("u2"), "c@d.com", "Two")
 	_ = store.Create(context.Background(), u2)
 
-	u2.Email = "a@b.com"
-	if err := store.Save(context.Background(), u2); !errors.Is(err, ErrEmailExists) {
+	conflicting := NewUser(NewUserID("u2"), "a@b.com", "Two")
+	if err := store.Save(context.Background(), conflicting); !errors.Is(err, ErrEmailExists) {
 		t.Errorf("expected ErrEmailExists, got %v", err)
 	}
 }
