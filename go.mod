@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id v1.7.1
 	github.com/larsartmann/go-cqrs-lite/query v1.7.1
 	github.com/larsartmann/go-error-family v0.2.0
-	github.com/larsartmann/httputil v0.0.0-20260526092845-4c4df6dce62d
+	github.com/larsartmann/httputil v0.0.0-20260528145236-22c2616f7c39
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	golang.org/x/time v0.15.0

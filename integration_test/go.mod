@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	github.com/larsartmann/cqrs-htmx v1.0.0
 	github.com/larsartmann/cqrs-htmx/usermgmt v0.0.0
-	github.com/larsartmann/go-cqrs-lite/core v1.6.0
+	github.com/larsartmann/go-cqrs-lite/command v1.7.1
 )
 
 require (
@@ -15,8 +15,13 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec v1.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher v1.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/event v1.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/id v1.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/query v1.7.1 // indirect
 	github.com/larsartmann/go-error-family v0.2.0 // indirect
-	github.com/larsartmann/httputil v0.0.0-20260526092845-4c4df6dce62d // indirect
+	github.com/larsartmann/httputil v0.0.0-20260528145236-22c2616f7c39 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	golang.org/x/crypto v0.51.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
