@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 const (

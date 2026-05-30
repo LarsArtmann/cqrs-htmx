@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // Enforcer checks authorization policy. *casbin.Enforcer satisfies this interface.

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/justinas/nosurf"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 const (
