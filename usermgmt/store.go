@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 )
 
 // UserStore is the persistence interface for User aggregates.

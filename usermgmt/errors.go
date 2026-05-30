@@ -1,6 +1,6 @@
 package usermgmt
 
-import "github.com/larsartmann/go-cqrs-lite/core/event"
+import "github.com/larsartmann/go-cqrs-lite/event"
 
 var (
 	// ErrUserNotFound is returned when a user cannot be located by ID.

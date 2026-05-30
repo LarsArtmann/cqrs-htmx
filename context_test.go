@@ -4,8 +4,8 @@ import (
 	"context"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
-	"github.com/larsartmann/go-cqrs-lite/core/event"
-	"github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+	"github.com/larsartmann/go-cqrs-lite/event"
+	"github.com/larsartmann/go-cqrs-lite/id"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

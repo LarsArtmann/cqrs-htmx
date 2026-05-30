@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 

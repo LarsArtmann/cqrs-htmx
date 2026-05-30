@@ -9,7 +9,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/event"
+	"github.com/larsartmann/go-cqrs-lite/event"
 	"golang.org/x/crypto/bcrypt"
 )
 

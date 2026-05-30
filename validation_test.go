@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	cqrshmx "github.com/larsartmann/cqrs-htmx"
-	"github.com/larsartmann/go-cqrs-lite/core/command"
-	"github.com/larsartmann/go-cqrs-lite/core/query"
+	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/query"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
