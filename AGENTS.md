@@ -26,7 +26,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 ```
 cqrs-htmx/
-├── app.go            # App builder, Config, Command(), Query(), enrichUserID(), catalog entries
+├── app.go            # App builder, Config, Command(), Query(), enrichUserID()
 ├── handler.go        # handleCommandDispatch(), handleQueryDispatch()
 ├── options.go        # HandlerOption, decoders, Render/RenderTempl, validation, authMode enum
 ├── response.go       # HTMX response builder (fluent API) + notification methods
@@ -74,10 +74,10 @@ cqrs-htmx/
 
 | Dependency               | Purpose              | Used in          |
 | ------------------------ | -------------------- | ---------------- |
-| go-cqrs-lite/core v1.6.0 | CQRS dispatch        | All modules      |
+| go-cqrs-lite v2.0.0    | CQRS dispatch        | All modules      |
 | casbin/casbin/v3         | Authorization        | Root, usermgmt   |
 | justinas/nosurf v1.2.0   | CSRF protection      | Root             |
-| go-error-family v0.1.1   | Error classification | Root             |
+| go-error-family v0.3.0   | Error classification | Root             |
 | larsartmann/httputil     | ClientIP extraction  | Root             |
 | go-branded-id            | Branded types        | usermgmt         |
 | golang.org/x/crypto      | bcrypt               | usermgmt         |
@@ -98,7 +98,7 @@ cqrs-htmx/
 
 ### Error Handling
 
-- **go-error-family**: Replaced `cockroachdb/errors` for error classification. `sync.Once` lazy-registers sentinels
+- **go-error-family v0.3.0**: Replaced `cockroachdb/errors` for error classification. `sync.Once` lazy-registers sentinels. Re-exported via `event/v2` package
 - **Error → HTTP mapping**: `MapError` classifies errors into families (Rejection, NotFound, Conflict, etc.) → HTTP status
 - **HTMX-aware errors**: All error handlers check for HTMX requests; auth errors use HX-Redirect
 - **Request ID in errors**: `Config.IncludeRequestIDInErrors` auto-selects request-ID-aware error handlers
@@ -144,11 +144,11 @@ cqrs-htmx/
 
 1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-3. **go-cqrs-lite version alignment**: All 4 modules now use v1.6.0. datastar-demo was migrated from `command.Core`/`query.Core` → `command.BasicCommand`/`query.BasicQuery`
+3. **go-cqrs-lite version alignment**: All 4 modules now use v2.0.0 with `/v2` import paths. `dispatcher.HandlerMeta` and `CatalogEntries()` removed in v2 (dead code). Local replace directives point to `../go-cqrs-lite` for development
 4. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
 5. **LSP vs CLI discrepancy**: LSP shows ~31 stale warnings; CLI reports 0 — unresolved LSP cache issue
 6. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
-7. **Private Go deps block nix sandbox builds**: `go-cqrs-lite` is private; `buildGoModule` can't fetch in sandbox. All build/test/lint runs via `writeShellApplication` apps that use the host Go toolchain
+6. **go-cqrs-lite v2 import paths**: All imports use `github.com/larsartmann/go-cqrs-lite/{pkg}/v2`. Local replace directives in each go.mod point to `../go-cqrs-lite/{pkg}` until v2.0.0 tags are published
 
 ### Type System
 

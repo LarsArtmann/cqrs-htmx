@@ -7,10 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/dispatcher"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 // App wires CQRS dispatchers, Casbin authorization, and HTMX response handling
@@ -194,24 +193,6 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 // with user identity. Apply this once to your router/mux.
 func (a *App) Middleware() func(http.Handler) http.Handler {
 	return ContextEnrichmentMiddleware(a.userIDExtractor)
-}
-
-// CommandCatalogEntries returns all registered command catalog entries.
-// Returns nil if no command dispatcher is configured.
-func (a *App) CommandCatalogEntries() map[command.Type]dispatcher.HandlerMeta {
-	if a.commands == nil {
-		return nil
-	}
-	return a.commands.CatalogEntries()
-}
-
-// QueryCatalogEntries returns all registered query catalog entries.
-// Returns nil if no query dispatcher is configured.
-func (a *App) QueryCatalogEntries() map[query.Type]dispatcher.HandlerMeta {
-	if a.queries == nil {
-		return nil
-	}
-	return a.queries.CatalogEntries()
 }
 
 // enrichUserID extracts the user ID if not already present in context.

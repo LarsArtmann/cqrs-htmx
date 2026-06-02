@@ -19,10 +19,12 @@
 
 ### Future Enhancements (Not Started)
 
-- [x] **Upgrade usermgmt to go-cqrs-lite/core v1.6.0** — Both modules now aligned on v1.6.0.
+- [x] **Upgrade to go-cqrs-lite v2.0.0** — All 4 modules migrated to v2 import paths (`/v2` suffix). CatalogEntries removed (dead upstream code). go-error-family v0.3.0. Local replace directives for development.
 - [ ] **SQL store backend for usermgmt** — Pattern documented in ADR 0003 (numeric IDs via `brandid.ID[Brand, int64]`). Not yet implemented.
-- [ ] **OpenTelemetry integration** — Lifecycle hooks (`BeforeDispatchHook`/`AfterDispatchHook`) enable tracing. No official OTel middleware yet.
-- [ ] **WebSocket/SSE helpers** — NOT_PLANNED per FEATURES.md. Would require significant API surface.
+- [ ] **OpenTelemetry integration** — Lifecycle hooks (`BeforeDispatchHook`/`AfterDispatchHook`) enable tracing. Upstream v2 has generic OTel middleware in `middleware/` module.
+- [ ] **Adopt v2 typed dispatch** — `command.RegisterTyped[T]`/`query.RegisterTyped[T]`/`query.DispatchTyped[T]` eliminate manual type assertions.
+- [ ] **Adopt PaginatedResult[T]** — `query.PaginatedResult[T]` provides built-in pagination for query handlers.
+- [ ] **Reactive event streams** — `event.EventBus` + `FilterEventType` + `ScanState` for real-time SSE/HTMX out-of-band updates.
 
 ---
 

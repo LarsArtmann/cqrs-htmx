@@ -8,7 +8,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
 	"github.com/larsartmann/cqrs-htmx/usermgmt"
-	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
 )
 
 func TestUsermgmtBridge_AsEnforcer(t *testing.T) {
