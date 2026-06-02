@@ -126,12 +126,12 @@ var _ = Describe("Request Logging", func() {
 			}))
 
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodPut, "/items/42?expand=true", nil)
+			r := httptest.NewRequest(http.MethodPut, "/items/42", nil)
 			handler.ServeHTTP(w, r)
 
 			Expect(logged).To(ContainSubstring(`"method":"PUT"`))
 			Expect(logged).To(ContainSubstring(`"path":"/items/42"`))
-			Expect(logged).To(ContainSubstring(`"query":"expand=true"`))
+			Expect(logged).NotTo(ContainSubstring(`"query"`))
 			Expect(logged).To(ContainSubstring(`"status":"Accepted"`))
 			Expect(logged).To(ContainSubstring(`"duration"`))
 		})
@@ -185,7 +185,7 @@ var _ = Describe("Request Logging", func() {
 			logged := buf.String()
 			Expect(logged).To(ContainSubstring(`"request_id":"01HK1549P84T9XF8R94E960633"`))
 		})
-		It("includes query string in slog output", func() {
+		It("omits query string from slog output", func() {
 			middleware, buf := newSlogCapture()
 
 			handler := middleware(okHandler())
@@ -195,7 +195,7 @@ var _ = Describe("Request Logging", func() {
 			handler.ServeHTTP(w, r)
 
 			logged := buf.String()
-			Expect(logged).To(ContainSubstring(`"query":"expand=true"`))
+			Expect(logged).NotTo(ContainSubstring(`"query"`))
 		})
 
 		It("includes correlation_id and user_id in slog output", func() {

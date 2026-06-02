@@ -179,6 +179,11 @@ func (a *App) handleQueryDispatch(
 		return
 	}
 
+	if qry == nil {
+		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
+		return
+	}
+
 	ctx, cancel := a.timeoutCtx(ctx, cfg)
 	defer cancel()
 

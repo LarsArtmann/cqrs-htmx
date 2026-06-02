@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-05-28 | **Coverage:** 96.5% root, 91.0% usermgmt | **Lint:** 0 issues
+**Updated:** 2026-06-02 | **Coverage:** 96.9% root, 91.1% usermgmt | **Lint:** 0 issues
 
 ## Status Legend
 
@@ -13,9 +13,19 @@
 
 ## Open Items
 
+### Security & Correctness (Pre-v1.1.0)
+
+- [ ] **Fix rate limiter unbounded heap growth** — ratelimit.go tracks heap entries but never removes stale ones on refresh, causing unbounded memory growth. Fix: add heapIndex map, use heap.Fix for in-place updates. (Medium effort)
+- [ ] **Fix CSRF proxy bypass** — `r.TLS == nil` check trusts all HTTP proxies. Add `TrustedProxies []string` config and IP-based trust check. (Large effort, needs design)
+- [ ] **Fix Response.Status() fluent chain** — `Status()` calls `WriteHeader()` immediately, breaking subsequent `Redirect()`/`PushURL()` calls that also set headers. Fix: defer WriteHeader to `Apply()`. (Medium effort)
+- [ ] **Add tests for nil-enforcer + query nil check** — Authz bypass and query nil panic fixes lack dedicated test coverage.
+- [ ] **Add Login error classification tests** — Verify store errors return transient, not ErrInvalidCredentials.
+- [ ] **Add UpdateRoles rollback tests** — Verify Casbin failure after user save doesn't corrupt state.
+
 ### Upstream-Blocked
 
 - [ ] **BrandNamer for root module marker types** — BLOCKED: upstream `go-cqrs-lite/core/pkg/id` marker types (`userMarker`, `correlationMarker`) are unexported. Requires upstream change to expose them or provide BrandNamer integration.
+- [ ] **Remove local replace directives** — go-cqrs-lite v2.0.0 is tagged upstream; local replace directives in go.mod files can be removed once confirmed resolvable.
 
 ### Future Enhancements (Not Started)
 
@@ -49,3 +59,4 @@ _168 items completed. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://git
 | 2026-05-27b | 10 bug fixes: GetUser 404, rate limiter TTL, CSRF JSON, store copies, authz ordering, WriteJSON buffer, password DRY, rollback logging, SessionMiddleware logging                                 |
 | 2026-05-27c | HandlerConfig.Secure \*bool, CSRFConfig.Validate(), Response.JSON 500, correlation ID logging, RecoverHandler rename, go-cqrs-lite v1.6.0, dispatch logging, usermgmt writeJSON buffer, tests     |
 | 2026-05-28  | Domain model enrichment: SetRoles, ChangePassword, SetEmail, SetDisplayName, IsPasswordSet, touch(). Domain events: 4 event types with optional EventHandler. Fuzz + benchmarks. CRUD eliminated. |
+| 2026-06-02  | v2.0.0 migration (42 files). Pre-release fixes: nil-enforcer bypass, query nil panic, Login error classification, UpdateRoles ordering, store clone, query param logging removed, defaultLoginRedirect const. |

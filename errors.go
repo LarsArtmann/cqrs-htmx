@@ -10,10 +10,9 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-var (
-	defaultLoginRedirect = "/login"
-	registerErrors       sync.Once
-)
+const defaultLoginRedirect = "/login"
+
+var registerErrors sync.Once
 
 // Sentinel errors for HTTP→CQRS integration.
 var (
