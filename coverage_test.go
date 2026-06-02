@@ -11,10 +11,10 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx"
-	"github.com/larsartmann/go-cqrs-lite/command"
-	"github.com/larsartmann/go-cqrs-lite/event"
-	"github.com/larsartmann/go-cqrs-lite/id"
-	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -554,36 +554,6 @@ var _ = Describe("Coverage Gaps", func() {
 			), r)
 			Expect(w.Header().Get("HX-Push-URL")).To(Equal("/users/1"))
 		})
-	})
-})
-
-var _ = Describe("CatalogEntries", func() {
-	It("returns empty map from command dispatcher", func() {
-		app := newCommandApp()
-		entries := app.CommandCatalogEntries()
-		Expect(entries).To(BeEmpty())
-	})
-
-	It("returns nil from query dispatcher when not configured", func() {
-		app := newCommandApp()
-		entries := app.QueryCatalogEntries()
-		Expect(entries).To(BeNil())
-	})
-
-	It("returns empty map from query dispatcher", func() {
-		qd := query.NewDispatcher()
-		app, err := cqrshtmx.New(cqrshtmx.Config{Queries: qd})
-		Expect(err).NotTo(HaveOccurred())
-		entries := app.QueryCatalogEntries()
-		Expect(entries).To(BeEmpty())
-	})
-
-	It("returns nil from command dispatcher when not configured", func() {
-		qd := query.NewDispatcher()
-		app, err := cqrshtmx.New(cqrshtmx.Config{Queries: qd})
-		Expect(err).NotTo(HaveOccurred())
-		entries := app.CommandCatalogEntries()
-		Expect(entries).To(BeNil())
 	})
 })
 

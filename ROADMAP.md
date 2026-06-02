@@ -7,7 +7,7 @@
 - **Version:** Unreleased (post-v1.0.0 development)
 - **Coverage:** 96.9% root, 91.1% usermgmt
 - **Lint:** 0 issues
-- **Dependencies:** go-cqrs-lite/core v1.6.0, justinas/nosurf, go-error-family, larsartmann/httputil
+- **Dependencies:** go-cqrs-lite v2.0.0 (all modules), justinas/nosurf, go-error-family v0.3.0, larsartmann/httputil
 - **Test suite:** 390+ specs, race-safe, fuzz tests, benchmarks
 
 ---
@@ -18,8 +18,10 @@ _Focus: Align modules, stabilize deps, prepare for broader adoption._
 
 | Area  | Item                                                                        | Priority | Status             |
 | ----- | --------------------------------------------------------------------------- | -------- | ------------------ |
-| Deps  | Align usermgmt to go-cqrs-lite/core v1.6.0                                  | High     | Done               |
-| Deps  | Move go-cqrs-lite/core to formal v1.6.0 release                             | High     | Done               |
+| Deps  | Upgrade all modules to go-cqrs-lite v2.0.0                                 | High     | Done               |
+| Deps  | Remove CatalogEntries (dead upstream code in v2)                           | High     | Done               |
+| Deps  | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`)                 | Medium   | Open               |
+| Deps  | Adopt v2 `PaginatedResult[T]` for query handlers                           | Low      | Open               |
 | Types | BrandNamer for root module marker types (`userMarker`, `correlationMarker`) | Medium   | Blocked (upstream) |
 | Docs  | Add comprehensive godoc package examples with runnable snippets             | Medium   | Open               |
 | Docs  | README.md refresh — reflect nosurf, go-error-family, httputil migration     | Medium   | Done               |
