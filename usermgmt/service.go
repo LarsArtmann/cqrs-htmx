@@ -250,7 +250,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 	}
 	user, err := s.users.FindByEmail(ctx, req.Email)
 	if err != nil {
-		return nil, ErrInvalidCredentials
+		return nil, classifyLoginError(err)
 	}
 
 	if !user.CheckPassword(req.Password) {
@@ -364,6 +364,12 @@ func (s *Service) UpdateRoles(
 		})
 	}
 
+	user.SetRoles(roles)
+	if err := s.users.Save(ctx, user); err != nil {
+		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).
+			WithCause(err)
+	}
+
 	if err := s.authz.Apply(PolicyUpdate{
 		RemoveGroups: remove,
 		AddGroups:    add,
@@ -379,12 +385,6 @@ func (s *Service) UpdateRoles(
 		Domain:     domain,
 		OccurredAt: time.Now().UTC(),
 	})
-
-	user.SetRoles(roles)
-	if err := s.users.Save(ctx, user); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).
-			WithCause(err)
-	}
 	return nil
 }
 
@@ -394,6 +394,13 @@ func formatRoles(roles []Role) string {
 		strs[i] = string(r)
 	}
 	return strings.Join(strs, ",")
+}
+
+func classifyLoginError(err error) error {
+	if errors.Is(err, ErrUserNotFound) {
+		return ErrInvalidCredentials
+	}
+	return event.NewTransient("internal", "find user by email").WithCause(err)
 }
 
 // ChangePassword verifies the old password, validates the new password length,

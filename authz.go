@@ -76,7 +76,7 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 		return ErrUnauthorized
 	}
 
-	if cfg.authMode == authAuthorized && a.enforcer != nil {
+	if cfg.authMode == authAuthorized {
 		return Enforce(a.enforcer, userID.String(), cfg.resource, cfg.action)
 	}
 

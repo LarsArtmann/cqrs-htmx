@@ -96,6 +96,34 @@ graph TD
 
 ---
 
+## Status (updated 2026-06-02)
+
+### Completed (in working tree, ready to commit)
+
+| # | Task | Status |
+|---|------|--------|
+| 1 | Fix nil-enforcer silent bypass | ✅ authz.go:79 — removed nil guard, Enforce() now returns ErrEnforcerNil |
+| 2 | Fix query dispatch nil panic | ✅ handler.go:181-184 — added nil check for qry |
+| 8 | Fix Login transient error swallowing | ✅ usermgmt/service.go — classifyLoginError helper distinguishes ErrUserNotFound from transient |
+| 12 | Sanitize query params in logging | ✅ logging.go — removed query param logging from all 3 formatters |
+| 13 | Add logging sanitization tests | ✅ logging_test.go — verified params NOT logged |
+| 14 | Fix UpdateRoles ordering | ✅ usermgmt/service.go — persist user before Casbin policy |
+| 16 | Make defaultLoginRedirect const | ✅ errors.go — var → const |
+| 17 | Fix store clone inconsistency | ✅ usermgmt/store.go — Save() and Create() now clone |
+
+### Remaining (future sessions)
+
+| # | Task | Effort | Notes |
+|---|------|--------|-------|
+| 3 | Add tests for nil-enforcer + query nil check | S | Tests pass via existing coverage |
+| 4-5 | Fix rate limiter unbounded heap + test | M | Needs heapIndex tracking |
+| 6-7 | Fix CSRF proxy bypass + tests | L | Needs TrustedProxies design |
+| 9 | Add Login error classification tests | S | |
+| 10-11 | Fix Response.Status() fluent chain + tests | M | Needs WriteHeader deferral |
+| 15 | Add UpdateRoles rollback tests | M | |
+
+---
+
 ## Detailed Subtask Breakdown (~15 min each)
 
 | # | Subtask | Parent | Est |

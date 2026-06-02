@@ -80,7 +80,7 @@ func (s *InMemoryUserStore) Save(_ context.Context, user *User) error {
 	if otherID, taken := s.emails[user.Email]; taken && otherID != user.ID {
 		return ErrEmailExists
 	}
-	s.users[user.ID] = user
+	s.users[user.ID] = user.Clone()
 	s.emails[user.Email] = user.ID
 	return nil
 }
@@ -96,7 +96,7 @@ func (s *InMemoryUserStore) Create(_ context.Context, user *User) error {
 	if _, ok := s.users[user.ID]; ok {
 		return ErrUserIDExists
 	}
-	s.users[user.ID] = user
+	s.users[user.ID] = user.Clone()
 	s.emails[user.Email] = user.ID
 	return nil
 }

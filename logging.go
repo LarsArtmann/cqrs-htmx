@@ -47,9 +47,6 @@ func contextFields(r *http.Request) map[string]string {
 func DefaultLogFormatter(r *http.Request, status int, duration time.Duration) string {
 	method := r.Method
 	path := r.URL.Path
-	if r.URL.RawQuery != "" {
-		path += "?" + r.URL.RawQuery
-	}
 
 	var extra string
 	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
@@ -75,10 +72,6 @@ func JSONLogFormatter(r *http.Request, status int, duration time.Duration) strin
 		"path":     r.URL.Path,
 		"status":   http.StatusText(status),
 		"duration": duration.String(),
-	}
-
-	if r.URL.RawQuery != "" {
-		entry["query"] = r.URL.RawQuery
 	}
 
 	for key, val := range contextFields(r) {
@@ -181,16 +174,13 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 
 			duration := time.Since(start)
 
-			attrs := []slog.Attr{
+			attrs := make([]slog.Attr, 0, 4+len(contextFields(r)))
+			attrs = append(attrs,
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.Int("status", rw.Status()),
 				slog.Duration("duration", duration),
-			}
-
-			if r.URL.RawQuery != "" {
-				attrs = append(attrs, slog.String("query", r.URL.RawQuery))
-			}
+			)
 
 			for key, val := range contextFields(r) {
 				attrs = append(attrs, slog.String(key, val))
