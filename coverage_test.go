@@ -932,8 +932,43 @@ var _ = Describe("Root Coverage Gaps", func() {
 			It("writes byte body", func() {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)
-				cqrshtmx.NewResponse(w, r).Body([]byte("raw bytes"))
+				result := cqrshtmx.NewResponse(w, r).Body([]byte("raw bytes"))
+				Expect(result).NotTo(BeNil())
 				Expect(w.Body.String()).To(Equal("raw bytes"))
+			})
+		})
+
+		Describe("WriteString", func() {
+			It("writes via WriteString when StringWriter is available", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				cqrshtmx.NewResponse(w, r).WriteString("hello world")
+				Expect(w.Body.String()).To(Equal("hello world"))
+			})
+
+			It("writes via Write when StringWriter is not available", func() {
+				rec := httptest.NewRecorder()
+				w := &nonStringWriter{ResponseWriter: rec, recorder: rec}
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				cqrshtmx.NewResponse(w, r).WriteString("fallback")
+				Expect(w.recorder.Body.String()).To(Equal("fallback"))
+			})
+		})
+
+		Describe("JSON", func() {
+			It("encodes and writes JSON body", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				cqrshtmx.NewResponse(w, r).JSON(map[string]string{"s": "ok"})
+				Expect(w.Header().Get("Content-Type")).To(ContainSubstring("application/json"))
+				Expect(w.Body.String()).To(ContainSubstring(`"s":"ok"`))
+			})
+
+			It("returns 500 on marshal error", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				cqrshtmx.NewResponse(w, r).JSON(make(chan int))
+				Expect(w.Code).To(Equal(http.StatusInternalServerError))
 			})
 		})
 	})
@@ -1191,3 +1226,22 @@ var _ = Describe("Root Coverage Gaps", func() {
 		})
 	})
 })
+
+// nonStringWriter wraps an http.ResponseWriter without implementing
+// io.StringWriter, forcing WriteString to fall back to Write.
+type nonStringWriter struct {
+	http.ResponseWriter
+	recorder *httptest.ResponseRecorder
+}
+
+func (n *nonStringWriter) Write(p []byte) (int, error) {
+	return n.recorder.Write(p)
+}
+
+func (n *nonStringWriter) Header() http.Header {
+	return n.recorder.Header()
+}
+
+func (n *nonStringWriter) WriteHeader(code int) {
+	n.recorder.WriteHeader(code)
+}
