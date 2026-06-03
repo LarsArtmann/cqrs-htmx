@@ -18,9 +18,9 @@
 - [ ] **Fix rate limiter unbounded heap growth** — ratelimit.go tracks heap entries but never removes stale ones on refresh, causing unbounded memory growth. Fix: add heapIndex map, use heap.Fix for in-place updates. (Medium effort)
 - [ ] **Fix CSRF proxy bypass** — `r.TLS == nil` check trusts all HTTP proxies. Add `TrustedProxies []string` config and IP-based trust check. (Large effort, needs design)
 - [ ] **Fix Response.Status() fluent chain** — `Status()` calls `WriteHeader()` immediately, breaking subsequent `Redirect()`/`PushURL()` calls that also set headers. Fix: defer WriteHeader to `Apply()`. (Medium effort)
-- [ ] **Add tests for nil-enforcer + query nil check** — Authz bypass and query nil panic fixes lack dedicated test coverage.
-- [ ] **Add Login error classification tests** — Verify store errors return transient, not ErrInvalidCredentials.
-- [ ] **Add UpdateRoles rollback tests** — Verify Casbin failure after user save doesn't corrupt state.
+- [x] **Add tests for nil-enforcer + query nil check** — Tests already existed in coverage_test.go (verified). Added ErrEnforcerNotInitialized sentinel to all Authz methods for defensive nil-checking.
+- [x] **Add Login error classification tests** — TestService_Login_StoreError added. Verifies store errors return transient, not ErrInvalidCredentials.
+- [x] **Add UpdateRoles rollback tests** — TestService_UpdateRoles_AuthzFailurePreservesUser added. Verifies user roles remain unchanged when Casbin Apply fails. Also fixed UpdateRoles ordering (Casbin before user save).
 
 ### Upstream-Blocked
 
