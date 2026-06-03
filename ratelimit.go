@@ -267,7 +267,7 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 
 	lim := rate.NewLimiter(p.limit, int(p.burst))
 	now := time.Now()
-	heapRef := &evictionEntry{key: key, lastUsed: now}
+	heapRef := &evictionEntry{key: key, lastUsed: now, index: -1}
 	newEntry := &limiterEntry{lim: lim, lastUsed: now, heapRef: heapRef}
 	p.limiters[key] = newEntry
 	heap.Push(p.heap, heapRef)
@@ -330,6 +330,7 @@ func (h *evictionHeap) Swap(i, j int) {
 	(*h)[i].index = i
 	(*h)[j].index = j
 }
+
 func (h *evictionHeap) Push(x any) {
 	entry, ok := x.(*evictionEntry)
 	if !ok {

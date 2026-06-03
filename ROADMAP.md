@@ -18,10 +18,10 @@ _Focus: Align modules, stabilize deps, prepare for broader adoption._
 
 | Area  | Item                                                                        | Priority | Status             |
 | ----- | --------------------------------------------------------------------------- | -------- | ------------------ |
-| Deps  | Upgrade all modules to go-cqrs-lite v2.0.0                                 | High     | Done               |
-| Deps  | Remove CatalogEntries (dead upstream code in v2)                           | High     | Done               |
-| Deps  | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`)                 | Medium   | Open               |
-| Deps  | Adopt v2 `PaginatedResult[T]` for query handlers                           | Low      | Open               |
+| Deps  | Upgrade all modules to go-cqrs-lite v2.0.0                                  | High     | Done               |
+| Deps  | Remove CatalogEntries (dead upstream code in v2)                            | High     | Done               |
+| Deps  | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`)                   | Medium   | Open               |
+| Deps  | Adopt v2 `PaginatedResult[T]` for query handlers                            | Low      | Open               |
 | Types | BrandNamer for root module marker types (`userMarker`, `correlationMarker`) | Medium   | Blocked (upstream) |
 | Docs  | Add comprehensive godoc package examples with runnable snippets             | Medium   | Open               |
 | Docs  | README.md refresh — reflect nosurf, go-error-family, httputil migration     | Medium   | Done               |

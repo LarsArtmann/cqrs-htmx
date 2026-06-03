@@ -526,7 +526,7 @@ func TestService_Register_RollbackOnGroupPolicyFailure(t *testing.T) {
 	}
 
 	store.mu.RLock()
-		afterUsers := len(store.users)
+	afterUsers := len(store.users)
 	store.mu.RUnlock()
 	if afterUsers != 0 {
 		t.Errorf("expected user to be rolled back, but %d users remain",
