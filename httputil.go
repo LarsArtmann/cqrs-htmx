@@ -25,6 +25,10 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 }
 
 // ClientIP delegates to httputil.ClientIP for client IP extraction.
+//
+// Deprecated: Import github.com/larsartmann/httputil directly and use
+// httputil.ClientIP(r) instead. This re-export will be removed in a future
+// version.
 func ClientIP(r *http.Request) string {
 	return httputil.ClientIP(r)
 }
