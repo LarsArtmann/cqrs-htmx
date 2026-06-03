@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/larsartmann/httputil"
 	"golang.org/x/time/rate"
 )
 
@@ -42,7 +43,7 @@ func KeyExtractorFromRemoteAddr() KeyExtractor {
 // resolve the real client IP, respecting X-Forwarded-For and X-Real-IP
 // headers. Use this when deployed behind a trusted reverse proxy.
 func KeyExtractorFromClientIP() KeyExtractor {
-	return ClientIP
+	return httputil.ClientIP
 }
 
 // RateLimiterConfig configures the token-bucket rate limiter per key.
