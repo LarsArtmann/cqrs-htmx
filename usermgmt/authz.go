@@ -166,6 +166,9 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 // Enforce checks whether the subject is allowed to perform the action on the
 // object within the given domain.
 func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
+	if a.enforcer == nil {
+		return false, ErrEnforcerNotInitialized
+	}
 	ok, err := a.enforcer.Enforce(sub, dom, obj, string(act))
 	if err != nil {
 		return false, event.NewTransient("casbin_error", fmt.Sprintf("enforce %s/%s/%s/%s", sub, dom, obj, act)).
@@ -176,6 +179,9 @@ func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
 
 // EnforceAny passes arbitrary values directly to the Casbin enforcer.
 func (a *Authz) EnforceAny(rvals ...any) (bool, error) {
+	if a.enforcer == nil {
+		return false, ErrEnforcerNotInitialized
+	}
 	ok, err := a.enforcer.Enforce(rvals...)
 	if err != nil {
 		return false, event.NewTransient("casbin_error", "enforce any").WithCause(err)
@@ -201,6 +207,9 @@ func (a *Authz) AsEnforcer() interface{ Enforce(...any) (bool, error) } {
 
 // EnforceEx is like Enforce but also returns the matched policy rules.
 func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, error) {
+	if a.enforcer == nil {
+		return nil, ErrEnforcerNotInitialized
+	}
 	allowed, matched, err := a.enforcer.EnforceEx(sub, dom, obj, string(act))
 	if err != nil {
 		return nil, event.NewTransient("casbin_error", fmt.Sprintf("sub=%s dom=%s obj=%s", sub, dom, obj)).
@@ -254,6 +263,9 @@ func policyWrapErr(msg string, p Policy) string {
 // rather than losing all permissions. If any operation fails mid-way, the policy
 // state is partially updated — callers should treat this as a best-effort operation.
 func (a *Authz) Apply(update PolicyUpdate) error {
+	if a.enforcer == nil {
+		return ErrEnforcerNotInitialized
+	}
 	for _, g := range update.AddGroups {
 		if _, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
 			return event.NewTransient("casbin_error", fmt.Sprintf("add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)).
@@ -291,6 +303,9 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 
 // AddPolicy adds a single RBAC policy rule.
 func (a *Authz) AddPolicy(p Policy) error {
+	if a.enforcer == nil {
+		return ErrEnforcerNotInitialized
+	}
 	_, err := a.enforcer.AddPolicy(policyArgs(p)...)
 	if err != nil {
 		return event.NewTransient("casbin_error", "add policy").WithCause(err)
@@ -300,6 +315,9 @@ func (a *Authz) AddPolicy(p Policy) error {
 
 // RemovePolicy removes a single RBAC policy rule.
 func (a *Authz) RemovePolicy(p Policy) error {
+	if a.enforcer == nil {
+		return ErrEnforcerNotInitialized
+	}
 	_, err := a.enforcer.RemovePolicy(policyArgs(p)...)
 	if err != nil {
 		return event.NewTransient("casbin_error", "remove policy").WithCause(err)
@@ -335,6 +353,9 @@ func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 
 // Policies returns all stored policy rules.
 func (a *Authz) Policies() ([][]string, error) {
+	if a.enforcer == nil {
+		return nil, ErrEnforcerNotInitialized
+	}
 	p, err := a.enforcer.GetPolicy()
 	if err != nil {
 		return nil, event.NewTransient("casbin_error", "get policies").WithCause(err)
@@ -344,6 +365,9 @@ func (a *Authz) Policies() ([][]string, error) {
 
 // GroupPolicies returns all stored group (role) policies.
 func (a *Authz) GroupPolicies() ([][]string, error) {
+	if a.enforcer == nil {
+		return nil, ErrEnforcerNotInitialized
+	}
 	g, err := a.enforcer.GetGroupingPolicy()
 	if err != nil {
 		return nil, event.NewTransient("casbin_error", "get group policies").WithCause(err)
@@ -361,6 +385,9 @@ func convertRoles(roles []string) []Role {
 
 // RolesForUser returns the directly assigned roles for a user in the given domain.
 func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
+	if a.enforcer == nil {
+		return nil, ErrEnforcerNotInitialized
+	}
 	roles, err := a.enforcer.GetRolesForUser(userID.Get(), domain)
 	if err != nil {
 		return nil, event.NewTransient("casbin_error", "domain="+domain).
@@ -371,6 +398,9 @@ func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 
 // ImplicitRolesForUser returns all roles inherited (transitively) by the user in the domain.
 func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, error) {
+	if a.enforcer == nil {
+		return nil, ErrEnforcerNotInitialized
+	}
 	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get(), domain)
 	if err != nil {
 		return nil, event.NewTransient("casbin_error", "domain="+domain).
@@ -382,6 +412,9 @@ func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, erro
 // ImplicitPermissionsForUser returns all permissions the user has in the domain,
 // including those inherited through role hierarchy.
 func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]string, error) {
+	if a.enforcer == nil {
+		return nil, ErrEnforcerNotInitialized
+	}
 	p, err := a.enforcer.GetImplicitPermissionsForUser(userID.Get(), domain)
 	if err != nil {
 		return nil, event.NewTransient(
@@ -394,6 +427,9 @@ func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]st
 
 // DomainsForUser returns all domains the user has roles in.
 func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
+	if a.enforcer == nil {
+		return nil, ErrEnforcerNotInitialized
+	}
 	d, err := a.enforcer.GetDomainsForUser(userID.Get())
 	if err != nil {
 		return nil, event.NewTransient("casbin_error", "domains for user").WithCause(err)
@@ -403,6 +439,9 @@ func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 
 // UsersForRole returns all user IDs that have the given role in the domain.
 func (a *Authz) UsersForRole(role Role, domain string) ([]string, error) {
+	if a.enforcer == nil {
+		return nil, ErrEnforcerNotInitialized
+	}
 	u, err := a.enforcer.GetUsersForRole(string(role), domain)
 	if err != nil {
 		return nil, event.NewTransient("casbin_error", fmt.Sprintf("users for role %s domain=%s", role, domain)).

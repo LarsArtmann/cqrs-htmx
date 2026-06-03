@@ -365,16 +365,17 @@ func (s *Service) UpdateRoles(
 	}
 
 	user.SetRoles(roles)
-	if err := s.users.Save(ctx, user); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).
-			WithCause(err)
-	}
 
 	if err := s.authz.Apply(PolicyUpdate{
 		RemoveGroups: remove,
 		AddGroups:    add,
 	}); err != nil {
 		return event.NewTransient("internal", fmt.Sprintf("apply role update for user %q", userID)).
+			WithCause(err)
+	}
+
+	if err := s.users.Save(ctx, user); err != nil {
+		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).
 			WithCause(err)
 	}
 
