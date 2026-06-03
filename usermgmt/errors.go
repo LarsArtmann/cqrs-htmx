@@ -30,4 +30,10 @@ var (
 		"usermgmt.account_locked",
 		"account locked due to too many failed attempts",
 	)
+	// ErrEnforcerNotInitialized is returned when an Authz operation is called before
+	// the Casbin enforcer has been set up.
+	ErrEnforcerNotInitialized = event.NewRejection(
+		"usermgmt.enforcer_not_initialized",
+		"authorization enforcer not initialized",
+	)
 )

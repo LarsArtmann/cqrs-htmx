@@ -373,15 +373,6 @@ func TestHandlers_Login_InvalidJSON(t *testing.T) {
 	assertStatusCode(t, w, http.StatusBadRequest)
 }
 
-func TestHandlers_Logout_ServiceError(t *testing.T) {
-	_, mux := setupMux(t)
-	regResp := registerUser(t, mux)
-
-	svc, _ := setupMux(t)
-	_ = svc
-	_ = regResp
-}
-
 func TestHandlers_Me_Authenticated(t *testing.T) {
 	svc, mux := setupMux(t)
 	regResp := registerUser(t, mux)
