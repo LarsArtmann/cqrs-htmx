@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/casbin/casbin/v3"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"

@@ -3,7 +3,7 @@ package cqrshtmx_test
 import (
 	"context"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	. "github.com/onsi/ginkgo/v2"
