@@ -161,7 +161,7 @@ cqrs-htmx/
 10. **CSRF middleware ordering**: `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` — CSRF first, then HTMX, then enrichment
 11. **nosurf custom headers**: Must use `translateCSRFHeaders` to map consumer header/field names to nosurf defaults
 12. **HX-Redirect sanitization**: `Response.Redirect()` sanitizes URLs for both HTMX and non-HTMX requests
-13. **HandlerConfig.Secure uses \*bool**: `Secure` is `*bool` in usermgmt — nil defaults to true. Use `PtrBool(false)` to explicitly disable. The zero-value `HandlerConfig{}` is now safe
+13. **HandlerConfig.Secure uses \*bool**: `Secure` is `*bool` in usermgmt — nil defaults to true. Use `new(bool)` (false) or a local variable (true) to explicitly set. The zero-value `HandlerConfig{}` is safe
 14. **Max password length 128**: Enforced in `RegisterRequest.Validate()` and `Service.ChangePassword()`. Prevents bcrypt CPU abuse
 
 ### Error Handling
