@@ -184,6 +184,7 @@ func buildRateLimiter(cfg RateLimiterConfig) *RateLimiter {
 type limiterEntry struct {
 	lim      *rate.Limiter
 	lastUsed time.Time
+	heapRef  *evictionEntry
 }
 
 // perKeyLimiter holds a token-bucket limiter per extracted key.
@@ -254,11 +255,11 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	p.evictStale()
 
 	if entry, ok := p.limiters[key]; ok {
-		if time.Since(entry.lastUsed) < p.ttl {
-			return entry.lim
-		}
 		entry.lastUsed = time.Now()
-		heap.Push(p.heap, &evictionEntry{key: key, lastUsed: entry.lastUsed})
+		if entry.heapRef != nil {
+			entry.heapRef.lastUsed = entry.lastUsed
+			heap.Fix(p.heap, entry.heapRef.index)
+		}
 		return entry.lim
 	}
 
@@ -266,9 +267,10 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 
 	lim := rate.NewLimiter(p.limit, int(p.burst))
 	now := time.Now()
-	newEntry := &limiterEntry{lim: lim, lastUsed: now}
+	heapRef := &evictionEntry{key: key, lastUsed: now}
+	newEntry := &limiterEntry{lim: lim, lastUsed: now, heapRef: heapRef}
 	p.limiters[key] = newEntry
-	heap.Push(p.heap, &evictionEntry{key: key, lastUsed: now})
+	heap.Push(p.heap, heapRef)
 
 	return lim
 }
@@ -316,18 +318,24 @@ func (p *perKeyLimiter) evictOldestIfAtCapacity() {
 type evictionEntry struct {
 	key      string
 	lastUsed time.Time
+	index    int
 }
 
 type evictionHeap []*evictionEntry
 
 func (h *evictionHeap) Len() int           { return len(*h) }
 func (h *evictionHeap) Less(i, j int) bool { return (*h)[i].lastUsed.Before((*h)[j].lastUsed) }
-func (h *evictionHeap) Swap(i, j int)      { (*h)[i], (*h)[j] = (*h)[j], (*h)[i] }
+func (h *evictionHeap) Swap(i, j int) {
+	(*h)[i], (*h)[j] = (*h)[j], (*h)[i]
+	(*h)[i].index = i
+	(*h)[j].index = j
+}
 func (h *evictionHeap) Push(x any) {
 	entry, ok := x.(*evictionEntry)
 	if !ok {
 		return
 	}
+	entry.index = len(*h)
 	*h = append(*h, entry)
 }
 
@@ -336,6 +344,7 @@ func (h *evictionHeap) Pop() any {
 	n := len(old)
 	item := old[n-1]
 	old[n-1] = nil
+	item.index = -1
 	*h = old[:n-1]
 	return item
 }
