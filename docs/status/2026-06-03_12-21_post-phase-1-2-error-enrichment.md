@@ -15,35 +15,36 @@
 
 ### Core Library (Root Module) — 36 features, ALL FUNCTIONAL
 
-| Area | Items | Status |
-|------|-------|--------|
-| App Builder + Dispatch | Command/Query dispatch, health check, MustNew | ✅ |
-| Decoding | JSON/Form decoders with query variants, body size limits | ✅ |
-| Rendering | Custom Render, Templ duck-typing, JSON rendering | ✅ |
-| HTMX | Request context, fluent Response builder, notifications, swap strategies | ✅ |
-| Auth & Security | Casbin Enforcer interface, CSRF (nosurf), security headers, rate limiting (O(log n) eviction), panic recovery | ✅ |
-| Context & Identity | Branded UserID/CorrelationID/RequestID, context enrichment middleware | ✅ |
-| Error Handling | go-error-family classification, 4 handler variants, request ID in errors | ✅ |
-| Middleware | Chain, context enrichment, request logging (2 formatters), lifecycle hooks, timeout | ✅ |
-| Convenience | HasCommands/HasQueries, request validation, MaxBodySize | ✅ |
+| Area                   | Items                                                                                                         | Status |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------- | ------ |
+| App Builder + Dispatch | Command/Query dispatch, health check, MustNew                                                                 | ✅     |
+| Decoding               | JSON/Form decoders with query variants, body size limits                                                      | ✅     |
+| Rendering              | Custom Render, Templ duck-typing, JSON rendering                                                              | ✅     |
+| HTMX                   | Request context, fluent Response builder, notifications, swap strategies                                      | ✅     |
+| Auth & Security        | Casbin Enforcer interface, CSRF (nosurf), security headers, rate limiting (O(log n) eviction), panic recovery | ✅     |
+| Context & Identity     | Branded UserID/CorrelationID/RequestID, context enrichment middleware                                         | ✅     |
+| Error Handling         | go-error-family classification, 4 handler variants, request ID in errors                                      | ✅     |
+| Middleware             | Chain, context enrichment, request logging (2 formatters), lifecycle hooks, timeout                           | ✅     |
+| Convenience            | HasCommands/HasQueries, request validation, MaxBodySize                                                       | ✅     |
 
 ### usermgmt Submodule — 7 features, ALL FUNCTIONAL
 
-| Feature | Status |
-|---------|--------|
-| Service (Register/Login/Logout/Authenticate/ChangePassword/UpdateRoles) | ✅ |
-| Rich Domain Model (SetRoles, ChangePassword, SetEmail, SetDisplayName, AddRole, RemoveRole, IsPasswordSet) | ✅ |
-| Domain Events (4 types, optional EventHandler, panic-safe) | ✅ |
-| Branded UserID (go-branded-id, separate from root id.UserID) | ✅ |
-| RBAC Authorization (Casbin with domains, AsEnforcer bridge) | ✅ |
-| In-Memory Stores (UserStore + SessionStore with TTL, eviction, Count) | ✅ |
-| Account Lockout (configurable attempts + duration, 429 on lock) | ✅ |
-| HTTP Handlers (AuthHandlers, SessionMiddleware, cookie + bearer) | ✅ |
-| Input Validation (Register/Login request validation, 8-128 char password) | ✅ |
+| Feature                                                                                                    | Status |
+| ---------------------------------------------------------------------------------------------------------- | ------ |
+| Service (Register/Login/Logout/Authenticate/ChangePassword/UpdateRoles)                                    | ✅     |
+| Rich Domain Model (SetRoles, ChangePassword, SetEmail, SetDisplayName, AddRole, RemoveRole, IsPasswordSet) | ✅     |
+| Domain Events (4 types, optional EventHandler, panic-safe)                                                 | ✅     |
+| Branded UserID (go-branded-id, separate from root id.UserID)                                               | ✅     |
+| RBAC Authorization (Casbin with domains, AsEnforcer bridge)                                                | ✅     |
+| In-Memory Stores (UserStore + SessionStore with TTL, eviction, Count)                                      | ✅     |
+| Account Lockout (configurable attempts + duration, 429 on lock)                                            | ✅     |
+| HTTP Handlers (AuthHandlers, SessionMiddleware, cookie + bearer)                                           | ✅     |
+| Input Validation (Register/Login request validation, 8-128 char password)                                  | ✅     |
 
 ### Planning & Execution Plan (27 tasks from 2026-06-03)
 
 **Phase 1: Trust — COMPLETE (5/5)**
+
 - ✅ Fix false-positive rollback test
 - ✅ Fix empty logout test
 - ✅ Add nil-enforcer bypass tests
@@ -51,6 +52,7 @@
 - ✅ Add UpdateRoles rollback test
 
 **Phase 2: Safety — COMPLETE (5/5)**
+
 - ✅ Fix Response.Status() fluent chain
 - ✅ Fix rate limiter unbounded heap growth (in-place heap.Fix)
 - ✅ Fix CSRF proxy bypass (documented, needs TrustedProxies design)
@@ -70,13 +72,13 @@
 
 ## b) PARTIALLY DONE
 
-| Item | What's Done | What's Missing |
-|------|-------------|----------------|
-| **Error propagation enrichment** | 5 sites fixed (domain.go todoID, httputil.go status, service.go domain) | Password-related suggestions correctly REJECTED (security — credentials must never appear in errors/logs) |
-| **Integration tests** | Token bridge tests exist in `integration_test/` | No full HTTP lifecycle test (register→login→command flow), no middleware chaining test |
-| **Documentation** | AGENTS.md comprehensive, 3 ADRs, FEATURES.md, TODO_LIST.md | ROADMAP.md stale (dated 2026-05-27), usermgmt README/LICENSE are scaffolding placeholders, modularization docs reference old versions |
-| **Code duplication** | jscpd report: 0.79% (43 lines) | 6 clone pairs in coverage_test.go remain |
-| **usermgmt coverage** | 89.8% overall | `UpdateRoles` at 86.4%, `SetPasswordWithCost` at 80%, `generateToken` at 75%, `MarshalJSON` at 80% |
+| Item                             | What's Done                                                             | What's Missing                                                                                                                        |
+| -------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Error propagation enrichment** | 5 sites fixed (domain.go todoID, httputil.go status, service.go domain) | Password-related suggestions correctly REJECTED (security — credentials must never appear in errors/logs)                             |
+| **Integration tests**            | Token bridge tests exist in `integration_test/`                         | No full HTTP lifecycle test (register→login→command flow), no middleware chaining test                                                |
+| **Documentation**                | AGENTS.md comprehensive, 3 ADRs, FEATURES.md, TODO_LIST.md              | ROADMAP.md stale (dated 2026-05-27), usermgmt README/LICENSE are scaffolding placeholders, modularization docs reference old versions |
+| **Code duplication**             | jscpd report: 0.79% (43 lines)                                          | 6 clone pairs in coverage_test.go remain                                                                                              |
+| **usermgmt coverage**            | 89.8% overall                                                           | `UpdateRoles` at 86.4%, `SetPasswordWithCost` at 80%, `generateToken` at 75%, `MarshalJSON` at 80%                                    |
 
 ---
 
@@ -84,41 +86,41 @@
 
 ### Phase 3: Clarity (0/5)
 
-| # | Task | Effort | Impact |
-|---|------|--------|--------|
-| 1 | Collapse 6 error handlers to 1 with ErrorHandlerOptions | 60 min | Medium |
-| 2 | Remove PtrBool, use `new(bool)` everywhere | 20 min | Low |
-| 3 | Deduplicate RequestLogging/RequestLoggingSlog | 45 min | Low |
-| 4 | Remove ClientIP re-export (dead weight from httputil) | 15 min | Low |
-| 5 | Clean stale coverage files | 10 min | Low |
+| #   | Task                                                    | Effort | Impact |
+| --- | ------------------------------------------------------- | ------ | ------ |
+| 1   | Collapse 6 error handlers to 1 with ErrorHandlerOptions | 60 min | Medium |
+| 2   | Remove PtrBool, use `new(bool)` everywhere              | 20 min | Low    |
+| 3   | Deduplicate RequestLogging/RequestLoggingSlog           | 45 min | Low    |
+| 4   | Remove ClientIP re-export (dead weight from httputil)   | 15 min | Low    |
+| 5   | Clean stale coverage files                              | 10 min | Low    |
 
 ### Phase 4: Power (0/5)
 
-| # | Task | Effort | Impact |
-|---|------|--------|--------|
-| 1 | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`) | 90 min | High |
-| 2 | Add `PaginatedResult[T]` support | 45 min | Medium |
-| 3 | Add real integration HTTP tests | 90 min | High |
-| 4 | Add middleware chaining integration test | 60 min | Medium |
-| 5 | Add OpenTelemetry via upstream middleware | 90 min | High |
+| #   | Task                                                      | Effort | Impact |
+| --- | --------------------------------------------------------- | ------ | ------ |
+| 1   | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`) | 90 min | High   |
+| 2   | Add `PaginatedResult[T]` support                          | 45 min | Medium |
+| 3   | Add real integration HTTP tests                           | 90 min | High   |
+| 4   | Add middleware chaining integration test                  | 60 min | Medium |
+| 5   | Add OpenTelemetry via upstream middleware                 | 90 min | High   |
 
 ### Phase 5: Future (0/3)
 
-| # | Task | Effort | Impact |
-|---|------|--------|--------|
-| 1 | Reactive event streams (EventBus + HTMX SSE) | 120 min | High |
-| 2 | SQL UserStore backend (PostgreSQL) | 240 min | High |
-| 3 | Fix datastar-demo to use cqrs-htmx | 120 min | Medium |
+| #   | Task                                         | Effort  | Impact |
+| --- | -------------------------------------------- | ------- | ------ |
+| 1   | Reactive event streams (EventBus + HTMX SSE) | 120 min | High   |
+| 2   | SQL UserStore backend (PostgreSQL)           | 240 min | High   |
+| 3   | Fix datastar-demo to use cqrs-htmx           | 120 min | Medium |
 
 ### Docs & Hygiene
 
-| Item | Notes |
-|------|-------|
-| ROADMAP.md refresh | Dated 2026-05-27, doesn't reflect Phase 1+2 completions |
-| FEATURES.md update | Dated 2026-05-27, metrics table may be stale |
-| usermgmt README/LICENSE | Scaffolding placeholders — need real content |
-| Modularization docs (docs/modularization/) | Reference old v1.x versions and replaced dependencies |
-| BrandNamer for root marker types | Blocked on upstream `go-cqrs-lite` exposing unexported markers |
+| Item                                       | Notes                                                          |
+| ------------------------------------------ | -------------------------------------------------------------- |
+| ROADMAP.md refresh                         | Dated 2026-05-27, doesn't reflect Phase 1+2 completions        |
+| FEATURES.md update                         | Dated 2026-05-27, metrics table may be stale                   |
+| usermgmt README/LICENSE                    | Scaffolding placeholders — need real content                   |
+| Modularization docs (docs/modularization/) | Reference old v1.x versions and replaced dependencies          |
+| BrandNamer for root marker types           | Blocked on upstream `go-cqrs-lite` exposing unexported markers |
 
 ---
 
@@ -133,13 +135,13 @@
 
 ### Things That COULD Fuck Up If Ignored
 
-| Risk | Why It's Dangerous | Severity |
-|------|-------------------|----------|
-| **CSRF proxy bypass** (`r.TLS == nil` trusts all proxies) | In production behind a reverse proxy, an attacker could spoof the TLS check and bypass CSRF. Design needed (`TrustedProxies []string`). | HIGH |
-| **datastar-demo doesn't use cqrs-htmx** | It's a standalone example that doesn't demonstrate the library. Misleading for consumers. | LOW |
-| **usermgmt scaffolding docs** | LICENSE says PROPRIETARY, README is a placeholder. If published as-is, looks unprofessional. | MEDIUM |
-| **3 LSP stale warnings** (events_test.go unused writes) | LSP shows 3 `unusedwrite` warnings in usermgmt/events_test.go:154-156. CLI lint reports 0. Likely LSP cache issue, but worth investigating. | LOW |
-| **No version tag** | Library has no git tag or release. Consumers must use commit hashes. | MEDIUM |
+| Risk                                                      | Why It's Dangerous                                                                                                                          | Severity |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **CSRF proxy bypass** (`r.TLS == nil` trusts all proxies) | In production behind a reverse proxy, an attacker could spoof the TLS check and bypass CSRF. Design needed (`TrustedProxies []string`).     | HIGH     |
+| **datastar-demo doesn't use cqrs-htmx**                   | It's a standalone example that doesn't demonstrate the library. Misleading for consumers.                                                   | LOW      |
+| **usermgmt scaffolding docs**                             | LICENSE says PROPRIETARY, README is a placeholder. If published as-is, looks unprofessional.                                                | MEDIUM   |
+| **3 LSP stale warnings** (events_test.go unused writes)   | LSP shows 3 `unusedwrite` warnings in usermgmt/events_test.go:154-156. CLI lint reports 0. Likely LSP cache issue, but worth investigating. | LOW      |
+| **No version tag**                                        | Library has no git tag or release. Consumers must use commit hashes.                                                                        | MEDIUM   |
 
 ---
 
@@ -176,33 +178,33 @@
 
 Sorted by impact × effort (Pareto):
 
-| # | Task | Phase | Effort | Impact | Rationale |
-|---|------|-------|--------|--------|-----------|
-| 1 | Add real integration HTTP test (register→login→command→query flow) | 4 | 90 min | **Critical** | Highest-value test gap. Proves modules work together. |
-| 2 | Add middleware chaining integration test | 4 | 60 min | **High** | SessionMiddleware + ContextEnrichment + AuthorizeMiddleware chain untested. |
-| 3 | Collapse 6 error handlers to 1 with ErrorHandlerOptions | 3 | 60 min | **Medium** | Reduces API surface from 6 functions to 1. Easier to understand. |
-| 4 | Adopt v2 typed dispatch (`CommandTyped`/`QueryTyped`) | 4 | 90 min | **High** | Eliminates manual type assertions. Type-safe consumer API. |
-| 5 | Refresh ROADMAP.md — mark Phase 1+2 done, update dates | 3 | 20 min | **Medium** | Stale docs erode trust. Quick win. |
-| 6 | Fix usermgmt README — real content, not placeholder | 3 | 30 min | **Medium** | Professional presentation. |
-| 7 | Add usermgmt coverage for UpdateRoles error paths (86.4%→95%+) | 4 | 30 min | **High** | Casbin failure paths untested. |
-| 8 | Deduplicate RequestLogging/RequestLoggingSlog | 3 | 45 min | **Low** | Shared formatter eliminates ~50 lines of duplication. |
-| 9 | Remove PtrBool, use `new(bool)` everywhere | 3 | 20 min | **Low** | Go-idiomatic, removes helper function. |
-| 10 | Remove ClientIP re-export from httputil.go | 3 | 15 min | **Low** | Dead indirection. Consumers import httputil directly. |
-| 11 | Fix datastar-demo to actually use cqrs-htmx | 5 | 120 min | **Medium** | Currently misleading — standalone, not a library demo. |
-| 12 | Add `PaginatedResult[T]` support | 4 | 45 min | **Medium** | Upstream provides it; easy integration. |
-| 13 | Add OpenTelemetry via upstream middleware | 4 | 90 min | **High** | Production observability. Lifecycle hooks ready for it. |
-| 14 | Clean stale coverage files (usermgmt/cov.out, etc.) | 3 | 10 min | **Low** | Repo hygiene. |
-| 15 | Investigate LSP stale warnings (events_test.go:154-156) | 3 | 15 min | **Low** | 3 `unusedwrite` warnings in LSP only. Likely cache issue. |
-| 16 | Add usermgmt benchmarks for Login/ChangePassword hot paths | 4 | 30 min | **Medium** | Only 3 benchmarks vs 18+ in root. |
-| 17 | Archive stale docs/modularization/ (reference old v1.x) | 3 | 10 min | **Low** | Misleading for anyone reading them. |
-| 18 | Design CSRF TrustedProxies config | 5 | 60 min | **High** | Security gap in proxy environments. |
-| 19 | Expose reactive EventBus helper (HTMX SSE integration) | 5 | 120 min | **High** | Enables real-time UI updates. |
-| 20 | Implement SQL UserStore (PostgreSQL) | 5 | 240 min | **High** | In-memory only limits production use. |
-| 21 | Add godoc package examples with runnable snippets | 4 | 60 min | **Medium** | Consumers need copy-paste examples. |
-| 22 | Fix TriggerWithDetail non-determinism (sorted keys) | 3 | 30 min | **Low** | Map iteration order causes flaky HX-Trigger headers. |
-| 23 | Update FEATURES.md coverage metrics | 3 | 10 min | **Low** | Dated 2026-05-27, coverage slightly changed. |
-| 24 | Add BrandNamer for root marker types | 4 | 30 min | **Medium** | Blocked on upstream — needs issue/PR to go-cqrs-lite. |
-| 25 | Tag v1.1.0 release | 5 | 30 min | **Medium** | Phase 1+2 done, library is stable enough for tagging. |
+| #   | Task                                                               | Phase | Effort  | Impact       | Rationale                                                                   |
+| --- | ------------------------------------------------------------------ | ----- | ------- | ------------ | --------------------------------------------------------------------------- |
+| 1   | Add real integration HTTP test (register→login→command→query flow) | 4     | 90 min  | **Critical** | Highest-value test gap. Proves modules work together.                       |
+| 2   | Add middleware chaining integration test                           | 4     | 60 min  | **High**     | SessionMiddleware + ContextEnrichment + AuthorizeMiddleware chain untested. |
+| 3   | Collapse 6 error handlers to 1 with ErrorHandlerOptions            | 3     | 60 min  | **Medium**   | Reduces API surface from 6 functions to 1. Easier to understand.            |
+| 4   | Adopt v2 typed dispatch (`CommandTyped`/`QueryTyped`)              | 4     | 90 min  | **High**     | Eliminates manual type assertions. Type-safe consumer API.                  |
+| 5   | Refresh ROADMAP.md — mark Phase 1+2 done, update dates             | 3     | 20 min  | **Medium**   | Stale docs erode trust. Quick win.                                          |
+| 6   | Fix usermgmt README — real content, not placeholder                | 3     | 30 min  | **Medium**   | Professional presentation.                                                  |
+| 7   | Add usermgmt coverage for UpdateRoles error paths (86.4%→95%+)     | 4     | 30 min  | **High**     | Casbin failure paths untested.                                              |
+| 8   | Deduplicate RequestLogging/RequestLoggingSlog                      | 3     | 45 min  | **Low**      | Shared formatter eliminates ~50 lines of duplication.                       |
+| 9   | Remove PtrBool, use `new(bool)` everywhere                         | 3     | 20 min  | **Low**      | Go-idiomatic, removes helper function.                                      |
+| 10  | Remove ClientIP re-export from httputil.go                         | 3     | 15 min  | **Low**      | Dead indirection. Consumers import httputil directly.                       |
+| 11  | Fix datastar-demo to actually use cqrs-htmx                        | 5     | 120 min | **Medium**   | Currently misleading — standalone, not a library demo.                      |
+| 12  | Add `PaginatedResult[T]` support                                   | 4     | 45 min  | **Medium**   | Upstream provides it; easy integration.                                     |
+| 13  | Add OpenTelemetry via upstream middleware                          | 4     | 90 min  | **High**     | Production observability. Lifecycle hooks ready for it.                     |
+| 14  | Clean stale coverage files (usermgmt/cov.out, etc.)                | 3     | 10 min  | **Low**      | Repo hygiene.                                                               |
+| 15  | Investigate LSP stale warnings (events_test.go:154-156)            | 3     | 15 min  | **Low**      | 3 `unusedwrite` warnings in LSP only. Likely cache issue.                   |
+| 16  | Add usermgmt benchmarks for Login/ChangePassword hot paths         | 4     | 30 min  | **Medium**   | Only 3 benchmarks vs 18+ in root.                                           |
+| 17  | Archive stale docs/modularization/ (reference old v1.x)            | 3     | 10 min  | **Low**      | Misleading for anyone reading them.                                         |
+| 18  | Design CSRF TrustedProxies config                                  | 5     | 60 min  | **High**     | Security gap in proxy environments.                                         |
+| 19  | Expose reactive EventBus helper (HTMX SSE integration)             | 5     | 120 min | **High**     | Enables real-time UI updates.                                               |
+| 20  | Implement SQL UserStore (PostgreSQL)                               | 5     | 240 min | **High**     | In-memory only limits production use.                                       |
+| 21  | Add godoc package examples with runnable snippets                  | 4     | 60 min  | **Medium**   | Consumers need copy-paste examples.                                         |
+| 22  | Fix TriggerWithDetail non-determinism (sorted keys)                | 3     | 30 min  | **Low**      | Map iteration order causes flaky HX-Trigger headers.                        |
+| 23  | Update FEATURES.md coverage metrics                                | 3     | 10 min  | **Low**      | Dated 2026-05-27, coverage slightly changed.                                |
+| 24  | Add BrandNamer for root marker types                               | 4     | 30 min  | **Medium**   | Blocked on upstream — needs issue/PR to go-cqrs-lite.                       |
+| 25  | Tag v1.1.0 release                                                 | 5     | 30 min  | **Medium**   | Phase 1+2 done, library is stable enough for tagging.                       |
 
 ---
 
@@ -211,6 +213,7 @@ Sorted by impact × effort (Pareto):
 **Is the datastar-demo example worth keeping?**
 
 The `examples/datastar-demo/` directory is a standalone Go module that:
+
 - Does NOT import or use `cqrs-htmx` at all
 - Uses `go-cqrs-lite` directly (not through this library)
 - Has no tests (it's a `main` package)
@@ -219,6 +222,7 @@ The `examples/datastar-demo/` directory is a standalone Go module that:
 It was presumably created to demonstrate go-cqrs-lite + datastar SSE patterns. But as an example in a `cqrs-htmx` repo, it's misleading — consumers expect to see how to use `cqrs-htmx`, not raw `go-cqrs-lite`.
 
 **Options:**
+
 1. **Rewrite it** to use `cqrs-htmx` — turns it into a real demo of the library
 2. **Move it** to a separate repo (e.g., `go-cqrs-lite-datastar-demo`)
 3. **Delete it** — removes confusion, reduces maintenance burden
@@ -229,16 +233,16 @@ I cannot decide this without understanding your intent for the example.
 
 ## Session Summary
 
-| Metric | Value |
-|--------|-------|
-| Commits today | 3 (`72f78d2`, `cb72e8b`, `bc315f8`) |
-| Files changed | 13 (error propagation fixes + lint config + docs scaffolding) |
-| Error sites improved | 5 (todoID×4, status×1, domain×1) |
-| Error sites rejected (security) | 8 (password/oldPassword/newPassword in errors) |
-| Tests | 390+ all passing, race-safe |
-| Coverage | 96.9% root, 89.8% usermgmt |
-| Lint | 0 issues |
-| Build | All 4 modules clean |
+| Metric                          | Value                                                         |
+| ------------------------------- | ------------------------------------------------------------- |
+| Commits today                   | 3 (`72f78d2`, `cb72e8b`, `bc315f8`)                           |
+| Files changed                   | 13 (error propagation fixes + lint config + docs scaffolding) |
+| Error sites improved            | 5 (todoID×4, status×1, domain×1)                              |
+| Error sites rejected (security) | 8 (password/oldPassword/newPassword in errors)                |
+| Tests                           | 390+ all passing, race-safe                                   |
+| Coverage                        | 96.9% root, 89.8% usermgmt                                    |
+| Lint                            | 0 issues                                                      |
+| Build                           | All 4 modules clean                                           |
 
 ---
 
