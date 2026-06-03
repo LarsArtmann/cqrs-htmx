@@ -40,15 +40,3 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
 )
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../go-cqrs-lite/codec
-	github.com/larsartmann/go-cqrs-lite/command/v2 => ../go-cqrs-lite/command
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../go-cqrs-lite/dispatcher
-	github.com/larsartmann/go-cqrs-lite/event/v2 => ../go-cqrs-lite/event
-	github.com/larsartmann/go-cqrs-lite/id/v2 => ../go-cqrs-lite/id
-	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../go-cqrs-lite/memory
-	github.com/larsartmann/go-cqrs-lite/query/v2 => ../go-cqrs-lite/query
-	github.com/larsartmann/go-cqrs-lite/schema/v2 => ../go-cqrs-lite/schema
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../go-cqrs-lite/snapshot
-)

@@ -175,7 +175,8 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 			duration := time.Since(start)
 
 			attrs := make([]slog.Attr, 0, 4+len(contextFields(r)))
-			attrs = append(attrs,
+			attrs = append(
+				attrs,
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.Int("status", rw.Status()),

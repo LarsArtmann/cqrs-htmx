@@ -25,11 +25,11 @@
 ### Upstream-Blocked
 
 - [ ] **BrandNamer for root module marker types** — BLOCKED: upstream `go-cqrs-lite/core/pkg/id` marker types (`userMarker`, `correlationMarker`) are unexported. Requires upstream change to expose them or provide BrandNamer integration.
-- [ ] **Remove local replace directives** — go-cqrs-lite v2.0.0 is tagged upstream; local replace directives in go.mod files can be removed once confirmed resolvable.
+- [x] **Remove local replace directives** — go-cqrs-lite v2.0.0 tags are published upstream. All go-cqrs-lite replace directives removed from all 4 go.mod files. Only `integration_test` retains cqrs-htmx local replaces (library not yet published).
 
 ### Future Enhancements (Not Started)
 
-- [x] **Upgrade to go-cqrs-lite v2.0.0** — All 4 modules migrated to v2 import paths (`/v2` suffix). CatalogEntries removed (dead upstream code). go-error-family v0.3.0. Local replace directives for development.
+- [x] **Upgrade to go-cqrs-lite v2.0.0** — All 4 modules migrated to v2 import paths (`/v2` suffix). CatalogEntries removed (dead upstream code). go-error-family v0.3.0. Replace directives removed (v2.0.0 tags published).
 - [ ] **SQL store backend for usermgmt** — Pattern documented in ADR 0003 (numeric IDs via `brandid.ID[Brand, int64]`). Not yet implemented.
 - [ ] **OpenTelemetry integration** — Lifecycle hooks (`BeforeDispatchHook`/`AfterDispatchHook`) enable tracing. Upstream v2 has generic OTel middleware in `middleware/` module.
 - [ ] **Adopt v2 typed dispatch** — `command.RegisterTyped[T]`/`query.RegisterTyped[T]`/`query.DispatchTyped[T]` eliminate manual type assertions.
