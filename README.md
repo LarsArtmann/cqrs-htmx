@@ -64,8 +64,8 @@ import (
     "net/http"
 
     cqrshtmx "github.com/larsartmann/cqrs-htmx"
-    "github.com/larsartmann/go-cqrs-lite/core/command"
-    "github.com/larsartmann/go-cqrs-lite/core/query"
+    "github.com/larsartmann/go-cqrs-lite/command/v2"
+    "github.com/larsartmann/go-cqrs-lite/query/v2"
     "github.com/casbin/casbin/v3"
 )
 
@@ -137,17 +137,6 @@ app, err := cqrshtmx.New(cqrshtmx.Config{
     MaxBodySize:              10 << 20,         // max request body (default 10 MB)
 })
 ```
-
-### Catalog Introspection
-
-`App` exposes catalog metadata for registered commands and queries:
-
-```go
-app.CommandCatalogEntries() // map[command.Type]dispatcher.HandlerMeta
-app.QueryCatalogEntries()   // map[query.Type]dispatcher.HandlerMeta
-```
-
-Returns `nil` if the respective dispatcher is not configured.
 
 ## Handler Options
 
@@ -456,8 +445,8 @@ mux := cqrshtmx.HTMXMiddleware(mux)
 
 // Panic recovery (catches panics, logs stack trace, writes 500)
 mux := cqrshtmx.RecoveryMiddleware(mux)
-// Or use App.RecoveryMiddleware() for App-configured error handling:
-mux := app.RecoveryMiddleware()(mux)
+// Or use App.RecoverHandler() for App-configured error handling:
+mux := app.RecoverHandler()(mux)
 
 // Standalone Casbin authorization middleware
 mux.Handle("/admin", cqrshtmx.AuthorizeMiddleware(
@@ -677,18 +666,20 @@ authz, _ := usermgmt.NewAuthz(usermgmt.EnforcerConfig{
 
 // Create service
 svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
-    Authz:       authz,
-    UserStore:   userStore,
+    Authz:        authz,
+    UserStore:    userStore,
     SessionStore: sessionStore,
-    SessionTTL:  24 * time.Hour,
-    BcryptCost:  12,
-    Lockout:     usermgmt.LockoutConfig{MaxAttempts: 5, Duration: 15 * time.Minute},
+    SessionTTL:   24 * time.Hour,
+    BcryptCost:   12,
+    Lockout:      usermgmt.NewAccountLockout(usermgmt.LockoutConfig{MaxAttempts: 5, Duration: 15 * time.Minute}),
+    EventHandler: func(userID usermgmt.UserID, evt any) {
+        slog.Info("user event", "user_id", userID, "event", evt)
+    },
 })
 
 // Create HTTP handlers
 authHandler := usermgmt.NewAuthHandler(svc, usermgmt.HandlerConfig{
-    Secure:       true,
-    SessionMaxAge: 24 * time.Hour,
+    SessionMaxAge: 86400, // seconds
 })
 
 // Register routes: POST /auth/register, POST /auth/login, POST /auth/logout, GET /auth/me
@@ -728,6 +719,27 @@ if err := req.Validate(); err != nil {
 ```
 
 Checks: email format, password length (8–128 chars), required fields. Trims whitespace on `Email` and `DisplayName` in-place.
+
+### Domain Events
+
+Optional `EventHandler` callback receives events for audit logging, analytics, or side effects:
+
+```go
+usermgmt.EventHandler(func(userID usermgmt.UserID, evt any) {
+    switch e := evt.(type) {
+    case usermgmt.UserRegisteredEvent:
+        slog.Info("user registered", "email", e.Email)
+    case usermgmt.UserLoggedInEvent:
+        slog.Info("user logged in", "email", e.Email)
+    case usermgmt.PasswordChangedEvent:
+        slog.Info("password changed")
+    case usermgmt.RolesUpdatedEvent:
+        slog.Info("roles updated", "roles", e.Roles, "domain", e.Domain)
+    }
+})
+```
+
+Events are panic-safe — handler errors are logged but never propagate to the caller.
 
 ### Authz (RBAC Engine)
 
@@ -803,7 +815,7 @@ In-memory implementations: `InMemoryUserStore` (with O(1) email index), `InMemor
 
 ### Strongly-Typed UserID
 
-All user IDs in the submodule use `usermgmt.UserID` — a branded ULID type via `go-branded-id`:
+All user IDs in the submodule use `usermgmt.UserID` — a branded type via [`go-branded-id`](https://github.com/larsartmann/go-branded-id) (`brandid.ID[userBrand, string]`):
 
 ```go
 uid := usermgmt.NewUserID("01HK1549P84T9XF8R94E960633")
@@ -849,15 +861,16 @@ cqrs-htmx/
 ├── logging.go          # RequestLogging, RequestLoggingSlog, StatusRecorder
 ├── ratelimit.go        # RateLimiterMiddleware, token bucket, min-heap eviction
 ├── security.go         # SecurityHeadersMiddleware, SecurityHeadersConfig
-├── recovery.go         # RecoveryMiddleware, panic recovery with stack logging
+├── recovery.go         # RecoveryMiddleware (package-level), App.RecoverHandler()
 ├── usermgmt/           # User management submodule (independent Go module)
 │   ├── id.go           # Branded UserID type
 │   ├── authz.go        # Casbin RBAC with domains, PolicyUpdate, AsEnforcer bridge
+│   ├── events.go      # Domain events: UserRegisteredEvent, UserLoggedInEvent, etc.
 │   ├── service.go      # Service (register, login, logout, authenticate, changePassword)
-│   ├── user.go         # User/Session types, bcrypt hashing, Session.TokenMatches
-│   ├── store.go        # In-memory stores with email index, EvictExpired
-│   ├── http.go         # AuthHandlers, RegisterRoutes, SessionMiddleware
-│   ├── middleware.go    # User context helpers, UserIDFromRequest bridge
+│   ├── user.go         # Rich User entity: SetRoles, ChangePassword, SetEmail, Clone, bcrypt
+│   ├── store.go        # In-memory stores with email index, EvictExpired, Clone
+│   ├── http.go         # AuthHandlers, RegisterRoutes, HandlerConfig
+│   ├── middleware.go    # NewSessionMiddleware, user context helpers, UserIDFromRequest
 │   ├── lockout.go      # AccountLockout (configurable attempts + duration)
 │   └── errors.go       # Sentinel errors (go-error-family)
 ├── integration_test/   # Cross-module integration tests (independent Go module)
@@ -869,9 +882,9 @@ cqrs-htmx/
 
 | Dependency               | Purpose                     |
 | ------------------------ | --------------------------- |
-| go-cqrs-lite/core v1.5.1 | CQRS command/query dispatch |
+| go-cqrs-lite v2.0.0          | CQRS command/query dispatch |
 | casbin/casbin/v3         | Authorization               |
-| go-error-family          | Error classification        |
+| go-error-family v0.3.0      | Error classification        |
 | justinas/nosurf          | CSRF protection             |
 | larsartmann/httputil     | ClientIP extraction         |
 | golang.org/x/time        | Token-bucket rate limiting  |
