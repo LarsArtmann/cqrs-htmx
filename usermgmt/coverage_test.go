@@ -843,7 +843,7 @@ func TestHandlers_Logout_WithTimeout(t *testing.T) {
 
 func TestHandlers_Logout_ClearCookie(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(true)})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: func() *bool { v := true; return &v }()})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
