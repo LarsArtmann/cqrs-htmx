@@ -144,11 +144,10 @@ cqrs-htmx/
 
 1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-3. **go-cqrs-lite version alignment**: All 4 modules now use v2.0.0 with `/v2` import paths. `dispatcher.HandlerMeta` and `CatalogEntries()` removed in v2 (dead code). Local replace directives point to `../go-cqrs-lite` for development
+3. **go-cqrs-lite version alignment**: All 4 modules use v2.0.0 with `/v2` import paths. `dispatcher.HandlerMeta` and `CatalogEntries()` removed in v2 (dead code). Replace directives removed — v2.0.0 tags are published upstream
 4. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
 5. **LSP vs CLI discrepancy**: LSP shows ~31 stale warnings; CLI reports 0 — unresolved LSP cache issue
 6. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
-6. **go-cqrs-lite v2 import paths**: All imports use `github.com/larsartmann/go-cqrs-lite/{pkg}/v2`. Local replace directives in each go.mod point to `../go-cqrs-lite/{pkg}` until v2.0.0 tags are published
 
 ### Type System
 
