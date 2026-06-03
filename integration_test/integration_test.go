@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx"
-	"github.com/larsartmann/cqrs-htmx/usermgmt"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	"github.com/larsartmann/cqrs-htmx/v2/usermgmt"
 )
 
 func TestIntegration_UserIDExtraction_Bridge(t *testing.T) {

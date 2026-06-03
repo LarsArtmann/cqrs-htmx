@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	. "github.com/onsi/ginkgo/v2"

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt"
+	"github.com/larsartmann/cqrs-htmx/v2/usermgmt"
 )
 
 func ExampleNewService() {
