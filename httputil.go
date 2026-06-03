@@ -16,7 +16,7 @@ import (
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(v); err != nil {
-		return fmt.Errorf("encode JSON response: %w", err)
+		return fmt.Errorf("encode JSON response (status %d): %w", status, err)
 	}
 	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.WriteHeader(status)

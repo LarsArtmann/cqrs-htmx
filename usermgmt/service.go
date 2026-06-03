@@ -339,7 +339,7 @@ func (s *Service) UpdateRoles(
 	user, err := s.users.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			return fmt.Errorf("update roles: find user %q: %w", userID, err)
+			return fmt.Errorf("update roles: find user %q in domain %q: %w", userID, domain, err)
 		}
 		return event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err)
 	}
