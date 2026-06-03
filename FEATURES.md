@@ -98,7 +98,7 @@
 | 39  | RBAC Authorization | FULLY_FUNCTIONAL | Casbin RBAC with domains. `AsEnforcer()` bridge to parent `Enforcer` interface. `ImplicitRoles`, `ImplicitPermissions`, `Policies`.                             |
 | 40  | In-Memory Stores   | FULLY_FUNCTIONAL | `InMemoryUserStore` (email index, atomic Create, `Count()`). `InMemorySessionStore` (TTL, `EvictExpired()`, `Count()`). Both accept `context.Context`.          |
 | 41  | Account Lockout    | FULLY_FUNCTIONAL | Configurable max attempts + duration. `ErrAccountLocked` → 429. `EvictStale()` for periodic cleanup.                                                            |
-| 42  | HTTP Handlers      | FULLY_FUNCTIONAL | `AuthHandlers` with session cookies. `SessionMiddleware` (cookie + bearer). Configurable timeout, `*bool` Secure via `PtrBool()`, cookie name.                  |
+| 42  | HTTP Handlers      | FULLY_FUNCTIONAL | `AuthHandlers` with session cookies. `SessionMiddleware` (cookie + bearer). Configurable timeout, `*bool` Secure (nil defaults to true), cookie name.       |
 | 43  | Input Validation   | FULLY_FUNCTIONAL | `RegisterRequest.Validate()` and `LoginRequest.Validate()`. Email format, password 8-128 chars, required fields. Pointer receivers persist trimmed values.      |
 
 ---
