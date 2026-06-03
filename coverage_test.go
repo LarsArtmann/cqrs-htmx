@@ -866,12 +866,24 @@ var _ = Describe("Root Coverage Gaps", func() {
 
 	Describe("Response builder enhancements", func() {
 		Describe("Status", func() {
-			It("sets the status code", func() {
+			It("defers the status code to Apply()", func() {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)
 				resp := cqrshtmx.NewResponse(w, r)
 				result := resp.Status(http.StatusCreated)
 				Expect(result).To(Equal(resp))
+				Expect(w.Code).To(Equal(http.StatusOK)) // not written yet
+				resp.Apply()
+				Expect(w.Code).To(Equal(http.StatusCreated))
+			})
+
+			It("allows Status then Redirect without breaking the chain", func() {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				resp := cqrshtmx.NewResponse(w, r)
+				resp.Status(http.StatusCreated).Redirect("/users").Apply()
+				Expect(w.Code).To(Equal(http.StatusSeeOther))
+				Expect(w.Header().Get("Location")).To(Equal("/users"))
 			})
 		})
 
