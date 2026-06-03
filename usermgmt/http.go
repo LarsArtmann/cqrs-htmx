@@ -38,6 +38,7 @@ type HandlerConfig struct {
 }
 
 // PtrBool returns a pointer to the given bool value.
+//
 // Deprecated: Use new(bool) for false, or a local variable for true.
 func PtrBool(v bool) *bool { return &v }
 
