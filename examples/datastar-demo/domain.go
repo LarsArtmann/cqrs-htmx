@@ -407,11 +407,11 @@ func NewCreateTodo(title string) (*CreateTodoCmd, error) {
 func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
 	aggID, err := id.ParseAggregateID(todoID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid todo ID: %w", err)
+		return nil, fmt.Errorf("invalid todo ID %q: %w", todoID, err)
 	}
 	core, err := command.New("ToggleTodo", aggID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create ToggleTodo command for todo %q: %w", todoID, err)
 	}
 	return &ToggleTodoCmd{BasicCommand: core}, nil
 }
@@ -419,11 +419,11 @@ func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
 func NewDeleteTodo(todoID string) (*DeleteTodoCmd, error) {
 	aggID, err := id.ParseAggregateID(todoID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid todo ID: %w", err)
+		return nil, fmt.Errorf("invalid todo ID %q: %w", todoID, err)
 	}
 	core, err := command.New("DeleteTodo", aggID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create DeleteTodo command for todo %q: %w", todoID, err)
 	}
 	return &DeleteTodoCmd{BasicCommand: core}, nil
 }

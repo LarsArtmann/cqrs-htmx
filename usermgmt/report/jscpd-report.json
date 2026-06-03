@@ -1,0 +1,621 @@
+{
+  "statistics": {
+    "detectionDate": "2026-06-03T10:21:37.891Z",
+    "formats": {
+      "markdown": {
+        "sources": {
+          "docs/DOMAIN_LANGUAGE.md": {
+            "lines": 69,
+            "tokens": 382,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "README.md": {
+            "lines": 37,
+            "tokens": 85,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "CONTRIBUTING.md": {
+            "lines": 18,
+            "tokens": 100,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "CODE_OF_CONDUCT.md": {
+            "lines": 14,
+            "tokens": 141,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "CHANGELOG.md": {
+            "lines": 22,
+            "tokens": 68,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 160,
+          "tokens": 776,
+          "sources": 5,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "go": {
+        "sources": {
+          "user_test.go": {
+            "lines": 409,
+            "tokens": 3983,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "user.go": {
+            "lines": 226,
+            "tokens": 1772,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "store.go": {
+            "lines": 206,
+            "tokens": 1743,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "service_test.go": {
+            "lines": 453,
+            "tokens": 4306,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "service.go": {
+            "lines": 432,
+            "tokens": 3894,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "mock_test.go": {
+            "lines": 111,
+            "tokens": 1090,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "middleware.go": {
+            "lines": 84,
+            "tokens": 661,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "main_test.go": {
+            "lines": 93,
+            "tokens": 870,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "lockout_test.go": {
+            "lines": 134,
+            "tokens": 1083,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "lockout.go": {
+            "lines": 129,
+            "tokens": 941,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "id.go": {
+            "lines": 14,
+            "tokens": 92,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "http.go": {
+            "lines": 263,
+            "tokens": 2183,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "handler_test.go": {
+            "lines": 446,
+            "tokens": 4575,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "fuzz_test.go": {
+            "lines": 49,
+            "tokens": 481,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "example_test.go": {
+            "lines": 71,
+            "tokens": 520,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "events_test.go": {
+            "lines": 160,
+            "tokens": 1391,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "events.go": {
+            "lines": 37,
+            "tokens": 173,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "errors.go": {
+            "lines": 38,
+            "tokens": 236,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "coverage_test.go": {
+            "lines": 936,
+            "tokens": 8942,
+            "sources": 1,
+            "clones": 12,
+            "duplicatedLines": 86,
+            "duplicatedTokens": 1026,
+            "percentage": 9.19,
+            "percentageTokens": 11.47,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "benchmark_test.go": {
+            "lines": 61,
+            "tokens": 556,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "authz_test.go": {
+            "lines": 313,
+            "tokens": 3323,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "authz.go": {
+            "lines": 456,
+            "tokens": 3707,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 5121,
+          "tokens": 46522,
+          "sources": 22,
+          "clones": 6,
+          "duplicatedLines": 43,
+          "duplicatedTokens": 513,
+          "percentage": 0.84,
+          "percentageTokens": 1.1,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "yaml": {
+        "sources": {
+          ".golangci.yml": {
+            "lines": 161,
+            "tokens": 852,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 161,
+          "tokens": 852,
+          "sources": 1,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 5442,
+      "tokens": 48150,
+      "sources": 28,
+      "clones": 6,
+      "duplicatedLines": 43,
+      "duplicatedTokens": 513,
+      "percentage": 0.79,
+      "percentageTokens": 1.07,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": [
+    {
+      "format": "go",
+      "lines": 9,
+      "fragment": ")\n\n\treq := httptest.NewRequest(http.MethodPost, \"/auth/logout\", nil)\n\treq.AddCookie(&http.Cookie{Name: \"session_token\", Value: reg.Session.Token})\n\tw := httptest.NewRecorder()\n\tmux.ServeHTTP(w, req)\n\n\tif w.Code != http.StatusOK {\n\t\tt.Errorf(\"expected 200 for logout, got %d\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "coverage_test.go",
+        "start": 250,
+        "end": 258,
+        "startLoc": {
+          "line": 250,
+          "column": 11,
+          "position": 2330
+        },
+        "endLoc": {
+          "line": 258,
+          "column": 34,
+          "position": 2423
+        }
+      },
+      "secondFile": {
+        "name": "coverage_test.go",
+        "start": 181,
+        "end": 189,
+        "startLoc": {
+          "line": 181,
+          "column": 6,
+          "position": 1696
+        },
+        "endLoc": {
+          "line": 189,
+          "column": 45,
+          "position": 1789
+        }
+      }
+    },
+    {
+      "format": "go",
+      "lines": 7,
+      "fragment": "(t *testing.T) {\n\tsvc := newTestServiceWithAuthz(t)\n\th := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false)})\n\tmux := http.NewServeMux()\n\th.RegisterRoutes(mux)\n\n\treg := registerTestUser(t, svc, \"u1\", \"me@test.com\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "coverage_test.go",
+        "start": 262,
+        "end": 268,
+        "startLoc": {
+          "line": 262,
+          "column": 25,
+          "position": 2440
+        },
+        "endLoc": {
+          "line": 268,
+          "column": 14,
+          "position": 2519
+        }
+      },
+      "secondFile": {
+        "name": "coverage_test.go",
+        "start": 173,
+        "end": 179,
+        "startLoc": {
+          "line": 173,
+          "column": 35,
+          "position": 1587
+        },
+        "endLoc": {
+          "line": 179,
+          "column": 14,
+          "position": 1666
+        }
+      }
+    },
+    {
+      "format": "go",
+      "lines": 8,
+      "fragment": "(t *testing.T) {\n\tsvc := newTestServiceWithAuthz(t)\n\th := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false)})\n\tmux := http.NewServeMux()\n\th.RegisterRoutes(mux)\n\n\treq := httptest.NewRequest(http.MethodGet, \"/auth/me\", nil)\n\treq",
+      "tokens": 0,
+      "firstFile": {
+        "name": "coverage_test.go",
+        "start": 280,
+        "end": 287,
+        "startLoc": {
+          "line": 280,
+          "column": 33,
+          "position": 2630
+        },
+        "endLoc": {
+          "line": 287,
+          "column": 4,
+          "position": 2714
+        }
+      },
+      "secondFile": {
+        "name": "coverage_test.go",
+        "start": 158,
+        "end": 165,
+        "startLoc": {
+          "line": 158,
+          "column": 24,
+          "position": 1444
+        },
+        "endLoc": {
+          "line": 165,
+          "column": 2,
+          "position": 1528
+        }
+      }
+    },
+    {
+      "format": "go",
+      "lines": 8,
+      "fragment": ")\n\n\treq := httptest.NewRequest(http.MethodPost, \"/auth/logout\", nil)\n\treq.AddCookie(&http.Cookie{Name: \"session_token\", Value: reg.Session.Token})\n\tw := httptest.NewRecorder()\n\tmux.ServeHTTP(w, req)\n\n\tif w.Code != http.StatusInternalServerError",
+      "tokens": 0,
+      "firstFile": {
+        "name": "coverage_test.go",
+        "start": 798,
+        "end": 805,
+        "startLoc": {
+          "line": 798,
+          "column": 4,
+          "position": 7528
+        },
+        "endLoc": {
+          "line": 805,
+          "column": 26,
+          "position": 7612
+        }
+      },
+      "secondFile": {
+        "name": "coverage_test.go",
+        "start": 181,
+        "end": 188,
+        "startLoc": {
+          "line": 181,
+          "column": 6,
+          "position": 1696
+        },
+        "endLoc": {
+          "line": 188,
+          "column": 9,
+          "position": 1780
+        }
+      }
+    },
+    {
+      "format": "go",
+      "lines": 9,
+      "fragment": ", \"secret12\")\n\n\treq := httptest.NewRequest(http.MethodPost, \"/auth/logout\", nil)\n\treq.AddCookie(&http.Cookie{Name: \"session_token\", Value: reg.Session.Token})\n\tw := httptest.NewRecorder()\n\tmux.ServeHTTP(w, req)\n\n\tif w.Code != http.StatusOK {\n\t\tt.Errorf(\"expected 200 for logout with timeout, got %d\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "coverage_test.go",
+        "start": 832,
+        "end": 840,
+        "startLoc": {
+          "line": 832,
+          "column": 15,
+          "position": 7890
+        },
+        "endLoc": {
+          "line": 840,
+          "column": 47,
+          "position": 7986
+        }
+      },
+      "secondFile": {
+        "name": "coverage_test.go",
+        "start": 250,
+        "end": 189,
+        "startLoc": {
+          "line": 250,
+          "column": 18,
+          "position": 2327
+        },
+        "endLoc": {
+          "line": 189,
+          "column": 45,
+          "position": 1789
+        }
+      }
+    },
+    {
+      "format": "go",
+      "lines": 8,
+      "fragment": ", \"secret12\")\n\n\treq := httptest.NewRequest(http.MethodPost, \"/auth/logout\", nil)\n\treq.AddCookie(&http.Cookie{Name: \"session_token\", Value: reg.Session.Token})\n\tw := httptest.NewRecorder()\n\tmux.ServeHTTP(w, req)\n\n\tassertCookie",
+      "tokens": 0,
+      "firstFile": {
+        "name": "coverage_test.go",
+        "start": 850,
+        "end": 857,
+        "startLoc": {
+          "line": 850,
+          "column": 14,
+          "position": 8083
+        },
+        "endLoc": {
+          "line": 857,
+          "column": 13,
+          "position": 8160
+        }
+      },
+      "secondFile": {
+        "name": "coverage_test.go",
+        "start": 250,
+        "end": 188,
+        "startLoc": {
+          "line": 250,
+          "column": 18,
+          "position": 2327
+        },
+        "endLoc": {
+          "line": 188,
+          "column": 3,
+          "position": 1770
+        }
+      }
+    }
+  ]
+}
