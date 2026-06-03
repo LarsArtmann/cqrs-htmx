@@ -157,7 +157,7 @@ func TestHandlers_Register_EmptyBody(t *testing.T) {
 
 func TestHandlers_Me_NilUser(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false)})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -172,7 +172,7 @@ func TestHandlers_Me_NilUser(t *testing.T) {
 
 func TestHandlers_Logout_DeletedSession(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false)})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -261,7 +261,7 @@ func TestHandlers_Logout_Success(t *testing.T) {
 
 func TestHandlers_Me_WithUser(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false)})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -279,7 +279,7 @@ func TestHandlers_Me_WithUser(t *testing.T) {
 
 func TestHandlers_Me_NilUserInContext(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false)})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -718,7 +718,7 @@ func TestHandlers_Login_AccountLocked(t *testing.T) {
 		BcryptCost: minBcryptCost,
 		Lockout:    NewAccountLockout(LockoutConfig{MaxAttempts: 1, Duration: time.Hour}),
 	})
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false)})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -793,7 +793,7 @@ func TestHandlers_Logout_StoreError(t *testing.T) {
 
 	svc.sessions = sessions
 
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false)})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -825,7 +825,7 @@ func TestHandlers_Login_ValidationError(t *testing.T) {
 
 func TestHandlers_Logout_WithTimeout(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false), Timeout: 5 * time.Second})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool), Timeout: 5 * time.Second})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -843,7 +843,7 @@ func TestHandlers_Logout_WithTimeout(t *testing.T) {
 
 func TestHandlers_Logout_ClearCookie(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(true)})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: ptrBool(true)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -861,7 +861,7 @@ func TestHandlers_Logout_ClearCookie(t *testing.T) {
 
 func TestHandlers_Register_WithCustomSessionMaxAge(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: PtrBool(false), SessionMaxAge: 7200})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool), SessionMaxAge: 7200})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
