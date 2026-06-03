@@ -309,6 +309,9 @@ func (a *Authz) RemovePolicy(p Policy) error {
 
 // AddGroupPolicy assigns a role to a subject in a domain.
 func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
+	if a.enforcer == nil {
+		return ErrEnforcerNotInitialized
+	}
 	_, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
 		return event.NewTransient("casbin_error", fmt.Sprintf("add group %s/%s/%s", g.Subject, g.Role, g.Domain)).
@@ -319,6 +322,9 @@ func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
 
 // RemoveGroupPolicy removes a role assignment from a subject in a domain.
 func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
+	if a.enforcer == nil {
+		return ErrEnforcerNotInitialized
+	}
 	_, err := a.enforcer.RemoveGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
 		return event.NewTransient("casbin_error", fmt.Sprintf("remove group %s/%s/%s", g.Subject, g.Role, g.Domain)).

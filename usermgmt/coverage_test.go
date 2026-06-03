@@ -486,11 +486,8 @@ func TestService_Register_RollbackOnGroupPolicyFailure(t *testing.T) {
 		t.Fatalf("NewService: %v", err)
 	}
 
-	mockAuthz, aErr := NewAuthz()
-	if aErr != nil {
-		t.Fatalf("NewAuthz: %v", aErr)
-	}
-	svc.authz = mockAuthz
+	// Use an Authz with nil enforcer to force AddGroupPolicy to fail.
+	svc.authz = &Authz{enforcer: nil}
 
 	ctx := context.Background()
 	uid := NewUserID("rollback-user")
@@ -501,14 +498,16 @@ func TestService_Register_RollbackOnGroupPolicyFailure(t *testing.T) {
 		Password: "secret12",
 	})
 
-	if regErr != nil {
-		store.mu.RLock()
+	if regErr == nil {
+		t.Fatal("expected Register to fail when AddGroupPolicy fails")
+	}
+
+	store.mu.RLock()
 		afterUsers := len(store.users)
-		store.mu.RUnlock()
-		if afterUsers != 0 {
-			t.Errorf("expected user to be rolled back, but %d users remain",
-				afterUsers)
-		}
+	store.mu.RUnlock()
+	if afterUsers != 0 {
+		t.Errorf("expected user to be rolled back, but %d users remain",
+			afterUsers)
 	}
 }
 
