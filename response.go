@@ -31,7 +31,7 @@ type Response struct {
 
 // NewResponse creates an HTMX-aware response builder.
 func NewResponse(w http.ResponseWriter, r *http.Request) *Response {
-	return &Response{w: w, r: r, redirectURL: ""}
+	return &Response{w: w, r: r, redirectURL: "", statusCode: 0}
 }
 
 // IsHTMX returns true if the current request is from HTMX.

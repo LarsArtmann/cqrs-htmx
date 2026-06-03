@@ -9,30 +9,30 @@
 
 ### Replace Directive Removal (Just Completed)
 
-| Item | Status |
-|------|--------|
-| Remove go-cqrs-lite replace directives from root go.mod | Done |
-| Remove go-cqrs-lite replace directives from usermgmt/go.mod | Done |
-| Remove go-cqrs-lite replace directives from integration_test/go.mod | Done |
-| Remove go-cqrs-lite replace directives from datastar-demo/go.mod | Done |
-| go mod tidy all 4 modules | Done |
-| go work sync | Done |
-| go build ./... all 4 modules | Pass |
-| go test ./... -race all 3 test modules | Pass |
-| nix run .#lint (root + usermgmt) | 0 issues |
-| nix flake check | All pass |
-| Update AGENTS.md documentation | Done |
-| Update TODO_LIST.md | Done |
+| Item                                                                | Status   |
+| ------------------------------------------------------------------- | -------- |
+| Remove go-cqrs-lite replace directives from root go.mod             | Done     |
+| Remove go-cqrs-lite replace directives from usermgmt/go.mod         | Done     |
+| Remove go-cqrs-lite replace directives from integration_test/go.mod | Done     |
+| Remove go-cqrs-lite replace directives from datastar-demo/go.mod    | Done     |
+| go mod tidy all 4 modules                                           | Done     |
+| go work sync                                                        | Done     |
+| go build ./... all 4 modules                                        | Pass     |
+| go test ./... -race all 3 test modules                              | Pass     |
+| nix run .#lint (root + usermgmt)                                    | 0 issues |
+| nix flake check                                                     | All pass |
+| Update AGENTS.md documentation                                      | Done     |
+| Update TODO_LIST.md                                                 | Done     |
 
 ### v2.0.0 Migration (Previously Completed)
 
-| Item | Status |
-|------|--------|
-| All 4 modules on go-cqrs-lite v2.0.0 import paths | Done |
-| CatalogEntries dead code removed | Done |
-| go-error-family v0.3.0 adopted | Done |
-| 390+ tests pass with race detector | Pass |
-| 96.4% root coverage, 90.8% usermgmt | Verified |
+| Item                                              | Status   |
+| ------------------------------------------------- | -------- |
+| All 4 modules on go-cqrs-lite v2.0.0 import paths | Done     |
+| CatalogEntries dead code removed                  | Done     |
+| go-error-family v0.3.0 adopted                    | Done     |
+| 390+ tests pass with race detector                | Pass     |
+| 96.4% root coverage, 90.8% usermgmt               | Verified |
 
 ---
 
@@ -41,6 +41,7 @@
 ### Integration Testing
 
 The `integration_test/` module exists but is a **token bridge test**, not real integration:
+
 - 5 tests total (3 in integration_test.go, 2 in bridge_test.go)
 - Tests type compatibility (UserID string bridging, Enforcer interface satisfaction)
 - Does NOT test HTTP handler integration
@@ -50,13 +51,13 @@ The `integration_test/` module exists but is a **token bridge test**, not real i
 
 ### Documentation Currency
 
-| File | Status | Issue |
-|------|--------|-------|
-| AGENTS.md | Current | Updated for replace removal |
-| TODO_LIST.md | Current | Updated |
-| ROADMAP.md | Stale | Still says "Updated: 2026-05-27" |
-| FEATURES.md | Current | CatalogEntries marked REMOVED |
-| docs/modularization/*.md | Stale | Reference v0.1.1 / v1.6.0 |
+| File                      | Status  | Issue                            |
+| ------------------------- | ------- | -------------------------------- |
+| AGENTS.md                 | Current | Updated for replace removal      |
+| TODO_LIST.md              | Current | Updated                          |
+| ROADMAP.md                | Stale   | Still says "Updated: 2026-05-27" |
+| FEATURES.md               | Current | CatalogEntries marked REMOVED    |
+| docs/modularization/\*.md | Stale   | Reference v0.1.1 / v1.6.0        |
 
 ### UpdateRoles Consistency
 
@@ -70,32 +71,32 @@ The `integration_test/` module exists but is a **token bridge test**, not real i
 
 ### Critical Security & Correctness (Pre-v1.1.0)
 
-| # | Item | File | Risk |
-|---|------|------|------|
-| 1 | Rate limiter unbounded heap growth | ratelimit.go | Memory DoS |
-| 2 | CSRF proxy bypass (r.TLS == nil) | csrf.go | Security |
-| 3 | Response.Status() breaks fluent chains | response.go | API bug |
-| 4 | Nil-enforcer + query nil panic tests | authz.go, handler.go | Missing coverage |
-| 5 | Login error classification tests | service.go | Wrong error family |
-| 6 | UpdateRoles rollback / ordering fix | service.go | Data inconsistency |
+| #   | Item                                   | File                 | Risk               |
+| --- | -------------------------------------- | -------------------- | ------------------ |
+| 1   | Rate limiter unbounded heap growth     | ratelimit.go         | Memory DoS         |
+| 2   | CSRF proxy bypass (r.TLS == nil)       | csrf.go              | Security           |
+| 3   | Response.Status() breaks fluent chains | response.go          | API bug            |
+| 4   | Nil-enforcer + query nil panic tests   | authz.go, handler.go | Missing coverage   |
+| 5   | Login error classification tests       | service.go           | Wrong error family |
+| 6   | UpdateRoles rollback / ordering fix    | service.go           | Data inconsistency |
 
 ### v2 Feature Adoption
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 7 | Typed dispatch (RegisterTyped/DispatchTyped) | High | Medium |
-| 8 | PaginatedResult[T] for queries | Medium | Low |
-| 9 | Reactive event streams (EventBus) | Very High | High |
-| 10 | Generic middleware adoption | Medium | Medium |
+| #   | Item                                         | Impact    | Effort |
+| --- | -------------------------------------------- | --------- | ------ |
+| 7   | Typed dispatch (RegisterTyped/DispatchTyped) | High      | Medium |
+| 8   | PaginatedResult[T] for queries               | Medium    | Low    |
+| 9   | Reactive event streams (EventBus)            | Very High | High   |
+| 10  | Generic middleware adoption                  | Medium    | Medium |
 
 ### Architecture
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 11 | SQL store backend for usermgmt | High | Large |
-| 12 | Persistent session store (Redis/SQL) | Medium | Large |
-| 13 | OpenTelemetry integration | High | Medium |
-| 14 | Remove PtrBool (use new(bool)) | Low | Trivial |
+| #   | Item                                 | Impact | Effort  |
+| --- | ------------------------------------ | ------ | ------- |
+| 11  | SQL store backend for usermgmt       | High   | Large   |
+| 12  | Persistent session store (Redis/SQL) | Medium | Large   |
+| 13  | OpenTelemetry integration            | High   | Medium  |
+| 14  | Remove PtrBool (use new(bool))       | Low    | Trivial |
 
 ---
 
@@ -179,33 +180,33 @@ The `integration_test/` module exists but is a **token bridge test**, not real i
 
 Sorted by impact/effort ratio (highest impact, lowest effort first):
 
-| # | Item | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 1 | Fix false-positive Register rollback test | High | 15 min | usermgmt |
-| 2 | Fix empty Logout service error test | High | 10 min | usermgmt |
-| 3 | Fix UpdateRoles ordering (save after Casbin) | High | 15 min | usermgmt |
-| 4 | Add nil-enforcer + query nil panic tests | High | 20 min | root |
-| 5 | Add Login error classification tests | High | 20 min | usermgmt |
-| 6 | Remove PtrBool, use new(bool) | Low | 10 min | usermgmt |
-| 7 | Clean stale coverage files | Low | 5 min | repo |
-| 8 | Update ROADMAP.md date/status | Low | 10 min | docs |
-| 9 | Fix Response.Status() fluent chain | Medium | 30 min | root |
-| 10 | Fix rate limiter heap growth | Medium | 45 min | root |
-| 11 | Collapse 6 error handlers to 1 with options | Medium | 1 hr | root |
-| 12 | Add real integration HTTP tests | High | 2 hr | integration_test |
-| 13 | Fix CSRF proxy bypass | Medium | 1 hr | root |
-| 14 | Adopt v2 typed dispatch | High | 1.5 hr | root |
-| 15 | Add PaginatedResult[T] support | Medium | 30 min | root |
-| 16 | Remove ClientIP re-export (dead weight) | Low | 5 min | root |
-| 17 | Fix decodeFormBody to use PostForm | Low | 10 min | root |
-| 18 | Fix _ = r.Body.Close() in decoder | Low | 10 min | root |
-| 19 | Add RequestLogging / RequestLoggingSlog dedup | Low | 20 min | root |
-| 20 | SQL store backend | Very High | 8 hr | usermgmt |
-| 21 | OpenTelemetry middleware | High | 3 hr | root |
-| 22 | Reactive event streams | Very High | 4 hr | root |
-| 23 | Redis session store | Medium | 4 hr | usermgmt |
-| 24 | JWT/OIDC integration | High | 6 hr | usermgmt |
-| 25 | datastar-demo actually uses cqrs-htmx | Medium | 2 hr | examples |
+| #   | Item                                          | Impact    | Effort | Module           |
+| --- | --------------------------------------------- | --------- | ------ | ---------------- |
+| 1   | Fix false-positive Register rollback test     | High      | 15 min | usermgmt         |
+| 2   | Fix empty Logout service error test           | High      | 10 min | usermgmt         |
+| 3   | Fix UpdateRoles ordering (save after Casbin)  | High      | 15 min | usermgmt         |
+| 4   | Add nil-enforcer + query nil panic tests      | High      | 20 min | root             |
+| 5   | Add Login error classification tests          | High      | 20 min | usermgmt         |
+| 6   | Remove PtrBool, use new(bool)                 | Low       | 10 min | usermgmt         |
+| 7   | Clean stale coverage files                    | Low       | 5 min  | repo             |
+| 8   | Update ROADMAP.md date/status                 | Low       | 10 min | docs             |
+| 9   | Fix Response.Status() fluent chain            | Medium    | 30 min | root             |
+| 10  | Fix rate limiter heap growth                  | Medium    | 45 min | root             |
+| 11  | Collapse 6 error handlers to 1 with options   | Medium    | 1 hr   | root             |
+| 12  | Add real integration HTTP tests               | High      | 2 hr   | integration_test |
+| 13  | Fix CSRF proxy bypass                         | Medium    | 1 hr   | root             |
+| 14  | Adopt v2 typed dispatch                       | High      | 1.5 hr | root             |
+| 15  | Add PaginatedResult[T] support                | Medium    | 30 min | root             |
+| 16  | Remove ClientIP re-export (dead weight)       | Low       | 5 min  | root             |
+| 17  | Fix decodeFormBody to use PostForm            | Low       | 10 min | root             |
+| 18  | Fix \_ = r.Body.Close() in decoder            | Low       | 10 min | root             |
+| 19  | Add RequestLogging / RequestLoggingSlog dedup | Low       | 20 min | root             |
+| 20  | SQL store backend                             | Very High | 8 hr   | usermgmt         |
+| 21  | OpenTelemetry middleware                      | High      | 3 hr   | root             |
+| 22  | Reactive event streams                        | Very High | 4 hr   | root             |
+| 23  | Redis session store                           | Medium    | 4 hr   | usermgmt         |
+| 24  | JWT/OIDC integration                          | High      | 6 hr   | usermgmt         |
+| 25  | datastar-demo actually uses cqrs-htmx         | Medium    | 2 hr   | examples         |
 
 ---
 
@@ -220,6 +221,7 @@ The AGENTS.md explicitly defends the flat package: "Root module is intentionally
 - Consumers import everything or nothing — no granular imports
 
 The alternative:
+
 - Split into `cqrshtmx/authz`, `cqrshtmx/htmx`, `cqrshtmx/middleware`, `cqrshtmx/security`
 - Consumers can import only what they need
 - Better tooling compliance
@@ -231,22 +233,22 @@ The alternative:
 
 ## Metrics
 
-| Metric | Root | Usermgmt | Integration |
-|--------|------|----------|-------------|
-| Coverage | 96.4% | 90.8% | N/A (5 tests) |
-| Lint issues | 0 | 0 | 0 |
-| Go files | 19 | 9 | 2 |
-| Test files | 23 | 11 | 2 |
-| Tests passing | 390+ | 100+ | 5 |
-| Race detector | Pass | Pass | Pass |
+| Metric        | Root  | Usermgmt | Integration   |
+| ------------- | ----- | -------- | ------------- |
+| Coverage      | 96.4% | 90.8%    | N/A (5 tests) |
+| Lint issues   | 0     | 0        | 0             |
+| Go files      | 19    | 9        | 2             |
+| Test files    | 23    | 11       | 2             |
+| Tests passing | 390+  | 100+     | 5             |
+| Race detector | Pass  | Pass     | Pass          |
 
 ## Dependencies
 
-| Module | go-cqrs-lite | Status |
-|--------|-------------|--------|
-| Root | command/v2, event/v2, id/v2, query/v2 | Resolved from upstream |
-| Usermgmt | event/v2 | Resolved from upstream |
-| Integration | command/v2 | Resolved from upstream |
-| Datastar-demo | command/v2, id/v2, query/v2 | Resolved from upstream |
+| Module        | go-cqrs-lite                          | Status                 |
+| ------------- | ------------------------------------- | ---------------------- |
+| Root          | command/v2, event/v2, id/v2, query/v2 | Resolved from upstream |
+| Usermgmt      | event/v2                              | Resolved from upstream |
+| Integration   | command/v2                            | Resolved from upstream |
+| Datastar-demo | command/v2, id/v2, query/v2           | Resolved from upstream |
 
 **All replace directives removed.** Only `integration_test` retains local cqrs-htmx replaces (library not yet published).

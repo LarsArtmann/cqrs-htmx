@@ -81,7 +81,7 @@
 
 | #   | Feature                | Status           | Description                                                                                           |
 | --- | ---------------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
-| 34  | ~~Catalog Entries~~   | REMOVED          | Removed in go-cqrs-lite v2.0.0 — `dispatcher.HandlerMeta`/`CatalogDispatcher` deleted upstream.     |
+| 34  | ~~Catalog Entries~~    | REMOVED          | Removed in go-cqrs-lite v2.0.0 — `dispatcher.HandlerMeta`/`CatalogDispatcher` deleted upstream.       |
 | 35  | HasCommands/HasQueries | FULLY_FUNCTIONAL | Report dispatcher availability.                                                                       |
 | 36  | Request Validation     | FULLY_FUNCTIONAL | `ValidateCommand(validator)` / `ValidateQuery(validator)` wrap decoders. `ErrValidationFailed` → 400. |
 
