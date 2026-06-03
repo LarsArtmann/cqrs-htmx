@@ -356,6 +356,29 @@ func TestService_Login_UserNotFound(t *testing.T) {
 	assertErrorIs(t, err, ErrInvalidCredentials, "ErrInvalidCredentials")
 }
 
+func TestService_Login_StoreError(t *testing.T) {
+	users := &mockUserStore{
+		FindByEmailFn: func(_ context.Context, _ string) (*User, error) {
+			return nil, errors.New("db connection lost")
+		},
+	}
+	svc, _ := NewService(ServiceConfig{
+		UserStore:  users,
+		BcryptCost: minBcryptCost,
+	})
+
+	_, err := svc.Login(context.Background(), LoginRequest{
+		Email:    "any@test.com",
+		Password: "secret12",
+	})
+	if errors.Is(err, ErrInvalidCredentials) {
+		t.Fatal("store errors must return transient, not ErrInvalidCredentials")
+	}
+	if err == nil {
+		t.Fatal("expected error when store fails")
+	}
+}
+
 func TestService_Register_DuplicateUserID(t *testing.T) {
 	svc := newTestService(t)
 	ctx := context.Background()
