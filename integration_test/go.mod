@@ -3,8 +3,8 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.26.3
 
 require (
-	github.com/larsartmann/cqrs-htmx v1.0.0
-	github.com/larsartmann/cqrs-htmx/usermgmt v0.0.0
+	github.com/larsartmann/cqrs-htmx/v2 v2.0.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v2 v2.0.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.0.0
 )
 
@@ -32,6 +32,6 @@ require (
 )
 
 replace (
-	github.com/larsartmann/cqrs-htmx => ../
-	github.com/larsartmann/cqrs-htmx/usermgmt => ../usermgmt
+	github.com/larsartmann/cqrs-htmx/v2 => ../
+	github.com/larsartmann/cqrs-htmx/usermgmt/v2 => ../usermgmt
 )

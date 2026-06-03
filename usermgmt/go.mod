@@ -1,4 +1,4 @@
-module github.com/larsartmann/cqrs-htmx/usermgmt
+module github.com/larsartmann/cqrs-htmx/usermgmt/v2
 
 go 1.26.3
 
