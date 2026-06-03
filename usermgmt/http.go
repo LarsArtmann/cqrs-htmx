@@ -38,13 +38,14 @@ type HandlerConfig struct {
 }
 
 // PtrBool returns a pointer to the given bool value.
-// Useful for HandlerConfig.Secure: PtrBool(false) sets Secure to false.
+// Deprecated: Use new(bool) for false, or a local variable for true.
 func PtrBool(v bool) *bool { return &v }
 
 func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
+	secure := true
 	result := HandlerConfig{
 		CookieName: defaultCookieName,
-		Secure:     PtrBool(true),
+		Secure:     &secure,
 	}
 	if cfg.CookieName != "" {
 		result.CookieName = cfg.CookieName
