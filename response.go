@@ -26,6 +26,7 @@ type Response struct {
 	w           http.ResponseWriter
 	r           *http.Request
 	redirectURL string
+	statusCode  int
 }
 
 // NewResponse creates an HTMX-aware response builder.
@@ -163,9 +164,10 @@ func (resp *Response) CSRFToken(token string) *Response {
 	return resp
 }
 
-// Status sets the HTTP status code for the response.
+// Status sets the HTTP status code. The code is deferred to Apply() so
+// subsequent header-setting methods (like Redirect, PushURL) still work.
 func (resp *Response) Status(code int) *Response {
-	resp.w.WriteHeader(code)
+	resp.statusCode = code
 	return resp
 }
 
@@ -235,6 +237,10 @@ func (resp *Response) Apply() bool {
 
 	if resp.IsHTMX() {
 		resp.w.Header().Set("Content-Type", ContentTypeHTML)
+	}
+
+	if resp.statusCode != 0 {
+		resp.w.WriteHeader(resp.statusCode)
 	}
 
 	return false
