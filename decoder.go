@@ -41,7 +41,7 @@ func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
 	}
 
 	body, err := io.ReadAll(io.LimitReader(r.Body, maxBodySize+1))
-	_ = r.Body.Close()
+	closeErr := r.Body.Close()
 
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -49,6 +49,14 @@ func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
 			ErrDecodeFailed,
 			maxBodySize,
 			err,
+		)
+	}
+	if closeErr != nil {
+		return nil, fmt.Errorf(
+			"%w: close body (maxBodySize=%d): %w",
+			ErrDecodeFailed,
+			maxBodySize,
+			closeErr,
 		)
 	}
 
@@ -94,7 +102,7 @@ func decodeFormBody[T any](r *http.Request, maxBodySize int64) (out T, err error
 		)
 	}
 
-	if decodeErr := decodeFormValues(r.Form, &out); decodeErr != nil {
+	if decodeErr := decodeFormValues(r.PostForm, &out); decodeErr != nil {
 		return out, fmt.Errorf(
 			"maxBodySize=%d: %w: decode form values: %w",
 			maxBodySize,
