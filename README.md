@@ -880,15 +880,15 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency               | Purpose                     |
-| ------------------------ | --------------------------- |
-| go-cqrs-lite v2.0.0          | CQRS command/query dispatch |
-| casbin/casbin/v3         | Authorization               |
-| go-error-family v0.3.0      | Error classification        |
-| justinas/nosurf          | CSRF protection             |
-| larsartmann/httputil     | ClientIP extraction         |
-| golang.org/x/time        | Token-bucket rate limiting  |
-| go-branded-id            | Branded types (usermgmt)    |
+| Dependency             | Purpose                     |
+| ---------------------- | --------------------------- |
+| go-cqrs-lite v2.0.0    | CQRS command/query dispatch |
+| casbin/casbin/v3       | Authorization               |
+| go-error-family v0.3.0 | Error classification        |
+| justinas/nosurf        | CSRF protection             |
+| larsartmann/httputil   | ClientIP extraction         |
+| golang.org/x/time      | Token-bucket rate limiting  |
+| go-branded-id          | Branded types (usermgmt)    |
 
 ## Contributing
 
