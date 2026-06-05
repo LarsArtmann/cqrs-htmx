@@ -51,12 +51,7 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, hc *handlerCo
 
 	// For plain HTTP requests without origin headers, set Sec-Fetch-Site
 	// to allow nosurf to skip origin validation.
-	if r.TLS == nil &&
-		r.Header.Get("Sec-Fetch-Site") == "" &&
-		r.Header.Get("Origin") == "" &&
-		r.Header.Get("Referer") == "" {
-		r.Header.Set("Sec-Fetch-Site", "same-origin")
-	}
+	setPlaintextHTTPOrigin(r)
 
 	needsTranslation := hc.csrfConfig.headerName() != defaultCSRFHeaderName ||
 		hc.csrfConfig.fieldName() != defaultCSRFFieldName
