@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0
 	github.com/larsartmann/go-error-family v0.3.0
-	github.com/larsartmann/httputil v0.0.0-20260601113755-7b9a6cbc3d5c
+	github.com/larsartmann/httputil v0.0.0-20260604123117-48652812bcf7
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	golang.org/x/time v0.15.0
@@ -34,7 +34,7 @@ require (
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9 // indirect
+	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
