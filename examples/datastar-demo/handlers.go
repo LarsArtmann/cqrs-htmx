@@ -15,6 +15,16 @@ type Signals struct {
 	ID    string `json:"id"`
 }
 
+func dispatchErrorNotification(w http.ResponseWriter, r *http.Request, err error) {
+	sse := datastar.NewSSE(w, r)
+	sse.MarshalAndPatchSignals(map[string]any{
+		"notification": map[string]string{
+			"level":   "error",
+			"message": err.Error(),
+		},
+	})
+}
+
 func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var s Signals
@@ -41,13 +51,7 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 		}
 
 		if err := cqrs.Commands.Dispatch(ctx, cmd); err != nil {
-			sse := datastar.NewSSE(w, r)
-			sse.MarshalAndPatchSignals(map[string]any{
-				"notification": map[string]string{
-					"level":   "error",
-					"message": err.Error(),
-				},
-			})
+			dispatchErrorNotification(w, r, err)
 			return
 		}
 
@@ -74,13 +78,7 @@ func handleToggleTodo(cqrs *CQRS) http.HandlerFunc {
 		}
 
 		if err := cqrs.Commands.Dispatch(ctx, cmd); err != nil {
-			sse := datastar.NewSSE(w, r)
-			sse.MarshalAndPatchSignals(map[string]any{
-				"notification": map[string]string{
-					"level":   "error",
-					"message": err.Error(),
-				},
-			})
+			dispatchErrorNotification(w, r, err)
 			return
 		}
 
@@ -104,13 +102,7 @@ func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 		}
 
 		if err := cqrs.Commands.Dispatch(ctx, cmd); err != nil {
-			sse := datastar.NewSSE(w, r)
-			sse.MarshalAndPatchSignals(map[string]any{
-				"notification": map[string]string{
-					"level":   "error",
-					"message": err.Error(),
-				},
-			})
+			dispatchErrorNotification(w, r, err)
 			return
 		}
 
