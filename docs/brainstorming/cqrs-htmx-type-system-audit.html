@@ -168,6 +168,7 @@ footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);color
       <a href="#grades">Grades</a>
       <a href="#gaps">Gaps</a>
       <a href="#before-after">Before / After</a>
+      <a href="#microtypes">Micro Types</a>
       <a href="#generics">Generics</a>
       <a href="#matrix">Matrix</a>
       <a href="#checklist">Checklist</a>
@@ -917,6 +918,272 @@ if err != nil { return err }
   <strong>Library principle check:</strong> <code>Result[T]</code> is powerful but changes the Go idiom. For a library, providing it as an optional helper (not replacing all error returns) respects consumer choice. A <code>cqrshtmx/result</code> subpackage would be ideal.
 </div>
 
+</section>
+
+<!-- ============================================================ -->
+<section id="microtypes">
+<h2>Micro Types — Low-Hanging Fruit Under 30 Minutes Each</h2>
+<p style="color:var(--fg2);font-size:.9rem;margin-bottom:1rem">These are not generics or architectural changes. They are single types with constructors and validation methods — the same pattern already used for <code>SwapStrategy.Valid()</code> and <code>brandid.ID</code>. Zero consumer breakage if done as type aliases with helper functions.</p>
+
+<table>
+  <tr><th>Type</th><th>Current</th><th>Risk</th><th>Effort</th><th>Fix</th></tr>
+  <tr>
+    <td><code>Role</code></td>
+    <td><code>type Role string</code></td>
+    <td>Invalid roles accepted silently</td>
+    <td><span class="badge badge-done">15 min</span></td>
+    <td>Add <code>Valid()</code> + <code>NewRole()</code> constructor</td>
+  </tr>
+  <tr>
+    <td><code>Session.Token</code></td>
+    <td><code>Token string</code></td>
+    <td>Confused with UserID or raw strings</td>
+    <td><span class="badge badge-done">20 min</span></td>
+    <td><code>brandid.ID[sessionTokenBrand, string]</code></td>
+  </tr>
+  <tr>
+    <td><code>Email</code></td>
+    <td><code>Email string</code></td>
+    <td>Invalid emails reach domain layer</td>
+    <td><span class="badge badge-done">30 min</span></td>
+    <td><code>ParseEmail()</code> constructor; validate at construction</td>
+  </tr>
+  <tr>
+    <td><code>Password</code></td>
+    <td><code>Password string</code></td>
+    <td>Accidental logging / JSON leak</td>
+    <td><span class="badge badge-done">30 min</span></td>
+    <td>Opaque type with redacted <code>MarshalJSON</code></td>
+  </tr>
+  <tr>
+    <td><code>ContentType</code></td>
+    <td><code>const ContentTypePlain = "..."</code></td>
+    <td>Typos in headers compile fine</td>
+    <td><span class="badge badge-done">10 min</span></td>
+    <td><code>type ContentType string</code> with <code>Valid()</code></td>
+  </tr>
+  <tr>
+    <td><code>HTTPMethod</code></td>
+    <td><code>RequireMethod("GETX")</code></td>
+    <td>Invalid methods accepted</td>
+    <td><span class="badge badge-done">10 min</span></td>
+    <td><code>type HTTPMethod string</code> wrapping <code>http.MethodGet</code></td>
+  </tr>
+  <tr>
+    <td><code>BcryptCost</code></td>
+    <td><code>int</code></td>
+    <td>Invalid costs silently clamped</td>
+    <td><span class="badge badge-done">15 min</span></td>
+    <td><code>NewBcryptCost(v int)</code> with bounds check</td>
+  </tr>
+</table>
+
+<h3>1. <code>Role</code> — Closed Set Without Enforcement</h3>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — usermgmt/authz.go:36-47</div>
+    <pre><code>type Role string
+
+const (
+    RoleAdmin  Role = "admin"
+    RoleUser   Role = "user"
+    RoleViewer Role = "viewer"
+    RoleOwner  Role = "owner"
+)
+
+// user.AddRole(Role("hacker")) — COMPILES. No error.
+// The string "hacker" is silently accepted.</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Validated Role</div>
+    <pre><code>type Role string
+
+const (
+    RoleAdmin  Role = "admin"
+    RoleUser   Role = "user"
+    RoleViewer Role = "viewer"
+    RoleOwner  Role = "owner"
+)
+
+func NewRole(s string) (Role, error) {
+    r := Role(s)
+    if !r.Valid() {
+        return "", fmt.Errorf("invalid role: %q", s)
+    }
+    return r, nil
+}
+
+func (r Role) Valid() bool {
+    switch r {
+    case RoleAdmin, RoleUser, RoleViewer, RoleOwner:
+        return true
+    }
+    return false
+}</code></pre>
+  </div>
+</div>
+
+<h3>2. <code>Session.Token</code> — Branded String</h3>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — usermgmt/user.go:182-183</div>
+    <pre><code>type Session struct {
+    Token     string    // could be ANY string
+    UserID    UserID    // branded — good
+    CreatedAt time.Time
+}</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Branded Token</div>
+    <pre><code>type sessionTokenBrand struct{}
+type Token = brandid.ID[sessionTokenBrand, string]
+
+type Session struct {
+    Token     Token     // CANNOT mix with UserID
+    UserID    UserID
+    CreatedAt time.Time
+}</code></pre>
+  </div>
+</div>
+
+<h3>3. <code>Email</code> — Validate at Construction</h3>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — usermgmt/user.go:38-39</div>
+    <pre><code>type User struct {
+    Email        string    // validated too late
+    DisplayName  string
+    // validation only in RegisterRequest.Validate()
+}</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — ParseEmail Constructor</div>
+    <pre><code>type Email string
+
+func ParseEmail(s string) (Email, error) {
+    s = strings.ToLower(strings.TrimSpace(s))
+    if _, err := mail.ParseAddress(s); err != nil {
+        return "", fmt.Errorf("invalid email: %w", err)
+    }
+    return Email(s), nil
+}
+
+// User.Email is always valid — guaranteed by construction
+type User struct {
+    Email       Email
+    DisplayName string
+}</code></pre>
+  </div>
+</div>
+
+<h3>4. <code>Password</code> — Opaque Type for Security</h3>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — string everywhere</div>
+    <pre><code>type RegisterRequest struct {
+    Password string `json:"password"` // could log/serialize
+}
+
+// Accidentally: log.Printf("password: %s", req.Password)
+// JSON encoder happily includes it</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Opaque Password</div>
+    <pre><code>type Password string
+
+func (p Password) String() string { return string(p) } // explicit
+
+func (p Password) MarshalJSON() ([]byte, error) {
+    return []byte(`"[REDACTED]"`), nil
+}
+
+// Accidentally logging it now shows "[REDACTED]"
+// JSON encoder never leaks plaintext</code></pre>
+  </div>
+</div>
+
+<h3>5. <code>ContentType</code> — Typed Like SwapStrategy</h3>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — response.go:12-16</div>
+    <pre><code>const ContentTypePlain = "text/plain; charset=utf-8"
+// resp.ContentType("text/plane") — typo compiles fine</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Typed ContentType</div>
+    <pre><code>type ContentType string
+
+const (
+    ContentTypePlain ContentType = "text/plain; charset=utf-8"
+    ContentTypeHTML  ContentType = "text/html; charset=utf-8"
+    ContentTypeJSON  ContentType = "application/json"
+)
+
+func (c ContentType) Valid() bool {
+    switch c {
+    case ContentTypePlain, ContentTypeHTML, ContentTypeJSON:
+        return true
+    }
+    return false
+}</code></pre>
+  </div>
+</div>
+
+<h3>6. <code>HTTPMethod</code> — Prevent Typos in Route Guards</h3>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — options.go:391-395</div>
+    <pre><code>func RequireMethod(method string) HandlerOption
+// app.Command("X", RequireMethod("GETX")) — COMPILES
+// Breaks at runtime with 405</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Typed HTTPMethod</div>
+    <pre><code>type HTTPMethod string
+
+const (
+    MethodGet  HTTPMethod = http.MethodGet
+    MethodPost HTTPMethod = http.MethodPost
+    // ...
+)
+
+func RequireMethod(method HTTPMethod) HandlerOption
+// RequireMethod("GETX") — COMPILE ERROR
+// RequireMethod(MethodGet) — correct</code></pre>
+  </div>
+</div>
+
+<h3>7. <code>BcryptCost</code> — Bounds at Construction</h3>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — usermgmt/user.go:18-19</div>
+    <pre><code>const minBcryptCost = 4
+defaultBcryptCost = 12
+// cost is just int — cost=3 silently accepted then clamped</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — BcryptCost Type</div>
+    <pre><code>type BcryptCost int
+
+func NewBcryptCost(v int) (BcryptCost, error) {
+    if v < minBcryptCost {
+        return 0, fmt.Errorf("cost %d < minimum %d", v, minBcryptCost)
+    }
+    return BcryptCost(v), nil
+}</code></pre>
+  </div>
+</div>
+
+<div class="hl hl-good">
+  <strong>Why these matter:</strong> Each is a single type with a constructor. No generics, no architecture changes, no consumer breakage. The pattern is the same one already used for <code>SwapStrategy.Valid()</code> and <code>brandid.ID</code>. The combined effect: impossible values become unrepresentable at compile time (typos) or construction time (invalid roles, emails, costs).
+</div>
 </section>
 
 <!-- ============================================================ -->
