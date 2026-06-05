@@ -39,3 +39,5 @@ node_modules/
 examples/datastar-demo/datastar-demo
 # Nix build output
 /result
+# Build artifacts
+/v2
