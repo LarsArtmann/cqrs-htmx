@@ -268,15 +268,7 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 			cfg.fieldName() != defaultCSRFFieldName
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// For plain HTTP requests without origin headers, set Sec-Fetch-Site
-			// to allow nosurf to skip origin validation. This matches the behavior
-			// of gorilla/csrf's PlaintextHTTPRequest for HTTP deployments.
-			if r.TLS == nil &&
-				r.Header.Get("Sec-Fetch-Site") == "" &&
-				r.Header.Get("Origin") == "" &&
-				r.Header.Get("Referer") == "" {
-				r.Header.Set("Sec-Fetch-Site", "same-origin")
-			}
+			setPlaintextHTTPOrigin(r)
 
 			// Translate custom header/field names to nosurf defaults.
 			if needsTranslation {
@@ -285,6 +277,19 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 
 			handler.ServeHTTP(w, r)
 		})
+	}
+}
+
+// setPlaintextHTTPOrigin sets the Sec-Fetch-Site header to "same-origin" for
+// plain HTTP requests without origin headers. This allows nosurf to skip
+// origin validation, matching the behavior of gorilla/csrf's PlaintextHTTPRequest
+// for HTTP deployments.
+func setPlaintextHTTPOrigin(r *http.Request) {
+	if r.TLS == nil &&
+		r.Header.Get("Sec-Fetch-Site") == "" &&
+		r.Header.Get("Origin") == "" &&
+		r.Header.Get("Referer") == "" {
+		r.Header.Set("Sec-Fetch-Site", "same-origin")
 	}
 }
 
