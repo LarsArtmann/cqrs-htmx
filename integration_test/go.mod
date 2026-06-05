@@ -21,12 +21,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
-	github.com/larsartmann/httputil v0.0.0-20260601113755-7b9a6cbc3d5c // indirect
+	github.com/larsartmann/httputil v0.0.0-20260604123117-48652812bcf7 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
 	golang.org/x/crypto v0.52.0 // indirect
-	golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9 // indirect
+	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 )
