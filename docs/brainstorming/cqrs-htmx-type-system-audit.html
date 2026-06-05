@@ -169,6 +169,7 @@ footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);color
       <a href="#gaps">Gaps</a>
       <a href="#before-after">Before / After</a>
       <a href="#microtypes">Micro Types</a>
+      <a href="#passwordless">Passwordless</a>
       <a href="#generics">Generics</a>
       <a href="#matrix">Matrix</a>
       <a href="#checklist">Checklist</a>
@@ -1183,6 +1184,476 @@ func NewBcryptCost(v int) (BcryptCost, error) {
 
 <div class="hl hl-good">
   <strong>Why these matter:</strong> Each is a single type with a constructor. No generics, no architecture changes, no consumer breakage. The pattern is the same one already used for <code>SwapStrategy.Valid()</code> and <code>brandid.ID</code>. The combined effect: impossible values become unrepresentable at compile time (typos) or construction time (invalid roles, emails, costs).
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="passwordless">
+<h2>Passwordless Architecture — Passkeys + OAuth2 by Default</h2>
+<p style="color:var(--fg2);font-size:.9rem;margin-bottom:1rem">
+The current usermgmt module is deeply password-centric. <code>User.PasswordHash</code> is a core field, <code>Service.Register</code> requires a password, <code>AccountLockout</code> tracks failed password attempts, and <code>AuthHandler</code> exposes <code>/auth/login</code> as a password endpoint. This section explores how to make the module passwordless-by-default while keeping password support as an opt-in fallback.
+</p>
+
+<h3>Current State — Password-Centric Design</h3>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">Current User Model — usermgmt/user.go:38-46</div>
+    <pre><code>type User struct {
+    ID           UserID    `json:"id"`
+    Email        string    `json:"email"`
+    DisplayName  string    `json:"display_name,omitempty"`
+    PasswordHash string    `json:"-"`       // REQUIRED field
+    Roles        []Role    `json:"roles"`
+    CreatedAt    time.Time `json:"created_at"`
+    UpdatedAt    time.Time `json:"updated_at"`
+}
+
+// Password is mandatory for registration:
+type RegisterRequest struct {
+    ID          UserID `json:"id"`
+    Email       string `json:"email"`
+    Password    string `json:"password"`  // REQUIRED
+    DisplayName string `json:"display_name"`
+}</code></pre>
+  </div>
+  <div class="compare-box before">
+    <div class="label">Current Auth Flow — usermgmt/service.go:146-192</div>
+    <pre><code>func (s *Service) Register(ctx, req RegisterRequest) (*RegisterResponse, error) {
+    user := NewUser(req.ID, req.Email, req.DisplayName)
+    user.SetPasswordWithCost(req.Password, s.bcryptCost)
+    // ... create user, assign role, create session
+}
+
+func (s *Service) Login(ctx, req LoginRequest) (*LoginResponse, error) {
+    user, _ := s.users.FindByEmail(ctx, req.Email)
+    if !user.CheckPassword(req.Password) {
+        s.lockout.RecordFailure(req.Email)  // password-only lockout
+        return nil, ErrInvalidCredentials
+    }
+    // ... create session
+}</code></pre>
+  </div>
+</div>
+
+<div class="hl hl-warn">
+  <strong>Problem:</strong> The <code>User</code> entity conflates <em>identity</em> (who you are: email, name, roles) with <em>authentication</em> (how you prove it: password hash). Adding passkeys or OAuth2 requires jamming more fields into User or creating parallel entities. The domain model needs to separate these concerns.
+</div>
+
+<h3>Proposed Architecture: Identity + Credentials</h3>
+
+<p style="color:var(--fg2);font-size:.9rem;margin-bottom:1rem">
+Separate <strong>who you are</strong> (User/Identity) from <strong>how you prove it</strong> (Credentials). A user can have multiple credentials: zero or one password, multiple passkeys, multiple OAuth2 identities. This is the model used by Auth0, Supabase Auth, and Firebase Auth.
+</p>
+
+<div class="compare">
+  <div class="compare-box after">
+    <div class="label">AFTER — Identity-Agnostic User</div>
+    <pre><code>type User struct {
+    ID          UserID    `json:"id"`
+    Email       Email     `json:"email"`       // branded, validated
+    DisplayName string    `json:"display_name,omitempty"`
+    Roles       []Role    `json:"roles"`
+    CreatedAt   time.Time `json:"created_at"`
+    UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// MarshalJSON no longer exposes "has_password" —
+// consumers query CredentialStore for auth methods
+func (u *User) MarshalJSON() ([]byte, error) {
+    type Alias User
+    return json.Marshal((*Alias)(u))
+}</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Credential Types</div>
+    <pre><code>// AuthMethod is how the user authenticated this session
+type AuthMethod string
+const (
+    AuthMethodPassword AuthMethod = "password"
+    AuthMethodPasskey  AuthMethod = "passkey"
+    AuthMethodOAuth2   AuthMethod = "oauth2"
+)
+
+func (m AuthMethod) Valid() bool {
+    switch m {
+    case AuthMethodPassword, AuthMethodPasskey, AuthMethodOAuth2:
+        return true
+    }
+    return false
+}
+
+// Credential is a sealed interface — only these types implement it
+type Credential interface {
+    credentialSeal()
+    UserID() UserID
+    AuthMethod() AuthMethod
+}</code></pre>
+  </div>
+</div>
+
+<h3>1. PasswordCredential — The Fallback</h3>
+
+<p>Keep password support but make it optional. Move the bcrypt hash out of User into a dedicated credential type.</p>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — Password in User</div>
+    <pre><code>type User struct {
+    ID           UserID
+    PasswordHash string  // mixed with identity fields
+}
+
+func (u *User) SetPassword(password string) error { ... }
+func (u *User) CheckPassword(password string) bool { ... }
+func (u *User) IsPasswordSet() bool { return u.PasswordHash != "" }</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — PasswordCredential</div>
+    <pre><code>type PasswordCredential struct {
+    UserID       UserID
+    PasswordHash string    // bcrypt hash
+    CreatedAt    time.Time
+    UpdatedAt    time.Time
+}
+
+func (c PasswordCredential) credentialSeal() {}
+func (c PasswordCredential) UserID() UserID  { return c.UserID }
+func (c PasswordCredential) AuthMethod() AuthMethod { return AuthMethodPassword }
+
+func (c *PasswordCredential) CheckPassword(password string) bool {
+    return bcrypt.CompareHashAndPassword(
+        []byte(c.PasswordHash), []byte(password),
+    ) == nil
+}
+
+// Password is now OPTIONAL. User can have zero PasswordCredentials.
+// AccountLockout becomes PasswordLockout — only applies to password auth.</code></pre>
+  </div>
+</div>
+
+<h3>2. PasskeyCredential — WebAuthn / FIDO2</h3>
+
+<p>Passkeys use public-key cryptography. The server stores the public key; the private key never leaves the user's device. No shared secret means no password database to breach.</p>
+
+<div class="compare">
+  <div class="compare-box after">
+    <div class="label">AFTER — PasskeyCredential</div>
+    <pre><code>type PasskeyCredential struct {
+    UserID          UserID
+    CredentialID    []byte    // WebAuthn credential ID
+    PublicKey       []byte    // COSE-encoded public key
+    AAGUID          []byte    // authenticator attestation GUID
+    SignCount       uint32    // prevents replay attacks
+    Transports      []string  // "usb", "nfc", "ble", "hybrid", "internal"
+    BackupEligible  bool      // can be synced across devices?
+    BackupState     bool      // currently backed up?
+    DisplayName     string    // "YubiKey 5C", "iCloud Keychain"
+    CreatedAt       time.Time
+    LastUsedAt      time.Time
+}
+
+func (c PasskeyCredential) credentialSeal() {}
+func (c PasskeyCredential) UserID() UserID  { return c.UserID }
+func (c PasskeyCredential) AuthMethod() AuthMethod { return AuthMethodPasskey }
+
+// No bcrypt, no lockout needed. Brute-forcing ECDSA/P256 is
+// computationally infeasible. Rate limiting is transport-level only.</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Passkey Store Interface</div>
+    <pre><code>type PasskeyStore interface {
+    Create(ctx context.Context, cred *PasskeyCredential) error
+    FindByCredentialID(ctx context.Context, id []byte) (*PasskeyCredential, error)
+    FindByUserID(ctx context.Context, userID UserID) ([]*PasskeyCredential, error)
+    UpdateSignCount(ctx context.Context, id []byte, count uint32) error
+    Delete(ctx context.Context, id []byte) error
+}
+
+// WebAuthn ceremony endpoints (new HTTP handlers):
+// POST /auth/passkeys/register/begin   — returns challenge + options
+// POST /auth/passkeys/register/finish  — verifies attestation, stores cred
+// POST /auth/passkeys/login/begin      — returns challenge + allowed creds
+// POST /auth/passkeys/login/finish     — verifies assertion, creates session</code></pre>
+  </div>
+</div>
+
+<h3>3. OAuth2Credential — External Identity Provider</h3>
+
+<p>OAuth2 delegates authentication to a trusted provider (Google, GitHub, etc.). The application receives an identity token or userinfo response and links it to a local user.</p>
+
+<div class="compare">
+  <div class="compare-box after">
+    <div class="label">AFTER — OAuth2Credential</div>
+    <pre><code>type OAuth2Provider string
+
+const (
+    OAuth2Google  OAuth2Provider = "google"
+    OAuth2GitHub  OAuth2Provider = "github"
+    OAuth2Apple   OAuth2Provider = "apple"
+    OAuth2Microsoft OAuth2Provider = "microsoft"
+)
+
+func (p OAuth2Provider) Valid() bool {
+    switch p {
+    case OAuth2Google, OAuth2GitHub, OAuth2Apple, OAuth2Microsoft:
+        return true
+    }
+    return false
+}
+
+type OAuth2Credential struct {
+    UserID       UserID
+    Provider     OAuth2Provider
+    Subject      string    // provider's user ID (opaque)
+    Email        Email     // verified email from provider
+    AccessToken  string    `json:"-"` // encrypted at rest
+    RefreshToken string    `json:"-"` // encrypted at rest
+    ExpiresAt    time.Time
+    CreatedAt    time.Time
+}
+
+func (c OAuth2Credential) credentialSeal() {}
+func (c OAuth2Credential) UserID() UserID  { return c.UserID }
+func (c OAuth2Credential) AuthMethod() AuthMethod { return AuthMethodOAuth2 }</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — OAuth2 Flow</div>
+    <pre><code>// OAuth2 login is a redirect flow, not a JSON API:
+//
+// 1. User clicks "Sign in with Google"
+// 2. Browser redirects to Google's OAuth2 authorize endpoint
+// 3. Google redirects back to /auth/oauth2/callback?code=...
+// 4. Backend exchanges code for tokens, fetches userinfo
+// 5. Backend finds or creates User, links OAuth2Credential
+// 6. Backend creates session, sets cookie
+//
+// The AuthHandler gains these routes:
+// GET  /auth/oauth2/:provider/redirect  — redirect to provider
+// GET  /auth/oauth2/:provider/callback  — handle callback
+
+func (h *AuthHandler) handleOAuth2Callback(
+    w http.ResponseWriter, r *http.Request,
+    provider OAuth2Provider, code string,
+) {
+    // Exchange code → tokens
+    // Fetch userinfo from provider
+    // Find existing OAuth2Credential by (provider, subject)
+    // If found: create session for linked user
+    // If not found: create User + OAuth2Credential, create session
+}</code></pre>
+  </div>
+</div>
+
+<h3>4. AccountLockout Becomes PasswordLockout</h3>
+
+<p>Account lockout is password-specific. Passkeys and OAuth2 do not need it — public-key verification is inherently rate-limit resistant, and OAuth2 providers handle their own brute-force protection.</p>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — AccountLockout tracks all logins</div>
+    <pre><code>type AccountLockout struct {
+    attempts map[string]uint  // keyed by email
+    lockedAt map[string]time.Time
+}
+
+// RecordFailure called on EVERY failed login:
+// - wrong password → RecordFailure (correct)
+// - invalid passkey signature → RecordFailure (wrong!)
+// - OAuth2 token expired → RecordFailure (wrong!)</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — PasswordLockout (password only)</div>
+    <pre><code>type PasswordLockout struct {
+    config   LockoutConfig
+    attempts map[string]uint  // keyed by email
+    lockedAt map[string]time.Time
+}
+
+// Only Service.LoginWithPassword calls RecordFailure.
+// Passkey and OAuth2 login paths bypass lockout entirely.
+// This is not a security regression — it's correct separation.</code></pre>
+  </div>
+</div>
+
+<h3>5. Session Gains AuthMethod</h3>
+
+<p>Sessions should record how the user authenticated. This enables security-sensitive operations to require step-up authentication.</p>
+
+<div class="compare">
+  <div class="compare-box after">
+    <div class="label">AFTER — Session with AuthMethod</div>
+    <pre><code>type Session struct {
+    Token       string     `json:"token"`
+    UserID      UserID     `json:"user_id"`
+    AuthMethod  AuthMethod `json:"auth_method"` // NEW
+    CreatedAt   time.Time  `json:"created_at"`
+    ExpiresAt   time.Time  `json:"expires_at"`
+}
+
+// Usage: require step-up auth for sensitive operations
+func (s *Service) ChangeEmail(ctx context.Context, token string, newEmail Email) error {
+    session, err := s.sessions.Find(ctx, token)
+    if err != nil { return err }
+
+    // Passkeys and passwords are "strong" auth.
+    // OAuth2 may be "weaker" depending on provider policy.
+    if session.AuthMethod == AuthMethodOAuth2 {
+        return ErrStepUpRequired // re-authenticate with passkey/password
+    }
+    // ... proceed with email change
+}</code></pre>
+  </div>
+</div>
+
+<h3>6. Credential Store Interface</h3>
+
+<p>Unify all credential storage behind a single interface with typed accessors.</p>
+
+<div class="compare">
+  <div class="compare-box after">
+    <div class="label">AFTER — CredentialStore</div>
+    <pre><code>type CredentialStore interface {
+    // Password credentials
+    FindPasswordByUserID(ctx context.Context, userID UserID) (*PasswordCredential, error)
+    SavePassword(ctx context.Context, cred *PasswordCredential) error
+    DeletePassword(ctx context.Context, userID UserID) error
+
+    // Passkey credentials
+    FindPasskeyByCredentialID(ctx context.Context, id []byte) (*PasskeyCredential, error)
+    FindPasskeysByUserID(ctx context.Context, userID UserID) ([]*PasskeyCredential, error)
+    SavePasskey(ctx context.Context, cred *PasskeyCredential) error
+    DeletePasskey(ctx context.Context, id []byte) error
+
+    // OAuth2 credentials
+    FindOAuth2ByProviderSubject(ctx context.Context, provider OAuth2Provider, subject string) (*OAuth2Credential, error)
+    FindOAuth2ByUserID(ctx context.Context, userID UserID) ([]*OAuth2Credential, error)
+    SaveOAuth2(ctx context.Context, cred *OAuth2Credential) error
+    DeleteOAuth2(ctx context.Context, provider OAuth2Provider, subject string) error
+}</code></pre>
+  </div>
+</div>
+
+<h3>Type System Impact</h3>
+
+<table>
+  <tr><th>Change</th><th>Type Safety Gain</th><th>Consumer Impact</th></tr>
+  <tr>
+    <td><code>Email</code> branded type</td>
+    <td>Invalid emails can't reach domain layer</td>
+    <td>Breaking — constructor required</td>
+  </tr>
+  <tr>
+    <td><code>AuthMethod</code> enum</td>
+    <td>Impossible to create invalid auth method</td>
+    <td>Non-breaking — new field on Session</td>
+  </tr>
+  <tr>
+    <td><code>OAuth2Provider</code> enum</td>
+    <td>Only supported providers at compile time</td>
+    <td>Non-breaking — new type</td>
+  </tr>
+  <tr>
+    <td><code>Credential</code> sealed interface</td>
+    <td>Exhaustive type-switching on credentials</td>
+    <td>Non-breaking — internal interface</td>
+  </tr>
+  <tr>
+    <td>Password optional on User</td>
+    <td>User struct is cleaner, identity-only</td>
+    <td>Breaking — PasswordHash removed</td>
+  </tr>
+  <tr>
+    <td><code>Session.AuthMethod</code></td>
+    <td>Audit trails know how user authenticated</td>
+    <td>Non-breaking — new field</td>
+  </tr>
+</table>
+
+<h3>Implementation Phases</h3>
+
+<div class="checklist">
+  <div class="checklist-item">
+    <div class="num">1</div>
+    <div class="content">
+      <strong>Extract PasswordCredential</strong>
+      <span>Move PasswordHash from User to PasswordCredential. Create PasswordCredentialStore interface. Update Service.Register to create both User and PasswordCredential. Update Service.Login to use PasswordCredentialStore. <strong>Effort:</strong> 1-2 days. <strong>Breaking:</strong> Yes — User.PasswordHash removed.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">2</div>
+    <div class="content">
+      <strong>Add Passkey support (WebAuthn)</strong>
+      <span>Define PasskeyCredential, PasskeyStore, and WebAuthn ceremony handlers. Add go-webauthn/webauthn dependency (or github.com/go-webauthn/webauthn). Implement begin/finish endpoints for registration and login. <strong>Effort:</strong> 3-5 days. <strong>Breaking:</strong> No — new functionality only.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">3</div>
+    <div class="content">
+      <strong>Add OAuth2 support</strong>
+      <span>Define OAuth2Credential, OAuth2Provider enum, and OAuth2Config per provider. Implement redirect/callback handlers. Support Google and GitHub first. Add encrypted token storage (AES-GCM). <strong>Effort:</strong> 3-5 days. <strong>Breaking:</strong> No — new functionality only.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">4</div>
+    <div class="content">
+      <strong>Make password optional</strong>
+      <span>Update RegisterRequest to make Password optional. Update frontend to show "Set up password" as a post-registration option, not a requirement. Update Service.Register to skip password creation when empty. <strong>Effort:</strong> 1 day. <strong>Breaking:</strong> No — optional field.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">5</div>
+    <div class="content">
+      <strong>Session.AuthMethod + step-up auth</strong>
+      <span>Add AuthMethod to Session struct. Update all login paths (password, passkey, OAuth2) to set the correct AuthMethod. Add step-up authentication checks for sensitive operations. <strong>Effort:</strong> 1-2 days. <strong>Breaking:</strong> No — new field.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">6</div>
+    <div class="content">
+      <strong>Unify CredentialStore</strong>
+      <span>Create the unified CredentialStore interface. Implement SQL-backed stores for all three credential types. Add foreign key constraints (UserID references users.id, ON DELETE CASCADE). <strong>Effort:</strong> 2-3 days. <strong>Breaking:</strong> No — interface addition.</span>
+    </div>
+  </div>
+</div>
+
+<div class="hl hl-good">
+  <strong>Library principle check:</strong> Passwordless must be <em>opt-in</em>, not forced. The current password-only mode must remain available for consumers who don't want WebAuthn/OAuth2 complexity. The right design is:
+  <ul style="margin:.5rem 0 0 1.2rem">
+    <li><code>ServiceConfig</code> gains <code>EnablePasskeys bool</code> and <code>EnableOAuth2 bool</code></li>
+    <li>When disabled, passkey and OAuth2 endpoints return 404</li>
+    <li>Password remains the default for backward compatibility</li>
+    <li>Consumers opt into passwordless by setting the flags and providing WebAuthn/OAuth2 configs</li>
+  </ul>
+</div>
+
+<h3>Honest Assessment — Risks &amp; Trade-offs</h3>
+
+<div class="card-grid">
+  <div class="card">
+    <h4>Risk: WebAuthn Dependency</h4>
+    <p>Adding <code>github.com/go-webauthn/webauthn</code> is ~2MB of dependencies. For a library, this is heavy. Consider making passkeys a separate <code>usermgmt/webauthn</code> subpackage that consumers import only if needed. The core usermgmt defines the interfaces; the subpackage provides the implementation.</p>
+  </div>
+  <div class="card">
+    <h4>Risk: OAuth2 Token Security</h4>
+    <p>OAuth2 access/refresh tokens are high-value secrets. Storing them plaintext (even in a database) is a breach risk. They must be encrypted at rest (AES-256-GCM) with a key from the consumer's config. The library should NOT generate or manage encryption keys.</p>
+  </div>
+  <div class="card">
+    <h4>Risk: Email Verification Gap</h4>
+    <p>With OAuth2, the provider verifies email ownership. With passkeys, email verification is still needed — anyone can create a passkey for any email address. Don't skip email verification just because passwords are gone.</p>
+  </div>
+  <div class="card">
+    <h4>Risk: Account Recovery</h4>
+    <p>Passwords have "forgot password" flows. Passkeys don't. If a user loses all their devices (and passkeys are not backed up), they need an alternative recovery method — email magic links, backup codes, or admin intervention. Plan for this before going passwordless.</p>
+  </div>
+  <div class="card">
+    <h4>Trade-off: UX vs Security</h4>
+    <p>Passkeys are phishing-resistant but require modern browsers and sometimes platform-specific setup (FaceID, Windows Hello). OAuth2 is familiar but delegates trust to a third party. The right default is: <strong>passkey preferred, OAuth2 offered, password hidden behind "advanced"</strong>.</p>
+  </div>
+  <div class="card">
+    <h4>Trade-off: Session Duration</h4>
+    <p>OAuth2 sessions should not outlive the provider's access token. When the token expires, the session should either refresh (if refresh token available) or require re-authentication. Passkey sessions can be longer-lived — the credential is device-bound.</p>
+  </div>
 </div>
 </section>
 
