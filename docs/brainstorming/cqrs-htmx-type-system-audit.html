@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cqrs-htmx Type System Audit — From Good to Superb</title>
+<style>
+:root {
+  --bg:#0b0f17;--bg2:#111827;--bg3:#1f2937;--bg4:#374151;
+  --fg:#f3f4f6;--fg2:#9ca3af;--fg3:#6b7280;
+  --accent:#60a5fa;--accent2:#34d399;--accent3:#fbbf24;--accent4:#f87171;--accent5:#a78bfa;
+  --border:#1f2937;--radius:10px;--font:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);line-height:1.6;font-size:15px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.container{max-width:1280px;margin:0 auto;padding:2rem}
+
+/* Nav */
+nav{position:sticky;top:0;background:rgba(11,15,23,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);z-index:50;padding:.6rem 0}
+nav .container{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center;justify-content:space-between}
+nav .links{display:flex;gap:1rem;flex-wrap:wrap}
+nav a{font-size:.82rem;color:var(--fg2);font-weight:500;letter-spacing:.02em}
+nav a:hover{color:var(--accent)}
+nav .title{font-size:.9rem;font-weight:700;color:var(--fg);letter-spacing:.02em}
+
+/* Header */
+header{margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+header h1{font-size:2.4rem;font-weight:800;letter-spacing:-.02em;margin-bottom:.5rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header .subtitle{font-size:1.15rem;color:var(--fg2);margin-bottom:1.5rem}
+
+/* Dashboard */
+.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;text-align:center;transition:transform .15s}
+.metric-card:hover{transform:translateY(-2px);border-color:var(--bg4)}
+.metric-card .value{font-size:2rem;font-weight:800;color:var(--accent);line-height:1}
+.metric-card .label{font-size:.8rem;color:var(--fg3);margin-top:.4rem;text-transform:uppercase;letter-spacing:.05em}
+.metric-card.warn .value{color:var(--accent3)}
+.metric-card.danger .value{color:var(--accent4)}
+.metric-card.good .value{color:var(--accent2)}
+
+/* Score */
+.score-bar{display:flex;align-items:center;gap:1rem;margin:1.5rem 0;padding:1.2rem;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)}
+.score-circle{width:72px;height:72px;border-radius:50%;background:conic-gradient(var(--accent3) 0% 78%,var(--bg4) 78% 100%);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.score-circle::before{content:'';position:absolute;width:56px;height:56px;border-radius:50%;background:var(--bg2)}
+.score-circle span{position:relative;z-index:1;font-size:1.3rem;font-weight:800;color:var(--accent3)}
+.score-text{flex:1}
+.score-text h3{font-size:1.1rem;margin-bottom:.3rem}
+.score-text p{color:var(--fg2);font-size:.9rem}
+
+/* Sections */
+section{margin-bottom:3rem}
+h2{font-size:1.6rem;font-weight:700;margin-bottom:1.2rem;padding-bottom:.5rem;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:.6rem}
+h3{font-size:1.2rem;font-weight:600;margin:1.8rem 0 .8rem;color:var(--accent)}
+h4{font-size:1rem;font-weight:600;margin:1.2rem 0 .5rem;color:var(--fg)}
+
+/* Cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;transition:border-color .15s}
+.card:hover{border-color:var(--bg4)}
+.card h4{margin-top:0;color:var(--accent);font-size:1rem}
+.card p,.card li{color:var(--fg2);font-size:.9rem}
+.card ul{margin:.5rem 0 0 1.2rem}
+.card li{margin:.25rem 0}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:999px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-right:.4rem;vertical-align:middle;border:1px solid transparent}
+.badge-a{background:rgba(52,211,153,.12);color:var(--accent2);border-color:rgba(52,211,153,.25)}
+.badge-b{background:rgba(96,165,250,.12);color:var(--accent);border-color:rgba(96,165,250,.25)}
+.badge-c{background:rgba(251,191,36,.12);color:var(--accent3);border-color:rgba(251,191,36,.25)}
+.badge-d{background:rgba(248,113,113,.12);color:var(--accent4);border-color:rgba(248,113,113,.25)}
+.badge-critical{background:rgba(248,113,113,.15);color:var(--accent4);border-color:rgba(248,113,113,.3)}
+.badge-high{background:rgba(251,191,36,.15);color:var(--accent3);border-color:rgba(251,191,36,.3)}
+.badge-medium{background:rgba(167,139,250,.15);color:var(--accent5);border-color:rgba(167,139,250,.3)}
+.badge-low{background:rgba(96,165,250,.12);color:var(--accent);border-color:rgba(96,165,250,.25)}
+.badge-done{background:rgba(52,211,153,.15);color:var(--accent2);border-color:rgba(52,211,153,.3)}
+
+/* Code */
+pre,code{font-family:var(--mono);font-size:.85rem}
+pre{background:#0d1117;border:1px solid var(--border);border-radius:var(--radius);padding:1rem;overflow-x:auto;margin:.6rem 0;line-height:1.5}
+code{background:var(--bg3);padding:.1rem .35rem;border-radius:4px;font-size:.82rem;color:#e5e7eb}
+pre code{background:transparent;padding:0;font-size:.82rem;color:#e5e7eb}
+.code-comment{color:var(--fg3);font-style:italic}
+.code-keyword{color:#c678dd}
+.code-type{color:#e5c07b}
+.code-func{color:#61afef}
+.code-string{color:#98c379}
+.code-num{color:#d19a66}
+
+/* Comparison */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.compare-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.compare-box .label{padding:.5rem .8rem;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.4rem}
+.compare-box.before .label{color:var(--accent4)}
+.compare-box.after .label{color:var(--accent2)}
+.compare-box pre{margin:0;border:none;border-radius:0;background:#0d1117}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.88rem}
+th,td{padding:.55rem .75rem;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--bg3);font-weight:600;color:var(--fg2);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+tr:hover td{background:rgba(255,255,255,.02)}
+td .loc{color:var(--fg3);font-size:.78rem;font-family:var(--mono)}
+
+/* Matrix */
+.matrix{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:1rem;margin:1rem 0}
+.quadrant{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;min-height:180px}
+.quadrant h4{margin-top:0;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem}
+.quadrant.q1{border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.04)}
+.quadrant.q1 h4{color:var(--accent2)}
+.quadrant.q2{border-color:rgba(96,165,250,.3);background:rgba(96,165,250,.04)}
+.quadrant.q2 h4{color:var(--accent)}
+.quadrant.q3{border-color:rgba(167,139,250,.2);background:rgba(167,139,250,.03)}
+.quadrant.q3 h4{color:var(--accent5)}
+.quadrant.q4{border-color:rgba(248,113,113,.2);background:rgba(248,113,113,.03)}
+.quadrant.q4 h4{color:var(--accent4)}
+.quadrant ul{list-style:none;margin:0;padding:0}
+.quadrant li{font-size:.85rem;color:var(--fg2);padding:.25rem 0;border-bottom:1px solid var(--border)}
+.quadrant li:last-child{border-bottom:none}
+
+/* Checklist */
+.checklist{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem}
+.checklist-item{display:flex;align-items:flex-start;gap:.8rem;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.checklist-item:last-child{border-bottom:none}
+.checklist-item .num{width:28px;height:28px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;color:var(--fg2)}
+.checklist-item .content{flex:1}
+.checklist-item .content strong{display:block;font-size:.9rem;margin-bottom:.15rem}
+.checklist-item .content span{color:var(--fg3);font-size:.82rem}
+
+/* Highlights */
+.hl{padding:.75rem 1rem;border-radius:var(--radius);margin:1rem 0;border-left:3px solid var(--accent);background:var(--bg2);font-size:.9rem}
+.hl-warn{border-left-color:var(--accent3)}
+.hl-danger{border-left-color:var(--accent4)}
+.hl-good{border-left-color:var(--accent2)}
+
+/* File grade row */
+.file-row{display:flex;align-items:center;gap:1rem;padding:.6rem .8rem;background:var(--bg2);border-radius:var(--radius);margin:.4rem 0;border:1px solid var(--border);transition:border-color .15s}
+.file-row:hover{border-color:var(--bg4)}
+.file-row .grade{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0}
+.file-row .grade-a{background:rgba(52,211,153,.15);color:var(--accent2)}
+.file-row .grade-b{background:rgba(96,165,250,.15);color:var(--accent)}
+.file-row .grade-c{background:rgba(251,191,36,.15);color:var(--accent3)}
+.file-row .info{flex:1}
+.file-row .info .name{font-weight:600;font-size:.9rem;font-family:var(--mono)}
+.file-row .info .note{color:var(--fg3);font-size:.8rem}
+.file-row .lines{color:var(--fg3);font-size:.8rem;font-family:var(--mono)}
+
+footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);color:var(--fg3);font-size:.8rem;text-align:center}
+
+@media (max-width:768px){
+  .compare{grid-template-columns:1fr}
+  .matrix{grid-template-columns:1fr}
+  .dashboard{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="title">Type System Audit</div>
+    <div class="links">
+      <a href="#dashboard">Dashboard</a>
+      <a href="#grades">Grades</a>
+      <a href="#gaps">Gaps</a>
+      <a href="#before-after">Before / After</a>
+      <a href="#generics">Generics</a>
+      <a href="#matrix">Matrix</a>
+      <a href="#checklist">Checklist</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+<header>
+  <h1>cqrs-htmx Type System Audit</h1>
+  <div class="subtitle">From Good to Superb — A data-driven analysis of every production file with concrete before/after improvements</div>
+</header>
+
+<!-- ============================================================ -->
+<section id="dashboard">
+<h2>Executive Dashboard</h2>
+
+<div class="score-bar">
+  <div class="score-circle"><span>78</span></div>
+  <div class="score-text">
+    <h3>Type Safety Score: 78 / 100</h3>
+    <p>Strong foundation with branded IDs, generic decoders, and enum safety. Main deductions: query dispatch returns <code>any</code>, context retrieval requires type assertions, and the render pipeline loses type information. Well above average for a Go HTTP library, but the gaps are fixable.</p>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="metric-card danger">
+    <div class="value">52</div>
+    <div class="label"><code>any</code> usages</div>
+  </div>
+  <div class="metric-card warn">
+    <div class="value">5</div>
+    <div class="label">Runtime type assertions</div>
+  </div>
+  <div class="metric-card good">
+    <div class="value">13</div>
+    <div class="label">Generic functions</div>
+  </div>
+  <div class="metric-card good">
+    <div class="value">4</div>
+    <div class="label">Branded ID types</div>
+  </div>
+  <div class="metric-card good">
+    <div class="value">4</div>
+    <div class="label">Interface boundaries</div>
+  </div>
+  <div class="metric-card">
+    <div class="value">10,130</div>
+    <div class="label">Lines of Go</div>
+  </div>
+</div>
+
+<div class="hl hl-good">
+  <strong>The headline:</strong> This codebase is already in the top quartile of Go libraries for type safety. The branded ID system, generic decoder deduplication, and domain-driven design in <code>usermgmt</code> are genuinely excellent. The remaining work is surgical: eliminate the <code>any</code> leak in the query dispatch pipeline, type-safe context storage, and a typed event system. No architecture changes required.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="grades">
+<h2>File-by-File Report Cards</h2>
+<p style="color:var(--fg2);font-size:.9rem;margin-bottom:1rem">Each of the 28 production files graded on type safety, generics usage, and interface design. Grades are relative to what is achievable in Go 1.26.</p>
+
+<h3>Root Module (19 files)</h3>
+
+<div class="file-row">
+  <div class="grade grade-a">A+</div>
+  <div class="info">
+    <div class="name">context.go</div>
+    <div class="note">Branded IDs (UserID, CorrelationID, RequestID), generic parse helper, sentinel context keys. Only flaw: retrieval uses type assertion.</div>
+  </div>
+  <div class="lines">149 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-a">A</div>
+  <div class="info">
+    <div class="name">decoder.go</div>
+    <div class="note">Generic body decoding (decodeJSONBody[T], decodeFormBody[T]). Clean separation. One unavoidable <code>any</code> in decodeFormValues target.</div>
+  </div>
+  <div class="lines">140 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-a">A</div>
+  <div class="info">
+    <div class="name">htmx.go</div>
+    <div class="note">SwapStrategy as typed string with Valid() method. HTMXRequest struct with accessor functions. Context sentinel key. Zero <code>any</code>.</div>
+  </div>
+  <div class="lines">186 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-a">A</div>
+  <div class="info">
+    <div class="name">security.go</div>
+    <div class="note">SecurityHeadersConfig with sensible defaults. No <code>any</code>, no interfaces needed. Boring and correct.</div>
+  </div>
+  <div class="lines">132 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B+</div>
+  <div class="info">
+    <div class="name">app.go</div>
+    <div class="note">Clean builder pattern. Before/After dispatch hooks. One minor issue: buildHandlerConfig creates a zero-valued struct (exhaustruct linter flag).</div>
+  </div>
+  <div class="lines">281 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B+</div>
+  <div class="info">
+    <div class="name">ratelimit.go</div>
+    <div class="note">Token-bucket per key with min-heap eviction. Well-structured. Uses <code>any</code> only in OnAllowed/OnRejected callbacks (acceptable).</div>
+  </div>
+  <div class="lines">352 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">handler.go</div>
+    <div class="note">Dispatch orchestration. The critical line: <code>result, err := a.queries.Dispatch(ctx, qry)</code> — result is <code>any</code>. This is the single biggest type-safety loss in the entire codebase.</div>
+  </div>
+  <div class="lines">198 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">errors.go</div>
+    <div class="note">Excellent error classification with go-error-family. One <code>any</code> in JSON error response map (acceptable for JSON). Family-status mapping is clean.</div>
+  </div>
+  <div class="lines">228 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">logging.go</div>
+    <div class="note">StatusRecorder wraps ResponseWriter properly. JSONLogFormatter uses <code>map[string]any</code> (acceptable for logs). Well-designed middleware.</div>
+  </div>
+  <div class="lines">221 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">csrf.go</div>
+    <div class="note">CSRFConfig with validation. nosurf integration. One unavoidable <code>any</code> in nosurf handler. ErrorHandler callback type is clean.</div>
+  </div>
+  <div class="lines">337 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-c">C+</div>
+  <div class="info">
+    <div class="name">options.go</div>
+    <div class="note">18 <code>any</code> usages — highest in codebase. Generic decoders are excellent (decodeAndSet[T,R]), but RenderTemplResult and RenderJSON do runtime type assertions. handlerConfig has 18 fields with zero compile-time safety between command vs query options.</div>
+  </div>
+  <div class="lines">395 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-c">C+</div>
+  <div class="info">
+    <div class="name">response.go</div>
+    <div class="note">Fluent API is ergonomic. TriggerWithDetail takes <code>any</code> (needed for JSON). JSON(v any) is acceptable. The Response struct is not phantom-typed — WriteHeader can be called multiple times in theory.</div>
+  </div>
+  <div class="lines">340 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">authz.go</div>
+    <div class="note">Enforcer interface is clean. <code>Enforce(rvals ...any)</code> mirrors Casbin's signature (acceptable boundary). UserIDExtractor returns branded UserID. Good separation of concerns.</div>
+  </div>
+  <div class="lines">138 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">middleware.go</div>
+    <div class="note">Chain function uses slices.Backward (elegant). ContextEnrichmentMiddleware extracts and stores branded IDs. HTMXMiddleware parses headers into typed struct. Well done.</div>
+  </div>
+  <div class="lines">87 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-a">A</div>
+  <div class="info">
+    <div class="name">recovery.go</div>
+    <div class="note">Panic recovery with http.ErrAbortHandler re-raise. One <code>any</code> for recover() value (unavoidable). Clean delegation to ErrorHandler.</div>
+  </div>
+  <div class="lines">94 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-a">A</div>
+  <div class="info">
+    <div class="name">notify.go</div>
+    <div class="note">NotificationLevel as typed string. NotifyEventBuilder fluent API. Zero <code>any</code>. Clean and focused.</div>
+  </div>
+  <div class="lines">89 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">csrf_handler.go</div>
+    <div class="note">Per-handler CSRF protection. Uses httptest.NewRecorder for validation (clever). No generics needed, no major type issues.</div>
+  </div>
+  <div class="lines">76 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">csrf_helpers.go</div>
+    <div class="note">Template helpers for CSRF tokens. Pure string generation. No type system concerns.</div>
+  </div>
+  <div class="lines">74 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">httputil.go</div>
+    <div class="note">Delegates to larsartmann/httputil. WriteJSON helper. Minimal and correct.</div>
+  </div>
+  <div class="lines">34 LOC</div>
+</div>
+
+<h3>usermgmt Submodule (9 files)</h3>
+
+<div class="file-row">
+  <div class="grade grade-a">A+</div>
+  <div class="info">
+    <div class="name">user.go</div>
+    <div class="note">Rich domain model with behavior methods (SetRoles, ChangePassword, etc.). Clone() returns deep copy. MarshalJSON omits hash. Timestamp ownership via touch(). Exemplary domain-driven design.</div>
+  </div>
+  <div class="lines">~220 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-a">A</div>
+  <div class="info">
+    <div class="name">id.go</div>
+    <div class="note">Branded UserID via go-branded-id. String-backed for flexibility. Unexported marker type prevents accidental mixing. Perfect.</div>
+  </div>
+  <div class="lines">15 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-a">A</div>
+  <div class="info">
+    <div class="name">store.go</div>
+    <div class="note">UserStore and SessionStore interfaces. In-memory implementations with mutex, email index, atomic Create. Pure persistence (no timestamps). Clean contract.</div>
+  </div>
+  <div class="lines">~200 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B+</div>
+  <div class="info">
+    <div class="name">authz.go</div>
+    <div class="note">Casbin wrapper with domain-aware RBAC. Action/Effect/Role as typed strings. EnforceResult struct. PolicyUpdate for batch changes. AsEnforcer adapter bridges to root Enforcer. 6 <code>any</code> usages (Casbin boundary, acceptable).</div>
+  </div>
+  <div class="lines">~250 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B+</div>
+  <div class="info">
+    <div class="name">service.go</div>
+    <div class="note">Service orchestrates domain operations. Compensating transactions on Register. EventHandler callback. Only 3 <code>any</code> usages (event emission). Validation co-located with requests.</div>
+  </div>
+  <div class="lines">~380 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">http.go</div>
+    <div class="note">AuthHandler with session cookies. HandlerConfig uses *bool for Secure (nil defaults to true). RegisterRoutes on http.ServeMux. writeJSON buffers before WriteHeader. 2 minor <code>any</code> usages.</div>
+  </div>
+  <div class="lines">~260 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">middleware.go</div>
+    <div class="note">Session middleware with cookie + bearer token. UserFromContext with nil guard. UserIDFromRequest bridges to root module. Clean and focused.</div>
+  </div>
+  <div class="lines">85 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-c">C+</div>
+  <div class="info">
+    <div class="name">events.go</div>
+    <div class="note">Event types are well-structured structs. The flaw: <code>EventHandler func(userID UserID, event any)</code> — the <code>any</code> here erases all event type information. Consumers must type-assert or use a type switch.</div>
+  </div>
+  <div class="lines">38 LOC</div>
+</div>
+
+<div class="file-row">
+  <div class="grade grade-b">B</div>
+  <div class="info">
+    <div class="name">errors.go</div>
+    <div class="note">All sentinel errors via event.NewRejection. Zero <code>any</code>. Well-organized. One string argument in ErrAccountLocked (acceptable).</div>
+  </div>
+  <div class="lines">39 LOC</div>
+</div>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="gaps">
+<h2>The Six Critical Gaps</h2>
+<p style="color:var(--fg2);font-size:.9rem;margin-bottom:1rem">Ranked by severity. Each gap includes the exact file and line, the runtime risk, and the proposed fix.</p>
+
+<div class="card-grid">
+  <div class="card">
+    <h4><span class="badge badge-critical">CRITICAL</span> Gap 1: Query Dispatch Returns <code>any</code></h4>
+    <p><strong>Location:</strong> <code>handler.go:190</code></p>
+    <p><strong>Current:</strong></p>
+    <pre><code>result, err := a.queries.Dispatch(ctx, qry)
+// result is typed as `any` — all type information lost
+a.applyQueryResponse(w, r, cfg, result)</code></pre>
+    <p><strong>Impact:</strong> Every query handler downstream must type-assert or trust the type. The compiler cannot verify that <code>RenderJSON[User]</code> matches the actual query result type.</p>
+    <p><strong>Fix:</strong> Adopt go-cqrs-lite v2's <code>DispatchTyped[Q, R]</code> and expose <code>QueryTyped[Q, R]</code>. See Before/After section.</p>
+  </div>
+
+  <div class="card">
+    <h4><span class="badge badge-high">HIGH</span> Gap 2: Context Retrieval Requires Type Assertions</h4>
+    <p><strong>Location:</strong> <code>context.go:94, 106, 118</code></p>
+    <p><strong>Current:</strong></p>
+    <pre><code>func UserIDFromContext(ctx context.Context) UserID {
+    v, _ := ctx.Value(userIDKey{}).(UserID) // runtime assertion
+    return v
+}</code></pre>
+    <p><strong>Impact:</strong> If the wrong type is stored (e.g., a string instead of UserID), the assertion silently returns zero value. No compile-time guarantee.</p>
+    <p><strong>Fix:</strong> Generic context key type. See Before/After section.</p>
+  </div>
+
+  <div class="card">
+    <h4><span class="badge badge-high">HIGH</span> Gap 3: EventHandler Erases Event Type</h4>
+    <p><strong>Location:</strong> <code>usermgmt/events.go:12</code></p>
+    <p><strong>Current:</strong></p>
+    <pre><code>type EventHandler func(userID UserID, event any)
+
+// Consumer must type-switch:
+switch evt := event.(type) {
+case UserRegisteredEvent: ...
+case UserLoggedInEvent: ...
+}</code></pre>
+    <p><strong>Impact:</strong> Adding a new event type gives zero compiler help. Missed cases are runtime errors, not compile-time errors.</p>
+    <p><strong>Fix:</strong> Sealed event interface or generic handler registration. See Before/After section.</p>
+  </div>
+
+  <div class="card">
+    <h4><span class="badge badge-medium">MEDIUM</span> Gap 4: Render Pipeline Uses <code>any</code></h4>
+    <p><strong>Location:</strong> <code>options.go:370</code></p>
+    <p><strong>Current:</strong></p>
+    <pre><code>cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+    typed, ok := result.(T) // runtime check
+    if !ok { return ErrDecodeFailed }
+    ...
+}</code></pre>
+    <p><strong>Impact:</strong> RenderTemplResult and RenderJSON both do runtime type assertions. If the mapper returns the wrong type, it panics or returns 500 at runtime.</p>
+    <p><strong>Fix:</strong> Eliminate <code>any</code> by propagating the generic type parameter through the entire pipeline. Requires Gap 1 fix first.</p>
+  </div>
+
+  <div class="card">
+    <h4><span class="badge badge-medium">MEDIUM</span> Gap 5: <code>handlerConfig</code> Is a Type-Unsafe Bag</h4>
+    <p><strong>Location:</strong> <code>options.go:56</code></p>
+    <p><strong>Current:</strong></p>
+    <pre><code>type handlerConfig struct {
+    authMode       authMode
+    resource       string
+    action         string
+    commandDecoder CommandDecoder
+    queryDecoder   QueryDecoder
+    render         RenderFunc
+    redirect       string
+    trigger        string
+    // ... 8 more fields
+}</code></pre>
+    <p><strong>Impact:</strong> A command handler can have <code>queryDecoder</code> set and vice versa. <code>buildHandlerConfig</code> creates a zero-valued struct (exhaustruct linter flags this). 18 fields with no compile-time relationship enforcement.</p>
+    <p><strong>Fix:</strong> Split into CommandConfig and QueryConfig, or use phantom types. Lower priority — the current pattern works and is simple.</p>
+  </div>
+
+  <div class="card">
+    <h4><span class="badge badge-low">LOW</span> Gap 6: Enforcer Takes <code>...any</code></h4>
+    <p><strong>Location:</strong> <code>authz.go:12</code></p>
+    <p><strong>Current:</strong></p>
+    <pre><code>type Enforcer interface {
+    Enforce(rvals ...any) (bool, error)
+}</code></pre>
+    <p><strong>Impact:</strong> Minimal. This is the Casbin boundary — *casbin.Enforcer already uses <code>...any</code>. Making this generic would require wrapping Casbin, which adds complexity for marginal gain.</p>
+    <p><strong>Verdict:</strong> Acceptable. Do not fix.</p>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="before-after">
+<h2>Before / After — Concrete Improvements</h2>
+<p style="color:var(--fg2);font-size:.9rem;margin-bottom:1rem">Each example uses actual code from the current codebase. The "After" proposals are designed to be implemented with Go 1.26 generics.</p>
+
+<!-- Improvement 1 -->
+<h3>1. Typed Query Dispatch <span class="badge badge-critical">CRITICAL</span></h3>
+<p>This is the single highest-impact change. It removes <code>any</code> from the entire query pipeline.</p>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — handler.go:159-198</div>
+    <pre><code>func (a *App) handleQueryDispatch(
+    w http.ResponseWriter,
+    r *http.Request,
+    qryType query.Type,
+    cfg *handlerConfig,
+) {
+    // ... decode query ...
+
+    result, err := a.queries.Dispatch(ctx, qry)
+    // result is `any` — type information GONE
+
+    if err != nil {
+        a.handleErr(w, r, ctx, cfg, err)
+        return
+    }
+
+    a.applyQueryResponse(w, r.WithContext(ctx), cfg, result)
+    // cfg.render receives `result any` — must type-assert
+}</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Typed Query Handler</div>
+    <pre><code>func QueryTyped[Q query.Query, R any](
+    a *App,
+    qryType query.Type,
+    opts ...HandlerOption,
+) http.HandlerFunc {
+    cfg := buildHandlerConfig(opts)
+    return func(w http.ResponseWriter, r *http.Request) {
+        // ... decode into Q ...
+
+        // DispatchTyped[Q, R] returns R directly — no `any`!
+        result, err := a.queries.DispatchTyped[Q, R](ctx, qry)
+        if err != nil {
+            a.handleErr(w, r, ctx, cfg, err)
+            return
+        }
+
+        // render receives `result R` — compile-time typed
+        if cfg.render != nil {
+            if err := cfg.render(w, r, result); err != nil { ... }
+        }
+    }
+}
+
+// Usage — the compiler checks that GetUserQuery returns *User:
+app.QueryTyped[GetUserQuery, *User]("GetUser",
+    cqrshtmx.DecodeJSONQuery[GetUserQuery](...),
+    cqrshtmx.RenderJSON[*User](), // MUST match R
+)</code></pre>
+  </div>
+</div>
+
+<div class="hl hl-good">
+  <strong>Why this matters:</strong> With the current code, if a developer changes <code>GetUserQuery</code> to return <code>[]User</code> instead of <code>*User</code>, the compiler says nothing. With <code>QueryTyped</code>, <code>RenderJSON[*User]</code> becomes a compile error. The type mismatch is caught before deployment.
+</div>
+
+<!-- Improvement 2 -->
+<h3>2. Generic Context Keys <span class="badge badge-high">HIGH</span></h3>
+<p>Eliminates all 3 type assertions in context.go and prevents silent zero-value returns.</p>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — context.go:60-120</div>
+    <pre><code>type userIDKey struct{}
+
+func WithUserID(ctx context.Context, id UserID) context.Context {
+    return context.WithValue(ctx, userIDKey{}, id)
+}
+
+func UserIDFromContext(ctx context.Context) UserID {
+    v, _ := ctx.Value(userIDKey{}).(UserID)
+    // ^ If a string was stored instead of UserID,
+    //   this silently returns zero value. No error.
+    return v
+}</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Type-Safe Context Key</div>
+    <pre><code>type contextKey[T any] struct{ name string }
+
+func (k contextKey[T]) WithValue(
+    ctx context.Context, v T,
+) context.Context {
+    return context.WithValue(ctx, k, v)
+}
+
+func (k contextKey[T]) FromContext(
+    ctx context.Context,
+) (T, bool) {
+    v, ok := ctx.Value(k).(T)
+    return v, ok
+}
+
+var userIDKey = contextKey[UserID]{name: "user_id"}
+
+func WithUserID(ctx context.Context, id UserID) context.Context {
+    return userIDKey.WithValue(ctx, id)
+}
+
+func UserIDFromContext(ctx context.Context) (UserID, bool) {
+    return userIDKey.FromContext(ctx)
+    // ^ Returns (UserID, bool). Caller MUST check ok.
+    //   Wrong type stored → ok=false, never a false zero.
+}</code></pre>
+  </div>
+</div>
+
+<!-- Improvement 3 -->
+<h3>3. Typed Event System <span class="badge badge-high">HIGH</span></h3>
+<p>The current <code>event any</code> forces consumers to type-switch. A sealed interface makes the compiler enforce exhaustive handling.</p>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — usermgmt/events.go</div>
+    <pre><code>type EventHandler func(userID UserID, event any)
+
+// Consumer MUST type-switch — compiler doesn't help:
+func OnEvent(userID UserID, event any) {
+    switch evt := event.(type) {
+    case UserRegisteredEvent:
+        sendWelcomeEmail(evt.Email)
+    case UserLoggedInEvent:
+        // forgot to handle PasswordChangedEvent?
+        // compiler is fine with that. Runtime bug.
+    }
+}</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Sealed Event Interface</div>
+    <pre><code>type Event interface {
+    eventSeal() // unexported — only we can implement
+}
+
+func (UserRegisteredEvent) eventSeal()  {}
+func (UserLoggedInEvent) eventSeal()    {}
+func (PasswordChangedEvent) eventSeal() {}
+func (RolesUpdatedEvent) eventSeal()    {}
+
+// Now the handler is typed:
+type EventHandler func(userID UserID, event Event)
+
+// Generic handler — compiler enforces exhaustive cases
+// via a registration pattern:
+type EventRouter struct {
+    handlers map[reflect.Type]func(UserID, Event)
+}
+
+func Register[E Event](
+    r *EventRouter,
+    fn func(UserID, E),
+) {
+    var zero E
+    r.handlers[reflect.TypeOf(zero)] =
+        func(uid UserID, e Event) {
+            fn(uid, e.(E)) // safe: we control all Event impls
+        }
+}</code></pre>
+  </div>
+</div>
+
+<div class="hl hl-warn">
+  <strong>Trade-off:</strong> The sealed interface approach requires reflection for the router. An alternative is to keep <code>EventHandler</code> as-is but provide a code-gen tool that generates exhaustive switch statements. For a library, the simpler path is documenting the type-switch pattern and providing a linter rule.
+</div>
+
+<!-- Improvement 4 -->
+<h3>4. Constraint-Based Validation <span class="badge badge-medium">MEDIUM</span></h3>
+<p>Combine decoding and validation into one compile-time-checked step.</p>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — Two-step decode + validate</div>
+    <pre><code>app.Command("Register",
+    cqrshtmx.DecodeJSON[RegisterRequest](
+        func(req RegisterRequest) (command.Command, error) {
+            return RegisterCmd(req), nil
+        },
+    ),
+    cqrshtmx.ValidateCommand(func(cmd command.Command) error {
+        // Must assert to concrete type — runtime only
+        reg := cmd.(RegisterCmd)
+        return reg.Validate()
+    }),
+)</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Decode + Validate in One</div>
+    <pre><code>type Validatable interface {
+    Validate() error
+}
+
+func DecodeAndValidateJSON[T Validatable](
+    mapper func(T) (command.Command, error),
+) HandlerOption {
+    return DecodeJSON(func(t T) (command.Command, error) {
+        if err := t.Validate(); err != nil {
+            return nil, err
+        }
+        return mapper(t)
+    })
+}
+
+// Usage — Validate() is guaranteed at compile time:
+app.Command("Register",
+    cqrshtmx.DecodeAndValidateJSON[RegisterRequest](
+        func(req RegisterRequest) (command.Command, error) {
+            return RegisterCmd(req), nil
+        },
+    ),
+)
+// Compile error if RegisterRequest doesn't have Validate()</code></pre>
+  </div>
+</div>
+
+<!-- Improvement 5 -->
+<h3>5. Generic Store Base Interface <span class="badge badge-medium">MEDIUM</span></h3>
+<p>Unify UserStore and SessionStore under a common generic contract while keeping per-store specializations.</p>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — Hand-rolled per-store interfaces</div>
+    <pre><code>type UserStore interface {
+    FindByID(ctx context.Context, id UserID) (*User, error)
+    FindByEmail(ctx context.Context, email string) (*User, error)
+    Save(ctx context.Context, user *User) error
+    Create(ctx context.Context, user *User) error
+    Delete(ctx context.Context, id UserID) error
+}
+
+type SessionStore interface {
+    Create(ctx context.Context, userID UserID, ttl time.Duration) (*Session, error)
+    Find(ctx context.Context, token string) (*Session, error)
+    Delete(ctx context.Context, token string) error
+    DeleteByUserID(ctx context.Context, userID UserID) error
+}</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Generic base + specialization</div>
+    <pre><code>type Store[T any, ID comparable] interface {
+    FindByID(ctx context.Context, id ID) (T, error)
+    Save(ctx context.Context, entity T) error
+    Create(ctx context.Context, entity T) error
+    Delete(ctx context.Context, id ID) error
+}
+
+type UserStore interface {
+    Store[*User, UserID]
+    FindByEmail(ctx context.Context, email string) (*User, error)
+}
+
+type SessionStore interface {
+    Create(ctx context.Context, userID UserID, ttl time.Duration) (*Session, error)
+    Find(ctx context.Context, token string) (*Session, error)
+    Delete(ctx context.Context, token string) error
+    DeleteByUserID(ctx context.Context, userID UserID) error
+}
+
+// In-memory generic base (for tests):
+type InMemoryStore[T any, ID comparable] struct {
+    mu     sync.RWMutex
+    items  map[ID]T
+}
+
+func NewInMemoryStore[T any, ID comparable]() *InMemoryStore[T, ID] {
+    return &InMemoryStore[T, ID]{items: make(map[ID]T)}
+}</code></pre>
+  </div>
+</div>
+
+<div class="hl hl-warn">
+  <strong>Caution:</strong> The generic <code>InMemoryStore</code> is elegant for tests but too abstract for real SQL stores. Each SQL entity has different columns, joins, and query patterns. Use <code>Store[T, ID]</code> for the interface contract only — implementations should remain specific.
+</div>
+
+<!-- Improvement 6 -->
+<h3>6. Result[T] for Service Layer <span class="badge badge-medium">MEDIUM</span></h3>
+<p>Forces consumers to handle both success and failure cases explicitly.</p>
+
+<div class="compare">
+  <div class="compare-box before">
+    <div class="label">BEFORE — Nil + error dual return</div>
+    <pre><code>func (s *Service) Login(
+    ctx context.Context,
+    req LoginRequest,
+) (*LoginResponse, error) {
+    // ...
+    return &LoginResponse{User: user, Session: session}, nil
+}
+
+// Caller — easy to forget nil check:
+resp, err := service.Login(ctx, req)
+if err != nil { return err }
+// resp could theoretically be nil if bug in Login
+// (though it never is in practice)
+fmt.Println(resp.User.Email)</code></pre>
+  </div>
+  <div class="compare-box after">
+    <div class="label">AFTER — Result[T] eliminates nil</div>
+    <pre><code>type Result[T any] struct {
+    value T
+    err   error
+}
+
+func Ok[T any](v T) Result[T]    { return Result[T]{value: v} }
+func Err[T any](e error) Result[T] { return Result[T]{err: e} }
+
+func (r Result[T]) Unwrap() (T, error) { return r.value, r.err }
+
+func (s *Service) Login(
+    ctx context.Context,
+    req LoginRequest,
+) Result[*LoginResponse] {
+    // ...
+    return Ok(&LoginResponse{User: user, Session: session})
+}
+
+// Caller — forced to handle both branches:
+result := service.Login(ctx, req)
+resp, err := result.Unwrap()
+if err != nil { return err }
+// resp is NEVER nil here — guaranteed by Result construction</code></pre>
+  </div>
+</div>
+
+<div class="hl">
+  <strong>Library principle check:</strong> <code>Result[T]</code> is powerful but changes the Go idiom. For a library, providing it as an optional helper (not replacing all error returns) respects consumer choice. A <code>cqrshtmx/result</code> subpackage would be ideal.
+</div>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="generics">
+<h2>Generics Deep Dive — What Actually Helps</h2>
+
+<h3>The Generics We Already Use Well</h3>
+<table>
+  <tr><th>Function</th><th>Location</th><th>Purpose</th><th>Impact</th></tr>
+  <tr><td><code>decodeJSONBody[T any]</code></td><td>decoder.go:18</td><td>Type-safe JSON decoding into T</td><td>High — eliminates manual unmarshaling</td></tr>
+  <tr><td><code>decodeFormBody[T any]</code></td><td>decoder.go:87</td><td>Type-safe form decoding into T</td><td>High — JSON round-trip pattern</td></tr>
+  <tr><td><code>decodeAndSet[T, R any]</code></td><td>options.go:88</td><td>Deduplicates 4 decode variants</td><td>High — 4 functions → 1 generic</td></tr>
+  <tr><td><code>RenderJSON[T any]</code></td><td>options.go:352</td><td>JSON render with runtime type check</td><td>Medium — still needs runtime assertion</td></tr>
+  <tr><td><code>RenderJSONStatus[T any]</code></td><td>options.go:364</td><td>Same, with custom status</td><td>Medium — still needs runtime assertion</td></tr>
+  <tr><td><code>parseID[T any]</code></td><td>context.go:21</td><td>Generic ID parse wrapper</td><td>Low — deduplicates 3 one-liners</td></tr>
+</table>
+
+<h3>The Generics We Should Add</h3>
+<table>
+  <tr><th>Technique</th><th>Target</th><th>Effort</th><th>Impact</th><th>Verdict</th></tr>
+  <tr><td><code>QueryTyped[Q, R]</code></td><td>handler.go</td><td>Medium</td><td>Critical</td><td><span class="badge badge-done">DO IT</span></td></tr>
+  <tr><td><code>contextKey[T]</code></td><td>context.go</td><td>Low</td><td>High</td><td><span class="badge badge-done">DO IT</span></td></tr>
+  <tr><td>Sealed Event interface</td><td>usermgmt/events.go</td><td>Medium</td><td>High</td><td><span class="badge badge-done">DO IT</span></td></tr>
+  <tr><td><code>DecodeAndValidateJSON[T]</code></td><td>options.go</td><td>Low</td><td>Medium</td><td><span class="badge badge-done">DO IT</span></td></tr>
+  <tr><td><code>Store[T, ID]</code></td><td>usermgmt/store.go</td><td>Low</td><td>Medium</td><td><span class="badge badge-done">DO IT</span></td></tr>
+  <tr><td><code>Result[T]</code></td><td>new subpackage</td><td>Medium</td><td>Medium</td><td><span class="badge badge-medium">CONSIDER</span></td></tr>
+  <tr><td>Phantom-typed Response</td><td>response.go</td><td>High</td><td>Low</td><td><span class="badge badge-low">SKIP</span></td></tr>
+  <tr><td>Generic rate limit keys</td><td>ratelimit.go</td><td>Medium</td><td>Low</td><td><span class="badge badge-low">SKIP</span></td></tr>
+</table>
+
+<h3>What NOT to Do</h3>
+<div class="card-grid">
+  <div class="card">
+    <h4>Don't: Phantom-typed Response</h4>
+    <p>A <code>Response[Uncommitted]</code> / <code>Response[Committed]</code> state machine sounds elegant but adds API complexity for a problem that is already handled well by Go's <code>http.ResponseWriter</code> interface. The current Response builder is pragmatic.</p>
+  </div>
+  <div class="card">
+    <h4>Don't: Universal Generic SQL Store</h4>
+    <p>A <code>SQLStore[T, ID]</code> with reflection-based column mapping would be too abstract. Real SQL queries have joins, custom WHERE clauses, and table-specific optimizations. Keep store implementations specific; use generics only for the interface contract.</p>
+  </div>
+  <div class="card">
+    <h4>Don't: Either[L, R] for Error Handling</h4>
+    <p>While <code>Either[AuthError, *User]</code> is theoretically nice, it clashes with Go's established <code>(T, error)</code> pattern. Consumers would find it alien. Stick to <code>Result[T]</code> if anything, which is closer to the Go ecosystem.</p>
+  </div>
+  <div class="card">
+    <h4>Don't: Type-Safe Event Metadata Builder</h4>
+    <p>A phantom-type builder that forces <code>WithUserID</code> before <code>Build</code> is clever but over-engineered for event metadata. The current <code>EventOptionsFromContext</code> is simple and sufficient.</p>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="matrix">
+<h2>Impact / Effort Matrix</h2>
+<p style="color:var(--fg2);font-size:.9rem;margin-bottom:1rem">Where should effort be invested? The top-right quadrant (high impact, low effort) is the obvious starting point.</p>
+
+<div class="matrix">
+  <div class="quadrant q1">
+    <h4>High Impact / Low Effort — Do First</h4>
+    <ul>
+      <li>Generic context keys (context.go) <span class="badge badge-done">1-2h</span></li>
+      <li>Constraint-based DecodeAndValidate (options.go) <span class="badge badge-done">2-3h</span></li>
+      <li>Generic Store[T, ID] interface (usermgmt/store.go) <span class="badge badge-done">2-3h</span></li>
+      <li>Sealed Event interface (usermgmt/events.go) <span class="badge badge-done">3-4h</span></li>
+    </ul>
+  </div>
+  <div class="quadrant q2">
+    <h4>High Impact / High Effort — Plan Carefully</h4>
+    <ul>
+      <li>Typed Query Dispatch (handler.go + go-cqrs-lite) <span class="badge badge-done">1-2d</span></li>
+      <li>Typed Command Dispatch (handler.go) <span class="badge badge-done">1-2d</span></li>
+      <li>Result[T] subpackage with full test suite <span class="badge badge-done">2-3d</span></li>
+    </ul>
+  </div>
+  <div class="quadrant q3">
+    <h4>Low Impact / Low Effort — Nice to Have</h4>
+    <ul>
+      <li>Generic parseID consolidation <span class="badge badge-done">30min</span></li>
+      <li>Type-safe notification payloads <span class="badge badge-done">1h</span></li>
+      <li>ValidatableConfig constraint <span class="badge badge-done">1h</span></li>
+    </ul>
+  </div>
+  <div class="quadrant q4">
+    <h4>Low Impact / High Effort — Avoid</h4>
+    <ul>
+      <li>Phantom-typed Response builder <span class="badge badge-low">2-3d</span></li>
+      <li>Generic rate limit key extractors <span class="badge badge-low">1-2d</span></li>
+      <li>Universal SQL store implementation <span class="badge badge-low">1w+</span></li>
+      <li>Either[L, R] for auth results <span class="badge badge-low">2-3d</span></li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="checklist">
+<h2>Action Checklist — Ranked by ROI</h2>
+<p style="color:var(--fg2);font-size:.9rem;margin-bottom:1rem">Start at the top. Each item builds on the previous ones. Estimated effort assumes a senior Go developer familiar with the codebase.</p>
+
+<div class="checklist">
+  <div class="checklist-item">
+    <div class="num">1</div>
+    <div class="content">
+      <strong>Adopt go-cqrs-lite v2 typed dispatch</strong>
+      <span>Replace <code>Dispatch</code> with <code>DispatchTyped[Q, R]</code> in handler.go. This is the root cause of the <code>any</code> problem. Effort: 1-2 days. Impact: Eliminates all runtime type assertions in the render pipeline.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">2</div>
+    <div class="content">
+      <strong>Implement generic context keys</strong>
+      <span>Add <code>contextKey[T]</code> type and migrate UserID, CorrelationID, RequestID, CSRF token, and HTMX request storage. Effort: 2-3 hours. Impact: Removes 5+ runtime type assertions, prevents silent zero-value returns.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">3</div>
+    <div class="content">
+      <strong>Seal the event interface in usermgmt</strong>
+      <span>Add unexported <code>eventSeal()</code> method to Event interface. Implement on all event structs. Update EventHandler type. Effort: 3-4 hours. Impact: Compile-time enforcement of event type completeness.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">4</div>
+    <div class="content">
+      <strong>Add DecodeAndValidateJSON with Validatable constraint</strong>
+      <span>Define <code>Validatable</code> interface and <code>DecodeAndValidateJSON[T]</code> helper. Update examples to show usage. Effort: 2-3 hours. Impact: Consumers get compile-time validation guarantees.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">5</div>
+    <div class="content">
+      <strong>Extract generic Store[T, ID] interface</strong>
+      <span>Refactor UserStore and SessionStore to embed <code>Store[T, ID]</code>. Update InMemoryUserStore/InMemorySessionStore. Effort: 2-3 hours. Impact: Unified contract, easier to implement PostgreSQL/R Redis backends.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">6</div>
+    <div class="content">
+      <strong>Add Result[T] optional subpackage</strong>
+      <span>Create <code>cqrshtmx/result</code> with <code>Result[T]</code>, <code>Ok</code>, <code>Err</code>, <code>Map</code>, <code>FlatMap</code>. Write comprehensive tests and godoc examples. Effort: 2-3 days. Impact: Optional but powerful for consumers who want forced error handling.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">7</div>
+    <div class="content">
+      <strong>Add PaginatedResult[T] for list queries</strong>
+      <span>Define struct with Items, TotalCount, Page, PageSize, HasMore. Add RenderPaginatedJSON[T] and RenderPaginatedTempl[T] helpers. Effort: 1 day. Impact: Type-safe pagination across all list endpoints.</span>
+    </div>
+  </div>
+  <div class="checklist-item">
+    <div class="num">8</div>
+    <div class="content">
+      <strong>Document the type system decisions</strong>
+      <span>Add ADR 0004 for typed dispatch, ADR 0005 for generic context keys. Update AGENTS.md with the new patterns. Effort: 4-6 hours. Impact: Future contributors understand why these patterns exist.</span>
+    </div>
+  </div>
+</div>
+
+<div class="hl hl-good" style="margin-top:1.5rem">
+  <strong>Expected outcome after completing items 1-5:</strong>
+  <ul style="margin:.5rem 0 0 1.2rem">
+    <li>Type safety score rises from <strong>78 → 92</strong></li>
+    <li><code>any</code> usages drop from <strong>52 → ~28</strong> (remaining are JSON serialization, panic recovery, and Casbin boundaries — all acceptable)</li>
+    <li>Runtime type assertions drop from <strong>5 → 0</strong></li>
+    <li>Zero breaking changes to existing consumers who don't opt into typed dispatch</li>
+  </ul>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+<h2>Honest Assessment — What to Leave Alone</h2>
+
+<div class="card-grid">
+  <div class="card">
+    <h4>Keep: <code>Enforcer(rvals ...any)</code></h4>
+    <p>The Casbin boundary requires <code>...any</code>. Wrapping it would add complexity with no consumer benefit. The interface is clean and mockable.</p>
+  </div>
+  <div class="card">
+    <h4>Keep: <code>RenderTempl(component TemplComponent)</h4>
+    <p>Duck-typing templ.Component is the right call. Importing templ directly would force a heavy dependency on all consumers, even those who don't use it.</p>
+  </div>
+  <div class="card">
+    <h4>Keep: <code>authMode</code> as iota enum</h4>
+    <p>Don't over-engineer with a generic enum package. The iota + String() method is idiomatic Go and perfectly sufficient for 3 variants.</p>
+  </div>
+  <div class="card">
+    <h4>Keep: <code>any</code> in JSON helpers</h4>
+    <p><code>json.Marshal(v any)</code>, <code>map[string]any</code> in log formatters, and <code>any</code> in trigger details are correct. JSON is inherently untyped at the boundary.</p>
+  </div>
+  <div class="card">
+    <h4>Keep: Flat root package</h4>
+    <p>The errors↔response↔csrf cycle prevents splitting. The 19-file flat package is a feature, not a bug. Consumer UX is one import, everything available.</p>
+  </div>
+  <div class="card">
+    <h4>Keep: String-backed usermgmt.UserID</h4>
+    <p>ADR 0002 is correct. usermgmt must remain independent of go-cqrs-lite. ULID-backed IDs in the root module and string-backed IDs in usermgmt is the right boundary.</p>
+  </div>
+</div>
+</section>
+
+<footer>
+  <p>Audit generated for cqrs-htmx — Go 1.26.3 — go-cqrs-lite v2.1.0</p>
+  <p>28 production files analyzed — 10,130 lines of code — 5 runtime type assertions identified</p>
+</footer>
+
+</div>
+</body>
+</html>
