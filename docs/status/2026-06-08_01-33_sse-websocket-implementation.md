@@ -16,28 +16,28 @@ Implemented full HTMX SSE extension support and HTMX WebSocket protocol helpers.
 
 ### SSE Support (`sse.go` — 281 lines)
 
-| Component | Description |
-|-----------|-------------|
-| `SSEEvent` | Protocol-level type: Event, Data, ID, Retry. Multi-line data auto-split per SSE spec. CRLF → LF normalization. |
-| `WriteSSEEvent(w, event)` | Wire-format SSE writer. Each event terminated with `\n\n`. Handles all 4 SSE fields. |
-| `SSEStream` | Single-connection manager. Sets correct headers (text/event-stream, no-cache, keep-alive). Flushes after Send. Context-aware — cancelled on client disconnect. |
-| `Broadcaster` | Thread-safe fan-out. Buffered channels (cap 64). Non-blocking broadcast drops to slow consumers. Subscribe/Unsubscribe with channel close. |
+| Component                 | Description                                                                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SSEEvent`                | Protocol-level type: Event, Data, ID, Retry. Multi-line data auto-split per SSE spec. CRLF → LF normalization.                                                 |
+| `WriteSSEEvent(w, event)` | Wire-format SSE writer. Each event terminated with `\n\n`. Handles all 4 SSE fields.                                                                           |
+| `SSEStream`               | Single-connection manager. Sets correct headers (text/event-stream, no-cache, keep-alive). Flushes after Send. Context-aware — cancelled on client disconnect. |
+| `Broadcaster`             | Thread-safe fan-out. Buffered channels (cap 64). Non-blocking broadcast drops to slow consumers. Subscribe/Unsubscribe with channel close.                     |
 
 ### WebSocket Protocol Helpers (`ws.go` — 116 lines)
 
-| Component | Description |
-|-----------|-------------|
-| `WSMessage` | Structured incoming HTMX WS message. Headers (HTMX headers) separated from Body (form fields). |
-| `ParseWSMessage` | Parses HTMX WS JSON. Extracts `HEADERS` object into separate map. Handles missing headers, non-string values, numeric values. |
-| `WSMessage.StringBody` | Typed field accessor — returns empty string for missing/non-string fields. |
-| `WSOOBHTML` | Wraps HTML with `hx-swap-oob` attributes for HTMX OOB swap. Uses existing `SwapStrategy` type. Passthrough when HTML already contains `hx-swap-oob`. |
+| Component              | Description                                                                                                                                          |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `WSMessage`            | Structured incoming HTMX WS message. Headers (HTMX headers) separated from Body (form fields).                                                       |
+| `ParseWSMessage`       | Parses HTMX WS JSON. Extracts `HEADERS` object into separate map. Handles missing headers, non-string values, numeric values.                        |
+| `WSMessage.StringBody` | Typed field accessor — returns empty string for missing/non-string fields.                                                                           |
+| `WSOOBHTML`            | Wraps HTML with `hx-swap-oob` attributes for HTMX OOB swap. Uses existing `SwapStrategy` type. Passthrough when HTML already contains `hx-swap-oob`. |
 
 ### Tests
 
-| File | Specs | Coverage |
-|------|-------|----------|
+| File          | Specs                                                         | Coverage                                                                                     |
+| ------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `sse_test.go` | 17 specs (WriteSSEEvent, SSEStream, Broadcaster, Integration) | Multi-line, CRLF, error writer, context cancellation, concurrency, buffer overflow, ordering |
-| `ws_test.go` | 10 specs (ParseWSMessage, StringBody, WSOOBHTML) | HTMX JSON format, missing headers, non-string values, OOB wrapping, passthrough |
+| `ws_test.go`  | 10 specs (ParseWSMessage, StringBody, WSOOBHTML)              | HTMX JSON format, missing headers, non-string values, OOB wrapping, passthrough              |
 
 ### Documentation
 
@@ -48,16 +48,16 @@ Implemented full HTMX SSE extension support and HTMX WebSocket protocol helpers.
 
 ### Metrics
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Ginkgo specs | 425 | 439 (+14) |
-| Coverage (root) | 96.9% | 96.1% (slight dip — new untested paths in splitSSELines edge cases) |
-| Production files | 19 | 21 (+2) |
-| Test files | 23 | 25 (+2) |
-| Total new LOC | — | 883 (397 prod + 486 test) |
-| New dependencies | 0 | 0 |
-| Race detector | Clean | Clean |
-| `go vet` | Clean | Clean |
+| Metric           | Before | After                                                               |
+| ---------------- | ------ | ------------------------------------------------------------------- |
+| Ginkgo specs     | 425    | 439 (+14)                                                           |
+| Coverage (root)  | 96.9%  | 96.1% (slight dip — new untested paths in splitSSELines edge cases) |
+| Production files | 19     | 21 (+2)                                                             |
+| Test files       | 23     | 25 (+2)                                                             |
+| Total new LOC    | —      | 883 (397 prod + 486 test)                                           |
+| New dependencies | 0      | 0                                                                   |
+| Race detector    | Clean  | Clean                                                               |
+| `go vet`         | Clean  | Clean                                                               |
 
 ---
 
@@ -143,33 +143,33 @@ Implemented full HTMX SSE extension support and HTMX WebSocket protocol helpers.
 
 ## f) Top #25 Things We Should Get Done Next
 
-| # | Item | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Godoc examples for SSE/WS (5 examples) | High | Low | Docs |
-| 2 | Recover coverage to 96.9%+ (splitSSELines edge cases) | Medium | Low | Test |
-| 3 | SSE + CQRS AfterDispatchHook bridge factory | High | Medium | Feature |
-| 4 | SSE example app (`examples/sse-demo/`) | High | Medium | Docs |
-| 5 | SSE reconnection support (Last-Event-ID replay) | High | Medium | Feature |
-| 6 | Typed WS message parser `ParseWSMessageInto[T]` | Medium | Low | Feature |
-| 7 | Broadcaster.Unsubscribe O(1) lookup optimization | Low | Low | Perf |
-| 8 | SSE integration test in `integration_test/` | Medium | Medium | Test |
-| 9 | Benchmark SSE/WS hot paths | Low | Low | Perf |
-| 10 | Adopt go-cqrs-lite v2 `RegisterTyped`/`DispatchTyped` | High | Medium | Deps |
-| 11 | Adopt go-cqrs-lite v2 `PaginatedResult[T]` | Medium | Medium | Deps |
-| 12 | Comprehensive godoc package examples (existing features) | Medium | Medium | Docs |
-| 13 | Expand integration_test module coverage | Medium | Medium | Test |
-| 14 | Profile hot paths (dispatch, decode) for allocation reduction | Low | Medium | Perf |
-| 15 | BrandNamer for root module marker types | Medium | Low | Types |
-| 16 | PostgreSQL store for usermgmt | High | High | Store |
-| 17 | Numeric branded IDs (ADR 0003) | High | Medium | Types |
-| 18 | Database migration tooling | Medium | Medium | Infra |
-| 19 | OpenTelemetry middleware (lifecycle hooks) | High | Medium | Observability |
-| 20 | Prometheus metrics middleware | Medium | Medium | Observability |
-| 21 | JWT/OIDC integration helpers | Medium | High | Auth |
-| 22 | Redis session store | Medium | High | Store |
-| 23 | README.md refresh — add SSE/WS mention | Low | Low | Docs |
-| 24 | WebSocket example app | Medium | Medium | Docs |
-| 25 | Flaky test audit — ensure no time.After patterns | Low | Low | Test |
+| #   | Item                                                          | Impact | Effort | Category      |
+| --- | ------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1   | Godoc examples for SSE/WS (5 examples)                        | High   | Low    | Docs          |
+| 2   | Recover coverage to 96.9%+ (splitSSELines edge cases)         | Medium | Low    | Test          |
+| 3   | SSE + CQRS AfterDispatchHook bridge factory                   | High   | Medium | Feature       |
+| 4   | SSE example app (`examples/sse-demo/`)                        | High   | Medium | Docs          |
+| 5   | SSE reconnection support (Last-Event-ID replay)               | High   | Medium | Feature       |
+| 6   | Typed WS message parser `ParseWSMessageInto[T]`               | Medium | Low    | Feature       |
+| 7   | Broadcaster.Unsubscribe O(1) lookup optimization              | Low    | Low    | Perf          |
+| 8   | SSE integration test in `integration_test/`                   | Medium | Medium | Test          |
+| 9   | Benchmark SSE/WS hot paths                                    | Low    | Low    | Perf          |
+| 10  | Adopt go-cqrs-lite v2 `RegisterTyped`/`DispatchTyped`         | High   | Medium | Deps          |
+| 11  | Adopt go-cqrs-lite v2 `PaginatedResult[T]`                    | Medium | Medium | Deps          |
+| 12  | Comprehensive godoc package examples (existing features)      | Medium | Medium | Docs          |
+| 13  | Expand integration_test module coverage                       | Medium | Medium | Test          |
+| 14  | Profile hot paths (dispatch, decode) for allocation reduction | Low    | Medium | Perf          |
+| 15  | BrandNamer for root module marker types                       | Medium | Low    | Types         |
+| 16  | PostgreSQL store for usermgmt                                 | High   | High   | Store         |
+| 17  | Numeric branded IDs (ADR 0003)                                | High   | Medium | Types         |
+| 18  | Database migration tooling                                    | Medium | Medium | Infra         |
+| 19  | OpenTelemetry middleware (lifecycle hooks)                    | High   | Medium | Observability |
+| 20  | Prometheus metrics middleware                                 | Medium | Medium | Observability |
+| 21  | JWT/OIDC integration helpers                                  | Medium | High   | Auth          |
+| 22  | Redis session store                                           | Medium | High   | Store         |
+| 23  | README.md refresh — add SSE/WS mention                        | Low    | Low    | Docs          |
+| 24  | WebSocket example app                                         | Medium | Medium | Docs          |
+| 25  | Flaky test audit — ensure no time.After patterns              | Low    | Low    | Test          |
 
 ---
 
@@ -178,11 +178,13 @@ Implemented full HTMX SSE extension support and HTMX WebSocket protocol helpers.
 **Should the SSE `Broadcaster` be wired into the `App` struct or remain standalone?**
 
 Arguments for wiring into App:
+
 - An `App.SSEBroadcaster()` method would give consumers a pre-wired broadcaster
 - Could auto-connect to CQRS event dispatcher via AfterDispatchHook
 - Would match the pattern of how other features (CSRF, auth, rate limiting) are configured via `Config`
 
 Arguments for standalone:
+
 - SSE is inherently different from request/response — it doesn't fit the App lifecycle
 - Consumers may want multiple broadcasters (different event types, different auth scopes)
 - The datastar-demo shows a standalone broadcaster working perfectly
@@ -194,13 +196,13 @@ Arguments for standalone:
 
 ## File Changes This Session
 
-| File | Action | Lines |
-|------|--------|-------|
-| `sse.go` | Created | 281 |
-| `ws.go` | Created | 116 |
-| `sse_test.go` | Created | 374 |
-| `ws_test.go` | Created | 112 |
-| `docs/adr/0004-sse-websocket-support.md` | Created | 48 |
-| `AGENTS.md` | Modified | +17 lines (arch tree, key decisions) |
-| `FEATURES.md` | Modified | +11 lines (5 new features, updated Not Planned) |
-| `ROADMAP.md` | Modified | 1 line (removed SSE/WS from Not Planned) |
+| File                                     | Action   | Lines                                           |
+| ---------------------------------------- | -------- | ----------------------------------------------- |
+| `sse.go`                                 | Created  | 281                                             |
+| `ws.go`                                  | Created  | 116                                             |
+| `sse_test.go`                            | Created  | 374                                             |
+| `ws_test.go`                             | Created  | 112                                             |
+| `docs/adr/0004-sse-websocket-support.md` | Created  | 48                                              |
+| `AGENTS.md`                              | Modified | +17 lines (arch tree, key decisions)            |
+| `FEATURES.md`                            | Modified | +11 lines (5 new features, updated Not Planned) |
+| `ROADMAP.md`                             | Modified | 1 line (removed SSE/WS from Not Planned)        |

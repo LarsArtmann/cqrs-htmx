@@ -105,18 +105,18 @@
 
 ### Real-Time (SSE & WebSocket)
 
-| #   | Feature               | Status           | Description                                                                                                                                                     |
-| --- | --------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 44  | SSE Event Writer      | FULLY_FUNCTIONAL | `SSEEvent` struct, `WriteSSEEvent(w, event)` — properly formatted SSE events (event/data/id/retry, multi-line, CRLF normalization).                            |
-| 45  | SSE Stream            | FULLY_FUNCTIONAL | `SSEStream` manages a single SSE connection. Correct headers (text/event-stream, no-cache, keep-alive), flush after send, context-aware lifecycle.             |
-| 46  | SSE Broadcaster       | FULLY_FUNCTIONAL | `Broadcaster` — thread-safe fan-out. Subscribe/Unsubscribe with buffered channels (64). Non-blocking broadcast drops to slow consumers.                        |
-| 47  | WebSocket Message     | FULLY_FUNCTIONAL | `WSMessage`, `ParseWSMessage` — parses HTMX WebSocket JSON (form fields + HEADERS). `StringBody` helper for typed field access.                                |
-| 48  | WebSocket OOB HTML    | FULLY_FUNCTIONAL | `WSOOBHTML(id, html, strategy)` — wraps HTML with hx-swap-oob attributes for OOB swap. Uses `SwapStrategy` type. Passthrough for custom markup.                |
+| #   | Feature            | Status           | Description                                                                                                                                        |
+| --- | ------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 44  | SSE Event Writer   | FULLY_FUNCTIONAL | `SSEEvent` struct, `WriteSSEEvent(w, event)` — properly formatted SSE events (event/data/id/retry, multi-line, CRLF normalization).                |
+| 45  | SSE Stream         | FULLY_FUNCTIONAL | `SSEStream` manages a single SSE connection. Correct headers (text/event-stream, no-cache, keep-alive), flush after send, context-aware lifecycle. |
+| 46  | SSE Broadcaster    | FULLY_FUNCTIONAL | `Broadcaster` — thread-safe fan-out. Subscribe/Unsubscribe with buffered channels (64). Non-blocking broadcast drops to slow consumers.            |
+| 47  | WebSocket Message  | FULLY_FUNCTIONAL | `WSMessage`, `ParseWSMessage` — parses HTMX WebSocket JSON (form fields + HEADERS). `StringBody` helper for typed field access.                    |
+| 48  | WebSocket OOB HTML | FULLY_FUNCTIONAL | `WSOOBHTML(id, html, strategy)` — wraps HTML with hx-swap-oob attributes for OOB swap. Uses `SwapStrategy` type. Passthrough for custom markup.    |
 
 ### Not Planned
 
-| Feature                 | Status      | Reason                                                                                  |
-| ----------------------- | ----------- | --------------------------------------------------------------------------------------- |
+| Feature                 | Status      | Reason                                                                                      |
+| ----------------------- | ----------- | ------------------------------------------------------------------------------------------- |
 | WebSocket upgrade logic | NOT_PLANNED | Consumers choose their own WebSocket library (gorilla, coder, etc.). Protocol helpers only. |
 
 ---

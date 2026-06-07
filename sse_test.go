@@ -3,11 +3,10 @@ package cqrshtmx_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
-	"fmt"
 	"sync"
-
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	. "github.com/onsi/ginkgo/v2"
@@ -298,12 +297,10 @@ var _ = Describe("SSE", func() {
 			for i := range goroutines {
 				ch := b.Subscribe()
 				channels[i] = ch
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
+				wg.Go(func() {
 					defer b.Unsubscribe(ch)
 					<-ch
-				}()
+				})
 			}
 
 			b.Broadcast(cqrshtmx.SSEEvent{Event: "test", Data: "concurrent"})
@@ -371,5 +368,5 @@ var _ = Describe("SSE", func() {
 type errorWriter struct{}
 
 func (e *errorWriter) Write(_ []byte) (int, error) {
-	return 0, fmt.Errorf("write error")
+	return 0, errors.New("write error")
 }
