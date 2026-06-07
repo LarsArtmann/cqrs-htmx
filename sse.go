@@ -188,13 +188,13 @@ func (s *SSEStream) Close() {
 //	})
 type Broadcaster struct {
 	mu          sync.RWMutex
-	subscribers map[chan SSEEvent]struct{}
+	subscribers map[any]chan SSEEvent
 }
 
 // NewBroadcaster creates a new event broadcaster with no subscribers.
 func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{
-		subscribers: make(map[chan SSEEvent]struct{}),
+		subscribers: make(map[any]chan SSEEvent),
 	}
 }
 
@@ -206,7 +206,7 @@ func NewBroadcaster() *Broadcaster {
 func (b *Broadcaster) Subscribe() <-chan SSEEvent {
 	ch := make(chan SSEEvent, 64)
 	b.mu.Lock()
-	b.subscribers[ch] = struct{}{}
+	b.subscribers[any(ch)] = ch
 	b.mu.Unlock()
 	return ch
 }
@@ -218,14 +218,10 @@ func (b *Broadcaster) Unsubscribe(ch <-chan SSEEvent) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	// The map stores bidirectional channels; Subscribe returns <-chan but
-	// the underlying channel is the same. We need to find and close it.
-	for sender := range b.subscribers {
-		if sender == ch {
-			delete(b.subscribers, sender)
-			close(sender)
-			return
-		}
+	key := any(ch)
+	if sender, ok := b.subscribers[key]; ok {
+		delete(b.subscribers, key)
+		close(sender)
 	}
 }
 
@@ -236,7 +232,7 @@ func (b *Broadcaster) Broadcast(event SSEEvent) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
-	for ch := range b.subscribers {
+	for _, ch := range b.subscribers {
 		select {
 		case ch <- event:
 		default:
