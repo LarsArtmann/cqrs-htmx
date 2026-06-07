@@ -25,15 +25,16 @@
         { config, pkgs, ... }:
         {
           treefmt = {
-            projectRootFile = "flake.nix";
-            programs.nixfmt.enable = true;
+            projectRootFile = "go.mod";
+            nixfmt.enable = true;
+            templ.enable = true;
             programs.gofmt.enable = true;
           };
 
           devShells = {
             default = pkgs.mkShellNoCC {
               packages = [
-                pkgs.go
+                pkgs.go_1_26
                 pkgs.gopls
                 pkgs.golangci-lint
               ];
@@ -44,14 +45,13 @@
 
             ci = pkgs.mkShellNoCC {
               packages = [
-                pkgs.go
+                pkgs.go_1_26
                 pkgs.golangci-lint
               ];
 
               GOWORK = "off";
               GONOSUMCHECK = "github.com/larsartmann/*";
-            };
-          };
+            };          };
 
           checks = {
             formatting = config.treefmt.build.check self;
@@ -62,7 +62,7 @@
               type = "app";
               program = pkgs.writeShellApplication {
                 name = "run-tests";
-                runtimeInputs = [ pkgs.go ];
+                runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
                   export GONOSUMCHECK='github.com/larsartmann/*'
@@ -94,7 +94,7 @@
               type = "app";
               program = pkgs.writeShellApplication {
                 name = "run-coverage";
-                runtimeInputs = [ pkgs.go ];
+                runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
                   export GONOSUMCHECK='github.com/larsartmann/*'
@@ -111,7 +111,7 @@
               type = "app";
               program = pkgs.writeShellApplication {
                 name = "run-build";
-                runtimeInputs = [ pkgs.go ];
+                runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
                   export GONOSUMCHECK='github.com/larsartmann/*'
