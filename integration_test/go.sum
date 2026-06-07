@@ -44,8 +44,8 @@ github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.1.0 h1:qOMZVruo7I4faySdYiD+cK
 github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.1.0/go.mod h1:kxvaQYOPJPhnr9r8jbpz52iXlaRWfNzrfVWiLAWEXjQ=
 github.com/larsartmann/go-error-family v0.3.0 h1:ozA/xt9C+o+4o6bbt/vrMZDCL+ZvBjJVV79fjNkz3+8=
 github.com/larsartmann/go-error-family v0.3.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
-github.com/larsartmann/httputil v0.0.0-20260604123117-48652812bcf7 h1:fRR3QB55/JIpIhJrEK3uOVcIMyCjkLb951K8o8v8S5M=
-github.com/larsartmann/httputil v0.0.0-20260604123117-48652812bcf7/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
+github.com/larsartmann/httputil v0.0.0-20260605133311-64f7f3b3871b h1:JPv4u+JRcJILpno1CHw+62CBDV5zeCvVjZokFf/I3jE=
+github.com/larsartmann/httputil v0.0.0-20260605133311-64f7f3b3871b/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=
 github.com/oklog/ulid/v2 v2.1.1/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
 github.com/onsi/ginkgo/v2 v2.29.0 h1:rfh+ZFjgJhYWRoIqVf3Uwx/W20yLrcrE2h2GmYVRaag=
