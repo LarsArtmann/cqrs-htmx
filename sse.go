@@ -260,7 +260,7 @@ func splitSSELines(s string) []string {
 
 	var lines []string
 	start := 0
-	for i := 0; i < len(s); i++ {
+	for i := range len(s) {
 		if s[i] == '\n' {
 			line := s[start:i]
 			if len(line) > 0 && line[len(line)-1] == '\r' {

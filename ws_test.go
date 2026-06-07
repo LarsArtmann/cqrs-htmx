@@ -57,7 +57,7 @@ var _ = Describe("WebSocket Protocol Helpers", func() {
 		It("handles non-string header values gracefully", func() {
 			msg, err := cqrshtmx.ParseWSMessage([]byte(`{"HEADERS":{"HX-Request":true,"num":42}}`))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(msg.Headers).To(HaveLen(0))
+			Expect(msg.Headers).To(BeEmpty())
 		})
 
 		It("handles numeric body values", func() {
