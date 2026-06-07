@@ -1,0 +1,116 @@
+package cqrshtmx
+
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
+
+// WSMessage represents an incoming HTMX WebSocket message.
+//
+// When a form with ws-send is submitted, HTMX serializes its fields as JSON
+// and includes a HEADERS object with the headers normally sent with HTMX requests.
+// ParseWSMessage extracts these into a structured type for easy access.
+//
+// Server-side:
+//
+//	func handleWS(conn websocket.Conn) {
+//	    for {
+//	        _, msg, err := conn.ReadMessage()
+//	        if err != nil { return }
+//	        parsed, err := cqrshtmx.ParseWSMessage(msg)
+//	        // use parsed.Body["field_name"], parsed.Headers["HX-Request"]
+//	    }
+//	}
+//
+// Client-side (HTML):
+//
+//	<div hx-ext="ws" ws-connect="/ws">
+//	  <form ws-send>
+//	    <input name="message">
+//	    <button>Send</button>
+//	  </form>
+//	</div>
+type WSMessage struct {
+	// Headers contains the HTMX headers that would normally be sent with
+	// an HTTP request. Includes HX-Request, HX-Trigger, HX-Target, etc.
+	Headers map[string]string
+
+	// Body contains all form field values from the submitted form.
+	// The HEADERS key is extracted separately into the Headers field.
+	Body map[string]any
+}
+
+// ParseWSMessage parses an incoming HTMX WebSocket JSON message.
+// The HTMX WebSocket extension sends form data as JSON with a special
+// HEADERS field containing HTMX request headers.
+//
+// Returns a WSMessage with separated Headers and Body fields.
+// Returns an error if the input is not valid JSON.
+func ParseWSMessage(data []byte) (*WSMessage, error) {
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, fmt.Errorf("parse ws message: %w", err)
+	}
+
+	msg := &WSMessage{
+		Headers: make(map[string]string),
+		Body:    make(map[string]any),
+	}
+
+	for key, value := range raw {
+		if key == "HEADERS" {
+			if headers, ok := value.(map[string]any); ok {
+				for hk, hv := range headers {
+					if s, ok := hv.(string); ok {
+						msg.Headers[hk] = s
+					}
+				}
+			}
+			continue
+		}
+		msg.Body[key] = value
+	}
+
+	return msg, nil
+}
+
+// StringBody returns a body field as a string.
+// Returns empty string if the field doesn't exist or isn't a string.
+func (m *WSMessage) StringBody(key string) string {
+	v, ok := m.Body[key]
+	if !ok {
+		return ""
+	}
+	s, _ := v.(string)
+	return s
+}
+
+// WSOOBHTML wraps an HTML fragment with HTMX out-of-band swap attributes.
+// The HTMX WebSocket extension parses received messages as HTML and uses
+// OOB swap logic to update elements by ID.
+//
+// By default, elements are replaced using innerHTML. Pass a SwapStrategy
+// to use a different swap method:
+//
+//	html := cqrshtmx.WSOOBHTML("notifications", "<div>new item</div>",
+//	    cqrshtmx.SwapBeforeEnd)
+func WSOOBHTML(id, html string, swapStrategy ...SwapStrategy) string {
+	swap := "true"
+	if len(swapStrategy) > 0 && swapStrategy[0] != "" {
+		swap = string(swapStrategy[0])
+	}
+
+	// If the HTML already contains an element with the target ID and
+	// hx-swap-oob, return it as-is — the consumer knows best.
+	if strings.Contains(html, "hx-swap-oob") {
+		return html
+	}
+
+	// Wrap the HTML in a div with OOB swap attributes.
+	// HTMX will find the element with matching ID and swap it.
+	return fmt.Sprintf(
+		`<div id="%s" hx-swap-oob="%s">%s</div>`,
+		id, swap, html,
+	)
+}

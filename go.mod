@@ -5,12 +5,12 @@ go 1.26.3
 require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/justinas/nosurf v1.2.0
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.1.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.1.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.1.0
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.1.0
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v2 v2.2.0
 	github.com/larsartmann/go-error-family v0.3.0
-	github.com/larsartmann/httputil v0.0.0-20260605133311-64f7f3b3871b
+	github.com/larsartmann/httputil v0.0.0-20260607223019-1cb4408b77a7
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	golang.org/x/time v0.15.0
@@ -27,8 +27,8 @@ require (
 	github.com/google/pprof v0.0.0-20260507013755-92041b743c96 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.2.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/samber/lo v1.53.0 // indirect
