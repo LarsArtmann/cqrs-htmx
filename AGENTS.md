@@ -20,7 +20,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Fmt      | `nix fmt`                                                                                             |
 | Flake    | `nix flake check` (formatting + devShells + apps)                                                     |
 | DevShell | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage | 96.9% root, 91.1% usermgmt (390+ tests)                                                               |
+| Coverage | 96.9% root, 91.1% usermgmt (450+ tests) |
 
 ## Architecture
 
@@ -42,6 +42,8 @@ cqrs-htmx/
 ├── decoder.go        # Body reading, form/JSON decoding, MaxBodySize enforcement
 ├── httputil.go       # WriteJSON, ClientIP (delegates to larsartmann/httputil)
 ├── logging.go        # RequestLogging, RequestLoggingSlog, formatters
+├── sse.go            # SSE event types (SSEEvent), WriteSSEEvent, SSEStream, Broadcaster (fan-out)
+├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, WSOOBHTML
 ├── ratelimit.go      # RateLimiterMiddleware, per-key token bucket, min-heap eviction
 ├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, RecommendedCSP/HSTS
 ├── recovery.go       # RecoveryMiddleware (package-level), App.RecoverHandler() — panic recovery
@@ -130,6 +132,21 @@ cqrs-htmx/
 
 - **Package-level RecoveryMiddleware**: Uses `DefaultErrorHandler` for panics
 - **App.RecoverHandler()**: Uses the App's configured error handler (renamed from RecoveryMiddleware to avoid naming collision)
+
+### SSE (Server-Sent Events)
+
+- **No external dependencies**: SSE is pure HTTP (text/event-stream), no new imports required
+- **SSEEvent**: Protocol-level type with Event, Data, ID, Retry fields. Multi-line data auto-split per SSE spec. CRLF normalized to LF
+- **SSEStream**: Sets correct headers (Content-Type, Cache-Control, Connection). Flushes after each Send. Context-aware (cancelled when client disconnects)
+- **Broadcaster**: Thread-safe fan-out using buffered channels (64 capacity). Non-blocking broadcast — slow consumers have events dropped. Subscribe/Unsubscribe with channel close
+- **Not tied to App**: SSE building blocks work independently. Consumers wire Broadcaster → SSEStream in their own HTTP handlers
+
+### WebSocket
+
+- **No WebSocket library dependency**: Protocol helpers only (message format, OOB HTML). Consumers choose their own WebSocket library
+- **WSMessage/ParseWSMessage**: Parses incoming HTMX WebSocket JSON — extracts HEADERS separately from body fields. `StringBody` helper for typed access
+- **WSOOBHTML**: Wraps HTML with hx-swap-oob attributes for HTMX OOB swap. Uses existing `SwapStrategy` type. Passthrough when HTML already contains hx-swap-oob
+- **Decision documented in**: `docs/adr/0004-sse-websocket-support.md`
 
 ### Domain Model (usermgmt)
 

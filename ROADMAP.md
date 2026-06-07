@@ -62,6 +62,6 @@ _Focus: Production-grade observability and plugin ecosystem._
 
 These are explicitly out of scope for this library:
 
-- **WebSocket/SSE helpers** — Consumers should use dedicated libraries (datastar, etc.)
+- **WebSocket upgrade logic** — Consumers should use dedicated libraries (gorilla/websocket, coder/websocket, etc.). The library provides protocol helpers (`WSMessage`, `WSOOBHTML`) only.
 - **ORM integration** — Store interfaces are intentionally simple; consumers provide their own implementations
 - **Template engine support beyond templ** — The `TemplComponent` duck-typing pattern covers any `Render(ctx, w) error` interface
