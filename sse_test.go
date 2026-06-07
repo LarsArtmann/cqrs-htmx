@@ -110,6 +110,43 @@ var _ = Describe("SSE", func() {
 			})
 			Expect(err).To(HaveOccurred())
 		})
+
+		It("handles trailing newline in data", func() {
+			var buf bytes.Buffer
+			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+				Event: "trailing",
+				Data:  "line1\n",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buf.String()).To(Equal("event: trailing\ndata: line1\n\n"))
+		})
+
+		It("handles multiple consecutive newlines", func() {
+			var buf bytes.Buffer
+			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+				Data: "a\n\nb",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buf.String()).To(Equal("data: a\ndata: \ndata: b\n\n"))
+		})
+
+		It("handles CRLF-only string", func() {
+			var buf bytes.Buffer
+			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+				Data: "\r\n",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buf.String()).To(Equal("data: \n\n"))
+		})
+
+		It("handles multiple CRLF lines with trailing CRLF", func() {
+			var buf bytes.Buffer
+			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+				Data: "line1\r\nline2\r\n",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buf.String()).To(Equal("data: line1\ndata: line2\n\n"))
+		})
 	})
 
 	Describe("SSEStream", func() {
