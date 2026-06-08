@@ -229,3 +229,73 @@ func ExampleRecommendedHSTS() {
 	fmt.Println(w.Header().Get("Strict-Transport-Security") != "")
 	// Output: true
 }
+
+func ExampleWriteSSEEvent() {
+	w := httptest.NewRecorder()
+	w.Header().Set("Content-Type", "text/event-stream")
+
+	err := cqrshtmx.WriteSSEEvent(w, cqrshtmx.SSEEvent{
+		Event: "todoCreated",
+		Data:  "<li>Buy milk</li>",
+		ID:    "evt-1",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(w.Body.String())
+	// Output: event: todoCreated
+	// data: <li>Buy milk</li>
+	// id: evt-1
+	//
+}
+
+func ExampleSSEStream() {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
+	stream := cqrshtmx.NewSSEStream(w, r)
+	defer stream.Close()
+
+	_ = stream.Send(cqrshtmx.SSEEvent{Event: "update", Data: "<div>new</div>"})
+	_ = stream.SendHTML("update", "<div>newer</div>")
+
+	fmt.Println(w.Header().Get("Content-Type"))
+	// Output: text/event-stream
+}
+
+func ExampleBroadcaster() {
+	b := cqrshtmx.NewBroadcaster()
+	ch := b.Subscribe()
+	defer b.Unsubscribe(ch)
+
+	b.Broadcast(cqrshtmx.SSEEvent{Event: "itemCreated", Data: "<li>item</li>"})
+
+	evt := <-ch
+	fmt.Println(evt.Event, evt.Data)
+	// Output: itemCreated <li>item</li>
+}
+
+func ExampleParseWSMessage() {
+	data := []byte(`{"message":"hello","room":"general","HEADERS":{"HX-Request":"true"}}`)
+
+	msg, err := cqrshtmx.ParseWSMessage(data)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(msg.StringBody("message"), msg.StringBody("room"), msg.Headers["HX-Request"])
+	// Output: hello general true
+}
+
+func ExampleWSOOBHTML() {
+	html := cqrshtmx.WSOOBHTML("todos", "<ul><li>Buy milk</li></ul>")
+	fmt.Println(html)
+	// Output: <div id="todos" hx-swap-oob="true"><ul><li>Buy milk</li></ul></div>
+}
+
+func ExampleWSOOBHTML_swapStrategy() {
+	html := cqrshtmx.WSOOBHTML("notifications", "New message", cqrshtmx.SwapBeforeEnd)
+	fmt.Println(html)
+	// Output: <div id="notifications" hx-swap-oob="beforeend">New message</div>
+}

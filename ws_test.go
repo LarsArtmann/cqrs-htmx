@@ -109,4 +109,66 @@ var _ = Describe("WebSocket Protocol Helpers", func() {
 			Expect(result).To(Equal(`<div id="target" hx-swap-oob="true"></div>`))
 		})
 	})
+
+	Describe("ParseWSMessageInto", func() {
+		type chatMsg struct {
+			Room    string `json:"room"`
+			Message string `json:"chat_message"`
+		}
+
+		It("parses into typed struct with headers", func() {
+			data := []byte(`{
+				"chat_message": "hello",
+				"room": "general",
+				"HEADERS": {"HX-Request": "true", "HX-Trigger": "send-btn"}
+			}`)
+
+			msg, headers, err := cqrshtmx.ParseWSMessageInto[chatMsg](data)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(msg.Message).To(Equal("hello"))
+			Expect(msg.Room).To(Equal("general"))
+			Expect(headers).To(HaveLen(2))
+			Expect(headers["HX-Request"]).To(Equal("true"))
+			Expect(headers["HX-Trigger"]).To(Equal("send-btn"))
+		})
+
+		It("parses without HEADERS", func() {
+			data := []byte(`{"chat_message": "hi", "room": "dev"}`)
+
+			msg, headers, err := cqrshtmx.ParseWSMessageInto[chatMsg](data)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(msg.Message).To(Equal("hi"))
+			Expect(msg.Room).To(Equal("dev"))
+			Expect(headers).To(BeEmpty())
+		})
+
+		It("returns error for invalid JSON", func() {
+			_, _, err := cqrshtmx.ParseWSMessageInto[chatMsg]([]byte(`not json`))
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("parse ws message into"))
+		})
+
+		It("handles non-string header values", func() {
+			data := []byte(`{"chat_message":"hi","room":"dev","HEADERS":{"HX-Request":true,"num":42}}`)
+
+			msg, headers, err := cqrshtmx.ParseWSMessageInto[chatMsg](data)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(msg.Message).To(Equal("hi"))
+			Expect(headers).To(BeEmpty())
+		})
+
+		It("preserves numeric body fields in typed struct", func() {
+			type countMsg struct {
+				Name  string `json:"name"`
+				Count int    `json:"count"`
+			}
+
+			data := []byte(`{"name":"test","count":42}`)
+
+			msg, _, err := cqrshtmx.ParseWSMessageInto[countMsg](data)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(msg.Name).To(Equal("test"))
+			Expect(msg.Count).To(Equal(42))
+		})
+	})
 })

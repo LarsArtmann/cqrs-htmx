@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
@@ -391,5 +392,62 @@ func renderJSONWithStatus[T any](status int) HandlerOption {
 func RequireMethod(method string) HandlerOption {
 	return func(cfg *handlerConfig) {
 		cfg.requireMethod = method
+	}
+}
+
+// DecodePagination extracts page and page_size from HTTP query parameters.
+// Uses go-cqrs-lite query.Pagination defaults (page=1, page_size=20, max=100)
+// when parameters are missing or invalid.
+//
+// Query parameters:
+//   - page: page number (1-based, default 1)
+//   - page_size: items per page (default 20, max 100)
+//
+// Usage:
+//
+//	app.Query("ListItems",
+//	    cqrshtmx.DecodeFormQuery(func(r *http.Request) (query.Query, error) {
+//	        p := cqrshtmx.DecodePagination(r)
+//	        return ListItemsQuery{Page: p.Page, PageSize: p.PageSize}, nil
+//	    }),
+//	)
+func DecodePagination(r *http.Request) query.Pagination {
+	var page, pageSize uint
+
+	if v := r.URL.Query().Get("page"); v != "" {
+		if n, err := strconv.ParseUint(v, 10, 32); err == nil {
+			page = uint(n)
+		}
+	}
+
+	if v := r.URL.Query().Get("page_size"); v != "" {
+		if n, err := strconv.ParseUint(v, 10, 32); err == nil {
+			pageSize = uint(n)
+		}
+	}
+
+	return query.NewPagination(page, pageSize)
+}
+
+// RenderPaginatedJSON renders a query.PaginatedResult[T] as JSON with 200 OK.
+// Sets Content-Type and includes pagination metadata in the response body.
+//
+// Usage:
+//
+//	app.Query("ListUsers",
+//	    cqrshtmx.DecodeFormQuery(...),
+//	    cqrshtmx.RenderPaginatedJSON[User](),
+//	)
+func RenderPaginatedJSON[T any]() HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.render = func(w http.ResponseWriter, _ *http.Request, result any) error {
+			typed, ok := result.(query.PaginatedResult[T])
+			if !ok {
+				return event.NewRejection("unexpected_result_type",
+					fmt.Sprintf("expected PaginatedResult[%T], got %T", *new(T), result)).WithCause(ErrDecodeFailed)
+			}
+
+			return WriteJSON(w, http.StatusOK, typed)
+		}
 	}
 }
