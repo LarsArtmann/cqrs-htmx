@@ -21,7 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
-	github.com/larsartmann/httputil v0.0.0-20260607223019-1cb4408b77a7 // indirect
+	github.com/larsartmann/httputil v0.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect

@@ -105,23 +105,23 @@
 
 ### Real-Time (SSE & WebSocket)
 
-| #   | Feature                    | Status           | Description                                                                                                                                              |
-| --- | -------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 44  | SSE Event Writer           | FULLY_FUNCTIONAL | `SSEEvent` struct, `WriteSSEEvent(w, event)` — properly formatted SSE events (event/data/id/retry, multi-line, CRLF normalization).                      |
-| 45  | SSE Stream                 | FULLY_FUNCTIONAL | `SSEStream` manages a single SSE connection. Correct headers, flush after send, context-aware lifecycle. `LastEventID()` for reconnection support.       |
-| 46  | SSE Broadcaster            | FULLY_FUNCTIONAL | `Broadcaster` — thread-safe fan-out. O(1) Unsubscribe via uintptr identity. Buffered channels (64). Non-blocking broadcast drops to slow consumers.      |
-| 47  | WebSocket Message          | FULLY_FUNCTIONAL | `WSMessage`, `ParseWSMessage` — parses HTMX WebSocket JSON (form fields + HEADERS). `StringBody` helper for typed field access.                          |
-| 48  | WebSocket OOB HTML         | FULLY_FUNCTIONAL | `WSOOBHTML(id, html, strategy)` — wraps HTML with hx-swap-oob attributes for OOB swap. Uses `SwapStrategy` type. Passthrough for custom markup.          |
-| 49  | SSE Reconnection           | FULLY_FUNCTIONAL | `LastEventIDFromRequest(r)`, `SSEEventStore` interface, `ReplayEvents(stream, store, lastID)` — full reconnection support per SSE spec.                  |
-| 50  | SSE + CQRS Bridge          | FULLY_FUNCTIONAL | `BroadcastOnSuccess(event, data)` and `BroadcastOnSuccessFunc(fn)` — AfterDispatchHook factories that broadcast SSE events on successful command dispatch. |
-| 51  | Typed WS Message Parser    | FULLY_FUNCTIONAL | `ParseWSMessageInto[T](data)` — generic typed parser that deserializes body into struct T while separating HEADERS. Compile-time safe.                   |
+| #   | Feature                 | Status           | Description                                                                                                                                                |
+| --- | ----------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 44  | SSE Event Writer        | FULLY_FUNCTIONAL | `SSEEvent` struct, `WriteSSEEvent(w, event)` — properly formatted SSE events (event/data/id/retry, multi-line, CRLF normalization).                        |
+| 45  | SSE Stream              | FULLY_FUNCTIONAL | `SSEStream` manages a single SSE connection. Correct headers, flush after send, context-aware lifecycle. `LastEventID()` for reconnection support.         |
+| 46  | SSE Broadcaster         | FULLY_FUNCTIONAL | `Broadcaster` — thread-safe fan-out. O(1) Unsubscribe via uintptr identity. Buffered channels (64). Non-blocking broadcast drops to slow consumers.        |
+| 47  | WebSocket Message       | FULLY_FUNCTIONAL | `WSMessage`, `ParseWSMessage` — parses HTMX WebSocket JSON (form fields + HEADERS). `StringBody` helper for typed field access.                            |
+| 48  | WebSocket OOB HTML      | FULLY_FUNCTIONAL | `WSOOBHTML(id, html, strategy)` — wraps HTML with hx-swap-oob attributes for OOB swap. Uses `SwapStrategy` type. Passthrough for custom markup.            |
+| 49  | SSE Reconnection        | FULLY_FUNCTIONAL | `LastEventIDFromRequest(r)`, `SSEEventStore` interface, `ReplayEvents(stream, store, lastID)` — full reconnection support per SSE spec.                    |
+| 50  | SSE + CQRS Bridge       | FULLY_FUNCTIONAL | `BroadcastOnSuccess(event, data)` and `BroadcastOnSuccessFunc(fn)` — AfterDispatchHook factories that broadcast SSE events on successful command dispatch. |
+| 51  | Typed WS Message Parser | FULLY_FUNCTIONAL | `ParseWSMessageInto[T](data)` — generic typed parser that deserializes body into struct T while separating HEADERS. Compile-time safe.                     |
 
 ### Pagination (go-cqrs-lite v2.2.0)
 
-| #   | Feature                | Status           | Description                                                                                                      |
-| --- | ---------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
-| 52  | Pagination Decoder     | FULLY_FUNCTIONAL | `DecodePagination(r)` extracts page/page_size from query params. Delegates to `query.NewPagination` for defaults. |
-| 53  | Paginated JSON Render  | FULLY_FUNCTIONAL | `RenderPaginatedJSON[T]()` renders `query.PaginatedResult[T]` as JSON 200. Type-safe via generic parameter.       |
+| #   | Feature               | Status           | Description                                                                                                       |
+| --- | --------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 52  | Pagination Decoder    | FULLY_FUNCTIONAL | `DecodePagination(r)` extracts page/page_size from query params. Delegates to `query.NewPagination` for defaults. |
+| 53  | Paginated JSON Render | FULLY_FUNCTIONAL | `RenderPaginatedJSON[T]()` renders `query.PaginatedResult[T]` as JSON 200. Type-safe via generic parameter.       |
 
 ### Not Planned
 
