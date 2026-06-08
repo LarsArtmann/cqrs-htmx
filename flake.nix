@@ -26,8 +26,8 @@
         {
           treefmt = {
             projectRootFile = "go.mod";
-            nixfmt.enable = true;
-            templ.enable = true;
+            programs.nixfmt.enable = true;
+            programs.templ.enable = true;
             programs.gofmt.enable = true;
           };
 
