@@ -47,8 +47,8 @@ github.com/larsartmann/go-cqrs-lite/schema/v2 v2.0.0/go.mod h1:T8IID5ry5c9DAr2og
 github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.0.0/go.mod h1:T5wP6K9ip/uauAZZnMmleUZc5gj/91gySYJT43/ZT8M=
 github.com/larsartmann/go-error-family v0.3.0 h1:ozA/xt9C+o+4o6bbt/vrMZDCL+ZvBjJVV79fjNkz3+8=
 github.com/larsartmann/go-error-family v0.3.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
-github.com/larsartmann/httputil v0.0.0-20260528145236-22c2616f7c39 h1:y+gDzpLzCMLGFbF1luHpz0H8ii9tVjkBD9r4S58z/uY=
-github.com/larsartmann/httputil v0.0.0-20260528145236-22c2616f7c39/go.mod h1:t4mmHVCuj7suh+8dmnc1EGv0yqJUG33RCbNfy3VOVPg=
+github.com/larsartmann/httputil v0.1.0 h1:SFk6OSXhZqdmDNjlFKpfqP6S7WCBIoujEzNmxz3fgEY=
+github.com/larsartmann/httputil v0.1.0/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
 github.com/maruel/natural v1.1.1/go.mod h1:v+Rfd79xlw1AgVBjbO0BEQmptqb5HvL/k9GRHB7ZKEg=
 github.com/mfridman/tparse v0.18.0/go.mod h1:gEvqZTuCgEhPbYk/2lS3Kcxg1GmTxxU7kTC8DvP0i/A=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=

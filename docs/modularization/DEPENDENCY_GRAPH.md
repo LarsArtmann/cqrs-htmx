@@ -12,7 +12,7 @@ github.com/larsartmann/cqrs-htmx (root)
 ├── justinas/nosurf v1.2.0
 ├── larsartmann/go-cqrs-lite/core v1.5.1-pre
 ├── larsartmann/go-error-family v0.1.1
-├── larsartmann/httputil v0.0.0-pre
+├── larsartmann/httputil v0.1.0
 ├── onsi/ginkgo/v2 v2.29.0 (test)
 ├── onsi/gomega v1.41.0 (test)
 └── golang.org/x/time v0.15.0
