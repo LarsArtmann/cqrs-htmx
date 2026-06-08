@@ -39,6 +39,7 @@
 | 14  | Notifications         | FULLY_FUNCTIONAL | `NotifySuccess/Error/Warning/Info` as HandlerOptions and Response methods. `NotifyWithEvent` builder.                                 |
 | 15  | Swap Strategies       | FULLY_FUNCTIONAL | All 8 HTMX swap strategies as typed constants.                                                                                        |
 | 16  | Header Constants      | FULLY_FUNCTIONAL | All HTMX headers are unexported constants. `HeaderTrue` exported for consumers.                                                       |
+| 16b | Embedded HTMX JS      | FULLY_FUNCTIONAL | `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified, ~49KB) with ETag/caching. `HTMXVersion()`, `HTMXScriptTag(path)`. Opt-in. |
 
 ### Auth & Security
 
