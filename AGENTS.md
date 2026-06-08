@@ -78,7 +78,7 @@ cqrs-htmx/
 
 | Dependency              | Purpose              | Used in          |
 | ----------------------- | -------------------- | ---------------- |
-| go-cqrs-lite v2.0.0     | CQRS dispatch        | All modules      |
+| go-cqrs-lite v2.2.0     | CQRS dispatch, pagination | All modules      |
 | casbin/casbin/v3        | Authorization        | Root, usermgmt   |
 | justinas/nosurf v1.2.0  | CSRF protection      | Root             |
 | go-error-family v0.3.0  | Error classification | Root             |

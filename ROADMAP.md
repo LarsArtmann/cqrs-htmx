@@ -1,14 +1,14 @@
 # Roadmap — cqrs-htmx
 
-**Updated:** 2026-05-27
+**Updated:** 2026-06-08
 
 ## Current State
 
-- **Version:** Unreleased (post-v1.0.0 development)
+- **Version:** v2.1.0
 - **Coverage:** 96.9% root, 91.1% usermgmt
 - **Lint:** 0 issues
-- **Dependencies:** go-cqrs-lite v2.0.0 (all modules), justinas/nosurf, go-error-family v0.3.0, larsartmann/httputil
-- **Test suite:** 390+ specs, race-safe, fuzz tests, benchmarks
+- **Dependencies:** go-cqrs-lite v2.2.0 (all modules), justinas/nosurf, go-error-family v0.3.0, larsartmann/httputil
+- **Test suite:** 464+ specs, race-safe, fuzz tests, benchmarks
 
 ---
 
@@ -18,10 +18,13 @@ _Focus: Align modules, stabilize deps, prepare for broader adoption._
 
 | Area  | Item                                                                        | Priority | Status             |
 | ----- | --------------------------------------------------------------------------- | -------- | ------------------ |
-| Deps  | Upgrade all modules to go-cqrs-lite v2.0.0                                  | High     | Done               |
+| SSE/WS | SSE streaming (Broadcaster, reconnection, CQRS bridge)                  | High     | Done (v2.1.0)      |
+| SSE/WS | WebSocket message parser, typed generics, OOB HTML                       | High     | Done (v2.1.0)      |
+| HTMX  | Embedded HTMX JS (v2.0.9) with ETag/caching                               | Medium   | Done (v2.1.0)      |
+| Deps  | Upgrade all modules to go-cqrs-lite v2.2.0                                  | High     | Done               |
 | Deps  | Remove CatalogEntries (dead upstream code in v2)                            | High     | Done               |
 | Deps  | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`)                   | Medium   | Open               |
-| Deps  | Adopt v2 `PaginatedResult[T]` for query handlers                            | Low      | Open               |
+| Deps  | Adopt v2 `PaginatedResult[T]` for query handlers                           | Low      | Done               |
 | Types | BrandNamer for root module marker types (`userMarker`, `correlationMarker`) | Medium   | Blocked (upstream) |
 | Docs  | Add comprehensive godoc package examples with runnable snippets             | Medium   | Open               |
 | Docs  | README.md refresh — reflect nosurf, go-error-family, httputil migration     | Medium   | Done               |
@@ -30,7 +33,7 @@ _Focus: Align modules, stabilize deps, prepare for broader adoption._
 
 ---
 
-## v1.2.0 — SQL Store Backend
+## v2.2.0 — SQL Store Backend
 
 _Focus: Persistent storage for usermgmt beyond in-memory._
 
@@ -44,7 +47,7 @@ _Focus: Persistent storage for usermgmt beyond in-memory._
 
 ---
 
-## v2.0.0 — Observability & Extensibility
+## v3.0.0 — Observability & Extensibility
 
 _Focus: Production-grade observability and plugin ecosystem._
 

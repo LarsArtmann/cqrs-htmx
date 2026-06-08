@@ -1,6 +1,6 @@
 # Features — cqrs-htmx
 
-**Updated:** 2026-05-27 | **Source:** All .go files analyzed
+**Updated:** 2026-06-08 | **Source:** All .go files analyzed
 
 ## Root Module
 
@@ -137,9 +137,9 @@
 | Metric         | Root   | usermgmt |
 | -------------- | ------ | -------- |
 | Coverage       | 96.9%+ | 91.1%    |
-| Ginkgo specs   | 464    | —        |
+| Ginkgo specs   | 464+   | —        |
 | Lint issues    | 0      | 0        |
-| Prod files     | 21     | 9        |
-| Test files     | 25+    | 11       |
+| Prod files     | 23     | 10       |
+| Test files     | 26+    | 12       |
 | Benchmarks     | 18+    | 3        |
 | Godoc examples | 17+    | 1        |

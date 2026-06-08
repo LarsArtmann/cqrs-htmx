@@ -4,7 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased] - 2026-05-27
+## [2.1.0] - 2026-06-08
+
+### Added
+
+- **SSE (Server-Sent Events) support**: Full SSE implementation for the HTMX SSE extension (`hx-ext="sse"`). `SSEStream` manages a single connection with correct headers, flush, and context-aware lifecycle. `SSEEvent` struct with `Event`, `Data`, `ID`, `Retry` fields. `WriteSSEEvent` for writing events to any `io.Writer`.
+- **SSE Broadcaster**: Thread-safe fan-out `Broadcaster` with O(1) unsubscribe via channel identity, buffered channels (64), and non-blocking broadcast (drops to slow consumers). `SubscriberCount()` for monitoring.
+- **SSE reconnection**: `LastEventIDFromRequest(r)` extracts `Last-Event-ID`. `SSEEventStore` interface and `ReplayEvents(stream, store, lastID)` for full SSE spec reconnection support.
+- **SSE + CQRS bridge**: `BroadcastOnSuccess(event, data)` and `BroadcastOnSuccessFunc(fn)` — `AfterDispatchHook` factories that broadcast SSE events on successful command dispatch.
+- **WebSocket message parser**: `ParseWSMessage(data)` parses HTMX WebSocket JSON into `WSMessage` with separated `Headers` and `Body` fields. `StringBody(key)` for typed string access.
+- **Typed WebSocket parser**: `ParseWSMessageInto[T](data)` — generic typed parser that deserializes body into struct T while separating HEADERS. Compile-time safe.
+- **WebSocket OOB HTML**: `WSOOBHTML(id, html, strategy)` wraps HTML with `hx-swap-oob` attributes for out-of-band swaps. Uses `SwapStrategy` type.
+- **Pagination**: `DecodePagination(r)` extracts page/page_size from query params, delegates to `query.NewPagination` for defaults (page=1, page_size=20, max=100). `RenderPaginatedJSON[T]()` renders `query.PaginatedResult[T]` as JSON 200.
+- **Embedded HTMX JavaScript**: `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified, ~49KB) with `Content-Type`, long-lived `Cache-Control` (1 year, immutable), `ETag`, and `If-None-Match` support for 304 responses. `HTMXScriptTag(path)` generates `<script>` tags. `HTMXVersion()` returns `"2.0.9"`. Opt-in, zero CDN dependency.
+
+### Changed
+
+- **go-cqrs-lite upgraded to v2.2.0** across all modules. Adopts `query.Pagination` and `query.PaginatedResult[T]` from upstream.
+- **httputil upgraded to v0.1.0** (→ v0.1.1 pending).
+- Modernized Go idioms and normalized table formatting across codebase.
+
+## [2.0.0] - 2026-05-27
 
 ### Changed
 

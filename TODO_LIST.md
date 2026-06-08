@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-02 | **Coverage:** 96.9% root, 91.1% usermgmt | **Lint:** 0 issues
+**Updated:** 2026-06-08 | **Coverage:** 96.9% root, 91.1% usermgmt | **Lint:** 0 issues | **Version:** v2.1.0
 
 ## Status Legend
 
@@ -13,7 +13,7 @@
 
 ## Open Items
 
-### Security & Correctness (Pre-v1.1.0)
+### Security & Correctness (Pre-v2.2.0)
 
 - [x] **Fix rate limiter unbounded heap growth** — Fixed: limiterEntry now stores heapRef back-pointer. Refresh uses heap.Fix for in-place updates instead of pushing duplicate entries. No more ghost entries.
 - [ ] **Fix CSRF proxy bypass** — `r.TLS == nil` check trusts all HTTP proxies. Add `TrustedProxies []string` config and IP-based trust check. (Large effort, needs design)
@@ -33,8 +33,10 @@
 - [ ] **SQL store backend for usermgmt** — Pattern documented in ADR 0003 (numeric IDs via `brandid.ID[Brand, int64]`). Not yet implemented.
 - [ ] **OpenTelemetry integration** — Lifecycle hooks (`BeforeDispatchHook`/`AfterDispatchHook`) enable tracing. Upstream v2 has generic OTel middleware in `middleware/` module.
 - [ ] **Adopt v2 typed dispatch** — `command.RegisterTyped[T]`/`query.RegisterTyped[T]`/`query.DispatchTyped[T]` eliminate manual type assertions.
-- [ ] **Adopt PaginatedResult[T]** — `query.PaginatedResult[T]` provides built-in pagination for query handlers.
-- [ ] **Reactive event streams** — `event.EventBus` + `FilterEventType` + `ScanState` for real-time SSE/HTMX out-of-band updates.
+- [x] **Adopt PaginatedResult[T]** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` implemented using `query.Pagination`/`query.PaginatedResult[T]` from go-cqrs-lite v2.2.0.
+- [x] **Upgrade to go-cqrs-lite v2.2.0** — All 4 modules upgraded to v2.2.0. Adopted `PaginatedResult[T]` and `query.Pagination` from upstream. Added `DecodePagination` and `RenderPaginatedJSON[T]`.
+- [x] **Reactive event streams** — SSE Broadcaster, SSEStream, SSEEventStore, ReplayEvents, CQRS bridge (BroadcastOnSuccess/BroadcastOnSuccessFunc). WebSocket message parser (ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML).
+- [x] **Embedded HTMX JS** — HTMXScriptHandler serves embedded HTMX v2.0.9 (minified, ~49KB) with ETag/caching. HTMXScriptTag, HTMXVersion helpers.
 
 ---
 

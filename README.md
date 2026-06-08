@@ -26,6 +26,10 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 - **Rate limiting** — per-key token-bucket with min-heap eviction, configurable burst, and hook callbacks
 - **Security headers** — automatic `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, plus optional CSP/HSTS/Permissions-Policy
 - **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
+- **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `SSEEventStore` for reconnection replay, CQRS bridge via `BroadcastOnSuccess`
+- **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for out-of-band swaps
+- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v2.2.0
+- **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified) with ETag/caching. Opt-in, zero CDN dependency
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers
 
 ## Why
@@ -324,6 +328,111 @@ resp.Trigger("userCreated").
 ### Swap Strategies
 
 `SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `SwapAfterBegin`, `SwapBeforeEnd`, `SwapAfterEnd`, `SwapDelete`, `SwapNone`
+
+## SSE (Server-Sent Events)
+
+First-class SSE support for the HTMX SSE extension (`hx-ext="sse"`):
+
+```go
+// Start an SSE stream
+stream := cqrshtmx.NewSSEStream(w, r)
+_ = stream.Send(cqrshtmx.SSEEvent{
+    Event: "todoUpdated",
+    Data:  "<div id='todos'><ul><li>Buy milk</li></ul></div>",
+})
+
+// Fan-out to multiple clients
+broadcaster := cqrshtmx.NewBroadcaster()
+ch := broadcaster.Subscribe()
+broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "update", Data: html})
+
+// Bridge to CQRS: broadcast SSE on successful command dispatch
+app, _ := cqrshtmx.New(cqrshtmx.Config{
+    AfterDispatch: broadcaster.BroadcastOnSuccess("itemUpdated", ""),
+})
+
+// Reconnection support (SSE spec)
+lastID := cqrshtmx.LastEventIDFromRequest(r)
+cqrshtmx.ReplayEvents(stream, eventStore, lastID)
+```
+
+Client-side:
+
+```html
+<div hx-ext="sse" sse-connect="/events" sse-swap="todoUpdated">
+  <!-- content swapped here -->
+</div>
+```
+
+### SSE API
+
+|| Type / Function                       | Description                                                                        |
+|| -------------------------------------- | ---------------------------------------------------------------------------------- |
+|| `SSEEvent`                             | Event struct: `Event`, `Data`, `ID`, `Retry`                                       |
+|| `WriteSSEEvent(w, event)`             | Write a single SSE event to any `io.Writer`                                        |
+|| `NewSSEStream(w, r)`                  | Create a managed SSE connection (correct headers, flush, context-aware lifecycle)  |
+|| `stream.Send(event)`                  | Send event to connected client                                                     |
+|| `stream.SendHTML(name, html)`         | Shorthand for HTML content events                                                  |
+|| `stream.LastEventID()`                | Client's last event ID (for reconnection)                                          |
+|| `stream.Close()`                      | Graceful shutdown                                                                  |
+|| `NewBroadcaster()`                    | Thread-safe fan-out hub                                                            |
+|| `broadcaster.Subscribe()`             | Get a receiver channel                                                             |
+|| `broadcaster.Unsubscribe(ch)`         | O(1) unsubscribe via channel identity                                              |
+|| `broadcaster.Broadcast(event)`        | Non-blocking send to all subscribers (drops to slow consumers)                     |
+|| `broadcaster.SubscriberCount()`       | Active subscriber count                                                            |
+|| `BroadcastOnSuccess(event, data)`     | `AfterDispatchHook` that broadcasts on successful dispatch                          |
+|| `BroadcastOnSuccessFunc(fn)`          | `AfterDispatchHook` with dynamic event generation                                  |
+|| `LastEventIDFromRequest(r)`           | Extract `Last-Event-ID` from request                                               |
+|| `SSEEventStore`                       | Interface for reconnection replay (`EventsSince(id)`)                              |
+|| `ReplayEvents(stream, store, lastID)` | Replay missed events to reconnecting client                                        |
+
+## WebSocket Helpers
+
+Protocol helpers for the HTMX WebSocket extension (`hx-ext="ws"`). Library consumers choose their own WebSocket library (gorilla, coder, etc.):
+
+```go
+// Parse incoming HTMX WS message
+msg, err := cqrshtmx.ParseWSMessage(rawJSON)
+msg.Headers    // map[string]string — HTMX headers
+msg.Body       // map[string]any — form field values
+msg.StringBody("field_name")  // typed string access
+
+// Typed parsing (generic)
+type ChatMsg struct { Room string; Message string }
+msg, headers, err := cqrshtmx.ParseWSMessageInto[ChatMsg](rawJSON)
+
+// Out-of-band HTML swap
+html := cqrshtmx.WSOOBHTML("notifications", "<div>3 new items</div>", cqrshtmx.SwapInnerHTML)
+```
+
+Client-side:
+
+```html
+<div hx-ext="ws" ws-connect="/ws">
+  <form ws-send>
+    <input name="message">
+    <button>Send</button>
+  </form>
+</div>
+```
+
+## Embedded HTMX JavaScript
+
+Embed HTMX v2.0.9 (minified, ~49KB) directly in your binary — no CDN dependency:
+
+```go
+// Serve embedded HTMX JS
+mux.Handle("/static/htmx.js", cqrshtmx.HTMXScriptHandler())
+
+// Generate script tag for templates
+cqrshtmx.HTMXScriptTag("/static/htmx.js")
+// => <script src="/static/htmx.js"></script>
+
+// Check version
+cqrshtmx.HTMXVersion() // "2.0.9"
+```
+
+`HTMXScriptHandler` sets `Content-Type: text/javascript`, long-lived `Cache-Control` (1 year, immutable), and `ETag` with `If-None-Match` support for 304 responses.
 
 ## templ Integration
 
@@ -845,12 +954,14 @@ func extractor(r *http.Request) (cqrshtmx.UserID, error) {
 cqrs-htmx/
 ├── app.go              # App builder, Config, Command(), Query(), lifecycle hooks
 ├── handler.go          # Command/query dispatch handlers
-├── options.go          # HandlerOption, decoders, renderers, validation, auth modes
+├── options.go          # HandlerOption, decoders, renderers, validation, auth modes, pagination
 ├── response.go         # HTMX response builder (fluent API), ContentType constants
 ├── authz.go            # Enforcer interface, Authorize, RequireAuth, AuthorizeMiddleware
 ├── context.go          # UserID, CorrelationID, RequestID — strongly-typed context helpers
 ├── errors.go           # CQRS error → HTTP status mapping, sentinels, error handlers
 ├── htmx.go             # HTMXRequest struct, accessors, swap strategies
+├── htmx_embed.go       # Embedded HTMX v2.0.9 JS (minified)
+├── htmx_serve.go       # HTMXScriptHandler, HTMXScriptTag, HTMXVersion
 ├── notify.go           # Notification HandlerOptions, NotifyWithEvent builder
 ├── middleware.go        # ContextEnrichmentMiddleware, HTMXMiddleware, Chain
 ├── csrf.go             # CSRFMiddleware, CSRFConfig, token context helpers
@@ -862,6 +973,8 @@ cqrs-htmx/
 ├── ratelimit.go        # RateLimiterMiddleware, token bucket, min-heap eviction
 ├── security.go         # SecurityHeadersMiddleware, SecurityHeadersConfig
 ├── recovery.go         # RecoveryMiddleware (package-level), App.RecoverHandler()
+├── sse.go              # SSE event writer, stream, broadcaster, reconnection, CQRS bridge
+├── ws.go               # WebSocket message parser, OOB HTML, typed generic parser
 ├── usermgmt/           # User management submodule (independent Go module)
 │   ├── id.go           # Branded UserID type
 │   ├── authz.go        # Casbin RBAC with domains, PolicyUpdate, AsEnforcer bridge
@@ -882,7 +995,7 @@ cqrs-htmx/
 
 | Dependency             | Purpose                     |
 | ---------------------- | --------------------------- |
-| go-cqrs-lite v2.0.0    | CQRS command/query dispatch |
+| go-cqrs-lite v2.2.0    | CQRS command/query dispatch, pagination |
 | casbin/casbin/v3       | Authorization               |
 | go-error-family v0.3.0 | Error classification        |
 | justinas/nosurf        | CSRF protection             |
