@@ -399,6 +399,157 @@ var _ = Describe("SSE", func() {
 			Expect(body).To(Equal("event: todoCreated\ndata: <li>Buy milk</li>\n\n"))
 		})
 	})
+
+	Describe("SSE Reconnection", func() {
+		It("extracts Last-Event-ID from request", func() {
+			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+			r.Header.Set("Last-Event-ID", "evt-42")
+			Expect(cqrshtmx.LastEventIDFromRequest(r)).To(Equal("evt-42"))
+		})
+
+		It("returns empty string when Last-Event-ID is not set", func() {
+			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+			Expect(cqrshtmx.LastEventIDFromRequest(r)).To(BeEmpty())
+		})
+
+		It("exposes LastEventID on SSEStream", func() {
+			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+			r.Header.Set("Last-Event-ID", "evt-99")
+			w := httptest.NewRecorder()
+			stream := cqrshtmx.NewSSEStream(w, r)
+			defer stream.Close()
+
+			Expect(stream.LastEventID()).To(Equal("evt-99"))
+		})
+
+		It("replays events from store", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+			r.Header.Set("Last-Event-ID", "2")
+			stream := cqrshtmx.NewSSEStream(w, r)
+			defer stream.Close()
+
+			store := &memoryEventStore{
+				events: []cqrshtmx.SSEEvent{
+					{Event: "item", Data: "first", ID: "1"},
+					{Event: "item", Data: "second", ID: "2"},
+					{Event: "item", Data: "third", ID: "3"},
+					{Event: "item", Data: "fourth", ID: "4"},
+				},
+			}
+
+			n, err := cqrshtmx.ReplayEvents(stream, store, "2")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(n).To(Equal(2))
+
+			body := w.Body.String()
+			Expect(body).To(ContainSubstring("id: 3"))
+			Expect(body).To(ContainSubstring("data: third"))
+			Expect(body).To(ContainSubstring("id: 4"))
+			Expect(body).To(ContainSubstring("data: fourth"))
+			Expect(body).NotTo(ContainSubstring("data: first"))
+			Expect(body).NotTo(ContainSubstring("data: second"))
+		})
+
+		It("replays zero events when no events after lastID", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+			stream := cqrshtmx.NewSSEStream(w, r)
+			defer stream.Close()
+
+			store := &memoryEventStore{
+				events: []cqrshtmx.SSEEvent{
+					{Event: "item", Data: "first", ID: "1"},
+				},
+			}
+
+			n, err := cqrshtmx.ReplayEvents(stream, store, "1")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(n).To(Equal(0))
+		})
+
+		It("returns error on write failure during replay", func() {
+			ew := &errorWriter{}
+			w := &errorResponseWriter{ResponseWriter: httptest.NewRecorder(), writer: ew}
+			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+			stream := cqrshtmx.NewSSEStream(w, r)
+			defer stream.Close()
+
+			store := &memoryEventStore{
+				events: []cqrshtmx.SSEEvent{
+					{Event: "item", Data: "first", ID: "1"},
+				},
+			}
+
+			_, err := cqrshtmx.ReplayEvents(stream, store, "")
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Describe("Broadcaster AfterDispatchHook bridge", func() {
+		It("broadcasts event on successful dispatch", func() {
+			b := cqrshtmx.NewBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnSuccess("itemCreated", "<li>New item</li>")
+			hook(context.Background(), httptest.NewRequest(http.MethodPost, "/items", nil), nil)
+
+			Eventually(ch).Should(Receive(Equal(cqrshtmx.SSEEvent{
+				Event: "itemCreated",
+				Data:  "<li>New item</li>",
+			})))
+		})
+
+		It("does not broadcast on dispatch error", func() {
+			b := cqrshtmx.NewBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnSuccess("itemCreated", "data")
+			hook(
+				context.Background(),
+				httptest.NewRequest(http.MethodPost, "/items", nil),
+				errors.New("dispatch failed"),
+			)
+
+			Consistently(ch).ShouldNot(Receive())
+		})
+
+		It("broadcasts dynamic event via BroadcastOnSuccessFunc", func() {
+			b := cqrshtmx.NewBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnSuccessFunc(func(r *http.Request) cqrshtmx.SSEEvent {
+				return cqrshtmx.SSEEvent{
+					Event: "itemUpdated",
+					Data:  "<div>" + r.URL.Path + "</div>",
+				}
+			})
+
+			r := httptest.NewRequest(http.MethodPost, "/items/42", nil)
+			hook(context.Background(), r, nil)
+
+			Eventually(ch).Should(Receive(Equal(cqrshtmx.SSEEvent{
+				Event: "itemUpdated",
+				Data:  "<div>/items/42</div>",
+			})))
+		})
+
+		It("does not broadcast dynamic event on dispatch error", func() {
+			b := cqrshtmx.NewBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnSuccessFunc(func(_ *http.Request) cqrshtmx.SSEEvent {
+				return cqrshtmx.SSEEvent{Event: "shouldNotFire", Data: "oops"}
+			})
+
+			hook(context.Background(), nil, errors.New("fail"))
+			Consistently(ch).ShouldNot(Receive())
+		})
+	})
 })
 
 // errorWriter always returns an error on Write.
@@ -406,4 +557,35 @@ type errorWriter struct{}
 
 func (e *errorWriter) Write(_ []byte) (int, error) {
 	return 0, errors.New("write error")
+}
+
+// errorResponseWriter wraps errorWriter as an http.ResponseWriter for SSE stream tests.
+type errorResponseWriter struct {
+	http.ResponseWriter
+	writer *errorWriter
+}
+
+func (e *errorResponseWriter) Write(p []byte) (int, error) {
+	return e.writer.Write(p)
+}
+
+func (e *errorResponseWriter) Flush() {}
+
+type memoryEventStore struct {
+	events []cqrshtmx.SSEEvent
+}
+
+func (m *memoryEventStore) EventsAfter(lastID string) []cqrshtmx.SSEEvent {
+	if lastID == "" {
+		return m.events
+	}
+	for i, evt := range m.events {
+		if evt.ID == lastID {
+			if i+1 < len(m.events) {
+				return m.events[i+1:]
+			}
+			return nil
+		}
+	}
+	return nil
 }

@@ -149,6 +149,74 @@ var _ = Describe("Coverage Gaps", func() {
 		})
 	})
 
+	Describe("DecodePagination", func() {
+		It("extracts pagination from query params", func() {
+			r := httptest.NewRequest(http.MethodGet, "/items?page=2&page_size=50", nil)
+			p := cqrshtmx.DecodePagination(r)
+			Expect(p.Page).To(Equal(uint(2)))
+			Expect(p.PageSize).To(Equal(uint(50)))
+		})
+
+		It("applies defaults for missing params", func() {
+			r := httptest.NewRequest(http.MethodGet, "/items", nil)
+			p := cqrshtmx.DecodePagination(r)
+			Expect(p.Page).To(Equal(uint(1)))
+			Expect(p.PageSize).To(Equal(uint(20)))
+		})
+
+		It("clamps page_size to max 100", func() {
+			r := httptest.NewRequest(http.MethodGet, "/items?page_size=500", nil)
+			p := cqrshtmx.DecodePagination(r)
+			Expect(p.PageSize).To(Equal(uint(100)))
+		})
+
+		It("defaults on invalid values", func() {
+			r := httptest.NewRequest(http.MethodGet, "/items?page=abc&page_size=-1", nil)
+			p := cqrshtmx.DecodePagination(r)
+			Expect(p.Page).To(Equal(uint(1)))
+			Expect(p.PageSize).To(Equal(uint(20)))
+		})
+	})
+
+	Describe("RenderPaginatedJSON", func() {
+		It("renders paginated result as JSON", func() {
+			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
+				return query.NewPaginatedResult(
+					[]string{"Alice", "Bob"},
+					42,
+					query.NewPagination(2, 20),
+				), nil
+			})
+
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			w := serve(app.Query(
+				"ListUsers",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.RenderPaginatedJSON[string](),
+			), r)
+
+			Expect(w.code()).To(Equal(http.StatusOK))
+			Expect(w.Header().Get("Content-Type")).To(Equal(cqrshtmx.ContentTypeJSON))
+			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+			Expect(w.Body.String()).To(ContainSubstring("42"))
+		})
+
+		It("returns error for mismatched result type", func() {
+			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
+				return "not a paginated result", nil
+			})
+
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			w := serve(app.Query(
+				"ListUsers",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.RenderPaginatedJSON[string](),
+			), r)
+
+			Expect(w.code()).ToNot(Equal(http.StatusOK))
+		})
+	})
+
 	Describe("DecodeForm", func() {
 		It("decodes form data into a command", func() {
 			var received string

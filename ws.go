@@ -114,3 +114,64 @@ func WSOOBHTML(id, html string, swapStrategy ...SwapStrategy) string {
 		id, swap, html,
 	)
 }
+
+// ParseWSMessageInto parses an incoming HTMX WebSocket JSON message into a
+// typed struct. The HEADERS field is extracted separately; all other fields
+// are deserialized into the typed struct T.
+//
+// This is the typed alternative to ParseWSMessage for consumers who prefer
+// compile-time safety over dynamic map access.
+//
+// Usage:
+//
+//	type ChatMessage struct {
+//	    Room    string `json:"room"`
+//	    Message string `json:"chat_message"`
+//	}
+//
+//	msg, headers, err := cqrshtmx.ParseWSMessageInto[ChatMessage](data)
+//	// msg.Room, msg.Message are typed fields
+//	// headers contains HTMX headers
+func ParseWSMessageInto[T any](data []byte) (msg T, headers map[string]string, err error) {
+	var raw map[string]json.RawMessage
+	if unmarshalErr := json.Unmarshal(data, &raw); unmarshalErr != nil {
+		return msg, nil, fmt.Errorf("parse ws message into: %w", unmarshalErr)
+	}
+
+	// Extract HEADERS separately.
+	headers = make(map[string]string)
+	if headersRaw, ok := raw["HEADERS"]; ok {
+		var headersMap map[string]string
+		if unmarshalErr := json.Unmarshal(headersRaw, &headersMap); unmarshalErr != nil {
+			// Non-string header values — skip them, same behavior as ParseWSMessage.
+			var anyHeaders map[string]any
+			if json.Unmarshal(headersRaw, &anyHeaders) == nil {
+				for k, v := range anyHeaders {
+					if s, ok := v.(string); ok {
+						headers[k] = s
+					}
+				}
+			}
+		} else {
+			headers = headersMap
+		}
+		delete(raw, "HEADERS")
+	}
+
+	// Re-serialize remaining fields and unmarshal into T.
+	bodyMap := make(map[string]json.RawMessage, len(raw))
+	for k, v := range raw {
+		bodyMap[k] = v
+	}
+
+	bodyJSON, marshalErr := json.Marshal(bodyMap)
+	if marshalErr != nil {
+		return msg, headers, fmt.Errorf("parse ws message into: remarshal body: %w", marshalErr)
+	}
+
+	if unmarshalErr := json.Unmarshal(bodyJSON, &msg); unmarshalErr != nil {
+		return msg, headers, fmt.Errorf("parse ws message into: %w", unmarshalErr)
+	}
+
+	return msg, headers, nil
+}

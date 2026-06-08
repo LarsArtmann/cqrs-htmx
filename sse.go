@@ -1,9 +1,11 @@
 package cqrshtmx
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"sync"
 )
 
@@ -170,6 +172,54 @@ func (s *SSEStream) Close() {
 	}
 }
 
+// LastEventID returns the Last-Event-ID header from the connection request.
+// The browser sends this on reconnection to indicate the last event it received.
+// Returns empty string if not present.
+func (s *SSEStream) LastEventID() string {
+	return s.r.Header.Get("Last-Event-ID")
+}
+
+// LastEventIDFromRequest extracts the Last-Event-ID header from an HTTP request.
+// This is the SSE reconnection mechanism: when a client reconnects after a
+// connection drop, the browser sends the ID of the last event it received.
+//
+// Use this to replay missed events:
+//
+//	lastID := cqrshtmx.LastEventIDFromRequest(r)
+//	if lastID != "" {
+//	    events := store.EventsAfter(lastID)
+//	    for _, evt := range events {
+//	        stream.Send(evt)
+//	    }
+//	}
+func LastEventIDFromRequest(r *http.Request) string {
+	return r.Header.Get("Last-Event-ID")
+}
+
+// SSEEventStore retrieves events for SSE reconnection replay.
+// Implementations decide the storage backend and retention policy.
+type SSEEventStore interface {
+	// EventsAfter returns events with IDs strictly after the given lastID.
+	// Returns an empty slice if no events are found or lastID is unknown.
+	// The returned slice must be ordered by event ID (ascending).
+	EventsAfter(lastID string) []SSEEvent
+}
+
+// ReplayEvents sends all events from the store after the given lastEventID
+// through the stream. This is used for SSE reconnection: when a client
+// reconnects with a Last-Event-ID header, replay the events it missed.
+//
+// Returns the number of events replayed, or an error if writing fails.
+func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID string) (int, error) {
+	events := store.EventsAfter(lastEventID)
+	for i, evt := range events {
+		if err := stream.Send(evt); err != nil {
+			return i, err
+		}
+	}
+	return len(events), nil
+}
+
 // Broadcaster distributes SSE events to all subscribed clients.
 // It is safe for concurrent use.
 //
@@ -188,14 +238,19 @@ func (s *SSEStream) Close() {
 //	})
 type Broadcaster struct {
 	mu          sync.RWMutex
-	subscribers map[any]chan SSEEvent
+	subscribers map[uintptr]chan SSEEvent
 }
 
 // NewBroadcaster creates a new event broadcaster with no subscribers.
 func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{
-		subscribers: make(map[any]chan SSEEvent),
+		subscribers: make(map[uintptr]chan SSEEvent),
 	}
+}
+
+// channelPtr returns the pointer identity of a channel, regardless of direction.
+func channelPtr(ch any) uintptr {
+	return reflect.ValueOf(ch).Pointer()
 }
 
 // Subscribe creates a new subscriber channel that will receive all broadcast events.
@@ -206,7 +261,7 @@ func NewBroadcaster() *Broadcaster {
 func (b *Broadcaster) Subscribe() <-chan SSEEvent {
 	ch := make(chan SSEEvent, 64)
 	b.mu.Lock()
-	b.subscribers[any(ch)] = ch
+	b.subscribers[channelPtr(ch)] = ch
 	b.mu.Unlock()
 	return ch
 }
@@ -218,7 +273,7 @@ func (b *Broadcaster) Unsubscribe(ch <-chan SSEEvent) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	key := any(ch)
+	key := channelPtr(ch)
 	if sender, ok := b.subscribers[key]; ok {
 		delete(b.subscribers, key)
 		close(sender)
@@ -274,4 +329,50 @@ func splitSSELines(s string) []string {
 		return []string{""}
 	}
 	return lines
+}
+
+// BroadcastOnSuccess creates an AfterDispatchHook that broadcasts an SSE event
+// when a command dispatch succeeds (err == nil). This bridges the CQRS dispatch
+// lifecycle with SSE real-time updates.
+//
+// Use it in Config.AfterDispatch to automatically notify SSE clients after
+// successful command dispatch:
+//
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    Commands: cmdDispatcher,
+//	    AfterDispatch: broadcaster.BroadcastOnSuccess("itemUpdated", ""),
+//	})
+//
+// For dynamic event data based on the request, use BroadcastOnSuccessFunc.
+func (b *Broadcaster) BroadcastOnSuccess(eventName, data string) AfterDispatchHook {
+	return func(_ context.Context, _ *http.Request, err error) {
+		if err != nil {
+			return
+		}
+		b.Broadcast(SSEEvent{Event: eventName, Data: data})
+	}
+}
+
+// BroadcastOnSuccessFunc creates an AfterDispatchHook that generates an SSE event
+// dynamically from the request when dispatch succeeds. The eventFunc receives the
+// request and returns the SSE event to broadcast.
+//
+// Use this when the SSE event data depends on the dispatched command:
+//
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    Commands: cmdDispatcher,
+//	    AfterDispatch: broadcaster.BroadcastOnSuccessFunc(func(r *http.Request) cqrshtmx.SSEEvent {
+//	        return cqrshtmx.SSEEvent{
+//	            Event: "itemUpdated",
+//	            Data:  renderItemsHTML(),
+//	        }
+//	    }),
+//	})
+func (b *Broadcaster) BroadcastOnSuccessFunc(eventFunc func(r *http.Request) SSEEvent) AfterDispatchHook {
+	return func(_ context.Context, r *http.Request, err error) {
+		if err != nil {
+			return
+		}
+		b.Broadcast(eventFunc(r))
+	}
 }
