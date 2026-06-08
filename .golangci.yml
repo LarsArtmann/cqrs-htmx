@@ -98,7 +98,7 @@ linters:
   exclusions:
     generated: lax
     rules:
-      - path: (errors|notify)\.go$
+      - path: (errors|htmx_embed|notify)\.go$
         text: is a global variable
         linters:
           - gochecknoglobals

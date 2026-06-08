@@ -299,3 +299,20 @@ func ExampleWSOOBHTML_swapStrategy() {
 	fmt.Println(html)
 	// Output: <div id="notifications" hx-swap-oob="beforeend">New message</div>
 }
+
+func ExampleHTMXScriptHandler() {
+	mux := http.NewServeMux()
+	mux.Handle("/static/htmx.js", cqrshtmx.HTMXScriptHandler())
+	fmt.Println("mounted")
+	// Output: mounted
+}
+
+func ExampleHTMXScriptTag() {
+	fmt.Println(cqrshtmx.HTMXScriptTag("/static/htmx.js"))
+	// Output: <script src="/static/htmx.js"></script>
+}
+
+func ExampleHTMXVersion() {
+	fmt.Println(cqrshtmx.HTMXVersion())
+	// Output: 2.0.9
+}
