@@ -73,15 +73,14 @@ var _ = Describe("WebSocket Protocol Helpers", func() {
 			Expect(msg.StringBody("name")).To(Equal("Alice"))
 		})
 
-		It("returns empty string for missing field", func() {
-			msg, _ := cqrshtmx.ParseWSMessage([]byte(`{}`))
-			Expect(msg.StringBody("missing")).To(BeEmpty())
-		})
-
-		It("returns empty string for non-string field", func() {
-			msg, _ := cqrshtmx.ParseWSMessage([]byte(`{"count":42}`))
-			Expect(msg.StringBody("count")).To(BeEmpty())
-		})
+		DescribeTable("returns empty string for non-string StringBody fields",
+			func(payload, field string) {
+				msg, _ := cqrshtmx.ParseWSMessage([]byte(payload))
+				Expect(msg.StringBody(field)).To(BeEmpty())
+			},
+			Entry("missing field", `{}`, "missing"),
+			Entry("non-string field", `{"count":42}`, "count"),
+		)
 	})
 
 	Describe("WSOOBHTML", func() {
