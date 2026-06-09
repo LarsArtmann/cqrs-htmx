@@ -315,9 +315,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 	Describe("As a consumer, I want JSON query results rendered as API responses", func() {
 		It("renders query results as JSON for non-HTMX requests", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
-				return []bddUser{{Email: aliceEmail, Name: aliceName}}, nil
-			})
+			registerBDDListUsers(disp)
 			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 			Expect(err).NotTo(HaveOccurred())
 
