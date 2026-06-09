@@ -152,6 +152,22 @@ func encodeJSONResult(w http.ResponseWriter, _ *http.Request, result any) error 
 	return json.NewEncoder(w).Encode(result)
 }
 
+// registerBDDListUsers registers a "ListUsers" query handler that returns a
+// single user (alice). Shared by BDD and integration tests.
+func registerBDDListUsers(disp *query.Dispatcher) {
+	_ = disp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
+		return []bddUser{{Email: aliceEmail, Name: aliceName}}, nil
+	})
+}
+
+// registerGetUserEmail registers a "GetUser" query handler that returns
+// {testEmailKey: testEmailValue}. Shared by app and benchmark tests.
+func registerGetUserEmail(disp *query.Dispatcher) {
+	_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
+		return map[string]string{testEmailKey: testEmailValue}, nil
+	})
+}
+
 func rejectionHandler(code, message string) func(context.Context, command.Command) error {
 	return func(_ context.Context, _ command.Command) error {
 		return event.NewRejection(code, message)
@@ -212,6 +228,14 @@ func newTestEnforcer() *casbin.Enforcer {
 	_, _ = e.AddPolicy(viewerUserID.String(), "users", "read")
 
 	return e
+}
+
+// unauthenticatedReadMiddleware returns a middleware that requires read on users
+// and extracts an empty (unauthenticated) UserID. Use in tests that exercise
+// unauthenticated paths without rebuilding the middleware boilerplate.
+func unauthenticatedReadMiddleware() func(http.Handler) http.Handler {
+	return cqrshtmx.AuthorizeMiddleware(newTestEnforcer(), "users", "read",
+		func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil })
 }
 
 // --- App creation helpers ---

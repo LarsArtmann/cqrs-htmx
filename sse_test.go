@@ -16,36 +16,23 @@ import (
 var _ = Describe("SSE", func() {
 	Describe("WriteSSEEvent", func() {
 		It("writes a named event with data", func() {
-			var buf bytes.Buffer
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			writeAndExpect(cqrshtmx.SSEEvent{
 				Event: "todoCreated",
 				Data:  "<div>Buy milk</div>",
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(buf.String()).To(Equal(
-				"event: todoCreated\ndata: <div>Buy milk</div>\n\n",
-			))
+			}, "event: todoCreated\ndata: <div>Buy milk</div>\n\n")
 		})
 
 		It("writes an unnamed message event", func() {
-			var buf bytes.Buffer
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			writeAndExpect(cqrshtmx.SSEEvent{
 				Data: "<div>content</div>",
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(buf.String()).To(Equal("data: <div>content</div>\n\n"))
+			}, "data: <div>content</div>\n\n")
 		})
 
 		It("writes multi-line data", func() {
-			var buf bytes.Buffer
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			writeAndExpect(cqrshtmx.SSEEvent{
 				Event: "update",
 				Data:  "line1\nline2\nline3",
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(buf.String()).To(Equal(
-				"event: update\ndata: line1\ndata: line2\ndata: line3\n\n",
-			))
+			}, "event: update\ndata: line1\ndata: line2\ndata: line3\n\n")
 		})
 
 		It("writes an event ID", func() {
@@ -87,21 +74,15 @@ var _ = Describe("SSE", func() {
 		})
 
 		It("handles empty data", func() {
-			var buf bytes.Buffer
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			writeAndExpect(cqrshtmx.SSEEvent{
 				Event: "empty",
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(buf.String()).To(Equal("event: empty\ndata: \n\n"))
+			}, "event: empty\ndata: \n\n")
 		})
 
 		It("handles CRLF line endings in data", func() {
-			var buf bytes.Buffer
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			writeAndExpect(cqrshtmx.SSEEvent{
 				Data: "line1\r\nline2",
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(buf.String()).To(Equal("data: line1\ndata: line2\n\n"))
+			}, "data: line1\ndata: line2\n\n")
 		})
 
 		It("returns error on write failure", func() {
@@ -112,40 +93,28 @@ var _ = Describe("SSE", func() {
 		})
 
 		It("handles trailing newline in data", func() {
-			var buf bytes.Buffer
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			writeAndExpect(cqrshtmx.SSEEvent{
 				Event: "trailing",
 				Data:  "line1\n",
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(buf.String()).To(Equal("event: trailing\ndata: line1\n\n"))
+			}, "event: trailing\ndata: line1\n\n")
 		})
 
 		It("handles multiple consecutive newlines", func() {
-			var buf bytes.Buffer
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			writeAndExpect(cqrshtmx.SSEEvent{
 				Data: "a\n\nb",
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(buf.String()).To(Equal("data: a\ndata: \ndata: b\n\n"))
+			}, "data: a\ndata: \ndata: b\n\n")
 		})
 
 		It("handles CRLF-only string", func() {
-			var buf bytes.Buffer
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			writeAndExpect(cqrshtmx.SSEEvent{
 				Data: "\r\n",
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(buf.String()).To(Equal("data: \n\n"))
+			}, "data: \n\n")
 		})
 
 		It("handles multiple CRLF lines with trailing CRLF", func() {
-			var buf bytes.Buffer
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			writeAndExpect(cqrshtmx.SSEEvent{
 				Data: "line1\r\nline2\r\n",
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(buf.String()).To(Equal("data: line1\ndata: line2\n\n"))
+			}, "data: line1\ndata: line2\n\n")
 		})
 	})
 
@@ -557,6 +526,14 @@ type errorWriter struct{}
 
 func (e *errorWriter) Write(_ []byte) (int, error) {
 	return 0, errors.New("write error")
+}
+
+// writeAndExpect writes an SSE event to a buffer and asserts the exact output.
+func writeAndExpect(event cqrshtmx.SSEEvent, want string) {
+	var buf bytes.Buffer
+	err := cqrshtmx.WriteSSEEvent(&buf, event)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(buf.String()).To(Equal(want))
 }
 
 // errorResponseWriter wraps errorWriter as an http.ResponseWriter for SSE stream tests.
