@@ -109,13 +109,8 @@ var _ = Describe("Lifecycle Hooks", func() {
 
 	Describe("Correlation IDs", func() {
 		It("propagates X-Correlation-ID through middleware", func() {
-			var capturedCID cqrshtmx.CorrelationID
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
-				capturedCID = cqrshtmx.CorrelationIDFromContext(ctx)
-				return nil
-			})
-			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			capture := registerCIDCapture()
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: capture.disp})
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Middleware()(app.Command("CreateUser", decodeCreateUserJSON()))
@@ -125,23 +120,36 @@ var _ = Describe("Lifecycle Hooks", func() {
 				withHeader("X-Correlation-ID", "01HK1549P84T9XF8R94E960633"),
 			)
 			serve(handler, r)
-			Expect(capturedCID.String()).To(Equal("01HK1549P84T9XF8R94E960633"))
+			Expect(capture.value.String()).To(Equal("01HK1549P84T9XF8R94E960633"))
 		})
 
 		It("silently drops non-ULID X-Correlation-ID in middleware", func() {
-			var capturedCID cqrshtmx.CorrelationID
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
-				capturedCID = cqrshtmx.CorrelationIDFromContext(ctx)
-				return nil
-			})
-			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			capture := registerCIDCapture()
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: capture.disp})
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := app.Middleware()(app.Command("CreateUser", decodeCreateUserJSON()))
 			r := newPostRequest("/users", "{}", withHeader("X-Correlation-ID", "not-a-ulid"))
 			serve(handler, r)
-			Expect(capturedCID.IsZero()).To(BeTrue())
+			Expect(capture.value.IsZero()).To(BeTrue())
 		})
 	})
 })
+
+// cidCapture bundles a dispatcher that records the CorrelationID from the
+// command context and the value it captured.
+type cidCapture struct {
+	disp  *command.Dispatcher
+	value cqrshtmx.CorrelationID
+}
+
+// registerCIDCapture creates a dispatcher that records the CorrelationID seen
+// by the "CreateUser" command handler.
+func registerCIDCapture() *cidCapture {
+	c := &cidCapture{disp: command.NewDispatcher()}
+	_ = c.disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
+		c.value = cqrshtmx.CorrelationIDFromContext(ctx)
+		return nil
+	})
+	return c
+}
