@@ -29,6 +29,13 @@ func newSlogCapture() (func(http.Handler) http.Handler, *bytes.Buffer) {
 	return cqrshtmx.RequestLoggingSlog(logger), &buf
 }
 
+// helloBodyHandler returns a handler that writes "hello" with no explicit status.
+func helloBodyHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("hello"))
+	})
+}
+
 func withContextIDs(r *http.Request) *http.Request {
 	ctx := cqrshtmx.WithCorrelationID(r.Context(),
 		cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633"))
@@ -92,9 +99,7 @@ var _ = Describe("Request Logging", func() {
 				logged = line
 			})
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				_, _ = w.Write([]byte("hello"))
-			}))
+			handler := middleware(helloBodyHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -216,9 +221,7 @@ var _ = Describe("Request Logging", func() {
 		It("defaults to 200 status when handler writes body without explicit status", func() {
 			middleware, buf := newSlogCapture()
 
-			handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				_, _ = w.Write([]byte("hello"))
-			}))
+			handler := middleware(helloBodyHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
