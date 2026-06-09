@@ -133,17 +133,16 @@ var _ = Describe("CSRF Protection", func() {
 			Expect(capturedToken).NotTo(BeEmpty())
 		})
 
-		It("allows POST with valid CSRF token in header", func() {
-			mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
-			code := csrfGETThenPOST(mw, "X-CSRF-Token", "")
-			Expect(code).To(Equal(http.StatusOK))
-		})
-
-		It("allows POST with valid CSRF token in form field", func() {
-			mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
-			code := csrfGETThenPOST(mw, "", "csrf_token")
-			Expect(code).To(Equal(http.StatusOK))
-		})
+		DescribeTable("allows POST with valid CSRF token",
+			func(headerName, fieldName string) {
+				mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
+				code := csrfGETThenPOST(mw, headerName, fieldName)
+				Expect(code).To(Equal(http.StatusOK))
+			},
+			Entry("in header", "X-CSRF-Token", ""),
+			Entry("in form field", "", "csrf_token"),
+			Entry("validates generated token (header)", "X-CSRF-Token", ""),
+		)
 
 		It("rejects POST without CSRF token", func() {
 			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
@@ -408,12 +407,6 @@ var _ = Describe("CSRF Protection", func() {
 			Expect(token2).NotTo(BeEmpty())
 			Expect(token1).NotTo(Equal(token2))
 		})
-
-		It("validates generated token correctly", func() {
-			mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
-			code := csrfGETThenPOST(mw, "X-CSRF-Token", "")
-			Expect(code).To(Equal(http.StatusOK))
-		})
 	})
 
 	Describe("Custom Domain and Path", func() {
@@ -610,23 +603,16 @@ var _ = Describe("CSRF Protection", func() {
 			Expect(cfg.Validate()).To(Succeed())
 		})
 
-		It("returns error when TrustedOrigins contains wildcard", func() {
-			cfg := cqrshtmx.CSRFConfig{
-				TrustedOrigins: []string{"*"},
-			}
-			err := cfg.Validate()
-			Expect(err).To(HaveOccurred())
-			Expect(errors.Is(err, cqrshtmx.ErrCSRFConfig)).To(BeTrue())
-		})
-
-		It("returns error when TrustedOrigins contains empty string", func() {
-			cfg := cqrshtmx.CSRFConfig{
-				TrustedOrigins: []string{""},
-			}
-			err := cfg.Validate()
-			Expect(err).To(HaveOccurred())
-			Expect(errors.Is(err, cqrshtmx.ErrCSRFConfig)).To(BeTrue())
-		})
+		DescribeTable("rejects invalid TrustedOrigins entries",
+			func(origins []string) {
+				cfg := cqrshtmx.CSRFConfig{TrustedOrigins: origins}
+				err := cfg.Validate()
+				Expect(err).To(HaveOccurred())
+				Expect(errors.Is(err, cqrshtmx.ErrCSRFConfig)).To(BeTrue())
+			},
+			Entry("wildcard", []string{"*"}),
+			Entry("empty string", []string{""}),
+		)
 
 		It("returns nil for specific TrustedOrigins domains", func() {
 			cfg := cqrshtmx.CSRFConfig{
@@ -641,9 +627,7 @@ var _ = Describe("CSRF config defaults", func() {
 	It("uses default field name when empty", func() {
 		cfg := cqrshtmx.CSRFConfig{}
 		mw := cqrshtmx.CSRFMiddleware(cfg)
-		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
+		handler := mw(okHandler())
 		w := httptest.NewRecorder()
 		r := httptest.NewRequestWithContext(
 			context.Background(), http.MethodGet, "/", nil,
