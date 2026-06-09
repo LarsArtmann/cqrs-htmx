@@ -1,6 +1,6 @@
 # Features — cqrs-htmx
 
-**Updated:** 2026-06-08 | **Source:** All .go files analyzed
+**Updated:** 2026-06-09 | **Source:** All .go files analyzed
 
 ## Root Module
 
