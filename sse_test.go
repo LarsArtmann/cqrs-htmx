@@ -13,13 +13,20 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const (
+	eventTodoCreated = "todoCreated"
+	eventUpdate      = "update"
+	eventItem        = "item"
+	dataFirst        = "first"
+)
+
 var _ = Describe("SSE", func() {
 	Describe("WriteSSEEvent", func() {
 		It("writes a named event with data", func() {
 			writeAndExpect(cqrshtmx.SSEEvent{
-				Event: "todoCreated",
+				Event: eventTodoCreated,
 				Data:  "<div>Buy milk</div>",
-			}, "event: todoCreated\ndata: <div>Buy milk</div>\n\n")
+			}, "event: "+eventTodoCreated+"\ndata: <div>Buy milk</div>\n\n")
 		})
 
 		It("writes an unnamed message event", func() {
@@ -30,7 +37,7 @@ var _ = Describe("SSE", func() {
 
 		It("writes multi-line data", func() {
 			writeAndExpect(cqrshtmx.SSEEvent{
-				Event: "update",
+				Event: eventUpdate,
 				Data:  "line1\nline2\nline3",
 			}, "event: update\ndata: line1\ndata: line2\ndata: line3\n\n")
 		})
@@ -140,7 +147,7 @@ var _ = Describe("SSE", func() {
 			defer stream.Close()
 
 			err := stream.Send(cqrshtmx.SSEEvent{
-				Event: "update",
+				Event: eventUpdate,
 				Data:  "<div>new content</div>",
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -245,7 +252,7 @@ var _ = Describe("SSE", func() {
 			defer b.Unsubscribe(ch1)
 			defer b.Unsubscribe(ch2)
 
-			event := cqrshtmx.SSEEvent{Event: "update", Data: "<div>new</div>"}
+			event := cqrshtmx.SSEEvent{Event: eventUpdate, Data: "<div>new</div>"}
 			b.Broadcast(event)
 
 			Expect(<-ch1).To(Equal(event))
@@ -360,7 +367,7 @@ var _ = Describe("SSE", func() {
 				}
 			}()
 
-			b.Broadcast(cqrshtmx.SSEEvent{Event: "todoCreated", Data: "<li>Buy milk</li>"})
+			b.Broadcast(cqrshtmx.SSEEvent{Event: eventTodoCreated, Data: "<li>Buy milk</li>"})
 
 			Eventually(done).Should(BeClosed())
 
@@ -400,10 +407,10 @@ var _ = Describe("SSE", func() {
 
 			store := &memoryEventStore{
 				events: []cqrshtmx.SSEEvent{
-					{Event: "item", Data: "first", ID: "1"},
-					{Event: "item", Data: "second", ID: "2"},
-					{Event: "item", Data: "third", ID: "3"},
-					{Event: "item", Data: "fourth", ID: "4"},
+					{Event: eventItem, Data: dataFirst, ID: "1"},
+					{Event: eventItem, Data: "second", ID: "2"},
+					{Event: eventItem, Data: "third", ID: "3"},
+					{Event: eventItem, Data: "fourth", ID: "4"},
 				},
 			}
 
@@ -428,7 +435,7 @@ var _ = Describe("SSE", func() {
 
 			store := &memoryEventStore{
 				events: []cqrshtmx.SSEEvent{
-					{Event: "item", Data: "first", ID: "1"},
+					{Event: eventItem, Data: dataFirst, ID: "1"},
 				},
 			}
 
@@ -446,7 +453,7 @@ var _ = Describe("SSE", func() {
 
 			store := &memoryEventStore{
 				events: []cqrshtmx.SSEEvent{
-					{Event: "item", Data: "first", ID: "1"},
+					{Event: eventItem, Data: dataFirst, ID: "1"},
 				},
 			}
 
