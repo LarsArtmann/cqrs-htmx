@@ -229,9 +229,7 @@ var _ = Describe("App", func() {
 		BeforeEach(func() {
 			enf := newTestEnforcer()
 			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return map[string]string{testEmailKey: testEmailValue}, nil
-			})
+			registerGetUserEmail(disp)
 			var err error
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Queries:         disp,
@@ -365,9 +363,7 @@ var _ = Describe("Authorization", func() {
 		})
 
 		It("blocks unauthenticated requests", func() {
-			e := newTestEnforcer()
-			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil })
+			middleware := unauthenticatedReadMiddleware()
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			w := serve(handler, httptest.NewRequest(http.MethodGet, "/", nil))
@@ -376,9 +372,7 @@ var _ = Describe("Authorization", func() {
 		})
 
 		It("redirects unauthenticated HTMX requests to login", func() {
-			e := newTestEnforcer()
-			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil })
+			middleware := unauthenticatedReadMiddleware()
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -406,9 +400,7 @@ var _ = Describe("Authorization", func() {
 		})
 
 		It("prefers branded UserID from context over extractor", func() {
-			e := newTestEnforcer()
-			middleware := cqrshtmx.AuthorizeMiddleware(e, "users", "read",
-				func(_ *http.Request) (cqrshtmx.UserID, error) { return cqrshtmx.UserID{}, nil })
+			middleware := unauthenticatedReadMiddleware()
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
