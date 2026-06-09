@@ -6,7 +6,7 @@ require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/larsartmann/go-branded-id v0.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.2.0
-	golang.org/x/crypto v0.52.0
+	golang.org/x/crypto v0.53.0
 )
 
 require (
@@ -22,5 +22,5 @@ require (
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 )
