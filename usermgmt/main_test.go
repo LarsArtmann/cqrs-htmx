@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -91,4 +92,19 @@ func registerTestUser(t *testing.T, svc *Service, id, email, password string) *R
 		t.Fatalf("registerTestUser %s: %v", id, err)
 	}
 	return resp
+}
+
+// registerWithSessionMaxAge builds an auth handler with the given session max age,
+// registers a user, and asserts the cookie's MaxAge matches.
+func registerWithSessionMaxAge(t *testing.T, id, email, password string, maxAge int) {
+	t.Helper()
+	svc := newTestServiceWithAuthz(t)
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool), SessionMaxAge: maxAge})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	body := fmt.Sprintf(`{"id":%q,"email":%q,"password":%q}`, id, email, password)
+	w := postJSON(t, mux, "/auth/register", body)
+	assertStatusCode(t, w, http.StatusCreated)
+	assertCookie(t, w, "session_token", func(c *http.Cookie) bool { return c.MaxAge == maxAge })
 }

@@ -808,16 +808,19 @@ func TestHandlers_Logout_StoreError(t *testing.T) {
 }
 
 func TestHandlers_Register_ValidationError(t *testing.T) {
-	_, mux := setupMux(t)
-	w := postJSON(t, mux, "/auth/register", `{"id":"","email":"bad","password":"short"}`)
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("expected 400 for validation error, got %d", w.Code)
-	}
+	assertValidationBadRequest(t, "/auth/register", `{"id":"","email":"bad","password":"short"}`)
 }
 
 func TestHandlers_Login_ValidationError(t *testing.T) {
+	assertValidationBadRequest(t, "/auth/login", `{"email":"","password":""}`)
+}
+
+// assertValidationBadRequest POSTs a JSON body to the given path and asserts
+// the handler returns 400. Used by validation-error coverage tests.
+func assertValidationBadRequest(t *testing.T, path, body string) {
+	t.Helper()
 	_, mux := setupMux(t)
-	w := postJSON(t, mux, "/auth/login", `{"email":"","password":""}`)
+	w := postJSON(t, mux, path, body)
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("expected 400 for validation error, got %d", w.Code)
 	}
@@ -860,15 +863,7 @@ func TestHandlers_Logout_ClearCookie(t *testing.T) {
 }
 
 func TestHandlers_Register_WithCustomSessionMaxAge(t *testing.T) {
-	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool), SessionMaxAge: 7200})
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postJSON(t, mux, "/auth/register",
-		`{"id":"sma1","email":"sma@test.com","password":"secret12"}`)
-	assertStatusCode(t, w, http.StatusCreated)
-	assertCookie(t, w, "session_token", func(c *http.Cookie) bool { return c.MaxAge == 7200 })
+	registerWithSessionMaxAge(t, "sma1", "sma@test.com", "secret12", 7200)
 }
 
 func TestEvictExpired_NoExpired(t *testing.T) {

@@ -344,15 +344,7 @@ func TestHandlers_FullFlow(t *testing.T) {
 }
 
 func TestNewAuthHandler_SessionMaxAge(t *testing.T) {
-	svc := newTestServiceWithAuthz(t)
-	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool), SessionMaxAge: 3600})
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postJSON(t, mux, "/auth/register",
-		`{"id":"u1","email":"maxage@test.com","password":"secret12"}`)
-	assertStatusCode(t, w, http.StatusCreated)
-	assertCookie(t, w, "session_token", func(c *http.Cookie) bool { return c.MaxAge == 3600 })
+	registerWithSessionMaxAge(t, "u1", "maxage@test.com", "secret12", 3600)
 }
 
 func TestNewAuthHandler_CustomCookieName(t *testing.T) {
