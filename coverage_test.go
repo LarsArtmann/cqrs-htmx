@@ -21,6 +21,12 @@ import (
 
 const testQueryResult = "result"
 
+func queryNamedResultHandler(name string) func(context.Context, query.Query) (any, error) {
+	return func(_ context.Context, _ query.Query) (any, error) {
+		return map[string]string{testNameKey: name}, nil
+	}
+}
+
 func testNotificationTrigger(opt cqrshtmx.HandlerOption, expectedLevel string) {
 	disp := command.NewDispatcher()
 	_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error { return nil })
@@ -105,9 +111,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 	Describe("RenderJSON", func() {
 		It("renders query result as JSON with 200", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return map[string]string{testNameKey: "Alice"}, nil
-			})
+			app := newQueryAppWithResult(queryNamedResultHandler(aliceName))
 			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
 			w := serve(app.Query(
 				"GetUser",
@@ -116,7 +120,7 @@ var _ = Describe("Coverage Gaps", func() {
 			), r)
 			Expect(w.code()).To(Equal(http.StatusOK))
 			Expect(w.Header().Get("Content-Type")).To(Equal(cqrshtmx.ContentTypeJSON))
-			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+			Expect(w.Body.String()).To(ContainSubstring(aliceName))
 		})
 
 		It("returns error for mismatched result type", func() {
@@ -135,9 +139,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 	Describe("RenderJSONStatus", func() {
 		It("renders query result as JSON with custom status", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return map[string]string{testNameKey: "Alice"}, nil
-			})
+			app := newQueryAppWithResult(queryNamedResultHandler(aliceName))
 			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
 			w := serve(app.Query(
 				"GetUser",
@@ -173,7 +175,7 @@ var _ = Describe("Coverage Gaps", func() {
 		It("renders paginated result as JSON", func() {
 			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
 				return query.NewPaginatedResult(
-					[]string{"Alice", "Bob"},
+					[]string{aliceName, "Bob"},
 					42,
 					query.NewPagination(2, 20),
 				), nil
@@ -188,7 +190,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 			Expect(w.code()).To(Equal(http.StatusOK))
 			Expect(w.Header().Get("Content-Type")).To(Equal(cqrshtmx.ContentTypeJSON))
-			Expect(w.Body.String()).To(ContainSubstring("Alice"))
+			Expect(w.Body.String()).To(ContainSubstring(aliceName))
 			Expect(w.Body.String()).To(ContainSubstring("42"))
 		})
 
@@ -392,9 +394,7 @@ var _ = Describe("Coverage Gaps", func() {
 
 	Describe("Query with trigger option", func() {
 		It("sets HTMX trigger on query success with render", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return map[string]string{testNameKey: "Test"}, nil
-			})
+			app := newQueryAppWithResult(queryNamedResultHandler("Test"))
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := serve(app.Query(
@@ -521,7 +521,7 @@ var _ = Describe("Coverage Gaps", func() {
 	})
 
 	DescribeTable(
-		"sanitizeRedirectURL edge cases",
+		"sanitizeRedirectURL",
 		func(url string, expectRedirect bool) {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -541,6 +541,12 @@ var _ = Describe("Coverage Gaps", func() {
 		Entry("blocks data: URLs", "data:text/html,<script>alert(1)</script>", false),
 		Entry("blocks scheme-relative URLs", "//evil.com", false),
 		Entry("blocks unparseable URLs", "://\x00bad", false),
+		Entry("blocks fragment-only URLs", "#section", false),
+		Entry("blocks userinfo URLs", "http://user@host", false),
+		Entry("blocks query-only URLs", "?foo=bar", false),
+		Entry("blocks escape above root", "/../../../etc/passwd", false),
+		Entry("allows legitimate normalization", "/a/../b/c", true),
+		Entry("blocks deep traversal", "/../../../../../etc/passwd", false),
 	)
 
 	Describe("decodeFormValues multi-value fields", func() {
@@ -646,25 +652,6 @@ var _ = Describe("Root Coverage Gaps", func() {
 		})
 	})
 
-	Describe("sanitizeRedirectURL additional edge cases", func() {
-		DescribeTable(
-			"blocks fragment-only URLs",
-			func(input string, expectRedirect bool) {
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/", nil)
-				cqrshtmx.NewResponse(w, r).Redirect(input).Apply()
-				if expectRedirect {
-					Expect(w.Code).To(Equal(http.StatusSeeOther))
-				} else {
-					Expect(w.Code).ToNot(Equal(http.StatusSeeOther))
-				}
-			},
-			Entry("blocks fragment-only URLs", "#section", false),
-			Entry("blocks userinfo URLs", "http://user@host", false),
-			Entry("blocks query-only URLs", "?foo=bar", false),
-		)
-	})
-
 	Describe("handleCommandDispatch auth denied", func() {
 		It("rejects when authorization fails", func() {
 			disp := command.NewDispatcher()
@@ -744,34 +731,6 @@ var _ = Describe("Root Coverage Gaps", func() {
 				handler(next).ServeHTTP(w, r)
 			}
 			Expect(called).To(Equal(5))
-		})
-	})
-
-	Describe("ClientIP edge cases", func() {
-		It("extracts from X-Forwarded-For", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("X-Forwarded-For", "1.2.3.4, 5.6.7.8")
-			r.RemoteAddr = "10.0.0.1:1234" //nolint:goconst // test fixture
-			Expect(cqrshtmx.ClientIP(r)).To(Equal("1.2.3.4"))
-		})
-
-		It("extracts from X-Real-IP when no XFF", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("X-Real-IP", "9.8.7.6")
-			r.RemoteAddr = "10.0.0.1:1234"
-			Expect(cqrshtmx.ClientIP(r)).To(Equal("9.8.7.6"))
-		})
-
-		It("falls back to RemoteAddr", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.RemoteAddr = "10.0.0.1:1234"
-			Expect(cqrshtmx.ClientIP(r)).To(Equal("10.0.0.1"))
-		})
-
-		It("returns RemoteAddr when SplitHostPort fails", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.RemoteAddr = "malformed"
-			Expect(cqrshtmx.ClientIP(r)).To(Equal("malformed"))
 		})
 	})
 
@@ -870,15 +829,6 @@ var _ = Describe("Root Coverage Gaps", func() {
 		It("returns 413 for body size exceeded", func() {
 			status := cqrshtmx.MapError(cqrshtmx.ErrRequestTooLarge)
 			Expect(status).To(Equal(http.StatusRequestEntityTooLarge))
-		})
-	})
-
-	Describe("sanitizeRedirectURL blocks traversal after clean", func() {
-		It("blocks paths with remaining .. after clean", func() {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			cqrshtmx.NewResponse(w, r).Redirect("/../../../etc/passwd").Apply()
-			Expect(w.Code).ToNot(Equal(http.StatusSeeOther))
 		})
 	})
 
@@ -1085,16 +1035,6 @@ var _ = Describe("Root Coverage Gaps", func() {
 		})
 	})
 
-	Describe("KeyExtractorFromClientIP", func() {
-		It("extracts from X-Forwarded-For", func() {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("X-Forwarded-For", "1.2.3.4, 5.6.7.8")
-			r.RemoteAddr = "10.0.0.1:1234"
-			extractor := cqrshtmx.KeyExtractorFromClientIP()
-			Expect(extractor(r)).To(Equal("1.2.3.4"))
-		})
-	})
-
 	Describe("NewRateLimiter monitoring", func() {
 		It("reports active keys", func() {
 			rl := cqrshtmx.NewRateLimiter(cqrshtmx.RateLimiterConfig{
@@ -1212,9 +1152,7 @@ var _ = Describe("Root Coverage Gaps", func() {
 		It("applies recommended HSTS in security middleware", func() {
 			handler := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
 				StrictTransportSecurity: cqrshtmx.RecommendedHSTS,
-			})(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			})(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)

@@ -76,6 +76,24 @@ func ParseWSMessage(data []byte) (*WSMessage, error) {
 	return msg, nil
 }
 
+func parseWSHeaders(raw json.RawMessage) map[string]string {
+	var headersMap map[string]string
+	if json.Unmarshal(raw, &headersMap) == nil {
+		return headersMap
+	}
+	var anyHeaders map[string]any
+	if json.Unmarshal(raw, &anyHeaders) != nil {
+		return map[string]string{}
+	}
+	result := make(map[string]string, len(anyHeaders))
+	for k, v := range anyHeaders {
+		if s, ok := v.(string); ok {
+			result[k] = s
+		}
+	}
+	return result
+}
+
 // StringBody returns a body field as a string.
 // Returns empty string if the field doesn't exist or isn't a string.
 func (m *WSMessage) StringBody(key string) string {
@@ -142,20 +160,7 @@ func ParseWSMessageInto[T any](data []byte) (msg T, headers map[string]string, e
 	// Extract HEADERS separately.
 	headers = make(map[string]string)
 	if headersRaw, ok := raw["HEADERS"]; ok {
-		var headersMap map[string]string
-		if unmarshalErr := json.Unmarshal(headersRaw, &headersMap); unmarshalErr != nil {
-			// Non-string header values — skip them, same behavior as ParseWSMessage.
-			var anyHeaders map[string]any
-			if json.Unmarshal(headersRaw, &anyHeaders) == nil {
-				for k, v := range anyHeaders {
-					if s, ok := v.(string); ok {
-						headers[k] = s
-					}
-				}
-			}
-		} else {
-			headers = headersMap
-		}
+		headers = parseWSHeaders(headersRaw)
 		delete(raw, "HEADERS")
 	}
 
