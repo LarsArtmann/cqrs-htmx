@@ -412,21 +412,21 @@ func RequireMethod(method string) HandlerOption {
 //	    }),
 //	)
 func DecodePagination(r *http.Request) query.Pagination {
-	var page, pageSize uint
-
-	if v := r.URL.Query().Get("page"); v != "" {
-		if n, err := strconv.ParseUint(v, 10, 32); err == nil {
-			page = uint(n)
-		}
-	}
-
-	if v := r.URL.Query().Get("page_size"); v != "" {
-		if n, err := strconv.ParseUint(v, 10, 32); err == nil {
-			pageSize = uint(n)
-		}
-	}
-
+	page := parseUintQuery(r, "page")
+	pageSize := parseUintQuery(r, "page_size")
 	return query.NewPagination(page, pageSize)
+}
+
+func parseUintQuery(r *http.Request, key string) uint {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		return 0
+	}
+	n, err := strconv.ParseUint(v, 10, 32)
+	if err != nil {
+		return 0
+	}
+	return uint(n)
 }
 
 // RenderPaginatedJSON renders a query.PaginatedResult[T] as JSON with 200 OK.

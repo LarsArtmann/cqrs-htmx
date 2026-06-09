@@ -374,9 +374,8 @@ func (s *Service) UpdateRoles(
 			WithCause(err)
 	}
 
-	if err := s.users.Save(ctx, user); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("save user %q after role update", userID)).
-			WithCause(err)
+	if err := s.saveUser(ctx, user, "after role update", userID); err != nil {
+		return err
 	}
 
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
@@ -395,6 +394,14 @@ func formatRoles(roles []Role) string {
 		strs[i] = string(r)
 	}
 	return strings.Join(strs, ",")
+}
+
+func (s *Service) saveUser(ctx context.Context, user *User, context string, userID UserID) error {
+	if err := s.users.Save(ctx, user); err != nil {
+		return event.NewTransient("internal", fmt.Sprintf("save user %q %s", userID, context)).
+			WithCause(err)
+	}
+	return nil
 }
 
 func classifyLoginError(err error) error {
@@ -424,9 +431,8 @@ func (s *Service) ChangePassword(
 		return ErrInvalidCredentials
 	}
 
-	if err := s.users.Save(ctx, user); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("save user %q after password change", userID)).
-			WithCause(err)
+	if err := s.saveUser(ctx, user, "after password change", userID); err != nil {
+		return err
 	}
 	s.emit(userID, PasswordChangedEvent{OccurredAt: time.Now().UTC()})
 	return nil
