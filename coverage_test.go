@@ -150,31 +150,22 @@ var _ = Describe("Coverage Gaps", func() {
 	})
 
 	Describe("DecodePagination", func() {
-		It("extracts pagination from query params", func() {
-			r := httptest.NewRequest(http.MethodGet, "/items?page=2&page_size=50", nil)
-			p := cqrshtmx.DecodePagination(r)
-			Expect(p.Page).To(Equal(uint(2)))
-			Expect(p.PageSize).To(Equal(uint(50)))
-		})
-
-		It("applies defaults for missing params", func() {
-			r := httptest.NewRequest(http.MethodGet, "/items", nil)
-			p := cqrshtmx.DecodePagination(r)
-			Expect(p.Page).To(Equal(uint(1)))
-			Expect(p.PageSize).To(Equal(uint(20)))
-		})
+		DescribeTable("decodes pagination from query params",
+			func(query string, wantPage, wantSize uint) {
+				r := httptest.NewRequest(http.MethodGet, "/items"+query, nil)
+				p := cqrshtmx.DecodePagination(r)
+				Expect(p.Page).To(Equal(wantPage))
+				Expect(p.PageSize).To(Equal(wantSize))
+			},
+			Entry("extracts page and page_size", "?page=2&page_size=50", uint(2), uint(50)),
+			Entry("applies defaults for missing params", "", uint(1), uint(20)),
+			Entry("defaults on invalid values", "?page=abc&page_size=-1", uint(1), uint(20)),
+		)
 
 		It("clamps page_size to max 100", func() {
 			r := httptest.NewRequest(http.MethodGet, "/items?page_size=500", nil)
 			p := cqrshtmx.DecodePagination(r)
 			Expect(p.PageSize).To(Equal(uint(100)))
-		})
-
-		It("defaults on invalid values", func() {
-			r := httptest.NewRequest(http.MethodGet, "/items?page=abc&page_size=-1", nil)
-			p := cqrshtmx.DecodePagination(r)
-			Expect(p.Page).To(Equal(uint(1)))
-			Expect(p.PageSize).To(Equal(uint(20)))
 		})
 	})
 
@@ -799,9 +790,7 @@ var _ = Describe("Root Coverage Gaps", func() {
 				SameSite: http.SameSiteDefaultMode,
 			}
 			mw := cqrshtmx.CSRFMiddleware(cfg)
-			handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+			handler := mw(okHandler())
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, r)
