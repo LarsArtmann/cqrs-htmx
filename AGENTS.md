@@ -20,7 +20,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Fmt      | `nix fmt`                                                                                             |
 | Flake    | `nix flake check` (formatting + devShells + apps)                                                     |
 | DevShell | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage | 96.9%+ root, 91.1% usermgmt (470+ tests)                                                              |
+| Coverage | 96.0%+ root, 90.0% usermgmt (570+ tests)                                                              |
 
 ## Architecture
 

@@ -51,7 +51,8 @@
 
               GOWORK = "off";
               GONOSUMCHECK = "github.com/larsartmann/*";
-            };          };
+            };
+          };
 
           checks = {
             formatting = config.treefmt.build.check self;
