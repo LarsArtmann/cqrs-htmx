@@ -33,6 +33,22 @@ func integrationCSRFConfig() cqrshtmx.CSRFConfig {
 	}
 }
 
+// csrfTokenHandler returns a csrfMW-wrapped handler that captures the CSRF
+// token from the request context into the supplied pointer.
+func csrfTokenHandler(csrfMW func(http.Handler) http.Handler, tokenOut *string) http.Handler {
+	return csrfMW(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		*tokenOut = cqrshtmx.CSRFTokenFromContext(r.Context())
+	}))
+}
+
+// csrfOKHandler returns a csrfMW-wrapped handler that responds 200 OK.
+// Used to set/refresh the CSRF cookie on a GET before exercising POST flows.
+func csrfOKHandler(csrfMW func(http.Handler) http.Handler) http.Handler {
+	return csrfMW(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+}
+
 func newIntegrationApp(
 	disp *command.Dispatcher,
 	enf *casbin.Enforcer,
@@ -222,9 +238,7 @@ var _ = Describe("Full Integration", func() {
 
 			// GET to obtain token
 			var csrfToken string
-			tokenHandler := csrfMW(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				csrfToken = cqrshtmx.CSRFTokenFromContext(r.Context())
-			}))
+			tokenHandler := csrfTokenHandler(csrfMW, &csrfToken)
 			w1 := httptest.NewRecorder()
 			tokenHandler.ServeHTTP(w1, httptest.NewRequest(http.MethodGet, "/", nil))
 			cookies := w1.Result().Cookies()
@@ -274,9 +288,7 @@ var _ = Describe("Full Integration", func() {
 
 		It("allows GET queries without CSRF token", func() {
 			qryDisp := query.NewDispatcher()
-			_ = qryDisp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
-				return []bddUser{{Email: aliceEmail, Name: aliceName}}, nil
-			})
+			registerBDDListUsers(qryDisp)
 			qryApp, err := cqrshtmx.New(cqrshtmx.Config{Queries: qryDisp})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -284,9 +296,7 @@ var _ = Describe("Full Integration", func() {
 			// First GET to set the CSRF cookie
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/users", nil)
-			csrfMW(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			})).ServeHTTP(w1, r1)
+			csrfOKHandler(csrfMW).ServeHTTP(w1, r1)
 
 			// Second GET with the cookie
 			r2 := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader("{}"))
@@ -332,9 +342,7 @@ var _ = Describe("Full Integration", func() {
 			r1 := httptest.NewRequest(http.MethodGet, "/page", nil)
 			r1.Header.Set("Content-Type", "application/json")
 			r1.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			csrfMW(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			})).ServeHTTP(w1, r1)
+			csrfOKHandler(csrfMW).ServeHTTP(w1, r1)
 
 			r := httptest.NewRequest(http.MethodGet, "/page", strings.NewReader("{}"))
 			r.Header.Set("Content-Type", "application/json")
@@ -364,9 +372,7 @@ var _ = Describe("Full Integration", func() {
 
 			// GET to obtain token from the same CSRF middleware instance
 			var csrfToken string
-			tokenHandler := csrfMW(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				csrfToken = cqrshtmx.CSRFTokenFromContext(r.Context())
-			}))
+			tokenHandler := csrfTokenHandler(csrfMW, &csrfToken)
 			w1 := httptest.NewRecorder()
 			tokenHandler.ServeHTTP(w1, httptest.NewRequest(http.MethodGet, "/", nil))
 			cookies := w1.Result().Cookies()
@@ -467,9 +473,7 @@ var _ = Describe("Full Integration", func() {
 
 			// Acquire CSRF token via the same CSRF middleware instance.
 			var csrfToken string
-			tokenHandler := csrfMW(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				csrfToken = cqrshtmx.CSRFTokenFromContext(r.Context())
-			}))
+			tokenHandler := csrfTokenHandler(csrfMW, &csrfToken)
 			w1 := httptest.NewRecorder()
 			tokenHandler.ServeHTTP(w1, httptest.NewRequest(http.MethodGet, "/", nil))
 			cookies := w1.Result().Cookies()
