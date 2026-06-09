@@ -95,9 +95,7 @@ func BenchmarkCommandDispatch(b *testing.B) {
 
 func BenchmarkQueryDispatch(b *testing.B) {
 	disp := query.NewDispatcher()
-	_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-		return map[string]string{testEmailKey: testEmailValue}, nil
-	})
+	registerGetUserEmail(disp)
 
 	app, _ := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 	handler := app.Query(
@@ -105,12 +103,7 @@ func BenchmarkQueryDispatch(b *testing.B) {
 		decodeGetUserJSONQuery(),
 		cqrshtmx.Render(encodeJSONResult),
 	)
-
-	for b.Loop() {
-		r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r)
-	}
+	benchGETWithBody(b, handler, "/user")
 }
 
 func BenchmarkRequestLogging(b *testing.B) {
@@ -198,11 +191,7 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 		handler := middleware(okHandler())
 
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-		}
+		benchGET(b, handler, "/")
 	})
 
 	b.Run("PerKey", func(b *testing.B) {
@@ -214,11 +203,7 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 		handler := middleware(okHandler())
 
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, r)
-		}
+		benchGET(b, handler, "/")
 	})
 
 	b.Run("RemoteAddr", func(b *testing.B) {
@@ -251,8 +236,18 @@ func BenchmarkSecurityHeadersMiddleware(b *testing.B) {
 
 func benchGET(b *testing.B, h http.Handler, path string) {
 	b.Helper()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		r := httptest.NewRequest(http.MethodGet, path, nil)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+	}
+}
+
+// benchGETWithBody runs a GET-like loop that posts a JSON body to /path.
+func benchGETWithBody(b *testing.B, h http.Handler, path string) {
+	b.Helper()
+	for b.Loop() {
+		r := httptest.NewRequest(http.MethodGet, path, strings.NewReader(`{}`))
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, r)
 	}
@@ -286,31 +281,16 @@ func BenchmarkResponseBody(b *testing.B) {
 
 func BenchmarkHealthHandler(b *testing.B) {
 	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
-	handler := app.HealthHandler()
-	for b.Loop() {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/health", nil)
-		handler.ServeHTTP(w, r)
-	}
+	benchGET(b, app.HealthHandler(), "/health")
 }
 
 func BenchmarkRecoveryMiddleware(b *testing.B) {
-	handler := cqrshtmx.RecoveryMiddleware(okHandler())
-	for b.Loop() {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		handler.ServeHTTP(w, r)
-	}
+	benchGET(b, cqrshtmx.RecoveryMiddleware(okHandler()), "/")
 }
 
 func BenchmarkAppRecoveryMiddleware(b *testing.B) {
 	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
-	handler := app.RecoverHandler()(okHandler())
-	for b.Loop() {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		handler.ServeHTTP(w, r)
-	}
+	benchGET(b, app.RecoverHandler()(okHandler()), "/")
 }
 
 func BenchmarkRenderJSON(b *testing.B) {
@@ -324,9 +304,5 @@ func BenchmarkRenderJSON(b *testing.B) {
 		decodeGetUserJSONQuery(),
 		cqrshtmx.RenderJSON[map[string]string](),
 	)
-	for b.Loop() {
-		r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r)
-	}
+	benchGETWithBody(b, handler, "/user")
 }
