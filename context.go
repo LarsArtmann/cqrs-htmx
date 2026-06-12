@@ -34,7 +34,11 @@ func ParseUserID(s string) (UserID, error) {
 
 // MustParseUserID converts a string to a UserID, panicking on error.
 func MustParseUserID(s string) UserID {
-	return id.MustParseUserID(s)
+	v, err := ParseUserID(s)
+	if err != nil {
+		panic(fmt.Sprintf("MustParseUserID: %v", err))
+	}
+	return v
 }
 
 // CorrelationID is a strongly-typed correlation identifier, preventing accidental
@@ -54,7 +58,11 @@ func ParseCorrelationID(s string) (CorrelationID, error) {
 
 // MustParseCorrelationID converts a string to a CorrelationID, panicking on error.
 func MustParseCorrelationID(s string) CorrelationID {
-	return id.MustParseCorrelationID(s)
+	v, err := ParseCorrelationID(s)
+	if err != nil {
+		panic(fmt.Sprintf("MustParseCorrelationID: %v", err))
+	}
+	return v
 }
 
 type userIDKey struct{}
@@ -80,7 +88,11 @@ func ParseRequestID(s string) (RequestID, error) {
 
 // MustParseRequestID converts a string to a RequestID, panicking on error.
 func MustParseRequestID(s string) RequestID {
-	return id.MustParseRequestID(s)
+	v, err := ParseRequestID(s)
+	if err != nil {
+		panic(fmt.Sprintf("MustParseRequestID: %v", err))
+	}
+	return v
 }
 
 // WithRequestID stores a strongly-typed request ID in the context.
@@ -120,10 +132,10 @@ func UserIDFromContext(ctx context.Context) UserID {
 }
 
 // EventOptionsFromContext builds event.Options from request context,
-// propagating user identity, correlation ID, and request ID into event metadata for
-// auditing, tracing, and distributed request correlation.
+// propagating user identity, correlation ID, request ID, and context deadline
+// into event metadata for auditing, tracing, and distributed request correlation.
 //
-// Returns nil options if none of user ID, correlation ID, or request ID is found.
+// Returns nil options if none of user ID, correlation ID, request ID, or deadline is found.
 // Invalid IDs (non-ULID strings) are silently dropped,
 // matching the behavior of ContextEnrichmentMiddleware for user IDs.
 func EventOptionsFromContext(ctx context.Context) []event.Option {
@@ -139,6 +151,10 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 
 	if rid := RequestIDFromContext(ctx); !rid.IsZero() {
 		opts = append(opts, event.WithRequestID(rid))
+	}
+
+	if _, ok := ctx.Deadline(); ok {
+		opts = append(opts, event.FromContext(ctx))
 	}
 
 	if len(opts) == 0 {

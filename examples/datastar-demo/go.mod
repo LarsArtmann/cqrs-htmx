@@ -12,6 +12,7 @@ require (
 require (
 	github.com/CAFxX/httpcompression v0.0.9 // indirect
 	github.com/andybalholm/brotli v1.2.1 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.2.0 // indirect
@@ -22,6 +23,16 @@ require (
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
+	github.com/x448/float16 v0.8.4 // indirect
+	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/text v0.38.0 // indirect
+)
+
+replace (
+	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../../../go-cqrs-lite/codec
+	github.com/larsartmann/go-cqrs-lite/command/v2 => ../../../go-cqrs-lite/command
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../../../go-cqrs-lite/dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v2 => ../../../go-cqrs-lite/event
+	github.com/larsartmann/go-cqrs-lite/id/v2 => ../../../go-cqrs-lite/id
+	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../../go-cqrs-lite/query
 )

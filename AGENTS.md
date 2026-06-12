@@ -78,7 +78,7 @@ cqrs-htmx/
 
 | Dependency              | Purpose              | Used in          |
 | ----------------------- | -------------------- | ---------------- |
-| go-cqrs-lite v2.2.0     | CQRS dispatch, pagination | All modules      |
+| go-cqrs-lite v2.3.0     | CQRS dispatch, pagination | All modules      |
 | casbin/casbin/v3        | Authorization        | Root, usermgmt   |
 | justinas/nosurf v1.2.0  | CSRF protection      | Root             |
 | go-error-family v0.3.0  | Error classification | Root             |
@@ -129,6 +129,9 @@ cqrs-htmx/
 - **Dispatch error logging**: `handleErr` logs method, path, and error at warn level before calling error handler
 - **Response.JSON error handling**: Returns HTTP 500 on json.Marshal failure instead of empty body
 - **usermgmt writeJSON**: Buffers before WriteHeader so encode failures don't commit success status
+- **Empty type validation (v2.3.0)**: `App.Command("")` and `App.Query("")` panic — uses `command.Type.IsZero()`/`query.Type.IsZero()` from go-cqrs-lite v2.3.0
+- **Deadline propagation (v2.3.0)**: `EventOptionsFromContext` now propagates context deadline via `event.FromContext` — downstream events inherit request timeouts
+- **TypedHandler (v2.3.0)**: `command.RegisterTyped[T]` eliminates manual type assertions in handlers — demonstrated in `examples/datastar-demo/`
 
 ### Recovery
 
@@ -161,7 +164,7 @@ cqrs-htmx/
 - **WSOOBHTML**: Wraps HTML with hx-swap-oob attributes for HTMX OOB swap. Uses existing `SwapStrategy` type. Passthrough when HTML already contains hx-swap-oob
 - **Decision documented in**: `docs/adr/0004-sse-websocket-support.md`
 
-### Pagination (go-cqrs-lite v2.2.0)
+### Pagination (go-cqrs-lite v2.3.0)
 
 - **DecodePagination(r)**: Extracts `page`/`page_size` from query params, delegates to `query.NewPagination` for defaults and validation
 - **RenderPaginatedJSON[T]()**: HandlerOption that renders `query.PaginatedResult[T]` as JSON with 200 OK. Type-safe via generic parameter
@@ -180,10 +183,11 @@ cqrs-htmx/
 
 1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-3. **go-cqrs-lite version alignment**: All 4 modules use v2.0.0 with `/v2` import paths. `dispatcher.HandlerMeta` and `CatalogEntries()` removed in v2 (dead code). Replace directives removed — v2.0.0 tags are published upstream
-4. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
-5. **LSP vs CLI discrepancy**: LSP shows ~31 stale warnings; CLI reports 0 — unresolved LSP cache issue
-6. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
+3. **go-cqrs-lite v2.3.0**: Consumed via `go.work` replace directives pointing to local clone (per-module tags not yet published). `go.mod` files still declare `v2.2.0` — go.work overrides. When per-module tags publish, remove go.work replaces and update go.mod versions
+4. **Removed APIs in v2.3.0**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
+5. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
+6. **LSP vs CLI discrepancy**: LSP shows ~31 stale warnings; CLI reports 0 — unresolved LSP cache issue
+7. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
 
 ### Type System
 

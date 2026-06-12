@@ -326,16 +326,11 @@ func userName(ctx context.Context) string {
 }
 
 func (c *CQRS) registerCommandHandlers() {
-	_ = c.Commands.Register("CreateTodo", func(ctx context.Context, cmd command.Command) error {
-		tc, ok := cmd.(*CreateTodoCmd)
-		if !ok {
-			return fmt.Errorf("unexpected command type: %T", cmd)
-		}
-
+	_ = command.RegisterTyped(c.Commands, "CreateTodo", func(ctx context.Context, cmd *CreateTodoCmd) error {
 		todoID := cmd.AggregateID().String()
 		payload, _ := json.Marshal(TodoCreatedPayload{
 			ID:        todoID,
-			Title:     tc.Title,
+			Title:     cmd.Title,
 			CreatedAt: time.Now().Format(time.RFC3339),
 		})
 
@@ -349,7 +344,7 @@ func (c *CQRS) registerCommandHandlers() {
 		return nil
 	})
 
-	_ = c.Commands.Register("ToggleTodo", func(ctx context.Context, cmd command.Command) error {
+	_ = command.RegisterTyped(c.Commands, "ToggleTodo", func(ctx context.Context, cmd *ToggleTodoCmd) error {
 		todoID := cmd.AggregateID().String()
 		payload, _ := json.Marshal(TodoToggledPayload{ID: todoID})
 
@@ -363,7 +358,7 @@ func (c *CQRS) registerCommandHandlers() {
 		return nil
 	})
 
-	_ = c.Commands.Register("DeleteTodo", func(ctx context.Context, cmd command.Command) error {
+	_ = command.RegisterTyped(c.Commands, "DeleteTodo", func(ctx context.Context, cmd *DeleteTodoCmd) error {
 		todoID := cmd.AggregateID().String()
 		payload, _ := json.Marshal(TodoDeletedPayload{ID: todoID})
 
