@@ -112,7 +112,12 @@ func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 
 func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		result, err := cqrs.Queries.Dispatch(r.Context(), query.MustNew("ListTodos"))
+		qry, err := query.New("ListTodos")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result, err := cqrs.Queries.Dispatch(r.Context(), qry)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

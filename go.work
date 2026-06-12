@@ -5,3 +5,12 @@ use (
 	./integration_test
 	./usermgmt
 )
+
+replace (
+	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../go-cqrs-lite/codec
+	github.com/larsartmann/go-cqrs-lite/command/v2 => ../go-cqrs-lite/command
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../go-cqrs-lite/dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v2 => ../go-cqrs-lite/event
+	github.com/larsartmann/go-cqrs-lite/id/v2 => ../go-cqrs-lite/id
+	github.com/larsartmann/go-cqrs-lite/query/v2 => ../go-cqrs-lite/query
+)

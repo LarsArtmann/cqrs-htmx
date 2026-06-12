@@ -145,6 +145,10 @@ func (a *App) HasQueries() bool { return a.queries != nil }
 //  4. Dispatch the command through the command.Dispatcher
 //  5. Apply HTMX response headers (redirect, trigger, push URL)
 func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
+	if cmdType.IsZero() {
+		panic("cqrs-htmx: command type must not be empty")
+	}
+
 	cfg := buildHandlerConfig(opts)
 	if cfg.maxBodySize == 0 {
 		cfg.maxBodySize = a.maxBodySize
@@ -172,6 +176,10 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 //  5. Render the result (via Render option)
 //  6. Apply HTMX response headers
 func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
+	if qryType.IsZero() {
+		panic("cqrs-htmx: query type must not be empty")
+	}
+
 	cfg := buildHandlerConfig(opts)
 	if cfg.maxBodySize == 0 {
 		cfg.maxBodySize = a.maxBodySize

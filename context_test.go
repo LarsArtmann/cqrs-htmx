@@ -2,6 +2,7 @@ package cqrshtmx_test
 
 import (
 	"context"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -155,6 +156,33 @@ var _ = Describe("Context", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(evt).NotTo(BeNil())
 			Expect(evt.Metadata()).NotTo(BeNil())
+		})
+
+		It("propagates context deadline via event.FromContext", func() {
+			deadline := time.Now().Add(30 * time.Second)
+			ctx, cancel := context.WithDeadline(context.Background(), deadline)
+			defer cancel()
+
+			opts := cqrshtmx.EventOptionsFromContext(ctx)
+			Expect(opts).NotTo(BeNil())
+
+			aggID := id.NewAggregateID()
+			evt, err := event.NewEvent(
+				"TestEvent",
+				aggID,
+				"Test",
+				1,
+				[]byte(`{}`),
+				opts...,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(evt).NotTo(BeNil())
+		})
+
+		It("returns nil when no IDs and no deadline", func() {
+			ctx := context.Background()
+			opts := cqrshtmx.EventOptionsFromContext(ctx)
+			Expect(opts).To(BeNil())
 		})
 	})
 })
