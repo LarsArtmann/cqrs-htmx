@@ -16,20 +16,20 @@
 
 _Focus: Align modules, stabilize deps, prepare for broader adoption._
 
-| Area  | Item                                                                        | Priority | Status             |
-| ----- | --------------------------------------------------------------------------- | -------- | ------------------ |
-| SSE/WS | SSE streaming (Broadcaster, reconnection, CQRS bridge)                  | High     | Done (v2.1.0)      |
-| SSE/WS | WebSocket message parser, typed generics, OOB HTML                       | High     | Done (v2.1.0)      |
-| HTMX  | Embedded HTMX JS (v2.0.9) with ETag/caching                               | Medium   | Done (v2.1.0)      |
-| Deps  | Upgrade all modules to go-cqrs-lite v2.2.0                                  | High     | Done               |
-| Deps  | Remove CatalogEntries (dead upstream code in v2)                            | High     | Done               |
-| Deps  | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`)                   | Medium   | Open               |
-| Deps  | Adopt v2 `PaginatedResult[T]` for query handlers                           | Low      | Done               |
-| Types | BrandNamer for root module marker types (`userMarker`, `correlationMarker`) | Medium   | Blocked (upstream) |
-| Docs  | Add comprehensive godoc package examples with runnable snippets             | Medium   | Open               |
-| Docs  | README.md refresh — reflect nosurf, go-error-family, httputil migration     | Medium   | Done               |
-| Test  | Expand integration_test module to cover more cross-module bridges           | Low      | Open               |
-| Perf  | Profile hot paths (dispatch, decode) for allocation reduction               | Low      | Open               |
+| Area   | Item                                                                        | Priority | Status             |
+| ------ | --------------------------------------------------------------------------- | -------- | ------------------ |
+| SSE/WS | SSE streaming (Broadcaster, reconnection, CQRS bridge)                      | High     | Done (v2.1.0)      |
+| SSE/WS | WebSocket message parser, typed generics, OOB HTML                          | High     | Done (v2.1.0)      |
+| HTMX   | Embedded HTMX JS (v2.0.9) with ETag/caching                                 | Medium   | Done (v2.1.0)      |
+| Deps   | Upgrade all modules to go-cqrs-lite v2.2.0                                  | High     | Done               |
+| Deps   | Remove CatalogEntries (dead upstream code in v2)                            | High     | Done               |
+| Deps   | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`)                   | Medium   | Open               |
+| Deps   | Adopt v2 `PaginatedResult[T]` for query handlers                            | Low      | Done               |
+| Types  | BrandNamer for root module marker types (`userMarker`, `correlationMarker`) | Medium   | Blocked (upstream) |
+| Docs   | Add comprehensive godoc package examples with runnable snippets             | Medium   | Open               |
+| Docs   | README.md refresh — reflect nosurf, go-error-family, httputil migration     | Medium   | Done               |
+| Test   | Expand integration_test module to cover more cross-module bridges           | Low      | Open               |
+| Perf   | Profile hot paths (dispatch, decode) for allocation reduction               | Low      | Open               |
 
 ---
 

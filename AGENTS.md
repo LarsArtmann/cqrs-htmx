@@ -9,18 +9,18 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 ## Quick Reference
 
-| Item     | Value                                                                                                 |
-| -------- | ----------------------------------------------------------------------------------------------------- |
-| Language | Go 1.26.3                                                                                             |
-| Module   | github.com/larsartmann/cqrs-htmx                                                                      |
-| Test     | `nix run .#test` or `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
-| Build    | `nix run .#build` or `GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`              |
-| Lint     | `nix run .#lint` or `golangci-lint run`                                                               |
-| Coverage | `nix run .#coverage`                                                                                  |
-| Fmt      | `nix fmt`                                                                                             |
-| Flake    | `nix flake check` (formatting + devShells + apps)                                                     |
-| DevShell | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage | 96.0%+ root, 90.0% usermgmt (570+ tests)                                                              |
+| Item     | Value                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------ |
+| Language | Go 1.26.3                                                                                  |
+| Module   | github.com/larsartmann/cqrs-htmx                                                           |
+| Test     | `nix run .#test` or `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
+| Build    | `nix run .#build` or `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`              |
+| Lint     | `nix run .#lint` or `golangci-lint run`                                                    |
+| Coverage | `nix run .#coverage`                                                                       |
+| Fmt      | `nix fmt`                                                                                  |
+| Flake    | `nix flake check` (formatting + devShells + apps)                                          |
+| DevShell | `nix develop` (go, gopls, golangci-lint)                                                   |
+| Coverage | 96.0%+ root, 90.0% usermgmt (570+ tests)                                                   |
 
 ## Architecture
 
@@ -76,17 +76,17 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency              | Purpose              | Used in          |
-| ----------------------- | -------------------- | ---------------- |
+| Dependency              | Purpose                   | Used in          |
+| ----------------------- | ------------------------- | ---------------- |
 | go-cqrs-lite v2.3.0     | CQRS dispatch, pagination | All modules      |
-| casbin/casbin/v3        | Authorization        | Root, usermgmt   |
-| justinas/nosurf v1.2.0  | CSRF protection      | Root             |
-| go-error-family v0.3.0  | Error classification | Root             |
-| larsartmann/httputil    | ClientIP extraction  | Root             |
-| go-branded-id           | Branded types        | usermgmt         |
-| golang.org/x/crypto     | bcrypt               | usermgmt         |
-| golang.org/x/time       | Rate limiting        | Root             |
-| onsi/ginkgo/v2 + gomega | BDD test framework   | All test modules |
+| casbin/casbin/v3        | Authorization             | Root, usermgmt   |
+| justinas/nosurf v1.2.0  | CSRF protection           | Root             |
+| go-error-family v0.3.0  | Error classification      | Root             |
+| larsartmann/httputil    | ClientIP extraction       | Root             |
+| go-branded-id           | Branded types             | usermgmt         |
+| golang.org/x/crypto     | bcrypt                    | usermgmt         |
+| golang.org/x/time       | Rate limiting             | Root             |
+| onsi/ginkgo/v2 + gomega | BDD test framework        | All test modules |
 
 ## Key Decisions
 
@@ -168,7 +168,7 @@ cqrs-htmx/
 
 - **DecodePagination(r)**: Extracts `page`/`page_size` from query params, delegates to `query.NewPagination` for defaults and validation
 - **RenderPaginatedJSON[T]()**: HandlerOption that renders `query.PaginatedResult[T]` as JSON with 200 OK. Type-safe via generic parameter
-- **go-cqrs-lite PaginatedResult[T]**: Adopted from v2.2.0 — `Data`, `TotalCount`, `Page`, `PageSize`, `TotalPages`, `HasNext()`, `HasPrev()`
+- **go-cqrs-lite PaginatedResult[T]**: `Data`, `TotalCount`, `Page`, `PageSize`, `TotalPages`, `HasNext()`, `HasPrev()`
 
 ### Domain Model (usermgmt)
 
@@ -183,7 +183,7 @@ cqrs-htmx/
 
 1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-3. **go-cqrs-lite v2.3.0**: Consumed via `go.work` replace directives pointing to local clone (per-module tags not yet published). `go.mod` files still declare `v2.2.0` — go.work overrides. When per-module tags publish, remove go.work replaces and update go.mod versions
+3. **go-cqrs-lite v2.3.0**: Per-module tags (`command/v2.3.0`, `event/v2.3.0`, etc.) now published. All `go.mod` files declare `v2.3.0`. No replace directives needed
 4. **Removed APIs in v2.3.0**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
 5. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
 6. **LSP vs CLI discrepancy**: LSP shows ~31 stale warnings; CLI reports 0 — unresolved LSP cache issue
@@ -231,22 +231,22 @@ nix flake check      # Verify formatting, devShells, and apps
 nix develop          # Enter dev shell (go, gopls, golangci-lint)
 ```
 
-### Manual (GOWORK=off required)
+### Manual (GOWORK=off for individual modules)
 
-`GOWORK=off` is required so each module uses its own go.mod (not the workspace-level resolution).
+Root module runs in workspace mode (uses go.work). Submodules need `GOWORK=off` so each uses its own go.mod.
 
 ```bash
 # All tests (root)
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1
+GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1
 
 # With verbose output
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -v
+GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -v
 
 # Race detector
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Coverage
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -coverprofile=coverage.out
+GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -coverprofile=coverage.out
 ```
 
 ### usermgmt submodule

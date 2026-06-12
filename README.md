@@ -28,7 +28,7 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 - **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
 - **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `SSEEventStore` for reconnection replay, CQRS bridge via `BroadcastOnSuccess`
 - **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for out-of-band swaps
-- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v2.2.0
+- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v2.3.0
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified) with ETag/caching. Opt-in, zero CDN dependency
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers
 
@@ -366,25 +366,25 @@ Client-side:
 
 ### SSE API
 
-|| Type / Function                       | Description                                                                        |
+|| Type / Function | Description |
 || -------------------------------------- | ---------------------------------------------------------------------------------- |
-|| `SSEEvent`                             | Event struct: `Event`, `Data`, `ID`, `Retry`                                       |
-|| `WriteSSEEvent(w, event)`             | Write a single SSE event to any `io.Writer`                                        |
-|| `NewSSEStream(w, r)`                  | Create a managed SSE connection (correct headers, flush, context-aware lifecycle)  |
-|| `stream.Send(event)`                  | Send event to connected client                                                     |
-|| `stream.SendHTML(name, html)`         | Shorthand for HTML content events                                                  |
-|| `stream.LastEventID()`                | Client's last event ID (for reconnection)                                          |
-|| `stream.Close()`                      | Graceful shutdown                                                                  |
-|| `NewBroadcaster()`                    | Thread-safe fan-out hub                                                            |
-|| `broadcaster.Subscribe()`             | Get a receiver channel                                                             |
-|| `broadcaster.Unsubscribe(ch)`         | O(1) unsubscribe via channel identity                                              |
-|| `broadcaster.Broadcast(event)`        | Non-blocking send to all subscribers (drops to slow consumers)                     |
-|| `broadcaster.SubscriberCount()`       | Active subscriber count                                                            |
-|| `BroadcastOnSuccess(event, data)`     | `AfterDispatchHook` that broadcasts on successful dispatch                          |
-|| `BroadcastOnSuccessFunc(fn)`          | `AfterDispatchHook` with dynamic event generation                                  |
-|| `LastEventIDFromRequest(r)`           | Extract `Last-Event-ID` from request                                               |
-|| `SSEEventStore`                       | Interface for reconnection replay (`EventsSince(id)`)                              |
-|| `ReplayEvents(stream, store, lastID)` | Replay missed events to reconnecting client                                        |
+|| `SSEEvent` | Event struct: `Event`, `Data`, `ID`, `Retry` |
+|| `WriteSSEEvent(w, event)` | Write a single SSE event to any `io.Writer` |
+|| `NewSSEStream(w, r)` | Create a managed SSE connection (correct headers, flush, context-aware lifecycle) |
+|| `stream.Send(event)` | Send event to connected client |
+|| `stream.SendHTML(name, html)` | Shorthand for HTML content events |
+|| `stream.LastEventID()` | Client's last event ID (for reconnection) |
+|| `stream.Close()` | Graceful shutdown |
+|| `NewBroadcaster()` | Thread-safe fan-out hub |
+|| `broadcaster.Subscribe()` | Get a receiver channel |
+|| `broadcaster.Unsubscribe(ch)` | O(1) unsubscribe via channel identity |
+|| `broadcaster.Broadcast(event)` | Non-blocking send to all subscribers (drops to slow consumers) |
+|| `broadcaster.SubscriberCount()` | Active subscriber count |
+|| `BroadcastOnSuccess(event, data)` | `AfterDispatchHook` that broadcasts on successful dispatch |
+|| `BroadcastOnSuccessFunc(fn)` | `AfterDispatchHook` with dynamic event generation |
+|| `LastEventIDFromRequest(r)` | Extract `Last-Event-ID` from request |
+|| `SSEEventStore` | Interface for reconnection replay (`EventsSince(id)`) |
+|| `ReplayEvents(stream, store, lastID)` | Replay missed events to reconnecting client |
 
 ## WebSocket Helpers
 
@@ -410,7 +410,7 @@ Client-side:
 ```html
 <div hx-ext="ws" ws-connect="/ws">
   <form ws-send>
-    <input name="message">
+    <input name="message" />
     <button>Send</button>
   </form>
 </div>
@@ -993,15 +993,15 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency             | Purpose                     |
-| ---------------------- | --------------------------- |
-| go-cqrs-lite v2.2.0    | CQRS command/query dispatch, pagination |
-| casbin/casbin/v3       | Authorization               |
-| go-error-family v0.3.0 | Error classification        |
-| justinas/nosurf        | CSRF protection             |
-| larsartmann/httputil   | ClientIP extraction         |
-| golang.org/x/time      | Token-bucket rate limiting  |
-| go-branded-id          | Branded types (usermgmt)    |
+| Dependency             | Purpose                                 |
+| ---------------------- | --------------------------------------- |
+| go-cqrs-lite v2.3.0    | CQRS command/query dispatch, pagination |
+| casbin/casbin/v3       | Authorization                           |
+| go-error-family v0.3.0 | Error classification                    |
+| justinas/nosurf        | CSRF protection                         |
+| larsartmann/httputil   | ClientIP extraction                     |
+| golang.org/x/time      | Token-bucket rate limiting              |
+| go-branded-id          | Branded types (usermgmt)                |
 
 ## Contributing
 

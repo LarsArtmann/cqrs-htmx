@@ -152,7 +152,8 @@ var _ = Describe("Coverage Gaps", func() {
 	})
 
 	Describe("DecodePagination", func() {
-		DescribeTable("decodes pagination from query params",
+		DescribeTable(
+			"decodes pagination from query params",
 			func(query string, wantPage, wantSize uint) {
 				r := httptest.NewRequest(http.MethodGet, "/items"+query, nil)
 				p := cqrshtmx.DecodePagination(r)
@@ -879,6 +880,16 @@ var _ = Describe("Root Coverage Gaps", func() {
 
 		It("panics on empty query type", func() {
 			app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: query.NewDispatcher()})
+			Expect(func() { app.Query("") }).To(PanicWith(MatchRegexp("query type must not be empty")))
+		})
+
+		It("panics on empty command type even with query-only app", func() {
+			app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: query.NewDispatcher()})
+			Expect(func() { app.Command("") }).To(PanicWith(MatchRegexp("command type must not be empty")))
+		})
+
+		It("panics on empty query type even with command-only app", func() {
+			app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
 			Expect(func() { app.Query("") }).To(PanicWith(MatchRegexp("query type must not be empty")))
 		})
 	})

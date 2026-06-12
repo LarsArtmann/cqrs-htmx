@@ -133,7 +133,8 @@ var _ = Describe("CSRF Protection", func() {
 			Expect(capturedToken).NotTo(BeEmpty())
 		})
 
-		DescribeTable("allows POST with valid CSRF token",
+		DescribeTable(
+			"allows POST with valid CSRF token",
 			func(headerName, fieldName string) {
 				mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
 				code := csrfGETThenPOST(mw, headerName, fieldName)
@@ -603,7 +604,8 @@ var _ = Describe("CSRF Protection", func() {
 			Expect(cfg.Validate()).To(Succeed())
 		})
 
-		DescribeTable("rejects invalid TrustedOrigins entries",
+		DescribeTable(
+			"rejects invalid TrustedOrigins entries",
 			func(origins []string) {
 				cfg := cqrshtmx.CSRFConfig{TrustedOrigins: origins}
 				err := cfg.Validate()

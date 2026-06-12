@@ -136,19 +136,19 @@ Layer 4 (entry points):
 
 ## External Dependency Mapping
 
-| External Dep                      | Root Files Using It                                              | Type          |
-| --------------------------------- | ---------------------------------------------------------------- | ------------- |
-| `go-cqrs-lite/command/v2`        | app.go, handler.go, options.go                                  | Production    |
-| `go-cqrs-lite/event/v2`          | app.go, authz.go, context.go, csrf.go, errors.go, options.go, recovery.go | Production |
-| `go-cqrs-lite/id/v2`             | context.go                                                      | Production    |
-| `go-cqrs-lite/query/v2`          | app.go, handler.go, options.go                                  | Production    |
-| `justinas/nosurf`                | csrf.go, csrf_handler.go                                        | Production    |
-| `go-error-family`                | errors.go                                                       | Production    |
-| `larsartmann/httputil`           | httputil.go, ratelimit.go                                       | Production    |
-| `golang.org/x/time`              | ratelimit.go                                                    | Production    |
-| `casbin/casbin/v3`               | bdd_test.go, testing_test.go, integration_test.go               | **Test-only** |
-| `onsi/ginkgo/v2`                 | All `_test.go` files                                            | Test-only     |
-| `onsi/gomega`                    | All `_test.go` files                                            | Test-only     |
+| External Dep              | Root Files Using It                                                       | Type          |
+| ------------------------- | ------------------------------------------------------------------------- | ------------- |
+| `go-cqrs-lite/command/v2` | app.go, handler.go, options.go                                            | Production    |
+| `go-cqrs-lite/event/v2`   | app.go, authz.go, context.go, csrf.go, errors.go, options.go, recovery.go | Production    |
+| `go-cqrs-lite/id/v2`      | context.go                                                                | Production    |
+| `go-cqrs-lite/query/v2`   | app.go, handler.go, options.go                                            | Production    |
+| `justinas/nosurf`         | csrf.go, csrf_handler.go                                                  | Production    |
+| `go-error-family`         | errors.go                                                                 | Production    |
+| `larsartmann/httputil`    | httputil.go, ratelimit.go                                                 | Production    |
+| `golang.org/x/time`       | ratelimit.go                                                              | Production    |
+| `casbin/casbin/v3`        | bdd_test.go, testing_test.go, integration_test.go                         | **Test-only** |
+| `onsi/ginkgo/v2`          | All `_test.go` files                                                      | Test-only     |
+| `onsi/gomega`             | All `_test.go` files                                                      | Test-only     |
 
 **Note:** casbin/casbin/v3 appears in root's direct `require` but is only used in test code. Root's production code defines an `Enforcer` interface that matches casbin's signature without importing casbin directly. This is standard Go module behavior — test deps live in the same `require` block.
 
@@ -156,16 +156,16 @@ Layer 4 (entry points):
 
 ## Hygiene Issues
 
-| Issue                              | Status   | Notes                                                            |
-| ---------------------------------- | -------- | ---------------------------------------------------------------- |
-| integration_test/go.mod needs tidy | ✅ Fixed | Commit 776f101                                                   |
-| integration_test not in go.work    | ✅ Fixed | go.work updated                                                  |
-| CI doesn't test all modules        | ✅ Fixed | CI covers all 4 modules                                          |
-| Lint warnings                      | ✅ Fixed | 0 issues                                                         |
-| datastar-demo version mismatch     | ✅ Fixed | Migrated to v2.2.0 APIs                                          |
-| datastar-demo Go version           | ✅ Fixed | Upgraded to 1.26.3                                               |
+| Issue                              | Status   | Notes                                                          |
+| ---------------------------------- | -------- | -------------------------------------------------------------- |
+| integration_test/go.mod needs tidy | ✅ Fixed | Commit 776f101                                                 |
+| integration_test not in go.work    | ✅ Fixed | go.work updated                                                |
+| CI doesn't test all modules        | ✅ Fixed | CI covers all 4 modules                                        |
+| Lint warnings                      | ✅ Fixed | 0 issues                                                       |
+| datastar-demo version mismatch     | ✅ Fixed | Migrated to v2.2.0 APIs                                        |
+| datastar-demo Go version           | ✅ Fixed | Upgraded to 1.26.3                                             |
 | usermgmt version alignment         | ✅ Fixed | go-cqrs-lite → v2.2.0, Go → 1.26.3, go-error-family → v0.3.0   |
-| datastar-demo go-branded-id        | ✅ Fixed | Upgraded from v0.1.0 to v0.3.0                                   |
-| go-cqrs-lite v2 migration          | ✅ Fixed | All modules migrated from core/v1.5.1-pre to v2.2.0 submodules  |
-| SSE + WebSocket support            | ✅ Done  | sse.go, ws.go added (21 root files total)                        |
-| usermgmt events                    | ✅ Done  | events.go added (10 usermgmt files total)                        |
+| datastar-demo go-branded-id        | ✅ Fixed | Upgraded from v0.1.0 to v0.3.0                                 |
+| go-cqrs-lite v2 migration          | ✅ Fixed | All modules migrated from core/v1.5.1-pre to v2.2.0 submodules |
+| SSE + WebSocket support            | ✅ Done  | sse.go, ws.go added (21 root files total)                      |
+| usermgmt events                    | ✅ Done  | events.go added (10 usermgmt files total)                      |
