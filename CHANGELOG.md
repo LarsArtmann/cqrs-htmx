@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **go-cqrs-lite upgraded to v2.3.0** across all modules (root, usermgmt, integration_test, datastar-demo). Per-module tags now published — no go.work replace directives needed.
+- **Empty command/query type validation**: `App.Command("")` and `App.Query("")` panic at handler registration time using `command.Type.IsZero()` / `query.Type.IsZero()` — fail-fast instead of silent empty dispatch.
+- **Deadline propagation**: `EventOptionsFromContext` now propagates context deadline to event options via `event.FromContext(ctx)` when present. Downstream events inherit request timeouts.
+- **Type-safe handlers in datastar-demo**: Refactored all 3 command handlers from manual type assertions to `command.RegisterTyped[T]` — eliminates `cmd.(*CreateTodoCmd)` boilerplate.
+- **Local MustParse wrappers**: Reimplemented `MustParseUserID`, `MustParseCorrelationID`, `MustParseRequestID` locally (go-cqrs-lite removed `id.MustParse[T]`). Preserves API compatibility for consumers.
+- **query.MustNew removed upstream**: Updated `datastar-demo` to use `query.New()` + error check.
 - **Code deduplication**: Eliminated all clone groups at threshold 50 (industry standard). At threshold 30, remaining groups are all 2–7 line spans in test code. −104 lines net across 14 source files.
 - **goconst warnings eliminated**: Extracted test constants in `sse_test.go` (`eventTodoCreated`, `eventUpdate`, `eventItem`, `dataFirst`) and `coverage_test.go` (`aliceName` usage). Added `goconst` exclusion for `example_test.go` (self-contained examples should not reference test constants).
 - **nestif warning fixed**: Extracted `parseWSHeaders` helper from `ParseWSMessageInto` in `ws.go`, reducing nesting complexity from 7 to 1.

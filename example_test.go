@@ -1,6 +1,7 @@
 package cqrshtmx_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -315,4 +316,22 @@ func ExampleHTMXScriptTag() {
 func ExampleHTMXVersion() {
 	fmt.Println(cqrshtmx.HTMXVersion())
 	// Output: 2.0.9
+}
+
+func ExampleRegisterTyped() {
+	disp := command.NewDispatcher()
+
+	err := command.RegisterTyped(
+		disp, "CreateUser",
+		func(_ context.Context, cmd *testCreateUserCmd) error {
+			fmt.Printf("creating user: %s\n", cmd.email)
+			return nil
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("typed handler registered")
+	// Output: typed handler registered
 }

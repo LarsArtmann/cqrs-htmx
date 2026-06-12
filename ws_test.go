@@ -73,7 +73,8 @@ var _ = Describe("WebSocket Protocol Helpers", func() {
 			Expect(msg.StringBody("name")).To(Equal("Alice"))
 		})
 
-		DescribeTable("returns empty string for non-string StringBody fields",
+		DescribeTable(
+			"returns empty string for non-string StringBody fields",
 			func(payload, field string) {
 				msg, _ := cqrshtmx.ParseWSMessage([]byte(payload))
 				Expect(msg.StringBody(field)).To(BeEmpty())

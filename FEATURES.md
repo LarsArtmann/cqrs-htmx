@@ -32,13 +32,13 @@
 
 ### HTMX
 
-| #   | Feature               | Status           | Description                                                                                                                           |
-| --- | --------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 12  | HTMX Request Context  | FULLY_FUNCTIONAL | `HTMXMiddleware` parses all `HX-*` headers into context. `HTMXRequest` struct with all accessors.                                     |
-| 13  | HTMX Response Builder | FULLY_FUNCTIONAL | Fluent `Response`: `PushURL`, `ReplaceURL`, `Redirect`, `Refresh`, `Reswap`, `Retarget`, `Reselect`, `Trigger*`. HTMX-aware redirect. |
-| 14  | Notifications         | FULLY_FUNCTIONAL | `NotifySuccess/Error/Warning/Info` as HandlerOptions and Response methods. `NotifyWithEvent` builder.                                 |
-| 15  | Swap Strategies       | FULLY_FUNCTIONAL | All 8 HTMX swap strategies as typed constants.                                                                                        |
-| 16  | Header Constants      | FULLY_FUNCTIONAL | All HTMX headers are unexported constants. `HeaderTrue` exported for consumers.                                                       |
+| #   | Feature               | Status           | Description                                                                                                                            |
+| --- | --------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 12  | HTMX Request Context  | FULLY_FUNCTIONAL | `HTMXMiddleware` parses all `HX-*` headers into context. `HTMXRequest` struct with all accessors.                                      |
+| 13  | HTMX Response Builder | FULLY_FUNCTIONAL | Fluent `Response`: `PushURL`, `ReplaceURL`, `Redirect`, `Refresh`, `Reswap`, `Retarget`, `Reselect`, `Trigger*`. HTMX-aware redirect.  |
+| 14  | Notifications         | FULLY_FUNCTIONAL | `NotifySuccess/Error/Warning/Info` as HandlerOptions and Response methods. `NotifyWithEvent` builder.                                  |
+| 15  | Swap Strategies       | FULLY_FUNCTIONAL | All 8 HTMX swap strategies as typed constants.                                                                                         |
+| 16  | Header Constants      | FULLY_FUNCTIONAL | All HTMX headers are unexported constants. `HeaderTrue` exported for consumers.                                                        |
 | 16b | Embedded HTMX JS      | FULLY_FUNCTIONAL | `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified, ~49KB) with ETag/caching. `HTMXVersion()`, `HTMXScriptTag(path)`. Opt-in. |
 
 ### Auth & Security
@@ -117,7 +117,7 @@
 | 50  | SSE + CQRS Bridge       | FULLY_FUNCTIONAL | `BroadcastOnSuccess(event, data)` and `BroadcastOnSuccessFunc(fn)` — AfterDispatchHook factories that broadcast SSE events on successful command dispatch. |
 | 51  | Typed WS Message Parser | FULLY_FUNCTIONAL | `ParseWSMessageInto[T](data)` — generic typed parser that deserializes body into struct T while separating HEADERS. Compile-time safe.                     |
 
-### Pagination (go-cqrs-lite v2.2.0)
+### Pagination (go-cqrs-lite v2.3.0)
 
 | #   | Feature               | Status           | Description                                                                                                       |
 | --- | --------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |

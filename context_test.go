@@ -184,5 +184,25 @@ var _ = Describe("Context", func() {
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
 			Expect(opts).To(BeNil())
 		})
+
+		It("propagates timeout deadline via event.FromContext", func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
+			opts := cqrshtmx.EventOptionsFromContext(ctx)
+			Expect(opts).NotTo(BeNil())
+
+			aggID := id.NewAggregateID()
+			evt, err := event.NewEvent(
+				"TimeoutTestEvent",
+				aggID,
+				"Test",
+				1,
+				[]byte(`{}`),
+				opts...,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(evt).NotTo(BeNil())
+		})
 	})
 })
