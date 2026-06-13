@@ -163,11 +163,25 @@ func configureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 		}
 	}
 
-	if cfg.ErrorHandler != nil {
-		handler.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			cfg.ErrorHandler(w, r, ErrCSRFInvalid)
-		}))
+	failureHandler := cfg.ErrorHandler
+	if failureHandler == nil {
+		failureHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+			w.Header().Set("Content-Type", ContentTypePlain)
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
+		}
 	}
+
+	handler.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if reason := nosurf.Reason(r); reason != nil {
+			slog.Warn("cqrs-htmx: CSRF validation failed",
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+				slog.String("reason", reason.Error()),
+			)
+		}
+		failureHandler(w, r, ErrCSRFInvalid)
+	}))
 }
 
 type csrfKey struct{}

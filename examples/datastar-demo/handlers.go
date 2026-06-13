@@ -112,20 +112,14 @@ func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 
 func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		qry, err := query.New("ListTodos")
+		qry, err := NewListTodosQry()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		result, err := cqrs.Queries.Dispatch(r.Context(), qry)
+		todos, err := query.DispatchTyped[[]Todo](r.Context(), cqrs.Queries, qry)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		todos, ok := result.([]Todo)
-		if !ok {
-			http.Error(w, "unexpected result type", http.StatusInternalServerError)
 			return
 		}
 
@@ -266,13 +260,9 @@ func renderEventLog(evt BroadcastEvent) string {
 func extractTitle(html string) string {
 	const marker = `<span class="todo-title">`
 	const end = `</span>`
-	rest, ok := strings.CutPrefix(html, marker)
-	if !ok {
-		if i := strings.Index(html, marker); i >= 0 {
-			rest = html[i+len(marker):]
-		} else {
-			return ""
-		}
+	_, rest, found := strings.Cut(html, marker)
+	if !found {
+		return ""
 	}
 	before, _, found := strings.Cut(rest, end)
 	if !found {
