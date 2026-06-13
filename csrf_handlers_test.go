@@ -11,7 +11,6 @@ import (
 )
 
 var _ = Describe("CSRF Handlers", func() {
-
 	Describe("CSRFProtect HandlerOption", func() {
 		It("validates CSRF token for specific handlers", func() {
 			// Set up a handler with CSRFProtect but no global middleware
@@ -174,6 +173,5 @@ var _ = Describe("CSRF Handlers", func() {
 			field := cqrshtmx.CSRFTokenFormField(r)
 			Expect(field).To(BeEmpty())
 		})
-
 	})
 })

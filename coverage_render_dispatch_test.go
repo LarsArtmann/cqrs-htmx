@@ -16,7 +16,6 @@ import (
 )
 
 var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
-
 	Describe("MapError additional families", func() {
 		DescribeTable(
 			"maps CQRS error families",
@@ -172,6 +171,5 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 			), r)
 			Expect(w.Header().Get("HX-Trigger")).To(Equal("dataLoaded"))
 		})
-
 	})
 })

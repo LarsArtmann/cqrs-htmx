@@ -127,6 +127,5 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 			}
 			Expect(called).To(Equal(5))
 		})
-
 	})
 })

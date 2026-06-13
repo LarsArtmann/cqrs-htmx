@@ -203,6 +203,5 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 			), r)
 			Expect(w.code()).ToNot(Equal(http.StatusNoContent))
 		})
-
 	})
 })

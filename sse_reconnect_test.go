@@ -94,6 +94,5 @@ var _ = Describe("SSE Reconnection", func() {
 			_, err := cqrshtmx.ReplayEvents(stream, store, "")
 			Expect(err).To(HaveOccurred())
 		})
-
 	})
 })

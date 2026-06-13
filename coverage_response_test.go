@@ -167,6 +167,5 @@ var _ = Describe("Root Coverage Gaps - Response Builder", func() {
 			Expect(w.code()).To(Equal(http.StatusBadRequest))
 			Expect(capturedErr).To(HaveOccurred())
 		})
-
 	})
 })

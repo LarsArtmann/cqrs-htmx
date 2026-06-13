@@ -17,7 +17,6 @@ import (
 )
 
 var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
-
 	Describe("StatusRecorder Hijack non-Hijacker fallback", func() {
 		It("returns ErrNotSupported when underlying writer has no Hijacker", func() {
 			rec := httptest.NewRecorder()
@@ -176,5 +175,4 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 			Expect(func() { app.Query("") }).To(PanicWith(MatchRegexp("query type must not be empty")))
 		})
 	})
-
 })

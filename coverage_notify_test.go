@@ -230,5 +230,4 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 			Expect(w.Header().Get("HX-Push-URL")).To(Equal("/users/1"))
 		})
 	})
-
 })

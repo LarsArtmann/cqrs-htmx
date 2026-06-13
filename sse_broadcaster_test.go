@@ -170,6 +170,5 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			body := w.Body.String()
 			Expect(body).To(Equal("event: todoCreated\ndata: <li>Buy milk</li>\n\n"))
 		})
-
 	})
 })

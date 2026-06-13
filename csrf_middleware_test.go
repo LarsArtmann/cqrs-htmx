@@ -241,6 +241,5 @@ var _ = Describe("CSRF Middleware", func() {
 			cookies := w.Result().Cookies()
 			Expect(cookies[0].HttpOnly).To(BeFalse())
 		})
-
 	})
 })
