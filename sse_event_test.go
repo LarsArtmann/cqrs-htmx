@@ -204,6 +204,5 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 
 			Eventually(stream.Context().Done()).Should(BeClosed())
 		})
-
 	})
 })

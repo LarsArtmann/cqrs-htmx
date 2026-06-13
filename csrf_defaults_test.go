@@ -41,5 +41,4 @@ var _ = Describe("CSRF Defaults", func() {
 		token := cqrshtmx.CSRFTokenFromContext(context.Background())
 		Expect(token).To(BeEmpty())
 	})
-
 })

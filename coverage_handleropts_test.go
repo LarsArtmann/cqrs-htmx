@@ -208,7 +208,6 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 			Expect(w.Body.String()).To(ContainSubstring("ok"))
 		})
 	})
-
 })
 
 // nonStringWriter wraps an http.ResponseWriter without implementing

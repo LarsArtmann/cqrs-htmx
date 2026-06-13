@@ -136,5 +136,4 @@ var _ = Describe("CSRF Advanced", func() {
 			Expect(cfg.Validate()).To(Succeed())
 		})
 	})
-
 })
