@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Service source propagation**: `Config.ServiceName` (string) and `App.EventOptions(ctx)` inject `event.WithSource` into event options. `EventOptionsFromContextWithSource(ctx, name)` is the free-function equivalent for callers that don't hold an `*App`.
+- **Typed-query examples in root**: `ExampleApp_Query_typedRegister` and `ExampleApp_Query_typedDispatch` demonstrate the `query.RegisterTyped[T]` / `query.DispatchTyped[T]` pattern crossing module boundaries.
+- **`ExampleBroadcaster_BroadcastOnSuccessFunc`**: Documents the dynamic-event `AfterDispatchHook` factory.
+- **`ExampleConfig_BeforeDispatch` / `ExampleChain` (tracing)**: Show timing/span integration via the lifecycle hooks; no OpenTelemetry dependency required.
+- **Per-module nix apps**: `nix run .#test-root`, `nix run .#test-usermgmt`, `nix run .#test-integration`, `nix run .#build-datastar-demo` set `GOWORK=off` automatically — no more per-module `cd` dance.
+- **UpdateTodo command in datastar-demo**: `UpdateTodoCmd` + `TodoUpdatedPayload` + `handleUpdateTodo` + `POST /api/todos/update` route + inline edit input in the UI. The read-model `Projector.Apply` now handles `TodoUpdated` and the broadcaster renders it as `todo_updated`.
+- **`GetStatsQry` typed query in datastar-demo**: `Stats` struct + `GetStatsQry` + `renderStatsFromQuery` helper. Wired into `handleListTodos` and `handleEventStream` so the stats read goes through the typed query dispatcher (caching/authorization-friendly).
+- **SSE replay endpoint in datastar-demo**: `GET /api/events/replay` reads `Last-Event-ID` and replays missed events from the in-memory event store.
+- **`FuzzEventOptionsFromContext`**: Fuzzes `EventOptionsFromContext` with arbitrary combinations of (deadline, cancel, user ID, correlation ID, request ID) — verifies the bounded-options invariant (≤ 4 options).
+- **Real-server integration tests**:
+  - `TestRateLimiter_RealServer_AllowsThenBlocks` + `TestRateLimiter_RealServer_ConcurrentRequests`: end-to-end rate limiting over `httptest.NewServer` with a real `http.Client`.
+  - `TestSSE_RealServer_ReconnectionWithLastEventID` + `TestSSE_RealServer_ReconnectionNoLastID`: end-to-end SSE reconnection with real `Last-Event-ID` header.
+  - `TestTypedQueryDispatch_CrossModule` + `TestCrossModule_PaginationFlow`: cross-module CQRS + pagination.
+- **Benchmarks**:
+  - `BenchmarkDecodePagination` (8 URL shapes: no params, with page, with size, with both, with extras, invalid, zero, huge).
+  - `BenchmarkCommandRegisterTypedVsRegister` (typed ≈ manual: 57.4 vs 56.9 ns/op).
+  - `BenchmarkQueryDispatchTypedVsDispatch` (typed ≈ manual: 85.7 vs 81.0 ns/op).
+- **usermgmt service transient-error context**: `withUserIDContext` helper annotates every `event.NewTransient` in the service with `user_id` context (no PII — only the user ID, not email/display name). New `transientErr(userID, msg, cause)` helper keeps service methods concise.
+- **ADR 0005**: Documents the go-cqrs-lite v2.3.0 adoption decisions (IsZero validation, FromContext deadline propagation, RegisterTyped/DispatchTyped, replace-directive removal).
+
 ### Changed
 
 - **go-cqrs-lite upgraded to v2.3.0** across all modules (root, usermgmt, integration_test, datastar-demo). Per-module tags now published — no go.work replace directives needed.
@@ -18,6 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **goconst warnings eliminated**: Extracted test constants in `sse_test.go` (`eventTodoCreated`, `eventUpdate`, `eventItem`, `dataFirst`) and `coverage_test.go` (`aliceName` usage). Added `goconst` exclusion for `example_test.go` (self-contained examples should not reference test constants).
 - **nestif warning fixed**: Extracted `parseWSHeaders` helper from `ParseWSMessageInto` in `ws.go`, reducing nesting complexity from 7 to 1.
 - **Test deduplication**: Deleted 6 duplicate ClientIP tests from `coverage_test.go` (already covered by `httputil_test.go`). Merged 3 `sanitizeRedirectURL` DescribeTables into one. Extracted `queryNamedResultHandler` helper for query-result fixtures.
+- **`ws_test.go` coverage improved**: `ParseWSMessageInto[T]` from 86.7% → 93.3% by exercising the type-assertion failure path and non-string header values.
+- **`usermgmt.UpdateRoles` refactor**: Extracted `transientErr` helper to keep the function under the 60-line `funlen` limit. Replaces inline `withUserIDContext(event.NewTransient(...).WithCause(err), userID)` boilerplate.
 
 ## [2.1.0] - 2026-06-08
 
