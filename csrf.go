@@ -174,7 +174,8 @@ func configureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 
 	handler.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if reason := nosurf.Reason(r); reason != nil {
-			slog.Warn("cqrs-htmx: CSRF validation failed",
+			slog.Warn(
+				"cqrs-htmx: CSRF validation failed",
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.String("reason", reason.Error()),
