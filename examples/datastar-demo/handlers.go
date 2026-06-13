@@ -220,7 +220,7 @@ func handleEventStream(cqrs *CQRS) http.HandlerFunc {
 					datastar.WithSelectorID("todo-list"),
 					datastar.WithModeInner(),
 				)
-				sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
+				sse.PatchElements(renderStatsFromQuery(cqrs), datastar.WithSelectorID("stats"))
 
 				sse.PatchElements(
 					renderEventLog(evt),
@@ -319,9 +319,10 @@ func renderTodo(t Todo) string {
 	}
 	return fmt.Sprintf(`<li id="todo-%s" class="todo-item%s">
 	<input type="checkbox" %s data-on:click="@post('/api/todos/toggle')" data-signals:id="'%s'">
-	<span class="todo-title">%s</span>
+	<input type="text" class="todo-title-input" value="%s" data-bind:title data-signals:edit_id="'%s'">
+	<button class="edit-btn" data-on:click="@post('/api/todos/update')" data-signals:id="$edit_id || '%s'">edit</button>
 	<button class="delete-btn" data-on:click="@post('/api/todos/delete')" data-signals:id="'%s'">x</button>
-</li>`, t.ID, completedClass, checked, t.ID, t.Title, t.ID)
+</li>`, t.ID, completedClass, checked, t.ID, t.Title, t.ID, t.ID, t.ID)
 }
 
 func renderTodoList(todos []Todo) string {
@@ -344,15 +345,11 @@ func renderStats(cqrs *CQRS) string {
 </div>`, total, active, completed)
 }
 
-// renderStatsFromQuery is kept as a reference for routing stats through
-// the typed query dispatcher instead of calling the read store directly.
-// In a real application, wire it into the SSE event stream below:
-//
-//	sse.PatchElements(renderStatsFromQuery(cqrs), datastar.WithSelectorID("stats"))
-//
-// The current demo keeps renderStats() for simplicity; switch to
-// renderStatsFromQuery() to demonstrate cacheability, authorization, and
-// cross-module instrumentation on the read path.
+// renderStatsFromQuery is the recommended path for rendering stats.
+// It dispatches a GetStatsQry through the typed query dispatcher
+// instead of reading the projector directly, so any cross-cutting
+// concerns (caching, authorization, instrumentation) flow through
+// the same pipeline as production reads.
 func renderStatsFromQuery(cqrs *CQRS) string {
 	qry, err := NewGetStatsQry()
 	if err != nil {
@@ -368,10 +365,6 @@ func renderStatsFromQuery(cqrs *CQRS) string {
 	<span>Completed: <strong>%d</strong></span>
 </div>`, stats.Total, stats.Active, stats.Completed)
 }
-
-// _ references the function to keep the unused-func linter happy while
-// documenting the pattern for future use.
-var _ = renderStatsFromQuery
 
 func renderEventLog(evt BroadcastEvent) string {
 	return fmt.Sprintf(`<div class="event-entry">

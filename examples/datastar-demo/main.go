@@ -147,6 +147,27 @@ const indexHTML = `<!DOCTYPE html>
             font-size: 0.8rem;
         }
         .delete-btn:hover { border-color: #da3633; color: #da3633; }
+        .edit-btn {
+            background: none;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .edit-btn:hover { border-color: #1f6feb; color: #1f6feb; }
+        .todo-title-input {
+            flex: 1;
+            padding: 0.3rem 0.5rem;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            color: #e6edf3;
+            font-size: 0.95rem;
+        }
+        .todo-title-input:focus { border-color: #30363d; background: #0d1117; outline: none; }
+        .todo-title-input.completed { text-decoration: line-through; color: #484f58; }
         .empty-state { color: #484f58; font-style: italic; padding: 1rem 0; list-style: none; }
 
         /* Event log */
