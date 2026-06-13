@@ -83,6 +83,14 @@ type ListTodosQry struct {
 	*query.BasicQuery
 }
 
+func NewListTodosQry() (*ListTodosQry, error) {
+	core, err := query.New("ListTodos")
+	if err != nil {
+		return nil, err
+	}
+	return &ListTodosQry{BasicQuery: core}, nil
+}
+
 // --- Event Store (in-memory) ---
 
 type EventStore struct {
@@ -374,17 +382,8 @@ func (c *CQRS) registerCommandHandlers() {
 }
 
 func (c *CQRS) registerQueryHandlers() {
-	_ = c.Queries.Register("ListTodos", func(ctx context.Context, q query.Query) (any, error) {
+	_ = query.RegisterTyped(c.Queries, "ListTodos", func(ctx context.Context, q *ListTodosQry) ([]Todo, error) {
 		return c.Read.List(), nil
-	})
-
-	_ = c.Queries.Register("GetStats", func(ctx context.Context, q query.Query) (any, error) {
-		total, active, completed := c.Read.Stats()
-		return map[string]int{
-			"total":     total,
-			"active":    active,
-			"completed": completed,
-		}, nil
 	})
 }
 
