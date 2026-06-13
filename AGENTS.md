@@ -235,6 +235,15 @@ nix develop          # Enter dev shell (go, gopls, golangci-lint)
 
 Root module runs in workspace mode (uses go.work). Submodules need `GOWORK=off` so each uses its own go.mod.
 
+The `flake.nix` provides per-module nix apps that set `GOWORK=off` automatically:
+
+- `nix run .#test-root` — run root tests in isolation
+- `nix run .#test-usermgmt` — run usermgmt tests in isolation
+- `nix run .#test-integration` — run integration_test in isolation
+- `nix run .#build-datastar-demo` — build the example
+
+The multi-module `nix run .#test` and `nix run .#build` apps run all four modules in sequence.
+
 ```bash
 # All tests (root)
 GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1

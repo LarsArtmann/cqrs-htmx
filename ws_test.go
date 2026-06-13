@@ -170,5 +170,44 @@ var _ = Describe("WebSocket Protocol Helpers", func() {
 			Expect(msg.Name).To(Equal("test"))
 			Expect(msg.Count).To(Equal(42))
 		})
+
+		It("returns error when body cannot be unmarshaled into target type", func() {
+			type strictMsg struct {
+				Count int `json:"count"`
+			}
+
+			// "count" is a string but the target expects an int.
+			data := []byte(`{"count":"not-a-number"}`)
+
+			_, _, err := cqrshtmx.ParseWSMessageInto[strictMsg](data)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("parse ws message into"))
+		})
+
+		It("handles non-string typed body field", func() {
+			type flexibleMsg struct {
+				Count int `json:"count"`
+			}
+
+			data := []byte(`{"count":42,"HEADERS":{"HX-Request":"true"}}`)
+
+			msg, headers, err := cqrshtmx.ParseWSMessageInto[flexibleMsg](data)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(msg.Count).To(Equal(42))
+			Expect(headers).To(HaveLen(1))
+		})
+	})
+
+	Describe("parseWSHeaders (via ParseWSMessageInto)", func() {
+		It("handles HEADERS with non-string non-numeric values gracefully", func() {
+			data := []byte(`{"HEADERS":{"foo":null,"bar":true,"baz":"x"}}`)
+
+			_, headers, err := cqrshtmx.ParseWSMessageInto[map[string]any](data)
+			Expect(err).NotTo(HaveOccurred())
+			// Only the string-valued header survives; non-strings are dropped.
+			Expect(headers).To(HaveKeyWithValue("baz", "x"))
+			Expect(headers).NotTo(HaveKey("foo"))
+			Expect(headers).NotTo(HaveKey("bar"))
+		})
 	})
 })

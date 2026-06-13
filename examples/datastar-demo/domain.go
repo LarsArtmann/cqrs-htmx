@@ -77,6 +77,20 @@ type DeleteTodoCmd struct {
 	*command.BasicCommand
 }
 
+// UpdateTodoCmd changes the title of an existing todo.
+// It demonstrates the update-pattern: an event-driven replacement of
+// a single field on an aggregate.
+type UpdateTodoCmd struct {
+	*command.BasicCommand
+	Title string
+}
+
+// TodoUpdatedPayload is the event payload emitted by UpdateTodoCmd.
+type TodoUpdatedPayload struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+}
+
 // --- Queries ---
 
 type ListTodosQry struct {
@@ -89,6 +103,26 @@ func NewListTodosQry() (*ListTodosQry, error) {
 		return nil, err
 	}
 	return &ListTodosQry{BasicQuery: core}, nil
+}
+
+// Stats is the read-only result of a GetStatsQry.
+type Stats struct {
+	Total     int
+	Active    int
+	Completed int
+}
+
+// GetStatsQry is a typed query that returns aggregate todo counts.
+type GetStatsQry struct {
+	*query.BasicQuery
+}
+
+func NewGetStatsQry() (*GetStatsQry, error) {
+	core, err := query.New("GetStats")
+	if err != nil {
+		return nil, err
+	}
+	return &GetStatsQry{BasicQuery: core}, nil
 }
 
 // --- Event Store (in-memory) ---
@@ -178,6 +212,13 @@ func (p *Projector) Apply(event DomainEvent) {
 			}
 		}
 		p.order = newOrder
+
+	case "TodoUpdated":
+		var payload TodoUpdatedPayload
+		_ = json.Unmarshal(event.Payload, &payload)
+		if todo, ok := p.todos[payload.ID]; ok {
+			todo.Title = payload.Title
+		}
 	}
 }
 
@@ -302,6 +343,10 @@ func NewCQRS() *CQRS {
 			evt.Kind = "todo_updated"
 			t := findTodoByID(read, e.AggregateID)
 			evt.Data = renderTodo(t)
+		case "TodoUpdated":
+			evt.Kind = "todo_updated"
+			t := findTodoByID(read, e.AggregateID)
+			evt.Data = renderTodo(t)
 		case "TodoDeleted":
 			evt.Kind = "todo_deleted"
 			evt.Data = "#todo-" + e.AggregateID
@@ -379,11 +424,30 @@ func (c *CQRS) registerCommandHandlers() {
 		})
 		return nil
 	})
+
+	_ = command.RegisterTyped(c.Commands, "UpdateTodo", func(ctx context.Context, cmd *UpdateTodoCmd) error {
+		todoID := cmd.AggregateID().String()
+		payload, _ := json.Marshal(TodoUpdatedPayload{ID: todoID, Title: cmd.Title})
+
+		c.Events.Append(DomainEvent{
+			AggregateID: todoID,
+			Type:        "TodoUpdated",
+			User:        userName(ctx),
+			Payload:     payload,
+			OccurredAt:  time.Now(),
+		})
+		return nil
+	})
 }
 
 func (c *CQRS) registerQueryHandlers() {
 	_ = query.RegisterTyped(c.Queries, "ListTodos", func(ctx context.Context, q *ListTodosQry) ([]Todo, error) {
 		return c.Read.List(), nil
+	})
+
+	_ = query.RegisterTyped(c.Queries, "GetStats", func(_ context.Context, _ *GetStatsQry) (Stats, error) {
+		total, active, completed := c.Read.Stats()
+		return Stats{Total: total, Active: active, Completed: completed}, nil
 	})
 }
 
@@ -420,6 +484,18 @@ func NewDeleteTodo(todoID string) (*DeleteTodoCmd, error) {
 		return nil, fmt.Errorf("create DeleteTodo command for todo %q: %w", todoID, err)
 	}
 	return &DeleteTodoCmd{BasicCommand: core}, nil
+}
+
+func NewUpdateTodo(todoID, title string) (*UpdateTodoCmd, error) {
+	aggID, err := id.ParseAggregateID(todoID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid todo ID %q: %w", todoID, err)
+	}
+	core, err := command.New("UpdateTodo", aggID)
+	if err != nil {
+		return nil, fmt.Errorf("create UpdateTodo command for todo %q: %w", todoID, err)
+	}
+	return &UpdateTodoCmd{BasicCommand: core, Title: title}, nil
 }
 
 // --- Simulator ---

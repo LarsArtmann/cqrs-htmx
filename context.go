@@ -163,3 +163,17 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 
 	return opts
 }
+
+// EventOptionsFromContextWithSource is like EventOptionsFromContext but
+// additionally sets the event source when serviceName is a valid event.Source.
+// An empty or invalid serviceName is silently dropped (no source option added).
+func EventOptionsFromContextWithSource(ctx context.Context, serviceName string) []event.Option {
+	opts := EventOptionsFromContext(ctx)
+	if serviceName == "" {
+		return opts
+	}
+	if src, err := event.ParseSource(serviceName); err == nil {
+		opts = append(opts, event.WithSource(src))
+	}
+	return opts
+}

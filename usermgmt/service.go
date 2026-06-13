@@ -113,6 +113,19 @@ func formatValidationErrors(errs []string) error {
 	return event.NewRejection("validation", strings.Join(errs, "; ")).WithCause(ErrValidation)
 }
 
+// withUserIDContext annotates an *event.Error with the affected user ID.
+// The user ID is the only identifying context added: it is already known
+// to the service and is required for log correlation. Email, display name,
+// and other PII are deliberately NOT included to avoid leaking data through
+// error chains. The returned error is the same pointer if err is nil or
+// is not an *event.Error.
+func withUserIDContext(err *event.Error, userID UserID) *event.Error {
+	if err == nil || userID.IsZero() {
+		return err
+	}
+	return err.WithContext("user_id", userID.Get())
+}
+
 // Validate checks the RegisterRequest fields and returns ErrValidation with
 // a joined list of problems if any field is invalid.
 // It trims leading/trailing whitespace from Email and DisplayName in-place.
@@ -152,13 +165,13 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	}
 	user := NewUser(req.ID, req.Email, req.DisplayName)
 	if err := user.SetPasswordWithCost(req.Password, s.bcryptCost); err != nil {
-		return nil, event.NewTransient("internal", "set password").WithCause(err)
+		return nil, withUserIDContext(event.NewTransient("internal", "set password").WithCause(err), user.ID)
 	}
 
 	user.AddRole(RoleUser)
 
 	if err := s.users.Create(ctx, user); err != nil {
-		return nil, event.NewTransient("internal", "create user").WithCause(err)
+		return nil, withUserIDContext(event.NewTransient("internal", "create user").WithCause(err), user.ID)
 	}
 
 	policy := GroupPolicy{
@@ -168,7 +181,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 		if delErr := s.users.Delete(ctx, user.ID); delErr != nil {
 			s.logAuth("register_rollback_delete_failed", user.ID, "rollback_error", delErr)
 		}
-		return nil, event.NewTransient("internal", "assign role").WithCause(err)
+		return nil, withUserIDContext(event.NewTransient("internal", "assign role").WithCause(err), user.ID)
 	}
 
 	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
@@ -179,7 +192,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 		if delErr := s.users.Delete(ctx, user.ID); delErr != nil {
 			s.logAuth("register_rollback_delete_failed", user.ID, "rollback_error", delErr)
 		}
-		return nil, event.NewTransient("internal", "create session").WithCause(err)
+		return nil, withUserIDContext(event.NewTransient("internal", "create session").WithCause(err), user.ID)
 	}
 
 	s.emit(user.ID, UserRegisteredEvent{
@@ -267,7 +280,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 
 	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
-		return nil, event.NewTransient("internal", "create session").WithCause(err)
+		return nil, withUserIDContext(event.NewTransient("internal", "create session").WithCause(err), user.ID)
 	}
 
 	s.emit(user.ID, UserLoggedInEvent{
@@ -324,9 +337,19 @@ func (s *Service) GetUser(ctx context.Context, id UserID) (*User, error) {
 		if errors.Is(err, ErrUserNotFound) {
 			return nil, fmt.Errorf("get user %q: %w", id, err)
 		}
-		return nil, event.NewTransient("internal", "get user").WithCause(err)
+		return nil, withUserIDContext(event.NewTransient("internal", "get user").WithCause(err), id)
 	}
 	return u, nil
+}
+
+// transientErr creates a transient error with a user ID context. It is
+// a thin wrapper over event.NewTransient + WithCause + withUserIDContext
+// used to keep the public service methods concise.
+func transientErr(userID UserID, msg string, cause error) error {
+	return withUserIDContext(
+		event.NewTransient("internal", msg).WithCause(cause),
+		userID,
+	)
 }
 
 // UpdateRoles replaces the user's roles in both the Casbin policy and the user store.
@@ -341,23 +364,26 @@ func (s *Service) UpdateRoles(
 		if errors.Is(err, ErrUserNotFound) {
 			return fmt.Errorf("update roles: find user %q in domain %q: %w", userID, domain, err)
 		}
-		return event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err)
+		return transientErr(userID, fmt.Sprintf("find user %q", userID), err)
 	}
 
 	currentRoles, err := s.authz.RolesForUser(userID, domain)
 	if err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("get roles for user %q in domain %q", userID, domain)).
-			WithCause(err)
+		return transientErr(
+			userID,
+			fmt.Sprintf("get roles for user %q in domain %q", userID, domain),
+			err,
+		)
 	}
 
-	var remove []GroupPolicy
+	remove := make([]GroupPolicy, 0, len(currentRoles))
 	for _, role := range currentRoles {
 		remove = append(remove, GroupPolicy{
 			Subject: userID.Get(), Role: role, Domain: domain,
 		})
 	}
 
-	var add []GroupPolicy
+	add := make([]GroupPolicy, 0, len(roles))
 	for _, role := range roles {
 		add = append(add, GroupPolicy{
 			Subject: userID.Get(), Role: role, Domain: domain,
@@ -370,8 +396,7 @@ func (s *Service) UpdateRoles(
 		RemoveGroups: remove,
 		AddGroups:    add,
 	}); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("apply role update for user %q", userID)).
-			WithCause(err)
+		return transientErr(userID, fmt.Sprintf("apply role update for user %q", userID), err)
 	}
 
 	if err := s.saveUser(ctx, user, "after role update", userID); err != nil {
@@ -398,8 +423,11 @@ func formatRoles(roles []Role) string {
 
 func (s *Service) saveUser(ctx context.Context, user *User, context string, userID UserID) error {
 	if err := s.users.Save(ctx, user); err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("save user %q %s", userID, context)).
-			WithCause(err)
+		return withUserIDContext(
+			event.NewTransient("internal", fmt.Sprintf("save user %q %s", userID, context)).
+				WithCause(err),
+			userID,
+		)
 	}
 	return nil
 }
@@ -420,7 +448,10 @@ func (s *Service) ChangePassword(
 ) error {
 	user, err := s.users.FindByID(ctx, userID)
 	if err != nil {
-		return event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err)
+		return withUserIDContext(
+			event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err),
+			userID,
+		)
 	}
 
 	matched, err := user.ChangePassword(oldPassword, newPassword, s.bcryptCost)

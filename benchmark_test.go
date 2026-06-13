@@ -11,6 +11,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
@@ -305,4 +306,108 @@ func BenchmarkRenderJSON(b *testing.B) {
 		cqrshtmx.RenderJSON[map[string]string](),
 	)
 	benchGETWithBody(b, handler, "/user")
+}
+
+func BenchmarkDecodePagination(b *testing.B) {
+	benchCases := []struct {
+		name string
+		url  string
+	}{
+		{"no_params", "/items"},
+		{"with_page", "/items?page=5"},
+		{"with_size", "/items?page_size=50"},
+		{"with_both", "/items?page=3&page_size=25"},
+		{"with_extras", "/items?page=3&page_size=25&filter=active&sort=name&order=asc"},
+		{"invalid_page", "/items?page=abc"},
+		{"zero_page", "/items?page=0"},
+		{"huge_size", "/items?page_size=10000"},
+	}
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			r := httptest.NewRequest(http.MethodGet, bc.url, nil)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_ = cqrshtmx.DecodePagination(r)
+			}
+		})
+	}
+}
+
+// benchmarkCreateUserCmd is a typed command used by the RegisterTyped
+// benchmarks. It satisfies command.Command.
+type benchmarkCreateUserCmd struct {
+	*command.BasicCommand
+}
+
+func (c *benchmarkCreateUserCmd) Email() string { return "bench@example.com" }
+
+func newBenchmarkCreateUserCmd() *benchmarkCreateUserCmd {
+	core, err := command.New("CreateUser", id.NewAggregateID())
+	if err != nil {
+		panic(err)
+	}
+	return &benchmarkCreateUserCmd{BasicCommand: core}
+}
+
+func BenchmarkCommandRegisterTypedVsRegister(b *testing.B) {
+	b.Run("RegisterTyped", func(b *testing.B) {
+		disp := command.NewDispatcher()
+		if err := command.RegisterTyped(
+			disp, "CreateUser",
+			func(_ context.Context, _ *benchmarkCreateUserCmd) error { return nil },
+		); err != nil {
+			b.Fatal(err)
+		}
+		cmd := newBenchmarkCreateUserCmd()
+		ctx := context.Background()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = disp.Dispatch(ctx, cmd)
+		}
+	})
+
+	b.Run("Register_with_type_assertion", func(b *testing.B) {
+		disp := command.NewDispatcher()
+		_ = disp.Register("CreateUser", func(_ context.Context, c command.Command) error {
+			_, _ = c.(*benchmarkCreateUserCmd)
+			return nil
+		})
+		cmd := newBenchmarkCreateUserCmd()
+		ctx := context.Background()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = disp.Dispatch(ctx, cmd)
+		}
+	})
+}
+
+func BenchmarkQueryDispatchTypedVsDispatch(b *testing.B) {
+	b.Run("DispatchTyped", func(b *testing.B) {
+		disp := query.NewDispatcher()
+		_ = query.RegisterTyped(
+			disp, "ListUsers",
+			func(_ context.Context, _ *testListUsersQuery) ([]string, error) {
+				return []string{"a", "b"}, nil
+			},
+		)
+		q := newTestListUsersQuery()
+		ctx := context.Background()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_, _ = query.DispatchTyped[[]string](ctx, disp, q)
+		}
+	})
+
+	b.Run("Dispatch_with_type_assertion", func(b *testing.B) {
+		disp := query.NewDispatcher()
+		_ = disp.Register("ListUsers", func(_ context.Context, _ query.Query) (any, error) {
+			return []string{"a", "b"}, nil
+		})
+		q := newTestListUsersQuery()
+		ctx := context.Background()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_, _ = disp.Dispatch(ctx, q)
+		}
+	})
 }

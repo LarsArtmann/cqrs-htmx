@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func FuzzDecodeJSONBody(f *testing.F) {
@@ -103,5 +104,51 @@ func FuzzCSRFConfigValidation(f *testing.F) {
 		_ = cfg.maxAge()
 		_ = cfg.path()
 		_ = cfg.Validate()
+	})
+}
+
+// FuzzEventOptionsFromContext fuzzes the EventOptionsFromContext function
+// with various context values (deadline present/absent, user ID set/unset,
+// correlation ID set/unset, request ID set/unset). Verifies that the
+// function never panics and that the number of returned options is bounded.
+func FuzzEventOptionsFromContext(f *testing.F) {
+	f.Add(0, 0, "", "", "")
+	f.Add(1, 1, "01HK1549P84T9XF8R94E960633", "01HK154ANGZHV2ZW0X3SKSNEN2", "01HK154B5C4EZY5S4Y4HQ3ZX9H")
+	f.Add(1, 0, "bad-ulid", "", "01HK154B5C4EZY5S4Y4HQ3ZX9H")
+
+	f.Fuzz(func(t *testing.T, hasDeadline, hasCancel int, uid, cid, rid string) {
+		ctx := context.Background()
+		if hasDeadline%2 == 1 {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithDeadline(ctx, time.Unix(0, 0).Add(time.Hour))
+			defer cancel()
+		}
+		if hasCancel%2 == 1 {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithCancel(ctx)
+			cancel()
+		}
+		if uid != "" {
+			if parsed, err := ParseUserID(uid); err == nil {
+				ctx = WithUserID(ctx, parsed)
+			}
+		}
+		if cid != "" {
+			if parsed, err := ParseCorrelationID(cid); err == nil {
+				ctx = WithCorrelationID(ctx, parsed)
+			}
+		}
+		if rid != "" {
+			if parsed, err := ParseRequestID(rid); err == nil {
+				ctx = WithRequestID(ctx, parsed)
+			}
+		}
+
+		opts := EventOptionsFromContext(ctx)
+		// Deadlines can be there or not, but the returned options must
+		// always be a bounded slice.
+		if len(opts) > 4 {
+			t.Errorf("too many options: %d", len(opts))
+		}
 	})
 }
