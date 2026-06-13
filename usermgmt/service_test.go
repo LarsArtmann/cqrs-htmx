@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 func TestNewService_Defaults(t *testing.T) {
@@ -489,4 +491,39 @@ func TestService_Login_CaseInsensitive(t *testing.T) {
 	if resp.User.ID != NewUserID("user-1") {
 		t.Errorf("expected user ID user-1, got %s", resp.User.ID)
 	}
+}
+
+func TestWithUserIDContext(t *testing.T) {
+	t.Run("annotates event.Error with user_id context", func(t *testing.T) {
+		original := event.NewTransient("test code", "test message")
+		uid := NewUserID("user-42")
+		got := withUserIDContext(original, uid)
+
+		if got == nil {
+			t.Fatal("expected non-nil error")
+		}
+		if !got.HasContext("user_id") {
+			t.Errorf("expected user_id context, got %#v", got.ErrorContext())
+		}
+		if got.ContextValue("user_id") != "user-42" {
+			t.Errorf("expected user_id=user-42, got %q", got.ContextValue("user_id"))
+		}
+	})
+
+	t.Run("returns nil for nil error", func(t *testing.T) {
+		if got := withUserIDContext(nil, NewUserID("user-1")); got != nil {
+			t.Errorf("expected nil, got %v", got)
+		}
+	})
+
+	t.Run("returns error unchanged for zero user ID", func(t *testing.T) {
+		original := event.NewTransient("code", "msg")
+		got := withUserIDContext(original, UserID{})
+		if got != original {
+			t.Errorf("expected unchanged error pointer")
+		}
+		if got.HasContext("user_id") {
+			t.Errorf("zero user ID should not add context")
+		}
+	})
 }

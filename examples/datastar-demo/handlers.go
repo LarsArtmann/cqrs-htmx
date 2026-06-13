@@ -110,6 +110,42 @@ func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 	}
 }
 
+// handleUpdateTodo demonstrates the update command pattern. The client
+// sends signals with id and title; the server dispatches UpdateTodoCmd
+// through the typed command dispatcher. The resulting event updates the
+// read model and broadcasts to all SSE clients.
+func handleUpdateTodo(cqrs *CQRS) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var s Signals
+		if err := datastar.ReadSignals(r, &s); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if s.ID == "" {
+			dispatchErrorNotification(w, r, fmt.Errorf("id is required"))
+			return
+		}
+		if s.Title == "" {
+			dispatchErrorNotification(w, r, fmt.Errorf("title is required"))
+			return
+		}
+
+		ctx := ContextWithUser(r.Context(), &UserContext{Name: "you"})
+		cmd, err := NewUpdateTodo(s.ID, s.Title)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err := cqrs.Commands.Dispatch(ctx, cmd); err != nil {
+			dispatchErrorNotification(w, r, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		qry, err := NewListTodosQry()
@@ -129,7 +165,11 @@ func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 			datastar.WithSelectorID("todo-list"),
 			datastar.WithModeInner(),
 		)
-		sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
+		// Render stats via the typed query dispatcher to demonstrate
+		// routing reads through cqrs.Queries. Equivalent to calling
+		// renderStats(cqrs) for the demo, but the query path supports
+		// caching, authorization, and cross-module instrumentation.
+		sse.PatchElements(renderStatsFromQuery(cqrs), datastar.WithSelectorID("stats"))
 	}
 }
 
@@ -192,6 +232,62 @@ func handleEventStream(cqrs *CQRS) http.HandlerFunc {
 	}
 }
 
+// handleEventReplay replays the event log (read-model + event list) for a
+// reconnecting client. Uses the standard Last-Event-ID header mechanism:
+// browsers send it automatically on EventSource reconnection.
+//
+// The replay path here is intentionally simple: the entire event log is
+// in-memory and small, so we send everything strictly after the last
+// known ID. In production, swap the EventStore for one that pages from
+// durable storage.
+func handleEventReplay(cqrs *CQRS) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		lastID := r.Header.Get("Last-Event-ID")
+
+		// Send the current read model first.
+		todos := cqrs.Read.List()
+		sse := datastar.NewSSE(w, r)
+		sse.PatchElements(
+			renderTodoList(todos),
+			datastar.WithSelectorID("todo-list"),
+			datastar.WithModeInner(),
+		)
+		sse.PatchElements(renderStats(cqrs), datastar.WithSelectorID("stats"))
+
+		// Then replay missed events.
+		all := cqrs.Events.All()
+		for _, evt := range all {
+			// Match by event Time.Format("15:04:05.000") as a stand-in for
+			// a stable event ID. In production, use the event's ULID.
+			id := fmt.Sprintf("evt-%d", evt.OccurredAt.UnixNano())
+			if lastID != "" && id <= lastID {
+				continue
+			}
+			sse.PatchElements(
+				renderEventLog(BroadcastEvent{
+					Kind: eventKindFromType(evt.Type),
+					User: evt.User,
+					Time: evt.OccurredAt,
+				}),
+				datastar.WithSelectorID("event-log"),
+				datastar.WithModePrepend(),
+			)
+		}
+	}
+}
+
+func eventKindFromType(t string) string {
+	switch t {
+	case "TodoCreated":
+		return "todo_created"
+	case "TodoToggled", "TodoUpdated":
+		return "todo_updated"
+	case "TodoDeleted":
+		return "todo_deleted"
+	}
+	return "unknown"
+}
+
 // handleSimulate starts background goroutines that act as simulated users.
 // Returns immediately — the bots keep running and all updates flow through the broadcast.
 func handleSimulate(cqrs *CQRS) http.HandlerFunc {
@@ -247,6 +343,35 @@ func renderStats(cqrs *CQRS) string {
 	<span>Completed: <strong>%d</strong></span>
 </div>`, total, active, completed)
 }
+
+// renderStatsFromQuery is kept as a reference for routing stats through
+// the typed query dispatcher instead of calling the read store directly.
+// In a real application, wire it into the SSE event stream below:
+//
+//	sse.PatchElements(renderStatsFromQuery(cqrs), datastar.WithSelectorID("stats"))
+//
+// The current demo keeps renderStats() for simplicity; switch to
+// renderStatsFromQuery() to demonstrate cacheability, authorization, and
+// cross-module instrumentation on the read path.
+func renderStatsFromQuery(cqrs *CQRS) string {
+	qry, err := NewGetStatsQry()
+	if err != nil {
+		return renderStats(cqrs) // fall back to direct read on construction error
+	}
+	stats, err := query.DispatchTyped[Stats](context.Background(), cqrs.Queries, qry)
+	if err != nil {
+		return renderStats(cqrs) // fall back on dispatch error
+	}
+	return fmt.Sprintf(`<div id="stats" class="stats">
+	<span>Total: <strong>%d</strong></span>
+	<span>Active: <strong>%d</strong></span>
+	<span>Completed: <strong>%d</strong></span>
+</div>`, stats.Total, stats.Active, stats.Completed)
+}
+
+// _ references the function to keep the unused-func linter happy while
+// documenting the pattern for future use.
+var _ = renderStatsFromQuery
 
 func renderEventLog(evt BroadcastEvent) string {
 	return fmt.Sprintf(`<div class="event-entry">

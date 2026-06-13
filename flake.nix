@@ -128,6 +128,64 @@
                 '';
               };
             };
+
+            test-root = {
+              type = "app";
+              meta.description = "Run the root module's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-root";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
+            test-usermgmt = {
+              type = "app";
+              meta.description = "Run the usermgmt submodule's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-usermgmt";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  cd usermgmt
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
+            test-integration = {
+              type = "app";
+              meta.description = "Run the integration_test module's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-integration";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  cd integration_test
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
+            build-datastar-demo = {
+              type = "app";
+              meta.description = "Build the datastar-demo example binary";
+              program = pkgs.writeShellApplication {
+                name = "build-datastar-demo";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  cd examples/datastar-demo
+                  go build ./... "$@"
+                '';
+              };
+            };
           };
 
         };

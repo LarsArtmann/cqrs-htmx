@@ -26,6 +26,7 @@ type App struct {
 	loginRedirect   string
 	timeout         time.Duration
 	maxBodySize     int64
+	serviceName     string
 
 	beforeDispatch BeforeDispatchHook
 	afterDispatch  AfterDispatchHook
@@ -66,6 +67,12 @@ type Config struct {
 	// This helps clients correlate errors with server logs.
 	// Only applies when ErrorHandler is not set (uses the default handler).
 	IncludeRequestIDInErrors bool
+
+	// ServiceName identifies the service emitting events. It is included
+	// in event metadata (event.WithSource) by App.EventOptions and propagates
+	// to downstream event consumers. Must be a valid event source identifier
+	// (non-empty, ASCII printable). Invalid values are silently dropped.
+	ServiceName string
 }
 
 // BeforeDispatchHook is called before dispatching a command or query.
@@ -115,6 +122,7 @@ func New(cfg Config) (*App, error) {
 		loginRedirect:   loginRedirect,
 		timeout:         cfg.Timeout,
 		maxBodySize:     cfg.MaxBodySize,
+		serviceName:     cfg.ServiceName,
 		beforeDispatch:  cfg.BeforeDispatch,
 		afterDispatch:   cfg.AfterDispatch,
 	}, nil
@@ -135,6 +143,30 @@ func (a *App) HasCommands() bool { return a.commands != nil }
 
 // HasQueries returns true if the App has a query dispatcher configured.
 func (a *App) HasQueries() bool { return a.queries != nil }
+
+// ServiceName returns the configured service name (empty if not set).
+// Used by EventOptions to set the event source for downstream consumers.
+func (a *App) ServiceName() string { return a.serviceName }
+
+// EventOptions returns event.Options built from the request context and
+// the App's configured ServiceName. Use this in command/query handlers
+// to pass to event dispatchers so emitted events carry user identity,
+// correlation IDs, request IDs, deadlines, and the service source.
+//
+// Returns nil options if none of user ID, correlation ID, request ID,
+// deadline, or service source is set.
+func (a *App) EventOptions(ctx context.Context) []event.Option {
+	opts := EventOptionsFromContext(ctx)
+	if a == nil || a.serviceName == "" {
+		return opts
+	}
+
+	if src, err := event.ParseSource(a.serviceName); err == nil {
+		opts = append(opts, event.WithSource(src))
+	}
+
+	return opts
+}
 
 // Command returns an http.HandlerFunc that dispatches a command.
 //

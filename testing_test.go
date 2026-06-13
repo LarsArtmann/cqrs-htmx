@@ -85,6 +85,34 @@ type getPageQuery struct{}
 
 func (q *getPageQuery) Type() query.Type { return "GetPage" }
 
+// testListUsersQuery is used by the ExampleApp_Query_typedRegister example.
+// It embeds *query.BasicQuery to inherit Type() and be dispatchable via
+// query.DispatchTyped.
+type testListUsersQuery struct {
+	*query.BasicQuery
+}
+
+func newTestListUsersQuery() *testListUsersQuery {
+	core, err := query.New("ListUsers")
+	if err != nil {
+		panic(err)
+	}
+	return &testListUsersQuery{BasicQuery: core}
+}
+
+// testGetUserNameQuery is used by the ExampleApp_Query_typedDispatch example.
+type testGetUserNameQuery struct {
+	*query.BasicQuery
+}
+
+func newTestGetUserNameQuery() *testGetUserNameQuery {
+	core, err := query.New("GetUserName")
+	if err != nil {
+		panic(err)
+	}
+	return &testGetUserNameQuery{BasicQuery: core}
+}
+
 // --- Decoder helpers ---
 
 func decodeCreateUserJSON() cqrshtmx.HandlerOption {

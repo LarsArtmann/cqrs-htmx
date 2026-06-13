@@ -1,0 +1,178 @@
+package cqrshtmx_test
+
+import (
+	"bufio"
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+)
+
+// memoryEventStoreForHTTP is a minimal SSEEventStore used by the
+// real-server SSE tests. The existing memoryEventStore in sse_test.go
+// is defined in the same package; this is a duplicate kept local so
+// the helper file is self-contained.
+type memoryEventStoreForHTTP struct {
+	events []cqrshtmx.SSEEvent
+}
+
+func (m *memoryEventStoreForHTTP) EventsAfter(lastID string) []cqrshtmx.SSEEvent {
+	if lastID == "" {
+		return m.events
+	}
+	for i, evt := range m.events {
+		if evt.ID == lastID {
+			if i+1 < len(m.events) {
+				return m.events[i+1:]
+			}
+			return nil
+		}
+	}
+	return nil
+}
+
+// TestSSE_RealServer_ReconnectionWithLastEventID verifies the SSE
+// reconnection path end-to-end: a client reconnects with a
+// Last-Event-ID header, the server reads it, and replays missed events
+// from the SSEEventStore.
+func TestSSE_RealServer_ReconnectionWithLastEventID(t *testing.T) {
+	t.Parallel()
+	store := newReconnectStore()
+	mux := newReconnectMux(store, true)
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	resp := doReconnectRequest(t, server.URL+"/events", "2")
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode)
+	}
+	if got := resp.Header.Get("Content-Type"); !strings.HasPrefix(got, "text/event-stream") {
+		t.Errorf("expected text/event-stream content type, got %q", got)
+	}
+
+	out := readReconnectBody(t, resp)
+
+	assertReplayedAfterID2(t, out)
+}
+
+const reconnectEventKind = "itemCreated"
+
+func newReconnectStore() *memoryEventStoreForHTTP {
+	return &memoryEventStoreForHTTP{
+		events: []cqrshtmx.SSEEvent{
+			{Event: reconnectEventKind, Data: "<li>first</li>", ID: "1"},
+			{Event: reconnectEventKind, Data: "<li>second</li>", ID: "2"},
+			{Event: reconnectEventKind, Data: "<li>third</li>", ID: "3"},
+			{Event: reconnectEventKind, Data: "<li>fourth</li>", ID: "4"},
+		},
+	}
+}
+
+func newReconnectMux(store *memoryEventStoreForHTTP, includeReplayOnError bool) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+		stream := cqrshtmx.NewSSEStream(w, r)
+		defer stream.Close()
+		if lastID := cqrshtmx.LastEventIDFromRequest(r); lastID != "" {
+			if _, err := cqrshtmx.ReplayEvents(stream, store, lastID); err != nil {
+				if includeReplayOnError {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+				return
+			}
+		}
+	})
+	return mux
+}
+
+func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
+	if lastID != "" {
+		req.Header.Set("Last-Event-ID", lastID)
+	}
+	req.Header.Set("Accept", "text/event-stream")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("Do: %v", err)
+	}
+	return resp
+}
+
+func readReconnectBody(t *testing.T, resp *http.Response) string {
+	t.Helper()
+	scanner := bufio.NewScanner(resp.Body)
+	var body strings.Builder
+	for scanner.Scan() {
+		body.WriteString(scanner.Text())
+		body.WriteString("\n")
+	}
+	if err := scanner.Err(); err != nil {
+		t.Fatalf("scan body: %v", err)
+	}
+	return body.String()
+}
+
+func assertReplayedAfterID2(t *testing.T, out string) {
+	t.Helper()
+	if !strings.Contains(out, "id: 3") {
+		t.Errorf("expected replayed id: 3, body:\n%s", out)
+	}
+	if !strings.Contains(out, "id: 4") {
+		t.Errorf("expected replayed id: 4, body:\n%s", out)
+	}
+	if strings.Contains(out, "id: 1") || strings.Contains(out, "id: 2") {
+		t.Errorf("did not expect ids 1 or 2 to be replayed, body:\n%s", out)
+	}
+	if !strings.Contains(out, "data: <li>third</li>") {
+		t.Errorf("expected third event data, body:\n%s", out)
+	}
+	if !strings.Contains(out, "data: <li>fourth</li>") {
+		t.Errorf("expected fourth event data, body:\n%s", out)
+	}
+}
+
+// TestSSE_RealServer_ReconnectionNoLastID verifies that a fresh client
+// (no Last-Event-ID) does not trigger replay; only the initial stream
+// handshake occurs.
+func TestSSE_RealServer_ReconnectionNoLastID(t *testing.T) {
+	t.Parallel()
+	store := &memoryEventStoreForHTTP{
+		events: []cqrshtmx.SSEEvent{
+			{Event: "x", Data: "y", ID: "1"},
+		},
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+		stream := cqrshtmx.NewSSEStream(w, r)
+		defer stream.Close()
+		if lastID := cqrshtmx.LastEventIDFromRequest(r); lastID != "" {
+			_, _ = cqrshtmx.ReplayEvents(stream, store, lastID)
+		}
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	resp := doReconnectRequest(t, server.URL+"/events", "")
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode)
+	}
+}

@@ -15,8 +15,10 @@ func main() {
 	mux.HandleFunc("POST /api/todos", handleCreateTodo(cqrs))
 	mux.HandleFunc("POST /api/todos/toggle", handleToggleTodo(cqrs))
 	mux.HandleFunc("POST /api/todos/delete", handleDeleteTodo(cqrs))
+	mux.HandleFunc("POST /api/todos/update", handleUpdateTodo(cqrs))
 	mux.HandleFunc("GET /api/todos", handleListTodos(cqrs))
 	mux.HandleFunc("GET /api/events", handleEventStream(cqrs))
+	mux.HandleFunc("GET /api/events/replay", handleEventReplay(cqrs))
 	mux.HandleFunc("POST /api/simulate", handleSimulate(cqrs))
 
 	addr := ":8095"

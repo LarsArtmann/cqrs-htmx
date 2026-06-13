@@ -5,8 +5,10 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -203,6 +205,101 @@ var _ = Describe("Context", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(evt).NotTo(BeNil())
+		})
+	})
+
+	Describe("EventOptionsFromContextWithSource", func() {
+		It("returns nil options for empty context and empty service name", func() {
+			opts := cqrshtmx.EventOptionsFromContextWithSource(context.Background(), "")
+			Expect(opts).To(BeNil())
+		})
+
+		It("returns base options for empty service name", func() {
+			ctx := context.Background()
+			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+			ctx = cqrshtmx.WithUserID(ctx, userID)
+
+			opts := cqrshtmx.EventOptionsFromContextWithSource(ctx, "")
+			Expect(opts).NotTo(BeNil())
+			Expect(opts).To(HaveLen(1))
+		})
+
+		It("appends source option when service name is valid", func() {
+			ctx := context.Background()
+			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+			ctx = cqrshtmx.WithUserID(ctx, userID)
+
+			opts := cqrshtmx.EventOptionsFromContextWithSource(ctx, "my-service")
+			Expect(opts).NotTo(BeNil())
+			Expect(opts).To(HaveLen(2))
+		})
+
+		It("accepts any non-empty service name (ParseSource only checks empty)", func() {
+			ctx := context.Background()
+			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+			ctx = cqrshtmx.WithUserID(ctx, userID)
+
+			opts := cqrshtmx.EventOptionsFromContextWithSource(ctx, "anything-non-empty")
+			Expect(opts).NotTo(BeNil())
+			Expect(opts).To(HaveLen(2))
+		})
+	})
+
+	Describe("App.EventOptions", func() {
+		It("returns nil options when no IDs and no service name", func() {
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands: command.NewDispatcher(),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(app.EventOptions(context.Background())).To(BeNil())
+		})
+
+		It("appends source option when ServiceName is set", func() {
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:    command.NewDispatcher(),
+				ServiceName: "my-service",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			ctx := context.Background()
+			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+			ctx = cqrshtmx.WithUserID(ctx, userID)
+
+			opts := app.EventOptions(ctx)
+			Expect(opts).NotTo(BeNil())
+			Expect(opts).To(HaveLen(2))
+		})
+
+		It("returns base options when ServiceName is empty", func() {
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands: command.NewDispatcher(),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			ctx := context.Background()
+			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+			ctx = cqrshtmx.WithUserID(ctx, userID)
+
+			opts := app.EventOptions(ctx)
+			Expect(opts).NotTo(BeNil())
+			Expect(opts).To(HaveLen(1))
+		})
+
+		It("exposes ServiceName via getter", func() {
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:    command.NewDispatcher(),
+				ServiceName: "exposed-name",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(app.ServiceName()).To(Equal("exposed-name"))
+		})
+
+		It("returns empty string from ServiceName when unset", func() {
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Queries: query.NewDispatcher(),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(app.ServiceName()).To(BeEmpty())
 		})
 	})
 })

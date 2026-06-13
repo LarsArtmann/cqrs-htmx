@@ -6,6 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v2 v2.0.0
 	github.com/larsartmann/cqrs-htmx/v2 v2.0.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/query/v2 v2.3.0
 )
 
 require (
@@ -20,7 +21,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/larsartmann/httputil v0.2.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
