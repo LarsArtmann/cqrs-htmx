@@ -106,7 +106,11 @@ func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
 	}
 	req.Header.Set("Accept", "text/event-stream")
 
-	resp, err := http.DefaultClient.Do(req)
+	// Per-test client with a short timeout: avoids races on the
+	// shared http.DefaultClient connection pool when tests run with
+	// t.Parallel() under -race.
+	client := &http.Client{Timeout: 3 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		t.Fatalf("Do: %v", err)
 	}
