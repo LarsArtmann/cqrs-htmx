@@ -10,13 +10,13 @@
 
 The BuildFlow pre-commit warning reported **21 files exceeding the 350-line limit** at session start. We split every one of them. Working tree is clean, all 22 todos completed, all tests pass across all 4 modules.
 
-| Metric | Start | End |
-|---|---|---|
-| Files over 350 lines | 21 | **0** |
-| Largest file | 1265 lines (coverage_test.go) | 314 lines (usermgmt/authz_test.go) |
-| Test failures | 0 | 0 |
-| Build failures | 0 | 0 |
-| BuildFlow file-size-check | FAIL (21 violations) | **PASS** |
+| Metric                    | Start                         | End                                |
+| ------------------------- | ----------------------------- | ---------------------------------- |
+| Files over 350 lines      | 21                            | **0**                              |
+| Largest file              | 1265 lines (coverage_test.go) | 314 lines (usermgmt/authz_test.go) |
+| Test failures             | 0                             | 0                                  |
+| Build failures            | 0                             | 0                                  |
+| BuildFlow file-size-check | FAIL (21 violations)          | **PASS**                           |
 
 ---
 
@@ -24,29 +24,29 @@ The BuildFlow pre-commit warning reported **21 files exceeding the 350-line limi
 
 ### 21 source files split into 102 files, all under 350 lines
 
-| # | Original | Lines | New Files | Max Lines | Commits |
-|---|---|---|---|---|---|
-| 1 | coverage_test.go | 1265 | 8 (coverage_rendering, coverage_render_dispatch, coverage_notify, coverage_errors, coverage_dispatch, coverage_response, coverage_handleropts, coverage_helpers) | 234 | 5a2df8f, 701acee |
-| 2 | usermgmt/coverage_test.go | 932 | 6 (coverage_authz, coverage_handlers, coverage_lockout, coverage_service, coverage_session, coverage_store) | 304 | ec842f4 |
-| 3 | csrf_test.go | 659 | 5 (csrf_helpers, csrf_middleware, csrf_handlers, csrf_advanced, csrf_defaults) | 249 | 30746b9 |
-| 4 | sse_test.go | 575 | 5 (sse_helpers, sse_event, sse_broadcaster, sse_reconnect, sse_bridge) | 213 | d989411 |
-| 5 | examples/datastar-demo/domain.go | 560 | 4 (domain_types, domain_store, domain_cqrs, domain_commands) | 194 | 2187229, 3b9f95b |
-| 6 | usermgmt/service_test.go | 529 | 6 (service_register, service_login, service_auth, service_password, service_roles, service_misc) | 153 | 305ef42 |
-| 7 | integration_test.go | 529 | 4 (integration_helpers, integration_cqrs, integration_csrf, integration_advanced) | 215 | 219519d |
-| 8 | example_test.go | 516 | 8 (example_app, example_htmx, example_logging, example_security, example_ratelimit, example_handler, example_sse, example_ws) | 297 | d8569c8 |
-| 9 | options.go | 453 | 6 (options_types, options_decode, options_render, options_validate, options_htmx, options_json) | 127 | e49f89d |
-| 10 | usermgmt/service.go | 470 | 4 (service_core, service_register, service_login, service_misc) | 150 | 182294f |
-| 11 | usermgmt/authz.go | 457 | 3 (authz_types, authz_policies, authz_roles) | 262 | aaaaf21 |
-| 12 | htmx_test.go | 452 | 5 (htmx_core, htmx_response, htmx_swap, htmx_context, htmx_notify) | 213 | 98c0063 |
-| 13 | app_test.go | 449 | 3 (app_test, authorization_test, handleropts_test) | 305 | dc63ae5, 6aac0dd |
-| 14 | usermgmt/handler_test.go | 439 | 7 (handler_helpers, handler_register, handler_login, handler_logout, handler_me, handler_session, handler_misc) | 184 | ed939f6 |
-| 15 | benchmark_test.go | 413 | 5 (benchmark_error, benchmark_htmx, benchmark_dispatch, benchmark_middleware, benchmark_response) | 176 | 9d53da3 |
-| 16 | usermgmt/user_test.go | 410 | 6 (user_construct, user_roles, user_mutation, session, user_store, session_store) | 136 | 64f8643 |
-| 17 | examples/datastar-demo/handlers.go | 390 | 2 (handlers_helpers, handlers_routes) | 289 | 9ebf9a7 |
-| 18 | testing_test.go | 389 | 5 (testing_types, testing_queries, testing_handlers, testing_middleware, testing_noop) | 131 | 8d2d6af |
-| 19 | sse.go | 378 | 4 (sse_event, sse_stream, sse_store, sse_broadcaster) | 147 | 6ef2c5c |
-| 20 | ratelimit.go | 352 | 2 (ratelimit_config, ratelimit_middleware) | 181 | a538c36 |
-| 21 | csrf.go | 352 | 3 (csrf_config, csrf_context, csrf_middleware) | 182 | 0760a8b |
+| #   | Original                           | Lines | New Files                                                                                                                                                        | Max Lines | Commits          |
+| --- | ---------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------- |
+| 1   | coverage_test.go                   | 1265  | 8 (coverage_rendering, coverage_render_dispatch, coverage_notify, coverage_errors, coverage_dispatch, coverage_response, coverage_handleropts, coverage_helpers) | 234       | 5a2df8f, 701acee |
+| 2   | usermgmt/coverage_test.go          | 932   | 6 (coverage_authz, coverage_handlers, coverage_lockout, coverage_service, coverage_session, coverage_store)                                                      | 304       | ec842f4          |
+| 3   | csrf_test.go                       | 659   | 5 (csrf_helpers, csrf_middleware, csrf_handlers, csrf_advanced, csrf_defaults)                                                                                   | 249       | 30746b9          |
+| 4   | sse_test.go                        | 575   | 5 (sse_helpers, sse_event, sse_broadcaster, sse_reconnect, sse_bridge)                                                                                           | 213       | d989411          |
+| 5   | examples/datastar-demo/domain.go   | 560   | 4 (domain_types, domain_store, domain_cqrs, domain_commands)                                                                                                     | 194       | 2187229, 3b9f95b |
+| 6   | usermgmt/service_test.go           | 529   | 6 (service_register, service_login, service_auth, service_password, service_roles, service_misc)                                                                 | 153       | 305ef42          |
+| 7   | integration_test.go                | 529   | 4 (integration_helpers, integration_cqrs, integration_csrf, integration_advanced)                                                                                | 215       | 219519d          |
+| 8   | example_test.go                    | 516   | 8 (example_app, example_htmx, example_logging, example_security, example_ratelimit, example_handler, example_sse, example_ws)                                    | 297       | d8569c8          |
+| 9   | options.go                         | 453   | 6 (options_types, options_decode, options_render, options_validate, options_htmx, options_json)                                                                  | 127       | e49f89d          |
+| 10  | usermgmt/service.go                | 470   | 4 (service_core, service_register, service_login, service_misc)                                                                                                  | 150       | 182294f          |
+| 11  | usermgmt/authz.go                  | 457   | 3 (authz_types, authz_policies, authz_roles)                                                                                                                     | 262       | aaaaf21          |
+| 12  | htmx_test.go                       | 452   | 5 (htmx_core, htmx_response, htmx_swap, htmx_context, htmx_notify)                                                                                               | 213       | 98c0063          |
+| 13  | app_test.go                        | 449   | 3 (app_test, authorization_test, handleropts_test)                                                                                                               | 305       | dc63ae5, 6aac0dd |
+| 14  | usermgmt/handler_test.go           | 439   | 7 (handler_helpers, handler_register, handler_login, handler_logout, handler_me, handler_session, handler_misc)                                                  | 184       | ed939f6          |
+| 15  | benchmark_test.go                  | 413   | 5 (benchmark_error, benchmark_htmx, benchmark_dispatch, benchmark_middleware, benchmark_response)                                                                | 176       | 9d53da3          |
+| 16  | usermgmt/user_test.go              | 410   | 6 (user_construct, user_roles, user_mutation, session, user_store, session_store)                                                                                | 136       | 64f8643          |
+| 17  | examples/datastar-demo/handlers.go | 390   | 2 (handlers_helpers, handlers_routes)                                                                                                                            | 289       | 9ebf9a7          |
+| 18  | testing_test.go                    | 389   | 5 (testing_types, testing_queries, testing_handlers, testing_middleware, testing_noop)                                                                           | 131       | 8d2d6af          |
+| 19  | sse.go                             | 378   | 4 (sse_event, sse_stream, sse_store, sse_broadcaster)                                                                                                            | 147       | 6ef2c5c          |
+| 20  | ratelimit.go                       | 352   | 2 (ratelimit_config, ratelimit_middleware)                                                                                                                       | 181       | a538c36          |
+| 21  | csrf.go                            | 352   | 3 (csrf_config, csrf_context, csrf_middleware)                                                                                                                   | 182       | 0760a8b          |
 
 **22 commits created** spanning 2026-06-13 to 2026-06-14.
 
@@ -113,7 +113,7 @@ Nothing structurally broken. A few minor incidents during the session that were 
 
 6. **usermgmt/authz_types.go (262 lines)** is still 12% over 250. Could split into authz_types.go (types only) + authz_core.go (NewAuthz + Enforce methods).
 
-7. **examples/datastar-demo/handlers_helpers.go (289 lines)** is the second largest. Could split further into handlers_render.go (render* functions) and handlers_helpers.go (extractTitle, eventKindFromType).
+7. **examples/datastar-demo/handlers_helpers.go (289 lines)** is the second largest. Could split further into handlers_render.go (render\* functions) and handlers_helpers.go (extractTitle, eventKindFromType).
 
 8. **examples/datastar-demo/domain_cqrs.go (194 lines)** has `CQRS` struct + `registerCommandHandlers` (62 lines) + `registerQueryHandlers` (13 lines) + `userName` (7 lines). The `registerCommandHandlers` is the biggest single block — could extract to `domain_handlers.go`.
 
@@ -168,12 +168,14 @@ Nothing structurally broken. A few minor incidents during the session that were 
 **Was the original todo list of "21 files exceeding 350 lines" produced by BuildFlow, and does BuildFlow consider lines in `*_test.go` files when checking?**
 
 I observed that:
+
 - BuildFlow reported 21 files at session start
 - After my splits, BuildFlow reports 0 files
 - But some of the original files were 100% lines over the limit (e.g., `coverage_test.go` at 261% over)
 - I never ran BuildFlow with `--verbose` or `--debug` to see exactly which line-counting logic it uses
 
 I want to know:
+
 1. Does BuildFlow use `wc -l` or `cloc` or something more sophisticated?
 2. Does it count blank lines and comments? (I notice some of my new files are mostly tests with lots of `It(...)` calls — would the line count differ if comments were stripped?)
 3. Are there any other limits beyond 350 (e.g., function length, cyclomatic complexity) that are silently accumulating?
