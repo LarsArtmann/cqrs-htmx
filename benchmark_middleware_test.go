@@ -22,7 +22,7 @@ func BenchmarkRequestLogging(b *testing.B) {
 	b.Run("JSONFormatter", func(b *testing.B) {
 		jsonMw := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(_ string) {})
 		jsonHandler := jsonMw(okHandler())
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			r := httptest.NewRequest(http.MethodGet, "/users", nil)
 			w := httptest.NewRecorder()
 			jsonHandler.ServeHTTP(w, r)
@@ -32,7 +32,7 @@ func BenchmarkRequestLogging(b *testing.B) {
 	b.Run("WithContextIDs", func(b *testing.B) {
 		uid := cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2")
 		cid := cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633")
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			r := httptest.NewRequest(http.MethodGet, "/users", nil)
 			ctx := cqrshtmx.WithUserID(r.Context(), uid)
 			ctx = cqrshtmx.WithCorrelationID(ctx, cid)
@@ -74,7 +74,7 @@ func BenchmarkCSRFMiddleware(b *testing.B) {
 		}
 
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
 			r.Header.Set("X-CSRF-Token", token)
 			r.Header.Set("Sec-Fetch-Site", "same-origin")
@@ -120,7 +120,7 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 		handler := middleware(okHandler())
 
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.RemoteAddr = "192.168.1.1:1234"
 			w := httptest.NewRecorder()

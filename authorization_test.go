@@ -11,7 +11,6 @@ import (
 )
 
 var _ = Describe("Authorization", func() {
-
 	Describe("Enforce", func() {
 		It("allows permitted actions", func() {
 			e := newTestEnforcer()

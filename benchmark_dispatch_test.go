@@ -53,7 +53,7 @@ func BenchmarkCommandRegisterTypedVsRegister(b *testing.B) {
 		cmd := newBenchmarkCreateUserCmd()
 		ctx := context.Background()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			_ = disp.Dispatch(ctx, cmd)
 		}
 	})
@@ -67,7 +67,7 @@ func BenchmarkCommandRegisterTypedVsRegister(b *testing.B) {
 		cmd := newBenchmarkCreateUserCmd()
 		ctx := context.Background()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			_ = disp.Dispatch(ctx, cmd)
 		}
 	})
@@ -85,7 +85,7 @@ func BenchmarkQueryDispatchTypedVsDispatch(b *testing.B) {
 		q := newTestListUsersQuery()
 		ctx := context.Background()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			_, _ = query.DispatchTyped[[]string](ctx, disp, q)
 		}
 	})
@@ -98,7 +98,7 @@ func BenchmarkQueryDispatchTypedVsDispatch(b *testing.B) {
 		q := newTestListUsersQuery()
 		ctx := context.Background()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			_, _ = disp.Dispatch(ctx, q)
 		}
 	})

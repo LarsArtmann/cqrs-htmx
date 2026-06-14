@@ -210,5 +210,4 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 			Expect(w.code()).To(Equal(http.StatusForbidden))
 		})
 	})
-
 })

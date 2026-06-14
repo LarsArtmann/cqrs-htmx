@@ -70,7 +70,7 @@ func BenchmarkDecodePagination(b *testing.B) {
 		b.Run(bc.name, func(b *testing.B) {
 			r := httptest.NewRequest(http.MethodGet, bc.url, nil)
 			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
+			for range b.N {
 				_ = cqrshtmx.DecodePagination(r)
 			}
 		})

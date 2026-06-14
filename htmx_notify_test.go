@@ -19,8 +19,23 @@ var _ = DescribeTable(
 		Expect(trigger).To(ContainSubstring(level))
 		Expect(trigger).To(ContainSubstring(message))
 	},
-	Entry("NotifySuccess", func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifySuccess("Created") }, "success", "Created"),
-	Entry("NotifyError", func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifyError("Failed") }, "error", "Failed"),
-	Entry("NotifyWarning", func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifyWarning("Warn") }, "warning", "Warn"),
+	Entry(
+		"NotifySuccess",
+		func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifySuccess("Created") },
+		"success",
+		"Created",
+	),
+	Entry(
+		"NotifyError",
+		func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifyError("Failed") },
+		"error",
+		"Failed",
+	),
+	Entry(
+		"NotifyWarning",
+		func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifyWarning("Warn") },
+		"warning",
+		"Warn",
+	),
 	Entry("NotifyInfo", func(r *cqrshtmx.Response) *cqrshtmx.Response { return r.NotifyInfo("FYI") }, "info", "FYI"),
 )

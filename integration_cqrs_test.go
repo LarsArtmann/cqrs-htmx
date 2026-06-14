@@ -170,5 +170,4 @@ var _ = Describe("Integration: CQRS + HTMX + Casbin", func() {
 			Expect(receivedUserID).To(Equal(want))
 		})
 	})
-
 })
