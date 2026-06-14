@@ -1,0 +1,103 @@
+package cqrshtmx
+
+import (
+	"fmt"
+	"log/slog"
+	"net/http"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
+)
+
+func validateDispatch[T any](
+	getter func(*handlerConfig) func(*http.Request) (T, error),
+	setter func(*handlerConfig, func(*http.Request) (T, error)),
+	validator func(T) error,
+	label string,
+) HandlerOption {
+	return func(cfg *handlerConfig) {
+		original := getter(cfg)
+		if original == nil {
+			slog.Warn("cqrs-htmx: "+label+" applied before decoder",
+				slog.String("hint", "apply after DecodeJSON/DecodeForm"))
+			return
+		}
+
+		setter(cfg, func(r *http.Request) (T, error) {
+			val, err := original(r)
+			if err != nil {
+				var zero T
+				return zero, err
+			}
+
+			if valErr := validator(val); valErr != nil {
+				var zero T
+				return zero, fmt.Errorf("%w: %w", ErrValidationFailed, valErr)
+			}
+
+			return val, nil
+		})
+	}
+}
+
+// ValidateCommand wraps the command decoder with a validation step.
+// The validator receives the decoded command and may return an error.
+// Validation errors are wrapped with ErrValidationFailed.
+//
+// Usage:
+//
+//	app.Command("CreateUser",
+//	    cqrshtmx.DecodeJSON(...),
+//	    cqrshtmx.ValidateCommand(func(cmd command.Command) error {
+//	        // e.g., check required fields
+//	        return nil
+//	    }),
+//	)
+func ValidateCommand(validator func(command.Command) error) HandlerOption {
+	return validateDispatch(
+		func(cfg *handlerConfig) func(*http.Request) (command.Command, error) { return cfg.commandDecoder },
+		func(cfg *handlerConfig, dec func(*http.Request) (command.Command, error)) { cfg.commandDecoder = dec },
+		validator,
+		"ValidateCommand",
+	)
+}
+
+// ValidateQuery wraps the query decoder with a validation step.
+// The validator receives the decoded query and may return an error.
+// Validation errors are wrapped with ErrValidationFailed.
+func ValidateQuery(validator func(query.Query) error) HandlerOption {
+	return validateDispatch(
+		func(cfg *handlerConfig) func(*http.Request) (query.Query, error) { return cfg.queryDecoder },
+		func(cfg *handlerConfig, dec func(*http.Request) (query.Query, error)) { cfg.queryDecoder = dec },
+		validator,
+		"ValidateQuery",
+	)
+}
+
+// WithTimeout sets a per-handler timeout override.
+// If > 0, it takes precedence over the App-level Config.Timeout.
+// Zero or negative means fall back to App config (default: no timeout).
+func WithTimeout(d time.Duration) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.timeout = d
+	}
+}
+
+// WithMaxBodySize sets a per-handler maximum request body size override.
+// If > 0, it takes precedence over the App-level Config.MaxBodySize.
+// Zero or negative means fall back to App config (default: 10 MB).
+func WithMaxBodySize(n int64) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.maxBodySize = n
+	}
+}
+
+// WithSuccessStatus sets the HTTP status code for successful responses
+// when no explicit body is written. Default is 204 No Content.
+// Common values: 200 OK, 201 Created.
+func WithSuccessStatus(code int) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.successStatus = code
+	}
+}

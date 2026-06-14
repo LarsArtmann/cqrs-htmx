@@ -2,7 +2,6 @@ package cqrshtmx_test
 
 import (
 	"bufio"
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -94,10 +93,8 @@ func newReconnectMux(store *memoryEventStoreForHTTP, includeReplayOnError bool) 
 
 func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
 	t.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		t.Fatalf("NewRequest: %v", err)
 	}
@@ -106,9 +103,10 @@ func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
 	}
 	req.Header.Set("Accept", "text/event-stream")
 
-	// Per-test client with a short timeout: avoids races on the
-	// shared http.DefaultClient connection pool when tests run with
-	// t.Parallel() under -race.
+	// Per-test client with a short timeout. We intentionally do NOT bind
+	// the request to a context whose cancel is deferred here: doing so
+	// cancels the context before the caller reads resp.Body, which causes
+	// intermittent "context canceled" failures under -race with t.Parallel().
 	client := &http.Client{Timeout: 3 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
