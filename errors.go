@@ -3,6 +3,7 @@ package cqrshtmx
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"sync"
 
@@ -160,7 +161,7 @@ func DefaultErrorHandlerWithRedirect(
 	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, status int) {
 		w.Header().Set("Content-Type", ContentTypePlain)
 		w.WriteHeader(status)
-		_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
+		_, _ = io.WriteString(w, err.Error()) //nolint:gosec // text/plain prevents HTML rendering
 	})
 }
 
@@ -190,7 +191,7 @@ func DefaultErrorHandlerWithRedirectAndRequestID(
 	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, status int) {
 		w.Header().Set("Content-Type", ContentTypePlain)
 		w.WriteHeader(status)
-		_, _ = w.Write([]byte(formatErrorWithRequestID(r, err))) //nolint:gosec // text/plain prevents HTML rendering
+		_, _ = io.WriteString(w, formatErrorWithRequestID(r, err)) //nolint:gosec // text/plain prevents HTML rendering
 	})
 }
 
