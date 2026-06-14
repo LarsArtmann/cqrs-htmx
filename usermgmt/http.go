@@ -99,10 +99,11 @@ func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	h.handleAuthEndpoint(
 		w,
 		r,
-		func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
+		func(ctx context.Context) (*LoginResponse, error) {
 			var regReq RegisterRequest
-			if err := json.Unmarshal(req, &regReq); err != nil {
-				return nil, fmt.Errorf("unmarshal register request: %w", err)
+
+			if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&regReq); err != nil {
+				return nil, fmt.Errorf("%w: unmarshal register request: %w", ErrValidation, err)
 			}
 			resp, err := h.service.Register(ctx, regReq)
 			if err != nil {
@@ -118,10 +119,11 @@ func (h *AuthHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	h.handleAuthEndpoint(
 		w,
 		r,
-		func(ctx context.Context, req json.RawMessage) (*LoginResponse, error) {
+		func(ctx context.Context) (*LoginResponse, error) {
 			var loginReq LoginRequest
-			if err := json.Unmarshal(req, &loginReq); err != nil {
-				return nil, fmt.Errorf("unmarshal login request: %w", err)
+
+			if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&loginReq); err != nil {
+				return nil, fmt.Errorf("%w: unmarshal login request: %w", ErrValidation, err)
 			}
 			return h.service.Login(ctx, loginReq)
 		},
@@ -134,7 +136,7 @@ const maxAuthBodySize = 1 << 20 // 1 MB
 func (h *AuthHandler) handleAuthEndpoint(
 	w http.ResponseWriter,
 	r *http.Request,
-	process func(context.Context, json.RawMessage) (*LoginResponse, error),
+	process func(context.Context) (*LoginResponse, error),
 	successStatus int,
 ) {
 	ctx := r.Context()
@@ -144,13 +146,7 @@ func (h *AuthHandler) handleAuthEndpoint(
 		defer cancel()
 	}
 
-	var raw json.RawMessage
-	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&raw); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	resp, err := process(ctx, raw)
+	resp, err := process(ctx)
 	if err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return

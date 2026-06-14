@@ -3,6 +3,8 @@ package cqrshtmx
 import (
 	"fmt"
 	"io"
+	"strconv"
+	"strings"
 )
 
 // SSEEvent represents a single Server-Sent Events message.
@@ -37,34 +39,40 @@ type SSEEvent struct {
 //	retry: <ms>     (optional)
 //
 // Each event is terminated by a blank line ("\n\n").
+//
+// Uses io.WriteString and direct byte writes instead of fmt.Fprintf to
+// minimize allocations on the SSE hot path.
 func WriteSSEEvent(w io.Writer, event SSEEvent) error {
+	var buf []byte
+
 	if event.Event != "" {
-		if _, err := fmt.Fprintf(w, "event: %s\n", event.Event); err != nil {
-			return fmt.Errorf("write sse event name: %w", err)
-		}
+		buf = append(buf, 'e', 'v', 'e', 'n', 't', ':', ' ')
+		buf = append(buf, event.Event...)
+		buf = append(buf, '\n')
 	}
 
-	// SSE spec: data field can be multi-line; each line gets its own "data: " prefix.
 	for _, line := range splitSSELines(event.Data) {
-		if _, err := fmt.Fprintf(w, "data: %s\n", line); err != nil {
-			return fmt.Errorf("write sse data: %w", err)
-		}
+		buf = append(buf, 'd', 'a', 't', 'a', ':', ' ')
+		buf = append(buf, line...)
+		buf = append(buf, '\n')
 	}
 
 	if event.ID != "" {
-		if _, err := fmt.Fprintf(w, "id: %s\n", event.ID); err != nil {
-			return fmt.Errorf("write sse id: %w", err)
-		}
+		buf = append(buf, 'i', 'd', ':', ' ')
+		buf = append(buf, event.ID...)
+		buf = append(buf, '\n')
 	}
 
 	if event.Retry > 0 {
-		if _, err := fmt.Fprintf(w, "retry: %d\n", event.Retry); err != nil {
-			return fmt.Errorf("write sse retry: %w", err)
-		}
+		buf = append(buf, 'r', 'e', 't', 'r', 'y', ':', ' ')
+		buf = strconv.AppendInt(buf, int64(event.Retry), 10)
+		buf = append(buf, '\n')
 	}
 
-	if _, err := w.Write([]byte("\n")); err != nil {
-		return fmt.Errorf("write sse terminator: %w", err)
+	buf = append(buf, '\n')
+
+	if _, err := w.Write(buf); err != nil {
+		return fmt.Errorf("write sse event: %w", err)
 	}
 
 	return nil
@@ -72,9 +80,16 @@ func WriteSSEEvent(w io.Writer, event SSEEvent) error {
 
 // splitSSELines splits a string into lines for SSE data field formatting.
 // Each line in the SSE spec must be prefixed with "data: ".
+// Fast path: if the data contains no newline, returns a single-element
+// slice without allocating a backing array.
 func splitSSELines(s string) []string {
 	if s == "" {
 		return []string{""}
+	}
+
+	// Fast path: no newline → single line, no allocation.
+	if !strings.Contains(s, "\n") {
+		return []string{s}
 	}
 
 	var lines []string
