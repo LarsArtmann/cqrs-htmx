@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"sync"
 
 	"github.com/justinas/nosurf"
 )
@@ -37,6 +38,8 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 		slog.Error("cqrs-htmx: CSRFConfig validation failed", slog.String("error", err.Error()))
 	}
 
+	warnEmptyTrustedProxies(cfg)
+
 	return func(next http.Handler) http.Handler {
 		inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if token := nosurf.Token(r); token != "" {
@@ -62,6 +65,23 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 			handler.ServeHTTP(w, r)
 		})
 	}
+}
+
+// warnEmptyTrustedProxies logs a one-time warning if the CSRF config has no
+// trusted proxies configured. This moves the warning from the per-request hot
+// path (isTrustedProxy) to middleware construction time, preventing log spam
+// on every non-loopback HTTP request.
+var warnTrustedProxiesOnce sync.Once
+
+func warnEmptyTrustedProxies(cfg CSRFConfig) {
+	warnTrustedProxiesOnce.Do(func() {
+		if len(cfg.TrustedProxies) == 0 && len(cfg.TrustedProxiesCIDR) == 0 {
+			slog.Warn(
+				"cqrs-htmx: CSRF plaintext HTTP origin bypass is active for non-loopback requests — " +
+					"configure CSRFConfig.TrustedProxies or TrustedProxiesCIDR in production",
+			)
+		}
+	})
 }
 
 // setPlaintextHTTPOrigin sets the Sec-Fetch-Site header to "same-origin" for
@@ -125,17 +145,11 @@ func isLoopback(ip net.IP) bool {
 
 // isTrustedProxy returns true when remoteHost or remoteAddr matches an entry
 // in cfg.TrustedProxies, or remoteIP falls within a cfg.TrustedProxiesCIDR
-// network. When no proxies are configured, it logs a warning and grants
-// bypass for back-compat with earlier versions.
+// network. When no proxies are configured, it grants bypass for back-compat
+// with earlier versions. The warning for this permissive mode is logged once
+// at middleware construction time via warnEmptyTrustedProxies.
 func isTrustedProxy(remoteHost string, remoteIP net.IP, remoteAddr string, cfg CSRFConfig) bool {
 	if len(cfg.TrustedProxies) == 0 && len(cfg.TrustedProxiesCIDR) == 0 {
-		// Consumer opted into permissive mode. Warn so production isn't silent.
-		slog.Warn(
-			"cqrs-htmx: CSRF plaintext HTTP origin bypass active for non-loopback request — "+
-				"configure CSRFConfig.TrustedProxies or TrustedProxiesCIDR in production",
-			slog.String("remote_addr", remoteAddr),
-			slog.String("path", ""),
-		)
 		return true
 	}
 

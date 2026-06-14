@@ -174,7 +174,7 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 
 			duration := time.Since(start)
 
-			attrs := make([]slog.Attr, 0, 4+len(contextFields(r)))
+			attrs := make([]slog.Attr, 0, 7)
 			attrs = append(
 				attrs,
 				slog.String("method", r.Method),
@@ -183,8 +183,14 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 				slog.Duration("duration", duration),
 			)
 
-			for key, val := range contextFields(r) {
-				attrs = append(attrs, slog.String(key, val))
+			if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
+				attrs = append(attrs, slog.String(logFieldCorrelationID, cid.String()))
+			}
+			if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
+				attrs = append(attrs, slog.String(logFieldUserID, uid.String()))
+			}
+			if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+				attrs = append(attrs, slog.String(logFieldRequestID, rid.String()))
 			}
 
 			logger.LogAttrs(r.Context(), slog.LevelInfo, "http request", attrs...)

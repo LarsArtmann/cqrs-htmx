@@ -295,19 +295,24 @@ func (a *App) afterDispatchHook(ctx context.Context, r *http.Request, err error)
 // Usage:
 //
 //	mux.Handle("/health", app.HealthHandler())
+var (
+	healthyBody   = []byte(`{"status":"ok"}`)
+	unhealthyBody = []byte(`{"status":"unhealthy","error":"no dispatchers configured"}`)
+)
+
 func (a *App) HealthHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		hasDispatchers := a.commands != nil || a.queries != nil
 		if !hasDispatchers {
 			w.Header().Set("Content-Type", ContentTypeJSON)
 			w.WriteHeader(http.StatusServiceUnavailable)
-			_, _ = w.Write([]byte(`{"status":"unhealthy","error":"no dispatchers configured"}`))
+			_, _ = w.Write(unhealthyBody)
 			return
 		}
 
 		w.Header().Set("Content-Type", ContentTypeJSON)
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":"ok"}`))
+		_, _ = w.Write(healthyBody)
 	}
 }
 
