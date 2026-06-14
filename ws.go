@@ -3,7 +3,6 @@ package cqrshtmx
 import (
 	"encoding/json"
 	"fmt"
-	"maps"
 	"strings"
 )
 
@@ -165,10 +164,8 @@ func ParseWSMessageInto[T any](data []byte) (msg T, headers map[string]string, e
 	}
 
 	// Re-serialize remaining fields and unmarshal into T.
-	bodyMap := make(map[string]json.RawMessage, len(raw))
-	maps.Copy(bodyMap, raw)
-
-	bodyJSON, marshalErr := json.Marshal(bodyMap)
+	// raw already has HEADERS removed — marshal directly without copying.
+	bodyJSON, marshalErr := json.Marshal(raw)
 	if marshalErr != nil {
 		return msg, headers, fmt.Errorf("parse ws message into: remarshal body: %w", marshalErr)
 	}
