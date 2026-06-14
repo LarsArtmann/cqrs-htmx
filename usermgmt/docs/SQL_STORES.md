@@ -86,11 +86,11 @@ func (s *PGUserStore) FindByID(ctx context.Context, id usermgmt.UserID) (*usermg
 
 ## ID type strategy
 
-| Layer        | Type                                    | Why                                 |
-| ------------ | --------------------------------------- | ----------------------------------- |
-| API/HTTP     | `usermgmt.UserID` (string-backed)       | Stable, opaque, shareable in URLs   |
-| Store (SQL)  | `BIGSERIAL` + `public_id TEXT UNIQUE`   | Efficient joins, indexed lookups    |
-| Conversion   | `usermgmt.UserID.Get()` ↔ `string`      | Single conversion at the store edge |
+| Layer       | Type                                  | Why                                 |
+| ----------- | ------------------------------------- | ----------------------------------- |
+| API/HTTP    | `usermgmt.UserID` (string-backed)     | Stable, opaque, shareable in URLs   |
+| Store (SQL) | `BIGSERIAL` + `public_id TEXT UNIQUE` | Efficient joins, indexed lookups    |
+| Conversion  | `usermgmt.UserID.Get()` ↔ `string`    | Single conversion at the store edge |
 
 This is exactly the approach ADR 0003 defers to. The `public_id` column
 preserves the string `UserID` for cross-module use, while `id BIGSERIAL` keeps

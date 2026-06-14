@@ -265,14 +265,16 @@ var _ = Describe("CSRF Middleware", func() {
 
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequestWithContext(
-				context.Background(), http.MethodGet, "/", nil)
+				context.Background(), http.MethodGet, "/", nil,
+			)
 			r1.RemoteAddr = remoteAddr
 			handler.ServeHTTP(w1, r1)
 
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequestWithContext(
 				context.Background(), http.MethodPost, "/",
-				strings.NewReader(url.Values{"x": {"1"}}.Encode()))
+				strings.NewReader(url.Values{"x": {"1"}}.Encode()),
+			)
 			r2.RemoteAddr = remoteAddr
 			r2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			r2.Header.Set("X-CSRF-Token", token)
@@ -329,14 +331,16 @@ var _ = Describe("CSRF Middleware", func() {
 			h := csrfTokenOnceHandler(mw, &token)
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequestWithContext(
-				context.Background(), http.MethodGet, "/", nil)
+				context.Background(), http.MethodGet, "/", nil,
+			)
 			r1.RemoteAddr = attackerRemoteIP
 			h.ServeHTTP(w1, r1)
 
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequestWithContext(
 				context.Background(), http.MethodPost, "/",
-				strings.NewReader(""))
+				strings.NewReader(""),
+			)
 			r2.RemoteAddr = attackerRemoteIP
 			r2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			r2.Header.Set("X-CSRF-Token", token)
