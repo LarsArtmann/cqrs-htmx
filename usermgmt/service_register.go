@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// RegisterRequest contains the fields required to create a new user account.
 type RegisterRequest struct {
 	ID          UserID `json:"id"`
 	Email       string `json:"email"`

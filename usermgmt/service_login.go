@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// LoginRequest contains the credentials for user authentication.
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

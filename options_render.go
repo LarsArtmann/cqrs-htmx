@@ -7,6 +7,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// Render sets a custom render function for query results.
+// The function receives the query result and writes the HTTP response.
 func Render(fn RenderFunc) HandlerOption {
 	return func(cfg *handlerConfig) {
 		cfg.render = fn
