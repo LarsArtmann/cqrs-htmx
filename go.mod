@@ -6,7 +6,7 @@ require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/justinas/nosurf v1.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.1
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.3.0
 	github.com/larsartmann/go-error-family v0.3.0
