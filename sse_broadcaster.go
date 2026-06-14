@@ -68,11 +68,23 @@ func (b *Broadcaster) Unsubscribe(ch <-chan SSEEvent) {
 // Broadcast sends an event to all active subscribers.
 // Slow subscribers with full buffers have the event dropped to prevent
 // blocking the broadcaster.
+//
+// The subscriber list is snapshotted under a brief RLock and then iterated
+// without holding the lock, allowing concurrent Subscribe/Unsubscribe calls
+// to proceed during fan-out. This reduces contention at 1000+ subscribers.
 func (b *Broadcaster) Broadcast(event SSEEvent) {
 	b.mu.RLock()
-	defer b.mu.RUnlock()
-
+	if len(b.subscribers) == 0 {
+		b.mu.RUnlock()
+		return
+	}
+	snapshot := make([]chan SSEEvent, 0, len(b.subscribers))
 	for _, ch := range b.subscribers {
+		snapshot = append(snapshot, ch)
+	}
+	b.mu.RUnlock()
+
+	for _, ch := range snapshot {
 		select {
 		case ch <- event:
 		default:
