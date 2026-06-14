@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 )
 
 // Content type constants for consistent HTTP response headers.
@@ -315,17 +316,25 @@ func setTriggerHeader(w http.ResponseWriter, header, event string) {
 func setTriggerWithDetail(w http.ResponseWriter, header, name string, detail any) {
 	existing := w.Header().Get(header)
 
-	encoded, err := json.Marshal(map[string]any{name: detail})
-	if err != nil {
-		w.Header().Set(header, name)
-		return
-	}
-
+	// Common case: no existing trigger — build JSON without map allocation.
 	if existing == "" {
-		w.Header().Set(header, string(encoded))
+		detailJSON, err := json.Marshal(detail)
+		if err != nil {
+			w.Header().Set(header, name)
+			return
+		}
+		var sb strings.Builder
+		sb.Grow(len(name) + len(detailJSON) + 5)
+		sb.WriteString(`{"`)
+		sb.WriteString(name)
+		sb.WriteString(`":`)
+		sb.Write(detailJSON)
+		sb.WriteString(`}`)
+		w.Header().Set(header, sb.String())
 		return
 	}
 
+	// Merge case: existing trigger present — parse, merge, re-encode.
 	var existingMap map[string]any
 	if json.Unmarshal([]byte(existing), &existingMap) == nil {
 		existingMap[name] = detail
