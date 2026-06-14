@@ -1,0 +1,1481 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTMX 4.0 Migration Readiness — cqrs-htmx</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --bg-card: #161b22;
+        --bg-card-hover: #1c2128;
+        --bg-inset: #010409;
+        --border: #30363d;
+        --border-light: #21262d;
+        --text: #e6edf3;
+        --text-dim: #8b949e;
+        --text-bright: #f0f6fc;
+        --accent: #58a6ff;
+        --accent-dim: #1f6feb;
+        --green: #3fb950;
+        --green-bg: rgba(63, 185, 80, 0.1);
+        --yellow: #d29922;
+        --yellow-bg: rgba(210, 153, 34, 0.1);
+        --orange: #db6d28;
+        --orange-bg: rgba(219, 109, 40, 0.1);
+        --red: #f85149;
+        --red-bg: rgba(248, 81, 73, 0.1);
+        --purple: #bc8cff;
+        --purple-bg: rgba(188, 140, 255, 0.1);
+        --teal: #39d0d8;
+        --mono: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 80px;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.6;
+        font-size: 15px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* --- Layout --- */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* --- Header --- */
+      header {
+        background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 48px 0 40px;
+        position: relative;
+        overflow: hidden;
+      }
+      header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(88, 166, 255, 0.06) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .header-tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+        background: rgba(88, 166, 255, 0.1);
+        border: 1px solid rgba(88, 166, 255, 0.3);
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        letter-spacing: 0.5px;
+      }
+      header h1 {
+        font-size: 38px;
+        font-weight: 700;
+        color: var(--text-bright);
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+      }
+      header .subtitle {
+        font-size: 18px;
+        color: var(--text-dim);
+        max-width: 700px;
+      }
+      .header-meta {
+        display: flex;
+        gap: 32px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+      }
+      .header-meta div {
+        font-size: 13px;
+        color: var(--text-dim);
+      }
+      .header-meta strong {
+        display: block;
+        color: var(--text-bright);
+        font-size: 15px;
+        font-family: var(--mono);
+      }
+
+      /* --- Navigation --- */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(13, 17, 23, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 0;
+      }
+      nav .container {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+      }
+      nav a {
+        color: var(--text-dim);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 14px 16px;
+        white-space: nowrap;
+        transition: color 0.15s;
+        border-bottom: 2px solid transparent;
+      }
+      nav a:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      /* --- Sections --- */
+      section {
+        padding: 56px 0;
+        border-bottom: 1px solid var(--border-light);
+      }
+      section h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-bright);
+        margin-bottom: 8px;
+        letter-spacing: -0.3px;
+      }
+      section .section-desc {
+        color: var(--text-dim);
+        font-size: 15px;
+        margin-bottom: 32px;
+        max-width: 800px;
+      }
+      h3 {
+        font-size: 19px;
+        font-weight: 600;
+        color: var(--text-bright);
+        margin: 32px 0 16px;
+      }
+      h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--accent);
+        margin-bottom: 8px;
+        font-family: var(--mono);
+      }
+      p {
+        margin-bottom: 12px;
+        color: var(--text);
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.88em;
+        background: var(--bg-inset);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--teal);
+        border: 1px solid var(--border-light);
+      }
+      .code-block {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--bg-inset);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        overflow-x: auto;
+        margin: 16px 0;
+        line-height: 1.5;
+        color: var(--text-dim);
+        white-space: pre;
+      }
+      .code-block .kw {
+        color: var(--purple);
+      }
+      .code-block .fn {
+        color: var(--accent);
+      }
+      .code-block .str {
+        color: var(--green);
+      }
+      .code-block .cmt {
+        color: #6e7681;
+        font-style: italic;
+      }
+
+      /* --- Cards --- */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      .card:hover {
+        border-color: var(--border-light);
+        background: var(--bg-card-hover);
+      }
+      .card-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .card-title h4 {
+        margin: 0;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Badges --- */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--mono);
+        padding: 3px 10px;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .badge-critical {
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(248, 81, 73, 0.3);
+      }
+      .badge-high {
+        background: var(--orange-bg);
+        color: var(--orange);
+        border: 1px solid rgba(219, 109, 40, 0.3);
+      }
+      .badge-medium {
+        background: var(--yellow-bg);
+        color: var(--yellow);
+        border: 1px solid rgba(210, 153, 34, 0.3);
+      }
+      .badge-low {
+        background: rgba(88, 166, 255, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(88, 166, 255, 0.3);
+      }
+      .badge-good {
+        background: var(--green-bg);
+        color: var(--green);
+        border: 1px solid rgba(63, 185, 80, 0.3);
+      }
+      .badge-none {
+        background: rgba(139, 148, 158, 0.1);
+        color: var(--text-dim);
+        border: 1px solid rgba(139, 148, 158, 0.3);
+      }
+
+      /* --- Grid --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 768px) {
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        header h1 {
+          font-size: 28px;
+        }
+        section {
+          padding: 40px 0;
+        }
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 16px 0;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th {
+        background: var(--bg-inset);
+        color: var(--text-dim);
+        font-weight: 600;
+        text-align: left;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        font-family: var(--mono);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+      }
+      td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border-light);
+        font-family: var(--mono);
+        color: var(--text);
+      }
+      tbody tr:hover {
+        background: var(--bg-card-hover);
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      td .good {
+        color: var(--green);
+      }
+      td .warn {
+        color: var(--yellow);
+      }
+      td .bad {
+        color: var(--red);
+      }
+
+      /* --- Findings --- */
+      .finding {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border);
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin-bottom: 12px;
+      }
+      .finding.critical {
+        border-left-color: var(--red);
+      }
+      .finding.high {
+        border-left-color: var(--orange);
+      }
+      .finding.medium {
+        border-left-color: var(--yellow);
+      }
+      .finding.low {
+        border-left-color: var(--accent);
+      }
+      .finding.good {
+        border-left-color: var(--green);
+      }
+      .finding-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+      }
+      .finding-head .title {
+        font-weight: 600;
+        color: var(--text-bright);
+        font-size: 15px;
+      }
+      .finding .loc {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+      }
+      .finding p {
+        font-size: 14px;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+      }
+      .finding .impact {
+        font-size: 13px;
+        color: var(--text);
+        background: var(--bg-inset);
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin-top: 8px;
+        border: 1px solid var(--border-light);
+      }
+
+      /* --- Callout --- */
+      .callout {
+        background: rgba(88, 166, 255, 0.06);
+        border: 1px solid rgba(88, 166, 255, 0.2);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin: 16px 0;
+        font-size: 14px;
+      }
+      .callout strong {
+        color: var(--accent);
+      }
+      .callout.warn {
+        background: rgba(210, 153, 34, 0.06);
+        border-color: rgba(210, 153, 34, 0.2);
+      }
+      .callout.warn strong {
+        color: var(--yellow);
+      }
+      .callout.danger {
+        background: rgba(248, 81, 73, 0.06);
+        border-color: rgba(248, 81, 73, 0.2);
+      }
+      .callout.danger strong {
+        color: var(--red);
+      }
+      .callout.success {
+        background: rgba(63, 185, 80, 0.06);
+        border-color: rgba(63, 185, 80, 0.2);
+      }
+      .callout.success strong {
+        color: var(--green);
+      }
+
+      /* --- Checklist --- */
+      .checklist {
+        list-style: none;
+        padding: 0;
+      }
+      .checklist li {
+        padding: 10px 0;
+        padding-left: 32px;
+        font-size: 14px;
+        color: var(--text);
+        position: relative;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .checklist li:last-child {
+        border-bottom: none;
+      }
+      .checklist li::before {
+        content: "☐";
+        position: absolute;
+        left: 0;
+        font-size: 18px;
+        color: var(--text-dim);
+      }
+      .checklist li.done {
+        color: var(--green);
+      }
+      .checklist li.done::before {
+        content: "✓";
+        color: var(--green);
+      }
+
+      /* --- Misc --- */
+      .file-ref {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+      }
+      ul.clean {
+        list-style: none;
+        padding: 0;
+      }
+      ul.clean li {
+        padding: 6px 0;
+        font-size: 14px;
+        color: var(--text-dim);
+        padding-left: 20px;
+        position: relative;
+      }
+      ul.clean li::before {
+        content: "▸";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+      }
+      .spacer {
+        height: 24px;
+      }
+      footer {
+        padding: 40px 0;
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ====================== HEADER ====================== -->
+    <header>
+      <div class="container">
+        <div class="header-tag">docs/research · Migration Readiness</div>
+        <h1>HTMX 4.0 Migration Readiness Audit</h1>
+        <p class="subtitle">
+          A concrete, codebase-level analysis of every HTMX 4.0 breaking change mapped to specific
+          files and line numbers in <strong>cqrs-htmx</strong>. Includes CSRF risk analysis, error
+          response design implications, and an actionable migration checklist.
+        </p>
+        <div class="header-meta">
+          <div><strong>2.0.9</strong> embedded version</div>
+          <div><strong>4.0.0-beta4</strong> target version</div>
+          <div><strong>19</strong> header constants</div>
+          <div><strong>0</strong> htmx event refs</div>
+          <div><strong>3</strong> CSRF paths</div>
+          <div><strong>2026-06-14</strong> audit date</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ====================== NAV ====================== -->
+    <nav>
+      <div class="container">
+        <a href="#summary">Summary</a>
+        <a href="#breaking-changes">Breaking Changes</a>
+        <a href="#csrf">CSRF Risk</a>
+        <a href="#error-swap">Error Swap</a>
+        <a href="#headers">Header Audit</a>
+        <a href="#attributes">Attribute Audit</a>
+        <a href="#events">Event Audit</a>
+        <a href="#already-done">Already Done</a>
+        <a href="#checklist">Checklist</a>
+        <a href="#recommendation">Recommendation</a>
+      </div>
+    </nav>
+
+    <!-- ====================== SUMMARY ====================== -->
+    <section id="summary">
+      <div class="container">
+        <h2>Executive Summary</h2>
+        <p class="section-desc">
+          HTMX 4.0 is a major rewrite that skips v3 entirely. It introduces 9 breaking changes, a
+          new extension system, and a new config notation (HCON). This audit maps each change to our
+          codebase and assesses migration risk.
+        </p>
+
+        <div class="grid-3">
+          <div class="card" style="border-left: 4px solid var(--green)">
+            <h4>Safe ✓</h4>
+            <p style="font-size: 13px; color: var(--text-dim)">
+              Header names unchanged. No htmx event names in Go code. No
+              <code>queue:</code> modifier usage. No <code>hx-disable</code> attribute. OOB swap
+              still works (order change is cosmetic).
+            </p>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--yellow)">
+            <h4>Needs Attention</h4>
+            <p style="font-size: 13px; color: var(--text-dim)">
+              Error responses now get swapped into the DOM by default. CSRF may behave differently
+              with <code>fetch()</code> transport. nosurf compatibility unverified. OOB swap order
+              reversed.
+            </p>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--accent)">
+            <h4>Already Prepared</h4>
+            <p style="font-size: 13px; color: var(--text-dim)">
+              <code>HTMXScriptHandlerWith()</code> lets consumers serve htmx 4.0 JS without forking.
+              <code>HTMXCDNScriptTag()</code> provides CDN loading. The library is
+              transport-agnostic at the API level.
+            </p>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="callout success">
+          <strong>Bottom line:</strong> The Go library code is ~90% compatible with htmx 4.0. The
+          remaining 10% is CSRF transport behavior (needs browser testing) and error response design
+          (needs a consumer decision). No Go code changes are strictly required — the migration is
+          primarily a consumer-side concern.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== BREAKING CHANGES ====================== -->
+    <section id="breaking-changes">
+      <div class="container">
+        <h2>Breaking Changes — Codebase Impact</h2>
+        <p class="section-desc">
+          Each of the 9 breaking changes from the htmx 4.0 migration guide, mapped to specific code
+          in cqrs-htmx.
+        </p>
+
+        <div class="finding critical">
+          <div class="finding-head">
+            <span class="badge badge-critical">Critical</span>
+            <span class="title">1. fetch() transport replaces XMLHttpRequest</span>
+          </div>
+          <p>
+            htmx 4.0 uses the Fetch API instead of XMLHttpRequest for all requests. This is an
+            <strong>irreversible architectural change</strong> that affects cookie handling,
+            credentials, and cross-origin behavior.
+          </p>
+          <div class="impact">
+            <strong>Affected code:</strong>
+            <span class="file-ref">csrf_middleware.go</span> —
+            <code>setPlaintextHTTPOrigin()</code> sets <code>Sec-Fetch-Site: same-origin</code>.
+            With <code>fetch()</code>, the browser sets this header natively. Our manual injection
+            may conflict or become redundant. Needs browser testing. <br /><br />
+            <strong>Risk:</strong> Cookie-based CSRF tokens may not be sent by default with
+            <code>fetch()</code> unless <code>credentials: 'same-origin'</code> (or
+            <code>'include'</code>) is set. htmx 4.0's default is unknown — must verify.
+          </div>
+        </div>
+
+        <div class="finding high">
+          <div class="finding-head">
+            <span class="badge badge-high">High</span>
+            <span class="title">2. Error responses (4xx/5xx) now swap into the DOM</span>
+          </div>
+          <p>
+            In htmx 2.x, error responses are silently ignored (no swap). In htmx 4.0, they are
+            swapped into the target element by default. This means our error handler's response body
+            will appear in the consumer's UI.
+          </p>
+          <div class="impact">
+            <strong>Affected code:</strong>
+            <span class="file-ref">errors.go:99-130</span> —
+            <code>DefaultErrorHandlerWithRedirect</code> writes plain text error messages via
+            <code>io.WriteString(w, err.Error())</code>. In v4, this text would be swapped into the
+            DOM target. <br /><br />
+            <strong>Mitigation:</strong> Auth errors are already safe — they use
+            <code>HX-Redirect</code> which htmx follows regardless of status code. For other errors,
+            consumers should either: (a) render HTML error partials, (b) set
+            <code>HX-Retarget</code> to redirect errors to an error container, or (c) use the
+            <code>hx-status</code> attribute to control swap behavior.
+          </div>
+        </div>
+
+        <div class="finding low">
+          <div class="finding-head">
+            <span class="badge badge-low">Low</span>
+            <span class="title">3. Explicit inheritance with <code>:inherited</code></span>
+          </div>
+          <p>
+            Attributes like <code>hx-headers</code>, <code>hx-vals</code>, and
+            <code>hx-confirm</code> no longer inherit from parent elements by default. You must add
+            <code>:inherited</code> to opt in.
+          </p>
+          <div class="impact">
+            <strong>Affected code:</strong>
+            <span class="file-ref">csrf_helpers.go:47-65</span> —
+            <code>CSRFTokenHXHeaders()</code> generates <code>hx-headers</code> attributes. If
+            consumers place these on a parent element (e.g., <code>&lt;body&gt;</code>), the token
+            will no longer be inherited by child elements in v4. <br /><br />
+            <strong>Mitigation:</strong> Document that consumers using v4 should add
+            <code>:inherited</code> or place <code>hx-headers</code> on the specific elements making
+            requests.
+          </div>
+        </div>
+
+        <div class="finding low">
+          <div class="finding-head">
+            <span class="badge badge-low">Low</span>
+            <span class="title">4. <code>hx-delete</code> no longer includes form data</span>
+          </div>
+          <p>
+            DELETE requests triggered by <code>hx-delete</code> no longer automatically include form
+            field values in the request body.
+          </p>
+          <div class="impact">
+            <strong>Affected code:</strong> None. The library's form decoder (<span class="file-ref"
+              >decoder.go</span
+            >) handles request bodies generically. If consumers send DELETE with form data, they'll
+            need <code>hx-vals</code> in v4.
+          </div>
+        </div>
+
+        <div class="finding none">
+          <div class="finding-head">
+            <span class="badge badge-none">No Impact</span>
+            <span class="title">5. No localStorage history (sessionStorage only)</span>
+          </div>
+          <p>
+            htmx 4.0 uses <code>sessionStorage</code> instead of <code>localStorage</code> for
+            history persistence. This means history is lost when the tab closes.
+          </p>
+          <div class="impact">
+            <strong>Affected code:</strong> None. This is a client-side-only change with no
+            server-side impact.
+          </div>
+        </div>
+
+        <div class="finding low">
+          <div class="finding-head">
+            <span class="badge badge-low">Low</span>
+            <span class="title">6. OOB swap order reversed</span>
+          </div>
+          <p>Out-of-band swaps now happen <em>after</em> the main swap, instead of before.</p>
+          <div class="impact">
+            <strong>Affected code:</strong>
+            <span class="file-ref">ws.go:124-131</span> — <code>WSOOBHTML()</code> wraps HTML with
+            <code>hx-swap-oob</code> attributes. The attribute still works; only the execution order
+            changes. Consumers relying on OOB content being present before the main swap needs may
+            see a difference.
+          </div>
+        </div>
+
+        <div class="finding none">
+          <div class="finding-head">
+            <span class="badge badge-none">No Impact</span>
+            <span class="title">7. <code>queue:</code> modifier removed</span>
+          </div>
+          <p>
+            The <code>queue:last</code>, <code>queue:first</code>, <code>queue:all</code> modifiers
+            on <code>hx-trigger</code> are removed. Use <code>hx-sync</code> instead.
+          </p>
+          <div class="impact">
+            <strong>Affected code:</strong> None. The library never generates
+            <code>hx-trigger</code> attributes with <code>queue:</code> modifiers.
+          </div>
+        </div>
+
+        <div class="finding none">
+          <div class="finding-head">
+            <span class="badge badge-none">No Impact</span>
+            <span class="title">8. Default timeout increased to 60s</span>
+          </div>
+          <p>The default request timeout changed from no limit to 60 seconds.</p>
+          <div class="impact">
+            <strong>Affected code:</strong>
+            <span class="file-ref">app.go</span> — <code>Config.Timeout</code> wraps the dispatch
+            call. Server-side timeout is independent of client-side timeout. No change needed.
+          </div>
+        </div>
+
+        <div class="finding none">
+          <div class="finding-head">
+            <span class="badge badge-none">No Impact</span>
+            <span class="title">9. Extension loading via script include</span>
+          </div>
+          <p>
+            Extensions are now loaded by including their script tag, not via
+            <code>htmx.defineExtension()</code>.
+          </p>
+          <div class="impact">
+            <strong>Affected code:</strong> None. The library has no extension loading code.
+            Consumers manage their own client-side extensions.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== CSRF RISK ====================== -->
+    <section id="csrf">
+      <div class="container">
+        <h2>CSRF Transport Risk Analysis</h2>
+        <p class="section-desc">
+          The switch from XMLHttpRequest to <code>fetch()</code> is the single most impactful change
+          for CSRF. This is a deep-dive into the specific code paths affected.
+        </p>
+
+        <h3>Current CSRF Architecture</h3>
+        <p>
+          Our CSRF implementation uses <strong>justinas/nosurf v1.2.0</strong>, which works at the
+          HTTP middleware level — it reads the CSRF token from either a form field
+          (<code>csrf_token</code>) or a request header (<code>X-CSRF-Token</code>). nosurf does NOT
+          depend on XMLHttpRequest — it reads standard HTTP headers and form bodies.
+        </p>
+
+        <div class="callout success">
+          <strong>The good news:</strong> nosurf operates on server-side HTTP, not client-side
+          transport. The switch from XMLHttpRequest to <code>fetch()</code> does NOT change what
+          nosurf sees on the server. The token still arrives via form field or
+          <code>X-CSRF-Token</code> header regardless of transport.
+        </div>
+
+        <h3>Potential Issues</h3>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="badge badge-high">High</span>
+            <h4>Cookie credentials behavior</h4>
+          </div>
+          <p>
+            <code>fetch()</code> does <strong>not</strong> send cookies by default unless
+            <code>credentials: 'same-origin'</code> (or <code>'include'</code>) is set. htmx 2.x
+            (via XMLHttpRequest) always sent same-origin cookies. If htmx 4.0's
+            <code>fetch()</code> calls don't set <code>credentials</code>, the CSRF cookie won't be
+            sent, and nosurf won't find it.
+          </p>
+          <div class="impact" style="margin-top: 12px">
+            <strong>Mitigation:</strong> nosurf's default reads the token from the form field or
+            header, NOT from the cookie. The cookie is only used for token storage on the client. As
+            long as consumers include the token via <code>hx-headers</code> (our
+            <code>CSRFTokenHXHeaders()</code> helper) or a hidden form field
+            (<code>CSRFTokenFormField()</code>), CSRF will work regardless of cookie behavior.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="badge badge-medium">Medium</span>
+            <h4>Sec-Fetch-Site header injection</h4>
+          </div>
+          <p>
+            <span class="file-ref">csrf_middleware.go:98-108</span> —
+            <code>setPlaintextHTTPOrigin()</code> manually sets the
+            <code>Sec-Fetch-Site: same-origin</code> header for plain HTTP requests from trusted
+            proxies. With <code>fetch()</code>, the browser sets this header natively. Our injection
+            may:
+          </p>
+          <ul class="clean">
+            <li>Become redundant (browser already sets it correctly)</li>
+            <li>Conflict if htmx sets its own <code>Sec-Fetch-*</code> headers</li>
+            <li>
+              Still be needed for nosurf's origin check (nosurf uses it for safe-method bypass)
+            </li>
+          </ul>
+          <div class="impact" style="margin-top: 12px">
+            <strong>Action:</strong> Browser-test whether <code>fetch()</code> sends
+            <code>Sec-Fetch-Site</code> correctly for same-origin requests. If yes, the manual
+            injection can be simplified to a no-op for htmx 4.0 consumers. If no, the existing code
+            is a valid polyfill.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="badge badge-low">Low</span>
+            <h4>Cross-origin requests</h4>
+          </div>
+          <p>
+            With <code>fetch()</code>, CORS preflight (<code>OPTIONS</code>) behavior may differ.
+            Consumers using htmx for cross-origin requests (rare) should verify CORS headers. The
+            library itself doesn't set CORS headers — it's the consumer's responsibility.
+          </p>
+        </div>
+
+        <h3>CSRF Token Delivery Paths</h3>
+        <p>The library provides three ways for consumers to deliver CSRF tokens to htmx:</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Helper Function</th>
+                <th>v2 Compatible</th>
+                <th>v4 Compatible</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>hx-headers</code> attribute</td>
+                <td><code>CSRFTokenHXHeaders()</code></td>
+                <td><span class="good">✓ Yes</span></td>
+                <td>
+                  <span class="warn">⚠ Needs <code>:inherited</code></span>
+                </td>
+                <td>v4: inheritance changed, place on request element</td>
+              </tr>
+              <tr>
+                <td>Hidden form field</td>
+                <td><code>CSRFTokenFormField()</code></td>
+                <td><span class="good">✓ Yes</span></td>
+                <td><span class="good">✓ Yes</span></td>
+                <td>Transport-agnostic, always works</td>
+              </tr>
+              <tr>
+                <td>Meta tag + JS injection</td>
+                <td><code>CSRFTokenHTMLMeta()</code></td>
+                <td><span class="good">✓ Yes</span></td>
+                <td><span class="good">✓ Yes</span></td>
+                <td>Consumer's JS reads meta, sets header</td>
+              </tr>
+              <tr>
+                <td>Response header</td>
+                <td><code>resp.CSRFToken(token)</code></td>
+                <td><span class="good">✓ Yes</span></td>
+                <td><span class="good">✓ Yes</span></td>
+                <td>Sets <code>X-CSRF-Token</code> on response</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <strong>Recommendation:</strong> The hidden form field approach
+          (<code>CSRFTokenFormField()</code>) is the most robust — it works identically in v2 and
+          v4, is immune to transport changes, and doesn't depend on attribute inheritance. Document
+          this as the recommended approach for v4 consumers.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== ERROR SWAP ====================== -->
+    <section id="error-swap">
+      <div class="container">
+        <h2>Error Response Swap Behavior</h2>
+        <p class="section-desc">
+          htmx 4.0 swaps error response bodies (4xx/5xx) into the target element by default. This is
+          the second-biggest migration concern after CSRF.
+        </p>
+
+        <h3>Current Error Handling</h3>
+        <div class="code-block">
+          <span class="cmt">// errors.go — DefaultErrorHandlerWithRedirect</span>
+          <span class="kw">func</span>
+          <span class="fn">DefaultErrorHandlerWithRedirect</span>(loginRedirect
+          <span class="kw">string</span>) <span class="fn">ErrorHandler</span> {
+          <span class="kw">return func</span>(w http.ResponseWriter, r *http.Request, err
+          <span class="kw">error</span>) { status := <span class="fn">MapError</span>(err)
+
+          <span class="cmt">// Auth errors → HX-Redirect (works in v2 and v4)</span>
+          <span class="kw">if</span> <span class="fn">isAuthError</span>(err) &&
+          <span class="fn">IsHTMXRequest</span>(r) {
+          <span class="fn">writeHTMXAuthRedirect</span>(w, loginRedirect)
+          <span class="kw">return</span>
+          }
+
+          <span class="cmt">// Other errors → plain text body</span>
+          w.<span class="fn">WriteHeader</span>(status) io.<span class="fn">WriteString</span>(w,
+          err.<span class="fn">Error</span>()) } }
+        </div>
+
+        <h3>Impact in v2 vs v4</h3>
+        <div class="grid-2">
+          <div class="card" style="border-left: 4px solid var(--green)">
+            <h4>htmx 2.x</h4>
+            <p style="font-size: 13px">
+              Error responses (4xx/5xx) are <strong>silently ignored</strong>. The response body is
+              never swapped. Only <code>HX-Redirect</code> and <code>HX-Refresh</code>
+              headers are processed on error responses.
+            </p>
+            <p style="font-size: 13px; color: var(--text-dim)">
+              Result: <code>io.WriteString(w, err.Error())</code> produces a response that htmx
+              ignores. The consumer sees no visible change.
+            </p>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--orange)">
+            <h4>htmx 4.0</h4>
+            <p style="font-size: 13px">
+              Error responses are <strong>swapped into the target</strong> by default. The plain
+              text error message will appear inside whatever DOM element was the hx-target.
+            </p>
+            <p style="font-size: 13px; color: var(--text-dim)">
+              Result: Consumers will see raw error text like "validation failed: email is required"
+              rendered inside their UI. This may be undesirable.
+            </p>
+          </div>
+        </div>
+
+        <h3>Migration Options</h3>
+        <div class="grid-3">
+          <div class="card">
+            <h4>Option A: HTML Partials</h4>
+            <p style="font-size: 13px; color: var(--text-dim)">
+              Change error handlers to render HTML partials instead of plain text. Most flexible,
+              but requires the library to know about HTML templates.
+            </p>
+            <div class="badge badge-medium" style="margin-top: 8px">Library change</div>
+          </div>
+          <div class="card">
+            <h4>Option B: HX-Retarget</h4>
+            <p style="font-size: 13px; color: var(--text-dim)">
+              Set <code>HX-Retarget</code> on error responses to redirect them to a dedicated error
+              container (e.g., <code>#error-toast</code>).
+            </p>
+            <div class="badge badge-low" style="margin-top: 8px">Consumer config</div>
+          </div>
+          <div class="card">
+            <h4>Option C: hx-status</h4>
+            <p style="font-size: 13px; color: var(--text-dim)">
+              Use htmx 4.0's new <code>hx-status</code> attribute to control swap behavior per
+              response status code.
+            </p>
+            <div class="badge badge-low" style="margin-top: 8px">Consumer config</div>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <strong>Library principle:</strong> The library should NOT impose an error rendering
+          strategy. The existing <code>ErrorHandler</code> interface already lets consumers provide
+          custom error handlers. For v4, consumers who want HTML error partials should implement
+          their own <code>ErrorHandler</code>. No library change is needed — this is a documentation
+          concern.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== HEADER AUDIT ====================== -->
+    <section id="headers">
+      <div class="container">
+        <h2>HTMX Header Compatibility Audit</h2>
+        <p class="section-desc">
+          Every <code>HX-*</code> header the library reads or writes, with v4 compatibility status.
+        </p>
+
+        <h3>Response Headers (Written by Library)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Header</th>
+                <th>File</th>
+                <th>v2</th>
+                <th>v4</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>HX-Redirect</code></td>
+                <td><span class="file-ref">response.go:63, errors.go:126</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Client-side redirect, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Refresh</code></td>
+                <td><span class="file-ref">response.go:74</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Full page refresh, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Push-Url</code></td>
+                <td><span class="file-ref">response.go:45</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>History push, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Replace-Url</code></td>
+                <td><span class="file-ref">response.go:51</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>History replace, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Reswap</code></td>
+                <td><span class="file-ref">response.go:86</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Swap strategy override, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Retarget</code></td>
+                <td><span class="file-ref">response.go:92</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Target override, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Reselect</code></td>
+                <td><span class="file-ref">response.go:98</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Content selection override, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Location</code></td>
+                <td><span class="file-ref">response.go:80</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Client-side redirect w/ options, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Trigger</code></td>
+                <td><span class="file-ref">response.go:105,127</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Client-side event trigger, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Trigger-After-Swap</code></td>
+                <td><span class="file-ref">response.go:111</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Post-swap event, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Trigger-After-Settle</code></td>
+                <td><span class="file-ref">response.go:117</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Post-settle event, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>X-CSRF-Token</code></td>
+                <td><span class="file-ref">response.go:164, csrf_middleware.go:208</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>CSRF token in response, unchanged</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Request Headers (Read by Library)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Header</th>
+                <th>File</th>
+                <th>v2</th>
+                <th>v4</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>HX-Request</code></td>
+                <td><span class="file-ref">htmx.go:87,131</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>htmx detection, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Boosted</code></td>
+                <td><span class="file-ref">htmx.go:88</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Boost detection, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Current-URL</code></td>
+                <td><span class="file-ref">htmx.go:94</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Current page URL, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Target</code></td>
+                <td><span class="file-ref">htmx.go:90</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Target element ID, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Trigger</code></td>
+                <td><span class="file-ref">htmx.go:91</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>Trigger element ID/name, unchanged</td>
+              </tr>
+              <tr>
+                <td><code>HX-Prompt</code></td>
+                <td><span class="file-ref">htmx.go:93</span></td>
+                <td><span class="good">✓</span></td>
+                <td><span class="good">✓</span></td>
+                <td>User prompt response, unchanged</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout success">
+          <strong>All headers are v4-compatible.</strong> No header names changed in htmx 4.0. New
+          headers (<code>HX-Request-Type</code>) were added but we don't need to read them.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== ATTRIBUTES ====================== -->
+    <section id="attributes">
+      <div class="container">
+        <h2>HTMX Attribute Audit</h2>
+        <p class="section-desc">htmx attributes used in library-generated HTML and example code.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Attribute</th>
+                <th>Location</th>
+                <th>v4 Status</th>
+                <th>Action Needed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>hx-swap-oob</code></td>
+                <td><span class="file-ref">ws.go:124,131</span></td>
+                <td><span class="warn">Order changed</span></td>
+                <td>Swap happens after main swap instead of before. Document.</td>
+              </tr>
+              <tr>
+                <td><code>hx-ext="ws"</code></td>
+                <td><span class="file-ref">ws.go:28 (comment only)</span></td>
+                <td><span class="warn">Extension system rewritten</span></td>
+                <td>Consumer concern — library only documents this pattern.</td>
+              </tr>
+              <tr>
+                <td><code>hx-headers</code></td>
+                <td><span class="file-ref">csrf_helpers.go:47-65</span></td>
+                <td><span class="warn">Inheritance changed</span></td>
+                <td>Add <code>:inherited</code> if placed on parent element.</td>
+              </tr>
+              <tr>
+                <td><code>hx-disable</code></td>
+                <td><span class="good">Not used</span></td>
+                <td><span class="good">Renamed to hx-ignore</span></td>
+                <td>No action — library never generates this attribute.</td>
+              </tr>
+              <tr>
+                <td><code>queue:</code> modifier</td>
+                <td><span class="good">Not used</span></td>
+                <td><span class="good">Removed</span></td>
+                <td>No action — library never generates trigger modifiers.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== EVENTS ====================== -->
+    <section id="events">
+      <div class="container">
+        <h2>HTMX Event Name Audit</h2>
+        <p class="section-desc">
+          htmx 4.0 renames several <code>htmx:*</code> events. This audit checks if the library
+          references any of them.
+        </p>
+
+        <div class="callout success">
+          <strong>Zero htmx event names in Go code.</strong> The library never hardcodes
+          <code>htmx:beforeRequest</code>, <code>htmx:afterSwap</code>, or any other
+          <code>htmx:*</code> event name. All client-side events are consumer-controlled via
+          <code>HX-Trigger</code> headers, which use consumer-defined event names (like
+          <code>showMessage</code>, <code>itemCreated</code>). <br /><br />
+          Event renames in v4 are irrelevant to this library.
+        </div>
+
+        <h3>v4 Event Renames (for consumer reference)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>v2 Event</th>
+                <th>v4 Event</th>
+                <th>Library Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>htmx:beforeRequest</code></td>
+                <td><code>htmx:request</code></td>
+                <td><span class="good">None</span></td>
+              </tr>
+              <tr>
+                <td><code>htmx:afterRequest</code></td>
+                <td><code>htmx:response</code></td>
+                <td><span class="good">None</span></td>
+              </tr>
+              <tr>
+                <td><code>htmx:beforeOnLoad</code></td>
+                <td>Removed</td>
+                <td><span class="good">None</span></td>
+              </tr>
+              <tr>
+                <td><code>htmx:onLoad</code></td>
+                <td>Removed</td>
+                <td><span class="good">None</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== ALREADY DONE ====================== -->
+    <section id="already-done">
+      <div class="container">
+        <h2>Already Prepared</h2>
+        <p class="section-desc">Changes we've already made to prepare for htmx 4.0.</p>
+
+        <div class="finding good">
+          <div class="finding-head">
+            <span class="badge badge-good">Done ✓</span>
+            <span class="title">Pluggable HTMX Script Serving</span>
+          </div>
+          <p>
+            <span class="file-ref">htmx_serve.go</span> — Added
+            <code>HTMXScriptHandlerWith(js []byte, version string)</code> that lets consumers serve
+            any htmx JS build (including v4 betas) with proper Content-Type, ETag, and Cache-Control
+            headers. <code>HTMXScriptHandler()</code> now delegates to this.
+          </p>
+          <div class="impact">
+            <strong>Usage:</strong>
+            <div class="code-block">
+              <span class="cmt">// Serve htmx 4.0 beta from Go binary</span> customJS, _ := os.<span
+                class="fn"
+                >ReadFile</span
+              >(<span class="str">"htmx-4.0.0-beta4.min.js"</span>) mux.<span class="fn"
+                >Handle</span
+              >(<span class="str">"/static/htmx.js"</span>, cqrshtmx.<span class="fn"
+                >HTMXScriptHandlerWith</span
+              >(customJS, <span class="str">"4.0.0-beta4"</span>))
+            </div>
+          </div>
+        </div>
+
+        <div class="finding good">
+          <div class="finding-head">
+            <span class="badge badge-good">Done ✓</span>
+            <span class="title">CDN Script Tag Helper</span>
+          </div>
+          <p>
+            <span class="file-ref">htmx_serve.go</span> — Added
+            <code>HTMXCDNScriptTag(version string)</code> for consumers who prefer CDN loading over
+            self-hosting. Empty version uses the embedded library version.
+          </p>
+          <div class="impact">
+            <strong>Usage:</strong>
+            <div class="code-block">
+              <span class="cmt">// CDN with explicit version</span> tag := cqrshtmx.<span class="fn"
+                >HTMXCDNScriptTag</span
+              >(<span class="str">"4.0.0"</span>)
+              <span class="cmt"
+                >// => &lt;script src="https://unpkg.com/htmx.org@4.0.0"&gt;&lt;/script&gt;</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="finding good">
+          <div class="finding-head">
+            <span class="badge badge-good">Done ✓</span>
+            <span class="title">Version Single-Source-of-Truth</span>
+          </div>
+          <p>
+            <span class="file-ref">htmx_embed.go</span> — Extracted
+            <code>htmxVersion = "2.0.9"</code> as a package-level const. Previously the version
+            string was duplicated in 3 places (HTMXVersion, ETag, If-None-Match check). Now a single
+            constant drives all three.
+          </p>
+        </div>
+
+        <div class="finding good">
+          <div class="finding-head">
+            <span class="badge badge-good">Done ✓</span>
+            <span class="title">Transport-Agnostic Design</span>
+          </div>
+          <p>
+            The library's entire API operates on <code>net/http</code> types —
+            <code>http.ResponseWriter</code>, <code>*http.Request</code>, headers, and bodies. It
+            has zero coupling to XMLHttpRequest, <code>fetch()</code>, or any client-side transport.
+            The server sees standard HTTP regardless of what the client uses.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== CHECKLIST ====================== -->
+    <section id="checklist">
+      <div class="container">
+        <h2>Migration Checklist</h2>
+        <p class="section-desc">
+          Concrete action items for migrating cqrs-htmx consumers to htmx 4.0.
+        </p>
+
+        <h3>Library-Side (Already Done)</h3>
+        <ul class="checklist">
+          <li class="done">Pluggable HTMX script handler (<code>HTMXScriptHandlerWith</code>)</li>
+          <li class="done">CDN script tag helper (<code>HTMXCDNScriptTag</code>)</li>
+          <li class="done">Version const extraction (<code>htmxVersion</code>)</li>
+          <li class="done">Full test coverage for new API (11 test cases)</li>
+          <li class="done">AGENTS.md documentation updated</li>
+        </ul>
+
+        <h3>Library-Side (Optional, Post-v4-Stable)</h3>
+        <ul class="checklist">
+          <li>Verify <code>Sec-Fetch-Site</code> behavior with real browser + htmx 4.0</li>
+          <li>Add v4-specific docs for <code>hx-headers</code> <code>:inherited</code> caveat</li>
+          <li>Consider adding <code>HX-Retarget</code> to error responses for HTMX requests</li>
+          <li>Document <code>CSRFTokenFormField()</code> as the recommended v4 CSRF approach</li>
+        </ul>
+
+        <h3>Consumer-Side (Per Application)</h3>
+        <ul class="checklist">
+          <li>
+            Replace embedded htmx.min.js with v4 build (or use CDN via
+            <code>HTMXCDNScriptTag</code>)
+          </li>
+          <li>Run <code>npx htmx.org@next upgrade-check</code> against templates</li>
+          <li>Rename <code>hx-disable</code> → <code>hx-ignore</code> in all templates</li>
+          <li>Add <code>:inherited</code> to <code>hx-headers</code> if on parent elements</li>
+          <li>Replace <code>queue:</code> modifiers with <code>hx-sync</code></li>
+          <li>Review error response rendering (4xx/5xx now swap into DOM)</li>
+          <li>
+            Test CSRF token delivery (verify <code>X-CSRF-Token</code> arrives via
+            <code>fetch()</code>)
+          </li>
+          <li>Verify OOB swap order if relying on pre-main-swap OOB content</li>
+          <li>Update <code>htmx:*</code> event listeners (if any in client-side JS)</li>
+          <li>
+            Load extensions via <code>&lt;script&gt;</code> tags instead of
+            <code>defineExtension</code>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ====================== RECOMMENDATION ====================== -->
+    <section id="recommendation">
+      <div class="container">
+        <h2>Recommendation</h2>
+        <p class="section-desc">Should cqrs-htmx adopt htmx 4.0 now, wait, or prepare?</p>
+
+        <div class="callout warn">
+          <strong>Do NOT adopt htmx 4.0 yet.</strong> As of this audit, htmx 4.0 is in beta (<code
+            >4.0.0-beta4</code
+          >
+          on npm <code>next</code> tag). The library principle dictates that consumers inherit the
+          risk of our dependencies. Shipping a beta HTMX version embedded in a library would expose
+          every consumer to potential breaking changes between beta releases.
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Short Term (Now)</h4>
+            <ul class="clean">
+              <li>Keep embedded htmx at v2.0.9 (stable)</li>
+              <li>Document the pluggable API for early adopters</li>
+              <li>Point consumers to <code>HTMXScriptHandlerWith()</code> if they want v4</li>
+              <li>Monitor htmx 4.0 release candidates</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Medium Term (Post-v4-Stable)</h4>
+            <ul class="clean">
+              <li>Upgrade embedded JS to v4 stable once released</li>
+              <li>Run full CSRF browser test suite against v4</li>
+              <li>Update documentation with v4-specific guidance</li>
+              <li>Bump major version (v3.0.0) for the embedded JS change</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="callout success">
+          <strong>The library is ready.</strong> Consumers who want to try htmx 4.0 today can do so
+          via <code>HTMXScriptHandlerWith(customJS, "4.0.0-beta4")</code> without any library
+          changes. The server-side API is fully compatible. The only risks are client-side: CSRF
+          cookie behavior and error response rendering. Both are consumer-side concerns that the
+          library correctly leaves to the application.
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <p>Generated 2026-06-14 · cqrs-htmx HTMX 4.0 Migration Readiness Audit</p>
+      </div>
+    </footer>
+  </body>
+</html>
