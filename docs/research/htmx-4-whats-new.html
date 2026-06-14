@@ -1,0 +1,1543 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>htmx 4.0 Research — cqrs-htmx</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --bg-card: #161b22;
+        --bg-card-hover: #1c2128;
+        --bg-inset: #010409;
+        --border: #30363d;
+        --border-light: #21262d;
+        --text: #e6edf3;
+        --text-dim: #8b949e;
+        --text-bright: #f0f6fc;
+        --accent: #58a6ff;
+        --accent-dim: #1f6feb;
+        --green: #3fb950;
+        --green-bg: rgba(63, 185, 80, 0.1);
+        --yellow: #d29922;
+        --yellow-bg: rgba(210, 153, 34, 0.1);
+        --orange: #db6d28;
+        --orange-bg: rgba(219, 109, 40, 0.1);
+        --red: #f85149;
+        --red-bg: rgba(248, 81, 73, 0.1);
+        --purple: #bc8cff;
+        --teal: #39d0d8;
+        --mono: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 80px;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.6;
+        font-size: 15px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* --- Layout --- */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* --- Header --- */
+      header {
+        background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 48px 0 40px;
+        position: relative;
+        overflow: hidden;
+      }
+      header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(88, 166, 255, 0.06) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .header-tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+        background: rgba(88, 166, 255, 0.1);
+        border: 1px solid rgba(88, 166, 255, 0.3);
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        letter-spacing: 0.5px;
+      }
+      header h1 {
+        font-size: 38px;
+        font-weight: 700;
+        color: var(--text-bright);
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+      }
+      header .subtitle {
+        font-size: 18px;
+        color: var(--text-dim);
+        max-width: 700px;
+      }
+      .header-meta {
+        display: flex;
+        gap: 32px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+      }
+      .header-meta div {
+        font-size: 13px;
+        color: var(--text-dim);
+      }
+      .header-meta strong {
+        display: block;
+        color: var(--text-bright);
+        font-size: 15px;
+        font-family: var(--mono);
+      }
+
+      /* --- Navigation --- */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(13, 17, 23, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 0;
+      }
+      nav .container {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+      }
+      nav a {
+        color: var(--text-dim);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 14px 16px;
+        white-space: nowrap;
+        transition: color 0.15s;
+        border-bottom: 2px solid transparent;
+      }
+      nav a:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      /* --- Sections --- */
+      section {
+        padding: 56px 0;
+        border-bottom: 1px solid var(--border-light);
+      }
+      section h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-bright);
+        margin-bottom: 8px;
+        letter-spacing: -0.3px;
+      }
+      section .section-desc {
+        color: var(--text-dim);
+        font-size: 15px;
+        margin-bottom: 32px;
+        max-width: 800px;
+      }
+      h3 {
+        font-size: 19px;
+        font-weight: 600;
+        color: var(--text-bright);
+        margin: 32px 0 16px;
+      }
+      h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--accent);
+        margin-bottom: 8px;
+        font-family: var(--mono);
+      }
+      p {
+        margin-bottom: 12px;
+        color: var(--text);
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.88em;
+        background: var(--bg-inset);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--teal);
+        border: 1px solid var(--border-light);
+      }
+      .code-block {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--bg-inset);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        overflow-x: auto;
+        margin: 16px 0;
+        line-height: 1.5;
+        color: var(--text-dim);
+      }
+      .code-block .kw { color: var(--purple); }
+      .code-block .fn { color: var(--accent); }
+      .code-block .num { color: var(--orange); }
+      .code-block .str { color: var(--green); }
+      .code-block .cmt { color: #6e7681; font-style: italic; }
+      .code-block .tag { color: var(--red); }
+      .code-block .attr { color: var(--accent); }
+      .code-block .punct { color: var(--text-dim); }
+
+      /* --- Cards --- */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 16px;
+        transition: border-color 0.15s, background 0.15s;
+      }
+      .card:hover {
+        border-color: var(--border-light);
+        background: var(--bg-card-hover);
+      }
+      .card-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .card-title h4 {
+        margin: 0;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Badges --- */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--mono);
+        padding: 3px 10px;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .badge-breaking {
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(248, 81, 73, 0.3);
+      }
+      .badge-new {
+        background: var(--green-bg);
+        color: var(--green);
+        border: 1px solid rgba(63, 185, 80, 0.3);
+      }
+      .badge-renamed {
+        background: var(--orange-bg);
+        color: var(--orange);
+        border: 1px solid rgba(219, 109, 40, 0.3);
+      }
+      .badge-removed {
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(248, 81, 73, 0.3);
+      }
+      .badge-info {
+        background: rgba(88, 166, 255, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(88, 166, 255, 0.3);
+      }
+      .badge-ext {
+        background: rgba(188, 140, 255, 0.1);
+        color: var(--purple);
+        border: 1px solid rgba(188, 140, 255, 0.3);
+      }
+
+      /* --- Grid --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 768px) {
+        .grid-2, .grid-3, .grid-4 {
+          grid-template-columns: 1fr;
+        }
+        header h1 { font-size: 28px; }
+        section { padding: 40px 0; }
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 16px 0;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th {
+        background: var(--bg-inset);
+        color: var(--text-dim);
+        font-weight: 600;
+        text-align: left;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        font-family: var(--mono);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+      }
+      td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border-light);
+        font-family: var(--mono);
+        color: var(--text);
+      }
+      tbody tr:hover {
+        background: var(--bg-card-hover);
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      td .old { color: var(--text-dim); }
+      td .arrow { color: var(--accent); padding: 0 6px; }
+      td .new { color: var(--green); }
+
+      /* --- Feature card --- */
+      .feature {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin-bottom: 12px;
+      }
+      .feature.green { border-left-color: var(--green); }
+      .feature.purple { border-left-color: var(--purple); }
+      .feature.teal { border-left-color: var(--teal); }
+      .feature-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+      }
+      .feature-head .title {
+        font-weight: 600;
+        color: var(--text-bright);
+        font-size: 15px;
+      }
+      .feature p {
+        font-size: 14px;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+      }
+      .feature .code-block {
+        margin-top: 12px;
+        font-size: 12px;
+      }
+
+      /* --- Callout --- */
+      .callout {
+        background: rgba(88, 166, 255, 0.06);
+        border: 1px solid rgba(88, 166, 255, 0.2);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin: 16px 0;
+        font-size: 14px;
+      }
+      .callout strong { color: var(--accent); }
+      .callout.warn {
+        background: rgba(210, 153, 34, 0.06);
+        border-color: rgba(210, 153, 34, 0.2);
+      }
+      .callout.warn strong { color: var(--yellow); }
+      .callout.danger {
+        background: rgba(248, 81, 73, 0.06);
+        border-color: rgba(248, 81, 73, 0.2);
+      }
+      .callout.danger strong { color: var(--red); }
+
+      /* --- Misc --- */
+      ul.clean {
+        list-style: none;
+        padding: 0;
+      }
+      ul.clean li {
+        padding: 6px 0;
+        font-size: 14px;
+        color: var(--text-dim);
+        padding-left: 20px;
+        position: relative;
+      }
+      ul.clean li::before {
+        content: "▸";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+      }
+      .spacer { height: 24px; }
+      footer {
+        padding: 40px 0;
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 13px;
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      footer a:hover { text-decoration: underline; }
+
+      /* --- Version comparison block --- */
+      .vs-block {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0;
+        align-items: stretch;
+        margin: 16px 0;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      .vs-side {
+        padding: 16px 20px;
+        background: var(--bg-card);
+        font-size: 13px;
+        font-family: var(--mono);
+      }
+      .vs-side h5 {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+      .vs-side.v2 h5 { color: var(--text-dim); }
+      .vs-side.v4 h5 { color: var(--green); }
+      .vs-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-inset);
+        border-left: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+        padding: 0 20px;
+        font-size: 20px;
+        color: var(--accent);
+      }
+      @media (max-width: 600px) {
+        .vs-block { grid-template-columns: 1fr; }
+        .vs-arrow {
+          border-left: none;
+          border-right: none;
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--border);
+          padding: 8px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ====================== HEADER ====================== -->
+    <header>
+      <div class="container">
+        <div class="header-tag">docs/research · External Library Research</div>
+        <h1>htmx 4.0 — What's New &amp; What Changed</h1>
+        <p class="subtitle">
+          A comprehensive deep-dive into the next major version of htmx — covering breaking changes,
+          new features, the rewritten extension system, and migration implications for
+          <strong>cqrs-htmx</strong>. Sources: <a href="https://four.htmx.org/" style="color:var(--accent)">four.htmx.org</a>
+          docs, npm registry, and migration guide.
+        </p>
+        <div class="header-meta">
+          <div><strong>4.0.0-beta4</strong> Current</div>
+          <div><strong>2.0.10</strong> Stable latest</div>
+          <div><strong>v2 → v4</strong> Version jump</div>
+          <div><strong>fetch()</strong> Transport</div>
+          <div><strong>16</strong> Extensions</div>
+          <div><strong>33</strong> Attributes</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ====================== NAV ====================== -->
+    <nav>
+      <div class="container">
+        <a href="#overview">Overview</a>
+        <a href="#breaking">Breaking Changes</a>
+        <a href="#renames">Renames &amp; Removals</a>
+        <a href="#events">Event Renames</a>
+        <a href="#hcon">HCON</a>
+        <a href="#features">New Features</a>
+        <a href="#partials">Partials</a>
+        <a href="#extensions">Extension System</a>
+        <a href="#ext-catalog">Extension Catalog</a>
+        <a href="#migration">Migration</a>
+        <a href="#impact">cqrs-htmx Impact</a>
+      </div>
+    </nav>
+
+    <!-- ====================== OVERVIEW ====================== -->
+    <section id="overview">
+      <div class="container">
+        <h2>Overview</h2>
+        <p class="section-desc">
+          htmx 4.0 is the next major version, skipping v3 entirely. It's currently in beta
+          (<code>4.0.0-beta4</code>) under the npm <code>next</code> tag. The docs site at
+          <a href="https://four.htmx.org" style="color:var(--accent)">four.htmx.org</a> carries a
+          prominent banner: <em>"htmx 4.0 is under construction."</em>
+        </p>
+
+        <div class="grid-4">
+          <div class="card">
+            <h4>Transport</h4>
+            <p>Replaced <code>XMLHttpRequest</code> with the native <code>fetch()</code> API across all requests. Irreversible.</p>
+          </div>
+          <div class="card">
+            <h4>Philosophy</h4>
+            <p>Explicit over implicit. Attribute inheritance, error swapping, and extension loading all moved from implicit to opt-in.</p>
+          </div>
+          <div class="card">
+            <h4>Distribution</h4>
+            <p>New <code>htmax.js</code> bundle ships htmx + 8 popular extensions in one file. ESM builds now first-class.</p>
+          </div>
+          <div class="card">
+            <h4>Modern Web</h4>
+            <p>View Transitions API, Web Components / Shadow DOM support, and a reactive layer (<code>hx-live</code>).</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>Version skip:</strong> There is no htmx 3.x. The jump from 2.x to 4.x aligns the
+          version number with the major rewrite. The <code>htmx-2-compat</code> extension restores
+          v2 defaults for incremental migration.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== BREAKING CHANGES ====================== -->
+    <section id="breaking">
+      <div class="container">
+        <h2>Breaking Changes</h2>
+        <p class="section-desc">
+          Nine behavioral changes between htmx 2.x and 4.x. Most can be reverted with config flags,
+          except <code>fetch()</code> which is permanent.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Change</th>
+                <th>htmx 2.x</th>
+                <th></th>
+                <th>htmx 4.x</th>
+                <th>Revertible</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>HTTP transport</strong></td>
+                <td><span class="old">XMLHttpRequest</span></td>
+                <td><span class="arrow">→</span></td>
+                <td><span class="new">fetch() API</span></td>
+                <td><span style="color:var(--red)">No</span></td>
+              </tr>
+              <tr>
+                <td><strong>Inheritance</strong></td>
+                <td><span class="old">Implicit by default</span></td>
+                <td><span class="arrow">→</span></td>
+                <td><span class="new">Explicit (<code>:inherited</code>)</span></td>
+                <td><code>implicitInheritance=true</code></td>
+              </tr>
+              <tr>
+                <td><strong>Error responses</strong></td>
+                <td><span class="old">4xx/5xx not swapped</span></td>
+                <td><span class="arrow">→</span></td>
+                <td><span class="new">Swapped into target</span></td>
+                <td><code>noSwap=[...]</code></td>
+              </tr>
+              <tr>
+                <td><strong>hx-delete form data</strong></td>
+                <td><span class="old">Includes form inputs</span></td>
+                <td><span class="arrow">→</span></td>
+                <td><span class="new">Excludes (like hx-get)</span></td>
+                <td>Manual <code>hx-include</code></td>
+              </tr>
+              <tr>
+                <td><strong>History cache</strong></td>
+                <td><span class="old">localStorage caching</span></td>
+                <td><span class="arrow">→</span></td>
+                <td><span class="new">Re-fetches on back/fwd</span></td>
+                <td><code>history="reload"</code></td>
+              </tr>
+              <tr>
+                <td><strong>OOB swap order</strong></td>
+                <td><span class="old">OOB before main</span></td>
+                <td><span class="arrow">→</span></td>
+                <td><span class="new">Main first, then OOB</span></td>
+                <td><span style="color:var(--red)">No</span></td>
+              </tr>
+              <tr>
+                <td><strong>Trigger queue modifier</strong></td>
+                <td><span class="old"><code>queue:all</code></code></span></td>
+                <td><span class="arrow">→</span></td>
+                <td><span class="new">Use <code>hx-sync</code></span></td>
+                <td><span style="color:var(--red)">No</span></td>
+              </tr>
+              <tr>
+                <td><strong>Default timeout</strong></td>
+                <td><span class="old">0 (none)</span></td>
+                <td><span class="arrow">→</span></td>
+                <td><span class="new">60000ms (60s)</span></td>
+                <td><code>defaultTimeout=0</code></td>
+              </tr>
+              <tr>
+                <td><strong>Extension loading</strong></td>
+                <td><span class="old"><code>hx-ext</code> attribute</span></td>
+                <td><span class="arrow">→</span></td>
+                <td><span class="new">Script include, page-wide</span></td>
+                <td><span style="color:var(--red)">No</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Explicit Inheritance Detail</h3>
+        <div class="vs-block">
+          <div class="vs-side v2">
+            <h5>htmx 2.x — Implicit</h5>
+<pre style="color:var(--text-dim)">&lt;<span style="color:var(--red)">div</span> <span style="color:var(--accent)">hx-confirm</span>=<span style="color:var(--green)">"Are you sure?"</span>&gt;
+  &lt;<span style="color:var(--red)">button</span> <span style="color:var(--accent)">hx-delete</span>=<span style="color:var(--green)">"/item/1"</span>&gt;
+    Delete
+  &lt;/<span style="color:var(--red)">button</span>&gt;
+&lt;/<span style="color:var(--red)">div</span>&gt;</pre>
+          </div>
+          <div class="vs-arrow">→</div>
+          <div class="vs-side v4">
+            <h5>htmx 4.x — Explicit</h5>
+<pre style="color:var(--text-dim)">&lt;<span style="color:var(--red)">div</span> <span style="color:var(--accent)">hx-confirm:inherited</span>=<span style="color:var(--green)">"Are you sure?"</span>&gt;
+  &lt;<span style="color:var(--red)">button</span> <span style="color:var(--accent)">hx-delete</span>=<span style="color:var(--green)">"/item/1"</span>&gt;
+    Delete
+  &lt;/<span style="color:var(--red)">button</span>&gt;
+&lt;/<span style="color:var(--red)">div</span>&gt;</pre>
+          </div>
+        </div>
+        <p>
+          The <code>:inherited</code> suffix works on <em>any</em> attribute. Use <code>:append</code>
+          to add to an inherited value instead of replacing it. Revert globally with
+          <code>htmx.config.implicitInheritance = true</code>.
+        </p>
+
+        <h3>Error Response Swapping</h3>
+        <div class="callout warn">
+          <strong>Behavioral shift:</strong> In v2, 4xx/5xx responses were silently dropped (no swap).
+          In v4, the HTML body of <em>any</em> response — including <code>422</code> validation errors
+          and <code>500</code> server errors — gets swapped into the target element. Design error
+          responses as valid swap content, or configure <code>htmx.config.noSwap</code>.
+        </div>
+        <div class="code-block">
+<span class="cmt">// Restore v2 behavior — don't swap error responses</span>
+<span class="attr">htmx</span>.config.noSwap = [<span class="num">204</span>, <span class="num">304</span>, <span class="str">'4xx'</span>, <span class="str">'5xx'</span>];
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== RENAMES & REMOVALS ====================== -->
+    <section id="renames">
+      <div class="container">
+        <h2>Renames &amp; Removals</h2>
+        <p class="section-desc">
+          Attributes renamed, removed, or replaced. The <code>hx-disable</code> rename is particularly
+          tricky — do it before upgrading to avoid semantic conflicts.
+        </p>
+
+        <h3>Renamed Attributes</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Old (v2)</th>
+                <th>→</th>
+                <th>New (v4)</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>hx-disable</code></td>
+                <td>→</td>
+                <td><code>hx-ignore</code></td>
+                <td>Skip htmx processing on element</td>
+              </tr>
+              <tr>
+                <td><code>hx-disabled-elt</code></td>
+                <td>→</td>
+                <td><code>hx-disable</code></td>
+                <td>Disable form elements during requests</td>
+              </tr>
+              <tr>
+                <td><code>hx-request</code></td>
+                <td>→</td>
+                <td><code>hx-config</code></td>
+                <td>Per-element request configuration</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout danger">
+          <strong>Migration order for hx-disable:</strong> Rename <code>hx-disable</code> →
+          <code>hx-ignore</code> <em>first</em>, then rename <code>hx-disabled-elt</code> →
+          <code>hx-disable</code>. Doing it in the wrong order causes semantic conflicts.
+        </div>
+
+        <h3>Removed Attributes</h3>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">
+              <span class="badge badge-removed">Removed</span>
+              <h4>hx-vars</h4>
+            </div>
+            <p>Use <code>hx-vals</code> with <code>js:</code> prefix instead.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span class="badge badge-removed">Removed</span>
+              <h4>hx-params</h4>
+            </div>
+            <p>Use <code>htmx:config:request</code> event for parameter filtering.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span class="badge badge-removed">Removed</span>
+              <h4>hx-prompt</h4>
+            </div>
+            <p>Use <code>hx-confirm</code> with <code>js:</code> prefix.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span class="badge badge-removed">Removed</span>
+              <h4>hx-ext</h4>
+            </div>
+            <p>Include extension script directly — extensions apply page-wide.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span class="badge badge-removed">Removed</span>
+              <h4>hx-disinherit / hx-inherit</h4>
+            </div>
+            <p>Not needed — inheritance is now explicit via <code>:inherited</code>.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span class="badge badge-removed">Removed</span>
+              <h4>hx-history</h4>
+            </div>
+            <p>Removed — no more localStorage history cache.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== EVENT RENAMES ====================== -->
+    <section id="events">
+      <div class="container">
+        <h2>Event System Renames</h2>
+        <p class="section-desc">
+          All events follow a new pattern: <code>htmx:phase:action[:sub-action]</code>. Error events
+          consolidated to <code>htmx:error</code> and <code>htmx:response:error</code>.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>htmx 2.x</th>
+                <th>→</th>
+                <th>htmx 4.x</th>
+                <th>Phase</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>htmx:afterOnLoad</code></td><td>→</td><td><code>htmx:after:init</code></td><td>Init</td></tr>
+              <tr><td><code>htmx:afterProcessNode</code></td><td>→</td><td><code>htmx:after:init</code></td><td>Init</td></tr>
+              <tr><td><code>htmx:beforeOnLoad</code></td><td>→</td><td><code>htmx:before:init</code></td><td>Init</td></tr>
+              <tr><td><code>htmx:afterRequest</code></td><td>→</td><td><code>htmx:after:request</code></td><td>Request</td></tr>
+              <tr><td><code>htmx:afterSettle</code></td><td>→</td><td><code>htmx:after:swap</code></td><td>Swap</td></tr>
+              <tr><td><code>htmx:afterSwap</code></td><td>→</td><td><code>htmx:after:swap</code></td><td>Swap</td></tr>
+              <tr><td><code>htmx:beforeCleanupElement</code></td><td>→</td><td><code>htmx:before:cleanup</code></td><td>Cleanup</td></tr>
+              <tr><td><code>htmx:beforeHistorySave</code></td><td>→</td><td><code>htmx:before:history:update</code></td><td>History</td></tr>
+              <tr><td colspan="4" style="text-align:center;color:var(--text-dim);font-style:italic">…and more. Error events consolidated to <code>htmx:error</code> + <code>htmx:response:error</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>New Events Not in v2</h3>
+        <div class="grid-3">
+          <div class="card">
+            <h4>htmx:response:error</h4>
+            <p>HTTP error status (4xx/5xx) received. Separate from network errors.</p>
+          </div>
+          <div class="card">
+            <h4>htmx:before:response</h4>
+            <p>After response received, before body consumed. Last chance to inspect raw Response.</p>
+          </div>
+          <div class="card">
+            <h4>htmx:after:implicitInheritance</h4>
+            <p>Fires after implicit inheritance is applied (when compat mode is on).</p>
+          </div>
+          <div class="card">
+            <h4>htmx:process:{type}</h4>
+            <p>Custom template processing hook for non-standard HTML templates.</p>
+          </div>
+          <div class="card">
+            <h4>htmx:before/after:viewTransition</h4>
+            <p>View Transitions API lifecycle hooks.</p>
+          </div>
+          <div class="card">
+            <h4>htmx:after:history:push/replace</h4>
+            <p>Granular history manipulation events.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== HCON ====================== -->
+    <section id="hcon">
+      <div class="container">
+        <h2>HCON — htmx Configuration Object Notation</h2>
+        <p class="section-desc">
+          A new mini config language for attribute values. Designed to feel natural in HTML attributes —
+          no outer braces, flexible quoting, flag-style booleans. Falls back to JSON when a value
+          starts with <code>{</code>.
+        </p>
+
+        <div class="grid-2">
+          <div>
+            <h4>Syntax Rules</h4>
+            <ul class="clean">
+              <li><strong>Separators:</strong> spaces or commas between pairs</li>
+              <li><strong>Booleans:</strong> bare keyword = <code>true</code></li>
+              <li><strong>Numbers:</strong> parsed as integers</li>
+              <li><strong>Strings:</strong> double or single quotes (needed for spaces/special chars)</li>
+              <li><strong>Nesting:</strong> dot-notation (<code>sse.reconnect:true</code>)</li>
+              <li><strong>JSON fallback:</strong> values starting with <code>{</code> parsed as JSON</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Where HCON is Used</h4>
+            <ul class="clean">
+              <li><code>hx-swap</code> modifiers</li>
+              <li><code>hx-trigger</code> modifiers</li>
+              <li><code>hx-config</code> (new)</li>
+              <li><code>hx-vals</code> / <code>hx-headers</code></li>
+              <li><code>&lt;meta name="htmx-config"&gt;</code></li>
+              <li><code>HX-Location</code> response header</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="grid-2">
+          <div>
+            <h4>HCON form</h4>
+            <div class="code-block">
+<span class="cmt">&lt;!-- swap modifiers --&gt;</span>
+&lt;<span class="tag">div</span> <span class="attr">hx-swap</span>=<span class="str">"innerHTML swap:200ms settle:100ms scroll:top"</span>&gt;
+
+<span class="cmt">&lt;!-- trigger modifiers --&gt;</span>
+&lt;<span class="tag">input</span> <span class="attr">hx-trigger</span>=<span class="str">"keyup delay:300ms"</span>&gt;
+
+<span class="cmt">&lt;!-- per-element config --&gt;</span>
+&lt;<span class="tag">button</span> <span class="attr">hx-config</span>=<span class="str">"timeout:5000"</span>&gt;
+
+<span class="cmt">&lt;!-- global config via meta --&gt;</span>
+&lt;<span class="tag">meta</span> <span class="attr">name</span>=<span class="str">"htmx-config"</span>
+      <span class="attr">content</span>=<span class="str">"defaultSwap:outerHTML transitions:true"</span>&gt;
+
+<span class="cmt">&lt;!-- nested keys --&gt;</span>
+&lt;<span class="tag">meta</span> <span class="attr">name</span>=<span class="str">"htmx-config"</span>
+      <span class="attr">content</span>=<span class="str">"sse.reconnect:true sse.reconnectDelay:1000"</span>&gt;</div>
+          </div>
+          <div>
+            <h4>JSON form (also accepted)</h4>
+            <div class="code-block">
+<span class="cmt">&lt;!-- swap modifiers as JSON --&gt;</span>
+&lt;<span class="tag">div</span> <span class="attr">hx-swap</span>=<span class="str">'{"swap":"200ms","settle":"100ms"}'</span>&gt;
+
+<span class="cmt">&lt;!-- explicit style override --&gt;</span>
+&lt;<span class="tag">div</span> <span class="attr">hx-swap</span>=<span class="str">'{"style":"outerHTML","swap":"200ms"}'</span>&gt;
+
+<span class="cmt">&lt;!-- global config as JSON --&gt;</span>
+&lt;<span class="tag">meta</span> <span class="attr">name</span>=<span class="str">"htmx-config"</span>
+      <span class="attr">content</span>=<span class="str">'{"defaultSwap":"outerHTML","transitions":true}'</span>&gt;
+
+<span class="cmt">&lt;!-- server-rendered JSON injected directly --&gt;</span>
+&lt;<span class="tag">button</span> <span class="attr">hx-config</span>=<span class="str">'{"credentials":"include","timeout":5000}'</span>&gt;</div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>Mixing rule:</strong> JSON and HCON are <em>not</em> mixed — the entire attribute
+          value is parsed as one or the other. If it starts with <code>{</code>, it's JSON. Otherwise
+          it's HCON.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== NEW FEATURES ====================== -->
+    <section id="features">
+      <div class="container">
+        <h2>New Features</h2>
+        <p class="section-desc">Seven additions that expand htmx's expressiveness without breaking the core model.</p>
+
+        <div class="feature green">
+          <div class="feature-head">
+            <span class="badge badge-new">New</span>
+            <span class="title">hx-action + hx-method — Decoupled URL/Method</span>
+          </div>
+          <p>
+            Separate the URL from the HTTP method, enabling dynamic method selection. The shorthand
+            attributes (<code>hx-get</code>, <code>hx-post</code>, etc.) still work and are equivalent.
+          </p>
+          <div class="code-block">
+<span class="cmt">&lt;!-- Decoupled form — method can be set dynamically --&gt;</span>
+&lt;<span class="tag">button</span> <span class="attr">hx-action</span>=<span class="str">"/api/users"</span> <span class="attr">hx-method</span>=<span class="str">"post"</span>&gt;Create User&lt;/<span class="tag">button</span>&gt;
+
+<span class="cmt">&lt;!-- Equivalent shorthand --&gt;</span>
+&lt;<span class="tag">button</span> <span class="attr">hx-post</span>=<span class="str">"/api/users"</span>&gt;Create User&lt;/<span class="tag">button</span>&gt;</div>
+        </div>
+
+        <div class="feature green">
+          <div class="feature-head">
+            <span class="badge badge-new">New</span>
+            <span class="title">hx-status — Per-Status-Code Swap Control</span>
+          </div>
+          <p>
+            Route different HTTP status responses to different targets. Fine-grained control over how
+            200, 422, 500, 503, etc. are handled — per element.
+          </p>
+          <div class="code-block">
+&lt;<span class="tag">form</span> <span class="attr">hx-post</span>=<span class="str">"/submit"</span>
+      <span class="attr">hx-target</span>=<span class="str">"#result"</span>
+      <span class="attr">hx-status:422</span>=<span class="str">"target:#validation-errors"</span>
+      <span class="attr">hx-status:500</span>=<span class="str">"target:#server-error"</span>
+      <span class="attr">hx-status:503</span>=<span class="str">"none"</span>&gt;
+  &lt;<span class="tag">input</span> <span class="attr">name</span>=<span class="str">"email"</span>&gt;
+  &lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="str">"submit"</span>&gt;Submit&lt;/<span class="tag">button</span>&gt;
+&lt;/<span class="tag">form</span>&gt;</div>
+        </div>
+
+        <div class="feature green">
+          <div class="feature-head">
+            <span class="badge badge-new">New</span>
+            <span class="title">hx-config — Per-Element Request Configuration</span>
+          </div>
+          <p>
+            Replaces the old <code>hx-request</code> attribute. Merges into the request context before
+            the request is issued. Uses HCON or JSON for fetch options like timeout, credentials, CORS mode.
+          </p>
+          <div class="code-block">
+&lt;<span class="tag">button</span> <span class="attr">hx-get</span>=<span class="str">"/slow"</span> <span class="attr">hx-config</span>=<span class="str">"timeout:30000"</span>&gt;Load&lt;/<span class="tag">button</span>&gt;
+
+&lt;<span class="tag">button</span> <span class="attr">hx-get</span>=<span class="str">"https://api.example.com/data"</span>
+        <span class="attr">hx-config</span>=<span class="str">'credentials:"include" mode:"cors"'</span>&gt;
+  Cross-origin
+&lt;/<span class="tag">button</span>&gt;</div>
+        </div>
+
+        <div class="feature purple">
+          <div class="feature-head">
+            <span class="badge badge-new">New</span>
+            <span class="title">Web Components &amp; Shadow DOM Support</span>
+          </div>
+          <p>
+            Explicit support for htmx inside Shadow DOM. Call <code>htmx.process()</code> after creating
+            shadow DOM. New targeting keywords: <code>host</code> (target shadow host) and
+            <code>global:&lt;selector&gt;</code> (break out of shadow DOM).
+          </p>
+          <div class="code-block">
+<span class="kw">customElements</span>.<span class="fn">define</span>(<span class="str">'my-counter'</span>, <span class="kw">class</span> <span class="kw">extends</span> HTMLElement {
+  <span class="fn">connectedCallback</span>() {
+    <span class="kw">const</span> shadow = <span class="kw">this</span>.<span class="fn">attachShadow</span>({mode: <span class="str">'open'</span>})
+    shadow.innerHTML = <span class="str">`
+      &lt;button hx-post="/increment" hx-target="#count"&gt;+1&lt;/button&gt;
+      &lt;div id="count"&gt;0&lt;/div&gt;
+    `</span>
+    htmx.<span class="fn">process</span>(shadow) <span class="cmt">// Initialize htmx for shadow DOM</span>
+  }
+})</div>
+        </div>
+
+        <div class="feature teal">
+          <div class="feature-head">
+            <span class="badge badge-new">New</span>
+            <span class="title">htmax.js — Bundled Extensions Distribution</span>
+          </div>
+          <p>
+            A single file bundling htmx with the 8 most popular extensions. Extensions are automatically
+            available — just use their attributes directly (<code>hx-sse:connect</code>,
+            <code>hx-ws:connect</code>, etc.).
+          </p>
+          <div class="code-block">
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="str">"/js/htmax.min.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;
+
+<span class="cmt">&lt;!-- Includes: SSE, WebSockets, preload, browser-indicator,
+     download, optimistic, targets, live --&gt;</span></div>
+        </div>
+
+        <div class="feature green">
+          <div class="feature-head">
+            <span class="badge badge-new">New</span>
+            <span class="title">HX-Request-Type Header</span>
+          </div>
+          <p>
+            New request header: <code>"partial"</code> for targeted swaps, <code>"full"</code> for
+            body-level or <code>hx-select</code> requests. Lets the server distinguish between partial
+            and full-page AJAX requests.
+          </p>
+        </div>
+
+        <div class="feature green">
+          <div class="feature-head">
+            <span class="badge badge-new">New</span>
+            <span class="title">Upgrade Checker CLI</span>
+          </div>
+          <p>
+            Built-in migration scanner that checks templates and JS files for v2 code that needs updating.
+            Scans <code>.html</code>, <code>.php</code>, <code>.js</code>, <code>.ts</code>,
+            <code>.jinja</code>, <code>.erb</code>, <code>.hbs</code> by default.
+          </p>
+          <div class="code-block">
+npx htmx.org@next upgrade-check -- ./path/to/project/root
+npx htmx.org@next upgrade-check --ext .vue ./path/to/project/root</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== PARTIALS ====================== -->
+    <section id="partials">
+      <div class="container">
+        <h2>Multi-Target Updates: OOB + Partials</h2>
+        <p class="section-desc">
+          Two ways to update multiple elements from a single response. Out-of-band swaps match by ID;
+          <code>&lt;hx-partial&gt;</code> tags give explicit control via CSS selectors.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">
+              <span class="badge badge-info">OOB</span>
+              <h4>Out-of-Band Swaps</h4>
+            </div>
+            <p>Match elements by their <code>id</code> attribute. Add <code>hx-swap-oob="true"</code> to any element in the response.</p>
+            <div class="code-block" style="font-size:12px">
+&lt;<span class="tag">div</span> <span class="attr">id</span>=<span class="str">"message"</span> <span class="attr">hx-swap-oob</span>=<span class="str">"true"</span>&gt;
+  Form submitted!
+&lt;/<span class="tag">div</span>&gt;
+
+&lt;<span class="tag">form</span> <span class="attr">id</span>=<span class="str">"my-form"</span>&gt;
+  &lt;<span class="cmt">!-- Updated form content --&gt;</span>
+&lt;/<span class="tag">form</span>&gt;</div>
+            <p style="font-size:13px;color:var(--text-dim)">Best for: consistent IDs, notification areas, counters, status indicators.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span class="badge badge-new">New</span>
+              <h4>&lt;hx-partial&gt; Tags</h4>
+            </div>
+            <p>Explicit targeting via CSS selectors. Each partial accepts <code>hx-target</code>, <code>id</code> (shorthand), and <code>hx-swap</code>.</p>
+            <div class="code-block" style="font-size:12px">
+&lt;<span class="tag">hx-partial</span> <span class="attr">hx-target</span>=<span class="str">"#messages"</span> <span class="attr">hx-swap</span>=<span class="str">"beforeend"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="str">"message"</span>&gt;New message&lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">hx-partial</span>&gt;
+
+&lt;<span class="tag">hx-partial</span> <span class="attr">id</span>=<span class="str">"notifications"</span>&gt;
+  &lt;<span class="tag">span</span> <span class="attr">class</span>=<span class="str">"badge"</span>&gt;5&lt;/<span class="tag">span</span>&gt;
+&lt;/<span class="tag">hx-partial</span>&gt;
+
+&lt;<span class="tag">form</span> <span class="attr">id</span>=<span class="str">"my-form"</span>&gt;
+  &lt;<span class="cmt">!-- Main content --&gt;</span>
+&lt;/<span class="tag">form</span>&gt;</div>
+            <p style="font-size:13px;color:var(--text-dim)">Best for: elements without IDs, class targeting, complex update patterns.</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>Swap order change:</strong> In v2, OOB elements swapped <em>before</em> main content.
+          In v4, main content swaps first, then OOB/partials in document order. If OOB swaps create DOM
+          that the main swap depends on, restructure so each swap is independent.
+        </div>
+
+        <div class="callout">
+          <strong>Template language compatibility:</strong> For template engines that strip unknown tags,
+          use the equivalent <code>&lt;template hx type="partial" hx-target="..."&gt;</code> form. htmx
+          converts <code>&lt;hx-partial&gt;</code> to this internally.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== EXTENSION SYSTEM ====================== -->
+    <section id="extensions">
+      <div class="container">
+        <h2>Rewritten Extension System</h2>
+        <p class="section-desc">
+          Completely rewritten from callback-based to event-based hooks. Extensions are lightweight with
+          no performance penalty. They apply page-wide without <code>hx-ext</code>.
+        </p>
+
+        <div class="grid-2">
+          <div>
+            <h4>Defining an Extension</h4>
+            <div class="code-block">
+<span class="attr">htmx</span>.<span class="fn">registerExtension</span>(<span class="str">"my-ext"</span>, {
+  <span class="fn">init</span>: (internalAPI) =&gt; {
+    <span class="cmt">// Called once on registration</span>
+  },
+
+  <span class="fn">htmx_before_request</span>: (elt, detail) =&gt; {
+    <span class="cmt">// Before each request</span>
+    <span class="kw">if</span> (!<span class="fn">isValid</span>(detail.ctx)) {
+      <span class="kw">return</span> <span class="num">false</span>; <span class="cmt">// Cancel request</span>
+    }
+  },
+
+  <span class="fn">htmx_after_request</span>: (elt, detail) =&gt; {
+    <span class="cmt">// After request completes</span>
+  },
+
+  <span class="fn">handle_swap</span>: (style, target, fragment, spec) =&gt; {
+    <span class="cmt">// Custom swap strategy</span>
+  },
+});</div>
+          </div>
+
+          <div>
+            <h4>Loading &amp; Restricting</h4>
+            <div class="code-block">
+<span class="cmt">&lt;!-- Load: just include the script --&gt;</span>
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="str">"/path/to/htmx.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="str">"/path/to/ext/hx-sse.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;
+
+<span class="cmt">&lt;!-- Restrict via allow-list --&gt;</span>
+&lt;<span class="tag">meta</span> <span class="attr">name</span>=<span class="str">"htmx-config"</span>
+      <span class="attr">content</span>=<span class="str">'{"extensions":"sse, ws"}'</span>&gt;
+
+<span class="cmt">&lt;!-- Or via bundler --&gt;</span>
+<span class="kw">import</span> <span class="str">'htmx.org'</span>;
+<span class="kw">import</span> <span class="str">'htmx.org/dist/ext/hx-sse'</span>;</div>
+          </div>
+        </div>
+
+        <h3>Event Hook Categories</h3>
+        <div class="grid-4">
+          <div class="card">
+            <h4>Core Lifecycle</h4>
+            <p style="font-size:13px"><code>htmx_before/after_init</code><br>
+            <code>htmx_before/after_process</code><br>
+            <code>htmx_before/after_cleanup</code></p>
+          </div>
+          <div class="card">
+            <h4>Request Lifecycle</h4>
+            <p style="font-size:13px"><code>htmx_config_request</code><br>
+            <code>htmx_before/after_request</code><br>
+            <code>htmx_finally_request</code><br>
+            <code>htmx_error</code></p>
+          </div>
+          <div class="card">
+            <h4>Swap Events</h4>
+            <p style="font-size:13px"><code>htmx_before/after_swap</code><br>
+            <code>htmx_before/after_settle</code><br>
+            <code>handle_swap</code> (direct)</p>
+          </div>
+          <div class="card">
+            <h4>History Events</h4>
+            <p style="font-size:13px"><code>htmx_before/after_history_update</code><br>
+            <code>htmx_after_history_push</code><br>
+            <code>htmx_after_history_replace</code><br>
+            <code>htmx_before_history_restore</code></p>
+          </div>
+        </div>
+
+        <h3>Request Context Object</h3>
+        <p>The <code>detail.ctx</code> object passed to hooks contains full request lifecycle state:</p>
+        <div class="code-block">
+{
+  sourceElement,      <span class="cmt">// Element triggering request</span>
+  sourceEvent,        <span class="cmt">// Event that triggered request</span>
+  target,             <span class="cmt">// Target element for swap</span>
+  swap,               <span class="cmt">// Swap strategy</span>
+  request: {
+    action,           <span class="cmt">// Request URL</span>
+    method,           <span class="cmt">// HTTP method</span>
+    headers,          <span class="cmt">// Request headers</span>
+    body,             <span class="cmt">// Request body (FormData)</span>
+    validate,         <span class="cmt">// Whether to validate</span>
+    abort,            <span class="cmt">// Function to abort request</span>
+    signal            <span class="cmt">// AbortSignal</span>
+  },
+  response: {         <span class="cmt">// Available after request</span>
+    raw,              <span class="cmt">// Raw Response object</span>
+    status,           <span class="cmt">// HTTP status code</span>
+    headers           <span class="cmt">// Response headers</span>
+  },
+  text,               <span class="cmt">// Response text</span>
+  hx                  <span class="cmt">// Parsed HX-* response headers</span>
+}</div>
+      </div>
+    </section>
+
+    <!-- ====================== EXTENSION CATALOG ====================== -->
+    <section id="ext-catalog">
+      <div class="container">
+        <h2>Extension Catalog</h2>
+        <p class="section-desc">
+          16 extensions ship with htmx 4. Eight are bundled in <code>htmax.js</code>. New extensions
+          include a reactive layer, optimistic UI, file downloads, and CSP enforcement.
+        </p>
+
+        <h3>Networking</h3>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>hx-sse</h4></div>
+            <p>Server-Sent Events streaming. Now a separate script — no longer in core.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>hx-ws</h4></div>
+            <p>Bidirectional WebSocket connections. Also extracted from core.</p>
+          </div>
+        </div>
+
+        <h3>Performance</h3>
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>hx-preload</h4></div>
+            <p>Preload content on hover for instant page loads.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>hx-ptag</h4></div>
+            <p>Skip swaps when polled content hasn't changed.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>hx-history-cache</h4></div>
+            <p>Cache pages in sessionStorage for instant back/forward.</p>
+          </div>
+        </div>
+
+        <h3>UX</h3>
+        <div class="grid-4">
+          <div class="card">
+            <div class="card-title"><span class="badge badge-new">New</span><h4>hx-live</h4></div>
+            <p>Reactive expressions + <code>q()</code> selector helper. <code>MutationObserver</code>-driven, auto-reruns on DOM changes.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-New">New</span><h4>hx-optimistic</h4></div>
+            <p>Apply UI updates before server responds. Rollback on failure.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-new">New</span><h4>hx-download</h4></div>
+            <p>Save responses as file downloads with progress events.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-new">New</span><h4>hx-browser-indicator</h4></div>
+            <p>Show the browser's native loading indicator.</p>
+          </div>
+        </div>
+
+        <h3>Swap Behaviors</h3>
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>hx-head</h4></div>
+            <p>Merge &lt;head&gt; tags (styles, scripts) into htmx responses.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>hx-upsert</h4></div>
+            <p>Update or insert elements by ID for dynamic lists.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>hx-targets</h4></div>
+            <p>Swap one response into multiple elements at once.</p>
+          </div>
+        </div>
+
+        <h3>Security &amp; Compatibility</h3>
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title"><span class="badge badge-new">New</span><h4>hx-csp</h4></div>
+            <p>CSP enforcement — nonce gating, Trusted Types, safe eval.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>htmx-2-compat</h4></div>
+            <p>Restore v2 defaults + event names for migration.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="badge badge-ext">Ext</span><h4>hx-alpine-compat</h4></div>
+            <p>Run htmx alongside Alpine.js without conflicts.</p>
+          </div>
+        </div>
+
+        <h3>Spotlight: hx-live</h3>
+        <p>The most significant new extension — a lightweight reactive scripting layer inspired by _hyperscript:</p>
+        <div class="code-block">
+<span class="cmt">&lt;!-- Reactive expression auto-reruns on DOM changes --&gt;</span>
+&lt;<span class="tag">input</span> <span class="attr">id</span>=<span class="str">"name"</span> <span class="attr">value</span>=<span class="str">"world"</span>&gt;
+&lt;<span class="tag">output</span> <span class="attr">hx-live</span>=<span class="str">"this.textContent = 'hello, ' + q('#name').value"</span>&gt;&lt;/<span class="tag">output</span>&gt;
+
+<span class="cmt">&lt;!-- Debounced live search with async/await --&gt;</span>
+&lt;<span class="tag">output</span> <span class="attr">hx-live</span>=<span class="str">"
+    await debounce(200);
+    this.textContent = await fetch('/q?term=' + q('#search').value).then(r =&gt; r.text());
+"</span>&gt;&lt;/<span class="tag">output</span>&gt;
+
+<span class="cmt">&lt;!-- q() selector grammar with directionals --&gt;</span>
+q(<span class="str">'.foo'</span>)              <span class="cmt">// every .foo</span>
+q(<span class="str">'closest .field'</span>)     <span class="cmt">// nearest ancestor</span>
+q(<span class="str">'next .row'</span>)          <span class="cmt">// first match after this element</span>
+q(<span class="str">'.tab'</span>).<span class="fn">take</span>(<span class="str">'selected'</span>, <span class="str">'.tab'</span>)  <span class="cmt">// class juggling</span></div>
+        <p style="font-size:14px;color:var(--text-dim)">
+          Features: <code>q()</code> with directional grammar (<code>closest</code>, <code>next</code>,
+          <code>prev</code>, <code>first</code>, <code>last</code>), <code>debounce()</code>,
+          <code>forEvent()</code>, <code>nextFrame()</code>, <code>take()</code>, async/await support,
+          swap-aware recompute scheduling, auto-cleanup.
+        </p>
+      </div>
+    </section>
+
+    <!-- ====================== MIGRATION ====================== -->
+    <section id="migration">
+      <div class="container">
+        <h2>Migration Path</h2>
+        <p class="section-desc">
+          Most v2 apps work with either a two-line config restore or the <code>htmx-2-compat</code>
+          extension. Then migrate incrementally.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><h4>Option A: Two-Line Config Restore</h4></div>
+            <div class="code-block">
+&lt;<span class="tag">script</span>&gt;
+  htmx.config.implicitInheritance = <span class="num">true</span>;
+  htmx.config.noSwap = [<span class="num">204</span>, <span class="num">304</span>, <span class="str">'4xx'</span>, <span class="str">'5xx'</span>];
+&lt;/<span class="tag">script</span>&gt;
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="str">"...htmx.min.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;</div>
+            <p>Restores implicit inheritance and old error-swapping defaults. Minimal, surgical.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><h4>Option B: htmx-2-compat Extension</h4></div>
+            <div class="code-block">
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="str">"/path/to/htmx.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="str">"/path/to/ext/htmx-2-compat.js"</span>&gt;&lt;/<span class="tag">script</span>&gt;</div>
+            <p>Restores implicit inheritance, old event names, AND previous error-swapping defaults. Broader coverage.</p>
+          </div>
+        </div>
+
+        <h3>Migration Checklist</h3>
+        <div class="grid-2">
+          <div>
+            <h4>Before Upgrading</h4>
+            <ul class="clean">
+              <li>Rename <code>hx-disable</code> → <code>hx-ignore</code></li>
+              <li>Rename <code>hx-disabled-elt</code> → <code>hx-disable</code></li>
+              <li>Run <code>npx htmx.org@next upgrade-check</code></li>
+              <li>Remove <code>hx-ext</code> attributes (not needed)</li>
+              <li>Remove <code>hx-vars</code>, <code>hx-params</code>, <code>hx-prompt</code></li>
+            </ul>
+          </div>
+          <div>
+            <h4>After Uploading</h4>
+            <ul class="clean">
+              <li>Add compat config or extension if needed</li>
+              <li>Design error responses as valid swap content</li>
+              <li>Update event listeners to new naming pattern</li>
+              <li>Check OOB swap ordering dependencies</li>
+              <li>Update <code>queue:</code> triggers to use <code>hx-sync</code></li>
+              <li>Consider new features: <code>hx-status</code>, <code>hx-config</code>, <code>&lt;hx-partial&gt;</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Package Install</h3>
+        <div class="code-block">
+<span class="cmt"># CDN (with SRI integrity hash)</span>
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="str">"https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta4"</span>
+        <span class="attr">integrity</span>=<span class="str">"sha384-aWZK1..."</span>
+        <span class="attr">crossorigin</span>=<span class="str">"anonymous"</span>&gt;&lt;/<span class="tag">script</span>&gt;
+
+<span class="cmt"># npm</span>
+npm install htmx.org@4.0.0-beta4
+
+<span class="cmt"># ES Module</span>
+&lt;<span class="tag">script</span> <span class="attr">type</span>=<span class="str">"module"</span>
+        <span class="attr">src</span>=<span class="str">"https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta4/dist/htmx.esm.min.js"</span>&gt;
+&lt;/<span class="tag">script</span>&gt;
+
+<span class="cmt"># Named import</span>
+<span class="kw">import</span> htmx <span class="kw">from</span> <span class="str">'htmx.org'</span>;</div>
+      </div>
+    </section>
+
+    <!-- ====================== IMPACT ON cqrs-htmx ====================== -->
+    <section id="impact">
+      <div class="container">
+        <h2>Impact on cqrs-htmx</h2>
+        <p class="section-desc">
+          Our library currently embeds htmx v2.0.9 via <code>go:embed</code> in
+          <code>htmx_embed.go</code> (~49KB). Here's what a future upgrade would touch.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Current (v2.0.9)</th>
+                <th>v4 Impact</th>
+                <th>Severity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>HTMXVersion()</code></td>
+                <td>Returns <code>"2.0.9"</code></td>
+                <td>Change to <code>"4.0.x"</code></td>
+                <td><span class="badge badge-info">Trivial</span></td>
+              </tr>
+              <tr>
+                <td><code>htmx_embed.go</code></td>
+                <td>Embeds v2 minified JS</td>
+                <td>Replace embedded file with v4 dist</td>
+                <td><span class="badge badge-info">Trivial</span></td>
+              </tr>
+              <tr>
+                <td>Response headers (<code>sse.go</code>)</td>
+                <td><code>HX-Redirect</code>, <code>HX-Trigger</code>, etc.</td>
+                <td>All still supported — no changes needed</td>
+                <td><span class="badge badge-new" style="background:var(--green-bg);color:var(--green);border:1px solid rgba(63,185,80,0.3)">None</span></td>
+              </tr>
+              <tr>
+                <td>Request headers (<code>htmx.go</code>)</td>
+                <td>Reads <code>HX-Request</code>, <code>HX-Target</code></td>
+                <td>Still present. New: <code>HX-Request-Type</code>, <code>HX-Source</code></td>
+                <td><span class="badge badge-info">Additive</span></td>
+              </tr>
+              <tr>
+                <td>SSE/WS protocol helpers</td>
+                <td><code>sse.go</code>, <code>ws.go</code></td>
+                <td><code>hx-sse</code>/<code>hx-ws</code> now separate scripts — still compatible</td>
+                <td><span class="badge badge-info">Low</span></td>
+              </tr>
+              <tr>
+                <td>Error response handling</td>
+                <td>Error handlers return text/HTML</td>
+                <td>v4 swaps 4xx/5xx by default — must return valid swap HTML</td>
+                <td><span class="badge" style="background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(210,153,34,0.3)">Medium</span></td>
+              </tr>
+              <tr>
+                <td>CSRF middleware</td>
+                <td>Expects specific request behavior</td>
+                <td><code>fetch()</code> changes cookie/cred handling — verify CSRF token flow</td>
+                <td><span class="badge" style="background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(210,153,34,0.3)">Medium</span></td>
+              </tr>
+              <tr>
+                <td>WebSocket message parsing (<code>ws.go</code>)</td>
+                <td><code>WSMessage</code>, <code>ParseWSMessage</code></td>
+                <td>Still protocol-level — unaffected by transport change</td>
+                <td><span class="badge badge-new" style="background:var(--green-bg);color:var(--green);border:1px solid rgba(63,185,80,0.3)">None</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <strong>Recommendation:</strong> No rush — v4 is still beta. Stable v2.0.10 remains the npm
+          <code>latest</code>. Wait for v4 stable release, then:
+          <ol style="margin:8px 0 0 20px;font-size:14px;color:var(--text-dim)">
+            <li>Run <code>upgrade-check</code> against any example apps</li>
+            <li>Replace embedded <code>htmx.min.js</code> with v4 dist</li>
+            <li>Update <code>HTMXVersion()</code> return value</li>
+            <li>Verify CSRF token flow with <code>fetch()</code> transport</li>
+            <li>Consider exposing <code>HX-Request-Type</code> in context helpers</li>
+            <li>Test SSE/WS bridges with separate extension scripts loaded</li>
+          </ol>
+        </div>
+
+        <div class="callout warn">
+          <strong>Key risk:</strong> The <code>fetch()</code> transport changes how credentials and
+          cookies are sent by default. Our CSRF middleware (<code>csrf.go</code>) relies on reading
+          tokens from requests — verify that <code>fetch()</code> with default credentials mode still
+          sends cookies correctly, especially for cross-origin scenarios.
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== FOOTER ====================== -->
+    <footer>
+      <div class="container">
+        <p>
+          Sources:
+          <a href="https://four.htmx.org/">four.htmx.org</a> ·
+          <a href="https://four.htmx.org/docs/get-started/migration">Migration Guide</a> ·
+          <a href="https://four.htmx.org/reference">API Reference</a> ·
+          <a href="https://four.htmx.org/extensions">Extensions</a> ·
+          <a href="https://www.npmjs.com/package/htmx.org">npm: htmx.org</a>
+        </p>
+        <p style="margin-top:8px">
+          Research compiled 2026-06-14 · cqrs-htmx project · htmx 4.0.0-beta4
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
