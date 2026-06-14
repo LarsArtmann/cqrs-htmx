@@ -14,7 +14,7 @@ func BenchmarkParseHTMXRequest(b *testing.B) {
 	)
 
 	b.Run("AllHeaders", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.Header.Set("HX-Request", "true")
 			r.Header.Set("HX-Boosted", "true")
@@ -28,7 +28,7 @@ func BenchmarkParseHTMXRequest(b *testing.B) {
 		}
 	})
 	b.Run("NoHeaders", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(httptest.NewRecorder(), r)
 		}
