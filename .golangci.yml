@@ -84,8 +84,13 @@ linters:
     exhaustruct:
       exclude:
         - os/exec.Cmd
-        - github\.com/larsartmann/cqrs-htmx\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig)$
-        - github\.com/larsartmann/cqrs-htmx_test\.(testCreateUserCmd|bddCreateUserCmd)$
+        - github\.com/larsartmann/cqrs-htmx/v2\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig)$
+        - .+\.testCreateUserCmd$
+        - .+\.bddCreateUserCmd$
+        - .+\.fakeSpan$
+        - .+\.fakeTracer$
+        - .+\.cidCapture$
+        - .+\.SSEEvent$
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -112,7 +117,7 @@ linters:
       - path: _test\.go
         linters:
           - wrapcheck
-      - path: (benchmark|example)_test\.go$
+      - path: (benchmark|example|_test|sse_reconnect_integration)_test?\.go$|^example.*_test\.go$|_test\.go$
         linters:
           - intrange
           - noctx

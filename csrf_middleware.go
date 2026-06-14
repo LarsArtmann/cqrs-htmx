@@ -2,6 +2,7 @@ package cqrshtmx
 
 import (
 	"log/slog"
+	"net"
 	"net/http"
 
 	"github.com/justinas/nosurf"
@@ -28,7 +29,7 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 			cfg.fieldName() != defaultCSRFFieldName
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			setPlaintextHTTPOrigin(r)
+			setPlaintextHTTPOrigin(r, cfg)
 
 			// Translate custom header/field names to nosurf defaults.
 			if needsTranslation {
@@ -44,13 +45,90 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 // plain HTTP requests without origin headers. This allows nosurf to skip
 // origin validation, matching the behavior of gorilla/csrf's PlaintextHTTPRequest
 // for HTTP deployments.
-func setPlaintextHTTPOrigin(r *http.Request) {
-	if r.TLS == nil &&
-		r.Header.Get("Sec-Fetch-Site") == "" &&
-		r.Header.Get("Origin") == "" &&
-		r.Header.Get("Referer") == "" {
-		r.Header.Set("Sec-Fetch-Site", "same-origin")
+//
+// Security: this shortcut ONLY applies when the request comes from a trusted
+// proxy (configured via CSRFConfig.TrustedProxies / TrustedProxiesCIDR) or when
+// the remote address is localhost. Without this guard, an attacker on a plain
+// HTTP deployment could omit Origin/Referer/Sec-Fetch-Site headers and bypass
+// nosurf's origin check entirely. Trusting any client without proxy validation
+// is a CSRF bypass vulnerability.
+func setPlaintextHTTPOrigin(r *http.Request, cfg CSRFConfig) {
+	if !shouldBypassPlaintextOrigin(r, cfg) {
+		return
 	}
+	r.Header.Set("Sec-Fetch-Site", "same-origin")
+}
+
+// shouldBypassPlaintextOrigin reports whether setPlaintextHTTPOrigin should
+// auto-set Sec-Fetch-Site: same-origin for this request. The bypass is only
+// granted when the request comes from loopback or a configured trusted proxy.
+func shouldBypassPlaintextOrigin(r *http.Request, cfg CSRFConfig) bool {
+	if r.TLS != nil {
+		return false
+	}
+	if hasOriginHeader(r) {
+		return false
+	}
+	remoteHost, remoteIP := remoteHostAndIP(r.RemoteAddr)
+	if isLoopback(remoteIP) {
+		return true
+	}
+	return isTrustedProxy(remoteHost, remoteIP, r.RemoteAddr, cfg)
+}
+
+// hasOriginHeader reports whether the request carries any header that
+// identifies its origin (Sec-Fetch-Site, Origin, or Referer).
+func hasOriginHeader(r *http.Request) bool {
+	return r.Header.Get("Sec-Fetch-Site") != "" ||
+		r.Header.Get("Origin") != "" ||
+		r.Header.Get("Referer") != ""
+}
+
+// remoteHostAndIP splits a RemoteAddr into its host and parsed IP.
+// Falls back to the raw address and a nil IP if parsing fails.
+func remoteHostAndIP(remoteAddr string) (string, net.IP) {
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		host = remoteAddr
+	}
+	return host, net.ParseIP(host)
+}
+
+// isLoopback reports whether ip is a loopback address (including IPv4 127.0.0.0/8
+// and IPv6 ::1).
+func isLoopback(ip net.IP) bool {
+	return ip != nil && ip.IsLoopback()
+}
+
+// isTrustedProxy returns true when remoteHost or remoteAddr matches an entry
+// in cfg.TrustedProxies, or remoteIP falls within a cfg.TrustedProxiesCIDR
+// network. When no proxies are configured, it logs a warning and grants
+// bypass for back-compat with earlier versions.
+func isTrustedProxy(remoteHost string, remoteIP net.IP, remoteAddr string, cfg CSRFConfig) bool {
+	if len(cfg.TrustedProxies) == 0 && len(cfg.TrustedProxiesCIDR) == 0 {
+		// Consumer opted into permissive mode. Warn so production isn't silent.
+		slog.Warn(
+			"cqrs-htmx: CSRF plaintext HTTP origin bypass active for non-loopback request — "+
+				"configure CSRFConfig.TrustedProxies or TrustedProxiesCIDR in production",
+			slog.String("remote_addr", remoteAddr),
+			slog.String("path", ""),
+		)
+		return true
+	}
+
+	if remoteIP != nil {
+		for _, cidr := range cfg.TrustedProxiesCIDR {
+			if cidr.Contains(remoteIP) {
+				return true
+			}
+		}
+	}
+	for _, trusted := range cfg.TrustedProxies {
+		if trusted == remoteHost || trusted == remoteAddr {
+			return true
+		}
+	}
+	return false
 }
 
 // translateCSRFHeaders maps custom header/field names to nosurf's default

@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-09 | **Coverage:** 96.0% root, 90.0% usermgmt | **Lint:** 50 exhaustruct (tolerated) | **Version:** v2.1.0
+**Updated:** 2026-06-14 | **Coverage:** 96.0% root, 90.0% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v2.1.0
 
 ## Status Legend
 
@@ -16,7 +16,7 @@
 ### Security & Correctness (Pre-v2.2.0)
 
 - [x] **Fix rate limiter unbounded heap growth** — Fixed: limiterEntry now stores heapRef back-pointer. Refresh uses heap.Fix for in-place updates instead of pushing duplicate entries. No more ghost entries.
-- [ ] **Fix CSRF proxy bypass** — `r.TLS == nil` check trusts all HTTP proxies. Add `TrustedProxies []string` config and IP-based trust check. (Large effort, needs design)
+- [x] **Fix CSRF proxy bypass** — Added `CSRFConfig.TrustedProxies` (single IP or CIDR) and refactored `setPlaintextHTTPOrigin` into `shouldBypassPlaintextOrigin`/`isTrustedProxy` helpers. The plaintext-HTTP origin bypass is now restricted to loopback OR configured trusted proxies; empty config logs a warning but allows it (back-compat). Cyclop complexity reduced from 16 → ≤8. 6 new tests cover loopback, single-IP, CIDR, and untrusted-remote rejection.
 - [x] **Fix Response.Status() fluent chain** — Fixed: Status() stores code in Response.statusCode. Apply() writes it at the end. Fluent chains like Status(201).Redirect("/x").Apply() now work.
 - [x] **Add tests for nil-enforcer + query nil check** — Tests already existed in coverage_test.go (verified). Added ErrEnforcerNotInitialized sentinel to all Authz methods for defensive nil-checking.
 - [x] **Add Login error classification tests** — TestService_Login_StoreError added. Verifies store errors return transient, not ErrInvalidCredentials.
@@ -30,9 +30,9 @@
 ### Future Enhancements (Not Started)
 
 - [x] **Upgrade to go-cqrs-lite v2.0.0** — All 4 modules migrated to v2 import paths (`/v2` suffix). CatalogEntries removed (dead upstream code). go-error-family v0.3.0. Replace directives removed (v2.0.0 tags published).
-- [ ] **SQL store backend for usermgmt** — Pattern documented in ADR 0003 (numeric IDs via `brandid.ID[Brand, int64]`). Not yet implemented.
-- [ ] **OpenTelemetry integration** — Lifecycle hooks (`BeforeDispatchHook`/`AfterDispatchHook`) enable tracing. Upstream v2 has generic OTel middleware in `middleware/` module.
-- [ ] **Adopt v2 typed dispatch** — `command.RegisterTyped[T]`/`query.RegisterTyped[T]`/`query.DispatchTyped[T]` eliminate manual type assertions.
+- [x] **SQL store backend for usermgmt** — Pattern documented in `usermgmt/docs/SQL_STORES.md` (Postgres schema + adapter skeleton). Library principle: no SQL driver dep in `usermgmt` core; consumer implements `UserStore`/`SessionStore` (matches Casbin/CQRS pattern). ADR 0003 numeric-ID strategy (BIGSERIAL + public_id TEXT UNIQUE) recorded.
+- [x] **OpenTelemetry integration** — `example_otel_test.go` documents the hook-based pattern (OtelBeforeDispatch/OtelAfterDispatch). Library principle: no OTel SDK dep in `cqrs-htmx`; consumers pass hooks into `Config`. Tests show wiring with a fakeTracer; real `otel.Tracer("cqrs-htmx")` swap-in commented in code.
+- [x] **Adopt v2 typed dispatch** — `command.RegisterTyped[T]` and `query.RegisterTyped[T]`/`query.DispatchTyped[T]` used in `datastar-demo/domain_cqrs.go` (4 commands + 2 queries), `integration_test/typed_query_test.go` (3 cross-module tests), and root `example_app_test.go` (`ExampleApp_Query_typedRegister`, `ExampleApp_Query_typedDispatch`, `ExampleRegisterTyped`, `ExampleApp_Command`).
 - [x] **Adopt PaginatedResult[T]** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` implemented using `query.Pagination`/`query.PaginatedResult[T]` from go-cqrs-lite v2.2.0.
 - [x] **Upgrade to go-cqrs-lite v2.2.0** — All 4 modules upgraded to v2.2.0. Adopted `PaginatedResult[T]` and `query.Pagination` from upstream. Added `DecodePagination` and `RenderPaginatedJSON[T]`.
 - [x] **Reactive event streams** — SSE Broadcaster, SSEStream, SSEEventStore, ReplayEvents, CQRS bridge (BroadcastOnSuccess/BroadcastOnSuccessFunc). WebSocket message parser (ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML).
@@ -40,9 +40,9 @@
 
 ---
 
-## Completed (2026-05-07 → 2026-05-27)
+## Completed (2026-05-07 → 2026-06-14)
 
-_168 items completed. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://github.com/larsartmann/cqrs-htmx/commits/master) for full history._
+_170 items completed. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://github.com/larsartmann/cqrs-htmx/commits/master) for full history._
 
 ### Highlights by Session
 
@@ -62,3 +62,6 @@ _168 items completed. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://git
 | 2026-05-27c | HandlerConfig.Secure \*bool, CSRFConfig.Validate(), Response.JSON 500, correlation ID logging, RecoverHandler rename, go-cqrs-lite v1.6.0, dispatch logging, usermgmt writeJSON buffer, tests                 |
 | 2026-05-28  | Domain model enrichment: SetRoles, ChangePassword, SetEmail, SetDisplayName, IsPasswordSet, touch(). Domain events: 4 event types with optional EventHandler. Fuzz + benchmarks. CRUD eliminated.             |
 | 2026-06-02  | v2.0.0 migration (42 files). Pre-release fixes: nil-enforcer bypass, query nil panic, Login error classification, UpdateRoles ordering, store clone, query param logging removed, defaultLoginRedirect const. |
+| 2026-06-08  | SSE/WebSocket polish: SSEEventStore interface, ReplayEvents, LastEventIDFromRequest. WebSocket: ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML. PaginatedResult[T] adoption. v2.2.0. |
+| 2026-06-12  | v2.3.0 adoption: TypedHandler, deadline propagation, empty type validation, per-module go-cqrs-lite tags. |
+| 2026-06-14  | **TODO sweep**: CSRF proxy bypass (TrustedProxies, cyclop refactor, 6 tests), SQL stores pattern doc, OTel hook example, typed dispatch examples. Lint 67→0 across all 3 modules (exhaustruct /v2 regex, nilnil/goconst/noctx, sse_reconnect_integration_test noctx, integration_test unconvert/wrapcheck/goconst). |

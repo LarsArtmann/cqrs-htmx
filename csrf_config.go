@@ -3,7 +3,9 @@ package cqrshtmx
 import (
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/justinas/nosurf"
@@ -65,6 +67,20 @@ type CSRFConfig struct {
 	// Default: nil (same-origin only)
 	TrustedOrigins []string
 
+	// TrustedProxies lists the IP addresses (or CIDR-notation networks) of
+	// reverse proxies that may strip/forward X-Forwarded-* and similar headers.
+	// Used by the plaintext-HTTP origin bypass: a request with no Origin/
+	// Referer/Sec-Fetch-Site header is only auto-marked as same-origin when
+	// the RemoteAddr is one of these trusted proxies (or loopback).
+	// Examples: []string{"10.0.0.1", "192.168.1.0/24"}.
+	// Use TrustedProxiesCIDR for parsed CIDR networks.
+	TrustedProxies []string
+
+	// TrustedProxiesCIDR is the parsed form of TrustedProxies CIDR entries.
+	// TrustedProxies strings that are not valid CIDR networks are skipped
+	// (logged at startup).
+	TrustedProxiesCIDR []*net.IPNet
+
 	// ErrorHandler is called when CSRF validation fails.
 	// Default: writes 403 Forbidden with plain text
 	ErrorHandler ErrorHandler
@@ -125,6 +141,25 @@ func (c *CSRFConfig) Validate() error {
 	if !c.Secure {
 		slog.Warn("cqrs-htmx: CSRFConfig.Validate: Secure is false — CSRF cookies will be sent over plain HTTP",
 			slog.String("hint", "set Secure=true in production"))
+	}
+
+	// Parse TrustedProxies CIDR entries. Plain strings (non-CIDR) are kept
+	// verbatim in TrustedProxies; CIDR strings are moved to TrustedProxiesCIDR.
+	c.TrustedProxiesCIDR = nil
+	for _, p := range c.TrustedProxies {
+		if p == "" {
+			return event.NewInfrastructure("csrf_unsafe_proxy",
+				"TrustedProxies contains empty entry").WithCause(ErrCSRFConfig)
+		}
+		if strings.Contains(p, "/") {
+			_, ipnet, err := net.ParseCIDR(p)
+			if err != nil {
+				return event.NewInfrastructure("csrf_invalid_cidr",
+					fmt.Sprintf("TrustedProxies contains invalid CIDR %q: %v", p, err)).
+					WithCause(ErrCSRFConfig)
+			}
+			c.TrustedProxiesCIDR = append(c.TrustedProxiesCIDR, ipnet)
+		}
 	}
 
 	return nil

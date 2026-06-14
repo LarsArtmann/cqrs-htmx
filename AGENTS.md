@@ -203,6 +203,7 @@ cqrs-htmx/
 12. **HX-Redirect sanitization**: `Response.Redirect()` sanitizes URLs for both HTMX and non-HTMX requests
 13. **HandlerConfig.Secure uses \*bool**: `Secure` is `*bool` in usermgmt — nil defaults to true. Use `new(bool)` (false) or a local variable (true) to explicitly set. The zero-value `HandlerConfig{}` is safe
 14. **Max password length 128**: Enforced in `RegisterRequest.Validate()` and `Service.ChangePassword()`. Prevents bcrypt CPU abuse
+15. **CSRF TrustedProxies**: `setPlaintextHTTPOrigin` only auto-sets `Sec-Fetch-Site: same-origin` for plain HTTP requests when the remote is loopback OR in `CSRFConfig.TrustedProxies` (single IP or CIDR). Empty config logs a warning but allows it (back-compat). Set `TrustedProxies` in production to prevent CSRF bypass via origin-header stripping.
 
 ### Error Handling
 
