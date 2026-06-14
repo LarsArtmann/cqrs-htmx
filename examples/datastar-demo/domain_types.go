@@ -82,7 +82,7 @@ type UpdateTodoCmd struct {
 	Title string
 }
 
-// TodoUpdatedPayload is the event payload emitted by UpdateTodoCmd.
+// Payload emitted by UpdateTodoCmd when a todo's title changes.
 type TodoUpdatedPayload struct {
 	ID    string `json:"id"`
 	Title string `json:"title"`
