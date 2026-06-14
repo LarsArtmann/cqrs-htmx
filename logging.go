@@ -2,10 +2,12 @@ package cqrshtmx
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"log/slog"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -21,22 +23,6 @@ type LogFormatter func(r *http.Request, status int, duration time.Duration) stri
 
 // LogWriter receives a formatted log line.
 type LogWriter func(line string)
-
-// contextFields extracts correlation ID, user ID, and request ID from context
-// into a string map. Only non-zero values are included.
-func contextFields(r *http.Request) map[string]string {
-	fields := make(map[string]string)
-	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
-		fields[logFieldCorrelationID] = cid.String()
-	}
-	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
-		fields[logFieldUserID] = uid.String()
-	}
-	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
-		fields[logFieldRequestID] = rid.String()
-	}
-	return fields
-}
 
 // DefaultLogFormatter writes a concise log line with method, path, status,
 // duration, and optional correlation ID and user ID when present in context.
@@ -66,23 +52,39 @@ func DefaultLogFormatter(r *http.Request, status int, duration time.Duration) st
 // Output format:
 //
 //	{"method":"GET","path":"/users","status":"OK","duration":"1.234ms","correlation_id":"...","user_id":"..."}
+var jsonLogBufferPool = sync.Pool{
+	New: func() any { return new(bytes.Buffer) },
+}
+
 func JSONLogFormatter(r *http.Request, status int, duration time.Duration) string {
-	entry := map[string]any{
-		"method":   r.Method,
-		"path":     r.URL.Path,
-		"status":   http.StatusText(status),
-		"duration": duration.String(),
+	entry := make(map[string]any, 7)
+	entry["method"] = r.Method
+	entry["path"] = r.URL.Path
+	entry["status"] = http.StatusText(status)
+	entry["duration"] = duration.String()
+
+	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
+		entry[logFieldCorrelationID] = cid.String()
+	}
+	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
+		entry[logFieldUserID] = uid.String()
+	}
+	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+		entry[logFieldRequestID] = rid.String()
 	}
 
-	for key, val := range contextFields(r) {
-		entry[key] = val
-	}
+	buf := jsonLogBufferPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer jsonLogBufferPool.Put(buf)
 
-	b, err := json.Marshal(entry)
-	if err != nil {
+	if err := json.NewEncoder(buf).Encode(entry); err != nil {
 		return `{"error":"json marshal failed"}`
 	}
 
+	b := buf.Bytes()
+	if len(b) > 0 && b[len(b)-1] == '\n' {
+		b = b[:len(b)-1]
+	}
 	return string(b)
 }
 
