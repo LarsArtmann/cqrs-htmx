@@ -19,7 +19,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/larsartmann/httputil v0.2.0 // indirect
