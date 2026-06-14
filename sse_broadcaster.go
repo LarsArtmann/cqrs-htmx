@@ -15,6 +15,7 @@ type Broadcaster struct {
 // NewBroadcaster creates a new event broadcaster with no subscribers.
 func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{
+		mu:          sync.RWMutex{},
 		subscribers: make(map[uintptr]chan SSEEvent),
 	}
 }

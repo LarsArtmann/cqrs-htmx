@@ -62,7 +62,7 @@ func TestCrossModule_PaginationFlow(t *testing.T) {
 	_ = query.RegisterTyped(
 		qdisp, "Page",
 		func(_ context.Context, q *typedPageQuery) (query.Pagination, error) {
-			return query.NewPagination(uint(p.Page), uint(p.PageSize)), nil
+			return query.NewPagination(p.Page, p.PageSize), nil
 		},
 	)
 
@@ -183,7 +183,10 @@ func TestTypedQueryDispatch_ThroughHTTPHandler(t *testing.T) {
 				return fmt.Errorf("expected int, got %T", result)
 			}
 			_, err := fmt.Fprintf(w, `{"count":%s}`, strconv.Itoa(count))
-			return err
+			if err != nil {
+				return fmt.Errorf("write count response: %w", err)
+			}
+			return nil
 		}),
 	)
 

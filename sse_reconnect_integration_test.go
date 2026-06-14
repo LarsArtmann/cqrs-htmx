@@ -94,7 +94,7 @@ func newReconnectMux(store *memoryEventStoreForHTTP, includeReplayOnError bool) 
 func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
 	t.Helper()
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, url, nil)
 	if err != nil {
 		t.Fatalf("NewRequest: %v", err)
 	}
@@ -107,7 +107,7 @@ func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
 	// the request to a context whose cancel is deferred here: doing so
 	// cancels the context before the caller reads resp.Body, which causes
 	// intermittent "context canceled" failures under -race with t.Parallel().
-	client := &http.Client{Timeout: 3 * time.Second}
+	client := &http.Client{Timeout: 3 * time.Second} //nolint:exhaustruct // Transport/CheckRedirect/Jar use defaults
 	resp, err := client.Do(req)
 	if err != nil {
 		t.Fatalf("Do: %v", err)
