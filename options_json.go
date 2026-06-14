@@ -9,6 +9,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
+// RenderJSON renders query results as JSON with 200 OK and
+// Content-Type: application/json. Use the type parameter to enforce
+// compile-time documentation and runtime type checking.
+//
+// Usage:
+//
+//	app.Query("GetUser", cqrshtmx.DecodeJSONQuery(...),
+//	    cqrshtmx.RenderJSON[User](),
+//	)
 func RenderJSON[T any]() HandlerOption {
 	return renderJSONWithStatus[T](http.StatusOK)
 }

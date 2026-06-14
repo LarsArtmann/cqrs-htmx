@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 )
@@ -155,7 +156,12 @@ func TestUserRegisteredEvent_JSON(t *testing.T) {
 		Roles:       []Role{RoleUser},
 		OccurredAt:  time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 	}
-	if evt.Email != "a@b.com" {
-		t.Error("unexpected email")
+	data, err := json.Marshal(evt)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	want := `{"email":"a@b.com","display_name":"Test","roles":["user"],"occurred_at":"2024-01-01T00:00:00Z"}`
+	if string(data) != want {
+		t.Errorf("JSON mismatch\ngot:  %s\nwant: %s", data, want)
 	}
 }

@@ -71,11 +71,14 @@ func (p *perKeyLimiter) allow(r *http.Request) (bool, string) {
 func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	p.mu.RLock()
 	entry, ok := p.limiters[key]
-	p.mu.RUnlock()
-
+	// Check freshness while still holding RLock: entry.lastUsed is mutated under
+	// the write lock below, so reading it after RUnlock would race with a
+	// concurrent refresh.
 	if ok && time.Since(entry.lastUsed) < p.ttl {
+		p.mu.RUnlock()
 		return entry.lim
 	}
+	p.mu.RUnlock()
 
 	p.mu.Lock()
 	defer p.mu.Unlock()

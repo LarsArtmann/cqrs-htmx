@@ -254,9 +254,3 @@ func policyWrapErr(msg string, p Policy) string {
 		p.Effect,
 	)
 }
-
-// Apply applies a batch of group and policy additions/removals sequentially.
-// Operations are applied in order: add groups, add policies, remove groups, remove policies.
-// Add-first ordering ensures that if remove fails mid-way, the user retains access
-// rather than losing all permissions. If any operation fails mid-way, the policy
-// state is partially updated — callers should treat this as a best-effort operation.

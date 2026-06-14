@@ -5,6 +5,8 @@ import (
 	"io"
 )
 
+// SSEEvent represents a single Server-Sent Events message.
+// Use WriteSSEEvent to write it in the SSE wire format.
 type SSEEvent struct {
 	// Event is the SSE event name. Must match the client's sse-swap attribute.
 	// For unnamed events, use "message" (the browser default).
@@ -68,27 +70,31 @@ func WriteSSEEvent(w io.Writer, event SSEEvent) error {
 	return nil
 }
 
-// SSEStream manages a single Server-Sent Events connection.
-// It sets the required HTTP headers and provides methods to send events
-// to one connected client.
-//
-// Create one per HTTP handler invocation:
-//
-//	func handleEvents(w http.ResponseWriter, r *http.Request) {
-//	    stream := cqrshtmx.NewSSEStream(w, r)
-//	    defer stream.Close()
-//
-//	    ch := broadcaster.Subscribe()
-//	    defer broadcaster.Unsubscribe(ch)
-//
-//	    for {
-//	        select {
-//	        case <-stream.Context().Done():
-//	            return
-//	        case event := <-ch:
-//	            if err := stream.Send(event); err != nil {
-//	                return
-//	            }
-//	        }
-//	    }
-//	}
+// splitSSELines splits a string into lines for SSE data field formatting.
+// Each line in the SSE spec must be prefixed with "data: ".
+func splitSSELines(s string) []string {
+	if s == "" {
+		return []string{""}
+	}
+
+	var lines []string
+	start := 0
+	for i := range len(s) {
+		if s[i] == '\n' {
+			line := s[start:i]
+			if len(line) > 0 && line[len(line)-1] == '\r' {
+				line = line[:len(line)-1]
+			}
+			lines = append(lines, line)
+			start = i + 1
+		}
+	}
+	if start < len(s) {
+		lines = append(lines, s[start:])
+	}
+
+	if len(lines) == 0 {
+		return []string{""}
+	}
+	return lines
+}

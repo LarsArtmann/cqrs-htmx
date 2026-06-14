@@ -6,6 +6,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// Apply applies a batch of group and policy additions/removals sequentially.
+// Operations are applied in order: add groups, add policies, remove groups, remove policies.
+// Add-first ordering ensures that if remove fails mid-way, the user retains access
+// rather than losing all permissions. If any operation fails mid-way, the policy
 // state is partially updated — callers should treat this as a best-effort operation.
 func (a *Authz) Apply(update PolicyUpdate) error {
 	if a.enforcer == nil {
@@ -127,5 +131,3 @@ func convertRoles(roles []string) []Role {
 	}
 	return result
 }
-
-// RolesForUser returns the directly assigned roles for a user in the given domain.

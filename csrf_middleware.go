@@ -8,7 +8,30 @@ import (
 	"github.com/justinas/nosurf"
 )
 
-// )(mux)
+// CSRFMiddleware returns HTTP middleware that implements double-submit cookie
+// CSRF protection with HTMX awareness.
+//
+// Uses justinas/nosurf internally for:
+//   - Cryptographically secure token generation (crypto/rand)
+//   - Per-request token masking (BREACH attack mitigation)
+//   - Same-origin validation via Origin/Referer/Sec-Fetch-Site headers
+//   - Trusted origins support for cross-domain use cases
+//
+// For GET/HEAD/OPTIONS/TRACE requests, the middleware ensures a CSRF token
+// cookie exists and stores the masked token in context for use in templates.
+//
+// For state-changing methods (POST/PUT/PATCH/DELETE), it validates that the
+// request includes a matching token in either:
+//   - The X-CSRF-Token header (HTMX default)
+//   - A form field named "csrf_token"
+//
+// Middleware ordering (important):
+//
+//	handler := cqrshtmx.Chain(
+//	    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+//	    cqrshtmx.HTMXMiddleware,
+//	    app.Middleware(),
+//	)(mux)
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	if err := cfg.Validate(); err != nil {
 		slog.Error("cqrs-htmx: CSRFConfig validation failed", slog.String("error", err.Error()))

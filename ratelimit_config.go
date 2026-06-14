@@ -74,19 +74,9 @@ type RateLimiterConfig struct {
 	RejectionHandler func(w http.ResponseWriter, r *http.Request, retryAfter string)
 }
 
-// RateLimiterMiddleware returns HTTP middleware that rate-limits requests
-// using a token bucket per key.
-//
-// If the rate limit is exceeded the middleware responds with 429 Too Many
-// Requests and a Retry-After header in seconds.
-//
-// The internal per-key limiter map uses TTL-based eviction (default 10 min).
-// Entries not accessed within the TTL are cleaned up on the next cache miss.
-// For very high cardinality key spaces, consider increasing the TTL or using
-// a bounded key extractor.
-//
-// The returned middleware has an ActiveKeys method for monitoring.
 // RateLimiter wraps rate-limiting middleware and exposes monitoring.
+// Create one with NewRateLimiter when you need to track the number of active
+// rate-limit keys via ActiveKeys.
 type RateLimiter struct {
 	middleware func(http.Handler) http.Handler
 	limiter    *perKeyLimiter
@@ -178,5 +168,3 @@ func buildRateLimiter(cfg RateLimiterConfig) *RateLimiter {
 
 	return &RateLimiter{middleware: mw, limiter: lim}
 }
-
-// limiterEntry holds a rate.Limiter and its last access time for TTL eviction.

@@ -48,39 +48,3 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 	}
 	http.SetCookie(w, cookie)
 }
-
-// CSRFMiddleware returns HTTP middleware that implements double-submit cookie
-// CSRF protection with HTMX awareness.
-//
-// Uses justinas/nosurf internally for:
-//   - Cryptographically secure token generation (crypto/rand)
-//   - Per-request token masking (BREACH attack mitigation)
-//   - Same-origin validation via Origin/Referer/Sec-Fetch-Site headers
-//   - Trusted origins support for cross-domain use cases
-//
-// For GET/HEAD/OPTIONS/TRACE requests, the middleware ensures a CSRF token
-// cookie exists and stores the masked token in context for use in templates.
-//
-// For state-changing methods (POST/PUT/PATCH/DELETE), it validates that the
-// request includes a matching token in either:
-//   - The X-CSRF-Token header (HTMX default)
-//   - A form field named "csrf_token"
-//
-// Usage with HTMX:
-//
-//	// In your HTML template, set hx-headers on <body> or <html>:
-//	<body hx-headers='{"X-CSRF-Token":"{{ .CSRFToken }}"}'>
-//
-//	// In your Go handler, pass the token to the template:
-//	token := cqrshtmx.CSRFTokenFromContext(r.Context())
-//	// ... render template with token
-//
-//	// Or use the Response builder:
-//	resp := cqrshtmx.NewResponse(w, r)
-//	resp.CSRFToken(token).Apply()
-//
-// Middleware ordering (important):
-//
-//	handler := cqrshtmx.Chain(
-//	    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
-//	    cqrshtmx.HTMXMiddleware,
