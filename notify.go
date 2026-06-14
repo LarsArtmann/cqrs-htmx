@@ -5,6 +5,7 @@ const defaultNotificationEvent = "showMessage"
 // NotificationLevel represents the severity level of a notification.
 type NotificationLevel string
 
+// String returns the string representation of the notification level.
 func (l NotificationLevel) String() string { return string(l) }
 
 // Notification level constants for HTMX client-side notifications.

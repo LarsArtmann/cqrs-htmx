@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// GetUser retrieves a user by ID. Returns ErrUserNotFound if not found.
 func (s *Service) GetUser(ctx context.Context, id UserID) (*User, error) {
 	u, err := s.users.FindByID(ctx, id)
 	if err != nil {
