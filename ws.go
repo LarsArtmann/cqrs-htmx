@@ -151,27 +151,20 @@ func WSOOBHTML(id, html string, swapStrategy ...SwapStrategy) string {
 //	// msg.Room, msg.Message are typed fields
 //	// headers contains HTMX headers
 func ParseWSMessageInto[T any](data []byte) (msg T, headers map[string]string, err error) {
-	var raw map[string]json.RawMessage
-	if unmarshalErr := json.Unmarshal(data, &raw); unmarshalErr != nil {
+	// Decode body fields directly into T. The HEADERS key is ignored by
+	// json.Unmarshal if T has no matching field (the common case).
+	if unmarshalErr := json.Unmarshal(data, &msg); unmarshalErr != nil {
 		return msg, nil, fmt.Errorf("parse ws message into: %w", unmarshalErr)
 	}
 
-	// Extract HEADERS separately.
+	// Extract HEADERS separately using a lightweight wrapper struct.
+	// This avoids the marshal→unmarshal round-trip of the previous approach.
 	headers = make(map[string]string)
-	if headersRaw, ok := raw["HEADERS"]; ok {
-		headers = parseWSHeaders(headersRaw)
-		delete(raw, "HEADERS")
+	var wrapper struct {
+		HEADERS json.RawMessage `json:"HEADERS"`
 	}
-
-	// Re-serialize remaining fields and unmarshal into T.
-	// raw already has HEADERS removed — marshal directly without copying.
-	bodyJSON, marshalErr := json.Marshal(raw)
-	if marshalErr != nil {
-		return msg, headers, fmt.Errorf("parse ws message into: remarshal body: %w", marshalErr)
-	}
-
-	if unmarshalErr := json.Unmarshal(bodyJSON, &msg); unmarshalErr != nil {
-		return msg, headers, fmt.Errorf("parse ws message into: %w", unmarshalErr)
+	if json.Unmarshal(data, &wrapper) == nil && len(wrapper.HEADERS) > 0 {
+		headers = parseWSHeaders(wrapper.HEADERS)
 	}
 
 	return msg, headers, nil
