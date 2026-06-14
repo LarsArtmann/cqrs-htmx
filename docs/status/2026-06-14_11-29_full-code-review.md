@@ -146,3 +146,40 @@ These are non-blocking observations from the review. No changes were made to avo
 ## Summary
 
 The most important finding was the **data race in the rate limiter** — a real production bug that could silently corrupt rate-limit state under concurrent load. All other fixes were documentation quality improvements (split-brain doc comments across files) and one incomplete test. The codebase is in excellent shape and ready for production use.
+
+---
+
+## Round 2: Deeper Analysis (Post-Review Self-Critique)
+
+After the initial review, a self-critique revealed several items missed:
+
+### Additional Fixes Applied
+
+| # | File | Change |
+| --- | --- | --- |
+| 8 | `options_htmx.go` → `options_json.go` | `RenderJSON` doc was orphaned at bottom of wrong file. Moved to function declaration. |
+| 9 | `sse_event.go` → `sse_stream.go` | `SSEStream` doc was orphaned at bottom of `sse_event.go`. Moved to struct declaration. |
+| 10 | `sse_stream.go` → `sse_store.go` | `SSEEventStore` doc was orphaned at bottom of `sse_stream.go`. Moved to interface declaration. |
+| 11 | `sse_event.go` | Added missing `SSEEvent` type-level doc comment. |
+| 12 | `ws.go` | Removed redundant `maps.Copy` + intermediate `bodyMap` allocation in `ParseWSMessageInto`. After `delete(raw, "HEADERS")`, marshaling `raw` directly is sufficient. |
+| 13 | `sse_stream.go` | Changed `SSEStream.ctx` field and `Context()` return type from `interface{ Done() <-chan struct{} }` to `context.Context`. Consumers expect `context.Context` from a method named `Context()`. |
+| 14 | `options_render.go` | Added missing `Render` function doc comment. |
+| 15 | `notify.go` | Added missing `NotificationLevel.String()` doc comment. |
+| 16 | `usermgmt/service_login.go` | Added missing `LoginRequest` type doc. |
+| 17 | `usermgmt/service_register.go` | Added missing `RegisterRequest` type doc. |
+| 18 | `usermgmt/service_misc.go` | Added missing `GetUser` method doc. |
+
+### What I Should Have Caught Earlier
+
+1. **More orphaned doc comments** — I found 6 in round 1 but there were 3+ more (RenderJSON, SSEStream, SSEEventStore docs all orphaned in wrong files).
+2. **The ParseWSMessageInto redundancy** — I noted it as "minor" in the review report but didn't fix it. It was a 3-line fix.
+3. **SSEStream.ctx anonymous interface** — Surprising API that I should have flagged as an architecture issue.
+4. **Missing exported doc comments** — Should have checked with a tool from the start.
+
+### Items Not Actioned (Existing, Low Priority)
+
+- `flake.nix` missing `meta` attribute block (pre-existing, causes BuildFlow pre-commit warning)
+- `go.work` committed for a library (pre-existing BuildFlow warning)
+- `csrf_middleware_test.go` at 370 lines (5.7% over 350-line limit)
+- `DOMAIN_LANGUAGE.md` still an unfilled template
+
