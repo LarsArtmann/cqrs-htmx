@@ -24,6 +24,10 @@
 - [x] **Fix rate limiter data race** — Fixed: `perKeyLimiter.limiter()` read `entry.lastUsed` after releasing RLock while a concurrent goroutine wrote it under the write lock. Moved the freshness check inside the RLock-held region. Verified with 10/10 clean race-detector runs (was ~20% failure rate).
 - [x] **Fix doc comment split brains** — Consolidated orphaned/truncated doc comments for `CSRFMiddleware` (split across csrf_middleware.go/csrf_context.go), `RateLimiter` struct (copy-paste leftover), `Apply` method (split across authz_types.go/authz_policies.go), `Broadcaster` type (orphaned in sse_store.go). Moved `splitSSELines` to sse_event.go next to its sole caller.
 - [x] **Fix incomplete TestUserRegisteredEvent_JSON** — Test was named `_JSON` but never marshaled to JSON; only checked email field. Now actually tests JSON serialization output.
+- [x] **Fix orphaned RenderJSON/SSE doc swaps** — RenderJSON doc orphaned in options_htmx.go, SSEStream doc orphaned in sse_event.go, SSEEventStore doc orphaned in sse_stream.go. All moved to their actual declarations. Added SSEEvent type doc.
+- [x] **Remove redundant map copy in ParseWSMessageInto** — After `delete(raw, "HEADERS")`, the code copied raw into a new bodyMap via maps.Copy before marshaling. Redundant — marshal raw directly.
+- [x] **SSEStream.Context() returns context.Context** — Changed from anonymous `interface{ Done() <-chan struct{} }` to `context.Context`. Consumers expect full context from a method named Context().
+- [x] **Add missing exported godoc comments** — Render, NotificationLevel.String(), LoginRequest, RegisterRequest, GetUser.
 
 ### Upstream-Blocked
 
