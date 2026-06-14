@@ -1,0 +1,2094 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>go-cqrs-lite Feature Utilization Audit — cqrs-htmx</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --bg-card: #161b22;
+        --bg-card-hover: #1c2128;
+        --bg-inset: #010409;
+        --border: #30363d;
+        --border-light: #21262d;
+        --text: #e6edf3;
+        --text-dim: #8b949e;
+        --text-bright: #f0f6fc;
+        --accent: #58a6ff;
+        --accent-dim: #1f6feb;
+        --green: #3fb950;
+        --green-bg: rgba(63, 185, 80, 0.1);
+        --yellow: #d29922;
+        --yellow-bg: rgba(210, 153, 34, 0.1);
+        --orange: #db6d28;
+        --orange-bg: rgba(219, 109, 40, 0.1);
+        --red: #f85149;
+        --red-bg: rgba(248, 81, 73, 0.1);
+        --purple: #bc8cff;
+        --purple-bg: rgba(188, 140, 255, 0.1);
+        --teal: #39d0d8;
+        --mono: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 80px;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.6;
+        font-size: 15px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* Header */
+      header {
+        background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 48px 0 40px;
+        position: relative;
+        overflow: hidden;
+      }
+      header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(188, 140, 255, 0.06) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .header-tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--purple);
+        background: var(--purple-bg);
+        border: 1px solid rgba(188, 140, 255, 0.3);
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        letter-spacing: 0.5px;
+      }
+      header h1 {
+        font-size: 38px;
+        font-weight: 700;
+        color: var(--text-bright);
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+      }
+      header .subtitle {
+        font-size: 18px;
+        color: var(--text-dim);
+        max-width: 700px;
+      }
+      .header-meta {
+        display: flex;
+        gap: 32px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+      }
+      .header-meta div {
+        font-size: 13px;
+        color: var(--text-dim);
+      }
+      .header-meta strong {
+        display: block;
+        color: var(--text-bright);
+        font-size: 15px;
+        font-family: var(--mono);
+      }
+
+      /* Nav */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(13, 17, 23, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 0;
+      }
+      nav .container {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+      }
+      nav a {
+        color: var(--text-dim);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 14px 16px;
+        white-space: nowrap;
+        transition: color 0.15s;
+        border-bottom: 2px solid transparent;
+      }
+      nav a:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      /* Sections */
+      section {
+        padding: 56px 0;
+        border-bottom: 1px solid var(--border-light);
+      }
+      section h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-bright);
+        margin-bottom: 8px;
+        letter-spacing: -0.3px;
+      }
+      section .section-desc {
+        color: var(--text-dim);
+        font-size: 15px;
+        margin-bottom: 32px;
+        max-width: 800px;
+      }
+      h3 {
+        font-size: 19px;
+        font-weight: 600;
+        color: var(--text-bright);
+        margin: 32px 0 16px;
+      }
+      h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--accent);
+        margin-bottom: 8px;
+        font-family: var(--mono);
+      }
+      p {
+        margin-bottom: 12px;
+        color: var(--text);
+      }
+      ul,
+      ol {
+        margin: 0 0 16px 20px;
+      }
+      li {
+        margin-bottom: 6px;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.88em;
+        background: var(--bg-inset);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--teal);
+        border: 1px solid var(--border-light);
+      }
+      .code-block {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--bg-inset);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        overflow-x: auto;
+        margin: 16px 0;
+        line-height: 1.5;
+        color: var(--text-dim);
+      }
+      .code-block .kw {
+        color: var(--purple);
+      }
+      .code-block .fn {
+        color: var(--accent);
+      }
+      .code-block .ty {
+        color: var(--teal);
+      }
+      .code-block .str {
+        color: var(--green);
+      }
+      .code-block .cmt {
+        color: #6e7681;
+        font-style: italic;
+      }
+
+      /* Cards */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 16px;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .card:hover {
+        border-color: var(--border-light);
+        background: var(--bg-card-hover);
+      }
+      .card-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .card-title h4 {
+        margin: 0;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* Badges */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--mono);
+        padding: 3px 10px;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .badge-critical {
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(248, 81, 73, 0.3);
+      }
+      .badge-high {
+        background: var(--orange-bg);
+        color: var(--orange);
+        border: 1px solid rgba(219, 109, 40, 0.3);
+      }
+      .badge-medium {
+        background: var(--yellow-bg);
+        color: var(--yellow);
+        border: 1px solid rgba(210, 153, 34, 0.3);
+      }
+      .badge-low {
+        background: rgba(88, 166, 255, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(88, 166, 255, 0.3);
+      }
+      .badge-good {
+        background: var(--green-bg);
+        color: var(--green);
+        border: 1px solid rgba(63, 185, 80, 0.3);
+      }
+      .badge-info {
+        background: var(--purple-bg);
+        color: var(--purple);
+        border: 1px solid rgba(188, 140, 255, 0.3);
+      }
+
+      /* Grid */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 768px) {
+        .grid-2,
+        .grid-3,
+        .grid-4 {
+          grid-template-columns: 1fr;
+        }
+        header h1 {
+          font-size: 28px;
+        }
+        section {
+          padding: 40px 0;
+        }
+      }
+
+      /* Stats */
+      .stat {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+      }
+      .stat .value {
+        font-family: var(--mono);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-bright);
+        line-height: 1.2;
+      }
+      .stat .value.green {
+        color: var(--green);
+      }
+      .stat .value.yellow {
+        color: var(--yellow);
+      }
+      .stat .value.accent {
+        color: var(--accent);
+      }
+      .stat .value.red {
+        color: var(--red);
+      }
+      .stat .value.purple {
+        color: var(--purple);
+      }
+      .stat .label {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* Tables */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 16px 0;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th {
+        background: var(--bg-inset);
+        color: var(--text-dim);
+        font-weight: 600;
+        text-align: left;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        font-family: var(--mono);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+      }
+      td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border-light);
+        font-family: var(--mono);
+        color: var(--text);
+      }
+      tbody tr:hover {
+        background: var(--bg-card-hover);
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* Callout */
+      .callout {
+        border-left: 3px solid var(--accent);
+        background: rgba(88, 166, 255, 0.05);
+        padding: 16px 20px;
+        border-radius: 0 8px 8px 0;
+        margin: 16px 0;
+      }
+      .callout.warning {
+        border-color: var(--yellow);
+        background: var(--yellow-bg);
+      }
+      .callout.danger {
+        border-color: var(--red);
+        background: var(--red-bg);
+      }
+      .callout p:last-child {
+        margin-bottom: 0;
+      }
+      .callout-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-bright);
+        margin-bottom: 4px;
+      }
+
+      /* Progress bar */
+      .progress-bar {
+        height: 8px;
+        background: var(--bg-inset);
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid var(--border-light);
+        margin: 8px 0;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+      }
+      .progress-fill.green {
+        background: linear-gradient(90deg, #2ea043, #3fb950);
+      }
+      .progress-fill.yellow {
+        background: linear-gradient(90deg, #bb8009, #d29922);
+      }
+      .progress-fill.red {
+        background: linear-gradient(90deg, #da3633, #f85149);
+      }
+
+      /* Package usage indicator */
+      .pkg-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .pkg-row:last-child {
+        border-bottom: none;
+      }
+      .pkg-name {
+        font-family: var(--mono);
+        font-size: 14px;
+        color: var(--text-bright);
+        min-width: 200px;
+      }
+      .pkg-status {
+        flex: 1;
+      }
+
+      /* Diff blocks */
+      .diff {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--bg-inset);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0;
+        overflow: hidden;
+        margin: 16px 0;
+      }
+      .diff-header {
+        background: var(--bg-card);
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--text-dim);
+        font-family: var(--mono);
+      }
+      .diff-body {
+        padding: 12px 0;
+        overflow-x: auto;
+      }
+      .diff-line {
+        padding: 0 16px;
+        white-space: pre;
+      }
+      .diff-add {
+        color: var(--green);
+        background: rgba(63, 185, 80, 0.06);
+      }
+      .diff-del {
+        color: var(--red);
+        background: rgba(248, 81, 73, 0.06);
+      }
+      .diff-ctx {
+        color: var(--text-dim);
+      }
+
+      /* Footer */
+      footer {
+        padding: 32px 0;
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 13px;
+        border-top: 1px solid var(--border);
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .check {
+        color: var(--green);
+      }
+      .cross {
+        color: var(--red);
+      }
+      .warn {
+        color: var(--yellow);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═════════════════════════════ HEADER ═════════════════════════════ -->
+    <header>
+      <div class="container">
+        <span class="header-tag">DEEP RESEARCH · FEATURE UTILIZATION AUDIT</span>
+        <h1>go-cqrs-lite Feature Utilization</h1>
+        <p class="subtitle">
+          A comprehensive audit of every go-cqrs-lite v2.3.x package and exported symbol, evaluating
+          whether <strong>cqrs-htmx</strong> uses all features that make sense — and cataloguing the
+          gaps with actionable recommendations.
+        </p>
+        <div class="header-meta">
+          <div><strong>Date</strong>2026-06-14</div>
+          <div><strong>Audit Scope</strong>22 go-cqrs-lite modules</div>
+          <div><strong>cqrs-htmx Version</strong>v2 · root + usermgmt</div>
+          <div><strong>go-cqrs-lite</strong>v2.3.0 / event v2.3.1</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═════════════════════════════ NAV ═════════════════════════════ -->
+    <nav>
+      <div class="container">
+        <a href="#summary">Summary</a>
+        <a href="#methodology">Methodology</a>
+        <a href="#inventory">Current Usage</a>
+        <a href="#gaps-critical">Critical Gaps</a>
+        <a href="#gaps-high">High Priority</a>
+        <a href="#gaps-medium">Medium Priority</a>
+        <a href="#gaps-low">Low Priority</a>
+        <a href="#correctly-excluded">Correctly Excluded</a>
+        <a href="#package-map">Package Map</a>
+        <a href="#recommendations">Recommendations</a>
+      </div>
+    </nav>
+
+    <!-- ═════════════════════════════ SUMMARY ═════════════════════════════ -->
+    <section id="summary">
+      <div class="container">
+        <h2>Executive Summary</h2>
+        <p class="section-desc">
+          cqrs-htmx uses go-cqrs-lite's <strong>command dispatch</strong>,
+          <strong>query dispatch</strong>, <strong>error taxonomy</strong>,
+          <strong>branded IDs</strong>, and <strong>event metadata propagation</strong>
+          well — but leaves significant power on the table. The headline gaps are:
+          <strong>typed handlers</strong> (only in the example, not the library),
+          <strong>CQRS middleware</strong> (dispatcher <code>Use()</code> never exposed),
+          <strong>HTTP request metadata</strong> (IP/User-Agent not propagated to events), and
+          <strong>Retry-After headers</strong> for transient errors.
+        </p>
+
+        <div class="grid-4" style="margin-bottom: 32px">
+          <div class="stat">
+            <div class="value accent">22</div>
+            <div class="label">go-cqrs-lite Modules</div>
+          </div>
+          <div class="stat">
+            <div class="value green">5</div>
+            <div class="label">Actively Imported</div>
+          </div>
+          <div class="stat">
+            <div class="value yellow">11</div>
+            <div class="label">Gaps Identified</div>
+          </div>
+          <div class="stat">
+            <div class="value purple">12</div>
+            <div class="label">Correctly Excluded</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">
+              <h4>Utilization Score</h4>
+              <span class="badge badge-medium">42%</span>
+            </div>
+            <p>
+              Of the features that <em>make sense</em> for an HTMX integration library, cqrs-htmx
+              uses roughly 42%. The core dispatch and error handling is solid, but typed handlers,
+              CQRS middleware, HTTP→event metadata bridging, and retry semantics are missing.
+            </p>
+            <div class="progress-bar">
+              <div class="progress-fill yellow" style="width: 42%"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>Impact Potential</h4>
+              <span class="badge badge-high">High</span>
+            </div>
+            <p>
+              Closing the critical gaps would make cqrs-htmx a
+              <strong>first-class bridge</strong> between HTTP/HTMX and the full CQRS+ES toolkit —
+              typed handlers eliminate runtime type assertions, middleware enables
+              retry/tracing/circuit-breaking, and metadata propagation closes the audit-trail gap.
+            </p>
+          </div>
+        </div>
+
+        <h3>Gap Distribution by Priority</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Gap</th>
+                <th>Package</th>
+                <th>Effort</th>
+                <th>Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-critical">CRITICAL</span></td>
+                <td>Typed handler registration not exposed</td>
+                <td>command/v2, query/v2</td>
+                <td>Low</td>
+                <td>High</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-critical">CRITICAL</span></td>
+                <td>CQRS dispatcher middleware not exposed</td>
+                <td>command/v2, query/v2</td>
+                <td>Low</td>
+                <td>High</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>HTTP IP/User-Agent not propagated to events</td>
+                <td>event/v2</td>
+                <td>Low</td>
+                <td>High</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>Retry-After header missing for transient errors</td>
+                <td>event/v2</td>
+                <td>Low</td>
+                <td>Medium</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>NewConflict / NewCorruption not re-exported</td>
+                <td>event/v2</td>
+                <td>Trivial</td>
+                <td>Medium</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MEDIUM</span></td>
+                <td>Event bus → SSE bridge missing</td>
+                <td>event/v2, sse.go</td>
+                <td>Medium</td>
+                <td>High</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MEDIUM</span></td>
+                <td>CausationID not propagated</td>
+                <td>event/v2, id/v2</td>
+                <td>Low</td>
+                <td>Medium</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MEDIUM</span></td>
+                <td>ContextEnricher pattern not adopted</td>
+                <td>event/v2</td>
+                <td>Low</td>
+                <td>Medium</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MEDIUM</span></td>
+                <td>ClientID (offline-first) not propagated</td>
+                <td>event/v2, id/v2</td>
+                <td>Low</td>
+                <td>Low</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-low">LOW</span></td>
+                <td>DecodePayload[T] not exposed for SSE consumers</td>
+                <td>event/v2</td>
+                <td>Trivial</td>
+                <td>Medium</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-low">LOW</span></td>
+                <td>Pagination.Validate() not exposed</td>
+                <td>query/v2</td>
+                <td>Trivial</td>
+                <td>Low</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ METHODOLOGY ═════════════════════════════ -->
+    <section id="methodology">
+      <div class="container">
+        <h2>Methodology</h2>
+        <p class="section-desc">
+          Every <code>.go</code> file in the go-cqrs-lite v2.3.x module cache was read. Every
+          exported symbol was catalogued. Every <code>.go</code> file in cqrs-htmx (root + usermgmt
+          + examples) was scanned for go-cqrs-lite imports and symbol references. The intersection
+          defines "currently used." The difference defines "available but unused." Each unused
+          symbol was then evaluated for whether it <em>makes sense</em> in an HTMX-aware CQRS HTTP
+          integration library.
+        </p>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title"><h4>Step 1 — Inventory</h4></div>
+            <p>
+              Read all 22 go-cqrs-lite v2 modules. Catalogued ~200+ exported symbols across command,
+              query, event, id, codec, dispatcher, schema, snapshot, decider, memory, middleware,
+              projection, listing, signing, otel, catalog, storage, turso, and pebble.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title"><h4>Step 2 — Usage Trace</h4></div>
+            <p>
+              Scanned every non-test <code>.go</code> file in cqrs-htmx for go-cqrs-lite imports.
+              Found 4 modules actively imported: <code>command/v2</code>, <code>query/v2</code>,
+              <code>event/v2</code>, <code>id/v2</code>. Traced every symbol reference.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title"><h4>Step 3 — Gap Analysis</h4></div>
+            <p>
+              For each unused symbol, asked: "Does this belong in an HTTP integration library?"
+              Categorized as: makes sense (gap), correctly excluded (not relevant), or already
+              covered by an equivalent mechanism.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ CURRENT USAGE ═════════════════════════════ -->
+    <section id="inventory">
+      <div class="container">
+        <h2>What cqrs-htmx Currently Uses</h2>
+        <p class="section-desc">
+          A precise inventory of every go-cqrs-lite symbol referenced across all non-test source
+          files.
+        </p>
+
+        <h3>command/v2 — 5 symbols used</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Kind</th>
+                <th>Used In</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Dispatcher</code></td>
+                <td>type</td>
+                <td>app.go, handler.go</td>
+                <td>Holds command dispatcher in App struct</td>
+              </tr>
+              <tr>
+                <td><code>Type</code></td>
+                <td>type</td>
+                <td>app.go, handler.go, options_*.go</td>
+                <td>Command type identifier for handler registration</td>
+              </tr>
+              <tr>
+                <td><code>Type.IsZero()</code></td>
+                <td>method</td>
+                <td>app.go</td>
+                <td>Validates command type is non-empty</td>
+              </tr>
+              <tr>
+                <td><code>Command</code></td>
+                <td>interface</td>
+                <td>options_types.go, options_decode.go, options_validate.go</td>
+                <td>Command contract for decoders/validators</td>
+              </tr>
+              <tr>
+                <td><code>Dispatcher.Dispatch()</code></td>
+                <td>method</td>
+                <td>handler.go</td>
+                <td>Dispatches command to registered handler</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warning">
+          <div class="callout-title">Notable absence</div>
+          <p>
+            <code>RegisterTyped[T]</code>, <code>Middleware</code>, <code>Handler</code>,
+            <code>TypedHandler[T]</code>, <code>PersistedCommand</code>, <code>Store</code>,
+            <code>AggregateRef</code>, <code>Metadata</code>, <code>New()</code>,
+            <code>NewDispatcher()</code>, <code>Use()</code> — <strong>none used</strong> in the
+            library (only in the example).
+          </p>
+        </div>
+
+        <h3>query/v2 — 7 symbols used</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Kind</th>
+                <th>Used In</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Dispatcher</code></td>
+                <td>type</td>
+                <td>app.go, handler.go</td>
+                <td>Holds query dispatcher in App struct</td>
+              </tr>
+              <tr>
+                <td><code>Type</code></td>
+                <td>type</td>
+                <td>app.go, handler.go, options_*.go</td>
+                <td>Query type identifier</td>
+              </tr>
+              <tr>
+                <td><code>Type.IsZero()</code></td>
+                <td>method</td>
+                <td>app.go</td>
+                <td>Validates query type is non-empty</td>
+              </tr>
+              <tr>
+                <td><code>Query</code></td>
+                <td>interface</td>
+                <td>options_types.go, options_decode.go, options_validate.go</td>
+                <td>Query contract for decoders/validators</td>
+              </tr>
+              <tr>
+                <td><code>Pagination</code></td>
+                <td>type</td>
+                <td>options_json.go</td>
+                <td>Page/page_size struct for paginated queries</td>
+              </tr>
+              <tr>
+                <td><code>NewPagination</code></td>
+                <td>func</td>
+                <td>options_json.go</td>
+                <td>Creates pagination with defaults (page=1, size=20, max=100)</td>
+              </tr>
+              <tr>
+                <td><code>PaginatedResult</code></td>
+                <td>type</td>
+                <td>options_json.go</td>
+                <td>Type-asserted result for <code>RenderPaginatedJSON[T]</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warning">
+          <div class="callout-title">Notable absence</div>
+          <p>
+            <code>RegisterTyped[Q,R]</code>, <code>DispatchTyped[T]</code>,
+            <code>TypedHandler[Q,R]</code>, <code>Middleware</code>, <code>Use()</code>,
+            <code>Pagination.Validate()</code> — none used.
+          </p>
+        </div>
+
+        <h3>event/v2 — 18 symbols used</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Kind</th>
+                <th>Used In</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Option</code></td>
+                <td>type</td>
+                <td>app.go, context.go</td>
+                <td>Event option for metadata propagation</td>
+              </tr>
+              <tr>
+                <td><code>NewRejection</code></td>
+                <td>func</td>
+                <td>errors.go, authz.go, options_*.go, recovery.go</td>
+                <td>Creates client-rejection errors (400)</td>
+              </tr>
+              <tr>
+                <td><code>NewInfrastructure</code></td>
+                <td>func</td>
+                <td>app.go, errors.go, authz.go, recovery.go</td>
+                <td>Creates infrastructure errors (500)</td>
+              </tr>
+              <tr>
+                <td><code>NewTransient</code></td>
+                <td>func</td>
+                <td>authz.go</td>
+                <td>Creates transient/retryable errors (503)</td>
+              </tr>
+              <tr>
+                <td><code>Classify</code></td>
+                <td>func</td>
+                <td>errors.go</td>
+                <td>Maps error → family → HTTP status</td>
+              </tr>
+              <tr>
+                <td><code>Family</code></td>
+                <td>type</td>
+                <td>errors.go</td>
+                <td>Error family type for status mapping</td>
+              </tr>
+              <tr>
+                <td><code>Rejection..Infrastructure</code></td>
+                <td>consts</td>
+                <td>errors.go</td>
+                <td>5 family constants for switch</td>
+              </tr>
+              <tr>
+                <td><code>WithUserID</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Propagates user ID to event metadata</td>
+              </tr>
+              <tr>
+                <td><code>WithCorrelationID</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Propagates correlation ID</td>
+              </tr>
+              <tr>
+                <td><code>WithRequestID</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Propagates request ID</td>
+              </tr>
+              <tr>
+                <td><code>WithSource</code></td>
+                <td>func</td>
+                <td>app.go, context.go</td>
+                <td>Sets event source (service name)</td>
+              </tr>
+              <tr>
+                <td><code>ParseSource</code></td>
+                <td>func</td>
+                <td>app.go, context.go</td>
+                <td>Validates source string</td>
+              </tr>
+              <tr>
+                <td><code>FromContext</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Extracts deadline from context</td>
+              </tr>
+              <tr>
+                <td><code>(*Error).WithCause</code></td>
+                <td>method</td>
+                <td>authz.go, options_*.go</td>
+                <td>Wraps cause into structured error</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>id/v2 — 9 symbols used</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Kind</th>
+                <th>Used In</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>UserID</code></td>
+                <td>type</td>
+                <td>context.go</td>
+                <td>Strongly-typed user identifier (ULID)</td>
+              </tr>
+              <tr>
+                <td><code>NewUserID</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Generates new user ID</td>
+              </tr>
+              <tr>
+                <td><code>ParseUserID</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Parses ULID string → UserID</td>
+              </tr>
+              <tr>
+                <td><code>CorrelationID</code></td>
+                <td>type</td>
+                <td>context.go</td>
+                <td>Distributed tracing correlation</td>
+              </tr>
+              <tr>
+                <td><code>NewCorrelationID</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Generates new correlation ID</td>
+              </tr>
+              <tr>
+                <td><code>ParseCorrelationID</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Parses ULID string → CorrelationID</td>
+              </tr>
+              <tr>
+                <td><code>RequestID</code></td>
+                <td>type</td>
+                <td>context.go</td>
+                <td>Per-request identifier</td>
+              </tr>
+              <tr>
+                <td><code>NewRequestID</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Generates new request ID</td>
+              </tr>
+              <tr>
+                <td><code>ParseRequestID</code></td>
+                <td>func</td>
+                <td>context.go</td>
+                <td>Parses ULID string → RequestID</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">What's done well</div>
+          <p>
+            <span class="check">&#10003;</span> Error taxonomy fully adopted — all 5 families mapped
+            to HTTP statuses<br />
+            <span class="check">&#10003;</span> Deadline propagation via
+            <code>event.FromContext</code> — downstream events inherit request timeouts<br />
+            <span class="check">&#10003;</span> Branded IDs prevent type confusion at compile
+            time<br />
+            <span class="check">&#10003;</span> Service source propagation via
+            <code>ServiceName</code> config<br />
+            <span class="check">&#10003;</span> <code>type.IsZero()</code> panics on empty
+            command/query types (v2.3.0 feature adopted)<br />
+            <span class="check">&#10003;</span> Pagination with <code>NewPagination</code> defaults
+            and <code>PaginatedResult[T]</code>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ CRITICAL GAPS ═════════════════════════════ -->
+    <section id="gaps-critical">
+      <div class="container">
+        <h2>Critical Gaps</h2>
+        <p class="section-desc">
+          These are headline v2.3.0 features that cqrs-htmx should expose but currently doesn't. Low
+          effort, high impact.
+        </p>
+
+        <!-- Gap 1: Typed Handlers -->
+        <div class="card">
+          <div class="card-title">
+            <h4>1. Typed Handler Registration</h4>
+            <span class="badge badge-critical">CRITICAL</span>
+            <span class="badge badge-good">Low Effort</span>
+          </div>
+          <p>
+            <strong>Problem:</strong> The v2.3.0 headline feature
+            <code>command.RegisterTyped[T]</code> and <code>query.RegisterTyped[Q,R]</code> /
+            <code>query.DispatchTyped[T]</code> are used only in the
+            <code>examples/datastar-demo/</code> — not exposed by the library itself. Consumers who
+            use <code>App.Command()</code> and <code>App.Query()</code> must do manual type
+            assertions in their handlers.
+          </p>
+
+          <div class="diff">
+            <div class="diff-header">Current — consumer handler (manual type assertion)</div>
+            <div class="diff-body">
+              <div class="diff-line diff-ctx">
+                cmdDispatcher.Register("CreateUser", func(ctx context.Context, cmd command.Command)
+                error {
+              </div>
+              <div class="diff-line diff-del">
+                createCmd, ok := cmd.(*CreateUserCmd) // runtime assertion
+              </div>
+              <div class="diff-line diff-del">if !ok {</div>
+              <div class="diff-line diff-del">return fmt.Errorf("unexpected type %T", cmd)</div>
+              <div class="diff-line diff-del">}</div>
+              <div class="diff-line diff-ctx">return createUser(ctx, createCmd)</div>
+              <div class="diff-line diff-ctx">})</div>
+            </div>
+          </div>
+
+          <div class="diff">
+            <div class="diff-header">With RegisterTyped[T] — compile-time safe</div>
+            <div class="diff-body">
+              <div class="diff-line diff-add">
+                command.RegisterTyped(cmdDispatcher, "CreateUser",
+              </div>
+              <div class="diff-line diff-add">
+                func(ctx context.Context, cmd *CreateUserCmd) error {
+              </div>
+              <div class="diff-line diff-add">
+                return createUser(ctx, cmd) // no assertion needed
+              </div>
+              <div class="diff-line diff-add">},</div>
+              <div class="diff-line diff-add">)</div>
+            </div>
+          </div>
+
+          <p>
+            <strong>Recommendation:</strong> The library doesn't need to wrap these — consumers can
+            call <code>command.RegisterTyped</code> directly on the dispatcher they pass to
+            <code>Config.Commands</code>. However, the library should
+            <strong>document this pattern prominently</strong> in README and provide a convenience
+            example. Optionally, expose <code>App.Commands()</code> and
+            <code>App.Queries()</code> accessors so consumers don't need to hold a separate
+            reference.
+          </p>
+        </div>
+
+        <!-- Gap 2: CQRS Middleware -->
+        <div class="card">
+          <div class="card-title">
+            <h4>2. CQRS Dispatcher Middleware Not Exposed</h4>
+            <span class="badge badge-critical">CRITICAL</span>
+            <span class="badge badge-good">Low Effort</span>
+          </div>
+          <p>
+            <strong>Problem:</strong> Both <code>command.Dispatcher</code> and
+            <code>query.Dispatcher</code> have a <code>Use(middleware ...Middleware)</code> method
+            that chains cross-cutting concerns (retry, tracing, metrics, validation, circuit
+            breaker, recovery). The library never calls it, never exposes it through Config, and
+            never documents it.
+          </p>
+
+          <p>
+            The go-cqrs-lite <code>middleware/</code> package provides
+            <strong>24 factories</strong> (8 concerns × 3 message types):
+          </p>
+          <div class="grid-4" style="margin-top: 12px">
+            <div class="stat">
+              <div class="value accent">8</div>
+              <div class="label">Concerns</div>
+            </div>
+            <div class="stat">
+              <div class="value accent">3</div>
+              <div class="label">Msg Types</div>
+            </div>
+            <div class="stat">
+              <div class="value accent">24</div>
+              <div class="label">Factories</div>
+            </div>
+            <div class="stat">
+              <div class="value red">0</div>
+              <div class="label">Exposed</div>
+            </div>
+          </div>
+
+          <div class="callout danger">
+            <div class="callout-title">Current workaround is manual</div>
+            <p>
+              Consumers must call <code>cmdDispatcher.Use(middleware.CommandRetry(cfg))</code>
+              <em>before</em> passing the dispatcher to
+              <code>cqrshtmx.Config{Commands: cmdDispatcher}</code>. This works but is undocumented
+              and easy to get wrong (middleware must be added before <code>Register</code>).
+            </p>
+          </div>
+
+          <p>
+            <strong>Recommendation:</strong> Add
+            <code>Config.CommandMiddleware []command.Middleware</code> and
+            <code>Config.QueryMiddleware []query.Middleware</code> fields. In <code>New()</code>,
+            call <code>cfg.Commands.Use(cfg.CommandMiddleware...)</code> before returning. This is a
+            4-line change.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ HIGH PRIORITY ═════════════════════════════ -->
+    <section id="gaps-high">
+      <div class="container">
+        <h2>High Priority Gaps</h2>
+        <p class="section-desc">
+          These features would meaningfully improve audit trails, client experience, and error
+          handling completeness.
+        </p>
+
+        <!-- Gap 3: IP/UserAgent -->
+        <div class="card">
+          <div class="card-title">
+            <h4>3. HTTP IP &amp; User-Agent Not Propagated to Events</h4>
+            <span class="badge badge-high">HIGH</span>
+            <span class="badge badge-good">Low Effort</span>
+          </div>
+          <p>
+            <strong>Problem:</strong> The event package provides
+            <code>event.WithIPAddress(ip)</code> and <code>event.WithUserAgent(ua)</code> options.
+            The library has <code>ClientIP(r)</code> (via httputil) and
+            <code>r.UserAgent()</code> available on every HTTP request. But
+            <code>EventOptionsFromContext</code> only propagates UserID, CorrelationID, RequestID,
+            and Deadline — <strong>not IP or User-Agent</strong>.
+          </p>
+
+          <p>
+            This means audit logs and event metadata lose the client's IP address and browser
+            information — critical for security auditing, fraud detection, and debugging.
+          </p>
+
+          <p>
+            <strong>Recommendation:</strong> Extend <code>EventOptionsFromContext</code> (or the
+            middleware) to also capture IP and User-Agent from the request and store them in
+            context. Then propagate them via <code>event.WithIPAddress</code> and
+            <code>event.WithUserAgent</code>.
+          </p>
+
+          <div class="diff">
+            <div class="diff-header">Proposed: ContextEnrichmentMiddleware enhancement</div>
+            <div class="diff-body">
+              <div class="diff-line diff-ctx">
+                func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler)
+                http.Handler {
+              </div>
+              <div class="diff-line diff-ctx">return func(next http.Handler) http.Handler {</div>
+              <div class="diff-line diff-add">
+                // Existing: extract userID, correlationID, requestID
+              </div>
+              <div class="diff-line diff-add">// NEW: also store IP + UserAgent in context</div>
+              <div class="diff-line diff-add">
+                ctx = WithIPAddress(ctx, ParseIPAddress(ClientIP(r)))
+              </div>
+              <div class="diff-line diff-add">
+                ctx = WithUserAgent(ctx, NewUserAgent(r.UserAgent()))
+              </div>
+              <div class="diff-line diff-ctx">next.ServeHTTP(w, r.WithContext(ctx))</div>
+              <div class="diff-line diff-ctx">}</div>
+              <div class="diff-line diff-ctx">}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gap 4: Retry-After -->
+        <div class="card">
+          <div class="card-title">
+            <h4>4. Retry-After Header Missing for Transient Errors</h4>
+            <span class="badge badge-high">HIGH</span>
+            <span class="badge badge-good">Low Effort</span>
+          </div>
+          <p>
+            <strong>Problem:</strong> The error handler maps <code>event.Transient</code> to HTTP
+            503 (Service Unavailable), but doesn't set a <code>Retry-After</code> header. The rate
+            limiter sets <code>Retry-After</code> correctly for 429 responses, but transient
+            dispatch errors (database timeouts, connection failures) don't.
+          </p>
+
+          <p>
+            The <code>event.IsRetryable(err)</code> function exists and returns
+            <code>true</code> for Transient-family errors — it's never called.
+          </p>
+
+          <p>
+            <strong>Recommendation:</strong> In <code>DefaultErrorHandlerWithRedirect</code>, check
+            <code>event.IsRetryable(err)</code> and set <code>Retry-After: 5</code> (or
+            configurable) when true. This is a 3-line addition.
+          </p>
+        </div>
+
+        <!-- Gap 5: Error helpers -->
+        <div class="card">
+          <div class="card-title">
+            <h4>5. NewConflict &amp; NewCorruption Not Available</h4>
+            <span class="badge badge-high">HIGH</span>
+            <span class="badge badge-good">Trivial</span>
+          </div>
+          <p>
+            <strong>Problem:</strong> The library creates errors with only 3 of the 5 families:
+            <code>NewRejection</code> (400), <code>NewInfrastructure</code> (500),
+            <code>NewTransient</code> (503). But the error handler
+            <code>familyStatus()</code> handles all 5 families including <code>Conflict</code> (409)
+            and <code>Corruption</code> (422). Consumers have no way to create these errors through
+            the library — they'd need to import <code>event/v2</code> directly.
+          </p>
+
+          <p>
+            This matters because <strong>conflict detection</strong> (e.g. optimistic concurrency,
+            duplicate email) should map to 409, not 400. The <code>usermgmt</code> submodule uses
+            <code>event.NewRejection</code> for <code>ErrEmailExists</code> which returns 400 when
+            it should arguably be 409 Conflict.
+          </p>
+
+          <p>
+            <strong>Recommendation:</strong> Either re-export the error helpers, or create
+            domain-specific sentinel errors using <code>NewConflict</code> and
+            <code>NewCorruption</code> where appropriate. Consider using
+            <code>event.NewConflict</code> for duplicate-email and optimistic-concurrency errors.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ MEDIUM PRIORITY ═════════════════════════════ -->
+    <section id="gaps-medium">
+      <div class="container">
+        <h2>Medium Priority Gaps</h2>
+        <p class="section-desc">
+          These would improve architectural cleanliness and enable advanced use cases.
+        </p>
+
+        <!-- Gap 6: Event Bus → SSE Bridge -->
+        <div class="card">
+          <div class="card-title">
+            <h4>6. Event Bus → SSE Bridge Missing</h4>
+            <span class="badge badge-medium">MEDIUM</span>
+            <span class="badge badge-medium">Medium Effort</span>
+          </div>
+          <p>
+            <strong>Problem:</strong> The library has a full SSE subsystem
+            (<code>Broadcaster</code>, <code>SSEStream</code>, <code>SSEEventStore</code>,
+            <code>ReplayEvents</code>) and a <code>BroadcastOnSuccess</code> hook that broadcasts
+            SSE events on successful dispatch. But there's no bridge to go-cqrs-lite's
+            <code>event.Bus</code> / <code>event.Publisher</code> /
+            <code>event.Subscriber</code> interfaces.
+          </p>
+
+          <p>
+            This means consumers who use event sourcing must manually wire their
+            <code>event.Bus</code> to the SSE <code>Broadcaster</code>. The library is perfectly
+            positioned to provide an adapter.
+          </p>
+
+          <p>
+            <strong>Recommendation:</strong> Provide an
+            <code>EventBusToSSEBridge(broadcaster, bus)</code>
+            adapter that subscribes to the event bus and forwards matching events as SSE events.
+            Also consider
+            <code>App.SetEventBus(bus)</code> to auto-bridge dispatch success → event publish → SSE
+            broadcast.
+          </p>
+        </div>
+
+        <!-- Gap 7: CausationID -->
+        <div class="card">
+          <div class="card-title">
+            <h4>7. CausationID Not Propagated</h4>
+            <span class="badge badge-medium">MEDIUM</span>
+            <span class="badge badge-good">Low Effort</span>
+          </div>
+          <p>
+            <strong>Problem:</strong> The <code>id.CausationID</code> type and
+            <code>event.WithCausationID</code> option exist for tracking cause-effect chains
+            (command → event). The library propagates CorrelationID but not CausationID.
+          </p>
+
+          <p>
+            When a command handler emits events, the events should carry the command's ID as their
+            causation ID. Currently there's no mechanism to set this — the library doesn't propagate
+            a command ID through context.
+          </p>
+
+          <p>
+            <strong>Recommendation:</strong> Optionally propagate CausationID via context when a
+            command is dispatched. The <code>command.PersistedCommand</code> has an
+            <code>ID()</code> method that could serve as the causation source.
+          </p>
+        </div>
+
+        <!-- Gap 8: ContextEnricher -->
+        <div class="card">
+          <div class="card-title">
+            <h4>8. ContextEnricher Pattern Not Adopted</h4>
+            <span class="badge badge-medium">MEDIUM</span>
+            <span class="badge badge-good">Low Effort</span>
+          </div>
+          <p>
+            <strong>Problem:</strong> <code>EventOptionsFromContext</code> manually builds a
+            <code>[]event.Option</code> slice by checking each context value individually. The event
+            package provides <code>ContextEnricher</code> (a function type) and
+            <code>CompositeEnricher</code> (combines multiple enrichers) for this exact purpose —
+            cleaner, more composable, and used by the <code>decider.Repository</code>.
+          </p>
+
+          <p>
+            <strong>Recommendation:</strong> Refactor <code>EventOptionsFromContext</code> to use
+            <code>CompositeEnricher</code> internally, or at minimum align with the enricher pattern
+            so consumers can inject custom enrichers.
+          </p>
+        </div>
+
+        <!-- Gap 9: ClientID -->
+        <div class="card">
+          <div class="card-title">
+            <h4>9. ClientID (Offline-First) Not Propagated</h4>
+            <span class="badge badge-medium">MEDIUM</span>
+            <span class="badge badge-good">Low Effort</span>
+          </div>
+          <p>
+            <strong>Problem:</strong> The <code>id.ClientID</code> type,
+            <code>event.WithClientID</code>, and <code>event.WithClientOccurredAt</code> options
+            support offline-first scenarios (client device attribution, conflict detection). The
+            library doesn't propagate these from HTTP headers.
+          </p>
+
+          <p>
+            <strong>Recommendation:</strong> Add optional <code>Config.ClientIDHeader</code> to
+            extract a client ID from a custom HTTP header (e.g. <code>X-Client-ID</code>) and
+            propagate it via <code>event.WithClientID</code>. Low priority unless offline-first is a
+            use case.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ LOW PRIORITY ═════════════════════════════ -->
+    <section id="gaps-low">
+      <div class="container">
+        <h2>Low Priority Gaps</h2>
+        <p class="section-desc">Nice-to-haves that improve ergonomics but aren't blocking.</p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">
+              <h4>10. DecodePayload[T] Not Exposed</h4>
+              <span class="badge badge-low">LOW</span>
+            </div>
+            <p>
+              The <code>event.DecodePayload[T]</code> and
+              <code>event.DecodePayloads[T]</code> functions decode event payloads into typed
+              structs. Could be useful for SSE consumers who receive events and need to deserialize
+              them. Currently not re-exported or documented.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>11. Pagination.Validate() Not Exposed</h4>
+              <span class="badge badge-low">LOW</span>
+            </div>
+            <p>
+              <code>query.Pagination.Validate()</code> returns an error for out-of-range values.
+              <code>DecodePagination</code> delegates to <code>NewPagination</code> which applies
+              defaults silently — no explicit validation error is returned to the client.
+            </p>
+          </div>
+        </div>
+
+        <h3>Additional Available Features (Not Yet Evaluated for Integration)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Package</th>
+                <th>Relevance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>event.Clock</code> / <code>WithClock</code></td>
+                <td>event/v2</td>
+                <td>Testing — inject deterministic clocks. Low relevance for HTTP integration.</td>
+              </tr>
+              <tr>
+                <td><code>event.WithSchemaVersion</code></td>
+                <td>event/v2</td>
+                <td>
+                  Event schema evolution. Relevant only if consumers use event sourcing with
+                  versioned payloads.
+                </td>
+              </tr>
+              <tr>
+                <td><code>event.ProcessingMode</code> / <code>IsReplay</code></td>
+                <td>event/v2</td>
+                <td>
+                  Replay context detection. Could improve SSE replay to distinguish live vs replay
+                  events.
+                </td>
+              </tr>
+              <tr>
+                <td><code>event.Tombstone</code> / <code>MarkTombstone</code></td>
+                <td>event/v2</td>
+                <td>
+                  Soft-delete via tombstones. Application-level concern, not HTTP integration.
+                </td>
+              </tr>
+              <tr>
+                <td><code>event.New</code> / <code>NewEvent</code> / <code>NewEvents</code></td>
+                <td>event/v2</td>
+                <td>
+                  Event construction. Consumers import directly; library doesn't need to wrap.
+                </td>
+              </tr>
+              <tr>
+                <td><code>event.EventBus</code> (reactive, samber/ro)</td>
+                <td>event/v2</td>
+                <td>
+                  Reactive streams. Could be interesting for advanced SSE scenarios but heavy
+                  dependency.
+                </td>
+              </tr>
+              <tr>
+                <td><code>event.Wrap*</code> / <code>Newf</code> / <code>Wrapf</code></td>
+                <td>event/v2</td>
+                <td>Printf-style error helpers. Re-export if consumers need formatted errors.</td>
+              </tr>
+              <tr>
+                <td><code>event.ExitCode</code></td>
+                <td>event/v2</td>
+                <td>Process exit codes from error family. Not relevant for HTTP library.</td>
+              </tr>
+              <tr>
+                <td><code>id.DeriveAggregateID</code></td>
+                <td>id/v2</td>
+                <td>
+                  Deterministic aggregate IDs from namespace + keys. Useful for idempotency keys.
+                </td>
+              </tr>
+              <tr>
+                <td><code>id.ULID[T]</code></td>
+                <td>id/v2</td>
+                <td>Timestamp extraction from ULID. Could be useful for time-based queries.</td>
+              </tr>
+              <tr>
+                <td><code>codec.CBORCodec</code></td>
+                <td>codec/v2</td>
+                <td>Canonical CBOR encoding. Not relevant for HTTP JSON responses.</td>
+              </tr>
+              <tr>
+                <td><code>command.PersistedCommand</code> / <code>Store</code></td>
+                <td>command/v2</td>
+                <td>
+                  Command persistence for audit trails. Application-level, not HTTP integration.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ CORRECTLY EXCLUDED ═════════════════════════════ -->
+    <section id="correctly-excluded">
+      <div class="container">
+        <h2>Correctly Excluded Features</h2>
+        <p class="section-desc">
+          These go-cqrs-lite packages are NOT used by cqrs-htmx, and <strong>shouldn't be</strong>.
+          They are application-level, storage-level, or infrastructure-level concerns outside the
+          scope of an HTTP integration library.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">
+              <h4>storage/ · turso/ · pebble/</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>
+              SQL/KV event store backends. cqrs-htmx is an HTTP layer, not a persistence layer.
+              Consumers choose their own storage.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>catalog/</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>
+              AsyncAPI/OpenAPI/D2 documentation generation. Build-time concern, not runtime HTTP.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>decider/</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>
+              Aggregate pattern (load→fold→decide→save→publish). Application architecture, not HTTP
+              integration.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>snapshot/</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>
+              Snapshot stores and strategies. Performance optimization for event-sourced aggregates.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>memory/</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>In-memory test implementations for go-cqrs-lite itself. Not for consumer use.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>projection/</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>Projection runner (replay + live). Application-level read-model concern.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>listing/</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>Aggregate listing with tombstone policies. Application query concern.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>signing/</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>
+              Event signing/verification (HMAC, Ed25519). Infrastructure security concern, not HTTP.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>schema/ (VersionedStore)</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>Upcaster/VersionedStore for schema evolution. Application migration concern.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>otel/</h4>
+              <span class="badge badge-info">PARTIAL</span>
+            </div>
+            <p>
+              Shared OTel helpers (span attributes, tracers). The library has its own
+              <code>example_otel_test.go</code> demonstrating OTel integration but doesn't re-export
+              these helpers. Correctly left to consumers.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>middleware/ (24 factories)</h4>
+              <span class="badge badge-info">SHOULD DOCUMENT</span>
+            </div>
+            <p>
+              The 24 middleware factories (Logging, Metrics, Recovery, Retry, Tracing, Validation,
+              Circuit Breaker × Command/Event/Query). Not imported, but consumers
+              <em>should</em> use them. The library should document how to wire them via
+              <code>Dispatcher.Use()</code>.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>testutil/</h4>
+              <span class="badge badge-good">CORRECT</span>
+            </div>
+            <p>Test helpers and fakes for go-cqrs-lite's own test suite. Not for consumer use.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ PACKAGE MAP ═════════════════════════════ -->
+    <section id="package-map">
+      <div class="container">
+        <h2>Complete Package Utilization Map</h2>
+        <p class="section-desc">
+          Every go-cqrs-lite v2 module, its purpose, whether cqrs-htmx imports it, and whether it
+          should.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Package</th>
+                <th>Layer</th>
+                <th>Purpose</th>
+                <th>Imported</th>
+                <th>Should Be</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>command/v2</code></td>
+                <td>1</td>
+                <td>Command dispatch, typed handlers, middleware, persistence</td>
+                <td><span class="check">&#10003; Yes</span></td>
+                <td><span class="warn">Partial — missing typed handlers + middleware</span></td>
+              </tr>
+              <tr>
+                <td><code>query/v2</code></td>
+                <td>1</td>
+                <td>Query dispatch, typed results, pagination</td>
+                <td><span class="check">&#10003; Yes</span></td>
+                <td><span class="warn">Partial — missing typed dispatch</span></td>
+              </tr>
+              <tr>
+                <td><code>event/v2</code></td>
+                <td>1</td>
+                <td>Core events, store/bus interfaces, error taxonomy, metadata</td>
+                <td><span class="check">&#10003; Yes</span></td>
+                <td>
+                  <span class="warn"
+                    >Partial — missing IP/UA, Conflict/Corruption, IsRetryable</span
+                  >
+                </td>
+              </tr>
+              <tr>
+                <td><code>id/v2</code></td>
+                <td>0</td>
+                <td>Branded ID types (ULID-backed)</td>
+                <td><span class="check">&#10003; Yes</span></td>
+                <td><span class="check">&#10003; Good (could add CausationID, ClientID)</span></td>
+              </tr>
+              <tr>
+                <td><code>codec/v2</code></td>
+                <td>0</td>
+                <td>Payload serialization (JSON, CBOR, Raw)</td>
+                <td><span class="cross">&#10007; Indirect</span></td>
+                <td><span class="check">&#10003; Correct — HTTP uses JSON directly</span></td>
+              </tr>
+              <tr>
+                <td><code>dispatcher/v2</code></td>
+                <td>0</td>
+                <td>Generic dispatcher core (used internally by command/query)</td>
+                <td><span class="cross">&#10007; Indirect</span></td>
+                <td><span class="check">&#10003; Correct — internal foundation</span></td>
+              </tr>
+              <tr>
+                <td><code>schema/v2</code></td>
+                <td>2</td>
+                <td>Upcaster, VersionedStore (schema evolution)</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — application concern</span></td>
+              </tr>
+              <tr>
+                <td><code>snapshot/v2</code></td>
+                <td>2</td>
+                <td>Snapshot stores, strategies</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — application concern</span></td>
+              </tr>
+              <tr>
+                <td><code>decider/</code></td>
+                <td>3</td>
+                <td>Aggregate pattern, Repository</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — application pattern</span></td>
+              </tr>
+              <tr>
+                <td><code>memory/</code></td>
+                <td>4</td>
+                <td>In-memory test implementations</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — test-only</span></td>
+              </tr>
+              <tr>
+                <td><code>signing/</code></td>
+                <td>4</td>
+                <td>Event signing/verification</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — infrastructure security</span></td>
+              </tr>
+              <tr>
+                <td><code>otel/</code></td>
+                <td>4</td>
+                <td>OpenTelemetry helpers</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — consumer choice</span></td>
+              </tr>
+              <tr>
+                <td><code>middleware/</code></td>
+                <td>5</td>
+                <td>24 cross-cutting middleware factories</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="warn">Should document usage pattern</span></td>
+              </tr>
+              <tr>
+                <td><code>storage/</code></td>
+                <td>5</td>
+                <td>SQL event stores (PG, SQLite)</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — storage layer</span></td>
+              </tr>
+              <tr>
+                <td><code>projection/</code></td>
+                <td>5</td>
+                <td>Projection runner (replay + live)</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — application concern</span></td>
+              </tr>
+              <tr>
+                <td><code>listing/</code></td>
+                <td>5</td>
+                <td>Aggregate listing, tombstone policies</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — application query</span></td>
+              </tr>
+              <tr>
+                <td><code>turso/</code></td>
+                <td>5</td>
+                <td>Turso (LibSQL) connector</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — storage backend</span></td>
+              </tr>
+              <tr>
+                <td><code>catalog/v2</code></td>
+                <td>6</td>
+                <td>AsyncAPI/OpenAPI/D2 documentation</td>
+                <td><span class="cross">&#10007; No</span></td>
+                <td><span class="check">&#10003; Correct — build-time tooling</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ RECOMMENDATIONS ═════════════════════════════ -->
+    <section id="recommendations">
+      <div class="container">
+        <h2>Actionable Recommendations</h2>
+        <p class="section-desc">
+          Ordered by impact-to-effort ratio. Each recommendation is independently shippable.
+        </p>
+
+        <h3>Quick Wins (Low Effort, High Impact)</h3>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">
+              <h4>R1. Expose Dispatcher Accessors</h4>
+              <span class="badge badge-good">~10 lines</span>
+            </div>
+            <p>
+              Add <code>App.Commands() *command.Dispatcher</code> and
+              <code>App.Queries() *query.Dispatcher</code> so consumers can call
+              <code>RegisterTyped</code> and <code>Use()</code> without holding separate references.
+            </p>
+            <div class="code-block">
+              <span class="kw">func</span> (a *<span class="ty">App</span>)
+              <span class="fn">Commands</span>() *command.<span class="ty">Dispatcher</span> {
+              <span class="kw">return</span> a.commands } <span class="kw">func</span> (a *<span
+                class="ty"
+                >App</span
+              >) <span class="fn">Queries</span>() *query.<span class="ty">Dispatcher</span> {
+              <span class="kw">return</span> a.queries }
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>R2. Add Middleware Config Fields</h4>
+              <span class="badge badge-good">~5 lines</span>
+            </div>
+            <p>
+              Add <code>Config.CommandMiddleware []command.Middleware</code> and
+              <code>Config.QueryMiddleware []query.Middleware</code>. In <code>New()</code>:
+            </p>
+            <div class="code-block">
+              <span class="kw">if</span> len(cfg.CommandMiddleware) &gt;
+              <span class="str">0</span> { cfg.Commands.<span class="fn">Use</span
+              >(cfg.CommandMiddleware...) }
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>R3. Propagate IP + User-Agent</h4>
+              <span class="badge badge-good">~15 lines</span>
+            </div>
+            <p>
+              In <code>ContextEnrichmentMiddleware</code>, also store parsed IP and User-Agent in
+              context. In <code>EventOptionsFromContext</code>, append
+              <code>event.WithIPAddress(ip)</code> and <code>event.WithUserAgent(ua)</code>.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>R4. Retry-After for Transient Errors</h4>
+              <span class="badge badge-good">~5 lines</span>
+            </div>
+            <p>In <code>DefaultErrorHandlerWithRedirect</code>:</p>
+            <div class="code-block">
+              <span class="kw">if</span> event.<span class="fn">IsRetryable</span>(err) { w.<span
+                class="fn"
+                >Header</span
+              >().<span class="fn">Set</span>(<span class="str">"Retry-After"</span>,
+              <span class="str">"5"</span>) }
+            </div>
+          </div>
+        </div>
+
+        <h3>Medium-Term Improvements</h3>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">
+              <h4>R5. Document Typed Handler Pattern</h4>
+              <span class="badge badge-medium">Docs only</span>
+            </div>
+            <p>
+              Add a README section showing consumers how to use
+              <code>command.RegisterTyped[T]</code> and <code>query.RegisterTyped[Q,R]</code> /
+              <code>query.DispatchTyped[T]</code> with the library. The datastar-demo example
+              already demonstrates this — surface it.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>R6. Document CQRS Middleware Usage</h4>
+              <span class="badge badge-medium">Docs only</span>
+            </div>
+            <p>
+              Add a README section showing how to use go-cqrs-lite's
+              <code>middleware/</code> package (Retry, Tracing, Metrics, Circuit Breaker) with the
+              library's dispatcher. Show the <code>Use()</code> call before <code>New(cfg)</code>.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>R7. Use NewConflict for Duplicate Errors</h4>
+              <span class="badge badge-medium">~3 lines</span>
+            </div>
+            <p>
+              In <code>usermgmt/errors.go</code>, change <code>ErrEmailExists</code> and
+              <code>ErrUserIDExists</code> from <code>event.NewRejection</code> to
+              <code>event.NewConflict</code>. This maps them to HTTP 409 Conflict instead of 400 Bad
+              Request.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>R8. Event Bus → SSE Bridge</h4>
+              <span class="badge badge-high">~50 lines</span>
+            </div>
+            <p>
+              Provide an adapter that subscribes to <code>event.Bus</code> and forwards events to
+              <code>Broadcaster.Broadcast()</code>. This auto-bridges domain events to SSE without
+              manual <code>BroadcastOnSuccess</code> calls.
+            </p>
+          </div>
+        </div>
+
+        <h3>Summary Scorecard</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Score</th>
+                <th>Bar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Core Dispatch (command/query)</td>
+                <td><strong>8/10</strong></td>
+                <td>
+                  <div class="progress-bar" style="max-width: 200px">
+                    <div class="progress-fill green" style="width: 80%"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Error Taxonomy</td>
+                <td><strong>7/10</strong></td>
+                <td>
+                  <div class="progress-bar" style="max-width: 200px">
+                    <div class="progress-fill green" style="width: 70%"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Event Metadata Propagation</td>
+                <td><strong>5/10</strong></td>
+                <td>
+                  <div class="progress-bar" style="max-width: 200px">
+                    <div class="progress-fill yellow" style="width: 50%"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Branded IDs</td>
+                <td><strong>8/10</strong></td>
+                <td>
+                  <div class="progress-bar" style="max-width: 200px">
+                    <div class="progress-fill green" style="width: 80%"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Typed Handlers</td>
+                <td><strong>3/10</strong></td>
+                <td>
+                  <div class="progress-bar" style="max-width: 200px">
+                    <div class="progress-fill red" style="width: 30%"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Middleware Integration</td>
+                <td><strong>2/10</strong></td>
+                <td>
+                  <div class="progress-bar" style="max-width: 200px">
+                    <div class="progress-fill red" style="width: 20%"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Pagination</td>
+                <td><strong>9/10</strong></td>
+                <td>
+                  <div class="progress-bar" style="max-width: 200px">
+                    <div class="progress-fill green" style="width: 90%"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Correct Exclusion of Irrelevant Packages</td>
+                <td><strong>10/10</strong></td>
+                <td>
+                  <div class="progress-bar" style="max-width: 200px">
+                    <div class="progress-fill green" style="width: 100%"></div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Bottom Line</div>
+          <p>
+            cqrs-htmx is a <strong>solid HTMX integration layer</strong> with excellent error
+            mapping, strong typing, and correct architectural boundaries. The core dispatch flow is
+            well-designed. However, it underutilizes go-cqrs-lite's
+            <strong>typed handler generics</strong>, <strong>middleware system</strong>, and
+            <strong>HTTP→event metadata bridging</strong>. Closing these gaps requires ~50 lines of
+            code and some documentation — the ROI is exceptionally high.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <p>Generated 2026-06-14 · cqrs-htmx go-cqrs-lite Feature Utilization Audit</p>
+      </div>
+    </footer>
+  </body>
+</html>
