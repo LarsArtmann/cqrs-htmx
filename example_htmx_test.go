@@ -77,3 +77,18 @@ func ExampleHTMXScriptHandler() {
 	fmt.Println("mounted")
 	// Output: mounted
 }
+
+func ExampleHTMXScriptHandlerWith() {
+	customJS := []byte("// my custom htmx build")
+	mux := http.NewServeMux()
+	mux.Handle("/static/htmx.js", cqrshtmx.HTMXScriptHandlerWith(customJS, "4.0.0"))
+	fmt.Println("mounted")
+	// Output: mounted
+}
+
+func ExampleHTMXCDNScriptTag() {
+	fmt.Println(cqrshtmx.HTMXCDNScriptTag(""))
+	fmt.Println(cqrshtmx.HTMXCDNScriptTag("4.0.0"))
+	// Output: <script src="https://unpkg.com/htmx.org@2.0.9"></script>
+	// <script src="https://unpkg.com/htmx.org@4.0.0"></script>
+}

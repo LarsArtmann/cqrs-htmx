@@ -34,8 +34,8 @@ cqrs-htmx/
 ├── context.go        # UserID/CorrelationID/RequestID types, Parse*/MustParse*, context helpers
 ├── errors.go         # Error → HTTP status mapping, sentinels, LoginRedirect (go-error-family)
 ├── htmx.go           # HTMXRequest struct, accessors, context storage, RenderPartial
-├── htmx_embed.go     # Embedded HTMX v2.0.9 minified JS (go:embed)
-├── htmx_serve.go     # HTMXScriptHandler, HTMXVersion, HTMXScriptTag
+├── htmx_embed.go     # Embedded HTMX v2.0.9 minified JS (go:embed), htmxVersion const
+├── htmx_serve.go     # HTMXScriptHandler, HTMXScriptHandlerWith (custom JS), HTMXCDNScriptTag, HTMXScriptTag
 ├── notify.go         # Notification HandlerOptions + NotifyWithEvent builder
 ├── middleware.go      # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
 ├── csrf.go           # CSRF middleware, CSRFConfig, context helpers (justinas/nosurf)
@@ -156,9 +156,11 @@ cqrs-htmx/
 
 - **HTMX v2.0.9 minified**: Embedded via `//go:embed htmx.min.js` in `htmx_embed.go` (~49KB). No CDN dependency — consumers serve it from their Go binary
 - **HTMXScriptHandler()**: Returns `http.Handler` with correct Content-Type, ETag, Cache-Control (1 year, immutable). Supports GET/HEAD, returns 405 for others. 304 Not Modified via If-None-Match
+- **HTMXScriptHandlerWith(js, version)**: Serves custom JS (e.g., htmx 4.0 beta, custom build). ETag derived from version string. `HTMXScriptHandler()` delegates to this
+- **HTMXCDNScriptTag(version)**: Returns `<script src="unpkg.com/htmx.org@VERSION">`. Empty version uses embedded version. For consumers who prefer CDN over self-hosting
 - **HTMXVersion()**: Returns `"2.0.9"` — useful for cache-busting query params
 - **HTMXScriptTag(path)**: Returns `<script src="path"></script>` — convenience for templ/templates
-- **Opt-in**: Consumers mount it at any path they choose. Not wired into any middleware or handler by default
+- **Pluggable**: Consumers can self-host embedded version, self-host custom version, or use CDN. Not wired into any middleware or handler by default
 
 ### SSE (Server-Sent Events)
 
