@@ -6,18 +6,18 @@
 
 ## Project Health
 
-| Metric          | Root              | usermgmt         | Integration    | datastar-demo |
-| --------------- | ----------------- | ---------------- | -------------- | ------------- |
-| Coverage        | **96.4%**         | **90.3%**        | N/A            | N/A           |
-| Test functions | 200+              | 35+              | 5              | 0 (main pkg)  |
-| Lint issues    | **0**             | **0**            | **0**          | **0**         |
-| `go vet`       | clean             | clean            | clean          | clean         |
-| Race detector  | clean             | clean            | clean          | N/A           |
-| Build          | clean             | clean            | clean          | clean         |
-| Benchmarks     | 27                | 5                | 0              | 0             |
-| Prod files     | 34                | 18               | 0              | 8             |
-| Prod LOC       | 6,462             | ~1,100           | 0              | ~200          |
-| Total LOC (all)|                   |                  | **20,819**     |               |
+| Metric          | Root      | usermgmt  | Integration | datastar-demo |
+| --------------- | --------- | --------- | ----------- | ------------- |
+| Coverage        | **96.4%** | **90.3%** | N/A         | N/A           |
+| Test functions  | 200+      | 35+       | 5           | 0 (main pkg)  |
+| Lint issues     | **0**     | **0**     | **0**       | **0**         |
+| `go vet`        | clean     | clean     | clean       | clean         |
+| Race detector   | clean     | clean     | clean       | N/A           |
+| Build           | clean     | clean     | clean       | clean         |
+| Benchmarks      | 27        | 5         | 0           | 0             |
+| Prod files      | 34        | 18        | 0           | 8             |
+| Prod LOC        | 6,462     | ~1,100    | 0           | ~200          |
+| Total LOC (all) |           |           | **20,819**  |               |
 
 **Total Go code:** 7,764 prod + 13,055 test = 20,819 lines across 4 modules.
 
@@ -33,19 +33,19 @@
 
 Based on the comprehensive performance review (`docs/research/performance-review.html`), 11 allocation-reduction and contention-reduction optimizations were implemented, tested, and committed:
 
-| #  | Optimization | File(s) | Impact | Verified |
-| -- | ------------ | ------- | ------ | -------- |
-| T01 | CSRF WARN logging moved to `sync.Once` at construction time | `csrf_middleware.go` | Eliminates per-request synchronous log I/O on CSRF hot path | ✅ |
-| T02 | HealthHandler response bodies pre-allocated as package-level vars | `app.go` | Eliminates 1 alloc per health check | ✅ |
-| T03 | RequestLoggingSlog inlines context ID extraction | `logging.go` | Eliminates 1 map alloc per slog-logged request | ✅ |
-| T04 | Broadcaster snapshots subscriber slice before fan-out | `sse_broadcaster.go` | Eliminates RLock contention at 1000+ subscribers | ✅ |
-| T05 | Auth endpoints decode directly (no RawMessage round-trip) | `usermgmt/http.go` | Eliminates 1 redundant JSON decode per auth request | ✅ |
-| T06 | WriteSSEEvent builds frame in single `[]byte` via append | `sse_event.go` | Replaces 3-5 `fmt.Fprintf` calls; 1 write call | ✅ |
-| T07 | splitSSELines fast-path for single-line data | `sse_event.go` | Skips `[]string` allocation in common case | ✅ |
-| T08 | setTriggerWithDetail uses `strings.Builder` for common path | `response.go` | Eliminates map alloc per HTMX notification | ✅ |
-| T09 | ParseWSMessageInto decodes directly into T | `ws.go` | Eliminates marshal→unmarshal round-trip per WS message | ✅ |
-| T10 | JSONLogFormatter uses `sync.Pool` + inlined context | `logging.go` | Reuses encode buffer; eliminates intermediate map | ✅ |
-| T11 | Error responses use `io.WriteString` | `errors.go` | Avoids `[]byte(string)` copy in error handler | ✅ |
+| #   | Optimization                                                      | File(s)              | Impact                                                      | Verified |
+| --- | ----------------------------------------------------------------- | -------------------- | ----------------------------------------------------------- | -------- |
+| T01 | CSRF WARN logging moved to `sync.Once` at construction time       | `csrf_middleware.go` | Eliminates per-request synchronous log I/O on CSRF hot path | ✅       |
+| T02 | HealthHandler response bodies pre-allocated as package-level vars | `app.go`             | Eliminates 1 alloc per health check                         | ✅       |
+| T03 | RequestLoggingSlog inlines context ID extraction                  | `logging.go`         | Eliminates 1 map alloc per slog-logged request              | ✅       |
+| T04 | Broadcaster snapshots subscriber slice before fan-out             | `sse_broadcaster.go` | Eliminates RLock contention at 1000+ subscribers            | ✅       |
+| T05 | Auth endpoints decode directly (no RawMessage round-trip)         | `usermgmt/http.go`   | Eliminates 1 redundant JSON decode per auth request         | ✅       |
+| T06 | WriteSSEEvent builds frame in single `[]byte` via append          | `sse_event.go`       | Replaces 3-5 `fmt.Fprintf` calls; 1 write call              | ✅       |
+| T07 | splitSSELines fast-path for single-line data                      | `sse_event.go`       | Skips `[]string` allocation in common case                  | ✅       |
+| T08 | setTriggerWithDetail uses `strings.Builder` for common path       | `response.go`        | Eliminates map alloc per HTMX notification                  | ✅       |
+| T09 | ParseWSMessageInto decodes directly into T                        | `ws.go`              | Eliminates marshal→unmarshal round-trip per WS message      | ✅       |
+| T10 | JSONLogFormatter uses `sync.Pool` + inlined context               | `logging.go`         | Reuses encode buffer; eliminates intermediate map           | ✅       |
+| T11 | Error responses use `io.WriteString`                              | `errors.go`          | Avoids `[]byte(string)` copy in error handler               | ✅       |
 
 **All 11 verified:** 4/4 modules pass with race detector. Zero lint issues. Zero behavioral changes.
 
@@ -85,28 +85,28 @@ Based on the comprehensive performance review (`docs/research/performance-review
 
 ## b) PARTIALLY DONE 🔄
 
-| Item | Status | Details |
-| --- | --- | --- |
-| **DOMAIN_LANGUAGE.md** | Template only | File exists but contains placeholder text ("Example Term"). Needs filling with actual domain vocabulary (Command, Query, Enforcer, Dispatch, etc.) |
-| **ROADMAP.md** | Stale | Shows v2.2.0 go-cqrs-lite but we're on v2.3.1. Lists typed dispatch as "Open" but it's done. Coverage numbers outdated |
-| **csrf_middleware_test.go** | 370 lines | 5.7% over 350-line limit (only test file exceeding) |
-| **Coverage targets** | Close | Root: 96.4% (was 96.9% target — slight regression from v2.3.0). usermgmt: 90.3% (was 91.1% target) |
-| **Performance benchmarks** | Partial | 27 root + 5 usermgmt benchmarks exist, but no automated before/after CI comparison |
+| Item                        | Status        | Details                                                                                                                                            |
+| --------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **DOMAIN_LANGUAGE.md**      | Template only | File exists but contains placeholder text ("Example Term"). Needs filling with actual domain vocabulary (Command, Query, Enforcer, Dispatch, etc.) |
+| **ROADMAP.md**              | Stale         | Shows v2.2.0 go-cqrs-lite but we're on v2.3.1. Lists typed dispatch as "Open" but it's done. Coverage numbers outdated                             |
+| **csrf_middleware_test.go** | 370 lines     | 5.7% over 350-line limit (only test file exceeding)                                                                                                |
+| **Coverage targets**        | Close         | Root: 96.4% (was 96.9% target — slight regression from v2.3.0). usermgmt: 90.3% (was 91.1% target)                                                 |
+| **Performance benchmarks**  | Partial       | 27 root + 5 usermgmt benchmarks exist, but no automated before/after CI comparison                                                                 |
 
 ---
 
 ## c) NOT STARTED 📋
 
-| Item | Priority | Notes |
-| --- | --- | --- |
-| **Form decode JSON round-trip elimination** | High | `decoder.go:118-132` still marshals→unmarshals form data. #1 remaining allocation hot path. Risk: behavioral change for arrays/nested objects. Needs design decision |
-| **T12: Embed evictionEntry in limiterEntry** | Medium | Would halve heap allocs per rate-limit key. Deliberately skipped — high risk for marginal gain |
-| **PostgreSQL store for usermgmt** | High | Pattern documented in `usermgmt/docs/SQL_STORES.md` + ADR 0003. Library principle: no SQL driver dep |
-| **govulncheck in CI** | Medium | Not currently running in ci.yml |
-| **pprof in example app** | Medium | No `net/http/pprof` handler in examples for production profiling |
-| **Memory pressure tests** | Medium | Rate limiter at 10K+ keys, broadcaster at 10K+ subs untested |
-| **Compression middleware** | Low | SSE/HTTP responses uncompressed. Consumers must add gzip/brotli at proxy |
-| **v3.0.0 Observability** | Future | Native OTel hooks (currently hook-based), plugin system |
+| Item                                         | Priority | Notes                                                                                                                                                                |
+| -------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Form decode JSON round-trip elimination**  | High     | `decoder.go:118-132` still marshals→unmarshals form data. #1 remaining allocation hot path. Risk: behavioral change for arrays/nested objects. Needs design decision |
+| **T12: Embed evictionEntry in limiterEntry** | Medium   | Would halve heap allocs per rate-limit key. Deliberately skipped — high risk for marginal gain                                                                       |
+| **PostgreSQL store for usermgmt**            | High     | Pattern documented in `usermgmt/docs/SQL_STORES.md` + ADR 0003. Library principle: no SQL driver dep                                                                 |
+| **govulncheck in CI**                        | Medium   | Not currently running in ci.yml                                                                                                                                      |
+| **pprof in example app**                     | Medium   | No `net/http/pprof` handler in examples for production profiling                                                                                                     |
+| **Memory pressure tests**                    | Medium   | Rate limiter at 10K+ keys, broadcaster at 10K+ subs untested                                                                                                         |
+| **Compression middleware**                   | Low      | SSE/HTTP responses uncompressed. Consumers must add gzip/brotli at proxy                                                                                             |
+| **v3.0.0 Observability**                     | Future   | Native OTel hooks (currently hook-based), plugin system                                                                                                              |
 
 ---
 
@@ -156,33 +156,33 @@ Based on the comprehensive performance review (`docs/research/performance-review
 
 Sorted by **impact/effort ratio** (highest first).
 
-| #  | Task | Impact | Effort | Category |
-| -- | ---- | ------ | ------ | -------- |
-| 1  | **Fill DOMAIN_LANGUAGE.md** with actual domain terms | Medium | 30 min | Docs |
-| 2  | **Update ROADMAP.md** to reflect v2.3.1, current coverage | Medium | 15 min | Docs |
-| 3  | **Split csrf_middleware_test.go** (370 → 2 files ≤350) | Low | 15 min | Compliance |
-| 4  | **Add govulncheck to CI** (ci.yml) | High | 15 min | Security |
-| 5  | **Form decode JSON round-trip elimination** (design + implement) | **Very High** | 4-8h | Perf |
-| 6  | **Add pprof handler to datastar-demo** for production profiling | Medium | 15 min | Observability |
-| 7  | **Write v2.2.0 release notes** in CHANGELOG | Medium | 30 min | Release |
-| 8  | **Recover root coverage to 96.9%+** | Medium | 1-2h | Quality |
-| 9  | **Recover usermgmt coverage to 91%+** | Medium | 1h | Quality |
-| 10 | **Add benchstat CI job** for automated benchmark regression | Medium | 1h | CI |
-| 11 | **Add memory pressure test** for rate limiter (10K+ keys) | Medium | 1h | Testing |
-| 12 | **Add memory pressure test** for broadcaster (10K+ subs) | Medium | 1h | Testing |
-| 13 | **T12: Embed evictionEntry in limiterEntry** | Medium | 30 min | Perf |
-| 14 | **PostgreSQL UserStore implementation** (documented pattern) | High | 4-8h | Feature |
-| 15 | **PostgreSQL SessionStore implementation** | High | 2-4h | Feature |
-| 16 | **Integration tests against real PostgreSQL** (testcontainers) | Medium | 2-4h | Quality |
-| 17 | **Add SSE connection count monitoring** (ActiveSubscribers method already exists — add to example) | Low | 15 min | Observability |
-| 18 | **Tag v2.2.0 release** | High | 5 min | Release |
-| 19 | **InMemoryUserStore.Save reverse index** for O(1) email updates | Low | 1h | Perf |
-| 20 | **Add more cross-module integration tests** (CSRF+CQRS, rate-limit+SSE) | Medium | 1-2h | Quality |
-| 21 | **Consider compression middleware** (optional gzip for responses) | Low | 2h | Feature |
-| 22 | **Update performance review HTML** with post-optimization benchmark results | Low | 30 min | Docs |
-| 23 | **Document the two UserID types** more prominently in README | Low | 15 min | Docs |
-| 24 | **Native OTel middleware** (hook-based pattern currently documented) | Medium | 2-4h | Feature |
-| 25 | **OPTIONS method handling** for CORS preflight | Low | 1h | Feature |
+| #   | Task                                                                                               | Impact        | Effort | Category      |
+| --- | -------------------------------------------------------------------------------------------------- | ------------- | ------ | ------------- |
+| 1   | **Fill DOMAIN_LANGUAGE.md** with actual domain terms                                               | Medium        | 30 min | Docs          |
+| 2   | **Update ROADMAP.md** to reflect v2.3.1, current coverage                                          | Medium        | 15 min | Docs          |
+| 3   | **Split csrf_middleware_test.go** (370 → 2 files ≤350)                                             | Low           | 15 min | Compliance    |
+| 4   | **Add govulncheck to CI** (ci.yml)                                                                 | High          | 15 min | Security      |
+| 5   | **Form decode JSON round-trip elimination** (design + implement)                                   | **Very High** | 4-8h   | Perf          |
+| 6   | **Add pprof handler to datastar-demo** for production profiling                                    | Medium        | 15 min | Observability |
+| 7   | **Write v2.2.0 release notes** in CHANGELOG                                                        | Medium        | 30 min | Release       |
+| 8   | **Recover root coverage to 96.9%+**                                                                | Medium        | 1-2h   | Quality       |
+| 9   | **Recover usermgmt coverage to 91%+**                                                              | Medium        | 1h     | Quality       |
+| 10  | **Add benchstat CI job** for automated benchmark regression                                        | Medium        | 1h     | CI            |
+| 11  | **Add memory pressure test** for rate limiter (10K+ keys)                                          | Medium        | 1h     | Testing       |
+| 12  | **Add memory pressure test** for broadcaster (10K+ subs)                                           | Medium        | 1h     | Testing       |
+| 13  | **T12: Embed evictionEntry in limiterEntry**                                                       | Medium        | 30 min | Perf          |
+| 14  | **PostgreSQL UserStore implementation** (documented pattern)                                       | High          | 4-8h   | Feature       |
+| 15  | **PostgreSQL SessionStore implementation**                                                         | High          | 2-4h   | Feature       |
+| 16  | **Integration tests against real PostgreSQL** (testcontainers)                                     | Medium        | 2-4h   | Quality       |
+| 17  | **Add SSE connection count monitoring** (ActiveSubscribers method already exists — add to example) | Low           | 15 min | Observability |
+| 18  | **Tag v2.2.0 release**                                                                             | High          | 5 min  | Release       |
+| 19  | **InMemoryUserStore.Save reverse index** for O(1) email updates                                    | Low           | 1h     | Perf          |
+| 20  | **Add more cross-module integration tests** (CSRF+CQRS, rate-limit+SSE)                            | Medium        | 1-2h   | Quality       |
+| 21  | **Consider compression middleware** (optional gzip for responses)                                  | Low           | 2h     | Feature       |
+| 22  | **Update performance review HTML** with post-optimization benchmark results                        | Low           | 30 min | Docs          |
+| 23  | **Document the two UserID types** more prominently in README                                       | Low           | 15 min | Docs          |
+| 24  | **Native OTel middleware** (hook-based pattern currently documented)                               | Medium        | 2-4h   | Feature       |
+| 25  | **OPTIONS method handling** for CORS preflight                                                     | Low           | 1h     | Feature       |
 
 ---
 
@@ -212,16 +212,16 @@ But I cannot decide the tradeoff without your input:
 
 ## Session Summary
 
-| Metric | Value |
-| --- | --- |
-| Commits this session | 14 (performance optimization) |
-| Commits today (total) | 43 |
-| Performance optimizations | 11 implemented + verified |
-| Performance findings documented | ~20 in HTML report |
-| Benchmarks added | 4 new (real-server + concurrency stress) |
-| Build status | ✅ 4/4 modules clean |
-| Test status | ✅ 4/4 modules pass with race detector |
-| Lint status | ✅ 0 issues across all modules |
-| Files >350 lines | ✅ 0 (all compliant) |
-| Coverage (root) | 96.4% |
-| Coverage (usermgmt) | 90.3% |
+| Metric                          | Value                                    |
+| ------------------------------- | ---------------------------------------- |
+| Commits this session            | 14 (performance optimization)            |
+| Commits today (total)           | 43                                       |
+| Performance optimizations       | 11 implemented + verified                |
+| Performance findings documented | ~20 in HTML report                       |
+| Benchmarks added                | 4 new (real-server + concurrency stress) |
+| Build status                    | ✅ 4/4 modules clean                     |
+| Test status                     | ✅ 4/4 modules pass with race detector   |
+| Lint status                     | ✅ 0 issues across all modules           |
+| Files >350 lines                | ✅ 0 (all compliant)                     |
+| Coverage (root)                 | 96.4%                                    |
+| Coverage (usermgmt)             | 90.3%                                    |

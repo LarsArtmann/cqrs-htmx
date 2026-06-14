@@ -50,8 +50,7 @@ func BenchmarkBroadcasterConcurrentSubscribe(b *testing.B) {
 		}()
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := b.Context()
 	go func() {
 		evt := cqrshtmx.SSEEvent{Event: "tick", Data: "data"}
 		for {
