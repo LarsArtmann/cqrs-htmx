@@ -22,13 +22,39 @@
       imports = [ inputs.treefmt-nix.flakeModule ];
 
       perSystem =
-        { config, pkgs, ... }:
+        {
+          config,
+          pkgs,
+          lib,
+          ...
+        }:
         {
           treefmt = {
             projectRootFile = "go.mod";
-            programs.nixfmt.enable = true;
-            programs.templ.enable = true;
-            programs.gofmt.enable = true;
+            programs = {
+              nixfmt.enable = true;
+              templ.enable = true;
+              gofmt.enable = true;
+            };
+          };
+
+          packages.default = pkgs.stdenvNoCC.mkDerivation {
+            pname = "cqrs-htmx";
+            version = "2.3.0";
+
+            dontUnpack = true;
+            dontConfigure = true;
+            dontBuild = true;
+            dontInstall = true;
+
+            meta = with lib; {
+              description = "Go library for go-cqrs-lite with HTMX, templ, and Casbin authorization";
+              homepage = "https://github.com/larsartmann/cqrs-htmx";
+              license = licenses.mit;
+              mainProgram = "cqrs-htmx";
+              maintainers = [ ];
+              platforms = platforms.unix;
+            };
           };
 
           devShells = {
