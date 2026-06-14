@@ -7,6 +7,19 @@ import (
 	"sync"
 )
 
+// Broadcaster distributes SSE events to all subscribed clients.
+// It is safe for concurrent use.
+//
+// Create one at application startup and share it across handlers:
+//
+//	broadcaster := cqrshtmx.NewBroadcaster()
+//
+//	// In your SSE endpoint handler:
+//	ch := broadcaster.Subscribe()
+//	defer broadcaster.Unsubscribe(ch)
+//
+//	// In your CQRS event handler or AfterDispatch hook:
+//	broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "itemCreated", Data: html})
 type Broadcaster struct {
 	mu          sync.RWMutex
 	subscribers map[uintptr]chan SSEEvent
@@ -72,35 +85,6 @@ func (b *Broadcaster) SubscriberCount() int {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 	return len(b.subscribers)
-}
-
-// splitSSELines splits a string into lines for SSE data field formatting.
-// Each line in the SSE spec must be prefixed with "data: ".
-func splitSSELines(s string) []string {
-	if s == "" {
-		return []string{""}
-	}
-
-	var lines []string
-	start := 0
-	for i := range len(s) {
-		if s[i] == '\n' {
-			line := s[start:i]
-			if len(line) > 0 && line[len(line)-1] == '\r' {
-				line = line[:len(line)-1]
-			}
-			lines = append(lines, line)
-			start = i + 1
-		}
-	}
-	if start < len(s) {
-		lines = append(lines, s[start:])
-	}
-
-	if len(lines) == 0 {
-		return []string{""}
-	}
-	return lines
 }
 
 // BroadcastOnSuccess creates an AfterDispatchHook that broadcasts an SSE event

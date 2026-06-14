@@ -21,6 +21,9 @@
 - [x] **Add tests for nil-enforcer + query nil check** — Tests already existed in coverage_test.go (verified). Added ErrEnforcerNotInitialized sentinel to all Authz methods for defensive nil-checking.
 - [x] **Add Login error classification tests** — TestService_Login_StoreError added. Verifies store errors return transient, not ErrInvalidCredentials.
 - [x] **Add UpdateRoles rollback tests** — TestService_UpdateRoles_AuthzFailurePreservesUser added. Verifies user roles remain unchanged when Casbin Apply fails. Also fixed UpdateRoles ordering (Casbin before user save).
+- [x] **Fix rate limiter data race** — Fixed: `perKeyLimiter.limiter()` read `entry.lastUsed` after releasing RLock while a concurrent goroutine wrote it under the write lock. Moved the freshness check inside the RLock-held region. Verified with 10/10 clean race-detector runs (was ~20% failure rate).
+- [x] **Fix doc comment split brains** — Consolidated orphaned/truncated doc comments for `CSRFMiddleware` (split across csrf_middleware.go/csrf_context.go), `RateLimiter` struct (copy-paste leftover), `Apply` method (split across authz_types.go/authz_policies.go), `Broadcaster` type (orphaned in sse_store.go). Moved `splitSSELines` to sse_event.go next to its sole caller.
+- [x] **Fix incomplete TestUserRegisteredEvent_JSON** — Test was named `_JSON` but never marshaled to JSON; only checked email field. Now actually tests JSON serialization output.
 
 ### Upstream-Blocked
 

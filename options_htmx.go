@@ -36,13 +36,3 @@ func OnError(fn func(r *http.Request, err error)) HandlerOption {
 		cfg.onError = fn
 	}
 }
-
-// RenderJSON renders query results as JSON with 200 OK and
-// Content-Type: application/json. Use the type parameter to enforce
-// compile-time documentation and runtime type checking.
-//
-// Usage:
-//
-//	app.Query("GetUser", cqrshtmx.DecodeJSONQuery(...),
-//	    cqrshtmx.RenderJSON[User](),
-//	)

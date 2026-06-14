@@ -5,6 +5,30 @@ import (
 	"net/http"
 )
 
+// SSEStream manages a single Server-Sent Events connection.
+// It sets the required HTTP headers and provides methods to send events
+// to one connected client.
+//
+// Create one per HTTP handler invocation:
+//
+//	func handleEvents(w http.ResponseWriter, r *http.Request) {
+//	    stream := cqrshtmx.NewSSEStream(w, r)
+//	    defer stream.Close()
+//
+//	    ch := broadcaster.Subscribe()
+//	    defer broadcaster.Unsubscribe(ch)
+//
+//	    for {
+//	        select {
+//	        case <-stream.Context().Done():
+//	            return
+//	        case event := <-ch:
+//	            if err := stream.Send(event); err != nil {
+//	                return
+//	            }
+//	        }
+//	    }
+//	}
 type SSEStream struct {
 	w   io.Writer
 	r   *http.Request
@@ -85,5 +109,3 @@ func (s *SSEStream) LastEventID() string {
 func LastEventIDFromRequest(r *http.Request) string {
 	return r.Header.Get("Last-Event-ID")
 }
-
-// SSEEventStore retrieves events for SSE reconnection replay.

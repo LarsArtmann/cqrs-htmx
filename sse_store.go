@@ -1,5 +1,7 @@
 package cqrshtmx
 
+// SSEEventStore retrieves events for SSE reconnection replay.
+// Implementations must be safe for concurrent access.
 type SSEEventStore interface {
 	// EventsAfter returns events with IDs strictly after the given lastID.
 	// Returns an empty slice if no events are found or lastID is unknown.
@@ -21,19 +23,3 @@ func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID string) (i
 	}
 	return len(events), nil
 }
-
-// Broadcaster distributes SSE events to all subscribed clients.
-// It is safe for concurrent use.
-//
-// Create one at application startup and share it across handlers:
-//
-//	broadcaster := cqrshtmx.NewBroadcaster()
-//
-//	// In your SSE endpoint handler:
-//	ch := broadcaster.Subscribe()
-//	defer broadcaster.Unsubscribe(ch)
-//
-//	// In your CQRS event handler or AfterDispatch hook:
-//	broadcaster.Broadcast(cqrshtmx.SSEEvent{
-//	    Event: "itemCreated",
-//	    Data:  renderTemplate(),
