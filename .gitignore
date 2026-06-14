@@ -41,3 +41,5 @@ examples/datastar-demo/datastar-demo
 /result
 # Build artifacts
 /v2reports/
+# Build artifacts
+/v2
