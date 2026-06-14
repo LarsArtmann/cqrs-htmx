@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"context"
 	"io"
 	"net/http"
 )
@@ -33,7 +34,7 @@ type SSEStream struct {
 	w   io.Writer
 	r   *http.Request
 	fw  flusher
-	ctx interface{ Done() <-chan struct{} }
+	ctx context.Context
 }
 
 type flusher interface{ Flush() }
@@ -72,9 +73,10 @@ func (s *SSEStream) SendHTML(eventName, html string) error {
 	return s.Send(SSEEvent{Event: eventName, Data: html})
 }
 
-// Context returns the stream's context. It is cancelled when the client disconnects.
-// Use this in select statements to detect disconnection.
-func (s *SSEStream) Context() interface{ Done() <-chan struct{} } {
+// Context returns the stream's context.Context. It is cancelled when the
+// client disconnects. Use ctx.Done() in select statements to detect
+// disconnection, or ctx.Err() to check the cancellation reason.
+func (s *SSEStream) Context() context.Context {
 	return s.ctx
 }
 
