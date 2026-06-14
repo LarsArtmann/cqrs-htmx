@@ -133,6 +133,20 @@ cqrs-htmx/
 - **Deadline propagation (v2.3.0)**: `EventOptionsFromContext` now propagates context deadline via `event.FromContext` — downstream events inherit request timeouts
 - **TypedHandler (v2.3.0)**: `command.RegisterTyped[T]` eliminates manual type assertions in handlers — demonstrated in `examples/datastar-demo/`
 
+### Performance Optimizations (2026-06-14)
+
+- **CSRF WARN logging**: Moved from per-request to construction-time via `sync.Once`. The `isTrustedProxy()` function no longer logs — `warnEmptyTrustedProxies()` fires once at `CSRFMiddleware` creation
+- **HealthHandler pre-allocation**: Response bodies are package-level `[]byte` vars (`healthyBody`, `unhealthyBody`) — zero allocations per health check
+- **RequestLoggingSlog inlined**: Context ID extraction is inlined directly into the attrs slice — no intermediate `map[string]string` allocation
+- **JSONLogFormatter pooled buffer**: Uses `sync.Pool` for `bytes.Buffer` + `json.Encoder` — buffer reused across requests
+- **Broadcaster snapshot**: `Broadcast()` copies subscriber channels to a slice under RLock, releases the lock, then iterates without holding it — allows concurrent Subscribe/Unsubscribe during fan-out. Costs 1 alloc (snapshot slice) but eliminates contention
+- **WriteSSEEvent single-write**: Builds entire SSE frame in one `[]byte` via `append`, one `w.Write` call — replaces 3-5 `fmt.Fprintf` calls
+- **splitSSELines fast-path**: Single-line data (common case) returns without allocating backing array
+- **setTriggerWithDetail common path**: Uses `strings.Builder` instead of `map[string]any + json.Marshal` when no existing trigger
+- **ParseWSMessageInto direct decode**: Decodes body fields directly into struct T via `json.Unmarshal` (ignoring unknown HEADERS key), then does a second lightweight decode for HEADERS only — eliminates marshal→unmarshal round-trip
+- **Error responses via io.WriteString**: `DefaultErrorHandlerWithRedirect` uses `io.WriteString(w, err.Error())` instead of `[]byte(err.Error())` — avoids string→[]byte copy
+- **Auth endpoints single decode**: `handleAuthEndpoint` callbacks decode body directly via `json.NewDecoder(LimitReader(...))` — eliminates double JSON decode (RawMessage → typed struct)
+
 ### Recovery
 
 - **Package-level RecoveryMiddleware**: Uses `DefaultErrorHandler` for panics
