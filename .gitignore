@@ -40,4 +40,4 @@ examples/datastar-demo/datastar-demo
 # Nix build output
 /result
 # Build artifacts
-/v2
+/v2reports/
