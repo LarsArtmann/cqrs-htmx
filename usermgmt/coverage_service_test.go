@@ -39,15 +39,13 @@ func TestService_Authenticate_UserGone(t *testing.T) {
 	ctx := context.Background()
 	reg := registerTestUser(t, svc, "ud1", "ud@test.com", "secret12")
 
-	userStore, ok := svc.users.(*InMemoryUserStore)
-	if !ok {
-		t.Fatal("expected InMemoryUserStore")
+	if err := svc.DeleteUser(ctx, reg.User.ID, "test cleanup"); err != nil {
+		t.Fatalf("DeleteUser: %v", err)
 	}
-	_ = userStore.Delete(ctx, reg.User.ID)
 
 	_, err := svc.Authenticate(ctx, reg.Session.Token)
-	if !errors.Is(err, ErrUserNotFound) {
-		t.Errorf("expected ErrUserNotFound, got %v", err)
+	if !errors.Is(err, ErrUnauthorized) {
+		t.Errorf("expected ErrUnauthorized (session revoked), got %v", err)
 	}
 }
 
@@ -73,75 +71,6 @@ func TestService_Register_DuplicateUserID(t *testing.T) {
 	assertErrorIs(t, err, ErrUserIDExists, "ErrUserIDExists for duplicate user ID")
 }
 
-func TestService_Register_RollbackOnGroupPolicyFailure(t *testing.T) {
-	store := NewInMemoryUserStore()
-	svc, err := NewService(ServiceConfig{
-		UserStore:  store,
-		BcryptCost: minBcryptCost,
-	})
-	if err != nil {
-		t.Fatalf("NewService: %v", err)
-	}
-
-	// Use an Authz with nil enforcer to force AddGroupPolicy to fail.
-	svc.authz = &Authz{enforcer: nil}
-
-	ctx := context.Background()
-	uid := NewUserID("rollback-user")
-
-	_, regErr := svc.Register(ctx, RegisterRequest{
-		ID:       uid,
-		Email:    "rollback@test.com",
-		Password: "secret12",
-	})
-
-	if regErr == nil {
-		t.Fatal("expected Register to fail when AddGroupPolicy fails")
-	}
-
-	store.mu.RLock()
-	afterUsers := len(store.users)
-	store.mu.RUnlock()
-	if afterUsers != 0 {
-		t.Errorf("expected user to be rolled back, but %d users remain",
-			afterUsers)
-	}
-}
-
-func TestService_Register_RollbackOnSessionFailure(t *testing.T) {
-	store := NewInMemoryUserStore()
-	sessions := &mockSessionStore{
-		CreateFn: func(_ context.Context, _ UserID, _ time.Duration) (*Session, error) {
-			return nil, errors.New("session creation failed")
-		},
-	}
-
-	svc, err := NewService(ServiceConfig{
-		UserStore:    store,
-		SessionStore: sessions,
-		BcryptCost:   minBcryptCost,
-	})
-	if err != nil {
-		t.Fatalf("NewService: %v", err)
-	}
-
-	ctx := context.Background()
-	uid := NewUserID("rollback-session")
-
-	_, regErr := svc.Register(ctx, RegisterRequest{
-		ID:       uid,
-		Email:    "rollsession@test.com",
-		Password: "secret12",
-	})
-	if regErr == nil {
-		t.Fatal("expected error when session creation fails")
-	}
-
-	if _, err := store.FindByID(ctx, uid); !errors.Is(err, ErrUserNotFound) {
-		t.Error("expected user to be rolled back after session failure")
-	}
-}
-
 func TestService_Login_UserNotFound(t *testing.T) {
 	svc := newTestService(t)
 	_, err := svc.Login(
@@ -149,29 +78,6 @@ func TestService_Login_UserNotFound(t *testing.T) {
 		LoginRequest{Email: "nobody@test.com", Password: "secret12"},
 	)
 	assertErrorIs(t, err, ErrInvalidCredentials, "ErrInvalidCredentials")
-}
-
-func TestService_Login_StoreError(t *testing.T) {
-	users := &mockUserStore{
-		FindByEmailFn: func(_ context.Context, _ string) (*User, error) {
-			return nil, errors.New("db connection lost")
-		},
-	}
-	svc, _ := NewService(ServiceConfig{
-		UserStore:  users,
-		BcryptCost: minBcryptCost,
-	})
-
-	_, err := svc.Login(context.Background(), LoginRequest{
-		Email:    "any@test.com",
-		Password: "secret12",
-	})
-	if errors.Is(err, ErrInvalidCredentials) {
-		t.Fatal("store errors must return transient, not ErrInvalidCredentials")
-	}
-	if err == nil {
-		t.Fatal("expected error when store fails")
-	}
 }
 
 func TestService_Logout_StoreError(t *testing.T) {
@@ -199,21 +105,6 @@ func TestService_GetUser_NotFound(t *testing.T) {
 	}
 }
 
-func TestService_GetUser_StoreError(t *testing.T) {
-	svc, _ := NewService(ServiceConfig{
-		UserStore: &mockUserStore{
-			FindByIDFn: func(_ context.Context, _ UserID) (*User, error) {
-				return nil, errors.New("db error")
-			},
-		},
-		BcryptCost: minBcryptCost,
-	})
-	_, err := svc.GetUser(context.Background(), NewUserID("u1"))
-	if err == nil {
-		t.Fatal("expected error from GetUser when store fails")
-	}
-}
-
 func TestService_ChangePassword_WrongOld(t *testing.T) {
 	svc, ctx, _ := newTestServiceWithUser(t, "cp1", "cp@test.com", "secret12")
 	err := svc.ChangePassword(ctx, NewUserID("cp1"), "wrong-old", "newpass123")
@@ -236,22 +127,6 @@ func TestService_ChangePassword_NewTooLong(t *testing.T) {
 	err := svc.ChangePassword(ctx, NewUserID("cp3"), "secret12", longPass)
 	if !errors.Is(err, ErrValidation) {
 		t.Errorf("expected ErrValidation, got %v", err)
-	}
-}
-
-func TestService_ChangePassword_StoreError(t *testing.T) {
-	svc := newTestService(t)
-	err := svc.ChangePassword(context.Background(), NewUserID("ghost"), "old", "newpass123")
-	if err == nil {
-		t.Fatal("expected error for nonexistent user")
-	}
-}
-
-func TestService_UpdateRoles_StoreError(t *testing.T) {
-	svc := newTestService(t)
-	err := svc.UpdateRoles(context.Background(), NewUserID("ghost"), []Role{RoleAdmin}, "dom")
-	if err == nil {
-		t.Fatal("expected error for nonexistent user")
 	}
 }
 

@@ -2,12 +2,13 @@ package usermgmt
 
 import (
 	"context"
+	"fmt"
 	"net/mail"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // RegisterRequest contains the fields required to create a new user account.
@@ -22,16 +23,9 @@ func formatValidationErrors(errs []string) error {
 	if len(errs) == 0 {
 		return nil
 	}
-
 	return event.NewRejection("validation", strings.Join(errs, "; ")).WithCause(ErrValidation)
 }
 
-// withUserIDContext annotates an *event.Error with the affected user ID.
-// The user ID is the only identifying context added: it is already known
-// to the service and is required for log correlation. Email, display name,
-// and other PII are deliberately NOT included to avoid leaking data through
-// error chains. The returned error is the same pointer if err is nil or
-// is not an *event.Error.
 func withUserIDContext(err *event.Error, userID UserID) *event.Error {
 	if err == nil || userID.IsZero() {
 		return err
@@ -41,7 +35,6 @@ func withUserIDContext(err *event.Error, userID UserID) *event.Error {
 
 // Validate checks the RegisterRequest fields and returns ErrValidation with
 // a joined list of problems if any field is invalid.
-// It trims leading/trailing whitespace from Email and DisplayName in-place.
 func (r *RegisterRequest) Validate() error {
 	var errs []string
 	r.Email = strings.ToLower(strings.TrimSpace(r.Email))
@@ -53,8 +46,7 @@ func (r *RegisterRequest) Validate() error {
 		errs = append(errs, "invalid email")
 	}
 	if err := validatePassword(r.Password); err != nil {
-		errStr := err.Error()
-		errs = append(errs, errStr)
+		errs = append(errs, err.Error())
 	}
 	if len(r.DisplayName) > maxDisplayNameLength {
 		errs = append(errs,
@@ -69,52 +61,82 @@ type RegisterResponse struct {
 	Session *Session `json:"session"`
 }
 
-// Register validates the request, creates the user, assigns the "user" role,
-// and opens a session. Partial failures are compensated: if role assignment or
-// session creation fails after the user is created, the user and role are rolled back.
+// Register validates the request, hashes the password, dispatches a RegisterUser command,
+// waits for the read model to update (read-your-writes consistency via MemoryBus),
+// and creates a session.
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
-	user := NewUser(req.ID, req.Email, req.DisplayName)
-	if err := user.SetPasswordWithCost(req.Password, s.bcryptCost); err != nil {
-		return nil, withUserIDContext(event.NewTransient("internal", "set password").WithCause(err), user.ID)
+
+	if _, exists := s.readModel.FindByEmail(req.Email); exists {
+		return nil, withUserIDContext(
+			event.NewRejection("usermgmt.email_exists", "email already registered").
+				WithCause(ErrEmailExists), req.ID,
+		)
 	}
 
-	user.AddRole(RoleUser)
-
-	if err := s.users.Create(ctx, user); err != nil {
-		return nil, withUserIDContext(event.NewTransient("internal", "create user").WithCause(err), user.ID)
-	}
-
-	policy := GroupPolicy{
-		Subject: user.ID.Get(), Role: RoleUser, Domain: user.ID.Get(),
-	}
-	if err := s.authz.AddGroupPolicy(policy); err != nil {
-		if delErr := s.users.Delete(ctx, user.ID); delErr != nil {
-			s.logAuth("register_rollback_delete_failed", user.ID, "rollback_error", delErr)
-		}
-		return nil, withUserIDContext(event.NewTransient("internal", "assign role").WithCause(err), user.ID)
-	}
-
-	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
+	hash, err := s.hashPassword(req.Password)
 	if err != nil {
-		if rmErr := s.authz.RemoveGroupPolicy(policy); rmErr != nil {
-			s.logAuth("register_rollback_policy_failed", user.ID, "rollback_error", rmErr)
-		}
-		if delErr := s.users.Delete(ctx, user.ID); delErr != nil {
-			s.logAuth("register_rollback_delete_failed", user.ID, "rollback_error", delErr)
-		}
-		return nil, withUserIDContext(event.NewTransient("internal", "create session").WithCause(err), user.ID)
+		return nil, withUserIDContext(
+			event.NewTransient("internal", "hash password").WithCause(err), req.ID,
+		)
 	}
 
-	s.emit(user.ID, UserRegisteredEvent{
+	aggID := aggIDFromUser(req.ID)
+	err = s.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
+		aggID, req.Email, req.DisplayName, hash, []Role{RoleViewer, RoleUser},
+	))
+	if err != nil {
+		return nil, s.classifyDispatchError(err, req.ID)
+	}
+
+	user, ok := s.readModel.FindByID(aggID)
+	if !ok {
+		return nil, withUserIDContext(
+			event.NewTransient("internal", "user not in read model after register"), req.ID,
+		)
+	}
+
+	session, err := s.sessions.Create(ctx, req.ID, s.sessionTTL)
+	if err != nil {
+		return nil, withUserIDContext(
+			event.NewTransient("internal", "create session").WithCause(err), req.ID,
+		)
+	}
+
+	s.emit(req.ID, UserRegisteredEvent{
 		Email:       user.Email,
 		DisplayName: user.DisplayName,
 		Roles:       append([]Role(nil), user.Roles...),
-		OccurredAt:  time.Now().UTC(),
+		OccurredAt:  nowUTC(),
 	})
+
 	return &RegisterResponse{User: user, Session: session}, nil
+}
+
+func (s *Service) hashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), s.bcryptCost)
+	if err != nil {
+		return "", fmt.Errorf("cost=%d: %w", s.bcryptCost, err)
+	}
+	return string(hash), nil
+}
+
+func (s *Service) classifyDispatchError(err error, userID UserID) error {
+	switch event.Classify(err) {
+	case event.Conflict:
+		return withUserIDContext(
+			event.NewRejection("usermgmt.user_id_exists", "user ID already exists").
+				WithCause(ErrUserIDExists), userID,
+		)
+	case event.Rejection:
+		return err
+	default:
+		return withUserIDContext(
+			event.NewTransient("internal", "dispatch command").WithCause(err), userID,
+		)
+	}
 }
 
 func (s *Service) logAuth(event string, userID UserID, attrs ...any) {

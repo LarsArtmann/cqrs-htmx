@@ -1,7 +1,6 @@
 package usermgmt
 
 import (
-	"context"
 	"testing"
 	"time"
 )
@@ -38,8 +37,10 @@ func TestService_Authenticate_ExpiredSession(t *testing.T) {
 func TestService_Authenticate_UserDeleted(t *testing.T) {
 	svc, ctx, reg := newTestServiceWithUser(t, "u1", "del@test.com", "secret12")
 
-	svc.users.Delete(context.Background(), NewUserID("u1")) //nolint:errcheck // test cleanup
+	if err := svc.DeleteUser(ctx, NewUserID("u1"), "test cleanup"); err != nil {
+		t.Fatalf("DeleteUser: %v", err)
+	}
 
 	_, err := svc.Authenticate(ctx, reg.Session.Token)
-	assertErrorIs(t, err, ErrUserNotFound, "ErrUserNotFound")
+	assertErrorIs(t, err, ErrUnauthorized, "ErrUnauthorized (session revoked)")
 }
