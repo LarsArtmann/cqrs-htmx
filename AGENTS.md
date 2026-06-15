@@ -92,17 +92,17 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency              | Purpose                   | Used in          |
-| ----------------------- | ------------------------- | ---------------- |
-| go-cqrs-lite v2.3.0     | CQRS dispatch, pagination, event sourcing (decider, memory, projection) | All modules |
-| casbin/casbin/v3        | Authorization             | Root, usermgmt   |
-| justinas/nosurf v1.2.0  | CSRF protection           | Root             |
-| go-error-family v0.3.0  | Error classification      | Root             |
-| larsartmann/httputil    | ClientIP extraction       | Root             |
-| go-branded-id           | Branded types             | usermgmt         |
-| golang.org/x/crypto     | bcrypt                    | usermgmt         |
-| golang.org/x/time       | Rate limiting             | Root             |
-| onsi/ginkgo/v2 + gomega | BDD test framework        | All test modules |
+| Dependency              | Purpose                                                                 | Used in          |
+| ----------------------- | ----------------------------------------------------------------------- | ---------------- |
+| go-cqrs-lite v2.3.0     | CQRS dispatch, pagination, event sourcing (decider, memory, projection) | All modules      |
+| casbin/casbin/v3        | Authorization                                                           | Root, usermgmt   |
+| justinas/nosurf v1.2.0  | CSRF protection                                                         | Root             |
+| go-error-family v0.3.0  | Error classification                                                    | Root             |
+| larsartmann/httputil    | ClientIP extraction                                                     | Root             |
+| go-branded-id           | Branded types                                                           | usermgmt         |
+| golang.org/x/crypto     | bcrypt                                                                  | usermgmt         |
+| golang.org/x/time       | Rate limiting                                                           | Root             |
+| onsi/ginkgo/v2 + gomega | BDD test framework                                                      | All test modules |
 
 ## Key Decisions
 
