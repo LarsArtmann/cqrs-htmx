@@ -11,7 +11,7 @@ import (
 
 // BeginRegistrationResponse contains the credential creation options to send to the client.
 type BeginRegistrationResponse struct {
-	Options  *protocol.CredentialCreation `json:"options"`
+	Options    *protocol.CredentialCreation `json:"options"`
 	SessionKey string                       `json:"session_key"`
 }
 
@@ -38,8 +38,8 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 	s.webauthnSessions.Save(sessionKey, session)
 
 	return &BeginRegistrationResponse{
-		Options:     creation,
-		SessionKey:  sessionKey,
+		Options:    creation,
+		SessionKey: sessionKey,
 	}, nil
 }
 
@@ -63,7 +63,11 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	}
 
 	waUser := &webauthnUser{user: user}
-	credential, err := s.webauthn.FinishRegistration(waUser, *session, r) //nolint:contextcheck // WebAuthn reads HTTP request body
+	credential, err := s.webauthn.FinishRegistration(
+		waUser,
+		*session,
+		r,
+	) //nolint:contextcheck // WebAuthn reads HTTP request body
 	if err != nil {
 		return event.NewRejection("usermgmt.webauthn.registration_failed",
 			"credential registration failed").WithCause(err)
@@ -79,7 +83,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 // BeginLoginResponse contains the assertion options to send to the client.
 type BeginLoginResponse struct {
 	Options    *protocol.CredentialAssertion `json:"options"`
-	SessionKey string                         `json:"session_key"`
+	SessionKey string                        `json:"session_key"`
 }
 
 // BeginLogin starts the WebAuthn login ceremony.
@@ -109,8 +113,8 @@ func (s *Service) BeginLogin(_ context.Context, email string) (*BeginLoginRespon
 	s.webauthnSessions.Save(sessionKey, session)
 
 	return &BeginLoginResponse{
-		Options:     assertion,
-		SessionKey:  sessionKey,
+		Options:    assertion,
+		SessionKey: sessionKey,
 	}, nil
 }
 
@@ -140,7 +144,11 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	}
 
 	waUser := &webauthnUser{user: user}
-	credential, err := s.webauthn.FinishLogin(waUser, *session, r) //nolint:contextcheck // WebAuthn reads HTTP request body
+	credential, err := s.webauthn.FinishLogin(
+		waUser,
+		*session,
+		r,
+	) //nolint:contextcheck // WebAuthn reads HTTP request body
 	if err != nil {
 		return nil, event.NewRejection("usermgmt.webauthn.login_failed",
 			"credential login failed").WithCause(err)
@@ -158,7 +166,8 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	sess, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
 		return nil, withUserIDContext(
-			event.NewTransient("internal", "create session").WithCause(err), user.ID)
+			event.NewTransient("internal", "create session").WithCause(err), user.ID,
+		)
 	}
 
 	return &FinishLoginResponse{User: user, Session: sess}, nil

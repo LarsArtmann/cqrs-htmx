@@ -27,7 +27,7 @@ func (h *AuthHandler) handleWebAuthnBeginRegistration(w http.ResponseWriter, r *
 }
 
 type webauthnFinishRegRequest struct {
-	UserID        string `json:"user_id"`
+	UserID         string `json:"user_id"`
 	CredentialName string `json:"credential_name"`
 }
 
