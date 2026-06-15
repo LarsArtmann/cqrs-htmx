@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
@@ -15,7 +14,6 @@ type LoginRequest struct {
 }
 
 // Validate checks that email and password are non-empty.
-// It trims leading/trailing whitespace from Email in-place.
 func (r *LoginRequest) Validate() error {
 	var errs []string
 	r.Email = strings.ToLower(strings.TrimSpace(r.Email))
@@ -36,8 +34,8 @@ type LoginResponse struct {
 	Session *Session `json:"session"`
 }
 
-// Login validates credentials, enforces account lockout, and opens a session.
-// Returns ErrInvalidCredentials, ErrAccountLocked, or ErrValidation on failure.
+// Login validates credentials, enforces account lockout, queries the read model,
+// verifies the password, and opens a session.
 func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
@@ -46,9 +44,10 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 		s.logger.Warn("usermgmt: login rejected — account locked", "email", req.Email)
 		return nil, ErrAccountLocked
 	}
-	user, err := s.users.FindByEmail(ctx, req.Email)
-	if err != nil {
-		return nil, classifyLoginError(err)
+
+	user, ok := s.readModel.FindByEmail(req.Email)
+	if !ok {
+		return nil, ErrInvalidCredentials
 	}
 
 	if !user.CheckPassword(req.Password) {
@@ -65,12 +64,14 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 
 	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
-		return nil, withUserIDContext(event.NewTransient("internal", "create session").WithCause(err), user.ID)
+		return nil, withUserIDContext(
+			event.NewTransient("internal", "create session").WithCause(err), user.ID,
+		)
 	}
 
 	s.emit(user.ID, UserLoggedInEvent{
 		Email:      user.Email,
-		OccurredAt: time.Now().UTC(),
+		OccurredAt: nowUTC(),
 	})
 	return &LoginResponse{User: user, Session: session}, nil
 }
@@ -84,14 +85,12 @@ func (s *Service) Logout(ctx context.Context, token string) error {
 }
 
 // Authenticate validates a session token and returns the associated User.
-// Expired or invalid tokens result in ErrSessionExpired or ErrUnauthorized.
 func (s *Service) Authenticate(ctx context.Context, token string) (*User, error) {
 	session, err := s.sessions.Find(ctx, token)
 	if err != nil {
 		return nil, ErrUnauthorized
 	}
 
-	// Proactively clean up expired sessions from the store.
 	if session.IsExpired() {
 		_ = s.sessions.Delete(ctx, token)
 		return nil, ErrSessionExpired
@@ -101,8 +100,8 @@ func (s *Service) Authenticate(ctx context.Context, token string) (*User, error)
 		return nil, ErrUnauthorized
 	}
 
-	user, err := s.users.FindByID(ctx, session.UserID)
-	if err != nil {
+	user, ok := s.readModel.FindByUserID(session.UserID)
+	if !ok {
 		return nil, ErrUserNotFound
 	}
 

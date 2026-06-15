@@ -2,94 +2,108 @@ package usermgmt
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-// GetUser retrieves a user by ID. Returns ErrUserNotFound if not found.
-func (s *Service) GetUser(ctx context.Context, id UserID) (*User, error) {
-	u, err := s.users.FindByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
-			return nil, fmt.Errorf("get user %q: %w", id, err)
-		}
-		return nil, withUserIDContext(event.NewTransient("internal", "get user").WithCause(err), id)
+// GetUser retrieves a user by ID from the read model. Returns ErrUserNotFound if not found.
+func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
+	user, ok := s.readModel.FindByUserID(id)
+	if !ok {
+		return nil, fmt.Errorf("get user %q: %w", id, ErrUserNotFound)
 	}
-	return u, nil
+	return user, nil
 }
 
-// transientErr creates a transient error with a user ID context. It is
-// a thin wrapper over event.NewTransient + WithCause + withUserIDContext
-// used to keep the public service methods concise.
-func transientErr(userID UserID, msg string, cause error) error {
-	return withUserIDContext(
-		event.NewTransient("internal", msg).WithCause(cause),
-		userID,
-	)
-}
-
-// UpdateRoles replaces the user's roles in both the Casbin policy and the user store.
-func (s *Service) UpdateRoles(
-	ctx context.Context,
-	userID UserID,
-	roles []Role,
-	domain string,
-) error {
-	user, err := s.users.FindByID(ctx, userID)
+// UpdateRoles dispatches an UpdateRoles command. The Casbin projection updates
+// policies automatically from the event.
+func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, domain string) error {
+	aggID := aggIDFromUser(userID)
+	err := s.dispatcher.Dispatch(ctx, NewUpdateRolesCmd(aggID, roles, domain))
 	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
-			return fmt.Errorf("update roles: find user %q in domain %q: %w", userID, domain, err)
-		}
-		return transientErr(userID, fmt.Sprintf("find user %q", userID), err)
+		return s.classifyDispatchError(err, userID)
 	}
-
-	currentRoles, err := s.authz.RolesForUser(userID, domain)
-	if err != nil {
-		return transientErr(
-			userID,
-			fmt.Sprintf("get roles for user %q in domain %q", userID, domain),
-			err,
-		)
-	}
-
-	remove := make([]GroupPolicy, 0, len(currentRoles))
-	for _, role := range currentRoles {
-		remove = append(remove, GroupPolicy{
-			Subject: userID.Get(), Role: role, Domain: domain,
-		})
-	}
-
-	add := make([]GroupPolicy, 0, len(roles))
-	for _, role := range roles {
-		add = append(add, GroupPolicy{
-			Subject: userID.Get(), Role: role, Domain: domain,
-		})
-	}
-
-	user.SetRoles(roles)
-
-	if err := s.authz.Apply(PolicyUpdate{
-		RemoveGroups: remove,
-		AddGroups:    add,
-	}); err != nil {
-		return transientErr(userID, fmt.Sprintf("apply role update for user %q", userID), err)
-	}
-
-	if err := s.saveUser(ctx, user, "after role update", userID); err != nil {
-		return err
-	}
-
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
-
 	s.emit(userID, RolesUpdatedEvent{
 		Roles:      append([]Role(nil), roles...),
 		Domain:     domain,
-		OccurredAt: time.Now().UTC(),
+		OccurredAt: nowUTC(),
 	})
+	return nil
+}
+
+// ChangePassword verifies the old password, hashes the new one, and dispatches
+// a ChangePassword command.
+func (s *Service) ChangePassword(
+	ctx context.Context,
+	userID UserID,
+	oldPassword, newPassword string,
+) error {
+	user, ok := s.readModel.FindByUserID(userID)
+	if !ok {
+		return fmt.Errorf("change password: %w", ErrUserNotFound)
+	}
+
+	if !user.CheckPassword(oldPassword) {
+		return ErrInvalidCredentials
+	}
+
+	if err := validatePassword(newPassword); err != nil {
+		return err
+	}
+
+	hash, err := s.hashPassword(newPassword)
+	if err != nil {
+		return withUserIDContext(
+			event.NewTransient("internal", "hash password").WithCause(err), userID,
+		)
+	}
+
+	aggID := aggIDFromUser(userID)
+	err = s.dispatcher.Dispatch(ctx, NewChangePasswordCmd(aggID, hash))
+	if err != nil {
+		return s.classifyDispatchError(err, userID)
+	}
+
+	s.emit(userID, PasswordChangedEvent{OccurredAt: nowUTC()})
+	return nil
+}
+
+// ChangeEmail dispatches a ChangeEmail command. No event is emitted if the email is unchanged.
+func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail string) error {
+	aggID := aggIDFromUser(userID)
+	err := s.dispatcher.Dispatch(ctx, NewChangeEmailCmd(aggID, newEmail))
+	if err != nil {
+		return s.classifyDispatchError(err, userID)
+	}
+	return nil
+}
+
+// ChangeDisplayName dispatches a ChangeDisplayName command.
+func (s *Service) ChangeDisplayName(ctx context.Context, userID UserID, newName string) error {
+	aggID := aggIDFromUser(userID)
+	err := s.dispatcher.Dispatch(ctx, NewChangeDisplayNameCmd(aggID, newName))
+	if err != nil {
+		return s.classifyDispatchError(err, userID)
+	}
+	return nil
+}
+
+// DeleteUser dispatches a DeleteUser command (tombstone) and revokes all sessions.
+func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) error {
+	aggID := aggIDFromUser(userID)
+	err := s.dispatcher.Dispatch(ctx, NewDeleteUserCmd(aggID, reason))
+	if err != nil {
+		return s.classifyDispatchError(err, userID)
+	}
+
+	if err := s.sessions.DeleteByUserID(ctx, userID); err != nil {
+		s.logger.Warn("usermgmt: failed to revoke sessions on delete",
+			"user_id", userID, "error", err)
+	}
+
 	return nil
 }
 
@@ -99,52 +113,4 @@ func formatRoles(roles []Role) string {
 		strs[i] = string(r)
 	}
 	return strings.Join(strs, ",")
-}
-
-func (s *Service) saveUser(ctx context.Context, user *User, context string, userID UserID) error {
-	if err := s.users.Save(ctx, user); err != nil {
-		return withUserIDContext(
-			event.NewTransient("internal", fmt.Sprintf("save user %q %s", userID, context)).
-				WithCause(err),
-			userID,
-		)
-	}
-	return nil
-}
-
-func classifyLoginError(err error) error {
-	if errors.Is(err, ErrUserNotFound) {
-		return ErrInvalidCredentials
-	}
-	return event.NewTransient("internal", "find user by email").WithCause(err)
-}
-
-// ChangePassword verifies the old password, validates the new password length,
-// and updates the stored hash.
-func (s *Service) ChangePassword(
-	ctx context.Context,
-	userID UserID,
-	oldPassword, newPassword string,
-) error {
-	user, err := s.users.FindByID(ctx, userID)
-	if err != nil {
-		return withUserIDContext(
-			event.NewTransient("internal", fmt.Sprintf("find user %q", userID)).WithCause(err),
-			userID,
-		)
-	}
-
-	matched, err := user.ChangePassword(oldPassword, newPassword, s.bcryptCost)
-	if err != nil {
-		return err
-	}
-	if !matched {
-		return ErrInvalidCredentials
-	}
-
-	if err := s.saveUser(ctx, user, "after password change", userID); err != nil {
-		return err
-	}
-	s.emit(userID, PasswordChangedEvent{OccurredAt: time.Now().UTC()})
-	return nil
 }

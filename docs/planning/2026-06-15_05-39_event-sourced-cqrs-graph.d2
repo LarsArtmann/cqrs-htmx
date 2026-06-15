@@ -1,0 +1,177 @@
+direction: right
+
+# Event-Sourced CQRS Migration — Execution Graph
+
+# # Phase Structure
+
+phase_1: Domain Core (Pure Functions) {
+  shape: package
+  style.fill: "#e8f5e9"
+  style.stroke: "#4caf50"
+
+  adr: "1. Write ADR" {shape: document; style.fill: white}
+  constants: "2. Constants\n(agg type, event/cmd types)" {shape: rectangle}
+  events: "3. Event Payloads\n(6 structs)" {shape: rectangle}
+  commands: "4. Command Structs\n(6 structs)" {shape: rectangle}
+  state: "5. UserState + foldUser()\n★ CRITICAL ★" {shape: rectangle; style.fill: "#c8e6c9"; style.stroke: "#2e7d32"; style.bold}
+  decide: "6. Decide Functions\n(6 pure functions)" {shape: rectangle; style.fill: "#c8e6c9"; style.stroke: "#2e7d32"; style.bold}
+  fold_tests: "7. foldUser Tests" {shape: page; style.fill: white}
+  decide_tests: "8. Decide Tests" {shape: page; style.fill: white}
+
+  adr -> constants -> events -> state
+  constants -> commands -> decide
+  state -> fold_tests
+  decide -> decide_tests
+}
+
+phase_2: Infrastructure Wiring {
+  shape: package
+  style.fill: "#e3f2fd"
+  style.stroke: "#2196f3"
+
+  deps: "9. go.mod deps\n(decider, memory, command,\nquery, projection, id)" {shape: cylinder}
+  setup: "10. Setup()\nstore + bus + repo" {shape: rectangle}
+  dispatcher: "11. Command Dispatcher\nRegisterTyped x6" {shape: rectangle}
+  infra_test: "12. Wiring Test\n(dispatch → verify events)" {shape: page; style.fill: white}
+
+  deps -> setup -> dispatcher -> infra_test
+}
+
+phase_3: Projections {
+  shape: package
+  style.fill: "#fff3e0"
+  style.stroke: "#ff9800"
+
+  readmodel: "13. UserReadModel\nProjection" {shape: rectangle; style.fill: "#ffe0b2"; style.bold}
+  email_idx: "14. Email Index\n(FindByEmail)" {shape: rectangle}
+  casbin_proj: "15. CasbinProjection\n(events → policies)" {shape: rectangle; style.fill: "#ffe0b2"; style.bold}
+  runner: "16. Projection Runner\n(replay + live)" {shape: rectangle}
+  proj_tests: "17. Projection Tests" {shape: page; style.fill: white}
+
+  readmodel -> email_idx
+  readmodel -> runner
+  casbin_proj -> runner
+  runner -> proj_tests
+}
+
+phase_4: Service Rewrite {
+  shape: package
+  style.fill: "#fce4ec"
+  style.stroke: "#e91e63"
+
+  config: "18. New ServiceConfig\n(EventStore, EventBus)" {shape: rectangle; style.fill: "#f8bbbd"; style.bold}
+  register: "19. Register()\nhash + dispatch + session" {shape: rectangle; style.fill: "#f8bbbd"; style.bold}
+  password: "20. ChangePassword()\nverify + hash + dispatch" {shape: rectangle; style.fill: "#f8bbbd"; style.bold}
+  roles: "21. UpdateRoles()\ndispatch only" {shape: rectangle; style.fill: "#f8bbbd"; style.bold}
+  login: "22. Login()\nread model + verify + session" {shape: rectangle; style.fill: "#f8bbbd"; style.bold}
+  getuser: "23. GetUser()\nread model query" {shape: rectangle}
+  new_methods: "24. ChangeEmail,\nChangeDisplayName, DeleteUser" {shape: rectangle}
+  auth: "25. Authenticate()\nsession + read model" {shape: rectangle}
+
+  config -> register
+  config -> password
+  config -> roles
+  config -> login
+  login -> getuser
+  config -> new_methods
+  config -> auth
+}
+
+phase_5: Integration {
+  shape: package
+  style.fill: "#f3e5f5"
+  style.stroke: "#9c27b0"
+
+  session: "26. SessionStore\n(unchanged)" {shape: rectangle}
+  lockout: "27. AccountLockout\nin Login" {shape: rectangle}
+  login_evt: "28. UserLoggedInEvent\nbus-only (not aggregate)" {shape: rectangle}
+
+  session -> lockout -> login_evt
+}
+
+phase_6: HTTP {
+  shape: package
+  style.fill: "#e0f7fa"
+  style.stroke: "#00bcd4"
+
+  handlers: "29. Update Handlers\n(minimal)" {shape: rectangle}
+  errors: "30. Error → HTTP mapping" {shape: rectangle}
+
+  handlers -> errors
+}
+
+phase_7: Tests {
+  shape: package
+  style.fill: "#fff9c4"
+  style.stroke: "#fbc02d"
+
+  svc_tests: "31. Service Tests\n(all methods)" {shape: page; style.bold}
+  handler_tests: "32. Handler Tests" {shape: page}
+  integ_tests: "33. Integration Tests\n(full flows)" {shape: page; style.bold}
+  proj_consist: "34. Projection\nConsistency Tests" {shape: page; style.bold}
+  fuzz: "35. Fuzz Tests" {shape: page}
+  bench: "36. Benchmarks" {shape: page}
+
+  svc_tests -> handler_tests -> integ_tests
+  integ_tests -> proj_consist
+  proj_consist -> fuzz -> bench
+}
+
+phase_8: Cleanup {
+  shape: package
+  style.fill: "#efebe9"
+  style.stroke: "#795548"
+
+  remove: "37. Remove Old CRUD Code" {shape: rectangle; style.bold}
+  events_cleanup: "38. Update events.go" {shape: rectangle}
+  agents: "39. Update AGENTS.md" {shape: document}
+  changelog: "40. Update CHANGELOG.md" {shape: document}
+  examples: "41. Update Examples" {shape: document}
+  verify: "42. Final Verification\nbuild+test+lint+coverage" {shape: cloud; style.fill: "#a5d6a7"; style.bold; style.stroke: "#2e7d32"}
+
+  remove -> events_cleanup -> agents -> changelog -> examples -> verify
+}
+
+# Cross-phase dependencies (critical path)
+
+phase_1 -> phase_2: "domain core →\nneeds infrastructure"
+phase_2 -> phase_3: "wired infra →\nneeds projections"
+phase_3 -> phase_4: "projections ready →\nservice can use them"
+phase_4 -> phase_5: "service rewritten →\nintegrate sessions"
+phase_5 -> phase_6: "service complete →\nupdate HTTP"
+phase_6 -> phase_7: "HTTP done →\ntest everything"
+phase_7 -> phase_8: "tests pass →\ncleanup + verify"
+
+# Pareto zones overlay
+
+pareto_1: "1% → 51%\nPure Domain Layer\n(Phase 1: events, state, fold, decide)" {
+  shape: callout
+  style.fill: "#c8e6c9"
+  style.stroke: "#2e7d32"
+  style.bold
+}
+
+pareto_4: "4% → 64%\n+ Repository Wiring\n(Phase 2)" {
+  shape: callout
+  style.fill: "#bbdefb"
+  style.stroke: "#1565c0"
+}
+
+pareto_20: "20% → 80%\n+ Projections + Service\n(Phases 3-4)" {
+  shape: callout
+  style.fill: "#ffe0b2"
+  style.stroke: "#e65100"
+}
+
+# Legend
+legend: "Legend" {
+  shape: package
+  style.fill: "#fafafa"
+
+  green: "★ CRITICAL PATH" {shape: text; style.fill: "#c8e6c9"}
+  blue: "Infrastructure" {shape: text; style.fill: "#bbdefb"}
+  orange: "Projections" {shape: text; style.fill: "#ffe0b2"}
+  pink: "Service Rewrite" {shape: text; style.fill: "#f8bbbd"}
+  yellow: "Testing" {shape: text; style.fill: "#fff9c4"}
+  brown: "Cleanup" {shape: text; style.fill: "#efebe9"}
+}
