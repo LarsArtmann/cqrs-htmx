@@ -6,39 +6,25 @@ import (
 )
 
 type RegisterUserCmd struct {
-	aggregateID  id.AggregateID
-	email        string
-	displayName  string
-	passwordHash string
-	roles        []Role
+	aggregateID id.AggregateID
+	email       string
+	displayName string
+	roles       []Role
 }
 
 func NewRegisterUserCmd(
-	aggID id.AggregateID, email, displayName, passwordHash string, roles []Role,
+	aggID id.AggregateID, email, displayName string, roles []Role,
 ) *RegisterUserCmd {
 	return &RegisterUserCmd{
-		aggregateID:  aggID,
-		email:        email,
-		displayName:  displayName,
-		passwordHash: passwordHash,
-		roles:        roles,
+		aggregateID: aggID,
+		email:       email,
+		displayName: displayName,
+		roles:       roles,
 	}
 }
 
 func (c *RegisterUserCmd) Type() command.Type          { return cmdRegisterUser }
 func (c *RegisterUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
-
-type ChangePasswordCmd struct {
-	aggregateID  id.AggregateID
-	passwordHash string
-}
-
-func NewChangePasswordCmd(aggID id.AggregateID, passwordHash string) *ChangePasswordCmd {
-	return &ChangePasswordCmd{aggregateID: aggID, passwordHash: passwordHash}
-}
-
-func (c *ChangePasswordCmd) Type() command.Type          { return cmdChangePassword }
-func (c *ChangePasswordCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 type UpdateRolesCmd struct {
 	aggregateID id.AggregateID
@@ -88,3 +74,27 @@ func NewDeleteUserCmd(aggID id.AggregateID, reason string) *DeleteUserCmd {
 
 func (c *DeleteUserCmd) Type() command.Type          { return cmdDeleteUser }
 func (c *DeleteUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
+
+type AddCredentialCmd struct {
+	aggregateID     id.AggregateID
+	credential      WebAuthnCredential
+}
+
+func NewAddCredentialCmd(aggID id.AggregateID, cred WebAuthnCredential) *AddCredentialCmd {
+	return &AddCredentialCmd{aggregateID: aggID, credential: cred}
+}
+
+func (c *AddCredentialCmd) Type() command.Type          { return cmdAddCredential }
+func (c *AddCredentialCmd) AggregateID() id.AggregateID { return c.aggregateID }
+
+type RemoveCredentialCmd struct {
+	aggregateID  id.AggregateID
+	credentialID []byte
+}
+
+func NewRemoveCredentialCmd(aggID id.AggregateID, credID []byte) *RemoveCredentialCmd {
+	return &RemoveCredentialCmd{aggregateID: aggID, credentialID: credID}
+}
+
+func (c *RemoveCredentialCmd) Type() command.Type          { return cmdRemoveCredential }
+func (c *RemoveCredentialCmd) AggregateID() id.AggregateID { return c.aggregateID }

@@ -40,7 +40,7 @@ func TestUsermgmtBridge_UserIDFromRequest(t *testing.T) {
 }
 
 func TestUsermgmtBridge_FullRegisterAuthCycle(t *testing.T) {
-	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{BcryptCost: 4})
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -51,7 +51,6 @@ func TestUsermgmtBridge_FullRegisterAuthCycle(t *testing.T) {
 	reg, err := svc.Register(ctx, usermgmt.RegisterRequest{
 		ID:       usermgmt.NewUserID(uid.String()),
 		Email:    "cycle@test.com",
-		Password: testPassword,
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)

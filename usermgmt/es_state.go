@@ -1,17 +1,18 @@
 package usermgmt
 
 import (
+	"bytes"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // UserState is the aggregate state for the User, reconstructed by folding events.
-// It is immutable — foldUser returns a new copy for each event.
 type UserState struct {
 	Email        string
 	DisplayName  string
-	PasswordHash string
 	Roles        []Role
+	Credentials  []WebAuthnCredential
 	Deleted      bool
 	DeleteReason string
 }
@@ -37,24 +38,9 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		return UserState{
 			Email:        p.Email,
 			DisplayName:  p.DisplayName,
-			PasswordHash: p.PasswordHash,
 			Roles:        roles,
 			Deleted:      false,
 			DeleteReason: "",
-		}, nil
-
-	case eventPasswordChanged:
-		p, err := unmarshalPayload[PasswordChangedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		return UserState{
-			Email:        state.Email,
-			DisplayName:  state.DisplayName,
-			PasswordHash: p.PasswordHash,
-			Roles:        state.Roles,
-			Deleted:      state.Deleted,
-			DeleteReason: state.DeleteReason,
 		}, nil
 
 	case eventRolesUpdated:
@@ -67,8 +53,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		return UserState{
 			Email:        state.Email,
 			DisplayName:  state.DisplayName,
-			PasswordHash: state.PasswordHash,
 			Roles:        roles,
+			Credentials:  state.Credentials,
 			Deleted:      state.Deleted,
 			DeleteReason: state.DeleteReason,
 		}, nil
@@ -81,8 +67,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		return UserState{
 			Email:        p.Email,
 			DisplayName:  state.DisplayName,
-			PasswordHash: state.PasswordHash,
 			Roles:        state.Roles,
+			Credentials:  state.Credentials,
 			Deleted:      state.Deleted,
 			DeleteReason: state.DeleteReason,
 		}, nil
@@ -95,8 +81,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		return UserState{
 			Email:        state.Email,
 			DisplayName:  p.DisplayName,
-			PasswordHash: state.PasswordHash,
 			Roles:        state.Roles,
+			Credentials:  state.Credentials,
 			Deleted:      state.Deleted,
 			DeleteReason: state.DeleteReason,
 		}, nil
@@ -109,10 +95,55 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		return UserState{
 			Email:        state.Email,
 			DisplayName:  state.DisplayName,
-			PasswordHash: state.PasswordHash,
 			Roles:        state.Roles,
+			Credentials:  state.Credentials,
 			Deleted:      true,
 			DeleteReason: p.Reason,
+		}, nil
+
+	case eventCredentialAdded:
+		p, err := unmarshalPayload[CredentialAddedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		cred := WebAuthnCredential{
+			ID:              p.ID,
+			PublicKey:       p.PublicKey,
+			AttestationType: p.AttestationType,
+			Transports:      append([]string(nil), p.Transports...),
+			AAGUID:          append([]byte(nil), p.AAGUID...),
+			BackupEligible:  p.BackupEligible,
+			BackupState:     p.BackupState,
+			Name:            p.Name,
+			CreatedAt:       evt.OccurredAt(),
+		}
+		return UserState{
+			Email:        state.Email,
+			DisplayName:  state.DisplayName,
+			Roles:        state.Roles,
+			Credentials:  append(state.Credentials, cred),
+			Deleted:      state.Deleted,
+			DeleteReason: state.DeleteReason,
+		}, nil
+
+	case eventCredentialRemoved:
+		p, err := unmarshalPayload[CredentialRemovedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		filtered := make([]WebAuthnCredential, 0, len(state.Credentials))
+		for _, c := range state.Credentials {
+			if !bytes.Equal(c.ID, p.ID) {
+				filtered = append(filtered, c)
+			}
+		}
+		return UserState{
+			Email:        state.Email,
+			DisplayName:  state.DisplayName,
+			Roles:        state.Roles,
+			Credentials:  filtered,
+			Deleted:      state.Deleted,
+			DeleteReason: state.DeleteReason,
 		}, nil
 
 	default:

@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"sync"
@@ -11,16 +12,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-// UserReadModel is the projection-side store for users. It maintains an
-// in-memory map of users keyed by aggregate ID, with an email index for
-// O(1) lookup by email.
+// UserReadModel is the projection-side store for users.
 type UserReadModel struct {
 	mu     sync.RWMutex
 	users  map[id.AggregateID]*User
 	emails map[string]id.AggregateID
 }
 
-// NewUserReadModel creates an empty UserReadModel.
 func NewUserReadModel() *UserReadModel {
 	return &UserReadModel{
 		users:  make(map[id.AggregateID]*User),
@@ -30,9 +28,7 @@ func NewUserReadModel() *UserReadModel {
 
 func (m *UserReadModel) Name() string { return "user-read-model" }
 
-func (m *UserReadModel) EventTypes() []event.Type {
-	return allUserEventTypes
-}
+func (m *UserReadModel) EventTypes() []event.Type { return allUserEventTypes }
 
 func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	m.mu.Lock()
@@ -50,25 +46,14 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		roles := make([]Role, len(p.Roles))
 		copy(roles, p.Roles)
 		m.users[aggID] = &User{
-			ID:           NewUserID(aggID.String()),
-			Email:        p.Email,
-			DisplayName:  p.DisplayName,
-			PasswordHash: p.PasswordHash,
-			Roles:        roles,
-			CreatedAt:    evt.OccurredAt(),
-			UpdatedAt:    evt.OccurredAt(),
+			ID:          NewUserID(aggID.String()),
+			Email:       p.Email,
+			DisplayName: p.DisplayName,
+			Roles:       roles,
+			CreatedAt:   evt.OccurredAt(),
+			UpdatedAt:   evt.OccurredAt(),
 		}
 		m.emails[p.Email] = aggID
-
-	case eventPasswordChanged:
-		p, err := event.DecodePayload[PasswordChangedPayload](evt, c)
-		if err != nil {
-			return fmt.Errorf("decode PasswordChanged in read model: %w", err)
-		}
-		if u, ok := m.users[aggID]; ok {
-			u.PasswordHash = p.PasswordHash
-			u.UpdatedAt = evt.OccurredAt()
-		}
 
 	case eventRolesUpdated:
 		p, err := event.DecodePayload[RolesUpdatedPayload](evt, c)
@@ -88,10 +73,9 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 			return fmt.Errorf("decode EmailChanged in read model: %w", err)
 		}
 		if u, ok := m.users[aggID]; ok {
-			oldEmail := u.Email
+			delete(m.emails, u.Email)
 			u.Email = p.Email
 			u.UpdatedAt = evt.OccurredAt()
-			delete(m.emails, oldEmail)
 			m.emails[p.Email] = aggID
 		}
 
@@ -105,6 +89,42 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 			u.UpdatedAt = evt.OccurredAt()
 		}
 
+	case eventCredentialAdded:
+		p, err := event.DecodePayload[CredentialAddedPayload](evt, c)
+		if err != nil {
+			return fmt.Errorf("decode CredentialAdded in read model: %w", err)
+		}
+		if u, ok := m.users[aggID]; ok {
+			u.Credentials = append(u.Credentials, WebAuthnCredential{
+				ID:              p.ID,
+				PublicKey:       p.PublicKey,
+				AttestationType: p.AttestationType,
+				Transports:      append([]string(nil), p.Transports...),
+				AAGUID:          append([]byte(nil), p.AAGUID...),
+				BackupEligible:  p.BackupEligible,
+				BackupState:     p.BackupState,
+				Name:            p.Name,
+				CreatedAt:       evt.OccurredAt(),
+			})
+			u.UpdatedAt = evt.OccurredAt()
+		}
+
+	case eventCredentialRemoved:
+		p, err := event.DecodePayload[CredentialRemovedPayload](evt, c)
+		if err != nil {
+			return fmt.Errorf("decode CredentialRemoved in read model: %w", err)
+		}
+		if u, ok := m.users[aggID]; ok {
+			filtered := u.Credentials[:0]
+			for _, cred := range u.Credentials {
+				if !bytes.Equal(cred.ID, p.ID) {
+					filtered = append(filtered, cred)
+				}
+			}
+			u.Credentials = filtered
+			u.UpdatedAt = evt.OccurredAt()
+		}
+
 	case eventUserDeleted:
 		if u, ok := m.users[aggID]; ok {
 			delete(m.emails, u.Email)
@@ -112,13 +132,11 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		delete(m.users, aggID)
 
 	default:
-		// Ignore events we don't handle
 	}
 
 	return nil
 }
 
-// FindByID returns a clone of the user with the given aggregate ID, or nil.
 func (m *UserReadModel) FindByID(aggID id.AggregateID) (*User, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -129,7 +147,6 @@ func (m *UserReadModel) FindByID(aggID id.AggregateID) (*User, bool) {
 	return u.Clone(), true
 }
 
-// FindByEmail returns a clone of the user with the given email, or nil.
 func (m *UserReadModel) FindByEmail(email string) (*User, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -137,18 +154,15 @@ func (m *UserReadModel) FindByEmail(email string) (*User, bool) {
 	if !ok {
 		return nil, false
 	}
-	u := m.users[aggID]
-	return u.Clone(), true
+	return m.users[aggID].Clone(), true
 }
 
-// Count returns the number of users in the read model.
 func (m *UserReadModel) Count() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return len(m.users)
 }
 
-// FindByUserID converts a usermgmt.UserID to an AggregateID and looks up the user.
 func (m *UserReadModel) FindByUserID(userID UserID) (*User, bool) {
 	aggID, err := id.ParseAggregateID(userID.Get())
 	if err != nil {
@@ -159,7 +173,6 @@ func (m *UserReadModel) FindByUserID(userID UserID) (*User, bool) {
 
 var _ event.Projection = (*UserReadModel)(nil)
 
-// aggIDFromUser converts a UserID to an AggregateID. Panics if the UserID is empty.
 func aggIDFromUser(userID UserID) id.AggregateID {
 	aggID, err := id.ParseAggregateID(userID.Get())
 	if err != nil {
@@ -168,5 +181,4 @@ func aggIDFromUser(userID UserID) id.AggregateID {
 	return aggID
 }
 
-// nowUTC returns the current time in UTC.
 func nowUTC() time.Time { return time.Now().UTC() }

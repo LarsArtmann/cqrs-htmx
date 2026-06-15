@@ -9,7 +9,7 @@ import (
 
 func decideRegisterUser(
 	aggID id.AggregateID,
-	email, displayName, passwordHash string,
+	email, displayName string,
 	roles []Role,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
@@ -26,38 +26,13 @@ func decideRegisterUser(
 		evt, err := event.NewEvent(
 			eventUserRegistered, aggID, aggregateTypeUser, version.Increment(),
 			marshalPayload(UserRegisteredPayload{
-				Email:        email,
-				DisplayName:  displayName,
-				PasswordHash: passwordHash,
-				Roles:        rolesCopy,
+				Email:       email,
+				DisplayName: displayName,
+				Roles:       rolesCopy,
 			}),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create UserRegistered event: %w", err)
-		}
-		return []event.Event{evt}, nil
-	}
-}
-
-func decideChangePassword(
-	aggID id.AggregateID,
-	passwordHash string,
-) func(UserState, event.Version) ([]event.Event, error) {
-	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.change_password.not_found",
-				"user does not exist")
-		}
-		if state.Deleted {
-			return nil, event.NewRejection("usermgmt.change_password.deleted",
-				"cannot change password of deleted user")
-		}
-		evt, err := event.NewEvent(
-			eventPasswordChanged, aggID, aggregateTypeUser, version.Increment(),
-			marshalPayload(PasswordChangedPayload{PasswordHash: passwordHash}),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("create PasswordChanged event: %w", err)
 		}
 		return []event.Event{evt}, nil
 	}
@@ -170,4 +145,90 @@ func decideDeleteUser(
 		}
 		return []event.Event{marked}, nil
 	}
+}
+
+func decideAddCredential(
+	aggID id.AggregateID,
+	cred WebAuthnCredential,
+) func(UserState, event.Version) ([]event.Event, error) {
+	return func(state UserState, version event.Version) ([]event.Event, error) {
+		if !state.Exists() {
+			return nil, event.NewRejection("usermgmt.add_credential.not_found",
+				"user does not exist")
+		}
+		if state.Deleted {
+			return nil, event.NewRejection("usermgmt.add_credential.deleted",
+				"cannot add credential to deleted user")
+		}
+		for _, existing := range state.Credentials {
+			if bytesEqual(existing.ID, cred.ID) {
+				return nil, event.NewConflict("usermgmt.credential_already_exists",
+					"credential with this ID already exists")
+			}
+		}
+		evt, err := event.NewEvent(
+			eventCredentialAdded, aggID, aggregateTypeUser, version.Increment(),
+			marshalPayload(CredentialAddedPayload{
+				ID:              cred.ID,
+				PublicKey:       cred.PublicKey,
+				AttestationType: cred.AttestationType,
+				Transports:      cred.Transports,
+				AAGUID:          cred.AAGUID,
+				BackupEligible:  cred.BackupEligible,
+				BackupState:     cred.BackupState,
+				Name:            cred.Name,
+			}),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create CredentialAdded event: %w", err)
+		}
+		return []event.Event{evt}, nil
+	}
+}
+
+func decideRemoveCredential(
+	aggID id.AggregateID,
+	credentialID []byte,
+) func(UserState, event.Version) ([]event.Event, error) {
+	return func(state UserState, version event.Version) ([]event.Event, error) {
+		if !state.Exists() {
+			return nil, event.NewRejection("usermgmt.remove_credential.not_found",
+				"user does not exist")
+		}
+		if state.Deleted {
+			return nil, event.NewRejection("usermgmt.remove_credential.deleted",
+				"cannot remove credential from deleted user")
+		}
+		found := false
+		for _, c := range state.Credentials {
+			if bytesEqual(c.ID, credentialID) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, event.NewRejection("usermgmt.credential_not_found",
+				"credential not found")
+		}
+		evt, err := event.NewEvent(
+			eventCredentialRemoved, aggID, aggregateTypeUser, version.Increment(),
+			marshalPayload(CredentialRemovedPayload{ID: credentialID}),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create CredentialRemoved event: %w", err)
+		}
+		return []event.Event{evt}, nil
+	}
+}
+
+func bytesEqual(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

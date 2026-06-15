@@ -9,7 +9,7 @@ import (
 )
 
 func TestIntegration_UserIDExtraction_Bridge(t *testing.T) {
-	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{BcryptCost: 4})
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -19,7 +19,6 @@ func TestIntegration_UserIDExtraction_Bridge(t *testing.T) {
 	reg, err := svc.Register(ctx, usermgmt.RegisterRequest{
 		ID:       usermgmt.NewUserID(uid.String()),
 		Email:    "bridge@test.com",
-		Password: testPassword,
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
@@ -44,7 +43,7 @@ func TestIntegration_UserIDExtraction_Bridge(t *testing.T) {
 }
 
 func TestIntegration_UserIDFromRequest_Bridge(t *testing.T) {
-	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{BcryptCost: 4})
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -54,7 +53,6 @@ func TestIntegration_UserIDFromRequest_Bridge(t *testing.T) {
 	reg, err := svc.Register(ctx, usermgmt.RegisterRequest{
 		ID:       usermgmt.NewUserID(uid.String()),
 		Email:    "bridge2@test.com",
-		Password: testPassword,
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)

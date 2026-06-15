@@ -1,8 +1,6 @@
 package usermgmt
 
-import (
-	"time"
-)
+import "time"
 
 // EventHandler is called after successful domain operations.
 // The event argument is one of the *Event types defined in this file.
@@ -22,11 +20,6 @@ type UserRegisteredEvent struct {
 // UserLoggedInEvent is emitted after a successful login.
 type UserLoggedInEvent struct {
 	Email      string    `json:"email"`
-	OccurredAt time.Time `json:"occurred_at"`
-}
-
-// PasswordChangedEvent is emitted after a successful password change.
-type PasswordChangedEvent struct {
 	OccurredAt time.Time `json:"occurred_at"`
 }
 

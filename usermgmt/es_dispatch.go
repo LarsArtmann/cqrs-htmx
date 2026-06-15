@@ -7,8 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 )
 
-// RegisterCommands wires all user commands to the dispatcher via the decider repository.
-// Each command handler calls repo.Execute, which performs load → fold → decide → save → publish.
 func RegisterCommands(
 	dispatcher *command.Dispatcher,
 	repo *decider.Repository[UserState],
@@ -18,17 +16,7 @@ func RegisterCommands(
 		func(ctx context.Context, c *RegisterUserCmd) error {
 			return repo.Execute(
 				ctx, c.AggregateID(), aggregateTypeUser,
-				decideRegisterUser(c.AggregateID(), c.email, c.displayName, c.passwordHash, c.roles),
-			)
-		},
-	)
-
-	_ = command.RegisterTyped(
-		dispatcher, cmdChangePassword,
-		func(ctx context.Context, c *ChangePasswordCmd) error {
-			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideChangePassword(c.AggregateID(), c.passwordHash),
+				decideRegisterUser(c.AggregateID(), c.email, c.displayName, c.roles),
 			)
 		},
 	)
@@ -69,6 +57,26 @@ func RegisterCommands(
 			return repo.Execute(
 				ctx, c.AggregateID(), aggregateTypeUser,
 				decideDeleteUser(c.AggregateID(), c.reason),
+			)
+		},
+	)
+
+	_ = command.RegisterTyped(
+		dispatcher, cmdAddCredential,
+		func(ctx context.Context, c *AddCredentialCmd) error {
+			return repo.Execute(
+				ctx, c.AggregateID(), aggregateTypeUser,
+				decideAddCredential(c.AggregateID(), c.credential),
+			)
+		},
+	)
+
+	_ = command.RegisterTyped(
+		dispatcher, cmdRemoveCredential,
+		func(ctx context.Context, c *RemoveCredentialCmd) error {
+			return repo.Execute(
+				ctx, c.AggregateID(), aggregateTypeUser,
+				decideRemoveCredential(c.AggregateID(), c.credentialID),
 			)
 		},
 	)

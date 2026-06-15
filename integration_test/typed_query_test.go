@@ -15,7 +15,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
-const testPassword = "secret12"
 
 // typedCountUsersQuery is a typed query that lives in the integration_test
 // module. It demonstrates the query.RegisterTyped pattern crossing module
@@ -93,7 +92,7 @@ func newTypedPageQuery() *typedPageQuery {
 func TestTypedQueryDispatch_CrossModule(t *testing.T) {
 	ctx := context.Background()
 
-	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{BcryptCost: 4})
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -104,7 +103,6 @@ func TestTypedQueryDispatch_CrossModule(t *testing.T) {
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
 			ID:       usermgmt.NewUserID(uid.String()),
 			Email:    email,
-			Password: testPassword,
 		}); err != nil {
 			t.Fatalf("Register %s: %v", email, err)
 		}

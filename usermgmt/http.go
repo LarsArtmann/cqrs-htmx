@@ -85,60 +85,17 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 // RegisterRoutes registers the auth endpoints on the given ServeMux:
 //
 //	POST /auth/register — create account
-//	POST /auth/login    — authenticate
 //	POST /auth/logout   — clear session
 //	GET  /auth/me       — return current user
 func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/register", h.handleRegister)
-	mux.HandleFunc("POST /auth/login", h.handleLogin)
 	mux.HandleFunc("POST /auth/logout", h.handleLogout)
 	mux.HandleFunc("GET /auth/me", h.handleMe)
 }
 
-func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
-	h.handleAuthEndpoint(
-		w,
-		r,
-		func(ctx context.Context) (*LoginResponse, error) {
-			var regReq RegisterRequest
-
-			if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&regReq); err != nil {
-				return nil, fmt.Errorf("%w: unmarshal register request: %w", ErrValidation, err)
-			}
-			resp, err := h.service.Register(ctx, regReq)
-			if err != nil {
-				return nil, err
-			}
-			return &LoginResponse{User: resp.User, Session: resp.Session}, nil
-		},
-		http.StatusCreated,
-	)
-}
-
-func (h *AuthHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	h.handleAuthEndpoint(
-		w,
-		r,
-		func(ctx context.Context) (*LoginResponse, error) {
-			var loginReq LoginRequest
-
-			if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&loginReq); err != nil {
-				return nil, fmt.Errorf("%w: unmarshal login request: %w", ErrValidation, err)
-			}
-			return h.service.Login(ctx, loginReq)
-		},
-		http.StatusOK,
-	)
-}
-
 const maxAuthBodySize = 1 << 20 // 1 MB
 
-func (h *AuthHandler) handleAuthEndpoint(
-	w http.ResponseWriter,
-	r *http.Request,
-	process func(context.Context) (*LoginResponse, error),
-	successStatus int,
-) {
+func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	if h.timeout > 0 {
 		var cancel context.CancelFunc
@@ -146,14 +103,18 @@ func (h *AuthHandler) handleAuthEndpoint(
 		defer cancel()
 	}
 
-	resp, err := process(ctx)
+	var regReq RegisterRequest
+	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&regReq); err != nil {
+		writeError(w, http.StatusBadRequest, fmt.Errorf("%w: unmarshal register request: %w", ErrValidation, err).Error())
+		return
+	}
+	resp, err := h.service.Register(ctx, regReq)
 	if err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}
-
 	h.setSessionCookie(w, resp.Session.Token)
-	writeJSON(w, successStatus, resp)
+	writeJSON(w, http.StatusCreated, resp)
 }
 
 func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {

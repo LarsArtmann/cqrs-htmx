@@ -38,26 +38,10 @@ func TestHandlers_Register_ValidationError(t *testing.T) {
 }
 
 func TestHandlers_Register_WithCustomSessionMaxAge(t *testing.T) {
-	registerWithSessionMaxAge(t, "sma1", "sma@test.com", "secret12", 7200)
+	registerWithSessionMaxAge(t, "sma1", "sma@test.com", 7200)
 }
 
-func TestHandlers_Login_Success(t *testing.T) {
-	svc, mux := setupMux(t)
 
-	registerTestUser(t, svc, "u1", "login@test.com", "secret12")
-
-	w := postJSON(t, mux, "/auth/login", `{"email":"login@test.com","password":"secret12"}`)
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200 for login, got %d: %s", w.Code, w.Body.String())
-	}
-	if w.Header().Get("Set-Cookie") == "" {
-		t.Error("expected Set-Cookie header after login")
-	}
-}
-
-func TestHandlers_Login_ValidationError(t *testing.T) {
-	assertValidationBadRequest(t, "/auth/login", `{"email":"","password":""}`)
-}
 
 // assertValidationBadRequest POSTs a JSON body to the given path and asserts
 // the handler returns 400. Used by validation-error coverage tests.
@@ -70,32 +54,11 @@ func assertValidationBadRequest(t *testing.T, path, body string) {
 	}
 }
 
-func TestHandlers_Login_AccountLocked(t *testing.T) {
-	svc, _ := NewService(ServiceConfig{
-		BcryptCost: minBcryptCost,
-		Lockout:    NewAccountLockout(LockoutConfig{MaxAttempts: 1, Duration: time.Hour}),
-	})
-	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	registerTestUser(t, svc, "hl1", "hl@test.com", "secret12")
-
-	w := postJSON(t, mux, "/auth/login", `{"email":"hl@test.com","password":"wrong"}`)
-	if w.Code != http.StatusUnauthorized {
-		t.Errorf("expected 401 for wrong password, got %d", w.Code)
-	}
-
-	w = postJSON(t, mux, "/auth/login", `{"email":"hl@test.com","password":"secret12"}`)
-	if w.Code != http.StatusTooManyRequests {
-		t.Errorf("expected 429 for locked account, got %d", w.Code)
-	}
-}
 
 func TestHandlers_Logout_Success(t *testing.T) {
 	svc, mux := setupMux(t)
 
-	reg := registerTestUser(t, svc, "u1", "logout@test.com", "secret12")
+	reg := registerTestUser(t, svc, "u1", "logout@test.com")
 
 	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
@@ -115,16 +78,14 @@ func TestHandlers_Logout_StoreError(t *testing.T) {
 	}
 	svc, _ := NewService(ServiceConfig{
 		SessionStore: sessions,
-		BcryptCost:   minBcryptCost,
 	})
 	_ = svc
 
 	sessions2 := &mockSessionStore{}
 	svc2, _ := NewService(ServiceConfig{
 		SessionStore: sessions2,
-		BcryptCost:   minBcryptCost,
 	})
-	reg := registerTestUser(t, svc2, "lse1", "lse@test.com", "secret12")
+	reg := registerTestUser(t, svc2, "lse1", "lse@test.com")
 
 	svc.sessions = sessions
 
@@ -148,7 +109,7 @@ func TestHandlers_Logout_WithTimeout(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	reg := registerTestUser(t, svc, "lot", "lot@test.com", "secret12")
+	reg := registerTestUser(t, svc, "lot", "lot@test.com")
 
 	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
@@ -166,7 +127,7 @@ func TestHandlers_Logout_ClearCookie(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	reg := registerTestUser(t, svc, "lc1", "lc@test.com", "secret12")
+	reg := registerTestUser(t, svc, "lc1", "lc@test.com")
 
 	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	req.AddCookie(&http.Cookie{Name: "session_token", Value: reg.Session.Token})
@@ -184,7 +145,7 @@ func TestHandlers_Logout_DeletedSession(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	reg := registerTestUser(t, svc, "u1", "lo@test.com", "secret12")
+	reg := registerTestUser(t, svc, "u1", "lo@test.com")
 
 	_ = svc.sessions.Delete(context.Background(), reg.Session.Token)
 
@@ -204,7 +165,7 @@ func TestHandlers_Me_WithUser(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	reg := registerTestUser(t, svc, "u1", "me@test.com", "secret12")
+	reg := registerTestUser(t, svc, "u1", "me@test.com")
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
 	req = req.WithContext(WithUser(req.Context(), reg.User))

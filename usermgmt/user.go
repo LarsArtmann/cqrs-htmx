@@ -10,39 +10,23 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
 	sessionTokenBytes = 32
-	defaultBcryptCost = 12
-	minBcryptCost     = 4
-
-	minPasswordLength      = 8
-	maxPasswordLength      = 128
-	errMsgPasswordTooShort = "password must be at least 8 characters"
-	errMsgPasswordTooLong  = "password must be under 128 characters"
 )
 
-func validatePassword(password string) error {
-	if len(password) < minPasswordLength {
-		return event.NewRejection("validation", errMsgPasswordTooShort).WithCause(ErrValidation)
-	}
-	if len(password) > maxPasswordLength {
-		return event.NewRejection("validation", errMsgPasswordTooLong).WithCause(ErrValidation)
-	}
-	return nil
-}
-
-// User represents a registered user with authentication and authorization data.
+// User represents a registered user with authentication credentials and authorization roles.
+// In the event-sourced architecture, User is a read-only projection — all mutations
+// happen through commands that produce events.
 type User struct {
-	ID           UserID    `json:"id"`
-	Email        string    `json:"email"`
-	DisplayName  string    `json:"display_name,omitempty"`
-	PasswordHash string    `json:"-"`
-	Roles        []Role    `json:"roles"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID          UserID               `json:"id"`
+	Email       string               `json:"email"`
+	DisplayName string               `json:"display_name,omitempty"`
+	Roles       []Role               `json:"roles"`
+	Credentials []WebAuthnCredential `json:"credentials,omitempty"`
+	CreatedAt   time.Time            `json:"created_at"`
+	UpdatedAt   time.Time            `json:"updated_at"`
 }
 
 // NewUser creates a User with the given identity fields and a default "viewer" role.
@@ -58,8 +42,7 @@ func NewUser(id UserID, email, displayName string) *User {
 	}
 }
 
-// Clone returns a deep copy of the user. The Roles slice is copied to prevent
-// aliasing with the stored object.
+// Clone returns a deep copy of the user.
 func (u *User) Clone() *User {
 	if u == nil {
 		return nil
@@ -67,67 +50,9 @@ func (u *User) Clone() *User {
 	cp := *u
 	cp.Roles = make([]Role, len(u.Roles))
 	copy(cp.Roles, u.Roles)
+	cp.Credentials = make([]WebAuthnCredential, len(u.Credentials))
+	copy(cp.Credentials, u.Credentials)
 	return &cp
-}
-
-// SetPassword hashes the password with the default bcrypt cost (12).
-func (u *User) SetPassword(password string) error {
-	return u.SetPasswordWithCost(password, defaultBcryptCost)
-}
-
-// SetPasswordWithCost hashes the password with the given bcrypt cost.
-// Use a lower cost (e.g. 4) in tests for speed.
-func (u *User) SetPasswordWithCost(password string, cost int) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), cost)
-	if err != nil {
-		return fmt.Errorf("cost=%d: %w", cost, err)
-	}
-	u.PasswordHash = string(hash)
-	return nil
-}
-
-// CheckPassword returns true if the plaintext password matches the stored hash.
-func (u *User) CheckPassword(password string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) == nil
-}
-
-// ChangePassword verifies the old password, validates the new one, and updates the hash.
-// Returns false if the old password is incorrect (no error).
-// Returns an error if the new password fails validation or hashing.
-func (u *User) ChangePassword(oldPassword, newPassword string, cost int) (bool, error) {
-	if !u.CheckPassword(oldPassword) {
-		return false, nil
-	}
-	if err := validatePassword(newPassword); err != nil {
-		return false, err
-	}
-	if err := u.SetPasswordWithCost(newPassword, cost); err != nil {
-		return false, fmt.Errorf("change password: %w", err)
-	}
-	u.touch()
-	return true, nil
-}
-
-func (u *User) touch() {
-	u.UpdatedAt = time.Now().UTC()
-}
-
-// IsPasswordSet reports whether the user has a password configured.
-func (u *User) IsPasswordSet() bool {
-	return u.PasswordHash != ""
-}
-
-// SetEmail updates the user's email address and records the change timestamp.
-// Callers should validate the email format before calling this method.
-func (u *User) SetEmail(email string) {
-	u.Email = email
-	u.touch()
-}
-
-// SetDisplayName updates the user's display name and records the change timestamp.
-func (u *User) SetDisplayName(name string) {
-	u.DisplayName = name
-	u.touch()
 }
 
 // HasRole reports whether the user has the specified role.
@@ -135,42 +60,23 @@ func (u *User) HasRole(role Role) bool {
 	return slices.Contains(u.Roles, role)
 }
 
-// AddRole appends the role if not already present and updates UpdatedAt.
-func (u *User) AddRole(role Role) {
-	if slices.Contains(u.Roles, role) {
-		return
-	}
-	u.Roles = append(u.Roles, role)
-	u.touch()
+// HasCredential reports whether the user has a credential with the given ID.
+func (u *User) HasCredential(credID []byte) bool {
+	return slices.ContainsFunc(u.Credentials, func(c WebAuthnCredential) bool {
+		return slices.Equal(c.ID, credID)
+	})
 }
 
-// SetRoles replaces the user's role list and updates UpdatedAt.
-func (u *User) SetRoles(roles []Role) {
-	u.Roles = make([]Role, len(roles))
-	copy(u.Roles, roles)
-	u.touch()
-}
-
-// RemoveRole removes the first occurrence of the role and updates UpdatedAt.
-func (u *User) RemoveRole(role Role) {
-	for i, r := range u.Roles {
-		if r == role {
-			u.Roles = slices.Delete(u.Roles, i, i+1)
-			u.touch()
-			return
-		}
-	}
-}
-
-// MarshalJSON adds a computed "has_password" field while omitting the raw hash.
+// MarshalJSON serializes the user. Credentials are included but public keys are not
+// exposed in JSON (they are binary COSE format, not useful for API consumers).
 func (u *User) MarshalJSON() ([]byte, error) {
 	type Alias User
 	data, err := json.Marshal(&struct {
 		*Alias
-		HasPassword bool `json:"has_password"`
+		CredentialCount int `json:"credential_count"`
 	}{
-		Alias:       (*Alias)(u),
-		HasPassword: u.IsPasswordSet(),
+		Alias:           (*Alias)(u),
+		CredentialCount: len(u.Credentials),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal user: %w", err)
@@ -208,7 +114,7 @@ func (s *Session) IsExpired() bool {
 }
 
 // TokenMatches performs a constant-time comparison of the provided token
-// against the session token. It does NOT check expiration — call IsExpired separately.
+// against the session token. It does NOT check expiration.
 func (s *Session) TokenMatches(token string) bool {
 	return subtle.ConstantTimeCompare([]byte(s.Token), []byte(token)) == 1
 }

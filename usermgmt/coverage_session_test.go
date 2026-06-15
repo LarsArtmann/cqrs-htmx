@@ -20,7 +20,7 @@ func TestSession_Valid_Expired(t *testing.T) {
 
 func TestSessionMiddleware_WithCookie(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	reg := registerTestUser(t, svc, "u1", "mid@test.com", "secret12")
+	reg := registerTestUser(t, svc, "u1", "mid@test.com")
 
 	var called bool
 	mux := http.NewServeMux()
@@ -46,7 +46,7 @@ func TestSessionMiddleware_WithCookie(t *testing.T) {
 
 func TestSessionMiddleware_WithBearerToken(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	reg := registerTestUser(t, svc, "u1", "bearer@test.com", "secret12")
+	reg := registerTestUser(t, svc, "u1", "bearer@test.com")
 
 	var called bool
 	mux := http.NewServeMux()
