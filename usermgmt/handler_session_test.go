@@ -10,7 +10,7 @@ import (
 func TestNewSessionMiddleware_Cookie(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
 	reg, _ := svc.Register(context.Background(), RegisterRequest{
-		ID: NewUserID("u1"), Email: "mw@t.com", Password: "secret12",
+		ID: NewUserID("u1"), Email: "mw@t.com",
 	})
 
 	called := false
@@ -37,7 +37,7 @@ func TestNewSessionMiddleware_Cookie(t *testing.T) {
 func TestNewSessionMiddleware_BearerToken(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
 	reg, _ := svc.Register(context.Background(), RegisterRequest{
-		ID: NewUserID("u1"), Email: "bt@t.com", Password: "secret12",
+		ID: NewUserID("u1"), Email: "bt@t.com",
 	})
 
 	h := NewSessionMiddleware(svc, "session_token")(

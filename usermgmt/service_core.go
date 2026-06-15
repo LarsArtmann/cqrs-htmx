@@ -26,7 +26,6 @@ type Service struct {
 	authz            *Authz
 	sessions         SessionStore
 	sessionTTL       time.Duration
-	bcryptCost       int
 	logger           *slog.Logger
 	lockout          *AccountLockout
 	eventHandler     EventHandler
@@ -47,8 +46,6 @@ type ServiceConfig struct {
 	SessionStore SessionStore
 	// SessionTTL is the default time-to-live for new sessions. Defaults to 24 hours.
 	SessionTTL time.Duration
-	// BcryptCost is the bcrypt hashing cost. Defaults to 12. Values below 4 are clamped.
-	BcryptCost int
 	// Logger is used for structured auth event logging. Defaults to slog.Default().
 	Logger *slog.Logger
 	// Lockout, if provided, enables account lockout after repeated login failures.
@@ -114,11 +111,6 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		cfg.SessionTTL = defaultSessionTTL
 	}
 
-	cost := cfg.BcryptCost
-	if cost < minBcryptCost {
-		cost = defaultBcryptCost
-	}
-
 	logger := cfg.Logger
 	if logger == nil {
 		logger = slog.Default()
@@ -135,7 +127,6 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		authz:            authz,
 		sessions:         cfg.SessionStore,
 		sessionTTL:       cfg.SessionTTL,
-		bcryptCost:       cost,
 		logger:           logger,
 		lockout:          cfg.Lockout,
 		eventHandler:     cfg.EventHandler,
@@ -161,12 +152,6 @@ func (s *Service) bridgeEventHandler(bus event.Subscriber) {
 	_ = bus.Subscribe(eventUserRegistered, func(_ context.Context, evt event.Event) error {
 		s.emit(userIDFromAggID(evt.AggregateID()), UserRegisteredEvent{
 			Email:      s.emailFromEvent(evt),
-			OccurredAt: evt.OccurredAt(),
-		})
-		return nil
-	})
-	_ = bus.Subscribe(eventPasswordChanged, func(_ context.Context, evt event.Event) error {
-		s.emit(userIDFromAggID(evt.AggregateID()), PasswordChangedEvent{
 			OccurredAt: evt.OccurredAt(),
 		})
 		return nil

@@ -60,7 +60,6 @@ func ExampleService_Register() {
 	resp, err := service.Register(context.Background(), usermgmt.RegisterRequest{
 		ID:          uid,
 		Email:       "alice@example.com",
-		Password:    "secure-password-123",
 		DisplayName: "Alice",
 	})
 	if err != nil {

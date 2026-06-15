@@ -12,7 +12,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.3.0
-	golang.org/x/crypto v0.53.0
 )
 
 require (

@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-// GetUser retrieves a user by ID from the read model. Returns ErrUserNotFound if not found.
+// GetUser retrieves a user by ID from the read model.
 func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 	user, ok := s.readModel.FindByUserID(id)
 	if !ok {
@@ -17,8 +15,7 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 	return user, nil
 }
 
-// UpdateRoles dispatches an UpdateRoles command. The Casbin projection updates
-// policies automatically from the event.
+// UpdateRoles dispatches an UpdateRoles command.
 func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, domain string) error {
 	aggID := aggIDFromUser(userID)
 	err := s.dispatcher.Dispatch(ctx, NewUpdateRolesCmd(aggID, roles, domain))
@@ -34,44 +31,7 @@ func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, 
 	return nil
 }
 
-// ChangePassword verifies the old password, hashes the new one, and dispatches
-// a ChangePassword command.
-func (s *Service) ChangePassword(
-	ctx context.Context,
-	userID UserID,
-	oldPassword, newPassword string,
-) error {
-	user, ok := s.readModel.FindByUserID(userID)
-	if !ok {
-		return fmt.Errorf("change password: %w", ErrUserNotFound)
-	}
-
-	if !user.CheckPassword(oldPassword) {
-		return ErrInvalidCredentials
-	}
-
-	if err := validatePassword(newPassword); err != nil {
-		return err
-	}
-
-	hash, err := s.hashPassword(newPassword)
-	if err != nil {
-		return withUserIDContext(
-			event.NewTransient("internal", "hash password").WithCause(err), userID,
-		)
-	}
-
-	aggID := aggIDFromUser(userID)
-	err = s.dispatcher.Dispatch(ctx, NewChangePasswordCmd(aggID, hash))
-	if err != nil {
-		return s.classifyDispatchError(err, userID)
-	}
-
-	s.emit(userID, PasswordChangedEvent{OccurredAt: nowUTC()})
-	return nil
-}
-
-// ChangeEmail dispatches a ChangeEmail command. No event is emitted if the email is unchanged.
+// ChangeEmail dispatches a ChangeEmail command.
 func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail string) error {
 	aggID := aggIDFromUser(userID)
 	err := s.dispatcher.Dispatch(ctx, NewChangeEmailCmd(aggID, newEmail))
@@ -98,12 +58,32 @@ func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) 
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
 	}
-
 	if err := s.sessions.DeleteByUserID(ctx, userID); err != nil {
 		s.logger.Warn("usermgmt: failed to revoke sessions on delete",
 			"user_id", userID, "error", err)
 	}
+	return nil
+}
 
+// AddCredential dispatches an AddCredential command.
+func (s *Service) AddCredential(ctx context.Context, userID UserID, cred WebAuthnCredential) error {
+	aggID := aggIDFromUser(userID)
+	err := s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, cred))
+	if err != nil {
+		return s.classifyDispatchError(err, userID)
+	}
+	s.logAuth("credential_added", userID, "credential_name", cred.Name)
+	return nil
+}
+
+// RemoveCredential dispatches a RemoveCredential command.
+func (s *Service) RemoveCredential(ctx context.Context, userID UserID, credentialID []byte) error {
+	aggID := aggIDFromUser(userID)
+	err := s.dispatcher.Dispatch(ctx, NewRemoveCredentialCmd(aggID, credentialID))
+	if err != nil {
+		return s.classifyDispatchError(err, userID)
+	}
+	s.logAuth("credential_removed", userID)
 	return nil
 }
 

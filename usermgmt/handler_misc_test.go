@@ -117,7 +117,7 @@ func TestHandlers_FullFlow(t *testing.T) {
 }
 
 func TestNewAuthHandler_SessionMaxAge(t *testing.T) {
-	registerWithSessionMaxAge(t, "u1", "maxage@test.com", "secret12", 3600)
+	registerWithSessionMaxAge(t, "u1", "maxage@test.com", 3600)
 }
 
 func TestNewAuthHandler_CustomCookieName(t *testing.T) {

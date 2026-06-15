@@ -18,7 +18,7 @@ func TestNewService_Defaults(t *testing.T) {
 }
 
 func TestService_Logout(t *testing.T) {
-	svc, ctx, reg := newTestServiceWithUser(t, "user-1", "a@b.com", "secret12")
+	svc, ctx, reg := newTestServiceWithUser(t, "user-1", "a@b.com")
 
 	if err := svc.Logout(ctx, reg.Session.Token); err != nil {
 		t.Fatalf("Logout: %v", err)
@@ -36,10 +36,9 @@ func TestService_Authorize(t *testing.T) {
 			t,
 			Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
 		),
-		BcryptCost: minBcryptCost,
 	})
 	ctx := context.Background()
-	registerTestUser(t, svc, "user-1", "a@b.com", "secret12")
+	registerTestUser(t, svc, "user-1", "a@b.com")
 	_ = svc.Authz().
 		AddGroupPolicy(GroupPolicy{Subject: "user-1", Role: RoleOwner, Domain: "game-1"})
 
@@ -122,13 +121,3 @@ func TestWithUserIDContext(t *testing.T) {
 	})
 }
 
-func TestService_Login_Validation(t *testing.T) {
-	svc := newTestService(t)
-	ctx := context.Background()
-
-	_, err := svc.Login(ctx, LoginRequest{Email: "", Password: "secret12"})
-	assertErrorIs(t, err, ErrValidation, "empty email")
-
-	_, err = svc.Login(ctx, LoginRequest{Email: "a@b.com", Password: ""})
-	assertErrorIs(t, err, ErrValidation, "empty password")
-}

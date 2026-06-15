@@ -3,14 +3,9 @@ package usermgmt
 import "encoding/json"
 
 type UserRegisteredPayload struct {
-	Email        string `json:"email"`
-	DisplayName  string `json:"display_name,omitempty"`
-	PasswordHash string `json:"password_hash"`
-	Roles        []Role `json:"roles"`
-}
-
-type PasswordChangedPayload struct {
-	PasswordHash string `json:"password_hash"`
+	Email       string `json:"email"`
+	DisplayName string `json:"display_name,omitempty"`
+	Roles       []Role `json:"roles"`
 }
 
 type RolesUpdatedPayload struct {
@@ -28,6 +23,21 @@ type DisplayNameChangedPayload struct {
 
 type UserDeletedPayload struct {
 	Reason string `json:"reason"`
+}
+
+type CredentialAddedPayload struct {
+	ID              []byte   `json:"id"`
+	PublicKey       []byte   `json:"public_key"`
+	AttestationType string   `json:"attestation_type"`
+	Transports      []string `json:"transports,omitempty"`
+	AAGUID          []byte   `json:"aaguid,omitempty"`
+	BackupEligible  bool     `json:"backup_eligible"`
+	BackupState     bool     `json:"backup_state"`
+	Name            string   `json:"name,omitempty"`
+}
+
+type CredentialRemovedPayload struct {
+	ID []byte `json:"id"`
 }
 
 func marshalPayload(v any) []byte {

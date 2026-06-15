@@ -6,7 +6,7 @@ import (
 )
 
 func TestService_UpdateRoles(t *testing.T) {
-	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "a@b.com", "secret12")
+	svc, ctx, _ := newTestServiceWithUser(t, "user-1", "a@b.com")
 
 	if err := svc.UpdateRoles(ctx, NewUserID("user-1"), []Role{RoleAdmin}, "user-1"); err != nil {
 		t.Fatalf("UpdateRoles: %v", err)

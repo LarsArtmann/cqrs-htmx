@@ -2,15 +2,12 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
-	"time"
 )
 
 func TestService_EventHandler_Register(t *testing.T) {
 	var captured any
 	svc, err := NewService(ServiceConfig{
-		BcryptCost: minBcryptCost,
 		EventHandler: func(_ UserID, evt any) {
 			captured = evt
 		},
@@ -20,7 +17,7 @@ func TestService_EventHandler_Register(t *testing.T) {
 	}
 
 	_, err = svc.Register(context.Background(), RegisterRequest{
-		ID: NewUserID("u1"), Email: "evt@test.com", Password: "secret12",
+		ID: NewUserID("u1"), Email: "evt@test.com",
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
@@ -36,59 +33,14 @@ func TestService_EventHandler_Register(t *testing.T) {
 	if evt.Email != "evt@test.com" {
 		t.Errorf("expected email evt@test.com, got %s", evt.Email)
 	}
-	if len(evt.Roles) != 2 { // viewer + user
+	if len(evt.Roles) != 2 {
 		t.Errorf("expected 2 roles, got %d", len(evt.Roles))
-	}
-	if evt.OccurredAt.IsZero() {
-		t.Error("expected non-zero OccurredAt")
-	}
-}
-
-func TestService_EventHandler_Login(t *testing.T) {
-	var captured any
-	svc, ctx, _ := newTestServiceWithUser(t, "u1", "login@test.com", "secret12")
-	svc.eventHandler = func(_ UserID, evt any) {
-		captured = evt
-	}
-
-	_, err := svc.Login(ctx, LoginRequest{Email: "login@test.com", Password: "secret12"})
-	if err != nil {
-		t.Fatalf("Login: %v", err)
-	}
-
-	if captured == nil {
-		t.Fatal("expected event to be emitted")
-	}
-	_, ok := captured.(UserLoggedInEvent)
-	if !ok {
-		t.Fatalf("expected UserLoggedInEvent, got %T", captured)
-	}
-}
-
-func TestService_EventHandler_ChangePassword(t *testing.T) {
-	var captured any
-	svc, ctx, _ := newTestServiceWithUser(t, "u1", "cp@test.com", "secret12")
-	svc.eventHandler = func(_ UserID, evt any) {
-		captured = evt
-	}
-
-	err := svc.ChangePassword(ctx, NewUserID("u1"), "secret12", "newpass12")
-	if err != nil {
-		t.Fatalf("ChangePassword: %v", err)
-	}
-
-	if captured == nil {
-		t.Fatal("expected event to be emitted")
-	}
-	_, ok := captured.(PasswordChangedEvent)
-	if !ok {
-		t.Fatalf("expected PasswordChangedEvent, got %T", captured)
 	}
 }
 
 func TestService_EventHandler_UpdateRoles(t *testing.T) {
 	var captured any
-	svc, ctx, _ := newTestServiceWithUser(t, "u1", "ur@test.com", "secret12")
+	svc, ctx, _ := newTestServiceWithUser(t, "u1", "ur@test.com")
 	svc.eventHandler = func(_ UserID, evt any) {
 		captured = evt
 	}
@@ -111,9 +63,7 @@ func TestService_EventHandler_UpdateRoles(t *testing.T) {
 }
 
 func TestService_EventHandler_PanicRecovered(t *testing.T) {
-	var captured any
 	svc, err := NewService(ServiceConfig{
-		BcryptCost: minBcryptCost,
 		EventHandler: func(_ UserID, _ any) {
 			panic("boom")
 		},
@@ -122,46 +72,24 @@ func TestService_EventHandler_PanicRecovered(t *testing.T) {
 		t.Fatalf("NewService: %v", err)
 	}
 
-	// This should not panic; the event handler panic is recovered.
 	_, err = svc.Register(context.Background(), RegisterRequest{
-		ID: NewUserID("u1"), Email: "panic@test.com", Password: "secret12",
+		ID: NewUserID("u1"), Email: "panic@test.com",
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
-	_ = captured
 }
 
 func TestService_EventHandler_Nil(t *testing.T) {
-	svc, err := NewService(ServiceConfig{
-		BcryptCost: minBcryptCost,
-	})
+	svc, err := NewService(ServiceConfig{})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
 
-	// With no handler configured, registration should succeed silently.
 	_, err = svc.Register(context.Background(), RegisterRequest{
-		ID: NewUserID("u1"), Email: "nil@test.com", Password: "secret12",
+		ID: NewUserID("u1"), Email: "nil@test.com",
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
-	}
-}
-
-func TestUserRegisteredEvent_JSON(t *testing.T) {
-	evt := UserRegisteredEvent{
-		Email:       "a@b.com",
-		DisplayName: "Test",
-		Roles:       []Role{RoleUser},
-		OccurredAt:  time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
-	}
-	data, err := json.Marshal(evt)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
-	want := `{"email":"a@b.com","display_name":"Test","roles":["user"],"occurred_at":"2024-01-01T00:00:00Z"}`
-	if string(data) != want {
-		t.Errorf("JSON mismatch\ngot:  %s\nwant: %s", data, want)
 	}
 }

@@ -2,79 +2,9 @@ package usermgmt
 
 import (
 	"context"
-	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
-
-// LoginRequest contains the credentials for user authentication.
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-// Validate checks that email and password are non-empty.
-func (r *LoginRequest) Validate() error {
-	var errs []string
-	r.Email = strings.ToLower(strings.TrimSpace(r.Email))
-	if r.Email == "" {
-		errs = append(errs, "email is required")
-	}
-	if r.Password == "" {
-		errs = append(errs, "password is required")
-	} else if len(r.Password) > maxPasswordLength {
-		errs = append(errs, errMsgPasswordTooLong)
-	}
-	return formatValidationErrors(errs)
-}
-
-// LoginResponse contains the authenticated User and active Session.
-type LoginResponse struct {
-	User    *User    `json:"user"`
-	Session *Session `json:"session"`
-}
-
-// Login validates credentials, enforces account lockout, queries the read model,
-// verifies the password, and opens a session.
-func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
-	if err := req.Validate(); err != nil {
-		return nil, err
-	}
-	if s.lockout != nil && s.lockout.IsLocked(req.Email) {
-		s.logger.Warn("usermgmt: login rejected — account locked", "email", req.Email)
-		return nil, ErrAccountLocked
-	}
-
-	user, ok := s.readModel.FindByEmail(req.Email)
-	if !ok {
-		return nil, ErrInvalidCredentials
-	}
-
-	if !user.CheckPassword(req.Password) {
-		s.logger.Warn("usermgmt: login failed", "email", req.Email, "reason", "invalid_password")
-		if s.lockout != nil && s.lockout.RecordFailure(req.Email) {
-			s.logger.Warn("usermgmt: account locked", "email", req.Email)
-		}
-		return nil, ErrInvalidCredentials
-	}
-
-	if s.lockout != nil {
-		s.lockout.Reset(req.Email)
-	}
-
-	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
-	if err != nil {
-		return nil, withUserIDContext(
-			event.NewTransient("internal", "create session").WithCause(err), user.ID,
-		)
-	}
-
-	s.emit(user.ID, UserLoggedInEvent{
-		Email:      user.Email,
-		OccurredAt: nowUTC(),
-	})
-	return &LoginResponse{User: user, Session: session}, nil
-}
 
 // Logout deletes the session associated with the given token.
 func (s *Service) Logout(ctx context.Context, token string) error {

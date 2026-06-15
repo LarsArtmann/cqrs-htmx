@@ -11,9 +11,7 @@ import (
 )
 
 func newTestServiceConfig() ServiceConfig {
-	return ServiceConfig{
-		BcryptCost: minBcryptCost,
-	}
+	return ServiceConfig{}
 }
 
 func newTestService(t *testing.T) *Service {
@@ -23,12 +21,12 @@ func newTestService(t *testing.T) *Service {
 
 func newTestServiceWithUser(
 	t *testing.T,
-	id, email, password string,
+	id, email string,
 ) (*Service, context.Context, *RegisterResponse) {
 	t.Helper()
 	svc := newTestService(t)
 	ctx := context.Background()
-	reg := registerTestUser(t, svc, id, email, password)
+	reg := registerTestUser(t, svc, id, email)
 	return svc, ctx, reg
 }
 
@@ -71,8 +69,7 @@ func newTestServiceWithConfig(t *testing.T, cfg ServiceConfig) *Service {
 func newTestServiceWithAuthz(t *testing.T) *Service {
 	t.Helper()
 	return newTestServiceWithConfig(t, ServiceConfig{
-		Authz:      newTestAuthz(t),
-		BcryptCost: minBcryptCost,
+		Authz: newTestAuthz(t),
 	})
 }
 
@@ -83,10 +80,10 @@ func assertErrorIs(t *testing.T, err, target error, msg string) {
 	}
 }
 
-func registerTestUser(t *testing.T, svc *Service, id, email, password string) *RegisterResponse {
+func registerTestUser(t *testing.T, svc *Service, id, email string) *RegisterResponse {
 	t.Helper()
 	resp, err := svc.Register(context.Background(), RegisterRequest{
-		ID: NewUserID(id), Email: email, Password: password,
+		ID: NewUserID(id), Email: email,
 	})
 	if err != nil {
 		t.Fatalf("registerTestUser %s: %v", id, err)
@@ -94,16 +91,14 @@ func registerTestUser(t *testing.T, svc *Service, id, email, password string) *R
 	return resp
 }
 
-// registerWithSessionMaxAge builds an auth handler with the given session max age,
-// registers a user, and asserts the cookie's MaxAge matches.
-func registerWithSessionMaxAge(t *testing.T, id, email, password string, maxAge int) {
+func registerWithSessionMaxAge(t *testing.T, id, email string, maxAge int) {
 	t.Helper()
 	svc := newTestServiceWithAuthz(t)
 	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool), SessionMaxAge: maxAge})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	body := fmt.Sprintf(`{"id":%q,"email":%q,"password":%q}`, id, email, password)
+	body := fmt.Sprintf(`{"id":%q,"email":%q}`, id, email)
 	w := postJSON(t, mux, "/auth/register", body)
 	assertStatusCode(t, w, http.StatusCreated)
 	assertCookie(t, w, "session_token", func(c *http.Cookie) bool { return c.MaxAge == maxAge })

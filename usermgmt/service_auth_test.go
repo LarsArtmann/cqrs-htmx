@@ -6,7 +6,7 @@ import (
 )
 
 func TestService_Authenticate(t *testing.T) {
-	svc, ctx, reg := newTestServiceWithUser(t, "user-1", "a@b.com", "secret12")
+	svc, ctx, reg := newTestServiceWithUser(t, "user-1", "a@b.com")
 
 	user, err := svc.Authenticate(ctx, reg.Session.Token)
 	if err != nil {
@@ -18,7 +18,7 @@ func TestService_Authenticate(t *testing.T) {
 }
 
 func TestService_Authenticate_ExpiredSession(t *testing.T) {
-	svc, ctx, reg := newTestServiceWithUser(t, "u1", "exp@test.com", "secret12")
+	svc, ctx, reg := newTestServiceWithUser(t, "u1", "exp@test.com")
 
 	sessions, ok := svc.sessions.(*InMemorySessionStore)
 	if !ok {
@@ -35,7 +35,7 @@ func TestService_Authenticate_ExpiredSession(t *testing.T) {
 }
 
 func TestService_Authenticate_UserDeleted(t *testing.T) {
-	svc, ctx, reg := newTestServiceWithUser(t, "u1", "del@test.com", "secret12")
+	svc, ctx, reg := newTestServiceWithUser(t, "u1", "del@test.com")
 
 	if err := svc.DeleteUser(ctx, NewUserID("u1"), "test cleanup"); err != nil {
 		t.Fatalf("DeleteUser: %v", err)
