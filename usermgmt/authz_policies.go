@@ -100,6 +100,33 @@ func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 	return nil
 }
 
+// RemoveAllRolesForUser removes all group policies (role assignments) for the
+// given subject across all domains. Used when a user is deleted.
+func (a *Authz) RemoveAllRolesForUser(subject string) error {
+	if a.enforcer == nil {
+		return ErrEnforcerNotInitialized
+	}
+	domains, err := a.enforcer.GetDomainsForUser(subject)
+	if err != nil {
+		return event.NewTransient("casbin_error",
+			fmt.Sprintf("get domains for user %s", subject)).WithCause(err)
+	}
+	for _, domain := range domains {
+		roles, err := a.enforcer.GetRolesForUser(subject, domain)
+		if err != nil {
+			return event.NewTransient("casbin_error",
+				fmt.Sprintf("get roles for %s in domain %s", subject, domain)).WithCause(err)
+		}
+		for _, role := range roles {
+			if _, err := a.enforcer.RemoveGroupingPolicy(subject, role, domain); err != nil {
+				return event.NewTransient("casbin_error",
+					fmt.Sprintf("remove group {%s, %s, %s}", subject, role, domain)).WithCause(err)
+			}
+		}
+	}
+	return nil
+}
+
 // Policies returns all stored policy rules.
 func (a *Authz) Policies() ([][]string, error) {
 	if a.enforcer == nil {

@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -161,7 +162,7 @@ func decideAddCredential(
 				"cannot add credential to deleted user")
 		}
 		for _, existing := range state.Credentials {
-			if bytesEqual(existing.ID, cred.ID) {
+			if bytes.Equal(existing.ID, cred.ID) {
 				return nil, event.NewConflict("usermgmt.credential_already_exists",
 					"credential with this ID already exists")
 			}
@@ -201,7 +202,7 @@ func decideRemoveCredential(
 		}
 		found := false
 		for _, c := range state.Credentials {
-			if bytesEqual(c.ID, credentialID) {
+			if bytes.Equal(c.ID, credentialID) {
 				found = true
 				break
 			}
@@ -221,14 +222,3 @@ func decideRemoveCredential(
 	}
 }
 
-func bytesEqual(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}

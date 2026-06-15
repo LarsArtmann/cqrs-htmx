@@ -14,12 +14,10 @@ type WebAuthnConfig struct {
 	RPOrigins     []string // e.g. []string{"https://example.com"}
 }
 
-const defaultWebAuthnSessionTTL = 5 * time.Minute
-
 // webauthnSessionStore holds the temporary challenge data for in-flight WebAuthn ceremonies.
 // Each entry expires after a short TTL (default 5 minutes).
 type webauthnSessionStore struct {
-	mu      sync.Mutex
+	mu       sync.Mutex
 	sessions map[string]*webauthn.SessionData
 }
 
