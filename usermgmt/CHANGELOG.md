@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Migration Guide
 
 **Before (CRUD):**
+
 ```go
 svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
     UserStore: usermgmt.NewInMemoryUserStore(),
@@ -35,6 +36,7 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 ```
 
 **After (Event-Sourced):**
+
 ```go
 svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{}) // defaults to in-memory event store + bus
 ```
