@@ -7,7 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-var testAggID = id.NewAggregateID()
+var testAggID = id.NewAggregateID() //nolint:gochecknoglobals // test fixture
 
 func makeEvent(t *testing.T, eventType event.Type, version event.Version, payload any) event.Event {
 	t.Helper()

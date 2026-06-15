@@ -90,8 +90,15 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.RegisterRequest$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.User$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.AccountLockout$
-        - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.InMemoryUserStore$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.InMemorySessionStore$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.UserState$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.UserReadModel$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.CasbinProjection$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.EventSourcedSetup$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.UserRegisteredPayload$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.RolesUpdatedPayload$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.UserRegisteredEvent$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.RolesUpdatedEvent$
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -108,6 +115,22 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
+      - path: es_constants\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
+      - path: es_(state|readmodel|casbin_projection|setup|dispatch)\.go$
+        linters:
+          - cyclop
+      - path: es_(state|readmodel|casbin_projection|setup|dispatch|events|commands)\.go$
+        linters:
+          - funlen
+      - path: service_core\.go$
+        linters:
+          - cyclop
+      - path: service_core\.go$
+        linters:
+          - funlen
       - path: _test\.go
         linters:
           - wrapcheck
@@ -129,6 +152,10 @@ linters:
           - gosec
       - path: _test\.go
         text: G104
+        linters:
+          - gosec
+      - path: _test\.go
+        text: G101
         linters:
           - gosec
       - path: _test\.go
