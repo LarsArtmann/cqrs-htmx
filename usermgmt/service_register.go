@@ -59,7 +59,8 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	if _, exists := s.readModel.FindByEmail(req.Email); exists {
 		return nil, withUserIDContext(
 			event.NewRejection("usermgmt.email_exists", "email already registered").
-				WithCause(ErrEmailExists), req.ID)
+				WithCause(ErrEmailExists), req.ID,
+		)
 	}
 
 	aggID := aggIDFromUser(req.ID)
@@ -73,13 +74,15 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	user, ok := s.readModel.FindByID(aggID)
 	if !ok {
 		return nil, withUserIDContext(
-			event.NewTransient("internal", "user not in read model after register"), req.ID)
+			event.NewTransient("internal", "user not in read model after register"), req.ID,
+		)
 	}
 
 	session, err := s.sessions.Create(ctx, req.ID, s.sessionTTL)
 	if err != nil {
 		return nil, withUserIDContext(
-			event.NewTransient("internal", "create session").WithCause(err), req.ID)
+			event.NewTransient("internal", "create session").WithCause(err), req.ID,
+		)
 	}
 
 	s.emit(req.ID, UserRegisteredEvent{
@@ -97,12 +100,14 @@ func (s *Service) classifyDispatchError(err error, userID UserID) error {
 	case event.Conflict:
 		return withUserIDContext(
 			event.NewRejection("usermgmt.user_id_exists", "user ID already exists").
-				WithCause(ErrUserIDExists), userID)
+				WithCause(ErrUserIDExists), userID,
+		)
 	case event.Rejection:
 		return err
 	default:
 		return withUserIDContext(
-			event.NewTransient("internal", "dispatch command").WithCause(err), userID)
+			event.NewTransient("internal", "dispatch command").WithCause(err), userID,
+		)
 	}
 }
 

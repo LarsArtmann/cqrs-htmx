@@ -64,7 +64,10 @@ func TestFoldUser_EmailChanged(t *testing.T) {
 
 func TestFoldUser_DisplayNameChanged(t *testing.T) {
 	initial := UserState{Email: "d@example.com", DisplayName: "Old", Roles: []Role{RoleUser}}
-	state, err := foldUser(initial, makeEvent(t, eventDisplayNameChanged, 2, DisplayNameChangedPayload{DisplayName: "New Name"}))
+	state, err := foldUser(
+		initial,
+		makeEvent(t, eventDisplayNameChanged, 2, DisplayNameChangedPayload{DisplayName: "New Name"}),
+	)
 	if err != nil {
 		t.Fatalf("foldUser: %v", err)
 	}
@@ -114,7 +117,10 @@ func TestFoldUser_CredentialRemoved(t *testing.T) {
 			{ID: []byte{4, 5, 6}},
 		},
 	}
-	state, err := foldUser(initial, makeEvent(t, eventCredentialRemoved, 2, CredentialRemovedPayload{ID: []byte{1, 2, 3}}))
+	state, err := foldUser(
+		initial,
+		makeEvent(t, eventCredentialRemoved, 2, CredentialRemovedPayload{ID: []byte{1, 2, 3}}),
+	)
 	if err != nil {
 		t.Fatalf("foldUser: %v", err)
 	}

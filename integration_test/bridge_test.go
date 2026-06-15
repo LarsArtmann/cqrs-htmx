@@ -49,8 +49,8 @@ func TestUsermgmtBridge_FullRegisterAuthCycle(t *testing.T) {
 	ctx := context.Background()
 
 	reg, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:       usermgmt.NewUserID(uid.String()),
-		Email:    "cycle@test.com",
+		ID:    usermgmt.NewUserID(uid.String()),
+		Email: "cycle@test.com",
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)

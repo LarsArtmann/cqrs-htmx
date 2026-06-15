@@ -84,11 +84,19 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 
 // RegisterRoutes registers the auth endpoints on the given ServeMux:
 //
-//	POST /auth/register — create account
-//	POST /auth/logout   — clear session
-//	GET  /auth/me       — return current user
+//	POST /auth/register              — create account (email only, no password)
+//	POST /auth/webauthn/register/begin  — begin passkey registration
+//	POST /auth/webauthn/register/finish — finish passkey registration
+//	POST /auth/webauthn/login/begin     — begin passkey login
+//	POST /auth/webauthn/login/finish    — finish passkey login
+//	POST /auth/logout                    — clear session
+//	GET  /auth/me                        — return current user
 func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/register", h.handleRegister)
+	mux.HandleFunc("POST /auth/webauthn/register/begin", h.handleWebAuthnBeginRegistration)
+	mux.HandleFunc("POST /auth/webauthn/register/finish", h.handleWebAuthnFinishRegistration)
+	mux.HandleFunc("POST /auth/webauthn/login/begin", h.handleWebAuthnBeginLogin)
+	mux.HandleFunc("POST /auth/webauthn/login/finish", h.handleWebAuthnFinishLogin)
 	mux.HandleFunc("POST /auth/logout", h.handleLogout)
 	mux.HandleFunc("GET /auth/me", h.handleMe)
 }
@@ -105,7 +113,11 @@ func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 
 	var regReq RegisterRequest
 	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&regReq); err != nil {
-		writeError(w, http.StatusBadRequest, fmt.Errorf("%w: unmarshal register request: %w", ErrValidation, err).Error())
+		writeError(
+			w,
+			http.StatusBadRequest,
+			fmt.Errorf("%w: unmarshal register request: %w", ErrValidation, err).Error(),
+		)
 		return
 	}
 	resp, err := h.service.Register(ctx, regReq)
@@ -198,7 +210,9 @@ func errorStatus(err error) int {
 	switch {
 	case errors.Is(err, ErrInvalidCredentials),
 		errors.Is(err, ErrUnauthorized),
-		errors.Is(err, ErrSessionExpired):
+		errors.Is(err, ErrSessionExpired),
+		errors.Is(err, ErrSessionDataNotFound),
+		errors.Is(err, ErrWebAuthnNotConfigured):
 		return http.StatusUnauthorized
 	case errors.Is(err, ErrEmailExists):
 		return http.StatusConflict
@@ -210,7 +224,8 @@ func errorStatus(err error) int {
 		return http.StatusForbidden
 	case errors.Is(err, ErrUserNotFound),
 		errors.Is(err, ErrSessionNotFound),
-		errors.Is(err, ErrUserIDExists):
+		errors.Is(err, ErrUserIDExists),
+		errors.Is(err, ErrNoCredentials):
 		return http.StatusNotFound
 	default:
 		return http.StatusInternalServerError

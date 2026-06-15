@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -31,6 +32,8 @@ type Service struct {
 	eventHandler     EventHandler
 	bus              event.Bus
 	store            event.Store
+	webauthn         *webauthn.WebAuthn
+	webauthnSessions *webauthnSessionStore
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -52,6 +55,8 @@ type ServiceConfig struct {
 	Lockout *AccountLockout
 	// EventHandler, if provided, is called after successful domain operations.
 	EventHandler EventHandler
+	// WebAuthnConfig configures passwordless authentication. Required for login.
+	WebAuthnConfig *WebAuthnConfig
 }
 
 // NewService creates a Service from the given config, applying defaults for nil/zero fields.
@@ -132,6 +137,19 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		eventHandler:     cfg.EventHandler,
 		bus:              bus,
 		store:            store,
+	}
+
+	if cfg.WebAuthnConfig != nil {
+		wa, err := webauthn.New(&webauthn.Config{
+			RPID:          cfg.WebAuthnConfig.RPID,
+			RPDisplayName: cfg.WebAuthnConfig.RPDisplayName,
+			RPOrigins:     cfg.WebAuthnConfig.RPOrigins,
+		})
+		if err != nil {
+			return nil, event.NewTransient("internal", "create webauthn instance").WithCause(err)
+		}
+		svc.webauthn = wa
+		svc.webauthnSessions = newWebAuthnSessionStore()
 	}
 
 	if cfg.EventHandler != nil {
