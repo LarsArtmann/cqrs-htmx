@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
@@ -22,7 +23,7 @@ type CasbinProjection struct {
 // The Authz instance is used directly — callers must ensure it's initialized.
 func NewCasbinProjection(authz *Authz) (*CasbinProjection, error) {
 	if authz == nil {
-		return nil, fmt.Errorf("NewCasbinProjection: authz is nil")
+		return nil, errors.New("NewCasbinProjection: authz is nil")
 	}
 	return &CasbinProjection{authz: authz, hasOwnAuthz: false}, nil
 }

@@ -9,114 +9,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-// UserStore is the persistence interface for User aggregates.
-type UserStore interface {
-	FindByID(ctx context.Context, id UserID) (*User, error)
-	FindByEmail(ctx context.Context, email string) (*User, error)
-	Save(ctx context.Context, user *User) error
-	Create(ctx context.Context, user *User) error
-	Delete(ctx context.Context, id UserID) error
-}
-
 // SessionStore is the persistence interface for Session entities.
 type SessionStore interface {
 	Create(ctx context.Context, userID UserID, ttl time.Duration) (*Session, error)
 	Find(ctx context.Context, token string) (*Session, error)
 	Delete(ctx context.Context, token string) error
 	DeleteByUserID(ctx context.Context, userID UserID) error
-}
-
-// InMemoryUserStore is a thread-safe, in-memory implementation of UserStore.
-// It maintains an email index for O(1) lookups by email.
-//
-// Warning: Not suitable for production. Data is lost on process restart and memory
-// grows unbounded as users are added. Use a persistent store (SQL, etc.) in production.
-type InMemoryUserStore struct {
-	mu     sync.RWMutex
-	users  map[UserID]*User
-	emails map[string]UserID
-}
-
-// NewInMemoryUserStore creates an empty InMemoryUserStore.
-func NewInMemoryUserStore() *InMemoryUserStore {
-	return &InMemoryUserStore{
-		users:  make(map[UserID]*User),
-		emails: make(map[string]UserID),
-	}
-}
-
-// FindByID returns the user with the given ID, or ErrUserNotFound.
-func (s *InMemoryUserStore) FindByID(_ context.Context, id UserID) (*User, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	u, ok := s.users[id]
-	if !ok {
-		return nil, ErrUserNotFound
-	}
-	return u.Clone(), nil
-}
-
-// FindByEmail returns the user with the given email, or ErrUserNotFound.
-func (s *InMemoryUserStore) FindByEmail(_ context.Context, email string) (*User, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	id, ok := s.emails[email]
-	if !ok {
-		return nil, ErrUserNotFound
-	}
-	return s.users[id].Clone(), nil
-}
-
-// Save updates an existing user. It returns ErrEmailExists if another user
-// already claims the email.
-func (s *InMemoryUserStore) Save(_ context.Context, user *User) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for email, id := range s.emails {
-		if id == user.ID && email != user.Email {
-			delete(s.emails, email)
-		}
-	}
-	if otherID, taken := s.emails[user.Email]; taken && otherID != user.ID {
-		return ErrEmailExists
-	}
-	s.users[user.ID] = user.Clone()
-	s.emails[user.Email] = user.ID
-	return nil
-}
-
-// Create atomically inserts a new user. It returns ErrEmailExists if the email
-// is already taken, or an error if the user ID already exists.
-func (s *InMemoryUserStore) Create(_ context.Context, user *User) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if _, ok := s.emails[user.Email]; ok {
-		return ErrEmailExists
-	}
-	if _, ok := s.users[user.ID]; ok {
-		return ErrUserIDExists
-	}
-	s.users[user.ID] = user.Clone()
-	s.emails[user.Email] = user.ID
-	return nil
-}
-
-// Delete removes the user and its email index entry.
-func (s *InMemoryUserStore) Delete(_ context.Context, id UserID) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if u, ok := s.users[id]; ok {
-		delete(s.emails, u.Email)
-	}
-	delete(s.users, id)
-	return nil
-}
-
-// Count returns the number of stored users.
-func (s *InMemoryUserStore) Count() int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return len(s.users)
 }
 
 // InMemorySessionStore is a thread-safe, in-memory implementation of SessionStore.
@@ -197,11 +95,4 @@ func (s *InMemorySessionStore) EvictExpired() int {
 		}
 	}
 	return evicted
-}
-
-// Count returns the number of active sessions.
-func (s *InMemorySessionStore) Count() int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return len(s.sessions)
 }

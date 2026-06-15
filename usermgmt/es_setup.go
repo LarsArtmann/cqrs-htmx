@@ -1,6 +1,8 @@
 package usermgmt
 
 import (
+	"fmt"
+
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
@@ -40,7 +42,7 @@ func DefaultEventSourcedSetup() (*EventSourcedSetup, error) {
 	repo, err := decider.NewRepository(store, bus, UserDecider())
 	if err != nil {
 		_ = bus.Close()
-		return nil, err
+		return nil, fmt.Errorf("create decider repository: %w", err)
 	}
 
 	readModel := NewUserReadModel()
