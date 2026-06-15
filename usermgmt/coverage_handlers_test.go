@@ -41,8 +41,6 @@ func TestHandlers_Register_WithCustomSessionMaxAge(t *testing.T) {
 	registerWithSessionMaxAge(t, "sma1", "sma@test.com", 7200)
 }
 
-
-
 // assertValidationBadRequest POSTs a JSON body to the given path and asserts
 // the handler returns 400. Used by validation-error coverage tests.
 func assertValidationBadRequest(t *testing.T, path, body string) {
@@ -53,7 +51,6 @@ func assertValidationBadRequest(t *testing.T, path, body string) {
 		t.Errorf("expected 400 for validation error, got %d", w.Code)
 	}
 }
-
 
 func TestHandlers_Logout_Success(t *testing.T) {
 	svc, mux := setupMux(t)

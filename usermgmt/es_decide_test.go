@@ -146,7 +146,7 @@ func TestDecideAddCredential_Duplicate(t *testing.T) {
 		ID: []byte{1, 2, 3},
 	})
 	state := UserState{
-		Email: "u@example.com",
+		Email:       "u@example.com",
 		Credentials: []WebAuthnCredential{{ID: []byte{1, 2, 3}}},
 	}
 	events, err := decide(state, 1)
@@ -161,7 +161,7 @@ func TestDecideAddCredential_Duplicate(t *testing.T) {
 func TestDecideRemoveCredential_Success(t *testing.T) {
 	decide := decideRemoveCredential(id.NewAggregateID(), []byte{1, 2, 3})
 	state := UserState{
-		Email: "u@example.com",
+		Email:       "u@example.com",
 		Credentials: []WebAuthnCredential{{ID: []byte{1, 2, 3}}},
 	}
 	events, err := decide(state, 1)
@@ -179,7 +179,7 @@ func TestDecideRemoveCredential_Success(t *testing.T) {
 func TestDecideRemoveCredential_NotFound(t *testing.T) {
 	decide := decideRemoveCredential(id.NewAggregateID(), []byte{9, 9, 9})
 	state := UserState{
-		Email: "u@example.com",
+		Email:       "u@example.com",
 		Credentials: []WebAuthnCredential{{ID: []byte{1, 2, 3}}},
 	}
 	events, err := decide(state, 1)

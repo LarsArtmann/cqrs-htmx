@@ -76,8 +76,8 @@ func (c *DeleteUserCmd) Type() command.Type          { return cmdDeleteUser }
 func (c *DeleteUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 type AddCredentialCmd struct {
-	aggregateID     id.AggregateID
-	credential      WebAuthnCredential
+	aggregateID id.AggregateID
+	credential  WebAuthnCredential
 }
 
 func NewAddCredentialCmd(aggID id.AggregateID, cred WebAuthnCredential) *AddCredentialCmd {

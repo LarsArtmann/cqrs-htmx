@@ -15,7 +15,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
-
 // typedCountUsersQuery is a typed query that lives in the integration_test
 // module. It demonstrates the query.RegisterTyped pattern crossing module
 // boundaries (cqrs-htmx + usermgmt + go-cqrs-lite/query).
@@ -101,8 +100,8 @@ func TestTypedQueryDispatch_CrossModule(t *testing.T) {
 		t.Helper()
 		uid := cqrshtmx.NewUserID()
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
-			ID:       usermgmt.NewUserID(uid.String()),
-			Email:    email,
+			ID:    usermgmt.NewUserID(uid.String()),
+			Email: email,
 		}); err != nil {
 			t.Fatalf("Register %s: %v", email, err)
 		}
