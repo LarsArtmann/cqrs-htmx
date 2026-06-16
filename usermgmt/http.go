@@ -121,6 +121,15 @@ const (
 	defaultCookieName = "session_token"
 	contentTypeJSON   = "application/json; charset=utf-8"
 	statusKey         = "status"
+
+	statusLoggedOut         = "logged_out"
+	statusRegistered        = "registered"
+	statusRemoved           = "removed"
+	statusVerified          = "verified"
+	statusTOTPEnabled       = "totp_enabled"
+	statusTOTPDisabled      = "totp_disabled"
+	statusTOTPVerified      = "totp_verified"
+	statusTOTPSetupVerified = "totp_setup_verified"
 )
 
 // NewAuthHandler creates an AuthHandler for the given Service with optional config.
@@ -162,6 +171,9 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 //	GET  /auth/me                        — return current user
 //	GET  /auth/credentials               — list current user's WebAuthn credentials
 //	DELETE /auth/credentials/{id}        — remove a WebAuthn credential by base64url ID
+//
+// Verification, TOTP, and import/export routes are also registered; see
+// RegisterVerificationTOTPRoutes for the full list.
 func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/register", h.handleRegister)
 	mux.HandleFunc("POST /auth/webauthn/register/begin", h.handleWebAuthnBeginRegistration)
@@ -172,6 +184,7 @@ func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /auth/me", h.handleMe)
 	mux.HandleFunc("GET /auth/credentials", h.handleListCredentials)
 	mux.HandleFunc("DELETE /auth/credentials/{id}", h.handleDeleteCredential)
+	h.RegisterVerificationTOTPRoutes(mux)
 }
 
 const maxAuthBodySize = 1 << 20 // 1 MB
@@ -227,7 +240,7 @@ func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.clearSessionCookie(w)
-	writeJSON(w, http.StatusOK, map[string]string{statusKey: "logged_out"})
+	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusLoggedOut})
 }
 
 func (h *AuthHandler) handleMe(w http.ResponseWriter, r *http.Request) {
@@ -292,14 +305,24 @@ func errorStatus(err error) int {
 		errors.Is(err, ErrSessionDataNotFound),
 		errors.Is(err, ErrWebAuthnNotConfigured):
 		return http.StatusUnauthorized
-	case errors.Is(err, ErrEmailExists):
+	case errors.Is(err, ErrEmailExists),
+		errors.Is(err, ErrEmailAlreadyVerified),
+		errors.Is(err, ErrTOTPAlreadyEnabled):
 		return http.StatusConflict
-	case errors.Is(err, ErrValidation):
+	case errors.Is(err, ErrValidation),
+		errors.Is(err, ErrTOTPNotEnabled),
+		errors.Is(err, ErrTOTPSetupExpired),
+		errors.Is(err, ErrInvalidVerificationToken):
 		return http.StatusBadRequest
 	case errors.Is(err, ErrAccountLocked):
 		return http.StatusTooManyRequests
 	case errors.Is(err, ErrForbidden):
 		return http.StatusForbidden
+	case errors.Is(err, ErrInvalidTOTPCode):
+		return http.StatusUnauthorized
+	case errors.Is(err, ErrTOTPNotConfigured),
+		errors.Is(err, ErrEmailVerificationNotConfigured):
+		return http.StatusServiceUnavailable
 	case errors.Is(err, ErrUserNotFound),
 		errors.Is(err, ErrSessionNotFound),
 		errors.Is(err, ErrUserIDExists),

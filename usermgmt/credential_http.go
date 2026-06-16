@@ -136,5 +136,5 @@ func (h *AuthHandler) handleDeleteCredential(w http.ResponseWriter, r *http.Requ
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{statusKey: "removed"})
+	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusRemoved})
 }
