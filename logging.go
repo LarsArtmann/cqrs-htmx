@@ -52,7 +52,7 @@ func DefaultLogFormatter(r *http.Request, status int, duration time.Duration) st
 // Output format:
 //
 //	{"method":"GET","path":"/users","status":"OK","duration":"1.234ms","correlation_id":"...","user_id":"..."}
-var jsonLogBufferPool = sync.Pool{ //nolint:gochecknoglobals // pooled buffer for zero-allocation JSON logging
+var jsonLogBufferPool = sync.Pool{
 	New: func() any { return new(bytes.Buffer) },
 }
 
