@@ -5,9 +5,11 @@ import (
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha1" //nolint:gosec // G505: SHA1 required by TOTP RFC 6238
+	"crypto/subtle"
 	"encoding/base32"
 	"encoding/binary"
 	"fmt"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -41,12 +43,9 @@ type TOTPSetupResponse struct {
 	QRCodeURI string `json:"qr_code_uri"`
 }
 
-// totpState tracks per-user TOTP configuration in the aggregate state.
 // EnableTOTP generates a new TOTP secret for the user and returns the
 // setup information (secret + QR code URI). The secret is NOT yet active
 // until VerifyTOTPSetup is called with a valid code from the authenticator app.
-//
-
 func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResponse, error) {
 	if s.totpConfig == nil {
 		return nil, ErrTOTPNotConfigured
@@ -69,14 +68,15 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 		expiresAt: time.Now().Add(5 * time.Minute),
 	}
 	s.pendingTOTP.mu.Unlock()
-	account := user.Email
+	account := url.QueryEscape(user.Email)
 	issuer := s.totpConfig.Issuer
 	if issuer == "" {
 		issuer = "cqrs-htmx"
 	}
+	issuerEncoded := url.QueryEscape(issuer)
 	secretB32 := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(secret)
 	qrURI := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=SHA1&digits=%d&period=%d",
-		issuer, account, secretB32, issuer, TOTPDigits, int(TOTPTimeStep.Seconds()))
+		issuerEncoded, account, secretB32, issuerEncoded, TOTPDigits, int(TOTPTimeStep.Seconds()))
 	return &TOTPSetupResponse{
 		Secret:    secretB32,
 		QRCodeURI: qrURI,
@@ -169,7 +169,8 @@ func validateTOTP(secret []byte, code string, window int) bool {
 	now := time.Now().Unix()
 	for i := -window; i <= window; i++ {
 		counter := (now + int64(i*int(TOTPTimeStep.Seconds()))) / int64(TOTPTimeStep.Seconds())
-		if generateTOTPCode(secret, counter) == code {
+		expected := generateTOTPCode(secret, counter)
+		if subtle.ConstantTimeCompare([]byte(expected), []byte(code)) == 1 {
 			return true
 		}
 	}

@@ -185,6 +185,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Deleted:       state.Deleted,
 			DeleteReason:  state.DeleteReason,
 			EmailVerified: true,
+			TOTPEnabled:   state.TOTPEnabled,
+			TOTPSecret:    state.TOTPSecret,
 		}, nil
 
 	case eventTOTPEnabled:

@@ -46,6 +46,7 @@ func NewUser(id UserID, email, displayName string) *User {
 }
 
 // Clone returns a deep copy of the user.
+// All slice and byte-array fields are independently allocated.
 func (u *User) Clone() *User {
 	if u == nil {
 		return nil
@@ -55,6 +56,7 @@ func (u *User) Clone() *User {
 	copy(cp.Roles, u.Roles)
 	cp.Credentials = make([]WebAuthnCredential, len(u.Credentials))
 	copy(cp.Credentials, u.Credentials)
+	cp.TOTPSecret = append([]byte(nil), u.TOTPSecret...)
 	return &cp
 }
 
