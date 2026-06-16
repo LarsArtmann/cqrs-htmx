@@ -94,7 +94,7 @@ func BenchmarkServerCommandDispatch(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 	}
 }
 
@@ -112,7 +112,7 @@ func BenchmarkServerHealthHandler(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 	}
 }
 
