@@ -17,7 +17,7 @@ func newTestSQLiteStore(t *testing.T) *SQLEventStore {
 		t.Fatalf("open sqlite: %v", err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
-	store, err := NewSQLEventStore(db, "sqlite")
+	store, err := NewSQLEventStore(context.Background(), db, "sqlite")
 	if err != nil {
 		t.Fatalf("NewSQLEventStore: %v", err)
 	}
@@ -154,18 +154,7 @@ func TestSQLEventStore_ReadAll(t *testing.T) {
 func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
-
-	p1, _ := marshalPayload(UserRegisteredPayload{SchemaVersion: currentSchemaVersion, Email: "v@test.com"})
-	p2, _ := marshalPayload(EmailChangedPayload{SchemaVersion: currentSchemaVersion, Email: "new@test.com"})
-	p3, _ := marshalPayload(DisplayNameChangedPayload{SchemaVersion: currentSchemaVersion, DisplayName: "New"})
-
-	evt1, _ := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, p1)
-	evt2, _ := event.NewEvent(eventEmailChanged, aggID, aggregateTypeUser, 2, p2)
-	evt3, _ := event.NewEvent(eventDisplayNameChanged, aggID, aggregateTypeUser, 3, p3)
-
-	store.AppendBatch(ctx, ref, []event.Event{evt1, evt2, evt3})
+	ref := appendThreeTestEvents(t, store, ctx)
 
 	fromV1, err := store.LoadFromVersion(ctx, ref, 1)
 	if err != nil {
@@ -179,18 +168,7 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 func TestSQLEventStore_LoadToVersion(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
-
-	p1, _ := marshalPayload(UserRegisteredPayload{SchemaVersion: currentSchemaVersion, Email: "tv@test.com"})
-	p2, _ := marshalPayload(EmailChangedPayload{SchemaVersion: currentSchemaVersion, Email: "new@test.com"})
-	p3, _ := marshalPayload(DisplayNameChangedPayload{SchemaVersion: currentSchemaVersion, DisplayName: "New"})
-
-	evt1, _ := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, p1)
-	evt2, _ := event.NewEvent(eventEmailChanged, aggID, aggregateTypeUser, 2, p2)
-	evt3, _ := event.NewEvent(eventDisplayNameChanged, aggID, aggregateTypeUser, 3, p3)
-
-	store.AppendBatch(ctx, ref, []event.Event{evt1, evt2, evt3})
+	ref := appendThreeTestEvents(t, store, ctx)
 
 	toV2, err := store.LoadToVersion(ctx, ref, 2)
 	if err != nil {
@@ -199,6 +177,32 @@ func TestSQLEventStore_LoadToVersion(t *testing.T) {
 	if len(toV2) != 2 {
 		t.Fatalf("expected 2 events to version 2, got %d", len(toV2))
 	}
+}
+
+// appendThreeTestEvents inserts a registered → email-changed → display-name-changed
+// sequence and returns the aggregate ref. Shared by the LoadFromVersion and
+// LoadToVersion tests to avoid duplication.
+func appendThreeTestEvents(
+	t *testing.T,
+	store *SQLEventStore,
+	ctx context.Context,
+) event.AggregateRef {
+	t.Helper()
+	aggID := id.NewAggregateID()
+	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
+
+	p1, _ := marshalPayload(UserRegisteredPayload{SchemaVersion: currentSchemaVersion, Email: "v@test.com"})
+	p2, _ := marshalPayload(EmailChangedPayload{SchemaVersion: currentSchemaVersion, Email: "new@test.com"})
+	p3, _ := marshalPayload(DisplayNameChangedPayload{SchemaVersion: currentSchemaVersion, DisplayName: "New"})
+
+	evt1, _ := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, p1)
+	evt2, _ := event.NewEvent(eventEmailChanged, aggID, aggregateTypeUser, 2, p2)
+	evt3, _ := event.NewEvent(eventDisplayNameChanged, aggID, aggregateTypeUser, 3, p3)
+
+	if err := store.AppendBatch(ctx, ref, []event.Event{evt1, evt2, evt3}); err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+	return ref
 }
 
 func TestSQLEventStore_EmptyAggregate(t *testing.T) {
@@ -219,7 +223,7 @@ func TestSQLEventStore_EmptyAggregate(t *testing.T) {
 func TestSQLEventStore_UnsupportedDialect(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer func() { _ = db.Close() }()
-	_, err := NewSQLEventStore(db, "oracle")
+	_, err := NewSQLEventStore(context.Background(), db, "oracle")
 	if err == nil {
 		t.Fatal("expected error for unsupported dialect")
 	}

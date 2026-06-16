@@ -84,7 +84,7 @@ func BenchmarkServerCommandDispatch(b *testing.B) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 5 * time.Second} //nolint:exhaustruct // benchmark-only client
 	body := strings.NewReader(`{}`)
 
 	b.ResetTimer()
@@ -94,7 +94,7 @@ func BenchmarkServerCommandDispatch(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 	}
 }
 
@@ -104,7 +104,7 @@ func BenchmarkServerHealthHandler(b *testing.B) {
 	server := httptest.NewServer(app.HealthHandler())
 	defer server.Close()
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 5 * time.Second} //nolint:exhaustruct // benchmark-only client
 
 	b.ResetTimer()
 	for b.Loop() {
@@ -112,7 +112,7 @@ func BenchmarkServerHealthHandler(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 	}
 }
 
