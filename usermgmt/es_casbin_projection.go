@@ -25,7 +25,7 @@ func NewCasbinProjection(authz *Authz) (*CasbinProjection, error) {
 	return &CasbinProjection{authz: authz}, nil
 }
 
-func (p *CasbinProjection) Name() string  { return "casbin-projection" }
+func (p *CasbinProjection) Name() string { return "casbin-projection" }
 
 func (p *CasbinProjection) EventTypes() []event.Type {
 	return []event.Type{eventUserRegistered, eventRolesUpdated, eventUserDeleted}
@@ -67,7 +67,7 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 			if err := p.authz.RemoveGroupPolicy(GroupPolicy{
 				Subject: subject, Role: r, Domain: domain,
 			}); err != nil {
-			return fmt.Errorf("remove old role %s for %s: %w", r, subject, err)
+				return fmt.Errorf("remove old role %s for %s: %w", r, subject, err)
 			}
 		}
 		for _, role := range d.Roles {

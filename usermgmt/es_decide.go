@@ -221,4 +221,3 @@ func decideRemoveCredential(
 		return []event.Event{evt}, nil
 	}
 }
-

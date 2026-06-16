@@ -144,7 +144,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	}
 
 	waUser := &webauthnUser{user: user}
-	credential, err := s.webauthn.FinishLogin(
+	_, err = s.webauthn.FinishLogin(
 		waUser,
 		*session,
 		r,
@@ -155,13 +155,6 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	}
 
 	s.webauthnSessions.Delete(sessionKey)
-
-	for i := range user.Credentials {
-		if fmt.Sprintf("%x", user.Credentials[i].ID) == fmt.Sprintf("%x", credential.ID) {
-			user.Credentials[i].SignCount = credential.Authenticator.SignCount
-			break
-		}
-	}
 
 	sess, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
