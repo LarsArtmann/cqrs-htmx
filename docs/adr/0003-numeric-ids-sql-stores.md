@@ -1,7 +1,7 @@
 # ADR 0003: Numeric IDs for SQL Store Backends
 
 **Date:** 2026-05-23
-**Status:** Proposed
+**Status:** Superseded — UserStore interface removed; usermgmt is now event-sourced (see ADR 0006). Numeric ID strategy remains valid for future SQL event store implementations.
 
 ## Context
 
