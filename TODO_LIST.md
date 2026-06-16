@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-14 | **Coverage:** 96.0% root, 90.0% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v2.1.0
+**Updated:** 2026-06-16 | **Coverage:** 96.0% root, 86.2% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v2.1.0
 
 ## Status Legend
 
@@ -12,6 +12,34 @@
 ---
 
 ## Open Items
+
+### Passwordless Event-Sourced Migration (2026-06-16)
+
+- [x] **Wire AccountLockout into BeginLogin/FinishLogin** — Lockout checked on begin; failures recorded on finish; reset on success.
+- [x] **Add credential management HTTP endpoints** — GET /auth/credentials + DELETE /auth/credentials/{id}.
+- [x] **WebAuthn session proactive eviction** — Background goroutine with Service.Stop() cleanup.
+- [x] **CasbinProjection subscribes to credential events** — Ordering guarantee without policy changes.
+- [x] **Eliminate production panics** — marshalPayload and aggIDFromUser return errors.
+- [x] **RegisterCommands returns error** — No more silently ignored registration failures.
+- [x] **Log bus.Subscribe failures** — Event bridge errors logged at warn level.
+- [x] **Log projection runner errors** — Background projection errors logged at error level.
+- [x] **Refactor WebAuthn HTTP body parsing** — Query params instead of fragile double body read.
+- [x] **Fix goroutine leak in tests** — t.Cleanup(svc.Stop) for all WebAuthn test services.
+- [x] **Remove stale password references** — All test helpers updated for passwordless API.
+- [x] **Fix lint warnings** — gosec G101, perfsprint, wrapcheck, exhaustruct, gci all clean.
+- [x] **Fill DOMAIN_LANGUAGE.md** — All domain terms defined.
+- [x] **Update README.md architecture** — Correct file names, remove stale references.
+- [x] **Update CHANGELOG.md** — Comprehensive Unreleased entries.
+
+### Future Work
+
+- [ ] **SQL event store** — Postgres/SQLite event persistence for production use
+- [ ] **OAuth2/OIDC integration** — Social login as alternative to WebAuthn
+- [ ] **Event schema versioning** — Version field on events for future migrations
+- [ ] **CSRF protection on WebAuthn endpoints** — Not wired by default
+- [ ] **Rate limiting on WebAuthn endpoints** — Not wired by default
+- [ ] **Property-based testing for foldUser** — Verify fold invariants
+- [ ] **Integration test: full WebAuthn flow** — End-to-end via virtual authenticator
 
 ### Security & Correctness (Pre-v2.2.0)
 
