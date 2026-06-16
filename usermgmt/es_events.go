@@ -34,6 +34,7 @@ type CredentialAddedPayload struct {
 	AttestationType string   `json:"attestation_type"`
 	Transports      []string `json:"transports,omitempty"`
 	AAGUID          []byte   `json:"aaguid,omitempty"`
+	SignCount       uint32   `json:"sign_count"`
 	BackupEligible  bool     `json:"backup_eligible"`
 	BackupState     bool     `json:"backup_state"`
 	Name            string   `json:"name,omitempty"`

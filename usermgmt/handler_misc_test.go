@@ -40,7 +40,7 @@ func TestErrorStatus_Default(t *testing.T) {
 }
 
 func TestUserFromContext_Nil(t *testing.T) {
-	user, ok := UserFromContext(context.TODO())
+	user, ok := UserFromContext(context.Background())
 	if ok || user != nil {
 		t.Error("expected nil/false from empty context")
 	}
@@ -48,7 +48,7 @@ func TestUserFromContext_Nil(t *testing.T) {
 
 func TestUserFromContextOr_Fallback(t *testing.T) {
 	fallback := &User{ID: NewUserID("fallback")}
-	result := UserFromContextOr(context.TODO(), fallback)
+	result := UserFromContextOr(context.Background(), fallback)
 	if result != fallback {
 		t.Error("expected fallback")
 	}
