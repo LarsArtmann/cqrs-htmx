@@ -20,22 +20,25 @@ const (
 // Service orchestrates user registration, authentication, authorization, and session management
 // using event-sourced CQRS under the hood.
 type Service struct {
-	repository           *decider.Repository[UserState]
-	dispatcher           *command.Dispatcher
-	readModel            *UserReadModel
-	casbinProjection     *CasbinProjection
-	authz                *Authz
-	sessions             SessionStore
-	sessionTTL           time.Duration
-	logger               *slog.Logger
-	lockout              *AccountLockout
-	eventHandler         EventHandler
-	bus                  event.Bus
-	store                event.Store
-	webauthn             *webauthn.WebAuthn
-	webauthnSessions     *webauthnSessionStore
-	stopWebAuthnEviction func()
-	auditLog             *AuditLog
+	repository            *decider.Repository[UserState]
+	dispatcher            *command.Dispatcher
+	readModel             *UserReadModel
+	casbinProjection      *CasbinProjection
+	authz                 *Authz
+	sessions              SessionStore
+	sessionTTL            time.Duration
+	logger                *slog.Logger
+	lockout               *AccountLockout
+	eventHandler          EventHandler
+	bus                   event.Bus
+	store                 event.Store
+	webauthn              *webauthn.WebAuthn
+	webauthnSessions      *webauthnSessionStore
+	stopWebAuthnEviction  func()
+	auditLog              *AuditLog
+	verificationTokens    *verificationTokenStore
+	verificationTTL       time.Duration
+	sendVerificationEmail SendVerificationEmailFunc
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -62,6 +65,9 @@ type ServiceConfig struct {
 	// AuditLog, if provided, is registered as a projection to record all
 	// user-related events for compliance and security monitoring.
 	AuditLog *AuditLog
+	// EmailVerification, if provided, enables the email verification flow.
+	// When nil, SendVerificationEmail and VerifyEmail return ErrEmailVerificationNotConfigured.
+	EmailVerification *EmailVerificationConfig
 }
 
 // NewService creates a Service from the given config, applying defaults for nil/zero fields.
@@ -161,6 +167,15 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.webauthn = wa
 		svc.webauthnSessions = newWebAuthnSessionStore()
 		svc.stopWebAuthnEviction = svc.webauthnSessions.startEviction()
+	}
+
+	if cfg.EmailVerification != nil {
+		svc.verificationTokens = newVerificationTokenStore()
+		svc.verificationTTL = cfg.EmailVerification.TokenTTL
+		if svc.verificationTTL == 0 {
+			svc.verificationTTL = VerificationTokenTTL
+		}
+		svc.sendVerificationEmail = cfg.EmailVerification.SendEmail
 	}
 
 	if cfg.EventHandler != nil {

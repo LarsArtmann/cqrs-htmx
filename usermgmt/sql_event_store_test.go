@@ -184,9 +184,9 @@ func appendThreeTestEvents(
 	aggID := id.NewAggregateID()
 	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
 
-	p1, _ := marshalPayload(UserRegisteredPayload{SchemaVersion: currentSchemaVersion, Email: "v@test.com"})
-	p2, _ := marshalPayload(EmailChangedPayload{SchemaVersion: currentSchemaVersion, Email: "new@test.com"})
-	p3, _ := marshalPayload(DisplayNameChangedPayload{SchemaVersion: currentSchemaVersion, DisplayName: "New"})
+	p1, _ := marshalPayload(UserRegisteredPayload{Email: "v@test.com"})
+	p2, _ := marshalPayload(EmailChangedPayload{Email: "new@test.com"})
+	p3, _ := marshalPayload(DisplayNameChangedPayload{DisplayName: "New"})
 	evt1, _ := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, p1)
 	evt2, _ := event.NewEvent(eventEmailChanged, aggID, aggregateTypeUser, 2, p2)
 	evt3, _ := event.NewEvent(eventDisplayNameChanged, aggID, aggregateTypeUser, 3, p3)

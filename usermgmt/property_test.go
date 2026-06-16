@@ -39,9 +39,8 @@ func TestFoldUserProperty_RegistrationSetsEmail(t *testing.T) {
 		roles := rapid.SliceOfN(rapidRole(), 1, 4).Draw(t, "roles")
 
 		evt := mustPropEvent(eventUserRegistered, 1, UserRegisteredPayload{
-			SchemaVersion: currentSchemaVersion,
-			Email:         email,
-			Roles:         roles,
+			Email: email,
+			Roles: roles,
 		})
 		state, err := foldUser(UserState{}, evt)
 		if err != nil {
@@ -69,8 +68,7 @@ func TestFoldUserProperty_EmailChangedPreservesRoles(t *testing.T) {
 		newEmail := rapidEmail().Draw(t, "newEmail")
 
 		evt := mustPropEvent(eventEmailChanged, 2, EmailChangedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Email:         newEmail,
+			Email: newEmail,
 		})
 		state, err := foldUser(initial, evt)
 		if err != nil {
@@ -92,8 +90,7 @@ func TestFoldUserProperty_DisplayNameChangedPreservesEmail(t *testing.T) {
 		newName := rapid.StringN(1, 50, 50).Draw(t, "displayName")
 
 		evt := mustPropEvent(eventDisplayNameChanged, 2, DisplayNameChangedPayload{
-			SchemaVersion: currentSchemaVersion,
-			DisplayName:   newName,
+			DisplayName: newName,
 		})
 		state, err := foldUser(initial, evt)
 		if err != nil {
@@ -117,8 +114,7 @@ func TestFoldUserProperty_DeletedSetsTombstone(t *testing.T) {
 		reason := rapid.StringN(0, 100, 100).Draw(t, "reason")
 
 		evt := mustPropEvent(eventUserDeleted, 2, UserDeletedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Reason:        reason,
+			Reason: reason,
 		})
 		state, err := foldUser(initial, evt)
 		if err != nil {
@@ -143,7 +139,6 @@ func TestFoldUserProperty_CredentialAddRemoveRoundTrip(t *testing.T) {
 		credID := rapid.SliceOfN(rapid.Byte(), 16, 32).Draw(t, "credID")
 
 		addEvt := mustPropEvent(eventCredentialAdded, 2, CredentialAddedPayload{
-			SchemaVersion:  currentSchemaVersion,
 			ID:             credID,
 			PublicKey:      []byte{0x01, 0x02},
 			SignCount:      42,
@@ -161,8 +156,7 @@ func TestFoldUserProperty_CredentialAddRemoveRoundTrip(t *testing.T) {
 		}
 
 		removeEvt := mustPropEvent(eventCredentialRemoved, 3, CredentialRemovedPayload{
-			SchemaVersion: currentSchemaVersion,
-			ID:            credID,
+			ID: credID,
 		})
 		removed, err := foldUser(added, removeEvt)
 		if err != nil {
@@ -181,9 +175,8 @@ func TestFoldUserProperty_RolesUpdatedPreservesEmail(t *testing.T) {
 		newRoles := rapid.SliceOfN(rapidRole(), 1, 3).Draw(t, "newRoles")
 
 		evt := mustPropEvent(eventRolesUpdated, 2, RolesUpdatedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Roles:         newRoles,
-			Domain:        "test",
+			Roles:  newRoles,
+			Domain: "test",
 		})
 		state, err := foldUser(initial, evt)
 		if err != nil {
@@ -231,10 +224,9 @@ func TestFoldUserProperty_Idempotency(t *testing.T) {
 		displayName := rapid.StringN(1, 50, 50).Draw(t, "displayName")
 
 		evt := mustPropEvent(eventUserRegistered, 1, UserRegisteredPayload{
-			SchemaVersion: currentSchemaVersion,
-			Email:         email,
-			DisplayName:   displayName,
-			Roles:         []Role{RoleUser},
+			Email:       email,
+			DisplayName: displayName,
+			Roles:       []Role{RoleUser},
 		})
 		s1, err := foldUser(UserState{}, evt)
 		if err != nil {

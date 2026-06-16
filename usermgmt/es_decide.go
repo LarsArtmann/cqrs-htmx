@@ -25,10 +25,9 @@ func decideRegisterUser(
 		rolesCopy := make([]Role, len(roles))
 		copy(rolesCopy, roles)
 		payload, err := marshalPayload(UserRegisteredPayload{
-			SchemaVersion: currentSchemaVersion,
-			Email:         email,
-			DisplayName:   displayName,
-			Roles:         rolesCopy,
+			Email:       email,
+			DisplayName: displayName,
+			Roles:       rolesCopy,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("marshal UserRegistered payload: %w", err)
@@ -61,9 +60,8 @@ func decideUpdateRoles(
 		rolesCopy := make([]Role, len(roles))
 		copy(rolesCopy, roles)
 		payload, err := marshalPayload(RolesUpdatedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Roles:         rolesCopy,
-			Domain:        domain,
+			Roles:  rolesCopy,
+			Domain: domain,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("marshal RolesUpdated payload: %w", err)
@@ -97,8 +95,7 @@ func decideChangeEmail(
 			return nil, nil
 		}
 		payload, err := marshalPayload(EmailChangedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Email:         email,
+			Email: email,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("marshal EmailChanged payload: %w", err)
@@ -132,8 +129,7 @@ func decideChangeDisplayName(
 			return nil, nil
 		}
 		payload, err := marshalPayload(DisplayNameChangedPayload{
-			SchemaVersion: currentSchemaVersion,
-			DisplayName:   displayName,
+			DisplayName: displayName,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("marshal DisplayNameChanged payload: %w", err)
@@ -163,8 +159,7 @@ func decideDeleteUser(
 				"user is already deleted")
 		}
 		payload, err := marshalPayload(UserDeletedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Reason:        reason,
+			Reason: reason,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("marshal UserDeleted payload: %w", err)
@@ -204,7 +199,6 @@ func decideAddCredential(
 			}
 		}
 		payload, err := marshalPayload(CredentialAddedPayload{
-			SchemaVersion:   currentSchemaVersion,
 			ID:              cred.ID,
 			PublicKey:       cred.PublicKey,
 			AttestationType: cred.AttestationType,
@@ -254,8 +248,7 @@ func decideRemoveCredential(
 				"credential not found")
 		}
 		payload, err := marshalPayload(CredentialRemovedPayload{
-			SchemaVersion: currentSchemaVersion,
-			ID:            credentialID,
+			ID: credentialID,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("marshal CredentialRemoved payload: %w", err)
@@ -266,6 +259,38 @@ func decideRemoveCredential(
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create CredentialRemoved event: %w", err)
+		}
+		return []event.Event{evt}, nil
+	}
+}
+
+func decideVerifyEmail(
+	aggID id.AggregateID,
+) func(UserState, event.Version) ([]event.Event, error) {
+	return func(state UserState, version event.Version) ([]event.Event, error) {
+		if !state.Exists() {
+			return nil, event.NewRejection("usermgmt.verify_email.not_found",
+				"user does not exist")
+		}
+		if state.Deleted {
+			return nil, event.NewRejection("usermgmt.verify_email.deleted",
+				"cannot verify email of deleted user")
+		}
+		if state.EmailVerified {
+			return nil, nil
+		}
+		payload, err := marshalPayload(EmailVerifiedPayload{
+			Email: state.Email,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("marshal EmailVerified payload: %w", err)
+		}
+		evt, err := event.NewEvent(
+			eventEmailVerified, aggID, aggregateTypeUser, version.Increment(),
+			payload,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create EmailVerified event: %w", err)
 		}
 		return []event.Event{evt}, nil
 	}

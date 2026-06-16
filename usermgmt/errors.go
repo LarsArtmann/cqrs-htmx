@@ -51,4 +51,22 @@ var (
 		"usermgmt.enforcer_not_initialized",
 		"authorization enforcer not initialized",
 	)
+	// ErrEmailVerificationNotConfigured is returned when email verification is
+	// used without being configured in ServiceConfig.
+	ErrEmailVerificationNotConfigured = event.NewRejection(
+		"usermgmt.email_verification_not_configured",
+		"email verification is not configured",
+	)
+	// ErrInvalidVerificationToken is returned when a verification token is
+	// invalid, already used, or expired.
+	ErrInvalidVerificationToken = event.NewRejection(
+		"usermgmt.invalid_verification_token",
+		"verification token is invalid or expired",
+	)
+	// ErrEmailAlreadyVerified is returned when verification is requested for
+	// an already-verified email.
+	ErrEmailAlreadyVerified = event.NewRejection(
+		"usermgmt.email_already_verified",
+		"email is already verified",
+	)
 )
