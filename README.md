@@ -139,6 +139,7 @@ app, err := cqrshtmx.New(cqrshtmx.Config{
     AfterDispatch:            afterHook,        // func(ctx, r, err) — logging, metrics
     IncludeRequestIDInErrors: true,             // prefix errors with request_id for log correlation
     MaxBodySize:              10 << 20,         // max request body (default 10 MB)
+    ServiceName:              "my-service",     // identifies the service in event metadata
 })
 ```
 
@@ -746,7 +747,7 @@ ip := cqrshtmx.ClientIP(r)
 
 ## User Management (`usermgmt`)
 
-An independent submodule with complete authentication and RBAC, built on [Casbin](https://casbin.org):
+An independent submodule with **passwordless** authentication (WebAuthn/Passkeys), event-sourced CQRS, RBAC via Casbin, and session management:
 
 ```bash
 go get github.com/larsartmann/cqrs-htmx/usermgmt
@@ -756,70 +757,92 @@ go get github.com/larsartmann/cqrs-htmx/usermgmt
 
 ```go
 import (
+    "log/slog"
+    "time"
+
     "github.com/larsartmann/cqrs-htmx/usermgmt"
 )
 
-// Create stores
-userStore := usermgmt.NewInMemoryUserStore()
-sessionStore := usermgmt.NewInMemorySessionStore()
-
-// Create RBAC engine
-authz, _ := usermgmt.NewAuthz(usermgmt.EnforcerConfig{
-    Policies: []usermgmt.Policy{
-        {Subject: "role:admin", Domain: "*", Object: "*", Action: usermgmt.ActionAll, Effect: usermgmt.EffectAllow},
+// Create service with WebAuthn configuration
+svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+    WebAuthnConfig: &usermgmt.WebAuthnConfig{
+        RPID:          "example.com",
+        RPDisplayName: "My App",
+        RPOrigins:     []string{"https://example.com"},
     },
-    Groups: []usermgmt.GroupPolicy{
-        {Subject: userID.String(), Role: "admin", Domain: "*"},
-    },
-})
-
-// Create service
-svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
-    Authz:        authz,
-    UserStore:    userStore,
-    SessionStore: sessionStore,
-    SessionTTL:   24 * time.Hour,
-    BcryptCost:   12,
-    Lockout:      usermgmt.NewAccountLockout(usermgmt.LockoutConfig{MaxAttempts: 5, Duration: 15 * time.Minute}),
+    SessionTTL: 24 * time.Hour,
+    Logger:     slog.Default(),
+    Lockout:    usermgmt.NewAccountLockout(usermgmt.LockoutConfig{
+        MaxAttempts: 5,
+        Duration:    15 * time.Minute,
+    }),
     EventHandler: func(userID usermgmt.UserID, evt any) {
         slog.Info("user event", "user_id", userID, "event", evt)
     },
 })
+defer svc.Stop()
 
 // Create HTTP handlers
 authHandler := usermgmt.NewAuthHandler(svc, usermgmt.HandlerConfig{
-    SessionMaxAge: 86400, // seconds
+    SessionMaxAge: 86400,
 })
 
-// Register routes: POST /auth/register, POST /auth/login, POST /auth/logout, GET /auth/me
+// Register routes
 mux := http.NewServeMux()
 authHandler.RegisterRoutes(mux)
+// Routes: POST /auth/register, POST /auth/webauthn/register/begin|finish,
+//         POST /auth/webauthn/login/begin|finish, POST /auth/logout, GET /auth/me,
+//         GET /auth/credentials, DELETE /auth/credentials/{id}
 
 // Session middleware (validates cookie, loads user into context)
 handler := usermgmt.NewSessionMiddleware(svc, "session_token")(mux)
 ```
 
+### Registration & Login Flow
+
+Users register with **email only** (no password). Authentication is via WebAuthn/Passkeys:
+
+```
+1. POST /auth/register              → create account (email only), get session
+2. POST /auth/webauthn/register/begin  → get credential creation challenge
+3. POST /auth/webauthn/register/finish → verify attestation, persist credential
+4. POST /auth/webauthn/login/begin     → get assertion challenge
+5. POST /auth/webauthn/login/finish    → verify assertion, create session
+```
+
+Finish endpoints read `user_id` from the URL query param (`?user_id=...`), since the request body contains the WebAuthn attestation/assertion response.
+
 ### Service Methods
 
-| Method                                                          | Description                                        |
-| --------------------------------------------------------------- | -------------------------------------------------- |
-| `Register(ctx, RegisterRequest)` → `(*RegisterResponse, error)` | Create user + assign default role + create session |
-| `Login(ctx, LoginRequest)` → `(*LoginResponse, error)`          | Authenticate + create session                      |
-| `Logout(ctx, token)` → `error`                                  | Delete session                                     |
-| `Authenticate(ctx, token)` → `(*User, error)`                   | Validate session, return user                      |
-| `Authorize(ctx, sub, dom, obj, act)` → `error`                  | Check RBAC policy                                  |
-| `GetUser(ctx, id)` → `(*User, error)`                           | Find user by ID                                    |
-| `UpdateRoles(ctx, userID, roles, domain)` → `error`             | Atomically update user's roles in a domain         |
-| `ChangePassword(ctx, userID, old, new)` → `error`               | Validate old password, set new                     |
+| Method                                                                   | Description                                                    |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| `Register(ctx, RegisterRequest)` → `(*RegisterResponse, error)`          | Create user (email only), assign default roles, create session |
+| `BeginRegistration(ctx, userID)` → `(*BeginRegistrationResponse, error)` | Start WebAuthn credential registration                         |
+| `FinishRegistration(ctx, userID, r, credentialName)` → `error`           | Complete credential registration                               |
+| `BeginLogin(ctx, email)` → `(*BeginLoginResponse, error)`                | Start WebAuthn login ceremony                                  |
+| `FinishLogin(ctx, userID, r)` → `(*FinishLoginResponse, error)`          | Complete login, create session                                 |
+| `Logout(ctx, token)` → `error`                                           | Delete session                                                 |
+| `Authenticate(ctx, token)` → `(*User, error)`                            | Validate session, return user                                  |
+| `Authorize(ctx, sub, dom, obj, act)` → `error`                           | Check RBAC policy                                              |
+| `GetUser(ctx, id)` → `(*User, error)`                                    | Find user by ID                                                |
+| `UpdateRoles(ctx, userID, roles, domain)` → `error`                      | Atomically update user's roles                                 |
+| `ChangeEmail(ctx, userID, newEmail)` → `error`                           | Change user's email                                            |
+| `ChangeDisplayName(ctx, userID, newName)` → `error`                      | Change user's display name                                     |
+| `DeleteUser(ctx, userID, reason)` → `error`                              | Soft-delete user (tombstone), revoke sessions                  |
+| `AddCredential(ctx, userID, cred)` → `error`                             | Add WebAuthn credential                                        |
+| `RemoveCredential(ctx, userID, credID)` → `error`                        | Remove WebAuthn credential                                     |
+| `Authz()` → `*Authz`                                                     | Access underlying RBAC engine                                  |
+| `ReadModel()` → `*UserReadModel`                                         | Access read model directly                                     |
+| `Stop()`                                                                 | Gracefully shutdown background resources                       |
 
 ### Input Validation
 
-`RegisterRequest` and `LoginRequest` have `Validate()` methods:
+`RegisterRequest` has a `Validate()` method:
 
 ```go
 req := usermgmt.RegisterRequest{
+    ID:          usermgmt.NewUserID(ulid),
     Email:       "user@example.com",
-    Password:    "securepassword",
     DisplayName: "Alice",
 }
 if err := req.Validate(); err != nil {
@@ -827,7 +850,7 @@ if err := req.Validate(); err != nil {
 }
 ```
 
-Checks: email format, password length (8–128 chars), required fields. Trims whitespace on `Email` and `DisplayName` in-place.
+Checks: valid email, required ID, display name length ≤ 100. Trims whitespace on `Email` and `DisplayName` in-place.
 
 ### Domain Events
 
@@ -838,10 +861,6 @@ usermgmt.EventHandler(func(userID usermgmt.UserID, evt any) {
     switch e := evt.(type) {
     case usermgmt.UserRegisteredEvent:
         slog.Info("user registered", "email", e.Email)
-    case usermgmt.UserLoggedInEvent:
-        slog.Info("user logged in", "email", e.Email)
-    case usermgmt.PasswordChangedEvent:
-        slog.Info("password changed")
     case usermgmt.RolesUpdatedEvent:
         slog.Info("roles updated", "roles", e.Roles, "domain", e.Domain)
     }
@@ -855,11 +874,7 @@ Events are panic-safe — handler errors are logged but never propagate to the c
 Domain-aware Casbin RBAC with typed constants:
 
 ```go
-authz, _ := usermgmt.NewAuthz(usermgmt.EnforcerConfig{
-    Policies: []usermgmt.Policy{
-        {Subject: "role:admin", Domain: "acme", Object: "documents", Action: usermgmt.ActionExecute, Effect: usermgmt.EffectAllow},
-    },
-})
+authz, _ := usermgmt.NewAuthz()
 
 // Check permission
 allowed, _ := authz.Enforce(userID.String(), "acme", "documents", "read")
@@ -901,17 +916,9 @@ lockout := usermgmt.NewAccountLockout(usermgmt.LockoutConfig{
 // Automatic cleanup: lockout.EvictStale() removes expired entries
 ```
 
-### Store Interfaces
+### Session Store
 
 ```go
-type UserStore interface {
-    FindByID(ctx context.Context, id UserID) (*User, error)
-    FindByEmail(ctx context.Context, email string) (*User, error)
-    Save(ctx context.Context, user *User) error
-    Create(ctx context.Context, user *User) error  // atomic, checks email uniqueness
-    Delete(ctx context.Context, id UserID) error
-}
-
 type SessionStore interface {
     Create(ctx context.Context, userID UserID, ttl time.Duration) (*Session, error)
     Find(ctx context.Context, token string) (*Session, error)
@@ -920,7 +927,25 @@ type SessionStore interface {
 }
 ```
 
-In-memory implementations: `InMemoryUserStore` (with O(1) email index), `InMemorySessionStore` (with `EvictExpired()` cleanup).
+Default: `InMemorySessionStore` (with `EvictExpired()` cleanup). Implement this interface for Redis, SQL, or other backends.
+
+### CSRF & Rate Limiting on Auth Endpoints
+
+Wire `cqrs-htmx` middleware around the usermgmt auth handler:
+
+```go
+handler := cqrshtmx.Chain(
+    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{Secure: true}),
+    cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+        Limit:        10,
+        Window:       time.Minute,
+        Burst:        3,
+        KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+    }),
+)(mux)
+```
+
+This protects WebAuthn ceremony endpoints from CSRF attacks and credential stuffing.
 
 ### Strongly-Typed UserID
 
@@ -987,16 +1012,37 @@ cqrs-htmx/
 ├── sse_stream.go       # SSEStream, BroadcastOnSuccess CQRS bridge
 ├── ws.go               # WebSocket message parser, OOB HTML, typed generic parser
 ├── usermgmt/           # User management submodule (independent Go module)
-│   ├── id.go           # Branded UserID type
-│   ├── authz.go        # Casbin RBAC with domains, PolicyUpdate, AsEnforcer bridge
-│   ├── events.go      # Domain events: UserRegisteredEvent, UserLoggedInEvent, etc.
-│   ├── service.go      # Service (register, login, logout, authenticate, changePassword)
-│   ├── user.go         # Immutable User read model, Clone, HasCredential
-│   ├── store.go        # SessionStore interface + InMemorySessionStore
-│   ├── http.go         # AuthHandlers, RegisterRoutes, HandlerConfig
-│   ├── middleware.go    # NewSessionMiddleware, user context helpers, UserIDFromRequest
-│   ├── lockout.go      # AccountLockout (configurable attempts + duration)
-│   └── errors.go       # Sentinel errors (go-error-family)
+│   ├── id.go               # Branded UserID type (go-branded-id)
+│   ├── authz_types.go      # Authz wrapper, AsEnforcer bridge
+│   ├── authz_policies.go   # Apply, AddGroupPolicy, AddPolicy
+│   ├── authz_roles.go      # RolesForUser, ImplicitRolesForUser
+│   ├── es_constants.go     # Event-sourced aggregate + event + command type constants
+│   ├── es_events.go        # 7 event payload structs
+│   ├── es_commands.go      # 7 command structs
+│   ├── es_state.go         # UserState + foldUser() pure function
+│   ├── es_decide.go        # 7 pure decide functions
+│   ├── es_dispatch.go      # RegisterCommands — wires commands to decider.Repository
+│   ├── es_setup.go         # DefaultEventSourcedSetup, UserDecider
+│   ├── es_readmodel.go     # UserReadModel projection + email index
+│   ├── es_casbin_projection.go  # CasbinProjection — derives policies from events
+│   ├── es_projection_setup.go   # StartProjections orchestration
+│   ├── service_core.go     # Service struct, ServiceConfig, NewService
+│   ├── service_register.go # Service.Register
+│   ├── service_login.go    # Service.Logout/Authenticate/Authorize
+│   ├── service_misc.go     # GetUser, UpdateRoles, ChangeEmail, etc.
+│   ├── credential.go       # WebAuthnCredential type
+│   ├── credential_http.go  # Credential listing/removal HTTP handlers
+│   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin
+│   ├── webauthn_http.go    # HTTP handlers for WebAuthn ceremony endpoints
+│   ├── webauthn_adapter.go # Adapts domain User → webauthn.User interface
+│   ├── webauthn_session.go # WebAuthnConfig + in-memory challenge store
+│   ├── user.go             # Immutable User read model
+│   ├── store.go            # SessionStore interface + InMemorySessionStore
+│   ├── events.go           # EventHandler callback + notification event structs
+│   ├── http.go             # AuthHandler (register, logout, me, webauthn endpoints)
+│   ├── middleware.go       # NewSessionMiddleware, user context helpers
+│   ├── lockout.go          # AccountLockout (configurable attempts + duration)
+│   └── errors.go           # Sentinel errors
 ├── integration_test/   # Cross-module integration tests (independent Go module)
 └── examples/
     └── datastar-demo/  # Standalone datastar + go-cqrs-lite SSE example
@@ -1004,15 +1050,16 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency             | Purpose                                 |
-| ---------------------- | --------------------------------------- |
-| go-cqrs-lite v2.3.0    | CQRS command/query dispatch, pagination |
-| casbin/casbin/v3       | Authorization                           |
-| go-error-family v0.3.0 | Error classification                    |
-| justinas/nosurf        | CSRF protection                         |
-| larsartmann/httputil   | ClientIP extraction                     |
-| golang.org/x/time      | Token-bucket rate limiting              |
-| go-branded-id          | Branded types (usermgmt)                |
+| Dependency             | Purpose                                    |
+| ---------------------- | ------------------------------------------ |
+| go-cqrs-lite v2.3.0    | CQRS command/query dispatch, pagination    |
+| casbin/casbin/v3       | Authorization                              |
+| go-error-family v0.3.0 | Error classification                       |
+| justinas/nosurf        | CSRF protection                            |
+| larsartmann/httputil   | ClientIP extraction                        |
+| golang.org/x/time      | Token-bucket rate limiting                 |
+| go-branded-id          | Branded types (usermgmt)                   |
+| go-webauthn v0.17.4    | WebAuthn/Passkey authentication (usermgmt) |
 
 ## Contributing
 

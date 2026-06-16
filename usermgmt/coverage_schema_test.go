@@ -1,0 +1,342 @@
+package usermgmt
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/decider/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+)
+
+// --- writeJSON error path ---
+
+type failingResponseWriter struct {
+	header http.Header
+}
+
+func (f *failingResponseWriter) Header() http.Header {
+	if f.header == nil {
+		f.header = http.Header{}
+	}
+	return f.header
+}
+
+func (*failingResponseWriter) WriteHeader(int) {}
+
+func (*failingResponseWriter) Write([]byte) (int, error) {
+	return 0, errors.New("write failed")
+}
+
+func TestWriteJSON_EncodeError(t *testing.T) {
+	w := &failingResponseWriter{}
+	writeJSON(w, http.StatusOK, make(chan int))
+	// http.Error sets Content-Type to text/plain on encode failure
+	if ct := w.Header().Get("Content-Type"); ct != "text/plain; charset=utf-8" {
+		t.Errorf("expected text/plain Content-Type on encode failure, got %q", ct)
+	}
+}
+
+func TestWriteJSON_WriteError(t *testing.T) {
+	w := &failingResponseWriter{}
+	writeJSON(w, http.StatusOK, map[string]string{"ok": "true"})
+}
+
+// --- Schema version tests ---
+
+func TestSchemaVersion_SetOnRegister(t *testing.T) {
+	svc := newTestService(t)
+	_ = registerTestUser(t, svc, "sv1", "sv1@test.com")
+	journal, ok := svc.store.(event.Journal)
+	if !ok {
+		t.Skip("store does not implement event.Journal")
+	}
+	events, err := journal.ReadAll(context.Background())
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+	for _, evt := range events {
+		if evt.Type() == eventUserRegistered {
+			p, err := event.DecodePayload[UserRegisteredPayload](evt, codec.JSONCodec{})
+			if err != nil {
+				t.Fatalf("decode payload: %v", err)
+			}
+			if p.SchemaVersion != currentSchemaVersion {
+				t.Errorf("SchemaVersion = %d, want %d", p.SchemaVersion, currentSchemaVersion)
+			}
+			return
+		}
+	}
+	t.Fatal("no UserRegistered event found")
+}
+
+func TestSchemaVersion_OldEventDecodesAsZero(t *testing.T) {
+	rawPayload := []byte(`{"email":"old@test.com","display_name":"Old","roles":["user"]}`)
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, rawPayload)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+	p, err := event.DecodePayload[UserRegisteredPayload](evt, codec.JSONCodec{})
+	if err != nil {
+		t.Fatalf("decode old payload: %v", err)
+	}
+	if p.SchemaVersion != 0 {
+		t.Errorf("old event SchemaVersion = %d, want 0", p.SchemaVersion)
+	}
+	if p.Email != "old@test.com" {
+		t.Errorf("email = %q, want old@test.com", p.Email)
+	}
+	// Folding an old event should still work (backward compat)
+	state, err := foldUser(UserState{}, evt)
+	if err != nil {
+		t.Fatalf("foldUser old event: %v", err)
+	}
+	if state.Email != "old@test.com" {
+		t.Errorf("folded email = %q, want old@test.com", state.Email)
+	}
+}
+
+// --- RegisterCommands with nil dispatcher panics ---
+
+func TestRegisterCommands_NilDispatcherPanics(t *testing.T) {
+	store := memory.NewMemoryStore()
+	bus := memory.NewMemoryBus()
+	defer func() { _ = bus.Close() }()
+	repo, err := decider.NewRepository(store, bus, UserDecider())
+	if err != nil {
+		t.Fatalf("create repo: %v", err)
+	}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("expected panic for nil dispatcher")
+		}
+	}()
+	_ = RegisterCommands(nil, repo)
+}
+
+// --- DefaultEventSourcedSetup success ---
+
+func TestDefaultEventSourcedSetup_Success(t *testing.T) {
+	setup, err := DefaultEventSourcedSetup()
+	if err != nil {
+		t.Fatalf("DefaultEventSourcedSetup: %v", err)
+	}
+	if setup.Store == nil || setup.Bus == nil || setup.Repository == nil || setup.ReadModel == nil {
+		t.Error("expected all fields non-nil")
+	}
+	_ = setup.Bus.Close()
+}
+
+// --- emailFromEvent not found ---
+
+func TestEmailFromEvent_UserNotFound(t *testing.T) {
+	svc := newTestService(t)
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1,
+		mustMarshal(t, UserRegisteredPayload{
+			SchemaVersion: currentSchemaVersion,
+			Email:         "ghost@test.com",
+		}))
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+	email := svc.emailFromEvent(evt)
+	if email != "" {
+		t.Errorf("emailFromEvent for unknown user = %q, want empty", email)
+	}
+}
+
+// --- Auth handler handleMe unauthorized ---
+
+func TestHandleMe_Unauthorized(t *testing.T) {
+	svc := newTestService(t)
+	h := NewAuthHandler(svc)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	mux.ServeHTTP(w, r)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusUnauthorized)
+	}
+}
+
+// --- handleDeleteCredential bad encoding ---
+
+func TestHandleDeleteCredential_BadEncoding(t *testing.T) {
+	svc := newTestService(t)
+	h := NewAuthHandler(svc)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	r := httptest.NewRequest(http.MethodDelete, "/auth/credentials/!!!notbase64!!!", nil)
+	r = r.WithContext(WithUser(r.Context(), &User{ID: NewUserID("01HK1549P84T9XF8R94E960633")}))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, r)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
+	}
+}
+
+// --- handleRegister decode error ---
+
+func TestHandleRegister_BadBody(t *testing.T) {
+	svc := newTestService(t)
+	h := NewAuthHandler(svc)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	w := postJSON(t, mux, "/auth/register", "{invalid json")
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
+	}
+}
+
+// --- handleWebAuthnBeginRegistration bad body ---
+
+func TestHandleWebAuthnBeginRegistration_BadBody(t *testing.T) {
+	svc := newTestService(t)
+	h := NewAuthHandler(svc)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	w := postJSON(t, mux, "/auth/webauthn/register/begin", "not json")
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
+	}
+}
+
+// --- handleWebAuthnBeginLogin bad body ---
+
+func TestHandleWebAuthnBeginLogin_BadBody(t *testing.T) {
+	svc := newTestService(t)
+	h := NewAuthHandler(svc)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	w := postJSON(t, mux, "/auth/webauthn/login/begin", "not json")
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
+	}
+}
+
+func mustMarshal(t *testing.T, v any) []byte {
+	t.Helper()
+	b, err := json.Marshal(v)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	return b
+}
+
+// --- DeleteUser session revocation failure ---
+
+func TestDeleteUser_SessionDeleteFailure(t *testing.T) {
+	svc := newTestServiceWithConfig(t, ServiceConfig{
+		SessionStore: &mockSessionStore{
+			DeleteByUserIDFn: func(context.Context, UserID) error {
+				return errors.New("redis down")
+			},
+		},
+	})
+	reg := registerTestUser(t, svc, "ds1", "ds1@test.com")
+	if err := svc.DeleteUser(context.Background(), reg.User.ID, "test"); err != nil {
+		t.Fatalf("DeleteUser: %v", err)
+	}
+}
+
+// --- FindByUserID invalid ID ---
+
+func TestFindByUserID_InvalidID(t *testing.T) {
+	m := NewUserReadModel()
+	_, ok := m.FindByUserID(NewUserID("not-a-valid-id"))
+	if ok {
+		t.Error("expected false for invalid UserID")
+	}
+}
+
+// --- writeJSON success path via handler ---
+
+func TestWriteJSON_SuccessViaHandler(t *testing.T) {
+	svc := newTestService(t)
+	reg := registerTestUser(t, svc, "wj1", "wj1@test.com")
+	h := NewAuthHandler(svc)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	r := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	r = r.WithContext(WithUser(r.Context(), reg.User))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, r)
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+	if !strings.Contains(w.Body.String(), "wj1@test.com") {
+		t.Errorf("response body missing email: %s", w.Body.String())
+	}
+}
+
+// --- handleListCredentials unauthorized ---
+
+func TestHandleListCredentials_Unauthorized(t *testing.T) {
+	svc := newTestService(t)
+	h := NewAuthHandler(svc)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	r := httptest.NewRequest(http.MethodGet, "/auth/credentials", nil)
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, r)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusUnauthorized)
+	}
+}
+
+// --- handleDeleteCredential unauthorized ---
+
+func TestHandleDeleteCredential_Unauthorized(t *testing.T) {
+	svc := newTestService(t)
+	h := NewAuthHandler(svc)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	r := httptest.NewRequest(http.MethodDelete, "/auth/credentials/abc", nil)
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, r)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusUnauthorized)
+	}
+}
+
+// --- RegisterCommands all commands wired correctly ---
+
+func TestRegisterCommands_AllWired(t *testing.T) {
+	store := memory.NewMemoryStore()
+	bus := memory.NewMemoryBus()
+	defer func() { _ = bus.Close() }()
+	repo, err := decider.NewRepository(store, bus, UserDecider())
+	if err != nil {
+		t.Fatalf("create repo: %v", err)
+	}
+	disp := command.NewDispatcher()
+	if err := RegisterCommands(disp, repo); err != nil {
+		t.Fatalf("RegisterCommands: %v", err)
+	}
+
+	// Dispatch a RegisterUser command to verify wiring works end-to-end
+	aggID := id.NewAggregateID()
+	err = disp.Dispatch(context.Background(), NewRegisterUserCmd(aggID, "wire@test.com", "Wire", []Role{RoleUser}))
+	if err != nil {
+		t.Fatalf("dispatch RegisterUser: %v", err)
+	}
+}

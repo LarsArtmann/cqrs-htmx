@@ -38,13 +38,13 @@ _Focus: Align modules, stabilize deps, prepare for broader adoption._
 
 _Focus: Persistent storage for event-sourced usermgmt beyond in-memory._
 
-| Area    | Item                                                                    | Priority | Status              |
-| ------- | ----------------------------------------------------------------------- | -------- | ------------------- |
-| Store   | PostgreSQL event store for User aggregate                               | High     | Planned             |
-| Store   | PostgreSQL session store for `SessionStore` interface                   | High     | Planned             |
-| Types   | Numeric branded IDs for auto-increment PKs                              | Medium   | Pattern in ADR 0003 |
-| Migrate | Database migration tooling (goose, golang-migrate, or gnorm)            | Medium   | Planned             |
-| Test    | Integration tests against real PostgreSQL                               | Medium   | Planned             |
+| Area    | Item                                                         | Priority | Status              |
+| ------- | ------------------------------------------------------------ | -------- | ------------------- |
+| Store   | PostgreSQL event store for User aggregate                    | High     | Planned             |
+| Store   | PostgreSQL session store for `SessionStore` interface        | High     | Planned             |
+| Types   | Numeric branded IDs for auto-increment PKs                   | Medium   | Pattern in ADR 0003 |
+| Migrate | Database migration tooling (goose, golang-migrate, or gnorm) | Medium   | Planned             |
+| Test    | Integration tests against real PostgreSQL                    | Medium   | Planned             |
 
 **Note:** The old CRUD `UserStore` interface has been removed. The usermgmt module is now fully event-sourced via the go-cqrs-lite Decider pattern (ADR 0006). SQL work now targets an event store backend.
 

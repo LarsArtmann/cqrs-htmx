@@ -57,7 +57,7 @@ func DefaultEventSourcedSetup() (*EventSourcedSetup, error) {
 		return nil, err
 	}
 
-	if err := StartProjections(store, bus, readModel, casbinProjection); err != nil {
+	if err := StartProjections(store, bus, readModel, casbinProjection, nil); err != nil {
 		_ = bus.Close()
 		return nil, err
 	}
