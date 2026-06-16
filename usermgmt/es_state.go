@@ -9,12 +9,13 @@ import (
 
 // UserState is the aggregate state for the User, reconstructed by folding events.
 type UserState struct {
-	Email        string
-	DisplayName  string
-	Roles        []Role
-	Credentials  []WebAuthnCredential
-	Deleted      bool
-	DeleteReason string
+	Email         string
+	DisplayName   string
+	Roles         []Role
+	Credentials   []WebAuthnCredential
+	Deleted       bool
+	DeleteReason  string
+	EmailVerified bool
 }
 
 // Exists reports whether the user has been registered (has at least one event).
@@ -36,11 +37,12 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		roles := make([]Role, len(p.Roles))
 		copy(roles, p.Roles)
 		return UserState{
-			Email:        p.Email,
-			DisplayName:  p.DisplayName,
-			Roles:        roles,
-			Deleted:      false,
-			DeleteReason: "",
+			Email:         p.Email,
+			DisplayName:   p.DisplayName,
+			Roles:         roles,
+			Deleted:       false,
+			DeleteReason:  "",
+			EmailVerified: false,
 		}, nil
 
 	case eventRolesUpdated:
@@ -51,12 +53,13 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		roles := make([]Role, len(p.Roles))
 		copy(roles, p.Roles)
 		return UserState{
-			Email:        state.Email,
-			DisplayName:  state.DisplayName,
-			Roles:        roles,
-			Credentials:  state.Credentials,
-			Deleted:      state.Deleted,
-			DeleteReason: state.DeleteReason,
+			Email:         state.Email,
+			DisplayName:   state.DisplayName,
+			Roles:         roles,
+			Credentials:   state.Credentials,
+			Deleted:       state.Deleted,
+			DeleteReason:  state.DeleteReason,
+			EmailVerified: state.EmailVerified,
 		}, nil
 
 	case eventEmailChanged:
@@ -65,12 +68,13 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			return state, err
 		}
 		return UserState{
-			Email:        p.Email,
-			DisplayName:  state.DisplayName,
-			Roles:        state.Roles,
-			Credentials:  state.Credentials,
-			Deleted:      state.Deleted,
-			DeleteReason: state.DeleteReason,
+			Email:         p.Email,
+			DisplayName:   state.DisplayName,
+			Roles:         state.Roles,
+			Credentials:   state.Credentials,
+			Deleted:       state.Deleted,
+			DeleteReason:  state.DeleteReason,
+			EmailVerified: false, // email change resets verification
 		}, nil
 
 	case eventDisplayNameChanged:
@@ -79,12 +83,13 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			return state, err
 		}
 		return UserState{
-			Email:        state.Email,
-			DisplayName:  p.DisplayName,
-			Roles:        state.Roles,
-			Credentials:  state.Credentials,
-			Deleted:      state.Deleted,
-			DeleteReason: state.DeleteReason,
+			Email:         state.Email,
+			DisplayName:   p.DisplayName,
+			Roles:         state.Roles,
+			Credentials:   state.Credentials,
+			Deleted:       state.Deleted,
+			DeleteReason:  state.DeleteReason,
+			EmailVerified: state.EmailVerified,
 		}, nil
 
 	case eventUserDeleted:
@@ -93,12 +98,13 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			return state, err
 		}
 		return UserState{
-			Email:        state.Email,
-			DisplayName:  state.DisplayName,
-			Roles:        state.Roles,
-			Credentials:  state.Credentials,
-			Deleted:      true,
-			DeleteReason: p.Reason,
+			Email:         state.Email,
+			DisplayName:   state.DisplayName,
+			Roles:         state.Roles,
+			Credentials:   state.Credentials,
+			Deleted:       true,
+			DeleteReason:  p.Reason,
+			EmailVerified: state.EmailVerified,
 		}, nil
 
 	case eventCredentialAdded:
@@ -119,12 +125,13 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			CreatedAt:       evt.OccurredAt(),
 		}
 		return UserState{
-			Email:        state.Email,
-			DisplayName:  state.DisplayName,
-			Roles:        state.Roles,
-			Credentials:  append(state.Credentials, cred),
-			Deleted:      state.Deleted,
-			DeleteReason: state.DeleteReason,
+			Email:         state.Email,
+			DisplayName:   state.DisplayName,
+			Roles:         state.Roles,
+			Credentials:   append(state.Credentials, cred),
+			Deleted:       state.Deleted,
+			DeleteReason:  state.DeleteReason,
+			EmailVerified: state.EmailVerified,
 		}, nil
 
 	case eventCredentialRemoved:
@@ -139,12 +146,29 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			}
 		}
 		return UserState{
-			Email:        state.Email,
-			DisplayName:  state.DisplayName,
-			Roles:        state.Roles,
-			Credentials:  filtered,
-			Deleted:      state.Deleted,
-			DeleteReason: state.DeleteReason,
+			Email:         state.Email,
+			DisplayName:   state.DisplayName,
+			Roles:         state.Roles,
+			Credentials:   filtered,
+			Deleted:       state.Deleted,
+			DeleteReason:  state.DeleteReason,
+			EmailVerified: state.EmailVerified,
+		}, nil
+
+	case eventEmailVerified:
+		p, err := unmarshalPayload[EmailVerifiedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		_ = p
+		return UserState{
+			Email:         state.Email,
+			DisplayName:   state.DisplayName,
+			Roles:         state.Roles,
+			Credentials:   state.Credentials,
+			Deleted:       state.Deleted,
+			DeleteReason:  state.DeleteReason,
+			EmailVerified: true,
 		}, nil
 
 	default:

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -50,61 +49,6 @@ func TestWriteJSON_WriteError(t *testing.T) {
 	writeJSON(w, http.StatusOK, map[string]string{"ok": "true"})
 }
 
-// --- Schema version tests ---
-
-func TestSchemaVersion_SetOnRegister(t *testing.T) {
-	svc := newTestService(t)
-	_ = registerTestUser(t, svc, "sv1", "sv1@test.com")
-	journal, ok := svc.store.(event.Journal)
-	if !ok {
-		t.Skip("store does not implement event.Journal")
-	}
-	events, err := journal.ReadAll(context.Background())
-	if err != nil {
-		t.Fatalf("ReadAll: %v", err)
-	}
-	for _, evt := range events {
-		if evt.Type() == eventUserRegistered {
-			p, err := event.DecodePayload[UserRegisteredPayload](evt, codec.JSONCodec{})
-			if err != nil {
-				t.Fatalf("decode payload: %v", err)
-			}
-			if p.SchemaVersion != currentSchemaVersion {
-				t.Errorf("SchemaVersion = %d, want %d", p.SchemaVersion, currentSchemaVersion)
-			}
-			return
-		}
-	}
-	t.Fatal("no UserRegistered event found")
-}
-
-func TestSchemaVersion_OldEventDecodesAsZero(t *testing.T) {
-	rawPayload := []byte(`{"email":"old@test.com","display_name":"Old","roles":["user"]}`)
-	aggID := id.NewAggregateID()
-	evt, err := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, rawPayload)
-	if err != nil {
-		t.Fatalf("create event: %v", err)
-	}
-	p, err := event.DecodePayload[UserRegisteredPayload](evt, codec.JSONCodec{})
-	if err != nil {
-		t.Fatalf("decode old payload: %v", err)
-	}
-	if p.SchemaVersion != 0 {
-		t.Errorf("old event SchemaVersion = %d, want 0", p.SchemaVersion)
-	}
-	if p.Email != "old@test.com" {
-		t.Errorf("email = %q, want old@test.com", p.Email)
-	}
-	// Folding an old event should still work (backward compat)
-	state, err := foldUser(UserState{}, evt)
-	if err != nil {
-		t.Fatalf("foldUser old event: %v", err)
-	}
-	if state.Email != "old@test.com" {
-		t.Errorf("folded email = %q, want old@test.com", state.Email)
-	}
-}
-
 // --- RegisterCommands with nil dispatcher panics ---
 
 func TestRegisterCommands_NilDispatcherPanics(t *testing.T) {
@@ -143,8 +87,7 @@ func TestEmailFromEvent_UserNotFound(t *testing.T) {
 	aggID := id.NewAggregateID()
 	evt, err := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1,
 		mustMarshal(t, UserRegisteredPayload{
-			SchemaVersion: currentSchemaVersion,
-			Email:         "ghost@test.com",
+			Email: "ghost@test.com",
 		}))
 	if err != nil {
 		t.Fatalf("create event: %v", err)

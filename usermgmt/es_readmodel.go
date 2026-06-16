@@ -76,6 +76,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		if u, ok := m.users[aggID]; ok {
 			delete(m.emails, u.Email)
 			u.Email = p.Email
+			u.EmailVerified = false
 			u.UpdatedAt = evt.OccurredAt()
 			m.emails[p.Email] = aggID
 		}
@@ -132,6 +133,12 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 			delete(m.emails, u.Email)
 		}
 		delete(m.users, aggID)
+
+	case eventEmailVerified:
+		if u, ok := m.users[aggID]; ok {
+			u.EmailVerified = true
+			u.UpdatedAt = evt.OccurredAt()
+		}
 
 	default:
 	}

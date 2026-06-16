@@ -46,10 +46,9 @@ func benchEvent(b *testing.B, eventType event.Type, payload any) event.Event {
 
 func BenchmarkFoldUser_Registration(b *testing.B) {
 	evt := benchEvent(b, eventUserRegistered, UserRegisteredPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "bench@test.com",
-		DisplayName:   "Bench",
-		Roles:         []Role{RoleUser, RoleViewer},
+		Email:       "bench@test.com",
+		DisplayName: "Bench",
+		Roles:       []Role{RoleUser, RoleViewer},
 	})
 	b.ResetTimer()
 	for range b.N {
@@ -59,22 +58,18 @@ func BenchmarkFoldUser_Registration(b *testing.B) {
 
 func BenchmarkFoldUser_FourEventSequence(b *testing.B) {
 	evtReg := benchEvent(b, eventUserRegistered, UserRegisteredPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "fold@test.com",
-		Roles:         []Role{RoleUser},
+		Email: "fold@test.com",
+		Roles: []Role{RoleUser},
 	})
 	evtEmail := benchEvent(b, eventEmailChanged, EmailChangedPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "new@test.com",
+		Email: "new@test.com",
 	})
 	evtDisplay := benchEvent(b, eventDisplayNameChanged, DisplayNameChangedPayload{
-		SchemaVersion: currentSchemaVersion,
-		DisplayName:   "Folder",
+		DisplayName: "Folder",
 	})
 	evtRoles := benchEvent(b, eventRolesUpdated, RolesUpdatedPayload{
-		SchemaVersion: currentSchemaVersion,
-		Roles:         []Role{RoleAdmin},
-		Domain:        "test",
+		Roles:  []Role{RoleAdmin},
+		Domain: "test",
 	})
 	b.ResetTimer()
 	for range b.N {
@@ -89,9 +84,8 @@ func BenchmarkFoldUser_FourEventSequence(b *testing.B) {
 func BenchmarkReadModel_Handle(b *testing.B) {
 	m := NewUserReadModel()
 	evt := benchEvent(b, eventUserRegistered, UserRegisteredPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "rm@test.com",
-		Roles:         []Role{RoleUser},
+		Email: "rm@test.com",
+		Roles: []Role{RoleUser},
 	})
 	b.ResetTimer()
 	for range b.N {

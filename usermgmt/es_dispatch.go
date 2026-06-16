@@ -98,5 +98,17 @@ func RegisterCommands(
 		return fmt.Errorf("register %s: %w", cmdRemoveCredential, err)
 	}
 
+	if err := command.RegisterTyped(
+		dispatcher, cmdVerifyEmail,
+		func(ctx context.Context, c *VerifyEmailCmd) error {
+			return repo.Execute(
+				ctx, c.AggregateID(), aggregateTypeUser,
+				decideVerifyEmail(c.AggregateID()),
+			)
+		},
+	); err != nil {
+		return fmt.Errorf("register %s: %w", cmdVerifyEmail, err)
+	}
+
 	return nil
 }

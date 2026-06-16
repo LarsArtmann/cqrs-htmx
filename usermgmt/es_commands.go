@@ -98,3 +98,14 @@ func NewRemoveCredentialCmd(aggID id.AggregateID, credID []byte) *RemoveCredenti
 
 func (c *RemoveCredentialCmd) Type() command.Type          { return cmdRemoveCredential }
 func (c *RemoveCredentialCmd) AggregateID() id.AggregateID { return c.aggregateID }
+
+type VerifyEmailCmd struct {
+	aggregateID id.AggregateID
+}
+
+func NewVerifyEmailCmd(aggID id.AggregateID) *VerifyEmailCmd {
+	return &VerifyEmailCmd{aggregateID: aggID}
+}
+
+func (c *VerifyEmailCmd) Type() command.Type          { return cmdVerifyEmail }
+func (c *VerifyEmailCmd) AggregateID() id.AggregateID { return c.aggregateID }
