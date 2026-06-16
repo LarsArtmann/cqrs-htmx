@@ -193,6 +193,7 @@ func decideAddCredential(
 			AttestationType: cred.AttestationType,
 			Transports:      cred.Transports,
 			AAGUID:          cred.AAGUID,
+			SignCount:       cred.SignCount,
 			BackupEligible:  cred.BackupEligible,
 			BackupState:     cred.BackupState,
 			Name:            cred.Name,

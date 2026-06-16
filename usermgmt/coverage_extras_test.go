@@ -79,7 +79,8 @@ func TestUser_MarshalJSON(t *testing.T) {
 	if err := json.Unmarshal(data, &m); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
-	if m["credential_count"].(float64) != 1 {
+	count, ok := m["credential_count"].(float64)
+	if !ok || count != 1 {
 		t.Errorf("credential_count = %v, want 1", m["credential_count"])
 	}
 }
@@ -139,84 +140,35 @@ func TestService_ReadModel(t *testing.T) {
 
 func TestAuthz_NilEnforcer(t *testing.T) {
 	a := &Authz{enforcer: nil}
+	uid := NewUserID("u1")
 
-	_, err := a.Enforce("s", "d", "o", ActionRead)
-	if err == nil {
-		t.Error("expected error for nil enforcer")
+	tests := []struct {
+		name string
+		fn   func() error
+	}{
+		{"Enforce", func() error { _, err := a.Enforce("s", "d", "o", ActionRead); return err }},
+		{"EnforceAny", func() error { _, err := a.EnforceAny("s"); return err }},
+		{"EnforceEx", func() error { _, err := a.EnforceEx("s", "d", "o", ActionRead); return err }},
+		{"Apply", func() error { return a.Apply(PolicyUpdate{}) }},
+		{"AddPolicy", func() error { return a.AddPolicy(Policy{}) }},
+		{"RemovePolicy", func() error { return a.RemovePolicy(Policy{}) }},
+		{"AddGroupPolicy", func() error { return a.AddGroupPolicy(GroupPolicy{}) }},
+		{"RemoveGroupPolicy", func() error { return a.RemoveGroupPolicy(GroupPolicy{}) }},
+		{"RemoveAllRolesForUser", func() error { return a.RemoveAllRolesForUser("user1") }},
+		{"Policies", func() error { _, err := a.Policies(); return err }},
+		{"GroupPolicies", func() error { _, err := a.GroupPolicies(); return err }},
+		{"RolesForUser", func() error { _, err := a.RolesForUser(uid, "d"); return err }},
+		{"ImplicitRolesForUser", func() error { _, err := a.ImplicitRolesForUser(uid, "d"); return err }},
+		{"ImplicitPermissionsForUser", func() error { _, err := a.ImplicitPermissionsForUser(uid, "d"); return err }},
+		{"DomainsForUser", func() error { _, err := a.DomainsForUser(uid); return err }},
+		{"UsersForRole", func() error { _, err := a.UsersForRole(RoleAdmin, "d"); return err }},
 	}
 
-	_, err = a.EnforceAny("s")
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	_, err = a.EnforceEx("s", "d", "o", ActionRead)
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	err = a.Apply(PolicyUpdate{})
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	err = a.AddPolicy(Policy{})
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	err = a.RemovePolicy(Policy{})
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	err = a.AddGroupPolicy(GroupPolicy{})
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	err = a.RemoveGroupPolicy(GroupPolicy{})
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	err = a.RemoveAllRolesForUser("user1")
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	_, err = a.Policies()
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	_, err = a.GroupPolicies()
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	_, err = a.RolesForUser(NewUserID("u1"), "d")
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	_, err = a.ImplicitRolesForUser(NewUserID("u1"), "d")
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	_, err = a.ImplicitPermissionsForUser(NewUserID("u1"), "d")
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	_, err = a.DomainsForUser(NewUserID("u1"))
-	if err == nil {
-		t.Error("expected error for nil enforcer")
-	}
-
-	_, err = a.UsersForRole(RoleAdmin, "d")
-	if err == nil {
-		t.Error("expected error for nil enforcer")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.fn(); err == nil {
+				t.Error("expected error for nil enforcer")
+			}
+		})
 	}
 }

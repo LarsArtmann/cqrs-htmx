@@ -112,6 +112,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			AttestationType: p.AttestationType,
 			Transports:      append([]string(nil), p.Transports...),
 			AAGUID:          append([]byte(nil), p.AAGUID...),
+			SignCount:       p.SignCount,
 			BackupEligible:  p.BackupEligible,
 			BackupState:     p.BackupState,
 			Name:            p.Name,

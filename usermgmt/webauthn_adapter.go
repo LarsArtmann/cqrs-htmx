@@ -31,6 +31,7 @@ func (w *webauthnUser) WebAuthnCredentials() []webauthn.Credential {
 }
 
 func toWebAuthnCredential(c WebAuthnCredential) webauthn.Credential {
+	//nolint:exhaustruct // only fields we track; rest are go-webauthn defaults
 	return webauthn.Credential{
 		ID:              c.ID,
 		PublicKey:       c.PublicKey,
@@ -50,6 +51,7 @@ func toWebAuthnCredential(c WebAuthnCredential) webauthn.Credential {
 }
 
 func fromWebAuthnCredential(c *webauthn.Credential, name string) WebAuthnCredential {
+	//nolint:exhaustruct // CreatedAt set by event system via OccurredAt
 	return WebAuthnCredential{
 		ID:              c.ID,
 		PublicKey:       c.PublicKey,

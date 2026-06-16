@@ -30,6 +30,7 @@ func (m *UserReadModel) Name() string { return "user-read-model" }
 
 func (m *UserReadModel) EventTypes() []event.Type { return allUserEventTypes }
 
+//nolint:gocognit // inherent to 7-event switch; each case is simple decode+mutate
 func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -101,6 +102,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 				AttestationType: p.AttestationType,
 				Transports:      append([]string(nil), p.Transports...),
 				AAGUID:          append([]byte(nil), p.AAGUID...),
+				SignCount:       p.SignCount,
 				BackupEligible:  p.BackupEligible,
 				BackupState:     p.BackupState,
 				Name:            p.Name,
