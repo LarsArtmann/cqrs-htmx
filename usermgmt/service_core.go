@@ -20,27 +20,29 @@ const (
 // Service orchestrates user registration, authentication, authorization, and session management
 // using event-sourced CQRS under the hood.
 type Service struct {
-	repository            *decider.Repository[UserState]
-	dispatcher            *command.Dispatcher
-	readModel             *UserReadModel
-	casbinProjection      *CasbinProjection
-	authz                 *Authz
-	sessions              SessionStore
-	sessionTTL            time.Duration
-	logger                *slog.Logger
-	lockout               *AccountLockout
-	eventHandler          EventHandler
-	bus                   event.Bus
-	store                 event.Store
-	webauthn              *webauthn.WebAuthn
-	webauthnSessions      *webauthnSessionStore
-	stopWebAuthnEviction  func()
-	auditLog              *AuditLog
-	verificationTokens    *verificationTokenStore
-	verificationTTL       time.Duration
-	sendVerificationEmail SendVerificationEmailFunc
-	totpConfig            *TOTPConfig
-	pendingTOTP           pendingTOTPStore
+	repository               *decider.Repository[UserState]
+	dispatcher               *command.Dispatcher
+	readModel                *UserReadModel
+	casbinProjection         *CasbinProjection
+	authz                    *Authz
+	sessions                 SessionStore
+	sessionTTL               time.Duration
+	logger                   *slog.Logger
+	lockout                  *AccountLockout
+	eventHandler             EventHandler
+	bus                      event.Bus
+	store                    event.Store
+	webauthn                 *webauthn.WebAuthn
+	webauthnSessions         *webauthnSessionStore
+	stopWebAuthnEviction     func()
+	auditLog                 *AuditLog
+	verificationTokens       *verificationTokenStore
+	stopVerificationEviction func()
+	verificationTTL          time.Duration
+	sendVerificationEmail    SendVerificationEmailFunc
+	totpConfig               *TOTPConfig
+	pendingTOTP              pendingTOTPStore
+	stopPendingTOTPEviction  func()
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -175,6 +177,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 
 	if cfg.EmailVerification != nil {
 		svc.verificationTokens = newVerificationTokenStore()
+		svc.stopVerificationEviction = svc.verificationTokens.startEviction()
 		svc.verificationTTL = cfg.EmailVerification.TokenTTL
 		if svc.verificationTTL == 0 {
 			svc.verificationTTL = VerificationTokenTTL
@@ -185,6 +188,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	svc.totpConfig = cfg.TOTPConfig
 	if cfg.TOTPConfig != nil {
 		svc.pendingTOTP = newPendingTOTPStore()
+		svc.stopPendingTOTPEviction = svc.pendingTOTP.startEviction()
 	}
 
 	if cfg.EventHandler != nil {
@@ -204,6 +208,14 @@ func (s *Service) Stop() {
 	if s.stopWebAuthnEviction != nil {
 		s.stopWebAuthnEviction()
 		s.stopWebAuthnEviction = nil
+	}
+	if s.stopVerificationEviction != nil {
+		s.stopVerificationEviction()
+		s.stopVerificationEviction = nil
+	}
+	if s.stopPendingTOTPEviction != nil {
+		s.stopPendingTOTPEviction()
+		s.stopPendingTOTPEviction = nil
 	}
 }
 

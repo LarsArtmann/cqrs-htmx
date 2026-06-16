@@ -55,7 +55,9 @@ func (u *User) Clone() *User {
 	cp.Roles = make([]Role, len(u.Roles))
 	copy(cp.Roles, u.Roles)
 	cp.Credentials = make([]WebAuthnCredential, len(u.Credentials))
-	copy(cp.Credentials, u.Credentials)
+	for i, c := range u.Credentials {
+		cp.Credentials[i] = c.Clone()
+	}
 	cp.TOTPSecret = append([]byte(nil), u.TOTPSecret...)
 	return &cp
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -138,14 +139,29 @@ func (s *Service) ExportUsersToJSON(_ context.Context, w io.Writer) error {
 	return nil
 }
 
-// ExportUsersToCSV writes all users as CSV with columns: id, email, display_name, roles, email_verified.
+const (
+	csvColumnID            = "id"
+	csvColumnEmail         = "email"
+	csvColumnDisplayName   = "display_name"
+	csvColumnRoles         = "roles"
+	csvColumnEmailVerified = "email_verified"
+	csvColumnTOTPEnabled   = "totp_enabled"
+)
+
+// ExportUsersToCSV writes all users as CSV with columns: id, email, display_name, roles, email_verified, totp_enabled.
 func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 	users := s.exportAllUsers()
 	cw := csv.NewWriter(w)
 	defer cw.Flush()
 
-	//nolint:goconst // column names, not repeated constants
-	if err := cw.Write([]string{"id", "email", "display_name", "roles", "email_verified"}); err != nil {
+	if err := cw.Write([]string{
+		csvColumnID,
+		csvColumnEmail,
+		csvColumnDisplayName,
+		csvColumnRoles,
+		csvColumnEmailVerified,
+		csvColumnTOTPEnabled,
+	}); err != nil {
 		return fmt.Errorf("write CSV header: %w", err)
 	}
 	for _, u := range users {
@@ -153,16 +169,13 @@ func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 		for _, r := range u.Roles {
 			roles = append(roles, string(r))
 		}
-		verified := "false"
-		if u.EmailVerified {
-			verified = "true"
-		}
 		if err := cw.Write([]string{
 			u.ID.Get(),
 			u.Email,
 			u.DisplayName,
 			strings.Join(roles, ";"),
-			verified,
+			strconv.FormatBool(u.EmailVerified),
+			strconv.FormatBool(u.TOTPEnabled),
 		}); err != nil {
 			return fmt.Errorf("write CSV row: %w", err)
 		}
@@ -171,10 +184,9 @@ func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 }
 
 func (s *Service) exportAllUsers() []ExportUser {
-	s.readModel.mu.RLock()
-	defer s.readModel.mu.RUnlock()
-	users := make([]ExportUser, 0, len(s.readModel.users))
-	for _, u := range s.readModel.users {
+	all := s.readModel.AllUsers()
+	users := make([]ExportUser, 0, len(all))
+	for _, u := range all {
 		users = append(users, ExportUser{
 			ID:            u.ID,
 			Email:         u.Email,
