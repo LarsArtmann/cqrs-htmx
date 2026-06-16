@@ -954,7 +954,12 @@ func extractor(r *http.Request) (cqrshtmx.UserID, error) {
 cqrs-htmx/
 ├── app.go              # App builder, Config, Command(), Query(), lifecycle hooks
 ├── handler.go          # Command/query dispatch handlers
-├── options.go          # HandlerOption, decoders, renderers, validation, auth modes, pagination
+├── options_types.go    # HandlerOption type, TemplComponent interface
+├── options_decode.go   # DecodeJSON[T], DecodeJSONQuery[T], DecodeForm[T] decoders
+├── options_htmx.go     # HTMX-aware error handling, response application
+├── options_json.go     # RenderJSON[T], RenderJSONStatus[T], pagination, RequireMethod
+├── options_render.go   # Render, RenderTempl, Redirect, Trigger, PushURL
+├── options_validate.go # ValidateCommand, ValidateQuery, WithTimeout, WithMaxBodySize
 ├── response.go         # HTMX response builder (fluent API), ContentType constants
 ├── authz.go            # Enforcer interface, Authorize, RequireAuth, AuthorizeMiddleware
 ├── context.go          # UserID, CorrelationID, RequestID — strongly-typed context helpers
@@ -964,24 +969,30 @@ cqrs-htmx/
 ├── htmx_serve.go       # HTMXScriptHandler, HTMXScriptTag, HTMXVersion
 ├── notify.go           # Notification HandlerOptions, NotifyWithEvent builder
 ├── middleware.go        # ContextEnrichmentMiddleware, HTMXMiddleware, Chain
-├── csrf.go             # CSRFMiddleware, CSRFConfig, token context helpers
+├── csrf_config.go      # CSRFConfig, defaults, Validate()
+├── csrf_context.go     # Token context helpers (get/set)
+├── csrf_middleware.go  # CSRFMiddleware, double-submit validation
 ├── csrf_handler.go     # CSRFProtect (per-handler CSRF)
 ├── csrf_helpers.go     # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
 ├── decoder.go          # Body reading, form/JSON decoding, MaxBodySize
 ├── httputil.go         # WriteJSON, ClientIP (delegates to larsartmann/httputil)
 ├── logging.go          # RequestLogging, RequestLoggingSlog, StatusRecorder
-├── ratelimit.go        # RateLimiterMiddleware, token bucket, min-heap eviction
+├── ratelimit_config.go     # RateLimiterConfig
+├── ratelimit_middleware.go # RateLimiterMiddleware, token bucket, min-heap eviction
 ├── security.go         # SecurityHeadersMiddleware, SecurityHeadersConfig
 ├── recovery.go         # RecoveryMiddleware (package-level), App.RecoverHandler()
-├── sse.go              # SSE event writer, stream, broadcaster, reconnection, CQRS bridge
+├── sse_broadcaster.go  # Thread-safe fan-out Broadcaster (O(1) unsubscribe)
+├── sse_event.go        # SSEEvent protocol type, WriteSSEEvent, splitSSELines
+├── sse_store.go        # SSEEventStore interface for reconnection replay
+├── sse_stream.go       # SSEStream, BroadcastOnSuccess CQRS bridge
 ├── ws.go               # WebSocket message parser, OOB HTML, typed generic parser
 ├── usermgmt/           # User management submodule (independent Go module)
 │   ├── id.go           # Branded UserID type
 │   ├── authz.go        # Casbin RBAC with domains, PolicyUpdate, AsEnforcer bridge
 │   ├── events.go      # Domain events: UserRegisteredEvent, UserLoggedInEvent, etc.
 │   ├── service.go      # Service (register, login, logout, authenticate, changePassword)
-│   ├── user.go         # Rich User entity: SetRoles, ChangePassword, SetEmail, Clone, bcrypt
-│   ├── store.go        # In-memory stores with email index, EvictExpired, Clone
+│   ├── user.go         # Immutable User read model, Clone, HasCredential
+│   ├── store.go        # SessionStore interface + InMemorySessionStore
 │   ├── http.go         # AuthHandlers, RegisterRoutes, HandlerConfig
 │   ├── middleware.go    # NewSessionMiddleware, user context helpers, UserIDFromRequest
 │   ├── lockout.go      # AccountLockout (configurable attempts + duration)
