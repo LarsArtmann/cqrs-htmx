@@ -1,14 +1,15 @@
 # Roadmap — cqrs-htmx
 
-**Updated:** 2026-06-08
+**Updated:** 2026-06-16
 
 ## Current State
 
-- **Version:** v2.1.0
-- **Coverage:** 96.9% root, 91.1% usermgmt
+- **Version:** v2.1.0 (unreleased: passwordless event-sourced usermgmt)
+- **Coverage:** 96.0% root, 86.2% usermgmt
 - **Lint:** 0 issues
-- **Dependencies:** go-cqrs-lite v2.2.0 (all modules), justinas/nosurf, go-error-family v0.3.0, larsartmann/httputil
-- **Test suite:** 464+ specs, race-safe, fuzz tests, benchmarks
+- **Dependencies:** go-cqrs-lite v2.3.0 (all modules), justinas/nosurf, go-error-family v0.3.0, go-webauthn v0.17.4
+- **Test suite:** 570+ specs, race-safe, fuzz tests, benchmarks
+- **Architecture:** Fully event-sourced usermgmt (7 events, 7 commands, Decider pattern, WebAuthn passwordless)
 
 ---
 
@@ -33,17 +34,19 @@ _Focus: Align modules, stabilize deps, prepare for broader adoption._
 
 ---
 
-## v2.2.0 — SQL Store Backend
+## v2.2.0 — SQL Event Store Backend
 
-_Focus: Persistent storage for usermgmt beyond in-memory._
+_Focus: Persistent storage for event-sourced usermgmt beyond in-memory._
 
 | Area    | Item                                                                    | Priority | Status              |
 | ------- | ----------------------------------------------------------------------- | -------- | ------------------- |
-| Store   | PostgreSQL store for `UserStore` interface                              | High     | Planned             |
-| Store   | PostgreSQL store for `SessionStore` interface                           | High     | Planned             |
-| Types   | Numeric branded IDs (`brandid.ID[Brand, int64]`) for auto-increment PKs | High     | Pattern in ADR 0003 |
+| Store   | PostgreSQL event store for User aggregate                               | High     | Planned             |
+| Store   | PostgreSQL session store for `SessionStore` interface                   | High     | Planned             |
+| Types   | Numeric branded IDs for auto-increment PKs                              | Medium   | Pattern in ADR 0003 |
 | Migrate | Database migration tooling (goose, golang-migrate, or gnorm)            | Medium   | Planned             |
 | Test    | Integration tests against real PostgreSQL                               | Medium   | Planned             |
+
+**Note:** The old CRUD `UserStore` interface has been removed. The usermgmt module is now fully event-sourced via the go-cqrs-lite Decider pattern (ADR 0006). SQL work now targets an event store backend.
 
 ---
 
