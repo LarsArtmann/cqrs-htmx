@@ -39,6 +39,8 @@ type Service struct {
 	verificationTokens    *verificationTokenStore
 	verificationTTL       time.Duration
 	sendVerificationEmail SendVerificationEmailFunc
+	totpConfig            *TOTPConfig
+	pendingTOTP           pendingTOTPStore
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -68,6 +70,8 @@ type ServiceConfig struct {
 	// EmailVerification, if provided, enables the email verification flow.
 	// When nil, SendVerificationEmail and VerifyEmail return ErrEmailVerificationNotConfigured.
 	EmailVerification *EmailVerificationConfig
+	// TOTPConfig, if provided, enables TOTP multi-factor authentication.
+	TOTPConfig *TOTPConfig
 }
 
 // NewService creates a Service from the given config, applying defaults for nil/zero fields.
@@ -176,6 +180,11 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 			svc.verificationTTL = VerificationTokenTTL
 		}
 		svc.sendVerificationEmail = cfg.EmailVerification.SendEmail
+	}
+
+	svc.totpConfig = cfg.TOTPConfig
+	if cfg.TOTPConfig != nil {
+		svc.pendingTOTP = newPendingTOTPStore()
 	}
 
 	if cfg.EventHandler != nil {

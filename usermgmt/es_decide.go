@@ -293,3 +293,69 @@ func decideVerifyEmail(
 		return []event.Event{evt}, nil
 	}
 }
+
+func decideEnableTOTP(
+	aggID id.AggregateID,
+	secret []byte,
+) func(UserState, event.Version) ([]event.Event, error) {
+	return func(state UserState, version event.Version) ([]event.Event, error) {
+		if !state.Exists() {
+			return nil, event.NewRejection("usermgmt.enable_totp.not_found",
+				"user does not exist")
+		}
+		if state.Deleted {
+			return nil, event.NewRejection("usermgmt.enable_totp.deleted",
+				"cannot enable TOTP for deleted user")
+		}
+		if state.TOTPEnabled {
+			return nil, nil
+		}
+		payload, err := marshalPayload(TOTPEnabledPayload{
+			SchemaVersion: currentSchemaVersion,
+			Secret:        secret,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("marshal TOTPEnabled payload: %w", err)
+		}
+		evt, err := event.NewEvent(
+			eventTOTPEnabled, aggID, aggregateTypeUser, version.Increment(),
+			payload,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create TOTPEnabled event: %w", err)
+		}
+		return []event.Event{evt}, nil
+	}
+}
+
+func decideDisableTOTP(
+	aggID id.AggregateID,
+) func(UserState, event.Version) ([]event.Event, error) {
+	return func(state UserState, version event.Version) ([]event.Event, error) {
+		if !state.Exists() {
+			return nil, event.NewRejection("usermgmt.disable_totp.not_found",
+				"user does not exist")
+		}
+		if state.Deleted {
+			return nil, event.NewRejection("usermgmt.disable_totp.deleted",
+				"cannot disable TOTP for deleted user")
+		}
+		if !state.TOTPEnabled {
+			return nil, nil
+		}
+		payload, err := marshalPayload(TOTPDisabledPayload{
+			SchemaVersion: currentSchemaVersion,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("marshal TOTPDisabled payload: %w", err)
+		}
+		evt, err := event.NewEvent(
+			eventTOTPDisabled, aggID, aggregateTypeUser, version.Increment(),
+			payload,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create TOTPDisabled event: %w", err)
+		}
+		return []event.Event{evt}, nil
+	}
+}

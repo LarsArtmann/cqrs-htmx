@@ -109,3 +109,26 @@ func NewVerifyEmailCmd(aggID id.AggregateID) *VerifyEmailCmd {
 
 func (c *VerifyEmailCmd) Type() command.Type          { return cmdVerifyEmail }
 func (c *VerifyEmailCmd) AggregateID() id.AggregateID { return c.aggregateID }
+
+type EnableTOTPCmd struct {
+	aggregateID id.AggregateID
+	secret      []byte
+}
+
+func NewEnableTOTPCmd(aggID id.AggregateID, secret []byte) *EnableTOTPCmd {
+	return &EnableTOTPCmd{aggregateID: aggID, secret: secret}
+}
+
+func (c *EnableTOTPCmd) Type() command.Type          { return cmdEnableTOTP }
+func (c *EnableTOTPCmd) AggregateID() id.AggregateID { return c.aggregateID }
+
+type DisableTOTPCmd struct {
+	aggregateID id.AggregateID
+}
+
+func NewDisableTOTPCmd(aggID id.AggregateID) *DisableTOTPCmd {
+	return &DisableTOTPCmd{aggregateID: aggID}
+}
+
+func (c *DisableTOTPCmd) Type() command.Type          { return cmdDisableTOTP }
+func (c *DisableTOTPCmd) AggregateID() id.AggregateID { return c.aggregateID }

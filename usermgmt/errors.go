@@ -63,10 +63,36 @@ var (
 		"usermgmt.invalid_verification_token",
 		"verification token is invalid or expired",
 	)
+
 	// ErrEmailAlreadyVerified is returned when verification is requested for
 	// an already-verified email.
 	ErrEmailAlreadyVerified = event.NewRejection(
 		"usermgmt.email_already_verified",
 		"email is already verified",
+	)
+	// ErrTOTPNotConfigured is returned when TOTP MFA is used without being configured.
+	ErrTOTPNotConfigured = event.NewRejection(
+		"usermgmt.totp_not_configured",
+		"TOTP is not configured",
+	)
+	// ErrTOTPAlreadyEnabled is returned when TOTP setup is requested for a user who already has it.
+	ErrTOTPAlreadyEnabled = event.NewRejection(
+		"usermgmt.totp_already_enabled",
+		"TOTP is already enabled for this user",
+	)
+	// ErrTOTPNotEnabled is returned when TOTP verification is requested for a user without TOTP.
+	ErrTOTPNotEnabled = event.NewRejection(
+		"usermgmt.totp_not_enabled",
+		"TOTP is not enabled for this user",
+	)
+	// ErrInvalidTOTPCode is returned when the provided TOTP code is invalid.
+	ErrInvalidTOTPCode = event.NewRejection(
+		"usermgmt.invalid_totp_code",
+		"invalid TOTP code",
+	)
+	// ErrTOTPSetupExpired is returned when the pending TOTP setup has expired.
+	ErrTOTPSetupExpired = event.NewRejection(
+		"usermgmt.totp_setup_expired",
+		"TOTP setup has expired, please try again",
 	)
 )

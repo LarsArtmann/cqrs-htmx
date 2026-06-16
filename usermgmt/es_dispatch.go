@@ -110,5 +110,29 @@ func RegisterCommands(
 		return fmt.Errorf("register %s: %w", cmdVerifyEmail, err)
 	}
 
+	if err := command.RegisterTyped(
+		dispatcher, cmdEnableTOTP,
+		func(ctx context.Context, c *EnableTOTPCmd) error {
+			return repo.Execute(
+				ctx, c.AggregateID(), aggregateTypeUser,
+				decideEnableTOTP(c.AggregateID(), c.secret),
+			)
+		},
+	); err != nil {
+		return fmt.Errorf("register %s: %w", cmdEnableTOTP, err)
+	}
+
+	if err := command.RegisterTyped(
+		dispatcher, cmdDisableTOTP,
+		func(ctx context.Context, c *DisableTOTPCmd) error {
+			return repo.Execute(
+				ctx, c.AggregateID(), aggregateTypeUser,
+				decideDisableTOTP(c.AggregateID()),
+			)
+		},
+	); err != nil {
+		return fmt.Errorf("register %s: %w", cmdDisableTOTP, err)
+	}
+
 	return nil
 }
