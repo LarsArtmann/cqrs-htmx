@@ -82,7 +82,7 @@ func BenchmarkFoldUser_FourEventSequence(b *testing.B) {
 		state, _ = foldUser(state, evtReg)
 		state, _ = foldUser(state, evtEmail)
 		state, _ = foldUser(state, evtDisplay)
-		state, _ = foldUser(state, evtRoles)
+		_, _ = foldUser(state, evtRoles)
 	}
 }
 

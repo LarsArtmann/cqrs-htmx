@@ -1,3 +1,4 @@
+//nolint:gosec // G202: parameterized placeholder substitution, not user input interpolation
 package usermgmt
 
 import (
@@ -39,7 +40,7 @@ func NewSQLEventStore(db *sql.DB, dialect string) (*SQLEventStore, error) {
 		return nil, err
 	}
 	s := &SQLEventStore{db: db, placeholder: pf}
-	if err := s.migrate(dialect); err != nil {
+	if err := s.migrate(context.Background(), dialect); err != nil {
 		return nil, fmt.Errorf("migrate sql event store: %w", err)
 	}
 	return s, nil
@@ -58,7 +59,7 @@ func placeholderFor(dialect string) (placeholderFunc, error) {
 	}
 }
 
-func (s *SQLEventStore) migrate(dialect string) error {
+func (s *SQLEventStore) migrate(_ context.Context, dialect string) error {
 	var ddl string
 	switch dialect {
 	case "postgres", "pgx":
@@ -106,11 +107,19 @@ func (s *SQLEventStore) migrate(dialect string) error {
 	default:
 		return fmt.Errorf("unsupported dialect %q", dialect)
 	}
-	_, err := s.db.Exec(ddl)
-	return err
+	_, err := s.db.ExecContext(context.Background(), ddl)
+	if err != nil {
+		return fmt.Errorf("exec ddl: %w", err)
+	}
+	return nil
 }
 
-func (s *SQLEventStore) Close() error { return s.db.Close() }
+func (s *SQLEventStore) Close() error {
+	if err := s.db.Close(); err != nil {
+		return fmt.Errorf("close sql event store db: %w", err)
+	}
+	return nil
+}
 
 func (s *SQLEventStore) Save(
 	ctx context.Context,
@@ -150,7 +159,7 @@ func (s *SQLEventStore) Save(
 		}
 	}
 
-	return tx.Commit()
+	return commitTx(tx)
 }
 
 func (s *SQLEventStore) AppendBatch(
@@ -172,7 +181,7 @@ func (s *SQLEventStore) AppendBatch(
 			return fmt.Errorf("insert event %s: %w", evt.ID(), err)
 		}
 	}
-	return tx.Commit()
+	return commitTx(tx)
 }
 
 func (s *SQLEventStore) insertEvent(ctx context.Context, tx *sql.Tx, evt event.Event) error {
@@ -203,7 +212,10 @@ func (s *SQLEventStore) insertEvent(ctx context.Context, tx *sql.Tx, evt event.E
 		metadataJSON,
 		evt.OccurredAt(),
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("exec insert: %w", err)
+	}
+	return nil
 }
 
 func (s *SQLEventStore) Load(
@@ -305,68 +317,80 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	return s.scanEvents(rows)
 }
 
+func commitTx(tx *sql.Tx) error {
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit tx: %w", err)
+	}
+	return nil
+}
+
 func (s *SQLEventStore) scanEvents(rows *sql.Rows) ([]event.Event, error) {
 	var events []event.Event
 	for rows.Next() {
-		var (
-			eventID      string
-			eventType    string
-			aggID        string
-			aggType      string
-			version      int
-			payload      []byte
-			metadataJSON []byte
-			occurredAt   time.Time
-		)
-		if err := rows.Scan(
-			&eventID,
-			&eventType,
-			&aggID,
-			&aggType,
-			&version,
-			&payload,
-			&metadataJSON,
-			&occurredAt,
-		); err != nil {
-			return nil, fmt.Errorf("scan event row: %w", err)
-		}
-
-		evtID, err := id.ParseEventID(eventID)
+		evt, err := s.scanRow(rows)
 		if err != nil {
-			return nil, fmt.Errorf("parse event ID %q: %w", eventID, err)
-		}
-
-		parsedAggID, err := id.ParseAggregateID(aggID)
-		if err != nil {
-			return nil, fmt.Errorf("parse aggregate ID %q: %w", aggID, err)
-		}
-
-		opts := []event.Option{
-			event.WithEventID(evtID),
-			event.WithOccurredAt(occurredAt),
-		}
-
-		if len(metadataJSON) > 0 {
-			var meta event.Metadata
-			if err := json.Unmarshal(metadataJSON, &meta); err == nil {
-				opts = append(opts, event.WithMetadata(meta))
-			}
-		}
-
-		evt, err := event.NewEvent(
-			event.Type(eventType),
-			parsedAggID,
-			event.AggregateType(aggType),
-			event.Version(version),
-			payload,
-			opts...,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("reconstruct event %q: %w", eventType, err)
+			return nil, err
 		}
 		events = append(events, evt)
 	}
-	return events, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate rows: %w", err)
+	}
+	return events, nil
+}
+
+func (*SQLEventStore) scanRow(rows *sql.Rows) (event.Event, error) {
+	var (
+		eventID      string
+		eventType    string
+		aggID        string
+		aggType      string
+		version      int
+		payload      []byte
+		metadataJSON []byte
+		occurredAt   time.Time
+	)
+	if err := rows.Scan(
+		&eventID, &eventType, &aggID, &aggType, &version,
+		&payload, &metadataJSON, &occurredAt,
+	); err != nil {
+		return nil, fmt.Errorf("scan event row: %w", err)
+	}
+
+	evtID, err := id.ParseEventID(eventID)
+	if err != nil {
+		return nil, fmt.Errorf("parse event ID %q: %w", eventID, err)
+	}
+
+	parsedAggID, err := id.ParseAggregateID(aggID)
+	if err != nil {
+		return nil, fmt.Errorf("parse aggregate ID %q: %w", aggID, err)
+	}
+
+	opts := []event.Option{
+		event.WithEventID(evtID),
+		event.WithOccurredAt(occurredAt),
+	}
+
+	if len(metadataJSON) > 0 {
+		var meta event.Metadata
+		if err := json.Unmarshal(metadataJSON, &meta); err == nil {
+			opts = append(opts, event.WithMetadata(meta))
+		}
+	}
+
+	evt, err := event.NewEvent(
+		event.Type(eventType),
+		parsedAggID,
+		event.AggregateType(aggType),
+		event.Version(version),
+		payload,
+		opts...,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("reconstruct event %q: %w", eventType, err)
+	}
+	return evt, nil
 }
 
 var (
