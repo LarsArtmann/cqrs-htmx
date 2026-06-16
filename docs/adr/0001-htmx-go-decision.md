@@ -1,4 +1,7 @@
-# cqrs-htmx vs angelofallars/htmx-go
+# ADR 0001: Reject htmx-go Dependency
+
+**Date:** 2026-05-05
+**Status:** Accepted
 
 ## Verdict: No. Do not add as a dependency.
 

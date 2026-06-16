@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **AccountLockout wired into WebAuthn login**: `BeginLogin` checks lockout status; `FinishLogin` records failures and resets on success.
+- **Credential management HTTP endpoints**: `GET /auth/credentials` (list), `DELETE /auth/credentials/{id}` (remove by base64url ID).
+- **WebAuthn session proactive eviction**: Background goroutine (`webauthnEvictionInterval`) periodically removes expired challenge sessions. `Service.Stop()` terminates the goroutine.
+- **CasbinProjection subscribes to CredentialAdded/Removed**: Ensures projection ordering without affecting policies.
+- **`Service.Stop()` method**: Gracefully shuts down background resources (WebAuthn eviction goroutine). Safe to call multiple times.
+- **`Service.Authz()` accessor**: Returns the underlying `*Authz` for direct policy queries.
 - **Service source propagation**: `Config.ServiceName` (string) and `App.EventOptions(ctx)` inject `event.WithSource` into event options. `EventOptionsFromContextWithSource(ctx, name)` is the free-function equivalent for callers that don't hold an `*App`.
 - **Typed-query examples in root**: `ExampleApp_Query_typedRegister` and `ExampleApp_Query_typedDispatch` demonstrate the `query.RegisterTyped[T]` / `query.DispatchTyped[T]` pattern crossing module boundaries.
 - **`ExampleBroadcaster_BroadcastOnSuccessFunc`**: Documents the dynamic-event `AfterDispatchHook` factory.
@@ -27,6 +33,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `BenchmarkQueryDispatchTypedVsDispatch` (typed ≈ manual: 85.7 vs 81.0 ns/op).
 - **usermgmt service transient-error context**: `withUserIDContext` helper annotates every `event.NewTransient` in the service with `user_id` context (no PII — only the user ID, not email/display name). New `transientErr(userID, msg, cause)` helper keeps service methods concise.
 - **ADR 0005**: Documents the go-cqrs-lite v2.3.0 adoption decisions (IsZero validation, FromContext deadline propagation, RegisterTyped/DispatchTyped, replace-directive removal).
+
+### Changed
+
+- **Eliminated production panics**: `marshalPayload` and `aggIDFromUser` now return errors instead of panicking. All callers updated to handle errors gracefully.
+- **RegisterCommands returns error**: Silently ignored command registration failures now propagate to `NewService`.
+- **bus.Subscribe failures logged**: Event bridge subscription errors now logged at warn level instead of silently ignored.
+- **Projection runner errors logged**: Background projection goroutine errors now logged at error level.
+- **WebAuthn HTTP refactor**: Finish endpoints use query params (`?user_id=X`) instead of fragile double body read pattern.
+- **Coverage**: 86.2% usermgmt, 96%+ root, zero 0% functions.
+
+### Fixed
+
+- **Goroutine leak**: All WebAuthn test services now call `t.Cleanup(svc.Stop)` to terminate eviction goroutines.
+- **Stale password references**: Removed all `"password":"secret12"` from test helpers (passwordless migration).
+- **gosec G101**: Credential event/command type constants now have proper nolint annotations.
+- **wrapcheck**: `marshalPayload` and `Dispatch` errors are now properly wrapped.
+
+## [2.1.0]
 
 ### Changed
 
