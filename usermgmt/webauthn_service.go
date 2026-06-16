@@ -25,17 +25,21 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
+		s.logger.Debug("usermgmt: begin registration failed – user not found", "user_id", userID)
 		return nil, fmt.Errorf("begin registration: %w", ErrUserNotFound)
 	}
 
 	waUser := &webauthnUser{user: user}
 	creation, session, err := s.webauthn.BeginRegistration(waUser)
 	if err != nil {
+		s.logger.Warn("usermgmt: begin registration ceremony failed",
+			"user_id", userID, "error", err)
 		return nil, event.NewTransient("internal", "begin webauthn registration").WithCause(err)
 	}
 
 	sessionKey := userID.Get()
 	s.webauthnSessions.Save(sessionKey, session)
+	s.logger.Info("usermgmt: registration ceremony begun", "user_id", userID)
 
 	return &BeginRegistrationResponse{
 		Options:    creation,
@@ -53,12 +57,15 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
+		s.logger.Debug("usermgmt: finish registration failed – user not found", "user_id", userID)
 		return fmt.Errorf("finish registration: %w", ErrUserNotFound)
 	}
 
 	sessionKey := userID.Get()
 	session, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
+		s.logger.Warn("usermgmt: finish registration failed – session not found",
+			"user_id", userID, "error", err)
 		return err
 	}
 
@@ -69,6 +76,8 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 		r,
 	)
 	if err != nil {
+		s.logger.Warn("usermgmt: finish registration ceremony failed",
+			"user_id", userID, "error", err)
 		return event.NewRejection("usermgmt.webauthn.registration_failed",
 			"credential registration failed").WithCause(err)
 	}
@@ -83,6 +92,8 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	if err := s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, domainCred)); err != nil {
 		return fmt.Errorf("finish registration dispatch: %w", err)
 	}
+	s.logger.Info("usermgmt: credential registered",
+		"user_id", userID, "credential_name", credentialName)
 	return nil
 }
 
@@ -102,26 +113,31 @@ func (s *Service) BeginLogin(_ context.Context, email string) (*BeginLoginRespon
 	}
 
 	if s.lockout != nil && s.lockout.IsLocked(email) {
+		s.logger.Warn("usermgmt: login blocked – account locked", "email", email)
 		return nil, ErrAccountLocked
 	}
 
 	user, ok := s.readModel.FindByEmail(email)
 	if !ok {
+		s.logger.Debug("usermgmt: login failed – user not found", "email", email)
 		return nil, fmt.Errorf("begin login: %w", ErrUserNotFound)
 	}
 
 	if len(user.Credentials) == 0 {
+		s.logger.Debug("usermgmt: login failed – no credentials", "email", email)
 		return nil, ErrNoCredentials
 	}
 
 	waUser := &webauthnUser{user: user}
 	assertion, session, err := s.webauthn.BeginLogin(waUser)
 	if err != nil {
+		s.logger.Warn("usermgmt: begin login ceremony failed", "email", email, "error", err)
 		return nil, event.NewTransient("internal", "begin webauthn login").WithCause(err)
 	}
 
 	sessionKey := user.ID.Get()
 	s.webauthnSessions.Save(sessionKey, session)
+	s.logger.Debug("usermgmt: login ceremony begun", "email", email)
 
 	return &BeginLoginResponse{
 		Options:    assertion,
@@ -145,12 +161,15 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
+		s.logger.Debug("usermgmt: finish login failed – user not found", "user_id", userID)
 		return nil, fmt.Errorf("finish login: %w", ErrUserNotFound)
 	}
 
 	sessionKey := userID.Get()
 	session, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
+		s.logger.Warn("usermgmt: finish login failed – session not found",
+			"user_id", userID, "error", err)
 		return nil, err
 	}
 
@@ -164,6 +183,8 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		if s.lockout != nil {
 			s.lockout.RecordFailure(user.Email)
 		}
+		s.logger.Warn("usermgmt: finish login ceremony failed",
+			"user_id", userID, "email", user.Email, "error", err)
 		return nil, event.NewRejection("usermgmt.webauthn.login_failed",
 			"credential login failed").WithCause(err)
 	}
@@ -181,5 +202,6 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		)
 	}
 
+	s.logger.Info("usermgmt: login successful", "user_id", userID, "email", user.Email)
 	return &FinishLoginResponse{User: user, Session: sess}, nil
 }

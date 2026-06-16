@@ -1,4 +1,3 @@
-// Package cqrshtmx provides HTMX-aware CQRS handler integration with Casbin authorization.
 package cqrshtmx
 
 import (

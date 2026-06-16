@@ -90,18 +90,18 @@
 
 ## usermgmt Submodule
 
-| #   | Feature              | Status           | Description                                                                                                                                                     |
-| --- | -------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 37  | Event-Sourced User   | FULLY_FUNCTIONAL | 7 events, 7 commands, Decider pattern via go-cqrs-lite. Pure decide functions + foldUser. No CRUD UserStore. Read-your-writes via MemoryBus. |
-| 37b | WebAuthn Passwordless| FULLY_FUNCTIONAL | go-webauthn v0.17.4. BeginRegistration/FinishRegistration/BeginLogin/FinishLogin. In-memory challenge store with proactive eviction. |
-| 37c | Credential Mgmt HTTP | FULLY_FUNCTIONAL | GET /auth/credentials (list), DELETE /auth/credentials/{id} (remove by base64url ID). Sanitized credential summaries exclude sensitive fields. |
-| 37d | Account Lockout      | FULLY_FUNCTIONAL | Wired into BeginLogin (check) and FinishLogin (record/reset). Configurable max attempts + duration. `ErrAccountLocked` → 429. |
-| 37e | Session Eviction     | FULLY_FUNCTIONAL | Background goroutine proactively removes expired WebAuthn sessions. `Service.Stop()` for cleanup. |
-| 38  | Branded UserID       | FULLY_FUNCTIONAL | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.Get()` for cross-module conversion. `NewUserID(s)` constructor. |
-| 39  | RBAC Authorization   | FULLY_FUNCTIONAL | Casbin RBAC with domains. CasbinProjection derives policies from events. `AsEnforcer()` bridge to parent `Enforcer` interface. |
-| 40  | SessionStore         | FULLY_FUNCTIONAL | `SessionStore` interface + `InMemorySessionStore`. TTL-based expiry. `DeleteByUserID` for user deletion revocation. |
-| 41  | HTTP Handlers        | FULLY_FUNCTIONAL | `AuthHandler` with session cookies, WebAuthn endpoints, credential management. `SessionMiddleware`. Configurable timeout, `*bool` Secure. |
-| 42  | Input Validation     | FULLY_FUNCTIONAL | `RegisterRequest.Validate()`. Email format, required fields. Passwordless — no password validation needed. |
+| #   | Feature               | Status           | Description                                                                                                                                    |
+| --- | --------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 37  | Event-Sourced User    | FULLY_FUNCTIONAL | 7 events, 7 commands, Decider pattern via go-cqrs-lite. Pure decide functions + foldUser. No CRUD UserStore. Read-your-writes via MemoryBus.   |
+| 37b | WebAuthn Passwordless | FULLY_FUNCTIONAL | go-webauthn v0.17.4. BeginRegistration/FinishRegistration/BeginLogin/FinishLogin. In-memory challenge store with proactive eviction.           |
+| 37c | Credential Mgmt HTTP  | FULLY_FUNCTIONAL | GET /auth/credentials (list), DELETE /auth/credentials/{id} (remove by base64url ID). Sanitized credential summaries exclude sensitive fields. |
+| 37d | Account Lockout       | FULLY_FUNCTIONAL | Wired into BeginLogin (check) and FinishLogin (record/reset). Configurable max attempts + duration. `ErrAccountLocked` → 429.                  |
+| 37e | Session Eviction      | FULLY_FUNCTIONAL | Background goroutine proactively removes expired WebAuthn sessions. `Service.Stop()` for cleanup.                                              |
+| 38  | Branded UserID        | FULLY_FUNCTIONAL | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.Get()` for cross-module conversion. `NewUserID(s)` constructor.                  |
+| 39  | RBAC Authorization    | FULLY_FUNCTIONAL | Casbin RBAC with domains. CasbinProjection derives policies from events. `AsEnforcer()` bridge to parent `Enforcer` interface.                 |
+| 40  | SessionStore          | FULLY_FUNCTIONAL | `SessionStore` interface + `InMemorySessionStore`. TTL-based expiry. `DeleteByUserID` for user deletion revocation.                            |
+| 41  | HTTP Handlers         | FULLY_FUNCTIONAL | `AuthHandler` with session cookies, WebAuthn endpoints, credential management. `SessionMiddleware`. Configurable timeout, `*bool` Secure.      |
+| 42  | Input Validation      | FULLY_FUNCTIONAL | `RegisterRequest.Validate()`. Email format, required fields. Passwordless — no password validation needed.                                     |
 
 ---
 

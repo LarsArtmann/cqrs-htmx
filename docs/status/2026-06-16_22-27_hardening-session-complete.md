@@ -66,12 +66,12 @@ The usermgmt module was hardened from a working-but-fragile state into a product
 
 ## b) PARTIALLY DONE
 
-| Item | Status | Gap |
-| --- | --- | --- |
-| **Coverage** | 84.8% | ~18 functions between 50-80% — mostly WebAuthn ceremony methods (FinishLogin 31.8%, FinishRegistration 33.3%) which require real authenticator hardware to test |
-| **README usermgmt section** | ~70% | Old CRUD UserStore docs partially replaced but setup examples still reference old patterns |
-| **README Config section** | ~80% | `Config.ServiceName` documented in CHANGELOG but not in README Config code block |
-| **README dependency table** | ~80% | go-webauthn mentioned in AGENTS.md but not added to README dep table |
+| Item                        | Status | Gap                                                                                                                                                             |
+| --------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Coverage**                | 84.8%  | ~18 functions between 50-80% — mostly WebAuthn ceremony methods (FinishLogin 31.8%, FinishRegistration 33.3%) which require real authenticator hardware to test |
+| **README usermgmt section** | ~70%   | Old CRUD UserStore docs partially replaced but setup examples still reference old patterns                                                                      |
+| **README Config section**   | ~80%   | `Config.ServiceName` documented in CHANGELOG but not in README Config code block                                                                                |
+| **README dependency table** | ~80%   | go-webauthn mentioned in AGENTS.md but not added to README dep table                                                                                            |
 
 ---
 
@@ -127,33 +127,33 @@ One design concern remaining:
 
 ## f) Top 25 Things to Get Done Next
 
-| # | Task | Impact | Effort |
-| --- | --- | --- | --- |
-| 1 | Integration test: full WebAuthn flow via virtual authenticator | High | 120m |
-| 2 | SQL event store (Postgres) for User aggregate | High | 180m |
-| 3 | Complete README Config + usermgmt setup examples | High | 45m |
-| 4 | Event schema versioning field on all payloads | Medium | 30m |
-| 5 | bridgeEventHandler error path tests | Medium | 15m |
-| 6 | DefaultEventSourcedSetup error path tests | Medium | 20m |
-| 7 | OAuth2/OIDC provider integration | High | 120m |
-| 8 | writeJSON error path test (custom ResponseWriter) | Low | 15m |
-| 9 | Redis SessionStore implementation | Medium | 60m |
-| 10 | Property-based testing for foldUser | Medium | 45m |
-| 11 | CSRF protection wiring example in README | Medium | 15m |
-| 12 | Rate limiting wiring example in README | Medium | 15m |
-| 13 | CI pipeline (GitHub Actions multi-module) | Medium | 30m |
-| 14 | Structured logging in WebAuthn ceremonies | Low | 20m |
-| 15 | Benchmarks for WebAuthn ceremony methods | Low | 20m |
-| 16 | Fuzz tests for WebAuthn ceremony inputs | Low | 30m |
-| 17 | Credential listing pagination | Low | 15m |
-| 18 | Session token rotation on privilege change | Medium | 30m |
-| 19 | Audit log projection (who did what, when) | Medium | 60m |
-| 20 | Email verification flow (verify email ownership) | Medium | 45m |
-| 21 | Password reset via email (recovery flow) | Medium | 45m |
-| 22 | Multi-factor auth (WebAuthn + TOTP) | Low | 90m |
-| 23 | User import/export (CSV/JSON batch) | Low | 30m |
-| 24 | Rate-limited registration endpoint | Low | 15m |
-| 25 | Admin user management UI (templ + HTMX) | Low | 120m |
+| #   | Task                                                           | Impact | Effort |
+| --- | -------------------------------------------------------------- | ------ | ------ |
+| 1   | Integration test: full WebAuthn flow via virtual authenticator | High   | 120m   |
+| 2   | SQL event store (Postgres) for User aggregate                  | High   | 180m   |
+| 3   | Complete README Config + usermgmt setup examples               | High   | 45m    |
+| 4   | Event schema versioning field on all payloads                  | Medium | 30m    |
+| 5   | bridgeEventHandler error path tests                            | Medium | 15m    |
+| 6   | DefaultEventSourcedSetup error path tests                      | Medium | 20m    |
+| 7   | OAuth2/OIDC provider integration                               | High   | 120m   |
+| 8   | writeJSON error path test (custom ResponseWriter)              | Low    | 15m    |
+| 9   | Redis SessionStore implementation                              | Medium | 60m    |
+| 10  | Property-based testing for foldUser                            | Medium | 45m    |
+| 11  | CSRF protection wiring example in README                       | Medium | 15m    |
+| 12  | Rate limiting wiring example in README                         | Medium | 15m    |
+| 13  | CI pipeline (GitHub Actions multi-module)                      | Medium | 30m    |
+| 14  | Structured logging in WebAuthn ceremonies                      | Low    | 20m    |
+| 15  | Benchmarks for WebAuthn ceremony methods                       | Low    | 20m    |
+| 16  | Fuzz tests for WebAuthn ceremony inputs                        | Low    | 30m    |
+| 17  | Credential listing pagination                                  | Low    | 15m    |
+| 18  | Session token rotation on privilege change                     | Medium | 30m    |
+| 19  | Audit log projection (who did what, when)                      | Medium | 60m    |
+| 20  | Email verification flow (verify email ownership)               | Medium | 45m    |
+| 21  | Password reset via email (recovery flow)                       | Medium | 45m    |
+| 22  | Multi-factor auth (WebAuthn + TOTP)                            | Low    | 90m    |
+| 23  | User import/export (CSV/JSON batch)                            | Low    | 30m    |
+| 24  | Rate-limited registration endpoint                             | Low    | 15m    |
+| 25  | Admin user management UI (templ + HTMX)                        | Low    | 120m   |
 
 ---
 
@@ -174,20 +174,20 @@ I lean toward option 2 for maximum control and speed, but the effort is signific
 
 ## Metrics
 
-| Metric | Value |
-| --- | --- |
-| Total .go files (non-test) | 73 |
-| Test files | 105 |
-| Total LOC | 22,940 |
-| Passing tests (usermgmt) | 219 |
-| Failing tests | 0 |
-| Statement coverage (usermgmt) | 84.8% |
-| Statement coverage (root) | 96.0%+ |
-| Functions at 0% | 0 |
-| Modules building | 3/3 (root, usermgmt, integration_test) |
-| Race detector | Clean |
-| Lint issues | 0 |
-| Git commits (this session) | 11 |
+| Metric                        | Value                                  |
+| ----------------------------- | -------------------------------------- |
+| Total .go files (non-test)    | 73                                     |
+| Test files                    | 105                                    |
+| Total LOC                     | 22,940                                 |
+| Passing tests (usermgmt)      | 219                                    |
+| Failing tests                 | 0                                      |
+| Statement coverage (usermgmt) | 84.8%                                  |
+| Statement coverage (root)     | 96.0%+                                 |
+| Functions at 0%               | 0                                      |
+| Modules building              | 3/3 (root, usermgmt, integration_test) |
+| Race detector                 | Clean                                  |
+| Lint issues                   | 0                                      |
+| Git commits (this session)    | 11                                     |
 
 ### Git History (this session)
 

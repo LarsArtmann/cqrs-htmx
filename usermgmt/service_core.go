@@ -35,6 +35,7 @@ type Service struct {
 	webauthn             *webauthn.WebAuthn
 	webauthnSessions     *webauthnSessionStore
 	stopWebAuthnEviction func()
+	auditLog             *AuditLog
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -58,6 +59,9 @@ type ServiceConfig struct {
 	EventHandler EventHandler
 	// WebAuthnConfig configures passwordless authentication. Required for login.
 	WebAuthnConfig *WebAuthnConfig
+	// AuditLog, if provided, is registered as a projection to record all
+	// user-related events for compliance and security monitoring.
+	AuditLog *AuditLog
 }
 
 // NewService creates a Service from the given config, applying defaults for nil/zero fields.
@@ -106,7 +110,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 
 	readModel := NewUserReadModel()
 
-	if err := StartProjections(journal, bus, readModel, casbinProjection); err != nil {
+	if err := StartProjections(journal, bus, readModel, casbinProjection, cfg.AuditLog); err != nil {
 		return nil, event.NewTransient("internal", "start projections").WithCause(err)
 	}
 
@@ -141,6 +145,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		eventHandler:     cfg.EventHandler,
 		bus:              bus,
 		store:            store,
+		auditLog:         cfg.AuditLog,
 	}
 
 	if cfg.WebAuthnConfig != nil {
@@ -180,6 +185,9 @@ func (s *Service) Stop() {
 
 // ReadModel returns the user read model for direct queries.
 func (s *Service) ReadModel() *UserReadModel { return s.readModel }
+
+// AuditLog returns the configured audit log, or nil if not configured.
+func (s *Service) AuditLog() *AuditLog { return s.auditLog }
 
 // bridgeEventHandler subscribes to the bus and translates events to the old EventHandler callback.
 func (s *Service) bridgeEventHandler(bus event.Subscriber) {

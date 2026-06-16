@@ -24,6 +24,7 @@ func StartProjections(
 	bus event.Subscriber,
 	readModel *UserReadModel,
 	casbinProjection *CasbinProjection,
+	auditLog *AuditLog,
 ) error {
 	checkpointStore := memory.NewMemoryCheckpointStore()
 
@@ -38,6 +39,12 @@ func StartProjections(
 
 	if err := runner.Register(casbinProjection); err != nil {
 		return fmt.Errorf("register casbin projection: %w", err)
+	}
+
+	if auditLog != nil {
+		if err := runner.Register(auditLog); err != nil {
+			return fmt.Errorf("register audit log projection: %w", err)
+		}
 	}
 
 	go func() {

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -18,6 +19,7 @@ type AuthHandler struct {
 	secure        bool
 	sessionMaxAge int
 	timeout       time.Duration
+	regLimiter    *registrationRateLimiter
 }
 
 // HandlerConfig controls cookie and session settings for AuthHandler.
@@ -35,6 +37,61 @@ type HandlerConfig struct {
 	// Timeout sets a maximum execution time for auth endpoint handlers.
 	// Zero means no timeout (default).
 	Timeout time.Duration
+	// RegistrationRateLimit, if non-nil, limits the rate of POST /auth/register
+	// requests. Use this to prevent credential stuffing and registration abuse.
+	// The limiter is checked before the request body is decoded.
+	RegistrationRateLimit RegistrationRateLimitConfig
+}
+
+// RegistrationRateLimitConfig configures per-IP rate limiting for registration.
+type RegistrationRateLimitConfig struct {
+	// Enabled controls whether rate limiting is active.
+	Enabled bool
+	// MaxRequests is the maximum number of registrations per Window per IP.
+	MaxRequests int
+	// Window is the time window for rate counting.
+	Window time.Duration
+}
+
+type rateLimitEntry struct {
+	count     int
+	windowEnd time.Time
+}
+
+// registrationRateLimiter is a simple in-memory per-IP rate limiter.
+type registrationRateLimiter struct {
+	mu      sync.Mutex
+	entries map[string]*rateLimitEntry
+	max     int
+	window  time.Duration
+}
+
+func newRegistrationRateLimiter(max int, window time.Duration) *registrationRateLimiter {
+	return &registrationRateLimiter{
+		entries: make(map[string]*rateLimitEntry),
+		max:     max,
+		window:  window,
+	}
+}
+
+func (rl *registrationRateLimiter) allow(ip string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	now := time.Now()
+	entry, exists := rl.entries[ip]
+	if !exists || now.After(entry.windowEnd) {
+		rl.entries[ip] = &rateLimitEntry{
+			count:     1,
+			windowEnd: now.Add(rl.window),
+		}
+		return true
+	}
+	if entry.count >= rl.max {
+		return false
+	}
+	entry.count++
+	return true
 }
 
 func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
@@ -55,6 +112,7 @@ func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
 	if cfg.Timeout != 0 {
 		result.Timeout = cfg.Timeout
 	}
+	result.RegistrationRateLimit = cfg.RegistrationRateLimit
 	return result
 }
 
@@ -80,6 +138,15 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 		secure:        secure,
 		sessionMaxAge: config.SessionMaxAge,
 		timeout:       config.Timeout,
+		regLimiter: func() *registrationRateLimiter {
+			if config.RegistrationRateLimit.Enabled && config.RegistrationRateLimit.MaxRequests > 0 {
+				return newRegistrationRateLimiter(
+					config.RegistrationRateLimit.MaxRequests,
+					config.RegistrationRateLimit.Window,
+				)
+			}
+			return nil
+		}(),
 	}
 }
 
@@ -109,6 +176,11 @@ func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 const maxAuthBodySize = 1 << 20 // 1 MB
 
 func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
+	if h.regLimiter != nil && !h.regLimiter.allow(r.RemoteAddr) {
+		writeError(w, http.StatusTooManyRequests, "too many registration requests")
+		return
+	}
+
 	ctx := r.Context()
 	if h.timeout > 0 {
 		var cancel context.CancelFunc

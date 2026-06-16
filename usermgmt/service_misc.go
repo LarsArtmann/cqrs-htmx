@@ -15,7 +15,8 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 	return user, nil
 }
 
-// UpdateRoles dispatches an UpdateRoles command.
+// UpdateRoles dispatches an UpdateRoles command and revokes existing sessions
+// to force re-authentication with the new privilege level.
 func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, domain string) error {
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
@@ -24,6 +25,10 @@ func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, 
 	err = s.dispatcher.Dispatch(ctx, NewUpdateRolesCmd(aggID, roles, domain))
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
+	}
+	if err := s.sessions.DeleteByUserID(ctx, userID); err != nil {
+		s.logger.Warn("usermgmt: failed to rotate sessions after role update",
+			"user_id", userID, "error", err)
 	}
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
 	s.emit(userID, RolesUpdatedEvent{

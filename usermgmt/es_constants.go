@@ -34,3 +34,7 @@ var allUserEventTypes = []event.Type{
 	eventCredentialAdded,
 	eventCredentialRemoved,
 }
+
+// currentSchemaVersion is the payload schema version for all new events.
+// Old events without the field decode as 0; foldUser treats 0 as v1.
+const currentSchemaVersion = 1
