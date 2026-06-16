@@ -77,7 +77,6 @@ func decideUpdateRoles(
 	}
 }
 
-//nolint:dupl // email and display-name update follow the same guard pattern; inlining keeps each self-contained and readable
 func decideChangeEmail(
 	aggID id.AggregateID,
 	email string,
@@ -111,7 +110,6 @@ func decideChangeEmail(
 	}
 }
 
-//nolint:dupl // see decideChangeEmail
 func decideChangeDisplayName(
 	aggID id.AggregateID,
 	displayName string,
