@@ -31,9 +31,8 @@ func TestSQLEventStore_SaveAndLoad(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	payload, _ := marshalPayload(UserRegisteredPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "sql@test.com",
-		Roles:         []Role{RoleUser},
+		Email: "sql@test.com",
+		Roles: []Role{RoleUser},
 	})
 
 	evt, err := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, payload)
@@ -68,8 +67,7 @@ func TestSQLEventStore_OptimisticConcurrency(t *testing.T) {
 	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
 
 	payload, _ := marshalPayload(UserRegisteredPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "concur@test.com",
+		Email: "concur@test.com",
 	})
 	evt, _ := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, payload)
 
@@ -80,8 +78,7 @@ func TestSQLEventStore_OptimisticConcurrency(t *testing.T) {
 
 	// Try to save with wrong expected version (0 again — should fail)
 	payload2, _ := marshalPayload(EmailChangedPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "new@test.com",
+		Email: "new@test.com",
 	})
 	evt2, _ := event.NewEvent(eventEmailChanged, aggID, aggregateTypeUser, 2, payload2)
 
@@ -98,12 +95,10 @@ func TestSQLEventStore_AppendBatch(t *testing.T) {
 	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
 
 	p1, _ := marshalPayload(UserRegisteredPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "batch@test.com",
+		Email: "batch@test.com",
 	})
 	p2, _ := marshalPayload(EmailChangedPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "new@test.com",
+		Email: "new@test.com",
 	})
 	evt1, _ := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, p1)
 	evt2, _ := event.NewEvent(eventEmailChanged, aggID, aggregateTypeUser, 2, p2)
@@ -129,12 +124,10 @@ func TestSQLEventStore_ReadAll(t *testing.T) {
 	agg2 := id.NewAggregateID()
 
 	p1, _ := marshalPayload(UserRegisteredPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "ra1@test.com",
+		Email: "ra1@test.com",
 	})
 	p2, _ := marshalPayload(UserRegisteredPayload{
-		SchemaVersion: currentSchemaVersion,
-		Email:         "ra2@test.com",
+		Email: "ra2@test.com",
 	})
 	evt1, _ := event.NewEvent(eventUserRegistered, agg1, aggregateTypeUser, 1, p1)
 	evt2, _ := event.NewEvent(eventUserRegistered, agg2, aggregateTypeUser, 1, p2)
@@ -194,7 +187,6 @@ func appendThreeTestEvents(
 	p1, _ := marshalPayload(UserRegisteredPayload{SchemaVersion: currentSchemaVersion, Email: "v@test.com"})
 	p2, _ := marshalPayload(EmailChangedPayload{SchemaVersion: currentSchemaVersion, Email: "new@test.com"})
 	p3, _ := marshalPayload(DisplayNameChangedPayload{SchemaVersion: currentSchemaVersion, DisplayName: "New"})
-
 	evt1, _ := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, p1)
 	evt2, _ := event.NewEvent(eventEmailChanged, aggID, aggregateTypeUser, 2, p2)
 	evt3, _ := event.NewEvent(eventDisplayNameChanged, aggID, aggregateTypeUser, 3, p3)
