@@ -93,6 +93,30 @@ func (s *verificationTokenStore) EvictExpired() int {
 	return count
 }
 
+// verificationEvictionInterval is how often expired verification tokens are
+// cleaned up by the background goroutine.
+const verificationEvictionInterval = 5 * time.Minute
+
+// startEviction launches a background goroutine that periodically removes
+// expired verification tokens. Returns a stop function that must be called
+// to terminate the goroutine (e.g. on shutdown or in tests).
+func (s *verificationTokenStore) startEviction() (stop func()) {
+	ticker := time.NewTicker(verificationEvictionInterval)
+	done := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				s.EvictExpired()
+			case <-done:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+	return func() { close(done) }
+}
+
 func generateVerificationToken() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
@@ -109,23 +133,28 @@ func (s *Service) SendVerificationEmail(ctx context.Context, userID UserID) (tok
 	}
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
+		s.logAuth("verification_email_failed", userID, "reason", "user_not_found")
 		return "", fmt.Errorf("send verification email: %w", ErrUserNotFound)
 	}
 	if user.EmailVerified {
+		s.logAuth("verification_email_failed", userID, "reason", "already_verified")
 		return "", ErrEmailAlreadyVerified
 	}
 
 	ttl := s.verificationTTL
 	token, err = s.verificationTokens.Save(userID, user.Email, ttl)
 	if err != nil {
+		s.logAuth("verification_email_failed", userID, "reason", "token_generation_error")
 		return "", event.NewTransient("internal", "generate verification token").WithCause(err)
 	}
 
 	if s.sendVerificationEmail != nil {
 		if err := s.sendVerificationEmail(ctx, user.Email, token); err != nil {
+			s.logAuth("verification_email_failed", userID, "reason", "send_callback_error")
 			return "", event.NewTransient("internal", "send verification email").WithCause(err)
 		}
 	}
+	s.logAuth("verification_email_sent", userID, "email", user.Email)
 	return token, nil
 }
 
@@ -137,14 +166,18 @@ func (s *Service) VerifyEmail(ctx context.Context, token string) error {
 	}
 	userID, err := s.verificationTokens.Consume(token)
 	if err != nil {
+		s.logAuth("email_verify_failed", userID, "reason", "invalid_or_expired_token")
 		return err
 	}
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
+		s.logAuth("email_verify_failed", userID, "reason", "invalid_user_id")
 		return fmt.Errorf("convert userID: %w", err)
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewVerifyEmailCmd(aggID)); err != nil {
+		s.logAuth("email_verify_failed", userID, "reason", "dispatch_error")
 		return fmt.Errorf("verify email dispatch: %w", err)
 	}
+	s.logAuth(statusVerified, userID)
 	return nil
 }

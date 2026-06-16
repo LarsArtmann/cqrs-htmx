@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -188,6 +189,24 @@ func (m *UserReadModel) Count() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return len(m.users)
+}
+
+// AllUsers returns a deep-copied slice of all users in the read model.
+// The result is sorted by CreatedAt ascending, then by ID, for deterministic output.
+func (m *UserReadModel) AllUsers() []*User {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	users := make([]*User, 0, len(m.users))
+	for _, u := range m.users {
+		users = append(users, u.Clone())
+	}
+	sort.Slice(users, func(i, j int) bool {
+		if !users[i].CreatedAt.Equal(users[j].CreatedAt) {
+			return users[i].CreatedAt.Before(users[j].CreatedAt)
+		}
+		return users[i].ID.Get() < users[j].ID.Get()
+	})
+	return users
 }
 
 func (m *UserReadModel) FindByUserID(userID UserID) (*User, bool) {

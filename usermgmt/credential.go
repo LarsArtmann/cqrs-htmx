@@ -16,3 +16,13 @@ type WebAuthnCredential struct {
 	Name            string    `json:"name,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
 }
+
+// Clone returns a deep copy of the credential with independent slice fields.
+func (c WebAuthnCredential) Clone() WebAuthnCredential {
+	cp := c
+	cp.ID = append([]byte(nil), c.ID...)
+	cp.PublicKey = append([]byte(nil), c.PublicKey...)
+	cp.Transports = append([]string(nil), c.Transports...)
+	cp.AAGUID = append([]byte(nil), c.AAGUID...)
+	return cp
+}

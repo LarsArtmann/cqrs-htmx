@@ -52,13 +52,16 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 	}
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
+		s.logAuth("totp_setup_failed", userID, "reason", "user_not_found")
 		return nil, fmt.Errorf("enable totp: %w", ErrUserNotFound)
 	}
 	if user.TOTPEnabled {
+		s.logAuth("totp_setup_failed", userID, "reason", "already_enabled")
 		return nil, ErrTOTPAlreadyEnabled
 	}
 	secret, err := generateTOTPSecret()
 	if err != nil {
+		s.logAuth("totp_setup_failed", userID, "reason", "secret_generation_error")
 		return nil, event.NewTransient("internal", "generate totp secret").WithCause(err)
 	}
 	// Store the pending secret temporarily
@@ -77,6 +80,7 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 	secretB32 := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(secret)
 	qrURI := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=SHA1&digits=%d&period=%d",
 		issuerEncoded, account, secretB32, issuerEncoded, TOTPDigits, int(TOTPTimeStep.Seconds()))
+	s.logAuth("totp_setup_initiated", userID)
 	return &TOTPSetupResponse{
 		Secret:    secretB32,
 		QRCodeURI: qrURI,
@@ -96,18 +100,23 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 	}
 	s.pendingTOTP.mu.Unlock()
 	if !ok || time.Now().After(pending.expiresAt) {
+		s.logAuth("totp_setup_verify_failed", userID, "reason", "setup_expired")
 		return ErrTOTPSetupExpired
 	}
 	if !validateTOTP(pending.secret, code, s.totpConfig.Window) {
+		s.logAuth("totp_setup_verify_failed", userID, "reason", "invalid_code")
 		return ErrInvalidTOTPCode
 	}
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
+		s.logAuth("totp_setup_verify_failed", userID, "reason", "invalid_user_id")
 		return fmt.Errorf("convert userID: %w", err)
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewEnableTOTPCmd(aggID, pending.secret)); err != nil {
+		s.logAuth("totp_setup_verify_failed", userID, "reason", "dispatch_error")
 		return fmt.Errorf("enable totp dispatch: %w", err)
 	}
+	s.logAuth(statusTOTPEnabled, userID)
 	return nil
 }
 
@@ -119,14 +128,18 @@ func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) er
 	}
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
+		s.logAuth("totp_verify_failed", userID, "reason", "user_not_found")
 		return fmt.Errorf("verify totp: %w", ErrUserNotFound)
 	}
 	if !user.TOTPEnabled || len(user.TOTPSecret) == 0 {
+		s.logAuth("totp_verify_failed", userID, "reason", "totp_not_enabled")
 		return ErrTOTPNotEnabled
 	}
 	if !validateTOTP(user.TOTPSecret, code, s.totpConfig.Window) {
+		s.logAuth("totp_verify_failed", userID, "reason", "invalid_code")
 		return ErrInvalidTOTPCode
 	}
+	s.logAuth(statusTOTPVerified, userID)
 	return nil
 }
 
@@ -137,18 +150,23 @@ func (s *Service) DisableTOTP(ctx context.Context, userID UserID) error {
 	}
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
+		s.logAuth("totp_disable_failed", userID, "reason", "user_not_found")
 		return fmt.Errorf("disable totp: %w", ErrUserNotFound)
 	}
 	if !user.TOTPEnabled {
+		s.logAuth("totp_disable_failed", userID, "reason", "totp_not_enabled")
 		return ErrTOTPNotEnabled
 	}
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
+		s.logAuth("totp_disable_failed", userID, "reason", "invalid_user_id")
 		return fmt.Errorf("convert userID: %w", err)
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewDisableTOTPCmd(aggID)); err != nil {
+		s.logAuth("totp_disable_failed", userID, "reason", "dispatch_error")
 		return fmt.Errorf("disable totp dispatch: %w", err)
 	}
+	s.logAuth(statusTOTPDisabled, userID)
 	return nil
 }
 
@@ -202,7 +220,47 @@ type pendingTOTPStore struct {
 	secrets map[string]pendingTOTPSecret
 }
 
+// pendingTTOTPEvictionInterval is how often expired pending TOTP secrets are
+// cleaned up by the background goroutine.
+const pendingTTOTPEvictionInterval = 1 * time.Minute
+
 func newPendingTOTPStore() pendingTOTPStore {
 	return pendingTOTPStore{ //nolint:exhaustruct // mu is zero-value
 		secrets: make(map[string]pendingTOTPSecret)}
+}
+
+// EvictExpired removes all pending TOTP secrets whose expiry time has passed.
+// Returns the number of secrets evicted.
+func (s *pendingTOTPStore) EvictExpired() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	now := time.Now()
+	count := 0
+	for key, entry := range s.secrets {
+		if now.After(entry.expiresAt) {
+			delete(s.secrets, key)
+			count++
+		}
+	}
+	return count
+}
+
+// startEviction launches a background goroutine that periodically removes
+// expired pending TOTP secrets. Returns a stop function that must be called
+// to terminate the goroutine (e.g. on shutdown or in tests).
+func (s *pendingTOTPStore) startEviction() (stop func()) {
+	ticker := time.NewTicker(pendingTTOTPEvictionInterval)
+	done := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				s.EvictExpired()
+			case <-done:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+	return func() { close(done) }
 }
