@@ -27,14 +27,14 @@ func TestHandlers_Register_Success(t *testing.T) {
 	_, mux := setupMux(t)
 
 	w := postJSON(t, mux, "/auth/register",
-		`{"id":"u2","email":"reg@test.com","password":"secret12","display_name":"Reg"}`)
+		`{"id":"u2","email":"reg@test.com","display_name":"Reg"}`)
 	if w.Code != http.StatusCreated {
 		t.Errorf("expected 201 for register, got %d: %s", w.Code, w.Body.String())
 	}
 }
 
 func TestHandlers_Register_ValidationError(t *testing.T) {
-	assertValidationBadRequest(t, "/auth/register", `{"id":"","email":"bad","password":"short"}`)
+	assertValidationBadRequest(t, "/auth/register", `{"id":"","email":"bad"}`)
 }
 
 func TestHandlers_Register_WithCustomSessionMaxAge(t *testing.T) {

@@ -70,3 +70,16 @@ func ExampleService_Register() {
 	fmt.Println("user created:", resp.User.Email)
 	// Output: user created: alice@example.com
 }
+
+func ExampleService_Authz() {
+	service, _ := usermgmt.NewService(usermgmt.ServiceConfig{})
+
+	// The Authz accessor gives direct access to policy queries.
+	authz := service.Authz()
+	if authz == nil {
+		fmt.Println("no authz")
+		return
+	}
+	fmt.Println("authz available")
+	// Output: authz available
+}

@@ -25,7 +25,7 @@ const (
 	cmdRemoveCredential  command.Type = "RemoveCredential"
 )
 
-var allUserEventTypes = []event.Type{ //nolint:gochecknoglobals // event type registry
+var allUserEventTypes = []event.Type{
 	eventUserRegistered,
 	eventRolesUpdated,
 	eventEmailChanged,

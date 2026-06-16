@@ -10,9 +10,14 @@ import (
 )
 
 // CasbinProjection derives Casbin policies from User events.
-// It subscribes to UserRegistered, RolesUpdated, and UserDeleted events
-// and maintains the group policy set so that authorization checks reflect
-// the current event-derived state.
+// It subscribes to UserRegistered, RolesUpdated, UserDeleted, CredentialAdded,
+// and CredentialRemoved events and maintains the group policy set so that
+// authorization checks reflect the current event-derived state.
+//
+// Credential events are subscribed for projection ordering guarantees
+// (they arrive after any preceding policy-changing events in the same stream).
+// The projection is a no-op for credential events themselves since credentials
+// do not affect Casbin policies.
 type CasbinProjection struct {
 	authz *Authz
 }
@@ -28,7 +33,13 @@ func NewCasbinProjection(authz *Authz) (*CasbinProjection, error) {
 func (p *CasbinProjection) Name() string { return "casbin-projection" }
 
 func (p *CasbinProjection) EventTypes() []event.Type {
-	return []event.Type{eventUserRegistered, eventRolesUpdated, eventUserDeleted}
+	return []event.Type{
+		eventUserRegistered,
+		eventRolesUpdated,
+		eventUserDeleted,
+		eventCredentialAdded,
+		eventCredentialRemoved,
+	}
 }
 
 func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
@@ -82,6 +93,9 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 		if err := p.authz.RemoveAllRolesForUser(subject); err != nil {
 			return fmt.Errorf("delete user from casbin: %w", err)
 		}
+
+	case eventCredentialAdded, eventCredentialRemoved:
+		// Credentials don't affect Casbin policies — subscribed for projection ordering.
 
 	default:
 	}

@@ -61,6 +61,7 @@ func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
 const (
 	defaultCookieName = "session_token"
 	contentTypeJSON   = "application/json; charset=utf-8"
+	statusKey         = "status"
 )
 
 // NewAuthHandler creates an AuthHandler for the given Service with optional config.
@@ -86,11 +87,13 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 //
 //	POST /auth/register              — create account (email only, no password)
 //	POST /auth/webauthn/register/begin  — begin passkey registration
-//	POST /auth/webauthn/register/finish — finish passkey registration
+//	POST /auth/webauthn/register/finish — finish passkey registration (user_id via query param)
 //	POST /auth/webauthn/login/begin     — begin passkey login
-//	POST /auth/webauthn/login/finish    — finish passkey login
+//	POST /auth/webauthn/login/finish    — finish passkey login (user_id via query param)
 //	POST /auth/logout                    — clear session
 //	GET  /auth/me                        — return current user
+//	GET  /auth/credentials               — list current user's WebAuthn credentials
+//	DELETE /auth/credentials/{id}        — remove a WebAuthn credential by base64url ID
 func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/register", h.handleRegister)
 	mux.HandleFunc("POST /auth/webauthn/register/begin", h.handleWebAuthnBeginRegistration)
@@ -99,6 +102,8 @@ func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/webauthn/login/finish", h.handleWebAuthnFinishLogin)
 	mux.HandleFunc("POST /auth/logout", h.handleLogout)
 	mux.HandleFunc("GET /auth/me", h.handleMe)
+	mux.HandleFunc("GET /auth/credentials", h.handleListCredentials)
+	mux.HandleFunc("DELETE /auth/credentials/{id}", h.handleDeleteCredential)
 }
 
 const maxAuthBodySize = 1 << 20 // 1 MB
@@ -149,7 +154,7 @@ func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.clearSessionCookie(w)
-	writeJSON(w, http.StatusOK, map[string]string{"status": "logged_out"})
+	writeJSON(w, http.StatusOK, map[string]string{statusKey: "logged_out"})
 }
 
 func (h *AuthHandler) handleMe(w http.ResponseWriter, r *http.Request) {

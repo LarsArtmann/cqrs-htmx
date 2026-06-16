@@ -14,14 +14,20 @@ type WebAuthnConfig struct {
 	RPOrigins     []string // e.g. []string{"https://example.com"}
 }
 
+// webauthnEvictionInterval is how often the background cleanup goroutine
+// scans for expired WebAuthn challenge sessions.
+const webauthnEvictionInterval = 5 * time.Minute
+
 // webauthnSessionStore holds the temporary challenge data for in-flight WebAuthn ceremonies.
-// Each entry expires after a short TTL (default 5 minutes).
+// Each entry expires after the WebAuthn session's Expires field (set by go-webauthn).
+// Expired entries are removed lazily on Get and proactively by a background goroutine.
 type webauthnSessionStore struct {
 	mu       sync.Mutex
 	sessions map[string]*webauthn.SessionData
 }
 
 func newWebAuthnSessionStore() *webauthnSessionStore {
+	//nolint:exhaustruct // mu zero-value is correct (sync.Mutex)
 	return &webauthnSessionStore{
 		sessions: make(map[string]*webauthn.SessionData),
 	}
@@ -51,4 +57,40 @@ func (s *webauthnSessionStore) Delete(key string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.sessions, key)
+}
+
+// EvictExpired removes all sessions whose Expires time has passed.
+// Returns the number of sessions evicted.
+func (s *webauthnSessionStore) EvictExpired() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	now := time.Now()
+	evicted := 0
+	for key, data := range s.sessions {
+		if !data.Expires.IsZero() && now.After(data.Expires) {
+			delete(s.sessions, key)
+			evicted++
+		}
+	}
+	return evicted
+}
+
+// startEviction launches a background goroutine that periodically removes
+// expired WebAuthn challenge sessions. Returns a stop function that must be
+// called to terminate the goroutine (e.g. on shutdown or in tests).
+func (s *webauthnSessionStore) startEviction() (stop func()) {
+	ticker := time.NewTicker(webauthnEvictionInterval)
+	done := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				s.EvictExpired()
+			case <-done:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+	return func() { close(done) }
 }

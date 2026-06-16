@@ -20,20 +20,21 @@ const (
 // Service orchestrates user registration, authentication, authorization, and session management
 // using event-sourced CQRS under the hood.
 type Service struct {
-	repository       *decider.Repository[UserState]
-	dispatcher       *command.Dispatcher
-	readModel        *UserReadModel
-	casbinProjection *CasbinProjection
-	authz            *Authz
-	sessions         SessionStore
-	sessionTTL       time.Duration
-	logger           *slog.Logger
-	lockout          *AccountLockout
-	eventHandler     EventHandler
-	bus              event.Bus
-	store            event.Store
-	webauthn         *webauthn.WebAuthn
-	webauthnSessions *webauthnSessionStore
+	repository           *decider.Repository[UserState]
+	dispatcher           *command.Dispatcher
+	readModel            *UserReadModel
+	casbinProjection     *CasbinProjection
+	authz                *Authz
+	sessions             SessionStore
+	sessionTTL           time.Duration
+	logger               *slog.Logger
+	lockout              *AccountLockout
+	eventHandler         EventHandler
+	bus                  event.Bus
+	store                event.Store
+	webauthn             *webauthn.WebAuthn
+	webauthnSessions     *webauthnSessionStore
+	stopWebAuthnEviction func()
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -124,6 +125,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	dispatcher := command.NewDispatcher()
 	RegisterCommands(dispatcher, repo)
 
+	//nolint:exhaustruct // fields set conditionally below
 	svc := &Service{
 		repository:       repo,
 		dispatcher:       dispatcher,
@@ -140,6 +142,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	}
 
 	if cfg.WebAuthnConfig != nil {
+		//nolint:exhaustruct // only required fields set; others use go-webauthn defaults
 		wa, err := webauthn.New(&webauthn.Config{
 			RPID:          cfg.WebAuthnConfig.RPID,
 			RPDisplayName: cfg.WebAuthnConfig.RPDisplayName,
@@ -150,6 +153,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		}
 		svc.webauthn = wa
 		svc.webauthnSessions = newWebAuthnSessionStore()
+		svc.stopWebAuthnEviction = svc.webauthnSessions.startEviction()
 	}
 
 	if cfg.EventHandler != nil {
@@ -161,6 +165,16 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 
 // Authz returns the underlying authorization engine for direct policy queries.
 func (s *Service) Authz() *Authz { return s.authz }
+
+// Stop gracefully shuts down background resources associated with the Service,
+// such as the WebAuthn session eviction goroutine. It is safe to call multiple
+// times and is a no-op when no background resources are running.
+func (s *Service) Stop() {
+	if s.stopWebAuthnEviction != nil {
+		s.stopWebAuthnEviction()
+		s.stopWebAuthnEviction = nil
+	}
+}
 
 // ReadModel returns the user read model for direct queries.
 func (s *Service) ReadModel() *UserReadModel { return s.readModel }

@@ -109,7 +109,7 @@ func (a *Authz) RemoveAllRolesForUser(subject string) error {
 	domains, err := a.enforcer.GetDomainsForUser(subject)
 	if err != nil {
 		return event.NewTransient("casbin_error",
-			fmt.Sprintf("get domains for user %s", subject)).WithCause(err)
+			"get domains for user "+subject).WithCause(err)
 	}
 	for _, domain := range domains {
 		roles, err := a.enforcer.GetRolesForUser(subject, domain)

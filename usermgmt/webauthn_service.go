@@ -67,7 +67,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 		waUser,
 		*session,
 		r,
-	) //nolint:contextcheck // WebAuthn reads HTTP request body
+	)
 	if err != nil {
 		return event.NewRejection("usermgmt.webauthn.registration_failed",
 			"credential registration failed").WithCause(err)
@@ -77,7 +77,10 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 
 	domainCred := fromWebAuthnCredential(credential, credentialName)
 	aggID := aggIDFromUser(userID)
-	return s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, domainCred))
+	if err := s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, domainCred)); err != nil {
+		return fmt.Errorf("finish registration dispatch: %w", err)
+	}
+	return nil
 }
 
 // BeginLoginResponse contains the assertion options to send to the client.
@@ -89,9 +92,14 @@ type BeginLoginResponse struct {
 // BeginLogin starts the WebAuthn login ceremony.
 // The user is looked up by email. The returned CredentialAssertion must be sent to
 // the client, which uses the browser WebAuthn API to assert a credential.
+// If account lockout is configured and the account is locked, ErrAccountLocked is returned.
 func (s *Service) BeginLogin(_ context.Context, email string) (*BeginLoginResponse, error) {
 	if s.webauthn == nil {
 		return nil, ErrWebAuthnNotConfigured
+	}
+
+	if s.lockout != nil && s.lockout.IsLocked(email) {
+		return nil, ErrAccountLocked
 	}
 
 	user, ok := s.readModel.FindByEmail(email)
@@ -148,13 +156,20 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		waUser,
 		*session,
 		r,
-	) //nolint:contextcheck // WebAuthn reads HTTP request body
+	)
 	if err != nil {
+		if s.lockout != nil {
+			s.lockout.RecordFailure(user.Email)
+		}
 		return nil, event.NewRejection("usermgmt.webauthn.login_failed",
 			"credential login failed").WithCause(err)
 	}
 
 	s.webauthnSessions.Delete(sessionKey)
+
+	if s.lockout != nil {
+		s.lockout.Reset(user.Email)
+	}
 
 	sess, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
 	if err != nil {
