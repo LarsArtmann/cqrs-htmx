@@ -103,7 +103,7 @@ linters:
   exclusions:
     generated: lax
     rules:
-      - path: (errors|htmx_embed|notify)\.go$
+      - path: (errors|htmx_embed|notify|app|logging|csrf_middleware)\.go$
         text: is a global variable
         linters:
           - gochecknoglobals
@@ -127,6 +127,10 @@ linters:
         text: unused
         linters:
           - unused
+      - path: benchmark_server_test\.go$
+        linters:
+          - exhaustruct
+          - errcheck
     paths:
       - \.gen\.go$
       - _mock\.go$

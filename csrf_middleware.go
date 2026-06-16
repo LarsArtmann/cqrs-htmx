@@ -71,7 +71,7 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 // trusted proxies configured. This moves the warning from the per-request hot
 // path (isTrustedProxy) to middleware construction time, preventing log spam
 // on every non-loopback HTTP request.
-var warnTrustedProxiesOnce sync.Once //nolint:gochecknoglobals // one-time warning guard
+var warnTrustedProxiesOnce sync.Once
 
 func warnEmptyTrustedProxies(cfg CSRFConfig) {
 	warnTrustedProxiesOnce.Do(func() {

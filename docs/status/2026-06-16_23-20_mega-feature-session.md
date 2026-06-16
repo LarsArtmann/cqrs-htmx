@@ -31,23 +31,23 @@ Executed 14 features from the TODO list in a single session: README overhaul, ev
 
 ### Metrics
 
-| Metric | Before Session | After Session |
-| --- | --- | --- |
-| usermgmt tests | 219 | 274 |
-| usermgmt coverage | 84.8% | 84.3% (slightly down due to large new SQL store code) |
-| Root lint issues | 9 (pre-existing) | 9 (pre-existing, unchanged) |
-| Usermgmt lint issues | 0 | ~8 (dupl in decide + test, minor test issues) |
-| New .go files | — | 11 (audit_log, sql_event_store, doc.go, 8 test files) |
+| Metric               | Before Session   | After Session                                         |
+| -------------------- | ---------------- | ----------------------------------------------------- |
+| usermgmt tests       | 219              | 274                                                   |
+| usermgmt coverage    | 84.8%            | 84.3% (slightly down due to large new SQL store code) |
+| Root lint issues     | 9 (pre-existing) | 9 (pre-existing, unchanged)                           |
+| Usermgmt lint issues | 0                | ~8 (dupl in decide + test, minor test issues)         |
+| New .go files        | —                | 11 (audit_log, sql_event_store, doc.go, 8 test files) |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item | Status | Gap |
-| --- | --- | --- |
+| Item              | Status    | Gap                                                                                                                                                           |
+| ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Usermgmt lint** | ~8 issues | dupl in es_decide.go (pre-existing pattern), dupl+errcheck in sql_event_store_test.go, funlen in credential_pagination_test.go — all minor, fixable in ~15min |
-| **Coverage** | 84.3% | Down from 84.8% because SQL event store added ~350 LOC of new code. Coverage will rise as SQL store tests mature. |
-| **Root doc.go** | 90% | gci formatting issue (cosmetic) |
+| **Coverage**      | 84.3%     | Down from 84.8% because SQL event store added ~350 LOC of new code. Coverage will rise as SQL store tests mature.                                             |
+| **Root doc.go**   | 90%       | gci formatting issue (cosmetic)                                                                                                                               |
 
 ---
 
@@ -69,6 +69,7 @@ Executed 14 features from the TODO list in a single session: README overhaul, ev
 **Nothing is broken.** All 3 modules build. All tests pass with race detector. No panics in production code.
 
 One concern:
+
 - **Usermgmt lint at ~8 issues** — Mostly dupl (pre-existing decide pattern + test helper duplication) and one funlen. Not blocking but should be cleaned to zero.
 
 ---
@@ -98,33 +99,33 @@ One concern:
 
 ## f) Top 25 Things to Get Done Next
 
-| # | Task | Impact | Effort |
-| --- | --- | --- | --- |
-| 1 | Fix usermgmt lint to zero (dupl, funlen, errcheck) | Medium | 15m |
-| 2 | Integration test: full WebAuthn flow via virtual authenticator | High | 120m |
-| 3 | SQL event store: Postgres test suite + connection pooling | High | 60m |
-| 4 | Email verification flow | High | 45m |
-| 5 | OAuth2/OIDC provider integration | High | 120m |
-| 6 | Event upcaster machinery | Medium | 30m |
-| 7 | Update AGENTS.md with new features (audit log, SQL store, rate limiting) | Medium | 15m |
-| 8 | Update CHANGELOG.md with all new features | Medium | 15m |
-| 9 | Update FEATURES.md with new feature inventory | Medium | 15m |
-| 10 | Update TODO_LIST.md — mark completed items | Medium | 10m |
-| 11 | Credential listing sort order (by created_at desc) | Low | 10m |
-| 12 | Admin UI (templ + HTMX) | Medium | 120m |
-| 13 | User import/export (JSON batch) | Low | 30m |
-| 14 | MFA (WebAuthn + TOTP) | Low | 90m |
-| 15 | SQL event store: snapshot integration | Low | 60m |
-| 16 | Session store: SQL implementation | Low | 45m |
-| 17 | WebAuthn credential backup eligibility tracking | Low | 20m |
-| 18 | Passwordless recovery flow (email-based account recovery) | Medium | 60m |
-| 19 | Audit log: HTTP endpoint for querying | Low | 30m |
-| 20 | Audit log: persistence to SQL | Low | 45m |
-| 21 | Rate limiter: distributed (Redis-backed) | Low | 60m |
-| 22 | Coverage push to 90%+ (WebAuthn ceremony methods) | Medium | 120m |
-| 23 | Benchmark: SQL event store vs memory | Low | 20m |
-| 24 | Documentation: SQL store usage guide | Low | 20m |
-| 25 | CI: add SQLite tests to GitHub Actions | Low | 10m |
+| #   | Task                                                                     | Impact | Effort |
+| --- | ------------------------------------------------------------------------ | ------ | ------ |
+| 1   | Fix usermgmt lint to zero (dupl, funlen, errcheck)                       | Medium | 15m    |
+| 2   | Integration test: full WebAuthn flow via virtual authenticator           | High   | 120m   |
+| 3   | SQL event store: Postgres test suite + connection pooling                | High   | 60m    |
+| 4   | Email verification flow                                                  | High   | 45m    |
+| 5   | OAuth2/OIDC provider integration                                         | High   | 120m   |
+| 6   | Event upcaster machinery                                                 | Medium | 30m    |
+| 7   | Update AGENTS.md with new features (audit log, SQL store, rate limiting) | Medium | 15m    |
+| 8   | Update CHANGELOG.md with all new features                                | Medium | 15m    |
+| 9   | Update FEATURES.md with new feature inventory                            | Medium | 15m    |
+| 10  | Update TODO_LIST.md — mark completed items                               | Medium | 10m    |
+| 11  | Credential listing sort order (by created_at desc)                       | Low    | 10m    |
+| 12  | Admin UI (templ + HTMX)                                                  | Medium | 120m   |
+| 13  | User import/export (JSON batch)                                          | Low    | 30m    |
+| 14  | MFA (WebAuthn + TOTP)                                                    | Low    | 90m    |
+| 15  | SQL event store: snapshot integration                                    | Low    | 60m    |
+| 16  | Session store: SQL implementation                                        | Low    | 45m    |
+| 17  | WebAuthn credential backup eligibility tracking                          | Low    | 20m    |
+| 18  | Passwordless recovery flow (email-based account recovery)                | Medium | 60m    |
+| 19  | Audit log: HTTP endpoint for querying                                    | Low    | 30m    |
+| 20  | Audit log: persistence to SQL                                            | Low    | 45m    |
+| 21  | Rate limiter: distributed (Redis-backed)                                 | Low    | 60m    |
+| 22  | Coverage push to 90%+ (WebAuthn ceremony methods)                        | Medium | 120m   |
+| 23  | Benchmark: SQL event store vs memory                                     | Low    | 20m    |
+| 24  | Documentation: SQL store usage guide                                     | Low    | 20m    |
+| 25  | CI: add SQLite tests to GitHub Actions                                   | Low    | 10m    |
 
 ---
 
@@ -151,6 +152,7 @@ I lean toward option 2 for now (keep the simple implementation) to preserve the 
 ### Files Changed
 
 **Modified (17):**
+
 - `.github/workflows/ci.yml` — Added usermgmt lint job, concurrency, timeouts
 - `README.md` — Complete usermgmt section overhaul, Config.ServiceName, dep table, CSRF example
 - `app.go` — Removed package comment (moved to doc.go)
@@ -169,6 +171,7 @@ I lean toward option 2 for now (keep the simple implementation) to preserve the 
 - `usermgmt/webauthn_service.go` — Structured logging in all 4 ceremonies
 
 **New (11):**
+
 - `doc.go` — Root package documentation
 - `usermgmt/audit_log.go` — AuditLog projection
 - `usermgmt/audit_log_test.go` — 7 audit log tests

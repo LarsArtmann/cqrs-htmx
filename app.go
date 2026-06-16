@@ -262,7 +262,7 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 
 // noopCancel is a pre-allocated no-op cancel function returned by timeoutCtx
 // when no timeout is configured, avoiding a closure allocation per dispatch.
-var noopCancel = func() {} //nolint:gochecknoglobals // pre-allocated to avoid per-request closure allocation
+var noopCancel = func() {}
 
 // timeoutCtx returns a context with the handler's timeout applied, if configured.
 // Falls back to the App's timeout if the handler has no override.
@@ -295,12 +295,8 @@ func (a *App) afterDispatchHook(ctx context.Context, r *http.Request, err error)
 //
 //	mux.Handle("/health", app.HealthHandler())
 var (
-	healthyBody = []byte(
-		`{"status":"ok"}`,
-	) //nolint:gochecknoglobals // pre-allocated for zero-alloc health checks
-	unhealthyBody = []byte(
-		`{"status":"unhealthy","error":"no dispatchers configured"}`,
-	) //nolint:gochecknoglobals // pre-allocated for zero-alloc health checks
+	healthyBody   = []byte(`{"status":"ok"}`)
+	unhealthyBody = []byte(`{"status":"unhealthy","error":"no dispatchers configured"}`)
 )
 
 func (a *App) HealthHandler() http.HandlerFunc {
