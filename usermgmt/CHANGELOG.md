@@ -6,18 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — BREAKING
 
-### Changed — Event-Sourced CQRS Architecture
+### Changed — Passwordless Event-Sourced CQRS
 
-- **BREAKING**: User aggregate is now fully event-sourced using go-cqrs-lite's Decider pattern
-- **BREAKING**: `UserStore` interface and `InMemoryUserStore` REMOVED — replaced by `UserReadModel` projection
-- **BREAKING**: `ServiceConfig.UserStore` field removed. Use `ServiceConfig.EventStore` and `ServiceConfig.EventBus` instead
-- **BREAKING**: User mutation methods (`SetRoles`, `SetEmail`, `SetDisplayName`, `AddRole`, `RemoveRole`) are deprecated — state changes go through Service methods (dispatched as commands → events)
-- Added 6 event types: `UserRegistered`, `PasswordChanged`, `RolesUpdated`, `EmailChanged`, `DisplayNameChanged`, `UserDeleted`
-- Added 6 command types: `RegisterUser`, `ChangePassword`, `UpdateRoles`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`
-- Added `UserReadModel` projection (query side) with email index for O(1) lookups
-- Added `CasbinProjection` — Casbin policies fully derived from events (single source of truth = event store)
-- Added `Service.DeleteUser()`, `Service.ChangeEmail()`, `Service.ChangeDisplayName()` methods
-- Added `DefaultEventSourcedSetup()`, `EventSourcedConfig`, `UserDecider()`, `RegisterCommands()` for advanced wiring
+- **BREAKING**: ALL password code removed. No bcrypt, no PasswordHash, no ChangePassword, no validatePassword, no LoginRequest/LoginResponse, no Service.Login, no Service.ChangePassword.
+- **BREAKING**: `User` struct no longer has `PasswordHash` field. Replaced by `Credentials []WebAuthnCredential`.
+- **BREAKING**: `RegisterRequest` no longer has `Password` field. Registration is email-only.
+- **BREAKING**: `ServiceConfig.BcryptCost` field removed. Use `ServiceConfig.WebAuthnConfig` instead.
+- **BREAKING**: `golang.org/x/crypto` dependency removed. Replaced by `go-webauthn/webauthn v0.17.4`.
+- **BREAKING**: User aggregate is now fully event-sourced using go-cqrs-lite's Decider pattern.
+- **BREAKING**: `UserStore` interface and `InMemoryUserStore` REMOVED — replaced by `UserReadModel` projection.
+- **BREAKING**: `ServiceConfig.UserStore` field removed. Use `ServiceConfig.EventStore` and `ServiceConfig.EventBus` instead.
+- **BREAKING**: User mutation methods (`SetRoles`, `SetEmail`, `SetDisplayName`, `AddRole`, `RemoveRole`, `SetPassword`, `CheckPassword`, `touch`) ALL removed.
+- Added WebAuthn/Passkey authentication via go-webauthn v0.17.4
+- Added 7 event types: `UserRegistered`, `RolesUpdated`, `EmailChanged`, `DisplayNameChanged`, `UserDeleted`, `CredentialAdded`, `CredentialRemoved`
+- Added 7 command types: `RegisterUser`, `UpdateRoles`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`, `AddCredential`, `RemoveCredential`
+- Added `WebAuthnCredential` type, `WebAuthnConfig` for Relying Party configuration
+- Added `Service.BeginRegistration` / `FinishRegistration` / `BeginLogin` / `FinishLogin`
+- Added HTTP endpoints: `POST /auth/webauthn/{register,login}/{begin,finish}`
+- Added `Service.AddCredential`, `Service.RemoveCredential`, `Service.ChangeEmail`, `Service.ChangeDisplayName`, `Service.DeleteUser`
+- Added `UserReadModel` projection with email index for O(1) lookups
+- Added `CasbinProjection` — Casbin policies fully derived from events
+- Added `Authz.RemoveAllRolesForUser` for clean user deletion
+- Added `DefaultEventSourcedSetup()`, `EventSourcedConfig`, `UserDecider()`, `RegisterCommands()`
+- Added new errors: `ErrNoCredentials`, `ErrWebAuthnNotConfigured`, `ErrSessionDataNotFound`
+- Added comprehensive `doc.go` with usage examples
 - `Service.Register` now pre-checks email uniqueness via read model before dispatching
 - `Service.DeleteUser` revokes all user sessions for security
 - Password hashing happens in Service layer (commands carry bcrypt hashes, not plaintext)
