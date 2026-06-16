@@ -38,7 +38,7 @@ func (h *AuthHandler) handleWebAuthnFinishRegistration(w http.ResponseWriter, r 
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{statusKey: "registered"})
+	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusRegistered})
 }
 
 type webauthnBeginLoginRequest struct {
