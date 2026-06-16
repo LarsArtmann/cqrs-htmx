@@ -143,4 +143,3 @@ func TestHandler_WebAuthnNotConfigured_BeginRegistration(t *testing.T) {
 		t.Errorf("status = %d, want %d (webauthn not configured)", w.Code, http.StatusUnauthorized)
 	}
 }
-
