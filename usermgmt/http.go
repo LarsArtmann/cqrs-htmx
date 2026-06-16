@@ -66,10 +66,11 @@ type registrationRateLimiter struct {
 	window  time.Duration
 }
 
-func newRegistrationRateLimiter(max int, window time.Duration) *registrationRateLimiter {
+func newRegistrationRateLimiter(maxReq int, window time.Duration) *registrationRateLimiter {
+	//nolint:exhaustruct // mu is fine as zero value
 	return &registrationRateLimiter{
 		entries: make(map[string]*rateLimitEntry),
-		max:     max,
+		max:     maxReq,
 		window:  window,
 	}
 }

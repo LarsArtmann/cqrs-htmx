@@ -65,7 +65,9 @@ func TestAuditLog_EntriesFor(t *testing.T) {
 	reg1 := registerTestUser(t, svc, "al3", "al3@test.com")
 	reg2 := registerTestUser(t, svc, "al4", "al4@test.com")
 
-	_ = svc.ChangeEmail(context.Background(), reg1.User.ID, "al3-new@test.com")
+	if err := svc.ChangeEmail(context.Background(), reg1.User.ID, "al3-new@test.com"); err != nil {
+		t.Fatalf("ChangeEmail: %v", err)
+	}
 
 	entries1 := auditLog.EntriesFor(reg1.User.ID.Get())
 	if len(entries1) < 2 {
