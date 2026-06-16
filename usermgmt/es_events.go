@@ -1,6 +1,9 @@
 package usermgmt
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type UserRegisteredPayload struct {
 	Email       string `json:"email"`
@@ -40,10 +43,10 @@ type CredentialRemovedPayload struct {
 	ID []byte `json:"id"`
 }
 
-func marshalPayload(v any) []byte {
+func marshalPayload(v any) ([]byte, error) {
 	b, err := json.Marshal(v)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("marshal payload: %w", err)
 	}
-	return b
+	return b, nil
 }

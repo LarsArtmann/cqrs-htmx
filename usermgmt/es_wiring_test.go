@@ -17,15 +17,18 @@ func newTestSetup(t *testing.T) *EventSourcedSetup {
 	return setup
 }
 
-func newTestDispatcher(setup *EventSourcedSetup) *command.Dispatcher {
+func newTestDispatcher(t *testing.T, setup *EventSourcedSetup) *command.Dispatcher {
+	t.Helper()
 	disp := command.NewDispatcher()
-	RegisterCommands(disp, setup.Repository)
+	if err := RegisterCommands(disp, setup.Repository); err != nil {
+		t.Fatalf("RegisterCommands: %v", err)
+	}
 	return disp
 }
 
 func TestWiring_RegisterUser(t *testing.T) {
 	setup := newTestSetup(t)
-	disp := newTestDispatcher(setup)
+	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
@@ -47,7 +50,7 @@ func TestWiring_RegisterUser(t *testing.T) {
 
 func TestWiring_RegisterDuplicate(t *testing.T) {
 	setup := newTestSetup(t)
-	disp := newTestDispatcher(setup)
+	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
@@ -67,7 +70,7 @@ func TestWiring_RegisterDuplicate(t *testing.T) {
 
 func TestWiring_UpdateRoles(t *testing.T) {
 	setup := newTestSetup(t)
-	disp := newTestDispatcher(setup)
+	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
@@ -89,7 +92,7 @@ func TestWiring_UpdateRoles(t *testing.T) {
 
 func TestWiring_DeleteUser(t *testing.T) {
 	setup := newTestSetup(t)
-	disp := newTestDispatcher(setup)
+	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
@@ -111,7 +114,7 @@ func TestWiring_DeleteUser(t *testing.T) {
 
 func TestWiring_AddCredential(t *testing.T) {
 	setup := newTestSetup(t)
-	disp := newTestDispatcher(setup)
+	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
@@ -136,7 +139,7 @@ func TestWiring_AddCredential(t *testing.T) {
 
 func TestWiring_RemoveCredential(t *testing.T) {
 	setup := newTestSetup(t)
-	disp := newTestDispatcher(setup)
+	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()

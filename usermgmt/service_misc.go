@@ -17,8 +17,11 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 
 // UpdateRoles dispatches an UpdateRoles command.
 func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, domain string) error {
-	aggID := aggIDFromUser(userID)
-	err := s.dispatcher.Dispatch(ctx, NewUpdateRolesCmd(aggID, roles, domain))
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		return fmt.Errorf("convert userID: %w", err)
+	}
+	err = s.dispatcher.Dispatch(ctx, NewUpdateRolesCmd(aggID, roles, domain))
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
 	}
@@ -33,8 +36,11 @@ func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, 
 
 // ChangeEmail dispatches a ChangeEmail command.
 func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail string) error {
-	aggID := aggIDFromUser(userID)
-	err := s.dispatcher.Dispatch(ctx, NewChangeEmailCmd(aggID, newEmail))
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		return fmt.Errorf("convert userID: %w", err)
+	}
+	err = s.dispatcher.Dispatch(ctx, NewChangeEmailCmd(aggID, newEmail))
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
 	}
@@ -43,8 +49,11 @@ func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail strin
 
 // ChangeDisplayName dispatches a ChangeDisplayName command.
 func (s *Service) ChangeDisplayName(ctx context.Context, userID UserID, newName string) error {
-	aggID := aggIDFromUser(userID)
-	err := s.dispatcher.Dispatch(ctx, NewChangeDisplayNameCmd(aggID, newName))
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		return fmt.Errorf("convert userID: %w", err)
+	}
+	err = s.dispatcher.Dispatch(ctx, NewChangeDisplayNameCmd(aggID, newName))
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
 	}
@@ -53,8 +62,11 @@ func (s *Service) ChangeDisplayName(ctx context.Context, userID UserID, newName 
 
 // DeleteUser dispatches a DeleteUser command (tombstone) and revokes all sessions.
 func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) error {
-	aggID := aggIDFromUser(userID)
-	err := s.dispatcher.Dispatch(ctx, NewDeleteUserCmd(aggID, reason))
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		return fmt.Errorf("convert userID: %w", err)
+	}
+	err = s.dispatcher.Dispatch(ctx, NewDeleteUserCmd(aggID, reason))
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
 	}
@@ -67,8 +79,11 @@ func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) 
 
 // AddCredential dispatches an AddCredential command.
 func (s *Service) AddCredential(ctx context.Context, userID UserID, cred WebAuthnCredential) error {
-	aggID := aggIDFromUser(userID)
-	err := s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, cred))
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		return fmt.Errorf("convert userID: %w", err)
+	}
+	err = s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, cred))
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
 	}
@@ -78,8 +93,11 @@ func (s *Service) AddCredential(ctx context.Context, userID UserID, cred WebAuth
 
 // RemoveCredential dispatches a RemoveCredential command.
 func (s *Service) RemoveCredential(ctx context.Context, userID UserID, credentialID []byte) error {
-	aggID := aggIDFromUser(userID)
-	err := s.dispatcher.Dispatch(ctx, NewRemoveCredentialCmd(aggID, credentialID))
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		return fmt.Errorf("convert userID: %w", err)
+	}
+	err = s.dispatcher.Dispatch(ctx, NewRemoveCredentialCmd(aggID, credentialID))
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
 	}

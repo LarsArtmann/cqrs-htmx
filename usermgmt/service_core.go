@@ -123,7 +123,9 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	}
 
 	dispatcher := command.NewDispatcher()
-	RegisterCommands(dispatcher, repo)
+	if err := RegisterCommands(dispatcher, repo); err != nil {
+		return nil, event.NewTransient("internal", "register commands").WithCause(err)
+	}
 
 	//nolint:exhaustruct // fields set conditionally below
 	svc := &Service{
@@ -181,19 +183,23 @@ func (s *Service) ReadModel() *UserReadModel { return s.readModel }
 
 // bridgeEventHandler subscribes to the bus and translates events to the old EventHandler callback.
 func (s *Service) bridgeEventHandler(bus event.Subscriber) {
-	_ = bus.Subscribe(eventUserRegistered, func(_ context.Context, evt event.Event) error {
+	if err := bus.Subscribe(eventUserRegistered, func(_ context.Context, evt event.Event) error {
 		s.emit(userIDFromAggID(evt.AggregateID()), UserRegisteredEvent{
 			Email:      s.emailFromEvent(evt),
 			OccurredAt: evt.OccurredAt(),
 		})
 		return nil
-	})
-	_ = bus.Subscribe(eventRolesUpdated, func(_ context.Context, evt event.Event) error {
+	}); err != nil {
+		s.logger.Warn("usermgmt: failed to subscribe to UserRegistered events", "error", err)
+	}
+	if err := bus.Subscribe(eventRolesUpdated, func(_ context.Context, evt event.Event) error {
 		s.emit(userIDFromAggID(evt.AggregateID()), RolesUpdatedEvent{
 			OccurredAt: evt.OccurredAt(),
 		})
 		return nil
-	})
+	}); err != nil {
+		s.logger.Warn("usermgmt: failed to subscribe to RolesUpdated events", "error", err)
+	}
 }
 
 func userIDFromAggID(aggID interface{ String() string }) UserID {
