@@ -295,8 +295,12 @@ func (a *App) afterDispatchHook(ctx context.Context, r *http.Request, err error)
 //
 //	mux.Handle("/health", app.HealthHandler())
 var (
-	healthyBody   = []byte(`{"status":"ok"}`)
-	unhealthyBody = []byte(`{"status":"unhealthy","error":"no dispatchers configured"}`)
+	healthyBody = []byte(
+		`{"status":"ok"}`,
+	) //nolint:gochecknoglobals // pre-allocated for zero-alloc health checks
+	unhealthyBody = []byte(
+		`{"status":"unhealthy","error":"no dispatchers configured"}`,
+	) //nolint:gochecknoglobals // pre-allocated for zero-alloc health checks
 )
 
 func (a *App) HealthHandler() http.HandlerFunc {

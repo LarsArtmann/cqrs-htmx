@@ -34,13 +34,13 @@ type placeholderFunc func(i int) string
 
 // NewSQLEventStore creates a SQLEventStore and auto-migrates the events table.
 // The dialect must be "postgres", "sqlite", or "mysql".
-func NewSQLEventStore(db *sql.DB, dialect string) (*SQLEventStore, error) {
+func NewSQLEventStore(ctx context.Context, db *sql.DB, dialect string) (*SQLEventStore, error) {
 	pf, err := placeholderFor(dialect)
 	if err != nil {
 		return nil, err
 	}
 	s := &SQLEventStore{db: db, placeholder: pf}
-	if err := s.migrate(context.Background(), dialect); err != nil {
+	if err := s.migrate(ctx, dialect); err != nil {
 		return nil, fmt.Errorf("migrate sql event store: %w", err)
 	}
 	return s, nil
@@ -59,7 +59,7 @@ func placeholderFor(dialect string) (placeholderFunc, error) {
 	}
 }
 
-func (s *SQLEventStore) migrate(_ context.Context, dialect string) error {
+func (s *SQLEventStore) migrate(ctx context.Context, dialect string) error {
 	var ddl string
 	switch dialect {
 	case "postgres", "pgx":
@@ -107,7 +107,7 @@ func (s *SQLEventStore) migrate(_ context.Context, dialect string) error {
 	default:
 		return fmt.Errorf("unsupported dialect %q", dialect)
 	}
-	_, err := s.db.ExecContext(context.Background(), ddl)
+	_, err := s.db.ExecContext(ctx, ddl)
 	if err != nil {
 		return fmt.Errorf("exec ddl: %w", err)
 	}
