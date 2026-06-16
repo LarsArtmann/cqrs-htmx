@@ -173,12 +173,12 @@ func (m *UserReadModel) FindByUserID(userID UserID) (*User, bool) {
 
 var _ event.Projection = (*UserReadModel)(nil)
 
-func aggIDFromUser(userID UserID) id.AggregateID {
+func aggIDFromUser(userID UserID) (id.AggregateID, error) {
 	aggID, err := id.ParseAggregateID(userID.Get())
 	if err != nil {
-		panic("usermgmt: invalid UserID for AggregateID conversion: " + err.Error())
+		return id.AggregateID{}, fmt.Errorf("invalid UserID for AggregateID conversion: %w", err)
 	}
-	return aggID
+	return aggID, nil
 }
 
 func nowUTC() time.Time { return time.Now().UTC() }

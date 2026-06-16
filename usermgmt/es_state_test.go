@@ -11,7 +11,11 @@ var testAggID = id.NewAggregateID() //nolint:gochecknoglobals // test fixture
 
 func makeEvent(t *testing.T, eventType event.Type, version event.Version, payload any) event.Event {
 	t.Helper()
-	evt, err := event.NewEvent(eventType, testAggID, aggregateTypeUser, version, marshalPayload(payload))
+	payloadBytes, err := marshalPayload(payload)
+	if err != nil {
+		t.Fatalf("marshal payload for %s: %v", eventType, err)
+	}
+	evt, err := event.NewEvent(eventType, testAggID, aggregateTypeUser, version, payloadBytes)
 	if err != nil {
 		t.Fatalf("makeEvent %s: %v", eventType, err)
 	}
@@ -163,9 +167,10 @@ func TestFoldUser_MultipleEvents(t *testing.T) {
 
 func TestFoldUser_UnknownEvent(t *testing.T) {
 	initial := UserState{Email: "u@example.com", Roles: []Role{RoleUser}}
+	unknownPayload, _ := marshalPayload(map[string]string{"data": "whatever"})
 	unknownEvt, err := event.NewEvent(
 		event.Type("SomeFutureEvent"), testAggID, aggregateTypeUser, 2,
-		marshalPayload(map[string]string{"data": "whatever"}),
+		unknownPayload,
 	)
 	if err != nil {
 		t.Fatalf("create unknown event: %v", err)

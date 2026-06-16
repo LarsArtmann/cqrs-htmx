@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -40,7 +41,9 @@ func StartProjections(
 	}
 
 	go func() {
-		_ = runner.Run(context.Background())
+		if err := runner.Run(context.Background()); err != nil {
+			slog.Error("usermgmt: projection runner stopped", "error", err)
+		}
 	}()
 
 	time.Sleep(50 * time.Millisecond)

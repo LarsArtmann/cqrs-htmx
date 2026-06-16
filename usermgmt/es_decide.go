@@ -24,13 +24,17 @@ func decideRegisterUser(
 		}
 		rolesCopy := make([]Role, len(roles))
 		copy(rolesCopy, roles)
+		payload, err := marshalPayload(UserRegisteredPayload{
+			Email:       email,
+			DisplayName: displayName,
+			Roles:       rolesCopy,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("marshal UserRegistered payload: %w", err)
+		}
 		evt, err := event.NewEvent(
 			eventUserRegistered, aggID, aggregateTypeUser, version.Increment(),
-			marshalPayload(UserRegisteredPayload{
-				Email:       email,
-				DisplayName: displayName,
-				Roles:       rolesCopy,
-			}),
+			payload,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create UserRegistered event: %w", err)
@@ -55,9 +59,13 @@ func decideUpdateRoles(
 		}
 		rolesCopy := make([]Role, len(roles))
 		copy(rolesCopy, roles)
+		payload, err := marshalPayload(RolesUpdatedPayload{Roles: rolesCopy, Domain: domain})
+		if err != nil {
+			return nil, fmt.Errorf("marshal RolesUpdated payload: %w", err)
+		}
 		evt, err := event.NewEvent(
 			eventRolesUpdated, aggID, aggregateTypeUser, version.Increment(),
-			marshalPayload(RolesUpdatedPayload{Roles: rolesCopy, Domain: domain}),
+			payload,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create RolesUpdated event: %w", err)
@@ -82,9 +90,13 @@ func decideChangeEmail(
 		if state.Email == email {
 			return nil, nil
 		}
+		payload, err := marshalPayload(EmailChangedPayload{Email: email})
+		if err != nil {
+			return nil, fmt.Errorf("marshal EmailChanged payload: %w", err)
+		}
 		evt, err := event.NewEvent(
 			eventEmailChanged, aggID, aggregateTypeUser, version.Increment(),
-			marshalPayload(EmailChangedPayload{Email: email}),
+			payload,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create EmailChanged event: %w", err)
@@ -109,9 +121,13 @@ func decideChangeDisplayName(
 		if state.DisplayName == displayName {
 			return nil, nil
 		}
+		payload, err := marshalPayload(DisplayNameChangedPayload{DisplayName: displayName})
+		if err != nil {
+			return nil, fmt.Errorf("marshal DisplayNameChanged payload: %w", err)
+		}
 		evt, err := event.NewEvent(
 			eventDisplayNameChanged, aggID, aggregateTypeUser, version.Increment(),
-			marshalPayload(DisplayNameChangedPayload{DisplayName: displayName}),
+			payload,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create DisplayNameChanged event: %w", err)
@@ -133,9 +149,13 @@ func decideDeleteUser(
 			return nil, event.NewRejection("usermgmt.delete_user.already_deleted",
 				"user is already deleted")
 		}
+		payload, err := marshalPayload(UserDeletedPayload{Reason: reason})
+		if err != nil {
+			return nil, fmt.Errorf("marshal UserDeleted payload: %w", err)
+		}
 		evt, err := event.NewEvent(
 			eventUserDeleted, aggID, aggregateTypeUser, version.Increment(),
-			marshalPayload(UserDeletedPayload{Reason: reason}),
+			payload,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create UserDeleted event: %w", err)
@@ -167,18 +187,22 @@ func decideAddCredential(
 					"credential with this ID already exists")
 			}
 		}
+		payload, err := marshalPayload(CredentialAddedPayload{
+			ID:              cred.ID,
+			PublicKey:       cred.PublicKey,
+			AttestationType: cred.AttestationType,
+			Transports:      cred.Transports,
+			AAGUID:          cred.AAGUID,
+			BackupEligible:  cred.BackupEligible,
+			BackupState:     cred.BackupState,
+			Name:            cred.Name,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("marshal CredentialAdded payload: %w", err)
+		}
 		evt, err := event.NewEvent(
 			eventCredentialAdded, aggID, aggregateTypeUser, version.Increment(),
-			marshalPayload(CredentialAddedPayload{
-				ID:              cred.ID,
-				PublicKey:       cred.PublicKey,
-				AttestationType: cred.AttestationType,
-				Transports:      cred.Transports,
-				AAGUID:          cred.AAGUID,
-				BackupEligible:  cred.BackupEligible,
-				BackupState:     cred.BackupState,
-				Name:            cred.Name,
-			}),
+			payload,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create CredentialAdded event: %w", err)
@@ -211,9 +235,13 @@ func decideRemoveCredential(
 			return nil, event.NewRejection("usermgmt.credential_not_found",
 				"credential not found")
 		}
+		payload, err := marshalPayload(CredentialRemovedPayload{ID: credentialID})
+		if err != nil {
+			return nil, fmt.Errorf("marshal CredentialRemoved payload: %w", err)
+		}
 		evt, err := event.NewEvent(
 			eventCredentialRemoved, aggID, aggregateTypeUser, version.Increment(),
-			marshalPayload(CredentialRemovedPayload{ID: credentialID}),
+			payload,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create CredentialRemoved event: %w", err)

@@ -76,7 +76,10 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	s.webauthnSessions.Delete(sessionKey)
 
 	domainCred := fromWebAuthnCredential(credential, credentialName)
-	aggID := aggIDFromUser(userID)
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		return fmt.Errorf("convert userID: %w", err)
+	}
 	if err := s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, domainCred)); err != nil {
 		return fmt.Errorf("finish registration dispatch: %w", err)
 	}
