@@ -87,6 +87,7 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.HandlerConfig$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.ServiceConfig$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.PolicyUpdate$
+        - .+\.\w+Payload$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.RegisterRequest$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.User$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.AccountLockout$

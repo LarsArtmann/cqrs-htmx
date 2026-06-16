@@ -6,29 +6,35 @@ import (
 )
 
 type UserRegisteredPayload struct {
-	Email       string `json:"email"`
-	DisplayName string `json:"display_name,omitempty"`
-	Roles       []Role `json:"roles"`
+	SchemaVersion int    `json:"schema_version"`
+	Email         string `json:"email"`
+	DisplayName   string `json:"display_name,omitempty"`
+	Roles         []Role `json:"roles"`
 }
 
 type RolesUpdatedPayload struct {
-	Roles  []Role `json:"roles"`
-	Domain string `json:"domain"`
+	SchemaVersion int    `json:"schema_version"`
+	Roles         []Role `json:"roles"`
+	Domain        string `json:"domain"`
 }
 
 type EmailChangedPayload struct {
-	Email string `json:"email"`
+	SchemaVersion int    `json:"schema_version"`
+	Email         string `json:"email"`
 }
 
 type DisplayNameChangedPayload struct {
-	DisplayName string `json:"display_name"`
+	SchemaVersion int    `json:"schema_version"`
+	DisplayName   string `json:"display_name"`
 }
 
 type UserDeletedPayload struct {
-	Reason string `json:"reason"`
+	SchemaVersion int    `json:"schema_version"`
+	Reason        string `json:"reason"`
 }
 
 type CredentialAddedPayload struct {
+	SchemaVersion   int      `json:"schema_version"`
 	ID              []byte   `json:"id"`
 	PublicKey       []byte   `json:"public_key"`
 	AttestationType string   `json:"attestation_type"`
@@ -41,11 +47,22 @@ type CredentialAddedPayload struct {
 }
 
 type CredentialRemovedPayload struct {
-	ID []byte `json:"id"`
+	SchemaVersion int    `json:"schema_version"`
+	ID            []byte `json:"id"`
 }
 
 type EmailVerifiedPayload struct {
-	Email string `json:"email"`
+	SchemaVersion int    `json:"schema_version"`
+	Email         string `json:"email"`
+}
+
+type TOTPEnabledPayload struct {
+	SchemaVersion int    `json:"schema_version"`
+	Secret        []byte `json:"secret"`
+}
+
+type TOTPDisabledPayload struct {
+	SchemaVersion int `json:"schema_version"`
 }
 
 func marshalPayload(v any) ([]byte, error) {

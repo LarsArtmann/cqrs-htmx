@@ -26,6 +26,8 @@ type User struct {
 	Roles         []Role               `json:"roles"`
 	Credentials   []WebAuthnCredential `json:"credentials,omitempty"`
 	EmailVerified bool                 `json:"email_verified"`
+	TOTPEnabled   bool                 `json:"totp_enabled"`
+	TOTPSecret    []byte               `json:"-"`
 	CreatedAt     time.Time            `json:"created_at"`
 	UpdatedAt     time.Time            `json:"updated_at"`
 }

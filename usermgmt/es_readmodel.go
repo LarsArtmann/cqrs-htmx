@@ -140,6 +140,24 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 			u.UpdatedAt = evt.OccurredAt()
 		}
 
+	case eventTOTPEnabled:
+		p, err := event.DecodePayload[TOTPEnabledPayload](evt, c)
+		if err != nil {
+			return fmt.Errorf("decode TOTPEnabled in read model: %w", err)
+		}
+		if u, ok := m.users[aggID]; ok {
+			u.TOTPEnabled = true
+			u.TOTPSecret = p.Secret
+			u.UpdatedAt = evt.OccurredAt()
+		}
+
+	case eventTOTPDisabled:
+		if u, ok := m.users[aggID]; ok {
+			u.TOTPEnabled = false
+			u.TOTPSecret = nil
+			u.UpdatedAt = evt.OccurredAt()
+		}
+
 	default:
 	}
 

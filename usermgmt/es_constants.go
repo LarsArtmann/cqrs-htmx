@@ -16,6 +16,8 @@ const (
 	eventCredentialAdded    event.Type = "CredentialAdded"   //nolint:gosec // event type name, not credential
 	eventCredentialRemoved  event.Type = "CredentialRemoved" //nolint:gosec // event type name, not credential
 	eventEmailVerified      event.Type = "EmailVerified"
+	eventTOTPEnabled        event.Type = "TOTPEnabled"
+	eventTOTPDisabled       event.Type = "TOTPDisabled"
 
 	cmdRegisterUser      command.Type = "RegisterUser"
 	cmdUpdateRoles       command.Type = "UpdateRoles"
@@ -25,6 +27,8 @@ const (
 	cmdAddCredential     command.Type = "AddCredential"    //nolint:gosec // command type name, not credential
 	cmdRemoveCredential  command.Type = "RemoveCredential" //nolint:gosec // command type name, not credential
 	cmdVerifyEmail       command.Type = "VerifyEmail"
+	cmdEnableTOTP        command.Type = "EnableTOTP"
+	cmdDisableTOTP       command.Type = "DisableTOTP"
 )
 
 var allUserEventTypes = []event.Type{
@@ -36,4 +40,10 @@ var allUserEventTypes = []event.Type{
 	eventCredentialAdded,
 	eventCredentialRemoved,
 	eventEmailVerified,
+	eventTOTPEnabled,
+	eventTOTPDisabled,
 }
+
+// currentSchemaVersion is the payload schema version for all new events.
+// Old events without the field decode as 0; foldUser treats 0 as v1.
+const currentSchemaVersion = 1

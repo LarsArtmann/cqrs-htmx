@@ -16,6 +16,8 @@ type UserState struct {
 	Deleted       bool
 	DeleteReason  string
 	EmailVerified bool
+	TOTPEnabled   bool
+	TOTPSecret    []byte
 }
 
 // Exists reports whether the user has been registered (has at least one event).
@@ -43,6 +45,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Deleted:       false,
 			DeleteReason:  "",
 			EmailVerified: false,
+			TOTPEnabled:   false,
+			TOTPSecret:    nil,
 		}, nil
 
 	case eventRolesUpdated:
@@ -60,6 +64,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Deleted:       state.Deleted,
 			DeleteReason:  state.DeleteReason,
 			EmailVerified: state.EmailVerified,
+			TOTPEnabled:   state.TOTPEnabled,
+			TOTPSecret:    state.TOTPSecret,
 		}, nil
 
 	case eventEmailChanged:
@@ -74,7 +80,9 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Credentials:   state.Credentials,
 			Deleted:       state.Deleted,
 			DeleteReason:  state.DeleteReason,
-			EmailVerified: false, // email change resets verification
+			EmailVerified: false,
+			TOTPEnabled:   false,
+			TOTPSecret:    nil, // email change resets verification
 		}, nil
 
 	case eventDisplayNameChanged:
@@ -90,6 +98,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Deleted:       state.Deleted,
 			DeleteReason:  state.DeleteReason,
 			EmailVerified: state.EmailVerified,
+			TOTPEnabled:   state.TOTPEnabled,
+			TOTPSecret:    state.TOTPSecret,
 		}, nil
 
 	case eventUserDeleted:
@@ -105,6 +115,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Deleted:       true,
 			DeleteReason:  p.Reason,
 			EmailVerified: state.EmailVerified,
+			TOTPEnabled:   state.TOTPEnabled,
+			TOTPSecret:    state.TOTPSecret,
 		}, nil
 
 	case eventCredentialAdded:
@@ -132,6 +144,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Deleted:       state.Deleted,
 			DeleteReason:  state.DeleteReason,
 			EmailVerified: state.EmailVerified,
+			TOTPEnabled:   state.TOTPEnabled,
+			TOTPSecret:    state.TOTPSecret,
 		}, nil
 
 	case eventCredentialRemoved:
@@ -153,6 +167,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Deleted:       state.Deleted,
 			DeleteReason:  state.DeleteReason,
 			EmailVerified: state.EmailVerified,
+			TOTPEnabled:   state.TOTPEnabled,
+			TOTPSecret:    state.TOTPSecret,
 		}, nil
 
 	case eventEmailVerified:
@@ -169,6 +185,36 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Deleted:       state.Deleted,
 			DeleteReason:  state.DeleteReason,
 			EmailVerified: true,
+		}, nil
+
+	case eventTOTPEnabled:
+		p, err := unmarshalPayload[TOTPEnabledPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		return UserState{
+			Email:         state.Email,
+			DisplayName:   state.DisplayName,
+			Roles:         state.Roles,
+			Credentials:   state.Credentials,
+			Deleted:       state.Deleted,
+			DeleteReason:  state.DeleteReason,
+			EmailVerified: state.EmailVerified,
+			TOTPEnabled:   true,
+			TOTPSecret:    p.Secret,
+		}, nil
+
+	case eventTOTPDisabled:
+		return UserState{
+			Email:         state.Email,
+			DisplayName:   state.DisplayName,
+			Roles:         state.Roles,
+			Credentials:   state.Credentials,
+			Deleted:       state.Deleted,
+			DeleteReason:  state.DeleteReason,
+			EmailVerified: state.EmailVerified,
+			TOTPEnabled:   false,
+			TOTPSecret:    nil,
 		}, nil
 
 	default:
