@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **TOTP multi-factor authentication**: RFC 6238 TOTP implemented from scratch (HMAC-SHA1, no external deps). Events: `TOTPEnabled`/`TOTPDisabled`. Two-phase setup: `EnableTOTP` → pending secret → `VerifyTOTPSetup` confirms. Generates `otpauth://` URIs for QR codes. `Service.VerifyTOTP` validates codes as second factor.
+- **Email verification flow**: Token-based email confirmation with `EmailVerified` event. `SendVerificationEmail` generates token (configurable TTL, default 24h) with optional SMTP callback. `VerifyEmail` consumes single-use token. Email change resets verification status.
+- **User import/export**: `Service.ImportUsersFromJSON`/`ImportUsersFromCSV` for batch user creation (skips existing emails). `Service.ExportUsersToJSON`/`ExportUsersToCSV` for data export. Flexible CSV header detection (`email`/`e-mail`, `display_name`/`name`).
+- **Virtual authenticator integration test**: Full WebAuthn registration → login ceremony using W3C spec test vectors. Tests: successful full flow, registration replay rejection, login with wrong challenge.
+- **SQL event store**: `SQLEventStore` implements `event.Store` + `event.Journal` for Postgres/SQLite/MySQL. Auto-migrates schema, supports optimistic concurrency, parameterized queries per dialect.
+- **Audit log projection**: `AuditLog` records all user events as `AuditEntry` structs. Queryable by aggregate ID, recent N, or total count. Optional via `ServiceConfig.AuditLog`.
+- **Rate-limited registration**: Per-IP fixed-window rate limiting on the registration endpoint. Configurable via `HandlerConfig.RegistrationRateLimitConfig`.
+- **Session rotation on privilege change**: `UpdateRoles` deletes all user sessions after role change, forcing re-authentication.
+- **Credential listing pagination**: `GET /auth/credentials?page=N&page_size=N` with configurable page size (default 20, max 100).
+- **Structured logging in WebAuthn ceremonies**: All 4 ceremony methods log at debug/info/warn with user_id, email, error context.
+- **CI pipeline (GitHub Actions)**: Multi-module CI with separate lint jobs for root and usermgmt, race detector, `GONOSUMCHECK` env vars, concurrency group.
+- **doc.go**: Comprehensive root package documentation with Quick Start, middleware stack, response builder, error mapping, SSE, and submodule reference.
+- **Property-based testing**: 8 rapid-based property tests for `foldUser` invariants.
+- **Benchmarks**: 5 benchmarks for `foldUser`, `ReadModel.Handle`, `BeginRegistration`, `BeginLogin`.
+- **Fuzz tests**: 3 fuzz tests for WebAuthn ceremony inputs and credential ID decoding.
+- **Coverage tests**: 15 tests covering error paths, schema version, RegisterCommands, DefaultEventSourcedSetup, writeJSON, HTTP handlers.
+
 - **AccountLockout wired into WebAuthn login**: `BeginLogin` checks lockout status; `FinishLogin` records failures and resets on success.
 - **Credential management HTTP endpoints**: `GET /auth/credentials` (list), `DELETE /auth/credentials/{id}` (remove by base64url ID).
 - **WebAuthn session proactive eviction**: Background goroutine (`webauthnEvictionInterval`) periodically removes expired challenge sessions. `Service.Stop()` terminates the goroutine.
