@@ -25,6 +25,7 @@ type ExportUser struct {
 	DisplayName   string `json:"display_name,omitempty"`
 	Roles         []Role `json:"roles"`
 	EmailVerified bool   `json:"email_verified"`
+	TOTPEnabled   bool   `json:"totp_enabled"`
 }
 
 // ImportResult reports the outcome of a batch import.
@@ -180,6 +181,7 @@ func (s *Service) exportAllUsers() []ExportUser {
 			DisplayName:   u.DisplayName,
 			Roles:         append([]Role(nil), u.Roles...),
 			EmailVerified: u.EmailVerified,
+			TOTPEnabled:   u.TOTPEnabled,
 		})
 	}
 	return users

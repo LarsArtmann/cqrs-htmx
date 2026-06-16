@@ -69,6 +69,12 @@ func auditActionFor(t event.Type) string {
 		return "credential_added"
 	case eventCredentialRemoved:
 		return "credential_removed"
+	case eventEmailVerified:
+		return "email_verified"
+	case eventTOTPEnabled:
+		return "totp_enabled"
+	case eventTOTPDisabled:
+		return "totp_disabled"
 	default:
 		return string(t)
 	}
