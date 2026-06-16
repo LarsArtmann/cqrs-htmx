@@ -55,24 +55,29 @@ cqrs-htmx/
 │   ├── authz_types.go     # Authz wrapper around Casbin (RBAC with domains), AsEnforcer adapter
 │   ├── authz_policies.go  # Apply, AddGroupPolicy, RemoveGroupPolicy, AddPolicy, RemovePolicy
 │   ├── authz_roles.go     # RolesForUser, ImplicitRolesForUser, ImplicitPermissionsForUser
-│   ├── es_constants.go    # Event-sourced aggregate type + 6 event + 6 command type constants
-│   ├── es_events.go       # 6 event payload structs (UserRegistered, PasswordChanged, etc.)
-│   ├── es_commands.go     # 6 command structs (RegisterUserCmd, ChangePasswordCmd, etc.)
+│   ├── es_constants.go    # Event-sourced aggregate type + 7 event + 7 command type constants
+│   ├── es_events.go       # 7 event payload structs (UserRegistered, CredentialAdded, etc.)
+│   ├── es_commands.go     # 7 command structs (RegisterUserCmd, AddCredentialCmd, etc.)
 │   ├── es_state.go        # UserState + foldUser() pure function (event → state)
-│   ├── es_decide.go       # 6 pure decide functions (guards + event creation)
+│   ├── es_decide.go       # 7 pure decide functions (guards + event creation)
 │   ├── es_dispatch.go     # RegisterCommands — wires commands to decider.Repository
 │   ├── es_setup.go        # EventSourcedConfig, DefaultEventSourcedSetup, UserDecider
-│   ├── es_readmodel.go    # UserReadModel projection (replaces UserStore) + email index
+│   ├── es_readmodel.go    # UserReadModel projection + email index
 │   ├── es_casbin_projection.go  # CasbinProjection — derives policies from events
 │   ├── es_projection_setup.go   # StartProjections — projection.Runner orchestration
-│   ├── service_core.go    # Service struct, ServiceConfig, NewService (event-sourced wiring)
-│   ├── service_register.go # RegisterRequest, Service.Register (hash+dispatch+session)
-│   ├── service_login.go   # LoginRequest, Service.Login/Logout/Authenticate/Authorize
-│   ├── service_misc.go    # GetUser, UpdateRoles, ChangePassword, ChangeEmail, ChangeDisplayName, DeleteUser
-│   ├── user.go       # User/Session types, bcrypt helpers
-│   ├── store.go      # SessionStore interface + InMemorySessionStore (UserStore REMOVED)
-│   ├── events.go     # EventHandler callback + 4 notification event structs (backward compat)
-│   ├── http.go       # AuthHandlers (HTTP routes), SessionMiddleware
+│   ├── service_core.go    # Service struct, ServiceConfig, NewService (event-sourced + WebAuthn wiring)
+│   ├── service_register.go # RegisterRequest (email only), Service.Register
+│   ├── service_login.go   # Service.Logout/Authenticate/Authorize (no password login)
+│   ├── service_misc.go    # GetUser, UpdateRoles, ChangeEmail, ChangeDisplayName, DeleteUser, AddCredential, RemoveCredential
+│   ├── credential.go      # WebAuthnCredential type (passkey credential stored as event)
+│   ├── webauthn_adapter.go # Adapts domain User → webauthn.User interface
+│   ├── webauthn_session.go # WebAuthnConfig + in-memory challenge store
+│   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin
+│   ├── webauthn_http.go   # HTTP handlers for WebAuthn ceremony endpoints
+│   ├── user.go       # User/Session types (immutable read model — no mutation methods)
+│   ├── store.go      # SessionStore interface + InMemorySessionStore only
+│   ├── events.go     # EventHandler callback + notification event structs (backward compat)
+│   ├── http.go       # AuthHandler (register, logout, me, webauthn endpoints)
 │   ├── middleware.go  # User context helpers, UserIDFromRequest bridge
 │   ├── lockout.go    # AccountLockout (configurable max attempts + duration)
 │   └── errors.go     # Sentinel errors
@@ -100,7 +105,7 @@ cqrs-htmx/
 | go-error-family v0.3.0  | Error classification                                                    | Root             |
 | larsartmann/httputil    | ClientIP extraction                                                     | Root             |
 | go-branded-id           | Branded types                                                           | usermgmt         |
-| golang.org/x/crypto     | bcrypt                                                                  | usermgmt         |
+| go-webauthn v0.17.4     | WebAuthn/Passkey passwordless authentication                            | usermgmt         |
 | golang.org/x/time       | Rate limiting                                                           | Root             |
 | onsi/ginkgo/v2 + gomega | BDD test framework                                                      | All test modules |
 
@@ -202,22 +207,25 @@ cqrs-htmx/
 - **RenderPaginatedJSON[T]()**: HandlerOption that renders `query.PaginatedResult[T]` as JSON with 200 OK. Type-safe via generic parameter
 - **go-cqrs-lite PaginatedResult[T]**: `Data`, `TotalCount`, `Page`, `PageSize`, `TotalPages`, `HasNext()`, `HasPrev()`
 
-### Domain Model (usermgmt) — Event-Sourced CQRS (2026-06-15)
+### Domain Model (usermgmt) — Passwordless Event-Sourced CQRS (2026-06-16)
 
+- **PASSWORDLESS**: ALL password code removed. No bcrypt, no PasswordHash, no ChangePassword. Authentication is exclusively via WebAuthn (Passkeys/FIDO2) using go-webauthn v0.17.4.
 - **FULLY EVENT-SOURCED**: User aggregate uses go-cqrs-lite Decider pattern. All state changes are events persisted to an event store. `UserStore` interface REMOVED — replaced by `UserReadModel` projection.
-- **6 events**: `UserRegistered`, `PasswordChanged`, `RolesUpdated`, `EmailChanged`, `DisplayNameChanged`, `UserDeleted` (tombstone)
-- **6 commands**: `RegisterUser`, `ChangePassword`, `UpdateRoles`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`
+- **7 events**: `UserRegistered`, `RolesUpdated`, `EmailChanged`, `DisplayNameChanged`, `UserDeleted` (tombstone), `CredentialAdded`, `CredentialRemoved`
+- **7 commands**: `RegisterUser`, `UpdateRoles`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`, `AddCredential`, `RemoveCredential`
 - **Pure domain layer**: `foldUser()` reconstructs state from events. `decide*()` functions validate guards and emit events. No I/O in domain code.
 - **Write path**: Service → CommandDispatcher → DeciderRepository.Execute (load→fold→decide→save→publish)
 - **Read path**: Service queries `UserReadModel` (projection from events) — `FindByID`, `FindByEmail`
-- **Casbin as projection**: `CasbinProjection` subscribes to events and derives all policies. Single source of truth = event store. Replay rebuilds from scratch.
-- **Password hashing in Service layer**: Commands carry bcrypt hashes, not plaintext. Keeps decide functions fast and testable.
+- **Casbin as projection**: `CasbinProjection` subscribes to events and derives all policies via public Authz methods only.
+- **WebAuthn ceremonies**: BeginRegistration/FinishRegistration/BeginLogin/FinishLogin via go-webauthn. Challenge sessions stored in-memory (webauthnSessionStore).
+- **Registration = email only**: RegisterRequest has ID + Email + DisplayName. No password field.
 - **Read-your-writes consistency**: `MemoryBus` blocks publishers until handlers complete. Projections update before `Execute()` returns.
 - **Sessions NOT event-sourced**: `SessionStore` interface unchanged. Ephemeral auth artifacts.
-- **Login is NOT a command**: Login = read model query + password verify + session creation. `UserLoggedInEvent` published on bus for audit only.
 - **UserID bridge**: `usermgmt.UserID` ↔ `id.AggregateID` via `id.ParseAggregateID(userID.Get())`. Conversion at Service boundary.
-- **Email uniqueness**: Pre-checked in Service.Register via read model before dispatching command (cross-aggregate constraint can't be enforced in decider alone)
-- **DeleteUser revokes sessions**: Sessions deleted on user deletion for security
+- **Email uniqueness**: Pre-checked in Service.Register via read model before dispatching command.
+- **DeleteUser revokes sessions**: Sessions deleted on user deletion for security.
+- **Old EventHandler backward compat**: If `EventHandler` configured in `ServiceConfig`, Service bridges bus events to old callback.
+- **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
 - **Old EventHandler backward compat**: If `EventHandler` configured in `ServiceConfig`, Service bridges bus events to old callback
 - **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
 

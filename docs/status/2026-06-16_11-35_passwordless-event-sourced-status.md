@@ -7,6 +7,7 @@
 ## a) FULLY DONE
 
 ### Event-Sourced Architecture (commits 1dd18a4 → 2411fd9)
+
 - ✅ User aggregate fully event-sourced via go-cqrs-lite Decider pattern
 - ✅ 7 event types: UserRegistered, RolesUpdated, EmailChanged, DisplayNameChanged, UserDeleted, CredentialAdded, CredentialRemoved
 - ✅ 7 command types with pure decide functions + guards
@@ -18,6 +19,7 @@
 - ✅ DefaultEventSourcedSetup() for turn-key infrastructure
 
 ### Passwordless Authentication (commits da73483 → b542ecb)
+
 - ✅ ALL password code removed (bcrypt, PasswordHash, ChangePassword, validatePassword, etc.)
 - ✅ ALL User mutation methods removed (SetRoles, SetEmail, SetPassword, touch, etc.)
 - ✅ WebAuthnCredential type with full event/command pipeline
@@ -31,6 +33,7 @@
 - ✅ Coverage: 79.2% (up from 69.1%)
 
 ### Cleanup (commit e722698)
+
 - ✅ Replaced hand-rolled bytesEqual with bytes.Equal
 - ✅ Removed dead defaultWebAuthnSessionTTL constant
 - ✅ CasbinProjection no longer accesses unexported Authz.enforcer
@@ -38,18 +41,19 @@
 - ✅ Removed dead NewCasbinProjectionWithNewAuthz and CasbinProjection.Authz()
 
 ### Bug Fixes (commit 232c64a)
+
 - ✅ Fixed SignCount silent data loss in FinishLogin (removed dead mutation of clone)
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item | Status | Gap |
-|------|--------|-----|
-| **Test coverage** | 79.2% | 106 functions at 0% — mostly constructors/accessors on es_commands.go (21), http.go errorStatus paths (10), user.go methods (9), webauthn_adapter.go (7) |
-| **Integration tests** | Basic | No end-to-end WebAuthn ceremony test (requires browser/virtual authenticator) |
-| **AGENTS.md** | Updated for event-sourcing | Not yet updated for passwordless/WebAuthn |
-| **CHANGELOG.md** | Has event-sourcing entry | Missing passwordless removal + WebAuthn entry |
+| Item                  | Status                     | Gap                                                                                                                                                      |
+| --------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Test coverage**     | 79.2%                      | 106 functions at 0% — mostly constructors/accessors on es_commands.go (21), http.go errorStatus paths (10), user.go methods (9), webauthn_adapter.go (7) |
+| **Integration tests** | Basic                      | No end-to-end WebAuthn ceremony test (requires browser/virtual authenticator)                                                                            |
+| **AGENTS.md**         | Updated for event-sourcing | Not yet updated for passwordless/WebAuthn                                                                                                                |
+| **CHANGELOG.md**      | Has event-sourcing entry   | Missing passwordless removal + WebAuthn entry                                                                                                            |
 
 ---
 
@@ -80,17 +84,20 @@ Nothing is broken. All tests pass. All modules build. No panics, no race conditi
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Architecture
+
 1. **OAuth2/OIDC provider** — Add a pluggable identity provider interface for social login (Google, GitHub, etc.)
 2. **Event schema versioning** — Add SchemaVersion field to events for future migrations
 3. **Persistent stores** — In-memory store/bus/checkpoint are not production-ready. Need SQL/Postgres implementations.
 4. **WebAuthn session cleanup** — Add periodic eviction of expired challenge sessions
 
 ### Code Quality
-5. **Remove golangci-lint suppressions** for es_*.go files — the cyclop/funlen exclusions are necessary for event-sourcing patterns (large switch statements), but should be reviewed
+
+5. **Remove golangci-lint suppressions** for es\_\*.go files — the cyclop/funlen exclusions are necessary for event-sourcing patterns (large switch statements), but should be reviewed
 6. **Add integration test** that dispatches a command and verifies projection state without the ceremony (already partially done in es_wiring_test.go)
 7. **User.MarshalJSON** — currently exposes credential_count but not credential details. Consider a separate API for credential listing.
 
 ### Testing
+
 8. **Virtual authenticator testing** — Use Chrome DevTools Protocol or a test-only authenticator to test full WebAuthn ceremonies
 9. **Property-based testing** for foldUser — folding the same events should always produce the same state
 
@@ -98,33 +105,33 @@ Nothing is broken. All tests pass. All modules build. No panics, no race conditi
 
 ## f) Top 25 Things to Get Done Next
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Push to remote | High | 1m |
-| 2 | Update AGENTS.md for passwordless architecture | High | 15m |
-| 3 | Update CHANGELOG.md with passwordless BREAKING entry | High | 10m |
-| 4 | Wire AccountLockout into BeginLogin flow | Medium | 15m |
-| 5 | Add OAuth2/OIDC provider interface | High | 60m |
-| 6 | Add tests for es_commands.go constructors (batch test) | Low | 10m |
-| 7 | Add tests for user.go Clone/HasRole/HasCredential/MarshalJSON | Medium | 10m |
-| 8 | Add tests for store.go InMemorySessionStore edge cases | Low | 10m |
-| 9 | Add test for Authz.RemoveAllRolesForUser | Medium | 10m |
-| 10 | Update example_test.go for passwordless API | Medium | 15m |
-| 11 | Add webauthn_adapter.go nil-transport edge case tests | Low | 5m |
-| 12 | Refactor webauthn_http.go body parsing to be less fragile | Medium | 15m |
-| 13 | Add SQL store implementation (event.Store + SessionStore) | High | 120m |
-| 14 | Add event schema versioning | Medium | 30m |
-| 15 | Add projection consistency integration test | Medium | 20m |
-| 16 | Add fuzz test for foldUser (property: idempotent fold) | Low | 15m |
-| 17 | Update docs/DOMAIN_LANGUAGE.md for passwordless terms | Low | 10m |
-| 18 | Add WebAuthn session expiry eviction goroutine | Low | 15m |
-| 19 | Add POST /auth/credentials DELETE endpoint for credential removal via HTTP | Medium | 15m |
-| 20 | Add GET /auth/credentials endpoint for listing user's credentials | Medium | 10m |
-| 21 | Add rate limiting to WebAuthn endpoints | Medium | 15m |
-| 22 | Add CSRF protection to WebAuthn POST endpoints | Medium | 10m |
-| 23 | Consider adding `github.com/mark3labs/mcp-go` for MCP integration | Low | 30m |
-| 24 | Add README.md update for passwordless quickstart | Medium | 20m |
-| 25 | Add CI pipeline for multi-module testing | Medium | 30m |
+| #   | Task                                                                       | Impact | Effort |
+| --- | -------------------------------------------------------------------------- | ------ | ------ |
+| 1   | Push to remote                                                             | High   | 1m     |
+| 2   | Update AGENTS.md for passwordless architecture                             | High   | 15m    |
+| 3   | Update CHANGELOG.md with passwordless BREAKING entry                       | High   | 10m    |
+| 4   | Wire AccountLockout into BeginLogin flow                                   | Medium | 15m    |
+| 5   | Add OAuth2/OIDC provider interface                                         | High   | 60m    |
+| 6   | Add tests for es_commands.go constructors (batch test)                     | Low    | 10m    |
+| 7   | Add tests for user.go Clone/HasRole/HasCredential/MarshalJSON              | Medium | 10m    |
+| 8   | Add tests for store.go InMemorySessionStore edge cases                     | Low    | 10m    |
+| 9   | Add test for Authz.RemoveAllRolesForUser                                   | Medium | 10m    |
+| 10  | Update example_test.go for passwordless API                                | Medium | 15m    |
+| 11  | Add webauthn_adapter.go nil-transport edge case tests                      | Low    | 5m     |
+| 12  | Refactor webauthn_http.go body parsing to be less fragile                  | Medium | 15m    |
+| 13  | Add SQL store implementation (event.Store + SessionStore)                  | High   | 120m   |
+| 14  | Add event schema versioning                                                | Medium | 30m    |
+| 15  | Add projection consistency integration test                                | Medium | 20m    |
+| 16  | Add fuzz test for foldUser (property: idempotent fold)                     | Low    | 15m    |
+| 17  | Update docs/DOMAIN_LANGUAGE.md for passwordless terms                      | Low    | 10m    |
+| 18  | Add WebAuthn session expiry eviction goroutine                             | Low    | 15m    |
+| 19  | Add POST /auth/credentials DELETE endpoint for credential removal via HTTP | Medium | 15m    |
+| 20  | Add GET /auth/credentials endpoint for listing user's credentials          | Medium | 10m    |
+| 21  | Add rate limiting to WebAuthn endpoints                                    | Medium | 15m    |
+| 22  | Add CSRF protection to WebAuthn POST endpoints                             | Medium | 10m    |
+| 23  | Consider adding `github.com/mark3labs/mcp-go` for MCP integration          | Low    | 30m    |
+| 24  | Add README.md update for passwordless quickstart                           | Medium | 20m    |
+| 25  | Add CI pipeline for multi-module testing                                   | Medium | 30m    |
 
 ---
 
@@ -133,6 +140,7 @@ Nothing is broken. All tests pass. All modules build. No panics, no race conditi
 **How should OAuth2/OIDC integrate with the event-sourced model?**
 
 Options:
+
 1. **OAuth identity as a credential type** — Store OAuth subject ID + provider as a WebAuthnCredential-like type. Login dispatches no command, just queries read model + creates session.
 2. **Separate IdentityProvider aggregate** — OAuth providers are their own event stream with their own link table to users.
 3. **OAuth as a session source only** — Don't store OAuth state in the event store at all. OAuth login creates a session directly, like a magic link.
@@ -143,16 +151,16 @@ I lean toward option 1 (consistent with how WebAuthn credentials work), but I'm 
 
 ## Metrics Summary
 
-| Metric | Value |
-|--------|-------|
-| Total .go files | 60 |
-| Test files | 29 |
-| Total LOC | 6,439 |
-| Passing tests | 175 |
-| Failing tests | 0 |
-| Coverage | 79.2% |
-| 0% functions | 106 |
-| Modules building | 3/3 (root, usermgmt, integration_test) |
-| Race detector | Clean |
-| Pre-commit checks | 25/25 passing |
-| Git commits this session | 7 |
+| Metric                   | Value                                  |
+| ------------------------ | -------------------------------------- |
+| Total .go files          | 60                                     |
+| Test files               | 29                                     |
+| Total LOC                | 6,439                                  |
+| Passing tests            | 175                                    |
+| Failing tests            | 0                                      |
+| Coverage                 | 79.2%                                  |
+| 0% functions             | 106                                    |
+| Modules building         | 3/3 (root, usermgmt, integration_test) |
+| Race detector            | Clean                                  |
+| Pre-commit checks        | 25/25 passing                          |
+| Git commits this session | 7                                      |
