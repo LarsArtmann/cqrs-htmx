@@ -127,7 +127,7 @@ func TestNewAuthHandler_CustomCookieName(t *testing.T) {
 	h.RegisterRoutes(mux)
 
 	w := postJSON(t, mux, "/auth/register",
-		`{"id":"u1","email":"cookie@test.com","password":"secret12"}`)
+		`{"id":"u1","email":"cookie@test.com"}`)
 	assertStatusCode(t, w, http.StatusCreated)
 	assertCookie(t, w, "my_session", func(c *http.Cookie) bool { return c.Value != "" })
 }

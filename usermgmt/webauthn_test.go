@@ -21,6 +21,7 @@ func newWebAuthnTestService(t *testing.T) *Service {
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
+	t.Cleanup(svc.Stop)
 	return svc
 }
 

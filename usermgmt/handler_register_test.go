@@ -23,7 +23,7 @@ func TestHandlers_Register(t *testing.T) {
 func TestHandlers_Register_SetsCookie(t *testing.T) {
 	_, mux := setupMux(t)
 	w := postJSON(t, mux, "/auth/register",
-		`{"id":"u1","email":"cookie@test.com","password":"secret12"}`)
+		`{"id":"u1","email":"cookie@test.com"}`)
 	assertStatusCode(t, w, http.StatusCreated)
 	assertCookie(t, w, "session_token", func(c *http.Cookie) bool {
 		return c.Value != "" && c.HttpOnly && c.SameSite == http.SameSiteStrictMode && !c.Secure
@@ -34,7 +34,7 @@ func TestHandlers_Register_DuplicateEmail(t *testing.T) {
 	_, mux := setupMux(t)
 	registerUser(t, mux)
 	w := postJSON(t, mux, "/auth/register",
-		`{"id":"u2","email":"a@b.com","password":"secret12"}`)
+		`{"id":"u2","email":"a@b.com"}`)
 	assertStatusCode(t, w, http.StatusConflict)
 }
 

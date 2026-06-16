@@ -19,7 +19,7 @@ func setupMux(t *testing.T) (*Service, *http.ServeMux) {
 func registerUser(t *testing.T, mux *http.ServeMux) *RegisterResponse {
 	t.Helper()
 	w := postJSON(t, mux, "/auth/register",
-		`{"id":"u1","email":"a@b.com","password":"secret12","display_name":"Test"}`)
+		`{"id":"u1","email":"a@b.com","display_name":"Test"}`)
 	if w.Code != http.StatusCreated {
 		t.Fatalf("register: expected 201, got %d: %s", w.Code, w.Body.String())
 	}

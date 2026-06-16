@@ -1,7 +1,6 @@
 package usermgmt
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -26,33 +25,20 @@ func (h *AuthHandler) handleWebAuthnBeginRegistration(w http.ResponseWriter, r *
 	writeJSON(w, http.StatusOK, resp)
 }
 
-type webauthnFinishRegRequest struct {
-	UserID         string `json:"user_id"`
-	CredentialName string `json:"credential_name"`
-}
-
 func (h *AuthHandler) handleWebAuthnFinishRegistration(w http.ResponseWriter, r *http.Request) {
-	var meta webauthnFinishRegRequest
-	body, err := io.ReadAll(io.LimitReader(r.Body, maxAuthBodySize))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "failed to read body")
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		writeError(w, http.StatusBadRequest, "user_id query parameter is required")
 		return
 	}
+	credentialName := r.URL.Query().Get("credential_name")
 
-	// Parse just the metadata (credential_name + user_id), the rest is the WebAuthn response
-	// We re-create the request with the body for go-webauthn to parse
-	r.Body = io.NopCloser(bytes.NewReader(body))
-	if err := json.Unmarshal(body, &meta); err != nil {
-		// Non-JSON body is OK — go-webauthn reads from raw request
-		meta.CredentialName = ""
-	}
-
-	err = h.service.FinishRegistration(r.Context(), NewUserID(meta.UserID), r, meta.CredentialName)
+	err := h.service.FinishRegistration(r.Context(), NewUserID(userID), r, credentialName)
 	if err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{"status": "registered"})
+	writeJSON(w, http.StatusOK, map[string]string{statusKey: "registered"})
 }
 
 type webauthnBeginLoginRequest struct {
@@ -74,22 +60,14 @@ func (h *AuthHandler) handleWebAuthnBeginLogin(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, resp)
 }
 
-type webauthnFinishLoginRequest struct {
-	UserID string `json:"user_id"`
-}
-
 func (h *AuthHandler) handleWebAuthnFinishLogin(w http.ResponseWriter, r *http.Request) {
-	var meta webauthnFinishLoginRequest
-	body, err := io.ReadAll(io.LimitReader(r.Body, maxAuthBodySize))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "failed to read body")
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		writeError(w, http.StatusBadRequest, "user_id query parameter is required")
 		return
 	}
 
-	r.Body = io.NopCloser(bytes.NewReader(body))
-	_ = json.Unmarshal(body, &meta)
-
-	resp, err := h.service.FinishLogin(r.Context(), NewUserID(meta.UserID), r)
+	resp, err := h.service.FinishLogin(r.Context(), NewUserID(userID), r)
 	if err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
