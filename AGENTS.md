@@ -20,7 +20,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Fmt      | `nix fmt`                                                                                  |
 | Flake    | `nix flake check` (formatting + devShells + apps)                                          |
 | DevShell | `nix develop` (go, gopls, golangci-lint)                                                   |
-| Coverage | 96.0%+ root, 83.6% usermgmt (580+ tests)                                                   |
+| Coverage | 96.4% root, 84.1% usermgmt, 95.3% catalog (500+ tests)                                    |
 
 ## Architecture
 
@@ -89,7 +89,7 @@ cqrs-htmx/
 ├── catalog/             # API documentation generation (5th Go module, opt-in)
 │   ├── go.mod           # Independent Go module — depends only on go-cqrs-lite/catalog/v2
 │   ├── builder.go       # Builder, New(), Command[T]/Query[T]/Event[T], Build()/BuildValid()
-│   └── serve.go         # OpenAPIHandler, AsyncAPIHandler, D2Handler, EventCatalogHandler
+│   └── serve.go         # OpenAPIHandler, AsyncAPIHandler, D2Handler, GenerateEventCatalog, HealthCheckHandler
 ├── integration_test/ # Cross-module integration tests (3rd Go module)
 └── examples/
     └── datastar-demo/ # Standalone go-cqrs-lite + datastar SSE example (4th Go module)
