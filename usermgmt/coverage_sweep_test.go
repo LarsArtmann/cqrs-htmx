@@ -5,8 +5,11 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
 // TestAuditLog_AllEventActions feeds every event type through the audit log and
@@ -99,5 +102,30 @@ func TestEmailVerification_SendEmailCallbackError(t *testing.T) {
 
 	if _, err := svc.SendVerificationEmail(context.Background(), reg.User.ID); err == nil {
 		t.Fatal("expected error when send callback fails")
+	}
+}
+
+func TestRegisterCommands_DuplicateReturnsError(t *testing.T) {
+	store := memory.NewMemoryStore()
+	bus := memory.NewMemoryBus()
+	defer func() { _ = bus.Close() }()
+	repo, err := decider.NewRepository(store, bus, UserDecider())
+	if err != nil {
+		t.Fatalf("create repo: %v", err)
+	}
+	disp := command.NewDispatcher()
+
+	if err := RegisterCommands(disp, repo); err != nil {
+		t.Fatalf("first RegisterCommands: %v", err)
+	}
+	if err := RegisterCommands(disp, repo); err == nil {
+		t.Fatal("expected error when registering duplicate commands")
+	}
+}
+
+func TestReadModel_FindByUserID_InvalidID(t *testing.T) {
+	rm := NewUserReadModel()
+	if u, ok := rm.FindByUserID(NewUserID("not-a-valid-ulid")); ok || u != nil {
+		t.Errorf("expected nil/false for invalid UserID, got %v ok=%v", u, ok)
 	}
 }
