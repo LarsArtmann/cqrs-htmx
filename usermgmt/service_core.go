@@ -15,6 +15,7 @@ import (
 const (
 	defaultSessionTTL    = 24 * time.Hour
 	maxDisplayNameLength = 100
+	maxEmailLength       = 254 // RFC 5321 max
 )
 
 // Service orchestrates user registration, authentication, authorization, and session management

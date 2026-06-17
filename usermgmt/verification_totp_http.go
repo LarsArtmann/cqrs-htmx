@@ -61,6 +61,15 @@ func (h *AuthHandler) checkRateLimit(
 	return true
 }
 
+// withTimeout returns a context with the handler's configured timeout.
+// If timeout is zero, returns the request context unchanged.
+func (h *AuthHandler) withTimeout(r *http.Request) (context.Context, context.CancelFunc) {
+	if h.timeout > 0 {
+		return context.WithTimeout(r.Context(), h.timeout)
+	}
+	return r.Context(), func() {}
+}
+
 func (h *AuthHandler) handleSendVerificationEmail(w http.ResponseWriter, r *http.Request) {
 	if !h.checkRateLimit(w, r, h.verificationLimiter, "too many verification requests") {
 		return
@@ -69,10 +78,7 @@ func (h *AuthHandler) handleSendVerificationEmail(w http.ResponseWriter, r *http
 	if !ok {
 		return
 	}
-	ctx, cancel := r.Context(), func() {}
-	if h.timeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, h.timeout)
-	}
+	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
 	token, err := h.service.SendVerificationEmail(ctx, user.ID)
@@ -93,10 +99,7 @@ func (h *AuthHandler) handleVerifyEmail(w http.ResponseWriter, r *http.Request) 
 			fmt.Errorf("%w: invalid request body: %w", ErrValidation, err).Error())
 		return
 	}
-	ctx, cancel := r.Context(), func() {}
-	if h.timeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, h.timeout)
-	}
+	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
 	if err := h.service.VerifyEmail(ctx, req.Token); err != nil {
@@ -114,10 +117,7 @@ func (h *AuthHandler) handleTOTPSetup(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	ctx, cancel := r.Context(), func() {}
-	if h.timeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, h.timeout)
-	}
+	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
 	resp, err := h.service.EnableTOTP(ctx, user.ID)
@@ -159,10 +159,7 @@ func (h *AuthHandler) handleTOTPCode(
 			fmt.Errorf("%w: invalid request body: %w", ErrValidation, err).Error())
 		return
 	}
-	ctx, cancel := r.Context(), func() {}
-	if h.timeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, h.timeout)
-	}
+	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
 	if err := verify(ctx, user.ID, req.Code); err != nil {
@@ -180,10 +177,7 @@ func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
-	ctx, cancel := r.Context(), func() {}
-	if h.timeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, h.timeout)
-	}
+	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
 	if err := h.service.DisableTOTP(ctx, user.ID); err != nil {
@@ -205,10 +199,7 @@ func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) 
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}
-	ctx, cancel := r.Context(), func() {}
-	if h.timeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, h.timeout)
-	}
+	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
 	format := parseExportFormat(r)
@@ -242,10 +233,7 @@ func (h *AuthHandler) handleImportUsers(w http.ResponseWriter, r *http.Request) 
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}
-	ctx, cancel := r.Context(), func() {}
-	if h.timeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, h.timeout)
-	}
+	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
 	format := parseImportFormat(r)
