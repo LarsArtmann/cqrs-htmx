@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func setupAuthenticatedHandler(t *testing.T, cfg ServiceConfig) (*Service, http.Handler, string) {
@@ -303,4 +304,111 @@ func TestHandlers_ExportUsers_CustomAuthorizer(t *testing.T) {
 	w := authenticatedRequest(t, wrapped, http.MethodGet, "/auth/export?format=json",
 		reg.Session.Token, "")
 	assertStatusCode(t, w, http.StatusOK)
+}
+
+func TestHandlers_ImportRateLimit(t *testing.T) {
+	svc, err := NewService(ServiceConfig{})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	t.Cleanup(svc.Stop)
+
+	reg, err := svc.Register(context.Background(), RegisterRequest{
+		ID: NewUserID("rl1"), Email: "rl1@test.com",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+	if err := svc.UpdateRoles(context.Background(), reg.User.ID, []Role{RoleAdmin}, "test"); err != nil {
+		t.Fatalf("UpdateRoles: %v", err)
+	}
+	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
+	if err != nil {
+		t.Fatalf("Create session: %v", err)
+	}
+
+	h := NewAuthHandler(svc, HandlerConfig{
+		Secure:           new(bool),
+		ImportRateLimit:  RegistrationRateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
+	})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+	wrapped := NewSessionMiddleware(svc, "session_token")(mux)
+
+	body := `[{"email":"imp1@test.com"}]`
+	w1 := authenticatedRequest(t, wrapped, http.MethodPost, "/auth/import?format=json", sess.Token, body)
+	assertStatusCode(t, w1, http.StatusOK)
+
+	w2 := authenticatedRequest(t, wrapped, http.MethodPost, "/auth/import?format=json", sess.Token, body)
+	assertStatusCode(t, w2, http.StatusTooManyRequests)
+}
+
+func TestHandlers_TOTPRateLimit(t *testing.T) {
+	svc, err := NewService(ServiceConfig{
+		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	t.Cleanup(svc.Stop)
+
+	reg, err := svc.Register(context.Background(), RegisterRequest{
+		ID: NewUserID("rl2"), Email: "rl2@test.com",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
+	if err != nil {
+		t.Fatalf("Create session: %v", err)
+	}
+
+	h := NewAuthHandler(svc, HandlerConfig{
+		Secure:       new(bool),
+		TOTPRateLimit: RegistrationRateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
+	})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+	wrapped := NewSessionMiddleware(svc, "session_token")(mux)
+
+	w1 := authenticatedRequest(t, wrapped, http.MethodPost, "/auth/totp/setup", sess.Token, "")
+	assertStatusCode(t, w1, http.StatusOK)
+
+	w2 := authenticatedRequest(t, wrapped, http.MethodPost, "/auth/totp/setup", sess.Token, "")
+	assertStatusCode(t, w2, http.StatusTooManyRequests)
+}
+
+func TestHandlers_VerificationRateLimit(t *testing.T) {
+	svc, err := NewService(ServiceConfig{
+		EmailVerification: &EmailVerificationConfig{},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	t.Cleanup(svc.Stop)
+
+	reg, err := svc.Register(context.Background(), RegisterRequest{
+		ID: NewUserID("rl3"), Email: "rl3@test.com",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
+	if err != nil {
+		t.Fatalf("Create session: %v", err)
+	}
+
+	h := NewAuthHandler(svc, HandlerConfig{
+		Secure:               new(bool),
+		VerificationRateLimit: RegistrationRateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
+	})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+	wrapped := NewSessionMiddleware(svc, "session_token")(mux)
+
+	w1 := authenticatedRequest(t, wrapped, http.MethodPost, "/auth/email/verify/send", sess.Token, "")
+	assertStatusCode(t, w1, http.StatusOK)
+
+	w2 := authenticatedRequest(t, wrapped, http.MethodPost, "/auth/email/verify/send", sess.Token, "")
+	assertStatusCode(t, w2, http.StatusTooManyRequests)
 }

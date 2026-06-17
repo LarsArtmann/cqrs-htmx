@@ -51,7 +51,20 @@ func (h *AuthHandler) currentUser(w http.ResponseWriter, r *http.Request) (*User
 	return user, true
 }
 
+func (h *AuthHandler) checkRateLimit(
+	w http.ResponseWriter, r *http.Request, rl *registrationRateLimiter, msg string,
+) bool {
+	if rl != nil && !rl.allow(r.RemoteAddr) {
+		writeError(w, http.StatusTooManyRequests, msg)
+		return false
+	}
+	return true
+}
+
 func (h *AuthHandler) handleSendVerificationEmail(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.verificationLimiter, "too many verification requests") {
+		return
+	}
 	user, ok := h.currentUser(w, r)
 	if !ok {
 		return
@@ -71,6 +84,9 @@ func (h *AuthHandler) handleSendVerificationEmail(w http.ResponseWriter, r *http
 }
 
 func (h *AuthHandler) handleVerifyEmail(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.verificationLimiter, "too many verification requests") {
+		return
+	}
 	var req verificationVerifyRequest
 	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest,
@@ -91,6 +107,9 @@ func (h *AuthHandler) handleVerifyEmail(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AuthHandler) handleTOTPSetup(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.totpLimiter, "too many TOTP requests") {
+		return
+	}
 	user, ok := h.currentUser(w, r)
 	if !ok {
 		return
@@ -127,6 +146,9 @@ func (h *AuthHandler) handleTOTPCode(
 	verify func(context.Context, UserID, string) error,
 	status string,
 ) {
+	if !h.checkRateLimit(w, r, h.totpLimiter, "too many TOTP requests") {
+		return
+	}
 	user, ok := h.currentUser(w, r)
 	if !ok {
 		return
@@ -151,6 +173,9 @@ func (h *AuthHandler) handleTOTPCode(
 }
 
 func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.totpLimiter, "too many TOTP requests") {
+		return
+	}
 	user, ok := h.currentUser(w, r)
 	if !ok {
 		return
@@ -169,6 +194,9 @@ func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.importLimiter, "too many export requests") {
+		return
+	}
 	user, ok := h.currentUser(w, r)
 	if !ok {
 		return
@@ -203,6 +231,9 @@ func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AuthHandler) handleImportUsers(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.importLimiter, "too many import requests") {
+		return
+	}
 	user, ok := h.currentUser(w, r)
 	if !ok {
 		return
