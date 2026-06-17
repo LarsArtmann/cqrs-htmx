@@ -20,7 +20,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Fmt      | `nix fmt`                                                                                  |
 | Flake    | `nix flake check` (formatting + devShells + apps)                                          |
 | DevShell | `nix develop` (go, gopls, golangci-lint)                                                   |
-| Coverage | 96.0%+ root, 90.0% usermgmt (570+ tests)                                                   |
+| Coverage | 96.0%+ root, 83.6% usermgmt (580+ tests)                                                   |
 
 ## Architecture
 
@@ -70,6 +70,11 @@ cqrs-htmx/
 │   ├── service_login.go   # Service.Logout/Authenticate/Authorize (no password login)
 │   ├── service_misc.go    # GetUser, UpdateRoles, ChangeEmail, ChangeDisplayName, DeleteUser, AddCredential, RemoveCredential
 │   ├── credential.go      # WebAuthnCredential type (passkey credential stored as event)
+│   ├── email.go          # Email value type with ParseEmail/MustParseEmail
+│   ├── email_verification.go # Verification token store, SendVerificationEmail, VerifyEmail
+│   ├── import_export.go  # ImportUsersFromJSON/CSV, ExportUsersToJSON/CSV, ImportUser.Validate
+│   ├── totp.go           # TOTP MFA via pquerna/otp/totp (EnableTOTP, VerifyTOTP, DisableTOTP)
+│   ├── verification_totp_http.go # HTTP handlers for verification, TOTP, import/export endpoints
 │   ├── webauthn_adapter.go # Adapts domain User → webauthn.User interface
 │   ├── webauthn_session.go # WebAuthnConfig + in-memory challenge store
 │   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin
@@ -106,6 +111,7 @@ cqrs-htmx/
 | larsartmann/httputil    | ClientIP extraction                                                     | Root             |
 | go-branded-id           | Branded types                                                           | usermgmt         |
 | go-webauthn v0.17.4     | WebAuthn/Passkey passwordless authentication                            | usermgmt         |
+| pquerna/otp v1.5.0     | TOTP (RFC 6238) multi-factor authentication                             | usermgmt         |
 | golang.org/x/time       | Rate limiting                                                           | Root             |
 | onsi/ginkgo/v2 + gomega | BDD test framework                                                      | All test modules |
 
@@ -226,7 +232,11 @@ cqrs-htmx/
 - **DeleteUser revokes sessions**: Sessions deleted on user deletion for security.
 - **Old EventHandler backward compat**: If `EventHandler` configured in `ServiceConfig`, Service bridges bus events to old callback.
 - **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
-- **Old EventHandler backward compat**: If `EventHandler` configured in `ServiceConfig`, Service bridges bus events to old callback
+- **TOTP via pquerna/otp**: Replaced hand-rolled RFC 6238 with `github.com/pquerna/otp/totp` v1.5.0. `DisableTOTP` requires a valid code to prevent MFA stripping.
+- **Import/export authorization**: `ImportExportAuthorizer` (type `AuthorizerFunc`) defaults to `RequireAdminRole`. Configurable via `HandlerConfig`.
+- **Per-endpoint rate limiting**: `HandlerConfig.ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit`. All disabled by default.
+- **Email value type**: `type Email string` with `ParseEmail`/`MustParseEmail`. Used in `ExportUser`. Internal types stay `string` for event backward compat.
+- **UserDataFormat** (renamed from ExportFormat): Used for both import and export. Constants: `UserDataFormatJSON`, `UserDataFormatCSV`.
 - **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
 
 ## Key Gotchas
