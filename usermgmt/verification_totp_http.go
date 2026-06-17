@@ -52,7 +52,7 @@ func (h *AuthHandler) currentUser(w http.ResponseWriter, r *http.Request) (*User
 }
 
 func (h *AuthHandler) checkRateLimit(
-	w http.ResponseWriter, r *http.Request, rl *registrationRateLimiter, msg string,
+	w http.ResponseWriter, r *http.Request, rl *perIPRateLimiter, msg string,
 ) bool {
 	if rl != nil && !rl.allow(r.RemoteAddr) {
 		writeError(w, http.StatusTooManyRequests, msg)

@@ -334,7 +334,7 @@ func TestHandlers_ImportRateLimit(t *testing.T) {
 
 	h := NewAuthHandler(svc, HandlerConfig{
 		Secure:          new(bool),
-		ImportRateLimit: RegistrationRateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
+		ImportRateLimit: RateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
 	})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
@@ -370,7 +370,7 @@ func TestHandlers_TOTPRateLimit(t *testing.T) {
 
 	h := NewAuthHandler(svc, HandlerConfig{
 		Secure:        new(bool),
-		TOTPRateLimit: RegistrationRateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
+		TOTPRateLimit: RateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
 	})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
@@ -405,7 +405,7 @@ func TestHandlers_VerificationRateLimit(t *testing.T) {
 
 	h := NewAuthHandler(svc, HandlerConfig{
 		Secure:                new(bool),
-		VerificationRateLimit: RegistrationRateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
+		VerificationRateLimit: RateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
 	})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)

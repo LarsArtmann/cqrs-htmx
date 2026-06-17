@@ -13,7 +13,7 @@ func newRateLimitedHandler(t *testing.T) (*Service, *AuthHandler, *http.ServeMux
 	svc := newTestService(t)
 	h := NewAuthHandler(svc, HandlerConfig{
 		Secure: new(bool),
-		RegistrationRateLimit: RegistrationRateLimitConfig{
+		RegistrationRateLimit: RateLimitConfig{
 			Enabled:     true,
 			MaxRequests: 2,
 			Window:      time.Minute,
@@ -70,7 +70,7 @@ func TestHandleRegister_RateLimitNoOpWhenDisabled(t *testing.T) {
 }
 
 func TestRegistrationRateLimiter_WindowReset(t *testing.T) {
-	rl := newRegistrationRateLimiter(2, 50*time.Millisecond)
+	rl := newPerIPRateLimiter(2, 50*time.Millisecond)
 
 	if !rl.allow("ip1") {
 		t.Error("first request should be allowed")
@@ -90,7 +90,7 @@ func TestRegistrationRateLimiter_WindowReset(t *testing.T) {
 }
 
 func TestRegistrationRateLimiter_DifferentIPs(t *testing.T) {
-	rl := newRegistrationRateLimiter(1, time.Minute)
+	rl := newPerIPRateLimiter(1, time.Minute)
 
 	if !rl.allow("ip1") {
 		t.Error("first ip1 request should be allowed")
@@ -107,7 +107,7 @@ func TestRegistrationRateLimiter_RapidRequests(t *testing.T) {
 	svc := newTestService(t)
 	h := NewAuthHandler(svc, HandlerConfig{
 		Secure: new(bool),
-		RegistrationRateLimit: RegistrationRateLimitConfig{
+		RegistrationRateLimit: RateLimitConfig{
 			Enabled:     true,
 			MaxRequests: 1,
 			Window:      time.Hour,
