@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **go-cqrs-lite v2.4.0**: All modules upgraded to the latest per-module tags (command, event, id, query, codec, decider, dispatcher, memory, projection, snapshot, otel).
+- **go-error-family v0.4.0**: Upgraded with idiomatic `event.Wrapf` / `event.WrapTransient` replacing all `NewTransient(fmt.Sprintf(...)).WithCause(err)` patterns.
+- **go-branded-id v0.3.1**: Latest branded ID library.
+- **ginkgo v2.31.0 + gomega v1.42.0**: Latest BDD test framework.
+- **Lint: 0 issues**: Fixed all 16 pre-existing lint warnings (errorlint, exhaustruct, contextcheck false positives).
+- **Email validation consolidated**: `ImportUser.Validate()` now delegates to `ParseEmail()` instead of reimplementing identical logic.
+
 ### Security
 
 - **Import/export authorization**: Endpoints now require admin role by default. Previously any authenticated user could export all user data or create accounts.
