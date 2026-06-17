@@ -1043,10 +1043,30 @@ cqrs-htmx/
 │   ├── middleware.go       # NewSessionMiddleware, user context helpers
 │   ├── lockout.go          # AccountLockout (configurable attempts + duration)
 │   └── errors.go           # Sentinel errors
+├── catalog/             # API documentation generation (opt-in, 5th Go module)
 ├── integration_test/   # Cross-module integration tests (independent Go module)
 └── examples/
     └── datastar-demo/  # Standalone datastar + go-cqrs-lite SSE example
 ```
+
+## Optional Sub-Packages
+
+### catalog — API Documentation Generation
+
+Generate OpenAPI, AsyncAPI, D2 diagrams, and EventCatalog docs from your Go CQRS types:
+
+```bash
+go get github.com/larsartmann/cqrs-htmx/catalog/v2
+```
+
+```go
+b := cataloghtmx.New("User Service", "1.0.0")
+cataloghtmx.Command[RegisterUserCmd](b, "register-user")
+cat := b.Build()
+mux.Handle("/docs/openapi.json", cataloghtmx.OpenAPIHandler(cat))
+```
+
+See [catalog/README.md](catalog/README.md) for full documentation.
 
 ## Dependencies
 

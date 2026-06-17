@@ -1,0 +1,140 @@
+package integration_test
+
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
+)
+
+type catalogUserCmd struct {
+	Email string `json:"email" doc:"User email address"`
+	Name  string `json:"name" doc:"Display name"`
+}
+
+type catalogUserEvent struct {
+	UserID string `json:"user_id" doc:"New user identifier"`
+	Email  string `json:"email" doc:"User email"`
+}
+
+type catalogUserQuery struct {
+	ID string `json:"id" doc:"User ID to retrieve"`
+}
+
+func buildCatalogForApp(app *cqrshtmx.App) *catalog.Catalog {
+	b := cataloghtmx.New(
+		app.ServiceName(),
+		"1.0.0",
+		cataloghtmx.WithServiceSummary("Integration test service"),
+	)
+
+	cataloghtmx.Command[catalogUserCmd](b, "create-user",
+		cataloghtmx.WithOperation("POST", "/api/users"),
+		catalog.WithSummary("Create a new user account"),
+	)
+
+	cataloghtmx.Event[catalogUserEvent](b, "user.created", catalog.Sends,
+		catalog.WithSummary("A user was created"),
+	)
+
+	cataloghtmx.Query[catalogUserQuery](b, "get-user",
+		cataloghtmx.WithOperation("GET", "/api/users/{id}"),
+		catalog.WithSummary("Retrieve a user by ID"),
+	)
+
+	return b.Build()
+}
+
+// TestCatalog_WithApp tests that the catalog sub-package correctly generates
+// documentation for types used with cqrs-htmx App handlers.
+func TestCatalog_WithApp(t *testing.T) {
+	t.Parallel()
+
+	cmds := command.NewDispatcher()
+	queries := query.NewDispatcher()
+
+	app, err := cqrshtmx.New(cqrshtmx.Config{
+		Commands:    cmds,
+		Queries:     queries,
+		ServiceName: "integration-test-service",
+	})
+	if err != nil {
+		t.Fatalf("failed to create app: %v", err)
+	}
+
+	cat := buildCatalogForApp(app)
+
+	if len(cat.Services) != 1 {
+		t.Fatalf("expected 1 service, got %d", len(cat.Services))
+	}
+
+	svc := cat.Services[0]
+	if len(svc.Commands) != 1 || len(svc.Events) != 1 || len(svc.Queries) != 1 {
+		t.Errorf("expected 1/1/1 cmd/evt/qry, got %d/%d/%d",
+			len(svc.Commands), len(svc.Events), len(svc.Queries))
+	}
+
+	assertOpenAPI(t, cat)
+	assertAsyncAPI(t, cat)
+	assertD2ContainsService(t, cat)
+}
+
+func assertOpenAPI(t *testing.T, cat *catalog.Catalog) {
+	t.Helper()
+
+	handler := cataloghtmx.OpenAPIHandler(cat)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+
+	var doc map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &doc); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+
+	if doc["openapi"] != "3.0.3" {
+		t.Errorf("expected openapi 3.0.3, got %v", doc["openapi"])
+	}
+}
+
+func assertAsyncAPI(t *testing.T, cat *catalog.Catalog) {
+	t.Helper()
+
+	handler := cataloghtmx.AsyncAPIHandler(cat)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+}
+
+func assertD2ContainsService(t *testing.T, cat *catalog.Catalog) {
+	t.Helper()
+
+	handler := cataloghtmx.D2Handler(cat)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+
+	body := w.Body.String()
+	if !strings.Contains(body, "integration") {
+		t.Errorf("D2 diagram should contain service identifier")
+	}
+}

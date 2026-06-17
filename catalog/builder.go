@@ -1,6 +1,7 @@
 package cataloghtmx
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 
@@ -125,6 +126,7 @@ func (b *Builder) AddMessage(msg catalog.MessageConfig) *Builder {
 }
 
 // Build creates the immutable catalog with all registered messages.
+// Panics if catalog validation fails (empty service ID, duplicate message IDs, etc.).
 func (b *Builder) Build() *catalog.Catalog {
 	b.inner.AddService(
 		b.serviceID,
@@ -134,7 +136,28 @@ func (b *Builder) Build() *catalog.Catalog {
 		b.msgs...,
 	)
 
-	return b.inner.Build()
+	cat := b.inner.Build()
+
+	if violations := cat.Validate(); len(violations) > 0 {
+		panic(fmt.Sprintf("cataloghtmx: catalog validation failed: %v", violations))
+	}
+
+	return cat
+}
+
+// BuildValid creates the immutable catalog and returns validation violations
+// instead of panicking. Returns nil violations if the catalog is valid.
+func (b *Builder) BuildValid() (*catalog.Catalog, []catalog.Violation) {
+	b.inner.AddService(
+		b.serviceID,
+		b.serviceCfg.name,
+		b.serviceCfg.version,
+		b.serviceCfg.summary,
+		b.msgs...,
+	)
+
+	cat := b.inner.Build()
+	return cat, cat.Validate()
 }
 
 // Registry returns the underlying catalog.Registry for advanced use cases.

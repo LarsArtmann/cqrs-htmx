@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-17 | **Coverage:** 96.4% root, 84.1% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v2.4.0
+**Updated:** 2026-06-17 | **Coverage:** 96.4% root, 84.1% usermgmt, catalog | **Lint:** 0 issues (all modules) | **Version:** v2.4.0
 
 ## Status Legend
 
@@ -42,6 +42,18 @@
 - [x] **Require TOTP code to disable** — DisableTOTP now takes a code parameter. Prevents MFA stripping via session hijack.
 - [x] **Email value type** — ParseEmail/MustParseEmail with RFC 5322 validation. Used in ExportUser.
 - [x] **Rename ExportFormat → UserDataFormat** — Honest naming for dual import/export use.
+
+### Catalog Sub-Package (2026-06-17)
+
+- [x] **Create catalog/ Go module** — 5th module (`github.com/larsartmann/cqrs-htmx/catalog/v2`). Depends only on go-cqrs-lite/catalog/v2. Zero dep on root or usermgmt.
+- [x] **Builder API** — `New(title, version)`, `Command[T](b, id)`, `Query[T](b, id)`, `Event[T](b, id, dir)` using standalone generic functions (Go doesn't allow generic methods).
+- [x] **HTTP handlers** — `OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `EventCatalogHandler`, `HealthCheckHandler`.
+- [x] **YAML output** — `WithFormat(FormatYAML)` for all JSON handlers.
+- [x] **Schema reflection** — Auto-derives JSON Schema from struct tags (json, doc, format, enum, default).
+- [x] **Catalog validation** — `Build()` panics on invalid catalogs. `BuildValid()` returns violations.
+- [x] **ADR 0008** — Documents catalog sub-package decision (separate module, no root dep, generic functions).
+- [x] **ADR 0009** — Documents go-cqrs-lite module selection rationale (8 used, 13 skipped, each with reason).
+- [x] **Middleware integration doc** — Documents how go-cqrs-lite dispatch middleware composes with cqrs-htmx HTTP middleware.
 
 ### Future Work
 
