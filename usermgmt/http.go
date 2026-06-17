@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,15 +25,15 @@ func RequireAdminRole(user *User) error {
 
 // AuthHandler provides HTTP endpoints for user registration, login, logout, and identity.
 type AuthHandler struct {
-	service               *Service
-	cookieName            string
-	secure                bool
-	sessionMaxAge         int
-	timeout               time.Duration
-	regLimiter            *registrationRateLimiter
-	importLimiter         *registrationRateLimiter
-	totpLimiter           *registrationRateLimiter
-	verificationLimiter   *registrationRateLimiter
+	service                *Service
+	cookieName             string
+	secure                 bool
+	sessionMaxAge          int
+	timeout                time.Duration
+	regLimiter             *registrationRateLimiter
+	importLimiter          *registrationRateLimiter
+	totpLimiter            *registrationRateLimiter
+	verificationLimiter    *registrationRateLimiter
 	importExportAuthorizer AuthorizerFunc
 }
 
@@ -235,12 +234,8 @@ func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := r.Context()
-	if h.timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, h.timeout)
-		defer cancel()
-	}
+	ctx, cancel := h.withTimeout(r)
+	defer cancel()
 
 	var regReq RegisterRequest
 	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&regReq); err != nil {
@@ -267,12 +262,8 @@ func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := r.Context()
-	if h.timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, h.timeout)
-		defer cancel()
-	}
+	ctx, cancel := h.withTimeout(r)
+	defer cancel()
 
 	if err := h.service.Logout(ctx, token); err != nil {
 		writeError(w, errorStatus(err), err.Error())

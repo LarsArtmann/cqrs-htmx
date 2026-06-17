@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/mail"
 	"strconv"
 	"strings"
 
@@ -16,6 +17,26 @@ import (
 type ImportUser struct {
 	Email       string `json:"email"`
 	DisplayName string `json:"display_name,omitempty"`
+}
+
+// Validate normalizes and validates the import user fields.
+// Returns ErrValidation if any field is invalid.
+func (u *ImportUser) Validate() error {
+	u.Email = strings.ToLower(strings.TrimSpace(u.Email))
+	u.DisplayName = strings.TrimSpace(u.DisplayName)
+	if u.Email == "" {
+		return fmt.Errorf("%w: email is required", ErrValidation)
+	}
+	if _, err := mail.ParseAddress(u.Email); err != nil {
+		return fmt.Errorf("%w: invalid email %q: %s", ErrValidation, u.Email, err)
+	}
+	if len(u.Email) > maxEmailLength {
+		return fmt.Errorf("%w: email too long (max %d)", ErrValidation, maxEmailLength)
+	}
+	if len(u.DisplayName) > maxDisplayNameLength {
+		return fmt.Errorf("%w: display name too long (max %d)", ErrValidation, maxDisplayNameLength)
+	}
+	return nil
 }
 
 // ExportUser is a user in the export format. It omits credentials and
@@ -101,23 +122,23 @@ func (s *Service) ImportUsersFromCSV(ctx context.Context, r io.Reader) (*ImportR
 
 func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportResult, error) {
 	result := &ImportResult{Errors: []string{}, Imported: 0, Skipped: 0}
-	for _, u := range users {
-		if u.Email == "" {
+	for i := range users {
+		if err := users[i].Validate(); err != nil {
 			result.Skipped++
-			result.Errors = append(result.Errors, "empty email skipped")
+			result.Errors = append(result.Errors, err.Error())
 			continue
 		}
-		if _, ok := s.readModel.FindByEmail(u.Email); ok {
+		if _, ok := s.readModel.FindByEmail(users[i].Email); ok {
 			result.Skipped++
 			continue
 		}
 
 		aggID := id.NewAggregateID()
 		if err := s.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
-			aggID, u.Email, u.DisplayName, []Role{RoleUser},
+			aggID, users[i].Email, users[i].DisplayName, []Role{RoleUser},
 		)); err != nil {
 			result.Errors = append(result.Errors,
-				fmt.Sprintf("%s: %v", u.Email, err))
+				fmt.Sprintf("%s: %v", users[i].Email, err))
 			continue
 		}
 		result.Imported++
