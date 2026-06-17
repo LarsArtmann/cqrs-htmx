@@ -43,7 +43,7 @@ func (u *ImportUser) Validate() error {
 // sensitive data — only public profile information is included.
 type ExportUser struct {
 	ID            UserID `json:"id"`
-	Email         string `json:"email"`
+	Email         Email  `json:"email"`
 	DisplayName   string `json:"display_name,omitempty"`
 	Roles         []Role `json:"roles"`
 	EmailVerified bool   `json:"email_verified"`
@@ -57,12 +57,12 @@ type ImportResult struct {
 	Errors   []string `json:"errors,omitempty"`
 }
 
-// ExportFormat is the output format for user data export.
-type ExportFormat string
+// UserDataFormat is the serialization format for user data import/export.
+type UserDataFormat string
 
 const (
-	ExportFormatJSON ExportFormat = "json"
-	ExportFormatCSV  ExportFormat = "csv"
+	UserDataFormatJSON UserDataFormat = "json"
+	UserDataFormatCSV  UserDataFormat = "csv"
 )
 
 // ImportUsersFromJSON reads a JSON array of ImportUser from the reader and
@@ -192,7 +192,7 @@ func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 		}
 		if err := cw.Write([]string{
 			u.ID.Get(),
-			u.Email,
+			string(u.Email),
 			u.DisplayName,
 			strings.Join(roles, ";"),
 			strconv.FormatBool(u.EmailVerified),
@@ -210,7 +210,7 @@ func (s *Service) exportAllUsers() []ExportUser {
 	for _, u := range all {
 		users = append(users, ExportUser{
 			ID:            u.ID,
-			Email:         u.Email,
+			Email:         Email(u.Email),
 			DisplayName:   u.DisplayName,
 			Roles:         append([]Role(nil), u.Roles...),
 			EmailVerified: u.EmailVerified,
