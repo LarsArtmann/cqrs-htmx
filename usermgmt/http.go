@@ -32,6 +32,9 @@ type AuthHandler struct {
 	sessionMaxAge         int
 	timeout               time.Duration
 	regLimiter            *registrationRateLimiter
+	importLimiter         *registrationRateLimiter
+	totpLimiter           *registrationRateLimiter
+	verificationLimiter   *registrationRateLimiter
 	importExportAuthorizer AuthorizerFunc
 }
 
@@ -54,6 +57,12 @@ type HandlerConfig struct {
 	// requests. Use this to prevent credential stuffing and registration abuse.
 	// The limiter is checked before the request body is decoded.
 	RegistrationRateLimit RegistrationRateLimitConfig
+	// ImportRateLimit limits the rate of POST /auth/import requests per IP.
+	ImportRateLimit RegistrationRateLimitConfig
+	// TOTPRateLimit limits the rate of /auth/totp/* requests per IP.
+	TOTPRateLimit RegistrationRateLimitConfig
+	// VerificationRateLimit limits the rate of /auth/email/verify* requests per IP.
+	VerificationRateLimit RegistrationRateLimitConfig
 	// ImportExportAuthorizer controls who can call /auth/import and /auth/export.
 	// Defaults to RequireAdminRole (only users with the admin role).
 	// Set to nil to disable authorization, or provide a custom AuthorizerFunc.
@@ -112,6 +121,13 @@ func (rl *registrationRateLimiter) allow(ip string) bool {
 	return true
 }
 
+func newLimiterFromConfig(cfg RegistrationRateLimitConfig) *registrationRateLimiter {
+	if cfg.Enabled && cfg.MaxRequests > 0 {
+		return newRegistrationRateLimiter(cfg.MaxRequests, cfg.Window)
+	}
+	return nil
+}
+
 func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
 	secure := true
 	result := HandlerConfig{
@@ -131,6 +147,9 @@ func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
 		result.Timeout = cfg.Timeout
 	}
 	result.RegistrationRateLimit = cfg.RegistrationRateLimit
+	result.ImportRateLimit = cfg.ImportRateLimit
+	result.TOTPRateLimit = cfg.TOTPRateLimit
+	result.VerificationRateLimit = cfg.VerificationRateLimit
 	if cfg.ImportExportAuthorizer != nil {
 		result.ImportExportAuthorizer = cfg.ImportExportAuthorizer
 	}
@@ -174,15 +193,10 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 			}
 			return RequireAdminRole
 		}(),
-		regLimiter: func() *registrationRateLimiter {
-			if config.RegistrationRateLimit.Enabled && config.RegistrationRateLimit.MaxRequests > 0 {
-				return newRegistrationRateLimiter(
-					config.RegistrationRateLimit.MaxRequests,
-					config.RegistrationRateLimit.Window,
-				)
-			}
-			return nil
-		}(),
+		regLimiter:          newLimiterFromConfig(config.RegistrationRateLimit),
+		importLimiter:       newLimiterFromConfig(config.ImportRateLimit),
+		totpLimiter:         newLimiterFromConfig(config.TOTPRateLimit),
+		verificationLimiter: newLimiterFromConfig(config.VerificationRateLimit),
 	}
 }
 
