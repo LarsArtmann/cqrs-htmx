@@ -114,12 +114,12 @@ handler := cataloghtmx.OpenAPIHandler(cat,
 
 ### HTTP Handlers
 
-| Handler                         | Format           | Content-Type                                   |
-| ------------------------------- | ---------------- | ---------------------------------------------- |
-| `OpenAPIHandler(cat, opts...)`  | OpenAPI 3.0      | application/json (default) or application/yaml |
-| `AsyncAPIHandler(cat, opts...)` | AsyncAPI 3.0     | application/json (default) or application/yaml |
-| `D2Handler(cat, opts...)`       | D2 diagram       | text/plain                                     |
-| `HealthCheckHandler(cat)`       | JSON status      | application/json                               |
+| Handler                         | Format       | Content-Type                                   |
+| ------------------------------- | ------------ | ---------------------------------------------- |
+| `OpenAPIHandler(cat, opts...)`  | OpenAPI 3.0  | application/json (default) or application/yaml |
+| `AsyncAPIHandler(cat, opts...)` | AsyncAPI 3.0 | application/json (default) or application/yaml |
+| `D2Handler(cat, opts...)`       | D2 diagram   | text/plain                                     |
+| `HealthCheckHandler(cat)`       | JSON status  | application/json                               |
 
 ### Serve Options
 
