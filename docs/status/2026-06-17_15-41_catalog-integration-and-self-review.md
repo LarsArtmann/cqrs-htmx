@@ -9,20 +9,20 @@
 
 ## Project at a Glance
 
-| Metric | Value |
-|--------|-------|
-| Go modules | 5 (root, usermgmt, integration_test, catalog, datastar-demo) |
-| Go files | 207 |
-| Lines of Go code | ~29,300 |
-| Tests passing | 487 (123 root + 27 catalog + 328 usermgmt + 9 integration) |
-| Root coverage | 96.4% |
-| usermgmt coverage | 84.1% |
-| catalog coverage | 84.9% |
-| Lint issues | 0 (all modules) |
-| ADRs | 9 |
-| Features (FULLY_FUNCTIONAL) | 70 |
-| Open TODOs | 5 |
-| Race detector | Clean (all modules) |
+| Metric                      | Value                                                        |
+| --------------------------- | ------------------------------------------------------------ |
+| Go modules                  | 5 (root, usermgmt, integration_test, catalog, datastar-demo) |
+| Go files                    | 207                                                          |
+| Lines of Go code            | ~29,300                                                      |
+| Tests passing               | 487 (123 root + 27 catalog + 328 usermgmt + 9 integration)   |
+| Root coverage               | 96.4%                                                        |
+| usermgmt coverage           | 84.1%                                                        |
+| catalog coverage            | 84.9%                                                        |
+| Lint issues                 | 0 (all modules)                                              |
+| ADRs                        | 9                                                            |
+| Features (FULLY_FUNCTIONAL) | 70                                                           |
+| Open TODOs                  | 5                                                            |
+| Race detector               | Clean (all modules)                                          |
 
 ---
 
@@ -62,39 +62,39 @@
 
 ## b) PARTIALLY DONE
 
-| Item | Status | Gap |
-|------|--------|-----|
+| Item                           | Status                                                         | Gap                                                                                                                           |
+| ------------------------------ | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | **usermgmt pre-built catalog** | Catalog sub-package exists, but no `usermgmtcatalog.Default()` | Consumers must manually register all 7 commands + 7 events. Deliberately deferred — would create usermgmt→catalog dependency. |
-| **nix flake check** | `nix flake check` passes for formatting + devShells + apps | catalog module added to flake.nix but `nix flake check` not re-run this session after the edit |
-| **flake.nix version** | `packages.default` still says `version = "2.3.0"` (line 43) | Should be 2.4.0 or unreleased |
-| **go.work vs flake.nix** | go.work has catalog, flake.nix now has catalog | Aligned now, but was a split brain for ~30 min |
+| **nix flake check**            | `nix flake check` passes for formatting + devShells + apps     | catalog module added to flake.nix but `nix flake check` not re-run this session after the edit                                |
+| **flake.nix version**          | `packages.default` still says `version = "2.3.0"` (line 43)    | Should be 2.4.0 or unreleased                                                                                                 |
+| **go.work vs flake.nix**       | go.work has catalog, flake.nix now has catalog                 | Aligned now, but was a split brain for ~30 min                                                                                |
 
 ---
 
 ## c) NOT STARTED
 
-| Item | Priority | Notes |
-|------|----------|-------|
-| OAuth2/OIDC integration | Medium | Alternative auth to WebAuthn. No work done. |
-| Event schema versioning | Medium | Version field on events for future migrations |
-| CSRF on WebAuthn endpoints | Low | Not wired by default (library principle) |
-| Rate limiting on WebAuthn endpoints | Low | Not wired by default (library principle) |
-| Dispatcher enumeration API | Low | Upstream go-cqrs-lite change needed for auto-discovery |
-| `usermgmtcatalog.Default()` | Medium | Pre-built catalog for all usermgmt types |
-| Swagger UI / AsyncAPI Studio serving | Low | Consumers wire their own UI; we only serve the JSON/YAML |
+| Item                                 | Priority | Notes                                                    |
+| ------------------------------------ | -------- | -------------------------------------------------------- |
+| OAuth2/OIDC integration              | Medium   | Alternative auth to WebAuthn. No work done.              |
+| Event schema versioning              | Medium   | Version field on events for future migrations            |
+| CSRF on WebAuthn endpoints           | Low      | Not wired by default (library principle)                 |
+| Rate limiting on WebAuthn endpoints  | Low      | Not wired by default (library principle)                 |
+| Dispatcher enumeration API           | Low      | Upstream go-cqrs-lite change needed for auto-discovery   |
+| `usermgmtcatalog.Default()`          | Medium   | Pre-built catalog for all usermgmt types                 |
+| Swagger UI / AsyncAPI Studio serving | Low      | Consumers wire their own UI; we only serve the JSON/YAML |
 
 ---
 
 ## d) TOTALLY FUCKED UP (Fixed This Session)
 
-| What | Severity | How | Fixed? |
-|------|----------|-----|--------|
-| **EventCatalogHandler lied** | CRITICAL | Set `Content-Type: application/zip` but served JSON file listing | YES — removed entirely, kept `GenerateEventCatalog()` |
-| **flake.nix split brain** | CRITICAL | `nix run .#test` silently skipped catalog module | YES — catalog added to all 4 multi-module apps |
-| **Self-referential replace** | MEDIUM | `catalog/go.mod` had `replace github.com/larsartmann/cqrs-htmx/catalog/v2 => ./` | YES — removed |
-| **errors.Join anti-pattern** | LOW | Used `errors.Join(errors.New("..."), err)` instead of `fmt.Errorf("...: %w", err)` | YES |
-| **7 lint issues** | MEDIUM | errchkjson, exhaustive, exhaustruct×3, forcetypeassert, gci | YES — all fixed, 0 issues |
-| **Duplicate import** | LOW | example_test.go imported the same package twice with different aliases | YES |
+| What                         | Severity | How                                                                                | Fixed?                                                |
+| ---------------------------- | -------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **EventCatalogHandler lied** | CRITICAL | Set `Content-Type: application/zip` but served JSON file listing                   | YES — removed entirely, kept `GenerateEventCatalog()` |
+| **flake.nix split brain**    | CRITICAL | `nix run .#test` silently skipped catalog module                                   | YES — catalog added to all 4 multi-module apps        |
+| **Self-referential replace** | MEDIUM   | `catalog/go.mod` had `replace github.com/larsartmann/cqrs-htmx/catalog/v2 => ./`   | YES — removed                                         |
+| **errors.Join anti-pattern** | LOW      | Used `errors.Join(errors.New("..."), err)` instead of `fmt.Errorf("...: %w", err)` | YES                                                   |
+| **7 lint issues**            | MEDIUM   | errchkjson, exhaustive, exhaustruct×3, forcetypeassert, gci                        | YES — all fixed, 0 issues                             |
+| **Duplicate import**         | LOW      | example_test.go imported the same package twice with different aliases             | YES                                                   |
 
 ---
 
@@ -129,33 +129,33 @@
 
 Sorted by impact/effort ratio (highest first).
 
-| # | Task | Impact | Effort | Ratio |
-|---|------|--------|--------|-------|
-| 1 | Fix `flake.nix` version from `2.3.0` → `2.4.0` | Medium | Trivial | **∞** |
-| 2 | Update CHANGELOG `[Unreleased]` with self-review fixes | Medium | Trivial | **∞** |
-| 3 | Run `nix fmt` to verify all formatting | Low | Trivial | **High** |
-| 4 | Run `nix flake check` after flake.nix edits | Low | Trivial | **High** |
-| 5 | Add golden/snapshot tests for catalog OpenAPI output | High | Medium | **High** |
-| 6 | Catalog coverage → 90%+ (test BuildValid errors, HealthCheck body) | Medium | Low | **High** |
-| 7 | `usermgmtcatalog.Default()` — pre-built catalog for 7 cmds + 7 events | High | Medium | **High** |
-| 8 | Bump `flake.nix` `packages.default` version to match release | Medium | Trivial | **High** |
-| 9 | Cross-reference ADR 0009 → middleware integration doc | Low | Trivial | **Medium** |
-| 10 | Add catalog to `CONTRIBUTING.md` build/test/lint section | Low | Trivial | **Medium** |
-| 11 | Consider `lo.KebabCase` or upstream `caseutil` instead of hand-rolled `toKebab` | Medium | Low | **Medium** |
-| 12 | Add BDD test for catalog builder (Ginkgo/Gomega to match project style) | Medium | Medium | **Medium** |
-| 13 | Swagger UI handler — serve OpenAPI + embedded Swagger UI HTML | High | Medium | **Medium** |
-| 14 | `usermgmtcatalog` integration test — verify catalog matches actual endpoints | High | Low | **Medium** |
-| 15 | Catalog example in `examples/datastar-demo/` | Medium | Medium | **Medium** |
-| 16 | Event schema versioning — `SchemaVersion` field on event payloads | High | High | **Medium** |
-| 17 | OAuth2/OIDC integration as alternative to WebAuthn | High | High | **Medium** |
-| 18 | CSRF protection wiring helper for WebAuthn endpoints | Medium | Low | **Medium** |
-| 19 | Rate limiting wiring helper for WebAuthn endpoints | Medium | Low | **Medium** |
-| 20 | Catalog doc.go: add `BuildValid()` example alongside `Build()` | Low | Trivial | **Low** |
-| 21 | Property-based testing for catalog schema reflection | Medium | Medium | **Low** |
-| 22 | Upstream go-cqrs-lite: request dispatcher enumeration API for auto-discovery | High | High | **Low** |
-| 23 | Benchmark catalog builder + handlers (allocation targets) | Low | Medium | **Low** |
-| 24 | Catalog handler middleware support (auth on doc endpoints) | Low | Low | **Low** |
-| 25 | D2 diagram SVG rendering endpoint (via d2 CLI or WASM) | Low | High | **Low** |
+| #   | Task                                                                            | Impact | Effort  | Ratio      |
+| --- | ------------------------------------------------------------------------------- | ------ | ------- | ---------- |
+| 1   | Fix `flake.nix` version from `2.3.0` → `2.4.0`                                  | Medium | Trivial | **∞**      |
+| 2   | Update CHANGELOG `[Unreleased]` with self-review fixes                          | Medium | Trivial | **∞**      |
+| 3   | Run `nix fmt` to verify all formatting                                          | Low    | Trivial | **High**   |
+| 4   | Run `nix flake check` after flake.nix edits                                     | Low    | Trivial | **High**   |
+| 5   | Add golden/snapshot tests for catalog OpenAPI output                            | High   | Medium  | **High**   |
+| 6   | Catalog coverage → 90%+ (test BuildValid errors, HealthCheck body)              | Medium | Low     | **High**   |
+| 7   | `usermgmtcatalog.Default()` — pre-built catalog for 7 cmds + 7 events           | High   | Medium  | **High**   |
+| 8   | Bump `flake.nix` `packages.default` version to match release                    | Medium | Trivial | **High**   |
+| 9   | Cross-reference ADR 0009 → middleware integration doc                           | Low    | Trivial | **Medium** |
+| 10  | Add catalog to `CONTRIBUTING.md` build/test/lint section                        | Low    | Trivial | **Medium** |
+| 11  | Consider `lo.KebabCase` or upstream `caseutil` instead of hand-rolled `toKebab` | Medium | Low     | **Medium** |
+| 12  | Add BDD test for catalog builder (Ginkgo/Gomega to match project style)         | Medium | Medium  | **Medium** |
+| 13  | Swagger UI handler — serve OpenAPI + embedded Swagger UI HTML                   | High   | Medium  | **Medium** |
+| 14  | `usermgmtcatalog` integration test — verify catalog matches actual endpoints    | High   | Low     | **Medium** |
+| 15  | Catalog example in `examples/datastar-demo/`                                    | Medium | Medium  | **Medium** |
+| 16  | Event schema versioning — `SchemaVersion` field on event payloads               | High   | High    | **Medium** |
+| 17  | OAuth2/OIDC integration as alternative to WebAuthn                              | High   | High    | **Medium** |
+| 18  | CSRF protection wiring helper for WebAuthn endpoints                            | Medium | Low     | **Medium** |
+| 19  | Rate limiting wiring helper for WebAuthn endpoints                              | Medium | Low     | **Medium** |
+| 20  | Catalog doc.go: add `BuildValid()` example alongside `Build()`                  | Low    | Trivial | **Low**    |
+| 21  | Property-based testing for catalog schema reflection                            | Medium | Medium  | **Low**    |
+| 22  | Upstream go-cqrs-lite: request dispatcher enumeration API for auto-discovery    | High   | High    | **Low**    |
+| 23  | Benchmark catalog builder + handlers (allocation targets)                       | Low    | Medium  | **Low**    |
+| 24  | Catalog handler middleware support (auth on doc endpoints)                      | Low    | Low     | **Low**    |
+| 25  | D2 diagram SVG rendering endpoint (via d2 CLI or WASM)                          | Low    | High    | **Low**    |
 
 ---
 
@@ -164,6 +164,7 @@ Sorted by impact/effort ratio (highest first).
 **Should `usermgmtcatalog.Default()` live in the catalog module, in usermgmt, or in integration_test?**
 
 The problem:
+
 - If it lives in **catalog/**, the catalog module gains a dependency on usermgmt types → breaks the "zero dep on root or usermgmt" principle
 - If it lives in **usermgmt/**, usermgmt gains a dependency on catalog → drags `go-faster/yaml` into every usermgmt consumer
 - If it lives in **integration_test/**, it's test-only and consumers can't use it
