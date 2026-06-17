@@ -235,6 +235,20 @@
                 '';
               };
             };
+
+            build-catalog-demo = {
+              type = "app";
+              meta.description = "Build the catalog-demo example binary";
+              program = pkgs.writeShellApplication {
+                name = "build-catalog-demo";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  cd examples/catalog-demo
+                  go build ./... "$@"
+                '';
+              };
+            };
           };
 
         };

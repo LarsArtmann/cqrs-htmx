@@ -20,7 +20,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Fmt      | `nix fmt`                                                                                  |
 | Flake    | `nix flake check` (formatting + devShells + apps)                                          |
 | DevShell | `nix develop` (go, gopls, golangci-lint)                                                   |
-| Coverage | 96.4% root, 84.1% usermgmt, 95.3% catalog (500+ tests)                                     |
+| Coverage | 96.4% root, 88.7% usermgmt, 95.3% catalog (500+ tests)                                     |
 
 ## Architecture
 
@@ -92,7 +92,8 @@ cqrs-htmx/
 │   └── serve.go         # OpenAPIHandler, AsyncAPIHandler, D2Handler, GenerateEventCatalog, HealthCheckHandler
 ├── integration_test/ # Cross-module integration tests (3rd Go module)
 └── examples/
-    └── datastar-demo/ # Standalone go-cqrs-lite + datastar SSE example (4th Go module)
+    ├── datastar-demo/ # Standalone go-cqrs-lite + datastar SSE example (4th Go module)
+    └── catalog-demo/  # Standalone catalog doc-server example (6th Go module)
 ```
 
 ### Module Layout
@@ -103,6 +104,7 @@ cqrs-htmx/
 | usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt`         | Yes   | Independent submodule                             |
 | integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                        |
 | datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                 |
+| catalog-demo     | `examples/catalog-demo/`                            | No    | Catalog doc-server example (main package)         |
 | catalog          | `github.com/larsartmann/cqrs-htmx/catalog`          | Yes   | API doc generation (opt-in, no root/usermgmt dep) |
 
 ## Dependencies

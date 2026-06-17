@@ -162,7 +162,8 @@ func TestGolden_OpenAPIYAML(t *testing.T) {
 	handler := cataloghtmx.OpenAPIHandler(cat, cataloghtmx.WithFormat(cataloghtmx.FormatYAML))
 	body := serveBody(t, handler)
 
-	assertContainsAll(t, "OpenAPI YAML", body,
+	assertContainsAll(
+		t, "OpenAPI YAML", body,
 		"openapi: 3.0.3",
 		"Golden Service",
 		"create-thing",
@@ -179,7 +180,8 @@ func TestGolden_D2(t *testing.T) {
 	cat := goldenCatalog().Build()
 	body := serveBody(t, cataloghtmx.D2Handler(cat))
 
-	assertContainsAll(t, "D2 diagram", body,
+	assertContainsAll(
+		t, "D2 diagram", body,
 		"Golden Service",
 		"golden_svc",
 		"create_thing",
