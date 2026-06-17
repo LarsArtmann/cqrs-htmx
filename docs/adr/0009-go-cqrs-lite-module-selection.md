@@ -53,12 +53,12 @@ go-cqrs-lite consists of 24 library modules. cqrs-htmx uses 8 directly, 3 indire
 
 ### Application-Level Concerns (correctly excluded)
 
-| Module       | Why Not                                                                                                                                                                           |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Module       | Why Not                                                                                                                                                                                                                                                                           |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `middleware` | CQRS dispatch middleware (retry, circuit breaker, metrics, tracing). Different layer than cqrs-htmx's HTTP middleware. Documented as a recommended integration in [`docs/integrations/go-cqrs-lite-middleware.md`](../integrations/go-cqrs-lite-middleware.md), not a dependency. |
-| `schema`     | Event schema registry + upcasters. Event-store-layer concern; cqrs-htmx never touches the store read path.                                                                        |
-| `snapshot`   | Aggregate snapshot strategies. Aggregate-load optimization; below cqrs-htmx's layer.                                                                                              |
-| `listing`    | Aggregate listing read model with tombstone detection. Conflicts with existing `UserReadModel` projection pattern. Different read path (event store vs projection table).         |
+| `schema`     | Event schema registry + upcasters. Event-store-layer concern; cqrs-htmx never touches the store read path.                                                                                                                                                                        |
+| `snapshot`   | Aggregate snapshot strategies. Aggregate-load optimization; below cqrs-htmx's layer.                                                                                                                                                                                              |
+| `listing`    | Aggregate listing read model with tombstone detection. Conflicts with existing `UserReadModel` projection pattern. Different read path (event store vs projection table).                                                                                                         |
 
 ### Tooling & Testing (correctly excluded)
 
