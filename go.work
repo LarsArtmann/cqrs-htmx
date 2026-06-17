@@ -3,6 +3,8 @@ go 1.26.3
 use (
 	.
 	./catalog
+	./examples/catalog-demo
+	./examples/datastar-demo
 	./integration_test
 	./usermgmt
 )
