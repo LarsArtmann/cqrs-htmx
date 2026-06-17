@@ -1,8 +1,6 @@
 package usermgmt
 
 import (
-	"fmt"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
@@ -13,8 +11,7 @@ func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 	}
 	roles, err := a.enforcer.GetRolesForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, event.NewTransient("casbin_error", "domain="+domain).
-			WithCause(err)
+		return nil, event.WrapTransient(err, "casbin_error", "domain="+domain)
 	}
 	return convertRoles(roles), nil
 }
@@ -26,8 +23,7 @@ func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, erro
 	}
 	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, event.NewTransient("casbin_error", "domain="+domain).
-			WithCause(err)
+		return nil, event.WrapTransient(err, "casbin_error", "domain="+domain)
 	}
 	return convertRoles(roles), nil
 }
@@ -40,10 +36,10 @@ func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]st
 	}
 	p, err := a.enforcer.GetImplicitPermissionsForUser(userID.Get(), domain)
 	if err != nil {
-		return nil, event.NewTransient(
-			"casbin_error",
+		return nil, event.WrapTransient(
+			err, "casbin_error",
 			"implicit permissions domain="+domain,
-		).WithCause(err)
+		)
 	}
 	return p, nil
 }
@@ -55,7 +51,7 @@ func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 	}
 	d, err := a.enforcer.GetDomainsForUser(userID.Get())
 	if err != nil {
-		return nil, event.NewTransient("casbin_error", "domains for user").WithCause(err)
+		return nil, event.WrapTransient(err, "casbin_error", "domains for user")
 	}
 	return d, nil
 }
@@ -67,8 +63,10 @@ func (a *Authz) UsersForRole(role Role, domain string) ([]string, error) {
 	}
 	u, err := a.enforcer.GetUsersForRole(string(role), domain)
 	if err != nil {
-		return nil, event.NewTransient("casbin_error", fmt.Sprintf("users for role %s domain=%s", role, domain)).
-			WithCause(err)
+		return nil, event.Wrapf(
+			err, event.Transient, "casbin_error",
+			"users for role %s domain=%s", role, domain,
+		)
 	}
 	return u, nil
 }

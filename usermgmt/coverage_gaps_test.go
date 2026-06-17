@@ -38,7 +38,7 @@ func TestClassifyDispatchError_Transient(t *testing.T) {
 }
 
 func isTransient(err error) bool {
-	return event.Classify(err) == event.Transient
+	return event.IsRetryable(err)
 }
 
 func TestDecideChangeDisplayName_NoOp(t *testing.T) {

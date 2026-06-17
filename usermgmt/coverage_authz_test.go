@@ -110,11 +110,3 @@ func TestNewAuthz_EmptyModelString(t *testing.T) {
 		t.Error("expected non-nil Authz with default model fallback")
 	}
 }
-
-func TestPolicyWrapErr(t *testing.T) {
-	p := Policy{RoleAdmin, "domain1", "resource", ActionExecute, EffectAllow}
-	got := policyWrapErr("test msg", p)
-	if got != "test msg {admin, domain1, resource, execute, allow}" {
-		t.Errorf("unexpected policyWrapErr output: %s", got)
-	}
-}

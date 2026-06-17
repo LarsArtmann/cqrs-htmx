@@ -21,7 +21,7 @@ func ParseEmail(raw string) (Email, error) {
 	}
 	addr, err := mail.ParseAddress(s)
 	if err != nil {
-		return "", fmt.Errorf("%w: invalid email %q: %s", ErrValidation, s, err)
+		return "", fmt.Errorf("%w: invalid email %q: %w", ErrValidation, s, err)
 	}
 	if len(addr.Address) > maxEmailLength {
 		return "", fmt.Errorf("%w: email too long (max %d)", ErrValidation, maxEmailLength)

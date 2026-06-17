@@ -2,7 +2,6 @@ package cqrshtmx
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"runtime/debug"
@@ -34,7 +33,7 @@ func writePanicResponse(
 		slog.String("stack", string(debug.Stack())),
 	)
 
-	handler(w, r, event.NewInfrastructure("panic", fmt.Sprintf("panic: %v", rec)))
+	handler(w, r, event.Newf(event.Infrastructure, "panic", "panic: %v", rec))
 }
 
 // RecoveryMiddleware returns HTTP middleware that recovers from panics in
