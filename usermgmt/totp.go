@@ -2,19 +2,14 @@ package usermgmt
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/rand"
-	"crypto/sha1" //nolint:gosec // G505: SHA1 required by TOTP RFC 6238
-	"crypto/subtle"
 	"encoding/base32"
-	"encoding/binary"
 	"fmt"
-	"net/url"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/pquerna/otp"
+	"github.com/pquerna/otp/totp"
 )
 
 // TOTPTimeStep is the standard TOTP time step (30 seconds, per RFC 6238).
@@ -59,31 +54,37 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 		s.logAuth("totp_setup_failed", userID, "reason", "already_enabled")
 		return nil, ErrTOTPAlreadyEnabled
 	}
-	secret, err := generateTOTPSecret()
-	if err != nil {
-		s.logAuth("totp_setup_failed", userID, "reason", "secret_generation_error")
-		return nil, event.NewTransient("internal", "generate totp secret").WithCause(err)
-	}
-	// Store the pending secret temporarily
-	s.pendingTOTP.mu.Lock()
-	s.pendingTOTP.secrets[userID.Get()] = pendingTOTPSecret{
-		secret:    secret,
-		expiresAt: time.Now().Add(5 * time.Minute),
-	}
-	s.pendingTOTP.mu.Unlock()
-	account := url.QueryEscape(user.Email)
 	issuer := s.totpConfig.Issuer
 	if issuer == "" {
 		issuer = "cqrs-htmx"
 	}
-	issuerEncoded := url.QueryEscape(issuer)
-	secretB32 := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(secret)
-	qrURI := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=SHA1&digits=%d&period=%d",
-		issuerEncoded, account, secretB32, issuerEncoded, TOTPDigits, int(TOTPTimeStep.Seconds()))
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer:      issuer,
+		AccountName: user.Email,
+		Algorithm:   otp.AlgorithmSHA1, // RFC 6238 default
+		Digits:      otp.DigitsSix,
+		Period:      30,
+	})
+	if err != nil {
+		s.logAuth("totp_setup_failed", userID, "reason", "secret_generation_error")
+		return nil, event.NewTransient("internal", "generate totp key").WithCause(err)
+	}
+	rawSecret, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(key.Secret())
+	if err != nil {
+		s.logAuth("totp_setup_failed", userID, "reason", "secret_decode_error")
+		return nil, event.NewTransient("internal", "decode totp secret").WithCause(err)
+	}
+	// Store the pending secret temporarily
+	s.pendingTOTP.mu.Lock()
+	s.pendingTOTP.secrets[userID.Get()] = pendingTOTPSecret{
+		secret:    rawSecret,
+		expiresAt: time.Now().Add(5 * time.Minute),
+	}
+	s.pendingTOTP.mu.Unlock()
 	s.logAuth("totp_setup_initiated", userID)
 	return &TOTPSetupResponse{
-		Secret:    secretB32,
-		QRCodeURI: qrURI,
+		Secret:    key.Secret(),
+		QRCodeURI: key.URL(),
 	}, nil
 }
 
@@ -144,7 +145,8 @@ func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) er
 }
 
 // DisableTOTP removes the TOTP configuration for a user.
-func (s *Service) DisableTOTP(ctx context.Context, userID UserID) error {
+// A valid TOTP code is required to prevent MFA stripping via session hijack.
+func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) error {
 	if s.totpConfig == nil {
 		return ErrTOTPNotConfigured
 	}
@@ -156,6 +158,10 @@ func (s *Service) DisableTOTP(ctx context.Context, userID UserID) error {
 	if !user.TOTPEnabled {
 		s.logAuth("totp_disable_failed", userID, "reason", "totp_not_enabled")
 		return ErrTOTPNotEnabled
+	}
+	if !validateTOTP(user.TOTPSecret, code, s.totpConfig.Window) {
+		s.logAuth("totp_disable_failed", userID, "reason", "invalid_code")
+		return ErrInvalidTOTPCode
 	}
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
@@ -170,42 +176,17 @@ func (s *Service) DisableTOTP(ctx context.Context, userID UserID) error {
 	return nil
 }
 
-// --- TOTP algorithm (RFC 6238) ---
-func generateTOTPSecret() ([]byte, error) {
-	secret := make([]byte, TOTPSecretLength)
-	if _, err := rand.Read(secret); err != nil {
-		return nil, fmt.Errorf("generate totp secret: %w", err)
-	}
-	return secret, nil
-}
+// --- TOTP validation (using pquerna/otp library) ---
 
 func validateTOTP(secret []byte, code string, window int) bool {
-	code = strings.TrimSpace(code)
-	if len(code) != TOTPDigits {
-		return false
-	}
-	now := time.Now().Unix()
-	for i := -window; i <= window; i++ {
-		counter := (now + int64(i*int(TOTPTimeStep.Seconds()))) / int64(TOTPTimeStep.Seconds())
-		expected := generateTOTPCode(secret, counter)
-		if subtle.ConstantTimeCompare([]byte(expected), []byte(code)) == 1 {
-			return true
-		}
-	}
-	return false
-}
-
-func generateTOTPCode(secret []byte, counter int64) string {
-	var counterBytes [8]byte
-	binary.BigEndian.PutUint64(counterBytes[:], uint64(counter)) //nolint:gosec // G115: time-derived counter
-
-	mac := hmac.New(sha1.New, secret)
-	mac.Write(counterBytes[:])
-	hash := mac.Sum(nil)
-	offset := hash[len(hash)-1] & 0x0f
-	truncated := binary.BigEndian.Uint32(hash[offset:offset+4]) & 0x7fffffff
-	code := truncated % 1000000
-	return fmt.Sprintf("%06d", code)
+	b32Secret := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(secret)
+	valid, err := totp.ValidateCustom(code, b32Secret, time.Now(), totp.ValidateOpts{
+		Skew:      uint(window),
+		Period:    30,
+		Digits:    otp.DigitsSix,
+		Algorithm: otp.AlgorithmSHA1,
+	})
+	return err == nil && valid
 }
 
 // pendingTOTPSecret is a temporary secret stored between EnableTOTP and VerifyTOTPSetup.
