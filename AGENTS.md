@@ -111,7 +111,7 @@ cqrs-htmx/
 | larsartmann/httputil    | ClientIP extraction                                                     | Root             |
 | go-branded-id           | Branded types                                                           | usermgmt         |
 | go-webauthn v0.17.4     | WebAuthn/Passkey passwordless authentication                            | usermgmt         |
-| pquerna/otp v1.5.0     | TOTP (RFC 6238) multi-factor authentication                             | usermgmt         |
+| pquerna/otp v1.5.0      | TOTP (RFC 6238) multi-factor authentication                             | usermgmt         |
 | golang.org/x/time       | Rate limiting                                                           | Root             |
 | onsi/ginkgo/v2 + gomega | BDD test framework                                                      | All test modules |
 
