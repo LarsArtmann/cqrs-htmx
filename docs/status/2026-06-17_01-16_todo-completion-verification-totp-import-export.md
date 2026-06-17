@@ -33,22 +33,22 @@ Completed the remaining TODO items from the hardening session: `UserReadModel.Al
 
 ### Metrics
 
-| Metric               | Before Session | After Session |
-| -------------------- | -------------- | ------------- |
-| usermgmt tests       | ~570           | ~589          |
-| usermgmt coverage    | ~84%           | 83.5%         |
-| Root lint issues     | 0              | 0             |
-| Usmermgmt lint issues| 0              | 0             |
-| New .go files        | —              | 2             |
-| New test files       | —              | 3             |
+| Metric                | Before Session | After Session |
+| --------------------- | -------------- | ------------- |
+| usermgmt tests        | ~570           | ~589          |
+| usermgmt coverage     | ~84%           | 83.5%         |
+| Root lint issues      | 0              | 0             |
+| Usmermgmt lint issues | 0              | 0             |
+| New .go files         | —              | 2             |
+| New test files        | —              | 3             |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item | Status | Gap |
-| ---- | ------ | --- |
-| **Coverage** | 83.5% | Slightly down because new HTTP handler code and import/export paths added ~250 LOC. Coverage will rise as more error branches are tested. |
+| Item                           | Status              | Gap                                                                                                                                                                                   |
+| ------------------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Coverage**                   | 83.5%               | Slightly down because new HTTP handler code and import/export paths added ~250 LOC. Coverage will rise as more error branches are tested.                                             |
 | **HTTP handler authorization** | Requires middleware | New import/export endpoints require authentication via `NewSessionMiddleware`. No built-in admin/role check — consumers must layer their own authorization (e.g., Casbin middleware). |
 
 ---
@@ -103,33 +103,33 @@ One note:
 
 ## f) Top 25 Things to Get Done Next
 
-| # | Task | Impact | Effort |
-| --- | ------------------------------------------------------------------------ | ------ | ------ |
-| 1 | Coverage tests for new HTTP handler error branches | Medium | 30m |
-| 2 | Role-based authorization for import/export endpoints | High | 45m |
-| 3 | Update AGENTS.md with new features | Medium | 15m |
-| 4 | Update CHANGELOG.md with verification/TOTP/import/export | Medium | 15m |
-| 5 | Update FEATURES.md feature inventory | Medium | 15m |
-| 6 | TOTP backup codes | Medium | 60m |
-| 7 | Rate limiting for TOTP/import/export endpoints | Medium | 30m |
-| 8 | Email verification URL builder helper | Low | 15m |
-| 9 | OAuth2/OIDC provider integration | High | 120m |
-| 10 | Event schema upcaster machinery | Medium | 60m |
-| 11 | Audit log SQL persistence | Medium | 60m |
-| 12 | Audit log HTTP endpoint | Low | 30m |
-| 13 | SQL event store: Postgres tests + connection pooling | High | 60m |
-| 14 | Passwordless account recovery flow | High | 90m |
-| 15 | Distributed Redis rate limiter | Low | 60m |
-| 16 | Redis session store | Low | 45m |
-| 17 | Export pagination / streaming | Low | 45m |
-| 18 | WebAuthn integration test coverage to 70%+ | High | 120m |
-| 19 | Admin UI (templ + HTMX) | Medium | 120m |
-| 20 | Benchmarks for import/export | Low | 20m |
-| 21 | CI: add Postgres service for SQL store tests | Medium | 30m |
-| 22 | Update TODO_LIST.md / close completed items | Low | 10m |
-| 23 | Refactor `verificationTokenStore` TTL to be configurable per-token | Low | 15m |
-| 24 | Add OpenAPI/Swagger docs for auth endpoints | Low | 90m |
-| 25 | Security review of new endpoints (CSP, CSRF, authZ) | High | 60m |
+| #   | Task                                                               | Impact | Effort |
+| --- | ------------------------------------------------------------------ | ------ | ------ |
+| 1   | Coverage tests for new HTTP handler error branches                 | Medium | 30m    |
+| 2   | Role-based authorization for import/export endpoints               | High   | 45m    |
+| 3   | Update AGENTS.md with new features                                 | Medium | 15m    |
+| 4   | Update CHANGELOG.md with verification/TOTP/import/export           | Medium | 15m    |
+| 5   | Update FEATURES.md feature inventory                               | Medium | 15m    |
+| 6   | TOTP backup codes                                                  | Medium | 60m    |
+| 7   | Rate limiting for TOTP/import/export endpoints                     | Medium | 30m    |
+| 8   | Email verification URL builder helper                              | Low    | 15m    |
+| 9   | OAuth2/OIDC provider integration                                   | High   | 120m   |
+| 10  | Event schema upcaster machinery                                    | Medium | 60m    |
+| 11  | Audit log SQL persistence                                          | Medium | 60m    |
+| 12  | Audit log HTTP endpoint                                            | Low    | 30m    |
+| 13  | SQL event store: Postgres tests + connection pooling               | High   | 60m    |
+| 14  | Passwordless account recovery flow                                 | High   | 90m    |
+| 15  | Distributed Redis rate limiter                                     | Low    | 60m    |
+| 16  | Redis session store                                                | Low    | 45m    |
+| 17  | Export pagination / streaming                                      | Low    | 45m    |
+| 18  | WebAuthn integration test coverage to 70%+                         | High   | 120m   |
+| 19  | Admin UI (templ + HTMX)                                            | Medium | 120m   |
+| 20  | Benchmarks for import/export                                       | Low    | 20m    |
+| 21  | CI: add Postgres service for SQL store tests                       | Medium | 30m    |
+| 22  | Update TODO_LIST.md / close completed items                        | Low    | 10m    |
+| 23  | Refactor `verificationTokenStore` TTL to be configurable per-token | Low    | 15m    |
+| 24  | Add OpenAPI/Swagger docs for auth endpoints                        | Low    | 90m    |
+| 25  | Security review of new endpoints (CSP, CSRF, authZ)                | High   | 60m    |
 
 ---
 
