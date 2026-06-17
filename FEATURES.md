@@ -107,8 +107,9 @@
 | 42d | User Import/Export    | FULLY_FUNCTIONAL | JSON/CSV batch import (skips existing emails). JSON/CSV export with public profile only. Flexible CSV header detection.                        |
 | 42e | SQL Event Store       | FULLY_FUNCTIONAL | Postgres/SQLite/MySQL event store with optimistic concurrency. Auto-migrates schema. Parameterized queries per dialect.                        |
 | 42f | Audit Log             | FULLY_FUNCTIONAL | Event-sourced audit log projection. Queryable by user, recent N, total count. Optional via `ServiceConfig.AuditLog`.                           |
-| 42g | Rate-Limited Reg      | FULLY_FUNCTIONAL | Per-IP fixed-window rate limiting on registration endpoint. Configurable via `HandlerConfig.RegistrationRateLimitConfig`.                      |
+| 42g | Rate-Limited Reg      | FULLY_FUNCTIONAL | Per-IP fixed-window rate limiting on registration endpoint. Configurable via `HandlerConfig.RegistrationRateLimit`.                            |
 | 42h | Session Rotation      | FULLY_FUNCTIONAL | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                       |
+| 42i | WebAuthn Rate Limit   | FULLY_FUNCTIONAL | Per-IP rate limiting on all 4 WebAuthn endpoints. `HandlerConfig.WebAuthnRateLimit` uses the shared `RateLimitConfig`. Same pattern as TOTP/import. |
 
 ---
 

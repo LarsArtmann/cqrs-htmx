@@ -241,7 +241,7 @@ cqrs-htmx/
 - **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
 - **TOTP via pquerna/otp**: Replaced hand-rolled RFC 6238 with `github.com/pquerna/otp/totp` v1.5.0. `DisableTOTP` requires a valid code to prevent MFA stripping.
 - **Import/export authorization**: `ImportExportAuthorizer` (type `AuthorizerFunc`) defaults to `RequireAdminRole`. Configurable via `HandlerConfig`.
-- **Per-endpoint rate limiting**: `HandlerConfig.ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit`. All disabled by default.
+- **Per-endpoint rate limiting**: `HandlerConfig.RegistrationRateLimit`, `ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit`, `WebAuthnRateLimit`. All use the shared `RateLimitConfig` type. All disabled by default.
 - **Email value type**: `type Email string` with `ParseEmail`/`MustParseEmail`. Used in `ExportUser`. Internal types stay `string` for event backward compat.
 - **UserDataFormat** (renamed from ExportFormat): Used for both import and export. Constants: `UserDataFormatJSON`, `UserDataFormatCSV`.
 - **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
