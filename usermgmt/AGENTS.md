@@ -61,3 +61,9 @@ Event-sourced CQRS using go-cqrs-lite Decider pattern. All state changes are eve
 
 17. **TOTP test codes are time-dependent** — Use `currentTOTPCode(t, secret)` which calls `totp.GenerateCode`. For deterministic invalid codes, generate from a far-past time: `totp.GenerateCode(b32Secret, time.Now().Add(-100 * TOTPTimeStep))`.
 18. **setupAuthenticatedHandler grants admin** — The test helper in `verification_totp_http_test.go` registers a user and then grants admin role + creates a fresh session. Tests for non-admin scenarios must create their own setup.
+
+## Commands
+
+- See parent project cqrs-htmx for full build commands
+- `go test ./...` for unit tests
+- `golangci-lint run` for linting

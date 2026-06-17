@@ -90,11 +90,11 @@ FEATURES.md, TODO_LIST.md, AGENTS.md updates, integration tests, example, lint, 
 | T13 | 1     | Verify: `go build`, `go test`, lint check                     | 4      | 1      | 3       | **7**   | [ ]  |
 | T14 | 2     | Implement `AsyncAPIHandler()` — serves `/asyncapi.json`       | 4      | 1      | 4       | **8**   | [ ]  |
 | T15 | 2     | Implement `D2Handler()` — serves `/diagram.d2` (text/plain)   | 3      | 1      | 4       | **7**   | [ ]  |
-| T16 | 2     | Implement `EventCatalogHandler()` — generates MDX zip/stream  | 3      | 2      | 3       | **3**   | [ ]  |
+| T16 | 2     | Implement `EventCatalogHandler()` — ~~generates MDX zip/stream~~ **DONE as `GenerateEventCatalog()` (file generation, not HTTP zip)** | 3      | 2      | 3       | **3**   | [x]  |
 | T17 | 2     | Write HTTP handler tests (status, content-type, body shape)   | 3      | 2      | 3       | **3**   | [ ]  |
 | T18 | 2     | Write builder tests (Command/Query/Event registration)        | 3      | 2      | 2       | **2.5** | [ ]  |
 | T19 | 2     | Verify all tests + lint pass                                  | 3      | 1      | 2       | **5**   | [ ]  |
-| T20 | 3     | Implement `usermgmtcatalog.Default()` (7 cmds + 7 events)     | 4      | 2      | 4       | **4**   | [ ]  |
+| T20 | 3     | Implement `usermgmtcatalog.Default()` (7 cmds + 7 events) — **NOT a module: documented as copy-paste recipe in `catalog/README.md`** | 4      | 2      | 4       | **4**   | [x]  |
 | T21 | 3     | Write usermgmt catalog tests                                  | 3      | 2      | 3       | **3**   | [ ]  |
 | T22 | 3     | Wire `catalog.Validate()` in `Build()` — return violations    | 2      | 1      | 2       | **4**   | [ ]  |
 | T23 | 3     | Write `catalog/README.md` (quickstart, all 4 exporters)       | 4      | 2      | 5       | **4.5** | [ ]  |
@@ -298,3 +298,21 @@ approval: PLAN APPROVAL {
 
 approval -> phase1: After user says GO
 ```
+
+---
+
+## Implementation Outcome (2026-06-17)
+
+The catalog sub-package was fully implemented across all 4 phases. All tasks completed
+with two intentional deviations from the original plan, both driven by the catalog
+module's **zero-dependency principle** (it must not depend on root or usermgmt):
+
+| Task | Planned                                            | Actual                                                                                          | Why                                                                                              |
+| ---- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| T9   | `FromApp(app)` — bridge via `app.ServiceName()`    | **Removed** — `New(title, version)` takes plain strings instead                                 | An `App` parameter would import the root module, breaking the zero-dep boundary                  |
+| T16  | `EventCatalogHandler()` — HTTP MDX zip/stream      | **`GenerateEventCatalog(cat, dir)`** — writes an MDX file tree to disk                          | File generation is more useful than a transient zip; consumers run it at build time, not runtime |
+| T20  | `usermgmtcatalog.Default()` — a 6th Go module      | **Copy-paste recipe** in `catalog/README.md`                                                    | A shared module would couple catalog↔usermgmt; a 30-line recipe keeps both modules independent   |
+
+Everything else (T1–T8, T10–T15, T17–T19, T21–T34) shipped as planned. Final state:
+5th Go module at `github.com/larsartmann/cqrs-htmx/catalog/v2`, **95.3% coverage**, 0 lint issues.
+

@@ -17,8 +17,8 @@ func TestAuditLog_RecordsRegistration(t *testing.T) {
 	}
 
 	last := entries[len(entries)-1]
-	if last.Action != "register" {
-		t.Errorf("action = %q, want register", last.Action)
+	if last.Action != AuditActionRegister {
+		t.Errorf("action = %q, want %s", last.Action, AuditActionRegister)
 	}
 	if last.EventType != "UserRegistered" {
 		t.Errorf("eventType = %q, want UserRegistered", last.EventType)
@@ -47,13 +47,13 @@ func TestAuditLog_MultipleEvents(t *testing.T) {
 	for _, e := range entries {
 		actions[e.Action] = true
 	}
-	if !actions["register"] {
+	if !actions[AuditActionRegister] {
 		t.Error("missing 'register' action")
 	}
-	if !actions["email_changed"] {
+	if !actions[AuditActionEmailChanged] {
 		t.Error("missing 'email_changed' action")
 	}
-	if !actions["display_name_changed"] {
+	if !actions[AuditActionDisplayNameChanged] {
 		t.Error("missing 'display_name_changed' action")
 	}
 }

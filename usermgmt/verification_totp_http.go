@@ -260,7 +260,7 @@ func (h *AuthHandler) handleImportUsers(w http.ResponseWriter, r *http.Request) 
 
 func parseUserDataFormat(r *http.Request) UserDataFormat {
 	v := strings.ToLower(r.URL.Query().Get("format"))
-	if v == "csv" {
+	if v == string(UserDataFormatCSV) {
 		return UserDataFormatCSV
 	}
 	return UserDataFormatJSON
@@ -268,10 +268,10 @@ func parseUserDataFormat(r *http.Request) UserDataFormat {
 
 func parseImportFormat(r *http.Request) UserDataFormat {
 	v := strings.ToLower(r.URL.Query().Get("format"))
-	if v == "csv" {
+	if v == string(UserDataFormatCSV) {
 		return UserDataFormatCSV
 	}
-	if v == "json" {
+	if v == string(UserDataFormatJSON) {
 		return UserDataFormatJSON
 	}
 	ct := strings.ToLower(strings.TrimSpace(strings.Split(r.Header.Get("Content-Type"), ";")[0]))
