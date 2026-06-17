@@ -30,11 +30,11 @@ type AuthHandler struct {
 	secure                 bool
 	sessionMaxAge          int
 	timeout                time.Duration
-	regLimiter             *registrationRateLimiter
-	importLimiter          *registrationRateLimiter
-	totpLimiter            *registrationRateLimiter
-	verificationLimiter    *registrationRateLimiter
-	webauthnLimiter        *registrationRateLimiter
+	regLimiter             *perIPRateLimiter
+	importLimiter          *perIPRateLimiter
+	totpLimiter            *perIPRateLimiter
+	verificationLimiter    *perIPRateLimiter
+	webauthnLimiter        *perIPRateLimiter
 	importExportAuthorizer AuthorizerFunc
 }
 
@@ -56,27 +56,27 @@ type HandlerConfig struct {
 	// RegistrationRateLimit, if non-nil, limits the rate of POST /auth/register
 	// requests. Use this to prevent credential stuffing and registration abuse.
 	// The limiter is checked before the request body is decoded.
-	RegistrationRateLimit RegistrationRateLimitConfig
+	RegistrationRateLimit RateLimitConfig
 	// ImportRateLimit limits the rate of POST /auth/import requests per IP.
-	ImportRateLimit RegistrationRateLimitConfig
+	ImportRateLimit RateLimitConfig
 	// TOTPRateLimit limits the rate of /auth/totp/* requests per IP.
-	TOTPRateLimit RegistrationRateLimitConfig
+	TOTPRateLimit RateLimitConfig
 	// VerificationRateLimit limits the rate of /auth/email/verify* requests per IP.
-	VerificationRateLimit RegistrationRateLimitConfig
+	VerificationRateLimit RateLimitConfig
 	// WebAuthnRateLimit limits the rate of /auth/webauthn/* requests per IP.
 	// Use this to brute-force protection on the passwordless login/registration ceremonies.
-	WebAuthnRateLimit RegistrationRateLimitConfig
+	WebAuthnRateLimit RateLimitConfig
 	// ImportExportAuthorizer controls who can call /auth/import and /auth/export.
 	// Defaults to RequireAdminRole (only users with the admin role).
 	// Set to nil to disable authorization, or provide a custom AuthorizerFunc.
 	ImportExportAuthorizer AuthorizerFunc
 }
 
-// RegistrationRateLimitConfig configures per-IP rate limiting for registration.
-type RegistrationRateLimitConfig struct {
+// RateLimitConfig configures per-IP rate limiting for any endpoint group.
+type RateLimitConfig struct {
 	// Enabled controls whether rate limiting is active.
 	Enabled bool
-	// MaxRequests is the maximum number of registrations per Window per IP.
+	// MaxRequests is the maximum number of requests per Window per IP.
 	MaxRequests int
 	// Window is the time window for rate counting.
 	Window time.Duration
@@ -87,24 +87,24 @@ type rateLimitEntry struct {
 	windowEnd time.Time
 }
 
-// registrationRateLimiter is a simple in-memory per-IP rate limiter.
-type registrationRateLimiter struct {
+// perIPRateLimiter is a simple in-memory per-IP rate limiter.
+type perIPRateLimiter struct {
 	mu      sync.Mutex
 	entries map[string]*rateLimitEntry
 	max     int
 	window  time.Duration
 }
 
-func newRegistrationRateLimiter(maxReq int, window time.Duration) *registrationRateLimiter {
+func newPerIPRateLimiter(maxReq int, window time.Duration) *perIPRateLimiter {
 	//nolint:exhaustruct // mu is fine as zero value
-	return &registrationRateLimiter{
+	return &perIPRateLimiter{
 		entries: make(map[string]*rateLimitEntry),
 		max:     maxReq,
 		window:  window,
 	}
 }
 
-func (rl *registrationRateLimiter) allow(ip string) bool {
+func (rl *perIPRateLimiter) allow(ip string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
@@ -124,9 +124,9 @@ func (rl *registrationRateLimiter) allow(ip string) bool {
 	return true
 }
 
-func newLimiterFromConfig(cfg RegistrationRateLimitConfig) *registrationRateLimiter {
+func newLimiterFromConfig(cfg RateLimitConfig) *perIPRateLimiter {
 	if cfg.Enabled && cfg.MaxRequests > 0 {
-		return newRegistrationRateLimiter(cfg.MaxRequests, cfg.Window)
+		return newPerIPRateLimiter(cfg.MaxRequests, cfg.Window)
 	}
 	return nil
 }
