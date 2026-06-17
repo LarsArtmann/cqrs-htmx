@@ -6,11 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Security
+
+- **Import/export authorization**: Endpoints now require admin role by default. Previously any authenticated user could export all user data or create accounts.
+- **TOTP disable protection**: `DisableTOTP` now requires a valid code, preventing MFA stripping if a session is hijacked.
+- **Per-endpoint rate limiting**: `HandlerConfig.ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit` for per-IP rate limiting.
+
+### Changed
+
+- **TOTP library**: Replaced hand-rolled HMAC-SHA1 with `pquerna/otp/totp`.
+- **DisableTOTP signature**: Now takes a code parameter.
+- **ExportFormat → UserDataFormat**: Honest naming for dual import/export use.
+- **Email value type**: `ParseEmail`/`MustParseEmail` for centralized validation. Used in `ExportUser`.
+- **withTimeout helper**: Eliminates duplicated context-timeout boilerplate.
+
 ### Added
 
-- **TOTP multi-factor authentication**: RFC 6238 TOTP implemented from scratch (HMAC-SHA1, no external deps). Events: `TOTPEnabled`/`TOTPDisabled`. Two-phase setup: `EnableTOTP` → pending secret → `VerifyTOTPSetup` confirms. Generates `otpauth://` URIs for QR codes. `Service.VerifyTOTP` validates codes as second factor.
+- **TOTP multi-factor authentication**: RFC 6238 TOTP via `pquerna/otp/totp` library. Events: `TOTPEnabled`/`TOTPDisabled`. Two-phase setup: `EnableTOTP` → pending secret → `VerifyTOTPSetup` confirms. Generates `otpauth://` URIs for QR codes. `Service.VerifyTOTP` validates codes as second factor. `DisableTOTP` requires a valid code to prevent MFA stripping.
 - **Email verification flow**: Token-based email confirmation with `EmailVerified` event. `SendVerificationEmail` generates token (configurable TTL, default 24h) with optional SMTP callback. `VerifyEmail` consumes single-use token. Email change resets verification status.
-- **User import/export**: `Service.ImportUsersFromJSON`/`ImportUsersFromCSV` for batch user creation (skips existing emails). `Service.ExportUsersToJSON`/`ExportUsersToCSV` for data export. Flexible CSV header detection (`email`/`e-mail`, `display_name`/`name`).
+- **User import/export**: `Service.ImportUsersFromJSON`/`ImportUsersFromCSV` for batch user creation (skips existing emails). Input validation via `ImportUser.Validate()`. `Service.ExportUsersToJSON`/`ExportUsersToCSV` for data export. Admin-only by default via `ImportExportAuthorizer`. Per-IP rate limiting via `HandlerConfig.ImportRateLimit`.
 - **Virtual authenticator integration test**: Full WebAuthn registration → login ceremony using W3C spec test vectors. Tests: successful full flow, registration replay rejection, login with wrong challenge.
 - **SQL event store**: `SQLEventStore` implements `event.Store` + `event.Journal` for Postgres/SQLite/MySQL. Auto-migrates schema, supports optimistic concurrency, parameterized queries per dialect.
 - **Audit log projection**: `AuditLog` records all user events as `AuditEntry` structs. Queryable by aggregate ID, recent N, or total count. Optional via `ServiceConfig.AuditLog`.

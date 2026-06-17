@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-16 | **Coverage:** 96.0% root, 86.2% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v2.1.0
+**Updated:** 2026-06-17 | **Coverage:** 96.0% root, 83.6% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v2.1.0
 
 ## Status Legend
 
@@ -30,6 +30,18 @@
 - [x] **Fill DOMAIN_LANGUAGE.md** — All domain terms defined.
 - [x] **Update README.md architecture** — Correct file names, remove stale references.
 - [x] **Update CHANGELOG.md** — Comprehensive Unreleased entries.
+
+### Verification, TOTP & Import/Export Hardening (2026-06-17)
+
+- [x] **Admin authorization on import/export** — ImportExportAuthorizer defaults to RequireAdminRole. Non-admin users get 403.
+- [x] **Per-IP rate limiting on all sensitive endpoints** — HandlerConfig.ImportRateLimit, TOTPRateLimit, VerificationRateLimit. checkRateLimit helper eliminates boilerplate.
+- [x] **withTimeout helper** — Extracts duplicated context-timeout boilerplate from 8+ handlers.
+- [x] **ImportUser.Validate()** — Email format/length validation, display-name length check. Wired into JSON and CSV paths.
+- [x] **Negative-path handler tests** — Invalid TOTP code, setup without pending secret, TOTP disable when not enabled, import invalid email, import empty array, import duplicate email, verify already-verified.
+- [x] **pquerna/otp/totp library** — Replaced hand-rolled RFC 6238 implementation with audited library.
+- [x] **Require TOTP code to disable** — DisableTOTP now takes a code parameter. Prevents MFA stripping via session hijack.
+- [x] **Email value type** — ParseEmail/MustParseEmail with RFC 5322 validation. Used in ExportUser.
+- [x] **Rename ExportFormat → UserDataFormat** — Honest naming for dual import/export use.
 
 ### Future Work
 
