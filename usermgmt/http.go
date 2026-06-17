@@ -132,31 +132,17 @@ func newLimiterFromConfig(cfg RegistrationRateLimitConfig) *registrationRateLimi
 }
 
 func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
-	secure := true
-	result := HandlerConfig{
-		CookieName: defaultCookieName,
-		Secure:     &secure,
+	if cfg.CookieName == "" {
+		cfg.CookieName = defaultCookieName
 	}
-	if cfg.CookieName != "" {
-		result.CookieName = cfg.CookieName
+	if cfg.Secure == nil {
+		secure := true
+		cfg.Secure = &secure
 	}
-	if cfg.Secure != nil {
-		result.Secure = cfg.Secure
+	if cfg.ImportExportAuthorizer == nil {
+		cfg.ImportExportAuthorizer = RequireAdminRole
 	}
-	if cfg.SessionMaxAge != 0 {
-		result.SessionMaxAge = cfg.SessionMaxAge
-	}
-	if cfg.Timeout != 0 {
-		result.Timeout = cfg.Timeout
-	}
-	result.RegistrationRateLimit = cfg.RegistrationRateLimit
-	result.ImportRateLimit = cfg.ImportRateLimit
-	result.TOTPRateLimit = cfg.TOTPRateLimit
-	result.VerificationRateLimit = cfg.VerificationRateLimit
-	if cfg.ImportExportAuthorizer != nil {
-		result.ImportExportAuthorizer = cfg.ImportExportAuthorizer
-	}
-	return result
+	return cfg
 }
 
 const (
@@ -185,22 +171,17 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 		secure = *config.Secure
 	}
 	return &AuthHandler{
-		service:       service,
-		cookieName:    config.CookieName,
-		secure:        secure,
-		sessionMaxAge: config.SessionMaxAge,
-		timeout:       config.Timeout,
-		importExportAuthorizer: func() AuthorizerFunc {
-			if config.ImportExportAuthorizer != nil {
-				return config.ImportExportAuthorizer
-			}
-			return RequireAdminRole
-		}(),
-		regLimiter:          newLimiterFromConfig(config.RegistrationRateLimit),
-		importLimiter:       newLimiterFromConfig(config.ImportRateLimit),
-		totpLimiter:         newLimiterFromConfig(config.TOTPRateLimit),
-		verificationLimiter: newLimiterFromConfig(config.VerificationRateLimit),
-		webauthnLimiter:     newLimiterFromConfig(config.WebAuthnRateLimit),
+		service:                service,
+		cookieName:             config.CookieName,
+		secure:                 secure,
+		sessionMaxAge:          config.SessionMaxAge,
+		timeout:                config.Timeout,
+		importExportAuthorizer: config.ImportExportAuthorizer,
+		regLimiter:             newLimiterFromConfig(config.RegistrationRateLimit),
+		importLimiter:          newLimiterFromConfig(config.ImportRateLimit),
+		totpLimiter:            newLimiterFromConfig(config.TOTPRateLimit),
+		verificationLimiter:    newLimiterFromConfig(config.VerificationRateLimit),
+		webauthnLimiter:        newLimiterFromConfig(config.WebAuthnRateLimit),
 	}
 }
 
