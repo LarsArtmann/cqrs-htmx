@@ -90,25 +90,25 @@
 
 ## usermgmt Submodule
 
-| #   | Feature               | Status           | Description                                                                                                                                    |
-| --- | --------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 37  | Event-Sourced User    | FULLY_FUNCTIONAL | 7 events, 7 commands, Decider pattern via go-cqrs-lite. Pure decide functions + foldUser. No CRUD UserStore. Read-your-writes via MemoryBus.   |
-| 37b | WebAuthn Passwordless | FULLY_FUNCTIONAL | go-webauthn v0.17.4. BeginRegistration/FinishRegistration/BeginLogin/FinishLogin. In-memory challenge store with proactive eviction.           |
-| 37c | Credential Mgmt HTTP  | FULLY_FUNCTIONAL | GET /auth/credentials (list), DELETE /auth/credentials/{id} (remove by base64url ID). Sanitized credential summaries exclude sensitive fields. |
-| 37d | Account Lockout       | FULLY_FUNCTIONAL | Wired into BeginLogin (check) and FinishLogin (record/reset). Configurable max attempts + duration. `ErrAccountLocked` → 429.                  |
-| 37e | Session Eviction      | FULLY_FUNCTIONAL | Background goroutine proactively removes expired WebAuthn sessions. `Service.Stop()` for cleanup.                                              |
-| 38  | Branded UserID        | FULLY_FUNCTIONAL | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.Get()` for cross-module conversion. `NewUserID(s)` constructor.                  |
-| 39  | RBAC Authorization    | FULLY_FUNCTIONAL | Casbin RBAC with domains. CasbinProjection derives policies from events. `AsEnforcer()` bridge to parent `Enforcer` interface.                 |
-| 40  | SessionStore          | FULLY_FUNCTIONAL | `SessionStore` interface + `InMemorySessionStore`. TTL-based expiry. `DeleteByUserID` for user deletion revocation.                            |
-| 41  | HTTP Handlers         | FULLY_FUNCTIONAL | `AuthHandler` with session cookies, WebAuthn endpoints, credential management. `SessionMiddleware`. Configurable timeout, `*bool` Secure.      |
-| 42  | Input Validation      | FULLY_FUNCTIONAL | `RegisterRequest.Validate()`. Email format, required fields. Passwordless — no password validation needed.                                     |
-| 42b | Email Verification    | FULLY_FUNCTIONAL | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback. Email change resets verification. Single-use tokens with TTL.   |
-| 42c | TOTP MFA              | FULLY_FUNCTIONAL | RFC 6238 TOTP from scratch (no external deps). Two-phase setup. `otpauth://` URIs for QR codes. Event-sourced secret (TOTPEnabled/Disabled).   |
-| 42d | User Import/Export    | FULLY_FUNCTIONAL | JSON/CSV batch import (skips existing emails). JSON/CSV export with public profile only. Flexible CSV header detection.                        |
-| 42e | SQL Event Store       | FULLY_FUNCTIONAL | Postgres/SQLite/MySQL event store with optimistic concurrency. Auto-migrates schema. Parameterized queries per dialect.                        |
-| 42f | Audit Log             | FULLY_FUNCTIONAL | Event-sourced audit log projection. Queryable by user, recent N, total count. Optional via `ServiceConfig.AuditLog`.                           |
-| 42g | Rate-Limited Reg      | FULLY_FUNCTIONAL | Per-IP fixed-window rate limiting on registration endpoint. Configurable via `HandlerConfig.RegistrationRateLimit`.                            |
-| 42h | Session Rotation      | FULLY_FUNCTIONAL | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                       |
+| #   | Feature               | Status           | Description                                                                                                                                         |
+| --- | --------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 37  | Event-Sourced User    | FULLY_FUNCTIONAL | 7 events, 7 commands, Decider pattern via go-cqrs-lite. Pure decide functions + foldUser. No CRUD UserStore. Read-your-writes via MemoryBus.        |
+| 37b | WebAuthn Passwordless | FULLY_FUNCTIONAL | go-webauthn v0.17.4. BeginRegistration/FinishRegistration/BeginLogin/FinishLogin. In-memory challenge store with proactive eviction.                |
+| 37c | Credential Mgmt HTTP  | FULLY_FUNCTIONAL | GET /auth/credentials (list), DELETE /auth/credentials/{id} (remove by base64url ID). Sanitized credential summaries exclude sensitive fields.      |
+| 37d | Account Lockout       | FULLY_FUNCTIONAL | Wired into BeginLogin (check) and FinishLogin (record/reset). Configurable max attempts + duration. `ErrAccountLocked` → 429.                       |
+| 37e | Session Eviction      | FULLY_FUNCTIONAL | Background goroutine proactively removes expired WebAuthn sessions. `Service.Stop()` for cleanup.                                                   |
+| 38  | Branded UserID        | FULLY_FUNCTIONAL | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.Get()` for cross-module conversion. `NewUserID(s)` constructor.                       |
+| 39  | RBAC Authorization    | FULLY_FUNCTIONAL | Casbin RBAC with domains. CasbinProjection derives policies from events. `AsEnforcer()` bridge to parent `Enforcer` interface.                      |
+| 40  | SessionStore          | FULLY_FUNCTIONAL | `SessionStore` interface + `InMemorySessionStore`. TTL-based expiry. `DeleteByUserID` for user deletion revocation.                                 |
+| 41  | HTTP Handlers         | FULLY_FUNCTIONAL | `AuthHandler` with session cookies, WebAuthn endpoints, credential management. `SessionMiddleware`. Configurable timeout, `*bool` Secure.           |
+| 42  | Input Validation      | FULLY_FUNCTIONAL | `RegisterRequest.Validate()`. Email format, required fields. Passwordless — no password validation needed.                                          |
+| 42b | Email Verification    | FULLY_FUNCTIONAL | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback. Email change resets verification. Single-use tokens with TTL.        |
+| 42c | TOTP MFA              | FULLY_FUNCTIONAL | RFC 6238 TOTP from scratch (no external deps). Two-phase setup. `otpauth://` URIs for QR codes. Event-sourced secret (TOTPEnabled/Disabled).        |
+| 42d | User Import/Export    | FULLY_FUNCTIONAL | JSON/CSV batch import (skips existing emails). JSON/CSV export with public profile only. Flexible CSV header detection.                             |
+| 42e | SQL Event Store       | FULLY_FUNCTIONAL | Postgres/SQLite/MySQL event store with optimistic concurrency. Auto-migrates schema. Parameterized queries per dialect.                             |
+| 42f | Audit Log             | FULLY_FUNCTIONAL | Event-sourced audit log projection. Queryable by user, recent N, total count. Optional via `ServiceConfig.AuditLog`.                                |
+| 42g | Rate-Limited Reg      | FULLY_FUNCTIONAL | Per-IP fixed-window rate limiting on registration endpoint. Configurable via `HandlerConfig.RegistrationRateLimit`.                                 |
+| 42h | Session Rotation      | FULLY_FUNCTIONAL | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                            |
 | 42i | WebAuthn Rate Limit   | FULLY_FUNCTIONAL | Per-IP rate limiting on all 4 WebAuthn endpoints. `HandlerConfig.WebAuthnRateLimit` uses the shared `RateLimitConfig`. Same pattern as TOTP/import. |
 
 ---
