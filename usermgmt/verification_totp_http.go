@@ -169,7 +169,12 @@ func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) {
-	if _, ok := h.currentUser(w, r); !ok {
+	user, ok := h.currentUser(w, r)
+	if !ok {
+		return
+	}
+	if err := h.importExportAuthorizer(user); err != nil {
+		writeError(w, errorStatus(err), err.Error())
 		return
 	}
 	ctx, cancel := r.Context(), func() {}
@@ -198,7 +203,12 @@ func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AuthHandler) handleImportUsers(w http.ResponseWriter, r *http.Request) {
-	if _, ok := h.currentUser(w, r); !ok {
+	user, ok := h.currentUser(w, r)
+	if !ok {
+		return
+	}
+	if err := h.importExportAuthorizer(user); err != nil {
+		writeError(w, errorStatus(err), err.Error())
 		return
 	}
 	ctx, cancel := r.Context(), func() {}

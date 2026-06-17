@@ -25,12 +25,23 @@ func setupAuthenticatedHandler(t *testing.T, cfg ServiceConfig) (*Service, http.
 		t.Fatalf("Register: %v", err)
 	}
 
+	// Grant admin role so import/export endpoints work by default.
+	if err := svc.UpdateRoles(context.Background(), reg.User.ID, []Role{RoleAdmin}, "test"); err != nil {
+		t.Fatalf("UpdateRoles: %v", err)
+	}
+
+	// UpdateRoles revokes sessions — create a fresh one.
+	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
+	if err != nil {
+		t.Fatalf("Create session: %v", err)
+	}
+
 	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
 	wrapped := NewSessionMiddleware(svc, "session_token")(mux)
-	return svc, wrapped, reg.Session.Token
+	return svc, wrapped, sess.Token
 }
 
 func authenticatedRequest(t *testing.T, h http.Handler, method, path, token, body string) *httptest.ResponseRecorder {
@@ -215,4 +226,81 @@ func TestHandlers_ImportUsers_Unauthenticated(t *testing.T) {
 	_, h, _ := setupAuthenticatedHandler(t, ServiceConfig{})
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/import", "", "[]")
 	assertStatusCode(t, w, http.StatusUnauthorized)
+}
+
+func TestHandlers_ExportUsers_ForbiddenForNonAdmin(t *testing.T) {
+	svc, err := NewService(ServiceConfig{})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	t.Cleanup(svc.Stop)
+
+	reg, err := svc.Register(context.Background(), RegisterRequest{
+		ID: NewUserID("nonadmin1"), Email: "nonadmin1@test.com",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+	// User has RoleViewer + RoleUser only (not admin).
+
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+	wrapped := NewSessionMiddleware(svc, "session_token")(mux)
+
+	w := authenticatedRequest(t, wrapped, http.MethodGet, "/auth/export?format=json",
+		reg.Session.Token, "")
+	assertStatusCode(t, w, http.StatusForbidden)
+}
+
+func TestHandlers_ImportUsers_ForbiddenForNonAdmin(t *testing.T) {
+	svc, err := NewService(ServiceConfig{})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	t.Cleanup(svc.Stop)
+
+	reg, err := svc.Register(context.Background(), RegisterRequest{
+		ID: NewUserID("nonadmin2"), Email: "nonadmin2@test.com",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+	wrapped := NewSessionMiddleware(svc, "session_token")(mux)
+
+	w := authenticatedRequest(t, wrapped, http.MethodPost, "/auth/import?format=json",
+		reg.Session.Token, `[{"email":"x@test.com"}]`)
+	assertStatusCode(t, w, http.StatusForbidden)
+}
+
+func TestHandlers_ExportUsers_CustomAuthorizer(t *testing.T) {
+	svc, err := NewService(ServiceConfig{})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	t.Cleanup(svc.Stop)
+
+	reg, err := svc.Register(context.Background(), RegisterRequest{
+		ID: NewUserID("custom1"), Email: "custom1@test.com",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	// Custom authorizer that always allows.
+	h := NewAuthHandler(svc, HandlerConfig{
+		Secure:                 new(bool),
+		ImportExportAuthorizer: func(_ *User) error { return nil },
+	})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+	wrapped := NewSessionMiddleware(svc, "session_token")(mux)
+
+	w := authenticatedRequest(t, wrapped, http.MethodGet, "/auth/export?format=json",
+		reg.Session.Token, "")
+	assertStatusCode(t, w, http.StatusOK)
 }

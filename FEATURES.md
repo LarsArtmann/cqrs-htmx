@@ -103,12 +103,12 @@
 | 41  | HTTP Handlers         | FULLY_FUNCTIONAL | `AuthHandler` with session cookies, WebAuthn endpoints, credential management. `SessionMiddleware`. Configurable timeout, `*bool` Secure.      |
 | 42  | Input Validation      | FULLY_FUNCTIONAL | `RegisterRequest.Validate()`. Email format, required fields. Passwordless — no password validation needed.                                     |
 | 42b | Email Verification    | FULLY_FUNCTIONAL | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback. Email change resets verification. Single-use tokens with TTL.   |
-| 42c | TOTP MFA              | FULLY_FUNCTIONAL | RFC 6238 TOTP from scratch (no external deps). Two-phase setup. `otpauth://` URIs for QR codes. Event-sourced secret (TOTPEnabled/Disabled).    |
-| 42d | User Import/Export    | FULLY_FUNCTIONAL | JSON/CSV batch import (skips existing emails). JSON/CSV export with public profile only. Flexible CSV header detection.                         |
+| 42c | TOTP MFA              | FULLY_FUNCTIONAL | RFC 6238 TOTP from scratch (no external deps). Two-phase setup. `otpauth://` URIs for QR codes. Event-sourced secret (TOTPEnabled/Disabled).   |
+| 42d | User Import/Export    | FULLY_FUNCTIONAL | JSON/CSV batch import (skips existing emails). JSON/CSV export with public profile only. Flexible CSV header detection.                        |
 | 42e | SQL Event Store       | FULLY_FUNCTIONAL | Postgres/SQLite/MySQL event store with optimistic concurrency. Auto-migrates schema. Parameterized queries per dialect.                        |
 | 42f | Audit Log             | FULLY_FUNCTIONAL | Event-sourced audit log projection. Queryable by user, recent N, total count. Optional via `ServiceConfig.AuditLog`.                           |
 | 42g | Rate-Limited Reg      | FULLY_FUNCTIONAL | Per-IP fixed-window rate limiting on registration endpoint. Configurable via `HandlerConfig.RegistrationRateLimitConfig`.                      |
-| 42h | Session Rotation      | FULLY_FUNCTIONAL | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                        |
+| 42h | Session Rotation      | FULLY_FUNCTIONAL | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                       |
 
 ---
 

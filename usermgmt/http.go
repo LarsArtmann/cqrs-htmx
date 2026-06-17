@@ -12,14 +12,27 @@ import (
 	"time"
 )
 
+// AuthorizerFunc checks whether a user is authorized for a specific operation.
+// Return an error (typically ErrForbidden) to deny access.
+type AuthorizerFunc func(user *User) error
+
+// RequireAdminRole is the default authorizer that requires the admin role.
+func RequireAdminRole(user *User) error {
+	if user == nil || !user.HasRole(RoleAdmin) {
+		return ErrForbidden
+	}
+	return nil
+}
+
 // AuthHandler provides HTTP endpoints for user registration, login, logout, and identity.
 type AuthHandler struct {
-	service       *Service
-	cookieName    string
-	secure        bool
-	sessionMaxAge int
-	timeout       time.Duration
-	regLimiter    *registrationRateLimiter
+	service               *Service
+	cookieName            string
+	secure                bool
+	sessionMaxAge         int
+	timeout               time.Duration
+	regLimiter            *registrationRateLimiter
+	importExportAuthorizer AuthorizerFunc
 }
 
 // HandlerConfig controls cookie and session settings for AuthHandler.
@@ -41,6 +54,10 @@ type HandlerConfig struct {
 	// requests. Use this to prevent credential stuffing and registration abuse.
 	// The limiter is checked before the request body is decoded.
 	RegistrationRateLimit RegistrationRateLimitConfig
+	// ImportExportAuthorizer controls who can call /auth/import and /auth/export.
+	// Defaults to RequireAdminRole (only users with the admin role).
+	// Set to nil to disable authorization, or provide a custom AuthorizerFunc.
+	ImportExportAuthorizer AuthorizerFunc
 }
 
 // RegistrationRateLimitConfig configures per-IP rate limiting for registration.
@@ -114,6 +131,9 @@ func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
 		result.Timeout = cfg.Timeout
 	}
 	result.RegistrationRateLimit = cfg.RegistrationRateLimit
+	if cfg.ImportExportAuthorizer != nil {
+		result.ImportExportAuthorizer = cfg.ImportExportAuthorizer
+	}
 	return result
 }
 
@@ -148,6 +168,12 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 		secure:        secure,
 		sessionMaxAge: config.SessionMaxAge,
 		timeout:       config.Timeout,
+		importExportAuthorizer: func() AuthorizerFunc {
+			if config.ImportExportAuthorizer != nil {
+				return config.ImportExportAuthorizer
+			}
+			return RequireAdminRole
+		}(),
 		regLimiter: func() *registrationRateLimiter {
 			if config.RegistrationRateLimit.Enabled && config.RegistrationRateLimit.MaxRequests > 0 {
 				return newRegistrationRateLimiter(
