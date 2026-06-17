@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Extract usermgmt Into a Dedicated Repo? — PRO / CONTRA Analysis</title>
+    <style>
+      :root {
+        --bg: #0b0f17;
+        --bg2: #111827;
+        --bg3: #1f2937;
+        --bg4: #374151;
+        --fg: #f3f4f6;
+        --fg2: #9ca3af;
+        --fg3: #6b7280;
+        --accent: #60a5fa;
+        --accent2: #34d399;
+        --accent3: #fbbf24;
+        --accent4: #f87171;
+        --accent5: #a78bfa;
+        --border: #1f2937;
+        --radius: 10px;
+        --font: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font);
+        line-height: 1.65;
+        font-size: 15px;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.86em;
+        background: var(--bg3);
+        padding: 0.12em 0.4em;
+        border-radius: 4px;
+        color: var(--accent3);
+      }
+      .container {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 2rem 4rem;
+      }
+
+      /* Nav */
+      nav {
+        position: sticky;
+        top: 0;
+        background: rgba(11, 15, 23, 0.92);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+        z-index: 50;
+        padding: 0.6rem 0;
+      }
+      nav .container {
+        display: flex;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+      nav .title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--fg);
+        letter-spacing: 0.02em;
+      }
+      nav .links {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      nav a {
+        font-size: 0.82rem;
+        color: var(--fg2);
+        font-weight: 500;
+      }
+      nav a:hover {
+        color: var(--accent);
+      }
+
+      /* Header */
+      header {
+        margin: 2.5rem 0 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      header .eyebrow {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent5);
+        font-weight: 700;
+        margin-bottom: 0.6rem;
+      }
+      header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.7rem;
+        line-height: 1.12;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      header .subtitle {
+        font-size: 1.12rem;
+        color: var(--fg2);
+        margin-bottom: 1.2rem;
+        max-width: 60ch;
+      }
+      header .meta {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        font-size: 0.82rem;
+        color: var(--fg3);
+        font-family: var(--mono);
+      }
+      header .meta span strong {
+        color: var(--fg2);
+        font-weight: 600;
+      }
+
+      /* TL;DR banner */
+      .tldr {
+        background: linear-gradient(135deg, rgba(96, 165, 250, 0.08), rgba(52, 211, 153, 0.06));
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+        border-radius: var(--radius);
+        padding: 1.4rem 1.6rem;
+        margin-bottom: 2.5rem;
+      }
+      .tldr .label {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      .tldr p {
+        font-size: 1.06rem;
+        color: var(--fg);
+      }
+      .tldr strong {
+        color: var(--accent2);
+      }
+
+      /* Dashboard */
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+      }
+      .metric-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.1rem;
+        text-align: center;
+        transition: transform 0.15s, border-color 0.15s;
+      }
+      .metric-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--bg4);
+      }
+      .metric-card .value {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .metric-card .label {
+        font-size: 0.76rem;
+        color: var(--fg3);
+        margin-top: 0.45rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .metric-card.warn .value { color: var(--accent3); }
+      .metric-card.danger .value { color: var(--accent4); }
+      .metric-card.good .value { color: var(--accent2); }
+      .metric-card.purple .value { color: var(--accent5); }
+
+      /* Sections */
+      section {
+        margin-bottom: 3rem;
+      }
+      h2 {
+        font-size: 1.55rem;
+        font-weight: 700;
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      h2 .anchor {
+        color: var(--fg3);
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+      h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin: 1.6rem 0 0.8rem;
+        color: var(--accent);
+      }
+      h4 {
+        font-size: 0.98rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+        color: var(--fg);
+      }
+      p {
+        margin-bottom: 0.8rem;
+        color: var(--fg2);
+      }
+      p.lead {
+        font-size: 1.04rem;
+        color: var(--fg);
+      }
+
+      /* Pro / Contra card grids */
+      .stance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 1rem;
+      }
+      .stance-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.2rem 1.3rem;
+        border-left: 4px solid var(--bg4);
+        transition: transform 0.15s, border-color 0.15s;
+      }
+      .stance-card:hover {
+        transform: translateY(-2px);
+      }
+      .stance-card.pro {
+        border-left-color: var(--accent2);
+      }
+      .stance-card.contra {
+        border-left-color: var(--accent4);
+      }
+      .stance-card.neutral {
+        border-left-color: var(--accent3);
+      }
+      .stance-card .head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.8rem;
+        margin-bottom: 0.55rem;
+      }
+      .stance-card h4 {
+        margin: 0;
+        color: var(--fg);
+        font-size: 1rem;
+      }
+      .stance-card.pro h4 { color: var(--accent2); }
+      .stance-card.contra h4 { color: var(--accent4); }
+      .stance-card.neutral h4 { color: var(--accent3); }
+      .stance-card .weight {
+        font-size: 0.68rem;
+        font-family: var(--mono);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        background: var(--bg3);
+        color: var(--fg3);
+        white-space: nowrap;
+      }
+      .stance-card.pro .weight { color: var(--accent2); background: rgba(52, 211, 153, 0.1); }
+      .stance-card.contra .weight { color: var(--accent4); background: rgba(248, 113, 113, 0.1); }
+      .stance-card.neutral .weight { color: var(--accent3); background: rgba(251, 191, 36, 0.1); }
+      .stance-card p {
+        font-size: 0.9rem;
+        color: var(--fg2);
+        margin-bottom: 0.5rem;
+      }
+      .stance-card p:last-child {
+        margin-bottom: 0;
+      }
+      .stance-card .detail {
+        font-size: 0.82rem;
+        color: var(--fg3);
+        font-family: var(--mono);
+        background: var(--bg);
+        padding: 0.5rem 0.7rem;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        margin-top: 0.6rem;
+      }
+
+      /* Score bar */
+      .score-bar {
+        display: flex;
+        align-items: center;
+        gap: 1.4rem;
+        margin: 1.5rem 0 2.5rem;
+        padding: 1.3rem 1.5rem;
+        background: var(--bg2);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+      }
+      .score-circle {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        background: conic-gradient(var(--accent4) 0% 32%, var(--bg4) 32% 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        flex-shrink: 0;
+      }
+      .score-circle::before {
+        content: "";
+        position: absolute;
+        width: 66px;
+        height: 66px;
+        border-radius: 50%;
+        background: var(--bg2);
+      }
+      .score-circle span {
+        position: relative;
+        z-index: 1;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--accent4);
+      }
+      .score-text {
+        flex: 1;
+      }
+      .score-text h3 {
+        margin: 0 0 0.35rem;
+        font-size: 1.15rem;
+        color: var(--fg);
+      }
+      .score-text p {
+        margin: 0;
+        color: var(--fg2);
+        font-size: 0.92rem;
+      }
+
+      /* Comparison table */
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin: 1rem 0;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 0.9rem;
+        min-width: 640px;
+      }
+      th, td {
+        text-align: left;
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        background: var(--bg2);
+        color: var(--fg);
+        font-weight: 600;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        position: sticky;
+        top: 0;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      td.dim {
+        font-weight: 600;
+        color: var(--fg);
+        width: 22%;
+      }
+      td .yes { color: var(--accent2); font-weight: 600; }
+      td .no  { color: var(--accent4); font-weight: 600; }
+      td .partial { color: var(--accent3); font-weight: 600; }
+      td .mono { font-family: var(--mono); font-size: 0.84rem; color: var(--fg3); }
+
+      /* Matrix */
+      .matrix {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 1rem;
+        margin: 1.2rem 0 1rem;
+      }
+      .quadrant {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.1rem 1.2rem;
+        min-height: 170px;
+      }
+      .quadrant h4 {
+        margin: 0 0 0.6rem;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .quadrant.q1 { border-color: rgba(52, 211, 153, 0.3); background: rgba(52, 211, 153, 0.04); }
+      .quadrant.q1 h4 { color: var(--accent2); }
+      .quadrant.q2 { border-color: rgba(96, 165, 250, 0.3); background: rgba(96, 165, 250, 0.04); }
+      .quadrant.q2 h4 { color: var(--accent); }
+      .quadrant.q3 { border-color: rgba(251, 191, 36, 0.25); background: rgba(251, 191, 36, 0.03); }
+      .quadrant.q3 h4 { color: var(--accent3); }
+      .quadrant.q4 { border-color: rgba(248, 113, 113, 0.25); background: rgba(248, 113, 113, 0.03); }
+      .quadrant.q4 h4 { color: var(--accent4); }
+      .quadrant ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .quadrant li {
+        font-size: 0.86rem;
+        color: var(--fg2);
+        padding: 0.3rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .quadrant li:last-child { border-bottom: none; }
+
+      /* Checklist / triggers */
+      .checklist {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.4rem 1.3rem;
+      }
+      .checklist-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .checklist-item:last-child { border-bottom: none; }
+      .checklist-item .num {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--bg3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.78rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        color: var(--accent2);
+        border: 1px solid var(--border);
+      }
+      .checklist-item .content { flex: 1; }
+      .checklist-item .content strong {
+        display: block;
+        font-size: 0.94rem;
+        margin-bottom: 0.2rem;
+        color: var(--fg);
+      }
+      .checklist-item .content span {
+        color: var(--fg3);
+        font-size: 0.86rem;
+      }
+
+      /* Callout */
+      .callout {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent5);
+        border-radius: var(--radius);
+        padding: 1.1rem 1.4rem;
+        margin: 1.4rem 0;
+      }
+      .callout .label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent5);
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+      }
+      .callout p {
+        margin: 0;
+        color: var(--fg2);
+        font-size: 0.94rem;
+      }
+      .callout.warn { border-left-color: var(--accent3); }
+      .callout.warn .label { color: var(--accent3); }
+
+      /* Recommendation block */
+      .recommendation {
+        background: linear-gradient(135deg, rgba(52, 211, 153, 0.06), rgba(96, 165, 250, 0.05));
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.6rem 1.8rem;
+        margin-top: 1rem;
+      }
+      .recommendation .verdict {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        color: var(--accent2);
+        background: rgba(52, 211, 153, 0.1);
+        padding: 0.35rem 0.8rem;
+        border-radius: 999px;
+        margin-bottom: 0.9rem;
+      }
+      .recommendation h3 {
+        margin: 0 0 0.7rem;
+        color: var(--fg);
+        font-size: 1.3rem;
+      }
+      .recommendation p { color: var(--fg2); }
+      .recommendation ol {
+        margin: 0.8rem 0 0;
+        padding-left: 1.3rem;
+        color: var(--fg2);
+      }
+      .recommendation ol li {
+        margin-bottom: 0.45rem;
+      }
+
+      /* Footer */
+      footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--fg3);
+        font-size: 0.82rem;
+        font-family: var(--mono);
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      /* Pillars (decision criteria) */
+      .pillars {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin: 1.2rem 0;
+      }
+      .pillar {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 1.1rem;
+      }
+      .pillar .name {
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--fg3);
+        margin-bottom: 0.4rem;
+      }
+      .pillar .verdict-line {
+        font-size: 0.92rem;
+        color: var(--fg);
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+      }
+      .pillar .why {
+        font-size: 0.82rem;
+        color: var(--fg3);
+      }
+      .pillar .verdict-line.keep { color: var(--accent2); }
+      .pillar .verdict-line.extract { color: var(--accent4); }
+      .pillar .verdict-line.later { color: var(--accent3); }
+
+      @media (max-width: 720px) {
+        header h1 { font-size: 1.85rem; }
+        .matrix { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="container">
+        <div class="title">cqrs-htmx · brainstorming</div>
+        <div class="links">
+          <a href="#tldr">TL;DR</a>
+          <a href="#context">Context</a>
+          <a href="#pro">PRO</a>
+          <a href="#contra">CONTRA</a>
+          <a href="#matrix">Matrix</a>
+          <a href="#decision">Decision</a>
+          <a href="#triggers">Revisit triggers</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <header>
+        <div class="eyebrow">Architecture Decision · Brainstorming</div>
+        <h1>Should <code style="background:transparent;color:inherit;padding:0;font-size:inherit">usermgmt</code> become its own repository?</h1>
+        <p class="subtitle">
+          A structured PRO / CONTRA analysis of extracting the
+          <code>usermgmt</code> submodule out of the <code>cqrs-htmx</code> monorepo into a
+          dedicated repository — grounded in the actual code, dependencies, and release
+          mechanics as of v2.4.0.
+        </p>
+        <div class="meta">
+          <span><strong>Date:</strong> 2026-06-17</span>
+          <span><strong>Baseline:</strong> v2.4.0 (commit 7c71a83)</span>
+          <span><strong>Scope:</strong> repo extraction (not module split — already done)</span>
+          <span><strong>Verdict:</strong> Do not extract now</span>
+        </div>
+      </header>
+
+      <!-- TL;DR -->
+      <section id="tldr">
+        <div class="tldr">
+          <div class="label">TL;DR</div>
+          <p>
+            <strong>Keep <code>usermgmt</code> in this monorepo.</strong> It is <em>already</em>
+            a fully independent Go module with its own <code>go.mod</code>, its own module path
+            (<code>github.com/larsartmann/cqrs-htmx/usermgmt/v2</code>), and
+            <strong>zero import coupling</strong> to the root. The module split has already
+            captured ~80% of the benefits usually attributed to "extraction." The remaining
+            upside (independent release cadence) is achievable through per-module semver tags
+            <em>without</em> splitting the repo — while the costs of splitting (broken atomic
+            refactoring across the UserID/Enforcer bridge, duplicated CI/tooling, fragmented
+            docs) fall squarely on the project's most valuable activity.
+          </p>
+        </div>
+
+        <div class="dashboard">
+          <div class="metric-card good">
+            <div class="value">0</div>
+            <div class="label">root → usermgmt imports</div>
+          </div>
+          <div class="metric-card good">
+            <div class="value">0</div>
+            <div class="label">usermgmt → root imports</div>
+          </div>
+          <div class="metric-card">
+            <div class="value">39</div>
+            <div class="label">usermgmt prod files</div>
+          </div>
+          <div class="metric-card warn">
+            <div class="value">5,708</div>
+            <div class="label">usermgmt prod LOC</div>
+          </div>
+          <div class="metric-card purple">
+            <div class="value">28%</div>
+            <div class="label">commits touch usermgmt</div>
+          </div>
+          <div class="metric-card danger">
+            <div class="value">2</div>
+            <div class="label">live cross-module contracts</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Context -->
+      <section id="context">
+        <h2>Context <span class="anchor">— where things actually stand</span></h2>
+        <p class="lead">
+          A lot of "extract it!" intuition assumes the candidate is a tangled sub-package that
+          drags its host along. That is <strong>not</strong> the situation here. Before weighing
+          pros and cons, the current state does most of the work:
+        </p>
+
+        <div class="stance-grid">
+          <div class="stance-card neutral">
+            <div class="head"><h4>Already a separate Go module</h4></div>
+            <p>
+              <code>usermgmt/go.mod</code> declares
+              <code>module github.com/larsartmann/cqrs-htmx/usermgmt/v2</code>. A consumer who
+              runs <code>go get github.com/larsartmann/cqrs-htmx/v2</code> does <strong>not</strong>
+              download usermgmt's dependency tree (go-webauthn, modernc.org/sqlite, pquerna/otp,
+              casbin/v3). Dependency isolation is already a solved problem.
+            </p>
+          </div>
+          <div class="stance-card neutral">
+            <div class="head"><h4>Zero mutual imports</h4></div>
+            <p>
+              Grepping every root <code>.go</code> file: not a single import of
+              <code>usermgmt</code>. The reverse is also true. The only references are two doc
+              comments in <code>doc.go:80-82</code>. The DAG is clean — confirmed by
+              <code>docs/modularization/DEPENDENCY_GRAPH.md</code>.
+            </p>
+          </div>
+          <div class="stance-card neutral">
+            <div class="head"><h4>One bridge, two contracts</h4></div>
+            <p>
+              <code>integration_test/</code> (363 LOC, 3 files, its own <code>go.mod</code>) is
+              the only thing that imports both. It verifies exactly two live contracts: the
+              <strong>UserID string bridge</strong> (<code>usermgmt.NewUserID</code> ↔
+              <code>cqrshtmx.ParseUserID</code>) and the <strong>Enforcer adapter</strong>
+              (<code>authz.AsEnforcer()</code> satisfying root's <code>Enforcer</code> interface).
+              See ADR 0002.
+            </p>
+          </div>
+          <div class="stance-card neutral">
+            <div class="head"><h4>Precedent for independent versioning exists</h4></div>
+            <p>
+              The tag <code>usermgmt/v2.0.0</code> already exists on the repo — proving Go's
+              <code>module/v2</code> sub-path scheme works here. Today the project ships a single
+              monorepo version, but the mechanism for per-module semver is in place and unused.
+            </p>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <div class="label">Why this analysis (and not just citing the 2026-05-27 proposal)</div>
+          <p>
+            <code>docs/modularization/PROPOSAL.md</code> concluded "the existing split is
+            perfect — do not extract further." But its data is <strong>stale</strong>: it sized
+            usermgmt at <em>"9 production files, ~80 exported symbols."</em> The module is now
+            <strong>39 production files, ~104 exported symbols, 5,708 LOC</strong> — more than
+            4× larger, with a SQL event store, WebAuthn, TOTP, import/export, and email
+            verification added since. The prior decision deserves a fresh look on current data.
+          </p>
+        </div>
+      </section>
+
+      <!-- PRO -->
+      <section id="pro">
+        <h2>PRO <span class="anchor">— arguments for extraction</span></h2>
+        <p class="lead">
+          These are the strongest honest cases for moving usermgmt to its own repository.
+          Several are real — but note how many of them are <em>already delivered</em> by the
+          existing module split, which sharply reduces their marginal value.
+        </p>
+
+        <div class="stance-grid">
+          <div class="stance-card pro">
+            <div class="head">
+              <h4>1. Independent release cadence</h4>
+              <span class="weight">Moderate · partial already-met</span>
+            </div>
+            <p>
+              28% of all commits (144 / 505) touch usermgmt, and recent history is almost
+              entirely usermgmt feature work (TOTP, import/export, email verification, SQL event
+              store). Its velocity is higher than the root HTTP plumbing. A separate repo lets
+              usermgmt cut releases on its own heartbeat instead of waiting for a coordinated
+              monorepo tag.
+            </p>
+            <div class="detail">
+              Caveat: per-module semver tags (usermgmt/v2.x.y) give the same cadence without
+              leaving the repo. Release independence ≠ repo independence.
+            </div>
+          </div>
+
+          <div class="stance-card pro">
+            <div class="head">
+              <h4>2. Standalone identity &amp; discoverability</h4>
+              <span class="weight">Strong · if that is a goal</span>
+            </div>
+            <p>
+              usermgmt is a genuinely complete passwordless auth library — WebAuthn/Passkeys,
+              event-sourced users, Casbin RBAC, sessions, TOTP MFA, email verification, SQL event
+              store. It does not import root and could be adopted by someone who never uses HTMX.
+              A dedicated repo + README + godoc URL gives it its own story and search surface.
+            </p>
+            <div class="detail">
+              This only matters if adoption outside the cqrs-htmx ecosystem is a strategic goal.
+              As a private dependency of cqrs-htmx, the benefit is theoretical.
+            </div>
+          </div>
+
+          <div class="stance-card pro">
+            <div class="head">
+              <h4>3. Decoupled go-cqrs-lite upgrades</h4>
+              <span class="weight">Moderate</span>
+            </div>
+            <p>
+              Both modules share go-cqrs-lite, go-error-family, and casbin. Today a bump is a
+              coordinated commit across root + usermgmt + integration_test (see commit
+              <code>f131b20</code>: v2.3.0 → v2.4.0 across all modules). With separate repos,
+              usermgmt could adopt a new go-cqrs-lite major on its own schedule without forcing
+              root consumers along.
+            </p>
+          </div>
+
+          <div class="stance-card pro">
+            <div class="head">
+              <h4>4. Focused issue / PR / CI surface</h4>
+              <span class="weight">Weak for solo, moderate for many contributors</span>
+            </div>
+            <p>
+              A dedicated repo means a dedicated issue tracker, PR queue, and CI status — useful
+              when the two attract different contributor communities. A webauthn specialist
+              shouldn't have to triage HTMX CSRF issues and vice versa.
+            </p>
+            <div class="detail">
+              Commit pattern looks like a solo/small team today. Splitting trackers adds
+              cross-repo linking overhead with little triage relief at this scale.
+            </div>
+          </div>
+
+          <div class="stance-card pro">
+            <div class="head">
+              <h4>5. Sharper governance / licensing boundary</h4>
+              <span class="weight">Weak · speculative</span>
+            </div>
+            <p>
+              If usermgmt ever moves to a foundation, attracts a different license, or needs a
+              security disclosure process distinct from the HTTP layer, a separate repo is the
+              natural vehicle.
+            </p>
+          </div>
+
+          <div class="stance-card pro">
+            <div class="head">
+              <h4>6. Smaller clones for single-side contributors</h4>
+              <span class="weight">Negligible</span>
+            </div>
+            <p>
+              Total repo is ~27K LOC across all modules. Extracting usermgmt shaves ~13K. Not
+              enough to matter for clone or CI time on any modern runner.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTRA -->
+      <section id="contra">
+        <h2>CONTRA <span class="anchor">— arguments against extraction</span></h2>
+        <p class="lead">
+          The costs cluster around one uncomfortable truth: <strong>the two modules are not
+          actually independent — they share a small but evolving contract surface</strong>, and
+          repo extraction makes every change to that surface more expensive.
+        </p>
+
+        <div class="stance-grid">
+          <div class="stance-card contra">
+            <div class="head">
+              <h4>1. Atomic cross-seam refactoring breaks</h4>
+              <span class="weight">Strong</span>
+            </div>
+            <p>
+              The UserID bridge and the Enforcer adapter are <em>co-designed</em> contracts
+              (ADR 0002). Changing how <code>usermgmt.UserID</code> serializes ripples into
+              <code>cqrshtmx.ParseUserID</code> and the integration tests. In the monorepo this
+              is one commit, one PR, one CI run, atomic and bisectable. Across repos it becomes:
+              edit usermgmt → tag → bump root → bump integration_test → re-tag. The seam is small
+              but it is <strong>live</strong>, and live seams evolve.
+            </p>
+          </div>
+
+          <div class="stance-card contra">
+            <div class="head">
+              <h4>2. Coordinated dependency upgrades get worse</h4>
+              <span class="weight">Strong</span>
+            </div>
+            <p>
+              go-cqrs-lite is a <em>shared</em> dependency. Bumping it today is one commit
+              (<code>f131b20</code>) touching all four modules and verified by one CI run. After
+              extraction the same change is N cross-repo PRs with a version-ordering constraint
+              (root and usermgmt must publish compatible majors before integration_test can
+              resolve). You trade one atomic operation for a release choreography.
+            </p>
+          </div>
+
+          <div class="stance-card contra">
+            <div class="head">
+              <h4>3. Bridge testing becomes painful</h4>
+              <span class="weight">Strong</span>
+            </div>
+            <p>
+              <code>integration_test/</code> currently pins both modules via local
+              <code>replace</code> directives and tests the bridge in one
+              <code>go test</code>. Post-extraction you must choose: (a) pin to
+              <em>published</em> versions — a slow push-tag-bump-test loop that lags real bugs;
+              or (b) keep <code>replace ../usermgmt</code> — which only works if contributors
+              clone both repos as siblings in a fixed layout, an undocumented and fragile
+              assumption. Neither preserves today's "one <code>git push</code> tests everything"
+              guarantee.
+            </p>
+          </div>
+
+          <div class="stance-card contra">
+            <div class="head">
+              <h4>4. Independent versioning is a paradox here</h4>
+              <span class="weight">Strong</span>
+            </div>
+            <p>
+              The textbook benefit of separate repos is independent versioning. But independent
+              versioning only pays off when contracts are <em>stable</em>. The UserID/Enforcer
+              bridge is explicitly not v1-frozen (ADR 0002 still calls it a deliberate split).
+              Two repos with a moving contract don't release independently — they release in
+              <em>forced lockstep</em>, just with worse tooling. You get the overhead of
+              independent versioning without its freedom.
+            </p>
+          </div>
+
+          <div class="stance-card contra">
+            <div class="head">
+              <h4>5. CI / tooling duplication</h4>
+              <span class="weight">Moderate</span>
+            </div>
+            <p>
+              One <code>flake.nix</code>, one <code>.github/workflows/ci.yml</code>, one
+              dependabot config, one golangci-lint config currently cover all four modules
+              uniformly (with per-module gates: root ≥95%, usermgmt ≥90% coverage). Extraction
+              means duplicating all of it and keeping the duplicates in sync — a new source of
+              drift bugs.
+            </p>
+          </div>
+
+          <div class="stance-card contra">
+            <div class="head">
+              <h4>6. Consumer UX &amp; narrative fragmentation</h4>
+              <span class="weight">Moderate</span>
+            </div>
+            <p>
+              cqrs-htmx's pitch today is a coherent "batteries-included HTMX + CQRS + auth
+              toolkit." A consumer wanting the full stack finds it in one README, one go.work,
+              one example. Splitting usermgmt forces consumers to discover, version-match, and
+              integrate two libraries — and the root repo suddenly looks thinner and less
+              compelling in isolation.
+            </p>
+          </div>
+
+          <div class="stance-card contra">
+            <div class="head">
+              <h4>7. Documentation drift</h4>
+              <span class="weight">Moderate</span>
+            </div>
+            <p>
+              <code>AGENTS.md</code>, <code>DOMAIN_LANGUAGE.md</code>,
+              <code>CHANGELOG.md</code>, and the ADRs currently cross-reference root and usermgmt
+              behavior in one place (e.g. the UserID bridge is documented from both sides).
+              Splitting fragments this and invites the two halves to drift — exactly the failure
+              mode that makes bridges rot.
+            </p>
+          </div>
+
+          <div class="stance-card contra">
+            <div class="head">
+              <h4>8. No automated release pipeline today</h4>
+              <span class="weight">Moderate</span>
+            </div>
+            <p>
+              CI builds/tests/lints/sec-scans but does <strong>not</strong> tag or publish —
+              tagging is manual, and even the existing <code>usermgmt/v2.0.0</code> tag is
+              unused. Adding repo extraction <em>before</em> having a release pipeline for a
+              single repo is putting the cart before the horse: build the versioning muscle in
+              the monorepo first.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Score -->
+      <section id="score">
+        <h2>Net assessment <span class="anchor">— weighted score</span></h2>
+        <p class="lead">
+          Scoring each side by realistic weight for a small-team, private-dependency library at
+          v2.4.0. Weights reflect impact on day-to-day engineering, not theoretical purity.
+        </p>
+
+        <div class="score-bar">
+          <div class="score-circle"><span>32%</span></div>
+          <div class="score-text">
+            <h3>Extraction case scores ~3.2 / 10 against current state</h3>
+            <p>
+              The case <em>for</em> extraction is dominated by benefits the module split already
+              delivers. The case <em>against</em> is dominated by real, recurring friction on the
+              two live bridge contracts. On current data, extraction is a net negative.
+            </p>
+          </div>
+        </div>
+
+        <h3>Decision pillars</h3>
+        <div class="pillars">
+          <div class="pillar">
+            <div class="name">Dependency isolation</div>
+            <div class="verdict-line keep">KEEP — already solved</div>
+            <div class="why">Consumers of root already skip usermgmt's dep tree. Extraction adds nothing.</div>
+          </div>
+          <div class="pillar">
+            <div class="name">Independent release cadence</div>
+            <div class="verdict-line later">ACHIEVABLE IN-PLACE</div>
+            <div class="why">Per-module semver tags give this without leaving the repo.</div>
+          </div>
+          <div class="pillar">
+            <div class="name">Contract evolution</div>
+            <div class="verdict-line keep">KEEP — needs atomicity</div>
+            <div class="why">UserID + Enforcer bridges are live and co-designed. Atomic commits protect them.</div>
+          </div>
+          <div class="pillar">
+            <div class="name">Shared-dep upgrades</div>
+            <div class="verdict-line keep">KEEP — needs atomicity</div>
+            <div class="why">go-cqrs-lite bumps touch both; one commit &gt; a release choreography.</div>
+          </div>
+          <div class="pillar">
+            <div class="name">Standalone identity</div>
+            <div class="verdict-line extract">FAVORS EXTRACTION</div>
+            <div class="why">Only real new benefit — and only if independent adoption is a goal.</div>
+          </div>
+          <div class="pillar">
+            <div class="name">Tooling overhead</div>
+            <div class="verdict-line keep">KEEP — avoid duplication</div>
+            <div class="why">One flake/CI/lint config beats N synchronized copies.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Matrix -->
+      <section id="matrix">
+        <h2>State comparison <span class="anchor">— current vs extracted, dimension by dimension</span></h2>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>Monorepo (today)</th>
+                <th>Dedicated repo</th>
+                <th>Winner</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="dim">Root consumers pull usermgmt deps</td>
+                <td><span class="no">No</span> — separate go.mod <span class="mono">(already isolated)</span></td>
+                <td><span class="no">No</span></td>
+                <td><span class="partial">Tie</span></td>
+              </tr>
+              <tr>
+                <td class="dim">Independent compile / build</td>
+                <td><span class="yes">Yes</span> <span class="mono">(per-module apps in flake)</span></td>
+                <td><span class="yes">Yes</span></td>
+                <td><span class="partial">Tie</span></td>
+              </tr>
+              <tr>
+                <td class="dim">Independent versioning possible</td>
+                <td><span class="yes">Yes</span> <span class="mono">(usermgmt/v2.x.y tags, Go sub-path scheme)</span></td>
+                <td><span class="yes">Yes</span></td>
+                <td><span class="partial">Tie</span></td>
+              </tr>
+              <tr>
+                <td class="dim">Atomic UserID/Enforcer bridge change</td>
+                <td><span class="yes">1 commit, 1 CI run</span></td>
+                <td><span class="no">Multi-repo choreography + tag ordering</span></td>
+                <td><span class="yes">Monorepo</span></td>
+              </tr>
+              <tr>
+                <td class="dim">go-cqrs-lite / casbin major bump</td>
+                <td><span class="yes">1 commit across all modules</span></td>
+                <td><span class="no">N coordinated cross-repo PRs</span></td>
+                <td><span class="yes">Monorepo</span></td>
+              </tr>
+              <tr>
+                <td class="dim">Bridge integration test</td>
+                <td><span class="yes">Local replace, 1 <code>go test</code></span></td>
+                <td><span class="no">Published-version lag OR sibling-checkout assumption</span></td>
+                <td><span class="yes">Monorepo</span></td>
+              </tr>
+              <tr>
+                <td class="dim">CI / lint / flake config</td>
+                <td><span class="yes">1 copy, uniform gates</span></td>
+                <td><span class="no">2 copies, drift risk</span></td>
+                <td><span class="yes">Monorepo</span></td>
+              </tr>
+              <tr>
+                <td class="dim">Docs cross-references (AGENTS, ADR, DOMAIN_LANGUAGE)</td>
+                <td><span class="yes">Single source, consistent</span></td>
+                <td><span class="no">Fragmented, drift risk</span></td>
+                <td><span class="yes">Monorepo</span></td>
+              </tr>
+              <tr>
+                <td class="dim">Standalone library identity / discoverability</td>
+                <td><span class="no">Subordinate to cqrs-htmx</span></td>
+                <td><span class="yes">Own README, godoc, stars, issues</span></td>
+                <td><span class="yes">Dedicated repo</span></td>
+              </tr>
+              <tr>
+                <td class="dim">Divergent contributor communities</td>
+                <td><span class="no">Shared tracker</span></td>
+                <td><span class="yes">Focused tracker</span></td>
+                <td><span class="yes">Dedicated repo</span> <span class="mono">(if they materialize)</span></td>
+              </tr>
+              <tr>
+                <td class="dim">Clone size / CI minutes</td>
+                <td>~27K LOC total</td>
+                <td>~13K LOC each</td>
+                <td><span class="partial">Negligible</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Where each side genuinely wins</h3>
+        <div class="matrix">
+          <div class="quadrant q1">
+            <h4>Monorepo wins (operational)</h4>
+            <ul>
+              <li>Atomic bridge refactors</li>
+              <li>One-commit shared-dep upgrades</li>
+              <li>Single CI / flake / lint config</li>
+              <li>Local-replace bridge testing</li>
+              <li>Unified docs &amp; ADRs</li>
+            </ul>
+          </div>
+          <div class="quadrant q2">
+            <h4>Monorepo wins (already solved)</h4>
+            <ul>
+              <li>Dependency isolation (go.mod)</li>
+              <li>Independent compilability</li>
+              <li>Per-module versioning mechanism</li>
+              <li>Per-module coverage gates in CI</li>
+            </ul>
+          </div>
+          <div class="quadrant q3">
+            <h4>Dedicated repo wins (strategic)</h4>
+            <ul>
+              <li>Standalone library identity</li>
+              <li>Own discoverability / godoc URL</li>
+              <li>Independent governance / license</li>
+              <li>Focused issue tracker — at scale</li>
+            </ul>
+          </div>
+          <div class="quadrant q4">
+            <h4>Dedicated repo costs</h4>
+            <ul>
+              <li>Multi-repo release choreography</li>
+              <li>Bridge-test friction (replace across repos)</li>
+              <li>Duplicated &amp; drifting tooling</li>
+              <li>Fragmented docs / consumer UX</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Decision -->
+      <section id="decision">
+        <h2>Recommendation <span class="anchor">— the call</span></h2>
+
+        <div class="recommendation">
+          <div class="verdict">● Verdict: Do not extract now</div>
+          <h3>Keep <code>usermgmt</code> in the monorepo. Earn independent release cadence via per-module tags instead.</h3>
+          <p>
+            The module split has already banked the structural wins (isolation, independent
+            compile, clean DAG). What repo extraction would <em>add</em> — standalone identity —
+            is real but speculative for a private dependency, while what it would <em>cost</em>
+            — atomicity on the two live bridge contracts and one-shot shared-dependency upgrades
+            — is concrete and recurring. The cost/benefit ratio is wrong <strong>today</strong>.
+          </p>
+          <p style="margin-top:0.8rem"><strong>If independent releases are the actual goal, do this instead (in priority order):</strong></p>
+          <ol>
+            <li>
+              <strong>Adopt per-module semver.</strong> Cut <code>usermgmt/v2.4.0</code>,
+              <code>v2</code> (root), <code>integration_test/v2</code> tags independently. Go's
+              sub-path versioning already supports this and the <code>usermgmt/v2.0.0</code> tag
+              proves the mechanism. No repo move required.
+            </li>
+            <li>
+              <strong>Ship an automated release pipeline.</strong> Today tagging is manual and
+              there is no publish workflow. Build the versioning muscle for one repo before
+              multiplying repos — extraction without automation is pure overhead.
+            </li>
+            <li>
+              <strong>Freeze the bridge contracts to v1.</strong> Publish the UserID string
+              format and the <code>Enforcer</code> interface as a stable, versioned surface
+              (new ADR). Once the contracts stop moving, the strongest contra argument
+              evaporates and extraction becomes low-friction.
+            </li>
+            <li>
+              <strong>Then</strong>, if standalone adoption becomes a real goal, extraction is a
+              <code>git filter-repo</code> + tag republish away — cheap, because the module
+              boundary is already clean.
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Triggers -->
+      <section id="triggers">
+        <h2>Revisit triggers <span class="anchor">— when to reopen this decision</span></h2>
+        <p class="lead">
+          This is not a "never." It is a "not now." Re-evaluate extraction the moment any of
+          these becomes true — each one shifts the cost/benefit balance decisively.
+        </p>
+
+        <div class="checklist">
+          <div class="checklist-item">
+            <div class="num">1</div>
+            <div class="content">
+              <strong>The bridge contracts freeze to a stable v1.</strong>
+              <span>UserID serialization and the Enforcer interface get a versioned, backwards-compatible guarantee (new ADR). Removes the strongest contra — atomic refactoring is no longer needed.</span>
+            </div>
+          </div>
+          <div class="checklist-item">
+            <div class="num">2</div>
+            <div class="content">
+              <strong>usermgmt's dependency tree diverges sharply from root's.</strong>
+              <span>e.g. usermgmt adopts a SQL/ORM/migration stack, a templating engine, or an observability SDK that root will never use — making the "shared deps" contra flip into a "decoupled upgrade" pro.</span>
+            </div>
+          </div>
+          <div class="checklist-item">
+            <div class="num">3</div>
+            <div class="content">
+              <strong>usermgmt attracts independent maintainers or a separate contributor community.</strong>
+              <span>Distinct ownership justifies a distinct tracker, CI, and review surface — the "focused PR queue" pro becomes real rather than theoretical.</span>
+            </div>
+          </div>
+          <div class="checklist-item">
+            <div class="num">4</div>
+            <div class="content">
+              <strong>Release cadence diverges by an order of magnitude.</strong>
+              <span>If usermgmt ships weekly while root ships quarterly, coordinated tagging becomes genuine drag rather than occasional chore — independent repos start paying for themselves.</span>
+            </div>
+          </div>
+          <div class="checklist-item">
+            <div class="num">5</div>
+            <div class="content">
+              <strong>Standalone adoption becomes a strategic goal.</strong>
+              <span>A decision to position usermgmt as a general-purpose Go auth library (its own docs site, its own stars, consumed without HTMX) — then the identity/discoverability pro is the deciding factor.</span>
+            </div>
+          </div>
+          <div class="checklist-item">
+            <div class="num">6</div>
+            <div class="content">
+              <strong>usermgmt needs different governance, licensing, or a security disclosure process.</strong>
+              <span>e.g. contribution to a foundation, dual-licensing, or a separate CVE pipeline. A repo boundary is the natural enforcement point.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="label">Safety net</div>
+          <p>
+            Because the module boundary is already clean (zero mutual imports, independent
+            go.mod, existing <code>usermgmt/v2</code> tag mechanism), extraction remains a
+            <strong>reversible, low-risk move</strong> at any future point. Nothing about
+            staying in the monorepo today forecloses the option. That reversibility is itself a
+            reason to defer: pay the cost only when a trigger fires.
+          </p>
+        </div>
+      </section>
+
+      <footer>
+        <span>docs/brainstorming/extract-usermgmt-pro-contra.html</span>
+        <span>Baseline v2.4.0 · 2026-06-17 · grounded in code, deps &amp; release mechanics</span>
+      </footer>
+    </div>
+  </body>
+</html>
