@@ -2,11 +2,8 @@ package cataloghtmx
 
 import (
 	"encoding/json"
-	"errors"
-	"io/fs"
+	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
@@ -115,46 +112,17 @@ func D2Handler(cat *catalog.Catalog, opts ...ServeOption) http.HandlerFunc {
 	}
 }
 
-// EventCatalogHandler returns an http.HandlerFunc that generates EventCatalog
-// MDX files into outputDir and serves a ZIP archive of the result.
-// This is useful for one-off generation or debugging.
-//
-// For production EventCatalog deployments, call GenerateEventCatalog directly
-// at startup and serve the static files with a file server.
-func EventCatalogHandler(cat *catalog.Catalog, outputDir string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tmpDir, err := os.MkdirTemp("", "eventcatalog-*")
-		if err != nil {
-			writeError(w, http.StatusInternalServerError, "Failed to create temp directory")
-			return
-		}
-
-		defer func() { _ = os.RemoveAll(tmpDir) }()
-
-		if err := GenerateEventCatalog(cat, filepath.Join(tmpDir, outputDir)); err != nil {
-			writeError(w, http.StatusInternalServerError, "Failed to generate EventCatalog")
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/zip")
-		w.Header().Set("Content-Disposition", "attachment; filename=eventcatalog.zip")
-		w.WriteHeader(http.StatusOK)
-		// The caller can stream the directory; for simplicity we serve
-		// a file listing as JSON.
-		serveFileList(w, filepath.Join(tmpDir, outputDir))
-	}
-}
-
 // GenerateEventCatalog writes EventCatalog MDX files to the given outputDir.
 // Call this at application startup to generate documentation files that
 // can be served by the EventCatalog CLI or a static file server.
+//
+// This is a build-time/startup-time operation, not an HTTP handler.
+// EventCatalog expects a directory of MDX files served statically — there
+// is no meaningful way to serve it as a single HTTP response.
 func GenerateEventCatalog(cat *catalog.Catalog, outputDir string) error {
 	exporter := eventcatalog.NewExporter(outputDir)
 	if err := exporter.Export(cat); err != nil {
-		return errors.Join(
-			errors.New("failed to generate EventCatalog files"),
-			err,
-		)
+		return fmt.Errorf("failed to generate EventCatalog files: %w", err)
 	}
 
 	return nil
@@ -228,31 +196,3 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 	_ = json.NewEncoder(w).Encode(map[string]string{"error": msg})
 }
 
-func serveFileList(w http.ResponseWriter, root string) {
-	type fileInfo struct {
-		Path string `json:"path"`
-		Size int64  `json:"size"`
-	}
-
-	var files []fileInfo
-
-	_ = filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return nil
-		}
-
-		info, err := d.Info()
-		if err != nil {
-			return nil
-		}
-
-		rel, _ := filepath.Rel(root, path)
-		files = append(files, fileInfo{Path: rel, Size: info.Size()})
-		return nil
-	})
-
-	_ = json.NewEncoder(w).Encode(map[string]any{
-		"format": "eventcatalog",
-		"files":  files,
-	})
-}
