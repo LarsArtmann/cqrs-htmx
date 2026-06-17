@@ -16,7 +16,7 @@ func TestHandlers_WebAuthnRateLimit(t *testing.T) {
 	}
 
 	h := NewAuthHandler(svc, HandlerConfig{
-		Secure:           new(bool),
+		Secure:            new(bool),
 		WebAuthnRateLimit: RegistrationRateLimitConfig{Enabled: true, MaxRequests: 1, Window: time.Minute},
 	})
 	mux := http.NewServeMux()

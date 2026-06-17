@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-17 | **Coverage:** 96.4% root, 88.5% usermgmt, 95.3% catalog | **Lint:** 0 issues (all modules) | **Version:** v2.4.0
+**Updated:** 2026-06-17 | **Coverage:** 96.4% root, 88.7% usermgmt, 95.3% catalog | **Lint:** 0 issues (all modules) | **Version:** v2.4.0
 
 ## Status Legend
 
@@ -60,8 +60,8 @@
 - [x] **SQL event store** — Postgres/SQLite/MySQL event persistence for production use (SQLEventStore added)
 - [ ] **OAuth2/OIDC integration** — Social login as alternative to WebAuthn
 - [ ] **Event schema versioning** — Version field on events for future migrations
-- [ ] **CSRF protection on WebAuthn endpoints** — Not wired by default
-- [ ] **Rate limiting on WebAuthn endpoints** — Not wired by default
+- [x] **CSRF protection on WebAuthn endpoints** — Documented wiring recipe in `integration_test/csrf_webauthn_test.go` (CSRFMiddleware composes with SessionMiddleware via Chain)
+- [x] **Rate limiting on WebAuthn endpoints** — `HandlerConfig.WebAuthnRateLimit` wired into all 4 WebAuthn handlers, matching the existing per-endpoint rate-limit pattern
 - [x] **Property-based testing for foldUser** — 8 rapid-based property tests verify fold invariants
 - [x] **Integration test: full WebAuthn flow** — End-to-end via virtual authenticator (W3C test vectors)
 

@@ -35,8 +35,12 @@ node_modules/
 
 # Example binaries
 examples/datastar-demo/datastar-demo
+examples/catalog-demo/catalog-demo
+examples/catalog-demo/eventcatalog/
 # Nix build output
 /result
 # Generated reports (buildflow coverage / jscpd / lint output)
 /reports/
 /report/
+# Build artifacts
+/v2

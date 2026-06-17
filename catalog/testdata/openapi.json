@@ -8,9 +8,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "type": "object"
       },
       "event.thing.created": {
@@ -20,9 +18,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "user_id"
-        ],
+        "required": ["user_id"],
         "type": "object"
       },
       "query.get-thing": {
@@ -32,9 +28,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "type": "object"
       }
     }
@@ -82,9 +76,7 @@
           }
         },
         "summary": "Test",
-        "tags": [
-          "Golden Service"
-        ]
+        "tags": ["Golden Service"]
       }
     },
     "/api/golden-svc/events/thing.created": {
@@ -107,9 +99,7 @@
           }
         },
         "summary": "Event: Test",
-        "tags": [
-          "Golden Service"
-        ]
+        "tags": ["Golden Service"]
       }
     },
     "/api/golden-svc/get-thing/{id}": {
@@ -150,9 +140,7 @@
           }
         },
         "summary": "Test",
-        "tags": [
-          "Golden Service"
-        ]
+        "tags": ["Golden Service"]
       }
     }
   },
