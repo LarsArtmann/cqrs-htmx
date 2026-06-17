@@ -95,6 +95,8 @@
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   echo "==> Root module"
                   go test ./... -count=1 -race
+                  echo "==> catalog submodule"
+                  (cd catalog && go test ./... -count=1 -race)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go test ./... -count=1 -race)
                   echo "==> integration_test submodule"
@@ -111,6 +113,8 @@
                 text = ''
                   echo "==> Root module"
                   golangci-lint run
+                  echo "==> catalog submodule"
+                  (cd catalog && golangci-lint run)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && golangci-lint run)
                 '';
@@ -128,6 +132,8 @@
                   echo "==> Root module coverage"
                   go test ./... -count=1 -coverprofile=coverage.out
                   go tool cover -func=coverage.out
+                  echo "==> catalog submodule coverage"
+                  (cd catalog && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                   echo "==> usermgmt submodule coverage"
                   (cd usermgmt && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                 '';
@@ -144,6 +150,8 @@
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   echo "==> Root module"
                   go build ./...
+                  echo "==> catalog submodule"
+                  (cd catalog && go build ./...)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go build ./...)
                   echo "==> integration_test submodule"
@@ -179,6 +187,21 @@
                   export GOWORK=off
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   cd usermgmt
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
+            test-catalog = {
+              type = "app";
+              meta.description = "Run the catalog submodule's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-catalog";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  cd catalog
                   go test ./... -count=1 -race "$@"
                 '';
               };

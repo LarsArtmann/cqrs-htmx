@@ -153,7 +153,7 @@ func HealthCheckHandler(cat *catalog.Catalog) http.HandlerFunc {
 }
 
 func defaultServeConfig(opts ...ServeOption) serveConfig {
-	cfg := serveConfig{
+	cfg := serveConfig{ //nolint:exhaustruct // fields set below
 		basePath: "/api",
 		format:   FormatJSON,
 	}
@@ -176,7 +176,7 @@ func writeDoc(w http.ResponseWriter, jsonFn, yamlFn marshaler, format ExportForm
 	case FormatYAML:
 		w.Header().Set("Content-Type", "application/yaml; charset=utf-8")
 		data, err = yamlFn()
-	default:
+	case FormatJSON:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		data, err = jsonFn()
 	}
@@ -193,6 +193,5 @@ func writeDoc(w http.ResponseWriter, jsonFn, yamlFn marshaler, format ExportForm
 func writeError(w http.ResponseWriter, status int, msg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(map[string]string{"error": msg})
+	_ = json.NewEncoder(w).Encode(map[string]string{"error": msg}) //nolint:errchkjson // best-effort error response
 }
-
