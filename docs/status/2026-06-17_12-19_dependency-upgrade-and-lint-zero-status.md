@@ -6,18 +6,18 @@
 
 ## Metrics Snapshot
 
-| Metric             | Value                                        |
-| ------------------ | -------------------------------------------- |
-| Date               | 2026-06-17 12:19                             |
-| Go version         | 1.26.3                                       |
-| Root coverage      | 96.4%                                       |
-| usermgmt coverage  | 84.1%                                       |
-| Lint               | **0 issues** (root + usermgmt)              |
-| Tests              | All passing (-race, all modules)            |
-| Total Go files     | 200 (119 test files)                        |
-| Total Go LOC       | 28,131                                      |
-| ADRs               | 6                                            |
-| Commits since 6/14 | 77                                           |
+| Metric             | Value                                               |
+| ------------------ | --------------------------------------------------- |
+| Date               | 2026-06-17 12:19                                    |
+| Go version         | 1.26.3                                              |
+| Root coverage      | 96.4%                                               |
+| usermgmt coverage  | 84.1%                                               |
+| Lint               | **0 issues** (root + usermgmt)                      |
+| Tests              | All passing (-race, all modules)                    |
+| Total Go files     | 200 (119 test files)                                |
+| Total Go LOC       | 28,131                                              |
+| ADRs               | 6                                                   |
+| Commits since 6/14 | 77                                                  |
 | Modules            | 4 (root, usermgmt, integration_test, datastar-demo) |
 
 ---
@@ -26,20 +26,20 @@
 
 ### Dependency Upgrades (all 4 modules)
 
-| Dependency             | Old          | New          | Status |
-| ---------------------- | ------------ | ------------ | ------ |
-| go-cqrs-lite (all sub) | v2.3.0/v2.3.1 | **v2.4.0**  | ✅     |
-| go-error-family        | v0.3.0       | **v0.4.0**   | ✅     |
-| go-branded-id          | v0.3.0       | **v0.3.1**   | ✅     |
-| ginkgo/v2              | v2.30.0      | **v2.31.0**  | ✅     |
-| gomega                 | v1.41.0      | **v1.42.0**  | ✅     |
-| casbin/casbin/v3       | v3.10.0      | v3.10.0      | Already latest |
-| go-webauthn            | v0.17.4      | v0.17.4      | Already latest |
-| pquerna/otp            | v1.5.0       | v1.5.0       | Already latest |
-| justinas/nosurf        | v1.2.0       | v1.2.0       | Already latest |
-| modernc.org/sqlite     | v1.52.0      | v1.52.0      | Already latest |
-| datastar-go            | v1.2.2       | v1.2.2       | Already latest |
-| golang.org/x/time      | v0.15.0      | v0.15.0      | Already latest |
+| Dependency             | Old           | New         | Status         |
+| ---------------------- | ------------- | ----------- | -------------- |
+| go-cqrs-lite (all sub) | v2.3.0/v2.3.1 | **v2.4.0**  | ✅             |
+| go-error-family        | v0.3.0        | **v0.4.0**  | ✅             |
+| go-branded-id          | v0.3.0        | **v0.3.1**  | ✅             |
+| ginkgo/v2              | v2.30.0       | **v2.31.0** | ✅             |
+| gomega                 | v1.41.0       | **v1.42.0** | ✅             |
+| casbin/casbin/v3       | v3.10.0       | v3.10.0     | Already latest |
+| go-webauthn            | v0.17.4       | v0.17.4     | Already latest |
+| pquerna/otp            | v1.5.0        | v1.5.0      | Already latest |
+| justinas/nosurf        | v1.2.0        | v1.2.0      | Already latest |
+| modernc.org/sqlite     | v1.52.0       | v1.52.0     | Already latest |
+| datastar-go            | v1.2.2        | v1.2.2      | Already latest |
+| golang.org/x/time      | v0.15.0       | v0.15.0     | Already latest |
 
 ### Idiomatic API Adoption
 
@@ -52,10 +52,10 @@
 
 ### Lint: Zero Issues (was 16)
 
-| Linter       | Was | Now | How |
-| ------------ | --- | --- | --- |
-| errorlint    | 2   | 0   | `%s` → `%w` for inner errors in `email.go`, `import_export.go` |
-| exhaustruct  | 2   | 0   | Third-party `pquerna/otp` structs excluded in `.golangci.yml` |
+| Linter       | Was | Now | How                                                                                 |
+| ------------ | --- | --- | ----------------------------------------------------------------------------------- |
+| errorlint    | 2   | 0   | `%s` → `%w` for inner errors in `email.go`, `import_export.go`                      |
+| exhaustruct  | 2   | 0   | Third-party `pquerna/otp` structs excluded in `.golangci.yml`                       |
 | contextcheck | 12  | 0   | False positives from `withTimeout` helper — file-level exclusion in `.golangci.yml` |
 
 ### Verification
@@ -79,12 +79,12 @@
 
 The usermgmt module dropped from ~90% to 84.1% during the event-sourcing migration. Key gaps:
 
-| Area                     | Coverage | Issue |
-| ------------------------ | -------- | ----- |
-| `verification_totp_http.go` | 73-90% | HTTP handler error paths under-tested |
-| `webauthn_service.go`       | 72-90% | WebAuthn ceremony error paths |
-| `webauthn_session.go`       | 77-100% | Get() miss path |
-| `parseImportFormat`         | 55.6% | Content-Type fallback branch |
+| Area                        | Coverage | Issue                                 |
+| --------------------------- | -------- | ------------------------------------- |
+| `verification_totp_http.go` | 73-90%   | HTTP handler error paths under-tested |
+| `webauthn_service.go`       | 72-90%   | WebAuthn ceremony error paths         |
+| `webauthn_session.go`       | 77-100%  | Get() miss path                       |
+| `parseImportFormat`         | 55.6%    | Content-Type fallback branch          |
 
 ### ROADMAP.md / TODO_LIST.md Version Drift
 
@@ -102,18 +102,18 @@ The LSP (gopls) still shows 16 stale warnings that `golangci-lint` does not. The
 
 ### From ROADMAP.md
 
-| Item | Priority |
-| ---- | -------- |
-| PostgreSQL event store for User aggregate | High |
-| PostgreSQL session store | High |
-| OpenTelemetry tracing middleware | High |
-| Prometheus metrics middleware | Medium |
-| JWT/OIDC integration helpers | Medium |
-| Redis session store | Medium |
-| Database migration tooling | Medium |
-| Godoc package examples with runnable snippets | Medium |
-| Expand integration_test cross-module coverage | Low |
-| Profile hot paths for allocation reduction | Low |
+| Item                                          | Priority |
+| --------------------------------------------- | -------- |
+| PostgreSQL event store for User aggregate     | High     |
+| PostgreSQL session store                      | High     |
+| OpenTelemetry tracing middleware              | High     |
+| Prometheus metrics middleware                 | Medium   |
+| JWT/OIDC integration helpers                  | Medium   |
+| Redis session store                           | Medium   |
+| Database migration tooling                    | Medium   |
+| Godoc package examples with runnable snippets | Medium   |
+| Expand integration_test cross-module coverage | Low      |
+| Profile hot paths for allocation reduction    | Low      |
 
 ### Git Tag
 
@@ -175,48 +175,48 @@ Sorted by impact × effort ratio (highest first):
 
 ### Tier 1: High Impact, Low Effort (do now)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 1 | **Tag v2.4.0 release** — create git tag matching go.mod | High | 5 min |
-| 2 | **Refresh ROADMAP.md** — update versions, coverage, dependency list | Medium | 10 min |
-| 3 | **Refresh TODO_LIST.md** — mark completed items, update header | Medium | 10 min |
-| 4 | **Write ADR 0007** — document v2.4.0 upgrade decisions | Medium | 15 min |
-| 5 | **Update DOMAIN_LANGUAGE.md** — add event-sourcing terms | Medium | 20 min |
+| #   | Item                                                                | Impact | Effort |
+| --- | ------------------------------------------------------------------- | ------ | ------ |
+| 1   | **Tag v2.4.0 release** — create git tag matching go.mod             | High   | 5 min  |
+| 2   | **Refresh ROADMAP.md** — update versions, coverage, dependency list | Medium | 10 min |
+| 3   | **Refresh TODO_LIST.md** — mark completed items, update header      | Medium | 10 min |
+| 4   | **Write ADR 0007** — document v2.4.0 upgrade decisions              | Medium | 15 min |
+| 5   | **Update DOMAIN_LANGUAGE.md** — add event-sourcing terms            | Medium | 20 min |
 
 ### Tier 2: High Impact, Medium Effort
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 6 | **Fuzz tests for decoder.go** — `FuzzDecodeJSON`, `FuzzDecodeForm` | High | 1h |
-| 7 | **Fuzz tests for sse_event.go** — `FuzzWriteSSEEvent`, `FuzzParseSSE` | High | 1h |
-| 8 | **Fuzz tests for ws.go** — `FuzzParseWSMessage`, `FuzzParseWSMessageInto` | High | 1h |
-| 9 | **Use `event.Compose` in RegisterRequest.Validate** — replace manual `strings.Join` | Low | 15 min |
-| 10 | **Improve usermgmt coverage to 90%+** — focus on HTTP handler error paths | High | 2-3h |
-| 11 | **Brand `Email` type** — `type Email = brandid.ID[emailBrand, string]` | Medium | 30 min |
-| 12 | **Replace `HandlerConfig.Secure *bool` with enum** — clearer intent | Medium | 30 min |
+| #   | Item                                                                                | Impact | Effort |
+| --- | ----------------------------------------------------------------------------------- | ------ | ------ |
+| 6   | **Fuzz tests for decoder.go** — `FuzzDecodeJSON`, `FuzzDecodeForm`                  | High   | 1h     |
+| 7   | **Fuzz tests for sse_event.go** — `FuzzWriteSSEEvent`, `FuzzParseSSE`               | High   | 1h     |
+| 8   | **Fuzz tests for ws.go** — `FuzzParseWSMessage`, `FuzzParseWSMessageInto`           | High   | 1h     |
+| 9   | **Use `event.Compose` in RegisterRequest.Validate** — replace manual `strings.Join` | Low    | 15 min |
+| 10  | **Improve usermgmt coverage to 90%+** — focus on HTTP handler error paths           | High   | 2-3h   |
+| 11  | **Brand `Email` type** — `type Email = brandid.ID[emailBrand, string]`              | Medium | 30 min |
+| 12  | **Replace `HandlerConfig.Secure *bool` with enum** — clearer intent                 | Medium | 30 min |
 
 ### Tier 3: Medium Impact, Medium Effort
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 13 | **PostgreSQL event store** — persistent storage for User aggregate | High | 1-2 days |
-| 14 | **PostgreSQL session store** — `SessionStore` interface impl | High | 4h |
-| 15 | **OpenTelemetry tracing middleware** — via lifecycle hooks | Medium | 4h |
-| 16 | **Integration test expansion** — more cross-module bridges | Medium | 2-3h |
-| 17 | **Profile dispatch + decode hot paths** — allocation reduction | Medium | 2h |
-| 18 | **Prometheus metrics middleware** — dispatch latency, error rates | Medium | 3h |
+| #   | Item                                                               | Impact | Effort   |
+| --- | ------------------------------------------------------------------ | ------ | -------- |
+| 13  | **PostgreSQL event store** — persistent storage for User aggregate | High   | 1-2 days |
+| 14  | **PostgreSQL session store** — `SessionStore` interface impl       | High   | 4h       |
+| 15  | **OpenTelemetry tracing middleware** — via lifecycle hooks         | Medium | 4h       |
+| 16  | **Integration test expansion** — more cross-module bridges         | Medium | 2-3h     |
+| 17  | **Profile dispatch + decode hot paths** — allocation reduction     | Medium | 2h       |
+| 18  | **Prometheus metrics middleware** — dispatch latency, error rates  | Medium | 3h       |
 
 ### Tier 4: Lower Priority / Future
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 19 | **Redis session store** — distributed deployments | Medium | 4h |
-| 20 | **JWT/OIDC integration helpers** — auth beyond WebAuthn | Medium | 1 day |
-| 21 | **Database migration tooling** — goose/golang-migrate integration | Medium | 4h |
-| 22 | **Casbin enforcer interface extraction** — decouple from concrete type | Low | 2h |
-| 23 | **Benchmark CI regression tracking** — automated perf gates | Low | 2h |
-| 24 | **Godoc runnable examples** — package-level `Example*` functions | Low | 2h |
-| 25 | **Explore go-cqrs-lite reactive APIs** — `NewCommandBus`/`NewQueryBus` for event streaming | Low | Research |
+| #   | Item                                                                                       | Impact | Effort   |
+| --- | ------------------------------------------------------------------------------------------ | ------ | -------- |
+| 19  | **Redis session store** — distributed deployments                                          | Medium | 4h       |
+| 20  | **JWT/OIDC integration helpers** — auth beyond WebAuthn                                    | Medium | 1 day    |
+| 21  | **Database migration tooling** — goose/golang-migrate integration                          | Medium | 4h       |
+| 22  | **Casbin enforcer interface extraction** — decouple from concrete type                     | Low    | 2h       |
+| 23  | **Benchmark CI regression tracking** — automated perf gates                                | Low    | 2h       |
+| 24  | **Godoc runnable examples** — package-level `Example*` functions                           | Low    | 2h       |
+| 25  | **Explore go-cqrs-lite reactive APIs** — `NewCommandBus`/`NewQueryBus` for event streaming | Low    | Research |
 
 ---
 
@@ -224,9 +224,10 @@ Sorted by impact × effort ratio (highest first):
 
 **Should we cut a v2.4.0 git tag NOW, or is there more work to bundle into the release?**
 
-The go.mod files all declare `v2.4.0` (via go-cqrs-lite submodule tags). The CHANGELOG has an `[Unreleased]` section. But there's no git tag. The codebase is stable (0 lint, all tests pass, race-safe). 
+The go.mod files all declare `v2.4.0` (via go-cqrs-lite submodule tags). The CHANGELOG has an `[Unreleased]` section. But there's no git tag. The codebase is stable (0 lint, all tests pass, race-safe).
 
 Options:
+
 1. **Tag v2.4.0 now** — the dependency upgrade + lint fixes are a clean, shippable unit
 2. **Wait for more work** — bundle coverage improvements, fuzz tests, ADR 0007 into the release
 3. **Tag v2.4.0 now, plan v2.5.0 for next batch** — release small and often
@@ -237,8 +238,8 @@ This is a product decision only the project owner can make.
 
 ## Session Commits
 
-| Commit | Description |
-| ------ | ----------- |
+| Commit    | Description                                                                             |
+| --------- | --------------------------------------------------------------------------------------- |
 | `f131b20` | `chore(deps): upgrade go-cqrs-lite v2.3.0 → v2.4.0 and go-error-family v0.3.0 → v0.4.0` |
-| `25ab685` | `refactor: use go-error-family v0.4.0 APIs idiomatically, fix all lint issues` |
-| `21959ff` | `docs: update CHANGELOG and AGENTS.md for v2.4.0/v0.4.0 upgrade` |
+| `25ab685` | `refactor: use go-error-family v0.4.0 APIs idiomatically, fix all lint issues`          |
+| `21959ff` | `docs: update CHANGELOG and AGENTS.md for v2.4.0/v0.4.0 upgrade`                        |

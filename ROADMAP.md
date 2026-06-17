@@ -1,15 +1,15 @@
 # Roadmap — cqrs-htmx
 
-**Updated:** 2026-06-16
+**Updated:** 2026-06-17
 
 ## Current State
 
-- **Version:** v2.1.0 (unreleased: passwordless event-sourced usermgmt)
-- **Coverage:** 96.0% root, 86.2% usermgmt
+- **Version:** v2.4.0
+- **Coverage:** 96.4% root, 84.1% usermgmt
 - **Lint:** 0 issues
-- **Dependencies:** go-cqrs-lite v2.3.0 (all modules), justinas/nosurf, go-error-family v0.3.0, go-webauthn v0.17.4
-- **Test suite:** 570+ specs, race-safe, fuzz tests, benchmarks
-- **Architecture:** Fully event-sourced usermgmt (7 events, 7 commands, Decider pattern, WebAuthn passwordless)
+- **Dependencies:** go-cqrs-lite v2.4.0, go-error-family v0.4.0, go-branded-id v0.3.1, justinas/nosurf, go-webauthn v0.17.4, pquerna/otp
+- **Test suite:** 580+ specs, race-safe, fuzz tests, benchmarks
+- **Architecture:** Fully event-sourced usermgmt (10 events, 10 commands, Decider pattern, WebAuthn passwordless)
 
 ---
 
@@ -24,7 +24,7 @@ _Focus: Align modules, stabilize deps, prepare for broader adoption._
 | HTMX   | Embedded HTMX JS (v2.0.9) with ETag/caching                                 | Medium   | Done (v2.1.0)      |
 | Deps   | Upgrade all modules to go-cqrs-lite v2.2.0                                  | High     | Done               |
 | Deps   | Remove CatalogEntries (dead upstream code in v2)                            | High     | Done               |
-| Deps   | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`)                   | Medium   | Open               |
+| Deps   | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`)                   | Medium   | Done (v2.3.0)      |
 | Deps   | Adopt v2 `PaginatedResult[T]` for query handlers                            | Low      | Done               |
 | Types  | BrandNamer for root module marker types (`userMarker`, `correlationMarker`) | Medium   | Blocked (upstream) |
 | Docs   | Add comprehensive godoc package examples with runnable snippets             | Medium   | Open               |
@@ -38,13 +38,13 @@ _Focus: Align modules, stabilize deps, prepare for broader adoption._
 
 _Focus: Persistent storage for event-sourced usermgmt beyond in-memory._
 
-| Area    | Item                                                         | Priority | Status              |
-| ------- | ------------------------------------------------------------ | -------- | ------------------- |
-| Store   | PostgreSQL event store for User aggregate                    | High     | Planned             |
-| Store   | PostgreSQL session store for `SessionStore` interface        | High     | Planned             |
-| Types   | Numeric branded IDs for auto-increment PKs                   | Medium   | Pattern in ADR 0003 |
-| Migrate | Database migration tooling (goose, golang-migrate, or gnorm) | Medium   | Planned             |
-| Test    | Integration tests against real PostgreSQL                    | Medium   | Planned             |
+| Area    | Item                                                         | Priority | Status               |
+| ------- | ------------------------------------------------------------ | -------- | -------------------- |
+| Store   | PostgreSQL event store for User aggregate                    | High     | Done (SQLEventStore) |
+| Store   | PostgreSQL session store for `SessionStore` interface        | High     | Planned              |
+| Types   | Numeric branded IDs for auto-increment PKs                   | Medium   | Pattern in ADR 0003  |
+| Migrate | Database migration tooling (goose, golang-migrate, or gnorm) | Medium   | Planned              |
+| Test    | Integration tests against real PostgreSQL                    | Medium   | Planned              |
 
 **Note:** The old CRUD `UserStore` interface has been removed. The usermgmt module is now fully event-sourced via the go-cqrs-lite Decider pattern (ADR 0006). SQL work now targets an event store backend.
 
