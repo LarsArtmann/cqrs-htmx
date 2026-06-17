@@ -8,17 +8,17 @@
 
 ## Metrics Summary
 
-| Metric              | Root Module | usermgmt  | integration_test | Total   |
-| ------------------- | ----------- | --------- | ---------------- | ------- |
-| **Tests Passing**   | 47          | 329       | 8                | **384** |
-| **Tests Failing**   | 0           | 0         | 0                | **0**   |
-| **Coverage**        | 96.4%       | 83.6%     | —                | —       |
-| **Lint Issues**     | 0           | 16        | 0                | **16**  |
-| **Source Lines**    | —           | —         | —                | 11,598  |
-| **Test Lines**      | —           | —         | —                | 16,548  |
-| **Go Files**        | —           | —         | —                | 200     |
-| **Test Files**      | —           | —         | —                | 119     |
-| **Modules**         | —           | —         | —                | 4       |
+| Metric            | Root Module | usermgmt | integration_test | Total   |
+| ----------------- | ----------- | -------- | ---------------- | ------- |
+| **Tests Passing** | 47          | 329      | 8                | **384** |
+| **Tests Failing** | 0           | 0        | 0                | **0**   |
+| **Coverage**      | 96.4%       | 83.6%    | —                | —       |
+| **Lint Issues**   | 0           | 16       | 0                | **16**  |
+| **Source Lines**  | —           | —        | —                | 11,598  |
+| **Test Lines**    | —           | —        | —                | 16,548  |
+| **Go Files**      | —           | —        | —                | 200     |
+| **Test Files**    | —           | —        | —                | 119     |
+| **Modules**       | —           | —        | —                | 4       |
 
 **Module summary:** Root (`cqrs-htmx`), `usermgmt/v2`, `integration_test`, `examples/datastar-demo`
 
@@ -26,8 +26,8 @@
 
 ## Session Commits (8 commits, all pushed)
 
-| SHA      | Message                                                                      |
-| -------- | ---------------------------------------------------------------------------- |
+| SHA       | Message                                                                      |
+| --------- | ---------------------------------------------------------------------------- |
 | `8fa4bcd` | docs(planning): add brutal self-review and Pareto plan                       |
 | `f7a7169` | feat(usermgmt): add admin authorization to import/export endpoints           |
 | `b3f8034` | feat(usermgmt): add per-IP rate limiting to import, TOTP, verification       |
@@ -95,17 +95,18 @@
 
 All 16 lint issues are in files touched during this session:
 
-| Linter       | Count | Files                          | Fix                                                                |
-| ------------ | ----- | ------------------------------ | ------------------------------------------------------------------ |
+| Linter         | Count | Files                                  | Fix                                                                                                                                                                       |
+| -------------- | ----- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `contextcheck` | 12    | `http.go`, `verification_totp_http.go` | The `withTimeout()` helper is correctly inheriting context but the linter doesn't see through the method call. Needs `//nolint:contextcheck` directives or restructuring. |
-| `errorlint`  | 2     | `email.go:24`, `import_export.go:31` | `fmt.Errorf` uses `%s` for wrapped errors instead of `%w`. Quick fix. |
-| `exhaustruct`| 2     | `totp.go:61`, `totp.go:183`    | `totp.GenerateOpts` and `totp.ValidateOpts` missing optional fields. Needs `//nolint:exhaustruct` since library defaults are intentional. |
+| `errorlint`    | 2     | `email.go:24`, `import_export.go:31`   | `fmt.Errorf` uses `%s` for wrapped errors instead of `%w`. Quick fix.                                                                                                     |
+| `exhaustruct`  | 2     | `totp.go:61`, `totp.go:183`            | `totp.GenerateOpts` and `totp.ValidateOpts` missing optional fields. Needs `//nolint:exhaustruct` since library defaults are intentional.                                 |
 
 **Root module: 0 lint issues. Integration_test: 0 lint issues.**
 
 ### Email Type Propagation
 
 `Email` type exists and is used in `ExportUser`, but NOT yet propagated to:
+
 - `User.Email` (still `string`)
 - `UserState.Email` (still `string`)
 - `RegisterRequest.Email` (still `string`)
@@ -138,7 +139,7 @@ This is intentional for backward compatibility (events are immutable JSON in the
 
 **Nothing.** All modules build, all 384 tests pass, and no production panics exist. The 16 lint issues in usermgmt are cosmetic (linter false positives and optional field warnings), not correctness issues.
 
-The closest thing to "fucked up" is that `contextcheck` linter warnings appeared *because* of the `withTimeout()` refactor — the linter can't trace context through a method call. This is a known limitation and the code is correct (`go build` + `-race` pass). The fix is `//nolint:contextcheck` annotations.
+The closest thing to "fucked up" is that `contextcheck` linter warnings appeared _because_ of the `withTimeout()` refactor — the linter can't trace context through a method call. This is a known limitation and the code is correct (`go build` + `-race` pass). The fix is `//nolint:contextcheck` annotations.
 
 ---
 
@@ -172,33 +173,33 @@ The closest thing to "fucked up" is that `contextcheck` linter warnings appeared
 
 ## F) Top #25 Things We Should Get Done Next!
 
-| #   | Task                                                              | Impact   | Effort    |
-| --- | ----------------------------------------------------------------- | -------- | --------- |
-| 1   | Fix 16 lint issues (errorlint + exhaustruct + contextcheck)       | High     | 15 min    |
-| 2   | Add TOTP secret retention ADR (docs/adr/0007)                     | Medium   | 30 min    |
-| 3   | Add CSRF wiring example in README or examples/                    | High     | 30 min    |
-| 4   | WebAuthn endpoint rate limiting (register begin/finish, login)    | High     | 45 min    |
-| 5   | Coverage recovery: test ImportExportAuthorizer nil, rate edges    | Medium   | 45 min    |
-| 6   | Property-based tests for foldUser TOTP/email transitions          | Medium   | 60 min    |
-| 7   | Integration test: WebAuthn + TOTP end-to-end                      | High     | 90 min    |
-| 8   | Propagate Email to RegisterRequest + ImportUser                   | Medium   | 60 min    |
-| 9   | Consolidate usermgmt rate limiter (token-bucket semantics)        | Medium   | 60 min    |
-| 10  | ExportUser JSON marshaling test (Email type serialization)        | Low      | 15 min    |
-| 11  | SQL event store production deployment guide                       | High     | 2 hrs     |
-| 12  | Postgres integration test for SQLEventStore                       | High     | 2 hrs     |
-| 13  | OAuth2/OIDC integration (social login)                            | Medium   | 4 hrs     |
-| 14  | Event schema versioning migration strategy                        | Medium   | 2 hrs     |
-| 15  | TOTP secret encryption at rest (AES-GCM in event payloads)        | Medium   | 90 min    |
-| 16  | HTMX 4.0 beta testing with HTMXScriptHandlerWith                  | Low      | 60 min    |
-| 17  | Consolidate ephemeral stores (WebAuthn sessions + TOTP + verify)  | Low      | 60 min    |
-| 18  | Add usermgmt coverage CI gate (block PRs below 85%)               | Medium   | 30 min    |
-| 19  | Add `go.work` summary check to CI (all modules build together)    | Low      | 30 min    |
-| 20  | Migrate `registrationRateLimiter` name → `ipRateLimiter`          | Low      | 15 min    |
-| 21  | Add `DisableTOTP` without code test (negative path)               | Low      | 15 min    |
-| 22  | Document timeout recommendation for HandlerConfig.Timeout         | Low      | 15 min    |
-| 23  | Add benchmarks for new TOTP validation (pquerna/otp overhead)     | Low      | 30 min    |
-| 24  | Create `examples/auth-app/` with full WebAuthn + TOTP demo        | High     | 4 hrs     |
-| 25  | Release v2.2.0 with changelog tag and GitHub release notes        | Medium   | 30 min    |
+| #   | Task                                                             | Impact | Effort |
+| --- | ---------------------------------------------------------------- | ------ | ------ |
+| 1   | Fix 16 lint issues (errorlint + exhaustruct + contextcheck)      | High   | 15 min |
+| 2   | Add TOTP secret retention ADR (docs/adr/0007)                    | Medium | 30 min |
+| 3   | Add CSRF wiring example in README or examples/                   | High   | 30 min |
+| 4   | WebAuthn endpoint rate limiting (register begin/finish, login)   | High   | 45 min |
+| 5   | Coverage recovery: test ImportExportAuthorizer nil, rate edges   | Medium | 45 min |
+| 6   | Property-based tests for foldUser TOTP/email transitions         | Medium | 60 min |
+| 7   | Integration test: WebAuthn + TOTP end-to-end                     | High   | 90 min |
+| 8   | Propagate Email to RegisterRequest + ImportUser                  | Medium | 60 min |
+| 9   | Consolidate usermgmt rate limiter (token-bucket semantics)       | Medium | 60 min |
+| 10  | ExportUser JSON marshaling test (Email type serialization)       | Low    | 15 min |
+| 11  | SQL event store production deployment guide                      | High   | 2 hrs  |
+| 12  | Postgres integration test for SQLEventStore                      | High   | 2 hrs  |
+| 13  | OAuth2/OIDC integration (social login)                           | Medium | 4 hrs  |
+| 14  | Event schema versioning migration strategy                       | Medium | 2 hrs  |
+| 15  | TOTP secret encryption at rest (AES-GCM in event payloads)       | Medium | 90 min |
+| 16  | HTMX 4.0 beta testing with HTMXScriptHandlerWith                 | Low    | 60 min |
+| 17  | Consolidate ephemeral stores (WebAuthn sessions + TOTP + verify) | Low    | 60 min |
+| 18  | Add usermgmt coverage CI gate (block PRs below 85%)              | Medium | 30 min |
+| 19  | Add `go.work` summary check to CI (all modules build together)   | Low    | 30 min |
+| 20  | Migrate `registrationRateLimiter` name → `ipRateLimiter`         | Low    | 15 min |
+| 21  | Add `DisableTOTP` without code test (negative path)              | Low    | 15 min |
+| 22  | Document timeout recommendation for HandlerConfig.Timeout        | Low    | 15 min |
+| 23  | Add benchmarks for new TOTP validation (pquerna/otp overhead)    | Low    | 30 min |
+| 24  | Create `examples/auth-app/` with full WebAuthn + TOTP demo       | High   | 4 hrs  |
+| 25  | Release v2.2.0 with changelog tag and GitHub release notes       | Medium | 30 min |
 
 ---
 
@@ -207,6 +208,7 @@ The closest thing to "fucked up" is that `contextcheck` linter warnings appeared
 **Should the `Email` type be propagated to event payload structs (`UserRegisteredPayload.Email`, `EmailChangedPayload.Email`) despite the JSON backward-compatibility risk?**
 
 The tension:
+
 - **For propagation:** Strong types everywhere, impossible to construct invalid events, `foldUser()` and read model get validated emails by construction.
 - **Against propagation:** Events are immutable JSON in the event store. Changing the Go type from `string` to `Email` is transparent at the JSON level (both serialize to string), BUT: if `Email` ever gets custom `MarshalJSON`/`UnmarshalJSON` that rejects malformed addresses, old events with pre-validation emails would fail to decode. That's a production-breaking change.
 
@@ -218,26 +220,26 @@ I can't decide whether the backward-compat risk is real enough to block propagat
 
 ### Root Module
 
-| Dependency                | Version  | Purpose                       |
-| ------------------------- | -------- | ----------------------------- |
-| go-cqrs-lite              | v2.3.0   | CQRS infrastructure           |
-| casbin/v3                 | v3.10.0  | RBAC authorization            |
-| justinas/nosurf           | v1.2.0   | CSRF protection               |
-| go-error-family           | v0.3.0   | Error classification          |
-| larsartmann/httputil      | v0.2.0   | ClientIP extraction           |
-| golang.org/x/time         | —        | Rate limiting (token bucket)  |
+| Dependency           | Version | Purpose                      |
+| -------------------- | ------- | ---------------------------- |
+| go-cqrs-lite         | v2.3.0  | CQRS infrastructure          |
+| casbin/v3            | v3.10.0 | RBAC authorization           |
+| justinas/nosurf      | v1.2.0  | CSRF protection              |
+| go-error-family      | v0.3.0  | Error classification         |
+| larsartmann/httputil | v0.2.0  | ClientIP extraction          |
+| golang.org/x/time    | —       | Rate limiting (token bucket) |
 
 ### usermgmt Module
 
-| Dependency                | Version  | Purpose                       |
-| ------------------------- | -------- | ----------------------------- |
-| go-cqrs-lite              | v2.3.0   | CQRS + event sourcing         |
-| casbin/v3                 | v3.10.0  | RBAC authorization            |
-| go-webauthn/webauthn      | v0.17.4  | WebAuthn/Passkey auth         |
-| pquerna/otp               | v1.5.0   | TOTP (RFC 6238) MFA           |
-| go-branded-id             | v0.3.0   | Branded UserID type           |
-| modernc.org/sqlite        | v1.52.0  | SQLite event store (testing)  |
-| pgregory.net/rapid        | v1.3.0   | Property-based testing        |
+| Dependency           | Version | Purpose                      |
+| -------------------- | ------- | ---------------------------- |
+| go-cqrs-lite         | v2.3.0  | CQRS + event sourcing        |
+| casbin/v3            | v3.10.0 | RBAC authorization           |
+| go-webauthn/webauthn | v0.17.4 | WebAuthn/Passkey auth        |
+| pquerna/otp          | v1.5.0  | TOTP (RFC 6238) MFA          |
+| go-branded-id        | v0.3.0  | Branded UserID type          |
+| modernc.org/sqlite   | v1.52.0 | SQLite event store (testing) |
+| pgregory.net/rapid   | v1.3.0  | Property-based testing       |
 
 ---
 
