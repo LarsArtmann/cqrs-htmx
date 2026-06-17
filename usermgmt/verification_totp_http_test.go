@@ -412,3 +412,105 @@ func TestHandlers_VerificationRateLimit(t *testing.T) {
 	w2 := authenticatedRequest(t, wrapped, http.MethodPost, "/auth/email/verify/send", sess.Token, "")
 	assertStatusCode(t, w2, http.StatusTooManyRequests)
 }
+
+func TestHandlers_TOTPVerify_InvalidCode(t *testing.T) {
+	svc, h, token := setupAuthenticatedHandler(t, ServiceConfig{
+		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+	})
+	setup, err := svc.EnableTOTP(context.Background(), NewUserID("authu1"))
+	if err != nil {
+		t.Fatalf("EnableTOTP: %v", err)
+	}
+	code := currentTOTPCode(t, decodeSecret(t, setup.Secret))
+	if err := svc.VerifyTOTPSetup(context.Background(), NewUserID("authu1"), code); err != nil {
+		t.Fatalf("VerifyTOTPSetup: %v", err)
+	}
+
+	// Generate a code from a far-past counter — guaranteed not to match the window.
+	user, _ := svc.readModel.FindByUserID(NewUserID("authu1"))
+	farPastCounter := time.Now().Unix()/int64(TOTPTimeStep.Seconds()) - 100
+	invalidCode := generateTOTPCode(user.TOTPSecret, farPastCounter)
+
+	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/verify", token,
+		`{"code":"`+invalidCode+`"}`)
+	assertStatusCode(t, w, http.StatusUnauthorized)
+}
+
+func TestHandlers_TOTPSetupVerify_NoSetup(t *testing.T) {
+	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{
+		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+	})
+	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/setup/verify", token,
+		`{"code":"000000"}`)
+	assertStatusCode(t, w, http.StatusBadRequest)
+}
+
+func TestHandlers_TOTPDisable_NotEnabled(t *testing.T) {
+	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{
+		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+	})
+	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/disable", token, "")
+	assertStatusCode(t, w, http.StatusBadRequest)
+}
+
+func TestHandlers_ImportUsers_InvalidEmail(t *testing.T) {
+	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{})
+	body := `[{"email":"not-an-email","display_name":"Bad"}]`
+	w := authenticatedRequest(t, h, http.MethodPost, "/auth/import?format=json", token, body)
+	assertStatusCode(t, w, http.StatusOK)
+
+	var result ImportResult
+	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if result.Skipped != 1 {
+		t.Errorf("skipped = %d, want 1", result.Skipped)
+	}
+	if result.Imported != 0 {
+		t.Errorf("imported = %d, want 0", result.Imported)
+	}
+}
+
+func TestHandlers_ImportUsers_EmptyArray(t *testing.T) {
+	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{})
+	w := authenticatedRequest(t, h, http.MethodPost, "/auth/import?format=json", token, "[]")
+	assertStatusCode(t, w, http.StatusOK)
+
+	var result ImportResult
+	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if result.Imported != 0 || result.Skipped != 0 {
+		t.Errorf("imported=%d skipped=%d, want 0/0", result.Imported, result.Skipped)
+	}
+}
+
+func TestHandlers_ImportUsers_DuplicateEmail(t *testing.T) {
+	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{})
+	body := `[{"email":"authu1@test.com"}]`
+	w := authenticatedRequest(t, h, http.MethodPost, "/auth/import?format=json", token, body)
+	assertStatusCode(t, w, http.StatusOK)
+
+	var result ImportResult
+	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if result.Skipped != 1 {
+		t.Errorf("skipped = %d, want 1 (duplicate email)", result.Skipped)
+	}
+}
+
+func TestHandlers_VerifyEmail_AlreadyVerified(t *testing.T) {
+	svc, h, token := setupAuthenticatedHandler(t, ServiceConfig{
+		EmailVerification: &EmailVerificationConfig{},
+	})
+	tok, err := svc.SendVerificationEmail(context.Background(), NewUserID("authu1"))
+	if err != nil {
+		t.Fatalf("SendVerificationEmail: %v", err)
+	}
+	if err := svc.VerifyEmail(context.Background(), tok); err != nil {
+		t.Fatalf("VerifyEmail: %v", err)
+	}
+	w := authenticatedRequest(t, h, http.MethodPost, "/auth/email/verify/send", token, "")
+	assertStatusCode(t, w, http.StatusConflict)
+}
