@@ -88,14 +88,14 @@ cmds.Use(middleware.CommandTracing(tracer))
 
 ## cqrs-htmx Equivalents
 
-| go-cqrs-lite Middleware | cqrs-htmx HTTP Equivalent |
-|------------------------|--------------------------|
-| `CommandRecovery` | `RecoveryMiddleware` / `App.RecoverHandler()` |
-| `CommandMetrics` | `RequestLogging` / `RequestLoggingSlog` |
-| `CommandTracing` | `BeforeDispatchHook` / `AfterDispatchHook` (wire OTel manually) |
-| — | `CSRFMiddleware` (HTTP-only concern) |
-| — | `RateLimiterMiddleware` (HTTP-only concern) |
-| — | `SecurityHeadersMiddleware` (HTTP-only concern) |
+| go-cqrs-lite Middleware | cqrs-htmx HTTP Equivalent                                       |
+| ----------------------- | --------------------------------------------------------------- |
+| `CommandRecovery`       | `RecoveryMiddleware` / `App.RecoverHandler()`                   |
+| `CommandMetrics`        | `RequestLogging` / `RequestLoggingSlog`                         |
+| `CommandTracing`        | `BeforeDispatchHook` / `AfterDispatchHook` (wire OTel manually) |
+| —                       | `CSRFMiddleware` (HTTP-only concern)                            |
+| —                       | `RateLimiterMiddleware` (HTTP-only concern)                     |
+| —                       | `SecurityHeadersMiddleware` (HTTP-only concern)                 |
 
 ## Summary
 

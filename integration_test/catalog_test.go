@@ -16,12 +16,12 @@ import (
 
 type catalogUserCmd struct {
 	Email string `json:"email" doc:"User email address"`
-	Name  string `json:"name" doc:"Display name"`
+	Name  string `json:"name"  doc:"Display name"`
 }
 
 type catalogUserEvent struct {
 	UserID string `json:"user_id" doc:"New user identifier"`
-	Email  string `json:"email" doc:"User email"`
+	Email  string `json:"email"   doc:"User email"`
 }
 
 type catalogUserQuery struct {
@@ -35,16 +35,19 @@ func buildCatalogForApp(app *cqrshtmx.App) *catalog.Catalog {
 		cataloghtmx.WithServiceSummary("Integration test service"),
 	)
 
-	cataloghtmx.Command[catalogUserCmd](b, "create-user",
+	cataloghtmx.Command[catalogUserCmd](
+		b, "create-user",
 		cataloghtmx.WithOperation("POST", "/api/users"),
 		catalog.WithSummary("Create a new user account"),
 	)
 
-	cataloghtmx.Event[catalogUserEvent](b, "user.created", catalog.Sends,
+	cataloghtmx.Event[catalogUserEvent](
+		b, "user.created", catalog.Sends,
 		catalog.WithSummary("A user was created"),
 	)
 
-	cataloghtmx.Query[catalogUserQuery](b, "get-user",
+	cataloghtmx.Query[catalogUserQuery](
+		b, "get-user",
 		cataloghtmx.WithOperation("GET", "/api/users/{id}"),
 		catalog.WithSummary("Retrieve a user by ID"),
 	)

@@ -60,10 +60,13 @@ Create a separate `catalog/` sub-package (5th Go module) that bridges go-cqrs-li
 ## Alternatives Considered
 
 ### A: Direct dependency in root module
+
 Rejected — would force `go-faster/yaml` on every consumer, even those who don't want docs.
 
 ### B: Auto-discovery via dispatcher enumeration
+
 Rejected — requires upstream go-cqrs-lite changes (exposing registered handler types). Future enhancement.
 
 ### C: Pre-built usermgmt catalog as a 6th module
+
 Rejected — too much module overhead for a convenience wrapper. The registration pattern is documented in the catalog README instead.

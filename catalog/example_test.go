@@ -6,17 +6,18 @@ import (
 	"net/http/httptest"
 
 	"github.com/larsartmann/cqrs-htmx/catalog/v2"
+	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
 type RegisterUserCmd struct {
-	Email       string `json:"email" doc:"User email address"`
+	Email       string `json:"email"        doc:"User email address"`
 	DisplayName string `json:"display_name" doc:"Display name"`
 }
 
 type UserRegisteredEvent struct {
 	UserID string `json:"user_id" doc:"The new user ID"`
-	Email  string `json:"email" doc:"User email"`
+	Email  string `json:"email"   doc:"User email"`
 }
 
 type GetUserQuery struct {
@@ -27,13 +28,15 @@ type GetUserQuery struct {
 func ExampleNew() {
 	b := cataloghtmx.New("User Service", "1.0.0")
 
-	cataloghtmx.Command[RegisterUserCmd](b, "register-user",
+	cataloghtmx.Command[RegisterUserCmd](
+		b, "register-user",
 		cataloghtmx.WithOperation("POST", "/api/users"),
 	)
 
 	cataloghtmx.Event[UserRegisteredEvent](b, "user.registered", catalog.Sends)
 
-	cataloghtmx.Query[GetUserQuery](b, "get-user",
+	cataloghtmx.Query[GetUserQuery](
+		b, "get-user",
 		cataloghtmx.WithOperation("GET", "/api/users/{id}"),
 	)
 
