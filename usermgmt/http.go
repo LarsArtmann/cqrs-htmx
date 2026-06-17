@@ -34,6 +34,7 @@ type AuthHandler struct {
 	importLimiter          *registrationRateLimiter
 	totpLimiter            *registrationRateLimiter
 	verificationLimiter    *registrationRateLimiter
+	webauthnLimiter        *registrationRateLimiter
 	importExportAuthorizer AuthorizerFunc
 }
 
@@ -62,6 +63,9 @@ type HandlerConfig struct {
 	TOTPRateLimit RegistrationRateLimitConfig
 	// VerificationRateLimit limits the rate of /auth/email/verify* requests per IP.
 	VerificationRateLimit RegistrationRateLimitConfig
+	// WebAuthnRateLimit limits the rate of /auth/webauthn/* requests per IP.
+	// Use this to brute-force protection on the passwordless login/registration ceremonies.
+	WebAuthnRateLimit RegistrationRateLimitConfig
 	// ImportExportAuthorizer controls who can call /auth/import and /auth/export.
 	// Defaults to RequireAdminRole (only users with the admin role).
 	// Set to nil to disable authorization, or provide a custom AuthorizerFunc.
@@ -196,6 +200,7 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 		importLimiter:       newLimiterFromConfig(config.ImportRateLimit),
 		totpLimiter:         newLimiterFromConfig(config.TOTPRateLimit),
 		verificationLimiter: newLimiterFromConfig(config.VerificationRateLimit),
+		webauthnLimiter:     newLimiterFromConfig(config.WebAuthnRateLimit),
 	}
 }
 
