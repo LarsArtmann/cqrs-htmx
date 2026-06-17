@@ -187,6 +187,7 @@ func WithOperation(method, path string) catalog.MessageOption {
 //   - go-cqrs-lite's caseutil.ToKebab exists but is under internal/ — not importable.
 //   - samber/lo.KebabCase is available transitively in root/usermgmt but not in
 //     catalog/ (separate go.mod whose principle is zero deps beyond go-cqrs-lite/catalog).
+//
 // Adding a dependency for 35 lines of tested code would violate that principle.
 func toKebab(s string) string {
 	s = strings.ReplaceAll(s, " ", "-")

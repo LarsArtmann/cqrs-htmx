@@ -25,10 +25,12 @@ var updateGolden = flag.Bool("update-golden", false, "regenerate golden files in
 // require running with -update-golden to refresh the expected output.
 func goldenCatalog() *cataloghtmx.Builder {
 	b := cataloghtmx.New("Golden Service", "1.0.0", cataloghtmx.WithServiceID("golden-svc"))
-	cataloghtmx.Command[testCmd](b, "create-thing",
+	cataloghtmx.Command[testCmd](
+		b, "create-thing",
 		cataloghtmx.WithOperation("POST", "/api/things"),
 	)
-	cataloghtmx.Query[testQuery](b, "get-thing",
+	cataloghtmx.Query[testQuery](
+		b, "get-thing",
 		cataloghtmx.WithOperation("GET", "/api/things/{id}"),
 	)
 	cataloghtmx.Event[testEvent](b, "thing.created", catalog.Sends)
