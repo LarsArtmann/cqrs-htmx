@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **catalog sub-package** (5th Go module): Automatic API documentation generation from Go CQRS types. Produces OpenAPI 3.0, AsyncAPI 3.0, D2 diagrams, and EventCatalog MDX from a single registration. Zero dependency on root or usermgmt modules — consumers opt in via `go get github.com/larsartmann/cqrs-htmx/catalog/v2`. Includes HTTP handlers (`OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `EventCatalogHandler`), JSON/YAML output, schema auto-derivation from struct tags, and catalog validation. See [catalog/README.md](catalog/README.md) and ADR 0008.
+- **ADR 0009**: Documents the rationale for which go-cqrs-lite modules are used (8 direct) vs not used (13 excluded), with specific reasons for each exclusion.
+- **Middleware integration guide** (`docs/integrations/go-cqrs-lite-middleware.md`): Documents how go-cqrs-lite dispatch middleware (retry, circuit breaker, metrics, tracing) composes with cqrs-htmx HTTP middleware. Different layers, no conflict.
+
 ## [2.4.0] - 2026-06-17
 
 ### Changed

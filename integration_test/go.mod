@@ -3,8 +3,10 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.26.3
 
 require (
+	github.com/larsartmann/cqrs-htmx/catalog/v2 v2.0.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v2 v2.0.0
 	github.com/larsartmann/cqrs-htmx/v2 v2.0.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v2 v2.4.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.4.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.4.0
 )
@@ -16,6 +18,9 @@ require (
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
+	github.com/go-faster/errors v0.7.1 // indirect
+	github.com/go-faster/jx v1.2.0 // indirect
+	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
@@ -42,12 +47,14 @@ require (
 	github.com/pquerna/otp v1.5.0 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
+	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/sync v0.21.0 // indirect
@@ -57,6 +64,7 @@ require (
 )
 
 replace (
+	github.com/larsartmann/cqrs-htmx/catalog/v2 => ../catalog
 	github.com/larsartmann/cqrs-htmx/usermgmt/v2 => ../usermgmt
 	github.com/larsartmann/cqrs-htmx/v2 => ../
 )

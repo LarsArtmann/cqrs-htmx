@@ -86,6 +86,10 @@ cqrs-htmx/
 │   ├── middleware.go  # User context helpers, UserIDFromRequest bridge
 │   ├── lockout.go    # AccountLockout (configurable max attempts + duration)
 │   └── errors.go     # Sentinel errors
+├── catalog/             # API documentation generation (5th Go module, opt-in)
+│   ├── go.mod           # Independent Go module — depends only on go-cqrs-lite/catalog/v2
+│   ├── builder.go       # Builder, New(), Command[T]/Query[T]/Event[T], Build()/BuildValid()
+│   └── serve.go         # OpenAPIHandler, AsyncAPIHandler, D2Handler, EventCatalogHandler
 ├── integration_test/ # Cross-module integration tests (3rd Go module)
 └── examples/
     └── datastar-demo/ # Standalone go-cqrs-lite + datastar SSE example (4th Go module)
@@ -93,12 +97,13 @@ cqrs-htmx/
 
 ### Module Layout
 
-| Module           | go.mod                                              | Tests | Notes                             |
-| ---------------- | --------------------------------------------------- | ----- | --------------------------------- |
-| Root             | `github.com/larsartmann/cqrs-htmx`                  | Yes   | Core library                      |
-| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt`         | Yes   | Independent submodule             |
-| integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges        |
-| datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package) |
+| Module           | go.mod                                                | Tests | Notes                                             |
+| ---------------- | ----------------------------------------------------- | ----- | ------------------------------------------------- |
+| Root             | `github.com/larsartmann/cqrs-htmx`                    | Yes   | Core library                                      |
+| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt`           | Yes   | Independent submodule                             |
+| integration_test | `github.com/larsartmann/cqrs-htmx/integration_test`   | Yes   | Tests cross-module bridges                        |
+| datastar-demo    | `examples/datastar-demo/`                             | No    | Standalone example (main package)                 |
+| catalog          | `github.com/larsartmann/cqrs-htmx/catalog`            | Yes   | API doc generation (opt-in, no root/usermgmt dep) |
 
 ## Dependencies
 

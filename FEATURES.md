@@ -1,6 +1,6 @@
 # Features — cqrs-htmx
 
-**Updated:** 2026-06-16 | **Source:** All .go files analyzed
+**Updated:** 2026-06-17 | **Source:** All .go files analyzed
 
 ## Root Module
 
@@ -131,6 +131,20 @@
 | --- | --------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
 | 52  | Pagination Decoder    | FULLY_FUNCTIONAL | `DecodePagination(r)` extracts page/page_size from query params. Delegates to `query.NewPagination` for defaults. |
 | 53  | Paginated JSON Render | FULLY_FUNCTIONAL | `RenderPaginatedJSON[T]()` renders `query.PaginatedResult[T]` as JSON 200. Type-safe via generic parameter.       |
+
+---
+
+## catalog Sub-Package (Opt-In)
+
+| #   | Feature              | Status           | Description                                                                                                                              |
+| --- | -------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 54  | Catalog Builder      | FULLY_FUNCTIONAL | `New(title, version)` wraps `catalog.Builder`. `Command[T]`, `Query[T]`, `Event[T]` register messages with auto-derived schemas.         |
+| 55  | OpenAPI Handler      | FULLY_FUNCTIONAL | `OpenAPIHandler(cat)` serves OpenAPI 3.0 JSON/YAML. Auto-generates paths from message IDs and HTTP operations.                           |
+| 56  | AsyncAPI Handler     | FULLY_FUNCTIONAL | `AsyncAPIHandler(cat)` serves AsyncAPI 3.0 JSON/YAML. Maps commands→receive, events→send/receive, queries→handle.                        |
+| 57  | D2 Diagram Handler   | FULLY_FUNCTIONAL | `D2Handler(cat)` serves D2 architecture diagrams as text/plain. Cross-service event flows, domain grouping, CSS classes.                 |
+| 58  | EventCatalog Export  | FULLY_FUNCTIONAL | `GenerateEventCatalog(cat, dir)` writes MDX file tree for EventCatalog CLI. Auto-derives producers/consumers from event directions.      |
+| 59  | Schema Reflection    | FULLY_FUNCTIONAL | Auto-derives JSON Schema from Go struct tags (`json`, `doc`, `format`, `enum`, `default`). Results cached via `sync.Map`.                |
+| 60  | Catalog Validation   | FULLY_FUNCTIONAL | `Build()` panics on invalid catalogs (duplicate IDs, empty names). `BuildValid()` returns violations for non-panic usage.                |
 
 ### Not Planned
 
