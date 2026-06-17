@@ -208,16 +208,16 @@ func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) 
 	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
-	format := parseExportFormat(r)
+	format := parseUserDataFormat(r)
 	switch format {
-	case ExportFormatCSV:
+	case UserDataFormatCSV:
 		w.Header().Set("Content-Type", "text/csv; charset=utf-8")
 		w.Header().Set("Content-Disposition", "attachment; filename=users.csv")
 		if err := h.service.ExportUsersToCSV(ctx, w); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-	case ExportFormatJSON:
+	case UserDataFormatJSON:
 		w.Header().Set("Content-Type", contentTypeJSON)
 		w.Header().Set("Content-Disposition", "attachment; filename=users.json")
 		if err := h.service.ExportUsersToJSON(ctx, w); err != nil {
@@ -246,9 +246,9 @@ func (h *AuthHandler) handleImportUsers(w http.ResponseWriter, r *http.Request) 
 	var result *ImportResult
 	var err error
 	switch format {
-	case ExportFormatCSV:
+	case UserDataFormatCSV:
 		result, err = h.service.ImportUsersFromCSV(ctx, io.LimitReader(r.Body, maxAuthBodySize))
-	case ExportFormatJSON:
+	case UserDataFormatJSON:
 		result, err = h.service.ImportUsersFromJSON(ctx, io.LimitReader(r.Body, maxAuthBodySize))
 	}
 	if err != nil {
@@ -258,25 +258,25 @@ func (h *AuthHandler) handleImportUsers(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func parseExportFormat(r *http.Request) ExportFormat {
+func parseUserDataFormat(r *http.Request) UserDataFormat {
 	v := strings.ToLower(r.URL.Query().Get("format"))
 	if v == "csv" {
-		return ExportFormatCSV
+		return UserDataFormatCSV
 	}
-	return ExportFormatJSON
+	return UserDataFormatJSON
 }
 
-func parseImportFormat(r *http.Request) ExportFormat {
+func parseImportFormat(r *http.Request) UserDataFormat {
 	v := strings.ToLower(r.URL.Query().Get("format"))
 	if v == "csv" {
-		return ExportFormatCSV
+		return UserDataFormatCSV
 	}
 	if v == "json" {
-		return ExportFormatJSON
+		return UserDataFormatJSON
 	}
 	ct := strings.ToLower(strings.TrimSpace(strings.Split(r.Header.Get("Content-Type"), ";")[0]))
 	if ct == "text/csv" {
-		return ExportFormatCSV
+		return UserDataFormatCSV
 	}
-	return ExportFormatJSON
+	return UserDataFormatJSON
 }
