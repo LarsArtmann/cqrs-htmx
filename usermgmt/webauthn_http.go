@@ -11,6 +11,9 @@ type webauthnBeginRegRequest struct {
 }
 
 func (h *AuthHandler) handleWebAuthnBeginRegistration(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.webauthnLimiter, "too many WebAuthn requests") {
+		return
+	}
 	var req webauthnBeginRegRequest
 	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
@@ -26,6 +29,9 @@ func (h *AuthHandler) handleWebAuthnBeginRegistration(w http.ResponseWriter, r *
 }
 
 func (h *AuthHandler) handleWebAuthnFinishRegistration(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.webauthnLimiter, "too many WebAuthn requests") {
+		return
+	}
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
 		writeError(w, http.StatusBadRequest, "user_id query parameter is required")
@@ -46,6 +52,9 @@ type webauthnBeginLoginRequest struct {
 }
 
 func (h *AuthHandler) handleWebAuthnBeginLogin(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.webauthnLimiter, "too many WebAuthn requests") {
+		return
+	}
 	var req webauthnBeginLoginRequest
 	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
@@ -61,6 +70,9 @@ func (h *AuthHandler) handleWebAuthnBeginLogin(w http.ResponseWriter, r *http.Re
 }
 
 func (h *AuthHandler) handleWebAuthnFinishLogin(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRateLimit(w, r, h.webauthnLimiter, "too many WebAuthn requests") {
+		return
+	}
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
 		writeError(w, http.StatusBadRequest, "user_id query parameter is required")
