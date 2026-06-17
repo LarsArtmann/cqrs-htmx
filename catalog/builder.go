@@ -63,9 +63,9 @@ func WithServiceID(id string) Option {
 // The title becomes both the catalog title and the default service name.
 // The version applies to both the catalog and the service.
 func New(title, version string, opts ...Option) *Builder {
-	b := &Builder{
+	b := &Builder{ //nolint:exhaustruct // fields set below
 		inner: catalog.NewBuilder(title, version),
-		serviceCfg: serviceConfig{
+		serviceCfg: serviceConfig{ //nolint:exhaustruct // summary is optional
 			name:    title,
 			version: version,
 		},

@@ -253,7 +253,11 @@ func TestWithBasePath(t *testing.T) {
 	var doc map[string]any
 	_ = json.Unmarshal(w.Body.Bytes(), &doc)
 
-	paths := doc["paths"].(map[string]any)
+	paths, ok := doc["paths"].(map[string]any)
+	if !ok {
+		t.Fatal("expected paths in OpenAPI document")
+	}
+
 	for path := range paths {
 		if !strings.HasPrefix(path, "/v2/api") {
 			t.Errorf("expected path to start with /v2/api, got %s", path)
