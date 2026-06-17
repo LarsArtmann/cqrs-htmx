@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-06-17
+
 ### Changed
 
 - **go-cqrs-lite v2.4.0**: All modules upgraded to the latest per-module tags (command, event, id, query, codec, decider, dispatcher, memory, projection, snapshot, otel).
@@ -90,7 +92,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **gosec G101**: Credential event/command type constants now have proper nolint annotations.
 - **wrapcheck**: `marshalPayload` and `Dispatch` errors are now properly wrapped.
 
-## [2.1.0]
+## [2.3.0] - 2026-06-13
 
 ### Changed
 
