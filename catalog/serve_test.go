@@ -13,13 +13,16 @@ import (
 )
 
 func setupTestCatalog() *cataloghtmx.Builder {
-	b := cataloghtmx.New("Test API", "1.0.0",
+	b := cataloghtmx.New(
+		"Test API", "1.0.0",
 		cataloghtmx.WithServiceID("test-svc"),
 	)
-	cataloghtmx.Command[testCmd](b, "create-thing",
+	cataloghtmx.Command[testCmd](
+		b, "create-thing",
 		cataloghtmx.WithOperation("POST", "/api/things"),
 	)
-	cataloghtmx.Query[testQuery](b, "get-thing",
+	cataloghtmx.Query[testQuery](
+		b, "get-thing",
 		cataloghtmx.WithOperation("GET", "/api/things/{id}"),
 	)
 	cataloghtmx.Event[testEvent](b, "thing.created", catalog.Sends)
@@ -238,7 +241,8 @@ func TestWithBasePath(t *testing.T) {
 	t.Parallel()
 
 	cat := setupTestCatalog().Build()
-	handler := cataloghtmx.OpenAPIHandler(cat,
+	handler := cataloghtmx.OpenAPIHandler(
+		cat,
 		cataloghtmx.WithBasePath("/v2/api"),
 	)
 

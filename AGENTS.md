@@ -97,13 +97,13 @@ cqrs-htmx/
 
 ### Module Layout
 
-| Module           | go.mod                                                | Tests | Notes                                             |
-| ---------------- | ----------------------------------------------------- | ----- | ------------------------------------------------- |
-| Root             | `github.com/larsartmann/cqrs-htmx`                    | Yes   | Core library                                      |
-| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt`           | Yes   | Independent submodule                             |
-| integration_test | `github.com/larsartmann/cqrs-htmx/integration_test`   | Yes   | Tests cross-module bridges                        |
-| datastar-demo    | `examples/datastar-demo/`                             | No    | Standalone example (main package)                 |
-| catalog          | `github.com/larsartmann/cqrs-htmx/catalog`            | Yes   | API doc generation (opt-in, no root/usermgmt dep) |
+| Module           | go.mod                                              | Tests | Notes                                             |
+| ---------------- | --------------------------------------------------- | ----- | ------------------------------------------------- |
+| Root             | `github.com/larsartmann/cqrs-htmx`                  | Yes   | Core library                                      |
+| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt`         | Yes   | Independent submodule                             |
+| integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                        |
+| datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                 |
+| catalog          | `github.com/larsartmann/cqrs-htmx/catalog`          | Yes   | API doc generation (opt-in, no root/usermgmt dep) |
 
 ## Dependencies
 

@@ -32,7 +32,8 @@ func TestNew_Defaults(t *testing.T) {
 func TestNew_WithServiceID(t *testing.T) {
 	t.Parallel()
 
-	b := cataloghtmx.New("User Service", "1.0.0",
+	b := cataloghtmx.New(
+		"User Service", "1.0.0",
 		cataloghtmx.WithServiceID("custom-id"),
 	)
 
@@ -161,7 +162,8 @@ func TestWithOperation(t *testing.T) {
 	t.Parallel()
 
 	b := cataloghtmx.New("Test", "1.0.0")
-	cataloghtmx.Command[testCmd](b, "create",
+	cataloghtmx.Command[testCmd](
+		b, "create",
 		cataloghtmx.WithOperation("POST", "/api/create"),
 	)
 	cat := b.Build()
@@ -183,7 +185,8 @@ func TestWithOperation(t *testing.T) {
 func TestWithServiceSummary(t *testing.T) {
 	t.Parallel()
 
-	b := cataloghtmx.New("Test", "1.0.0",
+	b := cataloghtmx.New(
+		"Test", "1.0.0",
 		cataloghtmx.WithServiceSummary("A test service"),
 	)
 	cat := b.Build()

@@ -11,15 +11,15 @@
 Analysis of all 24 `go-cqrs-lite` modules revealed cqrs-htmx uses **8 directly**, **3 indirectly**, and **13 unused**.
 After deep investigation of every unused module:
 
-| Module | Verdict | Reason |
-|--------|---------|--------|
-| **`catalog`** | **INTEGRATE** | Auto-generates OpenAPI/AsyncAPI/D2/EventCatalog docs from Go types. High customer value. |
-| `middleware` | DOCUMENT ONLY | CQRS dispatch middleware (different layer than HTTP). Add wiring guide, not a dep. |
-| `listing` | SKIP | Conflicts with existing `UserReadModel` projection pattern. Different read path. |
-| `schema`, `encryption`, `signing`, `snapshot`, `storage`, `pebble`, `turso`, `kv`, `watermill` | SKIP | Persistence/transport/security layer — correctly the consumer's choice. |
-| `testutil` | SKIP | Test helpers for go-cqrs-lite's own suite. |
-| `cmd/*`, `example/*`, `integration/*` | N/A | Not libraries. |
-| Root `go-cqrs-lite` | N/A | Aggregator module — only per-module paths used. |
+| Module                                                                                         | Verdict       | Reason                                                                                   |
+| ---------------------------------------------------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------- |
+| **`catalog`**                                                                                  | **INTEGRATE** | Auto-generates OpenAPI/AsyncAPI/D2/EventCatalog docs from Go types. High customer value. |
+| `middleware`                                                                                   | DOCUMENT ONLY | CQRS dispatch middleware (different layer than HTTP). Add wiring guide, not a dep.       |
+| `listing`                                                                                      | SKIP          | Conflicts with existing `UserReadModel` projection pattern. Different read path.         |
+| `schema`, `encryption`, `signing`, `snapshot`, `storage`, `pebble`, `turso`, `kv`, `watermill` | SKIP          | Persistence/transport/security layer — correctly the consumer's choice.                  |
+| `testutil`                                                                                     | SKIP          | Test helpers for go-cqrs-lite's own suite.                                               |
+| `cmd/*`, `example/*`, `integration/*`                                                          | N/A           | Not libraries.                                                                           |
+| Root `go-cqrs-lite`                                                                            | N/A           | Aggregator module — only per-module paths used.                                          |
 
 ### Critical Architectural Finding
 
@@ -73,42 +73,42 @@ FEATURES.md, TODO_LIST.md, AGENTS.md updates, integration tests, example, lint, 
 **Priority formula:** `score = ceil((Impact + CustomerValue) / max(Effort, 1))`
 **Effort scale:** 1 = trivial (~5 min), 5 = hard (~12 min)
 
-| #   | Phase | Task                                                          | Impact | Effort | CustVal | Score | Done |
-| --- | ----- | ------------------------------------------------------------- | ------ | ------ | ------- | ----- | ---- |
-| T1  | 1     | Create `catalog/` sub-directory + `go.mod`                    | 5      | 1      | 5       | **10** | [ ] |
-| T2  | 1     | Write `catalog/doc.go` (package purpose, usage example)       | 4      | 1      | 4       | **8**  | [ ] |
-| T3  | 1     | Define `Option` + `config` types in `builder.go`             | 5      | 1      | 5       | **10** | [ ] |
-| T4  | 1     | Implement `New(app, opts...)` constructor                     | 5      | 1      | 5       | **10** | [ ] |
-| T5  | 1     | Implement `Command[T]()` method (path, method, opts)         | 5      | 2      | 5       | **5**  | [ ] |
-| T6  | 1     | Implement `Query[T]()` method                                 | 5      | 2      | 5       | **5**  | [ ] |
-| T7  | 1     | Implement `Event[T]()` method (with direction)               | 5      | 2      | 5       | **5**  | [ ] |
-| T8  | 1     | Implement `Build()` — returns `*catalog.Catalog`             | 5      | 2      | 5       | **5**  | [ ] |
-| T9  | 1     | Implement `FromApp(app)` — bridge using `app.ServiceName()`  | 4      | 2      | 4       | **4**  | [ ] |
-| T10 | 1     | Define `HandlerOption` wrappers (content-type, status)        | 3      | 1      | 3       | **6**  | [ ] |
-| T11 | 1     | Implement `OpenAPIHandler()` — serves `/openapi.json`         | 5      | 2      | 5       | **5**  | [ ] |
-| T12 | 1     | Write `example_test.go` — end-to-end usage                    | 4      | 2      | 5       | **4.5** | [ ] |
-| T13 | 1     | Verify: `go build`, `go test`, lint check                     | 4      | 1      | 3       | **7**  | [ ] |
-| T14 | 2     | Implement `AsyncAPIHandler()` — serves `/asyncapi.json`       | 4      | 1      | 4       | **8**  | [ ] |
-| T15 | 2     | Implement `D2Handler()` — serves `/diagram.d2` (text/plain)   | 3      | 1      | 4       | **7**  | [ ] |
-| T16 | 2     | Implement `EventCatalogHandler()` — generates MDX zip/stream  | 3      | 2      | 3       | **3**  | [ ] |
-| T17 | 2     | Write HTTP handler tests (status, content-type, body shape)   | 3      | 2      | 3       | **3**  | [ ] |
-| T18 | 2     | Write builder tests (Command/Query/Event registration)        | 3      | 2      | 2       | **2.5** | [ ] |
-| T19 | 2     | Verify all tests + lint pass                                   | 3      | 1      | 2       | **5**  | [ ] |
-| T20 | 3     | Implement `usermgmtcatalog.Default()` (7 cmds + 7 events)     | 4      | 2      | 4       | **4**  | [ ] |
-| T21 | 3     | Write usermgmt catalog tests                                   | 3      | 2      | 3       | **3**  | [ ] |
-| T22 | 3     | Wire `catalog.Validate()` in `Build()` — return violations    | 2      | 1      | 2       | **4**  | [ ] |
-| T23 | 3     | Write `catalog/README.md` (quickstart, all 4 exporters)       | 4      | 2      | 5       | **4.5** | [ ] |
-| T24 | 3     | Update root `README.md` — mention catalog sub-package         | 2      | 1      | 3       | **5**  | [ ] |
-| T25 | 3     | Write `docs/adr/0008-catalog-sub-package.md`                  | 3      | 1      | 2       | **5**  | [ ] |
-| T26 | 3     | Write `docs/adr/0009-go-cqrs-lite-module-selection.md`        | 3      | 2      | 2       | **2.5** | [ ] |
-| T27 | 3     | Write `docs/integrations/go-cqrs-lite-middleware.md`          | 2      | 1      | 3       | **5**  | [ ] |
-| T28 | 4     | Update `FEATURES.md` — catalog sub-package row                | 1      | 1      | 2       | **3**  | [ ] |
-| T29 | 4     | Update `TODO_LIST.md` — mark catalog work                     | 1      | 1      | 1       | **2**  | [ ] |
-| T30 | 4     | Update `AGENTS.md` — add catalog/ to module table             | 2      | 1      | 2       | **4**  | [ ] |
-| T31 | 4     | Add catalog to `integration_test/` go.mod + cross-module test | 2      | 2      | 2       | **2**  | [ ] |
-| T32 | 4     | Add catalog example to `examples/datastar-demo/`              | 2      | 2      | 3       | **2.5** | [ ] |
-| T33 | 4     | Verify `nix run .#lint` passes on all 5 modules               | 2      | 1      | 2       | **4**  | [ ] |
-| T34 | 4     | Update CHANGELOG.md with v2.5.0 catalog section               | 2      | 1      | 2       | **4**  | [ ] |
+| #   | Phase | Task                                                          | Impact | Effort | CustVal | Score   | Done |
+| --- | ----- | ------------------------------------------------------------- | ------ | ------ | ------- | ------- | ---- |
+| T1  | 1     | Create `catalog/` sub-directory + `go.mod`                    | 5      | 1      | 5       | **10**  | [ ]  |
+| T2  | 1     | Write `catalog/doc.go` (package purpose, usage example)       | 4      | 1      | 4       | **8**   | [ ]  |
+| T3  | 1     | Define `Option` + `config` types in `builder.go`              | 5      | 1      | 5       | **10**  | [ ]  |
+| T4  | 1     | Implement `New(app, opts...)` constructor                     | 5      | 1      | 5       | **10**  | [ ]  |
+| T5  | 1     | Implement `Command[T]()` method (path, method, opts)          | 5      | 2      | 5       | **5**   | [ ]  |
+| T6  | 1     | Implement `Query[T]()` method                                 | 5      | 2      | 5       | **5**   | [ ]  |
+| T7  | 1     | Implement `Event[T]()` method (with direction)                | 5      | 2      | 5       | **5**   | [ ]  |
+| T8  | 1     | Implement `Build()` — returns `*catalog.Catalog`              | 5      | 2      | 5       | **5**   | [ ]  |
+| T9  | 1     | Implement `FromApp(app)` — bridge using `app.ServiceName()`   | 4      | 2      | 4       | **4**   | [ ]  |
+| T10 | 1     | Define `HandlerOption` wrappers (content-type, status)        | 3      | 1      | 3       | **6**   | [ ]  |
+| T11 | 1     | Implement `OpenAPIHandler()` — serves `/openapi.json`         | 5      | 2      | 5       | **5**   | [ ]  |
+| T12 | 1     | Write `example_test.go` — end-to-end usage                    | 4      | 2      | 5       | **4.5** | [ ]  |
+| T13 | 1     | Verify: `go build`, `go test`, lint check                     | 4      | 1      | 3       | **7**   | [ ]  |
+| T14 | 2     | Implement `AsyncAPIHandler()` — serves `/asyncapi.json`       | 4      | 1      | 4       | **8**   | [ ]  |
+| T15 | 2     | Implement `D2Handler()` — serves `/diagram.d2` (text/plain)   | 3      | 1      | 4       | **7**   | [ ]  |
+| T16 | 2     | Implement `EventCatalogHandler()` — generates MDX zip/stream  | 3      | 2      | 3       | **3**   | [ ]  |
+| T17 | 2     | Write HTTP handler tests (status, content-type, body shape)   | 3      | 2      | 3       | **3**   | [ ]  |
+| T18 | 2     | Write builder tests (Command/Query/Event registration)        | 3      | 2      | 2       | **2.5** | [ ]  |
+| T19 | 2     | Verify all tests + lint pass                                  | 3      | 1      | 2       | **5**   | [ ]  |
+| T20 | 3     | Implement `usermgmtcatalog.Default()` (7 cmds + 7 events)     | 4      | 2      | 4       | **4**   | [ ]  |
+| T21 | 3     | Write usermgmt catalog tests                                  | 3      | 2      | 3       | **3**   | [ ]  |
+| T22 | 3     | Wire `catalog.Validate()` in `Build()` — return violations    | 2      | 1      | 2       | **4**   | [ ]  |
+| T23 | 3     | Write `catalog/README.md` (quickstart, all 4 exporters)       | 4      | 2      | 5       | **4.5** | [ ]  |
+| T24 | 3     | Update root `README.md` — mention catalog sub-package         | 2      | 1      | 3       | **5**   | [ ]  |
+| T25 | 3     | Write `docs/adr/0008-catalog-sub-package.md`                  | 3      | 1      | 2       | **5**   | [ ]  |
+| T26 | 3     | Write `docs/adr/0009-go-cqrs-lite-module-selection.md`        | 3      | 2      | 2       | **2.5** | [ ]  |
+| T27 | 3     | Write `docs/integrations/go-cqrs-lite-middleware.md`          | 2      | 1      | 3       | **5**   | [ ]  |
+| T28 | 4     | Update `FEATURES.md` — catalog sub-package row                | 1      | 1      | 2       | **3**   | [ ]  |
+| T29 | 4     | Update `TODO_LIST.md` — mark catalog work                     | 1      | 1      | 1       | **2**   | [ ]  |
+| T30 | 4     | Update `AGENTS.md` — add catalog/ to module table             | 2      | 1      | 2       | **4**   | [ ]  |
+| T31 | 4     | Add catalog to `integration_test/` go.mod + cross-module test | 2      | 2      | 2       | **2**   | [ ]  |
+| T32 | 4     | Add catalog example to `examples/datastar-demo/`              | 2      | 2      | 3       | **2.5** | [ ]  |
+| T33 | 4     | Verify `nix run .#lint` passes on all 5 modules               | 2      | 1      | 2       | **4**   | [ ]  |
+| T34 | 4     | Update CHANGELOG.md with v2.5.0 catalog section               | 2      | 1      | 2       | **4**   | [ ]  |
 
 **Totals:** 34 tasks · ~4.5 hours estimated · All tasks ≤ 12 min
 
