@@ -5,6 +5,8 @@ import (
 	"encoding/base32"
 	"testing"
 	"time"
+
+	"github.com/pquerna/otp/totp"
 )
 
 func newTestServiceWithTOTP(t *testing.T) *Service {
@@ -85,7 +87,7 @@ func TestTOTP_Disable(t *testing.T) {
 	code := currentTOTPCode(t, decodeSecret(t, setup.Secret))
 	_ = svc.VerifyTOTPSetup(ctx, reg.User.ID, code)
 
-	if err := svc.DisableTOTP(ctx, reg.User.ID); err != nil {
+	if err := svc.DisableTOTP(ctx, reg.User.ID, code); err != nil {
 		t.Fatalf("DisableTOTP: %v", err)
 	}
 
@@ -151,6 +153,10 @@ func decodeSecret(t *testing.T, b32 string) []byte {
 
 func currentTOTPCode(t *testing.T, secret []byte) string {
 	t.Helper()
-	counter := time.Now().Unix() / int64(TOTPTimeStep.Seconds())
-	return generateTOTPCode(secret, counter)
+	b32Secret := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(secret)
+	code, err := totp.GenerateCode(b32Secret, time.Now())
+	if err != nil {
+		t.Fatalf("generate TOTP code: %v", err)
+	}
+	return code
 }

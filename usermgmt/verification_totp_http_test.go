@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"encoding/base32"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/pquerna/otp/totp"
 )
 
 func setupAuthenticatedHandler(t *testing.T, cfg ServiceConfig) (*Service, http.Handler, string) {
@@ -163,7 +166,9 @@ func TestHandlers_TOTPDisable(t *testing.T) {
 		t.Fatalf("VerifyTOTPSetup: %v", err)
 	}
 
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/disable", token, "")
+	code2 := currentTOTPCode(t, decodeSecret(t, setup.Secret))
+	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/disable", token,
+		`{"code":"`+code2+`"}`)
 	assertStatusCode(t, w, http.StatusOK)
 }
 
@@ -426,10 +431,14 @@ func TestHandlers_TOTPVerify_InvalidCode(t *testing.T) {
 		t.Fatalf("VerifyTOTPSetup: %v", err)
 	}
 
-	// Generate a code from a far-past counter — guaranteed not to match the window.
+	// Generate a code from a far-past time — guaranteed not to match the window.
 	user, _ := svc.readModel.FindByUserID(NewUserID("authu1"))
-	farPastCounter := time.Now().Unix()/int64(TOTPTimeStep.Seconds()) - 100
-	invalidCode := generateTOTPCode(user.TOTPSecret, farPastCounter)
+	farPastTime := time.Now().Add(-100 * TOTPTimeStep)
+	b32Secret := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(user.TOTPSecret)
+	invalidCode, err := totp.GenerateCode(b32Secret, farPastTime)
+	if err != nil {
+		t.Fatalf("generate invalid code: %v", err)
+	}
 
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/verify", token,
 		`{"code":"`+invalidCode+`"}`)
@@ -449,7 +458,7 @@ func TestHandlers_TOTPDisable_NotEnabled(t *testing.T) {
 	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{
 		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
 	})
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/disable", token, "")
+	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/disable", token, `{"code":"123456"}`)
 	assertStatusCode(t, w, http.StatusBadRequest)
 }
 

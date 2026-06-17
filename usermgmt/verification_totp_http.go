@@ -177,10 +177,16 @@ func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
+	var req totpCodeRequest
+	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest,
+			fmt.Errorf("%w: invalid request body: %w", ErrValidation, err).Error())
+		return
+	}
 	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
-	if err := h.service.DisableTOTP(ctx, user.ID); err != nil {
+	if err := h.service.DisableTOTP(ctx, user.ID, req.Code); err != nil {
 		writeError(w, errorStatus(err), err.Error())
 		return
 	}
