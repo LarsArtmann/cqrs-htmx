@@ -172,6 +172,69 @@ inner.AddDataStore(/* ... */)
 cat := b.Build()
 ```
 
+## Recipe: Catalog for the `usermgmt` Module
+
+There is intentionally **no** `usermgmtcatalog.Default()` package. A pre-built
+catalog would force one of two undesirable options: either the `catalog/`
+module gains a dependency on `usermgmt` (breaking its zero-dependency
+principle), or `usermgmt` gains a dependency on `catalog` (dragging the YAML
+marshaller into every usermgmt consumer). Instead, document the events and
+commands in your own application — it is roughly 20 lines.
+
+The event payload types (`UserRegisteredPayload`, `RolesUpdatedPayload`, …) are
+exported with JSON struct tags, so they reflect cleanly. The command structs
+have unexported fields by design (they carry an `id.AggregateID`), so define
+thin exported DTO types that mirror their HTTP request shapes:
+
+```go
+import (
+    cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v2"
+    "github.com/larsartmann/cqrs-htmx/usermgmt"
+)
+
+// Command request DTOs — exported fields with struct tags for schema reflection.
+type registerUserRequest struct {
+    Email       string   `json:"email"        doc:"User email address"`
+    DisplayName string   `json:"display_name" doc:"Display name"`
+    Roles       []string `json:"roles"        doc:"Initial roles"`
+}
+
+type changeEmailRequest struct {
+    Email string `json:"email" doc:"New email address"`
+}
+
+// ...define DTOs for the remaining commands as needed...
+
+func usermgmtCatalog() *catalog.Catalog {
+    b := cataloghtmx.New("User Management", "1.0.0")
+
+    // Commands — register the DTOs that describe the HTTP request shapes.
+    cataloghtmx.Command[registerUserRequest](b, "register-user",
+        cataloghtmx.WithOperation("POST", "/auth/register"))
+    cataloghtmx.Command[changeEmailRequest](b, "change-email",
+        cataloghtmx.WithOperation("POST", "/auth/change-email"))
+
+    // Events — the persisted payloads are the real contract; reflect them directly.
+    cataloghtmx.Event[usermgmt.UserRegisteredPayload](b, "user.registered", catalog.Sends)
+    cataloghtmx.Event[usermgmt.RolesUpdatedPayload](b, "user.roles-updated", catalog.Sends)
+    cataloghtmx.Event[usermgmt.EmailChangedPayload](b, "user.email-changed", catalog.Sends)
+    cataloghtmx.Event[usermgmt.DisplayNameChangedPayload](b, "user.display-name-changed", catalog.Sends)
+    cataloghtmx.Event[usermgmt.UserDeletedPayload](b, "user.deleted", catalog.Sends)
+    cataloghtmx.Event[usermgmt.CredentialAddedPayload](b, "user.credential-added", catalog.Sends)
+    cataloghtmx.Event[usermgmt.CredentialRemovedPayload](b, "user.credential-removed", catalog.Sends)
+    cataloghtmx.Event[usermgmt.EmailVerifiedPayload](b, "user.email-verified", catalog.Sends)
+    cataloghtmx.Event[usermgmt.TOTPEnabledPayload](b, "user.totp-enabled", catalog.Sends)
+    cataloghtmx.Event[usermgmt.TOTPDisabledPayload](b, "user.totp-disabled", catalog.Sends)
+
+    return b.Build()
+}
+```
+
+This keeps the module boundaries clean while giving you a one-screen starting
+point. Adjust the operations, descriptions, and DTO fields to match your
+HTTP layer.
+
 ## Dependencies
 
 | Dependency                | Purpose                                       |

@@ -8,9 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- **catalog sub-package** (5th Go module): Automatic API documentation generation from Go CQRS types. Produces OpenAPI 3.0, AsyncAPI 3.0, D2 diagrams, and EventCatalog MDX from a single registration. Zero dependency on root or usermgmt modules — consumers opt in via `go get github.com/larsartmann/cqrs-htmx/catalog/v2`. Includes HTTP handlers (`OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `EventCatalogHandler`), JSON/YAML output, schema auto-derivation from struct tags, and catalog validation. See [catalog/README.md](catalog/README.md) and ADR 0008.
-- **ADR 0009**: Documents the rationale for which go-cqrs-lite modules are used (8 direct) vs not used (13 excluded), with specific reasons for each exclusion.
+- **catalog sub-package** (5th Go module): Automatic API documentation generation from Go CQRS types. Produces OpenAPI 3.0, AsyncAPI 3.0, D2 diagrams, and EventCatalog MDX file trees from a single registration. Zero dependency on root or usermgmt modules — consumers opt in via `go get github.com/larsartmann/cqrs-htmx/catalog/v2`. Includes HTTP handlers (`OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `GenerateEventCatalog`), JSON/YAML output via `WithFormat()`, schema auto-derivation from struct tags, and catalog validation (`Build()` panics, `BuildValid()` returns violations). See [catalog/README.md](catalog/README.md) and ADR 0008.
+- **ADR 0009**: Documents the rationale for which go-cqrs-lite modules are used (8 direct) vs not used (13 excluded), with specific reasons for each exclusion. Cross-references the middleware integration guide.
 - **Middleware integration guide** (`docs/integrations/go-cqrs-lite-middleware.md`): Documents how go-cqrs-lite dispatch middleware (retry, circuit breaker, metrics, tracing) composes with cqrs-htmx HTTP middleware. Different layers, no conflict.
+
+### Fixed
+
+- **Removed lying `EventCatalogHandler`**: The handler set `Content-Type: application/zip` but served a JSON file listing — a critical honesty violation. Removed entirely; kept `GenerateEventCatalog()` (build-time/startup-time file generation, which is the correct EventCatalog model).
+- **Fixed `flake.nix` split brain**: `nix run .#test` (and `.#lint`/`.#build`/`.#coverage`) silently skipped the catalog module. Catalog is now included in all four multi-module nix apps.
+- **Removed self-referential `replace` directive** in `catalog/go.mod` (`replace github.com/larsartmann/cqrs-htmx/catalog/v2 => ./`) — pointed the module at itself.
+- **Bumped `flake.nix` `packages.default` version** from stale `2.3.0` to `2.4.0` to match the current release.
+- **Fixed `errors.Join` anti-pattern**: Replaced `errors.Join(errors.New("..."), err)` with idiomatic `fmt.Errorf("...: %w", err)` for proper error wrapping.
+- **Fixed 7 lint issues** in the catalog module: errchkjson, exhaustive, exhaustruct×3, forcetypeassert, gci. All modules report 0 lint issues.
+- **Removed duplicate import** in `catalog/example_test.go` (same package imported twice with different aliases).
 
 ## [2.4.0] - 2026-06-17
 
