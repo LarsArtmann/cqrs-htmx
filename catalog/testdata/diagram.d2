@@ -1,0 +1,79 @@
+title: {
+  label: "Golden Service"
+  near: top-center
+  shape: text
+  style: {
+    font-size: 28
+    bold: true
+    underline: true
+  }
+}
+
+classes: {
+  service: {
+    style: {
+      fill: "#e8f5e9"
+      stroke: "#2e7d32"
+      stroke-width: 2
+      border-radius: 8
+      font-color: "#1b5e20"
+      bold: true
+    }
+  }
+  command: {
+    style: {
+      fill: "#e3f2fd"
+      stroke: "#1565c0"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#0d47a1"
+    }
+  }
+  event: {
+    style: {
+      fill: "#fce4ec"
+      stroke: "#c62828"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#b71c1c"
+    }
+  }
+  query: {
+    style: {
+      fill: "#f3e5f5"
+      stroke: "#6a1b9a"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#4a148c"
+    }
+  }
+}
+
+golden_svc: {
+  class: service
+  label: "Golden Service"
+  direction: down
+
+  create_thing: {
+    class: command
+    label: "Test (v1.0.0)"
+    tooltip: "Fields: email: string — Email address"
+  }
+  thing_created: {
+    class: event
+    shape: queue
+    label: "Test (v1.0.0)"
+    tooltip: "Fields: user_id: string — User identifier"
+  }
+  get_thing: {
+    class: query
+    label: "Test (v1.0.0)"
+    tooltip: "Fields: id: string — User ID"
+  }
+  golden_svc -> golden_svc.create_thing: "receives"
+  golden_svc.thing_created -> golden_svc: "publishes"
+  golden_svc -> golden_svc.get_thing: "handles"
+
+}
+
+

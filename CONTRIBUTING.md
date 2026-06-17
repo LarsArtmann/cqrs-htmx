@@ -20,27 +20,31 @@ GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
 # Usermgmt submodule (separate Go module)
 cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
 
+# Catalog submodule (separate Go module)
+cd catalog && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+
 # Integration tests (separate Go module)
 cd integration_test && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
 
-# Lint
+# Lint (root + usermgmt)
 golangci-lint run
 ```
 
-All three must pass with zero errors before submitting.
+All tests in all modules must pass with zero errors before submitting. The `nix run .#test` app runs all modules in sequence (root, catalog, usermgmt, integration_test) with `-race`. The `nix run .#lint` app runs lint on root + usermgmt.
 
 ## Architecture
 
 This is a **library/SDK**, not an application. There is no `main` package. Consumers import `github.com/larsartmann/cqrs-htmx` into their projects.
 
-The project uses a **multi-module Go workspace** with 4 modules:
+The project uses a **multi-module Go workspace** with 5 modules:
 
-| Module        | Path                        | Go Module                                   |
-| ------------- | --------------------------- | ------------------------------------------- |
-| Root          | `./`                        | `github.com/larsartmann/cqrs-htmx`          |
-| Usermgmt      | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt` |
-| Integration   | `./integration_test/`       | separate test module                        |
-| Datastar Demo | `./examples/datastar-demo/` | example app                                 |
+| Module        | Path                        | Go Module                                      |
+| ------------- | --------------------------- | ---------------------------------------------- |
+| Root          | `./`                        | `github.com/larsartmann/cqrs-htmx`             |
+| Usermgmt      | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt`    |
+| Integration   | `./integration_test/`       | separate test module                           |
+| Catalog       | `./catalog/`                | `github.com/larsartmann/cqrs-htmx/catalog/v2`  |
+| Datastar Demo | `./examples/datastar-demo/` | example app                                    |
 
 ```
 cqrs-htmx/
@@ -64,6 +68,7 @@ cqrs-htmx/
 ├── security.go         # SecurityHeadersMiddleware, SecurityHeadersConfig
 ├── recovery.go         # RecoveryMiddleware, panic recovery with stack logging
 ├── usermgmt/      # User management submodule (RBAC, sessions, password auth)
+├── catalog/       # API documentation generation submodule (OpenAPI, AsyncAPI, D2)
 ├── integration_test/ # Cross-module integration tests
 └── examples/datastar-demo/ # Real-time CQRS + Datastar SSE example
 ```
@@ -190,4 +195,4 @@ The `golangci_lint_ls` LSP may show ~23 stale warnings that `golangci-lint run` 
 - [ ] No hardcoded HTMX header strings — use constants
 - [ ] Error wrapping uses `fmt.Errorf("%w: ...")` — not `errors.Wrapf`
 - [ ] `AGENTS.md` updated if adding new features, gotchas, or conventions
-- [ ] Run tests in all modules: root, usermgmt, integration_test
+- [ ] Run tests in all modules: root, catalog, usermgmt, integration_test

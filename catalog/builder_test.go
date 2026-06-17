@@ -228,3 +228,77 @@ func TestSchemaDerivation(t *testing.T) {
 		t.Errorf("expected description 'Email address', got %q", emailProp.Description)
 	}
 }
+
+func TestWithServiceName(t *testing.T) {
+	t.Parallel()
+
+	b := cataloghtmx.New("Default", "1.0.0", cataloghtmx.WithServiceName("Custom Name"))
+	cat := b.Build()
+
+	if string(cat.Services[0].Name) != "Custom Name" {
+		t.Errorf("expected service name 'Custom Name', got %q", cat.Services[0].Name)
+	}
+}
+
+func TestBuildValid_ValidCatalog(t *testing.T) {
+	t.Parallel()
+
+	b := cataloghtmx.New("Test", "1.0.0")
+	cataloghtmx.Command[testCmd](b, "create-thing")
+
+	cat, violations := b.BuildValid()
+	if len(violations) != 0 {
+		t.Fatalf("expected no violations for valid catalog, got %d: %v", len(violations), violations)
+	}
+
+	if cat == nil {
+		t.Fatal("expected non-nil catalog")
+	}
+}
+
+func TestBuildValid_DuplicateMessageIDs(t *testing.T) {
+	t.Parallel()
+
+	b := cataloghtmx.New("Test", "1.0.0")
+	cataloghtmx.Command[testCmd](b, "dup-id")
+	cataloghtmx.Command[testCmd](b, "dup-id")
+
+	_, violations := b.BuildValid()
+	if len(violations) == 0 {
+		t.Fatal("expected violations for duplicate message IDs, got none")
+	}
+}
+
+func TestBuild_PanicsOnDuplicateMessageIDs(t *testing.T) {
+	t.Parallel()
+
+	b := cataloghtmx.New("Test", "1.0.0")
+	cataloghtmx.Command[testCmd](b, "dup-id")
+	cataloghtmx.Command[testCmd](b, "dup-id")
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("expected Build to panic on duplicate message IDs")
+		}
+	}()
+
+	b.Build()
+}
+
+func TestRegistry(t *testing.T) {
+	t.Parallel()
+
+	b := cataloghtmx.New("Test", "1.0.0")
+	if b.Registry() == nil {
+		t.Fatal("expected non-nil Registry")
+	}
+}
+
+func TestInnerBuilder(t *testing.T) {
+	t.Parallel()
+
+	b := cataloghtmx.New("Test", "1.0.0")
+	if b.InnerBuilder() == nil {
+		t.Fatal("expected non-nil InnerBuilder")
+	}
+}

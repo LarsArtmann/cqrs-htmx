@@ -264,3 +264,107 @@ func TestWithBasePath(t *testing.T) {
 		}
 	}
 }
+
+func TestWithDescription(t *testing.T) {
+	t.Parallel()
+
+	cat := setupTestCatalog().Build()
+	handler := cataloghtmx.OpenAPIHandler(
+		cat,
+		cataloghtmx.WithDescription("My awesome API"),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	var doc map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &doc); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+
+	info, ok := doc["info"].(map[string]any)
+	if !ok {
+		t.Fatal("expected info section in OpenAPI document")
+	}
+
+	if info["description"] != "My awesome API" {
+		t.Errorf("expected description 'My awesome API', got %v", info["description"])
+	}
+}
+
+func TestHealthCheckHandler_HealthyBodyContent(t *testing.T) {
+	t.Parallel()
+
+	cat := setupTestCatalog().Build()
+	handler := cataloghtmx.HealthCheckHandler(cat)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 for catalog with services, got %d", w.Code)
+	}
+
+	var body map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+		t.Fatalf("invalid JSON body: %v", err)
+	}
+
+	if body["status"] != "healthy" {
+		t.Errorf("expected status 'healthy', got %v", body["status"])
+	}
+
+	services, ok := body["services"].(float64)
+	if !ok {
+		t.Fatalf("expected 'services' count in body, got %T", body["services"])
+	}
+
+	if services < 1 {
+		t.Errorf("expected at least 1 service, got %v", services)
+	}
+}
+
+func TestHealthCheckHandler_NilCatalogBody(t *testing.T) {
+	t.Parallel()
+
+	handler := cataloghtmx.HealthCheckHandler(nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d", w.Code)
+	}
+
+	var body map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+		t.Fatalf("invalid JSON body: %v", err)
+	}
+
+	if body["status"] != "unhealthy" {
+		t.Errorf("expected status 'unhealthy', got %v", body["status"])
+	}
+
+	if body["message"] != "catalog has no services" {
+		t.Errorf("expected message 'catalog has no services', got %v", body["message"])
+	}
+}
+
+func TestGenerateEventCatalog_BadOutputDir(t *testing.T) {
+	t.Parallel()
+
+	cat := setupTestCatalog().Build()
+
+	// A path under /proc should be unwritable on Linux, triggering the error path.
+	err := cataloghtmx.GenerateEventCatalog(cat, "/proc/cannot-write-here")
+	if err == nil {
+		t.Fatal("expected error writing to unwritable directory")
+	}
+
+	if !strings.Contains(err.Error(), "failed to generate EventCatalog files") {
+		t.Errorf("expected wrapped error message, got %v", err)
+	}
+}

@@ -1,0 +1,170 @@
+{
+  "components": {
+    "schemas": {
+      "command.create-thing": {
+        "properties": {
+          "email": {
+            "description": "Email address",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "type": "object"
+      },
+      "event.thing.created": {
+        "properties": {
+          "user_id": {
+            "description": "User identifier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "type": "object"
+      },
+      "query.get-thing": {
+        "properties": {
+          "id": {
+            "description": "User ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Golden Service",
+    "version": "1.0.0"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/api/golden-svc/create-thing": {
+      "post": {
+        "operationId": "postCreateThing",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/command.create-thing"
+              }
+            }
+          },
+          "description": "Test request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Test",
+        "tags": [
+          "Golden Service"
+        ]
+      }
+    },
+    "/api/golden-svc/events/thing.created": {
+      "post": {
+        "operationId": "eventThing.created",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/event.thing.created"
+              }
+            }
+          },
+          "description": "Test event payload",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Event received"
+          }
+        },
+        "summary": "Event: Test",
+        "tags": [
+          "Golden Service"
+        ]
+      }
+    },
+    "/api/golden-svc/get-thing/{id}": {
+      "get": {
+        "operationId": "getGetThing",
+        "parameters": [
+          {
+            "description": "User ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "User ID",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/query.get-thing"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Test",
+        "tags": [
+          "Golden Service"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Current server",
+      "url": "."
+    }
+  ],
+  "tags": [
+    {
+      "name": "Golden Service"
+    }
+  ]
+}

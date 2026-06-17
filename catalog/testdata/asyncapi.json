@@ -1,0 +1,188 @@
+{
+  "asyncapi": "3.0.0",
+  "channels": {
+    "commands.create-thing": {
+      "address": "golden-svc.commands.create-thing",
+      "messages": {
+        "commands": {
+          "$ref": "#/components/messages/command.create-thing"
+        }
+      },
+      "title": "Test command Channel"
+    },
+    "events.thing.created": {
+      "address": "golden-svc.events.thing.created",
+      "messages": {
+        "events": {
+          "$ref": "#/components/messages/event.thing.created"
+        }
+      },
+      "title": "Test event Channel"
+    },
+    "queries.get-thing": {
+      "address": "golden-svc.queries.get-thing",
+      "messages": {
+        "queries": {
+          "$ref": "#/components/messages/query.get-thing"
+        }
+      },
+      "title": "Test querie Channel"
+    }
+  },
+  "components": {
+    "messages": {
+      "command.create-thing": {
+        "contentType": "application/json",
+        "name": "create-thing",
+        "payload": {
+          "$ref": "#/components/schemas/command.create-thing"
+        },
+        "tags": [
+          {
+            "name": "commands"
+          }
+        ],
+        "title": "Test"
+      },
+      "event.thing.created": {
+        "contentType": "application/json",
+        "name": "thing.created",
+        "payload": {
+          "$ref": "#/components/schemas/event.thing.created"
+        },
+        "tags": [
+          {
+            "name": "events"
+          }
+        ],
+        "title": "Test"
+      },
+      "query.get-thing": {
+        "contentType": "application/json",
+        "name": "get-thing",
+        "payload": {
+          "$ref": "#/components/schemas/query.get-thing"
+        },
+        "tags": [
+          {
+            "name": "queries"
+          }
+        ],
+        "title": "Test"
+      }
+    },
+    "schemas": {
+      "command.create-thing": {
+        "properties": {
+          "email": {
+            "description": "Email address",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "type": "object"
+      },
+      "event.thing.created": {
+        "properties": {
+          "user_id": {
+            "description": "User identifier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "type": "object"
+      },
+      "query.get-thing": {
+        "properties": {
+          "id": {
+            "description": "User ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "defaultContentType": "application/json",
+  "id": "urn:goldenservice:api",
+  "info": {
+    "title": "Golden Service",
+    "version": "1.0.0"
+  },
+  "operations": {
+    "handleget-thing": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/queries.get-thing"
+      },
+      "messages": [
+        {
+          "$ref": "#/components/messages/query.get-thing"
+        }
+      ],
+      "tags": [
+        {
+          "name": "queries"
+        },
+        {
+          "name": "golden-svc"
+        }
+      ],
+      "title": "Handle Test"
+    },
+    "publishthing.created": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/events.thing.created"
+      },
+      "messages": [
+        {
+          "$ref": "#/components/messages/event.thing.created"
+        }
+      ],
+      "tags": [
+        {
+          "name": "events"
+        },
+        {
+          "name": "golden-svc"
+        }
+      ],
+      "title": "Publish Test"
+    },
+    "receivecreate-thing": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/commands.create-thing"
+      },
+      "messages": [
+        {
+          "$ref": "#/components/messages/command.create-thing"
+        }
+      ],
+      "tags": [
+        {
+          "name": "commands"
+        },
+        {
+          "name": "golden-svc"
+        }
+      ],
+      "title": "Receive Test"
+    }
+  },
+  "servers": {
+    "production": {
+      "description": "Message broker",
+      "host": "localhost:9092",
+      "protocol": "kafka"
+    }
+  }
+}
