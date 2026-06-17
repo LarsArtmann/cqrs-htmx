@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/mail"
 	"strconv"
 	"strings"
 
@@ -22,17 +21,12 @@ type ImportUser struct {
 // Validate normalizes and validates the import user fields.
 // Returns ErrValidation if any field is invalid.
 func (u *ImportUser) Validate() error {
-	u.Email = strings.ToLower(strings.TrimSpace(u.Email))
 	u.DisplayName = strings.TrimSpace(u.DisplayName)
-	if u.Email == "" {
-		return fmt.Errorf("%w: email is required", ErrValidation)
+	email, err := ParseEmail(u.Email)
+	if err != nil {
+		return err
 	}
-	if _, err := mail.ParseAddress(u.Email); err != nil {
-		return fmt.Errorf("%w: invalid email %q: %s", ErrValidation, u.Email, err)
-	}
-	if len(u.Email) > maxEmailLength {
-		return fmt.Errorf("%w: email too long (max %d)", ErrValidation, maxEmailLength)
-	}
+	u.Email = email.String()
 	if len(u.DisplayName) > maxDisplayNameLength {
 		return fmt.Errorf("%w: display name too long (max %d)", ErrValidation, maxDisplayNameLength)
 	}

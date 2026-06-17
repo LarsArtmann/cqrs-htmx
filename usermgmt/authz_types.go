@@ -1,8 +1,6 @@
 package usermgmt
 
 import (
-	"fmt"
-
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -127,34 +125,30 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 
 	m, err := model.NewModelFromString(modelStr)
 	if err != nil {
-		return nil, event.NewTransient("casbin_error", "parse casbin model").WithCause(err)
+		return nil, event.WrapTransient(err, "casbin_error", "parse casbin model")
 	}
 
 	e, err := casbin.NewEnforcer(m)
 	if err != nil {
-		return nil, event.NewTransient("casbin_error", "create enforcer").WithCause(err)
+		return nil, event.WrapTransient(err, "casbin_error", "create enforcer")
 	}
 
 	for _, p := range config.Policies {
 		if _, err := e.AddPolicy(policyArgs(p)...); err != nil {
-			return nil, event.NewTransient(
-				"casbin_error",
-				fmt.Sprintf(
-					"add policy {%s, %s, %s, %s, %s}",
-					p.Subject,
-					p.Domain,
-					p.Object,
-					p.Action,
-					p.Effect,
-				),
-			).WithCause(err)
+			return nil, event.Wrapf(
+				err, event.Transient, "casbin_error",
+				"add policy {%s, %s, %s, %s, %s}",
+				p.Subject, p.Domain, p.Object, p.Action, p.Effect,
+			)
 		}
 	}
 
 	for _, g := range config.Groups {
 		if _, err := e.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
-			return nil, event.NewTransient("casbin_error", fmt.Sprintf("add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)).
-				WithCause(err)
+			return nil, event.Wrapf(
+				err, event.Transient, "casbin_error",
+				"add group {%s, %s, %s}", g.Subject, g.Role, g.Domain,
+			)
 		}
 	}
 
@@ -169,8 +163,10 @@ func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
 	}
 	ok, err := a.enforcer.Enforce(sub, dom, obj, string(act))
 	if err != nil {
-		return false, event.NewTransient("casbin_error", fmt.Sprintf("enforce %s/%s/%s/%s", sub, dom, obj, act)).
-			WithCause(err)
+		return false, event.Wrapf(
+			err, event.Transient, "casbin_error",
+			"enforce %s/%s/%s/%s", sub, dom, obj, act,
+		)
 	}
 	return ok, nil
 }
@@ -182,7 +178,7 @@ func (a *Authz) EnforceAny(rvals ...any) (bool, error) {
 	}
 	ok, err := a.enforcer.Enforce(rvals...)
 	if err != nil {
-		return false, event.NewTransient("casbin_error", "enforce any").WithCause(err)
+		return false, event.WrapTransient(err, "casbin_error", "enforce any")
 	}
 	return ok, nil
 }
@@ -210,8 +206,10 @@ func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, err
 	}
 	allowed, matched, err := a.enforcer.EnforceEx(sub, dom, obj, string(act))
 	if err != nil {
-		return nil, event.NewTransient("casbin_error", fmt.Sprintf("sub=%s dom=%s obj=%s", sub, dom, obj)).
-			WithCause(err)
+		return nil, event.Wrapf(
+			err, event.Transient, "casbin_error",
+			"sub=%s dom=%s obj=%s", sub, dom, obj,
+		)
 	}
 	return &EnforceResult{
 		Allowed:      allowed,
@@ -227,12 +225,16 @@ func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, err
 func (a *Authz) Authorize(sub, dom, obj string, act Action) error {
 	ok, err := a.Enforce(sub, dom, obj, act)
 	if err != nil {
-		return event.NewTransient("casbin_error", fmt.Sprintf("authorize %s/%s/%s/%s", sub, dom, obj, act)).
-			WithCause(err)
+		return event.Wrapf(
+			err, event.Transient, "casbin_error",
+			"authorize %s/%s/%s/%s", sub, dom, obj, act,
+		)
 	}
 	if !ok {
-		return event.NewRejection("forbidden", fmt.Sprintf("%s cannot %s %s in domain %s", sub, act, obj, dom)).
-			WithCause(ErrForbidden)
+		return event.Wrapf(
+			ErrForbidden, event.Rejection, "forbidden",
+			"%s cannot %s %s in domain %s", sub, act, obj, dom,
+		)
 	}
 	return nil
 }
@@ -241,16 +243,4 @@ func (a *Authz) Authorize(sub, dom, obj string, act Action) error {
 // policy methods (AddPolicy, RemovePolicy, etc.).
 func policyArgs(p Policy) []any {
 	return []any{string(p.Subject), p.Domain, p.Object, string(p.Action), string(p.Effect)}
-}
-
-func policyWrapErr(msg string, p Policy) string {
-	return fmt.Sprintf(
-		"%s {%s, %s, %s, %s, %s}",
-		msg,
-		p.Subject,
-		p.Domain,
-		p.Object,
-		p.Action,
-		p.Effect,
-	)
 }

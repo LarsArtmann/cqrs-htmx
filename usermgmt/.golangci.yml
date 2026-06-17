@@ -100,6 +100,8 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.RolesUpdatedPayload$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.UserRegisteredEvent$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v2\.RolesUpdatedEvent$
+        - github\.com/pquerna/otp/totp\.GenerateOpts$
+        - github\.com/pquerna/otp/totp\.ValidateOpts$
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -126,6 +128,9 @@ linters:
       - path: es_(state|readmodel|casbin_projection|setup|dispatch|events|commands)\.go$
         linters:
           - funlen
+      - path: (http|verification_totp_http)\.go$
+        linters:
+          - contextcheck
       - path: service_core\.go$
         linters:
           - cyclop

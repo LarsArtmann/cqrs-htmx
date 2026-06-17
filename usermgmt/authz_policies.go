@@ -1,8 +1,6 @@
 package usermgmt
 
 import (
-	"fmt"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
@@ -17,16 +15,19 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 	}
 	for _, g := range update.AddGroups {
 		if _, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
-			return event.NewTransient("casbin_error", fmt.Sprintf("add group {%s, %s, %s}", g.Subject, g.Role, g.Domain)).
-				WithCause(err)
+			return event.Wrapf(
+				err, event.Transient, "casbin_error",
+				"add group {%s, %s, %s}", g.Subject, g.Role, g.Domain,
+			)
 		}
 	}
 	for _, p := range update.AddPolicies {
 		if _, err := a.enforcer.AddPolicy(policyArgs(p)...); err != nil {
-			return event.NewTransient(
-				"casbin_error",
-				policyWrapErr("add policy", p),
-			).WithCause(err)
+			return event.Wrapf(
+				err, event.Transient, "casbin_error",
+				"add policy {%s, %s, %s, %s, %s}",
+				p.Subject, p.Domain, p.Object, p.Action, p.Effect,
+			)
 		}
 	}
 	for _, g := range update.RemoveGroups {
@@ -35,16 +36,19 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 			string(g.Role),
 			g.Domain,
 		); err != nil {
-			return event.NewTransient("casbin_error", fmt.Sprintf("remove group {%s, %s, %s}", g.Subject, g.Role, g.Domain)).
-				WithCause(err)
+			return event.Wrapf(
+				err, event.Transient, "casbin_error",
+				"remove group {%s, %s, %s}", g.Subject, g.Role, g.Domain,
+			)
 		}
 	}
 	for _, p := range update.RemovePolicies {
 		if _, err := a.enforcer.RemovePolicy(policyArgs(p)...); err != nil {
-			return event.NewTransient(
-				"casbin_error",
-				policyWrapErr("remove policy", p),
-			).WithCause(err)
+			return event.Wrapf(
+				err, event.Transient, "casbin_error",
+				"remove policy {%s, %s, %s, %s, %s}",
+				p.Subject, p.Domain, p.Object, p.Action, p.Effect,
+			)
 		}
 	}
 	return nil
@@ -57,7 +61,7 @@ func (a *Authz) AddPolicy(p Policy) error {
 	}
 	_, err := a.enforcer.AddPolicy(policyArgs(p)...)
 	if err != nil {
-		return event.NewTransient("casbin_error", "add policy").WithCause(err)
+		return event.WrapTransient(err, "casbin_error", "add policy")
 	}
 	return nil
 }
@@ -69,7 +73,7 @@ func (a *Authz) RemovePolicy(p Policy) error {
 	}
 	_, err := a.enforcer.RemovePolicy(policyArgs(p)...)
 	if err != nil {
-		return event.NewTransient("casbin_error", "remove policy").WithCause(err)
+		return event.WrapTransient(err, "casbin_error", "remove policy")
 	}
 	return nil
 }
@@ -81,8 +85,10 @@ func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
 	}
 	_, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
-		return event.NewTransient("casbin_error", fmt.Sprintf("add group %s/%s/%s", g.Subject, g.Role, g.Domain)).
-			WithCause(err)
+		return event.Wrapf(
+			err, event.Transient, "casbin_error",
+			"add group %s/%s/%s", g.Subject, g.Role, g.Domain,
+		)
 	}
 	return nil
 }
@@ -94,8 +100,10 @@ func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 	}
 	_, err := a.enforcer.RemoveGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
-		return event.NewTransient("casbin_error", fmt.Sprintf("remove group %s/%s/%s", g.Subject, g.Role, g.Domain)).
-			WithCause(err)
+		return event.Wrapf(
+			err, event.Transient, "casbin_error",
+			"remove group %s/%s/%s", g.Subject, g.Role, g.Domain,
+		)
 	}
 	return nil
 }
@@ -114,13 +122,17 @@ func (a *Authz) RemoveAllRolesForUser(subject string) error {
 	for _, domain := range domains {
 		roles, err := a.enforcer.GetRolesForUser(subject, domain)
 		if err != nil {
-			return event.NewTransient("casbin_error",
-				fmt.Sprintf("get roles for %s in domain %s", subject, domain)).WithCause(err)
+			return event.Wrapf(
+				err, event.Transient, "casbin_error",
+				"get roles for %s in domain %s", subject, domain,
+			)
 		}
 		for _, role := range roles {
 			if _, err := a.enforcer.RemoveGroupingPolicy(subject, role, domain); err != nil {
-				return event.NewTransient("casbin_error",
-					fmt.Sprintf("remove group {%s, %s, %s}", subject, role, domain)).WithCause(err)
+				return event.Wrapf(
+					err, event.Transient, "casbin_error",
+					"remove group {%s, %s, %s}", subject, role, domain,
+				)
 			}
 		}
 	}
@@ -134,7 +146,7 @@ func (a *Authz) Policies() ([][]string, error) {
 	}
 	p, err := a.enforcer.GetPolicy()
 	if err != nil {
-		return nil, event.NewTransient("casbin_error", "get policies").WithCause(err)
+		return nil, event.WrapTransient(err, "casbin_error", "get policies")
 	}
 	return p, nil
 }
@@ -146,7 +158,7 @@ func (a *Authz) GroupPolicies() ([][]string, error) {
 	}
 	g, err := a.enforcer.GetGroupingPolicy()
 	if err != nil {
-		return nil, event.NewTransient("casbin_error", "get group policies").WithCause(err)
+		return nil, event.WrapTransient(err, "casbin_error", "get group policies")
 	}
 	return g, nil
 }
