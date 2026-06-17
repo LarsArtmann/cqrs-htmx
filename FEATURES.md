@@ -156,12 +156,12 @@
 
 ## Metrics
 
-| Metric         | Root   | usermgmt |
-| -------------- | ------ | -------- |
-| Coverage       | 96.0%+ | 86.2%    |
-| Ginkgo specs   | 464+   | —        |
-| Lint issues    | 0      | 0        |
-| Prod files     | 23     | 10       |
-| Test files     | 26+    | 12       |
-| Benchmarks     | 18+    | 3        |
-| Godoc examples | 17+    | 1        |
+| Metric         | Root   | usermgmt | catalog |
+| -------------- | ------ | -------- | ------- |
+| Coverage       | 96.4%  | 88.5%    | 95.3%   |
+| Ginkgo specs   | 464+   | —        | —       |
+| Lint issues    | 0      | 0        | 0       |
+| Prod files     | 23     | 10       | 2       |
+| Test files     | 26+    | 12       | 4       |
+| Benchmarks     | 18+    | 3        | 0       |
+| Godoc examples | 17+    | 1        | 1       |

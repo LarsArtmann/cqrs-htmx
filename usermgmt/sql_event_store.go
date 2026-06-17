@@ -32,6 +32,15 @@ type SQLEventStore struct {
 
 type placeholderFunc func(i int) string
 
+// SQL dialect identifiers supported by SQLEventStore.
+const (
+	dialectPostgres = "postgres"
+	dialectPgx      = "pgx"
+	dialectSQLite   = "sqlite"
+	dialectSQLite3  = "sqlite3"
+	dialectMySQL    = "mysql"
+)
+
 // NewSQLEventStore creates a SQLEventStore and auto-migrates the events table.
 // The dialect must be "postgres", "sqlite", or "mysql".
 func NewSQLEventStore(ctx context.Context, db *sql.DB, dialect string) (*SQLEventStore, error) {
@@ -48,11 +57,11 @@ func NewSQLEventStore(ctx context.Context, db *sql.DB, dialect string) (*SQLEven
 
 func placeholderFor(dialect string) (placeholderFunc, error) {
 	switch dialect {
-	case "postgres", "pgx":
+	case dialectPostgres, dialectPgx:
 		return func(i int) string { return fmt.Sprintf("$%d", i) }, nil
-	case "sqlite", "sqlite3":
+	case dialectSQLite, dialectSQLite3:
 		return func(i int) string { return "?" }, nil
-	case "mysql":
+	case dialectMySQL:
 		return func(i int) string { return "?" }, nil
 	default:
 		return nil, fmt.Errorf("unsupported dialect %q: use postgres, sqlite, or mysql", dialect)
@@ -62,7 +71,7 @@ func placeholderFor(dialect string) (placeholderFunc, error) {
 func (s *SQLEventStore) migrate(ctx context.Context, dialect string) error {
 	var ddl string
 	switch dialect {
-	case "postgres", "pgx":
+	case dialectPostgres, dialectPgx:
 		ddl = `
 		CREATE TABLE IF NOT EXISTS user_events (
 			event_id TEXT PRIMARY KEY,
@@ -76,7 +85,7 @@ func (s *SQLEventStore) migrate(ctx context.Context, dialect string) error {
 		);
 		CREATE INDEX IF NOT EXISTS idx_user_events_agg ON user_events (aggregate_id, version);
 		CREATE INDEX IF NOT EXISTS idx_user_events_time ON user_events (occurred_at);`
-	case "sqlite", "sqlite3":
+	case dialectSQLite, dialectSQLite3:
 		ddl = `
 		CREATE TABLE IF NOT EXISTS user_events (
 			event_id TEXT PRIMARY KEY,
@@ -90,7 +99,7 @@ func (s *SQLEventStore) migrate(ctx context.Context, dialect string) error {
 		);
 		CREATE INDEX IF NOT EXISTS idx_user_events_agg ON user_events (aggregate_id, version);
 		CREATE INDEX IF NOT EXISTS idx_user_events_time ON user_events (occurred_at);`
-	case "mysql":
+	case dialectMySQL:
 		ddl = `
 		CREATE TABLE IF NOT EXISTS user_events (
 			event_id VARCHAR(255) PRIMARY KEY,

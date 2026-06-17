@@ -18,6 +18,20 @@ type AuditEntry struct {
 	Action      string    `json:"action"`
 }
 
+// Audit action constants — the stable vocabulary recorded in AuditEntry.Action.
+const (
+	AuditActionRegister           = "register"
+	AuditActionRolesUpdated       = "roles_updated"
+	AuditActionEmailChanged       = "email_changed"
+	AuditActionDisplayNameChanged = "display_name_changed"
+	AuditActionUserDeleted        = "user_deleted"
+	AuditActionCredentialAdded    = "credential_added"   //nolint:gosec // G101: audit action label, not a credential
+	AuditActionCredentialRemoved  = "credential_removed" //nolint:gosec // G101: audit action label, not a credential
+	AuditActionEmailVerified      = "email_verified"
+	AuditActionTOTPEnabled        = "totp_enabled"
+	AuditActionTOTPDisabled       = "totp_disabled"
+)
+
 // AuditLog is a projection that records all user-related events as audit entries.
 // It provides a queryable log of who did what, when — useful for compliance
 // and security monitoring.
@@ -56,25 +70,25 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 func auditActionFor(t event.Type) string {
 	switch t {
 	case eventUserRegistered:
-		return "register"
+		return AuditActionRegister
 	case eventRolesUpdated:
-		return "roles_updated"
+		return AuditActionRolesUpdated
 	case eventEmailChanged:
-		return "email_changed"
+		return AuditActionEmailChanged
 	case eventDisplayNameChanged:
-		return "display_name_changed"
+		return AuditActionDisplayNameChanged
 	case eventUserDeleted:
-		return "user_deleted"
+		return AuditActionUserDeleted
 	case eventCredentialAdded:
-		return "credential_added"
+		return AuditActionCredentialAdded
 	case eventCredentialRemoved:
-		return "credential_removed"
+		return AuditActionCredentialRemoved
 	case eventEmailVerified:
-		return "email_verified"
+		return AuditActionEmailVerified
 	case eventTOTPEnabled:
-		return "totp_enabled"
+		return AuditActionTOTPEnabled
 	case eventTOTPDisabled:
-		return "totp_disabled"
+		return AuditActionTOTPDisabled
 	default:
 		return string(t)
 	}

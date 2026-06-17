@@ -190,7 +190,7 @@ thin exported DTO types that mirror their HTTP request shapes:
 import (
     cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
     "github.com/larsartmann/go-cqrs-lite/catalog/v2"
-    "github.com/larsartmann/cqrs-htmx/usermgmt"
+    "github.com/larsartmann/cqrs-htmx/usermgmt/v2"
 )
 
 // Command request DTOs — exported fields with struct tags for schema reflection.

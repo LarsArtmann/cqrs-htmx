@@ -30,8 +30,6 @@ vendor/
 /cqrs-htmx
 # Dependencies
 node_modules/
-# Copy/paste detection report
-/report/jscpd-report.json
 # Sensitive files
 *.db
 
@@ -39,7 +37,6 @@ node_modules/
 examples/datastar-demo/datastar-demo
 # Nix build output
 /result
-# Build artifacts
-/v2reports/
-# Build artifacts
-/v2
+# Generated reports (buildflow coverage / jscpd / lint output)
+/reports/
+/report/

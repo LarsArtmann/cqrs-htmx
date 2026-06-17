@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-17 | **Coverage:** 96.4% root, 84.1% usermgmt, catalog | **Lint:** 0 issues (all modules) | **Version:** v2.4.0
+**Updated:** 2026-06-17 | **Coverage:** 96.4% root, 88.5% usermgmt, 95.3% catalog | **Lint:** 0 issues (all modules) | **Version:** v2.4.0
 
 ## Status Legend
 
