@@ -104,12 +104,12 @@ cqrs-htmx/
 
 | Dependency              | Purpose                                                                 | Used in          |
 | ----------------------- | ----------------------------------------------------------------------- | ---------------- |
-| go-cqrs-lite v2.3.0     | CQRS dispatch, pagination, event sourcing (decider, memory, projection) | All modules      |
+| go-cqrs-lite v2.4.0     | CQRS dispatch, pagination, event sourcing (decider, memory, projection) | All modules      |
 | casbin/casbin/v3        | Authorization                                                           | Root, usermgmt   |
 | justinas/nosurf v1.2.0  | CSRF protection                                                         | Root             |
-| go-error-family v0.3.0  | Error classification                                                    | Root             |
+| go-error-family v0.4.0  | Error classification                                                    | All modules      |
 | larsartmann/httputil    | ClientIP extraction                                                     | Root             |
-| go-branded-id           | Branded types                                                           | usermgmt         |
+| go-branded-id v0.3.1    | Branded types                                                           | usermgmt         |
 | go-webauthn v0.17.4     | WebAuthn/Passkey passwordless authentication                            | usermgmt         |
 | pquerna/otp v1.5.0      | TOTP (RFC 6238) multi-factor authentication                             | usermgmt         |
 | golang.org/x/time       | Rate limiting                                                           | Root             |
@@ -129,7 +129,7 @@ cqrs-htmx/
 
 ### Error Handling
 
-- **go-error-family v0.3.0**: Replaced `cockroachdb/errors` for error classification. `sync.Once` lazy-registers sentinels. Re-exported via `event/v2` package
+- **go-error-family v0.4.0**: Replaced `cockroachdb/errors` for error classification. `sync.Once` lazy-registers sentinels. Re-exported via `event/v2` package
 - **Error → HTTP mapping**: `MapError` classifies errors into families (Rejection, NotFound, Conflict, etc.) → HTTP status
 - **HTMX-aware errors**: All error handlers check for HTMX requests; auth errors use HX-Redirect
 - **Request ID in errors**: `Config.IncludeRequestIDInErrors` auto-selects request-ID-aware error handlers
@@ -245,8 +245,8 @@ cqrs-htmx/
 
 1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-3. **go-cqrs-lite v2.3.0**: Per-module tags (`command/v2.3.0`, `event/v2.3.0`, etc.) now published. All `go.mod` files declare `v2.3.0`. No replace directives needed
-4. **Removed APIs in v2.3.0**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
+3. **go-cqrs-lite v2.4.0**: Per-module tags (`command/v2.4.0`, `event/v2.4.0`, etc.) now published. All `go.mod` files declare `v2.4.0`. No replace directives needed
+4. **Removed APIs in v2.3.0+**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
 5. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
 6. **LSP vs CLI discrepancy**: LSP shows ~31 stale warnings; CLI reports 0 — unresolved LSP cache issue
 7. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
