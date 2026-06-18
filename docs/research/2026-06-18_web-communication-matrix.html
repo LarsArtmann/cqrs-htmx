@@ -850,9 +850,10 @@
         <h2>The Full Landscape</h2>
         <p class="section-desc">
           HTTP, SSE, and WebSocket are the three core transports this library targets — but the web
-          offers more. This catalogues <strong>every other browser-native communication technology</strong>
-          plus the server-to-server options, with a verdict on whether each belongs in cqrs-htmx.
-          Items marked <span class="badge badge-good">In scope</span> are candidates for future matrix
+          offers more. This catalogues
+          <strong>every other browser-native communication technology</strong> plus the
+          server-to-server options, with a verdict on whether each belongs in cqrs-htmx. Items
+          marked <span class="badge badge-good">In scope</span> are candidates for future matrix
           columns; the rest are documented so the exclusion is a decision, not an oversight.
         </p>
 
@@ -874,7 +875,9 @@
                 <td class="capability">WebTransport</td>
                 <td>Full-duplex</td>
                 <td>Lowest</td>
-                <td>HTTP/3 + QUIC · <strong>both</strong> reliable streams &amp; unreliable datagrams</td>
+                <td>
+                  HTTP/3 + QUIC · <strong>both</strong> reliable streams &amp; unreliable datagrams
+                </td>
                 <td><span class="badge badge-medium">Next-gen</span></td>
                 <td><span class="badge badge-good">⭐ In scope</span></td>
               </tr>
@@ -966,10 +969,10 @@
             <strong>WebTransport</strong> and <strong>Fetch Streaming</strong> are the legitimate
             candidates to become 4th and 5th matrix columns — they extend the live-transport story
             with QUIC datagrams and true bidirectional HTTP/2 streaming respectively.
-            <strong>Web Push</strong> is a distinct capability (reach-the-closed-tab) that no current
-            transport provides. <strong>gRPC-Web</strong> and <strong>Webhooks</strong> serve a
-            different audience (S2S / typed RPC) and are documented here for completeness, not for
-            inclusion in the HTMX transport matrix.
+            <strong>Web Push</strong> is a distinct capability (reach-the-closed-tab) that no
+            current transport provides. <strong>gRPC-Web</strong> and
+            <strong>Webhooks</strong> serve a different audience (S2S / typed RPC) and are
+            documented here for completeness, not for inclusion in the HTMX transport matrix.
           </p>
         </div>
       </div>
