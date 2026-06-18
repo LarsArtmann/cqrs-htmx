@@ -134,5 +134,31 @@ func RegisterCommands(
 		return fmt.Errorf("register %s: %w", cmdDisableTOTP, err)
 	}
 
+	if err := command.RegisterTyped(
+		dispatcher, cmdLinkExternalAccount,
+		func(ctx context.Context, c *LinkExternalAccountCmd) error {
+			return repo.Execute(
+				ctx, c.AggregateID(), aggregateTypeUser,
+				decideLinkExternalAccount(
+					c.AggregateID(), c.provider, c.subject, c.email, c.displayName,
+				),
+			)
+		},
+	); err != nil {
+		return fmt.Errorf("register %s: %w", cmdLinkExternalAccount, err)
+	}
+
+	if err := command.RegisterTyped(
+		dispatcher, cmdUnlinkExternalAccount,
+		func(ctx context.Context, c *UnlinkExternalAccountCmd) error {
+			return repo.Execute(
+				ctx, c.AggregateID(), aggregateTypeUser,
+				decideUnlinkExternalAccount(c.AggregateID(), c.provider, c.subject),
+			)
+		},
+	); err != nil {
+		return fmt.Errorf("register %s: %w", cmdUnlinkExternalAccount, err)
+	}
+
 	return nil
 }

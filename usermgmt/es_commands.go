@@ -132,3 +132,47 @@ func NewDisableTOTPCmd(aggID id.AggregateID) *DisableTOTPCmd {
 
 func (c *DisableTOTPCmd) Type() command.Type          { return cmdDisableTOTP }
 func (c *DisableTOTPCmd) AggregateID() id.AggregateID { return c.aggregateID }
+
+type LinkExternalAccountCmd struct {
+	aggregateID id.AggregateID
+	provider    string
+	subject     string
+	email       string
+	displayName string
+}
+
+func NewLinkExternalAccountCmd(
+	aggID id.AggregateID, provider, subject, email, displayName string,
+) *LinkExternalAccountCmd {
+	return &LinkExternalAccountCmd{
+		aggregateID: aggID,
+		provider:    provider,
+		subject:     subject,
+		email:       email,
+		displayName: displayName,
+	}
+}
+
+func (c *LinkExternalAccountCmd) Type() command.Type          { return cmdLinkExternalAccount }
+func (c *LinkExternalAccountCmd) AggregateID() id.AggregateID { return c.aggregateID }
+
+type UnlinkExternalAccountCmd struct {
+	aggregateID id.AggregateID
+	provider    string
+	subject     string
+}
+
+func NewUnlinkExternalAccountCmd(
+	aggID id.AggregateID, provider, subject string,
+) *UnlinkExternalAccountCmd {
+	return &UnlinkExternalAccountCmd{
+		aggregateID: aggID,
+		provider:    provider,
+		subject:     subject,
+	}
+}
+
+func (c *UnlinkExternalAccountCmd) Type() command.Type { return cmdUnlinkExternalAccount } //nolint:lll // struct method
+func (c *UnlinkExternalAccountCmd) AggregateID() id.AggregateID {
+	return c.aggregateID
+}

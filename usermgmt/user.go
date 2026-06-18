@@ -20,16 +20,17 @@ const (
 // In the event-sourced architecture, User is a read-only projection — all mutations
 // happen through commands that produce events.
 type User struct {
-	ID            UserID               `json:"id"`
-	Email         string               `json:"email"`
-	DisplayName   string               `json:"display_name,omitempty"`
-	Roles         []Role               `json:"roles"`
-	Credentials   []WebAuthnCredential `json:"credentials,omitempty"`
-	EmailVerified bool                 `json:"email_verified"`
-	TOTPEnabled   bool                 `json:"totp_enabled"`
-	TOTPSecret    []byte               `json:"-"`
-	CreatedAt     time.Time            `json:"created_at"`
-	UpdatedAt     time.Time            `json:"updated_at"`
+	ID               UserID               `json:"id"`
+	Email            string               `json:"email"`
+	DisplayName      string               `json:"display_name,omitempty"`
+	Roles            []Role               `json:"roles"`
+	Credentials      []WebAuthnCredential `json:"credentials,omitempty"`
+	ExternalAccounts []ExternalAccount    `json:"external_accounts,omitempty"`
+	EmailVerified    bool                 `json:"email_verified"`
+	TOTPEnabled      bool                 `json:"totp_enabled"`
+	TOTPSecret       []byte               `json:"-"`
+	CreatedAt        time.Time            `json:"created_at"`
+	UpdatedAt        time.Time            `json:"updated_at"`
 }
 
 // NewUser creates a User with the given identity fields and a default "viewer" role.
@@ -58,6 +59,8 @@ func (u *User) Clone() *User {
 	for i, c := range u.Credentials {
 		cp.Credentials[i] = c.Clone()
 	}
+	cp.ExternalAccounts = make([]ExternalAccount, len(u.ExternalAccounts))
+	copy(cp.ExternalAccounts, u.ExternalAccounts)
 	cp.TOTPSecret = append([]byte(nil), u.TOTPSecret...)
 	return &cp
 }
