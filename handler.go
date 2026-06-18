@@ -116,18 +116,25 @@ func (a *App) executePreDispatchChecks(
 	return nil
 }
 
+// writeDefaultStatus writes cfg.successStatus (or 204 No Content) when the
+// handler has no explicit body content to write.
+func writeDefaultStatus(w http.ResponseWriter, cfg *handlerConfig) {
+	if !cfg.hasNoExplicitBody() {
+		return
+	}
+	status := cfg.successStatus
+	if status == 0 {
+		status = http.StatusNoContent
+	}
+	w.WriteHeader(status)
+}
+
 func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) {
 	if applyHTMXResponse(w, r, cfg) {
 		return
 	}
 
-	if cfg.hasNoExplicitBody() {
-		status := cfg.successStatus
-		if status == 0 {
-			status = http.StatusNoContent
-		}
-		w.WriteHeader(status)
-	}
+	writeDefaultStatus(w, cfg)
 }
 
 func (a *App) applyQueryResponse(
@@ -147,13 +154,7 @@ func (a *App) applyQueryResponse(
 		}
 	}
 
-	if cfg.hasNoExplicitBody() {
-		status := cfg.successStatus
-		if status == 0 {
-			status = http.StatusNoContent
-		}
-		w.WriteHeader(status)
-	}
+	writeDefaultStatus(w, cfg)
 }
 
 func (a *App) handleQueryDispatch(

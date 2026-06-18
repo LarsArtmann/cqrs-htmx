@@ -13,6 +13,17 @@ type Signals struct {
 	ID    string `json:"id"`
 }
 
+// readSignals parses the request signals into s, writing a 400 response and
+// returning false on parse failure. Use this at the top of every datastar
+// command handler to keep the error-handling shape consistent.
+func readSignals(w http.ResponseWriter, r *http.Request, s *Signals) bool {
+	if err := datastar.ReadSignals(r, s); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return false
+	}
+	return true
+}
+
 func dispatchErrorNotification(w http.ResponseWriter, r *http.Request, err error) {
 	sse := datastar.NewSSE(w, r)
 	sse.MarshalAndPatchSignals(map[string]any{
@@ -26,8 +37,7 @@ func dispatchErrorNotification(w http.ResponseWriter, r *http.Request, err error
 func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var s Signals
-		if err := datastar.ReadSignals(r, &s); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if !readSignals(w, r, &s) {
 			return
 		}
 		if s.Title == "" {
@@ -63,8 +73,7 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 func handleToggleTodo(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var s Signals
-		if err := datastar.ReadSignals(r, &s); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if !readSignals(w, r, &s) {
 			return
 		}
 
@@ -87,8 +96,7 @@ func handleToggleTodo(cqrs *CQRS) http.HandlerFunc {
 func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var s Signals
-		if err := datastar.ReadSignals(r, &s); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if !readSignals(w, r, &s) {
 			return
 		}
 
@@ -115,8 +123,7 @@ func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 func handleUpdateTodo(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var s Signals
-		if err := datastar.ReadSignals(r, &s); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if !readSignals(w, r, &s) {
 			return
 		}
 		if s.ID == "" {

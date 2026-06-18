@@ -135,20 +135,13 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 
 	for _, p := range config.Policies {
 		if _, err := e.AddPolicy(policyArgs(p)...); err != nil {
-			return nil, event.Wrapf(
-				err, event.Transient, "casbin_error",
-				"add policy {%s, %s, %s, %s, %s}",
-				p.Subject, p.Domain, p.Object, p.Action, p.Effect,
-			)
+			return nil, wrapPolicyError(err, "add", p)
 		}
 	}
 
 	for _, g := range config.Groups {
 		if _, err := e.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
-			return nil, event.Wrapf(
-				err, event.Transient, "casbin_error",
-				"add group {%s, %s, %s}", g.Subject, g.Role, g.Domain,
-			)
+			return nil, wrapGroupError(err, "add", g)
 		}
 	}
 
