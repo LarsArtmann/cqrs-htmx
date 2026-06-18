@@ -60,7 +60,7 @@ func (s *Service) FinishOAuthLogin(
 	storedProvider, pkceVerifier, err := s.oauth2States.Consume(state)
 	if err != nil {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "invalid_state")
-		return nil, err
+		return nil, fmt.Errorf("consume oauth2 state: %w", err)
 	}
 	if storedProvider != provider {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "provider_mismatch")
