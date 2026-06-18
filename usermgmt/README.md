@@ -1,40 +1,68 @@
-# .
+# usermgmt — Event-Sourced User Management for cqrs-htmx
 
 ## Description
 
-A Go project.
+Passwordless, event-sourced user management with WebAuthn/Passkey authentication,
+RBAC authorization via Casbin, and opt-in event signing/encryption.
 
 ## Installation
 
 ```bash
-go get github.com/username/.
+go get github.com/larsartmann/cqrs-htmx/usermgmt/v2
 ```
 
-## Usage
+## Event Signing & Encryption (Opt-in)
+
+Signing and encryption are **zero-dependency by default** — consumers who don't
+need crypto pull nothing extra. To enable, import `go-cqrs-lite/signing/v2` and/or
+`go-cqrs-lite/encryption/v2` and wire them via `ServiceConfig`:
+
+### Encryption-at-rest + bus-level signing (recommended)
 
 ```go
-package rules
-
 import (
-    "fmt"
+    "github.com/larsartmann/go-cqrs-lite/encryption/v2"
+    "github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
-func main() {
-    fmt.Println("Hello, World!")
-}
+signer, _ := signing.NewHMAC(signingKey)       // 32+ bytes
+cipher, _ := encryption.NewAES256GCM(encKey)   // exactly 32 bytes
+
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+    StoreWrapper: func(s event.Store) (event.Store, error) {
+        return encryption.NewEncryptedStore(s, cipher)
+    },
+    PublishMiddleware: []event.PublishMiddleware{signing.SignMiddleware(signer)},
+    HandlerMiddleware: []event.Middleware{signing.RequireSignatureMiddleware(signer)},
+})
 ```
+
+### Asymmetric signing (Ed25519)
+
+```go
+pubKey, privKey, _ := signing.GenerateEd25519KeyPair()
+signer, _ := signing.NewEd25519(privKey)
+verifier, _ := signing.NewEd25519Verifier(pubKey)
+
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+    PublishMiddleware: []event.PublishMiddleware{signing.SignMiddleware(signer)},
+    HandlerMiddleware: []event.Middleware{signing.RequireSignatureMiddleware(verifier)},
+})
+```
+
+See `docs/adr/0011-event-signing-encryption.md` for the full decision record.
 
 ## Development
 
 ```bash
 # Build the project
-just build
+nix run .#build
 
 # Run tests
-just test
+nix run .#test
 
 # Run linter
-just lint
+nix run .#lint
 ```
 
 ## License

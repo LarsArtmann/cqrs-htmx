@@ -259,6 +259,19 @@ cqrs-htmx/
 - **UserDataFormat** (renamed from ExportFormat): Used for both import and export. Constants: `UserDataFormatJSON`, `UserDataFormatCSV`.
 - **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
 
+### Event Signing & Encryption (Opt-in) — 2026-06-18
+
+- **Dependency-free seams**: `ServiceConfig` gains three opt-in fields that wire go-cqrs-lite's `signing/v2` and `encryption/v2` into usermgmt's owned infrastructure — **without** importing those modules (consumer imports them, true opt-in).
+- **`StoreWrapper func(event.Store) (event.Store, error)`**: Wraps the event store _before_ journal detection + repository creation. Use `encryption.NewEncryptedStore` for transparent encryption-at-rest. Wrapper must implement `event.Journal` when inner does (NewEncryptedStore does).
+- **`PublishMiddleware []event.PublishMiddleware`**: Applied via `bus.UsePublish` _before_ projections subscribe. Use `signing.SignMiddleware` / `encryption.EncryptMiddleware`. Outermost-first (registration order).
+- **`HandlerMiddleware []event.Middleware`**: Applied via `bus.Use` _before_ projections subscribe. Use `signing.VerifyMiddleware` / `encryption.DecryptMiddleware`. Outermost-first.
+- **Recommended pattern**: Store-level encryption (`NewEncryptedStore`) + bus-level signing (`SignMiddleware`). Store-level encryption keeps in-process projections seeing plaintext while persisted events are ciphertext.
+- **Middleware ordering**: For sign+encrypt, sign plaintext _before_ encrypting. For decrypt+verify, decrypt _before_ verifying.
+- **Why seams not hard deps**: Consistent with existing duck-typing (`Enforcer` ← casbin, `TemplComponent` ← templ). Consumers who don't need crypto pull zero new deps.
+- **Root module**: No integration — root `App` doesn't own a bus/store. Consumers wire signing/encryption directly via go-cqrs-lite.
+- **See**: `docs/adr/0011-event-signing-encryption.md`
+- **Split brain fixed**: Both `NewService(ServiceConfig)` and `NewEventSourcedSetup(EventSourcedConfig)` support the same security hooks. `DefaultEventSourcedSetup()` delegates to `NewEventSourcedSetup(EventSourcedConfig{})`.
+
 ## Key Gotchas
 
 ### Module & Build
