@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"context"
 	"encoding/base32"
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -71,10 +70,7 @@ func TestHandlers_SendVerificationEmail(t *testing.T) {
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/email/verify/send", token, "")
 	assertStatusCode(t, w, http.StatusOK)
 
-	var resp map[string]string
-	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
+	resp := decodeJSON[map[string]string](t, w)
 	if resp["token"] == "" {
 		t.Error("expected non-empty token")
 	}
@@ -115,10 +111,7 @@ func TestHandlers_TOTPSetup(t *testing.T) {
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/setup", token, "")
 	assertStatusCode(t, w, http.StatusOK)
 
-	var resp TOTPSetupResponse
-	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
+	resp := decodeJSON[TOTPSetupResponse](t, w)
 	if resp.Secret == "" || resp.QRCodeURI == "" {
 		t.Error("expected secret and qr_code_uri")
 	}
@@ -209,10 +202,7 @@ func TestHandlers_ImportUsers(t *testing.T) {
 			w := authenticatedRequest(t, h, http.MethodPost, tc.path, token, tc.body)
 			assertStatusCode(t, w, http.StatusOK)
 
-			var result ImportResult
-			if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
-				t.Fatalf("unmarshal: %v", err)
-			}
+			result := decodeJSON[ImportResult](t, w)
 			if result.Imported != 1 {
 				t.Errorf("imported = %d, want 1", result.Imported)
 			}
@@ -455,10 +445,7 @@ func TestHandlers_ImportUsers_InvalidEmail(t *testing.T) {
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/import?format=json", token, body)
 	assertStatusCode(t, w, http.StatusOK)
 
-	var result ImportResult
-	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
+	result := decodeJSON[ImportResult](t, w)
 	if result.Skipped != 1 {
 		t.Errorf("skipped = %d, want 1", result.Skipped)
 	}
@@ -472,10 +459,7 @@ func TestHandlers_ImportUsers_EmptyArray(t *testing.T) {
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/import?format=json", token, "[]")
 	assertStatusCode(t, w, http.StatusOK)
 
-	var result ImportResult
-	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
+	result := decodeJSON[ImportResult](t, w)
 	if result.Imported != 0 || result.Skipped != 0 {
 		t.Errorf("imported=%d skipped=%d, want 0/0", result.Imported, result.Skipped)
 	}
@@ -487,10 +471,7 @@ func TestHandlers_ImportUsers_DuplicateEmail(t *testing.T) {
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/import?format=json", token, body)
 	assertStatusCode(t, w, http.StatusOK)
 
-	var result ImportResult
-	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
+	result := decodeJSON[ImportResult](t, w)
 	if result.Skipped != 1 {
 		t.Errorf("skipped = %d, want 1 (duplicate email)", result.Skipped)
 	}

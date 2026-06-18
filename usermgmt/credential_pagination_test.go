@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -73,11 +72,7 @@ func assertPaginationResponse(t *testing.T, mux http.Handler, user *User, tc pag
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", w.Code, http.StatusOK)
 	}
-
-	var result credentialListResponse
-	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
+	result := decodeJSON[credentialListResponse](t, w)
 	if len(result.Credentials) != tc.wantCount {
 		t.Errorf("credentials count = %d, want %d", len(result.Credentials), tc.wantCount)
 	}
@@ -117,10 +112,7 @@ func TestHandleListCredentials_EmptyList(t *testing.T) {
 		t.Fatalf("status = %d", w.Code)
 	}
 
-	var result credentialListResponse
-	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
+	result := decodeJSON[credentialListResponse](t, w)
 	if len(result.Credentials) != 0 {
 		t.Errorf("expected 0 credentials, got %d", len(result.Credentials))
 	}

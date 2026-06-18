@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -61,12 +60,7 @@ func TestHandler_ListCredentials_WithCredentials(t *testing.T) {
 	mux.ServeHTTP(w, req)
 	assertStatusCode(t, w, http.StatusOK)
 
-	var result struct {
-		Credentials []credentialSummary `json:"credentials"`
-	}
-	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
+	result := decodeJSON[credentialListResponse](t, w)
 	if len(result.Credentials) != 1 {
 		t.Fatalf("expected 1 credential, got %d", len(result.Credentials))
 	}
