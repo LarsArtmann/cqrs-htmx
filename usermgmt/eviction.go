@@ -8,7 +8,7 @@ import "time"
 // (verification tokens, pending TOTP setups, WebAuthn challenge sessions)
 // delegates here to share a single, well-tested implementation. The return
 // value of evict is ignored.
-func startPeriodicEviction(evict func() int, interval time.Duration) (stop func()) {
+func startPeriodicEviction(evict func() int, interval time.Duration) func() {
 	ticker := time.NewTicker(interval)
 	done := make(chan struct{})
 	go func() {
