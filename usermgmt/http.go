@@ -36,6 +36,8 @@ type AuthHandler struct {
 	verificationLimiter    *perIPRateLimiter
 	webauthnLimiter        *perIPRateLimiter
 	oauthLimiter           *perIPRateLimiter
+	oauth2SuccessURL       string
+	oauth2ErrorURL         string
 	importExportAuthorizer AuthorizerFunc
 }
 
@@ -69,6 +71,14 @@ type HandlerConfig struct {
 	WebAuthnRateLimit RateLimitConfig
 	// OAuthRateLimit limits the rate of /auth/oauth/* requests per IP.
 	OAuthRateLimit RateLimitConfig
+	// OAuth2SuccessURL is the URL to redirect the browser to after successful
+	// OAuth2 login. If empty, the callback returns JSON instead (useful for
+	// HTMX/SPA flows where the consumer handles the redirect client-side).
+	OAuth2SuccessURL string
+	// OAuth2ErrorURL is the URL to redirect the browser to on OAuth2 login
+	// failure. The error message is appended as a query parameter. If empty,
+	// the callback returns a JSON error response.
+	OAuth2ErrorURL string
 	// ImportExportAuthorizer controls who can call /auth/import and /auth/export.
 	// Defaults to RequireAdminRole (only users with the admin role).
 	// Set to nil to disable authorization, or provide a custom AuthorizerFunc.
@@ -187,6 +197,8 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 		verificationLimiter:    newLimiterFromConfig(config.VerificationRateLimit),
 		webauthnLimiter:        newLimiterFromConfig(config.WebAuthnRateLimit),
 		oauthLimiter:           newLimiterFromConfig(config.OAuthRateLimit),
+		oauth2SuccessURL:       config.OAuth2SuccessURL,
+		oauth2ErrorURL:         config.OAuth2ErrorURL,
 	}
 }
 

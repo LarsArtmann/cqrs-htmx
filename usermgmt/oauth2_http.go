@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"net/http"
+	"net/url"
 )
 
 // RegisterOAuth2Routes registers the OAuth2 login endpoints on the given ServeMux:
@@ -42,14 +43,14 @@ func (h *AuthHandler) handleOAuth2Callback(w http.ResponseWriter, r *http.Reques
 	}
 	provider := r.PathValue("provider")
 	if provider == "" {
-		writeError(w, http.StatusBadRequest, "provider is required")
+		h.oauth2Error(w, http.StatusBadRequest, "provider is required")
 		return
 	}
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 	if code == "" || state == "" {
-		writeError(w, http.StatusBadRequest, "code and state query parameters are required")
+		h.oauth2Error(w, http.StatusBadRequest, "code and state query parameters are required")
 		return
 	}
 
@@ -58,11 +59,15 @@ func (h *AuthHandler) handleOAuth2Callback(w http.ResponseWriter, r *http.Reques
 
 	resp, err := h.service.FinishOAuthLogin(ctx, provider, code, state)
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		h.oauth2Error(w, errorStatus(err), err.Error())
 		return
 	}
 
 	h.setSessionCookie(w, resp.Session.Token)
+	if h.oauth2SuccessURL != "" {
+		http.Redirect(w, r, h.oauth2SuccessURL, http.StatusFound)
+		return
+	}
 	writeJSON(w, http.StatusOK, resp)
 }
 
@@ -85,4 +90,16 @@ func (h *AuthHandler) handleOAuth2Unlink(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusUnlinked})
+}
+
+// oauth2Error writes an OAuth2 error response. When oauth2ErrorURL is configured,
+// it redirects the browser with the error as a query parameter. Otherwise it
+// returns a JSON error response (for API/HTMX consumers).
+func (h *AuthHandler) oauth2Error(w http.ResponseWriter, status int, message string) {
+	if h.oauth2ErrorURL != "" {
+		redirectURL := h.oauth2ErrorURL + "?error=" + url.QueryEscape(message)
+		http.Redirect(w, nil, redirectURL, http.StatusFound)
+		return
+	}
+	writeError(w, status, message)
 }
