@@ -1,5 +1,7 @@
 package cqrshtmx
 
+import "fmt"
+
 // SSEEventStore retrieves events for SSE reconnection replay.
 // Implementations must be safe for concurrent access.
 type SSEEventStore interface {
@@ -18,7 +20,7 @@ func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID string) (i
 	events := store.EventsAfter(lastEventID)
 	for i, evt := range events {
 		if err := stream.Send(evt); err != nil {
-			return i, err
+			return i, fmt.Errorf("replay after %q (sent %d of %d): %w", lastEventID, i, len(events), err)
 		}
 	}
 	return len(events), nil

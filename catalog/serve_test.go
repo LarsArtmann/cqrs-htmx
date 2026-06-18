@@ -347,7 +347,10 @@ func TestGenerateEventCatalog_BadOutputDir(t *testing.T) {
 		t.Fatal("expected error writing to unwritable directory")
 	}
 
-	if !strings.Contains(err.Error(), "failed to generate EventCatalog files") {
+	if !strings.Contains(err.Error(), "generate EventCatalog files") {
 		t.Errorf("expected wrapped error message, got %v", err)
+	}
+	if !strings.Contains(err.Error(), "/proc/cannot-write-here") {
+		t.Errorf("expected error to include the output dir, got %v", err)
 	}
 }

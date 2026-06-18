@@ -118,7 +118,7 @@ func D2Handler(cat *catalog.Catalog, opts ...ServeOption) http.HandlerFunc {
 func GenerateEventCatalog(cat *catalog.Catalog, outputDir string) error {
 	exporter := eventcatalog.NewExporter(outputDir)
 	if err := exporter.Export(cat); err != nil {
-		return fmt.Errorf("failed to generate EventCatalog files: %w", err)
+		return fmt.Errorf("generate EventCatalog files in %q: %w", outputDir, err)
 	}
 
 	return nil
