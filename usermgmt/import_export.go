@@ -36,12 +36,13 @@ func (u *ImportUser) Validate() error {
 // ExportUser is a user in the export format. It omits credentials and
 // sensitive data — only public profile information is included.
 type ExportUser struct {
-	ID            UserID `json:"id"`
-	Email         Email  `json:"email"`
-	DisplayName   string `json:"display_name,omitempty"`
-	Roles         []Role `json:"roles"`
-	EmailVerified bool   `json:"email_verified"`
-	TOTPEnabled   bool   `json:"totp_enabled"`
+	ID               UserID            `json:"id"`
+	Email            Email             `json:"email"`
+	DisplayName      string            `json:"display_name,omitempty"`
+	Roles            []Role            `json:"roles"`
+	EmailVerified    bool              `json:"email_verified"`
+	TOTPEnabled      bool              `json:"totp_enabled"`
+	ExternalAccounts []ExternalAccount `json:"external_accounts,omitempty"`
 }
 
 // ImportResult reports the outcome of a batch import.
@@ -203,12 +204,13 @@ func (s *Service) exportAllUsers() []ExportUser {
 	users := make([]ExportUser, 0, len(all))
 	for _, u := range all {
 		users = append(users, ExportUser{
-			ID:            u.ID,
-			Email:         Email(u.Email),
-			DisplayName:   u.DisplayName,
-			Roles:         append([]Role(nil), u.Roles...),
-			EmailVerified: u.EmailVerified,
-			TOTPEnabled:   u.TOTPEnabled,
+			ID:               u.ID,
+			Email:            Email(u.Email),
+			DisplayName:      u.DisplayName,
+			Roles:            append([]Role(nil), u.Roles...),
+			EmailVerified:    u.EmailVerified,
+			TOTPEnabled:      u.TOTPEnabled,
+			ExternalAccounts: append([]ExternalAccount(nil), u.ExternalAccounts...),
 		})
 	}
 	return users
