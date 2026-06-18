@@ -23,10 +23,7 @@ func registerUser(t *testing.T, mux *http.ServeMux) *RegisterResponse {
 	if w.Code != http.StatusCreated {
 		t.Fatalf("register: expected 201, got %d: %s", w.Code, w.Body.String())
 	}
-	var resp RegisterResponse
-	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("unmarshal register response: %v", err)
-	}
+	resp := decodeJSON[RegisterResponse](t, w)
 	return &resp
 }
 
@@ -50,4 +47,13 @@ func assertStatusCode(t *testing.T, w *httptest.ResponseRecorder, expected int) 
 	if w.Code != expected {
 		t.Errorf("expected %d, got %d: %s", expected, w.Code, w.Body.String())
 	}
+}
+
+func decodeJSON[T any](t *testing.T, w *httptest.ResponseRecorder) T {
+	t.Helper()
+	var result T
+	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	return result
 }
