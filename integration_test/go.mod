@@ -8,11 +8,11 @@ require (
 	github.com/larsartmann/cqrs-htmx/v2 v2.0.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.5.0
-	github.com/larsartmann/go-cqrs-lite/encryption/v2 v2.4.0
+	github.com/larsartmann/go-cqrs-lite/encryption/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0
-	github.com/larsartmann/go-cqrs-lite/signing/v2 v2.4.0
+	github.com/larsartmann/go-cqrs-lite/signing/v2 v2.5.0
 )
 
 require (
@@ -43,7 +43,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
-	github.com/larsartmann/httputil v0.2.0 // indirect
+	github.com/larsartmann/httputil v0.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pquerna/otp v1.5.0 // indirect
