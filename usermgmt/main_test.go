@@ -103,6 +103,16 @@ func assertErrorIs(t *testing.T, err, target error, msg string) {
 	}
 }
 
+// addTestCredential registers a credential on the given service for the
+// given user, failing the test on error. Used to set up WebAuthn
+// state for tests that exercise credential-dependent code paths.
+func addTestCredential(t *testing.T, svc *Service, userID UserID, cred WebAuthnCredential) {
+	t.Helper()
+	if err := svc.AddCredential(context.Background(), userID, cred); err != nil {
+		t.Fatalf("AddCredential: %v", err)
+	}
+}
+
 func registerTestUser(t *testing.T, svc *Service, id, email string) *RegisterResponse {
 	t.Helper()
 	resp, err := svc.Register(context.Background(), RegisterRequest{
