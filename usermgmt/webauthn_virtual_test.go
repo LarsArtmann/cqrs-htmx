@@ -221,16 +221,7 @@ func buildRegistrationRequest(t *testing.T) *http.Request {
 			"clientDataJSON":    cdj,
 		},
 	}
-	data, err := json.Marshal(body)
-	if err != nil {
-		t.Fatalf("marshal registration body: %v", err)
-	}
-	return &http.Request{
-		Body: io.NopCloser(bytes.NewReader(data)),
-		Header: http.Header{
-			"Content-Type": []string{"application/json"},
-		},
-	}
+	return jsonBodyRequest(t, body, "registration body")
 }
 
 func buildLoginRequest(t *testing.T) *http.Request {
@@ -251,9 +242,14 @@ func buildLoginRequest(t *testing.T) *http.Request {
 			"signature":         sig,
 		},
 	}
+	return jsonBodyRequest(t, body, "login body")
+}
+
+func jsonBodyRequest(t *testing.T, body map[string]any, failContext string) *http.Request {
+	t.Helper()
 	data, err := json.Marshal(body)
 	if err != nil {
-		t.Fatalf("marshal login body: %v", err)
+		t.Fatalf("marshal %s: %v", failContext, err)
 	}
 	return &http.Request{
 		Body: io.NopCloser(bytes.NewReader(data)),

@@ -412,14 +412,7 @@ func TestHandlers_TOTPVerify_InvalidCode(t *testing.T) {
 	svc, h, token := setupAuthenticatedHandler(t, ServiceConfig{
 		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
 	})
-	setup, err := svc.EnableTOTP(context.Background(), NewUserID("authu1"))
-	if err != nil {
-		t.Fatalf("EnableTOTP: %v", err)
-	}
-	code := currentTOTPCode(t, decodeSecret(t, setup.Secret))
-	if err := svc.VerifyTOTPSetup(context.Background(), NewUserID("authu1"), code); err != nil {
-		t.Fatalf("VerifyTOTPSetup: %v", err)
-	}
+	_ = enableTOTPForUser(t, svc)
 
 	// Generate a code from a far-past time — guaranteed not to match the window.
 	user, _ := svc.readModel.FindByUserID(NewUserID("authu1"))
