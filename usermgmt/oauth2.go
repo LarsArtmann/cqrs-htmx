@@ -323,10 +323,6 @@ func (s *oauth2StateStore) EvictExpired() int {
 	return count
 }
 
-func (s *oauth2StateStore) startEviction() (stop func()) {
-	return startPeriodicEviction(s.EvictExpired, oauthStateEvictionInterval)
-}
-
 func generateOAuth2State() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
