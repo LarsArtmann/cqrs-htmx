@@ -48,7 +48,9 @@ cqrs-htmx/
 ├── structured_error.go # StructuredError (RFC 7807), NewStructuredError, NewStructuredErrorWithContext, JSON()
 ├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML
 ├── ws_encoder.go     # WriteWSMessage, WriteWSMessageInto[T] — outbound WS message encoder
-├── ws_broadcaster.go # WSBroadcaster (fan-out), BroadcastHTML, BroadcastOnSuccessWS, BroadcastOnErrorWS
+├── sse_broadcaster.go # SSE Broadcaster (embeds fanOut[SSEEvent]), BroadcastOnSuccess/OnError/Func hooks
+├── ws_broadcaster.go # WSBroadcaster (embeds fanOut[string]), BroadcastOnSuccessWS/OnErrorWS/Func hooks
+├── fanout.go         # fanOut[T] — generic transport-agnostic fan-out hub (shared by SSE + WS)
 ├── ws_dispatch.go    # DispatchWSCommand/DispatchWSQuery — WS→CQRS bridge, DecodeWSJSON[T]/DecodeWSJSONQuery[T]
 ├── ratelimit.go      # RateLimiterMiddleware, per-key token bucket, min-heap eviction
 ├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, RecommendedCSP/HSTS

@@ -1,0 +1,92 @@
+package cqrshtmx
+
+import (
+	"reflect"
+	"sync"
+)
+
+// fanOut is the transport-agnostic subscriber hub shared by SSE [Broadcaster]
+// and [WSBroadcaster]. It provides thread-safe fan-out with O(1) unsubscribe
+// via channel pointer identity and non-blocking broadcast (drops to slow
+// consumers).
+//
+// Both broadcasters embed fanOut, gaining Subscribe/Unsubscribe/Broadcast/
+// SubscriberCount via method promotion. Transport-specific hook constructors
+// (BroadcastOnSuccess, BroadcastOnSuccessWS, etc.) live on the outer types.
+type fanOut[T any] struct {
+	mu          sync.RWMutex
+	subscribers map[uintptr]chan T
+}
+
+// newFanOut creates a fan-out hub with no subscribers.
+func newFanOut[T any]() *fanOut[T] {
+	return &fanOut[T]{
+		mu:          sync.RWMutex{},
+		subscribers: make(map[uintptr]chan T),
+	}
+}
+
+// Subscribe creates a new subscriber channel that receives all broadcast
+// messages. The channel has a buffer of 64; slower consumers may miss messages
+// when the buffer is full.
+//
+// Call Unsubscribe when the client disconnects to prevent memory leaks.
+func (f *fanOut[T]) Subscribe() <-chan T {
+	ch := make(chan T, 64)
+	f.mu.Lock()
+	f.subscribers[channelPtr(ch)] = ch
+	f.mu.Unlock()
+	return ch
+}
+
+// Unsubscribe removes a subscriber channel and closes it.
+// Call this when a client disconnects to prevent memory leaks.
+func (f *fanOut[T]) Unsubscribe(ch <-chan T) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	key := channelPtr(ch)
+	if sender, ok := f.subscribers[key]; ok {
+		delete(f.subscribers, key)
+		close(sender)
+	}
+}
+
+// Broadcast sends a message to all active subscribers.
+// Slow subscribers with full buffers have the message dropped to prevent
+// blocking the broadcaster.
+//
+// The subscriber list is snapshotted under a brief RLock and then iterated
+// without holding the lock, allowing concurrent Subscribe/Unsubscribe calls
+// to proceed during fan-out. This reduces contention at 1000+ subscribers.
+func (f *fanOut[T]) Broadcast(msg T) {
+	f.mu.RLock()
+	if len(f.subscribers) == 0 {
+		f.mu.RUnlock()
+		return
+	}
+	snapshot := make([]chan T, 0, len(f.subscribers))
+	for _, ch := range f.subscribers {
+		snapshot = append(snapshot, ch)
+	}
+	f.mu.RUnlock()
+
+	for _, ch := range snapshot {
+		select {
+		case ch <- msg:
+		default:
+		}
+	}
+}
+
+// SubscriberCount returns the number of active subscribers.
+func (f *fanOut[T]) SubscriberCount() int {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+	return len(f.subscribers)
+}
+
+// channelPtr returns the pointer identity of a channel, regardless of direction.
+func channelPtr(ch any) uintptr {
+	return reflect.ValueOf(ch).Pointer()
+}

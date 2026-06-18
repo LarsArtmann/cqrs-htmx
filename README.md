@@ -460,7 +460,9 @@ Client-side:
 | `wsBroadcaster.Broadcast(msg)`              | Non-blocking send to all subscribers.                                             |
 | `wsBroadcaster.BroadcastHTML(id, html)`     | Convenience: wraps in OOB then broadcasts.                                        |
 | `BroadcastOnSuccessWS(msg)`                 | `AfterDispatchHook` — broadcast on dispatch success.                              |
+| `BroadcastOnSuccessWSFunc(fn)`              | `AfterDispatchHook` — dynamic message generation on success.                      |
 | `BroadcastOnErrorWS()`                      | `AfterDispatchHook` — broadcast StructuredError on failure.                       |
+| `BroadcastOnErrorWSFunc(fn)`                | `AfterDispatchHook` — dynamic error message generation on failure.                |
 | `DispatchWSCommand(r, type, decoder, data)` | Decode WS message → dispatch command. Returns error.                              |
 | `DispatchWSQuery(r, type, decoder, data)`   | Decode WS message → dispatch query. Returns `(result, error)`.                    |
 | `DecodeWSJSON[T](mapper)`                   | Create `WSCommandDecoder` from JSON → T → command mapper.                         |
