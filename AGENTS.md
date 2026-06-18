@@ -186,7 +186,7 @@ cqrs-htmx/
 - **HealthHandler pre-allocation**: Response bodies are package-level `[]byte` vars (`healthyBody`, `unhealthyBody`) — zero allocations per health check
 - **RequestLoggingSlog inlined**: Context ID extraction is inlined directly into the attrs slice — no intermediate `map[string]string` allocation
 - **JSONLogFormatter pooled buffer**: Uses `sync.Pool` for `bytes.Buffer` + `json.Encoder` — buffer reused across requests
-- **Broadcaster snapshot**: `Broadcast()` copies subscriber channels to a slice under RLock, releases the lock, then iterates without holding it — allows concurrent Subscribe/Unsubscribe during fan-out. Costs 1 alloc (snapshot slice) but eliminates contention
+- **Broadcaster fan-out holds RLock**: `Broadcast()` iterates `f.subscribers` while holding the RLock, doing a non-blocking `select` send per channel. This is both allocation-free (no snapshot slice) and — critically — race-safe: a concurrent `Unsubscribe()` (which needs the write lock to `close()` a channel) cannot run during iteration, so sends can never hit a closed channel. The earlier "snapshot under RLock, release, then iterate" optimization was reverted because it allowed `Unsubscribe` to close a channel between snapshot-release and send, panicking the process (`send on closed channel`). Regression test: `sse_broadcaster_test.go` "never panics when unsubscribe races with broadcast".
 - **WriteSSEEvent single-write**: Builds entire SSE frame in one `[]byte` via `append`, one `w.Write` call — replaces 3-5 `fmt.Fprintf` calls
 - **splitSSELines fast-path**: Single-line data (common case) returns without allocating backing array
 - **setTriggerWithDetail common path**: Uses `strings.Builder` instead of `map[string]any + json.Marshal` when no existing trigger
@@ -254,6 +254,7 @@ cqrs-htmx/
 - **Registration = email only**: RegisterRequest has ID + Email + DisplayName. No password field.
 - **Read-your-writes consistency**: `MemoryBus` blocks publishers until handlers complete. Projections update before `Execute()` returns.
 - **Sessions NOT event-sourced**: `SessionStore` interface unchanged. Ephemeral auth artifacts.
+- **SQL store duplication (OPEN)**: `usermgmt.SQLEventStore` (`sql_event_store.go`, `user_events` table) hand-rolls a SQL event store that `go-cqrs-lite/storage/v2` (published at v2.5.0, NOT currently a usermgmt dep) already provides as `storage.SQLEventStore` — with a richer schema (`schema_version`, `payload_encoding`), `sqlpkg.Dialect` abstraction, and `event.WrapInfrastructure` error wrapping. `branching-flow dupe` flags `SQLEventStore`/`SQLSessionStore` as structurally identical. The session store has no upstream equivalent (sessions aren't event-sourced) so it must stay. **Decision pending**: delegate the event store to `go-cqrs-lite/storage/v2` (deletes ~400 LOC, schema migration `user_events`→`events` for existing deployments) vs. keep custom. Surfaced 2026-06-18.
 - **UserID bridge**: `usermgmt.UserID` ↔ `id.AggregateID` via `id.ParseAggregateID(userID.Get())`. Conversion at Service boundary.
 - **Email uniqueness**: Pre-checked in Service.Register via read model before dispatching command.
 - **DeleteUser revokes sessions**: Sessions deleted on user deletion for security.
