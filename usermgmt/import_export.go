@@ -158,7 +158,10 @@ func (s *Service) ExportUsersToJSON(_ context.Context, w io.Writer) error {
 const (
 	csvColumnID            = "id"
 	csvColumnEmail         = "email"
+	csvColumnEmailAlt      = "e-mail"
 	csvColumnDisplayName   = "display_name"
+	csvColumnName          = "name"
+	csvColumnNameAlt       = "displayname"
 	csvColumnRoles         = "roles"
 	csvColumnEmailVerified = "email_verified"
 	csvColumnTOTPEnabled   = "totp_enabled"
@@ -220,9 +223,9 @@ func findCSVColumns(header []string) (emailIdx, nameIdx int) {
 	emailIdx, nameIdx = -1, -1
 	for i, col := range header {
 		switch strings.ToLower(strings.TrimSpace(col)) {
-		case "email", "e-mail":
+		case csvColumnEmail, csvColumnEmailAlt:
 			emailIdx = i
-		case "display_name", "name", "displayname":
+		case csvColumnDisplayName, csvColumnName, csvColumnNameAlt:
 			nameIdx = i
 		}
 	}
