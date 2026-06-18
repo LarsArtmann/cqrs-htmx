@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"time"
 )
 
 // SSEStream manages a single Server-Sent Events connection.
@@ -31,10 +32,11 @@ import (
 //	    }
 //	}
 type SSEStream struct {
-	w   io.Writer
-	r   *http.Request
-	fw  flusher
-	ctx context.Context
+	w            io.Writer
+	r            *http.Request
+	fw           flusher
+	ctx          context.Context
+	onDisconnect []func()
 }
 
 type flusher interface{ Flush() }
@@ -52,7 +54,13 @@ func NewSSEStream(w http.ResponseWriter, r *http.Request) *SSEStream {
 	w.WriteHeader(http.StatusOK)
 
 	fw, _ := w.(flusher)
-	return &SSEStream{w: w, r: r, fw: fw, ctx: r.Context()}
+	return &SSEStream{
+		w:            w,
+		r:            r,
+		fw:           fw,
+		ctx:          r.Context(),
+		onDisconnect: nil,
+	}
 }
 
 // Send writes an SSE event to the stream and flushes the response.
@@ -80,11 +88,14 @@ func (s *SSEStream) Context() context.Context {
 	return s.ctx
 }
 
-// Close flushes any buffered data. Call this (typically via defer) when done
-// with the stream.
+// Close flushes any buffered data and fires any registered OnDisconnect callbacks.
+// Call this (typically via defer) when done with the stream.
 func (s *SSEStream) Close() {
 	if s.fw != nil {
 		s.fw.Flush()
+	}
+	for _, fn := range s.onDisconnect {
+		fn()
 	}
 }
 
@@ -95,7 +106,43 @@ func (s *SSEStream) LastEventID() string {
 	return s.r.Header.Get("Last-Event-ID")
 }
 
-// LastEventIDFromRequest extracts the Last-Event-ID header from an HTTP request.
+// Heartbeat sends SSE comment-frame pings at the given interval until ctx
+// is cancelled. This prevents reverse proxies (Nginx, Cloudflare, AWS ALB)
+// and corporate firewalls from killing idle SSE connections after 30–60s
+// of silence.
+//
+// Run it in a goroutine alongside your event loop:
+//
+//	go stream.Heartbeat(stream.Context(), 15*time.Second)
+//
+// The ping is a standard SSE comment frame (": keepalive\n\n") which browsers
+// ignore but proxies use to reset their idle timers.
+func (s *SSEStream) Heartbeat(ctx context.Context, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if _, err := s.w.Write([]byte(": keepalive\n\n")); err != nil {
+				return
+			}
+			if s.fw != nil {
+				s.fw.Flush()
+			}
+		}
+	}
+}
+
+// OnDisconnect registers a callback that fires when Close is called.
+// Use this for cleanup, metrics, logging, or session deregistration.
+// Multiple callbacks can be registered and fire in registration order.
+func (s *SSEStream) OnDisconnect(fn func()) {
+	s.onDisconnect = append(s.onDisconnect, fn)
+}
+
 // This is the SSE reconnection mechanism: when a client reconnects after a
 // connection drop, the browser sends the ID of the last event it received.
 //
