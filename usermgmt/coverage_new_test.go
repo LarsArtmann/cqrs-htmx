@@ -41,9 +41,7 @@ func TestHandler_ListCredentials_WithCredentials(t *testing.T) {
 	cred := WebAuthnCredential{
 		ID: []byte{0xAB, 0xCD}, Name: "my-key", PublicKey: []byte{1, 2, 3},
 	}
-	if err := svc.AddCredential(context.Background(), NewUserID("u1"), cred); err != nil {
-		t.Fatalf("AddCredential: %v", err)
-	}
+	addTestCredential(t, svc, NewUserID("u1"), cred)
 
 	user, err := svc.GetUser(context.Background(), NewUserID("u1"))
 	if err != nil {
@@ -79,9 +77,7 @@ func TestHandler_DeleteCredential_Success(t *testing.T) {
 
 	credID := []byte{0x01, 0x02, 0x03}
 	cred := WebAuthnCredential{ID: credID, Name: "to-delete", PublicKey: []byte{9}}
-	if err := svc.AddCredential(context.Background(), NewUserID("u1"), cred); err != nil {
-		t.Fatalf("AddCredential: %v", err)
-	}
+	addTestCredential(t, svc, NewUserID("u1"), cred)
 
 	user, err := svc.GetUser(context.Background(), NewUserID("u1"))
 	if err != nil {
@@ -260,9 +256,7 @@ func TestBeginLogin_LockoutNotTriggered(t *testing.T) {
 	registerTestUser(t, svc, "u1", "unlocked@test.com")
 	// Add a credential so BeginLogin doesn't fail with ErrNoCredentials
 	cred := WebAuthnCredential{ID: []byte{1}, PublicKey: []byte{2}}
-	if err := svc.AddCredential(context.Background(), NewUserID("u1"), cred); err != nil {
-		t.Fatalf("AddCredential: %v", err)
-	}
+	addTestCredential(t, svc, NewUserID("u1"), cred)
 
 	// Single failure should not lock
 	svc.lockout.RecordFailure("unlocked@test.com")

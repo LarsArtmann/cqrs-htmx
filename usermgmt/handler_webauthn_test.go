@@ -1,7 +1,6 @@
 package usermgmt
 
 import (
-	"context"
 	"net/http"
 	"strings"
 	"testing"
@@ -68,9 +67,7 @@ func TestHandler_WebAuthnBeginLogin_Success(t *testing.T) {
 	cred := WebAuthnCredential{
 		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
 	}
-	if err := svc.AddCredential(context.Background(), NewUserID("u1"), cred); err != nil {
-		t.Fatalf("AddCredential: %v", err)
-	}
+	addTestCredential(t, svc, NewUserID("u1"), cred)
 
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)

@@ -18,9 +18,7 @@ import (
 var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 	Describe("RenderTempl", func() {
 		It("renders a fixed templ component", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return "irrelevant", nil
-			})
+			app := newQueryAppWithResult(constantQueryHandler("irrelevant"))
 			r := httptest.NewRequest(http.MethodGet, "/page", strings.NewReader(`{}`))
 			w := serve(app.Query(
 				"GetUser",
@@ -33,9 +31,7 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 
 	Describe("RenderTemplResult", func() {
 		It("maps result to templ component and renders", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return aliceName, nil
-			})
+			app := newQueryAppWithResult(constantQueryHandler(aliceName))
 			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
 			w := serve(app.Query(
 				"GetUser",
@@ -48,9 +44,7 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 		})
 
 		It("returns error for wrong result type", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return 42, nil
-			})
+			app := newQueryAppWithResult(constantQueryHandler(42))
 			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
 			w := serve(app.Query(
 				"GetUser",
@@ -78,9 +72,7 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 		})
 
 		It("returns error for mismatched result type", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return 42, nil
-			})
+			app := newQueryAppWithResult(constantQueryHandler(42))
 			r := httptest.NewRequest(http.MethodGet, "/user", strings.NewReader(`{}`))
 			w := serve(app.Query(
 				"GetUser",
@@ -150,9 +142,7 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 		})
 
 		It("returns error for mismatched result type", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return "not a paginated result", nil
-			})
+			app := newQueryAppWithResult(constantQueryHandler("not a paginated result"))
 
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query(
