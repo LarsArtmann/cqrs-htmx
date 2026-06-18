@@ -124,7 +124,7 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 // VerifyTOTP validates a TOTP code against the user's active TOTP secret.
 // This is used as a second factor during login.
 func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) error {
-	if _, err := s.requireValidTOTP(userID, code, "totp_verify_failed"); err != nil {
+	if err := s.requireValidTOTP(userID, code, "totp_verify_failed"); err != nil {
 		return err
 	}
 	s.logAuth(statusTOTPVerified, userID)
@@ -134,7 +134,7 @@ func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) er
 // DisableTOTP removes the TOTP configuration for a user.
 // A valid TOTP code is required to prevent MFA stripping via session hijack.
 func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) error {
-	if _, err := s.requireValidTOTP(userID, code, "totp_disable_failed"); err != nil {
+	if err := s.requireValidTOTP(userID, code, "totp_disable_failed"); err != nil {
 		return err
 	}
 	aggID, err := aggIDFromUser(userID)
@@ -150,24 +150,24 @@ func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) e
 	return nil
 }
 
-func (s *Service) requireValidTOTP(userID UserID, code, failEvent string) (*User, error) {
+func (s *Service) requireValidTOTP(userID UserID, code, failEvent string) error {
 	if s.totpConfig == nil {
-		return nil, ErrTOTPNotConfigured
+		return ErrTOTPNotConfigured
 	}
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logAuth(failEvent, userID, "reason", "user_not_found")
-		return nil, fmt.Errorf("totp: %w", ErrUserNotFound)
+		return fmt.Errorf("totp: %w", ErrUserNotFound)
 	}
 	if !user.TOTPEnabled || len(user.TOTPSecret) == 0 {
 		s.logAuth(failEvent, userID, "reason", "totp_not_enabled")
-		return nil, ErrTOTPNotEnabled
+		return ErrTOTPNotEnabled
 	}
 	if !validateTOTP(user.TOTPSecret, code, s.totpConfig.Window) {
 		s.logAuth(failEvent, userID, "reason", "invalid_code")
-		return nil, ErrInvalidTOTPCode
+		return ErrInvalidTOTPCode
 	}
-	return user, nil
+	return nil
 }
 
 // --- TOTP validation (using pquerna/otp library) ---

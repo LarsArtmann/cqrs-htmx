@@ -28,10 +28,7 @@ var _ = Describe("Recovery Middleware", func() {
 		})
 
 		It("allows normal requests through", func() {
-			normalHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			})
-			handler := cqrshtmx.RecoveryMiddleware(normalHandler)
+			handler := cqrshtmx.RecoveryMiddleware(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)

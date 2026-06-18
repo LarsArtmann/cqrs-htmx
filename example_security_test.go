@@ -11,9 +11,7 @@ import (
 func ExampleRecommendedHSTS() {
 	handler := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
 		StrictTransportSecurity: cqrshtmx.RecommendedHSTS,
-	})(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	})(okHandler())
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
