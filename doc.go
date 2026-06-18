@@ -94,11 +94,27 @@
 //
 // # WebSocket
 //
-// Bidirectional WS support with encoder, broadcaster, and AfterDispatch hooks:
+// Bidirectional WS support with encoder, broadcaster, dispatch bridge, and hooks:
 //
 //	wsB := cqrshtmx.NewWSBroadcaster()
 //	wsB.Broadcast("<div hx-swap-oob='true'>Updated</div>")
 //	cqrshtmx.WriteWSMessage(w, cqrshtmx.WSMessage{Body: map[string]any{"status": "ok"}})
+//
+// Dispatch WS messages as CQRS commands/queries (the WS counterpart to App.Command/Query):
+//
+//	decoder := cqrshtmx.DecodeWSJSON(func(t CreateTaskInput) (command.Command, error) {
+//	    return command.New("CreateTask", t)
+//	})
+//	err := app.DispatchWSCommand(r, "CreateTask", decoder, rawData)
+//	result, err := app.DispatchWSQuery(r, "GetTasks", queryDecoder, rawData)
+//
+// Bridge WS broadcasts to the dispatch lifecycle via AfterDispatch hooks:
+//
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    AfterDispatch: wsB.BroadcastOnSuccessWSFunc(func(r *http.Request) string {
+//	        return renderTasksHTML()
+//	    }),
+//	})
 //
 // # Submodule: usermgmt
 //
