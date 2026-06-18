@@ -1381,9 +1381,7 @@
                   <span class="cell-detail">request/response</span>
                 </td>
                 <td class="cell">
-                  <span class="cell-status status-have"
-                    ><span class="icon">✓</span> Heartbeat</span
-                  >
+                  <span class="cell-status status-have"><span class="icon">✓</span> Heartbeat</span>
                   <span class="cell-detail">comment-frame ping, 15s default</span>
                 </td>
                 <td class="cell">
@@ -1461,10 +1459,10 @@
           <div class="callout-title">✓ SSE error gap closed</div>
           <p>
             <code>BroadcastOnError</code> / <code>BroadcastOnErrorFunc</code> now fire when
-            <code>err != nil</code>, broadcasting a <code>StructuredError</code> (RFC 7807) JSON event.
-            Combined with <code>SSEStream.Heartbeat</code> for keepalive and
-            <code>WSBroadcaster</code> for WebSocket fan-out, the real-time error-reporting story
-            is now complete across SSE and WS.
+            <code>err != nil</code>, broadcasting a <code>StructuredError</code> (RFC 7807) JSON
+            event. Combined with <code>SSEStream.Heartbeat</code> for keepalive and
+            <code>WSBroadcaster</code> for WebSocket fan-out, the real-time error-reporting story is
+            now complete across SSE and WS.
           </p>
         </div>
       </div>

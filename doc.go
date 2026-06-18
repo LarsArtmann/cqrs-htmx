@@ -67,7 +67,7 @@
 //
 // # SSE Streaming
 //
-// First-class SSE support with fan-out, reconnection, and CQRS bridging:
+// First-class SSE support with fan-out, reconnection, heartbeat, error channel, and CQRS bridging:
 //
 //	broadcaster := cqrshtmx.NewBroadcaster()
 //	ch := broadcaster.Subscribe()
@@ -76,6 +76,29 @@
 //	app, _ := cqrshtmx.New(cqrshtmx.Config{
 //	    AfterDispatch: broadcaster.BroadcastOnSuccess("itemUpdated", ""),
 //	})
+//
+// BroadcastOnError closes the real-time error gap — SSE clients learn when commands fail:
+//
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    AfterDispatch: broadcaster.BroadcastOnError("commandError", ""),
+//	})
+//
+// Heartbeat prevents reverse proxies from killing idle SSE connections:
+//
+//	go stream.Heartbeat(stream.Context(), 15*time.Second)
+//
+// StructuredError (RFC 7807) provides transport-agnostic error payloads for SSE and WS:
+//
+//	payload := cqrshtmx.NewStructuredError(err, r)
+//	broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "error", Data: payload.JSON()})
+//
+// # WebSocket
+//
+// Bidirectional WS support with encoder, broadcaster, and AfterDispatch hooks:
+//
+//	wsB := cqrshtmx.NewWSBroadcaster()
+//	wsB.Broadcast("<div hx-swap-oob='true'>Updated</div>")
+//	cqrshtmx.WriteWSMessage(w, cqrshtmx.WSMessage{Body: map[string]any{"status": "ok"}})
 //
 // # Submodule: usermgmt
 //
