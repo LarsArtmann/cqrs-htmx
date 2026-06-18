@@ -26,10 +26,7 @@ func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, 
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
 	}
-	if err := s.sessions.DeleteByUserID(ctx, userID); err != nil {
-		s.logger.Warn("usermgmt: failed to rotate sessions after role update",
-			"user_id", userID, "error", err)
-	}
+	s.revokeSessionsBestEffort(ctx, userID, "failed to rotate sessions after role update")
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
 	s.emit(userID, RolesUpdatedEvent{
 		Roles:      append([]Role(nil), roles...),
@@ -75,10 +72,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) 
 	if err != nil {
 		return s.classifyDispatchError(err, userID)
 	}
-	if err := s.sessions.DeleteByUserID(ctx, userID); err != nil {
-		s.logger.Warn("usermgmt: failed to revoke sessions on delete",
-			"user_id", userID, "error", err)
-	}
+	s.revokeSessionsBestEffort(ctx, userID, "failed to revoke sessions on delete")
 	return nil
 }
 

@@ -122,6 +122,12 @@ func (s *Service) logAuth(event string, userID UserID, attrs ...any) {
 	s.logger.Info("usermgmt: "+event, args...)
 }
 
+func (s *Service) revokeSessionsBestEffort(ctx context.Context, userID UserID, failureReason string) {
+	if err := s.sessions.DeleteByUserID(ctx, userID); err != nil {
+		s.logger.Warn("usermgmt: "+failureReason, "user_id", userID, "error", err)
+	}
+}
+
 func (s *Service) emit(userID UserID, evt any) {
 	if s.eventHandler == nil {
 		return
