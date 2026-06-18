@@ -22,7 +22,7 @@ func queryNamedResultHandler(name string) func(context.Context, query.Query) (an
 
 func testNotificationTrigger(opt cqrshtmx.HandlerOption, expectedLevel string) {
 	disp := command.NewDispatcher()
-	_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error { return nil })
+	_ = disp.Register("CreateUser", noOpCommandHandler)
 	app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 	Expect(err).NotTo(HaveOccurred())
 

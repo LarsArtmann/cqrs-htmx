@@ -1,7 +1,6 @@
 package cqrshtmx_test
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -74,9 +73,7 @@ func BenchmarkBroadcasterConcurrentSubscribe(b *testing.B) {
 // instead of httptest.NewRecorder.
 func BenchmarkServerCommandDispatch(b *testing.B) {
 	disp := command.NewDispatcher()
-	_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-		return nil
-	})
+	_ = disp.Register("CreateUser", noOpCommandHandler)
 
 	app, _ := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 	handler := app.Command("CreateUser", decodeCreateUserJSON())
