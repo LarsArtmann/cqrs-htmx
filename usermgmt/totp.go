@@ -124,21 +124,8 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 // VerifyTOTP validates a TOTP code against the user's active TOTP secret.
 // This is used as a second factor during login.
 func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) error {
-	if s.totpConfig == nil {
-		return ErrTOTPNotConfigured
-	}
-	user, ok := s.readModel.FindByUserID(userID)
-	if !ok {
-		s.logAuth("totp_verify_failed", userID, "reason", "user_not_found")
-		return fmt.Errorf("verify totp: %w", ErrUserNotFound)
-	}
-	if !user.TOTPEnabled || len(user.TOTPSecret) == 0 {
-		s.logAuth("totp_verify_failed", userID, "reason", "totp_not_enabled")
-		return ErrTOTPNotEnabled
-	}
-	if !validateTOTP(user.TOTPSecret, code, s.totpConfig.Window) {
-		s.logAuth("totp_verify_failed", userID, "reason", "invalid_code")
-		return ErrInvalidTOTPCode
+	if _, err := s.requireValidTOTP(userID, code, "totp_verify_failed"); err != nil {
+		return err
 	}
 	s.logAuth(statusTOTPVerified, userID)
 	return nil
@@ -147,21 +134,8 @@ func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) er
 // DisableTOTP removes the TOTP configuration for a user.
 // A valid TOTP code is required to prevent MFA stripping via session hijack.
 func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) error {
-	if s.totpConfig == nil {
-		return ErrTOTPNotConfigured
-	}
-	user, ok := s.readModel.FindByUserID(userID)
-	if !ok {
-		s.logAuth("totp_disable_failed", userID, "reason", "user_not_found")
-		return fmt.Errorf("disable totp: %w", ErrUserNotFound)
-	}
-	if !user.TOTPEnabled {
-		s.logAuth("totp_disable_failed", userID, "reason", "totp_not_enabled")
-		return ErrTOTPNotEnabled
-	}
-	if !validateTOTP(user.TOTPSecret, code, s.totpConfig.Window) {
-		s.logAuth("totp_disable_failed", userID, "reason", "invalid_code")
-		return ErrInvalidTOTPCode
+	if _, err := s.requireValidTOTP(userID, code, "totp_disable_failed"); err != nil {
+		return err
 	}
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
@@ -174,6 +148,26 @@ func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) e
 	}
 	s.logAuth(statusTOTPDisabled, userID)
 	return nil
+}
+
+func (s *Service) requireValidTOTP(userID UserID, code, failEvent string) (*User, error) {
+	if s.totpConfig == nil {
+		return nil, ErrTOTPNotConfigured
+	}
+	user, ok := s.readModel.FindByUserID(userID)
+	if !ok {
+		s.logAuth(failEvent, userID, "reason", "user_not_found")
+		return nil, fmt.Errorf("totp: %w", ErrUserNotFound)
+	}
+	if !user.TOTPEnabled || len(user.TOTPSecret) == 0 {
+		s.logAuth(failEvent, userID, "reason", "totp_not_enabled")
+		return nil, ErrTOTPNotEnabled
+	}
+	if !validateTOTP(user.TOTPSecret, code, s.totpConfig.Window) {
+		s.logAuth(failEvent, userID, "reason", "invalid_code")
+		return nil, ErrInvalidTOTPCode
+	}
+	return user, nil
 }
 
 // --- TOTP validation (using pquerna/otp library) ---
