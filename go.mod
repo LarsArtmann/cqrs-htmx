@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0
 	github.com/larsartmann/go-error-family v0.4.0
-	github.com/larsartmann/httputil v0.2.0
+	github.com/larsartmann/httputil v0.3.0
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
 	golang.org/x/time v0.15.0
