@@ -175,18 +175,7 @@ func TestWebAuthnSessionStore_EvictExpired_KeepsUnexpired(t *testing.T) {
 }
 
 func TestService_Stop_StopsWebAuthnEviction(t *testing.T) {
-	cfg := ServiceConfig{
-		WebAuthnConfig: &WebAuthnConfig{
-			RPID:          "localhost",
-			RPDisplayName: "Test",
-			RPOrigins:     []string{"https://localhost"},
-		},
-	}
-	svc, err := NewService(cfg)
-	if err != nil {
-		t.Fatalf("NewService: %v", err)
-	}
-	t.Cleanup(svc.Stop)
+	svc := newWebAuthnTestServiceWithConfig(t, localTestWebAuthnConfig())
 	svc.Stop()
 	svc.Stop() // double-stop should be safe
 }
@@ -239,11 +228,7 @@ func TestBeginLogin_AccountLocked(t *testing.T) {
 			MaxAttempts: 2,
 			Duration:    time.Minute,
 		}),
-		WebAuthnConfig: &WebAuthnConfig{
-			RPID:          "localhost",
-			RPDisplayName: "Test",
-			RPOrigins:     []string{"https://localhost"},
-		},
+		WebAuthnConfig: localTestWebAuthnConfig(),
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
@@ -271,11 +256,7 @@ func TestBeginLogin_LockoutNotTriggered(t *testing.T) {
 			MaxAttempts: 5,
 			Duration:    time.Minute,
 		}),
-		WebAuthnConfig: &WebAuthnConfig{
-			RPID:          "localhost",
-			RPDisplayName: "Test",
-			RPOrigins:     []string{"https://localhost"},
-		},
+		WebAuthnConfig: localTestWebAuthnConfig(),
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)

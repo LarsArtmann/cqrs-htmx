@@ -10,6 +10,15 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 )
 
+// writeStringHandler returns an http.Handler that writes the given
+// body with a 200 OK. Used by the rate-limiter integration tests to
+// give a stable, observable inner handler.
+func writeStringHandler(body string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(body))
+	})
+}
+
 // TestRateLimiter_RealServer_AllowsThenBlocks boots an actual HTTP server
 // and exercises the rate limiter end-to-end with a real http.Client.
 // This catches issues that httptest.NewRecorder cannot: real TCP connections,
@@ -24,9 +33,7 @@ func TestRateLimiter_RealServer_AllowsThenBlocks(t *testing.T) {
 	})
 
 	mux := http.NewServeMux()
-	mux.Handle("/ping", middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("pong"))
-	})))
+	mux.Handle("/ping", middleware(writeStringHandler("pong")))
 
 	server := httptest.NewServer(mux)
 	defer server.Close()
@@ -81,9 +88,7 @@ func TestRateLimiter_RealServer_ConcurrentRequests(t *testing.T) {
 	})
 
 	mux := http.NewServeMux()
-	mux.Handle("/work", middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("ok"))
-	})))
+	mux.Handle("/work", middleware(writeStringHandler("ok")))
 
 	server := httptest.NewServer(mux)
 	defer server.Close()

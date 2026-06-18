@@ -12,6 +12,16 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+// itemUpdatedEventFunc returns a BroadcastOnSuccessFunc payload function
+// that emits an "itemUpdated" SSE event whose Data wraps the request path.
+// Shared by the example in example_app_test.go and the test below.
+func itemUpdatedEventFunc(r *http.Request) cqrshtmx.SSEEvent {
+	return cqrshtmx.SSEEvent{
+		Event: "itemUpdated",
+		Data:  "<div>" + r.URL.Path + "</div>",
+	}
+}
+
 var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 	Describe("Broadcaster AfterDispatchHook bridge", func() {
 		It("broadcasts event on successful dispatch", func() {
@@ -48,12 +58,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
-			hook := b.BroadcastOnSuccessFunc(func(r *http.Request) cqrshtmx.SSEEvent {
-				return cqrshtmx.SSEEvent{
-					Event: "itemUpdated",
-					Data:  "<div>" + r.URL.Path + "</div>",
-				}
-			})
+			hook := b.BroadcastOnSuccessFunc(itemUpdatedEventFunc)
 
 			r := httptest.NewRequest(http.MethodPost, "/items/42", nil)
 			hook(context.Background(), r, nil)

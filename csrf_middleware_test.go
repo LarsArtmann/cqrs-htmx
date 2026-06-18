@@ -353,18 +353,15 @@ var _ = Describe("CSRF Middleware", func() {
 			_ = handler // silence unused
 		})
 
-		It("Validate rejects empty TrustedProxies entries", func() {
-			cfg := defaultCSRFConfig()
-			cfg.TrustedProxies = []string{""}
-			err := cfg.Validate()
-			Expect(err).To(HaveOccurred())
-		})
-
-		It("Validate rejects malformed TrustedProxies CIDR", func() {
-			cfg := defaultCSRFConfig()
-			cfg.TrustedProxies = []string{"not-a-cidr/xyz"}
-			err := cfg.Validate()
-			Expect(err).To(HaveOccurred())
-		})
+		DescribeTable(
+			"Validate rejects invalid TrustedProxies",
+			func(proxy string) {
+				cfg := defaultCSRFConfig()
+				cfg.TrustedProxies = []string{proxy}
+				Expect(cfg.Validate()).To(HaveOccurred())
+			},
+			Entry("empty entry", ""),
+			Entry("malformed CIDR", "not-a-cidr/xyz"),
+		)
 	})
 })

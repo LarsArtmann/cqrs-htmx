@@ -13,6 +13,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
+// examplePingDecoder is shared by ExampleApp_Command_BeforeAfter and
+// ExampleApp_AfterDispatch. It returns a HandlerOption that decodes a
+// JSON body with an "email" field into a no-op command.
+func examplePingDecoder() cqrshtmx.HandlerOption {
+	return cqrshtmx.DecodeJSON(func(_ struct {
+		Email string `json:"email"`
+	},
+	) (command.Command, error) {
+		return nil, nil
+	})
+}
+
 func ExampleNew() {
 	disp := command.NewDispatcher()
 
@@ -93,12 +105,7 @@ func ExampleBroadcaster_BroadcastOnSuccessFunc() {
 	// dynamic SSE event derived from the request. This is the right choice
 	// when the event payload depends on request data (URL, body, headers)
 	// rather than a fixed template.
-	hook := b.BroadcastOnSuccessFunc(func(r *http.Request) cqrshtmx.SSEEvent {
-		return cqrshtmx.SSEEvent{
-			Event: "itemUpdated",
-			Data:  "<div>" + r.URL.Path + "</div>",
-		}
-	})
+	hook := b.BroadcastOnSuccessFunc(itemUpdatedEventFunc)
 
 	r := httptest.NewRequest(http.MethodPost, "/items/42", nil)
 	hook(context.Background(), r, nil)
@@ -112,12 +119,7 @@ func ExampleApp_Query_typedRegister() {
 	disp := query.NewDispatcher()
 	app, _ := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 
-	err := query.RegisterTyped(
-		disp, "ListUsers",
-		func(_ context.Context, _ *testListUsersQuery) ([]string, error) {
-			return []string{"alice", "bob"}, nil
-		},
-	)
+	err := registerListUsersQuery(disp, []string{"alice", "bob"})
 	if err != nil {
 		panic(err)
 	}
@@ -171,15 +173,7 @@ func ExampleChain() {
 		},
 	})
 
-	handler := app.Command(
-		"Ping",
-		cqrshtmx.DecodeJSON(func(_ struct {
-			Email string `json:"email"`
-		},
-		) (command.Command, error) {
-			return nil, nil
-		}),
-	)
+	handler := app.Command("Ping", examplePingDecoder())
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/api/ping", strings.NewReader("{}"))
@@ -265,12 +259,7 @@ func ExampleConfig_BeforeDispatch() {
 		return nil
 	})
 
-	handler := app.Command("Ping", cqrshtmx.DecodeJSON(func(_ struct {
-		Email string `json:"email"`
-	},
-	) (command.Command, error) {
-		return nil, nil
-	}))
+	handler := app.Command("Ping", examplePingDecoder())
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/ping", strings.NewReader("{}"))

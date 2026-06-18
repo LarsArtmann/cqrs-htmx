@@ -76,12 +76,7 @@ func BenchmarkCommandRegisterTypedVsRegister(b *testing.B) {
 func BenchmarkQueryDispatchTypedVsDispatch(b *testing.B) {
 	b.Run("DispatchTyped", func(b *testing.B) {
 		disp := query.NewDispatcher()
-		_ = query.RegisterTyped(
-			disp, "ListUsers",
-			func(_ context.Context, _ *testListUsersQuery) ([]string, error) {
-				return []string{"a", "b"}, nil
-			},
-		)
+		_ = registerListUsersQuery(disp, []string{"a", "b"})
 		q := newTestListUsersQuery()
 		ctx := context.Background()
 		b.ResetTimer()

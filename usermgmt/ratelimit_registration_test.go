@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -24,24 +25,34 @@ func newRateLimitedHandler(t *testing.T) (*Service, *AuthHandler, *http.ServeMux
 	return svc, h, mux
 }
 
-func TestHandleRegister_RateLimitAllows(t *testing.T) {
-	_, _, mux := newRateLimitedHandler(t)
+func postRegister(t *testing.T, mux *http.ServeMux, prefix string, i int) *httptest.ResponseRecorder {
+	t.Helper()
+	body := fmt.Sprintf(`{"id":"%s%d","email":"%s%d@test.com"}`, prefix, i, prefix, i)
+	return postJSON(t, mux, "/auth/register", body)
+}
 
-	for i := range 2 {
-		body := fmt.Sprintf(`{"id":"rl%d","email":"rl%d@test.com"}`, i, i)
-		w := postJSON(t, mux, "/auth/register", body)
+// expectCreatedRegistrations posts `n` registrations with the given id/email
+// prefix and asserts each returns StatusCreated.
+func expectCreatedRegistrations(t *testing.T, mux *http.ServeMux, prefix string, n int) {
+	t.Helper()
+	for i := range n {
+		w := postRegister(t, mux, prefix, i)
 		if w.Code != http.StatusCreated {
 			t.Errorf("request %d: status = %d, want %d", i, w.Code, http.StatusCreated)
 		}
 	}
 }
 
+func TestHandleRegister_RateLimitAllows(t *testing.T) {
+	_, _, mux := newRateLimitedHandler(t)
+	expectCreatedRegistrations(t, mux, "rl", 2)
+}
+
 func TestHandleRegister_RateLimitBlocks(t *testing.T) {
 	_, _, mux := newRateLimitedHandler(t)
 
 	for i := range 2 {
-		body := fmt.Sprintf(`{"id":"rlb%d","email":"rlb%d@test.com"}`, i, i)
-		w := postJSON(t, mux, "/auth/register", body)
+		w := postRegister(t, mux, "rlb", i)
 		if w.Code != http.StatusCreated {
 			t.Fatalf("request %d: status = %d, want %d", i, w.Code, http.StatusCreated)
 		}
@@ -60,13 +71,7 @@ func TestHandleRegister_RateLimitNoOpWhenDisabled(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	for i := range 10 {
-		body := fmt.Sprintf(`{"id":"nrl%d","email":"nrl%d@test.com"}`, i, i)
-		w := postJSON(t, mux, "/auth/register", body)
-		if w.Code != http.StatusCreated {
-			t.Errorf("request %d: status = %d, want %d", i, w.Code, http.StatusCreated)
-		}
-	}
+	expectCreatedRegistrations(t, mux, "nrl", 10)
 }
 
 func TestRegistrationRateLimiter_WindowReset(t *testing.T) {

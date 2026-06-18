@@ -30,9 +30,7 @@ func setupAuthenticatedHandler(t *testing.T, cfg ServiceConfig) (*Service, http.
 	}
 
 	// Grant admin role so import/export endpoints work by default.
-	if err := svc.UpdateRoles(context.Background(), reg.User.ID, []Role{RoleAdmin}, "test"); err != nil {
-		t.Fatalf("UpdateRoles: %v", err)
-	}
+	grantTestRole(t, svc, reg.User.ID, RoleAdmin)
 
 	// UpdateRoles revokes sessions — create a fresh one.
 	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
@@ -318,9 +316,7 @@ func TestHandlers_ImportRateLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
-	if err := svc.UpdateRoles(context.Background(), reg.User.ID, []Role{RoleAdmin}, "test"); err != nil {
-		t.Fatalf("UpdateRoles: %v", err)
-	}
+	grantTestRole(t, svc, reg.User.ID, RoleAdmin)
 	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
 	if err != nil {
 		t.Fatalf("Create session: %v", err)

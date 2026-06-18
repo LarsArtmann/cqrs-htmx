@@ -171,11 +171,7 @@ func mustMarshal(t *testing.T, v any) []byte {
 
 func TestDeleteUser_SessionDeleteFailure(t *testing.T) {
 	svc := newTestServiceWithConfig(t, ServiceConfig{
-		SessionStore: &mockSessionStore{
-			DeleteByUserIDFn: func(context.Context, UserID) error {
-				return errors.New("redis down")
-			},
-		},
+		SessionStore: failingDeleteByUserIDSessionStore("redis down"),
 	})
 	reg := registerTestUser(t, svc, "ds1", "ds1@test.com")
 	if err := svc.DeleteUser(context.Background(), reg.User.ID, "test"); err != nil {

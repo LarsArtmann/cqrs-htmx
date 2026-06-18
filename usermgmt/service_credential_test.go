@@ -20,10 +20,7 @@ func TestService_ChangeEmail_Success(t *testing.T) {
 
 func TestService_ChangeEmail_UserNotFound(t *testing.T) {
 	svc := newTestService(t)
-	err := svc.ChangeEmail(context.Background(), NewUserID("ghost"), "ghost@test.com")
-	if err == nil {
-		t.Fatal("expected error for nonexistent user")
-	}
+	assertChangeEmailError(t, svc, NewUserID("ghost"), "ghost@test.com")
 }
 
 func TestService_ChangeDisplayName_Success(t *testing.T) {

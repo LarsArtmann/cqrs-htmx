@@ -81,6 +81,21 @@ func newTestServiceWithAuthz(t *testing.T) *Service {
 	})
 }
 
+func localTestWebAuthnConfig() *WebAuthnConfig {
+	return &WebAuthnConfig{
+		RPID:          "localhost",
+		RPDisplayName: "Test",
+		RPOrigins:     []string{"https://localhost"},
+	}
+}
+
+func newWebAuthnTestServiceWithConfig(t *testing.T, cfg *WebAuthnConfig) *Service {
+	t.Helper()
+	svc := newTestServiceWithConfig(t, ServiceConfig{WebAuthnConfig: cfg})
+	t.Cleanup(svc.Stop)
+	return svc
+}
+
 func assertErrorIs(t *testing.T, err, target error, msg string) {
 	t.Helper()
 	if !errors.Is(err, target) {
@@ -97,6 +112,20 @@ func registerTestUser(t *testing.T, svc *Service, id, email string) *RegisterRes
 		t.Fatalf("registerTestUser %s: %v", id, err)
 	}
 	return resp
+}
+
+func grantTestRole(t *testing.T, svc *Service, userID UserID, role Role) {
+	t.Helper()
+	if err := svc.UpdateRoles(context.Background(), userID, []Role{role}, "test"); err != nil {
+		t.Fatalf("UpdateRoles: %v", err)
+	}
+}
+
+func assertChangeEmailError(t *testing.T, svc *Service, userID UserID, email string) {
+	t.Helper()
+	if err := svc.ChangeEmail(context.Background(), userID, email); err == nil {
+		t.Fatal("expected error for ChangeEmail")
+	}
 }
 
 func registerWithSessionMaxAge(t *testing.T, id, email string, maxAge int) {

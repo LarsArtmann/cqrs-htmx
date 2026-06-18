@@ -179,13 +179,7 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			serve(app.Command(
 				"CreateUser",
-				cqrshtmx.DecodeForm(func(req testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{
-						aggID: id.NewAggregateID(),
-						email: req.Email,
-						name:  req.Name,
-					}, nil
-				}),
+				cqrshtmx.DecodeForm(testCreateUserCommand),
 			), r)
 			Expect(received).To(Equal("dispatched"))
 		})

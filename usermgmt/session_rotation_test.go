@@ -16,11 +16,7 @@ func TestUpdateRoles_RevokesSessions(t *testing.T) {
 	}
 
 	// Update roles - should revoke sessions
-	if err := svc.UpdateRoles(
-		context.Background(), reg.User.ID, []Role{RoleAdmin}, "test",
-	); err != nil {
-		t.Fatalf("UpdateRoles: %v", err)
-	}
+	grantTestRole(t, svc, reg.User.ID, RoleAdmin)
 
 	// Verify old session is no longer valid
 	_, err := svc.Authenticate(context.Background(), reg.Session.Token)
@@ -31,18 +27,10 @@ func TestUpdateRoles_RevokesSessions(t *testing.T) {
 
 func TestUpdateRoles_SessionDeleteFailure(t *testing.T) {
 	svc := newTestServiceWithConfig(t, ServiceConfig{
-		SessionStore: &mockSessionStore{
-			DeleteByUserIDFn: func(context.Context, UserID) error {
-				return errors.New("store unavailable")
-			},
-		},
+		SessionStore: failingDeleteByUserIDSessionStore("store unavailable"),
 	})
 	reg := registerTestUser(t, svc, "sr2", "sr2@test.com")
 
 	// Should still succeed even if session deletion fails
-	if err := svc.UpdateRoles(
-		context.Background(), reg.User.ID, []Role{RoleUser}, "test",
-	); err != nil {
-		t.Fatalf("UpdateRoles should succeed even when session deletion fails: %v", err)
-	}
+	grantTestRole(t, svc, reg.User.ID, RoleUser)
 }
