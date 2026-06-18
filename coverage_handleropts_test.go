@@ -1,7 +1,6 @@
 package cqrshtmx_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +10,6 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -72,9 +70,7 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 
 	Describe("WithSuccessStatus for query", func() {
 		It("returns custom status for query success without body", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return "ok", nil
-			})
+			app := newQueryAppWithResult(constantQueryHandler("ok"))
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query(
 				"GetUser",

@@ -17,13 +17,11 @@ const (
 
 func integrationCSRFConfig() cqrshtmx.CSRFConfig {
 	return cqrshtmx.CSRFConfig{
-		MaxAge:   24 * time.Hour,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
-		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, _ error) {
-			w.WriteHeader(http.StatusForbidden)
-		},
+		MaxAge:       24 * time.Hour,
+		Secure:       false,
+		SameSite:     http.SameSiteLaxMode,
+		Path:         "/",
+		ErrorHandler: cqrshtmx.ForbiddenErrorHandler,
 	}
 }
 

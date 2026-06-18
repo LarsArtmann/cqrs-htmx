@@ -12,7 +12,6 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -71,9 +70,7 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 
 	Describe("applyQueryResponse with HTMX response option", func() {
 		It("applies HTMX headers on query success", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return testQueryResult, nil
-			})
+			app := newQueryAppWithResult(testResultQueryHandler())
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := serve(app.Query(

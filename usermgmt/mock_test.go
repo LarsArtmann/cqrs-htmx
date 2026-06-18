@@ -65,3 +65,14 @@ func failingDeleteByUserIDSessionStore(msg string) *mockSessionStore {
 		},
 	}
 }
+
+// failingDeleteSessionStore returns a SessionStore whose Delete always
+// returns the given error. Used to verify Logout and other callers handle
+// session-store failures gracefully.
+func failingDeleteSessionStore(msg string) *mockSessionStore {
+	return &mockSessionStore{
+		DeleteFn: func(context.Context, string) error {
+			return errors.New(msg)
+		},
+	}
+}

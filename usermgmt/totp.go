@@ -12,6 +12,14 @@ import (
 	"github.com/pquerna/otp/totp"
 )
 
+// totpTransient logs an auth failure and returns a transient error wrapping
+// the underlying cause. Used by EnableTOTP when the totp library or base32
+// decoder returns an error that is not the caller's fault.
+func (s *Service) totpTransient(evt string, userID UserID, reason, msg string, err error) error {
+	s.logAuth(evt, userID, "reason", reason)
+	return event.NewTransient("internal", msg).WithCause(err)
+}
+
 // TOTPTimeStep is the standard TOTP time step (30 seconds, per RFC 6238).
 const (
 	TOTPTimeStep = 30 * time.Second
@@ -66,13 +74,13 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 		Period:      30,
 	})
 	if err != nil {
-		s.logAuth("totp_setup_failed", userID, "reason", "secret_generation_error")
-		return nil, event.NewTransient("internal", "generate totp key").WithCause(err)
+		return nil, s.totpTransient("totp_setup_failed", userID, "secret_generation_error",
+			"generate totp key", err)
 	}
 	rawSecret, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(key.Secret())
 	if err != nil {
-		s.logAuth("totp_setup_failed", userID, "reason", "secret_decode_error")
-		return nil, event.NewTransient("internal", "decode totp secret").WithCause(err)
+		return nil, s.totpTransient("totp_setup_failed", userID, "secret_decode_error",
+			"decode totp secret", err)
 	}
 	// Store the pending secret temporarily
 	s.pendingTOTP.mu.Lock()

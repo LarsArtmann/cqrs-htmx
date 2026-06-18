@@ -40,25 +40,31 @@ type WSQueryDecoder func(data []byte) (query.Query, error)
 //	    return command.New("CreateTask", t)
 //	})
 func DecodeWSJSON[T any](mapper func(T) (command.Command, error)) WSCommandDecoder {
-	return func(data []byte) (command.Command, error) {
-		var t T
-		if err := json.Unmarshal(data, &t); err != nil {
-			return nil, fmt.Errorf("decode ws json: %w", err)
-		}
-		return mapper(t)
-	}
+	return makeWSDecoder("decode ws json", mapper)
 }
 
 // DecodeWSJSONQuery creates a WSQueryDecoder that unmarshals JSON into T,
 // then maps T to a query.Query via the mapper function.
 func DecodeWSJSONQuery[T any](mapper func(T) (query.Query, error)) WSQueryDecoder {
-	return func(data []byte) (query.Query, error) {
+	return makeWSDecoder("decode ws json query", mapper)
+}
+
+// makeWSDecoder builds a JSON-decoding wrapper for both WSCommandDecoder and
+// WSQueryDecoder. It unmarshals the raw bytes into T, then maps T to the
+// target CQRS type (command or query) via mapper.
+func makeWSDecoder[T, C any](errPrefix string, mapper func(T) (C, error)) func([]byte) (C, error) {
+	return func(data []byte) (C, error) {
 		var t T
 		if err := json.Unmarshal(data, &t); err != nil {
-			return nil, fmt.Errorf("decode ws json query: %w", err)
+			return zero[C](), fmt.Errorf("%s: %w", errPrefix, err)
 		}
 		return mapper(t)
 	}
+}
+
+func zero[C any]() C {
+	var c C
+	return c
 }
 
 // DispatchWSCommand decodes a WebSocket message into a command and dispatches it.

@@ -36,6 +36,13 @@ func buildTestCatalog(title, serviceID string) *cataloghtmx.Builder {
 	return b
 }
 
+func assertCatalogCommandCount(t *testing.T, cat *catalog.Catalog, want int, msg string) {
+	t.Helper()
+	if got := len(cat.Services[0].Commands); got != want {
+		t.Fatalf("%s: got %d, want %d", msg, got, want)
+	}
+}
+
 func TestNew_Defaults(t *testing.T) {
 	t.Parallel()
 
@@ -83,9 +90,7 @@ func TestCommand_Registration(t *testing.T) {
 	cataloghtmx.Command[testCmd](b, "create-thing")
 	cat := b.Build()
 
-	if len(cat.Services[0].Commands) != 1 {
-		t.Fatalf("expected 1 command, got %d", len(cat.Services[0].Commands))
-	}
+	assertCatalogCommandCount(t, cat, 1, "expected 1 command")
 
 	cmd := cat.Services[0].Commands[0]
 	if string(cmd.ID) != "create-thing" {
@@ -146,9 +151,7 @@ func TestAddMessage_Alternative(t *testing.T) {
 	b.AddMessage(catalog.Command[testCmd]("via-add-message"))
 	cat := b.Build()
 
-	if len(cat.Services[0].Commands) != 1 {
-		t.Fatalf("expected 1 command via AddMessage, got %d", len(cat.Services[0].Commands))
-	}
+	assertCatalogCommandCount(t, cat, 1, "expected 1 command via AddMessage")
 }
 
 func TestBuild_MultipleMessages(t *testing.T) {

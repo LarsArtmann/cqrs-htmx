@@ -11,6 +11,21 @@ import (
 	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
 )
 
+func unmarshalJSONBody(t *testing.T, w *httptest.ResponseRecorder) map[string]any {
+	t.Helper()
+	var doc map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &doc); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+	return doc
+}
+
+func tryUnmarshalJSONBody(w *httptest.ResponseRecorder) map[string]any {
+	var doc map[string]any
+	_ = json.Unmarshal(w.Body.Bytes(), &doc)
+	return doc
+}
+
 func setupTestCatalog() *cataloghtmx.Builder {
 	return buildTestCatalog("Test API", "test-svc")
 }
@@ -47,10 +62,7 @@ func TestOpenAPIHandler_ValidJSON(t *testing.T) {
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
-	var doc map[string]any
-	if err := json.Unmarshal(w.Body.Bytes(), &doc); err != nil {
-		t.Fatalf("invalid JSON: %v", err)
-	}
+	doc := unmarshalJSONBody(t, w)
 
 	if doc["openapi"] != "3.0.3" {
 		t.Errorf("expected openapi 3.0.3, got %v", doc["openapi"])
@@ -67,8 +79,7 @@ func TestOpenAPIHandler_ContainsPaths(t *testing.T) {
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
-	var doc map[string]any
-	_ = json.Unmarshal(w.Body.Bytes(), &doc)
+	doc := tryUnmarshalJSONBody(w)
 
 	paths, ok := doc["paths"].(map[string]any)
 	if !ok {
@@ -131,10 +142,7 @@ func TestAsyncAPIHandler_ValidJSON(t *testing.T) {
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
-	var doc map[string]any
-	if err := json.Unmarshal(w.Body.Bytes(), &doc); err != nil {
-		t.Fatalf("invalid JSON: %v", err)
-	}
+	doc := unmarshalJSONBody(t, w)
 
 	if doc["asyncapi"] != "3.0.0" {
 		t.Errorf("expected asyncapi 3.0.0, got %v", doc["asyncapi"])
@@ -235,8 +243,7 @@ func TestWithBasePath(t *testing.T) {
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
-	var doc map[string]any
-	_ = json.Unmarshal(w.Body.Bytes(), &doc)
+	doc := tryUnmarshalJSONBody(w)
 
 	paths, ok := doc["paths"].(map[string]any)
 	if !ok {
@@ -263,10 +270,7 @@ func TestWithDescription(t *testing.T) {
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
-	var doc map[string]any
-	if err := json.Unmarshal(w.Body.Bytes(), &doc); err != nil {
-		t.Fatalf("invalid JSON: %v", err)
-	}
+	doc := unmarshalJSONBody(t, w)
 
 	info, ok := doc["info"].(map[string]any)
 	if !ok {

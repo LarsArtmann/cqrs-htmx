@@ -60,12 +60,7 @@ func (b *WSBroadcaster) BroadcastOnSuccessWS(msg string) AfterDispatchHook {
 //
 // This is the WebSocket equivalent of [Broadcaster.BroadcastOnSuccessFunc].
 func (b *WSBroadcaster) BroadcastOnSuccessWSFunc(msgFunc func(r *http.Request) string) AfterDispatchHook {
-	return func(_ context.Context, r *http.Request, err error) {
-		if err != nil {
-			return
-		}
-		b.Broadcast(msgFunc(r))
-	}
+	return b.broadcastOnSuccessHook(msgFunc)
 }
 
 // BroadcastOnErrorWS creates an AfterDispatchHook that broadcasts a WS error
@@ -89,10 +84,5 @@ func (b *WSBroadcaster) BroadcastOnErrorWS() AfterDispatchHook {
 //
 // This is the WebSocket equivalent of [Broadcaster.BroadcastOnErrorFunc].
 func (b *WSBroadcaster) BroadcastOnErrorWSFunc(errFunc func(r *http.Request, err error) string) AfterDispatchHook {
-	return func(_ context.Context, r *http.Request, err error) {
-		if err == nil {
-			return
-		}
-		b.Broadcast(errFunc(r, err))
-	}
+	return b.broadcastOnErrorHook(errFunc)
 }

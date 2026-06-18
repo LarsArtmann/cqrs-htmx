@@ -67,12 +67,7 @@ var _ = Describe("Validation HandlerOption", func() {
 
 	Describe("ValidateQuery", func() {
 		It("allows valid queries through", func() {
-			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return testQueryResult, nil
-			})
-			app, err := cqrshmx.New(cqrshmx.Config{Queries: disp})
-			Expect(err).NotTo(HaveOccurred())
+			app := newQueryAppWithResult(testResultQueryHandler())
 
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query(
@@ -85,12 +80,7 @@ var _ = Describe("Validation HandlerOption", func() {
 		})
 
 		It("rejects queries that fail validation", func() {
-			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return testQueryResult, nil
-			})
-			app, err := cqrshmx.New(cqrshmx.Config{Queries: disp})
-			Expect(err).NotTo(HaveOccurred())
+			app := newQueryAppWithResult(testResultQueryHandler())
 
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query(
@@ -105,12 +95,7 @@ var _ = Describe("Validation HandlerOption", func() {
 		})
 
 		It("wraps decoding errors before validation runs", func() {
-			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return testQueryResult, nil
-			})
-			app, err := cqrshmx.New(cqrshmx.Config{Queries: disp})
-			Expect(err).NotTo(HaveOccurred())
+			app := newQueryAppWithResult(testResultQueryHandler())
 
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query(

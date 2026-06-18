@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 )
@@ -33,6 +32,12 @@ func TestInMemorySessionStore(t *testing.T) {
 	assertErrorIs(t, err, ErrSessionNotFound, "ErrSessionNotFound")
 }
 
+func assertSessionNotFound(t *testing.T, store *InMemorySessionStore, token, msg string) {
+	t.Helper()
+	_, err := store.Find(context.Background(), token)
+	assertErrorIs(t, err, ErrSessionNotFound, msg)
+}
+
 func TestInMemorySessionStore_DeleteByUserID(t *testing.T) {
 	store := NewInMemorySessionStore()
 	s1, _ := store.Create(context.Background(), NewUserID("user-1"), time.Hour)
@@ -43,12 +48,8 @@ func TestInMemorySessionStore_DeleteByUserID(t *testing.T) {
 		t.Fatalf("DeleteByUserID: %v", err)
 	}
 
-	if _, err := store.Find(context.Background(), s1.Token); !errors.Is(err, ErrSessionNotFound) {
-		t.Error("expected s1 deleted")
-	}
-	if _, err := store.Find(context.Background(), s2.Token); !errors.Is(err, ErrSessionNotFound) {
-		t.Error("expected s2 deleted")
-	}
+	assertSessionNotFound(t, store, s1.Token, "expected s1 deleted")
+	assertSessionNotFound(t, store, s2.Token, "expected s2 deleted")
 }
 
 func TestInMemorySessionStore_EvictExpired(t *testing.T) {
@@ -60,9 +61,7 @@ func TestInMemorySessionStore_EvictExpired(t *testing.T) {
 	if evicted != 1 {
 		t.Errorf("expected 1 eviction, got %d", evicted)
 	}
-	if _, err := store.Find(context.Background(), s1.Token); !errors.Is(err, ErrSessionNotFound) {
-		t.Error("expected expired session to be evicted")
-	}
+	assertSessionNotFound(t, store, s1.Token, "expected expired session to be evicted")
 	if _, err := store.Find(context.Background(), s2.Token); err != nil {
 		t.Errorf("expected valid session to remain: %v", err)
 	}

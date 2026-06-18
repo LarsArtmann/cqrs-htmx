@@ -22,9 +22,7 @@ func defaultCSRFConfig() cqrshtmx.CSRFConfig {
 		Domain:         "",
 		Path:           "/",
 		TrustedOrigins: nil,
-		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, _ error) {
-			w.WriteHeader(http.StatusForbidden)
-		},
+		ErrorHandler:   cqrshtmx.ForbiddenErrorHandler,
 	}
 }
 

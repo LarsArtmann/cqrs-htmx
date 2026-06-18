@@ -17,12 +17,12 @@ import (
 type wsTestKey string
 
 func wsCreateUserDecoder() cqrshtmx.WSCommandDecoder {
-	return cqrshtmx.DecodeWSJSON(func(req testCreateUserRequest) (command.Command, error) {
-		return &testCreateUserCmd{
-			aggID: id.NewAggregateID(),
-			email: req.Email,
-			name:  req.Name,
-		}, nil
+	return cqrshtmx.DecodeWSJSON(testCreateUserCommand)
+}
+
+func wsNoOpCreateUserDecoder() cqrshtmx.WSCommandDecoder {
+	return cqrshtmx.DecodeWSJSON(func(_ testCreateUserRequest) (command.Command, error) {
+		return &testCreateUserCmd{aggID: id.NewAggregateID(), email: "", name: ""}, nil
 	})
 }
 
@@ -81,9 +81,7 @@ var _ = Describe("WS Dispatch", func() {
 
 		It("returns error when dispatch fails", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return errors.New("database connection failed")
-			})
+			_ = disp.Register("CreateUser", erroringCommandHandler("database connection failed"))
 			app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: disp})
 
 			err := app.DispatchWSCommand(nil, "CreateUser", wsCreateUserDecoder(), []byte(`{}`))
@@ -94,16 +92,12 @@ var _ = Describe("WS Dispatch", func() {
 		It("calls afterDispatch hook with nil error on success", func() {
 			var hookCalled bool
 			var hookErr error
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", noOpCommandHandler)
-
-			app, _ := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-				AfterDispatch: func(_ context.Context, _ *http.Request, err error) {
-					hookCalled = true
-					hookErr = err
+			app := newCommandAppWithConfig(
+				noOpCommandHandler,
+				cqrshtmx.Config{
+					AfterDispatch: trackingAfterDispatchHook(&hookCalled, &hookErr),
 				},
-			})
+			)
 
 			_ = app.DispatchWSCommand(nil, "CreateUser", wsCreateUserDecoder(), []byte(`{}`))
 			Expect(hookCalled).To(BeTrue())
@@ -113,18 +107,12 @@ var _ = Describe("WS Dispatch", func() {
 		It("calls afterDispatch hook with error on failure", func() {
 			var hookCalled bool
 			var hookErr error
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return errors.New("fail")
-			})
-
-			app, _ := cqrshtmx.New(cqrshtmx.Config{
-				Commands: disp,
-				AfterDispatch: func(_ context.Context, _ *http.Request, err error) {
-					hookCalled = true
-					hookErr = err
+			app := newCommandAppWithConfig(
+				erroringCommandHandler("fail"),
+				cqrshtmx.Config{
+					AfterDispatch: trackingAfterDispatchHook(&hookCalled, &hookErr),
 				},
-			})
+			)
 
 			_ = app.DispatchWSCommand(nil, "CreateUser", wsCreateUserDecoder(), []byte(`{}`))
 			Expect(hookCalled).To(BeTrue())
@@ -205,17 +193,15 @@ var _ = Describe("WS Dispatch", func() {
 
 		It("calls afterDispatch hook on success", func() {
 			var hookCalled bool
-			disp := query.NewDispatcher()
-			_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
-				return "result", nil
-			})
-
-			app, _ := cqrshtmx.New(cqrshtmx.Config{
-				Queries: disp,
-				AfterDispatch: func(_ context.Context, _ *http.Request, _ error) {
-					hookCalled = true
+			var hookErr error
+			app := newQueryAppWithConfig(
+				func(_ context.Context, _ query.Query) (any, error) {
+					return "result", nil
 				},
-			})
+				cqrshtmx.Config{
+					AfterDispatch: trackingAfterDispatchHook(&hookCalled, &hookErr),
+				},
+			)
 
 			_, _ = app.DispatchWSQuery(nil, "GetUser", wsGetUserDecoder(), []byte(`{}`))
 			Expect(hookCalled).To(BeTrue())
@@ -231,13 +217,7 @@ var _ = Describe("WS Dispatch", func() {
 
 	Describe("DecodeWSJSON", func() {
 		It("decodes valid JSON into a command", func() {
-			decoder := cqrshtmx.DecodeWSJSON(func(req testCreateUserRequest) (command.Command, error) {
-				return &testCreateUserCmd{
-					aggID: id.NewAggregateID(),
-					email: req.Email,
-					name:  req.Name,
-				}, nil
-			})
+			decoder := cqrshtmx.DecodeWSJSON(testCreateUserCommand)
 
 			cmd, err := decoder([]byte(`{"email":"a@b.com","name":"Bob"}`))
 			Expect(err).NotTo(HaveOccurred())
@@ -249,11 +229,7 @@ var _ = Describe("WS Dispatch", func() {
 		})
 
 		It("returns error on invalid JSON", func() {
-			decoder := cqrshtmx.DecodeWSJSON(func(_ testCreateUserRequest) (command.Command, error) {
-				return &testCreateUserCmd{aggID: id.NewAggregateID(), email: "", name: ""}, nil
-			})
-
-			_, err := decoder([]byte(`{not json`))
+			_, err := wsNoOpCreateUserDecoder()([]byte(`{not json`))
 			Expect(err).To(HaveOccurred())
 		})
 	})
