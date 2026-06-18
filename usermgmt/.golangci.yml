@@ -122,10 +122,14 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
-      - path: es_(state|readmodel|casbin_projection|setup|dispatch)\.go$
+      - path: es_upcaster\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
+      - path: es_(state|readmodel|casbin_projection|setup|dispatch|upcaster)\.go$
         linters:
           - cyclop
-      - path: es_(state|readmodel|casbin_projection|setup|dispatch|events|commands)\.go$
+      - path: es_(state|readmodel|casbin_projection|setup|dispatch|events|commands|upcaster)\.go$
         linters:
           - funlen
       - path: (http|verification_totp_http)\.go$

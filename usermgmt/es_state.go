@@ -2,8 +2,9 @@ package usermgmt
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
@@ -26,7 +27,17 @@ func (s UserState) Exists() bool {
 }
 
 func unmarshalPayload[T any](evt event.Event) (T, error) {
-	return event.DecodePayload[T](evt, codec.JSONCodec{})
+	raw, err := applyUpcasters(evt.Type(), evt.Payload())
+	if err != nil {
+		return *new(T), fmt.Errorf("upcast payload: %w", err)
+	}
+	var target T
+	if err := json.Unmarshal(raw, &target); err != nil {
+		return target, event.WrapCorruption(err,
+			"usermgmt.payload_decode_failed",
+			"decode payload for event "+string(evt.Type()))
+	}
+	return target, nil
 }
 
 func foldUser(state UserState, evt event.Event) (UserState, error) {

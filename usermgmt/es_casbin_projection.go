@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
@@ -43,19 +42,18 @@ func (p *CasbinProjection) EventTypes() []event.Type {
 }
 
 func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
-	c := codec.JSONCodec{}
 	subject := evt.AggregateID().String()
 
 	switch evt.Type() {
 	case eventUserRegistered:
-		d, err := event.DecodePayload[UserRegisteredPayload](evt, c)
+		d, err := unmarshalPayload[UserRegisteredPayload](evt)
 		if err != nil {
 			return fmt.Errorf("decode UserRegistered in casbin projection: %w", err)
 		}
 		return p.addRolesFor(subject, subject, d.Roles, "on register")
 
 	case eventRolesUpdated:
-		d, err := event.DecodePayload[RolesUpdatedPayload](evt, c)
+		d, err := unmarshalPayload[RolesUpdatedPayload](evt)
 		if err != nil {
 			return fmt.Errorf("decode RolesUpdated in casbin projection: %w", err)
 		}
