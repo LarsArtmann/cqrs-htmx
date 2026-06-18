@@ -1,130 +1,141 @@
 # SQL Store Reference for usermgmt
 
-**Status:** Pattern documented. No implementation shipped in this repo.
-**See:** [ADR 0003](../adr/0003-numeric-ids-sql-stores.md) for the ID-type decision.
+**Status:** `SQLSessionStore` shipped in-package. `SQLEventStore` shipped in-package.
+**See:** [ADR 0003](../adr/0003-numeric-ids-sql-stores.md) for ID-type strategy.
+**See:** [ADR 0006](../adr/0006-event-sourced-user-aggregate.md) for event-sourced architecture.
+**See:** [ADR 0012](../adr/0012-sql-session-store.md) for SQLSessionStore design.
 
-The `usermgmt` package exposes two persistence interfaces — `UserStore` and
-`SessionStore` — that any backend can implement. This document describes a
-recommended SQL schema and adapter-pattern approach for consumers who need
-production persistence.
+The `usermgmt` package ships two SQL-backed stores using `database/sql` (stdlib):
 
-## Why a separate package?
+| Store             | Implements                      | Dialects                | File                 |
+| ----------------- | ------------------------------- | ----------------------- | -------------------- |
+| `SQLEventStore`   | `event.Store` + `event.Journal` | Postgres, SQLite, MySQL | `sql_event_store.go` |
+| `SQLSessionStore` | `SessionStore`                  | Postgres, SQLite, MySQL | `sql_session_store.go` |
 
-The `usermgmt` module intentionally avoids pulling in a SQL driver
-(`database/sql` is stdlib, but drivers like `pgx`, `mysql`, `lib/pq` are not).
-The library principle states: **never enforce defaults that consumers might
-disagree with** — and a database choice is the most opinionated dependency of all.
+Both auto-migrate their tables on construction and work with any
+`database/sql`-compatible driver. The library does **not** import any driver —
+consumers register their own (`pgx`, `modernc.org/sqlite`, etc.) in `main.go`.
 
-A consumer-owned `usermgmtdb` (or similarly named) package implements
-`UserStore`/`SessionStore` and is constructed in `main.go`. This is the same
-pattern used by Casbin (the enforcer), go-cqrs-lite (the dispatchers), and the
-HTMX-CSRF pairing.
+## Why `database/sql` (not a driver)?
 
-## Recommended Postgres schema
+`database/sql` is stdlib. Adding a driver dependency would violate the library
+principle: "never enforce defaults that consumers might disagree with." Consumers
+already choose their own Casbin enforcer, CQRS dispatcher, and HTTP router — the
+database driver is no different.
+
+## SQLEventStore
+
+Stores event-sourced User aggregate events. Used as the write model for the
+Decider pattern.
 
 ```sql
--- Users: numeric surrogate PK (see ADR 0003), string ID at the API boundary.
-CREATE TABLE users (
-    id              BIGSERIAL PRIMARY KEY,
-    public_id       TEXT NOT NULL UNIQUE,                 -- usermgmt.UserID.Get()
-    email           TEXT NOT NULL UNIQUE,
-    display_name    TEXT NOT NULL,
-    password_hash   TEXT NOT NULL,                        -- bcrypt
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE user_events (
+    event_id TEXT PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    aggregate_id TEXT NOT NULL,
+    aggregate_type TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    payload BYTEA NOT NULL,
+    metadata JSONB,
+    occurred_at TIMESTAMPTZ NOT NULL
 );
-CREATE INDEX idx_users_email ON users(lower(email));
-
--- Roles: many-to-many, simple text array works for small role sets.
-CREATE TABLE user_roles (
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    role    TEXT NOT NULL,
-    PRIMARY KEY (user_id, role)
-);
-
--- Sessions: opaque token, FK to user, expiry index.
-CREATE TABLE sessions (
-    token       TEXT PRIMARY KEY,                          -- the session.Token
-    user_id     BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at  TIMESTAMPTZ NOT NULL,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
 ```
 
-## Adapter skeleton
+### Usage
 
 ```go
-package usermgmtdb
-
-import (
-    "context"
-    "database/sql"
-    "errors"
-    "time"
-
-    "github.com/larsartmann/cqrs-htmx/usermgmt/v2"
-)
-
-// PGUserStore implements usermgmt.UserStore backed by Postgres.
-type PGUserStore struct {
-    db *sql.DB
-}
-
-func NewPGUserStore(db *sql.DB) *PGUserStore { return &PGUserStore{db: db} }
-
-func (s *PGUserStore) FindByID(ctx context.Context, id usermgmt.UserID) (*usermgmt.User, error) {
-    const q = `SELECT public_id, email, display_name, password_hash, created_at, updated_at
-               FROM users WHERE public_id = $1`
-    // ... scan, hydrate *usermgmt.User, return Clone()
-    return nil, errors.ErrUnsupported // sketch only
-}
-
-// FindByEmail, Save, Create, Delete follow the same pattern.
-// See usermgmt.InMemoryUserStore for the full method set and semantics.
+db, _ := sql.Open("pgx", os.Getenv("DATABASE_URL"))
+eventStore, _ := usermgmt.NewSQLEventStore(ctx, db, "postgres")
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+    EventStore: eventStore,
+})
 ```
 
-## ID type strategy
+## SQLSessionStore
 
-| Layer       | Type                                  | Why                                 |
-| ----------- | ------------------------------------- | ----------------------------------- |
-| API/HTTP    | `usermgmt.UserID` (string-backed)     | Stable, opaque, shareable in URLs   |
-| Store (SQL) | `BIGSERIAL` + `public_id TEXT UNIQUE` | Efficient joins, indexed lookups    |
-| Conversion  | `usermgmt.UserID.Get()` ↔ `string`    | Single conversion at the store edge |
+Stores session tokens with expiry. Includes a background cleanup sweeper.
 
-This is exactly the approach ADR 0003 defers to. The `public_id` column
-preserves the string `UserID` for cross-module use, while `id BIGSERIAL` keeps
-joins and FKs cheap.
+```sql
+CREATE TABLE user_sessions (
+    token       TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL,
+    expires_at  TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX idx_user_sessions_user    ON user_sessions (user_id);
+CREATE INDEX idx_user_sessions_expires ON user_sessions (expires_at);
+```
 
-## Concurrency
+### Usage
 
-- Use `SELECT ... FOR UPDATE` (or upserts) for the email-uniqueness check in
-  `Create` / `Save`. Mirror `InMemoryUserStore`'s atomicity guarantees.
-- Wrap mutations in a transaction when the user and role changes must be
-  consistent (e.g., `Service.UpdateRoles` flow).
-- bcrypt hashing dominates wall-clock time — keep it OUT of the transaction.
+```go
+db, _ := sql.Open("pgx", os.Getenv("DATABASE_URL"))
+sessionStore, _ := usermgmt.NewSQLSessionStore(ctx, db, "postgres")
+stop := sessionStore.StartCleanupSweeper(ctx, 5*time.Minute)
+defer stop()
 
-## Migration strategy
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+    SessionStore: sessionStore,
+    EventStore:   eventStore,
+})
+```
 
-- Versioned migrations via `golang-migrate/migrate`, `pressly/goose`, or
-  `sqlx`-based hand-rolled files. The schema above is migration `0001_init`.
-- For test isolation: per-test schema or transactional rollback. Do NOT share a
-  DB across tests; the in-memory store exists for this reason.
+### Cleanup
 
-## Wiring it up
+`EvictExpired(ctx)` removes expired sessions and returns the count. Call it
+directly for one-off cleanup, or use `StartCleanupSweeper` for periodic
+background eviction.
+
+## Full Wiring Example
 
 ```go
 func main() {
-    db, _ := sql.Open("pgx", os.Getenv("DATABASE_URL"))
+    db, err := sql.Open("pgx", os.Getenv("DATABASE_URL"))
+    if err != nil {
+        log.Fatal(err)
+    }
 
-    svc := usermgmt.NewService(
-        usermgmtdb.NewPGUserStore(db),
-        usermgmtdb.NewPGSessionStore(db),
-        usermgmt.ServiceConfig{ /* ... */ },
-    )
-    // ... wire handlers
+    ctx := context.Background()
+
+    eventStore, err := usermgmt.NewSQLEventStore(ctx, db, "postgres")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer eventStore.Close()
+
+    sessionStore, err := usermgmt.NewSQLSessionStore(ctx, db, "postgres")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer sessionStore.Close()
+
+    stopSweeper := sessionStore.StartCleanupSweeper(ctx, 5*time.Minute)
+    defer stopSweeper()
+
+    svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+        EventStore:   eventStore,
+        SessionStore: sessionStore,
+        // ... config, hooks, etc.
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+    // ... wire HTTP handlers
 }
 ```
 
-The `Service` constructor takes `UserStore` and `SessionStore` interfaces — the
-SQL backend slots in with zero changes to domain logic.
+## Contract Tests
+
+Both `InMemorySessionStore` and `SQLSessionStore` pass the same
+`runSessionStoreContract` test suite, ensuring identical behavioral semantics.
+Any future `SessionStore` implementation can reuse the same contract tests.
+
+## Migration Strategy
+
+- Versioned migrations via `golang-migrate/migrate`, `pressly/goose`, or
+  hand-rolled migration files.
+- The auto-migration in `NewSQLEventStore`/`NewSQLSessionStore` uses
+  `CREATE TABLE IF NOT EXISTS` — safe for initial setup but not for schema
+  evolution. Use a migration tool for production schema changes.
+- For test isolation: use SQLite in-memory (`sql.Open("sqlite", ":memory:")`).
+  Tests in this repo already follow this pattern.
