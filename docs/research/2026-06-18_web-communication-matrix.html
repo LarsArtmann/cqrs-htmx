@@ -212,8 +212,10 @@
         padding: 16px 20px;
         overflow-x: auto;
         margin: 16px 0;
-        line-height: 1.5;
+        line-height: 1.6;
         color: var(--text-dim);
+        white-space: pre;
+        word-break: normal;
       }
       .code-block .kw {
         color: var(--purple);
@@ -280,6 +282,129 @@
         background: rgba(110, 118, 129, 0.1);
         color: var(--text-dim);
         border: 1px solid rgba(110, 118, 129, 0.2);
+      }
+
+      /* ─────────────── Landscape tables ─────────────── */
+      .landscape-table td.capability {
+        white-space: normal;
+      }
+      .landscape-table td.tech-name {
+        font-family: var(--mono);
+        font-weight: 700;
+        color: var(--text-bright);
+        font-size: 14px;
+      }
+      .landscape-table td.tech-name .tech-sub {
+        display: block;
+        font-family: var(--sans);
+        font-weight: 400;
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-top: 3px;
+        line-height: 1.4;
+      }
+      .landscape-table tr.cat-live {
+        border-left: 3px solid var(--teal);
+      }
+      .landscape-table tr.cat-push {
+        border-left: 3px solid var(--purple);
+      }
+      .landscape-table tr.cat-s2s {
+        border-left: 3px solid var(--orange);
+      }
+      .landscape-table tr.cat-dead {
+        border-left: 3px solid var(--red);
+        opacity: 0.7;
+      }
+      .landscape-table tr.cat-dead:hover {
+        opacity: 1;
+      }
+      .landscape-table td.meta {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .landscape-table td.reason {
+        font-size: 13px;
+        color: var(--text);
+        line-height: 1.5;
+      }
+      .verdict {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 5px 11px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+      }
+      .verdict-core {
+        background: var(--green-bg);
+        color: var(--green);
+        border: 1px solid rgba(63, 185, 80, 0.35);
+      }
+      .verdict-candidate {
+        background: var(--teal-bg);
+        color: var(--teal);
+        border: 1px solid rgba(57, 208, 216, 0.35);
+      }
+      .verdict-distinct {
+        background: var(--purple-bg);
+        color: var(--purple);
+        border: 1px solid rgba(188, 140, 255, 0.35);
+      }
+      .verdict-niche {
+        background: var(--yellow-bg);
+        color: var(--yellow);
+        border: 1px solid rgba(210, 153, 34, 0.35);
+      }
+      .verdict-different {
+        background: var(--orange-bg);
+        color: var(--orange);
+        border: 1px solid rgba(219, 109, 40, 0.35);
+      }
+      .verdict-dead {
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(248, 81, 73, 0.35);
+        text-decoration: line-through;
+        text-decoration-color: rgba(248, 81, 73, 0.5);
+      }
+      .landscape-summary {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
+        margin: 24px 0;
+      }
+      .landscape-summary .ls-cell {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 12px;
+        text-align: center;
+      }
+      .landscape-summary .ls-count {
+        font-family: var(--mono);
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .landscape-summary .ls-label {
+        font-size: 10px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-top: 4px;
+        line-height: 1.3;
+      }
+      @media (max-width: 768px) {
+        .landscape-summary {
+          grid-template-columns: repeat(3, 1fr);
+        }
       }
 
       /* ─────────────── Cards ─────────────── */
@@ -746,17 +871,20 @@
         <span class="header-tag">DESIGN MATRIX · WEB COMMUNICATION</span>
         <h1>Web Communication Matrix</h1>
         <p class="subtitle">
-          Where cqrs-htmx should support what across
-          <strong style="color: var(--accent)">HTTP</strong>,
-          <strong style="color: var(--teal)">SSE</strong>, and
-          <strong style="color: var(--purple)">WebSocket</strong> — current state versus the
-          technology-max target, with a Pareto-ordered execution plan.
+          A comprehensive survey of
+          <strong style="color: var(--accent)">15 web communication technologies</strong> — where
+          cqrs-htmx should support what, from the three core transports (<strong
+            style="color: var(--accent)"
+            >HTTP</strong
+          >, <strong style="color: var(--teal)">SSE</strong>,
+          <strong style="color: var(--purple)">WebSocket</strong>) through candidates, niche
+          options, and the deliberately dead.
         </p>
         <div class="header-meta">
           <div><strong>Date</strong>2026-06-18</div>
-          <div><strong>Transports</strong>3</div>
+          <div><strong>Core transports</strong>3</div>
+          <div><strong>Technologies surveyed</strong>15</div>
           <div><strong>Capabilities</strong>9</div>
-          <div><strong>APIs in scope</strong>~27 cells</div>
         </div>
       </div>
     </header>
@@ -779,7 +907,7 @@
     <!-- ═════════════════════════════ TRANSPORTS ═════════════════════════════ -->
     <section id="transports">
       <div class="container">
-        <h2>The Three Transports</h2>
+        <h2>The Three Core Transports</h2>
         <p class="section-desc">
           Each transport has distinct capabilities and limitations. A complete HTMX-aware CQRS
           library must speak each one fluently — pushing events, accepting commands, reporting
@@ -849,130 +977,246 @@
       <div class="container">
         <h2>The Full Landscape</h2>
         <p class="section-desc">
-          HTTP, SSE, and WebSocket are the three core transports this library targets — but the web
-          offers more. This catalogues
-          <strong>every other browser-native communication technology</strong> plus the
-          server-to-server options, with a verdict on whether each belongs in cqrs-htmx. Items
-          marked <span class="badge badge-good">In scope</span> are candidates for future matrix
-          columns; the rest are documented so the exclusion is a decision, not an oversight.
+          HTTP, SSE, and WebSocket are the three core transports — but the web offers twelve more.
+          This catalogues
+          <strong>every browser-native and server-to-server communication technology</strong>
+          relevant to a real-time CQRS library, with an honest verdict on whether each belongs in
+          cqrs-htmx. Exclusions are documented decisions, not oversights.
         </p>
 
-        <h3>Live Transports — browser-native, bidirectional or streaming</h3>
-        <div class="matrix-wrap">
-          <table class="matrix">
-            <thead>
-              <tr>
-                <th style="min-width: 200px">Technology</th>
-                <th>Direction</th>
-                <th>Latency</th>
-                <th>Transport / Reliability</th>
-                <th>Status</th>
-                <th>Verdict</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="capability">WebTransport</td>
-                <td>Full-duplex</td>
-                <td>Lowest</td>
-                <td>
-                  HTTP/3 + QUIC · <strong>both</strong> reliable streams &amp; unreliable datagrams
-                </td>
-                <td><span class="badge badge-medium">Next-gen</span></td>
-                <td><span class="badge badge-good">⭐ In scope</span></td>
-              </tr>
-              <tr>
-                <td class="capability">WebRTC Data Channels</td>
-                <td>Full-duplex (p2p or to-server)</td>
-                <td>Lowest</td>
-                <td>SCTP · reliable &amp; unreliable modes</td>
-                <td><span class="badge badge-low">Live, niche</span></td>
-                <td><span class="badge badge-medium">⚠ Niche</span></td>
-              </tr>
-              <tr>
-                <td class="capability">Fetch Streaming</td>
-                <td>Bidirectional streaming bodies</td>
-                <td>Low</td>
-                <td>HTTP/2 · request &amp; response are <code>ReadableStream</code></td>
-                <td><span class="badge badge-good">Live, modern</span></td>
-                <td><span class="badge badge-good">⭐ In scope</span></td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="landscape-summary">
+          <div class="ls-cell">
+            <div class="ls-count" style="color: var(--teal)">2</div>
+            <div class="ls-label">Candidates</div>
+          </div>
+          <div class="ls-cell">
+            <div class="ls-count" style="color: var(--purple)">1</div>
+            <div class="ls-label">Distinct Capability</div>
+          </div>
+          <div class="ls-cell">
+            <div class="ls-count" style="color: var(--yellow)">2</div>
+            <div class="ls-label">Niche / Out of Scope</div>
+          </div>
+          <div class="ls-cell">
+            <div class="ls-count" style="color: var(--orange)">2</div>
+            <div class="ls-label">Different Paradigm</div>
+          </div>
+          <div class="ls-cell">
+            <div class="ls-count" style="color: var(--red)">5</div>
+            <div class="ls-label">Dead / Superseded</div>
+          </div>
+          <div class="ls-cell">
+            <div class="ls-count" style="color: var(--green)">3</div>
+            <div class="ls-label">Core (in matrix)</div>
+          </div>
         </div>
 
-        <h3>Push &amp; Background — async, possibly offline</h3>
+        <h3>
+          Live Transport Candidates
+          <span class="badge badge-info" style="margin-left: 8px">browser-native</span>
+        </h3>
         <div class="matrix-wrap">
-          <table class="matrix">
-            <thead>
-              <tr>
-                <th style="min-width: 200px">Mechanism</th>
-                <th>Trigger</th>
-                <th>Key Property</th>
-                <th>Status</th>
-                <th>Verdict</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="capability">Web Push API + Service Worker</td>
-                <td>Server via push service (FCM / APNs)</td>
-                <td><strong>Works when the tab is closed</strong> — OS-level delivery</td>
-                <td><span class="badge badge-good">Live, standard</span></td>
-                <td><span class="badge badge-info">⭐ In scope — offline reach</span></td>
-              </tr>
-              <tr>
-                <td class="capability">Background Sync API</td>
-                <td>Browser, when back online</td>
-                <td>Deferred client-side retries</td>
-                <td><span class="badge badge-low">Chrome-only</span></td>
-                <td><span class="badge badge-muted">Out of scope — client-only</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <h3>Server-to-Server / RPC — different participants</h3>
-        <div class="matrix-wrap">
-          <table class="matrix">
+          <table class="matrix landscape-table">
             <thead>
               <tr>
                 <th style="min-width: 200px">Technology</th>
                 <th>Direction</th>
                 <th>Transport</th>
-                <th>Notes</th>
+                <th>Browser Support</th>
                 <th>Verdict</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="capability">gRPC / gRPC-Web</td>
-                <td>Request/Response + streaming</td>
-                <td>HTTP/2</td>
-                <td>Strongly-typed RPC — different paradigm from HTMX</td>
-                <td><span class="badge badge-low">Different paradigm</span></td>
+              <tr class="cat-live">
+                <td class="tech-name">
+                  WebTransport
+                  <span class="tech-sub">HTTP/3 + QUIC · streams AND datagrams</span>
+                </td>
+                <td class="meta">Full-duplex</td>
+                <td class="meta">QUIC · reliable + unreliable</td>
+                <td class="meta">Chrome 97+ · Safari 26+ · No Firefox stable</td>
+                <td><span class="verdict verdict-candidate">Monitor → Candidate</span></td>
               </tr>
-              <tr>
-                <td class="capability">Webhooks</td>
-                <td>Server → Server callback</td>
-                <td>HTTP POST</td>
-                <td>Ubiquitous S2S event delivery</td>
-                <td><span class="badge badge-low">S2S only</span></td>
+              <tr class="cat-live">
+                <td class="tech-name">
+                  Fetch Streaming
+                  <span class="tech-sub">Bidirectional streaming bodies over HTTP/2</span>
+                </td>
+                <td class="meta">Bidirectional</td>
+                <td class="meta">HTTP/2 · ReadableStream</td>
+                <td class="meta">All modern browsers</td>
+                <td><span class="verdict verdict-candidate">Candidate</span></td>
+              </tr>
+              <tr class="cat-live">
+                <td class="tech-name">
+                  WebRTC Data Channels
+                  <span class="tech-sub">Peer-to-peer or server · SCTP framing</span>
+                </td>
+                <td class="meta">Full-duplex (p2p)</td>
+                <td class="meta">SCTP · reliable + unreliable</td>
+                <td class="meta">All modern browsers</td>
+                <td><span class="verdict verdict-niche">Niche — p2p focus</span></td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="callout">
-          <div class="callout-title">How this maps to the matrix</div>
+        <h3>
+          Push &amp; Background
+          <span class="badge badge-info" style="margin-left: 8px">async, possibly offline</span>
+        </h3>
+        <div class="matrix-wrap">
+          <table class="matrix landscape-table">
+            <thead>
+              <tr>
+                <th style="min-width: 200px">Mechanism</th>
+                <th>Trigger</th>
+                <th>Key Property</th>
+                <th>Browser Support</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="cat-push">
+                <td class="tech-name">
+                  Web Push API + Service Worker
+                  <span class="tech-sub">OS-level push via FCM / APNs</span>
+                </td>
+                <td class="meta">Server → push service → browser</td>
+                <td class="reason">
+                  <strong>Reaches closed tabs.</strong> Only mechanism that works when the app isn't
+                  open.
+                </td>
+                <td class="meta">All modern browsers (except iOS Safari &lt; 16.4)</td>
+                <td><span class="verdict verdict-distinct">Distinct — separate module</span></td>
+              </tr>
+              <tr class="cat-push">
+                <td class="tech-name">
+                  Background Sync API
+                  <span class="tech-sub">Deferred retries when back online</span>
+                </td>
+                <td class="meta">Browser, when online</td>
+                <td class="meta">Client-side retry queue</td>
+                <td class="meta">Chrome / Edge only</td>
+                <td><span class="verdict verdict-niche">Out of scope</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>
+          Server-to-Server / RPC
+          <span class="badge badge-muted" style="margin-left: 8px">different participants</span>
+        </h3>
+        <div class="matrix-wrap">
+          <table class="matrix landscape-table">
+            <thead>
+              <tr>
+                <th style="min-width: 200px">Technology</th>
+                <th>Direction</th>
+                <th>Transport</th>
+                <th>Note</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="cat-s2s">
+                <td class="tech-name">
+                  gRPC / gRPC-Web
+                  <span class="tech-sub">Strongly-typed RPC over HTTP/2</span>
+                </td>
+                <td class="meta">Req/Resp + streaming</td>
+                <td class="meta">HTTP/2 + protobuf</td>
+                <td class="reason">
+                  Typed RPC with codegen — fundamentally different from HTMX's HTML-fragment model.
+                </td>
+                <td><span class="verdict verdict-different">Different paradigm</span></td>
+              </tr>
+              <tr class="cat-s2s">
+                <td class="tech-name">
+                  Webhooks
+                  <span class="tech-sub">Server-to-server HTTP callbacks</span>
+                </td>
+                <td class="meta">Server → Server</td>
+                <td class="meta">HTTP POST</td>
+                <td class="reason">
+                  Ubiquitous for S2S event delivery. Not a browser transport, but relevant for
+                  outbound integration.
+                </td>
+                <td><span class="verdict verdict-different">S2S only</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>
+          Deliberately Excluded
+          <span class="badge badge-critical" style="margin-left: 8px">dead or superseded</span>
+        </h3>
+        <div class="matrix-wrap">
+          <table class="matrix landscape-table">
+            <thead>
+              <tr>
+                <th style="min-width: 200px">Technology</th>
+                <th>Was Used For</th>
+                <th>Replaced By</th>
+                <th>Status</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="cat-dead">
+                <td class="tech-name">Long Polling / Comet</td>
+                <td class="meta">Simulated server push</td>
+                <td class="meta">SSE / WebSocket</td>
+                <td class="meta">Legacy</td>
+                <td><span class="verdict verdict-dead">Superseded</span></td>
+              </tr>
+              <tr class="cat-dead">
+                <td class="tech-name">HTTP Streaming (chunked)</td>
+                <td class="meta">Streaming response body</td>
+                <td class="meta">Fetch Streaming / SSE</td>
+                <td class="meta">Subset of Fetch Streaming</td>
+                <td><span class="verdict verdict-dead">Superseded</span></td>
+              </tr>
+              <tr class="cat-dead">
+                <td class="tech-name">HTTP/2 Server Push</td>
+                <td class="meta">Pre-emptive resource delivery</td>
+                <td class="meta">103 Early Hints</td>
+                <td class="meta">
+                  <strong style="color: var(--red)">Deprecated 2022 · removed from Chrome</strong>
+                </td>
+                <td><span class="verdict verdict-dead">Dead</span></td>
+              </tr>
+              <tr class="cat-dead">
+                <td class="tech-name">JSONP</td>
+                <td class="meta">Cross-origin data before CORS</td>
+                <td class="meta">CORS / fetch</td>
+                <td class="meta">Dead</td>
+                <td><span class="verdict verdict-dead">Dead</span></td>
+              </tr>
+              <tr class="cat-dead">
+                <td class="tech-name">Multipart XHR</td>
+                <td class="meta">Chunked multipart response</td>
+                <td class="meta">SSE / WebSocket</td>
+                <td class="meta">Legacy</td>
+                <td><span class="verdict verdict-dead">Superseded</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout success">
+          <div class="callout-title">Decision Framework</div>
           <p>
-            <strong>WebTransport</strong> and <strong>Fetch Streaming</strong> are the legitimate
-            candidates to become 4th and 5th matrix columns — they extend the live-transport story
-            with QUIC datagrams and true bidirectional HTTP/2 streaming respectively.
-            <strong>Web Push</strong> is a distinct capability (reach-the-closed-tab) that no
-            current transport provides. <strong>gRPC-Web</strong> and
-            <strong>Webhooks</strong> serve a different audience (S2S / typed RPC) and are
-            documented here for completeness, not for inclusion in the HTMX transport matrix.
+            Of the twelve technologies beyond the core three, only <strong>WebTransport</strong> and
+            <strong>Fetch Streaming</strong> are legitimate candidates to become new matrix columns
+            — they add capabilities the core transports cannot provide (QUIC datagrams and true
+            bidirectional HTTP/2 streaming). <strong>Web Push</strong> earns its place as a separate
+            module: it is the only technology that reaches a user when the tab is closed, a
+            capability no live transport can replicate. Everything else is either a different
+            paradigm (gRPC-Web, Webhooks), too niche (WebRTC), or dead (HTTP/2 Server Push, JSONP).
+            The exclusion of each is a deliberate engineering decision, not an omission.
           </p>
         </div>
       </div>
@@ -993,19 +1237,19 @@
 
         <div class="grid-4" style="margin-bottom: 32px">
           <div class="stat">
-            <div class="value green">7</div>
+            <div class="value green">11</div>
             <div class="label">Cells Fully Supported</div>
           </div>
           <div class="stat">
-            <div class="value yellow">4</div>
+            <div class="value yellow">2</div>
             <div class="label">Cells Partial</div>
           </div>
           <div class="stat">
-            <div class="value red">13</div>
+            <div class="value red">9</div>
             <div class="label">Cells Missing</div>
           </div>
           <div class="stat">
-            <div class="value teal">3</div>
+            <div class="value teal">5</div>
             <div class="label">Cells Impossible</div>
           </div>
         </div>
@@ -1023,14 +1267,12 @@
             <tbody>
               <tr>
                 <td class="capability">
-                  Outgoing Push
-                  <span class="cap-desc">Server → client data flow</span>
+                  Push Domain Event
+                  <span class="cap-desc">Server → client event broadcast</span>
                 </td>
                 <td class="cell">
-                  <span class="cell-status status-have"
-                    ><span class="icon">✓</span> Response body</span
-                  >
-                  <span class="cell-detail">status + body + headers</span>
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                  <span class="cell-detail">response is pull, not push</span>
                 </td>
                 <td class="cell">
                   <span class="cell-status status-have"><span class="icon">✓</span> SSEEvent</span>
@@ -1684,82 +1926,51 @@
             >RFC 7807</a
           >.
         </p>
-        <div class="code-block">
-          <span class="cmt"
-            >// Transport-agnostic structured error. Serialized as JSON for SSE data / WS
-            payload.</span
-          >
-          <span class="kw">type</span> <span class="ty">StructuredError</span> {
-          <span class="fn">Type</span> <span class="kw">string</span>
-          <span class="cmt">// URI or token: "about:blank", "https://errors/rejection"</span>
-          <span class="fn">Title</span> <span class="kw">string</span>
-          <span class="cmt">// Short human-readable summary</span> <span class="fn">Status</span>
-          <span class="kw">int</span>
-          <span class="cmt">// HTTP status code (carries family semantics)</span>
-          <span class="fn">Detail</span> <span class="kw">string</span>
-          <span class="cmt">// Specific explanation of this occurrence</span>
-          <span class="fn">Instance</span> <span class="kw">string</span>
-          <span class="cmt">// Request ID / correlation ID for tracing</span>
-          }
-        </div>
+        <pre
+          class="code-block"
+        ><span class="cmt">// Transport-agnostic structured error. Serialized as JSON for SSE data / WS payload.</span>
+<span class="kw">type</span> <span class="ty">StructuredError</span> <span class="kw">struct</span> {
+    Type     <span class="kw">string</span> <span class="cmt">// URI or token: "about:blank", "https://errors/rejection"</span>
+    Title    <span class="kw">string</span> <span class="cmt">// Short human-readable summary</span>
+    Status   <span class="kw">int</span>    <span class="cmt">// HTTP status code (carries family semantics)</span>
+    Detail   <span class="kw">string</span> <span class="cmt">// Specific explanation of this occurrence</span>
+    Instance <span class="kw">string</span> <span class="cmt">// Request ID / correlation ID for tracing</span>
+}</pre>
 
         <h3>SSE Error Hook Signatures</h3>
-        <div class="code-block">
-          <span class="cmt">// Symmetric to BroadcastOnSuccess. Fires when err != nil.</span>
-          <span class="kw">func</span> (b *<span class="ty">Broadcaster</span>)
-          <span class="fn">BroadcastOnError</span>(eventName <span class="kw">string</span>,
-          errPayload <span class="ty">StructuredError</span>)
-          <span class="ty">AfterDispatchHook</span>
+        <pre
+          class="code-block"
+        ><span class="cmt">// Symmetric to BroadcastOnSuccess. Fires when err != nil.</span>
+<span class="kw">func</span> (b *<span class="ty">Broadcaster</span>) <span class="fn">BroadcastOnError</span>(eventName <span class="kw">string</span>, payload <span class="ty">StructuredError</span>) <span class="ty">AfterDispatchHook</span>
 
-          <span class="kw">func</span> (b *<span class="ty">Broadcaster</span>)
-          <span class="fn">BroadcastOnErrorFunc</span>(errFunc <span class="kw">func</span>(r *<span
-            class="ty"
-            >http.Request</span
-          >, err <span class="kw">error</span>) <span class="ty">SSEEvent</span>)
-          <span class="ty">AfterDispatchHook</span>
-        </div>
+<span class="kw">func</span> (b *<span class="ty">Broadcaster</span>) <span class="fn">BroadcastOnErrorFunc</span>(errFunc <span class="kw">func</span>(r *<span class="ty">http.Request</span>, err <span class="kw">error</span>) <span class="ty">SSEEvent</span>) <span class="ty">AfterDispatchHook</span></pre>
 
         <h3>SSE Heartbeat</h3>
-        <div class="code-block">
-          <span class="cmt"
-            >// Sends SSE comment-frame pings on a ticker until ctx is cancelled.</span
-          >
-          <span class="cmt">// Safe to run in a goroutine alongside stream.Send.</span>
-          <span class="kw">func</span> (s *<span class="ty">SSEStream</span>)
-          <span class="fn">Heartbeat</span>(ctx <span class="ty">context.Context</span>, interval
-          <span class="ty">time.Duration</span>)
-        </div>
+        <pre
+          class="code-block"
+        ><span class="cmt">// Sends SSE comment-frame pings on a ticker until ctx is cancelled.</span>
+<span class="cmt">// Safe to run in a goroutine alongside stream.Send.</span>
+<span class="kw">func</span> (s *<span class="ty">SSEStream</span>) <span class="fn">Heartbeat</span>(ctx <span class="ty">context.Context</span>, interval <span class="ty">time.Duration</span>)</pre>
 
         <h3>WebSocket Encoder + Broadcaster</h3>
-        <div class="code-block">
-          <span class="cmt">// Symmetric to ParseWSMessage. Writes an HTMX-shaped WS message.</span>
-          <span class="kw">func</span> <span class="fn">WriteWSMessage</span>[T
-          <span class="kw">any</span>](w <span class="ty">io.Writer</span>, msg T)
-          <span class="kw">error</span>
+        <pre
+          class="code-block"
+        ><span class="cmt">// Symmetric to ParseWSMessage. Writes an HTMX-shaped WS message.</span>
+<span class="kw">func</span> <span class="fn">WriteWSMessage</span>[T <span class="kw">any</span>](w <span class="ty">io.Writer</span>, msg T) <span class="kw">error</span>
 
-          <span class="cmt">// Fan-out for WS clients, mirroring SSE Broadcaster.</span>
-          <span class="kw">type</span> <span class="ty">WSBroadcaster</span>
-          <span class="kw">struct</span>{ /* ... */ } <span class="kw">func</span>
-          <span class="fn">NewWSBroadcaster</span>() *<span class="ty">WSBroadcaster</span>
-          <span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>)
-          <span class="fn">Subscribe</span>() &lt;-<span class="kw">chan</span>
-          <span class="ty">WSMessage</span> <span class="kw">func</span> (b *<span class="ty"
-            >WSBroadcaster</span
-          >) <span class="fn">Broadcast</span>(msg <span class="ty">WSMessage</span>)
-        </div>
+<span class="cmt">// Fan-out for WS clients, mirroring SSE Broadcaster.</span>
+<span class="kw">type</span> <span class="ty">WSBroadcaster</span> <span class="kw">struct</span> { /* ... */ }
+
+<span class="kw">func</span> <span class="fn">NewWSBroadcaster</span>() *<span class="ty">WSBroadcaster</span>
+<span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>) <span class="fn">Subscribe</span>() &lt;-<span class="kw">chan</span> <span class="ty">WSMessage</span>
+<span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>) <span class="fn">Broadcast</span>(msg <span class="ty">WSMessage</span>)</pre>
 
         <h3>WS Dispatch Bridge</h3>
-        <div class="code-block">
-          <span class="cmt">// Wire incoming WS messages into the CQRS dispatcher.</span>
-          <span class="cmt"
-            >// Consumers call this from their WS library's OnMessage callback.</span
-          >
-          <span class="kw">func</span> <span class="fn">WSDispatchHandler</span>(app *<span
-            class="ty"
-            >App</span
-          >) <span class="kw">func</span>(data []<span class="kw">byte</span>)
-          <span class="ty">WSMessage</span>
-        </div>
+        <pre
+          class="code-block"
+        ><span class="cmt">// Wire incoming WS messages into the CQRS dispatcher.</span>
+<span class="cmt">// Consumers call this from their WS library's OnMessage callback.</span>
+<span class="kw">func</span> <span class="fn">WSDispatchHandler</span>(app *<span class="ty">App</span>) <span class="kw">func</span>(data []<span class="kw">byte</span>) <span class="ty">WSMessage</span></pre>
       </div>
     </section>
 
