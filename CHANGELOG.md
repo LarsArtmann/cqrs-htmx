@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **StructuredError**: RFC 7807-shaped transport-agnostic error payload (`type`, `title`, `status`, `detail`, `instance`). `NewStructuredError(err, r)` maps via `MapError` and extracts request ID. `JSON()` method for SSE/WS data serialization. Used uniformly across SSE and WS error channels.
+- **BroadcastOnError / BroadcastOnErrorFunc**: Symmetric to `BroadcastOnSuccess`. `AfterDispatchHook` factories that fire when `err != nil`, broadcasting a `StructuredError` JSON event. Closes the SSE error-reporting gap — clients now learn when commands fail.
+- **SSEStream.Heartbeat(ctx, interval)**: Sends SSE comment-frame pings (`: keepalive\n\n`) on a ticker. Prevents reverse proxies (Nginx, Cloudflare, AWS ALB) from killing idle SSE connections after 30–60s of silence.
+- **SSEStream.OnDisconnect(fn)**: Registers cleanup callbacks fired on `Close()`. Enables metrics, logging, session deregistration.
+- **WriteWSMessage / WriteWSMessageInto[T]**: Outbound WebSocket message encoders. Counterparts to `ParseWSMessage` / `ParseWSMessageInto[T]`. Round-trip verified.
+- **WSBroadcaster**: Thread-safe fan-out for WebSocket messages. Mirrors SSE `Broadcaster` API — `Subscribe` / `Unsubscribe` / `Broadcast` / `SubscriberCount`. O(1) unsubscribe via channel pointer identity. Buffered channels (64).
+- **BroadcastOnSuccessWS / BroadcastOnErrorWS**: `AfterDispatchHook` factories for `WSBroadcaster`. WebSocket equivalents of SSE `BroadcastOnSuccess` / `BroadcastOnError`.
 - **catalog sub-package** (5th Go module): Automatic API documentation generation from Go CQRS types. Produces OpenAPI 3.0, AsyncAPI 3.0, D2 diagrams, and EventCatalog MDX file trees from a single registration. Zero dependency on root or usermgmt modules — consumers opt in via `go get github.com/larsartmann/cqrs-htmx/catalog/v2`. Includes HTTP handlers (`OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `GenerateEventCatalog`), JSON/YAML output via `WithFormat()`, schema auto-derivation from struct tags, and catalog validation (`Build()` panics, `BuildValid()` returns violations). See [catalog/README.md](catalog/README.md) and ADR 0008.
 - **ADR 0009**: Documents the rationale for which go-cqrs-lite modules are used (8 direct) vs not used (13 excluded), with specific reasons for each exclusion. Cross-references the middleware integration guide.
 - **Middleware integration guide** (`docs/integrations/go-cqrs-lite-middleware.md`): Documents how go-cqrs-lite dispatch middleware (retry, circuit breaker, metrics, tracing) composes with cqrs-htmx HTTP middleware. Different layers, no conflict.
