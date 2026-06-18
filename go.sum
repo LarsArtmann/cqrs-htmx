@@ -40,8 +40,8 @@ github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0 h1:oUPx89RKdD8POkDIJMHxzmkuh
 github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0/go.mod h1:HblnHGsMss9chVV5qR/Ena0SE+d4vbEK6/tQTeYghOg=
 github.com/larsartmann/go-error-family v0.4.0 h1:y4ykkSJJaqr7jtilitrdX+bByVAm6UTlTbccQMlu1Fw=
 github.com/larsartmann/go-error-family v0.4.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
-github.com/larsartmann/httputil v0.2.0 h1:0DHSMJVuEoApO1L89zNzSE661Nao6CPwV2IsFVtKKJU=
-github.com/larsartmann/httputil v0.2.0/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
+github.com/larsartmann/httputil v0.3.0 h1:/j1PUI2K79mkZZ6QtRD92hfLK0ij0d+kkXacAgBoXlc=
+github.com/larsartmann/httputil v0.3.0/go.mod h1:+zSz4Ru4W61NzDhN91eyZaJD5xR3cEwav55Z4899ROg=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=
 github.com/oklog/ulid/v2 v2.1.1/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
 github.com/onsi/ginkgo/v2 v2.31.0 h1:GtuJos5DFUV9EerYJo8RhYxosYNGvOdDE5haKq6Grfs=
