@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-06-18
+
 ### Added
 
 - **StructuredError**: RFC 7807-shaped transport-agnostic error payload (`type`, `title`, `status`, `detail`, `instance`). `NewStructuredError(err, r)` maps via `MapError` and extracts request ID. `JSON()` method for SSE/WS data serialization. Used uniformly across SSE and WS error channels.
@@ -24,9 +26,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **catalog sub-package** (5th Go module): Automatic API documentation generation from Go CQRS types. Produces OpenAPI 3.0, AsyncAPI 3.0, D2 diagrams, and EventCatalog MDX file trees from a single registration. Zero dependency on root or usermgmt modules — consumers opt in via `go get github.com/larsartmann/cqrs-htmx/catalog/v2`. Includes HTTP handlers (`OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `GenerateEventCatalog`), JSON/YAML output via `WithFormat()`, schema auto-derivation from struct tags, and catalog validation (`Build()` panics, `BuildValid()` returns violations). See [catalog/README.md](catalog/README.md) and ADR 0008.
 - **ADR 0009**: Documents the rationale for which go-cqrs-lite modules are used (8 direct) vs not used (13 excluded), with specific reasons for each exclusion. Cross-references the middleware integration guide.
 - **Middleware integration guide** (`docs/integrations/go-cqrs-lite-middleware.md`): Documents how go-cqrs-lite dispatch middleware (retry, circuit breaker, metrics, tracing) composes with cqrs-htmx HTTP middleware. Different layers, no conflict.
+- **`ForbiddenErrorHandler`**: Exported named CSRF error handler for `CSRFConfig.ErrorHandler` — writes HTTP 403 with no body. Convenient default for consumers wiring CSRF protection without rendering nosurf's default error page.
+- **catalog-demo example**: `examples/catalog-demo/` — standalone server generating live OpenAPI, AsyncAPI, and D2 docs from Go struct tags via the catalog module. Includes graceful shutdown and `ReadHeaderTimeout` hardening.
+- **`test-race` / `test-fuzz` nix apps**: `nix run .#test-race` runs the race detector across all four Go modules; `nix run .#test-fuzz` discovers and runs every `Fuzz*` target (default 30s each, overridable via `FUZZTIME`).
 
 ### Fixed
 
+- **`applyConfigDefaults` silent field loss**: The `HandlerConfig` defaults logic created a fresh config and manually copied each field — any field not copied was silently zeroed. `WebAuthnRateLimit` was missing, silently disabling rate limiting on all 4 WebAuthn endpoints. Refactored to start from the caller's config and override only fields needing non-zero defaults, eliminating the entire class of "forgot to copy a field" bugs.
 - **Removed lying `EventCatalogHandler`**: The handler set `Content-Type: application/zip` but served a JSON file listing — a critical honesty violation. Removed entirely; kept `GenerateEventCatalog()` (build-time/startup-time file generation, which is the correct EventCatalog model).
 - **Fixed `flake.nix` split brain**: `nix run .#test` (and `.#lint`/`.#build`/`.#coverage`) silently skipped the catalog module. Catalog is now included in all four multi-module nix apps.
 - **Removed self-referential `replace` directive** in `catalog/go.mod` (`replace github.com/larsartmann/cqrs-htmx/catalog/v2 => ./`) — pointed the module at itself.
