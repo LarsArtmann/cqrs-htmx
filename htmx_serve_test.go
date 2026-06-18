@@ -26,16 +26,7 @@ type htmxScriptTestCase struct {
 // htmxScriptTestCase entries. The default values match the embedded
 // HTMXScriptHandler; callers override the knobs that vary between
 // cases (method, version, ifNoneMatch, wantStatus, name).
-type htmxCaseBuilder struct {
-	name             string
-	method           string
-	js               []byte
-	version          string
-	etag             string
-	ifNoneMatch      string
-	wantStatus       int
-	wantBodyNonEmpty bool
-}
+type htmxCaseBuilder = htmxScriptTestCase
 
 func newCase() htmxCaseBuilder {
 	return htmxCaseBuilder{
@@ -83,7 +74,7 @@ func (b htmxCaseBuilder) withBody() htmxCaseBuilder {
 }
 
 func (b htmxCaseBuilder) build() htmxScriptTestCase {
-	return htmxScriptTestCase(b)
+	return b
 }
 
 func htmxScriptTestCases() []htmxScriptTestCase {

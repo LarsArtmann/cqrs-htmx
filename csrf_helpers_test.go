@@ -33,23 +33,18 @@ func csrfConfigWith(overrides func(*cqrshtmx.CSRFConfig)) cqrshtmx.CSRFConfig {
 	return cfg
 }
 
-// csrfTokenOnceHandler wraps a middleware with a handler that captures the CSRF token once.
-func csrfTokenOnceHandler(middleware func(http.Handler) http.Handler, token *string) http.Handler {
-	return middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if *token == "" {
-			*token = cqrshtmx.CSRFTokenFromContext(r.Context())
-		}
-		w.WriteHeader(http.StatusOK)
-	}))
-}
-
-// csrfTokenCaptureHandler wraps a middleware with a handler that always captures the CSRF token.
+// csrfTokenCaptureHandler wraps a middleware with a handler that captures the
+// CSRF token into *token. When captureOnce is true, the token is captured only
+// the first time (subsequent captures keep the original value).
 func csrfTokenCaptureHandler(
 	middleware func(http.Handler) http.Handler,
 	token *string,
+	captureOnce bool,
 ) http.Handler {
 	return middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		*token = cqrshtmx.CSRFTokenFromContext(r.Context())
+		if *token == "" || !captureOnce {
+			*token = cqrshtmx.CSRFTokenFromContext(r.Context())
+		}
 		w.WriteHeader(http.StatusOK)
 	}))
 }
@@ -61,7 +56,7 @@ func csrfGETThenPOST(
 	headerName, fieldName string,
 ) int {
 	var token string
-	handler := csrfTokenOnceHandler(middleware, &token)
+	handler := csrfTokenCaptureHandler(middleware, &token, true)
 
 	w1 := httptest.NewRecorder()
 	r1 := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)

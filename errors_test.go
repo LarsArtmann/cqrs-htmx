@@ -20,6 +20,10 @@ var _ = Describe("Error Mapping", func() {
 		Entry("nil error to 500", nil, http.StatusInternalServerError),
 	)
 
+	expectHXRedirectToLogin := func(w *httptest.ResponseRecorder) {
+		Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+	}
+
 	Describe("DefaultErrorHandler", func() {
 		DescribeTable(
 			"error handler responses",
@@ -40,14 +44,10 @@ var _ = Describe("Error Mapping", func() {
 				}),
 			Entry("HX-Redirect for unauthorized HTMX",
 				cqrshtmx.ErrUnauthorized, cqrshtmx.DefaultErrorHandler, true,
-				func(w *httptest.ResponseRecorder) {
-					Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
-				}),
+				expectHXRedirectToLogin),
 			Entry("HX-Redirect for forbidden HTMX",
 				cqrshtmx.ErrForbidden, cqrshtmx.DefaultErrorHandler, true,
-				func(w *httptest.ResponseRecorder) {
-					Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
-				}),
+				expectHXRedirectToLogin),
 			Entry("no redirect for non-auth HTMX errors",
 				cqrshtmx.ErrDecodeFailed, cqrshtmx.DefaultErrorHandler, true,
 				func(w *httptest.ResponseRecorder) {

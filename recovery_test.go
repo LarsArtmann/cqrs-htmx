@@ -11,6 +11,15 @@ import (
 )
 
 var _ = Describe("Recovery Middleware", func() {
+	// httpAbortHandler panics with http.ErrAbortHandler — Go's sentinel for
+	// "stop processing this connection" (e.g. server is shutting down).
+	// RecoveryMiddleware must re-raise this panic instead of swallowing it
+	// as a generic 500. Both the standalone and App-level recovery paths
+	// share this behavior, so the handler is built once.
+	httpAbortHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		panic(http.ErrAbortHandler)
+	})
+
 	Describe("Standalone RecoveryMiddleware", func() {
 		It("recovers from panics and writes 500", func() {
 			panicHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
@@ -37,10 +46,7 @@ var _ = Describe("Recovery Middleware", func() {
 		})
 
 		It("re-raises http.ErrAbortHandler", func() {
-			abortHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-				panic(http.ErrAbortHandler)
-			})
-			handler := cqrshtmx.RecoveryMiddleware(abortHandler)
+			handler := cqrshtmx.RecoveryMiddleware(httpAbortHandler)
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -99,10 +105,7 @@ var _ = Describe("Recovery Middleware", func() {
 
 		It("re-raises http.ErrAbortHandler", func() {
 			app := newCommandApp()
-			abortHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-				panic(http.ErrAbortHandler)
-			})
-			handler := app.RecoverHandler()(abortHandler)
+			handler := app.RecoverHandler()(httpAbortHandler)
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)

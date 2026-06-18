@@ -137,7 +137,7 @@ func TestHandler_WebAuthnFinish_NoSession(t *testing.T) {
 			mux := http.NewServeMux()
 			h.RegisterRoutes(mux)
 
-			w := postWithQuery(t, mux, tc.path+"?"+tc.queryString, "")
+			w := postJSON(t, mux, tc.path+"?"+tc.queryString, "")
 			if w.Code != http.StatusUnauthorized {
 				t.Errorf("status = %d, want %d (no session)", w.Code, http.StatusUnauthorized)
 			}
@@ -159,7 +159,7 @@ func TestHandler_WebAuthnFinish_MissingUserID(t *testing.T) {
 			mux := http.NewServeMux()
 			h.RegisterRoutes(mux)
 
-			w := postWithQuery(t, mux, tc.path, "")
+			w := postJSON(t, mux, tc.path, "")
 			if w.Code != http.StatusBadRequest {
 				t.Errorf("status = %d, want %d (missing user_id)", w.Code, http.StatusBadRequest)
 			}

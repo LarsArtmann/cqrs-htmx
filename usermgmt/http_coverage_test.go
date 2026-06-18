@@ -82,17 +82,23 @@ func totpHandlerSetup(t *testing.T) (http.Handler, string) {
 	return h, token
 }
 
-func TestHandlers_TOTPVerify_InvalidBody(t *testing.T) {
+// assertInvalidJSONDecode posts malformed JSON to path and asserts that the
+// handler returns 400 (decode error). Used to exercise the body-decode
+// rejection branch on every JSON-decoding handler.
+func assertInvalidJSONDecode(t *testing.T, path string) {
+	t.Helper()
 	h, token := totpHandlerSetup(t)
-	// Invalid JSON body hits the decode-error branch of handleTOTPCode.
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/verify", token, "{bad json")
+	w := authenticatedRequest(t, h, http.MethodPost, path, token, "{bad json")
 	assertStatusCode(t, w, http.StatusBadRequest)
 }
 
+func TestHandlers_TOTPVerify_InvalidBody(t *testing.T) {
+	// Invalid JSON body hits the decode-error branch of handleTOTPCode.
+	assertInvalidJSONDecode(t, "/auth/totp/verify")
+}
+
 func TestHandlers_TOTPDisable_InvalidBody(t *testing.T) {
-	h, token := totpHandlerSetup(t)
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/disable", token, "{bad json")
-	assertStatusCode(t, w, http.StatusBadRequest)
+	assertInvalidJSONDecode(t, "/auth/totp/disable")
 }
 
 func TestHandlers_EmailVerify_InvalidBody(t *testing.T) {
