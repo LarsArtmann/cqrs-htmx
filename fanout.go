@@ -58,22 +58,14 @@ func (f *fanOut[T]) Unsubscribe(ch <-chan T) {
 // Slow subscribers with full buffers have the message dropped to prevent
 // blocking the broadcaster.
 //
-// The subscriber list is snapshotted under a brief RLock and then iterated
-// without holding the lock, allowing concurrent Subscribe/Unsubscribe calls
-// to proceed during fan-out. This reduces contention at 1000+ subscribers.
+// The iteration runs under the read lock so that a concurrent Unsubscribe
+// cannot close a channel that this loop is about to send on — sending to a
+// closed channel would panic. Because sends use a non-blocking select, no
+// goroutine blocks here, and the lock is held only for the brief fan-out.
 func (f *fanOut[T]) Broadcast(msg T) {
 	f.mu.RLock()
-	if len(f.subscribers) == 0 {
-		f.mu.RUnlock()
-		return
-	}
-	snapshot := make([]chan T, 0, len(f.subscribers))
+	defer f.mu.RUnlock()
 	for _, ch := range f.subscribers {
-		snapshot = append(snapshot, ch)
-	}
-	f.mu.RUnlock()
-
-	for _, ch := range snapshot {
 		select {
 		case ch <- msg:
 		default:

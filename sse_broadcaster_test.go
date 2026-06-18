@@ -118,6 +118,44 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			wg.Wait()
 		})
 
+		It("never panics when unsubscribe races with broadcast", func() {
+			// Regression test: Broadcast() must not send on a channel that a
+			// concurrent Unsubscribe() has closed. Before the fix, Broadcast
+			// snapshotted subscribers under RLock, released it, then iterated —
+			// so a close() between release and send panicked. We hammer both
+			// paths concurrently across many goroutines and cycles; any
+			// send-on-closed-channel would crash the test process.
+			b := cqrshtmx.NewBroadcaster()
+
+			stop := make(chan struct{})
+			var wg sync.WaitGroup
+
+			// Many concurrent broadcasters maximize the chance of hitting the
+			// snapshot-release → send window while a channel is being closed.
+			for range 8 {
+				wg.Go(func() {
+					for {
+						select {
+						case <-stop:
+							return
+						default:
+							b.Broadcast(cqrshtmx.SSEEvent{Event: "hammer", Data: "x"})
+						}
+					}
+				})
+			}
+
+			wg.Go(func() {
+				for range 4000 {
+					ch := b.Subscribe()
+					b.Unsubscribe(ch)
+				}
+				close(stop)
+			})
+
+			wg.Wait()
+		})
+
 		It("delivers events in order to a subscriber", func() {
 			b := cqrshtmx.NewBroadcaster()
 			ch := b.Subscribe()
