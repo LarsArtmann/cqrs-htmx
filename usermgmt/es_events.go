@@ -65,6 +65,20 @@ type TOTPDisabledPayload struct {
 	SchemaVersion int `json:"schema_version"`
 }
 
+type ExternalAccountLinkedPayload struct {
+	SchemaVersion int    `json:"schema_version"`
+	Provider      string `json:"provider"`
+	Subject       string `json:"subject"`
+	Email         string `json:"email,omitempty"`
+	DisplayName   string `json:"display_name,omitempty"`
+}
+
+type ExternalAccountUnlinkedPayload struct {
+	SchemaVersion int    `json:"schema_version"`
+	Provider      string `json:"provider"`
+	Subject       string `json:"subject"`
+}
+
 func marshalPayload(v any) ([]byte, error) {
 	b, err := json.Marshal(v)
 	if err != nil {

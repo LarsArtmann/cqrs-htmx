@@ -30,7 +30,7 @@ func (m *UserReadModel) Name() string { return "user-read-model" }
 
 func (m *UserReadModel) EventTypes() []event.Type { return allUserEventTypes }
 
-//nolint:gocognit // inherent to 7-event switch; each case is simple decode+mutate
+//nolint:gocognit,gocyclo // inherent to 12-event switch; each case is simple decode+mutate
 func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -143,6 +143,38 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		if u, ok := m.users[aggID]; ok {
 			u.TOTPEnabled = false
 			u.TOTPSecret = nil
+			u.UpdatedAt = evt.OccurredAt()
+		}
+
+	case eventExternalAccountLinked:
+		p, err := unmarshalPayload[ExternalAccountLinkedPayload](evt)
+		if err != nil {
+			return fmt.Errorf("decode ExternalAccountLinked in read model: %w", err)
+		}
+		if u, ok := m.users[aggID]; ok {
+			u.ExternalAccounts = append(u.ExternalAccounts, ExternalAccount{
+				Provider:    p.Provider,
+				Subject:     p.Subject,
+				Email:       p.Email,
+				DisplayName: p.DisplayName,
+				LinkedAt:    evt.OccurredAt(),
+			})
+			u.UpdatedAt = evt.OccurredAt()
+		}
+
+	case eventExternalAccountUnlinked:
+		p, err := unmarshalPayload[ExternalAccountUnlinkedPayload](evt)
+		if err != nil {
+			return fmt.Errorf("decode ExternalAccountUnlinked in read model: %w", err)
+		}
+		if u, ok := m.users[aggID]; ok {
+			filtered := u.ExternalAccounts[:0]
+			for _, ea := range u.ExternalAccounts {
+				if ea.Provider != p.Provider || ea.Subject != p.Subject {
+					filtered = append(filtered, ea)
+				}
+			}
+			u.ExternalAccounts = filtered
 			u.UpdatedAt = evt.OccurredAt()
 		}
 

@@ -364,3 +364,94 @@ func decideDisableTOTP(
 		return []event.Event{evt}, nil
 	}
 }
+
+func decideLinkExternalAccount(
+	aggID id.AggregateID,
+	provider, subject, email, displayName string,
+) func(UserState, event.Version) ([]event.Event, error) {
+	return func(state UserState, version event.Version) ([]event.Event, error) {
+		if err := requireExists(state, "link_external_account"); err != nil {
+			return nil, err
+		}
+		if state.Deleted {
+			return nil, event.NewRejection("usermgmt.link_external_account.deleted",
+				"cannot link external account to deleted user")
+		}
+		if provider == "" || subject == "" {
+			return nil, event.NewRejection("usermgmt.link_external_account.invalid",
+				"provider and subject are required")
+		}
+		for _, ea := range state.ExternalAccounts {
+			if ea.Provider == provider && ea.Subject == subject {
+				return nil, event.NewConflict("usermgmt.external_account_already_linked",
+					"external account already linked to this user")
+			}
+		}
+		payload, err := marshalPayload(ExternalAccountLinkedPayload{
+			SchemaVersion: currentSchemaVersion,
+			Provider:      provider,
+			Subject:       subject,
+			Email:         email,
+			DisplayName:   displayName,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("marshal ExternalAccountLinked payload: %w", err)
+		}
+		evt, err := event.NewEvent(
+			eventExternalAccountLinked, aggID, aggregateTypeUser, version.Increment(),
+			payload,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create ExternalAccountLinked event: %w", err)
+		}
+		return []event.Event{evt}, nil
+	}
+}
+
+func decideUnlinkExternalAccount(
+	aggID id.AggregateID,
+	provider, subject string,
+) func(UserState, event.Version) ([]event.Event, error) {
+	return func(state UserState, version event.Version) ([]event.Event, error) {
+		if err := requireExists(state, "unlink_external_account"); err != nil {
+			return nil, err
+		}
+		if state.Deleted {
+			return nil, event.NewRejection("usermgmt.unlink_external_account.deleted",
+				"cannot unlink external account from deleted user")
+		}
+		found := false
+		for _, ea := range state.ExternalAccounts {
+			if ea.Provider == provider && ea.Subject == subject {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, event.NewRejection("usermgmt.external_account_not_found",
+				"external account not linked to this user")
+		}
+		// Last-auth-method guard: reject if removing this would leave the user
+		// with zero WebAuthn credentials and zero other external accounts.
+		if len(state.Credentials) == 0 && len(state.ExternalAccounts) <= 1 {
+			return nil, event.NewRejection("usermgmt.unlink_external_account.last_auth_method",
+				"cannot remove the last authentication method")
+		}
+		payload, err := marshalPayload(ExternalAccountUnlinkedPayload{
+			SchemaVersion: currentSchemaVersion,
+			Provider:      provider,
+			Subject:       subject,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("marshal ExternalAccountUnlinked payload: %w", err)
+		}
+		evt, err := event.NewEvent(
+			eventExternalAccountUnlinked, aggID, aggregateTypeUser, version.Increment(),
+			payload,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create ExternalAccountUnlinked event: %w", err)
+		}
+		return []event.Event{evt}, nil
+	}
+}
