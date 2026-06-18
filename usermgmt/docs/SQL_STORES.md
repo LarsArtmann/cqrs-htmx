@@ -7,9 +7,9 @@
 
 The `usermgmt` package ships two SQL-backed stores using `database/sql` (stdlib):
 
-| Store             | Implements                      | Dialects                | File                 |
-| ----------------- | ------------------------------- | ----------------------- | -------------------- |
-| `SQLEventStore`   | `event.Store` + `event.Journal` | Postgres, SQLite, MySQL | `sql_event_store.go` |
+| Store             | Implements                      | Dialects                | File                   |
+| ----------------- | ------------------------------- | ----------------------- | ---------------------- |
+| `SQLEventStore`   | `event.Store` + `event.Journal` | Postgres, SQLite, MySQL | `sql_event_store.go`   |
 | `SQLSessionStore` | `SessionStore`                  | Postgres, SQLite, MySQL | `sql_session_store.go` |
 
 Both auto-migrate their tables on construction and work with any
