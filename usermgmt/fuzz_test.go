@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -99,7 +100,7 @@ func FuzzCredentialID_Base64Decode(f *testing.F) {
 		mux := http.NewServeMux()
 		h.RegisterRoutes(mux)
 
-		r := httptest.NewRequest(http.MethodDelete, "/auth/credentials/"+encodedID, nil)
+		r := httptest.NewRequest(http.MethodDelete, "/auth/credentials/"+url.PathEscape(encodedID), nil)
 		r = r.WithContext(WithUser(r.Context(), &User{ID: NewUserID("01HK1549P84T9XF8R94E960633")}))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, r)

@@ -105,6 +105,65 @@
               };
             };
 
+            test-race = {
+              type = "app";
+              meta.description = "Run all Go tests with the race detector across all modules";
+              program = pkgs.writeShellApplication {
+                name = "run-tests-race";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  echo "==> Root module"
+                  go test ./... -count=1 -race
+                  echo "==> catalog submodule"
+                  (cd catalog && go test ./... -count=1 -race)
+                  echo "==> usermgmt submodule"
+                  (cd usermgmt && go test ./... -count=1 -race)
+                  echo "==> integration_test submodule"
+                  (cd integration_test && go test ./... -count=1 -race)
+                '';
+              };
+            };
+
+            test-fuzz = {
+              type = "app";
+              meta.description = "Run all Go fuzz tests across all modules (FUZZTIME env var, default 30s)";
+              program = pkgs.writeShellApplication {
+                name = "run-tests-fuzz";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  FUZZTIME="''${FUZZTIME:-30s}"
+
+                  echo "==> Root module fuzz tests"
+                  for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done
+
+                  echo "==> catalog submodule fuzz tests"
+                  (cd catalog && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done)
+
+                  echo "==> usermgmt submodule fuzz tests"
+                  (cd usermgmt && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done)
+
+                  echo "==> integration_test submodule fuzz tests"
+                  (cd integration_test && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done)
+                '';
+              };
+            };
+
             lint = {
               type = "app";
               program = pkgs.writeShellApplication {
