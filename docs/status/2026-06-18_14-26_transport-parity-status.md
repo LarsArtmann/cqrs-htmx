@@ -8,7 +8,9 @@
 
 This session delivered the **1% + 4% + 20% Pareto tiers** of transport parity: the StructuredError type, SSE error channel, SSE heartbeat, WebSocket encoder, WSBroadcaster, and all associated AfterDispatch hooks. The library went from "SSE silently swallows errors, WebSocket is receive-only" to **17 of 27 transport cells fully supported** (up from 11). All code ships with comprehensive tests (538 specs), zero lint issues, and race-detector cleanliness.
 
-**What's not done**: `WSDispatchHandler` (WS→CQRS bridge), README/FEATURES.md updates for new exports, and the remaining "80% for 20%" polish items.
+**What's not done**: README/FEATURES.md updates for new exports, and the remaining "80% for 20%" polish items.
+
+> **UPDATE (2026-06-18)**: `WSDispatchHandler` (WS→CQRS bridge) was subsequently implemented as `DispatchWSCommand`/`DispatchWSQuery` in `ws_dispatch.go`. The "NOT STARTED" section below is preserved for historical accuracy.
 
 ---
 

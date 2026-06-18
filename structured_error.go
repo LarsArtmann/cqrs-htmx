@@ -13,6 +13,9 @@ import (
 // context for clients to render or handle errors uniformly across HTTP,
 // SSE, and WebSocket transports.
 //
+// StructuredError implements the error interface and supports errors.Is/
+// errors.As via Unwrap, so it can participate in Go error chains.
+//
 // Serialize as JSON for SSE event data or WebSocket message payloads:
 //
 //	payload := cqrshtmx.NewStructuredError(err, r)
@@ -42,6 +45,8 @@ type StructuredError struct {
 	// Instance is a token identifying this specific occurrence.
 	// Usually the request ID or correlation ID for tracing.
 	Instance string `json:"instance,omitempty"`
+
+	cause error `json:"-"`
 }
 
 // NewStructuredError creates a StructuredError from a Go error and HTTP request.
@@ -51,13 +56,7 @@ type StructuredError struct {
 // If err is nil, returns a zero-value StructuredError (callers should check err first).
 func NewStructuredError(err error, r *http.Request) StructuredError {
 	if err == nil {
-		return StructuredError{
-			Type:     "",
-			Title:    "",
-			Status:   0,
-			Detail:   "",
-			Instance: "",
-		}
+		return StructuredError{} //nolint:exhaustruct // zero-value return
 	}
 
 	status := MapError(err)
@@ -77,6 +76,7 @@ func NewStructuredError(err error, r *http.Request) StructuredError {
 		Status:   status,
 		Detail:   err.Error(),
 		Instance: instance,
+		cause:    err,
 	}
 }
 
@@ -84,13 +84,7 @@ func NewStructuredError(err error, r *http.Request) StructuredError {
 // instead of a request. Useful when you only have the dispatch context.
 func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredError {
 	if err == nil {
-		return StructuredError{
-			Type:     "",
-			Title:    "",
-			Status:   0,
-			Detail:   "",
-			Instance: "",
-		}
+		return StructuredError{} //nolint:exhaustruct // zero-value return
 	}
 
 	status := MapError(err)
@@ -109,6 +103,7 @@ func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredErr
 		Status:   status,
 		Detail:   err.Error(),
 		Instance: instance,
+		cause:    err,
 	}
 }
 
@@ -122,6 +117,18 @@ func (e StructuredError) JSON() string {
 	}
 	return string(b)
 }
+
+// Error implements the error interface. Returns the Detail field.
+func (e StructuredError) Error() string { return e.Detail }
+
+// String implements fmt.Stringer. Returns the full JSON representation,
+// making StructuredError suitable for structured logging.
+func (e StructuredError) String() string { return e.JSON() }
+
+// Unwrap returns the original error that produced this StructuredError,
+// enabling errors.Is and errors.As to traverse the error chain.
+// Returns nil if no cause was stored.
+func (e StructuredError) Unwrap() error { return e.cause }
 
 func familyType(family event.Family) string {
 	switch family {
