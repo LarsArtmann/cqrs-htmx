@@ -115,4 +115,10 @@ var (
 		"usermgmt.oauth_token_exchange_failed",
 		"OAuth2 token exchange failed",
 	)
+	// ErrExternalAccountAlreadyLinked is returned when an external account
+	// (provider+subject pair) is already linked to a different user.
+	ErrExternalAccountAlreadyLinked = event.NewConflict(
+		"usermgmt.external_account_linked_to_other",
+		"external account is already linked to another user",
+	)
 )

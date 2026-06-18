@@ -101,17 +101,27 @@ func (s *Service) FinishOAuthLogin(
 	return &FinishOAuthLoginResponse{User: user, Session: session}, nil
 }
 
-// matchOrCreateUser finds an existing user by email (or linked external account)
-// and links the new provider, or auto-registers a new user if none is found.
+// matchOrCreateUser finds an existing user by provider+subject (stable ID),
+// or by email, or auto-registers a new user if neither is found.
 // Returns the user and true if a new user was created.
+//
+// Lookup order:
+//  1. By provider+subject — recognizes returning users even if their email changed
+//  2. By email — links new provider to existing user with matching email
+//  3. Auto-register — creates a new user if no match found
 func (s *Service) matchOrCreateUser(
 	ctx context.Context,
 	provider string,
 	info oauth2UserInfo,
 ) (*User, bool, error) {
-	// Try to find by email first
-	user, found := s.readModel.FindByEmail(info.Email)
-	if found {
+	// 1. Try to find by provider+subject (stable identifier)
+	if existing, ok := s.readModel.FindByExternalAccount(provider, info.Subject); ok {
+		// Already linked — idempotent re-login
+		return existing, false, nil
+	}
+
+	// 2. Try to find by email
+	if user, found := s.readModel.FindByEmail(info.Email); found {
 		if err := s.linkExternalAccount(ctx, user.ID, provider, info); err != nil {
 			return nil, false, err
 		}
@@ -120,7 +130,7 @@ func (s *Service) matchOrCreateUser(
 		return user, false, nil
 	}
 
-	// Auto-register a new user
+	// 3. Auto-register a new user
 	aggID := id.NewAggregateID()
 	userID := NewUserID(aggID.String())
 	displayName := info.DisplayName
@@ -153,17 +163,23 @@ func (s *Service) matchOrCreateUser(
 
 // linkExternalAccount dispatches LinkExternalAccount if not already linked,
 // and marks the email as verified if the provider confirmed it.
+// Enforces global uniqueness: rejects if the provider+subject is linked to a different user.
 func (s *Service) linkExternalAccount(
 	ctx context.Context,
 	userID UserID,
 	provider string,
 	info oauth2UserInfo,
 ) error {
-	// Check if already linked (idempotent — re-login shouldn't fail)
+	// Check if already linked to THIS user (idempotent — re-login shouldn't fail)
 	for _, ea := range s.readUserExternalAccounts(userID) {
 		if ea.Provider == provider && ea.Subject == info.Subject {
 			return nil // already linked
 		}
+	}
+
+	// Check if linked to a DIFFERENT user (global uniqueness enforcement)
+	if s.isExternalAccountLinkedToOther(provider, info.Subject, userID) {
+		return ErrExternalAccountAlreadyLinked
 	}
 
 	aggID, err := aggIDFromUser(userID)
@@ -176,16 +192,29 @@ func (s *Service) linkExternalAccount(
 		return s.classifyDispatchError(err, userID)
 	}
 
-	// Mark email verified if provider says so and it matches user's email
 	if info.EmailVerified {
-		user, ok := s.readModel.FindByUserID(userID)
-		if ok && !user.EmailVerified && strings.EqualFold(user.Email, info.Email) {
-			if err := s.dispatcher.Dispatch(ctx, NewVerifyEmailCmd(aggID)); err != nil {
-				return fmt.Errorf("verify email after oauth2: %w", err)
-			}
-		}
+		s.markEmailVerifiedIfMatch(ctx, aggID, userID, info.Email)
 	}
 	return nil
+}
+
+// isExternalAccountLinkedToOther checks if the provider+subject is linked to
+// a user OTHER than the given userID. Used for global uniqueness enforcement.
+func (s *Service) isExternalAccountLinkedToOther(provider, subject string, userID UserID) bool {
+	existing, ok := s.readModel.FindByExternalAccount(provider, subject)
+	return ok && existing.ID.Get() != userID.Get()
+}
+
+// markEmailVerifiedIfMatch dispatches VerifyEmailCmd if the provider-reported
+// email matches the user's current email and isn't already verified.
+func (s *Service) markEmailVerifiedIfMatch(ctx context.Context, aggID id.AggregateID, userID UserID, email string) {
+	user, ok := s.readModel.FindByUserID(userID)
+	if !ok || user.EmailVerified || !strings.EqualFold(user.Email, email) {
+		return
+	}
+	if err := s.dispatcher.Dispatch(ctx, NewVerifyEmailCmd(aggID)); err != nil {
+		s.logger.Warn("verify email after oauth2 failed", "error", err, "user_id", userID.Get())
+	}
 }
 
 // UnlinkExternalAccount removes an external identity provider from a user.

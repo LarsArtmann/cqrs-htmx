@@ -330,7 +330,8 @@ func errorStatus(err error) int {
 		return http.StatusUnauthorized
 	case errors.Is(err, ErrEmailExists),
 		errors.Is(err, ErrEmailAlreadyVerified),
-		errors.Is(err, ErrTOTPAlreadyEnabled):
+		errors.Is(err, ErrTOTPAlreadyEnabled),
+		errors.Is(err, ErrExternalAccountAlreadyLinked):
 		return http.StatusConflict
 	case errors.Is(err, ErrValidation),
 		errors.Is(err, ErrTOTPNotEnabled),
