@@ -89,7 +89,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
-			hook := b.BroadcastOnError("commandError", "")
+			hook := b.BroadcastOnError("commandError")
 			req := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
 			hook(context.Background(), req, errors.New("validation failed"))
 
@@ -106,7 +106,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
-			hook := b.BroadcastOnError("commandError", "")
+			hook := b.BroadcastOnError("commandError")
 			hook(context.Background(), nil, nil)
 
 			Consistently(ch).ShouldNot(Receive())

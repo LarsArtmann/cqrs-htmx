@@ -157,11 +157,11 @@ func (b *Broadcaster) BroadcastOnSuccessFunc(eventFunc func(r *http.Request) SSE
 //
 //	app, _ := cqrshtmx.New(cqrshtmx.Config{
 //	    Commands: cmdDispatcher,
-//	    AfterDispatch: broadcaster.BroadcastOnError("commandError", ""),
+//	    AfterDispatch: broadcaster.BroadcastOnError("commandError"),
 //	})
 //
 // For dynamic error event generation, use BroadcastOnErrorFunc.
-func (b *Broadcaster) BroadcastOnError(eventName, _ string) AfterDispatchHook {
+func (b *Broadcaster) BroadcastOnError(eventName string) AfterDispatchHook {
 	return func(_ context.Context, r *http.Request, err error) {
 		if err == nil {
 			return

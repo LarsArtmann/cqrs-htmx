@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brutal Self-Review — Transport Parity</title>
+<style>
+:root {
+  --bg: #0f172a; --bg-elevated: #1e293b; --bg-sunken: #020617;
+  --text: #e2e8f0; --text-dim: #94a3b8; --text-faint: #64748b;
+  --accent: #6366f1; --accent-glow: rgba(99,102,241,0.15);
+  --rose: #f43f5e; --rose-glow: rgba(244,63,94,0.15);
+  --emerald: #10b981; --emerald-glow: rgba(16,185,129,0.15);
+  --amber: #f59e0b; --amber-glow: rgba(245,158,11,0.15);
+  --cyan: #06b6d4; --border: #334155; --radius: 12px;
+  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; background: var(--bg); color: var(--text); font-family: var(--font-sans); line-height: 1.6; }
+body { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+h1,h2,h3,h4 { font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+h1 { font-size: 2.25rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+h2 { font-size: 1.6rem; margin: 3rem 0 1.25rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 .num { color: var(--accent); font-weight: 700; margin-right: 0.5rem; }
+h3 { font-size: 1.15rem; margin: 1.75rem 0 0.75rem; color: var(--accent); }
+p { margin-bottom: 1rem; color: var(--text-dim); }
+strong { color: var(--text); }
+a { color: var(--accent); text-decoration: none; }
+.hero { text-align: center; padding: 3rem 2rem; margin-bottom: 2rem; border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg) 100%); position: relative; overflow: hidden; }
+.hero::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 50% 50%, var(--accent-glow) 0%, transparent 50%); pointer-events: none; }
+.hero-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; position: relative; }
+.hero-subtitle { font-size: 1rem; color: var(--text-dim); max-width: 600px; margin: 0 auto; position: relative; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.stat-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; text-align: center; }
+.stat-value { font-size: 2rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 0.4rem; }
+.stat-label { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-bad .stat-value { color: var(--rose); }
+.stat-warn .stat-value { color: var(--amber); }
+.stat-good .stat-value { color: var(--emerald); }
+.issue { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin: 1.25rem 0; }
+.issue-critical { border-left: 4px solid var(--rose); }
+.issue-important { border-left: 4px solid var(--amber); }
+.issue-nice { border-left: 4px solid var(--emerald); }
+.issue .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.2rem 0.6rem; border-radius: 4px; margin-bottom: 0.75rem; }
+.severity-critical { background: var(--rose-glow); color: var(--rose); }
+.severity-important { background: var(--amber-glow); color: var(--amber); }
+.severity-nice { background: var(--emerald-glow); color: var(--emerald); }
+.issue h3 { margin-top: 0; }
+.issue .where { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-faint); margin-bottom: 0.75rem; }
+pre { background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; margin: 1rem 0; }
+code { font-family: var(--font-mono); font-size: 0.85em; background: var(--bg-sunken); padding: 0.15rem 0.35rem; border-radius: 4px; color: var(--cyan); }
+pre code { padding: 0; background: transparent; }
+.callout { border-radius: var(--radius); padding: 1rem 1.25rem; margin: 1.25rem 0; font-size: 0.9rem; }
+.callout-solution { background: rgba(16,185,129,0.08); border: 1px solid var(--emerald); }
+.callout strong { display: block; margin-bottom: 0.25rem; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th,td { padding: 0.6rem 0.85rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--text-dim); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; background: var(--bg-sunken); }
+.badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+.badge-critical { background: var(--rose-glow); color: var(--rose); border: 1px solid var(--rose); }
+.badge-high { background: var(--amber-glow); color: var(--amber); border: 1px solid var(--amber); }
+.badge-low { background: rgba(148,163,184,0.1); color: var(--text-dim); border: 1px solid var(--text-faint); }
+.badge-fixed { background: var(--emerald-glow); color: var(--emerald); border: 1px solid var(--emerald); }
+.footer { margin-top: 3rem; padding: 2rem 0; border-top: 1px solid var(--border); text-align: center; font-size: 0.8rem; color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Brutal Self-Review</div>
+  <h1>Transport Parity — SSE ↔ WebSocket</h1>
+  <p class="hero-subtitle">Honest review of the transport parity work shipped 2026-06-18. What was forgotten, what's stupid, and what to fix now.</p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card stat-bad"><div class="stat-value">3</div><div class="stat-label">Critical Issues</div></div>
+  <div class="stat-card stat-warn"><div class="stat-value">2</div><div class="stat-label">Parity Gaps</div></div>
+  <div class="stat-card stat-good"><div class="stat-value">4</div><div class="stat-label">Strengths</div></div>
+  <div class="stat-card"><div class="stat-value">~100</div><div class="stat-label">Lines of Duplication</div></div>
+</div>
+
+<h2><span class="num">01</span>Strengths</h2>
+
+<div class="issue issue-nice">
+  <span class="severity severity-nice">Good</span>
+  <h3>Zero breaking changes — all new exports</h3>
+  <p>Every transport parity addition is a new export. No existing consumer code breaks. This is the right way to evolve a library.</p>
+</div>
+
+<div class="issue issue-nice">
+  <span class="severity severity-nice">Good</span>
+  <h3>StructuredError follows RFC 7807</h3>
+  <p>Using the industry standard Problem Details shape means clients can parse errors uniformly across HTTP, SSE, and WS. Not reinventing the wheel.</p>
+</div>
+
+<div class="issue issue-nice">
+  <span class="severity severity-nice">Good</span>
+  <h3>BroadcastOnError API honesty fix</h3>
+  <p>Caught and fixed the lying <code>BroadcastOnError(eventName, data)</code> signature where <code>data</code> was silently ignored. Now <code>BroadcastOnError(eventName)</code> — no misleading params.</p>
+</div>
+
+<div class="issue issue-nice">
+  <span class="severity severity-nice">Good</span>
+  <h3>Comprehensive test coverage</h3>
+  <p>16 Ginkgo specs for WS dispatch, 7 integration specs, 2 benchmarks. Race detector clean. All edge cases (nil request, nil command, panics) tested.</p>
+</div>
+
+<h2><span class="num">02</span>What's Fucked Up</h2>
+
+<div class="issue issue-critical">
+  <span class="severity severity-critical">Critical</span>
+  <h3>~100 lines of copy-pasted broadcaster code</h3>
+  <div class="where">sse_broadcaster.go:23-100 vs ws_broadcaster.go:30-104</div>
+  <p>The <code>Broadcaster</code> (SSE) and <code>WSBroadcaster</code> are <strong>structurally identical</strong> — same fields, same Subscribe/Unsubscribe/Broadcast/SubscriberCount logic. The only difference is the channel element type: <code>chan SSEEvent</code> vs <code>chan string</code>.</p>
+  <p>This is a textbook case for Go generics. A <code>fanOut[T any]</code> type eliminates all duplication while both broadcasters keep their exact public API via struct embedding.</p>
+  <pre><code>// CURRENT: ~100 lines duplicated
+type Broadcaster struct {
+    mu sync.RWMutex
+    subscribers map[uintptr]chan SSEEvent
+}
+type WSBroadcaster struct {
+    mu sync.RWMutex
+    subscribers map[uintptr]chan string
+}
+
+// AFTER: one generic implementation
+type fanOut[T any] struct { ... }
+type Broadcaster struct { *fanOut[SSEEvent] }
+type WSBroadcaster struct { *fanOut[string] }</code></pre>
+</div>
+
+<div class="issue issue-critical">
+  <span class="severity severity-critical">Critical</span>
+  <h3>Timeout split brain — dispatchTimeout reinvents timeoutCtx</h3>
+  <div class="where">app.go:270-282 vs ws_dispatch.go:208-213</div>
+  <p><code>timeoutCtx(ctx, *handlerConfig)</code> checks per-handler timeout override, then falls back to App timeout. <code>dispatchTimeout(ctx)</code> only checks App timeout — it's a verbatim subset of timeoutCtx's fallback branch. Two functions doing the same thing with subtly different behavior is a maintenance trap.</p>
+  <p><strong>Fix:</strong> Make <code>timeoutCtx</code> nil-safe for <code>handlerConfig</code> or extract a shared <code>appTimeout(ctx)</code> that both paths call.</p>
+</div>
+
+<div class="issue issue-critical">
+  <span class="severity severity-critical">Critical</span>
+  <h3>channelPtr misplaced in SSE file</h3>
+  <div class="where">sse_broadcaster.go:37 — used by ws_broadcaster.go:51,62</div>
+  <p>The <code>channelPtr</code> helper is transport-agnostic (returns the pointer identity of any channel) but lives in <code>sse_broadcaster.go</code>. WS code depends transitively on an "SSE" file for a shared utility. This is a misplaced-definition smell that will confuse anyone reading the WS code.</p>
+</div>
+
+<h2><span class="num">03</span>Parity Gaps</h2>
+
+<div class="issue issue-important">
+  <span class="severity severity-important">Gap</span>
+  <h3>WS Broadcaster missing Func variants</h3>
+  <div class="where">sse_broadcaster.go has 4 hook constructors; ws_broadcaster.go has only 2</div>
+  <p>SSE has <code>BroadcastOnSuccessFunc(fn)</code> and <code>BroadcastOnErrorFunc(fn)</code> for dynamic event generation. WS only has the static <code>BroadcastOnSuccessWS(msg)</code> and <code>BroadcastOnErrorWS()</code>. Consumers who need dynamic WS messages have no hook to use.</p>
+</div>
+
+<div class="issue issue-important">
+  <span class="severity severity-important">Gap</span>
+  <h3>WS dispatch reinlineates the dispatch flow instead of reusing it</h3>
+  <div class="where">ws_dispatch.go:90-148 vs handler.go:57-94</div>
+  <p>The WS dispatch methods copy the decode → nil-check → timeout → dispatch → error-wrap → hook flow from the HTTP path. The error-wrapping idiom <code>fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err)</code> appears 4 times in ws_dispatch.go and 2 times in handler.go. This pattern should be extracted.</p>
+  <div class="callout callout-solution">
+    <strong>Note:</strong> Some duplication is unavoidable because the WS path has no <code>http.ResponseWriter</code> and no <code>handlerConfig</code>. But the error-wrapping and hook-firing can be shared.
+  </div>
+</div>
+
+<h2><span class="num">04</span>Honest Answers</h2>
+
+<h3>Did I lie?</h3>
+<p>No. All claims verified: <code>golangci-lint run</code> reports 0 issues. Tests pass with <code>-race</code>. Build compiles. All files under 350 lines. The LSP warnings (errchkjson, exhaustruct, typecheck) are confirmed stale false positives — the authoritative CLI is clean.</p>
+
+<h3>What did I forget?</h3>
+<ul>
+  <li><strong>The generic refactor.</strong> I created <code>WSBroadcaster</code> by copy-pasting <code>Broadcaster</code> and changing the type. This is the #1 thing I should have done differently. Generics exist for exactly this case.</li>
+  <li><strong>WS Func variants.</strong> I added <code>BroadcastOnSuccessWS</code> and <code>BroadcastOnErrorWS</code> but forgot their <code>Func</code> counterparts that SSE has. Incomplete parity.</li>
+  <li><strong>Moving <code>channelPtr</code>.</strong> I used it from <code>ws_broadcaster.go</code> without noticing it's defined in <code>sse_broadcaster.go</code>. Misplaced dependency.</li>
+</ul>
+
+<h3>Is this production-ready?</h3>
+<p><strong>Yes, but it could be cleaner.</strong> The code works correctly, has comprehensive tests, and ships zero breaking changes. But the duplication is a maintainability debt that compounds — any fix to the snapshot logic or buffer size needs to be applied in two places. The generic refactor pays for itself immediately.</p>
+
+<h3>Split brains?</h3>
+<p><strong>One:</strong> <code>dispatchTimeout</code> vs <code>timeoutCtx</code>. They do the same thing with subtly different behavior. This is a split brain.</p>
+
+<h2><span class="num">05</span>Execution Plan</h2>
+
+<p>Sorted by <strong>impact / effort ratio</strong> (highest first):</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Task</th>
+      <th>Impact</th>
+      <th>Effort</th>
+      <th>Ratio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong>Extract <code>fanOut[T]</code></strong> — eliminates ~100 lines duplication, fixes <code>channelPtr</code> placement, creates single optimization point</td>
+      <td><span class="badge badge-critical">Critical</span></td>
+      <td>~25 min</td>
+      <td><strong>Highest</strong></td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Refactor SSE Broadcaster</strong> to embed <code>fanOut[SSEEvent]</code> — zero breaking change via method promotion</td>
+      <td><span class="badge badge-critical">Critical</span></td>
+      <td>~10 min</td>
+      <td><strong>Highest</strong></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Refactor WS Broadcaster</strong> to embed <code>fanOut[string]</code> — zero breaking change</td>
+      <td><span class="badge badge-critical">Critical</span></td>
+      <td>~10 min</td>
+      <td><strong>Highest</strong></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Unify timeout helpers</strong> — eliminate <code>dispatchTimeout</code>, reuse existing pattern</td>
+      <td><span class="badge badge-high">High</span></td>
+      <td>~8 min</td>
+      <td><strong>High</strong></td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Add WS Func variants</strong> — <code>BroadcastOnSuccessWSFunc</code>, <code>BroadcastOnErrorWSFunc</code></td>
+      <td><span class="badge badge-high">High</span></td>
+      <td>~10 min</td>
+      <td><strong>High</strong></td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><strong>Run full verification</strong> — build + test + race + lint + fmt</td>
+      <td><span class="badge badge-low">Verify</span></td>
+      <td>~5 min</td>
+      <td>Required</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-solution">
+  <strong>Key insight:</strong> The <code>fanOut[T]</code> refactor is not "nice to have" — it's the single highest-leverage change. It eliminates ~100 lines of duplication, fixes the misplaced <code>channelPtr</code>, creates a single point for future optimizations (buffer sizing, eviction), and uses Go generics the way they were designed: eliminating type-parameterized duplication.
+</div>
+
+<footer class="footer">Generated 2026-06-18 &middot; Reviewed against transport parity work (commits a78ba49..8182677)</footer>
+
+</body>
+</html>

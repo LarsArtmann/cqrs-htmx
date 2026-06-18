@@ -80,7 +80,7 @@
 // BroadcastOnError closes the real-time error gap — SSE clients learn when commands fail:
 //
 //	app, _ := cqrshtmx.New(cqrshtmx.Config{
-//	    AfterDispatch: broadcaster.BroadcastOnError("commandError", ""),
+//	    AfterDispatch: broadcaster.BroadcastOnError("commandError"),
 //	})
 //
 // Heartbeat prevents reverse proxies from killing idle SSE connections:

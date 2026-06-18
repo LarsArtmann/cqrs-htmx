@@ -26,8 +26,8 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 - **Rate limiting** — per-key token-bucket with min-heap eviction, configurable burst, and hook callbacks
 - **Security headers** — automatic `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, plus optional CSP/HSTS/Permissions-Policy
 - **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
-- **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `SSEEventStore` for reconnection replay, CQRS bridge via `BroadcastOnSuccess`
-- **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for out-of-band swaps
+- **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `SSEEventStore` for reconnection replay, CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive
+- **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v2.4.0
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified) with ETag/caching. Opt-in, zero CDN dependency
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers
@@ -352,6 +352,14 @@ app, _ := cqrshtmx.New(cqrshtmx.Config{
     AfterDispatch: broadcaster.BroadcastOnSuccess("itemUpdated", ""),
 })
 
+// Broadcast StructuredError (RFC 7807) on dispatch failure
+errApp, _ := cqrshtmx.New(cqrshtmx.Config{
+    AfterDispatch: broadcaster.BroadcastOnError("commandError"),
+})
+
+// Prevent reverse proxies from killing idle connections
+go stream.Heartbeat(stream.Context(), 15*time.Second)
+
 // Reconnection support (SSE spec)
 lastID := cqrshtmx.LastEventIDFromRequest(r)
 cqrshtmx.ReplayEvents(stream, eventStore, lastID)
@@ -376,6 +384,8 @@ Client-side:
 || `stream.SendHTML(name, html)` | Shorthand for HTML content events |
 || `stream.LastEventID()` | Client's last event ID (for reconnection) |
 || `stream.Close()` | Graceful shutdown |
+| `stream.Heartbeat(ctx, interval)` | Send SSE comment-frame pings to prevent proxy idle kills |
+| `stream.OnDisconnect(fn)` | Register cleanup callback fired on `Close()` |
 || `NewBroadcaster()` | Thread-safe fan-out hub |
 || `broadcaster.Subscribe()` | Get a receiver channel |
 || `broadcaster.Unsubscribe(ch)` | O(1) unsubscribe via channel identity |
@@ -383,6 +393,9 @@ Client-side:
 || `broadcaster.SubscriberCount()` | Active subscriber count |
 || `BroadcastOnSuccess(event, data)` | `AfterDispatchHook` that broadcasts on successful dispatch |
 || `BroadcastOnSuccessFunc(fn)` | `AfterDispatchHook` with dynamic event generation |
+| `BroadcastOnError(eventName)` | `AfterDispatchHook` that broadcasts StructuredError on dispatch failure |
+| `BroadcastOnErrorFunc(fn)` | `AfterDispatchHook` with dynamic error event generation |
+| `NewStructuredError(err, r)` | RFC 7807 error payload with type/title/status/detail/instance. `.JSON()` for SSE/WS |
 || `LastEventIDFromRequest(r)` | Extract `Last-Event-ID` from request |
 || `SSEEventStore` | Interface for reconnection replay (`EventsSince(id)`) |
 || `ReplayEvents(stream, store, lastID)` | Replay missed events to reconnecting client |
@@ -402,8 +415,22 @@ msg.StringBody("field_name")  // typed string access
 type ChatMsg struct { Room string; Message string }
 msg, headers, err := cqrshtmx.ParseWSMessageInto[ChatMsg](rawJSON)
 
+// Encode outbound messages (counterpart to Parse)
+err := cqrshtmx.WriteWSMessage(conn, msg)
+err := cqrshtmx.WriteWSMessageInto(conn, ChatMsg{Room: "dev"}, headers)
+
 // Out-of-band HTML swap
 html := cqrshtmx.WSOOBHTML("notifications", "<div>3 new items</div>", cqrshtmx.SwapInnerHTML)
+
+// Fan-out to multiple WS clients
+wsBroadcaster := cqrshtmx.NewWSBroadcaster()
+ch := wsBroadcaster.Subscribe()
+defer wsBroadcaster.Unsubscribe(ch)
+wsBroadcaster.Broadcast(html)
+
+// Bridge to CQRS: dispatch WS message as command/query
+err := app.DispatchWSCommand(r, "CreateTask", decoder, rawMessage)
+result, err := app.DispatchWSQuery(r, "GetTasks", queryDecoder, rawMessage)
 ```
 
 Client-side:
@@ -416,6 +443,28 @@ Client-side:
   </form>
 </div>
 ```
+
+### WebSocket API
+
+| Type / Function                             | Description                                                                       |
+| ------------------------------------------- | --------------------------------------------------------------------------------- |
+| `WSMessage`                                 | Incoming HTMX WS message (`Headers`, `Body`). `StringBody(key)` for typed access. |
+| `ParseWSMessage(data)`                      | Parse incoming WS JSON into `WSMessage`. Separates HEADERS from body.             |
+| `ParseWSMessageInto[T](data)`               | Generic typed parser — deserializes body into struct T. Compile-time safe.        |
+| `WriteWSMessage(w, msg)`                    | Encode outbound `WSMessage` to HTMX WS JSON format.                               |
+| `WriteWSMessageInto[T](w, body, headers)`   | Encode typed body struct + headers to HTMX WS JSON.                               |
+| `WSOOBHTML(id, html, strategy...)`          | Wrap HTML with hx-swap-oob for OOB swap.                                          |
+| `NewWSBroadcaster()`                        | Thread-safe fan-out hub for WS messages.                                          |
+| `wsBroadcaster.Subscribe()`                 | Get a receiver channel (`<-chan string`).                                         |
+| `wsBroadcaster.Unsubscribe(ch)`             | O(1) unsubscribe via channel identity.                                            |
+| `wsBroadcaster.Broadcast(msg)`              | Non-blocking send to all subscribers.                                             |
+| `wsBroadcaster.BroadcastHTML(id, html)`     | Convenience: wraps in OOB then broadcasts.                                        |
+| `BroadcastOnSuccessWS(msg)`                 | `AfterDispatchHook` — broadcast on dispatch success.                              |
+| `BroadcastOnErrorWS()`                      | `AfterDispatchHook` — broadcast StructuredError on failure.                       |
+| `DispatchWSCommand(r, type, decoder, data)` | Decode WS message → dispatch command. Returns error.                              |
+| `DispatchWSQuery(r, type, decoder, data)`   | Decode WS message → dispatch query. Returns `(result, error)`.                    |
+| `DecodeWSJSON[T](mapper)`                   | Create `WSCommandDecoder` from JSON → T → command mapper.                         |
+| `DecodeWSJSONQuery[T](mapper)`              | Create `WSQueryDecoder` from JSON → T → query mapper.                             |
 
 ## Embedded HTMX JavaScript
 

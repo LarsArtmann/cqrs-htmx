@@ -114,3 +114,57 @@ func BenchmarkServerHealthHandler(b *testing.B) {
 }
 
 var _ = sync.WaitGroup{}
+
+// BenchmarkWSBroadcasterBroadcastStress validates WS fan-out across subscriber counts.
+func BenchmarkWSBroadcasterBroadcastStress(b *testing.B) {
+	for _, n := range []int{1, 10, 100, 1000} {
+		b.Run("subs_"+strconv.Itoa(n), func(b *testing.B) {
+			bc := cqrshtmx.NewWSBroadcaster()
+			for range n {
+				ch := bc.Subscribe()
+				go func() {
+					for range ch {
+					}
+				}()
+			}
+			msg := "<div hx-swap-oob='true'>hello world from ws broadcaster</div>"
+			b.ResetTimer()
+			for b.Loop() {
+				bc.Broadcast(msg)
+			}
+			b.StopTimer()
+		})
+	}
+}
+
+// BenchmarkWSBroadcasterConcurrentSubscribe validates concurrent subscribe/unsubscribe.
+func BenchmarkWSBroadcasterConcurrentSubscribe(b *testing.B) {
+	bc := cqrshtmx.NewWSBroadcaster()
+
+	for range 100 {
+		ch := bc.Subscribe()
+		go func() {
+			for range ch {
+			}
+		}()
+	}
+
+	ctx := b.Context()
+	go func() {
+		msg := "<div>tick</div>"
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				bc.Broadcast(msg)
+			}
+		}
+	}()
+
+	b.ResetTimer()
+	for b.Loop() {
+		ch := bc.Subscribe()
+		bc.Unsubscribe(ch)
+	}
+}
