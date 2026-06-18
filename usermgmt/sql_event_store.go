@@ -1,38 +1,32 @@
-//nolint:gosec // G202: parameterized placeholder substitution, not user input interpolation
 package usermgmt
 
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
-// SQLEventStore implements event.Store and event.Journal using a SQL database.
-// It works with any database/sql-compatible driver (Postgres, SQLite, MySQL).
+// SQLEventStore persists user domain events in a SQL database with optimistic
+// concurrency. It delegates entirely to go-cqrs-lite/storage/v2's
+// SQLEventStore, which provides schema versioning, payload encoding tracking,
+// OpenTelemetry tracing, and SeekableJournal/BackwardsSource support.
 //
 // Call [NewSQLEventStore] to create and auto-migrate the schema.
 //
 // Usage:
 //
 //	db, _ := sql.Open("pgx", "postgres://localhost/users")
-//	store, _ := usermgmt.NewSQLEventStore(db)
+//	store, _ := usermgmt.NewSQLEventStore(ctx, db, "postgres")
 //	svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 //	    EventStore: store,
 //	})
-type SQLEventStore struct {
-	db          *sql.DB
-	placeholder placeholderFunc
-}
+type SQLEventStore = storage.SQLEventStore
 
-type placeholderFunc func(i int) string
-
-// SQL dialect identifiers supported by SQLEventStore.
+// SQL dialect identifiers supported by NewSQLEventStore and NewSQLSessionStore.
 const (
 	dialectPostgres = "postgres"
 	dialectPgx      = "pgx"
@@ -42,369 +36,40 @@ const (
 )
 
 // NewSQLEventStore creates a SQLEventStore and auto-migrates the events table.
-// The dialect must be "postgres", "sqlite", or "mysql".
+// The dialect must be "postgres", "pgx", "sqlite", or "sqlite3".
+//
+// MySQL is not supported for the event store — go-cqrs-lite/storage does not
+// ship a MySQL dialect. The session store ([NewSQLSessionStore]) does support
+// MySQL because it manages its own simpler schema.
 func NewSQLEventStore(ctx context.Context, db *sql.DB, dialect string) (*SQLEventStore, error) {
-	pf, err := placeholderFor(dialect)
+	d, err := dialectToUpstream(dialect)
 	if err != nil {
 		return nil, err
 	}
-	s := &SQLEventStore{db: db, placeholder: pf}
-	if err := s.migrate(ctx, dialect); err != nil {
+	store, err := storage.NewSQLEventStoreWithDialect(db, d)
+	if err != nil {
+		return nil, fmt.Errorf("create sql event store: %w", err)
+	}
+	// Upstream does not auto-migrate — apply the event schema ourselves.
+	if _, err := db.ExecContext(ctx, d.EventSchema()); err != nil {
 		return nil, fmt.Errorf("migrate sql event store: %w", err)
 	}
-	return s, nil
+	return store, nil
 }
 
-func placeholderFor(dialect string) (placeholderFunc, error) {
+// dialectToUpstream maps usermgmt dialect strings to storage/v2 Dialect
+// implementations. Returns an error for unsupported dialects (e.g. MySQL).
+func dialectToUpstream(dialect string) (sqlpkg.Dialect, error) {
 	switch dialect {
 	case dialectPostgres, dialectPgx:
-		return func(i int) string { return fmt.Sprintf("$%d", i) }, nil
+		return sqlpkg.PostgresDialect{}, nil
 	case dialectSQLite, dialectSQLite3:
-		return func(i int) string { return "?" }, nil
-	case dialectMySQL:
-		return func(i int) string { return "?" }, nil
+		return sqlpkg.SQLiteDialect{}, nil
 	default:
-		return nil, fmt.Errorf("unsupported dialect %q: use postgres, sqlite, or mysql", dialect)
+		return nil, fmt.Errorf(
+			"unsupported event store dialect %q: use postgres, pgx, sqlite, or sqlite3", dialect,
+		)
 	}
-}
-
-func (s *SQLEventStore) migrate(ctx context.Context, dialect string) error {
-	var ddl string
-	switch dialect {
-	case dialectPostgres, dialectPgx:
-		ddl = `
-		CREATE TABLE IF NOT EXISTS user_events (
-			event_id TEXT PRIMARY KEY,
-			event_type TEXT NOT NULL,
-			aggregate_id TEXT NOT NULL,
-			aggregate_type TEXT NOT NULL,
-			version INTEGER NOT NULL,
-			payload BYTEA NOT NULL,
-			metadata JSONB,
-			occurred_at TIMESTAMPTZ NOT NULL
-		);
-		CREATE INDEX IF NOT EXISTS idx_user_events_agg ON user_events (aggregate_id, version);
-		CREATE INDEX IF NOT EXISTS idx_user_events_time ON user_events (occurred_at);`
-	case dialectSQLite, dialectSQLite3:
-		ddl = `
-		CREATE TABLE IF NOT EXISTS user_events (
-			event_id TEXT PRIMARY KEY,
-			event_type TEXT NOT NULL,
-			aggregate_id TEXT NOT NULL,
-			aggregate_type TEXT NOT NULL,
-			version INTEGER NOT NULL,
-			payload BLOB NOT NULL,
-			metadata TEXT,
-			occurred_at DATETIME NOT NULL
-		);
-		CREATE INDEX IF NOT EXISTS idx_user_events_agg ON user_events (aggregate_id, version);
-		CREATE INDEX IF NOT EXISTS idx_user_events_time ON user_events (occurred_at);`
-	case dialectMySQL:
-		ddl = `
-		CREATE TABLE IF NOT EXISTS user_events (
-			event_id VARCHAR(255) PRIMARY KEY,
-			event_type VARCHAR(255) NOT NULL,
-			aggregate_id VARCHAR(255) NOT NULL,
-			aggregate_type VARCHAR(255) NOT NULL,
-			version INT NOT NULL,
-			payload BLOB NOT NULL,
-			metadata JSON,
-			occurred_at DATETIME(3) NOT NULL,
-			INDEX idx_user_events_agg (aggregate_id, version),
-			INDEX idx_user_events_time (occurred_at)
-		);`
-	default:
-		return fmt.Errorf("unsupported dialect %q", dialect)
-	}
-	_, err := s.db.ExecContext(ctx, ddl)
-	if err != nil {
-		return fmt.Errorf("exec ddl: %w", err)
-	}
-	return nil
-}
-
-func (s *SQLEventStore) Close() error {
-	if err := s.db.Close(); err != nil {
-		return fmt.Errorf("close sql event store db: %w", err)
-	}
-	return nil
-}
-
-func (s *SQLEventStore) Save(
-	ctx context.Context,
-	ref event.AggregateRef,
-	events []event.Event,
-	expectedVersion event.Version,
-) error {
-	if len(events) == 0 {
-		return nil
-	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("begin tx: %w", err)
-	}
-	defer func() { _ = tx.Rollback() }()
-
-	// Optimistic concurrency check
-	p1 := s.placeholder(1)
-	p2 := s.placeholder(2)
-	var currentVersion int
-	err = tx.QueryRowContext(
-		ctx,
-		`SELECT COALESCE(MAX(version), 0) FROM user_events WHERE aggregate_id = `+p1+` AND aggregate_type = `+p2,
-		ref.ID.String(), string(ref.Type),
-	).Scan(&currentVersion)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("check version: %w", err)
-	}
-	if event.Version(currentVersion) != expectedVersion {
-		return event.NewConflict("sql_event_store.version_mismatch",
-			fmt.Sprintf("expected version %d, got %d", expectedVersion, currentVersion))
-	}
-
-	if err := s.insertEvents(ctx, tx, events); err != nil {
-		return err
-	}
-
-	return commitTx(tx)
-}
-
-func (s *SQLEventStore) AppendBatch(
-	ctx context.Context,
-	ref event.AggregateRef,
-	events []event.Event,
-) error {
-	if len(events) == 0 {
-		return nil
-	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("begin tx: %w", err)
-	}
-	defer func() { _ = tx.Rollback() }()
-
-	if err := s.insertEvents(ctx, tx, events); err != nil {
-		return err
-	}
-	return commitTx(tx)
-}
-
-// insertEvents inserts each event into the user_events table within the
-// given transaction. Returns the first error encountered, wrapped with
-// the event ID for context.
-func (s *SQLEventStore) insertEvents(ctx context.Context, tx *sql.Tx, events []event.Event) error {
-	for _, evt := range events {
-		if err := s.insertEvent(ctx, tx, evt); err != nil {
-			return fmt.Errorf("insert event %s: %w", evt.ID(), err)
-		}
-	}
-	return nil
-}
-
-func (s *SQLEventStore) insertEvent(ctx context.Context, tx *sql.Tx, evt event.Event) error {
-	metadataJSON, err := json.Marshal(evt.Metadata())
-	if err != nil {
-		return fmt.Errorf("marshal metadata: %w", err)
-	}
-
-	p1 := s.placeholder(1)
-	p2 := s.placeholder(2)
-	p3 := s.placeholder(3)
-	p4 := s.placeholder(4)
-	p5 := s.placeholder(5)
-	p6 := s.placeholder(6)
-	p7 := s.placeholder(7)
-	p8 := s.placeholder(8)
-
-	_, err = tx.ExecContext(
-		ctx,
-		`INSERT INTO user_events (event_id, event_type, aggregate_id, aggregate_type, version, payload, metadata, occurred_at)
-		 VALUES (`+p1+`, `+p2+`, `+p3+`, `+p4+`, `+p5+`, `+p6+`, `+p7+`, `+p8+`)`,
-		evt.ID().String(),
-		string(evt.Type()),
-		evt.AggregateID().String(),
-		string(evt.AggregateType()),
-		int(evt.Version()),
-		evt.Payload(),
-		metadataJSON,
-		evt.OccurredAt(),
-	)
-	if err != nil {
-		return fmt.Errorf("exec insert: %w", err)
-	}
-	return nil
-}
-
-func (s *SQLEventStore) Load(
-	ctx context.Context,
-	ref event.AggregateRef,
-) ([]event.Event, error) {
-	p1 := s.placeholder(1)
-	p2 := s.placeholder(2)
-	rows, err := s.db.QueryContext(
-		ctx,
-		`SELECT event_id, event_type, aggregate_id, aggregate_type, version, payload, metadata, occurred_at
-		 FROM user_events WHERE aggregate_id = `+p1+` AND aggregate_type = `+p2+`
-		 ORDER BY version ASC`,
-		ref.ID.String(), string(ref.Type),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("load events: %w", err)
-	}
-	defer func() { _ = rows.Close() }()
-	return s.scanEvents(rows)
-}
-
-func (s *SQLEventStore) LoadFromVersion(
-	ctx context.Context,
-	ref event.AggregateRef,
-	version event.Version,
-) ([]event.Event, error) {
-	return s.loadVersioned(ctx, ref, "version > ", int(version), "load events from version")
-}
-
-func (s *SQLEventStore) LoadToVersion(
-	ctx context.Context,
-	ref event.AggregateRef,
-	maxVersion event.Version,
-) ([]event.Event, error) {
-	return s.loadVersioned(ctx, ref, "version <= ", int(maxVersion), "load events to version")
-}
-
-// loadVersioned selects events for the given aggregate filtered by a
-// version predicate and ordered ascending. The predicate is supplied as a
-// raw fragment like "version > " or "version <= " — callers must ensure
-// it is a constant, never user input.
-func (s *SQLEventStore) loadVersioned(
-	ctx context.Context,
-	ref event.AggregateRef, versionPredicate string, version int, errContext string,
-) ([]event.Event, error) {
-	p1 := s.placeholder(1)
-	p2 := s.placeholder(2)
-	p3 := s.placeholder(3)
-	rows, err := s.db.QueryContext(
-		ctx,
-		`SELECT event_id, event_type, aggregate_id, aggregate_type, version, payload, metadata, occurred_at
-		 FROM user_events WHERE aggregate_id = `+p1+` AND aggregate_type = `+p2+` AND `+versionPredicate+p3+`
-		 ORDER BY version ASC`,
-		ref.ID.String(), string(ref.Type), version,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", errContext, err)
-	}
-	defer func() { _ = rows.Close() }()
-	return s.scanEvents(rows)
-}
-
-func (s *SQLEventStore) LoadToTimestamp(
-	ctx context.Context,
-	ref event.AggregateRef,
-	maxTime time.Time,
-) ([]event.Event, error) {
-	p1 := s.placeholder(1)
-	p2 := s.placeholder(2)
-	p3 := s.placeholder(3)
-	rows, err := s.db.QueryContext(
-		ctx,
-		`SELECT event_id, event_type, aggregate_id, aggregate_type, version, payload, metadata, occurred_at
-		 FROM user_events WHERE aggregate_id = `+p1+` AND aggregate_type = `+p2+` AND occurred_at <= `+p3+`
-		 ORDER BY version ASC`,
-		ref.ID.String(), string(ref.Type), maxTime,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("load events to timestamp: %w", err)
-	}
-	defer func() { _ = rows.Close() }()
-	return s.scanEvents(rows)
-}
-
-func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
-	rows, err := s.db.QueryContext(
-		ctx,
-		`SELECT event_id, event_type, aggregate_id, aggregate_type, version, payload, metadata, occurred_at
-		 FROM user_events ORDER BY occurred_at ASC`,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("read all events: %w", err)
-	}
-	defer func() { _ = rows.Close() }()
-	return s.scanEvents(rows)
-}
-
-func commitTx(tx *sql.Tx) error {
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit tx: %w", err)
-	}
-	return nil
-}
-
-func (s *SQLEventStore) scanEvents(rows *sql.Rows) ([]event.Event, error) {
-	var events []event.Event
-	for rows.Next() {
-		evt, err := s.scanRow(rows)
-		if err != nil {
-			return nil, err
-		}
-		events = append(events, evt)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate rows: %w", err)
-	}
-	return events, nil
-}
-
-func (*SQLEventStore) scanRow(rows *sql.Rows) (event.Event, error) {
-	var (
-		eventID      string
-		eventType    string
-		aggID        string
-		aggType      string
-		version      int
-		payload      []byte
-		metadataJSON []byte
-		occurredAt   time.Time
-	)
-	if err := rows.Scan(
-		&eventID, &eventType, &aggID, &aggType, &version,
-		&payload, &metadataJSON, &occurredAt,
-	); err != nil {
-		return nil, fmt.Errorf("scan event row: %w", err)
-	}
-
-	evtID, err := id.ParseEventID(eventID)
-	if err != nil {
-		return nil, fmt.Errorf("parse event ID %q: %w", eventID, err)
-	}
-
-	parsedAggID, err := id.ParseAggregateID(aggID)
-	if err != nil {
-		return nil, fmt.Errorf("parse aggregate ID %q: %w", aggID, err)
-	}
-
-	opts := []event.Option{
-		event.WithEventID(evtID),
-		event.WithOccurredAt(occurredAt),
-	}
-
-	if len(metadataJSON) > 0 {
-		var meta event.Metadata
-		if err := json.Unmarshal(metadataJSON, &meta); err == nil {
-			opts = append(opts, event.WithMetadata(meta))
-		}
-	}
-
-	evt, err := event.NewEvent(
-		event.Type(eventType),
-		parsedAggID,
-		event.AggregateType(aggType),
-		event.Version(version),
-		payload,
-		opts...,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("reconstruct event %q: %w", eventType, err)
-	}
-	return evt, nil
 }
 
 var (

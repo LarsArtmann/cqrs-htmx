@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -44,13 +45,11 @@ func TestSQLEventStore_LoadToTimestamp(t *testing.T) {
 		t.Fatalf("expected 1 registered event, got %d (%v)", len(firstOnly), firstOnly)
 	}
 
-	// Cutoff before any event returns none.
+	// Cutoff before any event — upstream returns ErrAggregateNotFound
+	// (RequireHit: true on LoadToTimestamp).
 	none, err := store.LoadToTimestamp(ctx, ref, time.Now().Add(-3*time.Hour))
-	if err != nil {
-		t.Fatalf("LoadToTimestamp past: %v", err)
-	}
-	if len(none) != 0 {
-		t.Fatalf("expected 0 events, got %d", len(none))
+	if !errors.Is(err, event.ErrAggregateNotFound) {
+		t.Fatalf("expected ErrAggregateNotFound for past cutoff, got %v (events: %d)", err, len(none))
 	}
 }
 

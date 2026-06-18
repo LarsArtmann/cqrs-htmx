@@ -29,6 +29,24 @@ type SQLSessionStore struct {
 	placeholder placeholderFunc
 }
 
+// placeholderFunc returns the dialect-specific SQL placeholder for a given
+// 1-based parameter index ($1 for Postgres, ? for SQLite/MySQL).
+type placeholderFunc func(i int) string
+
+// placeholderFor maps a dialect string to its placeholder function.
+// Used only by SQLSessionStore — the event store delegates to
+// go-cqrs-lite/storage/v2's Dialect abstraction.
+func placeholderFor(dialect string) (placeholderFunc, error) {
+	switch dialect {
+	case dialectPostgres, dialectPgx:
+		return func(i int) string { return fmt.Sprintf("$%d", i) }, nil
+	case dialectSQLite, dialectSQLite3, dialectMySQL:
+		return func(i int) string { return "?" }, nil
+	default:
+		return nil, fmt.Errorf("unsupported dialect %q: use postgres, pgx, sqlite, sqlite3, or mysql", dialect)
+	}
+}
+
 // NewSQLSessionStore creates a SQLSessionStore and auto-migrates the sessions table.
 // The dialect must be "postgres", "pgx", "sqlite", "sqlite3", or "mysql".
 func NewSQLSessionStore(ctx context.Context, db *sql.DB, dialect string) (*SQLSessionStore, error) {
