@@ -82,6 +82,73 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			Consistently(ch).ShouldNot(Receive())
 		})
 	})
+
+	Describe("BroadcastOnError", func() {
+		It("broadcasts error event when dispatch fails", func() {
+			b := cqrshtmx.NewBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnError("commandError", "")
+			req := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
+			hook(context.Background(), req, errors.New("validation failed"))
+
+			var event cqrshtmx.SSEEvent
+			Eventually(ch).Should(Receive(&event))
+			Expect(event.Event).To(Equal("commandError"))
+			Expect(event.Data).To(ContainSubstring("validation failed"))
+			Expect(event.Data).To(ContainSubstring("\"type\""))
+			Expect(event.Data).To(ContainSubstring("\"status\""))
+		})
+
+		It("does not broadcast error event when dispatch succeeds", func() {
+			b := cqrshtmx.NewBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnError("commandError", "")
+			hook(context.Background(), nil, nil)
+
+			Consistently(ch).ShouldNot(Receive())
+		})
+	})
+
+	Describe("BroadcastOnErrorFunc", func() {
+		It("builds dynamic error event from request and error", func() {
+			b := cqrshtmx.NewBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnErrorFunc(func(r *http.Request, err error) cqrshtmx.SSEEvent {
+				return cqrshtmx.SSEEvent{
+					Event: "customError",
+					Data:  r.URL.Path + ": " + err.Error(),
+				}
+			})
+
+			req := httptest.NewRequest(http.MethodPost, "/users/create", nil)
+			hook(context.Background(), req, errors.New("email taken"))
+
+			var event cqrshtmx.SSEEvent
+			Eventually(ch).Should(Receive(&event))
+			Expect(event.Event).To(Equal("customError"))
+			Expect(event.Data).To(Equal("/users/create: email taken"))
+		})
+
+		It("does not fire on success", func() {
+			b := cqrshtmx.NewBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnErrorFunc(func(_ *http.Request, _ error) cqrshtmx.SSEEvent {
+				Fail("should not be called on success")
+				return cqrshtmx.SSEEvent{}
+			})
+
+			hook(context.Background(), nil, nil)
+			Consistently(ch).ShouldNot(Receive())
+		})
+	})
 })
 
 // errorWriter always returns an error on Write.

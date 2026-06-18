@@ -144,3 +144,55 @@ func (b *Broadcaster) BroadcastOnSuccessFunc(eventFunc func(r *http.Request) SSE
 		b.Broadcast(eventFunc(r))
 	}
 }
+
+// BroadcastOnError creates an AfterDispatchHook that broadcasts an SSE event
+// when a command dispatch fails (err != nil). This is the error counterpart to
+// BroadcastOnSuccess — together they ensure SSE clients are always notified,
+// whether the command succeeded or failed.
+//
+// The error is serialized as a StructuredError (RFC 7807 shape) JSON string
+// in the SSE event data field. Clients can parse and render it uniformly.
+//
+// Use it alongside BroadcastOnSuccess for complete real-time feedback:
+//
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    Commands: cmdDispatcher,
+//	    AfterDispatch: broadcaster.BroadcastOnError("commandError", ""),
+//	})
+//
+// For dynamic error event generation, use BroadcastOnErrorFunc.
+func (b *Broadcaster) BroadcastOnError(eventName, _ string) AfterDispatchHook {
+	return func(_ context.Context, r *http.Request, err error) {
+		if err == nil {
+			return
+		}
+		payload := NewStructuredError(err, r)
+		b.Broadcast(SSEEvent{Event: eventName, Data: payload.JSON()})
+	}
+}
+
+// BroadcastOnErrorFunc creates an AfterDispatchHook that generates an SSE error
+// event dynamically from the request and error when dispatch fails.
+// The errFunc receives both the request and the error, allowing callers to
+// customize the event name, data, or retry behavior based on the error type.
+//
+// Example: suppress certain errors or add retry hints:
+//
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    Commands: cmdDispatcher,
+//	    AfterDispatch: broadcaster.BroadcastOnErrorFunc(func(r *http.Request, err error) cqrshtmx.SSEEvent {
+//	        payload := cqrshtmx.NewStructuredError(err, r)
+//	        return cqrshtmx.SSEEvent{
+//	            Event: "commandError",
+//	            Data:  payload.JSON(),
+//	        }
+//	    }),
+//	})
+func (b *Broadcaster) BroadcastOnErrorFunc(errFunc func(r *http.Request, err error) SSEEvent) AfterDispatchHook {
+	return func(_ context.Context, r *http.Request, err error) {
+		if err == nil {
+			return
+		}
+		b.Broadcast(errFunc(r, err))
+	}
+}

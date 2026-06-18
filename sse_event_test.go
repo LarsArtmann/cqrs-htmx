@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	. "github.com/onsi/ginkgo/v2"
@@ -203,6 +204,73 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			cancel()
 
 			Eventually(stream.Context().Done()).Should(BeClosed())
+		})
+
+		It("sends heartbeat comment frames at the given interval", func() {
+			ctx, cancel := context.WithCancel(context.Background())
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+
+			stream := cqrshtmx.NewSSEStream(w, r)
+			done := make(chan struct{})
+			go func() {
+				defer close(done)
+				stream.Heartbeat(ctx, 10*time.Millisecond)
+			}()
+
+			time.Sleep(50 * time.Millisecond)
+			cancel()
+			Eventually(done).Should(BeClosed())
+
+			Expect(w.Body.String()).To(ContainSubstring(": keepalive\n\n"))
+		})
+
+		It("stops heartbeat when context is cancelled", func() {
+			ctx, cancel := context.WithCancel(context.Background())
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+
+			stream := cqrshtmx.NewSSEStream(w, r)
+			done := make(chan struct{})
+			go func() {
+				defer close(done)
+				stream.Heartbeat(ctx, 10*time.Millisecond)
+			}()
+
+			cancel()
+			Eventually(done).Should(BeClosed())
+		})
+
+		It("fires OnDisconnect callbacks when Close is called", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
+			stream := cqrshtmx.NewSSEStream(w, r)
+
+			called := false
+			stream.OnDisconnect(func() {
+				called = true
+			})
+
+			stream.Close()
+			Expect(called).To(BeTrue())
+		})
+
+		It("fires multiple OnDisconnect callbacks in registration order", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
+			stream := cqrshtmx.NewSSEStream(w, r)
+
+			order := []int{}
+			stream.OnDisconnect(func() { order = append(order, 1) })
+			stream.OnDisconnect(func() { order = append(order, 2) })
+			stream.OnDisconnect(func() { order = append(order, 3) })
+
+			stream.Close()
+			Expect(order).To(Equal([]int{1, 2, 3}))
 		})
 	})
 })

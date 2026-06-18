@@ -1,0 +1,158 @@
+package cqrshtmx
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+)
+
+// StructuredError is a transport-agnostic error payload following the
+// RFC 7807 (Problem Details for HTTP APIs) shape. It carries enough
+// context for clients to render or handle errors uniformly across HTTP,
+// SSE, and WebSocket transports.
+//
+// Serialize as JSON for SSE event data or WebSocket message payloads:
+//
+//	payload := cqrshtmx.NewStructuredError(err, r)
+//	jsonBytes, _ := json.Marshal(payload)
+//	broadcaster.Broadcast(cqrshtmx.SSEEvent{
+//	    Event: "commandError",
+//	    Data:  string(jsonBytes),
+//	})
+type StructuredError struct {
+	// Type is a URI or short token identifying the error type.
+	// Defaults to "about:blank" per RFC 7807. For domain errors,
+	// use a meaningful token like "validation_failed" or "conflict".
+	Type string `json:"type"`
+
+	// Title is a short, human-readable summary of the problem type.
+	// It should not change between occurrences of the same type.
+	Title string `json:"title"`
+
+	// Status is the HTTP status code appropriate for this error.
+	// Derived from MapError — carries the same family semantics.
+	Status int `json:"status"`
+
+	// Detail is a specific, human-readable explanation of this
+	// particular occurrence of the error. Typically the error message.
+	Detail string `json:"detail"`
+
+	// Instance is a token identifying this specific occurrence.
+	// Usually the request ID or correlation ID for tracing.
+	Instance string `json:"instance,omitempty"`
+}
+
+// NewStructuredError creates a StructuredError from a Go error and HTTP request.
+// It maps the error to an HTTP status via MapError, derives a title from the
+// error family, and extracts the request ID for tracing.
+//
+// If err is nil, returns a zero-value StructuredError (callers should check err first).
+func NewStructuredError(err error, r *http.Request) StructuredError {
+	if err == nil {
+		return StructuredError{
+			Type:     "",
+			Title:    "",
+			Status:   0,
+			Detail:   "",
+			Instance: "",
+		}
+	}
+
+	status := MapError(err)
+	family := event.Classify(err)
+	title := familyTitle(family, status)
+	instance := ""
+
+	if r != nil {
+		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+			instance = rid.String()
+		}
+	}
+
+	return StructuredError{
+		Type:     familyType(family),
+		Title:    title,
+		Status:   status,
+		Detail:   err.Error(),
+		Instance: instance,
+	}
+}
+
+// NewStructuredErrorWithContext is like NewStructuredError but accepts a context
+// instead of a request. Useful when you only have the dispatch context.
+func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredError {
+	if err == nil {
+		return StructuredError{
+			Type:     "",
+			Title:    "",
+			Status:   0,
+			Detail:   "",
+			Instance: "",
+		}
+	}
+
+	status := MapError(err)
+	family := event.Classify(err)
+	instance := ""
+
+	if ctx != nil {
+		if rid := RequestIDFromContext(ctx); !rid.IsZero() {
+			instance = rid.String()
+		}
+	}
+
+	return StructuredError{
+		Type:     familyType(family),
+		Title:    familyTitle(family, status),
+		Status:   status,
+		Detail:   err.Error(),
+		Instance: instance,
+	}
+}
+
+// JSON returns the StructuredError serialized as a JSON string.
+// Convenience method for use in SSEEvent.Data or WS message payloads.
+// Returns empty string if marshaling fails (should not happen for this type).
+func (e StructuredError) JSON() string {
+	b, err := json.Marshal(e)
+	if err != nil {
+		return `{"type":"about:blank","title":"Internal Server Error","status":500,"detail":"failed to marshal error"}`
+	}
+	return string(b)
+}
+
+func familyType(family event.Family) string {
+	switch family {
+	case event.Rejection:
+		return "rejection"
+	case event.Conflict:
+		return "conflict"
+	case event.Corruption:
+		return "corruption"
+	case event.Transient:
+		return "transient"
+	case event.Infrastructure:
+		return "infrastructure"
+	default:
+		return "about:blank"
+	}
+}
+
+func familyTitle(family event.Family, status int) string {
+	switch family {
+	case event.Rejection:
+		return http.StatusText(status)
+	case event.Conflict:
+		return "Conflict"
+	case event.Corruption:
+		return "Unprocessable Entity"
+	case event.Transient:
+		return "Service Unavailable"
+	case event.Infrastructure:
+		return "Internal Server Error"
+	default:
+		return http.StatusText(status)
+	}
+}
