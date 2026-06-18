@@ -68,9 +68,7 @@ func OpenAPIHandler(cat *catalog.Catalog, opts ...ServeOption) http.HandlerFunc 
 
 	doc := exporter.Export(cat)
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		writeDoc(w, doc.MarshalJSON, doc.MarshalYAML, cfg.format)
-	}
+	return docHandler(doc.MarshalJSON, doc.MarshalYAML, cfg.format)
 }
 
 // AsyncAPIHandler returns an http.HandlerFunc that serves the catalog
@@ -86,9 +84,7 @@ func AsyncAPIHandler(cat *catalog.Catalog, opts ...ServeOption) http.HandlerFunc
 
 	doc := exporter.Export(cat)
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		writeDoc(w, doc.MarshalJSON, doc.MarshalYAML, cfg.format)
-	}
+	return docHandler(doc.MarshalJSON, doc.MarshalYAML, cfg.format)
 }
 
 // D2Handler returns an http.HandlerFunc that serves the catalog
@@ -166,6 +162,12 @@ func defaultServeConfig(opts ...ServeOption) serveConfig {
 }
 
 type marshaler func() ([]byte, error)
+
+func docHandler(jsonFn, yamlFn marshaler, format ExportFormat) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		writeDoc(w, jsonFn, yamlFn, format)
+	}
+}
 
 func writeDoc(w http.ResponseWriter, jsonFn, yamlFn marshaler, format ExportFormat) {
 	var data []byte
