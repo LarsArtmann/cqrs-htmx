@@ -213,15 +213,25 @@ func TestSigningEncryption_AuthzProjectionSurvivesCrypto(t *testing.T) {
 	}
 }
 
+// waitForUser polls the read model until the user appears or the context deadline
+// expires. This is necessary because StartProjections runs the projection runner
+// in a background goroutine — there is no synchronous "replay complete" signal.
+// Uses context.WithTimeout for the deadline (not time.After+select) per the
+// project's flaky-test anti-pattern guidance.
 func waitForUser(svc *usermgmt.Service, email string) bool {
-	deadline := time.Now().Add(2 * time.Second)
-	for time.Now().Before(deadline) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	for {
 		if _, ok := svc.ReadModel().FindByEmail(email); ok {
 			return true
 		}
-		time.Sleep(20 * time.Millisecond)
+		select {
+		case <-ctx.Done():
+			return false
+		case <-time.After(20 * time.Millisecond):
+		}
 	}
-	return false
 }
 
 // TestSigningEncryption_Ed25519AsymmetricSigning verifies that asymmetric
