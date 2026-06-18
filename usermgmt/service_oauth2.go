@@ -160,7 +160,7 @@ func (s *Service) linkExternalAccount(
 	info oauth2UserInfo,
 ) error {
 	// Check if already linked (idempotent — re-login shouldn't fail)
-	for _, ea := range readUserExternalAccounts(s, userID) {
+	for _, ea := range s.readUserExternalAccounts(userID) {
 		if ea.Provider == provider && ea.Subject == info.Subject {
 			return nil // already linked
 		}
@@ -236,7 +236,7 @@ func (s *Service) getOAuth2Provider(provider string) (*oauth2Provider, error) {
 
 // readUserExternalAccounts returns the user's external accounts from the read model.
 // Helper to avoid nil-slice issues when checking for existing links.
-func readUserExternalAccounts(s *Service, userID UserID) []ExternalAccount {
+func (s *Service) readUserExternalAccounts(userID UserID) []ExternalAccount {
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		return nil
