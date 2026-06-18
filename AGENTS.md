@@ -49,6 +49,7 @@ cqrs-htmx/
 ├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML
 ├── ws_encoder.go     # WriteWSMessage, WriteWSMessageInto[T] — outbound WS message encoder
 ├── ws_broadcaster.go # WSBroadcaster (fan-out), BroadcastHTML, BroadcastOnSuccessWS, BroadcastOnErrorWS
+├── ws_dispatch.go    # DispatchWSCommand/DispatchWSQuery — WS→CQRS bridge, DecodeWSJSON[T]/DecodeWSJSONQuery[T]
 ├── ratelimit.go      # RateLimiterMiddleware, per-key token bucket, min-heap eviction
 ├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, RecommendedCSP/HSTS
 ├── recovery.go       # RecoveryMiddleware (package-level), App.RecoverHandler() — panic recovery
@@ -206,7 +207,7 @@ cqrs-htmx/
 - **SSEStream**: Sets correct headers (Content-Type, Cache-Control, Connection). Flushes after each Send. Context-aware (cancelled when client disconnects). `LastEventID()` for reconnection
 - **Broadcaster**: Thread-safe fan-out using buffered channels (64 capacity). O(1) Unsubscribe via `uintptr` channel identity. Non-blocking broadcast — slow consumers have events dropped. Subscribe/Unsubscribe with channel close
 - **Reconnection**: `LastEventIDFromRequest()` parses `Last-Event-ID` header. `SSEEventStore` interface for event replay. `ReplayEvents()` sends missed events to stream
-- **CQRS bridge**: `BroadcastOnSuccess(eventName, data)` / `BroadcastOnSuccessFunc(fn)` — broadcast on success. `BroadcastOnError(eventName, data)` / `BroadcastOnErrorFunc(fn)` — broadcast StructuredError on failure. Full dispatch feedback for SSE clients.
+- **CQRS bridge**: `BroadcastOnSuccess(eventName, data)` / `BroadcastOnSuccessFunc(fn)` — broadcast on success. `BroadcastOnError(eventName)` / `BroadcastOnErrorFunc(fn)` — broadcast StructuredError on failure. Full dispatch feedback for SSE clients.
 - **Heartbeat**: `SSEStream.Heartbeat(ctx, interval)` sends SSE comment-frame pings (": keepalive\n\n"). Prevents proxy/LB idle disconnects (Nginx 30s, Cloudflare 100s).
 - **OnDisconnect**: `SSEStream.OnDisconnect(fn)` registers cleanup callbacks fired on Close().
 - **StructuredError**: RFC 7807-shaped transport-agnostic error payload. `NewStructuredError(err, r)` maps via MapError + extracts request ID. Used by BroadcastOnError, BroadcastOnErrorWS, and WS dispatch bridge.
@@ -221,7 +222,8 @@ cqrs-htmx/
 - **WS Encoder**: `WriteWSMessage(w, msg)` / `WriteWSMessageInto[T](w, body, headers)` — outbound counterpart to the parsers. Round-trips perfectly through ParseWSMessage.
 - **WSBroadcaster**: Thread-safe fan-out for WebSocket messages. Mirrors SSE Broadcaster API — Subscribe/Unsubscribe/Broadcast/SubscriberCount. O(1) unsubscribe via channel pointer identity.
 - **WS hooks**: `BroadcastOnSuccessWS(msg)` / `BroadcastOnErrorWS()` — AfterDispatchHook factories for WS, mirroring SSE hooks.
-- **Decision documented in**: `docs/adr/0004-sse-websocket-support.md`
+- **WS Dispatch**: `DispatchWSCommand(r, type, decoder, data)` / `DispatchWSQuery(r, type, decoder, data)` — decode raw WS message bytes → dispatch via App. Runs before/after hooks. No auth/CSRF/response-writing (WS is authenticated at upgrade time). `DecodeWSJSON[T]` / `DecodeWSJSONQuery[T]` decoder factories. Pass the upgrade `*http.Request` for context extraction.
+- **Decision documented in**: `docs/adr/0004-sse-websocket-support.md` and `docs/adr/0010-transport-parity.md`
 
 ### Pagination (go-cqrs-lite v2.3.0)
 

@@ -61,7 +61,7 @@ func ExampleBroadcaster_BroadcastOnError() {
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)
 
-	hook := b.BroadcastOnError("commandError", "")
+	hook := b.BroadcastOnError("commandError")
 
 	r := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
 	hook(context.Background(), r, errors.New("validation failed"))
