@@ -35,11 +35,8 @@ func (s *Service) BeginOAuthLogin(_ context.Context, provider string) (*BeginOAu
 	return &BeginOAuthLoginResponse{RedirectURL: redirectURL}, nil
 }
 
-// FinishOAuthLoginResponse contains the authenticated user and session.
-type FinishOAuthLoginResponse struct {
-	User    *User    `json:"user"`
-	Session *Session `json:"session"`
-}
+// FinishOAuthLoginResponse is an alias for [AuthResult], returned by [Service.FinishOAuthLogin].
+type FinishOAuthLoginResponse = AuthResult
 
 // FinishOAuthLogin completes the OAuth2 login flow. It validates the state token,
 // exchanges the authorization code for tokens, extracts user info, and either:

@@ -145,11 +145,8 @@ func (s *Service) BeginLogin(_ context.Context, email string) (*BeginLoginRespon
 	}, nil
 }
 
-// FinishLoginResponse contains the session created after successful WebAuthn login.
-type FinishLoginResponse struct {
-	User    *User    `json:"user"`
-	Session *Session `json:"session"`
-}
+// FinishLoginResponse is an alias for [AuthResult], returned by [Service.FinishLogin].
+type FinishLoginResponse = AuthResult
 
 // FinishLogin completes the WebAuthn login ceremony.
 // The HTTP request must contain the assertion response from the authenticator.
