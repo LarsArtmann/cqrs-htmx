@@ -1,8 +1,6 @@
 package usermgmt
 
 import (
-	"fmt"
-
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
@@ -55,9 +53,11 @@ type EventSourcedConfig struct {
 }
 
 // EventSourcedSetup holds the wired infrastructure for the event-sourced user aggregate.
+// Store and Bus are interfaces so that wrapped stores (e.g. encrypted stores)
+// and middleware-applied buses are correctly exposed to callers.
 type EventSourcedSetup struct {
-	Store      *memory.MemoryStore
-	Bus        *memory.MemoryBus
+	Store      event.Store
+	Bus        event.Bus
 	Repository *decider.Repository[UserState]
 	ReadModel  *UserReadModel
 }
@@ -110,37 +110,31 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	repo, err := decider.NewRepository(store, bus, UserDecider())
 	if err != nil {
 		_ = bus.Close()
-		return nil, fmt.Errorf("create decider repository: %w", err)
+		return nil, event.NewTransient("internal", "create decider repository").WithCause(err)
 	}
 
 	readModel := NewUserReadModel()
 	authz, err := NewAuthz()
 	if err != nil {
 		_ = bus.Close()
-		return nil, err
+		return nil, event.NewTransient("internal", "create authz").WithCause(err)
 	}
 	casbinProjection, err := NewCasbinProjection(authz)
 	if err != nil {
 		_ = bus.Close()
-		return nil, err
+		return nil, event.NewTransient("internal", "create casbin projection").WithCause(err)
 	}
 
 	journal := journalFromStore(store)
 	if err := StartProjections(journal, bus, readModel, casbinProjection, nil); err != nil {
 		_ = bus.Close()
-		return nil, err
+		return nil, event.NewTransient("internal", "start projections").WithCause(err)
 	}
 
-	result := &EventSourcedSetup{
+	return &EventSourcedSetup{
+		Store:      store,
+		Bus:        bus,
 		Repository: repo,
 		ReadModel:  readModel,
-	}
-	if memStore, ok := store.(*memory.MemoryStore); ok {
-		result.Store = memStore
-	}
-	if memBus, ok := bus.(*memory.MemoryBus); ok {
-		result.Bus = memBus
-	}
-
-	return result, nil
+	}, nil
 }
