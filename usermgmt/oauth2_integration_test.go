@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -21,18 +22,27 @@ type fakeOAuth2Provider struct {
 	clientSecret string
 	redirectURL  string
 	scopes       []string
+	// userInfo controls what the /userinfo endpoint returns. Tests can mutate
+	// this between logins to simulate provider-side changes (e.g. email change).
+	userInfo map[string]any
 }
 
 // newFakeOAuth2Provider creates a fake OAuth2 provider with working token + userinfo endpoints.
 func newFakeOAuth2Provider(t *testing.T) *fakeOAuth2Provider {
 	t.Helper()
-	mux := http.NewServeMux()
 	prov := &fakeOAuth2Provider{
 		clientID:     "test-client-id",
 		clientSecret: "test-client-secret",
 		redirectURL:  "http://localhost:8080/auth/oauth/fake/callback",
 		scopes:       []string{"email", "profile"},
+		userInfo: map[string]any{
+			"id":             "12345",
+			"email":          "fakeuser@example.com",
+			"name":           "Fake User",
+			"email_verified": true,
+		},
 	}
+	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /token", func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
@@ -55,12 +65,7 @@ func newFakeOAuth2Provider(t *testing.T) *fakeOAuth2Provider {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{
-			"id":             "12345",
-			"email":          "fakeuser@example.com",
-			"name":           "Fake User",
-			"email_verified": true,
-		})
+		_ = json.NewEncoder(w).Encode(prov.userInfo)
 	})
 
 	prov.server = httptest.NewServer(mux)
@@ -350,5 +355,120 @@ func TestOAuth2Provider_Exchange_NoEmail(t *testing.T) {
 	_, err = svc.FinishOAuthLogin(context.Background(), "noemail", "test-auth-code", state)
 	if err == nil {
 		t.Fatal("expected error when provider returns no email")
+	}
+}
+
+// TestFinishOAuthLogin_SubjectMatchOnRelogin verifies that when a user's email
+// changes at the provider, re-login still finds them by their stable provider+subject.
+func TestFinishOAuthLogin_SubjectMatchOnRelogin(t *testing.T) {
+	prov := newFakeOAuth2Provider(t)
+	svc := newOAuth2Service(t, prov)
+
+	// First login — auto-registers with subject "12345", email "fakeuser@example.com"
+	begin1, _ := svc.BeginOAuthLogin(context.Background(), "fake")
+	u1, _ := url.Parse(begin1.RedirectURL)
+	resp1, err := svc.FinishOAuthLogin(context.Background(), "fake", "test-auth-code", u1.Query().Get("state"))
+	if err != nil {
+		t.Fatalf("first login: %v", err)
+	}
+	originalID := resp1.User.ID.Get()
+
+	// Provider changes the user's email (same subject "12345")
+	prov.userInfo["email"] = "changed@example.com"
+
+	// Second login — must find the same user by subject, NOT create a new one
+	begin2, _ := svc.BeginOAuthLogin(context.Background(), "fake")
+	u2, _ := url.Parse(begin2.RedirectURL)
+	resp2, err := svc.FinishOAuthLogin(context.Background(), "fake", "test-auth-code", u2.Query().Get("state"))
+	if err != nil {
+		t.Fatalf("second login: %v", err)
+	}
+	if resp2.User.ID.Get() != originalID {
+		t.Fatalf("expected same user ID %s, got %s (subject matching failed)",
+			originalID, resp2.User.ID.Get())
+	}
+}
+
+// TestLinkExternalAccount_AlreadyLinkedToOtherUser verifies that linking a
+// provider+subject that belongs to a different user is rejected.
+func TestLinkExternalAccount_AlreadyLinkedToOtherUser(t *testing.T) {
+	prov := newFakeOAuth2Provider(t)
+	svc := newOAuth2Service(t, prov)
+
+	// OAuth login auto-registers user with subject "12345"
+	begin, _ := svc.BeginOAuthLogin(context.Background(), "fake")
+	u, _ := url.Parse(begin.RedirectURL)
+	resp, err := svc.FinishOAuthLogin(context.Background(), "fake", "test-auth-code", u.Query().Get("state"))
+	if err != nil {
+		t.Fatalf("first login: %v", err)
+	}
+
+	// Register a second user with a different email
+	_, err = svc.Register(context.Background(), RegisterRequest{
+		ID:          NewUserID("01J0000000000000000000001"),
+		Email:       "other@example.com",
+		DisplayName: "Other User",
+	})
+	if err != nil {
+		t.Fatalf("Register second user: %v", err)
+	}
+
+	// Try to link "fake"/"12345" (which belongs to user 1) to user 2
+	otherUserID := NewUserID("01J0000000000000000000001")
+	err = svc.linkExternalAccount(context.Background(), otherUserID, "fake", oauth2UserInfo{
+		Subject:       "12345",
+		Email:         "other@example.com",
+		EmailVerified: true,
+	})
+	if !errors.Is(err, ErrExternalAccountAlreadyLinked) {
+		t.Fatalf("expected ErrExternalAccountAlreadyLinked, got: %v", err)
+	}
+
+	// Verify user 1 still has the link, user 2 does not
+	user1, _ := svc.readModel.FindByUserID(resp.User.ID)
+	if len(user1.ExternalAccounts) != 1 {
+		t.Errorf("user1 should still have 1 external account, got %d", len(user1.ExternalAccounts))
+	}
+	user2, _ := svc.readModel.FindByUserID(otherUserID)
+	if len(user2.ExternalAccounts) != 0 {
+		t.Errorf("user2 should have 0 external accounts, got %d", len(user2.ExternalAccounts))
+	}
+}
+
+// TestReadModel_FindByExternalAccount tests the read model's external account index directly.
+func TestReadModel_FindByExternalAccount(t *testing.T) {
+	prov := newFakeOAuth2Provider(t)
+	svc := newOAuth2Service(t, prov)
+
+	// No match initially
+	_, ok := svc.readModel.FindByExternalAccount("fake", "12345")
+	if ok {
+		t.Fatal("expected no match before any login")
+	}
+
+	// Login to create + link
+	begin, _ := svc.BeginOAuthLogin(context.Background(), "fake")
+	u, _ := url.Parse(begin.RedirectURL)
+	resp, _ := svc.FinishOAuthLogin(context.Background(), "fake", "test-auth-code", u.Query().Get("state"))
+
+	// Now should find by provider+subject
+	found, ok := svc.readModel.FindByExternalAccount("fake", "12345")
+	if !ok {
+		t.Fatal("expected to find user by external account after login")
+	}
+	if found.ID.Get() != resp.User.ID.Get() {
+		t.Errorf("found wrong user: got %s, want %s", found.ID.Get(), resp.User.ID.Get())
+	}
+
+	// Different subject should not match
+	_, ok = svc.readModel.FindByExternalAccount("fake", "99999")
+	if ok {
+		t.Fatal("expected no match for unknown subject")
+	}
+
+	// Different provider should not match
+	_, ok = svc.readModel.FindByExternalAccount("google", "12345")
+	if ok {
+		t.Fatal("expected no match for unknown provider")
 	}
 }

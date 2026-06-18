@@ -14,15 +14,24 @@ import (
 
 // UserReadModel is the projection-side store for users.
 type UserReadModel struct {
-	mu     sync.RWMutex
-	users  map[id.AggregateID]*User
-	emails map[string]id.AggregateID
+	mu               sync.RWMutex
+	users            map[id.AggregateID]*User
+	emails           map[string]id.AggregateID
+	externalAccounts map[externalAccountKey]id.AggregateID
+}
+
+// externalAccountKey is the composite key for the global provider+subject → user index.
+// Ensures a given provider subject can only be linked to one user at a time.
+type externalAccountKey struct {
+	provider string
+	subject  string
 }
 
 func NewUserReadModel() *UserReadModel {
 	return &UserReadModel{
-		users:  make(map[id.AggregateID]*User),
-		emails: make(map[string]id.AggregateID),
+		users:            make(map[id.AggregateID]*User),
+		emails:           make(map[string]id.AggregateID),
+		externalAccounts: make(map[externalAccountKey]id.AggregateID),
 	}
 }
 
@@ -119,6 +128,9 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventUserDeleted:
 		if u, ok := m.users[aggID]; ok {
 			delete(m.emails, u.Email)
+			for _, ea := range u.ExternalAccounts {
+				delete(m.externalAccounts, externalAccountKey{provider: ea.Provider, subject: ea.Subject})
+			}
 		}
 		delete(m.users, aggID)
 
@@ -160,6 +172,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 				LinkedAt:    evt.OccurredAt(),
 			})
 			u.UpdatedAt = evt.OccurredAt()
+			m.externalAccounts[externalAccountKey{provider: p.Provider, subject: p.Subject}] = aggID
 		}
 
 	case eventExternalAccountUnlinked:
@@ -176,6 +189,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 			}
 			u.ExternalAccounts = filtered
 			u.UpdatedAt = evt.OccurredAt()
+			delete(m.externalAccounts, externalAccountKey{provider: p.Provider, subject: p.Subject})
 		}
 
 	default:
@@ -198,6 +212,19 @@ func (m *UserReadModel) FindByEmail(email string) (*User, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	aggID, ok := m.emails[email]
+	if !ok {
+		return nil, false
+	}
+	return m.users[aggID].Clone(), true
+}
+
+// FindByExternalAccount looks up a user by their linked provider+subject pair.
+// Returns the user and true if found. This enforces global uniqueness: a given
+// provider subject can only be linked to one user at a time.
+func (m *UserReadModel) FindByExternalAccount(provider, subject string) (*User, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	aggID, ok := m.externalAccounts[externalAccountKey{provider: provider, subject: subject}]
 	if !ok {
 		return nil, false
 	}
