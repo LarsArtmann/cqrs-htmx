@@ -44,8 +44,11 @@ cqrs-htmx/
 ├── decoder.go        # Body reading, form/JSON decoding, MaxBodySize enforcement
 ├── httputil.go       # WriteJSON, ClientIP (delegates to larsartmann/httputil)
 ├── logging.go        # RequestLogging, RequestLoggingSlog, formatters
-├── sse.go            # SSE: SSEEvent, WriteSSEEvent, SSEStream, Broadcaster (O(1) unsubscribe), SSEEventStore, ReplayEvents, LastEventIDFromRequest, BroadcastOnSuccess/BroadcastOnSuccessFunc
+├── sse.go            # SSE: SSEEvent, WriteSSEEvent, SSEStream, Broadcaster (O(1) unsubscribe), SSEEventStore, ReplayEvents, LastEventIDFromRequest, BroadcastOnSuccess/BroadcastOnSuccessFunc/BroadcastOnError/BroadcastOnErrorFunc, Heartbeat, OnDisconnect
+├── structured_error.go # StructuredError (RFC 7807), NewStructuredError, NewStructuredErrorWithContext, JSON()
 ├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML
+├── ws_encoder.go     # WriteWSMessage, WriteWSMessageInto[T] — outbound WS message encoder
+├── ws_broadcaster.go # WSBroadcaster (fan-out), BroadcastHTML, BroadcastOnSuccessWS, BroadcastOnErrorWS
 ├── ratelimit.go      # RateLimiterMiddleware, per-key token bucket, min-heap eviction
 ├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, RecommendedCSP/HSTS
 ├── recovery.go       # RecoveryMiddleware (package-level), App.RecoverHandler() — panic recovery
@@ -203,7 +206,10 @@ cqrs-htmx/
 - **SSEStream**: Sets correct headers (Content-Type, Cache-Control, Connection). Flushes after each Send. Context-aware (cancelled when client disconnects). `LastEventID()` for reconnection
 - **Broadcaster**: Thread-safe fan-out using buffered channels (64 capacity). O(1) Unsubscribe via `uintptr` channel identity. Non-blocking broadcast — slow consumers have events dropped. Subscribe/Unsubscribe with channel close
 - **Reconnection**: `LastEventIDFromRequest()` parses `Last-Event-ID` header. `SSEEventStore` interface for event replay. `ReplayEvents()` sends missed events to stream
-- **CQRS bridge**: `BroadcastOnSuccess(eventName, data)` and `BroadcastOnSuccessFunc(fn)` create `AfterDispatchHook` that broadcasts SSE events on successful dispatch
+- **CQRS bridge**: `BroadcastOnSuccess(eventName, data)` / `BroadcastOnSuccessFunc(fn)` — broadcast on success. `BroadcastOnError(eventName, data)` / `BroadcastOnErrorFunc(fn)` — broadcast StructuredError on failure. Full dispatch feedback for SSE clients.
+- **Heartbeat**: `SSEStream.Heartbeat(ctx, interval)` sends SSE comment-frame pings (": keepalive\n\n"). Prevents proxy/LB idle disconnects (Nginx 30s, Cloudflare 100s).
+- **OnDisconnect**: `SSEStream.OnDisconnect(fn)` registers cleanup callbacks fired on Close().
+- **StructuredError**: RFC 7807-shaped transport-agnostic error payload. `NewStructuredError(err, r)` maps via MapError + extracts request ID. Used by BroadcastOnError, BroadcastOnErrorWS, and WS dispatch bridge.
 - **Not tied to App**: SSE building blocks work independently. Consumers wire Broadcaster → SSEStream in their own HTTP handlers
 
 ### WebSocket
@@ -212,6 +218,9 @@ cqrs-htmx/
 - **WSMessage/ParseWSMessage**: Parses incoming HTMX WebSocket JSON — extracts HEADERS separately from body fields. `StringBody` helper for typed access
 - **ParseWSMessageInto[T]**: Generic typed parser — deserializes body fields into a typed struct T while separating HEADERS. Compile-time safe alternative to `ParseWSMessage`
 - **WSOOBHTML**: Wraps HTML with hx-swap-oob attributes for HTMX OOB swap. Uses existing `SwapStrategy` type. Passthrough when HTML already contains hx-swap-oob
+- **WS Encoder**: `WriteWSMessage(w, msg)` / `WriteWSMessageInto[T](w, body, headers)` — outbound counterpart to the parsers. Round-trips perfectly through ParseWSMessage.
+- **WSBroadcaster**: Thread-safe fan-out for WebSocket messages. Mirrors SSE Broadcaster API — Subscribe/Unsubscribe/Broadcast/SubscriberCount. O(1) unsubscribe via channel pointer identity.
+- **WS hooks**: `BroadcastOnSuccessWS(msg)` / `BroadcastOnErrorWS()` — AfterDispatchHook factories for WS, mirroring SSE hooks.
 - **Decision documented in**: `docs/adr/0004-sse-websocket-support.md`
 
 ### Pagination (go-cqrs-lite v2.3.0)
