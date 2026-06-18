@@ -78,6 +78,10 @@ cqrs-htmx/
 │   ├── credential.go      # WebAuthnCredential type (passkey credential stored as event)
 │   ├── email.go          # Email value type with ParseEmail/MustParseEmail
 │   ├── email_verification.go # Verification token store, SendVerificationEmail, VerifyEmail
+│   ├── external_account.go # ExternalAccount value type (OAuth2 provider account linked to User)
+│   ├── oauth2.go          # OAuth2/OIDC: provider config, PKCE, state store, token exchange, OIDC discovery, OAuth2StateStore interface
+│   ├── service_oauth2.go  # Service.BeginOAuthLogin, FinishOAuthLogin, UnlinkExternalAccount, matchOrCreateUser (subject-first matching)
+│   ├── oauth2_http.go     # HTTP handlers for OAuth2 begin/callback/unlink endpoints
 │   ├── import_export.go  # ImportUsersFromJSON/CSV, ExportUsersToJSON/CSV, ImportUser.Validate
 │   ├── totp.go           # TOTP MFA via pquerna/otp/totp (EnableTOTP, VerifyTOTP, DisableTOTP)
 │   ├── verification_totp_http.go # HTTP handlers for verification, TOTP, import/export endpoints
@@ -125,6 +129,9 @@ cqrs-htmx/
 | go-branded-id v0.3.1    | Branded types                                                           | usermgmt         |
 | go-webauthn v0.17.4     | WebAuthn/Passkey passwordless authentication                            | usermgmt         |
 | pquerna/otp v1.5.0      | TOTP (RFC 6238) multi-factor authentication                             | usermgmt         |
+| golang.org/x/oauth2 v0.36.0 | OAuth2 authorization code flow with PKCE                             | usermgmt         |
+| coreos/go-oidc/v3 v3.19.0 | OIDC provider discovery + ID token verification                       | usermgmt         |
+| go-jose/go-jose/v4 v4.1.4 | JWT/JWS signing (transitive from go-oidc, used in tests)             | usermgmt (tests) |
 | golang.org/x/time       | Rate limiting                                                           | Root             |
 | onsi/ginkgo/v2 + gomega | BDD test framework                                                      | All test modules |
 
@@ -270,6 +277,22 @@ cqrs-htmx/
 - **Why seams not hard deps**: Consistent with existing duck-typing (`Enforcer` ← casbin, `TemplComponent` ← templ). Consumers who don't need crypto pull zero new deps.
 - **Root module**: No integration — root `App` doesn't own a bus/store. Consumers wire signing/encryption directly via go-cqrs-lite.
 - **See**: `docs/adr/0011-event-signing-encryption.md`
+
+### OAuth2/OIDC Integration — 2026-06-18
+
+- **Dual-mode providers**: `OAuth2ProviderConfig.IssuerURL` set → OIDC discovery + ID token verification. Empty → explicit OAuth2 endpoints + UserInfo fetch. Covers Google (OIDC) and GitHub (pure OAuth2).
+- **PKCE (S256) on every flow**: `oauth2.GenerateVerifier()` + `oauth2.S256ChallengeOption()` + `oauth2.VerifierOption()`. Prevents authorization code interception.
+- **CSRF state tokens**: 32-byte random base64url, 10-minute TTL, one-time use. `OAuth2StateStore` interface (mirrors `SessionStore`) enables Redis adapter for multi-instance.
+- **Subject-first matching**: `matchOrCreateUser` checks `FindByExternalAccount(provider, subject)` FIRST (stable ID), then email. Recognizes returning users even when their provider email changed.
+- **Global provider+subject uniqueness**: `UserReadModel.externalAccounts` index enforces a provider+subject pair links to only one user. `ErrExternalAccountAlreadyLinked` (HTTP 409) on cross-user duplicate.
+- **Email-based linking**: New provider with matching email links to existing user. Multiple providers (Google+GitHub) can link to same user.
+- **Auto-trust provider emails**: When `email_verified: true`, user's email marked verified. Known security tradeoff documented in ADR 0014.
+- **Last-auth-method guard**: `UnlinkExternalAccount` rejected if user has 0 WebAuthn credentials AND <=1 external accounts. Prevents account lockout.
+- **2 events**: `ExternalAccountLinked` (Provider, Subject, Email, DisplayName), `ExternalAccountUnlinked` (Provider, Subject)
+- **2 commands**: `LinkExternalAccount`, `UnlinkExternalAccount`
+- **HTTP endpoints**: `GET /auth/oauth/{provider}/begin`, `GET /auth/oauth/{provider}/callback`, `POST /auth/oauth/{provider}/unlink`. Rate-limited via `HandlerConfig.OAuthRateLimit`.
+- **Libraries**: `golang.org/x/oauth2` (Go team), `coreos/go-oidc/v3` (Red Hat), `go-jose/go-jose/v4` (JWT signing in tests)
+- **See**: `docs/adr/0014-oauth2-oidc-integration.md`
 - **Split brain fixed**: Both `NewService(ServiceConfig)` and `NewEventSourcedSetup(EventSourcedConfig)` support the same security hooks. `DefaultEventSourcedSetup()` delegates to `NewEventSourcedSetup(EventSourcedConfig{})`.
 
 ## Key Gotchas
