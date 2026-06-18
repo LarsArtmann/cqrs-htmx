@@ -28,6 +28,7 @@ Implement an **upcaster registry** pattern:
 ### How it works
 
 When an event is loaded from the store:
+
 1. `extractSchemaVersion(raw)` reads the `schema_version` field from JSON (defaults
    to 0 for pre-versioning events).
 2. If version < `currentSchemaVersion`, the registry chains upcasters:
