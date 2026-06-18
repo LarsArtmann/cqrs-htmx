@@ -120,6 +120,19 @@ func userName(ctx context.Context) string {
 	return "you"
 }
 
+// appendDomainEvent records a domain event with the common envelope fields
+// (aggregate ID, user from context, occurred-at). Only the event type and
+// payload vary per command — keeping the envelope in one place prevents drift.
+func (c *CQRS) appendDomainEvent(ctx context.Context, aggID, eventType string, payload []byte) {
+	c.Events.Append(DomainEvent{
+		AggregateID: aggID,
+		Type:        eventType,
+		User:        userName(ctx),
+		Payload:     payload,
+		OccurredAt:  time.Now(),
+	})
+}
+
 func (c *CQRS) registerCommandHandlers() {
 	_ = command.RegisterTyped(c.Commands, "CreateTodo", func(ctx context.Context, cmd *CreateTodoCmd) error {
 		todoID := cmd.AggregateID().String()
@@ -129,13 +142,7 @@ func (c *CQRS) registerCommandHandlers() {
 			CreatedAt: time.Now().Format(time.RFC3339),
 		})
 
-		c.Events.Append(DomainEvent{
-			AggregateID: todoID,
-			Type:        "TodoCreated",
-			User:        userName(ctx),
-			Payload:     payload,
-			OccurredAt:  time.Now(),
-		})
+		c.appendDomainEvent(ctx, todoID, "TodoCreated", payload)
 		return nil
 	})
 
@@ -143,13 +150,7 @@ func (c *CQRS) registerCommandHandlers() {
 		todoID := cmd.AggregateID().String()
 		payload, _ := json.Marshal(TodoToggledPayload{ID: todoID})
 
-		c.Events.Append(DomainEvent{
-			AggregateID: todoID,
-			Type:        "TodoToggled",
-			User:        userName(ctx),
-			Payload:     payload,
-			OccurredAt:  time.Now(),
-		})
+		c.appendDomainEvent(ctx, todoID, "TodoToggled", payload)
 		return nil
 	})
 
@@ -157,13 +158,7 @@ func (c *CQRS) registerCommandHandlers() {
 		todoID := cmd.AggregateID().String()
 		payload, _ := json.Marshal(TodoDeletedPayload{ID: todoID})
 
-		c.Events.Append(DomainEvent{
-			AggregateID: todoID,
-			Type:        "TodoDeleted",
-			User:        userName(ctx),
-			Payload:     payload,
-			OccurredAt:  time.Now(),
-		})
+		c.appendDomainEvent(ctx, todoID, "TodoDeleted", payload)
 		return nil
 	})
 
@@ -171,13 +166,7 @@ func (c *CQRS) registerCommandHandlers() {
 		todoID := cmd.AggregateID().String()
 		payload, _ := json.Marshal(TodoUpdatedPayload{ID: todoID, Title: cmd.Title})
 
-		c.Events.Append(DomainEvent{
-			AggregateID: todoID,
-			Type:        "TodoUpdated",
-			User:        userName(ctx),
-			Payload:     payload,
-			OccurredAt:  time.Now(),
-		})
+		c.appendDomainEvent(ctx, todoID, "TodoUpdated", payload)
 		return nil
 	})
 }

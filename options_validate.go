@@ -41,6 +41,14 @@ func validateDispatch[T any](
 	}
 }
 
+func getCommandDecoder(cfg *handlerConfig) func(*http.Request) (command.Command, error) {
+	return cfg.commandDecoder
+}
+
+func getQueryDecoder(cfg *handlerConfig) func(*http.Request) (query.Query, error) {
+	return cfg.queryDecoder
+}
+
 // ValidateCommand wraps the command decoder with a validation step.
 // The validator receives the decoded command and may return an error.
 // Validation errors are wrapped with ErrValidationFailed.
@@ -56,8 +64,8 @@ func validateDispatch[T any](
 //	)
 func ValidateCommand(validator func(command.Command) error) HandlerOption {
 	return validateDispatch(
-		func(cfg *handlerConfig) func(*http.Request) (command.Command, error) { return cfg.commandDecoder },
-		func(cfg *handlerConfig, dec func(*http.Request) (command.Command, error)) { cfg.commandDecoder = dec },
+		getCommandDecoder,
+		setCommandDecoder,
 		validator,
 		"ValidateCommand",
 	)
@@ -68,8 +76,8 @@ func ValidateCommand(validator func(command.Command) error) HandlerOption {
 // Validation errors are wrapped with ErrValidationFailed.
 func ValidateQuery(validator func(query.Query) error) HandlerOption {
 	return validateDispatch(
-		func(cfg *handlerConfig) func(*http.Request) (query.Query, error) { return cfg.queryDecoder },
-		func(cfg *handlerConfig, dec func(*http.Request) (query.Query, error)) { cfg.queryDecoder = dec },
+		getQueryDecoder,
+		setQueryDecoder,
 		validator,
 		"ValidateQuery",
 	)

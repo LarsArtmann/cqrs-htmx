@@ -4,6 +4,27 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// wrapCasbinError wraps an underlying casbin error with operation context.
+// Centralizes the transient classification and "casbin_error" sentinel used
+// across all casbin operations.
+func wrapCasbinError(err error, op string, args ...any) error {
+	return event.Wrapf(err, event.Transient, "casbin_error", op, args...)
+}
+
+// wrapPolicyError wraps an error from a Policy operation with the standard
+// 5-field format "{subject, domain, object, action, effect}".
+func wrapPolicyError(err error, op string, p Policy) error {
+	return wrapCasbinError(err, op+" policy {%s, %s, %s, %s, %s}",
+		p.Subject, p.Domain, p.Object, p.Action, p.Effect)
+}
+
+// wrapGroupError wraps an error from a GroupPolicy operation with the standard
+// 3-field format "{subject, role, domain}".
+func wrapGroupError(err error, op string, g GroupPolicy) error {
+	return wrapCasbinError(err, op+" group {%s, %s, %s}",
+		g.Subject, string(g.Role), g.Domain)
+}
+
 // Apply applies a batch of group and policy additions/removals sequentially.
 // Operations are applied in order: add groups, add policies, remove groups, remove policies.
 // Add-first ordering ensures that if remove fails mid-way, the user retains access
@@ -15,19 +36,12 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 	}
 	for _, g := range update.AddGroups {
 		if _, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
-			return event.Wrapf(
-				err, event.Transient, "casbin_error",
-				"add group {%s, %s, %s}", g.Subject, g.Role, g.Domain,
-			)
+			return wrapGroupError(err, "add", g)
 		}
 	}
 	for _, p := range update.AddPolicies {
 		if _, err := a.enforcer.AddPolicy(policyArgs(p)...); err != nil {
-			return event.Wrapf(
-				err, event.Transient, "casbin_error",
-				"add policy {%s, %s, %s, %s, %s}",
-				p.Subject, p.Domain, p.Object, p.Action, p.Effect,
-			)
+			return wrapPolicyError(err, "add", p)
 		}
 	}
 	for _, g := range update.RemoveGroups {
@@ -36,19 +50,12 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 			string(g.Role),
 			g.Domain,
 		); err != nil {
-			return event.Wrapf(
-				err, event.Transient, "casbin_error",
-				"remove group {%s, %s, %s}", g.Subject, g.Role, g.Domain,
-			)
+			return wrapGroupError(err, "remove", g)
 		}
 	}
 	for _, p := range update.RemovePolicies {
 		if _, err := a.enforcer.RemovePolicy(policyArgs(p)...); err != nil {
-			return event.Wrapf(
-				err, event.Transient, "casbin_error",
-				"remove policy {%s, %s, %s, %s, %s}",
-				p.Subject, p.Domain, p.Object, p.Action, p.Effect,
-			)
+			return wrapPolicyError(err, "remove", p)
 		}
 	}
 	return nil
@@ -85,10 +92,7 @@ func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
 	}
 	_, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
-		return event.Wrapf(
-			err, event.Transient, "casbin_error",
-			"add group %s/%s/%s", g.Subject, g.Role, g.Domain,
-		)
+		return wrapGroupError(err, "add", g)
 	}
 	return nil
 }
@@ -100,10 +104,7 @@ func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 	}
 	_, err := a.enforcer.RemoveGroupingPolicy(g.Subject, string(g.Role), g.Domain)
 	if err != nil {
-		return event.Wrapf(
-			err, event.Transient, "casbin_error",
-			"remove group %s/%s/%s", g.Subject, g.Role, g.Domain,
-		)
+		return wrapGroupError(err, "remove", g)
 	}
 	return nil
 }
@@ -122,17 +123,11 @@ func (a *Authz) RemoveAllRolesForUser(subject string) error {
 	for _, domain := range domains {
 		roles, err := a.enforcer.GetRolesForUser(subject, domain)
 		if err != nil {
-			return event.Wrapf(
-				err, event.Transient, "casbin_error",
-				"get roles for %s in domain %s", subject, domain,
-			)
+			return wrapCasbinError(err, "get roles for %s in domain %s", subject, domain)
 		}
 		for _, role := range roles {
 			if _, err := a.enforcer.RemoveGroupingPolicy(subject, role, domain); err != nil {
-				return event.Wrapf(
-					err, event.Transient, "casbin_error",
-					"remove group {%s, %s, %s}", subject, role, domain,
-				)
+				return wrapCasbinError(err, "remove group {%s, %s, %s}", subject, role, domain)
 			}
 		}
 	}
