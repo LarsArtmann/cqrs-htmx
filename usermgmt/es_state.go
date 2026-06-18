@@ -124,18 +124,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		if err != nil {
 			return state, err
 		}
-		cred := WebAuthnCredential{
-			ID:              p.ID,
-			PublicKey:       p.PublicKey,
-			AttestationType: p.AttestationType,
-			Transports:      append([]string(nil), p.Transports...),
-			AAGUID:          append([]byte(nil), p.AAGUID...),
-			SignCount:       p.SignCount,
-			BackupEligible:  p.BackupEligible,
-			BackupState:     p.BackupState,
-			Name:            p.Name,
-			CreatedAt:       evt.OccurredAt(),
-		}
+		cred := newCredentialFromPayload(p, evt.OccurredAt())
 		return UserState{
 			Email:         state.Email,
 			DisplayName:   state.DisplayName,

@@ -9,25 +9,10 @@ import (
 	"testing"
 
 	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
 func setupTestCatalog() *cataloghtmx.Builder {
-	b := cataloghtmx.New(
-		"Test API", "1.0.0",
-		cataloghtmx.WithServiceID("test-svc"),
-	)
-	cataloghtmx.Command[testCmd](
-		b, "create-thing",
-		cataloghtmx.WithOperation("POST", "/api/things"),
-	)
-	cataloghtmx.Query[testQuery](
-		b, "get-thing",
-		cataloghtmx.WithOperation("GET", "/api/things/{id}"),
-	)
-	cataloghtmx.Event[testEvent](b, "thing.created", catalog.Sends)
-
-	return b
+	return buildTestCatalog("Test API", "test-svc")
 }
 
 // Test

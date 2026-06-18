@@ -131,45 +131,30 @@ func TestHandleDeleteCredential_BadEncoding(t *testing.T) {
 	}
 }
 
-// --- handleRegister decode error ---
+// --- handler decode error paths (table-driven) ---
 
-func TestHandleRegister_BadBody(t *testing.T) {
-	svc := newTestService(t)
-	h := NewAuthHandler(svc)
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postJSON(t, mux, "/auth/register", "{invalid json")
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
+func TestHandler_DecodeBadBody(t *testing.T) {
+	cases := []struct {
+		name string
+		path string
+		body string
+	}{
+		{"register", "/auth/register", "{invalid json"},
+		{"webauthn register begin", "/auth/webauthn/register/begin", "not json"},
+		{"webauthn login begin", "/auth/webauthn/login/begin", "not json"},
 	}
-}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			svc := newTestService(t)
+			h := NewAuthHandler(svc)
+			mux := http.NewServeMux()
+			h.RegisterRoutes(mux)
 
-// --- handleWebAuthnBeginRegistration bad body ---
-
-func TestHandleWebAuthnBeginRegistration_BadBody(t *testing.T) {
-	svc := newTestService(t)
-	h := NewAuthHandler(svc)
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postJSON(t, mux, "/auth/webauthn/register/begin", "not json")
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
-	}
-}
-
-// --- handleWebAuthnBeginLogin bad body ---
-
-func TestHandleWebAuthnBeginLogin_BadBody(t *testing.T) {
-	svc := newTestService(t)
-	h := NewAuthHandler(svc)
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postJSON(t, mux, "/auth/webauthn/login/begin", "not json")
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
+			w := postJSON(t, mux, tc.path, tc.body)
+			if w.Code != http.StatusBadRequest {
+				t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
+			}
+		})
 	}
 }
 

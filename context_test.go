@@ -209,40 +209,46 @@ var _ = Describe("Context", func() {
 	})
 
 	Describe("EventOptionsFromContextWithSource", func() {
-		It("returns nil options for empty context and empty service name", func() {
-			opts := cqrshtmx.EventOptionsFromContextWithSource(context.Background(), "")
-			Expect(opts).To(BeNil())
-		})
+		type expect struct {
+			notNil  bool
+			length  int
+			service string
+		}
+		cases := []struct {
+			name    string
+			service string
+			want    expect
+		}{
+			{"nil options for empty context and empty service name", "", expect{false, 0, ""}},
+			{"base options for empty service name", "", expect{true, 1, ""}},
+			{
+				"appends source option when service name is valid",
+				"my-service",
+				expect{true, 2, "my-service"},
+			},
+			{
+				"accepts any non-empty service name (ParseSource only checks empty)",
+				"anything-non-empty",
+				expect{true, 2, "anything-non-empty"},
+			},
+		}
+		for _, tc := range cases {
+			It(tc.name, func() {
+				ctx := context.Background()
+				if tc.want.length > 0 {
+					userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
+					ctx = cqrshtmx.WithUserID(ctx, userID)
+				}
 
-		It("returns base options for empty service name", func() {
-			ctx := context.Background()
-			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
-			ctx = cqrshtmx.WithUserID(ctx, userID)
-
-			opts := cqrshtmx.EventOptionsFromContextWithSource(ctx, "")
-			Expect(opts).NotTo(BeNil())
-			Expect(opts).To(HaveLen(1))
-		})
-
-		It("appends source option when service name is valid", func() {
-			ctx := context.Background()
-			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
-			ctx = cqrshtmx.WithUserID(ctx, userID)
-
-			opts := cqrshtmx.EventOptionsFromContextWithSource(ctx, "my-service")
-			Expect(opts).NotTo(BeNil())
-			Expect(opts).To(HaveLen(2))
-		})
-
-		It("accepts any non-empty service name (ParseSource only checks empty)", func() {
-			ctx := context.Background()
-			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
-			ctx = cqrshtmx.WithUserID(ctx, userID)
-
-			opts := cqrshtmx.EventOptionsFromContextWithSource(ctx, "anything-non-empty")
-			Expect(opts).NotTo(BeNil())
-			Expect(opts).To(HaveLen(2))
-		})
+				opts := cqrshtmx.EventOptionsFromContextWithSource(ctx, tc.service)
+				if tc.want.notNil {
+					Expect(opts).NotTo(BeNil())
+					Expect(opts).To(HaveLen(tc.want.length))
+				} else {
+					Expect(opts).To(BeNil())
+				}
+			})
+		}
 	})
 
 	Describe("App.EventOptions", func() {

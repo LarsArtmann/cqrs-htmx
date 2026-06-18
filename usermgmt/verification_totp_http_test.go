@@ -134,10 +134,10 @@ func TestHandlers_TOTPSetup_Unauthenticated(t *testing.T) {
 	assertStatusCode(t, w, http.StatusUnauthorized)
 }
 
-func TestHandlers_TOTPVerify(t *testing.T) {
-	svc, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
-	})
+// enableTOTPForUser enables TOTP and confirms setup with a current code.
+// Returns the current valid TOTP code for subsequent verification calls.
+func enableTOTPForUser(t *testing.T, svc *Service) string {
+	t.Helper()
 	setup, err := svc.EnableTOTP(context.Background(), NewUserID("authu1"))
 	if err != nil {
 		t.Fatalf("EnableTOTP: %v", err)
@@ -146,30 +146,28 @@ func TestHandlers_TOTPVerify(t *testing.T) {
 	if err := svc.VerifyTOTPSetup(context.Background(), NewUserID("authu1"), code); err != nil {
 		t.Fatalf("VerifyTOTPSetup: %v", err)
 	}
-
-	code2 := currentTOTPCode(t, decodeSecret(t, setup.Secret))
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/verify", token,
-		`{"code":"`+code2+`"}`)
-	assertStatusCode(t, w, http.StatusOK)
+	return currentTOTPCode(t, decodeSecret(t, setup.Secret))
 }
 
-func TestHandlers_TOTPDisable(t *testing.T) {
-	svc, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
-	})
-	setup, err := svc.EnableTOTP(context.Background(), NewUserID("authu1"))
-	if err != nil {
-		t.Fatalf("EnableTOTP: %v", err)
+func TestHandlers_TOTPCodeVerifyAndDisable(t *testing.T) {
+	cases := []struct {
+		name string
+		path string
+	}{
+		{"verify", "/auth/totp/verify"},
+		{"disable", "/auth/totp/disable"},
 	}
-	code := currentTOTPCode(t, decodeSecret(t, setup.Secret))
-	if err := svc.VerifyTOTPSetup(context.Background(), NewUserID("authu1"), code); err != nil {
-		t.Fatalf("VerifyTOTPSetup: %v", err)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			svc, h, token := setupAuthenticatedHandler(t, ServiceConfig{
+				TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+			})
+			code := enableTOTPForUser(t, svc)
+			w := authenticatedRequest(t, h, http.MethodPost, tc.path, token,
+				`{"code":"`+code+`"}`)
+			assertStatusCode(t, w, http.StatusOK)
+		})
 	}
-
-	code2 := currentTOTPCode(t, decodeSecret(t, setup.Secret))
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/disable", token,
-		`{"code":"`+code2+`"}`)
-	assertStatusCode(t, w, http.StatusOK)
 }
 
 func TestHandlers_ExportUsers_JSON(t *testing.T) {
@@ -198,33 +196,29 @@ func TestHandlers_ExportUsers_Unauthenticated(t *testing.T) {
 	assertStatusCode(t, w, http.StatusUnauthorized)
 }
 
-func TestHandlers_ImportUsers_JSON(t *testing.T) {
-	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{})
-	body := `[{"email":"imported1@test.com","display_name":"Imported One"}]`
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/import?format=json", token, body)
-	assertStatusCode(t, w, http.StatusOK)
-
-	var result ImportResult
-	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
-		t.Fatalf("unmarshal: %v", err)
+func TestHandlers_ImportUsers(t *testing.T) {
+	cases := []struct {
+		name string
+		path string
+		body string
+	}{
+		{"json", "/auth/import?format=json", `[{"email":"imported1@test.com","display_name":"Imported One"}]`},
+		{"csv", "/auth/import?format=csv", "email,display_name\ncsvimport@test.com,CSV User\n"},
 	}
-	if result.Imported != 1 {
-		t.Errorf("imported = %d, want 1", result.Imported)
-	}
-}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, h, token := setupAuthenticatedHandler(t, ServiceConfig{})
+			w := authenticatedRequest(t, h, http.MethodPost, tc.path, token, tc.body)
+			assertStatusCode(t, w, http.StatusOK)
 
-func TestHandlers_ImportUsers_CSV(t *testing.T) {
-	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{})
-	body := "email,display_name\ncsvimport@test.com,CSV User\n"
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/import?format=csv", token, body)
-	assertStatusCode(t, w, http.StatusOK)
-
-	var result ImportResult
-	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
-	if result.Imported != 1 {
-		t.Errorf("imported = %d, want 1", result.Imported)
+			var result ImportResult
+			if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+				t.Fatalf("unmarshal: %v", err)
+			}
+			if result.Imported != 1 {
+				t.Errorf("imported = %d, want 1", result.Imported)
+			}
+		})
 	}
 }
 
@@ -445,21 +439,25 @@ func TestHandlers_TOTPVerify_InvalidCode(t *testing.T) {
 	assertStatusCode(t, w, http.StatusUnauthorized)
 }
 
-func TestHandlers_TOTPSetupVerify_NoSetup(t *testing.T) {
-	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
-	})
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/setup/verify", token,
-		`{"code":"000000"}`)
-	assertStatusCode(t, w, http.StatusBadRequest)
-}
-
-func TestHandlers_TOTPDisable_NotEnabled(t *testing.T) {
-	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
-	})
-	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/disable", token, `{"code":"123456"}`)
-	assertStatusCode(t, w, http.StatusBadRequest)
+func TestHandlers_TOTPNotEnabled(t *testing.T) {
+	cases := []struct {
+		name   string
+		path   string
+		body   string
+		status int
+	}{
+		{"setup verify", "/auth/totp/setup/verify", `{"code":"000000"}`, http.StatusBadRequest},
+		{"disable", "/auth/totp/disable", `{"code":"123456"}`, http.StatusBadRequest},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, h, token := setupAuthenticatedHandler(t, ServiceConfig{
+				TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+			})
+			w := authenticatedRequest(t, h, http.MethodPost, tc.path, token, tc.body)
+			assertStatusCode(t, w, tc.status)
+		})
+	}
 }
 
 func TestHandlers_ImportUsers_InvalidEmail(t *testing.T) {

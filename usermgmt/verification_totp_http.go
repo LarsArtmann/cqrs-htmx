@@ -70,6 +70,18 @@ func (h *AuthHandler) withTimeout(r *http.Request) (context.Context, context.Can
 	return r.Context(), func() {}
 }
 
+// decodeAuthJSON decodes a JSON request body into target, applying
+// maxAuthBodySize and returning a 400 Bad Request with ErrValidation
+// on failure. Returns true on success; the handler should return on false.
+func (h *AuthHandler) decodeAuthJSON(w http.ResponseWriter, r *http.Request, target any) bool {
+	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(target); err != nil {
+		writeError(w, http.StatusBadRequest,
+			fmt.Errorf("%w: invalid request body: %w", ErrValidation, err).Error())
+		return false
+	}
+	return true
+}
+
 func (h *AuthHandler) handleSendVerificationEmail(w http.ResponseWriter, r *http.Request) {
 	if !h.checkRateLimit(w, r, h.verificationLimiter, "too many verification requests") {
 		return
@@ -94,9 +106,7 @@ func (h *AuthHandler) handleVerifyEmail(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var req verificationVerifyRequest
-	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest,
-			fmt.Errorf("%w: invalid request body: %w", ErrValidation, err).Error())
+	if !h.decodeAuthJSON(w, r, &req) {
 		return
 	}
 	ctx, cancel := h.withTimeout(r)
@@ -154,9 +164,7 @@ func (h *AuthHandler) handleTOTPCode(
 		return
 	}
 	var req totpCodeRequest
-	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest,
-			fmt.Errorf("%w: invalid request body: %w", ErrValidation, err).Error())
+	if !h.decodeAuthJSON(w, r, &req) {
 		return
 	}
 	ctx, cancel := h.withTimeout(r)
@@ -178,9 +186,7 @@ func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var req totpCodeRequest
-	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest,
-			fmt.Errorf("%w: invalid request body: %w", ErrValidation, err).Error())
+	if !h.decodeAuthJSON(w, r, &req) {
 		return
 	}
 	ctx, cancel := h.withTimeout(r)

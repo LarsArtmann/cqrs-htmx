@@ -79,18 +79,5 @@ func (s *webauthnSessionStore) EvictExpired() int {
 // expired WebAuthn challenge sessions. Returns a stop function that must be
 // called to terminate the goroutine (e.g. on shutdown or in tests).
 func (s *webauthnSessionStore) startEviction() (stop func()) {
-	ticker := time.NewTicker(webauthnEvictionInterval)
-	done := make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				s.EvictExpired()
-			case <-done:
-				ticker.Stop()
-				return
-			}
-		}
-	}()
-	return func() { close(done) }
+	return startPeriodicEviction(s.EvictExpired, webauthnEvictionInterval)
 }

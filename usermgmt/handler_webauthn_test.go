@@ -49,30 +49,6 @@ func TestHandler_WebAuthnBeginRegistration_UserNotFound(t *testing.T) {
 	}
 }
 
-func TestHandler_WebAuthnFinishRegistration_NoSession(t *testing.T) {
-	h, svc := newWebAuthnHandler(t)
-	registerTestUser(t, svc, "u1", "hfr@test.com")
-
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postWithQuery(t, mux, "/auth/webauthn/register/finish?user_id=u1&credential_name=key1", "")
-	if w.Code != http.StatusUnauthorized {
-		t.Errorf("status = %d, want %d (no session)", w.Code, http.StatusUnauthorized)
-	}
-}
-
-func TestHandler_WebAuthnFinishRegistration_MissingUserID(t *testing.T) {
-	h, _ := newWebAuthnHandler(t)
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postWithQuery(t, mux, "/auth/webauthn/register/finish", "")
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want %d (missing user_id)", w.Code, http.StatusBadRequest)
-	}
-}
-
 func TestHandler_WebAuthnBeginLogin_Success(t *testing.T) {
 	h, svc := newWebAuthnHandler(t)
 	registerTestUser(t, svc, "u1", "hbl@test.com")
@@ -117,30 +93,6 @@ func TestHandler_WebAuthnBeginLogin_NoCredentials(t *testing.T) {
 	}
 }
 
-func TestHandler_WebAuthnFinishLogin_NoSession(t *testing.T) {
-	h, svc := newWebAuthnHandler(t)
-	registerTestUser(t, svc, "u1", "hfl@test.com")
-
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postWithQuery(t, mux, "/auth/webauthn/login/finish?user_id=u1", "")
-	if w.Code != http.StatusUnauthorized {
-		t.Errorf("status = %d, want %d (no session)", w.Code, http.StatusUnauthorized)
-	}
-}
-
-func TestHandler_WebAuthnFinishLogin_MissingUserID(t *testing.T) {
-	h, _ := newWebAuthnHandler(t)
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postWithQuery(t, mux, "/auth/webauthn/login/finish", "")
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want %d (missing user_id)", w.Code, http.StatusBadRequest)
-	}
-}
-
 func TestHandler_WebAuthnBeginLogin_BadBody(t *testing.T) {
 	h, _ := newWebAuthnHandler(t)
 	mux := http.NewServeMux()
@@ -163,5 +115,56 @@ func TestHandler_WebAuthnNotConfigured_BeginRegistration(t *testing.T) {
 	w := postJSON(t, mux, "/auth/webauthn/register/begin", `{"user_id":"u1"}`)
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("status = %d, want %d (webauthn not configured)", w.Code, http.StatusUnauthorized)
+	}
+}
+
+// --- Finish{Registration,Login} guard tests (table-driven) ---
+
+func TestHandler_WebAuthnFinish_NoSession(t *testing.T) {
+	cases := []struct {
+		name        string
+		email       string
+		registerID  string
+		path        string
+		queryString string
+	}{
+		{"register", "hfr@test.com", "u1", "/auth/webauthn/register/finish", "user_id=u1&credential_name=key1"},
+		{"login", "hfl@test.com", "u1", "/auth/webauthn/login/finish", "user_id=u1"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			h, svc := newWebAuthnHandler(t)
+			registerTestUser(t, svc, tc.registerID, tc.email)
+
+			mux := http.NewServeMux()
+			h.RegisterRoutes(mux)
+
+			w := postWithQuery(t, mux, tc.path+"?"+tc.queryString, "")
+			if w.Code != http.StatusUnauthorized {
+				t.Errorf("status = %d, want %d (no session)", w.Code, http.StatusUnauthorized)
+			}
+		})
+	}
+}
+
+func TestHandler_WebAuthnFinish_MissingUserID(t *testing.T) {
+	cases := []struct {
+		name string
+		path string
+	}{
+		{"register", "/auth/webauthn/register/finish"},
+		{"login", "/auth/webauthn/login/finish"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			h, _ := newWebAuthnHandler(t)
+			mux := http.NewServeMux()
+			h.RegisterRoutes(mux)
+
+			w := postWithQuery(t, mux, tc.path, "")
+			if w.Code != http.StatusBadRequest {
+				t.Errorf("status = %d, want %d (missing user_id)", w.Code, http.StatusBadRequest)
+			}
+		})
 	}
 }

@@ -162,10 +162,8 @@ func (s *SQLEventStore) Save(
 			fmt.Sprintf("expected version %d, got %d", expectedVersion, currentVersion))
 	}
 
-	for _, evt := range events {
-		if err := s.insertEvent(ctx, tx, evt); err != nil {
-			return fmt.Errorf("insert event %s: %w", evt.ID(), err)
-		}
+	if err := s.insertEvents(ctx, tx, events); err != nil {
+		return err
 	}
 
 	return commitTx(tx)
@@ -185,12 +183,22 @@ func (s *SQLEventStore) AppendBatch(
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	if err := s.insertEvents(ctx, tx, events); err != nil {
+		return err
+	}
+	return commitTx(tx)
+}
+
+// insertEvents inserts each event into the user_events table within the
+// given transaction. Returns the first error encountered, wrapped with
+// the event ID for context.
+func (s *SQLEventStore) insertEvents(ctx context.Context, tx *sql.Tx, events []event.Event) error {
 	for _, evt := range events {
 		if err := s.insertEvent(ctx, tx, evt); err != nil {
 			return fmt.Errorf("insert event %s: %w", evt.ID(), err)
 		}
 	}
-	return commitTx(tx)
+	return nil
 }
 
 func (s *SQLEventStore) insertEvent(ctx context.Context, tx *sql.Tx, evt event.Event) error {
@@ -252,21 +260,7 @@ func (s *SQLEventStore) LoadFromVersion(
 	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
-	p1 := s.placeholder(1)
-	p2 := s.placeholder(2)
-	p3 := s.placeholder(3)
-	rows, err := s.db.QueryContext(
-		ctx,
-		`SELECT event_id, event_type, aggregate_id, aggregate_type, version, payload, metadata, occurred_at
-		 FROM user_events WHERE aggregate_id = `+p1+` AND aggregate_type = `+p2+` AND version > `+p3+`
-		 ORDER BY version ASC`,
-		ref.ID.String(), string(ref.Type), int(version),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("load events from version: %w", err)
-	}
-	defer func() { _ = rows.Close() }()
-	return s.scanEvents(rows)
+	return s.loadVersioned(ctx, ref, "version > ", int(version), "load events from version")
 }
 
 func (s *SQLEventStore) LoadToVersion(
@@ -274,18 +268,29 @@ func (s *SQLEventStore) LoadToVersion(
 	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
+	return s.loadVersioned(ctx, ref, "version <= ", int(maxVersion), "load events to version")
+}
+
+// loadVersioned selects events for the given aggregate filtered by a
+// version predicate and ordered ascending. The predicate is supplied as a
+// raw fragment like "version > " or "version <= " — callers must ensure
+// it is a constant, never user input.
+func (s *SQLEventStore) loadVersioned(
+	ctx context.Context,
+	ref event.AggregateRef, versionPredicate string, version int, errContext string,
+) ([]event.Event, error) {
 	p1 := s.placeholder(1)
 	p2 := s.placeholder(2)
 	p3 := s.placeholder(3)
 	rows, err := s.db.QueryContext(
 		ctx,
 		`SELECT event_id, event_type, aggregate_id, aggregate_type, version, payload, metadata, occurred_at
-		 FROM user_events WHERE aggregate_id = `+p1+` AND aggregate_type = `+p2+` AND version <= `+p3+`
+		 FROM user_events WHERE aggregate_id = `+p1+` AND aggregate_type = `+p2+` AND `+versionPredicate+p3+`
 		 ORDER BY version ASC`,
-		ref.ID.String(), string(ref.Type), int(maxVersion),
+		ref.ID.String(), string(ref.Type), version,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("load events to version: %w", err)
+		return nil, fmt.Errorf("%s: %w", errContext, err)
 	}
 	defer func() { _ = rows.Close() }()
 	return s.scanEvents(rows)
