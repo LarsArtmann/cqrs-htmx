@@ -844,6 +844,137 @@
       </div>
     </section>
 
+    <!-- ═════════════════════════════ LANDSCAPE ═════════════════════════════ -->
+    <section id="landscape">
+      <div class="container">
+        <h2>The Full Landscape</h2>
+        <p class="section-desc">
+          HTTP, SSE, and WebSocket are the three core transports this library targets — but the web
+          offers more. This catalogues <strong>every other browser-native communication technology</strong>
+          plus the server-to-server options, with a verdict on whether each belongs in cqrs-htmx.
+          Items marked <span class="badge badge-good">In scope</span> are candidates for future matrix
+          columns; the rest are documented so the exclusion is a decision, not an oversight.
+        </p>
+
+        <h3>Live Transports — browser-native, bidirectional or streaming</h3>
+        <div class="matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th style="min-width: 200px">Technology</th>
+                <th>Direction</th>
+                <th>Latency</th>
+                <th>Transport / Reliability</th>
+                <th>Status</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="capability">WebTransport</td>
+                <td>Full-duplex</td>
+                <td>Lowest</td>
+                <td>HTTP/3 + QUIC · <strong>both</strong> reliable streams &amp; unreliable datagrams</td>
+                <td><span class="badge badge-medium">Next-gen</span></td>
+                <td><span class="badge badge-good">⭐ In scope</span></td>
+              </tr>
+              <tr>
+                <td class="capability">WebRTC Data Channels</td>
+                <td>Full-duplex (p2p or to-server)</td>
+                <td>Lowest</td>
+                <td>SCTP · reliable &amp; unreliable modes</td>
+                <td><span class="badge badge-low">Live, niche</span></td>
+                <td><span class="badge badge-medium">⚠ Niche</span></td>
+              </tr>
+              <tr>
+                <td class="capability">Fetch Streaming</td>
+                <td>Bidirectional streaming bodies</td>
+                <td>Low</td>
+                <td>HTTP/2 · request &amp; response are <code>ReadableStream</code></td>
+                <td><span class="badge badge-good">Live, modern</span></td>
+                <td><span class="badge badge-good">⭐ In scope</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Push &amp; Background — async, possibly offline</h3>
+        <div class="matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th style="min-width: 200px">Mechanism</th>
+                <th>Trigger</th>
+                <th>Key Property</th>
+                <th>Status</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="capability">Web Push API + Service Worker</td>
+                <td>Server via push service (FCM / APNs)</td>
+                <td><strong>Works when the tab is closed</strong> — OS-level delivery</td>
+                <td><span class="badge badge-good">Live, standard</span></td>
+                <td><span class="badge badge-info">⭐ In scope — offline reach</span></td>
+              </tr>
+              <tr>
+                <td class="capability">Background Sync API</td>
+                <td>Browser, when back online</td>
+                <td>Deferred client-side retries</td>
+                <td><span class="badge badge-low">Chrome-only</span></td>
+                <td><span class="badge badge-muted">Out of scope — client-only</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Server-to-Server / RPC — different participants</h3>
+        <div class="matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th style="min-width: 200px">Technology</th>
+                <th>Direction</th>
+                <th>Transport</th>
+                <th>Notes</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="capability">gRPC / gRPC-Web</td>
+                <td>Request/Response + streaming</td>
+                <td>HTTP/2</td>
+                <td>Strongly-typed RPC — different paradigm from HTMX</td>
+                <td><span class="badge badge-low">Different paradigm</span></td>
+              </tr>
+              <tr>
+                <td class="capability">Webhooks</td>
+                <td>Server → Server callback</td>
+                <td>HTTP POST</td>
+                <td>Ubiquitous S2S event delivery</td>
+                <td><span class="badge badge-low">S2S only</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">How this maps to the matrix</div>
+          <p>
+            <strong>WebTransport</strong> and <strong>Fetch Streaming</strong> are the legitimate
+            candidates to become 4th and 5th matrix columns — they extend the live-transport story
+            with QUIC datagrams and true bidirectional HTTP/2 streaming respectively.
+            <strong>Web Push</strong> is a distinct capability (reach-the-closed-tab) that no current
+            transport provides. <strong>gRPC-Web</strong> and <strong>Webhooks</strong> serve a
+            different audience (S2S / typed RPC) and are documented here for completeness, not for
+            inclusion in the HTMX transport matrix.
+          </p>
+        </div>
+      </div>
+    </section>
+
     <!-- ═════════════════════════════ CURRENT STATE ═════════════════════════════ -->
     <section id="current">
       <div class="container">
