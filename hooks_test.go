@@ -76,10 +76,7 @@ var _ = Describe("Lifecycle Hooks", func() {
 		It("is called after successful command dispatch", func() {
 			called, capturedErr, hook := trackAfterDispatch()
 			disp := command.NewDispatcher()
-			_ = disp.Register(
-				"CreateUser",
-				func(_ context.Context, _ command.Command) error { return nil },
-			)
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp, AfterDispatch: hook})
 			Expect(err).NotTo(HaveOccurred())

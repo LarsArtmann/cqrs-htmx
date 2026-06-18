@@ -1,7 +1,6 @@
 package cqrshtmx_test
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 
@@ -54,9 +53,7 @@ var _ = Describe("Recovery Middleware", func() {
 	Describe("App.RecoverHandler", func() {
 		It("recovers from panics using the App error handler", func() {
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:      disp,
 				LoginRedirect: "/auth/signin",
@@ -79,9 +76,7 @@ var _ = Describe("Recovery Middleware", func() {
 		It("uses custom error handler when configured", func() {
 			called := false
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return nil
-			})
+			_ = disp.Register("CreateUser", noOpCommandHandler)
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands: disp,
 				ErrorHandler: func(_ http.ResponseWriter, _ *http.Request, _ error) {

@@ -14,9 +14,7 @@ import (
 
 func BenchmarkCommandDispatch(b *testing.B) {
 	disp := command.NewDispatcher()
-	_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-		return nil
-	})
+	_ = disp.Register("CreateUser", noOpCommandHandler)
 
 	app, _ := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 	handler := app.Command("CreateUser", decodeCreateUserJSON())
