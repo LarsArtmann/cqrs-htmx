@@ -62,11 +62,14 @@ func TestSQLEventStore_OperationsAfterClose(t *testing.T) {
 	ctx := context.Background()
 	ref := event.AggregateRef{ID: id.NewAggregateID(), Type: aggregateTypeUser}
 
-	if err := store.Save(ctx, ref, nil, 0); err != nil {
-		t.Errorf("Save(nil) after close should be a no-op, got: %v", err)
+	// Upstream storage.SQLEventStore checks closed-state before the nil-input
+	// short-circuit, so even nil inputs return an error on a closed store.
+	// This is more defensive than the old hand-rolled store.
+	if err := store.Save(ctx, ref, nil, 0); err == nil {
+		t.Error("Save(nil) after close: expected error (closed store)")
 	}
-	if err := store.AppendBatch(ctx, ref, nil); err != nil {
-		t.Errorf("AppendBatch(nil) after close should be a no-op, got: %v", err)
+	if err := store.AppendBatch(ctx, ref, nil); err == nil {
+		t.Error("AppendBatch(nil) after close: expected error (closed store)")
 	}
 
 	// Real operations must surface errors, not panic.
