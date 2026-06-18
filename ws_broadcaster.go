@@ -26,6 +26,14 @@ import (
 //
 //	// Push updates from anywhere:
 //	wsBroadcaster.Broadcast("<div hx-swap-oob='true'>Updated</div>")
+//
+// # Backpressure and drop policy
+//
+// Broadcast is non-blocking. If a subscriber's channel buffer is full (default
+// capacity 64), the message is silently dropped for that subscriber. This
+// prevents one slow consumer from blocking the entire fan-out. Consumers that
+// need guaranteed delivery should implement application-level ack/retry on top
+// of the WS protocol.
 type WSBroadcaster struct {
 	*fanOut[string]
 }
