@@ -168,3 +168,14 @@ func BenchmarkWSBroadcasterConcurrentSubscribe(b *testing.B) {
 		bc.Unsubscribe(ch)
 	}
 }
+
+// BenchmarkSSEHeartbeatWrite measures the cost of writing a single SSE
+// heartbeat comment frame — the same write SSEStream.Heartbeat performs on each tick.
+func BenchmarkSSEHeartbeatWrite(b *testing.B) {
+	w := httptest.NewRecorder()
+	frame := []byte(": keepalive\n\n")
+	b.ResetTimer()
+	for b.Loop() {
+		_, _ = w.Write(frame)
+	}
+}
