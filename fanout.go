@@ -1,6 +1,8 @@
 package cqrshtmx
 
 import (
+	"context"
+	"net/http"
 	"reflect"
 	"sync"
 )
@@ -84,6 +86,30 @@ func (f *fanOut[T]) SubscriberCount() int {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return len(f.subscribers)
+}
+
+// broadcastOnSuccessHook builds an AfterDispatchHook that broadcasts the result
+// of mapper(r) when dispatch succeeds (err == nil). Shared by SSE and WS
+// broadcasters to keep their public-facing hook constructors symmetric.
+func (f *fanOut[T]) broadcastOnSuccessHook(mapper func(r *http.Request) T) AfterDispatchHook {
+	return func(_ context.Context, r *http.Request, err error) {
+		if err != nil {
+			return
+		}
+		f.Broadcast(mapper(r))
+	}
+}
+
+// broadcastOnErrorHook builds an AfterDispatchHook that broadcasts the result
+// of mapper(r, err) when dispatch fails (err != nil). Shared by SSE and WS
+// broadcasters to keep their public-facing hook constructors symmetric.
+func (f *fanOut[T]) broadcastOnErrorHook(mapper func(r *http.Request, err error) T) AfterDispatchHook {
+	return func(_ context.Context, r *http.Request, err error) {
+		if err == nil {
+			return
+		}
+		f.Broadcast(mapper(r, err))
+	}
 }
 
 // channelPtr returns the pointer identity of a channel, regardless of direction.

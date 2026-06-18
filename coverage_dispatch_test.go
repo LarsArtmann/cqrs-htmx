@@ -61,9 +61,7 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 
 	Describe("applyQueryResponse render error", func() {
 		It("calls error handler when render fails", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return testQueryResult, nil
-			})
+			app := newQueryAppWithResult(testResultQueryHandler())
 			renderErr := errors.New("render failed")
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query(

@@ -78,9 +78,7 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 
 	Describe("Query dispatch with no render", func() {
 		It("returns 204 when no render and no HTMX options", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return testQueryResult, nil
-			})
+			app := newQueryAppWithResult(testResultQueryHandler())
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query("GetUser", decodeGetUserJSONQuery()), r)
 			Expect(w.code()).To(Equal(http.StatusNoContent))
@@ -89,9 +87,7 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 
 	Describe("Render function error", func() {
 		It("calls error handler when render fails", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return testQueryResult, nil
-			})
+			app := newQueryAppWithResult(testResultQueryHandler())
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query(
 				"GetUser",

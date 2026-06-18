@@ -11,7 +11,6 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -103,10 +102,7 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 
 	Describe("WithTimeout", func() {
 		It("overrides app-level timeout for a specific handler", func() {
-			app := newCommandAppWithHandler(func(ctx context.Context, _ command.Command) error {
-				<-ctx.Done()
-				return ctx.Err()
-			})
+			app := newCommandAppWithHandler(ctxCancelCommandHandler)
 			w := serve(app.Command(
 				"CreateUser",
 				decodeCreateUserJSON(),
@@ -216,9 +212,7 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 
 	Describe("Query dispatch with PushURL", func() {
 		It("sets HX-Push-URL on query success", func() {
-			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return testQueryResult, nil
-			})
+			app := newQueryAppWithResult(testResultQueryHandler())
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
 			w := serve(app.Query(

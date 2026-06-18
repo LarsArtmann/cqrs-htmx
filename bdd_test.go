@@ -115,12 +115,9 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 
 	Describe("As a consumer, I want to query data and render it using templ components", func() {
 		It("renders a fixed templ component for a page query", func() {
-			disp := query.NewDispatcher()
-			_ = disp.Register("GetDashboard", func(_ context.Context, _ query.Query) (any, error) {
+			app := newQueryAppNamed("GetDashboard", func(_ context.Context, _ query.Query) (any, error) {
 				return "dashboard data", nil
 			})
-			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
-			Expect(err).NotTo(HaveOccurred())
 
 			component := &bddTemplComponent{html: "<div class='dashboard'>Welcome</div>"}
 			r := httptest.NewRequest(http.MethodGet, "/dashboard", strings.NewReader(`{}`))

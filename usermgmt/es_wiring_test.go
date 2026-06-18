@@ -39,18 +39,26 @@ func dispatchAddCredential(t *testing.T, disp *command.Dispatcher, ctx context.C
 	}
 }
 
+func dispatchRegisterUser(
+	t *testing.T,
+	disp *command.Dispatcher,
+	ctx context.Context,
+	aggID id.AggregateID,
+	email, name string,
+) {
+	t.Helper()
+	if err := disp.Dispatch(ctx, NewRegisterUserCmd(aggID, email, name, []Role{RoleUser})); err != nil {
+		t.Fatalf("register %s: %v", email, err)
+	}
+}
+
 func TestWiring_RegisterUser(t *testing.T) {
 	setup := newTestSetup(t)
 	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	err := disp.Dispatch(ctx, NewRegisterUserCmd(
-		aggID, "alice@example.com", "Alice", []Role{RoleUser},
-	))
-	if err != nil {
-		t.Fatalf("dispatch RegisterUser: %v", err)
-	}
+	dispatchRegisterUser(t, disp, ctx, aggID, "alice@example.com", "Alice")
 
 	user, ok := setup.ReadModel.FindByID(aggID)
 	if !ok {
@@ -67,11 +75,7 @@ func TestWiring_RegisterDuplicate(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	if err := disp.Dispatch(ctx, NewRegisterUserCmd(
-		aggID, "dup@example.com", "Dup", []Role{RoleUser},
-	)); err != nil {
-		t.Fatalf("first register: %v", err)
-	}
+	dispatchRegisterUser(t, disp, ctx, aggID, "dup@example.com", "Dup")
 
 	err := disp.Dispatch(ctx, NewRegisterUserCmd(
 		aggID, "dup@example.com", "Dup", []Role{RoleUser},
@@ -87,11 +91,7 @@ func TestWiring_UpdateRoles(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	if err := disp.Dispatch(ctx, NewRegisterUserCmd(
-		aggID, "carol@example.com", "Carol", []Role{RoleUser},
-	)); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	dispatchRegisterUser(t, disp, ctx, aggID, "carol@example.com", "Carol")
 
 	if err := disp.Dispatch(ctx, NewUpdateRolesCmd(aggID, []Role{RoleAdmin}, "domain1")); err != nil {
 		t.Fatalf("update roles: %v", err)
@@ -109,11 +109,7 @@ func TestWiring_DeleteUser(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	if err := disp.Dispatch(ctx, NewRegisterUserCmd(
-		aggID, "delete@example.com", "Del", []Role{RoleUser},
-	)); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	dispatchRegisterUser(t, disp, ctx, aggID, "delete@example.com", "Del")
 
 	if err := disp.Dispatch(ctx, NewDeleteUserCmd(aggID, "test")); err != nil {
 		t.Fatalf("delete: %v", err)
@@ -131,11 +127,7 @@ func TestWiring_AddCredential(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	if err := disp.Dispatch(ctx, NewRegisterUserCmd(
-		aggID, "cred@example.com", "Cred", []Role{RoleUser},
-	)); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	dispatchRegisterUser(t, disp, ctx, aggID, "cred@example.com", "Cred")
 
 	dispatchAddCredential(t, disp, ctx, aggID)
 
@@ -151,11 +143,7 @@ func TestWiring_RemoveCredential(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	if err := disp.Dispatch(ctx, NewRegisterUserCmd(
-		aggID, "remcred@example.com", "RemCred", []Role{RoleUser},
-	)); err != nil {
-		t.Fatalf("register: %v", err)
-	}
+	dispatchRegisterUser(t, disp, ctx, aggID, "remcred@example.com", "RemCred")
 
 	dispatchAddCredential(t, disp, ctx, aggID)
 

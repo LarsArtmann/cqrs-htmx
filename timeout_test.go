@@ -39,10 +39,7 @@ func newTimeoutQueryApp(
 var _ = Describe("Timeout Support", func() {
 	Describe("Command dispatch with timeout", func() {
 		It("cancels command handler when timeout is exceeded", func() {
-			app := newTimeoutCommandApp(func(ctx context.Context, _ command.Command) error {
-				<-ctx.Done()
-				return ctx.Err()
-			}, 50*time.Millisecond)
+			app := newTimeoutCommandApp(ctxCancelCommandHandler, 50*time.Millisecond)
 
 			r := httptest.NewRequest(http.MethodPost, "/slow", strings.NewReader(`{}`))
 			w := serve(app.Command("CreateUser", decodeCreateUserJSON()), r)
@@ -62,10 +59,7 @@ var _ = Describe("Timeout Support", func() {
 
 	Describe("Query dispatch with timeout", func() {
 		It("cancels query handler when timeout is exceeded", func() {
-			app := newTimeoutQueryApp(func(ctx context.Context, _ query.Query) (any, error) {
-				<-ctx.Done()
-				return nil, ctx.Err()
-			}, 50*time.Millisecond)
+			app := newTimeoutQueryApp(ctxCancelQueryHandler, 50*time.Millisecond)
 
 			r := httptest.NewRequest(http.MethodGet, "/slow", strings.NewReader(`{}`))
 			w := serve(app.Query("GetUser", decodeGetUserJSONQuery()), r)
@@ -73,9 +67,7 @@ var _ = Describe("Timeout Support", func() {
 		})
 
 		It("completes query within timeout", func() {
-			app := newTimeoutQueryApp(func(_ context.Context, _ query.Query) (any, error) {
-				return testQueryResult, nil
-			}, 5*time.Second)
+			app := newTimeoutQueryApp(testResultQueryHandler(), 5*time.Second)
 
 			r := httptest.NewRequest(http.MethodGet, "/fast", strings.NewReader(`{}`))
 			w := serve(app.Query(

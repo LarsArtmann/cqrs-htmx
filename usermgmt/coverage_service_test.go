@@ -72,11 +72,7 @@ func TestService_Register_DuplicateUserID(t *testing.T) {
 }
 
 func TestService_Logout_StoreError(t *testing.T) {
-	sessions := &mockSessionStore{
-		DeleteFn: func(_ context.Context, _ string) error {
-			return errors.New("db connection lost")
-		},
-	}
+	sessions := failingDeleteSessionStore("db connection lost")
 	svc, _ := NewService(ServiceConfig{
 		SessionStore: sessions,
 	})

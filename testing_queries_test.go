@@ -43,9 +43,7 @@ func decodeCreateUserJSON() cqrshtmx.HandlerOption {
 }
 
 func decodeCreateUserJSONWithBody() cqrshtmx.HandlerOption {
-	return cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-		return &testCreateUserCmd{aggID: id.NewAggregateID(), email: req.Email, name: req.Name}, nil
-	})
+	return cqrshtmx.DecodeJSON(testCreateUserCommand)
 }
 
 func decodeBDDCreateUserJSON() cqrshtmx.HandlerOption {

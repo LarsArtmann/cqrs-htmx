@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -68,11 +67,7 @@ func TestHandlers_Logout_Success(t *testing.T) {
 }
 
 func TestHandlers_Logout_StoreError(t *testing.T) {
-	sessions := &mockSessionStore{
-		DeleteFn: func(_ context.Context, _ string) error {
-			return errors.New("db error")
-		},
-	}
+	sessions := failingDeleteSessionStore("db error")
 	svc, _ := NewService(ServiceConfig{
 		SessionStore: sessions,
 	})

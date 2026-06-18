@@ -65,12 +65,7 @@ func (b *Broadcaster) BroadcastOnSuccess(eventName, data string) AfterDispatchHo
 //	    }),
 //	})
 func (b *Broadcaster) BroadcastOnSuccessFunc(eventFunc func(r *http.Request) SSEEvent) AfterDispatchHook {
-	return func(_ context.Context, r *http.Request, err error) {
-		if err != nil {
-			return
-		}
-		b.Broadcast(eventFunc(r))
-	}
+	return b.broadcastOnSuccessHook(eventFunc)
 }
 
 // BroadcastOnError creates an AfterDispatchHook that broadcasts an SSE event
@@ -117,10 +112,5 @@ func (b *Broadcaster) BroadcastOnError(eventName string) AfterDispatchHook {
 //	    }),
 //	})
 func (b *Broadcaster) BroadcastOnErrorFunc(errFunc func(r *http.Request, err error) SSEEvent) AfterDispatchHook {
-	return func(_ context.Context, r *http.Request, err error) {
-		if err == nil {
-			return
-		}
-		b.Broadcast(errFunc(r, err))
-	}
+	return b.broadcastOnErrorHook(errFunc)
 }

@@ -378,7 +378,9 @@
     <div class="issue issue-nice">
       <span class="severity severity-nice">Fixed</span>
       <h3>~100 lines of copy-pasted broadcaster code &rarr; eliminated via generic fanOut[T]</h3>
-      <div class="where">sse_broadcaster.go + ws_broadcaster.go &rarr; fanout.go (commit 7267abf)</div>
+      <div class="where">
+        sse_broadcaster.go + ws_broadcaster.go &rarr; fanout.go (commit 7267abf)
+      </div>
       <p>
         The <code>Broadcaster</code> (SSE) and <code>WSBroadcaster</code> were
         <strong>structurally identical</strong> — same fields, same
@@ -444,13 +446,18 @@ type WSBroadcaster struct { *fanOut[string] }</code></pre>
 
     <div class="issue issue-nice">
       <span class="severity severity-nice">Fixed</span>
-      <h3>WS Broadcaster missing Func variants &rarr; added BroadcastOnSuccessWSFunc + BroadcastOnErrorWSFunc</h3>
-      <div class="where">ws_broadcaster.go (commit 7267abf) &mdash; now has 4 hook constructors matching SSE</div>
+      <h3>
+        WS Broadcaster missing Func variants &rarr; added BroadcastOnSuccessWSFunc +
+        BroadcastOnErrorWSFunc
+      </h3>
+      <div class="where">
+        ws_broadcaster.go (commit 7267abf) &mdash; now has 4 hook constructors matching SSE
+      </div>
       <p>
-        SSE had <code>BroadcastOnSuccessFunc(fn)</code> and <code>BroadcastOnErrorFunc(fn)</code> for
-        dynamic event generation. WS only had the static <code>BroadcastOnSuccessWS(msg)</code> and
-        <code>BroadcastOnErrorWS()</code>. Consumers who needed dynamic WS messages had no hook to
-        use.
+        SSE had <code>BroadcastOnSuccessFunc(fn)</code> and
+        <code>BroadcastOnErrorFunc(fn)</code> for dynamic event generation. WS only had the static
+        <code>BroadcastOnSuccessWS(msg)</code> and <code>BroadcastOnErrorWS()</code>. Consumers who
+        needed dynamic WS messages had no hook to use.
       </p>
       <p>
         <strong>Fixed:</strong> Added <code>BroadcastOnSuccessWSFunc(fn)</code> and
@@ -464,17 +471,18 @@ type WSBroadcaster struct { *fanOut[string] }</code></pre>
       <h3>WS dispatch flow parallels HTTP dispatch flow &mdash; structural, not duplication</h3>
       <div class="where">ws_dispatch.go vs handler.go &mdash; intentionally separate paths</div>
       <p>
-        The WS dispatch methods mirror the decode &rarr; nil-check &rarr; timeout &rarr; dispatch &rarr;
-        error-wrap &rarr; hook flow from the HTTP path. The error-wrapping idiom
-        <code>fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err)</code> appears in both paths.
+        The WS dispatch methods mirror the decode &rarr; nil-check &rarr; timeout &rarr; dispatch
+        &rarr; error-wrap &rarr; hook flow from the HTTP path. The error-wrapping idiom
+        <code>fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err)</code> appears in both
+        paths.
       </p>
       <div class="callout callout-solution">
         <strong>Decision: Leave as-is.</strong> The two paths are structurally similar but
         intentionally separate because the WS path has no <code>http.ResponseWriter</code>, no
         <code>handlerConfig</code>, and returns <code>(error)</code> instead of writing a response.
-        Forcing them into a shared helper would require so many conditionals that it would be
-        harder to read than the current parallel implementation. The error-wrapping idiom is a
-        1-line pattern &mdash; not worth extracting for 6 call sites.
+        Forcing them into a shared helper would require so many conditionals that it would be harder
+        to read than the current parallel implementation. The error-wrapping idiom is a 1-line
+        pattern &mdash; not worth extracting for 6 call sites.
       </div>
     </div>
 
@@ -494,17 +502,16 @@ type WSBroadcaster struct { *fanOut[string] }</code></pre>
         commit 7267abf. Both broadcasters embed it. Zero duplication.
       </li>
       <li>
-        <strong>WS Func variants — FIXED.</strong> Added
-        <code>BroadcastOnSuccessWSFunc</code> and <code>BroadcastOnErrorWSFunc</code> with 4 new
-        specs. Full parity.
+        <strong>WS Func variants — FIXED.</strong> Added <code>BroadcastOnSuccessWSFunc</code> and
+        <code>BroadcastOnErrorWSFunc</code> with 4 new specs. Full parity.
       </li>
       <li>
         <strong>Moving <code>channelPtr</code> — FIXED.</strong> Moved to
         <code>fanout.go</code> alongside the generic type that uses it.
       </li>
       <li>
-        <strong>Timeout split brain — FIXED.</strong> Removed
-        <code>dispatchTimeout</code>, made <code>timeoutCtx</code> nil-safe.
+        <strong>Timeout split brain — FIXED.</strong> Removed <code>dispatchTimeout</code>, made
+        <code>timeoutCtx</code> nil-safe.
       </li>
     </ul>
 
@@ -512,8 +519,8 @@ type WSBroadcaster struct { *fanOut[string] }</code></pre>
     <p>
       <strong>Yes.</strong> The code works correctly, has comprehensive tests (20+ Ginkgo specs for
       WS alone, 7 integration specs, 2 benchmarks), ships zero breaking changes, and has zero
-      duplication between the SSE and WS broadcasters. The generic <code>fanOut[T]</code> provides
-      a single optimization point for future work (buffer sizing, eviction policies).
+      duplication between the SSE and WS broadcasters. The generic <code>fanOut[T]</code> provides a
+      single optimization point for future work (buffer sizing, eviction policies).
     </p>
 
     <h3>Split brains?</h3>
@@ -524,8 +531,10 @@ type WSBroadcaster struct { *fanOut[string] }</code></pre>
 
     <h2><span class="num">05</span>Execution Plan — All Complete</h2>
 
-    <p>Sorted by <strong>impact / effort ratio</strong> (highest first). All tasks completed in
-    commit <code>7267abf</code>:</p>
+    <p>
+      Sorted by <strong>impact / effort ratio</strong> (highest first). All tasks completed in
+      commit <code>7267abf</code>:
+    </p>
 
     <table>
       <thead>
@@ -584,7 +593,10 @@ type WSBroadcaster struct { *fanOut[string] }</code></pre>
         </tr>
         <tr>
           <td>6</td>
-          <td><strong>Run full verification</strong> — build + test + race + lint + fmt + 37/37 pre-commit</td>
+          <td>
+            <strong>Run full verification</strong> — build + test + race + lint + fmt + 37/37
+            pre-commit
+          </td>
           <td><span class="badge badge-low">Verify</span></td>
           <td><span class="badge badge-fixed">Pass</span></td>
         </tr>
@@ -592,12 +604,12 @@ type WSBroadcaster struct { *fanOut[string] }</code></pre>
     </table>
 
     <div class="callout callout-solution">
-      <strong>Result:</strong> All 5 issues resolved in a single follow-up commit (<code>7267abf</code>).
-      The <code>fanOut[T]</code> refactor eliminated ~100 lines of duplication, fixed the misplaced
-      <code>channelPtr</code>, created a single point for future optimizations (buffer sizing,
-      eviction), and uses Go generics the way they were designed: eliminating type-parameterized
-      duplication. Zero breaking changes. All tests pass with race detector. 37/37 pre-commit checks
-      pass.
+      <strong>Result:</strong> All 5 issues resolved in a single follow-up commit
+      (<code>7267abf</code>). The <code>fanOut[T]</code> refactor eliminated ~100 lines of
+      duplication, fixed the misplaced <code>channelPtr</code>, created a single point for future
+      optimizations (buffer sizing, eviction), and uses Go generics the way they were designed:
+      eliminating type-parameterized duplication. Zero breaking changes. All tests pass with race
+      detector. 37/37 pre-commit checks pass.
     </div>
 
     <footer class="footer">

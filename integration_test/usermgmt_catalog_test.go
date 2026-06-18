@@ -1,7 +1,6 @@
 package integration_test
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -105,10 +104,7 @@ func assertRecipeOpenAPI(t *testing.T, cat *catalog.Catalog) {
 		t.Fatalf("openapi: expected 200, got %d", w.Code)
 	}
 
-	var doc map[string]any
-	if err := json.Unmarshal(w.Body.Bytes(), &doc); err != nil {
-		t.Fatalf("openapi: invalid JSON: %v", err)
-	}
+	doc := unmarshalJSONBodyMsg(t, w, "openapi: ")
 	if doc["openapi"] != "3.0.3" {
 		t.Errorf("openapi: expected version 3.0.3, got %v", doc["openapi"])
 	}
@@ -122,10 +118,7 @@ func assertRecipeAsyncAPI(t *testing.T, cat *catalog.Catalog) {
 		t.Fatalf("asyncapi: expected 200, got %d", w.Code)
 	}
 
-	var doc map[string]any
-	if err := json.Unmarshal(w.Body.Bytes(), &doc); err != nil {
-		t.Fatalf("asyncapi: invalid JSON: %v", err)
-	}
+	doc := unmarshalJSONBodyMsg(t, w, "asyncapi: ")
 	if doc["asyncapi"] != "3.0.0" {
 		t.Errorf("asyncapi: expected version 3.0.0, got %v", doc["asyncapi"])
 	}

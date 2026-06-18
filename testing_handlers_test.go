@@ -80,6 +80,27 @@ func trackingCommandHandler(dispatched *bool) func(context.Context, command.Comm
 	}
 }
 
+// ctxCancelCommandHandler returns a command handler that blocks until the
+// context is cancelled, then returns the cancellation error. Used to verify
+// that timeouts propagate correctly through the dispatch path.
+func ctxCancelCommandHandler(ctx context.Context, _ command.Command) error {
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+// ctxCancelQueryHandler is the query-side counterpart of ctxCancelCommandHandler.
+func ctxCancelQueryHandler(ctx context.Context, _ query.Query) (any, error) {
+	<-ctx.Done()
+	return nil, ctx.Err()
+}
+
+func trackingAfterDispatchHook(called *bool, errOut *error) func(context.Context, *http.Request, error) {
+	return func(_ context.Context, _ *http.Request, err error) {
+		*called = true
+		*errOut = err
+	}
+}
+
 // --- Test enforcer ---
 
 func newTestEnforcer() *casbin.Enforcer {

@@ -9,6 +9,12 @@ import (
 	"github.com/justinas/nosurf"
 )
 
+func okHandler200() http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func TestAuthModeString(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
@@ -54,10 +60,7 @@ func TestCSRFTokenFromRequestFallback(t *testing.T) {
 
 func TestConfigureNosurfHandlerWithDomain(t *testing.T) {
 	t.Parallel()
-	dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-	handler := nosurf.New(dummy)
+	handler := nosurf.New(okHandler200())
 	cfg := CSRFConfig{
 		Domain:   "example.com",
 		Secure:   true,
@@ -80,10 +83,7 @@ func TestConfigureNosurfHandlerWithDomain(t *testing.T) {
 
 func TestConfigureNosurfHandlerWithTrustedOrigins(t *testing.T) {
 	t.Parallel()
-	dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-	handler := nosurf.New(dummy)
+	handler := nosurf.New(okHandler200())
 	cfg := CSRFConfig{
 		Secure:         true,
 		TrustedOrigins: []string{"https://example.com"},
@@ -103,10 +103,7 @@ func TestConfigureNosurfHandlerWithTrustedOrigins(t *testing.T) {
 func TestConfigureNosurfHandlerWithErrorHandler(t *testing.T) {
 	t.Parallel()
 	customCalled := false
-	dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-	handler := nosurf.New(dummy)
+	handler := nosurf.New(okHandler200())
 	cfg := CSRFConfig{
 		ErrorHandler: func(http.ResponseWriter, *http.Request, error) {
 			customCalled = true

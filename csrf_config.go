@@ -19,6 +19,20 @@ const (
 	defaultCSRFMaxAge     = 24 * time.Hour
 )
 
+// ForbiddenErrorHandler is a minimal CSRFConfig.ErrorHandler that responds
+// with HTTP 403 Forbidden and no body. Useful for tests and for consumers who
+// want to handle CSRF failures via a separate middleware (e.g., HTMX-aware
+// error responses) rather than rendering the underlying nosurf error.
+//
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    CSRF: cqrshtmx.CSRFConfig{
+//	        ErrorHandler: cqrshtmx.ForbiddenErrorHandler,
+//	    },
+//	})
+func ForbiddenErrorHandler(w http.ResponseWriter, _ *http.Request, _ error) {
+	w.WriteHeader(http.StatusForbidden)
+}
+
 // ErrCSRFInvalid is returned when a CSRF token is missing, malformed, or does not match.
 // Uses justinas/nosurf under the hood for token generation and validation.
 var ErrCSRFInvalid = event.NewRejection("csrf_invalid", "invalid or missing CSRF token").WithCause(ErrForbidden)

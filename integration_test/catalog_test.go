@@ -1,7 +1,6 @@
 package integration_test
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -101,10 +100,7 @@ func assertOpenAPI(t *testing.T, cat *catalog.Catalog) {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
 
-	var doc map[string]any
-	if err := json.Unmarshal(w.Body.Bytes(), &doc); err != nil {
-		t.Fatalf("invalid JSON: %v", err)
-	}
+	doc := unmarshalJSONBody(t, w)
 
 	if doc["openapi"] != "3.0.3" {
 		t.Errorf("expected openapi 3.0.3, got %v", doc["openapi"])

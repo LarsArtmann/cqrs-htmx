@@ -8,6 +8,20 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+// requireExists returns a "user does not exist" rejection if the user has not
+// been registered yet. Used as the first guard in every decider that operates
+// on an existing user. The domain argument becomes the rejection code suffix,
+// e.g. domain="update_roles" → "usermgmt.update_roles.not_found".
+func requireExists(state UserState, domain string) error {
+	if !state.Exists() {
+		return event.NewRejection(
+			"usermgmt."+domain+".not_found",
+			"user does not exist",
+		)
+	}
+	return nil
+}
+
 func decideRegisterUser(
 	aggID id.AggregateID,
 	email, displayName string,
@@ -49,9 +63,8 @@ func decideUpdateRoles(
 	domain string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.update_roles.not_found",
-				"user does not exist")
+		if err := requireExists(state, "update_roles"); err != nil {
+			return nil, err
 		}
 		if state.Deleted {
 			return nil, event.NewRejection("usermgmt.update_roles.deleted",
@@ -82,9 +95,8 @@ func decideChangeEmail(
 	email string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.change_email.not_found",
-				"user does not exist")
+		if err := requireExists(state, "change_email"); err != nil {
+			return nil, err
 		}
 		if state.Deleted {
 			return nil, event.NewRejection("usermgmt.change_email.deleted",
@@ -115,9 +127,8 @@ func decideChangeDisplayName(
 	displayName string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.change_display_name.not_found",
-				"user does not exist")
+		if err := requireExists(state, "change_display_name"); err != nil {
+			return nil, err
 		}
 		if state.Deleted {
 			return nil, event.NewRejection("usermgmt.change_display_name.deleted",
@@ -148,9 +159,8 @@ func decideDeleteUser(
 	reason string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.delete_user.not_found",
-				"user does not exist")
+		if err := requireExists(state, "delete_user"); err != nil {
+			return nil, err
 		}
 		if state.Deleted {
 			return nil, event.NewRejection("usermgmt.delete_user.already_deleted",
@@ -182,9 +192,8 @@ func decideAddCredential(
 	cred WebAuthnCredential,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.add_credential.not_found",
-				"user does not exist")
+		if err := requireExists(state, "add_credential"); err != nil {
+			return nil, err
 		}
 		if state.Deleted {
 			return nil, event.NewRejection("usermgmt.add_credential.deleted",
@@ -226,9 +235,8 @@ func decideRemoveCredential(
 	credentialID []byte,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.remove_credential.not_found",
-				"user does not exist")
+		if err := requireExists(state, "remove_credential"); err != nil {
+			return nil, err
 		}
 		if state.Deleted {
 			return nil, event.NewRejection("usermgmt.remove_credential.deleted",
@@ -266,9 +274,8 @@ func decideVerifyEmail(
 	aggID id.AggregateID,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.verify_email.not_found",
-				"user does not exist")
+		if err := requireExists(state, "verify_email"); err != nil {
+			return nil, err
 		}
 		if state.Deleted {
 			return nil, event.NewRejection("usermgmt.verify_email.deleted",
@@ -299,9 +306,8 @@ func decideEnableTOTP(
 	secret []byte,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.enable_totp.not_found",
-				"user does not exist")
+		if err := requireExists(state, "enable_totp"); err != nil {
+			return nil, err
 		}
 		if state.Deleted {
 			return nil, event.NewRejection("usermgmt.enable_totp.deleted",
@@ -332,9 +338,8 @@ func decideDisableTOTP(
 	aggID id.AggregateID,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if !state.Exists() {
-			return nil, event.NewRejection("usermgmt.disable_totp.not_found",
-				"user does not exist")
+		if err := requireExists(state, "disable_totp"); err != nil {
+			return nil, err
 		}
 		if state.Deleted {
 			return nil, event.NewRejection("usermgmt.disable_totp.deleted",

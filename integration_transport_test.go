@@ -3,12 +3,10 @@ package cqrshtmx_test
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -22,10 +20,7 @@ var _ = Describe("Transport Parity Integration", func() {
 			defer broadcaster.Unsubscribe(ch)
 
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return errors.New("email already exists")
-			})
-
+			_ = disp.Register("CreateUser", erroringCommandHandler("email already exists"))
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:      disp,
 				AfterDispatch: broadcaster.BroadcastOnError("commandError"),
@@ -97,11 +92,12 @@ var _ = Describe("Transport Parity Integration", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			decoder := cqrshtmx.DecodeWSJSON(func(_ testCreateUserRequest) (command.Command, error) {
-				return &testCreateUserCmd{aggID: id.NewAggregateID(), email: "", name: ""}, nil
-			})
-
-			dispatchErr := app.DispatchWSCommand(nil, "CreateUser", decoder, []byte(`{"email":"a@b.com"}`))
+			dispatchErr := app.DispatchWSCommand(
+				nil,
+				"CreateUser",
+				wsNoOpCreateUserDecoder(),
+				[]byte(`{"email":"a@b.com"}`),
+			)
 			Expect(dispatchErr).NotTo(HaveOccurred())
 
 			Eventually(ch).Should(Receive(ContainSubstring("hx-swap-oob")))
@@ -113,21 +109,14 @@ var _ = Describe("Transport Parity Integration", func() {
 			defer wsBroadcaster.Unsubscribe(ch)
 
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return errors.New("rate limited")
-			})
-
+			_ = disp.Register("CreateUser", erroringCommandHandler("rate limited"))
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:      disp,
 				AfterDispatch: wsBroadcaster.BroadcastOnErrorWS(),
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			decoder := cqrshtmx.DecodeWSJSON(func(_ testCreateUserRequest) (command.Command, error) {
-				return &testCreateUserCmd{aggID: id.NewAggregateID(), email: "", name: ""}, nil
-			})
-
-			dispatchErr := app.DispatchWSCommand(nil, "CreateUser", decoder, []byte(`{}`))
+			dispatchErr := app.DispatchWSCommand(nil, "CreateUser", wsNoOpCreateUserDecoder(), []byte(`{}`))
 			Expect(dispatchErr).To(HaveOccurred())
 
 			var msg string
@@ -163,12 +152,8 @@ var _ = Describe("Transport Parity Integration", func() {
 			_ = disp.Register("CreateUser", noOpCommandHandler)
 			app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: disp})
 
-			decoder := cqrshtmx.DecodeWSJSON(func(_ testCreateUserRequest) (command.Command, error) {
-				return &testCreateUserCmd{aggID: id.NewAggregateID(), email: "", name: ""}, nil
-			})
-
 			Expect(func() {
-				_ = app.DispatchWSCommand(nil, "CreateUser", decoder, []byte(`{}`))
+				_ = app.DispatchWSCommand(nil, "CreateUser", wsNoOpCreateUserDecoder(), []byte(`{}`))
 			}).NotTo(Panic())
 		})
 	})
@@ -193,11 +178,7 @@ var _ = Describe("Transport Parity Integration", func() {
 			Expect(msg.Email).To(Equal("roundtrip@test.com"))
 
 			cmdJSON, _ := json.Marshal(msg)
-			decoder := cqrshtmx.DecodeWSJSON(func(req testCreateUserRequest) (command.Command, error) {
-				return &testCreateUserCmd{aggID: id.NewAggregateID(), email: req.Email, name: req.Name}, nil
-			})
-
-			err = app.DispatchWSCommand(nil, "CreateUser", decoder, cmdJSON)
+			err = app.DispatchWSCommand(nil, "CreateUser", wsCreateUserDecoder(), cmdJSON)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(capturedEmail).To(Equal("roundtrip@test.com"))
 		})
