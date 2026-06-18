@@ -9,9 +9,9 @@ import "time"
 // The Provider+Subject pair is the unique key for deduplication — a given
 // provider subject can only be linked to one user at a time.
 type ExternalAccount struct {
-	Provider    string    `json:"provider"`        // e.g., "google", "github"
-	Subject     string    `json:"subject"`         // provider's unique user ID (OIDC "sub" claim)
-	Email       string    `json:"email,omitempty"` // email from provider (may differ from User.Email)
+	Provider    string    `json:"provider"`
+	Subject     string    `json:"subject"`
+	Email       string    `json:"email,omitempty"`
 	DisplayName string    `json:"display_name,omitempty"`
 	LinkedAt    time.Time `json:"linked_at"`
 }

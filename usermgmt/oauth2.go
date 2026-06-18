@@ -215,12 +215,12 @@ func (p *oauth2Provider) fetchUserInfo(ctx context.Context, token *oauth2.Token)
 	}
 	// GitHub uses "id" as subject and "login" as display name
 	var raw struct {
-		ID      json.Number `json:"id"`
-		Sub     string      `json:"sub"`
-		Email   string      `json:"email"`
-		Name    string      `json:"name"`
-		Login   string      `json:"login"`
-		Verifie bool        `json:"email_verified"`
+		ID            json.Number `json:"id"`
+		Sub           string      `json:"sub"`
+		Email         string      `json:"email"`
+		Name          string      `json:"name"`
+		Login         string      `json:"login"`
+		EmailVerified bool        `json:"email_verified"`
 	}
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&raw); err != nil {
 		return oauth2UserInfo{}, fmt.Errorf("decode userinfo response: %w", err)
@@ -236,7 +236,7 @@ func (p *oauth2Provider) fetchUserInfo(ctx context.Context, token *oauth2.Token)
 	return oauth2UserInfo{
 		Subject:       subject,
 		Email:         raw.Email,
-		EmailVerified: raw.Verifie,
+		EmailVerified: raw.EmailVerified,
 		DisplayName:   name,
 	}, nil
 }
