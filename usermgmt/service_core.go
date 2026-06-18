@@ -45,7 +45,7 @@ type Service struct {
 	pendingTOTP              pendingTOTPStore
 	stopPendingTOTPEviction  func()
 	oauth2Providers          map[string]*oauth2Provider
-	oauth2States             *oauth2StateStore
+	oauth2States             OAuth2StateStore
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration
 }
@@ -82,6 +82,10 @@ type ServiceConfig struct {
 	// OAuth2Config, if provided, enables OAuth2/OIDC login with external
 	// identity providers (Google, GitHub, etc.).
 	OAuth2Config *OAuth2Config
+	// OAuth2StateStore, if provided, replaces the default in-memory state
+	// token store. Use this for multi-instance deployments (e.g., Redis).
+	// Ignored when OAuth2Config is nil.
+	OAuth2StateStore OAuth2StateStore
 
 	// SecurityHooks configures opt-in event signing and encryption.
 	// See SecurityHooks for field documentation.
@@ -258,7 +262,11 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	}
 
 	if cfg.OAuth2Config != nil && len(cfg.OAuth2Config.Providers) > 0 {
-		if err := svc.initOAuth2(cfg.OAuth2Config); err != nil {
+		stateStore := cfg.OAuth2StateStore
+		if stateStore == nil {
+			stateStore = newOAuth2StateStore()
+		}
+		if err := svc.initOAuth2(cfg.OAuth2Config, stateStore); err != nil {
 			return nil, err
 		}
 	}
@@ -296,10 +304,10 @@ func (s *Service) Stop() {
 }
 
 // initOAuth2 initializes the OAuth2 providers, state store, and background eviction.
-func (s *Service) initOAuth2(cfg *OAuth2Config) error {
+func (s *Service) initOAuth2(cfg *OAuth2Config, stateStore OAuth2StateStore) error {
 	s.oauth2Providers = make(map[string]*oauth2Provider, len(cfg.Providers))
-	s.oauth2States = newOAuth2StateStore()
-	s.stopOAuth2Eviction = s.oauth2States.startEviction()
+	s.oauth2States = stateStore
+	s.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
 	s.oauth2StateTTL = cfg.StateTTL
 	if s.oauth2StateTTL == 0 {
 		s.oauth2StateTTL = defaultOAuthStateTTL
