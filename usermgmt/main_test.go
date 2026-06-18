@@ -57,14 +57,6 @@ func postJSON(t *testing.T, mux *http.ServeMux, path, body string) *httptest.Res
 	return w
 }
 
-func postWithQuery(t *testing.T, mux *http.ServeMux, path, body string) *httptest.ResponseRecorder {
-	t.Helper()
-	req := httptest.NewRequest(http.MethodPost, path, strings.NewReader(body))
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, req)
-	return w
-}
-
 func newTestServiceWithConfig(t *testing.T, cfg ServiceConfig) *Service {
 	t.Helper()
 	svc, err := NewService(cfg)

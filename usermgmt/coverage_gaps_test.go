@@ -41,12 +41,9 @@ func isTransient(err error) bool {
 func TestDecideChangeDisplayName_NoOp(t *testing.T) {
 	aggID := id.NewAggregateID()
 	state := UserState{
-		Email:        "u@test.com",
-		DisplayName:  "Alice",
-		Roles:        []Role{RoleUser},
-		Credentials:  nil,
-		Deleted:      false,
-		DeleteReason: "",
+		Email:       "u@test.com",
+		DisplayName: "Alice",
+		Roles:       []Role{RoleUser},
 	}
 	decider := decideChangeDisplayName(aggID, "Alice")
 	events, err := decider(state, 1)
@@ -61,12 +58,9 @@ func TestDecideChangeDisplayName_NoOp(t *testing.T) {
 func TestDecideChangeEmail_NoOp(t *testing.T) {
 	aggID := id.NewAggregateID()
 	state := UserState{
-		Email:        "same@test.com",
-		DisplayName:  "Alice",
-		Roles:        []Role{RoleUser},
-		Credentials:  nil,
-		Deleted:      false,
-		DeleteReason: "",
+		Email:       "same@test.com",
+		DisplayName: "Alice",
+		Roles:       []Role{RoleUser},
 	}
 	decider := decideChangeEmail(aggID, "same@test.com")
 	events, err := decider(state, 1)

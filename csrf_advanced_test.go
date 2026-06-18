@@ -104,11 +104,6 @@ var _ = Describe("CSRF Advanced", func() {
 			Expect(errors.Is(err, cqrshtmx.ErrCSRFConfig)).To(BeTrue())
 		})
 
-		It("returns nil for valid config", func() {
-			cfg := cqrshtmx.CSRFConfig{}
-			Expect(cfg.Validate()).To(Succeed())
-		})
-
 		It("returns nil for SameSite=None with Secure", func() {
 			cfg := cqrshtmx.CSRFConfig{
 				SameSite: http.SameSiteNoneMode,

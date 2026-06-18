@@ -296,10 +296,7 @@ func TestHealthCheckHandler_HealthyBodyContent(t *testing.T) {
 		t.Fatalf("expected 200 for catalog with services, got %d", w.Code)
 	}
 
-	var body map[string]any
-	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
-		t.Fatalf("invalid JSON body: %v", err)
-	}
+	body := unmarshalJSONBody(t, w)
 
 	if body["status"] != "healthy" {
 		t.Errorf("expected status 'healthy', got %v", body["status"])
@@ -328,10 +325,7 @@ func TestHealthCheckHandler_NilCatalogBody(t *testing.T) {
 		t.Fatalf("expected 503, got %d", w.Code)
 	}
 
-	var body map[string]any
-	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
-		t.Fatalf("invalid JSON body: %v", err)
-	}
+	body := unmarshalJSONBody(t, w)
 
 	if body["status"] != "unhealthy" {
 		t.Errorf("expected status 'unhealthy', got %v", body["status"])

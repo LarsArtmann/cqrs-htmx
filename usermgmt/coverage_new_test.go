@@ -212,18 +212,24 @@ func TestCasbinProjection_EventTypes_IncludesCredentials(t *testing.T) {
 
 // --- AccountLockout integration with BeginLogin ---
 
-func TestBeginLogin_AccountLocked(t *testing.T) {
+func newLockoutTestService(t *testing.T, cfg LockoutConfig) *Service {
+	t.Helper()
 	svc, err := NewService(ServiceConfig{
-		Lockout: NewAccountLockout(LockoutConfig{
-			MaxAttempts: 2,
-			Duration:    time.Minute,
-		}),
+		Lockout:        NewAccountLockout(cfg),
 		WebAuthnConfig: localTestWebAuthnConfig(),
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
 	t.Cleanup(svc.Stop)
+	return svc
+}
+
+func TestBeginLogin_AccountLocked(t *testing.T) {
+	svc := newLockoutTestService(t, LockoutConfig{
+		MaxAttempts: 2,
+		Duration:    time.Minute,
+	})
 
 	registerTestUser(t, svc, "u1", "locked@test.com")
 
@@ -231,7 +237,7 @@ func TestBeginLogin_AccountLocked(t *testing.T) {
 	svc.lockout.RecordFailure("locked@test.com")
 	svc.lockout.RecordFailure("locked@test.com")
 
-	_, err = svc.BeginLogin(context.Background(), "locked@test.com")
+	_, err := svc.BeginLogin(context.Background(), "locked@test.com")
 	if err == nil {
 		t.Fatal("expected ErrAccountLocked")
 	}
@@ -241,17 +247,10 @@ func TestBeginLogin_AccountLocked(t *testing.T) {
 }
 
 func TestBeginLogin_LockoutNotTriggered(t *testing.T) {
-	svc, err := NewService(ServiceConfig{
-		Lockout: NewAccountLockout(LockoutConfig{
-			MaxAttempts: 5,
-			Duration:    time.Minute,
-		}),
-		WebAuthnConfig: localTestWebAuthnConfig(),
+	svc := newLockoutTestService(t, LockoutConfig{
+		MaxAttempts: 5,
+		Duration:    time.Minute,
 	})
-	if err != nil {
-		t.Fatalf("NewService: %v", err)
-	}
-	t.Cleanup(svc.Stop)
 
 	registerTestUser(t, svc, "u1", "unlocked@test.com")
 	// Add a credential so BeginLogin doesn't fail with ErrNoCredentials
@@ -261,7 +260,7 @@ func TestBeginLogin_LockoutNotTriggered(t *testing.T) {
 	// Single failure should not lock
 	svc.lockout.RecordFailure("unlocked@test.com")
 
-	_, err = svc.BeginLogin(context.Background(), "unlocked@test.com")
+	_, err := svc.BeginLogin(context.Background(), "unlocked@test.com")
 	if err != nil {
 		t.Errorf("expected success, got: %v", err)
 	}

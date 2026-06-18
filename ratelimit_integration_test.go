@@ -19,24 +19,31 @@ func writeStringHandler(body string) http.Handler {
 	})
 }
 
+// newRateLimitedServer builds a real httptest.Server with the given rate
+// limit configuration serving `body` at `path`. The returned server is
+// automatically closed via t.Cleanup.
+func newRateLimitedServer(t *testing.T, cfg cqrshtmx.RateLimiterConfig, path, body string) *httptest.Server {
+	t.Helper()
+	middleware := cqrshtmx.RateLimiterMiddleware(cfg)
+	mux := http.NewServeMux()
+	mux.Handle(path, middleware(writeStringHandler(body)))
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
+	return server
+}
+
 // TestRateLimiter_RealServer_AllowsThenBlocks boots an actual HTTP server
 // and exercises the rate limiter end-to-end with a real http.Client.
 // This catches issues that httptest.NewRecorder cannot: real TCP connections,
 // real client/server interaction, and real ResponseWriter hijacking behavior.
 func TestRateLimiter_RealServer_AllowsThenBlocks(t *testing.T) {
 	t.Parallel()
-	middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+	server := newRateLimitedServer(t, cqrshtmx.RateLimiterConfig{
 		Limit:        1,
 		Window:       time.Minute,
 		Burst:        1,
 		KeyExtractor: cqrshtmx.KeyExtractorFromClientIP(),
-	})
-
-	mux := http.NewServeMux()
-	mux.Handle("/ping", middleware(writeStringHandler("pong")))
-
-	server := httptest.NewServer(mux)
-	defer server.Close()
+	}, "/ping", "pong")
 
 	client := server.Client()
 
@@ -80,18 +87,12 @@ func TestRateLimiter_RealServer_AllowsThenBlocks(t *testing.T) {
 // under real concurrency. With Limit=5/Burst=5, exactly 5 should succeed.
 func TestRateLimiter_RealServer_ConcurrentRequests(t *testing.T) {
 	t.Parallel()
-	middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+	server := newRateLimitedServer(t, cqrshtmx.RateLimiterConfig{
 		Limit:        5,
 		Window:       time.Minute,
 		Burst:        5,
 		KeyExtractor: cqrshtmx.KeyExtractorFromClientIP(),
-	})
-
-	mux := http.NewServeMux()
-	mux.Handle("/work", middleware(writeStringHandler("ok")))
-
-	server := httptest.NewServer(mux)
-	defer server.Close()
+	}, "/work", "ok")
 
 	client := server.Client()
 

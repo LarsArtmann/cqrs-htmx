@@ -34,7 +34,7 @@ var _ = Describe("CSRF Middleware", func() {
 			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
 			var capturedToken string
 
-			handler := csrfTokenCaptureHandler(middleware, &capturedToken)
+			handler := csrfTokenCaptureHandler(middleware, &capturedToken, false)
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -112,7 +112,7 @@ var _ = Describe("CSRF Middleware", func() {
 
 			// Context should have a valid masked token
 			var capturedToken string
-			handler2 := csrfTokenCaptureHandler(middleware, &capturedToken)
+			handler2 := csrfTokenCaptureHandler(middleware, &capturedToken, false)
 
 			w3 := httptest.NewRecorder()
 			r3 := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -125,7 +125,7 @@ var _ = Describe("CSRF Middleware", func() {
 		It("validates PUT, PATCH, and DELETE methods", func() {
 			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
 			var token string
-			handler := csrfTokenOnceHandler(middleware, &token)
+			handler := csrfTokenCaptureHandler(middleware, &token, true)
 
 			// First GET to obtain masked token
 			w1 := httptest.NewRecorder()
@@ -261,7 +261,7 @@ var _ = Describe("CSRF Middleware", func() {
 			middleware func(http.Handler) http.Handler, remoteAddr string,
 		) int {
 			var token string
-			handler := csrfTokenOnceHandler(middleware, &token)
+			handler := csrfTokenCaptureHandler(middleware, &token, true)
 
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequestWithContext(
@@ -328,7 +328,7 @@ var _ = Describe("CSRF Middleware", func() {
 			// nosurf accepts via the explicit Sec-Fetch-Site path; TrustedProxies
 			// is irrelevant when the header is already present.
 			var token string
-			h := csrfTokenOnceHandler(mw, &token)
+			h := csrfTokenCaptureHandler(mw, &token, true)
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequestWithContext(
 				context.Background(), http.MethodGet, "/", nil,

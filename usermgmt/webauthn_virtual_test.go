@@ -73,10 +73,7 @@ func TestWebAuthnVirtualAuthenticator_FullFlow(t *testing.T) {
 	overrideSessionChallenge(t, svc, reg.User.ID, regChallengeHex)
 
 	// Step 3: Finish registration with spec vector attestation
-	regReq := buildRegistrationRequest(t)
-	if err := svc.FinishRegistration(ctx, reg.User.ID, regReq, "My Passkey"); err != nil {
-		t.Fatalf("FinishRegistration: %v", err)
-	}
+	finishRegistration(t, svc, ctx, reg.User.ID, "My Passkey")
 
 	// Verify the credential was persisted
 	user, ok := svc.readModel.FindByUserID(reg.User.ID)
@@ -132,10 +129,7 @@ func TestWebAuthnVirtualAuthenticator_RegistrationReplay(t *testing.T) {
 
 	overrideSessionChallenge(t, svc, reg.User.ID, regChallengeHex)
 
-	regReq := buildRegistrationRequest(t)
-	if err := svc.FinishRegistration(ctx, reg.User.ID, regReq, "First"); err != nil {
-		t.Fatalf("FinishRegistration first: %v", err)
-	}
+	finishRegistration(t, svc, ctx, reg.User.ID, "First")
 
 	// Second attempt should fail — session was deleted
 	regReq2 := buildRegistrationRequest(t)
@@ -161,10 +155,7 @@ func TestWebAuthnVirtualAuthenticator_LoginWrongChallenge(t *testing.T) {
 	_ = beginResp
 
 	overrideSessionChallenge(t, svc, reg.User.ID, regChallengeHex)
-	regReq := buildRegistrationRequest(t)
-	if err := svc.FinishRegistration(ctx, reg.User.ID, regReq, "Key"); err != nil {
-		t.Fatalf("FinishRegistration: %v", err)
-	}
+	finishRegistration(t, svc, ctx, reg.User.ID, "Key")
 
 	// Begin login but DON'T override the challenge — the spec vector
 	// challenge won't match, so the signature verification should fail.
@@ -270,4 +261,14 @@ func decodeHex(t *testing.T, s string) []byte {
 
 func base64RawURL(data []byte) string {
 	return base64.RawURLEncoding.EncodeToString(data)
+}
+
+// finishRegistration runs FinishRegistration with a built registration request
+// and fatals on failure. The label is included in the error message so the
+// test that failed is obvious when several share the same registration step.
+func finishRegistration(t *testing.T, svc *Service, ctx context.Context, userID UserID, name string) {
+	t.Helper()
+	if err := svc.FinishRegistration(ctx, userID, buildRegistrationRequest(t), name); err != nil {
+		t.Fatalf("FinishRegistration %q: %v", name, err)
+	}
 }
