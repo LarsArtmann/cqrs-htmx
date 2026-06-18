@@ -38,14 +38,26 @@ func TestHandler_WebAuthnBeginRegistration_BadBody(t *testing.T) {
 	}
 }
 
-func TestHandler_WebAuthnBeginRegistration_UserNotFound(t *testing.T) {
-	h, _ := newWebAuthnHandler(t)
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
+func TestHandler_WebAuthnBegin_UserNotFound(t *testing.T) {
+	cases := []struct {
+		name string
+		path string
+		body string
+	}{
+		{"registration", "/auth/webauthn/register/begin", `{"user_id":"ghost"}`},
+		{"login", "/auth/webauthn/login/begin", `{"email":"nobody@test.com"}`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			h, _ := newWebAuthnHandler(t)
+			mux := http.NewServeMux()
+			h.RegisterRoutes(mux)
 
-	w := postJSON(t, mux, "/auth/webauthn/register/begin", `{"user_id":"ghost"}`)
-	if w.Code != http.StatusNotFound {
-		t.Errorf("status = %d, want %d", w.Code, http.StatusNotFound)
+			w := postJSON(t, mux, tc.path, tc.body)
+			if w.Code != http.StatusNotFound {
+				t.Errorf("status = %d, want %d", w.Code, http.StatusNotFound)
+			}
+		})
 	}
 }
 
@@ -66,17 +78,6 @@ func TestHandler_WebAuthnBeginLogin_Success(t *testing.T) {
 	w := postJSON(t, mux, "/auth/webauthn/login/begin", `{"email":"hbl@test.com"}`)
 	if w.Code != http.StatusOK {
 		t.Errorf("status = %d, want %d, body: %s", w.Code, http.StatusOK, w.Body.String())
-	}
-}
-
-func TestHandler_WebAuthnBeginLogin_UserNotFound(t *testing.T) {
-	h, _ := newWebAuthnHandler(t)
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
-
-	w := postJSON(t, mux, "/auth/webauthn/login/begin", `{"email":"nobody@test.com"}`)
-	if w.Code != http.StatusNotFound {
-		t.Errorf("status = %d, want %d", w.Code, http.StatusNotFound)
 	}
 }
 

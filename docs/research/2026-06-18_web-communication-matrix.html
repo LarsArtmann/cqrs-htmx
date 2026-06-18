@@ -1,0 +1,1698 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Communication Matrix — cqrs-htmx</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --bg-card: #161b22;
+        --bg-card-hover: #1c2128;
+        --bg-inset: #010409;
+        --border: #30363d;
+        --border-light: #21262d;
+        --text: #e6edf3;
+        --text-dim: #8b949e;
+        --text-bright: #f0f6fc;
+        --accent: #58a6ff;
+        --accent-dim: #1f6feb;
+        --green: #3fb950;
+        --green-bg: rgba(63, 185, 80, 0.1);
+        --yellow: #d29922;
+        --yellow-bg: rgba(210, 153, 34, 0.1);
+        --orange: #db6d28;
+        --orange-bg: rgba(219, 109, 40, 0.1);
+        --red: #f85149;
+        --red-bg: rgba(248, 81, 73, 0.1);
+        --purple: #bc8cff;
+        --purple-bg: rgba(188, 140, 255, 0.1);
+        --teal: #39d0d8;
+        --teal-bg: rgba(57, 208, 216, 0.1);
+        --mono: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 80px;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.6;
+        font-size: 15px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ─────────────── Header ─────────────── */
+      header {
+        background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 56px 0 48px;
+        position: relative;
+        overflow: hidden;
+      }
+      header::before {
+        content: "";
+        position: absolute;
+        top: -40%;
+        right: -10%;
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle, rgba(57, 208, 216, 0.07) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      header::after {
+        content: "";
+        position: absolute;
+        bottom: -50%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(188, 140, 255, 0.05) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .header-tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--teal);
+        background: var(--teal-bg);
+        border: 1px solid rgba(57, 208, 216, 0.3);
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        letter-spacing: 0.5px;
+      }
+      header h1 {
+        font-size: 42px;
+        font-weight: 800;
+        color: var(--text-bright);
+        letter-spacing: -0.5px;
+        margin-bottom: 12px;
+        position: relative;
+      }
+      header .subtitle {
+        font-size: 18px;
+        color: var(--text-dim);
+        max-width: 760px;
+        position: relative;
+      }
+      .header-meta {
+        display: flex;
+        gap: 32px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+        position: relative;
+      }
+      .header-meta div {
+        font-size: 13px;
+        color: var(--text-dim);
+      }
+      .header-meta strong {
+        display: block;
+        color: var(--text-bright);
+        font-size: 15px;
+        font-family: var(--mono);
+        margin-top: 2px;
+      }
+
+      /* ─────────────── Nav ─────────────── */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(13, 17, 23, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      nav .container {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+      }
+      nav a {
+        color: var(--text-dim);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 14px 16px;
+        white-space: nowrap;
+        transition: color 0.15s;
+        border-bottom: 2px solid transparent;
+      }
+      nav a:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      /* ─────────────── Sections ─────────────── */
+      section {
+        padding: 64px 0;
+        border-bottom: 1px solid var(--border-light);
+      }
+      section h2 {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--text-bright);
+        margin-bottom: 10px;
+        letter-spacing: -0.3px;
+      }
+      section .section-desc {
+        color: var(--text-dim);
+        font-size: 15px;
+        margin-bottom: 32px;
+        max-width: 820px;
+      }
+      h3 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-bright);
+        margin: 40px 0 18px;
+      }
+      h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--accent);
+        margin-bottom: 10px;
+        font-family: var(--mono);
+      }
+      p {
+        margin-bottom: 12px;
+        color: var(--text);
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.88em;
+        background: var(--bg-inset);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--teal);
+        border: 1px solid var(--border-light);
+      }
+      .code-block {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--bg-inset);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        overflow-x: auto;
+        margin: 16px 0;
+        line-height: 1.5;
+        color: var(--text-dim);
+      }
+      .code-block .kw {
+        color: var(--purple);
+      }
+      .code-block .fn {
+        color: var(--accent);
+      }
+      .code-block .ty {
+        color: var(--teal);
+      }
+      .code-block .str {
+        color: var(--green);
+      }
+      .code-block .cmt {
+        color: #6e7681;
+        font-style: italic;
+      }
+
+      /* ─────────────── Badges ─────────────── */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        font-family: var(--mono);
+        padding: 3px 10px;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .badge-critical {
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(248, 81, 73, 0.3);
+      }
+      .badge-high {
+        background: var(--orange-bg);
+        color: var(--orange);
+        border: 1px solid rgba(219, 109, 40, 0.3);
+      }
+      .badge-medium {
+        background: var(--yellow-bg);
+        color: var(--yellow);
+        border: 1px solid rgba(210, 153, 34, 0.3);
+      }
+      .badge-low {
+        background: rgba(88, 166, 255, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(88, 166, 255, 0.3);
+      }
+      .badge-good {
+        background: var(--green-bg);
+        color: var(--green);
+        border: 1px solid rgba(63, 185, 80, 0.3);
+      }
+      .badge-info {
+        background: var(--purple-bg);
+        color: var(--purple);
+        border: 1px solid rgba(188, 140, 255, 0.3);
+      }
+      .badge-muted {
+        background: rgba(110, 118, 129, 0.1);
+        color: var(--text-dim);
+        border: 1px solid rgba(110, 118, 129, 0.2);
+      }
+
+      /* ─────────────── Cards ─────────────── */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 16px;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .card:hover {
+        border-color: var(--border-light);
+        background: var(--bg-card-hover);
+      }
+      .card-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .card-title h4 {
+        margin: 0;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 900px) {
+        .grid-2,
+        .grid-3,
+        .grid-4 {
+          grid-template-columns: 1fr;
+        }
+        header h1 {
+          font-size: 30px;
+        }
+        section {
+          padding: 44px 0;
+        }
+      }
+
+      /* ─────────────── Stats ─────────────── */
+      .stat {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 22px;
+        text-align: center;
+      }
+      .stat .value {
+        font-family: var(--mono);
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--text-bright);
+        line-height: 1.2;
+      }
+      .stat .value.green {
+        color: var(--green);
+      }
+      .stat .value.yellow {
+        color: var(--yellow);
+      }
+      .stat .value.accent {
+        color: var(--accent);
+      }
+      .stat .value.red {
+        color: var(--red);
+      }
+      .stat .value.purple {
+        color: var(--purple);
+      }
+      .stat .value.teal {
+        color: var(--teal);
+      }
+      .stat .label {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* ─────────────── Matrix tables ─────────────── */
+      .matrix-wrap {
+        overflow-x: auto;
+        margin: 24px 0;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+      }
+      .matrix {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 14px;
+      }
+      .matrix th {
+        background: var(--bg-inset);
+        color: var(--text-dim);
+        font-weight: 600;
+        text-align: left;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        font-family: var(--mono);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+      }
+      .matrix th.tech-col {
+        text-align: center;
+        min-width: 150px;
+      }
+      .matrix th.tech-http {
+        color: var(--accent);
+      }
+      .matrix th.tech-sse {
+        color: var(--teal);
+      }
+      .matrix th.tech-ws {
+        color: var(--purple);
+      }
+      .matrix td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-light);
+        color: var(--text);
+        vertical-align: top;
+      }
+      .matrix td.capability {
+        font-weight: 600;
+        color: var(--text-bright);
+        white-space: nowrap;
+      }
+      .matrix td.capability .cap-desc {
+        display: block;
+        font-weight: 400;
+        color: var(--text-dim);
+        font-size: 12px;
+        margin-top: 2px;
+        font-family: var(--sans);
+        white-space: normal;
+        max-width: 240px;
+      }
+      .matrix td.cell {
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+      .matrix tbody tr:hover {
+        background: var(--bg-card-hover);
+      }
+      .matrix tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* Cell status states */
+      .cell-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .cell-status .icon {
+        font-size: 13px;
+        line-height: 1;
+      }
+      .status-have {
+        background: var(--green-bg);
+        color: var(--green);
+        border: 1px solid rgba(63, 185, 80, 0.25);
+      }
+      .status-partial {
+        background: var(--yellow-bg);
+        color: var(--yellow);
+        border: 1px solid rgba(210, 153, 34, 0.25);
+      }
+      .status-missing {
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(248, 81, 73, 0.25);
+      }
+      .status-impossible {
+        background: rgba(110, 118, 129, 0.1);
+        color: var(--text-dim);
+        border: 1px solid rgba(110, 118, 129, 0.2);
+      }
+      .status-new {
+        background: var(--purple-bg);
+        color: var(--purple);
+        border: 1px solid rgba(188, 140, 255, 0.3);
+      }
+      .cell-detail {
+        display: block;
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--text-dim);
+        font-weight: 400;
+        line-height: 1.4;
+        font-family: var(--sans);
+        max-width: 180px;
+      }
+
+      /* ─────────────── Legend ─────────────── */
+      .legend {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin: 20px 0 8px;
+        padding: 14px 18px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-dim);
+        font-family: var(--mono);
+      }
+
+      /* ─────────────── Callout ─────────────── */
+      .callout {
+        border-left: 3px solid var(--accent);
+        background: rgba(88, 166, 255, 0.05);
+        padding: 16px 20px;
+        border-radius: 0 8px 8px 0;
+        margin: 20px 0;
+      }
+      .callout.warning {
+        border-color: var(--yellow);
+        background: var(--yellow-bg);
+      }
+      .callout.danger {
+        border-color: var(--red);
+        background: var(--red-bg);
+      }
+      .callout.success {
+        border-color: var(--green);
+        background: var(--green-bg);
+      }
+      .callout p:last-child {
+        margin-bottom: 0;
+      }
+      .callout-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--text-bright);
+        margin-bottom: 6px;
+      }
+
+      /* ─────────────── Priority roadmap ─────────────── */
+      .priority-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 22px 24px;
+        margin-bottom: 14px;
+        display: grid;
+        grid-template-columns: 60px 1fr auto;
+        gap: 20px;
+        align-items: start;
+        transition:
+          border-color 0.15s,
+          transform 0.15s;
+      }
+      .priority-card:hover {
+        border-color: var(--border-light);
+        transform: translateX(2px);
+      }
+      .priority-num {
+        font-family: var(--mono);
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-dim);
+        line-height: 1;
+      }
+      .priority-card.p1 .priority-num {
+        color: var(--red);
+      }
+      .priority-card.p2 .priority-num {
+        color: var(--orange);
+      }
+      .priority-card.p3 .priority-num {
+        color: var(--yellow);
+      }
+      .priority-card.p4 .priority-num {
+        color: var(--accent);
+      }
+      .priority-card.p5 .priority-num {
+        color: var(--purple);
+      }
+      .priority-body h4 {
+        margin: 0 0 8px;
+        color: var(--text-bright);
+        font-family: var(--sans);
+        font-size: 16px;
+      }
+      .priority-body p {
+        font-size: 14px;
+        color: var(--text-dim);
+        margin: 0;
+        line-height: 1.55;
+      }
+      .priority-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      @media (max-width: 768px) {
+        .priority-card {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+        .priority-meta {
+          align-items: flex-start;
+          flex-direction: row;
+        }
+      }
+
+      /* ─────────────── Progress bar ─────────────── */
+      .progress-bar {
+        height: 8px;
+        background: var(--bg-inset);
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid var(--border-light);
+        margin: 8px 0;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+      }
+      .progress-fill.green {
+        background: linear-gradient(90deg, #2ea043, #3fb950);
+      }
+      .progress-fill.yellow {
+        background: linear-gradient(90deg, #bb8009, #d29922);
+      }
+      .progress-fill.red {
+        background: linear-gradient(90deg, #da3633, #f85149);
+      }
+
+      /* ─────────────── Tech badge header ─────────────── */
+      .tech-banner {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+      .tech-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 22px;
+        position: relative;
+        overflow: hidden;
+      }
+      .tech-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+      }
+      .tech-card.http::before {
+        background: linear-gradient(90deg, #1f6feb, #58a6ff);
+      }
+      .tech-card.sse::before {
+        background: linear-gradient(90deg, #1f7e8a, #39d0d8);
+      }
+      .tech-card.ws::before {
+        background: linear-gradient(90deg, #8957e5, #bc8cff);
+      }
+      .tech-card .tech-name {
+        font-family: var(--mono);
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .tech-card.http .tech-name {
+        color: var(--accent);
+      }
+      .tech-card.sse .tech-name {
+        color: var(--teal);
+      }
+      .tech-card.ws .tech-name {
+        color: var(--purple);
+      }
+      .tech-card .tech-tag {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-bottom: 14px;
+      }
+      .tech-card .tech-score {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--text-dim);
+      }
+      .tech-card .tech-score strong {
+        font-size: 24px;
+        font-weight: 700;
+        display: block;
+        line-height: 1.1;
+      }
+      @media (max-width: 768px) {
+        .tech-banner {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ─────────────── Footer ─────────────── */
+      footer {
+        padding: 40px 0;
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 13px;
+        border-top: 1px solid var(--border);
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      footer .footer-meta {
+        font-family: var(--mono);
+        margin-top: 6px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═════════════════════════════ HEADER ═════════════════════════════ -->
+    <header>
+      <div class="container">
+        <span class="header-tag">DESIGN MATRIX · WEB COMMUNICATION</span>
+        <h1>Web Communication Matrix</h1>
+        <p class="subtitle">
+          Where cqrs-htmx should support what across
+          <strong style="color: var(--accent)">HTTP</strong>,
+          <strong style="color: var(--teal)">SSE</strong>, and
+          <strong style="color: var(--purple)">WebSocket</strong> — current state versus the
+          technology-max target, with a Pareto-ordered execution plan.
+        </p>
+        <div class="header-meta">
+          <div><strong>Date</strong>2026-06-18</div>
+          <div><strong>Transports</strong>3</div>
+          <div><strong>Capabilities</strong>9</div>
+          <div><strong>APIs in scope</strong>~27 cells</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═════════════════════════════ NAV ═════════════════════════════ -->
+    <nav>
+      <div class="container">
+        <a href="#transports">Transports</a>
+        <a href="#landscape">Full Landscape</a>
+        <a href="#current">Current State</a>
+        <a href="#legend">Legend</a>
+        <a href="#target">Target State</a>
+        <a href="#gaps">Critical Gaps</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#contracts">Payload Contracts</a>
+        <a href="#references">References</a>
+      </div>
+    </nav>
+
+    <!-- ═════════════════════════════ TRANSPORTS ═════════════════════════════ -->
+    <section id="transports">
+      <div class="container">
+        <h2>The Three Transports</h2>
+        <p class="section-desc">
+          Each transport has distinct capabilities and limitations. A complete HTMX-aware CQRS
+          library must speak each one fluently — pushing events, accepting commands, reporting
+          errors, and surviving disconnection — using the right tool for each direction.
+        </p>
+
+        <div class="tech-banner">
+          <div class="tech-card http">
+            <div class="tech-name">HTTP</div>
+            <div class="tech-tag">Request / Response · Half-duplex · Stateless</div>
+            <div class="tech-score">
+              The workhorse
+              <strong style="color: var(--green)">Mature</strong>
+            </div>
+          </div>
+          <div class="tech-card sse">
+            <div class="tech-name">SSE</div>
+            <div class="tech-tag">Server → Client · Auto-reconnect · One-way</div>
+            <div class="tech-score">
+              Push channel
+              <strong style="color: var(--yellow)">Partial</strong>
+            </div>
+          </div>
+          <div class="tech-card ws">
+            <div class="tech-name">WebSocket</div>
+            <div class="tech-tag">Full-duplex · Persistent · Stateful</div>
+            <div class="tech-score">
+              Real-time channel
+              <strong style="color: var(--red)">Receive-only</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title"><h4>HTTP — the contract</h4></div>
+            <p>
+              Every interaction begins and ends here. Request body carries commands and queries;
+              response body carries results. Status codes encode outcomes;
+              <code>MapError</code> already maps CQRS error families to HTTP statuses. This is the
+              baseline the other transports must <em>match in expressive power</em>, not duplicate.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title"><h4>SSE — the push</h4></div>
+            <p>
+              Pure server-to-client stream built on HTTP. The browser handles reconnection and
+              replays <code>Last-Event-ID</code> automatically. Perfect for broadcasting domain
+              events, live updates, and progress. <strong>Cannot</strong> receive commands from the
+              client — by spec.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title"><h4>WebSocket — the channel</h4></div>
+            <p>
+              Bidirectional, persistent, lowest latency. The only transport that can carry commands
+              <em>and</em> push events without polling. Comes with connection lifecycle, framing,
+              ping/pong, and reconnection complexity that must be surfaced explicitly.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ CURRENT STATE ═════════════════════════════ -->
+    <section id="current">
+      <div class="container">
+        <h2>Current State Matrix</h2>
+        <p class="section-desc">
+          Verified against the codebase on 2026-06-18. <strong>HTTP is complete.</strong>
+          <strong>SSE</strong> has full push semantics but
+          <strong>silently swallows errors</strong> and has no heartbeat.
+          <strong>WebSocket</strong> is the weakest: only an inbound message parser and an OOB-HTML
+          encoder — no outbound event framing, no dispatch bridge, no error channel, no lifecycle
+          hooks.
+        </p>
+
+        <div class="grid-4" style="margin-bottom: 32px">
+          <div class="stat">
+            <div class="value green">7</div>
+            <div class="label">Cells Fully Supported</div>
+          </div>
+          <div class="stat">
+            <div class="value yellow">4</div>
+            <div class="label">Cells Partial</div>
+          </div>
+          <div class="stat">
+            <div class="value red">13</div>
+            <div class="label">Cells Missing</div>
+          </div>
+          <div class="stat">
+            <div class="value teal">3</div>
+            <div class="label">Cells Impossible</div>
+          </div>
+        </div>
+
+        <div class="matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th class="tech-col tech-http">HTTP</th>
+                <th class="tech-col tech-sse">SSE</th>
+                <th class="tech-col tech-ws">WebSocket</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="capability">
+                  Outgoing Push
+                  <span class="cap-desc">Server → client data flow</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Response body</span
+                  >
+                  <span class="cell-detail">status + body + headers</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> SSEEvent</span>
+                  <span class="cell-detail">Broadcaster, BroadcastOnSuccess</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-partial"
+                    ><span class="icon">~</span> WSOOBHTML only</span
+                  >
+                  <span class="cell-detail">encoder exists, no event framing</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Incoming Command
+                  <span class="cap-desc">Client → server mutation</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> Dispatch</span>
+                  <span class="cell-detail">full CQRS + CSRF</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                  <span class="cell-detail">one-way by spec</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-missing"
+                    ><span class="icon">✗</span> No bridge</span
+                  >
+                  <span class="cell-detail">ParseWSMessage only</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Incoming Query
+                  <span class="cap-desc">Client → server read</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> Dispatch</span>
+                  <span class="cell-detail">queries + pagination</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                  <span class="cell-detail">one-way by spec</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-missing"
+                    ><span class="icon">✗</span> No bridge</span
+                  >
+                  <span class="cell-detail">no query dispatch over WS</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Push on Success
+                  <span class="cap-desc">AfterDispatch hook (err == nil)</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> Response</span>
+                  <span class="cell-detail">implicit</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> BroadcastOnSuccess</span
+                  >
+                  <span class="cell-detail">+ BroadcastOnSuccessFunc</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-missing"
+                    ><span class="icon">✗</span> No hook</span
+                  >
+                  <span class="cell-detail">no WS equivalent</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Push on Error
+                  <span class="cap-desc">AfterDispatch hook (err != nil)</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Status + body</span
+                  >
+                  <span class="cell-detail">MapError family → status</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-missing"><span class="icon">✗</span> Silent</span>
+                  <span class="cell-detail">early return, no error event</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-missing"
+                    ><span class="icon">✗</span> No format</span
+                  >
+                  <span class="cell-detail">no error frame at all</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Heartbeat / Keepalive
+                  <span class="cap-desc">Prevent idle disconnect</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                  <span class="cell-detail">request/response</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-missing"><span class="icon">✗</span> None</span>
+                  <span class="cell-detail">proxies kill idle streams</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-missing"><span class="icon">✗</span> None</span>
+                  <span class="cell-detail">no ping helper</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Resume / Replay
+                  <span class="cap-desc">State recovery after drop</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                  <span class="cell-detail">stateless</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> LastEventID</span
+                  >
+                  <span class="cell-detail">SSEEventStore + ReplayEvents</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-missing"
+                    ><span class="icon">✗</span> No contract</span
+                  >
+                  <span class="cell-detail">app-level only</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  OOB HTML Swap
+                  <span class="cap-desc">Out-of-band HTMX updates</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> Partial</span>
+                  <span class="cell-detail">via response</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Data field</span
+                  >
+                  <span class="cell-detail">event payload is HTML</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> WSOOBHTML</span>
+                  <span class="cell-detail">encoder only</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Connection Lifecycle
+                  <span class="cap-desc">Disconnect / close hooks</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> Implicit</span>
+                  <span class="cell-detail">request-scoped</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-partial"
+                    ><span class="icon">~</span> Context only</span
+                  >
+                  <span class="cell-detail">Context().Done(), no callback</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-missing"><span class="icon">✗</span> None</span>
+                  <span class="cell-detail">no OnClose hook</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout danger">
+          <div class="callout-title">⚠ Critical: SSE silently swallows errors</div>
+          <p>
+            <code>BroadcastOnSuccess</code> / <code>BroadcastOnSuccessFunc</code> early-return when
+            <code>err != nil</code>. Clients never learn that a command failed. This is the single
+            largest hole in the real-time story — every other error-handling gap is downstream of
+            it.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ LEGEND ═════════════════════════════ -->
+    <section id="legend" style="padding: 32px 0">
+      <div class="container">
+        <h2 style="font-size: 22px">Cell Legend</h2>
+        <div class="legend">
+          <div class="legend-item">
+            <span class="cell-status status-have"><span class="icon">✓</span> Label</span> Fully
+            supported in code today
+          </div>
+          <div class="legend-item">
+            <span class="cell-status status-partial"><span class="icon">~</span> Label</span> Exists
+            but incomplete
+          </div>
+          <div class="legend-item">
+            <span class="cell-status status-missing"><span class="icon">✗</span> Label</span> Not
+            implemented
+          </div>
+          <div class="legend-item">
+            <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span> Not
+            possible by spec
+          </div>
+          <div class="legend-item">
+            <span class="cell-status status-new"><span class="icon">+</span> NEW</span> Proposed
+            addition in target state
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ TARGET ═════════════════════════════ -->
+    <section id="target">
+      <div class="container">
+        <h2>Target State — Support Each Tech to the Max</h2>
+        <p class="section-desc">
+          Every cell that <em>can</em> be supported <em>should</em> be supported. The shape below
+          treats each transport's full feature set as the contract, not the parts that were easy to
+          build first. New APIs are tagged
+          <span class="cell-status status-new"><span class="icon">+</span> NEW</span>.
+        </p>
+
+        <div class="matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th class="tech-col tech-http">HTTP</th>
+                <th class="tech-col tech-sse">SSE</th>
+                <th class="tech-col tech-ws">WebSocket</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="capability">
+                  Incoming Command
+                  <span class="cap-desc">Client → server mutation</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> Dispatch</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> WSDispatchHandler</span
+                  >
+                  <span class="cell-detail">parse → app.Commands.Dispatch</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Incoming Query
+                  <span class="cap-desc">Client → server read</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> Dispatch</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> Same bridge</span
+                  >
+                  <span class="cell-detail">route by message shape</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Push Domain Event
+                  <span class="cap-desc">Outbound server → client</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Broadcaster</span
+                  >
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> WriteWSMessage[T]</span
+                  >
+                  <span class="cell-detail">symmetric WSBroadcaster</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Push on Success
+                  <span class="cap-desc">err == nil hook</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> Response</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> BroadcastOnSuccess</span
+                  >
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> BroadcastOnSuccessWS</span
+                  >
+                  <span class="cell-detail">mirror SSE hook</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Push on Error
+                  <span class="cap-desc">err != nil hook + structured payload</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Status + body</span
+                  >
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> BroadcastOnError</span
+                  >
+                  <span class="cell-detail">+ BroadcastOnErrorFunc</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> WSError frame</span
+                  >
+                  <span class="cell-detail">RFC 7807 payload</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Heartbeat / Keepalive
+                  <span class="cap-desc">Idle disconnect prevention</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> Heartbeat(ctx, 15s)</span
+                  >
+                  <span class="cell-detail">SSE comment-frame ping</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> WSPingHandler</span
+                  >
+                  <span class="cell-detail">wrap consumer WS lib</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Resume / Replay
+                  <span class="cap-desc">State recovery</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> LastEventID + Store</span
+                  >
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> WSEventStore</span
+                  >
+                  <span class="cell-detail">mirror SSEEventStore</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  OOB HTML Swap
+                  <span class="cap-desc">Out-of-band HTMX updates</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> Response</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Data field</span
+                  >
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> WSOOBHTML</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Connection Lifecycle
+                  <span class="cap-desc">Disconnect / close hooks</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Request scope</span
+                  >
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> OnDisconnect(fn)</span
+                  >
+                  <span class="cell-detail">explicit callback</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> OnClose(fn)</span
+                  >
+                  <span class="cell-detail">explicit callback</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="capability">
+                  Backpressure
+                  <span class="cap-desc">Slow-consumer policy</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> TCP</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Drop-to-slow</span
+                  >
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-new"
+                    ><span class="icon">+</span> Documented policy</span
+                  >
+                  <span class="cell-detail">optional buffered-send variant</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout success">
+          <div class="callout-title">North Star</div>
+          <p>
+            A consumer of cqrs-htmx should be able to swap transports without rewriting their CQRS
+            handlers. The same command struct flows in via HTTP body, SSE-bridged POST, or WS frame;
+            the same event struct flows out as HTTP response, SSE event, or WS message — with errors
+            carried consistently by the same structured payload type.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ GAPS ═════════════════════════════ -->
+    <section id="gaps">
+      <div class="container">
+        <h2>Critical Gaps</h2>
+        <p class="section-desc">
+          The four holes that prevent cqrs-htmx from claiming "full transport coverage." Ranked by
+          blast radius — every consumer hits them.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">
+              <h4>1. SSE Error Channel</h4>
+              <span class="badge badge-critical">Critical</span>
+            </div>
+            <p>
+              No <code>BroadcastOnError</code> / <code>BroadcastOnErrorFunc</code>. Failed commands
+              produce zero feedback to subscribed clients. Forces consumers into HTTP polling for
+              error feedback, defeating the point of SSE.
+            </p>
+            <div class="progress-bar"><div class="progress-fill red" style="width: 0%"></div></div>
+            <p style="font-size: 12px; color: var(--text-dim); margin-top: 8px">
+              0% implemented · ~20 min of work · unblocks the entire error-reporting story
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>2. SSE Heartbeat</h4>
+              <span class="badge badge-high">High</span>
+            </div>
+            <p>
+              No comment-frame ping. Nginx, Cloudflare, AWS ALB, and corporate proxies kill idle SSE
+              connections after 30–60s of silence. Production deployments <em>will</em> break
+              without this — and the failure mode is silent (client thinks it's connected).
+            </p>
+            <div class="progress-bar"><div class="progress-fill red" style="width: 0%"></div></div>
+            <p style="font-size: 12px; color: var(--text-dim); margin-top: 8px">
+              0% implemented · ~15 min · <code>SSEStream.Heartbeat(ctx, interval)</code>
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>3. WS Outbound Encoder</h4>
+              <span class="badge badge-high">High</span>
+            </div>
+            <p>
+              Only <code>ParseWSMessage</code> (inbound) exists. No <code>WriteWSMessage[T]</code>,
+              no <code>WSBroadcaster</code>, no equivalent of <code>SSEStream.Send</code>. Without
+              this, WS cannot push domain events back to the client at all.
+            </p>
+            <div class="progress-bar"><div class="progress-fill red" style="width: 5%"></div></div>
+            <p style="font-size: 12px; color: var(--text-dim); margin-top: 8px">
+              <code>WSOOBHTML</code> is the only encoder · ~45 min for full encoder + broadcaster
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <h4>4. WS Dispatch Bridge</h4>
+              <span class="badge badge-medium">Medium</span>
+            </div>
+            <p>
+              No <code>WSDispatchHandler(app)</code>. The parser exists but doesn't wire into the
+              CQRS dispatcher. Consumers must hand-roll the bridge. This is what would make WS a
+              first-class transport instead of a parser library.
+            </p>
+            <div class="progress-bar">
+              <div class="progress-fill yellow" style="width: 25%"></div>
+            </div>
+            <p style="font-size: 12px; color: var(--text-dim); margin-top: 8px">
+              Parser exists (25%) · ~90 min for dispatch + query routing + error framing
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ ROADMAP ═════════════════════════════ -->
+    <section id="roadmap">
+      <div class="container">
+        <h2>Pareto-Ordered Roadmap</h2>
+        <p class="section-desc">
+          80% of the value in 20% of the work. Items 1–2 close the SSE error/keepalive story in
+          under an hour combined. Items 3–4 lift WebSocket to parity with SSE. Item 5 unifies the
+          error vocabulary across all transports.
+        </p>
+
+        <div class="priority-card p1">
+          <div class="priority-num">1</div>
+          <div class="priority-body">
+            <h4>BroadcastOnError / BroadcastOnErrorFunc</h4>
+            <p>
+              Symmetric to <code>BroadcastOnSuccess</code>. Fires when <code>err != nil</code>.
+              Carries structured error payload (RFC 7807 shape). Closes the largest hole in the
+              real-time story: SSE clients finally learn when commands fail.
+            </p>
+          </div>
+          <div class="priority-meta">
+            <span class="badge badge-critical">Critical</span>
+            <span class="badge badge-good">~20 min</span>
+          </div>
+        </div>
+
+        <div class="priority-card p2">
+          <div class="priority-num">2</div>
+          <div class="priority-body">
+            <h4>SSEStream.Heartbeat(ctx, interval)</h4>
+            <p>
+              Sends SSE comment-frame pings (<code>: keepalive\n\n</code>) on a ticker. Default 15s.
+              Stops on <code>ctx.Done()</code>. Without this, reverse proxies and corporate
+              firewalls silently sever SSE connections after 30–60s of idle.
+            </p>
+          </div>
+          <div class="priority-meta">
+            <span class="badge badge-high">High</span>
+            <span class="badge badge-good">~15 min</span>
+          </div>
+        </div>
+
+        <div class="priority-card p3">
+          <div class="priority-num">3</div>
+          <div class="priority-body">
+            <h4>WSMessage encoder + WSBroadcaster</h4>
+            <p>
+              <code>WriteWSMessage[T]</code> / <code>WriteWSMessageInto[T]</code> symmetric to the
+              parser. A <code>WSBroadcaster</code> mirror of the SSE <code>Broadcaster</code> for
+              fan-out to multiple connected clients. Unlocks push events over WebSocket.
+            </p>
+          </div>
+          <div class="priority-meta">
+            <span class="badge badge-high">High</span>
+            <span class="badge badge-medium">~45 min</span>
+          </div>
+        </div>
+
+        <div class="priority-card p4">
+          <div class="priority-num">4</div>
+          <div class="priority-body">
+            <h4>WSDispatchHandler(app)</h4>
+            <p>
+              Bridge incoming WS → CQRS dispatcher. Routes by message shape (command vs query),
+              dispatches, and frames the response — success or error — back over the same socket.
+              Makes WebSocket a first-class transport.
+            </p>
+          </div>
+          <div class="priority-meta">
+            <span class="badge badge-medium">Medium</span>
+            <span class="badge badge-medium">~90 min</span>
+          </div>
+        </div>
+
+        <div class="priority-card p5">
+          <div class="priority-num">5</div>
+          <div class="priority-body">
+            <h4>Structured error payload type (SSEError / WSError)</h4>
+            <p>
+              RFC 7807-shaped type (<code>Type</code>, <code>Title</code>, <code>Status</code>,
+              <code>Detail</code>) used uniformly across HTTP, SSE, and WS error responses. Lets
+              clients render and handle errors consistently regardless of transport.
+            </p>
+          </div>
+          <div class="priority-meta">
+            <span class="badge badge-low">Low</span>
+            <span class="badge badge-medium">~30 min</span>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Total estimated effort</div>
+          <p>
+            <strong>~3.5 hours</strong> of focused implementation to take cqrs-htmx from "HTTP
+            complete, SSE partial, WS receive-only" to <em>full transport parity</em> with
+            consistent error reporting across all three.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ CONTRACTS ═════════════════════════════ -->
+    <section id="contracts">
+      <div class="container">
+        <h2>Proposed Payload Contracts</h2>
+        <p class="section-desc">
+          Concrete shapes for the new APIs. RFC 7807 alignment for errors so client code can be
+          transport-agnostic.
+        </p>
+
+        <h3>Structured Error Payload</h3>
+        <p>
+          Used by <code>BroadcastOnError</code>, <code>WSError</code> frames, and optionally HTTP
+          error bodies. Shape follows
+          <a href="https://datatracker.ietf.org/doc/html/rfc7807" style="color: var(--accent)"
+            >RFC 7807</a
+          >.
+        </p>
+        <div class="code-block">
+          <span class="cmt"
+            >// Transport-agnostic structured error. Serialized as JSON for SSE data / WS
+            payload.</span
+          >
+          <span class="kw">type</span> <span class="ty">StructuredError</span> {
+          <span class="fn">Type</span> <span class="kw">string</span>
+          <span class="cmt">// URI or token: "about:blank", "https://errors/rejection"</span>
+          <span class="fn">Title</span> <span class="kw">string</span>
+          <span class="cmt">// Short human-readable summary</span> <span class="fn">Status</span>
+          <span class="kw">int</span>
+          <span class="cmt">// HTTP status code (carries family semantics)</span>
+          <span class="fn">Detail</span> <span class="kw">string</span>
+          <span class="cmt">// Specific explanation of this occurrence</span>
+          <span class="fn">Instance</span> <span class="kw">string</span>
+          <span class="cmt">// Request ID / correlation ID for tracing</span>
+          }
+        </div>
+
+        <h3>SSE Error Hook Signatures</h3>
+        <div class="code-block">
+          <span class="cmt">// Symmetric to BroadcastOnSuccess. Fires when err != nil.</span>
+          <span class="kw">func</span> (b *<span class="ty">Broadcaster</span>)
+          <span class="fn">BroadcastOnError</span>(eventName <span class="kw">string</span>,
+          errPayload <span class="ty">StructuredError</span>)
+          <span class="ty">AfterDispatchHook</span>
+
+          <span class="kw">func</span> (b *<span class="ty">Broadcaster</span>)
+          <span class="fn">BroadcastOnErrorFunc</span>(errFunc <span class="kw">func</span>(r *<span
+            class="ty"
+            >http.Request</span
+          >, err <span class="kw">error</span>) <span class="ty">SSEEvent</span>)
+          <span class="ty">AfterDispatchHook</span>
+        </div>
+
+        <h3>SSE Heartbeat</h3>
+        <div class="code-block">
+          <span class="cmt"
+            >// Sends SSE comment-frame pings on a ticker until ctx is cancelled.</span
+          >
+          <span class="cmt">// Safe to run in a goroutine alongside stream.Send.</span>
+          <span class="kw">func</span> (s *<span class="ty">SSEStream</span>)
+          <span class="fn">Heartbeat</span>(ctx <span class="ty">context.Context</span>, interval
+          <span class="ty">time.Duration</span>)
+        </div>
+
+        <h3>WebSocket Encoder + Broadcaster</h3>
+        <div class="code-block">
+          <span class="cmt">// Symmetric to ParseWSMessage. Writes an HTMX-shaped WS message.</span>
+          <span class="kw">func</span> <span class="fn">WriteWSMessage</span>[T
+          <span class="kw">any</span>](w <span class="ty">io.Writer</span>, msg T)
+          <span class="kw">error</span>
+
+          <span class="cmt">// Fan-out for WS clients, mirroring SSE Broadcaster.</span>
+          <span class="kw">type</span> <span class="ty">WSBroadcaster</span>
+          <span class="kw">struct</span>{ /* ... */ } <span class="kw">func</span>
+          <span class="fn">NewWSBroadcaster</span>() *<span class="ty">WSBroadcaster</span>
+          <span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>)
+          <span class="fn">Subscribe</span>() &lt;-<span class="kw">chan</span>
+          <span class="ty">WSMessage</span> <span class="kw">func</span> (b *<span class="ty"
+            >WSBroadcaster</span
+          >) <span class="fn">Broadcast</span>(msg <span class="ty">WSMessage</span>)
+        </div>
+
+        <h3>WS Dispatch Bridge</h3>
+        <div class="code-block">
+          <span class="cmt">// Wire incoming WS messages into the CQRS dispatcher.</span>
+          <span class="cmt"
+            >// Consumers call this from their WS library's OnMessage callback.</span
+          >
+          <span class="kw">func</span> <span class="fn">WSDispatchHandler</span>(app *<span
+            class="ty"
+            >App</span
+          >) <span class="kw">func</span>(data []<span class="kw">byte</span>)
+          <span class="ty">WSMessage</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ REFERENCES ═════════════════════════════ -->
+    <section id="references">
+      <div class="container">
+        <h2>References</h2>
+        <p class="section-desc">
+          Source files, ADRs, and external specs that define the current behavior and target shape.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><h4>Current Implementation</h4></div>
+            <ul style="margin-left: 18px; color: var(--text-dim); font-size: 14px">
+              <li><code>sse_event.go</code> — <code>SSEEvent</code>, <code>WriteSSEEvent</code></li>
+              <li>
+                <code>sse_stream.go</code> — <code>SSEStream</code>, <code>Send</code>,
+                <code>Context</code>
+              </li>
+              <li>
+                <code>sse_broadcaster.go</code> — <code>Broadcaster</code>,
+                <code>BroadcastOnSuccess*</code>
+              </li>
+              <li>
+                <code>sse_store.go</code> — <code>SSEEventStore</code>, <code>ReplayEvents</code>
+              </li>
+              <li>
+                <code>ws.go</code> — <code>WSMessage</code>, <code>ParseWSMessage*</code>,
+                <code>WSOOBHTML</code>
+              </li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-title"><h4>Decisions &amp; Specs</h4></div>
+            <ul style="margin-left: 18px; color: var(--text-dim); font-size: 14px">
+              <li><code>docs/adr/0004-sse-websocket-support.md</code> — design rationale</li>
+              <li><code>README.md:339-410</code> — SSE/WS usage examples</li>
+              <li>
+                <a
+                  href="https://html.spec.whatwg.org/multipage/server-sent-events.html"
+                  style="color: var(--accent)"
+                  >SSE spec (WHATWG)</a
+                >
+              </li>
+              <li>
+                <a href="https://datatracker.ietf.org/doc/html/rfc6455" style="color: var(--accent)"
+                  >WebSocket protocol (RFC 6455)</a
+                >
+              </li>
+              <li>
+                <a href="https://datatracker.ietf.org/doc/html/rfc7807" style="color: var(--accent)"
+                  >Problem Details (RFC 7807)</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════ FOOTER ═════════════════════════════ -->
+    <footer>
+      <div class="container">
+        <div>cqrs-htmx · Web Communication Matrix</div>
+        <div class="footer-meta">Generated 2026-06-18 · verified against codebase · v2.x</div>
+      </div>
+    </footer>
+  </body>
+</html>

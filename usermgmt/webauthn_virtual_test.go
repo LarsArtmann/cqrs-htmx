@@ -185,18 +185,11 @@ func TestWebAuthnVirtualAuthenticator_LoginWrongChallenge(t *testing.T) {
 
 func newWebAuthnTestServiceWithExampleOrg(t *testing.T) *Service {
 	t.Helper()
-	svc, err := NewService(ServiceConfig{
-		WebAuthnConfig: &WebAuthnConfig{
-			RPID:          "example.org",
-			RPDisplayName: "Test App",
-			RPOrigins:     []string{"https://example.org"},
-		},
+	return newWebAuthnTestServiceWithConfig(t, &WebAuthnConfig{
+		RPID:          "example.org",
+		RPDisplayName: "Test App",
+		RPOrigins:     []string{"https://example.org"},
 	})
-	if err != nil {
-		t.Fatalf("NewService: %v", err)
-	}
-	t.Cleanup(svc.Stop)
-	return svc
 }
 
 func overrideSessionChallenge(t *testing.T, svc *Service, userID UserID, challengeHex string) {

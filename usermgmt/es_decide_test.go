@@ -76,27 +76,41 @@ func TestDecideUpdateRoles_NotFound(t *testing.T) {
 	}
 }
 
-func TestDecideChangeEmail_Success(t *testing.T) {
-	decide := decideChangeEmail(id.NewAggregateID(), "new@example.com")
-	state := UserState{Email: "old@example.com"}
-	events, err := decide(state, 1)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+func TestDecideChangeEmail(t *testing.T) {
+	cases := []struct {
+		name        string
+		newEmail    string
+		stateEmail  string
+		wantEvents  int
+		description string
+	}{
+		{
+			name:        "success",
+			newEmail:    "new@example.com",
+			stateEmail:  "old@example.com",
+			wantEvents:  1,
+			description: "different emails produce one event",
+		},
+		{
+			name:        "same email is a no-op",
+			newEmail:    "same@example.com",
+			stateEmail:  "same@example.com",
+			wantEvents:  0,
+			description: "identical emails produce zero events",
+		},
 	}
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1", len(events))
-	}
-}
-
-func TestDecideChangeEmail_SameEmail(t *testing.T) {
-	decide := decideChangeEmail(id.NewAggregateID(), "same@example.com")
-	state := UserState{Email: "same@example.com"}
-	events, err := decide(state, 1)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(events) != 0 {
-		t.Fatalf("got %d events, want 0", len(events))
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			decide := decideChangeEmail(id.NewAggregateID(), tc.newEmail)
+			state := UserState{Email: tc.stateEmail}
+			events, err := decide(state, 1)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if len(events) != tc.wantEvents {
+				t.Fatalf("%s: got %d events, want %d", tc.description, len(events), tc.wantEvents)
+			}
+		})
 	}
 }
 

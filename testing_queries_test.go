@@ -1,6 +1,8 @@
 package cqrshtmx_test
 
 import (
+	"context"
+
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -70,24 +72,44 @@ func decodeCreateUserJSONWithBodyAndAggID(aggID id.AggregateID) cqrshtmx.Handler
 	})
 }
 
+// bddCreateUserCommand builds a bddCreateUserCmd from a request body.
+// Shared by JSON and form decoders; the aggID is fresh on every call.
+func bddCreateUserCommand(req bddCreateUserReq) (command.Command, error) {
+	return &bddCreateUserCmd{
+		aggID: id.NewAggregateID(),
+		email: req.Email,
+		name:  req.Name,
+	}, nil
+}
+
+// testCreateUserCommand is the same pattern as bddCreateUserCommand but
+// for the testCreateUserRequest / testCreateUserCmd pair.
+func testCreateUserCommand(req testCreateUserRequest) (command.Command, error) {
+	return &testCreateUserCmd{
+		aggID: id.NewAggregateID(),
+		email: req.Email,
+		name:  req.Name,
+	}, nil
+}
+
+// registerListUsersQuery registers a "ListUsers" query handler that
+// returns a fixed list of users. Used by the typed-dispatch example
+// and benchmark to keep their boilerplate identical.
+func registerListUsersQuery(disp *query.Dispatcher, users []string) error {
+	return query.RegisterTyped(
+		disp, "ListUsers",
+		func(_ context.Context, _ *testListUsersQuery) ([]string, error) {
+			return users, nil
+		},
+	)
+}
+
 func decodeBDDCreateUserJSONWithBody() cqrshtmx.HandlerOption {
-	return cqrshtmx.DecodeJSON(func(req bddCreateUserReq) (command.Command, error) {
-		return &bddCreateUserCmd{
-			aggID: id.NewAggregateID(),
-			email: req.Email,
-			name:  req.Name,
-		}, nil
-	})
+	return cqrshtmx.DecodeJSON(bddCreateUserCommand)
 }
 
 func decodeBDDCreateUserFormMapper() func(bddCreateUserReq) (command.Command, error) {
-	return func(req bddCreateUserReq) (command.Command, error) {
-		return &bddCreateUserCmd{
-			aggID: id.NewAggregateID(),
-			email: req.Email,
-			name:  req.Name,
-		}, nil
-	}
+	return bddCreateUserCommand
 }
 
 // --- Handler helpers ---

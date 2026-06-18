@@ -19,10 +19,7 @@ func TestAggIDFromUser_InvalidID(t *testing.T) {
 
 func TestAggIDFromUser_EmptyID(t *testing.T) {
 	svc := newTestService(t)
-	err := svc.ChangeEmail(context.Background(), NewUserID(""), "new@test.com")
-	if err == nil {
-		t.Fatal("expected error for empty UserID")
-	}
+	assertChangeEmailError(t, svc, NewUserID(""), "new@test.com")
 }
 
 func TestClassifyDispatchError_Transient(t *testing.T) {

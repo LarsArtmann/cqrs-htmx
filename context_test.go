@@ -14,6 +14,11 @@ import (
 )
 
 var _ = Describe("Context", func() {
+	expectNilEventOptionsFromContext := func(ctx context.Context) {
+		GinkgoHelper()
+		Expect(cqrshtmx.EventOptionsFromContext(ctx)).To(BeNil())
+	}
+
 	Describe("WithUserID / UserIDFromContext", func() {
 		It("stores and retrieves a user ID", func() {
 			ctx := context.Background()
@@ -80,9 +85,7 @@ var _ = Describe("Context", func() {
 
 	Describe("EventOptionsFromContext", func() {
 		It("returns nil options when no user ID is set", func() {
-			ctx := context.Background()
-			opts := cqrshtmx.EventOptionsFromContext(ctx)
-			Expect(opts).To(BeNil())
+			expectNilEventOptionsFromContext(context.Background())
 		})
 
 		It("returns options with user ID when set", func() {
@@ -182,9 +185,7 @@ var _ = Describe("Context", func() {
 		})
 
 		It("returns nil when no IDs and no deadline", func() {
-			ctx := context.Background()
-			opts := cqrshtmx.EventOptionsFromContext(ctx)
-			Expect(opts).To(BeNil())
+			expectNilEventOptionsFromContext(context.Background())
 		})
 
 		It("propagates timeout deadline via event.FromContext", func() {

@@ -11,18 +11,9 @@ import (
 
 func newWebAuthnTestService(t *testing.T) *Service {
 	t.Helper()
-	svc, err := NewService(ServiceConfig{
-		WebAuthnConfig: &WebAuthnConfig{
-			RPID:          "localhost",
-			RPDisplayName: "Test App",
-			RPOrigins:     []string{"https://localhost"},
-		},
-	})
-	if err != nil {
-		t.Fatalf("NewService: %v", err)
-	}
-	t.Cleanup(svc.Stop)
-	return svc
+	cfg := localTestWebAuthnConfig()
+	cfg.RPDisplayName = "Test App"
+	return newWebAuthnTestServiceWithConfig(t, cfg)
 }
 
 func TestWebAuthn_BeginRegistration_NotConfigured(t *testing.T) {

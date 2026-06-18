@@ -123,6 +123,7 @@ linters:
           - noctx
           - nilnil
           - goconst
+          - funlen
       - path: _test\.go
         text: unused
         linters:

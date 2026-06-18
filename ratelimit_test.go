@@ -12,6 +12,23 @@ import (
 
 var _ = Describe("Rate Limiting", func() {
 	Describe("RateLimiterMiddleware", func() {
+		// Rate limiter configs are highly repetitive in the test suite.
+		// The helpers below produce a base config with sensible defaults
+		// (Limit=1, Window=1m, Burst=1) and let callers override the
+		// extractor and TTL — the two knobs that actually change behavior.
+		baseLimitConfig := func() cqrshtmx.RateLimiterConfig {
+			return cqrshtmx.RateLimiterConfig{
+				Limit:  1,
+				Window: time.Minute,
+				Burst:  1,
+			}
+		}
+		keyedLimitConfig := func(key string) cqrshtmx.RateLimiterConfig {
+			cfg := baseLimitConfig()
+			cfg.KeyExtractor = func(_ *http.Request) string { return key }
+			return cfg
+		}
+
 		assertRateLimit := func(cfg cqrshtmx.RateLimiterConfig, requests int) []int {
 			middleware := cqrshtmx.RateLimiterMiddleware(cfg)
 			handler := middleware(okHandler())
@@ -26,33 +43,22 @@ var _ = Describe("Rate Limiting", func() {
 		}
 
 		It("allows requests under the limit", func() {
-			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
-				Limit:        10,
-				Window:       time.Minute,
-				Burst:        2,
-				KeyExtractor: func(_ *http.Request) string { return "test-key" },
-			}, 2)
+			cfg := baseLimitConfig()
+			cfg.Limit = 10
+			cfg.Burst = 2
+			cfg.KeyExtractor = func(_ *http.Request) string { return "test-key" }
+			codes := assertRateLimit(cfg, 2)
 			Expect(codes).To(Equal([]int{http.StatusOK, http.StatusOK}))
 		})
 
 		It("blocks requests over the limit", func() {
-			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
-				Limit:        1,
-				Window:       time.Minute,
-				Burst:        1,
-				KeyExtractor: func(_ *http.Request) string { return "test-key" },
-			}, 2)
+			codes := assertRateLimit(keyedLimitConfig("test-key"), 2)
 			Expect(codes[0]).To(Equal(http.StatusOK))
 			Expect(codes[1]).To(Equal(http.StatusTooManyRequests))
 		})
 
 		It("includes Retry-After header on rejection", func() {
-			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
-				Limit:        1,
-				Window:       time.Minute,
-				Burst:        1,
-				KeyExtractor: func(_ *http.Request) string { return "retry-key" },
-			})
+			middleware := cqrshtmx.RateLimiterMiddleware(keyedLimitConfig("retry-key"))
 			handler := middleware(okHandler())
 			handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
 			w := httptest.NewRecorder()
@@ -61,22 +67,13 @@ var _ = Describe("Rate Limiting", func() {
 		})
 
 		It("allows empty key extractor (global rate limit)", func() {
-			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
-				Limit:  1,
-				Window: time.Minute,
-				Burst:  1,
-			}, 2)
+			codes := assertRateLimit(baseLimitConfig(), 2)
 			Expect(codes[0]).To(Equal(http.StatusOK))
 			Expect(codes[1]).To(Equal(http.StatusTooManyRequests))
 		})
 
 		It("skips rate limiting when key extractor returns empty", func() {
-			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
-				Limit:        1,
-				Window:       time.Minute,
-				Burst:        1,
-				KeyExtractor: func(_ *http.Request) string { return "" },
-			}, 3)
+			codes := assertRateLimit(keyedLimitConfig(""), 3)
 			Expect(codes).To(Equal([]int{http.StatusOK, http.StatusOK, http.StatusOK}))
 		})
 
@@ -120,13 +117,9 @@ var _ = Describe("Rate Limiting", func() {
 		})
 
 		It("evicts stale entries after TTL expires", func() {
-			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
-				Limit:        1,
-				Window:       time.Minute,
-				Burst:        1,
-				KeyExtractor: func(_ *http.Request) string { return "evict-key" },
-				TTL:          5 * time.Millisecond,
-			})
+			cfg := keyedLimitConfig("evict-key")
+			cfg.TTL = 5 * time.Millisecond
+			middleware := cqrshtmx.RateLimiterMiddleware(cfg)
 			handler := middleware(okHandler())
 
 			codes := make([]int, 2)
@@ -146,13 +139,9 @@ var _ = Describe("Rate Limiting", func() {
 		})
 
 		It("does not evict entries accessed within TTL", func() {
-			codes := assertRateLimit(cqrshtmx.RateLimiterConfig{
-				Limit:        1,
-				Window:       time.Minute,
-				Burst:        1,
-				KeyExtractor: func(_ *http.Request) string { return "fresh-key" },
-				TTL:          100 * time.Millisecond,
-			}, 2)
+			cfg := keyedLimitConfig("fresh-key")
+			cfg.TTL = 100 * time.Millisecond
+			codes := assertRateLimit(cfg, 2)
 			Expect(codes[0]).To(Equal(http.StatusOK))
 			Expect(codes[1]).To(Equal(http.StatusTooManyRequests))
 		})

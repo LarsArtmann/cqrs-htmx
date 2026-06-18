@@ -31,9 +31,7 @@ func newSlogCapture() (func(http.Handler) http.Handler, *bytes.Buffer) {
 
 // helloBodyHandler returns a handler that writes "hello" with no explicit status.
 func helloBodyHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("hello"))
-	})
+	return writeStringHandler("hello")
 }
 
 func withContextIDs(r *http.Request) *http.Request {

@@ -26,6 +26,19 @@ func newTestDispatcher(t *testing.T, setup *EventSourcedSetup) *command.Dispatch
 	return disp
 }
 
+func sampleWebAuthnCredential() WebAuthnCredential {
+	return WebAuthnCredential{
+		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+	}
+}
+
+func dispatchAddCredential(t *testing.T, disp *command.Dispatcher, ctx context.Context, aggID id.AggregateID) {
+	t.Helper()
+	if err := disp.Dispatch(ctx, NewAddCredentialCmd(aggID, sampleWebAuthnCredential())); err != nil {
+		t.Fatalf("add credential: %v", err)
+	}
+}
+
 func TestWiring_RegisterUser(t *testing.T) {
 	setup := newTestSetup(t)
 	disp := newTestDispatcher(t, setup)
@@ -124,12 +137,7 @@ func TestWiring_AddCredential(t *testing.T) {
 		t.Fatalf("register: %v", err)
 	}
 
-	err := disp.Dispatch(ctx, NewAddCredentialCmd(aggID, WebAuthnCredential{
-		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
-	}))
-	if err != nil {
-		t.Fatalf("add credential: %v", err)
-	}
+	dispatchAddCredential(t, disp, ctx, aggID)
 
 	user, _ := setup.ReadModel.FindByID(aggID)
 	if len(user.Credentials) != 1 {
@@ -149,11 +157,7 @@ func TestWiring_RemoveCredential(t *testing.T) {
 		t.Fatalf("register: %v", err)
 	}
 
-	if err := disp.Dispatch(ctx, NewAddCredentialCmd(aggID, WebAuthnCredential{
-		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
-	})); err != nil {
-		t.Fatalf("add credential: %v", err)
-	}
+	dispatchAddCredential(t, disp, ctx, aggID)
 
 	if err := disp.Dispatch(ctx, NewRemoveCredentialCmd(aggID, []byte{1, 2, 3})); err != nil {
 		t.Fatalf("remove credential: %v", err)

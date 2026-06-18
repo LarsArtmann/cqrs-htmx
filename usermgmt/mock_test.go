@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 )
@@ -52,4 +53,15 @@ func (m *mockSessionStore) DeleteByUserID(ctx context.Context, userID UserID) er
 		return m.DeleteByUserIDFn(ctx, userID)
 	}
 	return nil
+}
+
+// failingDeleteByUserIDSessionStore returns a SessionStore whose
+// DeleteByUserID always returns the given error. Used to verify callers
+// handle session-store failures gracefully.
+func failingDeleteByUserIDSessionStore(msg string) *mockSessionStore {
+	return &mockSessionStore{
+		DeleteByUserIDFn: func(context.Context, UserID) error {
+			return errors.New(msg)
+		},
+	}
 }

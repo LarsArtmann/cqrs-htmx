@@ -11,29 +11,6 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 )
 
-// memoryEventStoreForHTTP is a minimal SSEEventStore used by the
-// real-server SSE tests. The existing memoryEventStore in sse_test.go
-// is defined in the same package; this is a duplicate kept local so
-// the helper file is self-contained.
-type memoryEventStoreForHTTP struct {
-	events []cqrshtmx.SSEEvent
-}
-
-func (m *memoryEventStoreForHTTP) EventsAfter(lastID string) []cqrshtmx.SSEEvent {
-	if lastID == "" {
-		return m.events
-	}
-	for i, evt := range m.events {
-		if evt.ID == lastID {
-			if i+1 < len(m.events) {
-				return m.events[i+1:]
-			}
-			return nil
-		}
-	}
-	return nil
-}
-
 // TestSSE_RealServer_ReconnectionWithLastEventID verifies the SSE
 // reconnection path end-to-end: a client reconnects with a
 // Last-Event-ID header, the server reads it, and replays missed events
@@ -63,8 +40,8 @@ func TestSSE_RealServer_ReconnectionWithLastEventID(t *testing.T) {
 
 const reconnectEventKind = "itemCreated"
 
-func newReconnectStore() *memoryEventStoreForHTTP {
-	return &memoryEventStoreForHTTP{
+func newReconnectStore() *memoryEventStore {
+	return &memoryEventStore{
 		events: []cqrshtmx.SSEEvent{
 			{Event: reconnectEventKind, Data: "<li>first</li>", ID: "1"},
 			{Event: reconnectEventKind, Data: "<li>second</li>", ID: "2"},
@@ -74,7 +51,7 @@ func newReconnectStore() *memoryEventStoreForHTTP {
 	}
 }
 
-func newReconnectMux(store *memoryEventStoreForHTTP, includeReplayOnError bool) *http.ServeMux {
+func newReconnectMux(store *memoryEventStore, includeReplayOnError bool) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := cqrshtmx.NewSSEStream(w, r)
@@ -153,7 +130,7 @@ func assertReplayedAfterID2(t *testing.T, out string) {
 // handshake occurs.
 func TestSSE_RealServer_ReconnectionNoLastID(t *testing.T) {
 	t.Parallel()
-	store := &memoryEventStoreForHTTP{
+	store := &memoryEventStore{
 		events: []cqrshtmx.SSEEvent{
 			{Event: "x", Data: "y", ID: "1"},
 		},
