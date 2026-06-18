@@ -119,7 +119,7 @@ func (a *App) DispatchWSCommand(
 		return errDecoderMissing
 	}
 
-	ctx, cancel := a.dispatchTimeout(ctx)
+	ctx, cancel := a.timeoutCtx(ctx, nil)
 	defer cancel()
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
@@ -181,7 +181,7 @@ func (a *App) DispatchWSQuery(
 		return nil, errDecoderMissing
 	}
 
-	ctx, cancel := a.dispatchTimeout(ctx)
+	ctx, cancel := a.timeoutCtx(ctx, nil)
 	defer cancel()
 
 	result, err := a.queries.Dispatch(ctx, qry)
@@ -201,13 +201,4 @@ func wsContext(r *http.Request) context.Context {
 		return context.Background()
 	}
 	return r.Context()
-}
-
-// dispatchTimeout applies the App-level timeout to ctx. Used by WS dispatch
-// methods which have no per-handler config.
-func (a *App) dispatchTimeout(ctx context.Context) (context.Context, context.CancelFunc) {
-	if a.timeout <= 0 {
-		return ctx, noopCancel
-	}
-	return context.WithTimeout(ctx, a.timeout)
 }

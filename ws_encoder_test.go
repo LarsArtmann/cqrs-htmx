@@ -239,4 +239,62 @@ var _ = Describe("WSBroadcaster", func() {
 			Consistently(ch).ShouldNot(Receive())
 		})
 	})
+
+	Describe("BroadcastOnSuccessWSFunc", func() {
+		It("broadcasts dynamic message on dispatch success", func() {
+			b := cqrshtmx.NewWSBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			req := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
+			hook := b.BroadcastOnSuccessWSFunc(func(r *http.Request) string {
+				return "<div>dynamic " + r.URL.Path + "</div>"
+			})
+			hook(context.Background(), req, nil)
+
+			Eventually(ch).Should(Receive(Equal("<div>dynamic /api/cmd</div>")))
+		})
+
+		It("does not broadcast on error", func() {
+			b := cqrshtmx.NewWSBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnSuccessWSFunc(func(_ *http.Request) string {
+				return "should not broadcast"
+			})
+			hook(context.Background(), nil, errors.New("fail"))
+
+			Consistently(ch).ShouldNot(Receive())
+		})
+	})
+
+	Describe("BroadcastOnErrorWSFunc", func() {
+		It("broadcasts dynamic error message on dispatch failure", func() {
+			b := cqrshtmx.NewWSBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			req := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
+			hook := b.BroadcastOnErrorWSFunc(func(_ *http.Request, err error) string {
+				return `{"error":"` + err.Error() + `"}`
+			})
+			hook(context.Background(), req, errors.New("rate limited"))
+
+			Eventually(ch).Should(Receive(ContainSubstring("rate limited")))
+		})
+
+		It("does not broadcast on success", func() {
+			b := cqrshtmx.NewWSBroadcaster()
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			hook := b.BroadcastOnErrorWSFunc(func(_ *http.Request, _ error) string {
+				return "should not broadcast"
+			})
+			hook(context.Background(), nil, nil)
+
+			Consistently(ch).ShouldNot(Receive())
+		})
+	})
 })

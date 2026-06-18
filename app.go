@@ -265,13 +265,16 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 var noopCancel = func() {}
 
 // timeoutCtx returns a context with the handler's timeout applied, if configured.
-// Falls back to the App's timeout if the handler has no override.
+// Falls back to the App's timeout if the handler has no override (or cfg is nil).
 // The caller must call the returned cancel function when done.
 func (a *App) timeoutCtx(
 	ctx context.Context,
 	cfg *handlerConfig,
 ) (context.Context, context.CancelFunc) {
-	t := cfg.timeout
+	var t time.Duration
+	if cfg != nil {
+		t = cfg.timeout
+	}
 	if t <= 0 {
 		t = a.timeout
 	}

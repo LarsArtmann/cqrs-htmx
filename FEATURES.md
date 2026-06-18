@@ -128,7 +128,7 @@
 | 51a | StructuredError         | FULLY_FUNCTIONAL | RFC 7807-shaped transport-agnostic error payload (`type`, `title`, `status`, `detail`, `instance`). `NewStructuredError(err, r)` maps via `MapError` + request ID. `JSON()` for SSE/WS serialization.                                  |
 | 51b | WS Message Encoder      | FULLY_FUNCTIONAL | `WriteWSMessage(w, msg)` / `WriteWSMessageInto[T](w, body, headers)` — outbound WS encoders, counterparts to `ParseWSMessage` / `ParseWSMessageInto[T]`. Round-trip verified.                                                          |
 | 51c | WS Broadcaster          | FULLY_FUNCTIONAL | `WSBroadcaster` — thread-safe fan-out for WS messages. Mirrors SSE `Broadcaster` API. O(1) unsubscribe via channel pointer identity. `BroadcastHTML` for OOB swaps.                                                                    |
-| 51d | WS + CQRS Bridge        | FULLY_FUNCTIONAL | `BroadcastOnSuccessWS(msg)` / `BroadcastOnErrorWS()` — AfterDispatchHook factories for `WSBroadcaster`. WebSocket equivalents of SSE `BroadcastOnSuccess` / `BroadcastOnError`.                                                        |
+| 51d | WS + CQRS Bridge        | FULLY_FUNCTIONAL | `BroadcastOnSuccessWS(msg)` / `BroadcastOnSuccessWSFunc(fn)` / `BroadcastOnErrorWS()` / `BroadcastOnErrorWSFunc(fn)` — AfterDispatchHook factories for `WSBroadcaster`. Full parity with SSE hooks.                                    |
 | 51e | WS Dispatch Bridge      | FULLY_FUNCTIONAL | `DispatchWSCommand(r, type, decoder, data)` / `DispatchWSQuery(r, type, decoder, data)` — decode WS message → dispatch via App. Runs lifecycle hooks. `DecodeWSJSON[T]` / `DecodeWSJSONQuery[T]` decoder factories.                    |
 
 ### Pagination (go-cqrs-lite v2.3.0)
