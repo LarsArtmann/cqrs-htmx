@@ -928,7 +928,7 @@
             <div class="tech-tag">Server → Client · Auto-reconnect · One-way</div>
             <div class="tech-score">
               Push channel
-              <strong style="color: var(--yellow)">Partial</strong>
+              <strong style="color: var(--green)">Complete</strong>
             </div>
           </div>
           <div class="tech-card ws">
@@ -936,7 +936,7 @@
             <div class="tech-tag">Full-duplex · Persistent · Stateful</div>
             <div class="tech-score">
               Real-time channel
-              <strong style="color: var(--red)">Receive-only</strong>
+              <strong style="color: var(--green)">Bidirectional</strong>
             </div>
           </div>
         </div>
@@ -1237,15 +1237,15 @@
 
         <div class="grid-4" style="margin-bottom: 32px">
           <div class="stat">
-            <div class="value green">11</div>
+            <div class="value green">17</div>
             <div class="label">Cells Fully Supported</div>
           </div>
           <div class="stat">
-            <div class="value yellow">2</div>
+            <div class="value yellow">0</div>
             <div class="label">Cells Partial</div>
           </div>
           <div class="stat">
-            <div class="value red">9</div>
+            <div class="value red">5</div>
             <div class="label">Cells Missing</div>
           </div>
           <div class="stat">
@@ -1279,10 +1279,10 @@
                   <span class="cell-detail">Broadcaster, BroadcastOnSuccess</span>
                 </td>
                 <td class="cell">
-                  <span class="cell-status status-partial"
-                    ><span class="icon">~</span> WSOOBHTML only</span
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> WriteWSMessage</span
                   >
-                  <span class="cell-detail">encoder exists, no event framing</span>
+                  <span class="cell-detail">+ WSBroadcaster, WSOOBHTML</span>
                 </td>
               </tr>
               <tr>
@@ -1341,10 +1341,10 @@
                   <span class="cell-detail">+ BroadcastOnSuccessFunc</span>
                 </td>
                 <td class="cell">
-                  <span class="cell-status status-missing"
-                    ><span class="icon">✗</span> No hook</span
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> BroadcastOnSuccessWS</span
                   >
-                  <span class="cell-detail">no WS equivalent</span>
+                  <span class="cell-detail">+ BroadcastOnErrorWS</span>
                 </td>
               </tr>
               <tr>
@@ -1359,14 +1359,16 @@
                   <span class="cell-detail">MapError family → status</span>
                 </td>
                 <td class="cell">
-                  <span class="cell-status status-missing"><span class="icon">✗</span> Silent</span>
-                  <span class="cell-detail">early return, no error event</span>
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> BroadcastOnError</span
+                  >
+                  <span class="cell-detail">StructuredError payload</span>
                 </td>
                 <td class="cell">
-                  <span class="cell-status status-missing"
-                    ><span class="icon">✗</span> No format</span
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> BroadcastOnErrorWS</span
                   >
-                  <span class="cell-detail">no error frame at all</span>
+                  <span class="cell-detail">StructuredError payload</span>
                 </td>
               </tr>
               <tr>
@@ -1379,8 +1381,10 @@
                   <span class="cell-detail">request/response</span>
                 </td>
                 <td class="cell">
-                  <span class="cell-status status-missing"><span class="icon">✗</span> None</span>
-                  <span class="cell-detail">proxies kill idle streams</span>
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Heartbeat</span
+                  >
+                  <span class="cell-detail">comment-frame ping, 15s default</span>
                 </td>
                 <td class="cell">
                   <span class="cell-status status-missing"><span class="icon">✗</span> None</span>
@@ -1439,10 +1443,10 @@
                   <span class="cell-detail">request-scoped</span>
                 </td>
                 <td class="cell">
-                  <span class="cell-status status-partial"
-                    ><span class="icon">~</span> Context only</span
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Context + OnDisconnect</span
                   >
-                  <span class="cell-detail">Context().Done(), no callback</span>
+                  <span class="cell-detail">explicit callback hook</span>
                 </td>
                 <td class="cell">
                   <span class="cell-status status-missing"><span class="icon">✗</span> None</span>
@@ -1453,13 +1457,14 @@
           </table>
         </div>
 
-        <div class="callout danger">
-          <div class="callout-title">⚠ Critical: SSE silently swallows errors</div>
+        <div class="callout success">
+          <div class="callout-title">✓ SSE error gap closed</div>
           <p>
-            <code>BroadcastOnSuccess</code> / <code>BroadcastOnSuccessFunc</code> early-return when
-            <code>err != nil</code>. Clients never learn that a command failed. This is the single
-            largest hole in the real-time story — every other error-handling gap is downstream of
-            it.
+            <code>BroadcastOnError</code> / <code>BroadcastOnErrorFunc</code> now fire when
+            <code>err != nil</code>, broadcasting a <code>StructuredError</code> (RFC 7807) JSON event.
+            Combined with <code>SSEStream.Heartbeat</code> for keepalive and
+            <code>WSBroadcaster</code> for WebSocket fan-out, the real-time error-reporting story
+            is now complete across SSE and WS.
           </p>
         </div>
       </div>
