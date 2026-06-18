@@ -152,9 +152,7 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 	Describe("X-Request-ID response header propagation", func() {
 		It("sets X-Request-ID in response when generated", func() {
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
-			next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			})
+			next := okHandler()
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -164,9 +162,7 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 
 		It("propagates provided X-Request-ID in response", func() {
 			middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
-			next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			})
+			next := okHandler()
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)

@@ -34,9 +34,7 @@ func csrfTokenHandler(csrfMW func(http.Handler) http.Handler, tokenOut *string) 
 }
 
 func csrfOKHandler(csrfMW func(http.Handler) http.Handler) http.Handler {
-	return csrfMW(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	return csrfMW(okHandler())
 }
 
 func newIntegrationApp(
