@@ -881,10 +881,11 @@
           options, and the deliberately dead.
         </p>
         <div class="header-meta">
-          <div><strong>Date</strong>2026-06-18</div>
+          <div><strong>Date</strong>2026-06-18 (parity reached)</div>
           <div><strong>Core transports</strong>3</div>
           <div><strong>Technologies surveyed</strong>15</div>
-          <div><strong>Capabilities</strong>9</div>
+          <div><strong>Capabilities</strong>10</div>
+          <div><strong>Cells fully supported</strong>19 / 27</div>
         </div>
       </div>
     </header>
@@ -1460,6 +1461,28 @@
                   <span class="cell-detail">WS lib close handler</span>
                 </td>
               </tr>
+              <tr>
+                <td class="capability">
+                  Backpressure
+                  <span class="cap-desc">Slow-consumer policy</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"><span class="icon">✓</span> TCP</span>
+                  <span class="cell-detail">flow control</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Drop-to-slow</span
+                  >
+                  <span class="cell-detail">non-blocking send</span>
+                </td>
+                <td class="cell">
+                  <span class="cell-status status-have"
+                    ><span class="icon">✓</span> Drop-to-slow</span
+                  >
+                  <span class="cell-detail">shared fanOut[T], buffer 64</span>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1495,16 +1518,14 @@
             but incomplete
           </div>
           <div class="legend-item">
-            <span class="cell-status status-missing"><span class="icon">✗</span> Label</span> Not
-            implemented
+            <span class="cell-status status-missing"
+              ><span class="icon">✗</span> Consumer-owned</span
+            >
+            Out of scope by architectural boundary
           </div>
           <div class="legend-item">
             <span class="cell-status status-impossible"><span class="icon">—</span> N/A</span> Not
             possible by spec
-          </div>
-          <div class="legend-item">
-            <span class="cell-status status-new"><span class="icon">+</span> NEW</span> Proposed
-            addition in target state
           </div>
         </div>
       </div>
@@ -2020,65 +2041,87 @@
     <!-- ═════════════════════════════ CONTRACTS ═════════════════════════════ -->
     <section id="contracts">
       <div class="container">
-        <h2>Proposed Payload Contracts</h2>
+        <h2>API Contracts — As Shipped</h2>
         <p class="section-desc">
-          Concrete shapes for the new APIs. RFC 7807 alignment for errors so client code can be
-          transport-agnostic.
+          The actual signatures in the codebase as of 2026-06-18. RFC 7807 alignment for errors so
+          client code is transport-agnostic. These are the contracts consumers program against.
         </p>
 
         <h3>Structured Error Payload</h3>
         <p>
-          Used by <code>BroadcastOnError</code>, <code>WSError</code> frames, and optionally HTTP
-          error bodies. Shape follows
+          Used by <code>BroadcastOnError</code>, <code>BroadcastOnErrorWS</code>, and any caller
+          that wants a transport-agnostic error. Shape follows
           <a href="https://datatracker.ietf.org/doc/html/rfc7807" style="color: var(--accent)"
             >RFC 7807</a
-          >.
+          >. <code>structured_error.go</code>
         </p>
         <pre
           class="code-block"
         ><span class="cmt">// Transport-agnostic structured error. Serialized as JSON for SSE data / WS payload.</span>
 <span class="kw">type</span> <span class="ty">StructuredError</span> <span class="kw">struct</span> {
-    Type     <span class="kw">string</span> <span class="cmt">// URI or token: "about:blank", "https://errors/rejection"</span>
-    Title    <span class="kw">string</span> <span class="cmt">// Short human-readable summary</span>
-    Status   <span class="kw">int</span>    <span class="cmt">// HTTP status code (carries family semantics)</span>
+    Type     <span class="kw">string</span> <span class="cmt">// URI or token: "about:blank", "rejection", "conflict", ...</span>
+    Title    <span class="kw">string</span> <span class="cmt">// Short human-readable summary (derived from error family)</span>
+    Status   <span class="kw">int</span>    <span class="cmt">// HTTP status code (via MapError)</span>
     Detail   <span class="kw">string</span> <span class="cmt">// Specific explanation of this occurrence</span>
     Instance <span class="kw">string</span> <span class="cmt">// Request ID / correlation ID for tracing</span>
-}</pre>
+}
 
-        <h3>SSE Error Hook Signatures</h3>
+<span class="cmt">// Derive status from MapError + request ID for tracing.</span>
+<span class="kw">func</span> <span class="fn">NewStructuredError</span>(err <span class="kw">error</span>, r *<span class="ty">http.Request</span>) <span class="ty">StructuredError</span>
+<span class="kw">func</span> <span class="fn">NewStructuredErrorWithContext</span>(err <span class="kw">error</span>, ctx <span class="ty">context.Context</span>) <span class="ty">StructuredError</span>
+<span class="kw">func</span> (e <span class="ty">StructuredError</span>) <span class="fn">JSON</span>() <span class="kw">string</span> <span class="cmt">// convenience for SSEEvent.Data / WS payloads</span></pre>
+
+        <h3>SSE Error + Lifecycle Hooks</h3>
+        <p>
+          <code>BroadcastOnError</code> takes only an event name — the payload is built internally
+          via <code>NewStructuredError</code>. <code>sse_broadcaster.go</code> +
+          <code>sse_stream.go</code>
+        </p>
         <pre
           class="code-block"
-        ><span class="cmt">// Symmetric to BroadcastOnSuccess. Fires when err != nil.</span>
-<span class="kw">func</span> (b *<span class="ty">Broadcaster</span>) <span class="fn">BroadcastOnError</span>(eventName <span class="kw">string</span>, payload <span class="ty">StructuredError</span>) <span class="ty">AfterDispatchHook</span>
+        ><span class="cmt">// Symmetric to BroadcastOnSuccess. Fires when err != nil; builds StructuredError internally.</span>
+<span class="kw">func</span> (b *<span class="ty">Broadcaster</span>) <span class="fn">BroadcastOnError</span>(eventName <span class="kw">string</span>) <span class="ty">AfterDispatchHook</span>
+<span class="kw">func</span> (b *<span class="ty">Broadcaster</span>) <span class="fn">BroadcastOnErrorFunc</span>(errFunc <span class="kw">func</span>(r *<span class="ty">http.Request</span>, err <span class="kw">error</span>) <span class="ty">SSEEvent</span>) <span class="ty">AfterDispatchHook</span>
 
-<span class="kw">func</span> (b *<span class="ty">Broadcaster</span>) <span class="fn">BroadcastOnErrorFunc</span>(errFunc <span class="kw">func</span>(r *<span class="ty">http.Request</span>, err <span class="kw">error</span>) <span class="ty">SSEEvent</span>) <span class="ty">AfterDispatchHook</span></pre>
-
-        <h3>SSE Heartbeat</h3>
-        <pre
-          class="code-block"
-        ><span class="cmt">// Sends SSE comment-frame pings on a ticker until ctx is cancelled.</span>
-<span class="cmt">// Safe to run in a goroutine alongside stream.Send.</span>
-<span class="kw">func</span> (s *<span class="ty">SSEStream</span>) <span class="fn">Heartbeat</span>(ctx <span class="ty">context.Context</span>, interval <span class="ty">time.Duration</span>)</pre>
+<span class="cmt">// Heartbeat sends ": keepalive\n\n" on a ticker until ctx is cancelled.</span>
+<span class="kw">func</span> (s *<span class="ty">SSEStream</span>) <span class="fn">Heartbeat</span>(ctx <span class="ty">context.Context</span>, interval <span class="ty">time.Duration</span>)
+<span class="kw">func</span> (s *<span class="ty">SSEStream</span>) <span class="fn">OnDisconnect</span>(fn <span class="kw">func</span>())</pre>
 
         <h3>WebSocket Encoder + Broadcaster</h3>
-        <pre
-          class="code-block"
-        ><span class="cmt">// Symmetric to ParseWSMessage. Writes an HTMX-shaped WS message.</span>
-<span class="kw">func</span> <span class="fn">WriteWSMessage</span>[T <span class="kw">any</span>](w <span class="ty">io.Writer</span>, msg T) <span class="kw">error</span>
+        <p>
+          The non-generic <code>WriteWSMessage</code> takes a <code>WSMessage</code>; the generic
+          <code>WriteWSMessageInto[T]</code> takes a typed body. <code>WSBroadcaster</code> fans out
+          <code>string</code> messages (HTMX OOB HTML or JSON) over a shared
+          <code>fanOut[string]</code>. <code>ws_encoder.go</code> + <code>ws_broadcaster.go</code>
+        </p>
+        <pre class="code-block"><span class="cmt">// Outbound counterpart to ParseWSMessage.</span>
+<span class="kw">func</span> <span class="fn">WriteWSMessage</span>(w <span class="ty">io.Writer</span>, msg <span class="ty">WSMessage</span>) <span class="kw">error</span>
+<span class="kw">func</span> <span class="fn">WriteWSMessageInto</span>[T <span class="kw">any</span>](w <span class="ty">io.Writer</span>, body T, headers <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">string</span>) <span class="kw">error</span>
 
 <span class="cmt">// Fan-out for WS clients, mirroring SSE Broadcaster.</span>
-<span class="kw">type</span> <span class="ty">WSBroadcaster</span> <span class="kw">struct</span> { /* ... */ }
-
+<span class="kw">type</span> <span class="ty">WSBroadcaster</span> <span class="kw">struct</span> { *<span class="ty">fanOut</span>[<span class="kw">string</span>] }
 <span class="kw">func</span> <span class="fn">NewWSBroadcaster</span>() *<span class="ty">WSBroadcaster</span>
-<span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>) <span class="fn">Subscribe</span>() &lt;-<span class="kw">chan</span> <span class="ty">WSMessage</span>
-<span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>) <span class="fn">Broadcast</span>(msg <span class="ty">WSMessage</span>)</pre>
+<span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>) <span class="fn">BroadcastHTML</span>(id, html <span class="kw">string</span>, swapStrategy ...<span class="ty">SwapStrategy</span>)
+<span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>) <span class="fn">BroadcastOnSuccessWS</span>(msg <span class="kw">string</span>) <span class="ty">AfterDispatchHook</span>
+<span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>) <span class="fn">BroadcastOnErrorWS</span>() <span class="ty">AfterDispatchHook</span>   <span class="cmt">// emits StructuredError JSON</span>
+<span class="kw">func</span> (b *<span class="ty">WSBroadcaster</span>) <span class="fn">BroadcastOnErrorWSFunc</span>(errFunc <span class="kw">func</span>(r *<span class="ty">http.Request</span>, err <span class="kw">error</span>) <span class="kw">string</span>) <span class="ty">AfterDispatchHook</span></pre>
 
         <h3>WS Dispatch Bridge</h3>
+        <p>
+          Methods on <code>App</code> (not a standalone handler) so they reuse the App's lifecycle
+          hooks, timeout, and error wrapping. Decoders are pluggable.
+          <code>ws_dispatch.go</code>
+        </p>
         <pre
           class="code-block"
-        ><span class="cmt">// Wire incoming WS messages into the CQRS dispatcher.</span>
-<span class="cmt">// Consumers call this from their WS library's OnMessage callback.</span>
-<span class="kw">func</span> <span class="fn">WSDispatchHandler</span>(app *<span class="ty">App</span>) <span class="kw">func</span>(data []<span class="kw">byte</span>) <span class="ty">WSMessage</span></pre>
+        ><span class="cmt">// Bridge inbound WS frames into the CQRS dispatcher.</span>
+<span class="kw">func</span> (a *<span class="ty">App</span>) <span class="fn">DispatchWSCommand</span>(r *<span class="ty">http.Request</span>, cmdType <span class="ty">command.Type</span>, decoder <span class="ty">WSCommandDecoder</span>, data []<span class="kw">byte</span>) <span class="kw">error</span>
+<span class="kw">func</span> (a *<span class="ty">App</span>) <span class="fn">DispatchWSQuery</span>(r *<span class="ty">http.Request</span>, qryType <span class="ty">query.Type</span>, decoder <span class="ty">WSQueryDecoder</span>, data []<span class="kw">byte</span>) (<span class="kw">any</span>, <span class="kw">error</span>)
+
+<span class="cmt">// Decoder helpers — or write your own (e.g. ParseWSMessageInto[T] for HTMX WS format).</span>
+<span class="kw">type</span> <span class="ty">WSCommandDecoder</span> <span class="kw">func</span>(data []<span class="kw">byte</span>) (<span class="ty">command.Command</span>, <span class="kw">error</span>)
+<span class="kw">func</span> <span class="fn">DecodeWSJSON</span>[T <span class="kw">any</span>](mapper <span class="kw">func</span>(T) (<span class="ty">command.Command</span>, <span class="kw">error</span>)) <span class="ty">WSCommandDecoder</span>
+<span class="kw">func</span> <span class="fn">DecodeWSJSONQuery</span>[T <span class="kw">any</span>](mapper <span class="kw">func</span>(T) (<span class="ty">query.Query</span>, <span class="kw">error</span>)) <span class="ty">WSQueryDecoder</span></pre>
       </div>
     </section>
 
@@ -2097,19 +2140,39 @@
               <li><code>sse_event.go</code> — <code>SSEEvent</code>, <code>WriteSSEEvent</code></li>
               <li>
                 <code>sse_stream.go</code> — <code>SSEStream</code>, <code>Send</code>,
-                <code>Context</code>
+                <code>Heartbeat</code>, <code>OnDisconnect</code>
               </li>
               <li>
                 <code>sse_broadcaster.go</code> — <code>Broadcaster</code>,
-                <code>BroadcastOnSuccess*</code>
+                <code>BroadcastOnSuccess*</code>, <code>BroadcastOnError*</code>
               </li>
               <li>
                 <code>sse_store.go</code> — <code>SSEEventStore</code>, <code>ReplayEvents</code>
               </li>
               <li>
+                <code>structured_error.go</code> — <code>StructuredError</code>,
+                <code>NewStructuredError*</code>
+              </li>
+              <li>
                 <code>ws.go</code> — <code>WSMessage</code>, <code>ParseWSMessage*</code>,
                 <code>WSOOBHTML</code>
               </li>
+              <li>
+                <code>ws_encoder.go</code> — <code>WriteWSMessage</code>,
+                <code>WriteWSMessageInto[T]</code>
+              </li>
+              <li>
+                <code>ws_broadcaster.go</code> — <code>WSBroadcaster</code>,
+                <code>BroadcastOnSuccessWS</code>, <code>BroadcastOnErrorWS</code>
+              </li>
+              <li>
+                <code>ws_dispatch.go</code> — <code>App.DispatchWSCommand</code>,
+                <code>App.DispatchWSQuery</code>, decoder helpers
+              </li>
+              <li>
+                <code>fanout.go</code> — shared <code>fanOut[T]</code> for SSE + WS broadcasters
+              </li>
+              <li><code>integration_transport_test.go</code> — transport-parity verification</li>
             </ul>
           </div>
           <div class="card">
@@ -2144,7 +2207,9 @@
     <footer>
       <div class="container">
         <div>cqrs-htmx · Web Communication Matrix</div>
-        <div class="footer-meta">Generated 2026-06-18 · verified against codebase · v2.x</div>
+        <div class="footer-meta">
+          Updated 2026-06-18 · full transport parity verified against codebase · v2.x
+        </div>
       </div>
     </footer>
   </body>
