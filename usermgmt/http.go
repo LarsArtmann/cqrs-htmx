@@ -162,6 +162,7 @@ const (
 	defaultCookieName = "session_token"
 	contentTypeJSON   = "application/json; charset=utf-8"
 	statusKey         = "status"
+	errorKey          = "error"
 
 	statusLoggedOut         = "logged_out"
 	statusRegistered        = "registered"
@@ -329,7 +330,7 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {
-	writeJSON(w, status, map[string]string{"error": message})
+	writeJSON(w, status, map[string]string{errorKey: message})
 }
 
 func errorStatus(err error) int {
