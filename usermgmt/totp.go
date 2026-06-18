@@ -230,18 +230,5 @@ func (s *pendingTOTPStore) EvictExpired() int {
 // expired pending TOTP secrets. Returns a stop function that must be called
 // to terminate the goroutine (e.g. on shutdown or in tests).
 func (s *pendingTOTPStore) startEviction() (stop func()) {
-	ticker := time.NewTicker(pendingTTOTPEvictionInterval)
-	done := make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				s.EvictExpired()
-			case <-done:
-				ticker.Stop()
-				return
-			}
-		}
-	}()
-	return func() { close(done) }
+	return startPeriodicEviction(s.EvictExpired, pendingTTOTPEvictionInterval)
 }

@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
 // updateGolden regenerates the golden files under testdata/ when set.
@@ -24,17 +23,7 @@ var updateGolden = flag.Bool("update-golden", false, "regenerate golden files in
 // golden output comparison. Changing the types or the registration below will
 // require running with -update-golden to refresh the expected output.
 func goldenCatalog() *cataloghtmx.Builder {
-	b := cataloghtmx.New("Golden Service", "1.0.0", cataloghtmx.WithServiceID("golden-svc"))
-	cataloghtmx.Command[testCmd](
-		b, "create-thing",
-		cataloghtmx.WithOperation("POST", "/api/things"),
-	)
-	cataloghtmx.Query[testQuery](
-		b, "get-thing",
-		cataloghtmx.WithOperation("GET", "/api/things/{id}"),
-	)
-	cataloghtmx.Event[testEvent](b, "thing.created", catalog.Sends)
-	return b
+	return buildTestCatalog("Golden Service", "golden-svc")
 }
 
 func serveBody(t *testing.T, h http.HandlerFunc) []byte {

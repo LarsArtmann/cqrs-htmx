@@ -19,6 +19,23 @@ type testEvent struct {
 	UserID string `json:"user_id" doc:"User identifier"`
 }
 
+// buildTestCatalog returns a Builder populated with the standard test
+// registrations used across the catalog test suite. The title and service ID
+// are the only knobs callers typically vary.
+func buildTestCatalog(title, serviceID string) *cataloghtmx.Builder {
+	b := cataloghtmx.New(title, "1.0.0", cataloghtmx.WithServiceID(serviceID))
+	cataloghtmx.Command[testCmd](
+		b, "create-thing",
+		cataloghtmx.WithOperation("POST", "/api/things"),
+	)
+	cataloghtmx.Query[testQuery](
+		b, "get-thing",
+		cataloghtmx.WithOperation("GET", "/api/things/{id}"),
+	)
+	cataloghtmx.Event[testEvent](b, "thing.created", catalog.Sends)
+	return b
+}
+
 func TestNew_Defaults(t *testing.T) {
 	t.Parallel()
 

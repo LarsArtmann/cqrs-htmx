@@ -1,8 +1,6 @@
 package usermgmt
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 )
 
@@ -15,8 +13,7 @@ func (h *AuthHandler) handleWebAuthnBeginRegistration(w http.ResponseWriter, r *
 		return
 	}
 	var req webauthnBeginRegRequest
-	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
+	if !h.decodeAuthJSON(w, r, &req) {
 		return
 	}
 
@@ -56,8 +53,7 @@ func (h *AuthHandler) handleWebAuthnBeginLogin(w http.ResponseWriter, r *http.Re
 		return
 	}
 	var req webauthnBeginLoginRequest
-	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
+	if !h.decodeAuthJSON(w, r, &req) {
 		return
 	}
 

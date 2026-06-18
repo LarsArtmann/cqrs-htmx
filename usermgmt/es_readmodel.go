@@ -98,18 +98,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 			return fmt.Errorf("decode CredentialAdded in read model: %w", err)
 		}
 		if u, ok := m.users[aggID]; ok {
-			u.Credentials = append(u.Credentials, WebAuthnCredential{
-				ID:              p.ID,
-				PublicKey:       p.PublicKey,
-				AttestationType: p.AttestationType,
-				Transports:      append([]string(nil), p.Transports...),
-				AAGUID:          append([]byte(nil), p.AAGUID...),
-				SignCount:       p.SignCount,
-				BackupEligible:  p.BackupEligible,
-				BackupState:     p.BackupState,
-				Name:            p.Name,
-				CreatedAt:       evt.OccurredAt(),
-			})
+			u.Credentials = append(u.Credentials, newCredentialFromPayload(p, evt.OccurredAt()))
 			u.UpdatedAt = evt.OccurredAt()
 		}
 
