@@ -243,6 +243,21 @@ func (p *oauth2Provider) fetchUserInfo(ctx context.Context, token *oauth2.Token)
 
 // --- oauth2StateStore (mirrors verificationTokenStore) ---
 
+// OAuth2StateStore is the persistence interface for OAuth2 CSRF state tokens.
+// Implementations must ensure state tokens are single-use and expire after the
+// configured TTL. The default in-memory implementation is suitable for
+// single-instance deployments; use Redis or a shared store for multi-instance.
+type OAuth2StateStore interface {
+	// Save generates a random state token, stores it with the provider name and
+	// PKCE verifier, and returns the state token.
+	Save(provider, pkceVerifier string, ttl time.Duration) (state string, err error)
+	// Consume validates and deletes the state token (one-time use).
+	// Returns the stored provider name and PKCE verifier.
+	Consume(state string) (provider, pkceVerifier string, err error)
+	// EvictExpired removes all expired state tokens. Returns the count evicted.
+	EvictExpired() int
+}
+
 type oauth2StateEntry struct {
 	provider     string
 	pkceVerifier string

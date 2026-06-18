@@ -472,3 +472,64 @@ func TestReadModel_FindByExternalAccount(t *testing.T) {
 		t.Fatal("expected no match for unknown provider")
 	}
 }
+
+// TestMultiProvider_Login verifies that logging in via different providers
+// with the same email links both to the same user.
+func TestMultiProvider_Login(t *testing.T) {
+	google := newFakeOAuth2Provider(t)
+	github := newFakeOAuth2Provider(t)
+
+	svc, err := NewService(ServiceConfig{
+		OAuth2Config: &OAuth2Config{
+			Providers: map[string]OAuth2ProviderConfig{
+				"google": google.toOAuth2ProviderConfig(),
+				"github": github.toOAuth2ProviderConfig(),
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	t.Cleanup(svc.Stop)
+
+	// Both providers return the same email but different subjects
+	google.userInfo["email"] = "shared@example.com"
+	google.userInfo["sub"] = "google-sub-001"
+	github.userInfo["email"] = "shared@example.com"
+	github.userInfo["sub"] = "github-sub-002"
+	github.userInfo["id"] = "67890"
+
+	// Login via Google → auto-registers
+	beginG, _ := svc.BeginOAuthLogin(context.Background(), "google")
+	uG, _ := url.Parse(beginG.RedirectURL)
+	respG, err := svc.FinishOAuthLogin(context.Background(), "google", "test-auth-code", uG.Query().Get("state"))
+	if err != nil {
+		t.Fatalf("google login: %v", err)
+	}
+	if len(respG.User.ExternalAccounts) != 1 {
+		t.Fatalf("expected 1 external account after google, got %d", len(respG.User.ExternalAccounts))
+	}
+
+	// Login via GitHub (same email) → should LINK to existing user
+	beginH, _ := svc.BeginOAuthLogin(context.Background(), "github")
+	uH, _ := url.Parse(beginH.RedirectURL)
+	respH, err := svc.FinishOAuthLogin(context.Background(), "github", "test-auth-code", uH.Query().Get("state"))
+	if err != nil {
+		t.Fatalf("github login: %v", err)
+	}
+	if respH.User.ID.Get() != respG.User.ID.Get() {
+		t.Fatal("expected github login to link to same user as google")
+	}
+	if len(respH.User.ExternalAccounts) != 2 {
+		t.Fatalf("expected 2 external accounts, got %d", len(respH.User.ExternalAccounts))
+	}
+
+	// Verify both providers are present
+	providers := map[string]bool{}
+	for _, ea := range respH.User.ExternalAccounts {
+		providers[ea.Provider] = true
+	}
+	if !providers["google"] || !providers["github"] {
+		t.Errorf("expected both google and github, got %v", providers)
+	}
+}
