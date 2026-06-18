@@ -47,10 +47,20 @@ func (r *RegisterRequest) Validate() error {
 	return formatValidationErrors(errs)
 }
 
-type RegisterResponse struct {
+// AuthResult is the common result of any authentication or registration flow
+// that establishes a session: the authenticated [User] and the [Session] the
+// caller should use for subsequent requests.
+//
+// [Service.Register], [Service.FinishLogin], and [Service.FinishOAuthLogin]
+// all return this type. The per-flow names below are aliases kept for
+// call-site clarity and backwards compatibility.
+type AuthResult struct {
 	User    *User    `json:"user"`
 	Session *Session `json:"session"`
 }
+
+// RegisterResponse is an alias for [AuthResult], returned by [Service.Register].
+type RegisterResponse = AuthResult
 
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
 	if err := req.Validate(); err != nil {
