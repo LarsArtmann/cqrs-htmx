@@ -6,13 +6,13 @@ require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/go-webauthn/webauthn v0.17.4
 	github.com/larsartmann/go-branded-id v0.3.1
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.4.0
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.5.0
 	github.com/pquerna/otp v1.5.0
 	modernc.org/sqlite v1.52.0
 	pgregory.net/rapid v1.3.0
@@ -32,10 +32,10 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
@@ -49,6 +49,8 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.44.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
