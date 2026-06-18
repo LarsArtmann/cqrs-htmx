@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
@@ -37,11 +36,10 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	defer m.mu.Unlock()
 
 	aggID := evt.AggregateID()
-	c := codec.JSONCodec{}
 
 	switch evt.Type() {
 	case eventUserRegistered:
-		p, err := event.DecodePayload[UserRegisteredPayload](evt, c)
+		p, err := unmarshalPayload[UserRegisteredPayload](evt)
 		if err != nil {
 			return fmt.Errorf("decode UserRegistered in read model: %w", err)
 		}
@@ -58,7 +56,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		m.emails[p.Email] = aggID
 
 	case eventRolesUpdated:
-		p, err := event.DecodePayload[RolesUpdatedPayload](evt, c)
+		p, err := unmarshalPayload[RolesUpdatedPayload](evt)
 		if err != nil {
 			return fmt.Errorf("decode RolesUpdated in read model: %w", err)
 		}
@@ -70,7 +68,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		}
 
 	case eventEmailChanged:
-		p, err := event.DecodePayload[EmailChangedPayload](evt, c)
+		p, err := unmarshalPayload[EmailChangedPayload](evt)
 		if err != nil {
 			return fmt.Errorf("decode EmailChanged in read model: %w", err)
 		}
@@ -83,7 +81,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		}
 
 	case eventDisplayNameChanged:
-		p, err := event.DecodePayload[DisplayNameChangedPayload](evt, c)
+		p, err := unmarshalPayload[DisplayNameChangedPayload](evt)
 		if err != nil {
 			return fmt.Errorf("decode DisplayNameChanged in read model: %w", err)
 		}
@@ -93,7 +91,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		}
 
 	case eventCredentialAdded:
-		p, err := event.DecodePayload[CredentialAddedPayload](evt, c)
+		p, err := unmarshalPayload[CredentialAddedPayload](evt)
 		if err != nil {
 			return fmt.Errorf("decode CredentialAdded in read model: %w", err)
 		}
@@ -103,7 +101,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		}
 
 	case eventCredentialRemoved:
-		p, err := event.DecodePayload[CredentialRemovedPayload](evt, c)
+		p, err := unmarshalPayload[CredentialRemovedPayload](evt)
 		if err != nil {
 			return fmt.Errorf("decode CredentialRemoved in read model: %w", err)
 		}
@@ -131,7 +129,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		}
 
 	case eventTOTPEnabled:
-		p, err := event.DecodePayload[TOTPEnabledPayload](evt, c)
+		p, err := unmarshalPayload[TOTPEnabledPayload](evt)
 		if err != nil {
 			return fmt.Errorf("decode TOTPEnabled in read model: %w", err)
 		}

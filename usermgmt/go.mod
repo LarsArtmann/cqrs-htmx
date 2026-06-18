@@ -6,7 +6,6 @@ require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/go-webauthn/webauthn v0.17.4
 	github.com/larsartmann/go-branded-id v0.3.1
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
@@ -32,6 +31,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0 // indirect
