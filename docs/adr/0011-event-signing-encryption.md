@@ -119,9 +119,11 @@ wire their own bus/store and apply signing/encryption directly via go-cqrs-lite.
 
 ## Verification
 
-- 6 unit tests in `usermgmt/service_security_test.go` verify the hooks are
-  applied, ordered correctly, and that projections survive.
-- 3 integration tests in `integration_test/signing_encryption_test.go` exercise
+- 8 unit tests in `usermgmt/service_security_test.go` verify the hooks are
+  applied, ordered correctly, and that projections survive (including the
+  lower-level NewEventSourcedSetup path).
+- 4 integration tests in `integration_test/signing_encryption_test.go` exercise
   the real `signing/v2` + `encryption/v2` modules end-to-end: encryption-at-rest
   (ciphertext verified in raw store), decrypt-on-load (second Service
-  reconstructs state), bus-level sign+encrypt, and Casbin projection survival.
+  reconstructs state), bus-level sign+encrypt, Casbin projection survival,
+  and Ed25519 asymmetric signing.
