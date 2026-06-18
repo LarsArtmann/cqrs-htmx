@@ -207,24 +207,24 @@ func (h *AuthHandler) importExportContext(
 	r *http.Request,
 	limiter *perIPRateLimiter,
 	limitMsg string,
-) (*User, context.Context, context.CancelFunc, bool) {
+) (context.Context, context.CancelFunc, bool) {
 	if !h.checkRateLimit(w, r, limiter, limitMsg) {
-		return nil, nil, nil, false
+		return nil, nil, false
 	}
 	user, ok := h.currentUser(w, r)
 	if !ok {
-		return nil, nil, nil, false
+		return nil, nil, false
 	}
 	if err := h.importExportAuthorizer(user); err != nil {
 		writeError(w, errorStatus(err), err.Error())
-		return nil, nil, nil, false
+		return nil, nil, false
 	}
 	ctx, cancel := h.withTimeout(r)
-	return user, ctx, cancel, true
+	return ctx, cancel, true
 }
 
 func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) {
-	_, ctx, cancel, ok := h.importExportContext(w, r, h.importLimiter, "too many export requests")
+	ctx, cancel, ok := h.importExportContext(w, r, h.importLimiter, "too many export requests")
 	if !ok {
 		return
 	}
@@ -250,7 +250,7 @@ func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AuthHandler) handleImportUsers(w http.ResponseWriter, r *http.Request) {
-	_, ctx, cancel, ok := h.importExportContext(w, r, h.importLimiter, "too many import requests")
+	ctx, cancel, ok := h.importExportContext(w, r, h.importLimiter, "too many import requests")
 	if !ok {
 		return
 	}
