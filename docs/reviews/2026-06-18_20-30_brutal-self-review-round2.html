@@ -1,194 +1,523 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Brutal Self-Review — Signing/Encryption Round 2</title>
-<style>
-  :root {
-    --bg: #0e0e10;
-    --surface: #18181b;
-    --surface-2: #27272a;
-    --border: #3f3f46;
-    --text: #f4f4f5;
-    --text-dim: #a1a1aa;
-    --red: #ef4444;
-    --yellow: #facc15;
-    --blue: #3b82f6;
-    --green: #22c55e;
-    --radius: 0;
-    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; padding: 2rem; max-width: 1100px; margin: 0 auto; }
-  h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
-  h2 { font-size: 1.4rem; font-weight: 800; margin-top: 2.5rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
-  h3 { font-size: 1.1rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text-dim); }
-  .meta { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 2rem; }
-  .meta strong { color: var(--text); }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-  .stat { background: var(--surface); border: 1px solid var(--border); padding: 1.2rem; text-align: center; }
-  .stat-value { font-size: 2.2rem; font-weight: 900; }
-  .stat-label { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.3rem; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--text-dim); padding: 1.2rem 1.5rem; margin-bottom: 1rem; }
-  .card-problem { border-left-color: var(--red); }
-  .card-warning { border-left-color: var(--yellow); }
-  .card-solution { border-left-color: var(--green); }
-  .card-info { border-left-color: var(--blue); }
-  .card h4 { font-weight: 800; margin-bottom: 0.5rem; }
-  .card-problem h4 { color: var(--red); }
-  .card-warning h4 { color: var(--yellow); }
-  .card-solution h4 { color: var(--green); }
-  .card-info h4 { color: var(--blue); }
-  .card p { color: var(--text-dim); }
-  .card .tag { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; margin-left: 0.5rem; vertical-align: middle; }
-  .tag-fixed { background: var(--green); color: var(--bg); }
-  .tag-found { background: var(--red); color: var(--bg); }
-  code { font-family: var(--mono); font-size: 0.85em; background: var(--surface-2); padding: 0.1rem 0.4rem; }
-  pre { background: var(--surface-2); padding: 1rem; overflow-x: auto; margin: 0.5rem 0; font-family: var(--mono); font-size: 0.82rem; }
-  ol { padding-left: 1.5rem; }
-  ol li { margin-bottom: 0.8rem; }
-  ol li strong { color: var(--text); }
-  .priority { display: inline-block; font-weight: 900; font-size: 0.75rem; padding: 0.1rem 0.4rem; margin-right: 0.5rem; }
-  .p-done { background: var(--green); color: var(--bg); }
-  .p-deferred { background: var(--blue); color: var(--bg); }
-  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
-  th, td { border: 1px solid var(--border); padding: 0.6rem 0.8rem; text-align: left; }
-  th { background: var(--surface-2); font-weight: 700; }
-  td code { background: transparent; padding: 0; }
-  .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.85rem; }
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brutal Self-Review — Signing/Encryption Round 2</title>
+    <style>
+      :root {
+        --bg: #0e0e10;
+        --surface: #18181b;
+        --surface-2: #27272a;
+        --border: #3f3f46;
+        --text: #f4f4f5;
+        --text-dim: #a1a1aa;
+        --red: #ef4444;
+        --yellow: #facc15;
+        --blue: #3b82f6;
+        --green: #22c55e;
+        --radius: 0;
+        --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        line-height: 1.6;
+        padding: 2rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.5rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 0.5rem;
+      }
+      h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-dim);
+      }
+      .meta {
+        color: var(--text-dim);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .meta strong {
+        color: var(--text);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .stat {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 1.2rem;
+        text-align: center;
+      }
+      .stat-value {
+        font-size: 2.2rem;
+        font-weight: 900;
+      }
+      .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 0.3rem;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--text-dim);
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .card-problem {
+        border-left-color: var(--red);
+      }
+      .card-warning {
+        border-left-color: var(--yellow);
+      }
+      .card-solution {
+        border-left-color: var(--green);
+      }
+      .card-info {
+        border-left-color: var(--blue);
+      }
+      .card h4 {
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+      }
+      .card-problem h4 {
+        color: var(--red);
+      }
+      .card-warning h4 {
+        color: var(--yellow);
+      }
+      .card-solution h4 {
+        color: var(--green);
+      }
+      .card-info h4 {
+        color: var(--blue);
+      }
+      .card p {
+        color: var(--text-dim);
+      }
+      .card .tag {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+      }
+      .tag-fixed {
+        background: var(--green);
+        color: var(--bg);
+      }
+      .tag-found {
+        background: var(--red);
+        color: var(--bg);
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.85em;
+        background: var(--surface-2);
+        padding: 0.1rem 0.4rem;
+      }
+      pre {
+        background: var(--surface-2);
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 0.5rem 0;
+        font-family: var(--mono);
+        font-size: 0.82rem;
+      }
+      ol {
+        padding-left: 1.5rem;
+      }
+      ol li {
+        margin-bottom: 0.8rem;
+      }
+      ol li strong {
+        color: var(--text);
+      }
+      .priority {
+        display: inline-block;
+        font-weight: 900;
+        font-size: 0.75rem;
+        padding: 0.1rem 0.4rem;
+        margin-right: 0.5rem;
+      }
+      .p-done {
+        background: var(--green);
+        color: var(--bg);
+      }
+      .p-deferred {
+        background: var(--blue);
+        color: var(--bg);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.6rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: var(--surface-2);
+        font-weight: 700;
+      }
+      td code {
+        background: transparent;
+        padding: 0;
+      }
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--text-dim);
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Brutal Self-Review — Signing/Encryption Round 2</h1>
+    <div class="meta">
+      <strong>Date:</strong> 2026-06-18 20:30 · <strong>Scope:</strong> Event signing/encryption
+      feature + codebase quality · <strong>Trigger:</strong> Post-implementation self-critique
+    </div>
 
-<h1>Brutal Self-Review — Signing/Encryption Round 2</h1>
-<div class="meta">
-  <strong>Date:</strong> 2026-06-18 20:30 ·
-  <strong>Scope:</strong> Event signing/encryption feature + codebase quality ·
-  <strong>Trigger:</strong> Post-implementation self-critique
-</div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">6</div>
+        <div class="stat-label">Issues Fixed</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">1</div>
+        <div class="stat-label">Ghost Systems Found</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">2</div>
+        <div class="stat-label">Split Brains Fixed</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">1</div>
+        <div class="stat-label">Deferred (Product Q)</div>
+      </div>
+    </div>
 
-<div class="stats">
-  <div class="stat"><div class="stat-value">6</div><div class="stat-label">Issues Fixed</div></div>
-  <div class="stat"><div class="stat-value">1</div><div class="stat-label">Ghost Systems Found</div></div>
-  <div class="stat"><div class="stat-value">2</div><div class="stat-label">Split Brains Fixed</div></div>
-  <div class="stat"><div class="stat-value">1</div><div class="stat-label">Deferred (Product Q)</div></div>
-</div>
+    <h2>1. What Did I Forget?</h2>
 
-<h2>1. What Did I Forget?</h2>
+    <div class="card card-problem">
+      <h4>Version mismatch in integration_test/go.mod <span class="tag tag-fixed">FIXED</span></h4>
+      <p>
+        <code>signing/v2</code> and <code>encryption/v2</code> were pinned at
+        <strong>v2.4.0</strong> while every other go-cqrs-lite module was at
+        <strong>v2.5.0</strong>. Go MVS resolved it at build time, but LSP/gopls showed persistent
+        errors about missing modules. Fixed by aligning to v2.5.0 and running
+        <code>go mod tidy</code>.
+      </p>
+    </div>
 
-<div class="card card-problem">
-  <h4>Version mismatch in integration_test/go.mod <span class="tag tag-fixed">FIXED</span></h4>
-  <p><code>signing/v2</code> and <code>encryption/v2</code> were pinned at <strong>v2.4.0</strong> while every other go-cqrs-lite module was at <strong>v2.5.0</strong>. Go MVS resolved it at build time, but LSP/gopls showed persistent errors about missing modules. Fixed by aligning to v2.5.0 and running <code>go mod tidy</code>.</p>
-</div>
+    <div class="card card-problem">
+      <h4>
+        EventSourcedSetup.Store silently nil when wrapped <span class="tag tag-fixed">FIXED</span>
+      </h4>
+      <p>
+        The <code>Store</code> field was typed <code>*memory.MemoryStore</code> (concrete). When
+        <code>StoreWrapper</code> returned an encrypted store, the type assertion
+        <code>store.(*memory.MemoryStore)</code> failed silently, leaving
+        <code>result.Store = nil</code>. A consumer accessing <code>setup.Store</code> after
+        wrapping would get nil with no error. Fixed by changing to
+        <code>event.Store</code> interface and assigning directly.
+      </p>
+    </div>
 
-<div class="card card-problem">
-  <h4>EventSourcedSetup.Store silently nil when wrapped <span class="tag tag-fixed">FIXED</span></h4>
-  <p>The <code>Store</code> field was typed <code>*memory.MemoryStore</code> (concrete). When <code>StoreWrapper</code> returned an encrypted store, the type assertion <code>store.(*memory.MemoryStore)</code> failed silently, leaving <code>result.Store = nil</code>. A consumer accessing <code>setup.Store</code> after wrapping would get nil with no error. Fixed by changing to <code>event.Store</code> interface and assigning directly.</p>
-</div>
+    <div class="card card-problem">
+      <h4>Stale ADR test counts <span class="tag tag-fixed">FIXED</span></h4>
+      <p>
+        ADR 0011 said "6 unit tests" and "3 integration tests" but there were actually 8 and 4.
+        Fixed counts and added description of Ed25519 test.
+      </p>
+    </div>
 
-<div class="card card-problem">
-  <h4>Stale ADR test counts <span class="tag tag-fixed">FIXED</span></h4>
-  <p>ADR 0011 said "6 unit tests" and "3 integration tests" but there were actually 8 and 4. Fixed counts and added description of Ed25519 test.</p>
-</div>
+    <h2>2. What Was Stupid?</h2>
 
-<h2>2. What Was Stupid?</h2>
+    <div class="card card-problem">
+      <h4>
+        Duplicated security config fields across two structs
+        <span class="tag tag-fixed">FIXED</span>
+      </h4>
+      <p>
+        <code>ServiceConfig</code> and <code>EventSourcedConfig</code> both defined
+        <code>StoreWrapper</code>, <code>PublishMiddleware</code>, and
+        <code>HandlerMiddleware</code> with identical types and ~20 lines of documentation each.
+        Adding a 4th security field would require updating both places. Fixed by extracting
+        <code>SecurityHooks</code> struct embedded in both configs.
+      </p>
+    </div>
 
-<div class="card card-problem">
-  <h4>Duplicated security config fields across two structs <span class="tag tag-fixed">FIXED</span></h4>
-  <p><code>ServiceConfig</code> and <code>EventSourcedConfig</code> both defined <code>StoreWrapper</code>, <code>PublishMiddleware</code>, and <code>HandlerMiddleware</code> with identical types and ~20 lines of documentation each. Adding a 4th security field would require updating both places. Fixed by extracting <code>SecurityHooks</code> struct embedded in both configs.</p>
-</div>
+    <div class="card card-problem">
+      <h4>Inconsistent error wrapping <span class="tag tag-fixed">FIXED</span></h4>
+      <p>
+        <code>NewEventSourcedSetup</code> used <code>fmt.Errorf("...: %w", err)</code> while
+        <code>NewService</code> used
+        <code>event.NewTransient("internal", "...").WithCause(err)</code>. Same package, two error
+        styles. The <code>event.NewTransient</code> approach provides error classification
+        (Transient family) for downstream retry logic. Aligned all errors in
+        <code>NewEventSourcedSetup</code> to use <code>event.NewTransient</code>.
+      </p>
+    </div>
 
-<div class="card card-problem">
-  <h4>Inconsistent error wrapping <span class="tag tag-fixed">FIXED</span></h4>
-  <p><code>NewEventSourcedSetup</code> used <code>fmt.Errorf("...: %w", err)</code> while <code>NewService</code> used <code>event.NewTransient("internal", "...").WithCause(err)</code>. Same package, two error styles. The <code>event.NewTransient</code> approach provides error classification (Transient family) for downstream retry logic. Aligned all errors in <code>NewEventSourcedSetup</code> to use <code>event.NewTransient</code>.</p>
-</div>
+    <div class="card card-warning">
+      <h4>waitForUser polling anti-pattern <span class="tag tag-fixed">FIXED</span></h4>
+      <p>
+        Used <code>time.Now().Before(deadline)</code> + <code>time.Sleep(20ms)</code> polling,
+        violating the project's flaky-test guidance. Fixed to use <code>context.WithTimeout</code> +
+        <code>select</code> on <code>ctx.Done()</code>. The polling itself is unavoidable —
+        <code>StartProjections</code> runs the projection runner in a goroutine with no "replay
+        complete" signal.
+      </p>
+    </div>
 
-<div class="card card-warning">
-  <h4>waitForUser polling anti-pattern <span class="tag tag-fixed">FIXED</span></h4>
-  <p>Used <code>time.Now().Before(deadline)</code> + <code>time.Sleep(20ms)</code> polling, violating the project's flaky-test guidance. Fixed to use <code>context.WithTimeout</code> + <code>select</code> on <code>ctx.Done()</code>. The polling itself is unavoidable — <code>StartProjections</code> runs the projection runner in a goroutine with no "replay complete" signal.</p>
-</div>
+    <h2>3. Ghost Systems & Split Brains</h2>
 
-<h2>3. Ghost Systems & Split Brains</h2>
+    <div class="card card-info">
+      <h4>
+        EventSourcedSetup.Store/Bus type assertion block — Ghost System
+        <span class="tag tag-fixed">ELIMINATED</span>
+      </h4>
+      <p>
+        The code at the end of <code>NewEventSourcedSetup</code> that tried to assert
+        <code>*memory.MemoryStore</code> and <code>*memory.MemoryBus</code> from the store/bus
+        interfaces was a ghost system: it existed to populate fields that would be nil when wrapping
+        was active. The type assertions were silently failing for the exact use case (encryption)
+        they were supposed to support. Removed entirely by using interface types directly.
+      </p>
+    </div>
 
-<div class="card card-info">
-  <h4>EventSourcedSetup.Store/Bus type assertion block — Ghost System <span class="tag tag-fixed">ELIMINATED</span></h4>
-  <p>The code at the end of <code>NewEventSourcedSetup</code> that tried to assert <code>*memory.MemoryStore</code> and <code>*memory.MemoryBus</code> from the store/bus interfaces was a ghost system: it existed to populate fields that would be nil when wrapping was active. The type assertions were silently failing for the exact use case (encryption) they were supposed to support. Removed entirely by using interface types directly.</p>
-</div>
+    <div class="card card-info">
+      <h4>SecurityHooks duplication — Split Brain <span class="tag tag-fixed">FIXED</span></h4>
+      <p>
+        Two config structs with copy-pasted fields and documentation, with EventSourcedConfig's docs
+        saying "See ServiceConfig.X for full documentation" — a code smell indicating the
+        duplication was known but not addressed. Single source of truth now in
+        <code>SecurityHooks</code>.
+      </p>
+    </div>
 
-<div class="card card-info">
-  <h4>SecurityHooks duplication — Split Brain <span class="tag tag-fixed">FIXED</span></h4>
-  <p>Two config structs with copy-pasted fields and documentation, with EventSourcedConfig's docs saying "See ServiceConfig.X for full documentation" — a code smell indicating the duplication was known but not addressed. Single source of truth now in <code>SecurityHooks</code>.</p>
-</div>
+    <h2>4. Architectural Finding: httputil v0.3.0 Overlap</h2>
 
-<h2>4. Architectural Finding: httputil v0.3.0 Overlap</h2>
+    <div class="card card-warning">
+      <h4>
+        httputil v0.3.0 now ships middleware that overlaps cqrs-htmx
+        <span class="tag tag-found">FOUND</span>
+      </h4>
+      <p>
+        The httputil upgrade (v0.2.0 → v0.3.0) brings a full middleware suite that overlaps with
+        cqrs-htmx's implementations:
+      </p>
+      <table>
+        <tr>
+          <th>cqrs-htmx</th>
+          <th>httputil v0.3.0</th>
+          <th>Can Delegate?</th>
+        </tr>
+        <tr>
+          <td><code>Chain()</code></td>
+          <td><code>Chain()</code></td>
+          <td><strong style="color: var(--green)">YES — identical semantics</strong></td>
+        </tr>
+        <tr>
+          <td><code>SecurityHeadersMiddleware</code></td>
+          <td><code>SecurityHeaders</code></td>
+          <td>
+            Partial — httputil has <code>Validate()</code>, but cqrs-htmx has
+            <code>RecommendedCSP</code>/<code>RecommendedHSTS</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>RecoveryMiddleware</code></td>
+          <td><code>Recovery</code></td>
+          <td>
+            <strong style="color: var(--red)">NO</strong> — cqrs-htmx integrates with CQRS
+            <code>ErrorHandler</code> + <code>event.Newf</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ContextEnrichmentMiddleware</code></td>
+          <td><code>RequestID</code></td>
+          <td>
+            <strong style="color: var(--red)">NO</strong> — cqrs-htmx is CQRS-specific (UserID
+            extraction, branded ULID types)
+          </td>
+        </tr>
+        <tr>
+          <td><code>HealthHandler</code></td>
+          <td><code>HealthHandler</code></td>
+          <td>Partial — cqrs-htmx checks dispatcher availability</td>
+        </tr>
+        <tr>
+          <td><code>ClientIP</code></td>
+          <td><code>ClientIP</code></td>
+          <td><strong style="color: var(--green)">Already delegates</strong></td>
+        </tr>
+      </table>
+      <p>
+        <strong>Recommendation:</strong> This is a product direction question.
+        <code>Chain</code> can be delegated immediately (7 lines, identical). Other middleware has
+        CQRS-specific behavior. Defer to ADR discussion.
+      </p>
+    </div>
 
-<div class="card card-warning">
-  <h4>httputil v0.3.0 now ships middleware that overlaps cqrs-htmx <span class="tag tag-found">FOUND</span></h4>
-  <p>The httputil upgrade (v0.2.0 → v0.3.0) brings a full middleware suite that overlaps with cqrs-htmx's implementations:</p>
-  <table>
-    <tr><th>cqrs-htmx</th><th>httputil v0.3.0</th><th>Can Delegate?</th></tr>
-    <tr><td><code>Chain()</code></td><td><code>Chain()</code></td><td><strong style="color:var(--green)">YES — identical semantics</strong></td></tr>
-    <tr><td><code>SecurityHeadersMiddleware</code></td><td><code>SecurityHeaders</code></td><td>Partial — httputil has <code>Validate()</code>, but cqrs-htmx has <code>RecommendedCSP</code>/<code>RecommendedHSTS</code></td></tr>
-    <tr><td><code>RecoveryMiddleware</code></td><td><code>Recovery</code></td><td><strong style="color:var(--red)">NO</strong> — cqrs-htmx integrates with CQRS <code>ErrorHandler</code> + <code>event.Newf</code></td></tr>
-    <tr><td><code>ContextEnrichmentMiddleware</code></td><td><code>RequestID</code></td><td><strong style="color:var(--red)">NO</strong> — cqrs-htmx is CQRS-specific (UserID extraction, branded ULID types)</td></tr>
-    <tr><td><code>HealthHandler</code></td><td><code>HealthHandler</code></td><td>Partial — cqrs-htmx checks dispatcher availability</td></tr>
-    <tr><td><code>ClientIP</code></td><td><code>ClientIP</code></td><td><strong style="color:var(--green)">Already delegates</strong></td></tr>
-  </table>
-  <p><strong>Recommendation:</strong> This is a product direction question. <code>Chain</code> can be delegated immediately (7 lines, identical). Other middleware has CQRS-specific behavior. Defer to ADR discussion.</p>
-</div>
+    <h2>5. Prioritized Execution Plan</h2>
 
-<h2>5. Prioritized Execution Plan</h2>
+    <ol>
+      <li>
+        <span class="priority p-done">DONE</span>
+        <strong>Fix integration_test version mismatch</strong> — v2.4.0 → v2.5.0 for
+        signing/encryption. Impact: High (build errors). Effort: 5 min.
+      </li>
+      <li>
+        <span class="priority p-done">DONE</span> <strong>Extract SecurityHooks struct</strong> —
+        eliminate duplicated config fields. Impact: High (maintainability). Effort: 30 min.
+      </li>
+      <li>
+        <span class="priority p-done">DONE</span>
+        <strong>Fix EventSourcedSetup interface types</strong> — Store/Bus to interfaces. Impact:
+        High (silent nil bug). Effort: 15 min.
+      </li>
+      <li>
+        <span class="priority p-done">DONE</span> <strong>Fix error wrapping consistency</strong> —
+        fmt.Errorf → event.NewTransient. Impact: Medium (consistency). Effort: 10 min.
+      </li>
+      <li>
+        <span class="priority p-done">DONE</span> <strong>Fix waitForUser polling</strong> —
+        context.WithTimeout pattern. Impact: Low (test hygiene). Effort: 10 min.
+      </li>
+      <li>
+        <span class="priority p-done">DONE</span> <strong>Update ADR test counts</strong> — 6→8,
+        3→4. Impact: Low (docs accuracy). Effort: 2 min.
+      </li>
+      <li>
+        <span class="priority p-deferred">DEFERRED</span>
+        <strong>httputil delegation analysis</strong> — which functions to delegate. Impact: Medium
+        (code reduction). Effort: 2+ hours.
+        <em
+          >Requires product decision: should cqrs-htmx become a thin wrapper over httputil, or
+          maintain its own middleware for CQRS-specific behavior?</em
+        >
+      </li>
+    </ol>
 
-<ol>
-  <li><span class="priority p-done">DONE</span> <strong>Fix integration_test version mismatch</strong> — v2.4.0 → v2.5.0 for signing/encryption. Impact: High (build errors). Effort: 5 min.</li>
-  <li><span class="priority p-done">DONE</span> <strong>Extract SecurityHooks struct</strong> — eliminate duplicated config fields. Impact: High (maintainability). Effort: 30 min.</li>
-  <li><span class="priority p-done">DONE</span> <strong>Fix EventSourcedSetup interface types</strong> — Store/Bus to interfaces. Impact: High (silent nil bug). Effort: 15 min.</li>
-  <li><span class="priority p-done">DONE</span> <strong>Fix error wrapping consistency</strong> — fmt.Errorf → event.NewTransient. Impact: Medium (consistency). Effort: 10 min.</li>
-  <li><span class="priority p-done">DONE</span> <strong>Fix waitForUser polling</strong> — context.WithTimeout pattern. Impact: Low (test hygiene). Effort: 10 min.</li>
-  <li><span class="priority p-done">DONE</span> <strong>Update ADR test counts</strong> — 6→8, 3→4. Impact: Low (docs accuracy). Effort: 2 min.</li>
-  <li><span class="priority p-deferred">DEFERRED</span> <strong>httputil delegation analysis</strong> — which functions to delegate. Impact: Medium (code reduction). Effort: 2+ hours. <em>Requires product decision: should cqrs-htmx become a thin wrapper over httputil, or maintain its own middleware for CQRS-specific behavior?</em></li>
-</ol>
+    <h2>6. How Are We Doing on Tests?</h2>
 
-<h2>6. How Are We Doing on Tests?</h2>
+    <div class="card card-solution">
+      <h4>Test coverage is strong</h4>
+      <p>
+        8 unit tests in <code>service_security_test.go</code> cover: StoreWrapper application,
+        nil-result handling, error propagation, PublishMiddleware/HandlerMiddleware ordering, and
+        both setup paths (NewService + NewEventSourcedSetup). 4 integration tests cover:
+        encryption-at-rest with ciphertext verification, decrypt-on-load via second Service,
+        bus-level sign+encrypt, Casbin projection survival, and Ed25519 asymmetric signing. All pass
+        with <code>-race</code>.
+      </p>
+    </div>
 
-<div class="card card-solution">
-  <h4>Test coverage is strong</h4>
-  <p>8 unit tests in <code>service_security_test.go</code> cover: StoreWrapper application, nil-result handling, error propagation, PublishMiddleware/HandlerMiddleware ordering, and both setup paths (NewService + NewEventSourcedSetup). 4 integration tests cover: encryption-at-rest with ciphertext verification, decrypt-on-load via second Service, bus-level sign+encrypt, Casbin projection survival, and Ed25519 asymmetric signing. All pass with <code>-race</code>.</p>
-</div>
+    <div class="card card-warning">
+      <h4>Missing: property-based tests for crypto round-trips</h4>
+      <p>
+        No property-based tests verifying that sign→encrypt→decrypt→verify is an identity
+        transformation for arbitrary event payloads. Would catch edge cases like empty payloads,
+        large payloads, binary data.
+        <em>Deferred — current tests cover the main patterns adequately.</em>
+      </p>
+    </div>
 
-<div class="card card-warning">
-  <h4>Missing: property-based tests for crypto round-trips</h4>
-  <p>No property-based tests verifying that sign→encrypt→decrypt→verify is an identity transformation for arbitrary event payloads. Would catch edge cases like empty payloads, large payloads, binary data. <em>Deferred — current tests cover the main patterns adequately.</em></p>
-</div>
+    <h2>7. What Could Still Improve?</h2>
 
-<h2>7. What Could Still Improve?</h2>
+    <div class="card card-info">
+      <h4>StartProjections has a time.Sleep(50ms)</h4>
+      <p>
+        <code>es_projection_setup.go:56</code> sleeps 50ms after starting the projection runner
+        goroutine, hoping replay finishes. This is the root cause of the
+        <code>waitForUser</code> polling pattern. The proper fix would be a synchronous "replay
+        complete" signal from the projection runner — but that's in
+        <code>go-cqrs-lite/projection/v2</code>, not cqrs-htmx.
+      </p>
+    </div>
 
-<div class="card card-info">
-  <h4>StartProjections has a time.Sleep(50ms)</h4>
-  <p><code>es_projection_setup.go:56</code> sleeps 50ms after starting the projection runner goroutine, hoping replay finishes. This is the root cause of the <code>waitForUser</code> polling pattern. The proper fix would be a synchronous "replay complete" signal from the projection runner — but that's in <code>go-cqrs-lite/projection/v2</code>, not cqrs-htmx.</p>
-</div>
+    <div class="card card-info">
+      <h4>Root App security hooks question</h4>
+      <p>
+        The root <code>cqrs-htmx</code> package doesn't own a bus or store, so signing/encryption
+        hooks are only in <code>usermgmt</code>. Consumers using root without usermgmt wire their
+        own bus/store. This is documented in ADR 0011 but may warrant a convenience helper in the
+        root package.
+      </p>
+    </div>
 
-<div class="card card-info">
-  <h4>Root App security hooks question</h4>
-  <p>The root <code>cqrs-htmx</code> package doesn't own a bus or store, so signing/encryption hooks are only in <code>usermgmt</code>. Consumers using root without usermgmt wire their own bus/store. This is documented in ADR 0011 but may warrant a convenience helper in the root package.</p>
-</div>
+    <h2>8. Commits Made</h2>
 
-<h2>8. Commits Made</h2>
+    <table>
+      <tr>
+        <th>Hash</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>ae152ae</code></td>
+        <td>fix: align integration_test signing/encryption deps to v2.5.0</td>
+      </tr>
+      <tr>
+        <td><code>e2429e0</code></td>
+        <td>chore: upgrade httputil to v0.3.0</td>
+      </tr>
+      <tr>
+        <td><code>1d811ab</code></td>
+        <td>refactor: extract shared SecurityHooks struct</td>
+      </tr>
+      <tr>
+        <td><code>c1079c1</code></td>
+        <td>fix: use interfaces in EventSourcedSetup + align error wrapping</td>
+      </tr>
+      <tr>
+        <td><code>022f800</code></td>
+        <td>fix: context-based deadline in waitForUser + update ADR counts</td>
+      </tr>
+    </table>
 
-<table>
-  <tr><th>Hash</th><th>Description</th></tr>
-  <tr><td><code>ae152ae</code></td><td>fix: align integration_test signing/encryption deps to v2.5.0</td></tr>
-  <tr><td><code>e2429e0</code></td><td>chore: upgrade httputil to v0.3.0</td></tr>
-  <tr><td><code>1d811ab</code></td><td>refactor: extract shared SecurityHooks struct</td></tr>
-  <tr><td><code>c1079c1</code></td><td>fix: use interfaces in EventSourcedSetup + align error wrapping</td></tr>
-  <tr><td><code>022f800</code></td><td>fix: context-based deadline in waitForUser + update ADR counts</td></tr>
-</table>
-
-<div class="footer">
-  <p>Generated by brutal-self-review skill · Bauhaus dark theme · All issues verified via <code>golangci-lint</code> + <code>go test -race</code> + BuildFlow (37/37 checks passing)</p>
-</div>
-
-</body>
+    <div class="footer">
+      <p>
+        Generated by brutal-self-review skill · Bauhaus dark theme · All issues verified via
+        <code>golangci-lint</code> + <code>go test -race</code> + BuildFlow (37/37 checks passing)
+      </p>
+    </div>
+  </body>
 </html>
