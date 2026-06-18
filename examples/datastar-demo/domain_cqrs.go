@@ -42,6 +42,10 @@ func (b *Broadcaster) Unsubscribe(ch chan BroadcastEvent) {
 	b.mu.Unlock()
 }
 
+// Send broadcasts an event to all subscribers. The snapshot-then-send
+// pattern is safe ONLY because Unsubscribe does not close the channel.
+// If you change Unsubscribe to close(ch), you MUST hold the lock during
+// the send loop (see cqrs-htmx fanout.go for the correct pattern).
 func (b *Broadcaster) Send(evt BroadcastEvent) {
 	b.mu.Lock()
 	subs := make([]chan BroadcastEvent, 0, len(b.subs))
