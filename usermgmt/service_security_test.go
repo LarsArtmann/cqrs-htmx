@@ -42,15 +42,17 @@ func TestService_StoreWrapper_AppliedAndUsed(t *testing.T) {
 	var rec storeRecorder
 
 	svc := newTestServiceWithConfig(t, ServiceConfig{
-		StoreWrapper: func(inner event.Store) (event.Store, error) {
-			rec.called.Store(true)
-			memStore, ok := inner.(*memory.MemoryStore)
-			if !ok {
-				t.Fatalf("expected *memory.MemoryStore, got %T", inner)
-			}
-			rs := &recordingStore{MemoryStore: memStore}
-			rec.store = rs
-			return rs, nil
+		SecurityHooks: SecurityHooks{
+			StoreWrapper: func(inner event.Store) (event.Store, error) {
+				rec.called.Store(true)
+				memStore, ok := inner.(*memory.MemoryStore)
+				if !ok {
+					t.Fatalf("expected *memory.MemoryStore, got %T", inner)
+				}
+				rs := &recordingStore{MemoryStore: memStore}
+				rec.store = rs
+				return rs, nil
+			},
 		},
 	})
 
@@ -73,8 +75,10 @@ func TestService_StoreWrapper_AppliedAndUsed(t *testing.T) {
 
 func TestService_StoreWrapper_NilResultIsNoOp(t *testing.T) {
 	svc := newTestServiceWithConfig(t, ServiceConfig{
-		StoreWrapper: func(event.Store) (event.Store, error) {
-			return nil, nil //nolint:nilnil // intentionally tests nil-result handling
+		SecurityHooks: SecurityHooks{
+			StoreWrapper: func(event.Store) (event.Store, error) {
+				return nil, nil //nolint:nilnil // intentionally tests nil-result handling
+			},
 		},
 	})
 
@@ -84,7 +88,9 @@ func TestService_StoreWrapper_NilResultIsNoOp(t *testing.T) {
 
 func TestService_StoreWrapper_ErrorPropagates(t *testing.T) {
 	_, err := NewService(ServiceConfig{
-		StoreWrapper: func(event.Store) (event.Store, error) { return nil, errStoreWrapperSentinel },
+		SecurityHooks: SecurityHooks{
+			StoreWrapper: func(event.Store) (event.Store, error) { return nil, errStoreWrapperSentinel },
+		},
 	})
 	assertErrorIs(t, err, errStoreWrapperSentinel, "wrapper error propagation")
 }
@@ -93,12 +99,14 @@ func TestService_PublishMiddleware_AppliedBeforeProjections(t *testing.T) {
 	var publishCalls atomic.Int64
 
 	svc := newTestServiceWithConfig(t, ServiceConfig{
-		PublishMiddleware: []event.PublishMiddleware{
-			func(next event.Publisher) event.Publisher {
-				return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
-					publishCalls.Add(int64(len(events)))
-					return next.Publish(ctx, events...)
-				})
+		SecurityHooks: SecurityHooks{
+			PublishMiddleware: []event.PublishMiddleware{
+				func(next event.Publisher) event.Publisher {
+					return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
+						publishCalls.Add(int64(len(events)))
+						return next.Publish(ctx, events...)
+					})
+				},
 			},
 		},
 	})
@@ -117,12 +125,14 @@ func TestService_HandlerMiddleware_AppliedBeforeProjections(t *testing.T) {
 	var handleCalls atomic.Int64
 
 	svc := newTestServiceWithConfig(t, ServiceConfig{
-		HandlerMiddleware: []event.Middleware{
-			func(next event.Handler) event.Handler {
-				return func(ctx context.Context, evt event.Event) error {
-					handleCalls.Add(1)
-					return next(ctx, evt)
-				}
+		SecurityHooks: SecurityHooks{
+			HandlerMiddleware: []event.Middleware{
+				func(next event.Handler) event.Handler {
+					return func(ctx context.Context, evt event.Event) error {
+						handleCalls.Add(1)
+						return next(ctx, evt)
+					}
+				},
 			},
 		},
 	})
@@ -169,13 +179,15 @@ func TestService_MiddlewareOrdering(t *testing.T) {
 	var order []string
 
 	svc := newTestServiceWithConfig(t, ServiceConfig{
-		PublishMiddleware: []event.PublishMiddleware{
-			markerPublishMW("first", &order, &mu),
-			markerPublishMW("second", &order, &mu),
-		},
-		HandlerMiddleware: []event.Middleware{
-			markerHandlerMW("h-first", &order, &mu),
-			markerHandlerMW("h-second", &order, &mu),
+		SecurityHooks: SecurityHooks{
+			PublishMiddleware: []event.PublishMiddleware{
+				markerPublishMW("first", &order, &mu),
+				markerPublishMW("second", &order, &mu),
+			},
+			HandlerMiddleware: []event.Middleware{
+				markerHandlerMW("h-first", &order, &mu),
+				markerHandlerMW("h-second", &order, &mu),
+			},
 		},
 	})
 
@@ -204,20 +216,22 @@ func TestNewEventSourcedSetup_SecurityHooks(t *testing.T) {
 	var handleCalls atomic.Int64
 
 	setup, err := NewEventSourcedSetup(EventSourcedConfig{
-		PublishMiddleware: []event.PublishMiddleware{
-			func(next event.Publisher) event.Publisher {
-				return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
-					publishCalls.Add(int64(len(events)))
-					return next.Publish(ctx, events...)
-				})
+		SecurityHooks: SecurityHooks{
+			PublishMiddleware: []event.PublishMiddleware{
+				func(next event.Publisher) event.Publisher {
+					return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
+						publishCalls.Add(int64(len(events)))
+						return next.Publish(ctx, events...)
+					})
+				},
 			},
-		},
-		HandlerMiddleware: []event.Middleware{
-			func(next event.Handler) event.Handler {
-				return func(ctx context.Context, evt event.Event) error {
-					handleCalls.Add(1)
-					return next(ctx, evt)
-				}
+			HandlerMiddleware: []event.Middleware{
+				func(next event.Handler) event.Handler {
+					return func(ctx context.Context, evt event.Event) error {
+						handleCalls.Add(1)
+						return next(ctx, evt)
+					}
+				},
 			},
 		},
 	})
@@ -250,9 +264,11 @@ func TestNewEventSourcedSetup_StoreWrapper(t *testing.T) {
 	var wrapped atomic.Bool
 
 	setup, err := NewEventSourcedSetup(EventSourcedConfig{
-		StoreWrapper: func(s event.Store) (event.Store, error) {
-			wrapped.Store(true)
-			return s, nil // pass-through for this test
+		SecurityHooks: SecurityHooks{
+			StoreWrapper: func(s event.Store) (event.Store, error) {
+				wrapped.Store(true)
+				return s, nil // pass-through for this test
+			},
 		},
 	})
 	if err != nil {

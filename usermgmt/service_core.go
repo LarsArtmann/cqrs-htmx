@@ -76,33 +76,9 @@ type ServiceConfig struct {
 	// TOTPConfig, if provided, enables TOTP multi-factor authentication.
 	TOTPConfig *TOTPConfig
 
-	// StoreWrapper wraps the event store before the repository and projections
-	// are wired. Use this for transparent encryption-at-rest, e.g.:
-	//
-	//	encryption.NewEncryptedStore(store, cipher)
-	//
-	// The wrapper receives the configured (or default in-memory) store and
-	// must return a store implementing at least event.Store. To preserve
-	// projection catch-up, the wrapper should also implement event.Journal when
-	// the inner store does (encryption.NewEncryptedStore does this).
-	// Return inner unchanged to opt out. A nil result is treated as no wrapping.
-	StoreWrapper func(event.Store) (event.Store, error)
-
-	// PublishMiddleware is applied to the event bus via bus.UsePublish before
-	// projections subscribe. Use for signing
-	// (signing.SignMiddleware) and/or encrypt-on-publish
-	// (encryption.EncryptMiddleware). Applied in registration order; the first
-	// element is outermost (runs first). Recommended order for sign+encrypt is
-	// [SignMiddleware, EncryptMiddleware] — sign the plaintext, then encrypt.
-	PublishMiddleware []event.PublishMiddleware
-
-	// HandlerMiddleware is applied to the event bus via bus.Use before
-	// projections subscribe. Use for verify-on-receive
-	// (signing.VerifyMiddleware) and/or decrypt-on-handle
-	// (encryption.DecryptMiddleware). Applied in registration order; the first
-	// element is outermost. Recommended order for decrypt+verify is
-	// [DecryptMiddleware, VerifyMiddleware] — decrypt to plaintext, then verify.
-	HandlerMiddleware []event.Middleware
+	// SecurityHooks configures opt-in event signing and encryption.
+	// See SecurityHooks for field documentation.
+	SecurityHooks
 }
 
 // wrapEventStore applies the optional StoreWrapper (e.g. transparent encryption)

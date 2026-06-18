@@ -40,16 +40,18 @@ func TestSigningEncryption_StoreEncryptionAndBusSigning(t *testing.T) {
 	// Service A: write path — encrypts at rest, signs in transit.
 	svcA, err := usermgmt.NewService(usermgmt.ServiceConfig{
 		EventStore: innerStore,
-		StoreWrapper: func(s event.Store) (event.Store, error) {
-			return encryption.NewEncryptedStore(s, cipher)
-		},
-		PublishMiddleware: []event.PublishMiddleware{
-			signing.SignMiddleware(signer),
-		},
-		// RequireSignatureMiddleware is strict: it rejects events lacking a
-		// valid signature. If SignMiddleware failed to sign, this would error.
-		HandlerMiddleware: []event.Middleware{
-			signing.RequireSignatureMiddleware(signer),
+		SecurityHooks: usermgmt.SecurityHooks{
+			StoreWrapper: func(s event.Store) (event.Store, error) {
+				return encryption.NewEncryptedStore(s, cipher)
+			},
+			PublishMiddleware: []event.PublishMiddleware{
+				signing.SignMiddleware(signer),
+			},
+			// RequireSignatureMiddleware is strict: it rejects events lacking a
+			// valid signature. If SignMiddleware failed to sign, this would error.
+			HandlerMiddleware: []event.Middleware{
+				signing.RequireSignatureMiddleware(signer),
+			},
 		},
 	})
 	if err != nil {
@@ -91,8 +93,10 @@ func assertReloadsUser(
 	t.Helper()
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
 		EventStore: inner,
-		StoreWrapper: func(s event.Store) (event.Store, error) {
-			return encryption.NewEncryptedStore(s, cipher)
+		SecurityHooks: usermgmt.SecurityHooks{
+			StoreWrapper: func(s event.Store) (event.Store, error) {
+				return encryption.NewEncryptedStore(s, cipher)
+			},
 		},
 	})
 	if err != nil {
@@ -137,15 +141,17 @@ func TestSigningEncryption_BusLevelCrypto(t *testing.T) {
 	}
 
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		// Sign then encrypt on publish (sign the plaintext, then encrypt).
-		PublishMiddleware: []event.PublishMiddleware{
-			signing.SignMiddleware(signer),
-			encryption.EncryptMiddleware(enc),
-		},
-		// Decrypt then verify on handle (decrypt to plaintext, then verify sig).
-		HandlerMiddleware: []event.Middleware{
-			encryption.DecryptMiddleware(enc),
-			signing.RequireSignatureMiddleware(signer),
+		SecurityHooks: usermgmt.SecurityHooks{
+			// Sign then encrypt on publish (sign the plaintext, then encrypt).
+			PublishMiddleware: []event.PublishMiddleware{
+				signing.SignMiddleware(signer),
+				encryption.EncryptMiddleware(enc),
+			},
+			// Decrypt then verify on handle (decrypt to plaintext, then verify sig).
+			HandlerMiddleware: []event.Middleware{
+				encryption.DecryptMiddleware(enc),
+				signing.RequireSignatureMiddleware(signer),
+			},
 		},
 	})
 	if err != nil {
@@ -175,8 +181,10 @@ func TestSigningEncryption_AuthzProjectionSurvivesCrypto(t *testing.T) {
 	}
 
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		StoreWrapper: func(s event.Store) (event.Store, error) {
-			return encryption.NewEncryptedStore(s, cipher)
+		SecurityHooks: usermgmt.SecurityHooks{
+			StoreWrapper: func(s event.Store) (event.Store, error) {
+				return encryption.NewEncryptedStore(s, cipher)
+			},
 		},
 	})
 	if err != nil {
@@ -237,11 +245,13 @@ func TestSigningEncryption_Ed25519AsymmetricSigning(t *testing.T) {
 	}
 
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		PublishMiddleware: []event.PublishMiddleware{
-			signing.SignMiddleware(signer),
-		},
-		HandlerMiddleware: []event.Middleware{
-			signing.RequireSignatureMiddleware(verifier),
+		SecurityHooks: usermgmt.SecurityHooks{
+			PublishMiddleware: []event.PublishMiddleware{
+				signing.SignMiddleware(signer),
+			},
+			HandlerMiddleware: []event.Middleware{
+				signing.RequireSignatureMiddleware(verifier),
+			},
 		},
 	})
 	if err != nil {
