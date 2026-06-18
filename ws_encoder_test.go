@@ -160,13 +160,11 @@ var _ = Describe("WSBroadcaster", func() {
 			var wg sync.WaitGroup
 
 			for range 10 {
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
+				wg.Go(func() {
 					ch := b.Subscribe()
 					time.Sleep(time.Millisecond)
 					b.Unsubscribe(ch)
-				}()
+				})
 			}
 
 			wg.Wait()

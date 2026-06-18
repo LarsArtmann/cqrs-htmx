@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 )
 
 // WriteWSMessage serializes a WSMessage to the HTMX WebSocket JSON format and
@@ -18,9 +19,7 @@ import (
 func WriteWSMessage(w io.Writer, msg WSMessage) error {
 	combined := make(map[string]any, len(msg.Body)+1)
 
-	for k, v := range msg.Body {
-		combined[k] = v
-	}
+	maps.Copy(combined, msg.Body)
 
 	if len(msg.Headers) > 0 {
 		combined["HEADERS"] = msg.Headers
