@@ -95,4 +95,24 @@ var (
 		"usermgmt.totp_setup_expired",
 		"TOTP setup has expired, please try again",
 	)
+	// ErrOAuthNotConfigured is returned when OAuth2 is used without being configured.
+	ErrOAuthNotConfigured = event.NewRejection(
+		"usermgmt.oauth_not_configured",
+		"OAuth2 is not configured",
+	)
+	// ErrOAuthProviderNotFound is returned when the requested provider is not configured.
+	ErrOAuthProviderNotFound = event.NewRejection(
+		"usermgmt.oauth_provider_not_found",
+		"OAuth2 provider not found",
+	)
+	// ErrOAuthInvalidState is returned when the state token is invalid, expired, or missing.
+	ErrOAuthInvalidState = event.NewRejection(
+		"usermgmt.oauth_invalid_state",
+		"OAuth2 state token is invalid or expired",
+	)
+	// ErrOAuthTokenExchange is returned when exchanging the authorization code for a token fails.
+	ErrOAuthTokenExchange = event.NewRejection(
+		"usermgmt.oauth_token_exchange_failed",
+		"OAuth2 token exchange failed",
+	)
 )

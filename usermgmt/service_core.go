@@ -44,6 +44,10 @@ type Service struct {
 	totpConfig               *TOTPConfig
 	pendingTOTP              pendingTOTPStore
 	stopPendingTOTPEviction  func()
+	oauth2Providers          map[string]*oauth2Provider
+	oauth2States             *oauth2StateStore
+	stopOAuth2Eviction       func()
+	oauth2StateTTL           time.Duration
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -75,6 +79,9 @@ type ServiceConfig struct {
 	EmailVerification *EmailVerificationConfig
 	// TOTPConfig, if provided, enables TOTP multi-factor authentication.
 	TOTPConfig *TOTPConfig
+	// OAuth2Config, if provided, enables OAuth2/OIDC login with external
+	// identity providers (Google, GitHub, etc.).
+	OAuth2Config *OAuth2Config
 
 	// SecurityHooks configures opt-in event signing and encryption.
 	// See SecurityHooks for field documentation.
@@ -250,6 +257,12 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.stopPendingTOTPEviction = svc.pendingTOTP.startEviction()
 	}
 
+	if cfg.OAuth2Config != nil && len(cfg.OAuth2Config.Providers) > 0 {
+		if err := svc.initOAuth2(cfg.OAuth2Config); err != nil {
+			return nil, err
+		}
+	}
+
 	if cfg.EventHandler != nil {
 		svc.bridgeEventHandler(bus)
 	}
@@ -276,6 +289,29 @@ func (s *Service) Stop() {
 		s.stopPendingTOTPEviction()
 		s.stopPendingTOTPEviction = nil
 	}
+	if s.stopOAuth2Eviction != nil {
+		s.stopOAuth2Eviction()
+		s.stopOAuth2Eviction = nil
+	}
+}
+
+// initOAuth2 initializes the OAuth2 providers, state store, and background eviction.
+func (s *Service) initOAuth2(cfg *OAuth2Config) error {
+	s.oauth2Providers = make(map[string]*oauth2Provider, len(cfg.Providers))
+	s.oauth2States = newOAuth2StateStore()
+	s.stopOAuth2Eviction = s.oauth2States.startEviction()
+	s.oauth2StateTTL = cfg.StateTTL
+	if s.oauth2StateTTL == 0 {
+		s.oauth2StateTTL = defaultOAuthStateTTL
+	}
+	for name, provCfg := range cfg.Providers {
+		prov, err := initOAuth2Provider(context.Background(), name, provCfg)
+		if err != nil {
+			return event.NewTransient("internal", "init oauth2 provider "+name).WithCause(err)
+		}
+		s.oauth2Providers[name] = prov
+	}
+	return nil
 }
 
 // ReadModel returns the user read model for direct queries.

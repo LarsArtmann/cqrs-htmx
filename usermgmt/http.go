@@ -35,6 +35,7 @@ type AuthHandler struct {
 	totpLimiter            *perIPRateLimiter
 	verificationLimiter    *perIPRateLimiter
 	webauthnLimiter        *perIPRateLimiter
+	oauthLimiter           *perIPRateLimiter
 	importExportAuthorizer AuthorizerFunc
 }
 
@@ -66,6 +67,8 @@ type HandlerConfig struct {
 	// WebAuthnRateLimit limits the rate of /auth/webauthn/* requests per IP.
 	// Use this to brute-force protection on the passwordless login/registration ceremonies.
 	WebAuthnRateLimit RateLimitConfig
+	// OAuthRateLimit limits the rate of /auth/oauth/* requests per IP.
+	OAuthRateLimit RateLimitConfig
 	// ImportExportAuthorizer controls who can call /auth/import and /auth/export.
 	// Defaults to RequireAdminRole (only users with the admin role).
 	// Set to nil to disable authorization, or provide a custom AuthorizerFunc.
@@ -153,6 +156,7 @@ const (
 	statusLoggedOut         = "logged_out"
 	statusRegistered        = "registered"
 	statusRemoved           = "removed"
+	statusUnlinked          = "unlinked"
 	statusVerified          = "verified"
 	statusTOTPEnabled       = "totp_enabled"
 	statusTOTPDisabled      = "totp_disabled"
@@ -182,6 +186,7 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 		totpLimiter:            newLimiterFromConfig(config.TOTPRateLimit),
 		verificationLimiter:    newLimiterFromConfig(config.VerificationRateLimit),
 		webauthnLimiter:        newLimiterFromConfig(config.WebAuthnRateLimit),
+		oauthLimiter:           newLimiterFromConfig(config.OAuthRateLimit),
 	}
 }
 
@@ -210,6 +215,7 @@ func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /auth/credentials", h.handleListCredentials)
 	mux.HandleFunc("DELETE /auth/credentials/{id}", h.handleDeleteCredential)
 	h.RegisterVerificationTOTPRoutes(mux)
+	h.RegisterOAuth2Routes(mux)
 }
 
 const maxAuthBodySize = 1 << 20 // 1 MB
@@ -338,13 +344,18 @@ func errorStatus(err error) int {
 	case errors.Is(err, ErrInvalidTOTPCode):
 		return http.StatusUnauthorized
 	case errors.Is(err, ErrTOTPNotConfigured),
-		errors.Is(err, ErrEmailVerificationNotConfigured):
+		errors.Is(err, ErrEmailVerificationNotConfigured),
+		errors.Is(err, ErrOAuthNotConfigured):
 		return http.StatusServiceUnavailable
 	case errors.Is(err, ErrUserNotFound),
 		errors.Is(err, ErrSessionNotFound),
 		errors.Is(err, ErrUserIDExists),
-		errors.Is(err, ErrNoCredentials):
+		errors.Is(err, ErrNoCredentials),
+		errors.Is(err, ErrOAuthProviderNotFound):
 		return http.StatusNotFound
+	case errors.Is(err, ErrOAuthInvalidState),
+		errors.Is(err, ErrOAuthTokenExchange):
+		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
 	}
