@@ -4,8 +4,8 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/cqrs-htmx/catalog/v2 v2.0.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v2 v2.0.0
-	github.com/larsartmann/cqrs-htmx/v2 v2.0.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v2 v2.1.0
+	github.com/larsartmann/cqrs-htmx/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v2 v2.6.0
