@@ -16,6 +16,15 @@ const (
 	ContentTypeJSON  = "application/json; charset=utf-8"
 )
 
+// JSON map key constants for consistent error/status response shapes.
+// Exported so consumers can build matching response types without typos.
+// Note: usermgmt is a separate Go module and cannot import these — it
+// declares its own local statusKey/errorKey. The wire formats match.
+const (
+	JSONKeyError  = "error"
+	JSONKeyStatus = "status"
+)
+
 // Response builds HTMX-aware HTTP responses with fluent method chaining.
 //
 // Usage:
