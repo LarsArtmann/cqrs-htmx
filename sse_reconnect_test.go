@@ -14,7 +14,7 @@ var _ = Describe("SSE Reconnection", func() {
 		It("extracts Last-Event-ID from request", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 			r.Header.Set("Last-Event-ID", "evt-42")
-			Expect(cqrshtmx.LastEventIDFromRequest(r)).To(Equal("evt-42"))
+			Expect(cqrshtmx.LastEventIDFromRequest(r)).To(BeEquivalentTo("evt-42"))
 		})
 
 		It("returns empty string when Last-Event-ID is not set", func() {
@@ -29,7 +29,7 @@ var _ = Describe("SSE Reconnection", func() {
 			stream := cqrshtmx.NewSSEStream(w, r)
 			defer stream.Close()
 
-			Expect(stream.LastEventID()).To(Equal("evt-99"))
+			Expect(stream.LastEventID()).To(BeEquivalentTo("evt-99"))
 		})
 
 		It("replays events from store", func() {

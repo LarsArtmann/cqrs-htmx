@@ -101,9 +101,9 @@ func (s *SSEStream) Close() {
 
 // LastEventID returns the Last-Event-ID header from the connection request.
 // The browser sends this on reconnection to indicate the last event it received.
-// Returns empty string if not present.
-func (s *SSEStream) LastEventID() string {
-	return s.r.Header.Get("Last-Event-ID")
+// Returns empty SSEEventID if not present.
+func (s *SSEStream) LastEventID() SSEEventID {
+	return SSEEventID(s.r.Header.Get("Last-Event-ID"))
 }
 
 // Heartbeat sends SSE comment-frame pings at the given interval until ctx
@@ -149,12 +149,12 @@ func (s *SSEStream) OnDisconnect(fn func()) {
 // Use this to replay missed events:
 //
 //	lastID := cqrshtmx.LastEventIDFromRequest(r)
-//	if lastID != "" {
-//	    events := store.EventsAfter(lastID)
+//	if !lastID.IsZero() {
+//	    events := store.EventsAfter(lastID.String())
 //	    for _, evt := range events {
 //	        stream.Send(evt)
 //	    }
 //	}
-func LastEventIDFromRequest(r *http.Request) string {
-	return r.Header.Get("Last-Event-ID")
+func LastEventIDFromRequest(r *http.Request) SSEEventID {
+	return SSEEventID(r.Header.Get("Last-Event-ID"))
 }

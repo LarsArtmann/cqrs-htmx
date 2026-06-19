@@ -1,11 +1,54 @@
 package cqrshtmx
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
 	"strings"
 )
+
+// SSEEventID is a branded string type for SSE event identifiers (the `id:` field
+// and the `Last-Event-ID` request header). It prevents accidental cross-assignment
+// with other string-typed IDs (CorrelationID, RequestID, UserID, etc.).
+//
+// SSE event IDs are arbitrary server-defined strings — they are NOT ULIDs.
+// Use ParseSSEEventID to construct from a string (rejects control characters
+// and newlines, which would corrupt the SSE wire format).
+type SSEEventID string
+
+// String returns the underlying string value. Required for stable fmt/JSON output.
+func (s SSEEventID) String() string { return string(s) }
+
+// IsZero reports whether the SSEEventID is empty.
+func (s SSEEventID) IsZero() bool { return s == "" }
+
+// NewSSEEventID constructs an SSEEventID from a string. Performs no validation —
+// use ParseSSEEventID for untrusted input (e.g., from request headers).
+func NewSSEEventID(s string) SSEEventID { return SSEEventID(s) }
+
+// errSSEEventIDInvalid is returned by ParseSSEEventID for malformed values.
+var errSSEEventIDInvalid = errors.New("sse event id: contains forbidden character (newline or carriage return)")
+
+// ParseSSEEventID converts a string to an SSEEventID, rejecting values that
+// would corrupt the SSE wire format (newlines, carriage returns). Empty strings
+// are allowed (representing "no ID" / initial connection).
+func ParseSSEEventID(s string) (SSEEventID, error) {
+	if strings.ContainsAny(s, "\n\r") {
+		return "", fmt.Errorf("%w: %q", errSSEEventIDInvalid, s)
+	}
+	return SSEEventID(s), nil
+}
+
+// MustParseSSEEventID is the panicking variant of ParseSSEEventID for tests
+// and constants. Panics if the input contains newlines.
+func MustParseSSEEventID(s string) SSEEventID {
+	id, err := ParseSSEEventID(s)
+	if err != nil {
+		panic(fmt.Sprintf("MustParseSSEEventID: %v", err))
+	}
+	return id
+}
 
 // SSEEvent represents a single Server-Sent Events message.
 // Use WriteSSEEvent to write it in the SSE wire format.
@@ -21,7 +64,7 @@ type SSEEvent struct {
 
 	// ID is an optional event identifier. The browser sends this as
 	// Last-Event-ID on reconnection, enabling replay of missed events.
-	ID string
+	ID SSEEventID
 
 	// Retry is an optional reconnection time in milliseconds.
 	// Instructs the browser to wait this long before reconnecting
