@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -279,4 +280,136 @@ func TestNewEventSourcedSetup_StoreWrapper(t *testing.T) {
 	if !wrapped.Load() {
 		t.Error("expected StoreWrapper to be invoked in NewEventSourcedSetup")
 	}
+}
+
+// TestService_StoreWrapper_TransformationRoundTrip verifies that a wrapper which
+// transforms event payloads (the defining property of encryption/signing wrappers)
+// produces correct events at the projection layer. This is the end-to-end proof
+// that the StoreWrapper seam works for stateful transformations — not just
+// pass-through recorders.
+//
+// The wrapper XORs each event's payload with a fixed key on Save (stand-in for
+// encryption) and reverses the transform on Load (stand-in for decryption).
+// Projections must observe the original plaintext; the persisted store holds ciphertext.
+func TestService_StoreWrapper_TransformationRoundTrip(t *testing.T) {
+	const xorKey byte = 0xAA // trivially reversible — stand-in for AES
+
+	var innerStore *memory.MemoryStore // captured by the wrapper closure
+
+	svc := newTestServiceWithConfig(t, ServiceConfig{
+		SecurityHooks: SecurityHooks{
+			StoreWrapper: func(inner event.Store) (event.Store, error) {
+				if mem, ok := inner.(*memory.MemoryStore); ok {
+					innerStore = mem
+				}
+				return &xorTransformStore{Store: inner, key: xorKey}, nil
+			},
+		},
+	})
+
+	// Register a user — this triggers Save through the wrapper (XOR transform applied).
+	reg := registerTestUser(t, svc, "xor-user", "xor@test.com")
+
+	// Projection must have seen PLAINTEXT events (the wrapper reversed the transform on Load).
+	user, ok := svc.readModel.FindByEmail("xor@test.com")
+	if !ok {
+		t.Fatal("expected user in read model after transformation round-trip")
+	}
+	if user.Email != "xor@test.com" {
+		t.Errorf("email mismatch after round-trip: %q", user.Email)
+	}
+	if user.ID != reg.User.ID {
+		t.Errorf("user ID mismatch after round-trip: %q vs %q", user.ID, reg.User.ID)
+	}
+
+	// CRITICAL: verify the inner store actually holds TRANSFORMED (XORed) data,
+	// not plaintext. This proves the wrapper is genuinely transforming — not just
+	// passing through. We load directly from the inner store, bypassing the wrapper,
+	// and confirm the payload bytes differ from plaintext.
+	if innerStore == nil {
+		t.Fatal("inner store was not captured — wrapper did not receive *memory.MemoryStore")
+	}
+	rawEvents, err := innerStore.Load(context.Background(), event.AggregateRef{
+		ID: mustParseAggIDSvc(t, reg.User.ID.Get()), Type: aggregateTypeUser,
+	})
+	if err != nil {
+		t.Fatalf("inner store Load: %v", err)
+	}
+	if len(rawEvents) == 0 {
+		t.Fatal("inner store has no events — wrapper did not forward Save")
+	}
+	for i, rawEvt := range rawEvents {
+		rawPayload := rawEvt.Payload()
+		if len(rawPayload) == 0 {
+			t.Errorf("event[%d] payload is empty", i)
+			continue
+		}
+		// The first byte of a JSON object is '{' (0x7B). After XOR with 0xAA,
+		// it becomes 0xD1. If we see '{' here, the wrapper didn't transform.
+		if rawPayload[0] == '{' {
+			t.Errorf("event[%d] inner-store payload starts with '{' (plaintext) — wrapper did not transform", i)
+		}
+	}
+}
+
+func mustParseAggIDSvc(t *testing.T, s string) id.AggregateID {
+	t.Helper()
+	a, err := id.ParseAggregateID(s)
+	if err != nil {
+		t.Fatalf("ParseAggregateID(%q): %v", s, err)
+	}
+	return a
+}
+
+// xorTransformStore is a stand-in for encryption.NewEncryptedStore.
+// It XORs event payloads with a fixed key on Save and reverses on Load.
+// Satisfies event.Store and (when the inner store does) event.Journal.
+type xorTransformStore struct {
+	event.Store
+	key byte
+}
+
+func (s *xorTransformStore) Save(
+	ctx context.Context,
+	ref event.AggregateRef,
+	events []event.Event,
+	expectedVersion event.Version,
+) error {
+	transformed := make([]event.Event, len(events))
+	for i, evt := range events {
+		payload := evt.Payload()
+		xored := make([]byte, len(payload))
+		for j, b := range payload {
+			xored[j] = b ^ s.key
+		}
+		newEvt, err := event.New(evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(), xored)
+		if err != nil {
+			return fmt.Errorf("xor transform: rebuild event: %w", err)
+		}
+		transformed[i] = newEvt
+	}
+	return s.Store.Save(ctx, ref, transformed, expectedVersion)
+}
+
+func (s *xorTransformStore) Load(
+	ctx context.Context,
+	ref event.AggregateRef,
+) ([]event.Event, error) {
+	events, err := s.Store.Load(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+	for i, evt := range events {
+		payload := evt.Payload()
+		unxored := make([]byte, len(payload))
+		for j, b := range payload {
+			unxored[j] = b ^ s.key
+		}
+		newEvt, err := event.New(evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(), unxored)
+		if err != nil {
+			return nil, fmt.Errorf("xor transform: rebuild event on load: %w", err)
+		}
+		events[i] = newEvt
+	}
+	return events, nil
 }
