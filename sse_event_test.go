@@ -275,7 +275,8 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 	})
 
 	Describe("SSEEventID", func() {
-		DescribeTable("ParseSSEEventID accepts valid IDs",
+		DescribeTable(
+			"ParseSSEEventID accepts valid IDs",
 			func(input string) {
 				id, err := cqrshtmx.ParseSSEEventID(input)
 				Expect(err).NotTo(HaveOccurred())
@@ -288,7 +289,8 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			Entry("ulid", "01H8XGJWBWBAQ4TPJRA2STZ9G9"),
 		)
 
-		DescribeTable("ParseSSEEventID rejects IDs with newlines",
+		DescribeTable(
+			"ParseSSEEventID rejects IDs with newlines",
 			func(input string) {
 				_, err := cqrshtmx.ParseSSEEventID(input)
 				Expect(err).To(HaveOccurred())
