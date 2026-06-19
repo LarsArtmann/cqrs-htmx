@@ -4,21 +4,56 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
+	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 )
 
+// subscribeSignal wraps an event.Subscriber so the first Subscribe/SubscribeAll
+// call closes a readiness channel. StartProjections uses it to block until the
+// projection Runner has registered its live subscription with the bus —
+// deterministically guaranteeing that the first event a caller publishes is
+// delivered, instead of relying on a time.Sleep to paper over the race.
+type subscribeSignal struct {
+	event.Subscriber
+	once  sync.Once
+	ready chan struct{}
+}
+
+func newSubscribeSignal(s event.Subscriber) *subscribeSignal {
+	return &subscribeSignal{ //nolint:exhaustruct // once must start zero-valued
+		Subscriber: s,
+		ready:      make(chan struct{}),
+	}
+}
+
+func (s *subscribeSignal) Subscribe(t event.Type, h event.Handler) error {
+	err := s.Subscriber.Subscribe(t, h)
+	s.once.Do(func() { close(s.ready) })
+
+	return err //nolint:wrapcheck // transparent delegation
+}
+
+func (s *subscribeSignal) SubscribeAll(h event.Handler) error {
+	err := s.Subscriber.SubscribeAll(h)
+	s.once.Do(func() { close(s.ready) })
+
+	return err //nolint:wrapcheck // transparent delegation
+}
+
 // StartProjections creates a projection Runner, registers the read model and
-// Casbin projection, and starts the runner in a background goroutine.
+// Casbin projection, replays history, and starts live tailing of the bus.
 //
-// The runner replays all events from the journal first (using checkpoints),
-// then subscribes to live events from the bus.
+// Replay is synchronous: RunReplay replays every historical event from the
+// journal (using checkpoints) and returns only once all registered projections
+// have caught up to the current event stream.
 //
-// With memory.MemoryBus, event publishing is synchronous — projections update
-// before Execute() returns, providing read-your-writes consistency.
+// The live subscription is established before StartProjections returns: it waits
+// for the Runner to register its bus handler, so the very first event a caller
+// publishes is delivered. Combined with memory.MemoryBus (synchronous publish),
+// this gives read-your-writes consistency with no timing-based sleeps.
 func StartProjections(
 	journal event.Journal,
 	bus event.Subscriber,
@@ -27,8 +62,9 @@ func StartProjections(
 	auditLog *AuditLog,
 ) error {
 	checkpointStore := memory.NewMemoryCheckpointStore()
+	signal := newSubscribeSignal(bus)
 
-	runner, err := projection.NewRunner(journal, bus, checkpointStore)
+	runner, err := projection.NewRunner(journal, signal, checkpointStore)
 	if err != nil {
 		return fmt.Errorf("create projection runner: %w", err)
 	}
@@ -47,13 +83,22 @@ func StartProjections(
 		}
 	}
 
+	// RunReplay is synchronous: it returns only once the read model reflects
+	// every committed event, catching up history with no sleeps.
+	if err := runner.RunReplay(context.Background()); err != nil {
+		return fmt.Errorf("replay projections: %w", err)
+	}
+
+	// RunLive tails live events from the bus until the context is cancelled.
 	go func() {
-		if err := runner.Run(context.Background()); err != nil {
+		if err := runner.RunLive(context.Background()); err != nil {
 			slog.Error("usermgmt: projection runner stopped", "error", err)
 		}
 	}()
 
-	time.Sleep(50 * time.Millisecond)
+	// Block until the Runner has registered its live subscription, so callers
+	// cannot publish before the projection is listening.
+	<-signal.ready
 
 	return nil
 }

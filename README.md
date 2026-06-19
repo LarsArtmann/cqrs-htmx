@@ -28,7 +28,7 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 - **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
 - **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `SSEEventStore` for reconnection replay, CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive
 - **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge
-- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v2.4.0
+- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v2.6.0
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified) with ETag/caching. Opt-in, zero CDN dependency
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers
 
@@ -1123,7 +1123,7 @@ See [catalog/README.md](catalog/README.md) for full documentation.
 
 | Dependency             | Purpose                                    |
 | ---------------------- | ------------------------------------------ |
-| go-cqrs-lite v2.4.0    | CQRS command/query dispatch, pagination    |
+| go-cqrs-lite v2.6.0    | CQRS command/query dispatch, pagination    |
 | casbin/casbin/v3       | Authorization                              |
 | go-error-family v0.4.0 | Error classification                       |
 | justinas/nosurf        | CSRF protection                            |
