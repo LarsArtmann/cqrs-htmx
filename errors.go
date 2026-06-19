@@ -216,8 +216,8 @@ func JSONErrorHandlerWithRedirect(
 		w.WriteHeader(status)
 
 		response := map[string]any{
-			"error":  err.Error(),
-			"status": status,
+			JSONKeyError:  err.Error(),
+			JSONKeyStatus: status,
 		}
 		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
 			response["request_id"] = rid.String()
