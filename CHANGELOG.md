@@ -6,6 +6,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`migrations/0001_user_events_to_events.sql`**: Migration script for deployments that used the pre-delegation `user_events` table. Renames `user_events` → `events`, adds the upstream columns (`schema_version`, `payload_encoding`, `created_at`), and backfills them with defaults (`schema_version = 1`, `payload_encoding = 'json'`, `created_at = occurred_at`). Idempotent via `IF NOT EXISTS` on columns and a guard on the old table name.
+- **Branded types for `AuditEntry`**: `AggregateID` is now `id.AggregateID`, `UserID` is now `usermgmt.UserID`, and `EventType` is now `event.Type`. Prevents accidental cross-assignment with other string-typed IDs. **Breaking:** `AuditLog.EntriesFor` now takes `id.AggregateID` instead of `string` — convert via `id.ParseAggregateID(user.ID.Get())`. JSON wire format: non-zero IDs still serialize as strings; zero-value `UserID` now serializes as `null` instead of `""`.
+- **`SSEEventID` branded type**: A `type SSEEventID string` that wraps the `Last-Event-ID` / `id:` SSE field. Constructed via `NewSSEEventID` (no validation) or `ParseSSEEventID` / `MustParseSSEEventID` (rejects newlines/carriage returns that would corrupt the wire format). Has `String()` and `IsZero()` methods. **Breaking:** `SSEEvent.ID` is now `SSEEventID`, `SSEStream.LastEventID()` returns `SSEEventID`, `LastEventIDFromRequest` returns `SSEEventID`, `ReplayEvents` takes `SSEEventID`. The low-level `SSEEventStore.EventsAfter(string)` interface is unchanged — pass `.String()` at the boundary.
+- **`JSONKeyError` / `JSONKeyStatus` constants in root**: Exported JSON map-key constants (`"error"`, `"status"`) for consistent error/status response shapes within the root module. Note: usermgmt and catalog are independent Go modules and cannot import these — they retain their own local `errorKey`/`statusKey` constants with matching values. True cross-module unification would require extracting a shared `jsonkeys` sub-module, which is not worth the added module complexity for two string constants.
+
+### Changed
+
+- **`SQLEventStore` is now a type alias** over `go-cqrs-lite/storage/v2`'s `storage.SQLEventStore`. The hand-rolled 413-LOC store was replaced by a 78-LOC facade. The upstream store is a strict superset: richer schema (`schema_version`, `payload_encoding`, `created_at`), `event.SeekableJournal` / `BackwardsSource` conformance, OpenTelemetry tracing, and `event.WrapInfrastructure` error wrapping.
+
+### Fixed
+
+- **Broadcaster send-on-closed-channel panic** (`fanout.go`): `Broadcast()` previously snapshted subscriber channels under RLock, released the lock, then iterated — a concurrent `Unsubscribe()` could `close()` a channel mid-iteration, panicking the entire process. Fixed by holding the RLock during the non-blocking fan-out (race-safe: `Unsubscribe()` cannot acquire the write lock to close a channel during iteration). Regression test added.
+
+### Breaking Changes
+
+- **`SQLEventStore.Close()` no longer closes the `*sql.DB`.** The delegated upstream store uses a borrowed DB handle — callers now own its lifecycle. **Migration:** any code that called `store.Close()` to clean up the DB must now call `db.Close()` separately:
+
+  ```go
+  // Before (v2.5.0):
+  store, _ := usermgmt.NewSQLEventStore(ctx, db, "postgres")
+  defer store.Close() // closed db too
+
+  // After (Unreleased):
+  store, _ := usermgmt.NewSQLEventStore(ctx, db, "postgres")
+  defer store.Close() // marks store closed; db stays open
+  defer db.Close()    // caller owns the DB lifecycle
+  ```
+
+  Rationale: shared-DB usage (event store + session store on one `*sql.DB`) was already broken under the old behavior — `store.Close()` would close the DB out from under the session store. The upstream library's "borrowed handle, caller owns lifecycle" philosophy is `database/sql` best practice and is correct for shared-DB scenarios. No backward-compat wrapper is provided because silently closing the DB was itself a bug for shared-DB consumers.
+
+- **`SQLEventStore.Load()` on empty aggregate** now returns `event.ErrAggregateNotFound` instead of an empty slice. The decider's `Repository` handles this transparently (returns `Initial` state), so consumers going through `Service` are unaffected. Direct callers of `store.Load()` should check `errors.Is(err, event.ErrAggregateNotFound)` if they need to distinguish "no events yet" from a real error.
+- **MySQL dropped for event store.** `NewSQLEventStore(ctx, db, "mysql")` now returns an error — `go-cqrs-lite/storage` has no MySQL dialect. `SQLSessionStore` retains MySQL support (it manages its own simpler schema). Migration path: switch to Postgres or SQLite for the event store.
+
 ## [2.5.0] - 2026-06-18
 
 ### Added
