@@ -1,6 +1,8 @@
 package usermgmt
 
 import (
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -77,4 +79,37 @@ func consumeAllRemaining(s *oauth2StateStore) string {
 		return state
 	}
 	return ""
+}
+
+// TestOAuth2StateStore_Consume_ConcurrentOneTimeUse verifies that when multiple
+// goroutines race to Consume the same state token, exactly one succeeds and all
+// others get ErrOAuthInvalidState. This is the CSRF replay-prevention guarantee
+// under concurrent load — a real attacker could fire multiple callback requests
+// simultaneously with a stolen state token.
+func TestOAuth2StateStore_Consume_ConcurrentOneTimeUse(t *testing.T) {
+	store := newOAuth2StateStore()
+	state, err := store.Save("google", "pkce-race", 5*time.Minute)
+	if err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	const numGoroutines = 50
+	var successCount atomic.Int64
+	var wg sync.WaitGroup
+	wg.Add(numGoroutines)
+
+	for range numGoroutines {
+		go func() {
+			defer wg.Done()
+			_, _, consumeErr := store.Consume(state)
+			if consumeErr == nil {
+				successCount.Add(1)
+			}
+		}()
+	}
+	wg.Wait()
+
+	if got := successCount.Load(); got != 1 {
+		t.Errorf("expected exactly 1 successful Consume under concurrent access, got %d", got)
+	}
 }
