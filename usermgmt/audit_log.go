@@ -6,16 +6,20 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // AuditEntry represents a single auditable user action derived from events.
+//
+// AggregateID and UserID use branded types to prevent accidental cross-assignment
+// with other string-typed identifiers. Both serialize as JSON strings.
 type AuditEntry struct {
-	EventType   string    `json:"event_type"`
-	AggregateID string    `json:"aggregate_id"`
-	OccurredAt  time.Time `json:"occurred_at"`
-	UserID      string    `json:"user_id"`
-	Email       string    `json:"email,omitempty"`
-	Action      string    `json:"action"`
+	EventType   event.Type     `json:"event_type"`
+	AggregateID id.AggregateID `json:"aggregate_id"`
+	OccurredAt  time.Time      `json:"occurred_at"`
+	UserID      UserID         `json:"user_id,omitzero"`
+	Email       string         `json:"email,omitempty"`
+	Action      string         `json:"action"`
 }
 
 // Audit action constants — the stable vocabulary recorded in AuditEntry.Action.
@@ -55,10 +59,10 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 
 	//nolint:exhaustruct // Email not available at projection level
 	entry := AuditEntry{
-		EventType:   string(evt.Type()),
-		AggregateID: evt.AggregateID().String(),
+		EventType:   evt.Type(),
+		AggregateID: evt.AggregateID(),
 		OccurredAt:  evt.OccurredAt(),
-		UserID:      evt.Metadata().UserID.String(),
+		UserID:      NewUserID(evt.Metadata().UserID.String()),
 		Action:      auditActionFor(evt.Type()),
 	}
 
@@ -104,7 +108,8 @@ func (a *AuditLog) Entries() []AuditEntry {
 }
 
 // EntriesFor returns audit entries for a specific user (by aggregate ID).
-func (a *AuditLog) EntriesFor(aggregateID string) []AuditEntry {
+// Use id.ParseAggregateID(user.ID.Get()) to convert a usermgmt.UserID.
+func (a *AuditLog) EntriesFor(aggregateID id.AggregateID) []AuditEntry {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	var result []AuditEntry

@@ -3,6 +3,8 @@ package usermgmt
 import (
 	"context"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func TestAuditLog_RecordsRegistration(t *testing.T) {
@@ -69,20 +71,21 @@ func TestAuditLog_EntriesFor(t *testing.T) {
 		t.Fatalf("ChangeEmail: %v", err)
 	}
 
-	entries1 := auditLog.EntriesFor(reg1.User.ID.Get())
+	entries1 := auditLog.EntriesFor(mustParseAggID(t, reg1.User.ID.Get()))
 	if len(entries1) < 2 {
 		t.Errorf("expected at least 2 entries for user1, got %d", len(entries1))
 	}
 
-	entries2 := auditLog.EntriesFor(reg2.User.ID.Get())
+	entries2 := auditLog.EntriesFor(mustParseAggID(t, reg2.User.ID.Get()))
 	if len(entries2) < 1 {
 		t.Errorf("expected at least 1 entry for user2, got %d", len(entries2))
 	}
 
 	// Verify all entries for user1 have the right aggregate ID
+	expectedAggID := mustParseAggID(t, reg1.User.ID.Get())
 	for _, e := range entries1 {
-		if e.AggregateID != reg1.User.ID.Get() {
-			t.Errorf("entry aggregate ID mismatch: %q vs %q", e.AggregateID, reg1.User.ID.Get())
+		if e.AggregateID != expectedAggID {
+			t.Errorf("entry aggregate ID mismatch: %q vs %q", e.AggregateID, expectedAggID)
 		}
 	}
 }
@@ -109,6 +112,15 @@ func TestAuditLog_Recent(t *testing.T) {
 	if recent[1].AggregateID != all[len(all)-1].AggregateID {
 		t.Error("recent should return the last entries chronologically")
 	}
+}
+
+func mustParseAggID(t *testing.T, s string) id.AggregateID {
+	t.Helper()
+	a, err := id.ParseAggregateID(s)
+	if err != nil {
+		t.Fatalf("ParseAggregateID(%q): %v", s, err)
+	}
+	return a
 }
 
 func TestAuditLog_Count(t *testing.T) {
