@@ -273,4 +273,44 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			Expect(order).To(Equal([]int{1, 2, 3}))
 		})
 	})
+
+	Describe("SSEEventID", func() {
+		DescribeTable("ParseSSEEventID accepts valid IDs",
+			func(input string) {
+				id, err := cqrshtmx.ParseSSEEventID(input)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(id).To(Equal(cqrshtmx.SSEEventID(input)))
+			},
+			Entry("empty (initial connection)", ""),
+			Entry("numeric", "42"),
+			Entry("prefixed", "evt-99"),
+			Entry("uuid", "550e8400-e29b-41d4-a716-446655440000"),
+			Entry("ulid", "01H8XGJWBWBAQ4TPJRA2STZ9G9"),
+		)
+
+		DescribeTable("ParseSSEEventID rejects IDs with newlines",
+			func(input string) {
+				_, err := cqrshtmx.ParseSSEEventID(input)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("forbidden character"))
+			},
+			Entry("newline", "evt\n42"),
+			Entry("carriage return", "evt\r42"),
+			Entry("CRLF", "evt\r\n42"),
+			Entry("only newline", "\n"),
+		)
+
+		It("NewSSEEventID constructs without validation", func() {
+			Expect(cqrshtmx.NewSSEEventID("any-value")).To(Equal(cqrshtmx.SSEEventID("any-value")))
+		})
+
+		It("IsZero reports emptiness", func() {
+			Expect(cqrshtmx.SSEEventID("").IsZero()).To(BeTrue())
+			Expect(cqrshtmx.SSEEventID("x").IsZero()).To(BeFalse())
+		})
+
+		It("String returns the underlying value", func() {
+			Expect(cqrshtmx.SSEEventID("evt-1").String()).To(Equal("evt-1"))
+		})
+	})
 })

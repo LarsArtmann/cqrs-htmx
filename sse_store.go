@@ -16,8 +16,8 @@ type SSEEventStore interface {
 // reconnects with a Last-Event-ID header, replay the events it missed.
 //
 // Returns the number of events replayed, or an error if writing fails.
-func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID string) (int, error) {
-	events := store.EventsAfter(lastEventID)
+func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID SSEEventID) (int, error) {
+	events := store.EventsAfter(lastEventID.String())
 	for i, evt := range events {
 		if err := stream.Send(evt); err != nil {
 			return i, fmt.Errorf("replay after %q (sent %d of %d): %w", lastEventID, i, len(events), err)
