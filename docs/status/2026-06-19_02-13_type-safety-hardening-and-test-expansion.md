@@ -35,16 +35,16 @@
 
 ### Verification
 
-| Metric               | Value                                               |
-| -------------------- | --------------------------------------------------- |
-| Test modules passing | **4/4** (root, catalog, usermgmt, integration_test) |
-| Race detector        | **Clean** across root + usermgmt + integration_test |
-| Lint issues          | **0** across all 3 linted modules                   |
-| Root coverage        | **95.2%**                                           |
-| usermgmt coverage    | **85.5%**                                           |
-| Total tests/benchmarks/fuzz | **972**                                      |
-| Commits this session | **12** (all on master, all pushed)                  |
-| LOC change           | **+1101 / -77** (20 files changed, 5 new files)     |
+| Metric                      | Value                                               |
+| --------------------------- | --------------------------------------------------- |
+| Test modules passing        | **4/4** (root, catalog, usermgmt, integration_test) |
+| Race detector               | **Clean** across root + usermgmt + integration_test |
+| Lint issues                 | **0** across all 3 linted modules                   |
+| Root coverage               | **95.2%**                                           |
+| usermgmt coverage           | **85.5%**                                           |
+| Total tests/benchmarks/fuzz | **972**                                             |
+| Commits this session        | **12** (all on master, all pushed)                  |
+| LOC change                  | **+1101 / -77** (20 files changed, 5 new files)     |
 
 ---
 
@@ -189,19 +189,19 @@ This depends on whether future features will add more fields (structural problem
 
 ## Commits This Session
 
-| #   | Hash      | Message                                                                |
-| --- | --------- | ---------------------------------------------------------------------- |
-| 1   | `df5c02f` | feat: add SSEEventID branded type for SSE event identifiers            |
-| 2   | `bb2b0c7` | feat: add JSONKeyError/JSONKeyStatus constants to root package         |
-| 3   | `de7c3a9` | refactor: use branded types for AuditEntry fields                      |
-| 4   | `a7d02ff` | feat: add migration SQL for user_events to events table rename         |
-| 5   | `1652562` | docs: update CHANGELOG with breaking changes and new features          |
-| 6   | `f5b6c51` | test: add SQLSessionStore fuzz tests for round-trip integrity          |
-| 7   | `edbf9dc` | test: add SQLSessionStore benchmarks                                   |
-| 8   | `31e097e` | test: verify StoreWrapper transformation round-trip end-to-end         |
-| 9   | `80c14ee` | test: add WebSocket end-to-end integration tests                       |
-| 10  | `c962ba7` | test: add concurrent Consume test for OAuth2 state store               |
-| 11  | `d07b82e` | chore: clean up go.sum and update AGENTS.md with new types             |
-| 12  | `f2bc1ae` | style: apply gofumpt formatting to SSEEventID test table               |
+| #   | Hash      | Message                                                        |
+| --- | --------- | -------------------------------------------------------------- |
+| 1   | `df5c02f` | feat: add SSEEventID branded type for SSE event identifiers    |
+| 2   | `bb2b0c7` | feat: add JSONKeyError/JSONKeyStatus constants to root package |
+| 3   | `de7c3a9` | refactor: use branded types for AuditEntry fields              |
+| 4   | `a7d02ff` | feat: add migration SQL for user_events to events table rename |
+| 5   | `1652562` | docs: update CHANGELOG with breaking changes and new features  |
+| 6   | `f5b6c51` | test: add SQLSessionStore fuzz tests for round-trip integrity  |
+| 7   | `edbf9dc` | test: add SQLSessionStore benchmarks                           |
+| 8   | `31e097e` | test: verify StoreWrapper transformation round-trip end-to-end |
+| 9   | `80c14ee` | test: add WebSocket end-to-end integration tests               |
+| 10  | `c962ba7` | test: add concurrent Consume test for OAuth2 state store       |
+| 11  | `d07b82e` | chore: clean up go.sum and update AGENTS.md with new types     |
+| 12  | `f2bc1ae` | style: apply gofumpt formatting to SSEEventID test table       |
 
 All commits pushed to `origin/master`.
