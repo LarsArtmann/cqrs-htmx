@@ -19,24 +19,24 @@ The project has shipped a remarkable amount of production-grade functionality si
 
 ## Verification Snapshot (live, this session)
 
-| Check                 | Command                              | Result                                      |
-| --------------------- | ------------------------------------ | ------------------------------------------- |
-| Root build            | `go build ./...`                     | ✅ exit 0                                   |
-| Root test             | `go test ./... -count=1`             | ✅ ok 1.220s                                |
-| Root coverage         | `-coverprofile`                      | **95.2%**                                   |
-| usermgmt test (race)  | `go test ./... -count=1 -race`       | ✅ ok 2.745s                                |
-| usermgmt coverage     | `-coverprofile`                      | **85.5%**                                   |
-| integration test      | `go test ./... -count=1 -race`       | ✅ ok 1.036s                                |
-| catalog test          | `go test ./... -count=1`             | ✅ ok 0.004s                                |
-| catalog coverage      | `-coverprofile`                      | **95.3%**                                   |
-| datastar-demo build   | `go build ./...`                     | ✅ exit 0                                   |
-| catalog-demo build    | `go build ./...`                     | ✅ exit 0                                   |
-| Root lint             | `golangci-lint run ./...`            | ✅ 0 issues                                 |
-| usermgmt lint         | `golangci-lint run ./...`            | ✅ 0 issues                                 |
-| integration lint      | `golangci-lint run ./...`            | ✅ 0 issues                                 |
-| catalog lint          | `golangci-lint run ./...`            | ✅ 0 issues                                 |
-| Module integrity      | `go mod verify`                      | ✅ all modules verified                     |
-| Clone complexity      | `art-dupl --semantic -t 30`          | **1 clone group, score 1.00** (was 1.78)    |
+| Check                | Command                        | Result                                   |
+| -------------------- | ------------------------------ | ---------------------------------------- |
+| Root build           | `go build ./...`               | ✅ exit 0                                |
+| Root test            | `go test ./... -count=1`       | ✅ ok 1.220s                             |
+| Root coverage        | `-coverprofile`                | **95.2%**                                |
+| usermgmt test (race) | `go test ./... -count=1 -race` | ✅ ok 2.745s                             |
+| usermgmt coverage    | `-coverprofile`                | **85.5%**                                |
+| integration test     | `go test ./... -count=1 -race` | ✅ ok 1.036s                             |
+| catalog test         | `go test ./... -count=1`       | ✅ ok 0.004s                             |
+| catalog coverage     | `-coverprofile`                | **95.3%**                                |
+| datastar-demo build  | `go build ./...`               | ✅ exit 0                                |
+| catalog-demo build   | `go build ./...`               | ✅ exit 0                                |
+| Root lint            | `golangci-lint run ./...`      | ✅ 0 issues                              |
+| usermgmt lint        | `golangci-lint run ./...`      | ✅ 0 issues                              |
+| integration lint     | `golangci-lint run ./...`      | ✅ 0 issues                              |
+| catalog lint         | `golangci-lint run ./...`      | ✅ 0 issues                              |
+| Module integrity     | `go mod verify`                | ✅ all modules verified                  |
+| Clone complexity     | `art-dupl --semantic -t 30`    | **1 clone group, score 1.00** (was 1.78) |
 
 **Scale:** 252 Go files · 16,298 LOC (root) · 114 files (usermgmt) · 598 test funcs · 470 BDD specs · 14 ADRs.
 
@@ -131,33 +131,33 @@ Nothing is broken, build-wise. Brutal honesty on the things that are genuinely w
 
 Sorted by impact (Pareto). High → lower.
 
-| #    | Task                                                                                       | Impact | Effort    |
-| ---- | ------------------------------------------------------------------------------------------ | ------ | --------- |
-| 1    | **Commit the uncommitted dedup work** (3 files + go.sum)                                   | High   | XS        |
-| 2    | **Run `-t 15` dedup pass** + apply checklist rigorously                                    | High   | S         |
-| 3    | **Record ADR 0015 duplicate-code policy** (accepted idioms + checklist)                    | High   | S         |
-| 4    | **Docs-freshness sweep**: reconcile TODO/FEATURES/ROADMAP/AGENTS vs code                   | High   | M         |
-| 5    | **Fix stale TODO_LIST checkboxes** (OAuth2 marked OPEN, coverage numbers)                  | High   | XS        |
-| 6    | **Archive/cull `docs/status/`** — keep recent, move rest to `archive/`                     | Med    | S         |
-| 7    | **Close usermgmt coverage gap** (85.5% → 88%+); `go tool cover -func` analysis             | High   | M         |
-| 8    | **`go mod tidy` all modules** + commit hygiene                                             | Low    | XS        |
-| 9    | **PostgreSQL CI integration tests** for SQLEventStore/SQLSessionStore                      | High   | L         |
-| 10   | **Database migration tooling** (goose/golang-migrate) + docs                               | Med    | M         |
-| 11   | **Redis SessionStore adapter** for distributed deployments                                 | Med    | M         |
-| 12   | **Prometheus metrics middleware** (dispatch latency, error rates)                          | Med    | M         |
-| 13   | **OpenTelemetry middleware example** polish + real tracer docs                             | Med    | S         |
-| 14   | **README runnable godoc examples** (ROADMAP open item)                                     | Med    | S         |
-| 15   | **BrandNamer upstream PR** — expose go-cqrs-lite marker types (unblocks root branding)     | Med    | M (upstream) |
-| 16   | **Profile hot paths** (dispatch, decode) for further alloc reduction                       | Low    | M         |
-| 17   | **Add CHANGELOG version tag** — Unreleased section is large; cut a v2.x.0 release          | High   | S         |
-| 18   | **Event schema versioning** docs/examples (upcasters exist via ADR 0013; no user guide)    | Med    | S         |
-| 19   | **Expand integration_test** cross-module bridge coverage (ROADMAP open)                    | Low    | M         |
-| 20   | **CSRF + WebAuthn wiring recipe** — expand the integration_test example into a guide       | Low    | S         |
-| 21   | **Audit usermgmt for `t.Context()` migration** (gopls flagged `context.WithCancel` → `t.Context`) | Low | S |
-| 22   | **Add a `CONTRIBUTING.md` test/lint quickstart** referencing nix apps                      | Low    | XS        |
-| 23   | **Property-based test sweep** for OAuth2/OIDC matching logic                               | Med    | M         |
-| 24   | **Security review** of OAuth2 auto-trust-email tradeoff (ADR 0014)                         | Med    | S         |
-| 25   | **Catalog demo enrichment** — show event-catalog + D2 diagram generation end-to-end        | Low    | S         |
+| #   | Task                                                                                              | Impact | Effort       |
+| --- | ------------------------------------------------------------------------------------------------- | ------ | ------------ |
+| 1   | **Commit the uncommitted dedup work** (3 files + go.sum)                                          | High   | XS           |
+| 2   | **Run `-t 15` dedup pass** + apply checklist rigorously                                           | High   | S            |
+| 3   | **Record ADR 0015 duplicate-code policy** (accepted idioms + checklist)                           | High   | S            |
+| 4   | **Docs-freshness sweep**: reconcile TODO/FEATURES/ROADMAP/AGENTS vs code                          | High   | M            |
+| 5   | **Fix stale TODO_LIST checkboxes** (OAuth2 marked OPEN, coverage numbers)                         | High   | XS           |
+| 6   | **Archive/cull `docs/status/`** — keep recent, move rest to `archive/`                            | Med    | S            |
+| 7   | **Close usermgmt coverage gap** (85.5% → 88%+); `go tool cover -func` analysis                    | High   | M            |
+| 8   | **`go mod tidy` all modules** + commit hygiene                                                    | Low    | XS           |
+| 9   | **PostgreSQL CI integration tests** for SQLEventStore/SQLSessionStore                             | High   | L            |
+| 10  | **Database migration tooling** (goose/golang-migrate) + docs                                      | Med    | M            |
+| 11  | **Redis SessionStore adapter** for distributed deployments                                        | Med    | M            |
+| 12  | **Prometheus metrics middleware** (dispatch latency, error rates)                                 | Med    | M            |
+| 13  | **OpenTelemetry middleware example** polish + real tracer docs                                    | Med    | S            |
+| 14  | **README runnable godoc examples** (ROADMAP open item)                                            | Med    | S            |
+| 15  | **BrandNamer upstream PR** — expose go-cqrs-lite marker types (unblocks root branding)            | Med    | M (upstream) |
+| 16  | **Profile hot paths** (dispatch, decode) for further alloc reduction                              | Low    | M            |
+| 17  | **Add CHANGELOG version tag** — Unreleased section is large; cut a v2.x.0 release                 | High   | S            |
+| 18  | **Event schema versioning** docs/examples (upcasters exist via ADR 0013; no user guide)           | Med    | S            |
+| 19  | **Expand integration_test** cross-module bridge coverage (ROADMAP open)                           | Low    | M            |
+| 20  | **CSRF + WebAuthn wiring recipe** — expand the integration_test example into a guide              | Low    | S            |
+| 21  | **Audit usermgmt for `t.Context()` migration** (gopls flagged `context.WithCancel` → `t.Context`) | Low    | S            |
+| 22  | **Add a `CONTRIBUTING.md` test/lint quickstart** referencing nix apps                             | Low    | XS           |
+| 23  | **Property-based test sweep** for OAuth2/OIDC matching logic                                      | Med    | M            |
+| 24  | **Security review** of OAuth2 auto-trust-email tradeoff (ADR 0014)                                | Med    | S            |
+| 25  | **Catalog demo enrichment** — show event-catalog + D2 diagram generation end-to-end               | Low    | S            |
 
 ---
 
