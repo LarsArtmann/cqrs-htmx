@@ -30,6 +30,23 @@ func encryptedStoreHooks(cipher encryption.EncrypterDecrypter) usermgmt.Security
 	}
 }
 
+// seedTestUser registers a user named `name` (deriving id and email) and
+// fails the test on error. Returns the new UserID and email for downstream
+// assertions. Centralizes the test-user fixture for crypto/signing tests so
+// they can't drift in how they seed users. Distinct from registerTestUser
+// (which takes a root-module cqrshtmx.UserID for cross-module bridge tests).
+func seedTestUser(t *testing.T, svc *usermgmt.Service, name string) (usermgmt.UserID, string) {
+	t.Helper()
+	id := usermgmt.NewUserID(name)
+	email := name + "@example.com"
+	if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
+		ID: id, Email: email,
+	}); err != nil {
+		t.Fatalf("Register %s: %v", name, err)
+	}
+	return id, email
+}
+
 // TestSigningEncryption_StoreEncryptionAndBusSigning verifies the recommended opt-in
 // pattern: transparent encryption-at-rest via StoreWrapper, plus bus-level
 // event signing via PublishMiddleware and strict signature verification via
@@ -164,12 +181,7 @@ func TestSigningEncryption_BusLevelCrypto(t *testing.T) {
 		t.Fatalf("NewService: %v", err)
 	}
 
-	const email = "bob@example.com"
-	if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("bob"), Email: email,
-	}); err != nil {
-		t.Fatalf("Register: %v", err)
-	}
+	_, email := seedTestUser(t, svc, "bob")
 
 	// Projections received decrypted+verified plaintext → user must be present.
 	if _, ok := svc.ReadModel().FindByEmail(email); !ok {
@@ -193,12 +205,7 @@ func TestSigningEncryption_AuthzProjectionSurvivesCrypto(t *testing.T) {
 		t.Fatalf("NewService: %v", err)
 	}
 
-	uid := usermgmt.NewUserID("carol")
-	if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: uid, Email: "carol@example.com",
-	}); err != nil {
-		t.Fatalf("Register: %v", err)
-	}
+	uid, _ := seedTestUser(t, svc, "carol")
 
 	// The Casbin projection derives roles from events. If it received ciphertext
 	// instead of plaintext, the decode would fail and no roles would be assigned.
@@ -270,12 +277,7 @@ func TestSigningEncryption_Ed25519AsymmetricSigning(t *testing.T) {
 		t.Fatalf("NewService: %v", err)
 	}
 
-	const email = "dave@example.com"
-	if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("dave"), Email: email,
-	}); err != nil {
-		t.Fatalf("Register: %v", err)
-	}
+	_, email := seedTestUser(t, svc, "dave")
 
 	// If Ed25519 sign+verify failed, RequireSignatureMiddleware would have
 	// rejected the event and registration would have errored.

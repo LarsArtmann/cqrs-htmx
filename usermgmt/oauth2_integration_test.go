@@ -12,6 +12,20 @@ import (
 	"time"
 )
 
+// requireTestAuthCode writes an OAuth2 invalid_grant error response (RFC 6749
+// §5.2) and returns false if r does not carry the expected test auth code.
+// Returns true when the caller should proceed with token issuance. Shared by
+// the pure-OAuth2 and OIDC mock token endpoints so the rejection shape cannot
+// drift between them.
+func requireTestAuthCode(w http.ResponseWriter, r *http.Request) bool {
+	if r.PostFormValue("code") != "test-auth-code" {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid_grant"}) //nolint:errchkjson // test code
+		return false
+	}
+	return true
+}
+
 // fakeOAuth2Provider is an httptest-based mock OAuth2 provider for integration tests.
 type fakeOAuth2Provider struct {
 	server       *httptest.Server
@@ -46,9 +60,7 @@ func newFakeOAuth2Provider(t *testing.T) *fakeOAuth2Provider {
 
 	mux.HandleFunc("POST /token", func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
-		if r.PostFormValue("code") != "test-auth-code" {
-			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid_grant"})
+		if !requireTestAuthCode(w, r) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
