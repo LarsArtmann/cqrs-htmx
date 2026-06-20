@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"strings"
 	"testing"
@@ -47,7 +46,7 @@ func FuzzSQLSessionStore_CreateFindRoundTrip(f *testing.F) {
 			t.Skip("ttl out of realistic range")
 		}
 
-		store := newFuzzSQLiteStore(t)
+		store := newTestSQLiteSessionStore(t)
 		ctx := context.Background()
 		userID := NewUserID(userIDRaw)
 
@@ -111,24 +110,6 @@ func verifySessionGone(t *testing.T, ctx context.Context, store *SQLSessionStore
 	}
 }
 
-// newFuzzSQLiteStore builds an isolated in-memory SQLite session store for fuzz targets.
-func newFuzzSQLiteStore(t *testing.T) *SQLSessionStore {
-	t.Helper()
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-	db.SetMaxOpenConns(1)
-	t.Cleanup(func() { _ = db.Close() })
-
-	store, err := NewSQLSessionStore(context.Background(), db, "sqlite")
-	if err != nil {
-		t.Fatalf("NewSQLSessionStore: %v", err)
-	}
-	t.Cleanup(func() { _ = store.Close() })
-	return store
-}
-
 // FuzzSQLSessionStore_DeleteByUserID fuzzes DeleteByUserID with arbitrary
 // userID strings. Verifies that sessions created under a userID are removed
 // when DeleteByUserID is called, regardless of the userID's content.
@@ -147,7 +128,7 @@ func FuzzSQLSessionStore_DeleteByUserID(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, userIDRaw string) {
-		store := newFuzzSQLiteStore(t)
+		store := newTestSQLiteSessionStore(t)
 		ctx := context.Background()
 		userID := NewUserID(userIDRaw)
 

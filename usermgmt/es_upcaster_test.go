@@ -7,6 +7,17 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// addSchemaVersionV1 is the v0→v1 UserRegistered upcaster used in tests: it
+// injects schema_version=1 into a legacy v0 payload.
+func addSchemaVersionV1(raw []byte) ([]byte, error) {
+	var m map[string]any
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return nil, err
+	}
+	m["schema_version"] = 1
+	return json.Marshal(m)
+}
+
 func TestUpcasterRegistry_NoUpcasters(t *testing.T) {
 	r := NewUpcasterRegistry()
 	raw := []byte(`{"schema_version":1,"email":"test@example.com"}`)
@@ -55,14 +66,7 @@ func TestUpcasterRegistry_SingleStep(t *testing.T) {
 
 func TestUpcasterRegistry_MultiStepChain(t *testing.T) {
 	r := NewUpcasterRegistry()
-	r.Register(eventUserRegistered, 0, func(raw []byte) ([]byte, error) {
-		var m map[string]any
-		if err := json.Unmarshal(raw, &m); err != nil {
-			return nil, err
-		}
-		m["schema_version"] = 1
-		return json.Marshal(m)
-	})
+	r.Register(eventUserRegistered, 0, addSchemaVersionV1)
 	// Future v1→v2 upcaster (not yet active since currentSchemaVersion=1)
 	// This test verifies the chain logic works
 	originalVersion := currentSchemaVersion
@@ -143,14 +147,7 @@ func TestSetUpcasterRegistry(t *testing.T) {
 	})
 
 	r := NewUpcasterRegistry()
-	r.Register(eventUserRegistered, 0, func(raw []byte) ([]byte, error) {
-		var m map[string]any
-		if err := json.Unmarshal(raw, &m); err != nil {
-			return nil, err
-		}
-		m["schema_version"] = 1
-		return json.Marshal(m)
-	})
+	r.Register(eventUserRegistered, 0, addSchemaVersionV1)
 	SetUpcasterRegistry(r)
 	t.Cleanup(func() { SetUpcasterRegistry(nil) })
 

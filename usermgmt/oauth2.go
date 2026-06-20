@@ -2,8 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -324,9 +322,5 @@ func (s *oauth2StateStore) EvictExpired() int {
 }
 
 func generateOAuth2State() (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", fmt.Errorf("generate oauth2 state: %w", err)
-	}
-	return base64.RawURLEncoding.EncodeToString(b), nil
+	return randomBase64URLString(32, "oauth2 state")
 }
