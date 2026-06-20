@@ -98,9 +98,7 @@ func (p *fakeOIDCProvider) registerHandlers(mux *http.ServeMux) {
 // handleToken exchanges the auth code for a signed JWT ID token.
 func (p *fakeOIDCProvider) handleToken(w http.ResponseWriter, r *http.Request) {
 	_ = r.ParseForm()
-	if r.PostFormValue("code") != "test-auth-code" {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid_grant"}) //nolint:errchkjson // test code
+	if !requireTestAuthCode(w, r) {
 		return
 	}
 
