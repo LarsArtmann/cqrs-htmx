@@ -1,9 +1,7 @@
 package usermgmt
 
 import (
-	"crypto/rand"
 	"crypto/subtle"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -135,9 +133,5 @@ func (s *Session) Valid(token string) bool {
 }
 
 func generateToken() (string, error) {
-	b := make([]byte, sessionTokenBytes)
-	if _, err := rand.Read(b); err != nil {
-		return "", fmt.Errorf("generate session token: %w", err)
-	}
-	return base64.RawURLEncoding.EncodeToString(b), nil
+	return randomBase64URLString(sessionTokenBytes, "session token")
 }

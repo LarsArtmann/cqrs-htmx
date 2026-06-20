@@ -20,6 +20,16 @@ var (
 	testEncryptionKey = bytes.Repeat([]byte{0xA5}, 32)
 )
 
+// encryptedStoreHooks returns SecurityHooks that wrap any event store with the
+// given cipher, providing encryption-at-rest.
+func encryptedStoreHooks(cipher encryption.EncrypterDecrypter) usermgmt.SecurityHooks {
+	return usermgmt.SecurityHooks{
+		StoreWrapper: func(s event.Store) (event.Store, error) {
+			return encryption.NewEncryptedStore(s, cipher)
+		},
+	}
+}
+
 // TestSigningEncryption_StoreEncryptionAndBusSigning verifies the recommended opt-in
 // pattern: transparent encryption-at-rest via StoreWrapper, plus bus-level
 // event signing via PublishMiddleware and strict signature verification via
@@ -92,12 +102,8 @@ func assertReloadsUser(
 ) {
 	t.Helper()
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		EventStore: inner,
-		SecurityHooks: usermgmt.SecurityHooks{
-			StoreWrapper: func(s event.Store) (event.Store, error) {
-				return encryption.NewEncryptedStore(s, cipher)
-			},
-		},
+		EventStore:    inner,
+		SecurityHooks: encryptedStoreHooks(cipher),
 	})
 	if err != nil {
 		t.Fatalf("NewService reload: %v", err)
@@ -181,11 +187,7 @@ func TestSigningEncryption_AuthzProjectionSurvivesCrypto(t *testing.T) {
 	}
 
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		SecurityHooks: usermgmt.SecurityHooks{
-			StoreWrapper: func(s event.Store) (event.Store, error) {
-				return encryption.NewEncryptedStore(s, cipher)
-			},
-		},
+		SecurityHooks: encryptedStoreHooks(cipher),
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)

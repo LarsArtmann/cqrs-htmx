@@ -2,8 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"sync"
 	"time"
@@ -105,11 +103,7 @@ func (s *verificationTokenStore) startEviction() (stop func()) {
 }
 
 func generateVerificationToken() (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", fmt.Errorf("generate verification token: %w", err)
-	}
-	return base64.RawURLEncoding.EncodeToString(b), nil
+	return randomBase64URLString(32, "verification token")
 }
 
 // SendVerificationEmail generates a token and either calls the configured

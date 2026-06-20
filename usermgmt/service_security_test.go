@@ -128,12 +128,7 @@ func TestService_HandlerMiddleware_AppliedBeforeProjections(t *testing.T) {
 	svc := newTestServiceWithConfig(t, ServiceConfig{
 		SecurityHooks: SecurityHooks{
 			HandlerMiddleware: []event.Middleware{
-				func(next event.Handler) event.Handler {
-					return func(ctx context.Context, evt event.Event) error {
-						handleCalls.Add(1)
-						return next(ctx, evt)
-					}
-				},
+				countingHandlerMW(&handleCalls),
 			},
 		},
 	})
@@ -170,6 +165,17 @@ func markerHandlerMW(label string, order *[]string, mu *sync.Mutex) event.Middle
 			mu.Lock()
 			*order = append(*order, label)
 			mu.Unlock()
+			return next(ctx, evt)
+		}
+	}
+}
+
+// countingHandlerMW returns an event.Middleware that increments counter once
+// per handled event before delegating. Used to assert that HandlerMiddleware fires.
+func countingHandlerMW(counter *atomic.Int64) event.Middleware {
+	return func(next event.Handler) event.Handler {
+		return func(ctx context.Context, evt event.Event) error {
+			counter.Add(1)
 			return next(ctx, evt)
 		}
 	}
@@ -227,12 +233,7 @@ func TestNewEventSourcedSetup_SecurityHooks(t *testing.T) {
 				},
 			},
 			HandlerMiddleware: []event.Middleware{
-				func(next event.Handler) event.Handler {
-					return func(ctx context.Context, evt event.Event) error {
-						handleCalls.Add(1)
-						return next(ctx, evt)
-					}
-				},
+				countingHandlerMW(&handleCalls),
 			},
 		},
 	})
