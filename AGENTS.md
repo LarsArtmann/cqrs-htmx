@@ -19,6 +19,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Coverage | `nix run .#coverage`                                                                       |
 | Fmt      | `nix fmt`                                                                                  |
 | Flake    | `nix flake check` (formatting + devShells + apps)                                          |
+| ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)           |
 | DevShell | `nix develop` (go, gopls, golangci-lint)                                                   |
 | Coverage | 96.4% root, 88.7% usermgmt, 95.3% catalog (500+ tests)                                     |
 
@@ -149,7 +150,16 @@ cqrs-htmx/
 
 ### Error Handling
 
-- **go-error-family v0.4.0**: Replaced `cockroachdb/errors` for error classification. `sync.Once` lazy-registers sentinels. Re-exported via `event/v2` package
+- **go-error-family v0.4.0**: Replaced `cockroachdb/errors` for error classification. Re-exported via `go-cqrs-lite/event/v2` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). Root + usermgmt import it transitively via `event/v2` (indirect); `catalog` imports `go-error-family` directly (no event/v2 dep). `ErrDispatchFailed` is now natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
+- **NO stdlib error constructors**: `errors.New`, `fmt.Errorf` (as error), and `errors.Join` are banned in non-test code. Enforced by `branching-flow errorfamily .` (must report 0). Use `event.New*/Wrap*/Wrapf/Newf` instead. Exception: `fmt.Sprintf` is fine when building a *message string* (not an error object), e.g. `http.go`/`verification_totp_http.go` format a 400 response body
+- **Family assignment rules** (maps to HTTP status via `MapError`):
+  - **Rejection (400)** — caller/user input invalid: parse failures, validation (`ParseEmail`, `ImportUser.Validate`), bad config (`OAuth2ProviderConfig.Validate`, unsupported SQL dialect), missing/invalid IDs
+  - **Conflict (409)** — state conflict: duplicate user/email/credential/external-account
+  - **Transient (503)** — retryable system/external: DB I/O (`SQLSessionStore`/`SQLEventStore` ops), OAuth2 provider calls (discovery/exchange/userinfo), SSE/WS stream writes
+  - **Corruption (422)** — stored data damage: projection payload unmarshal (`unmarshalPayload` → `event.WrapCorruption`), upcaster failures
+  - **Infrastructure (500)** — non-retryable system/bug: marshal failures (`marshalPayload`), event construction, nil dependencies, command registration, `aggIDFromUser`, crypto/rand
+- **Dispatch wrapping preserves family**: never force a family on a dispatch error (it may carry a domain Rejection/Conflict). Use `event.Wrapf(err, event.Classify(err), code, msg)` — wraps with the inner error's own family (root `handler.go`/`ws_dispatch.go`, usermgmt service/totp/webauthn/email_verification dispatch sites)
+- **Preserve sentinel identity where tested**: `errors.Is(err, ErrValidation)` is relied upon (`service_register_test.go`, `http.go:349`) — wrap `ErrValidation` as the cause (`event.WrapRejection(ErrValidation, ...)`) in `ParseEmail`/`ImportUser.Validate`
 - **Error → HTTP mapping**: `MapError` classifies errors into families (Rejection, NotFound, Conflict, etc.) → HTTP status
 - **HTMX-aware errors**: All error handlers check for HTMX requests; auth errors use HX-Redirect
 - **Request ID in errors**: `Config.IncludeRequestIDInErrors` auto-selects request-ID-aware error handlers
@@ -327,7 +337,7 @@ cqrs-htmx/
 
 ### Error Handling
 
-15. **Error wrapping format**: Use `fmt.Errorf("%w: ...", sentinel, err)` for sentinel wraps. go-error-family for classification
+15. **No stdlib error constructors**: `errors.New`/`fmt.Errorf`/`errors.Join` are banned in non-test code — `branching-flow errorfamily .` enforces 0 violations. Use `event.New*/Wrap*/Wrapf/Newf` (re-exported via `event/v2`). For dispatch errors that must preserve the inner domain family, use `event.Wrapf(err, event.Classify(err), code, msg)` — never force a family. `fmt.Sprintf` is allowed only for message strings, not error objects
 16. **Middleware logs invalid IDs**: Correlation ID parse failures logged at debug level. Request ID parse failures silently generate a new ID
 17. **DefaultMaxBodySize**: 10 MB when both `Config.MaxBodySize` and per-handler `WithMaxBodySize` are zero
 

@@ -160,10 +160,8 @@ func (s *Service) VerifyEmail(ctx context.Context, token string) error {
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewVerifyEmailCmd(aggID)); err != nil {
 		s.logAuth("email_verify_failed", userID, "reason", "dispatch_error")
-		return event.Compose(
-			event.Newf(event.Transient, "usermgmt.verification.dispatch_failed", "verify email dispatch"),
-			err,
-		)
+		return event.Wrapf(err, event.Classify(err),
+			"usermgmt.verification.dispatch_failed", "verify email dispatch")
 	}
 	s.logAuth(statusVerified, userID)
 	return nil

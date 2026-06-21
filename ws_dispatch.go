@@ -130,10 +130,8 @@ func (a *App) DispatchWSCommand(
 	defer cancel()
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		wrappedErr := event.Compose(
-			event.Newf(event.Transient, "cqrshtmx.ws.dispatch_command_failed", "dispatch command %s", cmdType),
-			err,
-		)
+		wrappedErr := event.Wrapf(err, event.Classify(err),
+			"cqrshtmx.ws.dispatch_command_failed", "dispatch command %s", cmdType)
 		a.afterDispatchHook(ctx, r, wrappedErr)
 		return wrappedErr
 	}
@@ -197,10 +195,8 @@ func (a *App) DispatchWSQuery(
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		wrappedErr := event.Compose(
-			event.Newf(event.Transient, "cqrshtmx.ws.dispatch_query_failed", "dispatch query %s", qryType),
-			err,
-		)
+		wrappedErr := event.Wrapf(err, event.Classify(err),
+			"cqrshtmx.ws.dispatch_query_failed", "dispatch query %s", qryType)
 		a.afterDispatchHook(ctx, r, wrappedErr)
 		return nil, wrappedErr
 	}
