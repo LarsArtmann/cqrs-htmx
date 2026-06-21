@@ -1,6 +1,6 @@
 direction: down
 
-title: "TARGET STATE — Impersonation Flow (Session Origin Tracking + Audit Trail)"
+title: "TARGET STATE — Impersonation Flow (Event Store IS the Audit Trail)"
 
 # Actors
 Admin: {
@@ -15,74 +15,76 @@ TargetUser: {
   label: "Target User\nactorID: user_01J..."
 }
 
-# Session types
+# Session Origin (sealed union)
 SessionOrigin: {
   shape: rectangle
   style: {fill: "#0f3460"; stroke: "#16c79a"; font-color: "#16c79a"}
   label: "interface SessionOrigin (sealed)\n\n• origin()  // unexported seal"
 }
 
-DirectLoginOrigin: {
+DirectLogin: {
   shape: rectangle
   style: {fill: "#1a1a2e"; stroke: "#16c79a"}
   label: "DirectLogin\n\n• AuthenticatedAs: ActorID\n  (== Session.ActorID)"
 }
 
-ImpersonationOrigin: {
+Impersonation: {
   shape: rectangle
   style: {fill: "#1a1a2e"; stroke: "#e94560"}
-  label: "Impersonation\n\n• By: ActorID (the impersonator)\n• Reason: string (mandatory)\n• At: time.Time"
+  label: "Impersonation\n\n• By: ActorID (the real admin)\n• Reason: string (mandatory)\n• At: time.Time"
 }
 
-NormalSession: {
+# Session
+Session: {
   shape: rectangle
   style: {fill: "#191919"; stroke: "#16c79a"}
-  label: "Normal Session\n\n• Token: string\n• ActorID: ActorID\n• Origin: DirectLogin"
-}
-
-ImpersonationSession: {
-  shape: rectangle
-  style: {fill: "#16213e"; stroke: "#e94560"; font-color: "#e94560"}
-  label: "Impersonation Session\n\n• Token: string\n• ActorID: ActorID (= Target)\n• Origin: Impersonation{By: Admin}"
+  label: "Session\n\n• Token: string\n• ActorID: ActorID (who they act AS)\n• Origin: SessionOrigin\n• ExpiresAt: time.Time"
 }
 
 # Context propagation
 RequestContext: {
   shape: rectangle
   style: {fill: "#0f3460"; stroke: "#16c79a"}
-  label: "HTTP Request Context\n\n• ActorID: TargetUser.ActorID\n• Impersonator: Admin.ActorID\n• CorrelationID: links chain"
+  label: "HTTP Request Context\n\n• ActorID: TargetUser (effective)\n• ImpersonatorID: Admin (real)\n• CorrelationID: links chain"
 }
 
-# Audit
-ImpersonationLog: {
-  shape: cylinder
-  style: {fill: "#1a1a2e"; stroke: "#e94560"}
-  label: "Event-Sourced Audit Log\n(separate stream)\n\nImpersonationStarted{Actor, By, Reason}\nImpersonationEnded{Actor, By}"
-}
-
-CQRSCommand: {
-  shape: hexagon
+# Event metadata
+EventMetadata: {
+  shape: rectangle
   style: {fill: "#16213e"; stroke: "#16c79a"}
-  label: "CQRS Command\n\nmetadata:\nactor = TargetUser\nperformed_by = Admin\nimpersonated = true"
+  label: "Event Metadata (via EventOptionsFromContext)\n\n• actor_id: user_01J... (target)\n• impersonator_id: user_01J... (admin)\n• correlation_id: 01J...\n• request_id: 01J...\n\nEvery event carries the FULL actor chain"
 }
 
-# Security
+# Event store (the audit trail)
+EventStore: {
+  shape: cylinder
+  style: {fill: "#1a1a2e"; stroke: "#16c79a"}
+  label: "Event Store\n(THE audit trail — no separate stream needed)\n\nEvery command produces events.\nEvery event carries actor_id + impersonator_id.\n\nQuery: SELECT * FROM events\n  WHERE metadata->>'impersonator_id' = '...'\n  ORDER BY occurred_at;"
+}
+
+# Security guards
 SecurityGuard: {
   shape: page
   style: {fill: "#3d1219"; stroke: "#e94560"}
-  label: "SECURITY GUARDS\n\n- Only super_admin can impersonate\n- Cannot impersonate another super_admin\n- Cannot escalate privileges\n- Reason field mandatory\n- Max session duration enforced\n- All actions logged to separate stream"
+  label: "SECURITY GUARDS\n\n- Only super_admin can impersonate\n- Cannot impersonate another super_admin\n- Cannot escalate privileges\n- Reason field mandatory\n- Max session duration enforced\n- Session tied to admin's own session"
 }
 
 # Flow
-SessionOrigin <- DirectLoginOrigin: implements
-SessionOrigin <- ImpersonationOrigin: implements
+SessionOrigin <- DirectLogin: implements
+SessionOrigin <- Impersonation: implements
 
 Admin -> SecurityGuard: "checked first"
-Admin -> ImpersonationLog: "1. BeginImpersonation(target, reason)"
-ImpersonationLog -> ImpersonationSession: "2. Creates session\nActorID=target\nOrigin=Impersonation{By=admin}"
-ImpersonationSession -> RequestContext: "3. Session middleware injects\nActorID + Impersonator into ctx"
-RequestContext -> CQRSCommand: "4. Every command carries\nboth identities"
-CQRSCommand -> ImpersonationLog: "5. Actions audited\nwith full actor chain"
-Admin -> ImpersonationLog: "6. EndImpersonation()"
+Admin -> Session: "1. BeginImpersonation(target, reason)\n   Creates session with Origin=Impersonation{By: admin}"
+Session -> RequestContext: "2. Middleware injects\n   ActorID + ImpersonatorID into ctx"
+RequestContext -> EventMetadata: "3. EventOptionsFromContext\n   propagates full actor chain"
+EventMetadata -> EventStore: "4. Every event is self-auditing\n   Queryable for compliance"
+Admin -> Session: "5. EndImpersonation()\n   Session revoked"
 
-NormalSession -> SessionOrigin: "uses DirectLogin"
+# Key insight
+KeyInsight: {
+  shape: page
+  style: {fill: "#0d2e25"; stroke: "#16c79a"}
+  label: "KEY INSIGHT\n\nNo separate audit stream needed.\nThe event store IS the audit trail.\nEvery state change is already an event.\nEvery event already carries metadata.\nExtending metadata with ActorID +\nImpersonatorID makes impersonation\nfully auditable — for free."
+}
+
+KeyInsight -> EventStore: "this is why"
