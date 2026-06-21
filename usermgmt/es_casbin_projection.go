@@ -109,47 +109,8 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 		// Credentials and external accounts don't affect Casbin policies
 		// — subscribed for projection ordering.
 
-	case eventMemberAdded:
-		d, err := unmarshalPayload[MemberAddedPayload](evt)
-		if err != nil {
-			return event.WrapCorruption(
-				err,
-				"usermgmt.casbin_projection.decode_failed",
-				"decode MemberAdded in casbin projection",
-			)
-		}
-		return p.addRolesFor(d.ActorID, d.TenantID, d.Roles, "on member added")
-
-	case eventMemberRolesChanged:
-		d, err := unmarshalPayload[MemberRolesChangedPayload](evt)
-		if err != nil {
-			return event.WrapCorruption(
-				err,
-				"usermgmt.casbin_projection.decode_failed",
-				"decode MemberRolesChanged in casbin projection",
-			)
-		}
-		// For membership role changes, we need to know the actor+tenant from the aggregate ID.
-		// The subject was already the actor ID when MemberAdded was processed.
-		// We need to remove old roles first. The domain is the tenant — but we don't have it
-		// in the MemberRolesChangedPayload. We can extract it from the aggregate ID prefix
-		// OR use the MembershipReadModel. For now, use the subject (aggregate ID) as a fallback.
-		// This will be improved when we store tenant context in the payload.
-		for _, role := range []Role{RoleAdmin, RoleUser, RoleViewer, RoleOwner, RoleSuperAdmin} {
-			_ = p.authz.RemoveGroupPolicy(GroupPolicy{
-				Subject: subject, Role: role, Domain: subject,
-			})
-		}
-		return p.addRolesFor(subject, subject, d.Roles, "on member roles changed")
-
-	case eventMemberRemoved:
-		if err := p.authz.RemoveAllRolesForUser(subject); err != nil {
-			return event.WrapInfrastructure(
-				err,
-				"usermgmt.casbin_projection.member_remove_failed",
-				"remove member from casbin",
-			)
-		}
+	case eventMemberAdded, eventMemberRolesChanged, eventMemberRemoved:
+		return p.handleMembershipEvent(evt)
 
 	default:
 	}
@@ -177,3 +138,75 @@ func (p *CasbinProjection) addRolesFor(subject, domain string, roles []Role, err
 }
 
 var _ event.Projection = (*CasbinProjection)(nil)
+
+// handleMembershipEvent processes MemberAdded, MemberRolesChanged, and
+// MemberRemoved events. Extracted from Handle to reduce cognitive complexity.
+func (p *CasbinProjection) handleMembershipEvent(evt event.Event) error {
+	switch evt.Type() {
+	case eventMemberAdded:
+		d, err := unmarshalPayload[MemberAddedPayload](evt)
+		if err != nil {
+			return event.WrapCorruption(
+				err,
+				"usermgmt.casbin_projection.decode_failed",
+				"decode MemberAdded in casbin projection",
+			)
+		}
+		return p.addRolesFor(d.ActorID, d.TenantID, d.Roles, "on member added")
+
+	case eventMemberRolesChanged:
+		d, err := unmarshalPayload[MemberRolesChangedPayload](evt)
+		if err != nil {
+			return event.WrapCorruption(
+				err,
+				"usermgmt.casbin_projection.decode_failed",
+				"decode MemberRolesChanged in casbin projection",
+			)
+		}
+		if err := p.removeAllRolesInDomain(d.ActorID, d.TenantID, "on member roles changed"); err != nil {
+			return err
+		}
+		return p.addRolesFor(d.ActorID, d.TenantID, d.Roles, "on member roles changed")
+
+	case eventMemberRemoved:
+		d, err := unmarshalPayload[MemberRemovedPayload](evt)
+		if err != nil {
+			return event.WrapCorruption(
+				err,
+				"usermgmt.casbin_projection.decode_failed",
+				"decode MemberRemoved in casbin projection",
+			)
+		}
+		return p.removeAllRolesInDomain(d.ActorID, d.TenantID, "on member removed")
+
+	default:
+		return nil
+	}
+}
+
+// removeAllRolesInDomain removes all Casbin group policies for a subject
+// within a specific domain. Used by MemberRolesChanged and MemberRemoved.
+func (p *CasbinProjection) removeAllRolesInDomain(subject, domain, errContext string) error {
+	currentRoles, err := p.authz.RolesForUser(NewUserID(subject), domain)
+	if err != nil {
+		return event.Wrapf(
+			err, event.Infrastructure,
+			"usermgmt.casbin_projection.roles_lookup_failed",
+			"get current roles for %s in %s (%s)",
+			subject, domain, errContext,
+		)
+	}
+	for _, r := range currentRoles {
+		if err := p.authz.RemoveGroupPolicy(GroupPolicy{
+			Subject: subject, Role: r, Domain: domain,
+		}); err != nil {
+			return event.Wrapf(
+				err, event.Infrastructure,
+				"usermgmt.casbin_projection.remove_role_failed",
+				"remove role %s for %s (%s)",
+				r, subject, errContext,
+			)
+		}
+	}
+	return nil
+}
