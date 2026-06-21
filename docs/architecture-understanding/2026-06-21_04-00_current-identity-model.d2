@@ -1,43 +1,46 @@
 direction: down
 
+style: {fill: "#0e0e10"}
+
 title: "CURRENT STATE — Identity & Authorization Model (What Exists Today)"
+title.style: {font-color: "#f4f4f0"}
 
 # Identity types
 UserID: {
   shape: rectangle
-  style: {fill: "#1a1a2e"; stroke: "#e94560"}
+  style: {fill: "#18181d"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "UserID = brandid.ID[userBrand, string]\n\n• ULID-backed, branded\n• Get(): string\n• IsZero(): bool\n• The ONLY actor type"
 }
 
 User: {
   shape: rectangle
-  style: {fill: "#16213e"; stroke: "#e94560"}
+  style: {fill: "#18181d"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "User (Human-Only Aggregate)\n\n• ID: UserID\n• Email: string\n• DisplayName: string\n• Roles: []Role (flat)\n• Credentials: []WebAuthnCredential\n• ExternalAccounts: []ExternalAccount\n• EmailVerified: bool\n• TOTPEnabled: bool"
 }
 
 Session: {
   shape: rectangle
-  style: {fill: "#16213e"; stroke: "#e94560"}
+  style: {fill: "#18181d"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "Session\n\n• Token: string\n• UserID: UserID (always direct)\n• CreatedAt: time.Time\n• ExpiresAt: time.Time\n\nNo impersonation support"
 }
 
 # Authorization
 Authz: {
   shape: rectangle
-  style: {fill: "#0f3460"; stroke: "#e94560"}
+  style: {fill: "#0e0e10"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "Authz (Casbin RBAC with Domains)\n\n• Enforce(sub, dom, obj, act)\n• RolesForUser(userID, domain)\n• AddGroupPolicy / RemoveGroupPolicy\n• domain = free-form string"
 }
 
 CasbinModel: {
   shape: page
-  style: {fill: "#1a1a2e"}
+  style: {fill: "#16161a"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "RBAC with Domains\nr = sub, dom, obj, act\np = sub, dom, obj, act, eft\n\ndomain = free-form string\nNO typed TenantID"
 }
 
 # Roles
 Roles: {
   shape: package
-  style: {fill: "#1a1a2e"; stroke: "#e94560"}
+  style: {fill: "#0e0e10"; stroke: "#f4d35e"; font-color: "#f4f4f0"}
   label: "Roles (Flat — No Hierarchy)"
 
   Admin: "admin (wildcard *)\nDefault seed: {admin, *, *, *, allow}"
@@ -49,42 +52,42 @@ Roles: {
 # Missing concepts
 MissingActor: {
   shape: rectangle
-  style: {fill: "#3d1116"; stroke: "#e94560"; stroke-dash: 3}
+  style: {fill: "#16161a"; stroke: "#ff6b6b"; font-color: "#ff6b6b"; stroke-dash: 3}
   label: "MISSING: Actor abstraction\nUser = the only actor\nNo union of user | bot | system"
 }
 
 MissingBot: {
   shape: rectangle
-  style: {fill: "#3d1116"; stroke: "#e94560"; stroke-dash: 3}
+  style: {fill: "#16161a"; stroke: "#ff6b6b"; font-color: "#ff6b6b"; stroke-dash: 3}
   label: "MISSING: BotID / Service Account\nNo API token authentication\nNo machine identity"
 }
 
 MissingTenant: {
   shape: rectangle
-  style: {fill: "#3d1116"; stroke: "#e94560"; stroke-dash: 3}
+  style: {fill: "#16161a"; stroke: "#ff6b6b"; font-color: "#ff6b6b"; stroke-dash: 3}
   label: "MISSING: TenantID / Tenant aggregate\ndomain = raw string\nNo tenant lifecycle\nNo tenant-scoped isolation"
 }
 
 MissingImpersonation: {
   shape: rectangle
-  style: {fill: "#3d1116"; stroke: "#e94560"; stroke-dash: 3}
+  style: {fill: "#16161a"; stroke: "#ff6b6b"; font-color: "#ff6b6b"; stroke-dash: 3}
   label: "MISSING: Impersonation\nNo 'act on behalf of'\nNo audit trail of actor chain\nSession always = authenticated user"
 }
 
 MissingSuperAdmin: {
   shape: rectangle
-  style: {fill: "#3d1116"; stroke: "#e94560"; stroke-dash: 3}
+  style: {fill: "#16161a"; stroke: "#ff6b6b"; font-color: "#ff6b6b"; stroke-dash: 3}
   label: "MISSING: Super Admin vs Tenant Admin\nNo role hierarchy\nSingle flat admin role\nNo tenant-scoped admin"
 }
 
 # Relationships
 User -> UserID
-Session -> UserID: "always direct"
-User -> Roles: "flat list"
-Authz -> CasbinModel: "uses"
+Session -> UserID: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+User -> Roles: {style: {stroke: "#f4d35e"; font-color: "#f4f4f0"}}
+Authz -> CasbinModel: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
 
-MissingActor -> User: "should generalize"
-MissingBot -> MissingActor
-MissingTenant -> CasbinModel: "should replace domain"
-MissingImpersonation -> Session: "should extend"
-MissingSuperAdmin -> Roles: "should add hierarchy"
+MissingActor -> User: {style: {stroke: "#ff6b6b"; font-color: "#ff6b6b"; stroke-dash: 3}}
+MissingBot -> MissingActor: {style: {stroke: "#ff6b6b"; stroke-dash: 3}}
+MissingTenant -> CasbinModel: {style: {stroke: "#ff6b6b"; font-color: "#ff6b6b"; stroke-dash: 3}}
+MissingImpersonation -> Session: {style: {stroke: "#ff6b6b"; font-color: "#ff6b6b"; stroke-dash: 3}}
+MissingSuperAdmin -> Roles: {style: {stroke: "#ff6b6b"; font-color: "#ff6b6b"; stroke-dash: 3}}

@@ -31,176 +31,651 @@
         --warning: var(--color-yellow);
 
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
 
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
 
       body {
-        background: var(--surface); color: var(--text);
-        font-family: var(--font-body); font-size: 15px; line-height: 1.6;
-        -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
 
       .top-bar {
-        background: var(--text); color: var(--surface);
-        padding: 0.6rem 2rem; font-family: var(--font-mono);
-        font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em;
-        text-transform: uppercase; display: flex;
-        justify-content: space-between; align-items: center;
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
-      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
-      .sidebar {
-        width: 220px; flex-shrink: 0; position: sticky; top: 1rem;
-        align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none;
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
       }
-      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
       .sidebar .label {
-        font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent);
-        margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong);
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
       }
       .sidebar a {
-        font-size: 0.85rem; color: var(--text-muted); text-decoration: none;
-        padding: 0.45rem 0.75rem; border-left: 2px solid transparent;
-        transition: all 0.15s ease; line-height: 1.4; font-weight: 500;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
       }
-      .sidebar a:hover, .sidebar a.active {
-        color: var(--accent); border-left-color: var(--accent);
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
         background: color-mix(in srgb, var(--accent) 8%, transparent);
       }
-      .main { flex: 1; min-width: 0; }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
 
-      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
-      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
       h2 {
-        font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem;
-        border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem;
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
       }
-      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
-      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
-      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; }
-      ul, ol { margin: 0 0 1rem; padding-left: 1.5rem; }
-      li { margin: 0.3rem 0; }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem;
+        padding-left: 1.5rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
 
-      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
       .hero-badge {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.7rem;
-        font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;
-        color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem;
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
       }
-      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
-      .hero-shapes { position: relative; height: 80px; margin-bottom: 1rem; }
-      .hero-shapes .circle { position: absolute; top: 0; left: 0; width: 56px; height: 56px; background: var(--problem); border-radius: 50%; }
-      .hero-shapes .square { position: absolute; top: 24px; left: 72px; width: 48px; height: 48px; background: var(--solution); }
-      .hero-shapes .tri { position: absolute; top: 8px; left: 140px; width: 0; height: 0; border-left: 28px solid transparent; border-right: 28px solid transparent; border-bottom: 48px solid var(--warning); }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
 
-      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
-      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
-      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
-      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
 
-      .issue { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
-      .issue-critical { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
-      .issue-important { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
-      .issue-nice { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
-      .issue h3 { margin-bottom: 0.3rem; }
-      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
-      .issue p:last-child { margin-bottom: 0; }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
 
-      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface); }
-      .severity-critical { background: var(--problem); }
-      .severity-important { background: var(--warning); }
-      .severity-nice { background: var(--solution); }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
 
-      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
-      .badge-critical { color: var(--problem); border-color: var(--problem); }
-      .badge-high { color: var(--warning); border-color: var(--warning); }
-      .badge-medium { color: var(--accent); border-color: var(--accent); }
-      .badge-low { color: var(--text-muted); }
-      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
 
-      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
-      .callout strong { display: inline-block; margin-right: 0.4rem; }
-      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
-      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
 
-      .stat-grid, .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
-      .stat-card, .score-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
-      .stat-card::before, .score-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
-      .stat-bad::before, .score-bad::before { background: var(--problem); }
-      .stat-good::before, .score-good::before { background: var(--solution); }
-      .stat-warn::before, .score-warn::before { background: var(--warning); }
-      .stat-value, .score { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
-      .stat-bad .stat-value, .score-bad .score { color: var(--problem); }
-      .stat-good .stat-value, .score-good .score { color: var(--solution); }
-      .stat-warn .stat-value, .score-warn .score { color: var(--warning); }
-      .stat-label, .score-card .label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
 
-      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
-      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
-      .strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; line-height: 1.4; }
-      .strength .text strong { display: block; margin-bottom: 0.15rem; }
-      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
 
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
-      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
-      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
-      tr:hover td { background: var(--surface-raised); }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
 
-      .compare-header { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0 0.5rem; }
-      .compare-before, .compare-after { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.4rem 0.7rem; color: var(--surface); }
-      .compare-before { background: var(--problem); }
-      .compare-after { background: var(--solution); }
-      .compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
-      .compare-row pre { margin: 0; }
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
 
-      pre { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; }
-      code { font-family: var(--font-mono); }
-      .tok-keyword { color: var(--accent); }
-      .tok-type { color: var(--warning); }
-      .tok-string { color: var(--solution); }
-      .tok-comment { color: var(--text-faint); font-style: italic; }
-      .tok-func { color: #74a9ff; }
-      .tok-number { color: var(--accent); }
-      .tok-generic { color: var(--problem); }
-      .tok-builtin { color: #4dd9ff; }
-      .tok-punct { color: var(--text-muted); }
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      .tok-keyword {
+        color: var(--accent);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: var(--solution);
+      }
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      }
+      .tok-number {
+        color: var(--accent);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #4dd9ff;
+      }
+      .tok-punct {
+        color: var(--text-muted);
+      }
 
-      .diagram-svg { width: 100%; max-width: 900px; margin: 1rem 0; border: 1px solid var(--border); background: var(--surface-sunken); padding: 1rem; }
-      .diagram-svg img { width: 100%; height: auto; display: block; }
+      .diagram-svg {
+        width: 100%;
+        max-width: 900px;
+        margin: 1rem 0;
+        border: 1px solid var(--border);
+        background: var(--surface-sunken);
+        padding: 1rem;
+      }
+      .diagram-svg img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
 
-      .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1rem 0; }
-      .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
 
-      .toc { background: var(--surface-raised); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 1rem 1.3rem; margin: 1rem 0 1.5rem; }
-      .toc h3 { margin-bottom: 0.5rem; }
-      .toc ul { list-style: none; padding: 0; }
-      .toc li { margin: 0.25rem 0; }
-      .toc a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
-      .toc a:hover { color: var(--accent); }
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
 
-      .migration-step { display: grid; grid-template-columns: 48px 1fr; gap: 1rem; margin: 1rem 0; padding: 1rem; background: var(--surface-raised); border: 1px solid var(--border); border-left: 3px solid var(--accent); }
-      .migration-num { font-family: var(--font-mono); font-weight: 800; font-size: 1.5rem; color: var(--accent); line-height: 1; }
-      .migration-content h4 { margin-bottom: 0.2rem; }
-      .migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.92rem; }
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
 
-      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
 
-      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
       @media (max-width: 768px) {
-        .layout { flex-direction: column; padding: 1rem; }
-        .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; }
-        .grid-2, .grid-3 { grid-template-columns: 1fr; }
-        .compare-header, .compare-row { grid-template-columns: 1fr; }
-        .stat-grid, .scorecard { grid-template-columns: repeat(2, 1fr); }
-        .migration-step { grid-template-columns: 1fr; }
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -245,11 +720,12 @@
           <div class="hero-badge">Identity Model Redesign</div>
           <h1>Actor, Tenant, Impersonation</h1>
           <p class="hero-subtitle">
-            A first-principles redesign of the <code>usermgmt</code> identity and authorization model.
-            Three core ideas: <strong>Actor</strong> unifies Users and Bots under a sealed interface,
-            <strong>Tenant</strong> formalizes the existing domain string into a typed organizational
-            boundary with Membership-scoped roles, and <strong>Impersonation</strong> uses the event
-            store itself as the audit trail — no separate infrastructure.
+            A first-principles redesign of the <code>usermgmt</code> identity and authorization
+            model. Three core ideas: <strong>Actor</strong> unifies Users and Bots under a sealed
+            interface, <strong>Tenant</strong> formalizes the existing domain string into a typed
+            organizational boundary with Membership-scoped roles, and
+            <strong>Impersonation</strong> uses the event store itself as the audit trail — no
+            separate infrastructure.
           </p>
         </div>
 
@@ -278,13 +754,27 @@
         <!-- ═══ EXECUTIVE SUMMARY ═══ -->
         <h2 id="exec"><span class="num">01</span>Executive Summary</h2>
         <div class="card card-solution">
-          <p style="font-size: 1.05rem; margin-bottom: 0.5rem;">
+          <p style="font-size: 1.05rem; margin-bottom: 0.5rem">
             <strong>The thesis in three sentences:</strong>
           </p>
-          <ol style="margin: 0; padding-left: 1.5rem;">
-            <li><strong>Users and Bots are both Actors.</strong> Authorization, sessions, and audit should key on a sealed <code>ActorID</code> interface — never <code>UserID</code> directly. This is the unifying abstraction.</li>
-            <li><strong>The Casbin domain string is already half-baked multi-tenancy.</strong> <code>RolesUpdatedPayload.Domain</code> exists but is untyped and underutilized. Formalize it: <code>TenantID</code> branded type, <code>Tenant</code> aggregate, <code>Membership</code> entity carrying scoped roles.</li>
-            <li><strong>The event store IS the audit trail.</strong> If every command produces events, and events carry <code>ActorID</code> + <code>ImpersonatorID</code> in metadata, then impersonation is fully auditable with zero additional infrastructure. This is the CQRS/ES advantage.</li>
+          <ol style="margin: 0; padding-left: 1.5rem">
+            <li>
+              <strong>Users and Bots are both Actors.</strong> Authorization, sessions, and audit
+              should key on a sealed <code>ActorID</code> interface — never
+              <code>UserID</code> directly. This is the unifying abstraction.
+            </li>
+            <li>
+              <strong>The Casbin domain string is already half-baked multi-tenancy.</strong>
+              <code>RolesUpdatedPayload.Domain</code> exists but is untyped and underutilized.
+              Formalize it: <code>TenantID</code> branded type, <code>Tenant</code> aggregate,
+              <code>Membership</code> entity carrying scoped roles.
+            </li>
+            <li>
+              <strong>The event store IS the audit trail.</strong> If every command produces events,
+              and events carry <code>ActorID</code> + <code>ImpersonatorID</code> in metadata, then
+              impersonation is fully auditable with zero additional infrastructure. This is the
+              CQRS/ES advantage.
+            </li>
           </ol>
         </div>
 
@@ -295,9 +785,12 @@
           <code>User</code>. There is exactly one ID type (<code>UserID</code>), one aggregate
           (<code>User</code>), and one role list (flat, no hierarchy). The Casbin authorization
           model uses a free-form string <code>domain</code> parameter — but crucially, the system
-          already <em>has</em> a domain concept embedded in <code>RolesUpdatedPayload.Domain</code>
-          and the Casbin projection (<code>es_casbin_projection.go:69-72</code> uses the user's
-          own ID as a domain fallback). This redesign formalizes what's already half there.
+          already <em>has</em> a domain concept embedded in
+          <code>RolesUpdatedPayload.Domain</code> and the Casbin projection (<code
+            >es_casbin_projection.go:69-72</code
+          >
+          uses the user's own ID as a domain fallback). This redesign formalizes what's already half
+          there.
         </p>
 
         <div class="stat-grid">
@@ -328,17 +821,21 @@
         </div>
 
         <div class="diagram-svg">
-          <img src="../architecture-understanding/2026-06-21_04-00_current-identity-model.svg" alt="Current identity model diagram" />
+          <img
+            src="../architecture-understanding/2026-06-21_04-00_current-identity-model.svg"
+            alt="Current identity model diagram"
+          />
         </div>
 
         <div class="card card-warning">
           <h4>Existing multi-tenancy seed</h4>
           <p>
-            The <code>RolesUpdatedPayload</code> struct already has a <code>Domain string</code> field
-            (<code>es_events.go:18</code>). The Casbin projection already handles domain-scoped
-            role assignments (<code>es_casbin_projection.go:69-72</code>). When domain is empty,
-            it falls back to the user's own ID — a hack. This redesign replaces that hack with a
-            typed <code>TenantID</code> and proper <code>Membership</code> entity.
+            The <code>RolesUpdatedPayload</code> struct already has a
+            <code>Domain string</code> field (<code>es_events.go:18</code>). The Casbin projection
+            already handles domain-scoped role assignments
+            (<code>es_casbin_projection.go:69-72</code>). When domain is empty, it falls back to the
+            user's own ID — a hack. This redesign replaces that hack with a typed
+            <code>TenantID</code> and proper <code>Membership</code> entity.
           </p>
         </div>
 
@@ -367,21 +864,23 @@
         <div class="issue issue-critical">
           <span class="severity severity-critical">Critical</span>
           <h3>P2 — No TenantID: Casbin Domain Is a Raw String</h3>
-          <div class="where">usermgmt/authz_types.go:45-59, es_events.go:18, es_casbin_projection.go:69-72</div>
+          <div class="where">
+            usermgmt/authz_types.go:45-59, es_events.go:18, es_casbin_projection.go:69-72
+          </div>
           <p>
             The Casbin RBAC-with-domains model accepts a <code>domain</code> parameter as a
             free-form <code>string</code>. The <code>RolesUpdatedPayload.Domain</code> field exists
             but is untyped. The Casbin projection falls back to using the user's own ID as domain
-            when it's empty — a hack that accidentally creates per-user silos instead of real
-            tenant boundaries. No <code>TenantID</code> branded type, no <code>Tenant</code>
+            when it's empty — a hack that accidentally creates per-user silos instead of real tenant
+            boundaries. No <code>TenantID</code> branded type, no <code>Tenant</code>
             aggregate, no tenant lifecycle.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
             Introduce <code>TenantID = brandid.ID[tenantBrand, string]</code> and a
             <code>Tenant</code> aggregate with its own event stream. Replace all string domain
-            parameters with typed <code>TenantID</code>. Introduce a <code>Membership</code>
-            entity linking <code>ActorID → TenantID</code> with scoped roles.
+            parameters with typed <code>TenantID</code>. Introduce a <code>Membership</code> entity
+            linking <code>ActorID → TenantID</code> with scoped roles.
           </div>
         </div>
 
@@ -408,18 +907,20 @@
         <div class="issue issue-critical">
           <span class="severity severity-critical">Critical</span>
           <h3>P4 — No Impersonation: Sessions Lack Origin Tracking</h3>
-          <div class="where">usermgmt/user.go:96-101, usermgmt/store.go:13-18, usermgmt/middleware.go:39-59</div>
+          <div class="where">
+            usermgmt/user.go:96-101, usermgmt/store.go:13-18, usermgmt/middleware.go:39-59
+          </div>
           <p>
             <code>Session</code> carries only <code>Token</code>, <code>UserID</code>, and
-            timestamps. There is no field recording "who created this session on behalf of whom."
-            An admin cannot act as another user for support/debugging. No audit trail of the
-            actor chain. There is no <code>ImpersonatedBy</code> or <code>Origin</code> field.
+            timestamps. There is no field recording "who created this session on behalf of whom." An
+            admin cannot act as another user for support/debugging. No audit trail of the actor
+            chain. There is no <code>ImpersonatedBy</code> or <code>Origin</code> field.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Replace <code>Session.UserID</code> with <code>Session.ActorID</code> and add a
-            sealed <code>SessionOrigin</code> union: <code>DirectLogin{AuthenticatedAs}</code>
-            vs <code>Impersonation{By, Reason, At}</code>. <strong>No separate audit stream</strong>
+            Replace <code>Session.UserID</code> with <code>Session.ActorID</code> and add a sealed
+            <code>SessionOrigin</code> union: <code>DirectLogin{AuthenticatedAs}</code> vs
+            <code>Impersonation{By, Reason, At}</code>. <strong>No separate audit stream</strong>
             — the event store IS the audit trail via propagated metadata.
           </div>
         </div>
@@ -429,17 +930,17 @@
           <h3>P5 — Roles Live on User Instead of Membership</h3>
           <div class="where">usermgmt/user.go:24, usermgmt/es_state.go:15, es_events.go:15-19</div>
           <p>
-            <code>UserState.Roles</code> is a flat <code>[]Role</code> on the User aggregate.
-            The <code>RolesUpdated</code> event carries a <code>Domain</code> field, but the
+            <code>UserState.Roles</code> is a flat <code>[]Role</code> on the User aggregate. The
+            <code>RolesUpdated</code> event carries a <code>Domain</code> field, but the
             domain-to-roles mapping is implicit. This means a user's roles are coupled to their
             identity rather than to their tenant membership. Moving a user between tenants is
             impossible without destroying and recreating role assignments.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Move roles to a <code>Membership</code> entity:
-            <code>{ActorID, TenantID, Roles}</code>. A user can have different roles in
-            different tenants. Role changes emit <code>MembershipRolesChanged</code> events.
+            Move roles to a <code>Membership</code> entity: <code>{ActorID, TenantID, Roles}</code>.
+            A user can have different roles in different tenants. Role changes emit
+            <code>MembershipRolesChanged</code> events.
           </div>
         </div>
 
@@ -448,16 +949,16 @@
           <h3>P6 — No Bot Authentication: API Tokens Don't Exist</h3>
           <div class="where">usermgmt/middleware.go:76-85 (extractToken — session/cookie only)</div>
           <p>
-            The <code>extractToken</code> function handles session cookies and Bearer tokens,
-            but all tokens resolve to a <code>UserID</code> via <code>SessionStore.Find()</code>.
-            There is no <code>APIToken</code> type, no token-to-bot lookup, and no scope-based
+            The <code>extractToken</code> function handles session cookies and Bearer tokens, but
+            all tokens resolve to a <code>UserID</code> via <code>SessionStore.Find()</code>. There
+            is no <code>APIToken</code> type, no token-to-bot lookup, and no scope-based
             authorization.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
             Add <code>Bot</code> aggregate with <code>TokenMAC</code> (HMAC-SHA256 + pepper, never
-            plaintext). Middleware checks both session store and API token store. Bot scopes map
-            to fine-grained Casbin policies — same enforcer, different granularity.
+            plaintext). Middleware checks both session store and API token store. Bot scopes map to
+            fine-grained Casbin policies — same enforcer, different granularity.
           </div>
         </div>
 
@@ -467,16 +968,16 @@
           <div class="where">context.go:134-165 (EventOptionsFromContext)</div>
           <p>
             <code>EventOptionsFromContext</code> propagates <code>UserID</code>,
-            <code>CorrelationID</code>, and <code>RequestID</code> into event metadata. But there
-            is no <code>PerformedBy</code> or <code>ImpersonatorID</code>. When an admin
-            impersonates a user and triggers a command, the event would record only the target —
-            the admin is invisible.
+            <code>CorrelationID</code>, and <code>RequestID</code> into event metadata. But there is
+            no <code>PerformedBy</code> or <code>ImpersonatorID</code>. When an admin impersonates a
+            user and triggers a command, the event would record only the target — the admin is
+            invisible.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Extend <code>EventOptionsFromContext</code> to propagate <code>ActorID</code>
-            (effective) and <code>ImpersonatorID</code> (real actor, if impersonating). Every
-            event becomes self-auditing.
+            Extend <code>EventOptionsFromContext</code> to propagate
+            <code>ActorID</code> (effective) and <code>ImpersonatorID</code> (real actor, if
+            impersonating). Every event becomes self-auditing.
           </div>
         </div>
 
@@ -487,35 +988,58 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Actor is the unifying abstraction</strong>
-              <span>Authorization, sessions, audit trails, and context propagation all key on <code>ActorID</code>. Users and Bots are just auth-mechanism variants. Adding a new actor type (e.g., System) is O(1) — implement the interface.</span>
+              <span
+                >Authorization, sessions, audit trails, and context propagation all key on
+                <code>ActorID</code>. Users and Bots are just auth-mechanism variants. Adding a new
+                actor type (e.g., System) is O(1) — implement the interface.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Roles are Membership, not Identity</strong>
-              <span>An actor's roles are scoped to their tenant membership — not embedded in their identity. Users can have different roles in different tenants. Role changes don't touch the User aggregate.</span>
+              <span
+                >An actor's roles are scoped to their tenant membership — not embedded in their
+                identity. Users can have different roles in different tenants. Role changes don't
+                touch the User aggregate.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>The event store IS the audit trail</strong>
-              <span>No separate audit stream. Every command produces events. Every event carries <code>ActorID</code> + <code>ImpersonatorID</code> in metadata. Query the event store for any audit question. This is the CQRS/ES advantage — audit is free if you propagate identity correctly.</span>
+              <span
+                >No separate audit stream. Every command produces events. Every event carries
+                <code>ActorID</code> + <code>ImpersonatorID</code> in metadata. Query the event
+                store for any audit question. This is the CQRS/ES advantage — audit is free if you
+                propagate identity correctly.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Formalize what already exists</strong>
-              <span>The system already has a <code>Domain</code> field in <code>RolesUpdatedPayload</code>. It already has Casbin RBAC-with-domains. This redesign doesn't add multi-tenancy from scratch — it makes the existing half-baked concept typed, safe, and complete.</span>
+              <span
+                >The system already has a <code>Domain</code> field in
+                <code>RolesUpdatedPayload</code>. It already has Casbin RBAC-with-domains. This
+                redesign doesn't add multi-tenancy from scratch — it makes the existing half-baked
+                concept typed, safe, and complete.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Impossible states are unrepresentable</strong>
-              <span>Sealed interfaces prevent constructing an <code>Actor</code> that isn't a User or Bot. <code>SessionOrigin</code> union prevents a session that claims to be impersonating without recording who impersonated. Type switches are exhaustive at compile time.</span>
+              <span
+                >Sealed interfaces prevent constructing an <code>Actor</code> that isn't a User or
+                Bot. <code>SessionOrigin</code> union prevents a session that claims to be
+                impersonating without recording who impersonated. Type switches are exhaustive at
+                compile time.</span
+              >
             </div>
           </div>
         </div>
@@ -524,12 +1048,15 @@
         <h2 id="actor"><span class="num">05</span>Actor Model — Sealed Union</h2>
         <p>
           The core insight: <strong>"Bot and Users are both Actors."</strong> An Actor is anything
-          that can authenticate, be authorized, hold a session, and be audited. We model this as
-          a sealed interface — only types in the <code>usermgmt</code> package can implement it.
+          that can authenticate, be authorized, hold a session, and be audited. We model this as a
+          sealed interface — only types in the <code>usermgmt</code> package can implement it.
         </p>
 
         <div class="diagram-svg">
-          <img src="../architecture-understanding/2026-06-21_04-00_target-actor-hierarchy.svg" alt="Target actor hierarchy diagram" />
+          <img
+            src="../architecture-understanding/2026-06-21_04-00_target-actor-hierarchy.svg"
+            alt="Target actor hierarchy diagram"
+          />
         </div>
 
         <div class="compare-header">
@@ -538,14 +1065,14 @@
         </div>
         <div class="compare-row">
           <div>
-<pre><code><span class="tok-comment">// id.go — the ONLY identity type</span>
+            <pre><code><span class="tok-comment">// id.go — the ONLY identity type</span>
 <span class="tok-keyword">type</span> <span class="tok-type">UserID</span> = <span class="tok-builtin">brandid</span>.<span class="tok-type">ID</span>[<span class="tok-type">userBrand</span>, <span class="tok-type">string</span>]
 
 <span class="tok-comment">// No Bot, no System, no API token auth</span>
 <span class="tok-comment">// Everything keys on UserID</span></code></pre>
           </div>
           <div>
-<pre><code><span class="tok-comment">// Sealed ActorID — both User and Bot satisfy it</span>
+            <pre><code><span class="tok-comment">// Sealed ActorID — both User and Bot satisfy it</span>
 <span class="tok-keyword">type</span> <span class="tok-type">ActorID</span> <span class="tok-keyword">interface</span> {
     <span class="tok-func">String</span>() <span class="tok-type">string</span>
     <span class="tok-func">Kind</span>() <span class="tok-type">ActorKind</span>
@@ -562,7 +1089,7 @@
         </div>
 
         <h3>Full Actor Type Definitions</h3>
-<pre><code><span class="tok-comment">// ActorKind discriminates actor variants for type switches</span>
+        <pre><code><span class="tok-comment">// ActorKind discriminates actor variants for type switches</span>
 <span class="tok-keyword">type</span> <span class="tok-type">ActorKind</span> <span class="tok-type">int</span>
 
 <span class="tok-keyword">const</span> (
@@ -617,8 +1144,8 @@
           <p>
             Bots use OAuth2-style scopes (<code>read:users</code>, <code>write:catalog</code>).
             These are NOT a separate authorization mechanism — they map to fine-grained Casbin
-            policies: <code>p: bot_X, tenant_Y, users, read, allow</code>. Same enforcer,
-            different granularity. No separate authz path for bots.
+            policies: <code>p: bot_X, tenant_Y, users, read, allow</code>. Same enforcer, different
+            granularity. No separate authz path for bots.
           </p>
         </div>
 
@@ -632,11 +1159,14 @@
         </p>
 
         <div class="diagram-svg">
-          <img src="../architecture-understanding/2026-06-21_04-00_membership-relationships.svg" alt="Membership relationships diagram" />
+          <img
+            src="../architecture-understanding/2026-06-21_04-00_membership-relationships.svg"
+            alt="Membership relationships diagram"
+          />
         </div>
 
         <h3>Tenant Aggregate (Event-Sourced)</h3>
-<pre><code><span class="tok-keyword">type</span> <span class="tok-type">TenantID</span> = <span class="tok-builtin">brandid</span>.<span class="tok-type">ID</span>[<span class="tok-type">tenantBrand</span>, <span class="tok-type">string</span>]
+        <pre><code><span class="tok-keyword">type</span> <span class="tok-type">TenantID</span> = <span class="tok-builtin">brandid</span>.<span class="tok-type">ID</span>[<span class="tok-type">tenantBrand</span>, <span class="tok-type">string</span>]
 
 <span class="tok-keyword">type</span> <span class="tok-type">TenantStatus</span> <span class="tok-type">int</span>
 <span class="tok-keyword">const</span> (
@@ -661,11 +1191,10 @@
         <div class="card card-solution">
           <h4>Membership replaces UserState.Roles</h4>
           <p>
-            Currently <code>UserState.Roles</code> is a flat list on the User aggregate. In the
-            new model, roles move to <code>Membership</code>. A user with <code>admin</code> in
-            Tenant A and <code>viewer</code> in Tenant B has two Membership entities — the User
-            aggregate knows nothing about roles. Changing roles is a Membership event, not a User
-            event.
+            Currently <code>UserState.Roles</code> is a flat list on the User aggregate. In the new
+            model, roles move to <code>Membership</code>. A user with <code>admin</code> in Tenant A
+            and <code>viewer</code> in Tenant B has two Membership entities — the User aggregate
+            knows nothing about roles. Changing roles is a Membership event, not a User event.
           </p>
         </div>
 
@@ -673,8 +1202,8 @@
           <h4>Tenant Lifecycle Cascade</h4>
           <p>
             When a tenant is suspended (<code>TenantSuspended</code> event), the projection layer
-            reacts: all sessions for actors in that tenant are revoked, new logins are rejected,
-            and API tokens are invalidated. This is natural in event sourcing — the projection
+            reacts: all sessions for actors in that tenant are revoked, new logins are rejected, and
+            API tokens are invalidated. This is natural in event sourcing — the projection
             subscribes to tenant events and cascades the effects.
           </p>
         </div>
@@ -684,17 +1213,20 @@
         <p>
           The flat role list gains a Casbin <code>g2</code> hierarchy.
           <strong>Super Admin</strong> inherits from <code>admin</code> (which inherits from
-          <code>user</code>, which inherits from <code>viewer</code>). The key distinction:
-          Super Admin's policy is seeded in domain <code>*</code> (global), while Tenant Admin's
-          policy is scoped to a specific <code>TenantID</code>.
+          <code>user</code>, which inherits from <code>viewer</code>). The key distinction: Super
+          Admin's policy is seeded in domain <code>*</code> (global), while Tenant Admin's policy is
+          scoped to a specific <code>TenantID</code>.
         </p>
 
         <div class="diagram-svg">
-          <img src="../architecture-understanding/2026-06-21_04-00_role-hierarchy-tenant-scoping.svg" alt="Role hierarchy and tenant scoping diagram" />
+          <img
+            src="../architecture-understanding/2026-06-21_04-00_role-hierarchy-tenant-scoping.svg"
+            alt="Role hierarchy and tenant scoping diagram"
+          />
         </div>
 
         <h3>Updated Role Constants and Casbin Model</h3>
-<pre><code><span class="tok-keyword">const</span> (
+        <pre><code><span class="tok-keyword">const</span> (
     <span class="tok-type">RoleSuperAdmin</span> <span class="tok-type">Role</span> = <span class="tok-string">"super_admin"</span> <span class="tok-comment">// global wildcard</span>
     <span class="tok-type">RoleAdmin</span>      <span class="tok-type">Role</span> = <span class="tok-string">"admin"</span>       <span class="tok-comment">// tenant-scoped wildcard</span>
     <span class="tok-type">RoleUser</span>       <span class="tok-type">Role</span> = <span class="tok-string">"user"</span>        <span class="tok-comment">// standard member</span>
@@ -759,18 +1291,20 @@
         <h2 id="impersonation"><span class="num">08</span>Impersonation — Act on Behalf Of</h2>
         <p>
           Impersonation allows a <strong>Super Admin</strong> to create a session that acts as
-          another actor (User or Bot) for support, debugging, or testing. The session records
-          both the effective actor (who they're acting as) and the impersonator (who they really
-          are). Every action taken during impersonation carries the full actor chain in event
-          metadata.
+          another actor (User or Bot) for support, debugging, or testing. The session records both
+          the effective actor (who they're acting as) and the impersonator (who they really are).
+          Every action taken during impersonation carries the full actor chain in event metadata.
         </p>
 
         <div class="diagram-svg">
-          <img src="../architecture-understanding/2026-06-21_04-00_impersonation-flow.svg" alt="Impersonation flow diagram" />
+          <img
+            src="../architecture-understanding/2026-06-21_04-00_impersonation-flow.svg"
+            alt="Impersonation flow diagram"
+          />
         </div>
 
         <h3>Session with Sealed Origin</h3>
-<pre><code><span class="tok-comment">// SessionOrigin — sealed union for login provenance</span>
+        <pre><code><span class="tok-comment">// SessionOrigin — sealed union for login provenance</span>
 <span class="tok-keyword">type</span> <span class="tok-type">SessionOrigin</span> <span class="tok-keyword">interface</span> {
     <span class="tok-func">origin</span>() <span class="tok-comment">// unexported seal</span>
 }
@@ -811,9 +1345,14 @@
           <ul>
             <li>Only <code>super_admin</code> can initiate impersonation</li>
             <li>Cannot impersonate another <code>super_admin</code> (no privilege escalation)</li>
-            <li><code>Reason</code> field is mandatory — empty reason = rejection at command level</li>
+            <li>
+              <code>Reason</code> field is mandatory — empty reason = rejection at command level
+            </li>
             <li>Max impersonation session duration enforced (e.g., 1 hour)</li>
-            <li>Impersonation session is tied to the admin's own session — if admin's session expires, impersonation ends</li>
+            <li>
+              Impersonation session is tied to the admin's own session — if admin's session expires,
+              impersonation ends
+            </li>
           </ul>
         </div>
 
@@ -823,27 +1362,38 @@
           <strong>No separate audit stream needed.</strong> The system is fully event-sourced —
           every state change is an event. Events already carry metadata (<code>UserID</code>,
           <code>CorrelationID</code>, <code>RequestID</code>). Extending metadata with
-          <code>ActorID</code> + <code>ImpersonatorID</code> makes every event self-auditing.
-          This is the CQRS/ES advantage: audit is free if you propagate identity correctly.
+          <code>ActorID</code> + <code>ImpersonatorID</code> makes every event self-auditing. This
+          is the CQRS/ES advantage: audit is free if you propagate identity correctly.
         </p>
 
         <div class="diagram-svg">
-          <img src="../architecture-understanding/2026-06-21_04-00_event-metadata-audit-trail.svg" alt="Event metadata as audit trail diagram" />
+          <img
+            src="../architecture-understanding/2026-06-21_04-00_event-metadata-audit-trail.svg"
+            alt="Event metadata as audit trail diagram"
+          />
         </div>
 
         <div class="card card-solution">
           <h4>Why this is better than a separate audit stream</h4>
           <ul>
-            <li><strong>Zero additional infrastructure</strong> — no separate stream, no extra events, no extra tables</li>
-            <li><strong>No duplication</strong> — events are the source of truth, audit is a query on them</li>
+            <li>
+              <strong>Zero additional infrastructure</strong> — no separate stream, no extra events,
+              no extra tables
+            </li>
+            <li>
+              <strong>No duplication</strong> — events are the source of truth, audit is a query on
+              them
+            </li>
             <li><strong>Tamper-evident</strong> — append-only event store, immutable history</li>
-            <li><strong>Replayable</strong> — full event history can be replayed for forensic analysis</li>
+            <li>
+              <strong>Replayable</strong> — full event history can be replayed for forensic analysis
+            </li>
             <li><strong>Queryable</strong> — JSONB metadata column supports indexed queries</li>
           </ul>
         </div>
 
         <h3>Audit Queries</h3>
-<pre><code><span class="tok-comment">-- What did admin X do while impersonating?</span>
+        <pre><code><span class="tok-comment">-- What did admin X do while impersonating?</span>
 <span class="tok-keyword">SELECT</span> type, aggregate_id, occurred_at, payload
 <span class="tok-keyword">FROM</span> events
 <span class="tok-keyword">WHERE</span> metadata<span class="tok-punct">-></span><span class="tok-punct">></span><span class="tok-string">'impersonator_id'</span> = <span class="tok-string">'user:01JY...'</span>
@@ -863,9 +1413,9 @@
         <h2 id="crypto"><span class="num">10</span>Cryptography — HMAC + Pepper</h2>
         <p>
           Bot API tokens are 256-bit random secrets. Brute-forcing the preimage is infeasible
-          regardless of hash speed. The real threat is <strong>defense in depth on database
-          compromise</strong>: if the DB leaks, can an attacker verify a token they later capture
-          from logs, network traffic, or a MITM?
+          regardless of hash speed. The real threat is
+          <strong>defense in depth on database compromise</strong>: if the DB leaks, can an attacker
+          verify a token they later capture from logs, network traffic, or a MITM?
         </p>
 
         <table>
@@ -903,16 +1453,18 @@
           </tbody>
         </table>
 
-        <p><strong>Recommendation: HMAC-SHA256 with a server-side pepper.</strong> Same speed as
-        SHA-256, no new dependency (<code>crypto/hmac</code> + <code>crypto/sha256</code> are stdlib),
-        and DB-only leaks are useless without the pepper key.</p>
+        <p>
+          <strong>Recommendation: HMAC-SHA256 with a server-side pepper.</strong> Same speed as
+          SHA-256, no new dependency (<code>crypto/hmac</code> + <code>crypto/sha256</code> are
+          stdlib), and DB-only leaks are useless without the pepper key.
+        </p>
 
         <h3>What Is a Pepper?</h3>
         <p>
           A <strong>pepper</strong> is a secret cryptographic key added to a hash, stored
-          <strong>separately</strong> from the database. Unlike a salt (which is unique per item
-          and stored alongside the hash), a pepper is one shared server secret that never touches
-          the DB.
+          <strong>separately</strong> from the database. Unlike a salt (which is unique per item and
+          stored alongside the hash), a pepper is one shared server secret that never touches the
+          DB.
         </p>
 
         <table>
@@ -924,15 +1476,31 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>Unique per item?</td><td>Yes</td><td>No (one shared secret)</td></tr>
-            <tr><td>Stored where?</td><td>Next to hash (in DB)</td><td><strong>Outside DB</strong> (env, KMS, HSM)</td></tr>
-            <tr><td>In a DB leak?</td><td>Exposed</td><td><strong>Not exposed</strong></td></tr>
-            <tr><td>Purpose</td><td>Prevents rainbow tables</td><td>Prevents offline cracking on DB leak</td></tr>
+            <tr>
+              <td>Unique per item?</td>
+              <td>Yes</td>
+              <td>No (one shared secret)</td>
+            </tr>
+            <tr>
+              <td>Stored where?</td>
+              <td>Next to hash (in DB)</td>
+              <td><strong>Outside DB</strong> (env, KMS, HSM)</td>
+            </tr>
+            <tr>
+              <td>In a DB leak?</td>
+              <td>Exposed</td>
+              <td><strong>Not exposed</strong></td>
+            </tr>
+            <tr>
+              <td>Purpose</td>
+              <td>Prevents rainbow tables</td>
+              <td>Prevents offline cracking on DB leak</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>Implementation</h3>
-<pre><code><span class="tok-comment">// pepper loaded from env/KMS — never in DB, never in logs</span>
+        <pre><code><span class="tok-comment">// pepper loaded from env/KMS — never in DB, never in logs</span>
 <span class="tok-keyword">var</span> pepper = []<span class="tok-type">byte</span>(<span class="tok-builtin">os</span>.<span class="tok-func">Getenv</span>(<span class="tok-string">"BOT_TOKEN_PEPPER"</span>))  <span class="tok-comment">// 32+ random bytes</span>
 
 <span class="tok-comment">// At creation: store the MAC, throw away the plaintext token</span>
@@ -966,39 +1534,42 @@
         <h2 id="events"><span class="num">11</span>Events &amp; Commands</h2>
         <p>
           New aggregates (Tenant, Bot, Membership) each get their own event streams. The User
-          aggregate loses <code>Roles</code> (moved to Membership) but keeps identity and
-          credential events. <strong>No impersonation events</strong> — the event store IS the
-          audit trail via metadata.
+          aggregate loses <code>Roles</code> (moved to Membership) but keeps identity and credential
+          events. <strong>No impersonation events</strong> — the event store IS the audit trail via
+          metadata.
         </p>
 
         <div class="grid-2">
           <div class="card">
             <h4>Tenant Aggregate</h4>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">
-              <strong>Events:</strong> TenantCreated, TenantRenamed, TenantSuspended, TenantReactivated, TenantDeleted<br><br>
-              <strong>Commands:</strong> CreateTenant, RenameTenant, SuspendTenant, ReactivateTenant, DeleteTenant
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              <strong>Events:</strong> TenantCreated, TenantRenamed, TenantSuspended,
+              TenantReactivated, TenantDeleted<br /><br />
+              <strong>Commands:</strong> CreateTenant, RenameTenant, SuspendTenant,
+              ReactivateTenant, DeleteTenant
             </p>
           </div>
           <div class="card">
             <h4>Bot Aggregate</h4>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">
-              <strong>Events:</strong> BotCreated, BotRenamed, BotScopesChanged, BotRevoked, BotDeleted<br><br>
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              <strong>Events:</strong> BotCreated, BotRenamed, BotScopesChanged, BotRevoked,
+              BotDeleted<br /><br />
               <strong>Commands:</strong> CreateBot, RenameBot, UpdateBotScopes, RevokeBot, DeleteBot
             </p>
           </div>
           <div class="card">
             <h4>Membership Aggregate</h4>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">
-              <strong>Events:</strong> MemberAdded, MemberRolesChanged, MemberRemoved<br><br>
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              <strong>Events:</strong> MemberAdded, MemberRolesChanged, MemberRemoved<br /><br />
               <strong>Commands:</strong> AddMember, UpdateMemberRoles, RemoveMember
             </p>
           </div>
           <div class="card card-solution">
             <h4>No Impersonation Events</h4>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
               Impersonation is tracked via <strong>event metadata</strong>, not separate events.
-              Every command dispatched during impersonation carries
-              <code>impersonator_id</code> in its metadata. The audit trail is the event store.
+              Every command dispatched during impersonation carries <code>impersonator_id</code> in
+              its metadata. The audit trail is the event store.
             </p>
           </div>
         </div>
@@ -1008,8 +1579,8 @@
         <p>
           The root <code>context.go</code> gains <code>ActorID</code> and
           <code>ImpersonatorID</code> context keys. <code>EventOptionsFromContext</code>
-          propagates the full actor chain into event metadata — this is the mechanism that makes
-          the event store a complete audit trail.
+          propagates the full actor chain into event metadata — this is the mechanism that makes the
+          event store a complete audit trail.
         </p>
 
         <div class="compare-header">
@@ -1018,7 +1589,7 @@
         </div>
         <div class="compare-row">
           <div>
-<pre><code><span class="tok-keyword">func</span> <span class="tok-func">EventOptionsFromContext</span>(ctx) []<span class="tok-type">Option</span> {
+            <pre><code><span class="tok-keyword">func</span> <span class="tok-func">EventOptionsFromContext</span>(ctx) []<span class="tok-type">Option</span> {
     <span class="tok-keyword">if</span> uid := <span class="tok-func">UserIDFromContext</span>(ctx); !uid.<span class="tok-func">IsZero</span>() {
         opts = <span class="tok-builtin">append</span>(opts, <span class="tok-func">WithUserID</span>(uid))
     }
@@ -1027,7 +1598,7 @@
 }</code></pre>
           </div>
           <div>
-<pre><code><span class="tok-keyword">func</span> <span class="tok-func">EventOptionsFromContext</span>(ctx) []<span class="tok-type">Option</span> {
+            <pre><code><span class="tok-keyword">func</span> <span class="tok-func">EventOptionsFromContext</span>(ctx) []<span class="tok-type">Option</span> {
     <span class="tok-keyword">if</span> aid := <span class="tok-func">ActorFromContext</span>(ctx); aid != <span class="tok-type">nil</span> {
         opts = <span class="tok-builtin">append</span>(opts, <span class="tok-func">WithActorID</span>(aid))
     }
@@ -1045,17 +1616,17 @@
         <div class="card card-solution">
           <h4>D1: Sealed interface union over string discriminator</h4>
           <p>
-            <strong>Chose:</strong> <code>ActorID</code> as a sealed Go interface.<br>
+            <strong>Chose:</strong> <code>ActorID</code> as a sealed Go interface.<br />
             <strong>Rejected:</strong> Single type with <code>Kind</code> field. Reason: runtime
-            discrimination is error-prone. The sealed interface forces exhaustive type switches
-            and prevents constructing an invalid kind.
+            discrimination is error-prone. The sealed interface forces exhaustive type switches and
+            prevents constructing an invalid kind.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>D2: Roles on Membership, not on User</h4>
           <p>
-            <strong>Chose:</strong> Move <code>Roles</code> to <code>Membership</code>.<br>
+            <strong>Chose:</strong> Move <code>Roles</code> to <code>Membership</code>.<br />
             <strong>Rejected:</strong> Keep roles on User with per-tenant fields. Reason: a user's
             identity should not change when their role changes. Coupling roles to identity means
             tenant transfers require User aggregate mutations.
@@ -1065,7 +1636,7 @@
         <div class="card card-solution">
           <h4>D3: SessionOrigin sealed union over boolean field</h4>
           <p>
-            <strong>Chose:</strong> <code>SessionOrigin</code> sealed interface.<br>
+            <strong>Chose:</strong> <code>SessionOrigin</code> sealed interface.<br />
             <strong>Rejected:</strong> Boolean <code>IsImpersonated</code> + optional
             <code>ImpersonatorID</code>. Reason: a bool + optional pointer can represent
             <code>IsImpersonated=true, ImpersonatorID=nil</code> — an impossible state the type
@@ -1076,33 +1647,33 @@
         <div class="card card-solution">
           <h4>D4: Event metadata over separate audit stream</h4>
           <p>
-            <strong>Chose:</strong> Propagate <code>ActorID</code> + <code>ImpersonatorID</code>
-            via <code>EventOptionsFromContext</code> into event metadata.<br>
+            <strong>Chose:</strong> Propagate <code>ActorID</code> + <code>ImpersonatorID</code> via
+            <code>EventOptionsFromContext</code> into event metadata.<br />
             <strong>Rejected:</strong> Separate <code>ImpersonationStarted</code>/<code>Ended</code>
-            events on a dedicated audit stream. Reason: the event store IS the audit trail.
-            Every command already produces events. Adding a separate stream is redundant
-            duplication. Audit = query the event store by metadata.
+            events on a dedicated audit stream. Reason: the event store IS the audit trail. Every
+            command already produces events. Adding a separate stream is redundant duplication.
+            Audit = query the event store by metadata.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>D5: HMAC-SHA256 + pepper over plain SHA-256</h4>
           <p>
-            <strong>Chose:</strong> HMAC-SHA256 with server-side pepper for bot API tokens.<br>
-            <strong>Rejected:</strong> Plain SHA-256 (vulnerable to DB-leak + token-capture
-            attacks) and Argon2id (10-100ms per request for high-entropy tokens where brute force
-            is already infeasible). HMAC + pepper gives DB-leak defense at ~0 cost per request.
+            <strong>Chose:</strong> HMAC-SHA256 with server-side pepper for bot API tokens.<br />
+            <strong>Rejected:</strong> Plain SHA-256 (vulnerable to DB-leak + token-capture attacks)
+            and Argon2id (10-100ms per request for high-entropy tokens where brute force is already
+            infeasible). HMAC + pepper gives DB-leak defense at ~0 cost per request.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>D6: Bot scopes as Casbin policies, not separate mechanism</h4>
           <p>
-            <strong>Chose:</strong> Bot scopes (<code>read:users</code>) map to fine-grained
-            Casbin policies.<br>
-            <strong>Rejected:</strong> Separate OAuth2-style scope checker alongside RBAC.
-            Reason: two authorization mechanisms is a split brain. Casbin already supports
-            arbitrary object/action pairs. Scopes are just fine-grained roles.
+            <strong>Chose:</strong> Bot scopes (<code>read:users</code>) map to fine-grained Casbin
+            policies.<br />
+            <strong>Rejected:</strong> Separate OAuth2-style scope checker alongside RBAC. Reason:
+            two authorization mechanisms is a split brain. Casbin already supports arbitrary
+            object/action pairs. Scopes are just fine-grained roles.
           </p>
         </div>
 
@@ -1114,9 +1685,9 @@
           <h3>Separate audit stream for impersonation</h3>
           <p>
             Do NOT create <code>ImpersonationStarted</code>/<code>Ended</code> events on a separate
-            stream. The event store IS the audit trail. Every command already produces events —
-            just propagate <code>ActorID</code> + <code>ImpersonatorID</code> in metadata. A
-            separate stream is redundant duplication that will drift out of sync.
+            stream. The event store IS the audit trail. Every command already produces events — just
+            propagate <code>ActorID</code> + <code>ImpersonatorID</code> in metadata. A separate
+            stream is redundant duplication that will drift out of sync.
           </p>
         </div>
 
@@ -1124,10 +1695,10 @@
           <span class="severity severity-critical">Trap</span>
           <h3>Storing API tokens with plain SHA-256</h3>
           <p>
-            Do NOT use plain <code>sha256.Sum(token)</code> for bot API tokens. If the DB leaks,
-            an attacker who later captures a token from logs/network can verify it against the
-            leaked hashes. Use <code>HMAC-SHA256(pepper, token)</code> — the pepper prevents
-            verification without the server-side key.
+            Do NOT use plain <code>sha256.Sum(token)</code> for bot API tokens. If the DB leaks, an
+            attacker who later captures a token from logs/network can verify it against the leaked
+            hashes. Use <code>HMAC-SHA256(pepper, token)</code> — the pepper prevents verification
+            without the server-side key.
           </p>
         </div>
 
@@ -1145,10 +1716,10 @@
           <span class="severity severity-critical">Trap</span>
           <h3>ActorID.String() without kind prefix</h3>
           <p>
-            Do NOT pass <code>ActorID.String()</code> as a Casbin subject without encoding the
-            actor kind. If <code>user_01J...</code> and <code>bot_01J...</code> produce the same
-            string, policies are ambiguous. The encoding MUST include kind:
-            <code>"user:01J..."</code> or <code>"bot:01J..."</code>.
+            Do NOT pass <code>ActorID.String()</code> as a Casbin subject without encoding the actor
+            kind. If <code>user_01J...</code> and <code>bot_01J...</code> produce the same string,
+            policies are ambiguous. The encoding MUST include kind: <code>"user:01J..."</code> or
+            <code>"bot:01J..."</code>.
           </p>
         </div>
 
@@ -1156,9 +1727,9 @@
           <span class="severity severity-important">Trap</span>
           <h3>Pepper in the database</h3>
           <p>
-            If the pepper is in the DB, it's not a pepper — it's a global salt. The pepper MUST
-            live outside the DB: environment variable (dev), KMS/HSM/Vault (production). A DB
-            leak that includes the pepper is no better than plaintext.
+            If the pepper is in the DB, it's not a pepper — it's a global salt. The pepper MUST live
+            outside the DB: environment variable (dev), KMS/HSM/Vault (production). A DB leak that
+            includes the pepper is no better than plaintext.
           </p>
         </div>
 
@@ -1166,9 +1737,9 @@
           <span class="severity severity-important">Trap</span>
           <h3>Impersonation without mandatory reason</h3>
           <p>
-            Every impersonation session MUST have a non-empty <code>Reason</code>. This is the
-            audit justification. An empty reason is a rejection at command-validation level, not
-            a warning. Without this, impersonation becomes an unaudited backdoor.
+            Every impersonation session MUST have a non-empty <code>Reason</code>. This is the audit
+            justification. An empty reason is a rejection at command-validation level, not a
+            warning. Without this, impersonation becomes an unaudited backdoor.
           </p>
         </div>
 
@@ -1176,9 +1747,9 @@
           <span class="severity severity-nice">Watch out</span>
           <h3>Default tenant on registration</h3>
           <p>
-            When a user registers without a tenant context, decide explicitly: personal tenant
-            (like GitHub), shared default tenant, or no tenant (unassigned until invited)?
-            This is a product decision. Document it and enforce it in <code>RegisterUserCmd</code>.
+            When a user registers without a tenant context, decide explicitly: personal tenant (like
+            GitHub), shared default tenant, or no tenant (unassigned until invited)? This is a
+            product decision. Document it and enforce it in <code>RegisterUserCmd</code>.
           </p>
         </div>
 
@@ -1254,8 +1825,8 @@
             <h4>Implement impersonation Service methods</h4>
             <p>
               Add <code>Service.BeginImpersonation(actorID, reason)</code> and
-              <code>Service.EndImpersonation(token)</code>. Wire security guards. No separate
-              audit events — just context propagation.
+              <code>Service.EndImpersonation(token)</code>. Wire security guards. No separate audit
+              events — just context propagation.
             </p>
           </div>
         </div>
@@ -1308,18 +1879,17 @@
             <p>
               When a user registers without a tenant invitation, do they get:
               <strong>(a)</strong> a personal tenant (like GitHub personal accounts),
-              <strong>(b)</strong> a shared default tenant, or
-              <strong>(c)</strong> no tenant (unassigned until invited)?
-              This affects the <code>RegisterUserCmd</code> validation and the UX of the
-              registration flow.
+              <strong>(b)</strong> a shared default tenant, or <strong>(c)</strong> no tenant
+              (unassigned until invited)? This affects the <code>RegisterUserCmd</code> validation
+              and the UX of the registration flow.
             </p>
           </div>
           <div class="card card-warning">
             <h4>Q2: System/Internal actors?</h4>
             <p>
               Cron jobs, background workers, and internal services aren't Users or Bots. Should
-              there be a <code>SystemActor</code> variant? For now, system services can
-              authenticate as Bots with tenant-scoped tokens. The sealed interface makes adding
+              there be a <code>SystemActor</code> variant? For now, system services can authenticate
+              as Bots with tenant-scoped tokens. The sealed interface makes adding
               <code>SystemActor</code> O(1) if needed later.
             </p>
           </div>
@@ -1327,8 +1897,8 @@
             <h4>Q3: Tenant deletion = hard or soft?</h4>
             <p>
               <code>TenantDeleted</code> is a tombstone event (matching <code>UserDeleted</code>).
-              But what happens to the tenant's users and bots? Are they orphaned? Moved to a
-              default tenant? This is a product decision about data retention.
+              But what happens to the tenant's users and bots? Are they orphaned? Moved to a default
+              tenant? This is a product decision about data retention.
             </p>
           </div>
           <div class="card card-warning">
@@ -1336,14 +1906,15 @@
             <p>
               The existing <code>Session.Token</code> is stored in plaintext. Hashing it requires
               either a prefix-based lookup index or a full scan. Accept the risk (short-lived
-              sessions in Redis with TTL) or pay the indexing cost? Separate from this redesign
-              but related.
+              sessions in Redis with TTL) or pay the indexing cost? Separate from this redesign but
+              related.
             </p>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-21 &middot; Identity model redesign for cqrs-htmx/usermgmt &middot; 6 D2 diagrams in docs/architecture-understanding/
+          Generated 2026-06-21 &middot; Identity model redesign for cqrs-htmx/usermgmt &middot; 6 D2
+          diagrams in docs/architecture-understanding/
         </footer>
       </main>
     </div>
@@ -1358,7 +1929,9 @@
           return l.getAttribute("href").slice(1);
         });
         var sections = ids
-          .map(function (id) { return document.getElementById(id); })
+          .map(function (id) {
+            return document.getElementById(id);
+          })
           .filter(Boolean);
         if (!sections.length) return;
         var observer = new IntersectionObserver(
@@ -1376,7 +1949,9 @@
           },
           { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
         );
-        sections.forEach(function (s) { observer.observe(s); });
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
       })();
     </script>
   </body>

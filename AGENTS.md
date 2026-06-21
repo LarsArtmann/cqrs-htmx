@@ -9,19 +9,20 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 ## Quick Reference
 
-| Item     | Value                                                                                      |
-| -------- | ------------------------------------------------------------------------------------------ |
-| Language | Go 1.26.3                                                                                  |
-| Module   | github.com/larsartmann/cqrs-htmx                                                           |
-| Test     | `nix run .#test` or `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
-| Build    | `nix run .#build` or `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`              |
-| Lint     | `nix run .#lint` or `golangci-lint run`                                                    |
-| Coverage | `nix run .#coverage`                                                                       |
-| Fmt      | `nix fmt`                                                                                  |
-| Flake    | `nix flake check` (formatting + devShells + apps)                                          |
-| ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)           |
-| DevShell | `nix develop` (go, gopls, golangci-lint)                                                   |
-| Coverage | 96.4% root, 88.7% usermgmt, 95.3% catalog (500+ tests)                                     |
+| Item        | Value                                                                                      |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| Language    | Go 1.26.3                                                                                  |
+| Module      | github.com/larsartmann/cqrs-htmx                                                           |
+| Test        | `nix run .#test` or `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
+| Build       | `nix run .#build` or `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`              |
+| Lint        | `nix run .#lint` or `golangci-lint run`                                                    |
+| Coverage    | `nix run .#coverage`                                                                       |
+| Fmt         | `nix fmt`                                                                                  |
+| Flake       | `nix flake check` (formatting + devShells + apps)                                          |
+| Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200) |
+| ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)              |
+| DevShell    | `nix develop` (go, gopls, golangci-lint)                                                   |
+| Coverage    | 96.4% root, 88.7% usermgmt, 95.3% catalog (500+ tests)                                     |
 
 ## Architecture
 
@@ -151,7 +152,7 @@ cqrs-htmx/
 ### Error Handling
 
 - **go-error-family v0.4.0**: Replaced `cockroachdb/errors` for error classification. Re-exported via `go-cqrs-lite/event/v2` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). Root + usermgmt import it transitively via `event/v2` (indirect); `catalog` imports `go-error-family` directly (no event/v2 dep). `ErrDispatchFailed` is now natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
-- **NO stdlib error constructors**: `errors.New`, `fmt.Errorf` (as error), and `errors.Join` are banned in non-test code. Enforced by `branching-flow errorfamily .` (must report 0). Use `event.New*/Wrap*/Wrapf/Newf` instead. Exception: `fmt.Sprintf` is fine when building a *message string* (not an error object), e.g. `http.go`/`verification_totp_http.go` format a 400 response body
+- **NO stdlib error constructors**: `errors.New`, `fmt.Errorf` (as error), and `errors.Join` are banned in non-test code. Enforced by `branching-flow errorfamily .` (must report 0). Use `event.New*/Wrap*/Wrapf/Newf` instead. Exception: `fmt.Sprintf` is fine when building a _message string_ (not an error object), e.g. `http.go`/`verification_totp_http.go` format a 400 response body
 - **Family assignment rules** (maps to HTTP status via `MapError`):
   - **Rejection (400)** — caller/user input invalid: parse failures, validation (`ParseEmail`, `ImportUser.Validate`), bad config (`OAuth2ProviderConfig.Validate`, unsupported SQL dialect), missing/invalid IDs
   - **Conflict (409)** — state conflict: duplicate user/email/credential/external-account

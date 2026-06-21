@@ -1,60 +1,63 @@
 direction: down
 
+style: {fill: "#0e0e10"}
+
 title: "TARGET STATE — Role Hierarchy and Tenant Scoping (Super Admin vs Tenant Admin)"
+title.style: {font-color: "#f4f4f0"}
 
 # Role hierarchy
 SuperAdmin: {
   shape: rectangle
-  style: {fill: "#e94560"; font-color: "#ffffff"; stroke: "#e94560"}
+  style: {fill: "#18181d"; stroke: "#ff6b6b"; font-color: "#ff6b6b"}
   label: "super_admin\n\nDomain: * (global)\nWildcard access everywhere\nCan impersonate any actor"
 }
 
 TenantAdmin: {
   shape: rectangle
-  style: {fill: "#0f3460"; font-color: "#ffffff"; stroke: "#0f3460"}
+  style: {fill: "#0e0e10"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "admin (tenant-scoped)\n\nDomain: tenant-X\nFull access within ONE tenant\nCan manage tenant users + bots"
 }
 
 UserRole: {
   shape: rectangle
-  style: {fill: "#16213e"; font-color: "#ffffff"; stroke: "#16c79a"}
+  style: {fill: "#0e0e10"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "user (tenant-scoped)\n\nDomain: tenant-X\nStandard member role"
 }
 
 Viewer: {
   shape: rectangle
-  style: {fill: "#191919"; font-color: "#ffffff"; stroke: "#16c79a"}
+  style: {fill: "#0e0e10"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "viewer (tenant-scoped)\n\nDomain: tenant-X\nRead-only access"
 }
 
 # Hierarchy
-SuperAdmin -> TenantAdmin: "inherits (g2)"
-TenantAdmin -> UserRole: "inherits (g2)"
-UserRole -> Viewer: "inherits (g2)"
+SuperAdmin -> TenantAdmin: {style: {stroke: "#ff6b6b"; font-color: "#f4f4f0"}}
+TenantAdmin -> UserRole: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+UserRole -> Viewer: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
 
 # Policies
 GlobalPolicy: {
   shape: page
-  style: {fill: "#3d1219"; stroke: "#e94560"}
+  style: {fill: "#16161a"; stroke: "#ff6b6b"; font-color: "#ff6b6b"}
   label: "GLOBAL POLICY (seeded once)\n\np: super_admin, *, *, *, allow\nWildcards across ALL domains"
 }
 
 TenantPolicy: {
   shape: page
-  style: {fill: "#0a2138"; stroke: "#0f3460"}
+  style: {fill: "#16161a"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "TENANT POLICY (per tenant)\n\np: admin, tenant-X, *, *, allow\nScoped to ONE tenant only"
 }
 
 HierarchyDef: {
   shape: page
-  style: {fill: "#0d2e25"; stroke: "#16c79a"}
+  style: {fill: "#16161a"; stroke: "#ffb347"; font-color: "#ffb347"}
   label: "ROLE HIERARCHY (Casbin g2)\n\ng2: super_admin > admin\ng2: admin > user\ng2: user > viewer\n\nInheritance = implicit permissions"
 }
 
 # Tenant boundaries
 TenantA: {
   shape: package
-  style: {fill: "#0a2138"; stroke: "#0f3460"}
+  style: {fill: "#0e0e10"; stroke: "#f4d35e"; font-color: "#f4f4f0"}
   label: "Tenant A (tenant_01AAA)"
 
   TA_Users: "Users with roles\nscoped to domain=tenant_01AAA"
@@ -63,7 +66,7 @@ TenantA: {
 
 TenantB: {
   shape: package
-  style: {fill: "#0d1622"; stroke: "#16c79a"}
+  style: {fill: "#0e0e10"; stroke: "#f4d35e"; font-color: "#f4f4f0"}
   label: "Tenant B (tenant_01BBB)"
 
   TB_Users: "Users with roles\nscoped to domain=tenant_01BBB"
@@ -73,17 +76,17 @@ TenantB: {
 # Isolation
 Isolation: {
   shape: page
-  style: {fill: "#3d1219"; stroke: "#e94560"}
+  style: {fill: "#16161a"; stroke: "#ff6b6b"; font-color: "#ff6b6b"}
   label: "TENANT ISOLATION INVARIANT\n\nA Tenant A admin CANNOT:\n- Access Tenant B resources\n- See Tenant B users/bots\n- Assign roles in Tenant B\n- Impersonate Tenant B actors\n\nOnly super_admin crosses boundaries."
 }
 
 # Connections
-TenantAdmin -> TenantA: "admin role in tenant_01AAA"
-SuperAdmin -> TenantA: "wildcard crosses boundaries"
-SuperAdmin -> TenantB: "wildcard crosses boundaries"
+TenantAdmin -> TenantA: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+SuperAdmin -> TenantA: {style: {stroke: "#ff6b6b"; font-color: "#f4f4f0"}}
+SuperAdmin -> TenantB: {style: {stroke: "#ff6b6b"; font-color: "#f4f4f0"}}
 
-GlobalPolicy -> SuperAdmin: "seeded"
-TenantPolicy -> TenantAdmin: "per tenant"
-HierarchyDef -> SuperAdmin: "defines inheritance"
+GlobalPolicy -> SuperAdmin: {style: {stroke: "#ff6b6b"; font-color: "#f4f4f0"}}
+TenantPolicy -> TenantAdmin: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+HierarchyDef -> SuperAdmin: {style: {stroke: "#ffb347"; font-color: "#ffb347"}}
 
-Isolation -> TenantB: "protected from TenantA admin"
+Isolation -> TenantB: {style: {stroke: "#ff6b6b"; font-color: "#f4f4f0"}}

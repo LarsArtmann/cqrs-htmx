@@ -1,90 +1,93 @@
 direction: down
 
+style: {fill: "#0e0e10"}
+
 title: "TARGET STATE — Impersonation Flow (Event Store IS the Audit Trail)"
+title.style: {font-color: "#f4f4f0"}
 
 # Actors
 Admin: {
   shape: person
-  style: {fill: "#0f3460"; stroke: "#16c79a"}
+  style: {fill: "#18181d"; stroke: "#ffb347"; font-color: "#f4f4f0"}
   label: "Super Admin\nactorID: user_01J..."
 }
 
 TargetUser: {
   shape: person
-  style: {fill: "#16213e"; stroke: "#e8c546"}
+  style: {fill: "#18181d"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "Target User\nactorID: user_01J..."
 }
 
 # Session Origin (sealed union)
 SessionOrigin: {
   shape: rectangle
-  style: {fill: "#0f3460"; stroke: "#16c79a"; font-color: "#16c79a"}
+  style: {fill: "#18181d"; stroke: "#6eb5ff"; font-color: "#6eb5ff"}
   label: "interface SessionOrigin (sealed)\n\n• origin()  // unexported seal"
 }
 
 DirectLogin: {
   shape: rectangle
-  style: {fill: "#1a1a2e"; stroke: "#16c79a"}
+  style: {fill: "#0e0e10"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "DirectLogin\n\n• AuthenticatedAs: ActorID\n  (== Session.ActorID)"
 }
 
 Impersonation: {
   shape: rectangle
-  style: {fill: "#1a1a2e"; stroke: "#e94560"}
+  style: {fill: "#0e0e10"; stroke: "#ff6b6b"; font-color: "#ff6b6b"}
   label: "Impersonation\n\n• By: ActorID (the real admin)\n• Reason: string (mandatory)\n• At: time.Time"
 }
 
 # Session
 Session: {
   shape: rectangle
-  style: {fill: "#191919"; stroke: "#16c79a"}
+  style: {fill: "#18181d"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "Session\n\n• Token: string\n• ActorID: ActorID (who they act AS)\n• Origin: SessionOrigin\n• ExpiresAt: time.Time"
 }
 
 # Context propagation
 RequestContext: {
   shape: rectangle
-  style: {fill: "#0f3460"; stroke: "#16c79a"}
+  style: {fill: "#0e0e10"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "HTTP Request Context\n\n• ActorID: TargetUser (effective)\n• ImpersonatorID: Admin (real)\n• CorrelationID: links chain"
 }
 
 # Event metadata
 EventMetadata: {
   shape: rectangle
-  style: {fill: "#16213e"; stroke: "#16c79a"}
+  style: {fill: "#0e0e10"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "Event Metadata (via EventOptionsFromContext)\n\n• actor_id: user_01J... (target)\n• impersonator_id: user_01J... (admin)\n• correlation_id: 01J...\n• request_id: 01J...\n\nEvery event carries the FULL actor chain"
 }
 
 # Event store (the audit trail)
 EventStore: {
   shape: cylinder
-  style: {fill: "#1a1a2e"; stroke: "#16c79a"}
+  style: {fill: "#18181d"; stroke: "#6eb5ff"; font-color: "#f4f4f0"}
   label: "Event Store\n(THE audit trail — no separate stream needed)\n\nEvery command produces events.\nEvery event carries actor_id + impersonator_id.\n\nQuery: SELECT * FROM events\n  WHERE metadata->>'impersonator_id' = '...'\n  ORDER BY occurred_at;"
 }
 
 # Security guards
 SecurityGuard: {
   shape: page
-  style: {fill: "#3d1219"; stroke: "#e94560"}
+  style: {fill: "#16161a"; stroke: "#ff6b6b"; font-color: "#ff6b6b"}
   label: "SECURITY GUARDS\n\n- Only super_admin can impersonate\n- Cannot impersonate another super_admin\n- Cannot escalate privileges\n- Reason field mandatory\n- Max session duration enforced\n- Session tied to admin's own session"
 }
 
 # Flow
-SessionOrigin <- DirectLogin: implements
-SessionOrigin <- Impersonation: implements
+SessionOrigin <- DirectLogin: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+SessionOrigin <- Impersonation: {style: {stroke: "#ff6b6b"; font-color: "#f4f4f0"}}
 
-Admin -> SecurityGuard: "checked first"
-Admin -> Session: "1. BeginImpersonation(target, reason)\n   Creates session with Origin=Impersonation{By: admin}"
-Session -> RequestContext: "2. Middleware injects\n   ActorID + ImpersonatorID into ctx"
-RequestContext -> EventMetadata: "3. EventOptionsFromContext\n   propagates full actor chain"
-EventMetadata -> EventStore: "4. Every event is self-auditing\n   Queryable for compliance"
-Admin -> Session: "5. EndImpersonation()\n   Session revoked"
+Admin -> SecurityGuard: {style: {stroke: "#ff6b6b"; font-color: "#f4f4f0"}}
+Admin -> Session: {style: {stroke: "#ffb347"; font-color: "#f4f4f0"}}
+Session -> RequestContext: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+RequestContext -> EventMetadata: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+EventMetadata -> EventStore: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+Admin -> Session: {style: {stroke: "#ff6b6b"; font-color: "#f4f4f0"}}
 
 # Key insight
 KeyInsight: {
   shape: page
-  style: {fill: "#0d2e25"; stroke: "#16c79a"}
+  style: {fill: "#16161a"; stroke: "#ffb347"; font-color: "#ffb347"}
   label: "KEY INSIGHT\n\nNo separate audit stream needed.\nThe event store IS the audit trail.\nEvery state change is already an event.\nEvery event already carries metadata.\nExtending metadata with ActorID +\nImpersonatorID makes impersonation\nfully auditable — for free."
 }
 
-KeyInsight -> EventStore: "this is why"
+KeyInsight -> EventStore: {style: {stroke: "#ffb347"; font-color: "#ffb347"}}
