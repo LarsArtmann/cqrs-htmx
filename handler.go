@@ -85,10 +85,8 @@ func (a *App) handleCommandDispatch(
 	defer cancel()
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		a.handleErr(w, r, ctx, cfg, event.Compose(
-			event.Newf(event.Transient, "cqrshtmx.dispatch.command_failed", "dispatch command %s", cmdType),
-			err,
-		))
+		a.handleErr(w, r, ctx, cfg, event.Wrapf(err, event.Classify(err),
+			"cqrshtmx.dispatch.command_failed", "dispatch command %s", cmdType))
 		return
 	}
 
@@ -194,10 +192,8 @@ func (a *App) handleQueryDispatch(
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		a.handleErr(w, r, ctx, cfg, event.Compose(
-			event.Newf(event.Transient, "cqrshtmx.dispatch.query_failed", "dispatch query %s", qryType),
-			err,
-		))
+		a.handleErr(w, r, ctx, cfg, event.Wrapf(err, event.Classify(err),
+			"cqrshtmx.dispatch.query_failed", "dispatch query %s", qryType))
 		return
 	}
 

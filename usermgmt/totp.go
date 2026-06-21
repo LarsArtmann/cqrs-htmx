@@ -122,10 +122,8 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewEnableTOTPCmd(aggID, pending.secret)); err != nil {
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "dispatch_error")
-		return event.Compose(
-			event.Newf(event.Transient, "usermgmt.totp.dispatch_failed", "enable totp dispatch"),
-			err,
-		)
+		return event.Wrapf(err, event.Classify(err),
+			"usermgmt.totp.dispatch_failed", "enable totp dispatch")
 	}
 	s.logAuth(statusTOTPEnabled, userID)
 	return nil
@@ -154,10 +152,8 @@ func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) e
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewDisableTOTPCmd(aggID)); err != nil {
 		s.logAuth("totp_disable_failed", userID, "reason", "dispatch_error")
-		return event.Compose(
-			event.Newf(event.Transient, "usermgmt.totp.dispatch_failed", "disable totp dispatch"),
-			err,
-		)
+		return event.Wrapf(err, event.Classify(err),
+			"usermgmt.totp.dispatch_failed", "disable totp dispatch")
 	}
 	s.logAuth(statusTOTPDisabled, userID)
 	return nil

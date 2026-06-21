@@ -97,6 +97,7 @@ func decideUpdateRoles(
 	}
 }
 
+//nolint:dupl // mirrors decideChangeDisplayName; single-field deciders are structurally identical by design
 func decideChangeEmail(
 	aggID id.AggregateID,
 	email string,
@@ -133,6 +134,7 @@ func decideChangeEmail(
 	}
 }
 
+//nolint:dupl // mirrors decideChangeEmail; single-field deciders are structurally identical by design
 func decideChangeDisplayName(
 	aggID id.AggregateID,
 	displayName string,
