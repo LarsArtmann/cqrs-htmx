@@ -32,6 +32,9 @@ const (
 type Role string
 
 const (
+	// RoleSuperAdmin has unrestricted global access across all tenants.
+	// Inherits all other roles via the g2 role hierarchy.
+	RoleSuperAdmin Role = "super_admin"
 	// RoleAdmin has unrestricted access (default policy: wildcard allow).
 	RoleAdmin Role = "admin"
 	// RoleUser is the standard role assigned on registration.
@@ -50,12 +53,13 @@ p = sub, dom, obj, act, eft
 
 [role_definition]
 g = _, _, _
+g2 = _, _
 
 [policy_effect]
 e = some(where (p.eft == allow)) && !some(where (p.eft == deny))
 
 [matchers]
-m = (p.sub == "*" || g(r.sub, p.sub, r.dom)) && (p.dom == "*" || r.dom == p.dom) && (p.obj == "*" || r.obj == p.obj) && (p.act == "*" || r.act == p.act)
+m = (p.sub == "*" || g(r.sub, p.sub, r.dom) || g2(r.sub, p.sub)) && (p.dom == "*" || r.dom == p.dom) && (p.obj == "*" || r.obj == p.obj) && (p.act == "*" || r.act == p.act)
 `
 
 // Policy defines a single RBAC rule: who can do what, with an allow/deny effect.
@@ -142,6 +146,15 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 	for _, g := range config.Groups {
 		if _, err := e.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
 			return nil, wrapGroupError(err, "add", g)
+		}
+	}
+
+	for _, h := range defaultRoleHierarchy() {
+		if _, err := e.AddNamedGroupingPolicy("g2", string(h.From), string(h.To)); err != nil {
+			return nil, event.Wrapf(
+				err, event.Transient, "casbin_error",
+				"seed role hierarchy g2(%s, %s)", h.From, h.To,
+			)
 		}
 	}
 
