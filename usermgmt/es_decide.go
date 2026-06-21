@@ -38,9 +38,10 @@ func decideRegisterUser(
 		rolesCopy := make([]Role, len(roles))
 		copy(rolesCopy, roles)
 		payload, err := marshalPayload(UserRegisteredPayload{
-			Email:       email,
-			DisplayName: displayName,
-			Roles:       rolesCopy,
+			SchemaVersion: currentSchemaVersion,
+			Email:         email,
+			DisplayName:   displayName,
+			Roles:         rolesCopy,
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(
@@ -76,8 +77,9 @@ func decideUpdateRoles(
 		rolesCopy := make([]Role, len(roles))
 		copy(rolesCopy, roles)
 		payload, err := marshalPayload(RolesUpdatedPayload{
-			Roles:  rolesCopy,
-			Domain: domain,
+			SchemaVersion: currentSchemaVersion,
+			Roles:         rolesCopy,
+			Domain:        domain,
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(
@@ -114,7 +116,8 @@ func decideChangeEmail(
 			return nil, nil
 		}
 		payload, err := marshalPayload(EmailChangedPayload{
-			Email: email,
+			SchemaVersion: currentSchemaVersion,
+			Email:         email,
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(
@@ -151,7 +154,8 @@ func decideChangeDisplayName(
 			return nil, nil
 		}
 		payload, err := marshalPayload(DisplayNameChangedPayload{
-			DisplayName: displayName,
+			SchemaVersion: currentSchemaVersion,
+			DisplayName:   displayName,
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(
@@ -188,7 +192,8 @@ func decideDeleteUser(
 				"user is already deleted")
 		}
 		payload, err := marshalPayload(UserDeletedPayload{
-			Reason: reason,
+			SchemaVersion: currentSchemaVersion,
+			Reason:        reason,
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(
@@ -231,6 +236,7 @@ func decideAddCredential(
 			}
 		}
 		payload, err := marshalPayload(CredentialAddedPayload{
+			SchemaVersion:   currentSchemaVersion,
 			ID:              cred.ID,
 			PublicKey:       cred.PublicKey,
 			AttestationType: cred.AttestationType,
@@ -287,7 +293,8 @@ func decideRemoveCredential(
 				"credential not found")
 		}
 		payload, err := marshalPayload(CredentialRemovedPayload{
-			ID: credentialID,
+			SchemaVersion: currentSchemaVersion,
+			ID:            credentialID,
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(
@@ -326,7 +333,8 @@ func decideVerifyEmail(
 			return nil, nil
 		}
 		payload, err := marshalPayload(EmailVerifiedPayload{
-			Email: state.Email,
+			SchemaVersion: currentSchemaVersion,
+			Email:         state.Email,
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(

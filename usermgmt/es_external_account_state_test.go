@@ -7,7 +7,7 @@ import (
 // --- foldUser ExternalAccountLinked/Unlinked invariants (Task 15) ---
 
 func TestFoldUser_ExternalAccountLinked(t *testing.T) {
-	initial := UserState{Email: "h@example.com", Roles: []Role{RoleUser}}
+	initial := UserState{Email: "h@example.com"}
 	state, err := foldUser(initial, makeEvent(t, eventExternalAccountLinked, 2, ExternalAccountLinkedPayload{
 		Provider:    "google",
 		Subject:     "sub-123",
@@ -32,7 +32,6 @@ func TestFoldUser_ExternalAccountLinked(t *testing.T) {
 func TestFoldUser_ExternalAccountUnlinked(t *testing.T) {
 	initial := UserState{
 		Email: "i@example.com",
-		Roles: []Role{RoleUser},
 		ExternalAccounts: []ExternalAccount{
 			{Provider: "google", Subject: "sub-123"},
 			{Provider: "github", Subject: "sub-456"},
@@ -57,7 +56,6 @@ func TestFoldUser_ExternalAccountLinkedPreservesExistingState(t *testing.T) {
 	initial := UserState{
 		Email:         "j@example.com",
 		DisplayName:   "J",
-		Roles:         []Role{RoleUser},
 		EmailVerified: true,
 		TOTPEnabled:   true,
 		TOTPSecret:    []byte{9, 8, 7},
@@ -95,7 +93,6 @@ func TestFoldUser_ExternalAccountLinkedPreservesExistingState(t *testing.T) {
 func TestFoldUser_ExternalAccountUnlinkedNonExistent_NoOp(t *testing.T) {
 	initial := UserState{
 		Email: "k@example.com",
-		Roles: []Role{RoleUser},
 		ExternalAccounts: []ExternalAccount{
 			{Provider: "google", Subject: "sub-123"},
 		},
@@ -117,7 +114,6 @@ func TestFoldUser_ExternalAccountUnlinkedRemovesAllMatching(t *testing.T) {
 	// but fold should handle it), unlinking removes ALL matching provider+subject.
 	initial := UserState{
 		Email: "l@example.com",
-		Roles: []Role{RoleUser},
 		ExternalAccounts: []ExternalAccount{
 			{Provider: "google", Subject: "dup"},
 			{Provider: "google", Subject: "dup"}, // duplicate

@@ -73,29 +73,14 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 		if domain == "" {
 			domain = subject
 		}
-		currentRoles, err := p.authz.RolesForUser(NewUserID(subject), domain)
-		if err != nil {
+		if err := p.authz.RemoveAllRolesInDomain(subject, domain); err != nil {
 			return event.Wrapf(
 				err,
 				event.Infrastructure,
-				"usermgmt.casbin_projection.roles_lookup_failed",
-				"get current roles for %s",
-				subject,
+				"usermgmt.casbin_projection.remove_roles_failed",
+				"remove old roles for %s in %s",
+				subject, domain,
 			)
-		}
-		for _, r := range currentRoles {
-			if err := p.authz.RemoveGroupPolicy(GroupPolicy{
-				Subject: subject, Role: r, Domain: domain,
-			}); err != nil {
-				return event.Wrapf(
-					err,
-					event.Infrastructure,
-					"usermgmt.casbin_projection.remove_role_failed",
-					"remove old role %s for %s",
-					r,
-					subject,
-				)
-			}
 		}
 		return p.addRolesFor(subject, domain, d.Roles, "on roles update")
 
@@ -185,28 +170,16 @@ func (p *CasbinProjection) handleMembershipEvent(evt event.Event) error {
 }
 
 // removeAllRolesInDomain removes all Casbin group policies for a subject
-// within a specific domain. Used by MemberRolesChanged and MemberRemoved.
+// within a specific domain. Delegates to Authz.RemoveAllRolesInDomain.
+// Used by MemberRolesChanged and MemberRemoved.
 func (p *CasbinProjection) removeAllRolesInDomain(subject, domain, errContext string) error {
-	currentRoles, err := p.authz.RolesForUser(NewUserID(subject), domain)
-	if err != nil {
+	if err := p.authz.RemoveAllRolesInDomain(subject, domain); err != nil {
 		return event.Wrapf(
 			err, event.Infrastructure,
-			"usermgmt.casbin_projection.roles_lookup_failed",
-			"get current roles for %s in %s (%s)",
+			"usermgmt.casbin_projection.remove_roles_failed",
+			"remove all roles for %s in %s (%s)",
 			subject, domain, errContext,
 		)
-	}
-	for _, r := range currentRoles {
-		if err := p.authz.RemoveGroupPolicy(GroupPolicy{
-			Subject: subject, Role: r, Domain: domain,
-		}); err != nil {
-			return event.Wrapf(
-				err, event.Infrastructure,
-				"usermgmt.casbin_projection.remove_role_failed",
-				"remove role %s for %s (%s)",
-				r, subject, errContext,
-			)
-		}
 	}
 	return nil
 }

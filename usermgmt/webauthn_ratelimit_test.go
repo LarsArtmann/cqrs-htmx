@@ -10,7 +10,7 @@ import (
 func TestHandlers_WebAuthnRateLimit(t *testing.T) {
 	svc := newWebAuthnTestService(t)
 	reg := registerTestUser(t, svc, "wa-rl", "warl@test.com")
-	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
+	sess, err := svc.createSession(context.Background(), reg.User.ID)
 	if err != nil {
 		t.Fatalf("Create session: %v", err)
 	}

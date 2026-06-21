@@ -2,16 +2,13 @@ package usermgmt
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // SessionStore is the persistence interface for Session entities.
 type SessionStore interface {
-	Create(ctx context.Context, userID UserID, ttl time.Duration) (*Session, error)
+	Create(ctx context.Context, session *Session) error
 	Find(ctx context.Context, token string) (*Session, error)
 	Delete(ctx context.Context, token string) error
 	DeleteByUserID(ctx context.Context, userID UserID) error
@@ -34,19 +31,12 @@ func NewInMemorySessionStore() *InMemorySessionStore {
 	}
 }
 
-// Create generates a new session for the user with the given TTL.
-func (s *InMemorySessionStore) Create(
-	_ context.Context, userID UserID, ttl time.Duration,
-) (*Session, error) {
+// Create stores a pre-built session.
+func (s *InMemorySessionStore) Create(_ context.Context, session *Session) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	session, err := NewSession(userID, ttl)
-	if err != nil {
-		return nil, event.NewTransient("session_create_failed",
-			fmt.Sprintf("create session for user %q", userID)).WithCause(err)
-	}
 	s.sessions[session.Token] = session
-	return session, nil
+	return nil
 }
 
 // Find returns the session for the given token, or ErrSessionNotFound.

@@ -134,6 +134,25 @@ func (a *Authz) RemoveAllRolesForUser(subject string) error {
 	return nil
 }
 
+// RemoveAllRolesInDomain removes all group policies (role assignments) for the
+// given subject within a specific domain. Used when a member's roles change
+// or a member is removed from a tenant.
+func (a *Authz) RemoveAllRolesInDomain(subject, domain string) error {
+	if a.enforcer == nil {
+		return ErrEnforcerNotInitialized
+	}
+	roles, err := a.enforcer.GetRolesForUser(subject, domain)
+	if err != nil {
+		return wrapCasbinError(err, "get roles for %s in domain %s", subject, domain)
+	}
+	for _, role := range roles {
+		if _, err := a.enforcer.RemoveGroupingPolicy(subject, role, domain); err != nil {
+			return wrapCasbinError(err, "remove group {%s, %s, %s}", subject, role, domain)
+		}
+	}
+	return nil
+}
+
 // Policies returns all stored policy rules.
 func (a *Authz) Policies() ([][]string, error) {
 	if a.enforcer == nil {

@@ -92,25 +92,47 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	return data, nil
 }
 
-// Session represents an authenticated session tied to a user.
+// Session represents an authenticated session tied to an actor.
 type Session struct {
-	Token     string    `json:"token"`
-	UserID    UserID    `json:"user_id"`
-	CreatedAt time.Time `json:"created_at"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Token     string        `json:"token"`
+	UserID    UserID        `json:"user_id"`
+	ActorID   ActorID       `json:"actor_id"`
+	Origin    SessionOrigin `json:"-"`
+	CreatedAt time.Time     `json:"created_at"`
+	ExpiresAt time.Time     `json:"expires_at"`
 }
 
 // NewSession creates a Session with a cryptographically random token for the given user.
+// The ActorID is derived from the UserID, and the Origin is set to DirectLogin.
 func NewSession(userID UserID, ttl time.Duration) (*Session, error) {
+	actorID := ActorIDFromUser(userID)
+	return newSession(actorID, DirectLogin{AuthenticatedAs: actorID}, ttl)
+}
+
+// NewImpersonationSession creates a Session for impersonation: the actor is the
+// target being impersonated, but the Origin records who initiated it and why.
+func NewImpersonationSession(
+	target, impersonator ActorID, reason string, ttl time.Duration,
+) (*Session, error) {
+	return newSession(target, Impersonation{
+		By:     impersonator,
+		Reason: reason,
+		At:     time.Now().UTC(),
+	}, ttl)
+}
+
+func newSession(actorID ActorID, origin SessionOrigin, ttl time.Duration) (*Session, error) {
 	token, err := generateToken()
 	if err != nil {
 		return nil, event.NewTransient("token_gen_failed",
-			fmt.Sprintf("generate token for user %q", userID)).WithCause(err)
+			fmt.Sprintf("generate token for actor %q", actorID.PrefixedString())).WithCause(err)
 	}
 	now := time.Now().UTC()
 	return &Session{
 		Token:     token,
-		UserID:    userID,
+		UserID:    NewUserID(actorID.String()),
+		ActorID:   actorID,
+		Origin:    origin,
 		CreatedAt: now,
 		ExpiresAt: now.Add(ttl),
 	}, nil

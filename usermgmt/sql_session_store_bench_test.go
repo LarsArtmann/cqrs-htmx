@@ -29,6 +29,19 @@ func newBenchSQLiteSessionStore(b *testing.B) *SQLSessionStore {
 	return store
 }
 
+// benchCreateSession creates and stores a session for benchmark setup.
+func benchCreateSession(b *testing.B, store SessionStore, ctx context.Context, uid UserID, ttl time.Duration) *Session {
+	b.Helper()
+	s, err := NewSession(uid, ttl)
+	if err != nil {
+		b.Fatalf("NewSession: %v", err)
+	}
+	if err := store.Create(ctx, s); err != nil {
+		b.Fatalf("store.Create: %v", err)
+	}
+	return s
+}
+
 // BenchmarkSQLSessionStore_Create measures the throughput of inserting a new
 // session row: token generation (crypto-random), INSERT, return Session struct.
 func BenchmarkSQLSessionStore_Create(b *testing.B) {
@@ -37,10 +50,7 @@ func BenchmarkSQLSessionStore_Create(b *testing.B) {
 
 	b.ResetTimer()
 	for i := range b.N {
-		_, err := store.Create(ctx, NewUserID(fmt.Sprintf("bench-user-%d", i)), time.Hour)
-		if err != nil {
-			b.Fatalf("Create: %v", err)
-		}
+		benchCreateSession(b, store, ctx, NewUserID(fmt.Sprintf("bench-user-%d", i)), time.Hour)
 	}
 }
 
@@ -53,10 +63,7 @@ func BenchmarkSQLSessionStore_Find(b *testing.B) {
 	const prePopulated = 100
 	tokens := make([]string, prePopulated)
 	for i := range prePopulated {
-		s, err := store.Create(ctx, NewUserID(fmt.Sprintf("find-user-%d", i)), time.Hour)
-		if err != nil {
-			b.Fatalf("Create: %v", err)
-		}
+		s := benchCreateSession(b, store, ctx, NewUserID(fmt.Sprintf("find-user-%d", i)), time.Hour)
 		tokens[i] = s.Token
 	}
 
@@ -92,10 +99,7 @@ func BenchmarkSQLSessionStore_Delete(b *testing.B) {
 
 	tokens := make([]string, b.N)
 	for i := range b.N {
-		s, err := store.Create(ctx, NewUserID("pre-create"), time.Hour)
-		if err != nil {
-			b.Fatalf("Create: %v", err)
-		}
+		s := benchCreateSession(b, store, ctx, NewUserID("pre-create"), time.Hour)
 		tokens[i] = s.Token
 	}
 
@@ -117,9 +121,7 @@ func BenchmarkSQLSessionStore_DeleteByUserID(b *testing.B) {
 	for i := range b.N {
 		uid := NewUserID(fmt.Sprintf("del-user-%d", i))
 		userIDs[i] = uid
-		if _, err := store.Create(ctx, uid, time.Hour); err != nil {
-			b.Fatalf("Create: %v", err)
-		}
+		benchCreateSession(b, store, ctx, uid, time.Hour)
 	}
 
 	b.ResetTimer()
@@ -144,10 +146,7 @@ func BenchmarkSQLSessionStore_EvictExpired(b *testing.B) {
 		store := newBenchSQLiteSessionStore(b)
 		const expiredCount = 50
 		for range expiredCount {
-			_, err := store.Create(ctx, NewUserID("expired"), -1*time.Hour)
-			if err != nil {
-				b.Fatalf("Create: %v", err)
-			}
+			benchCreateSession(b, store, ctx, NewUserID("expired"), -1*time.Hour)
 		}
 		b.StartTimer()
 
