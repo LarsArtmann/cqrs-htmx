@@ -9,20 +9,20 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 ## Quick Reference
 
-| Item        | Value                                                                                      |
-| ----------- | ------------------------------------------------------------------------------------------ |
-| Language    | Go 1.26.3                                                                                  |
-| Module      | github.com/larsartmann/cqrs-htmx                                                           |
-| Test        | `nix run .#test` or `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
-| Build       | `nix run .#build` or `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`              |
-| Lint        | `nix run .#lint` or `golangci-lint run`                                                    |
-| Coverage    | `nix run .#coverage`                                                                       |
-| Fmt         | `nix fmt`                                                                                  |
-| Flake       | `nix flake check` (formatting + devShells + apps)                                          |
+| Item        | Value                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------- |
+| Language    | Go 1.26.3                                                                                             |
+| Module      | github.com/larsartmann/cqrs-htmx                                                                      |
+| Test        | `nix run .#test` or `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race`            |
+| Build       | `nix run .#build` or `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`                         |
+| Lint        | `nix run .#lint` or `golangci-lint run`                                                               |
+| Coverage    | `nix run .#coverage`                                                                                  |
+| Fmt         | `nix fmt`                                                                                             |
+| Flake       | `nix flake check` (formatting + devShells + apps)                                                     |
 | Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200) |
-| ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)              |
-| DevShell    | `nix develop` (go, gopls, golangci-lint)                                                   |
-| Coverage    | 96.4% root, 88.7% usermgmt, 95.3% catalog (500+ tests)                                     |
+| ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                         |
+| DevShell    | `nix develop` (go, gopls, golangci-lint)                                                              |
+| Coverage    | 96.4% root, 88.7% usermgmt, 95.3% catalog (500+ tests)                                                |
 
 ## Architecture
 
