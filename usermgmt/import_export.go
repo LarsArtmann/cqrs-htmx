@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
@@ -28,7 +29,13 @@ func (u *ImportUser) Validate() error {
 	}
 	u.Email = email.String()
 	if len(u.DisplayName) > maxDisplayNameLength {
-		return fmt.Errorf("%w: display name too long (max %d)", ErrValidation, maxDisplayNameLength)
+		return event.Wrapf(
+			ErrValidation,
+			event.Rejection,
+			"usermgmt.import.display_name_too_long",
+			"display name too long (max %d)",
+			maxDisplayNameLength,
+		)
 	}
 	return nil
 }
@@ -66,7 +73,7 @@ const (
 func (s *Service) ImportUsersFromJSON(ctx context.Context, r io.Reader) (*ImportResult, error) {
 	var users []ImportUser
 	if err := json.NewDecoder(r).Decode(&users); err != nil {
-		return nil, fmt.Errorf("decode import JSON: %w", err)
+		return nil, event.WrapRejection(err, "usermgmt.import.json_decode_failed", "decode import JSON")
 	}
 	return s.importUsers(ctx, users)
 }
@@ -79,7 +86,7 @@ func (s *Service) ImportUsersFromCSV(ctx context.Context, r io.Reader) (*ImportR
 
 	rows, err := reader.ReadAll()
 	if err != nil {
-		return nil, fmt.Errorf("read CSV: %w", err)
+		return nil, event.WrapRejection(err, "usermgmt.import.csv_read_failed", "read CSV")
 	}
 	if len(rows) == 0 {
 		return &ImportResult{ //nolint:exhaustruct // zero-value is intentional for empty import
@@ -150,7 +157,7 @@ func (s *Service) ExportUsersToJSON(_ context.Context, w io.Writer) error {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(users); err != nil {
-		return fmt.Errorf("encode export JSON: %w", err)
+		return event.WrapInfrastructure(err, "usermgmt.export.json_encode_failed", "encode export JSON")
 	}
 	return nil
 }
@@ -181,7 +188,7 @@ func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 		csvColumnEmailVerified,
 		csvColumnTOTPEnabled,
 	}); err != nil {
-		return fmt.Errorf("write CSV header: %w", err)
+		return event.WrapTransient(err, "usermgmt.export.csv_header_failed", "write CSV header")
 	}
 	for _, u := range users {
 		roles := make([]string, 0, len(u.Roles))
@@ -196,7 +203,7 @@ func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 			strconv.FormatBool(u.EmailVerified),
 			strconv.FormatBool(u.TOTPEnabled),
 		}); err != nil {
-			return fmt.Errorf("write CSV row: %w", err)
+			return event.WrapTransient(err, "usermgmt.export.csv_row_failed", "write CSV row")
 		}
 	}
 	return nil

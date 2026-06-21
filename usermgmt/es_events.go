@@ -2,7 +2,8 @@ package usermgmt
 
 import (
 	"encoding/json"
-	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 type UserRegisteredPayload struct {
@@ -82,7 +83,7 @@ type ExternalAccountUnlinkedPayload struct {
 func marshalPayload(v any) ([]byte, error) {
 	b, err := json.Marshal(v)
 	if err != nil {
-		return nil, fmt.Errorf("marshal payload: %w", err)
+		return nil, event.WrapInfrastructure(err, "usermgmt.payload.marshal_failed", "marshal payload")
 	}
 	return b, nil
 }

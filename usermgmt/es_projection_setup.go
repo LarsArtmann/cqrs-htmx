@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"sync"
 
@@ -66,27 +65,27 @@ func StartProjections(
 
 	runner, err := projection.NewRunner(journal, signal, checkpointStore)
 	if err != nil {
-		return fmt.Errorf("create projection runner: %w", err)
+		return event.WrapInfrastructure(err, "usermgmt.projection.runner_failed", "create projection runner")
 	}
 
 	if err := runner.Register(readModel); err != nil {
-		return fmt.Errorf("register read model projection: %w", err)
+		return event.WrapInfrastructure(err, "usermgmt.projection.register_failed", "register read model projection")
 	}
 
 	if err := runner.Register(casbinProjection); err != nil {
-		return fmt.Errorf("register casbin projection: %w", err)
+		return event.WrapInfrastructure(err, "usermgmt.projection.register_failed", "register casbin projection")
 	}
 
 	if auditLog != nil {
 		if err := runner.Register(auditLog); err != nil {
-			return fmt.Errorf("register audit log projection: %w", err)
+			return event.WrapInfrastructure(err, "usermgmt.projection.register_failed", "register audit log projection")
 		}
 	}
 
 	// RunReplay is synchronous: it returns only once the read model reflects
 	// every committed event, catching up history with no sleeps.
 	if err := runner.RunReplay(context.Background()); err != nil {
-		return fmt.Errorf("replay projections: %w", err)
+		return event.WrapInfrastructure(err, "usermgmt.projection.replay_failed", "replay projections")
 	}
 
 	// RunLive tails live events from the bus until the context is cancelled.

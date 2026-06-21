@@ -87,7 +87,7 @@ func (u *User) MarshalJSON() ([]byte, error) {
 		CredentialCount: len(u.Credentials),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("marshal user: %w", err)
+		return nil, event.WrapInfrastructure(err, "usermgmt.user.marshal_failed", "marshal user")
 	}
 	return data, nil
 }

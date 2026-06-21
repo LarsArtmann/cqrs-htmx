@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
@@ -23,11 +23,17 @@ func NewCreateTodo(title string) (*CreateTodoCmd, error) {
 func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
 	aggID, err := id.ParseAggregateID(todoID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid todo ID %q: %w", todoID, err)
+		return nil, event.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
 	}
 	core, err := command.New("ToggleTodo", aggID)
 	if err != nil {
-		return nil, fmt.Errorf("create ToggleTodo command for todo %q: %w", todoID, err)
+		return nil, event.Wrapf(
+			err,
+			event.Infrastructure,
+			"todo.command_failed",
+			"create ToggleTodo command for todo %q",
+			todoID,
+		)
 	}
 	return &ToggleTodoCmd{BasicCommand: core}, nil
 }
@@ -35,11 +41,17 @@ func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
 func NewDeleteTodo(todoID string) (*DeleteTodoCmd, error) {
 	aggID, err := id.ParseAggregateID(todoID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid todo ID %q: %w", todoID, err)
+		return nil, event.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
 	}
 	core, err := command.New("DeleteTodo", aggID)
 	if err != nil {
-		return nil, fmt.Errorf("create DeleteTodo command for todo %q: %w", todoID, err)
+		return nil, event.Wrapf(
+			err,
+			event.Infrastructure,
+			"todo.command_failed",
+			"create DeleteTodo command for todo %q",
+			todoID,
+		)
 	}
 	return &DeleteTodoCmd{BasicCommand: core}, nil
 }
@@ -47,11 +59,17 @@ func NewDeleteTodo(todoID string) (*DeleteTodoCmd, error) {
 func NewUpdateTodo(todoID, title string) (*UpdateTodoCmd, error) {
 	aggID, err := id.ParseAggregateID(todoID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid todo ID %q: %w", todoID, err)
+		return nil, event.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
 	}
 	core, err := command.New("UpdateTodo", aggID)
 	if err != nil {
-		return nil, fmt.Errorf("create UpdateTodo command for todo %q: %w", todoID, err)
+		return nil, event.Wrapf(
+			err,
+			event.Infrastructure,
+			"todo.command_failed",
+			"create UpdateTodo command for todo %q",
+			todoID,
+		)
 	}
 	return &UpdateTodoCmd{BasicCommand: core, Title: title}, nil
 }

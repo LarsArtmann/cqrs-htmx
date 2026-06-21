@@ -1,6 +1,6 @@
 package cqrshtmx
 
-import "fmt"
+import "github.com/larsartmann/go-cqrs-lite/event/v2"
 
 // SSEEventStore retrieves events for SSE reconnection replay.
 // Implementations must be safe for concurrent access.
@@ -20,7 +20,8 @@ func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID SSEEventID
 	events := store.EventsAfter(lastEventID.String())
 	for i, evt := range events {
 		if err := stream.Send(evt); err != nil {
-			return i, fmt.Errorf("replay after %q (sent %d of %d): %w", lastEventID, i, len(events), err)
+			return i, event.Wrapf(err, event.Transient, "cqrshtmx.sse.replay_failed",
+				"replay after %q (sent %d of %d)", lastEventID, i, len(events))
 		}
 	}
 	return len(events), nil

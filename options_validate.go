@@ -1,12 +1,12 @@
 package cqrshtmx
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
@@ -33,7 +33,7 @@ func validateDispatch[T any](
 
 			if valErr := validator(val); valErr != nil {
 				var zero T
-				return zero, fmt.Errorf("%w: %w", ErrValidationFailed, valErr)
+				return zero, event.WrapRejection(valErr, "cqrshtmx.validate.failed", "request validation failed")
 			}
 
 			return val, nil

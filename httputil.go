@@ -3,9 +3,9 @@ package cqrshtmx
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	httputil "github.com/larsartmann/httputil"
 )
 
@@ -16,7 +16,13 @@ import (
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(v); err != nil {
-		return fmt.Errorf("encode JSON response (status %d): %w", status, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"cqrshtmx.http.json_encode_failed",
+			"encode JSON response (status %d)",
+			status,
+		)
 	}
 	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.WriteHeader(status)

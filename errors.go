@@ -5,22 +5,22 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const defaultLoginRedirect = "/login"
 
-var registerErrors sync.Once
-
 // Sentinel errors for HTTP→CQRS integration.
+//
+// Each sentinel is natively classified via its go-error-family family (re-exported
+// through go-cqrs-lite/event/v2), so MapError derives the HTTP status directly —
+// no runtime RegisterClassification is needed.
 var (
 	ErrUnauthorized     = event.NewRejection("unauthorized", "unauthorized: authentication required")
 	ErrForbidden        = event.NewRejection("forbidden", "forbidden: insufficient permissions")
 	ErrDecodeFailed     = event.NewRejection("decode_failed", "failed to decode request body")
-	ErrDispatchFailed   = errors.New("command/query dispatch failed")
+	ErrDispatchFailed   = event.NewTransient("dispatch_failed", "command/query dispatch failed")
 	ErrEnforcerNil      = event.NewInfrastructure("enforcer_nil", "casbin enforcer is required for authorization")
 	ErrValidationFailed = event.NewRejection("validation_failed", "request validation failed")
 	ErrCSRFConfig       = event.NewInfrastructure("csrf_config", "invalid CSRF configuration")
@@ -32,14 +32,6 @@ var (
 	errDecoderMissing = event.NewInfrastructure("decoder_missing", "request decoder is required")
 )
 
-func registerErrorClassifications() {
-	registerErrors.Do(func() {
-		// ErrDispatchFailed is a plain sentinel — register for Transient classification
-		// when it appears as the root error (no inner *event.Error).
-		errorfamily.RegisterClassification(ErrDispatchFailed, errorfamily.Transient)
-	})
-}
-
 // MapError translates a CQRS error into an appropriate HTTP status code.
 //
 // Mapping:
@@ -50,8 +42,6 @@ func registerErrorClassifications() {
 //   - Infrastructure    → 500 Internal Server Error
 //   - nil or unknown    → 500 Internal Server Error
 func MapError(err error) int {
-	registerErrorClassifications()
-
 	if err == nil {
 		return http.StatusInternalServerError
 	}

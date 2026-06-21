@@ -3,7 +3,8 @@ package usermgmt
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // randomBase64URLString returns n cryptographically secure random bytes,
@@ -15,7 +16,7 @@ import (
 func randomBase64URLString(n int, purpose string) (string, error) {
 	b := make([]byte, n)
 	if _, err := rand.Read(b); err != nil {
-		return "", fmt.Errorf("generate %s: %w", purpose, err)
+		return "", event.Wrapf(err, event.Infrastructure, "usermgmt.random.failed", "generate %s", purpose)
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }

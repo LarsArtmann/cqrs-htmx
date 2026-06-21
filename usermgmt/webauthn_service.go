@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -26,7 +25,7 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logger.Debug("usermgmt: begin registration failed – user not found", "user_id", userID)
-		return nil, fmt.Errorf("begin registration: %w", ErrUserNotFound)
+		return nil, event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "begin registration")
 	}
 
 	waUser := &webauthnUser{user: user}
@@ -58,7 +57,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logger.Debug("usermgmt: finish registration failed – user not found", "user_id", userID)
-		return fmt.Errorf("finish registration: %w", ErrUserNotFound)
+		return event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish registration")
 	}
 
 	sessionKey := userID.Get()
@@ -87,10 +86,13 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	domainCred := fromWebAuthnCredential(credential, credentialName)
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return fmt.Errorf("convert userID: %w", err)
+		return event.WrapInfrastructure(err, "usermgmt.webauthn.userid_conversion_failed", "convert userID")
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, domainCred)); err != nil {
-		return fmt.Errorf("finish registration dispatch: %w", err)
+		return event.Compose(
+			event.Newf(event.Transient, "usermgmt.webauthn.dispatch_failed", "finish registration dispatch"),
+			err,
+		)
 	}
 	s.logger.Info("usermgmt: credential registered",
 		"user_id", userID, "credential_name", credentialName)
@@ -120,7 +122,7 @@ func (s *Service) BeginLogin(_ context.Context, email string) (*BeginLoginRespon
 	user, ok := s.readModel.FindByEmail(email)
 	if !ok {
 		s.logger.Debug("usermgmt: login failed – user not found", "email", email)
-		return nil, fmt.Errorf("begin login: %w", ErrUserNotFound)
+		return nil, event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "begin login")
 	}
 
 	if len(user.Credentials) == 0 {
@@ -159,7 +161,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logger.Debug("usermgmt: finish login failed – user not found", "user_id", userID)
-		return nil, fmt.Errorf("finish login: %w", ErrUserNotFound)
+		return nil, event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish login")
 	}
 
 	sessionKey := userID.Get()

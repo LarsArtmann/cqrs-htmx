@@ -76,7 +76,7 @@ func (h *AuthHandler) withTimeout(r *http.Request) (context.Context, context.Can
 func (h *AuthHandler) decodeAuthJSON(w http.ResponseWriter, r *http.Request, target any) bool {
 	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(target); err != nil {
 		writeError(w, http.StatusBadRequest,
-			fmt.Errorf("%w: invalid request body: %w", ErrValidation, err).Error())
+			fmt.Sprintf("%s: invalid request body: %s", ErrValidation, err))
 		return false
 	}
 	return true

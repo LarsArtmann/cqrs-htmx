@@ -2,8 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
@@ -25,7 +23,7 @@ type CasbinProjection struct {
 // NewCasbinProjection creates a CasbinProjection that wraps the given Authz.
 func NewCasbinProjection(authz *Authz) (*CasbinProjection, error) {
 	if authz == nil {
-		return nil, errors.New("NewCasbinProjection: authz is nil")
+		return nil, event.NewInfrastructure("usermgmt.casbin_projection.nil_authz", "NewCasbinProjection: authz is nil")
 	}
 	return &CasbinProjection{authz: authz}, nil
 }
@@ -51,14 +49,22 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 	case eventUserRegistered:
 		d, err := unmarshalPayload[UserRegisteredPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode UserRegistered in casbin projection: %w", err)
+			return event.WrapCorruption(
+				err,
+				"usermgmt.casbin_projection.decode_failed",
+				"decode UserRegistered in casbin projection",
+			)
 		}
 		return p.addRolesFor(subject, subject, d.Roles, "on register")
 
 	case eventRolesUpdated:
 		d, err := unmarshalPayload[RolesUpdatedPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode RolesUpdated in casbin projection: %w", err)
+			return event.WrapCorruption(
+				err,
+				"usermgmt.casbin_projection.decode_failed",
+				"decode RolesUpdated in casbin projection",
+			)
 		}
 		domain := d.Domain
 		if domain == "" {
@@ -66,20 +72,33 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 		}
 		currentRoles, err := p.authz.RolesForUser(NewUserID(subject), domain)
 		if err != nil {
-			return fmt.Errorf("get current roles for %s: %w", subject, err)
+			return event.Wrapf(
+				err,
+				event.Infrastructure,
+				"usermgmt.casbin_projection.roles_lookup_failed",
+				"get current roles for %s",
+				subject,
+			)
 		}
 		for _, r := range currentRoles {
 			if err := p.authz.RemoveGroupPolicy(GroupPolicy{
 				Subject: subject, Role: r, Domain: domain,
 			}); err != nil {
-				return fmt.Errorf("remove old role %s for %s: %w", r, subject, err)
+				return event.Wrapf(
+					err,
+					event.Infrastructure,
+					"usermgmt.casbin_projection.remove_role_failed",
+					"remove old role %s for %s",
+					r,
+					subject,
+				)
 			}
 		}
 		return p.addRolesFor(subject, domain, d.Roles, "on roles update")
 
 	case eventUserDeleted:
 		if err := p.authz.RemoveAllRolesForUser(subject); err != nil {
-			return fmt.Errorf("delete user from casbin: %w", err)
+			return event.WrapInfrastructure(err, "usermgmt.casbin_projection.delete_failed", "delete user from casbin")
 		}
 
 	case eventCredentialAdded, eventCredentialRemoved,
@@ -100,7 +119,13 @@ func (p *CasbinProjection) addRolesFor(subject, domain string, roles []Role, err
 		if err := p.authz.AddGroupPolicy(GroupPolicy{
 			Subject: subject, Role: role, Domain: domain,
 		}); err != nil {
-			return fmt.Errorf("add group policy %s: %w", errContext, err)
+			return event.Wrapf(
+				err,
+				event.Infrastructure,
+				"usermgmt.casbin_projection.add_policy_failed",
+				"add group policy %s",
+				errContext,
+			)
 		}
 	}
 	return nil

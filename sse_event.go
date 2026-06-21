@@ -1,11 +1,12 @@
 package cqrshtmx
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // SSEEventID is a branded string type for SSE event identifiers (the `id:` field
@@ -28,14 +29,18 @@ func (s SSEEventID) IsZero() bool { return s == "" }
 func NewSSEEventID(s string) SSEEventID { return SSEEventID(s) }
 
 // errSSEEventIDInvalid is returned by ParseSSEEventID for malformed values.
-var errSSEEventIDInvalid = errors.New("sse event id: contains forbidden character (newline or carriage return)")
+var errSSEEventIDInvalid = event.NewRejection(
+	"cqrshtmx.sse.event_id_invalid",
+	"sse event id: contains forbidden character (newline or carriage return)",
+)
 
 // ParseSSEEventID converts a string to an SSEEventID, rejecting values that
 // would corrupt the SSE wire format (newlines, carriage returns). Empty strings
 // are allowed (representing "no ID" / initial connection).
 func ParseSSEEventID(s string) (SSEEventID, error) {
 	if strings.ContainsAny(s, "\n\r") {
-		return "", fmt.Errorf("%w: %q", errSSEEventIDInvalid, s)
+		return "", event.Wrapf(errSSEEventIDInvalid, event.Rejection,
+			"cqrshtmx.sse.event_id_invalid", "%q", s)
 	}
 	return SSEEventID(s), nil
 }
@@ -85,37 +90,37 @@ type SSEEvent struct {
 //
 // Uses io.WriteString and direct byte writes instead of fmt.Fprintf to
 // minimize allocations on the SSE hot path.
-func WriteSSEEvent(w io.Writer, event SSEEvent) error {
+func WriteSSEEvent(w io.Writer, evt SSEEvent) error {
 	var buf []byte
 
-	if event.Event != "" {
+	if evt.Event != "" {
 		buf = append(buf, 'e', 'v', 'e', 'n', 't', ':', ' ')
-		buf = append(buf, event.Event...)
+		buf = append(buf, evt.Event...)
 		buf = append(buf, '\n')
 	}
 
-	for _, line := range splitSSELines(event.Data) {
+	for _, line := range splitSSELines(evt.Data) {
 		buf = append(buf, 'd', 'a', 't', 'a', ':', ' ')
 		buf = append(buf, line...)
 		buf = append(buf, '\n')
 	}
 
-	if event.ID != "" {
+	if evt.ID != "" {
 		buf = append(buf, 'i', 'd', ':', ' ')
-		buf = append(buf, event.ID...)
+		buf = append(buf, evt.ID...)
 		buf = append(buf, '\n')
 	}
 
-	if event.Retry > 0 {
+	if evt.Retry > 0 {
 		buf = append(buf, 'r', 'e', 't', 'r', 'y', ':', ' ')
-		buf = strconv.AppendInt(buf, int64(event.Retry), 10)
+		buf = strconv.AppendInt(buf, int64(evt.Retry), 10)
 		buf = append(buf, '\n')
 	}
 
 	buf = append(buf, '\n')
 
 	if _, err := w.Write(buf); err != nil {
-		return fmt.Errorf("write sse event: %w", err)
+		return event.Wrapf(err, event.Transient, "cqrshtmx.sse.write_failed", "write sse event")
 	}
 
 	return nil
