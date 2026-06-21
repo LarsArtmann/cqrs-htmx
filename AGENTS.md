@@ -62,12 +62,18 @@ cqrs-htmx/
 │   ├── id.go         # Branded UserID type (go-branded-id), NewUserID constructor
 │   ├── authz_types.go     # Authz wrapper around Casbin (RBAC with domains), AsEnforcer adapter
 │   ├── authz_policies.go  # Apply, AddGroupPolicy, RemoveGroupPolicy, AddPolicy, RemovePolicy
-│   ├── authz_roles.go     # RolesForUser, ImplicitRolesForUser, ImplicitPermissionsForUser
-│   ├── es_constants.go    # Event-sourced aggregate type + 7 event + 7 command type constants
+│   ├── authz_roles.go     # RolesForUser, RolesForActor, ImplicitRolesForActor, role hierarchy seed (g2)
+│   ├── es_constants.go    # Aggregate types (User, Membership) + 15 event + 15 command constants + schema v2
 │   ├── es_events.go       # 7 event payload structs (UserRegistered, CredentialAdded, etc.)
 │   ├── es_commands.go     # 7 command structs (RegisterUserCmd, AddCredentialCmd, etc.)
 │   ├── es_state.go        # UserState + foldUser() pure function (event → state)
 │   ├── es_decide.go       # 7 pure decide functions (guards + event creation)
+│   ├── es_membership_events.go    # 3 membership event payloads (MemberAdded, MemberRolesChanged, MemberRemoved)
+│   ├── es_membership_commands.go  # 3 membership commands (AddMemberCmd, UpdateMemberRolesCmd, RemoveMemberCmd)
+│   ├── es_membership_state.go     # MembershipState + foldMembership() pure function
+│   ├── es_membership_decide.go    # MembershipDecider() + 3 decide functions
+│   ├── es_membership_dispatch.go  # RegisterMembershipCommands — wires membership commands
+│   ├── es_membership_readmodel.go # MembershipReadModel projection + FindByActor query
 │   ├── es_dispatch.go     # RegisterCommands — wires commands to decider.Repository
 │   ├── es_setup.go        # EventSourcedConfig, DefaultEventSourcedSetup, UserDecider
 │   ├── es_readmodel.go    # UserReadModel projection + email index
@@ -77,6 +83,7 @@ cqrs-htmx/
 │   ├── service_register.go # RegisterRequest (email only), Service.Register
 │   ├── service_login.go   # Service.Logout/Authenticate/Authorize (no password login)
 │   ├── service_misc.go    # GetUser, UpdateRoles, ChangeEmail, ChangeDisplayName, DeleteUser, AddCredential, RemoveCredential
+│   ├── id.go          # Branded types: UserID, TenantID, BotID + ActorID struct (kind-discriminated)
 │   ├── credential.go      # WebAuthnCredential type (passkey credential stored as event)
 │   ├── email.go          # Email value type with ParseEmail/MustParseEmail
 │   ├── email_verification.go # Verification token store, SendVerificationEmail, VerifyEmail
