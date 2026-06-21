@@ -77,6 +77,18 @@ func (a *Authz) UsersForRole(role Role, domain string) ([]string, error) {
 	return u, nil
 }
 
+// RolesForActor returns the direct roles assigned to an actor in a tenant.
+// The actorID is the raw ID string (without kind prefix).
+func (a *Authz) RolesForActor(actorID string, tenantID TenantID) ([]Role, error) {
+	return a.RolesForUser(NewUserID(actorID), tenantID.Get())
+}
+
+// ImplicitRolesForActor returns all roles assigned to an actor in a tenant,
+// including those inherited via the g2 role hierarchy.
+func (a *Authz) ImplicitRolesForActor(actorID string, tenantID TenantID) ([]Role, error) {
+	return a.ImplicitRolesForUser(NewUserID(actorID), tenantID.Get())
+}
+
 func defaultPolicies() []Policy {
 	return []Policy{
 		{RoleAdmin, "*", "*", ActionAll, EffectAllow},
