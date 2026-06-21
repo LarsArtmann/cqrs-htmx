@@ -53,7 +53,13 @@ func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 	if err != nil {
 		return nil, event.WrapTransient(err, "casbin_error", "domains for user")
 	}
-	return d, nil
+	filtered := d[:0]
+	for _, dom := range d {
+		if dom != "" {
+			filtered = append(filtered, dom)
+		}
+	}
+	return filtered, nil
 }
 
 // UsersForRole returns all user IDs that have the given role in the domain.
@@ -74,5 +80,23 @@ func (a *Authz) UsersForRole(role Role, domain string) ([]string, error) {
 func defaultPolicies() []Policy {
 	return []Policy{
 		{RoleAdmin, "*", "*", ActionAll, EffectAllow},
+		{RoleSuperAdmin, "*", "*", ActionAll, EffectAllow},
+	}
+}
+
+// defaultRoleHierarchy returns the g2 role inheritance policies that enable
+// the hierarchy: super_admin > admin > user > viewer.
+// These are global (not domain-scoped) and applied once at Authz creation.
+func defaultRoleHierarchy() []struct {
+	From Role
+	To   Role
+} {
+	return []struct {
+		From Role
+		To   Role
+	}{
+		{RoleSuperAdmin, RoleAdmin},
+		{RoleAdmin, RoleUser},
+		{RoleUser, RoleViewer},
 	}
 }

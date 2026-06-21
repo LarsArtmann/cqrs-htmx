@@ -132,6 +132,54 @@ func (s *Session) Valid(token string) bool {
 	return !s.IsExpired() && s.TokenMatches(token)
 }
 
+// SessionOrigin describes how a session was established.
+// Only DirectLogin and Impersonation can implement this interface
+// (via the unexported isSessionOrigin method).
+type SessionOrigin interface {
+	isSessionOrigin()
+}
+
+// DirectLogin indicates the user authenticated directly (no impersonation).
+type DirectLogin struct {
+	AuthenticatedAs ActorID
+}
+
+func (DirectLogin) isSessionOrigin() {}
+
+// Impersonation indicates an admin is acting on behalf of another actor.
+type Impersonation struct {
+	By     ActorID   // the real admin who initiated the impersonation
+	Reason string    // mandatory justification for audit
+	At     time.Time // when the impersonation began
+}
+
+func (Impersonation) isSessionOrigin() {}
+
+// Membership links an Actor to a Tenant with scoped roles.
+// It replaces the flat Roles field on UserState, decoupling "who you are"
+// from "what you can do" in a given tenant.
+type Membership struct {
+	ActorID  ActorID
+	TenantID TenantID
+	Roles    []Role
+	AddedAt  time.Time
+}
+
+// HasRole reports whether the membership grants the given role.
+func (m Membership) HasRole(role Role) bool {
+	return slices.Contains(m.Roles, role)
+}
+
+// HasAnyRole reports whether the membership grants any of the given roles.
+func (m Membership) HasAnyRole(roles ...Role) bool {
+	for _, target := range roles {
+		if m.HasRole(target) {
+			return true
+		}
+	}
+	return false
+}
+
 func generateToken() (string, error) {
 	return randomBase64URLString(sessionTokenBytes, "session token")
 }
