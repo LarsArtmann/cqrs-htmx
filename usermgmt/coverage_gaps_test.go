@@ -43,7 +43,6 @@ func TestDecideChangeDisplayName_NoOp(t *testing.T) {
 	state := UserState{
 		Email:       "u@test.com",
 		DisplayName: "Alice",
-		Roles:       []Role{RoleUser},
 	}
 	decider := decideChangeDisplayName(aggID, "Alice")
 	events, err := decider(state, 1)
@@ -60,7 +59,6 @@ func TestDecideChangeEmail_NoOp(t *testing.T) {
 	state := UserState{
 		Email:       "same@test.com",
 		DisplayName: "Alice",
-		Roles:       []Role{RoleUser},
 	}
 	decider := decideChangeEmail(aggID, "same@test.com")
 	events, err := decider(state, 1)
@@ -93,7 +91,6 @@ func TestMarshalPayload_Error(t *testing.T) {
 func TestFoldUser_CredentialAdded_SignCountPreserved(t *testing.T) {
 	initial := UserState{
 		Email: "u@test.com",
-		Roles: []Role{RoleUser},
 	}
 	payload, err := marshalPayload(CredentialAddedPayload{
 		ID:        []byte{1, 2, 3},

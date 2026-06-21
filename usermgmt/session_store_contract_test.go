@@ -7,6 +7,19 @@ import (
 	"time"
 )
 
+// createTestSession creates a session and stores it, failing the test on error.
+func createTestSession(t *testing.T, store SessionStore, ctx context.Context, uid UserID) *Session {
+	t.Helper()
+	session, err := NewSession(uid, 1*time.Hour)
+	if err != nil {
+		t.Fatalf("NewSession: %v", err)
+	}
+	if err := store.Create(ctx, session); err != nil {
+		t.Fatalf("store.Create: %v", err)
+	}
+	return session
+}
+
 // runSessionStoreContract runs a suite of behavioral tests against any
 // SessionStore implementation. Both InMemorySessionStore and SQLSessionStore
 // use it to verify identical semantics.
@@ -20,10 +33,7 @@ func runSessionStoreContract(t *testing.T, factory func(t *testing.T) SessionSto
 		ctx := context.Background()
 		uid := NewUserID("user-contract-1")
 
-		session, err := store.Create(ctx, uid, 1*time.Hour)
-		if err != nil {
-			t.Fatalf("Create: %v", err)
-		}
+		session := createTestSession(t, store, ctx, uid)
 		if session.Token == "" {
 			t.Fatal("empty token")
 		}
@@ -61,14 +71,11 @@ func runSessionStoreContract(t *testing.T, factory func(t *testing.T) SessionSto
 		ctx := context.Background()
 		uid := NewUserID("user-contract-2")
 
-		session, err := store.Create(ctx, uid, 1*time.Hour)
-		if err != nil {
-			t.Fatalf("Create: %v", err)
-		}
+		session := createTestSession(t, store, ctx, uid)
 		if err := store.Delete(ctx, session.Token); err != nil {
 			t.Fatalf("Delete: %v", err)
 		}
-		_, err = store.Find(ctx, session.Token)
+		_, err := store.Find(ctx, session.Token)
 		if !errors.Is(err, ErrSessionNotFound) {
 			t.Fatalf("after Delete, Find error = %v, want ErrSessionNotFound", err)
 		}
@@ -89,14 +96,8 @@ func runSessionStoreContract(t *testing.T, factory func(t *testing.T) SessionSto
 		ctx := context.Background()
 		uid := NewUserID("user-contract-3")
 
-		s1, err := store.Create(ctx, uid, 1*time.Hour)
-		if err != nil {
-			t.Fatalf("Create s1: %v", err)
-		}
-		s2, err := store.Create(ctx, uid, 1*time.Hour)
-		if err != nil {
-			t.Fatalf("Create s2: %v", err)
-		}
+		s1 := createTestSession(t, store, ctx, uid)
+		s2 := createTestSession(t, store, ctx, uid)
 
 		if err := store.DeleteByUserID(ctx, uid); err != nil {
 			t.Fatalf("DeleteByUserID: %v", err)
@@ -117,20 +118,14 @@ func runSessionStoreContract(t *testing.T, factory func(t *testing.T) SessionSto
 		uidA := NewUserID("user-contract-a")
 		uidB := NewUserID("user-contract-b")
 
-		sessionA, err := store.Create(ctx, uidA, 1*time.Hour)
-		if err != nil {
-			t.Fatalf("Create A: %v", err)
-		}
-		_, err = store.Create(ctx, uidB, 1*time.Hour)
-		if err != nil {
-			t.Fatalf("Create B: %v", err)
-		}
+		sessionA := createTestSession(t, store, ctx, uidA)
+		createTestSession(t, store, ctx, uidB)
 
 		if err := store.DeleteByUserID(ctx, uidA); err != nil {
 			t.Fatalf("DeleteByUserID A: %v", err)
 		}
 
-		_, err = store.Find(ctx, sessionA.Token)
+		_, err := store.Find(ctx, sessionA.Token)
 		if !errors.Is(err, ErrSessionNotFound) {
 			t.Fatalf("user A session should be deleted, got: %v", err)
 		}
@@ -141,14 +136,8 @@ func runSessionStoreContract(t *testing.T, factory func(t *testing.T) SessionSto
 		ctx := context.Background()
 		uid := NewUserID("user-contract-4")
 
-		s1, err := store.Create(ctx, uid, 1*time.Hour)
-		if err != nil {
-			t.Fatalf("Create s1: %v", err)
-		}
-		s2, err := store.Create(ctx, uid, 1*time.Hour)
-		if err != nil {
-			t.Fatalf("Create s2: %v", err)
-		}
+		s1 := createTestSession(t, store, ctx, uid)
+		s2 := createTestSession(t, store, ctx, uid)
 		if s1.Token == s2.Token {
 			t.Fatal("two sessions have the same token")
 		}

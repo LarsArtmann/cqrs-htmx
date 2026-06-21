@@ -53,11 +53,15 @@ func (s *subscribeSignal) SubscribeAll(h event.Handler) error {
 // for the Runner to register its bus handler, so the very first event a caller
 // publishes is delivered. Combined with memory.MemoryBus (synchronous publish),
 // this gives read-your-writes consistency with no timing-based sleeps.
+//
+//nolint:cyclop,funlen // inherent to multi-projection registration
 func StartProjections(
 	journal event.Journal,
 	bus event.Subscriber,
 	readModel *UserReadModel,
 	membershipReadModel *MembershipReadModel,
+	tenantReadModel *TenantReadModel,
+	botReadModel *BotReadModel,
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
 ) error {
@@ -79,6 +83,26 @@ func StartProjections(
 				err,
 				"usermgmt.projection.register_failed",
 				"register membership read model projection",
+			)
+		}
+	}
+
+	if tenantReadModel != nil {
+		if err := runner.Register(tenantReadModel); err != nil {
+			return event.WrapInfrastructure(
+				err,
+				"usermgmt.projection.register_failed",
+				"register tenant read model projection",
+			)
+		}
+	}
+
+	if botReadModel != nil {
+		if err := runner.Register(botReadModel); err != nil {
+			return event.WrapInfrastructure(
+				err,
+				"usermgmt.projection.register_failed",
+				"register bot read model projection",
 			)
 		}
 	}

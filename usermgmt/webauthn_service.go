@@ -192,7 +192,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		s.lockout.Reset(user.Email)
 	}
 
-	sess, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
+	sess, err := s.createSession(ctx, user.ID)
 	if err != nil {
 		return nil, withUserIDContext(
 			event.NewTransient("internal", "create session").WithCause(err), user.ID,

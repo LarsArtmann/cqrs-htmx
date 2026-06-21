@@ -60,8 +60,12 @@ type EventSourcedSetup struct {
 	Bus                  event.Bus
 	Repository           *decider.Repository[UserState]
 	MembershipRepository *decider.Repository[MembershipState]
+	TenantRepository     *decider.Repository[TenantState]
+	BotRepository        *decider.Repository[BotState]
 	ReadModel            *UserReadModel
 	MembershipReadModel  *MembershipReadModel
+	TenantReadModel      *TenantReadModel
+	BotReadModel         *BotReadModel
 }
 
 // UserDecider returns the Decider for the User aggregate.
@@ -121,8 +125,22 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		return nil, event.NewTransient("internal", "create membership decider repository").WithCause(err)
 	}
 
+	tenantRepo, err := decider.NewRepository(store, bus, TenantDecider())
+	if err != nil {
+		_ = bus.Close()
+		return nil, event.NewTransient("internal", "create tenant decider repository").WithCause(err)
+	}
+
+	botRepo, err := decider.NewRepository(store, bus, BotDecider())
+	if err != nil {
+		_ = bus.Close()
+		return nil, event.NewTransient("internal", "create bot decider repository").WithCause(err)
+	}
+
 	readModel := NewUserReadModel()
 	membershipReadModel := NewMembershipReadModel()
+	tenantReadModel := NewTenantReadModel()
+	botReadModel := NewBotReadModel()
 	authz, err := NewAuthz()
 	if err != nil {
 		_ = bus.Close()
@@ -135,7 +153,16 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	}
 
 	journal := journalFromStore(store)
-	if err := StartProjections(journal, bus, readModel, membershipReadModel, casbinProjection, nil); err != nil {
+	if err := StartProjections(
+		journal,
+		bus,
+		readModel,
+		membershipReadModel,
+		tenantReadModel,
+		botReadModel,
+		casbinProjection,
+		nil,
+	); err != nil {
 		_ = bus.Close()
 		return nil, event.NewTransient("internal", "start projections").WithCause(err)
 	}
@@ -145,7 +172,11 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		Bus:                  bus,
 		Repository:           repo,
 		MembershipRepository: membershipRepo,
+		TenantRepository:     tenantRepo,
+		BotRepository:        botRepo,
 		ReadModel:            readModel,
 		MembershipReadModel:  membershipReadModel,
+		TenantReadModel:      tenantReadModel,
+		BotReadModel:         botReadModel,
 	}, nil
 }

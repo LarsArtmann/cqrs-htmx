@@ -50,9 +50,12 @@ func FuzzSQLSessionStore_CreateFindRoundTrip(f *testing.F) {
 		ctx := context.Background()
 		userID := NewUserID(userIDRaw)
 
-		created, err := store.Create(ctx, userID, ttl)
+		created, err := NewSession(userID, ttl)
 		if err != nil {
-			t.Fatalf("Create(userID=%q, ttl=%v): %v", userIDRaw, ttl, err)
+			t.Fatalf("NewSession(userID=%q, ttl=%v): %v", userIDRaw, ttl, err)
+		}
+		if err := store.Create(ctx, created); err != nil {
+			t.Fatalf("store.Create(userID=%q, ttl=%v): %v", userIDRaw, ttl, err)
 		}
 
 		found := findSessionOrFatal(t, ctx, store, created.Token)
@@ -132,13 +135,19 @@ func FuzzSQLSessionStore_DeleteByUserID(f *testing.F) {
 		ctx := context.Background()
 		userID := NewUserID(userIDRaw)
 
-		s1, err := store.Create(ctx, userID, time.Hour)
+		s1, err := NewSession(userID, time.Hour)
 		if err != nil {
-			t.Fatalf("Create s1: %v", err)
+			t.Fatalf("NewSession s1: %v", err)
 		}
-		s2, err := store.Create(ctx, userID, time.Hour)
+		if err := store.Create(ctx, s1); err != nil {
+			t.Fatalf("store.Create s1: %v", err)
+		}
+		s2, err := NewSession(userID, time.Hour)
 		if err != nil {
-			t.Fatalf("Create s2: %v", err)
+			t.Fatalf("NewSession s2: %v", err)
+		}
+		if err := store.Create(ctx, s2); err != nil {
+			t.Fatalf("store.Create s2: %v", err)
 		}
 
 		if err := store.DeleteByUserID(ctx, userID); err != nil {

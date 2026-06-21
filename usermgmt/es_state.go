@@ -8,10 +8,11 @@ import (
 )
 
 // UserState is the aggregate state for the User, reconstructed by folding events.
+// Roles are NOT tracked here — they are managed by the Membership aggregate
+// and CasbinProjection. Use MembershipReadModel or Authz.RolesForActor to query roles.
 type UserState struct {
 	Email            string
 	DisplayName      string
-	Roles            []Role
 	Credentials      []WebAuthnCredential
 	ExternalAccounts []ExternalAccount
 	Deleted          bool
@@ -56,22 +57,19 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		if err != nil {
 			return state, err
 		}
-		roles := make([]Role, len(p.Roles))
-		copy(roles, p.Roles)
 		next = UserState{
 			Email:       p.Email,
 			DisplayName: p.DisplayName,
-			Roles:       roles,
 		}
 
 	case eventRolesUpdated:
-		p, err := unmarshalPayload[RolesUpdatedPayload](evt)
+		// Roles are no longer part of UserState. They are managed by the
+		// Membership aggregate and derived by CasbinProjection. We still
+		// decode the payload to detect corruption.
+		_, err := unmarshalPayload[RolesUpdatedPayload](evt)
 		if err != nil {
 			return state, err
 		}
-		roles := make([]Role, len(p.Roles))
-		copy(roles, p.Roles)
-		next.Roles = roles
 
 	case eventEmailChanged:
 		p, err := unmarshalPayload[EmailChangedPayload](evt)

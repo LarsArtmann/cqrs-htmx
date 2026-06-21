@@ -81,7 +81,7 @@ func (s *Service) FinishOAuthLogin(
 		return nil, err
 	}
 
-	session, err := s.sessions.Create(ctx, user.ID, s.sessionTTL)
+	session, err := s.createSession(ctx, user.ID)
 	if err != nil {
 		return nil, withUserIDContext(
 			event.NewTransient("internal", "create oauth2 session").WithCause(err), user.ID,

@@ -23,9 +23,13 @@ const (
 type Service struct {
 	repository               *decider.Repository[UserState]
 	membershipRepo           *decider.Repository[MembershipState]
+	tenantRepo               *decider.Repository[TenantState]
+	botRepo                  *decider.Repository[BotState]
 	dispatcher               *command.Dispatcher
 	readModel                *UserReadModel
 	membershipReadModel      *MembershipReadModel
+	tenantReadModel          *TenantReadModel
+	botReadModel             *BotReadModel
 	casbinProjection         *CasbinProjection
 	authz                    *Authz
 	sessions                 SessionStore
@@ -50,6 +54,7 @@ type Service struct {
 	oauth2States             OAuth2StateStore
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration
+	tokenPepper              TokenPepper
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -92,6 +97,13 @@ type ServiceConfig struct {
 	// SecurityHooks configures opt-in event signing and encryption.
 	// See SecurityHooks for field documentation.
 	SecurityHooks
+
+	// TokenPepper is the server-side secret used for HMAC-SHA256 bot token hashing.
+	// Required for bot registration and API token authentication. Set this to a
+	// 32+ byte random value that is stored outside the database (e.g., in a
+	// secrets manager or environment variable). When nil, RegisterBot and
+	// ResolveBotByToken return errors.
+	TokenPepper TokenPepper
 }
 
 // wrapEventStore applies the optional StoreWrapper (e.g. transparent encryption)
@@ -152,6 +164,8 @@ func journalFromStore(store event.Store) event.Journal {
 // NewService creates a Service from the given config, applying defaults for nil/zero fields.
 // It sets up event-sourced infrastructure (store, bus, repository, projections) with
 // in-memory defaults if not provided.
+//
+//nolint:gocognit // inherent to multi-aggregate service wiring
 func NewService(cfg ServiceConfig) (*Service, error) {
 	store := cfg.EventStore
 	if store == nil {
@@ -184,6 +198,16 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		return nil, event.NewTransient("internal", "create membership repository").WithCause(err)
 	}
 
+	tenantRepo, err := decider.NewRepository(store, bus, TenantDecider())
+	if err != nil {
+		return nil, event.NewTransient("internal", "create tenant repository").WithCause(err)
+	}
+
+	botRepo, err := decider.NewRepository(store, bus, BotDecider())
+	if err != nil {
+		return nil, event.NewTransient("internal", "create bot repository").WithCause(err)
+	}
+
 	authz := cfg.Authz
 	if authz == nil {
 		authz, err = NewAuthz()
@@ -199,12 +223,16 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 
 	readModel := NewUserReadModel()
 	membershipReadModel := NewMembershipReadModel()
+	tenantReadModel := NewTenantReadModel()
+	botReadModel := NewBotReadModel()
 
 	if err := StartProjections(
 		journal,
 		bus,
 		readModel,
 		membershipReadModel,
+		tenantReadModel,
+		botReadModel,
 		casbinProjection,
 		cfg.AuditLog,
 	); err != nil {
@@ -230,14 +258,24 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	if err := RegisterMembershipCommands(dispatcher, membershipRepo); err != nil {
 		return nil, event.NewTransient("internal", "register membership commands").WithCause(err)
 	}
+	if err := RegisterTenantCommands(dispatcher, tenantRepo); err != nil {
+		return nil, event.NewTransient("internal", "register tenant commands").WithCause(err)
+	}
+	if err := RegisterBotCommands(dispatcher, botRepo); err != nil {
+		return nil, event.NewTransient("internal", "register bot commands").WithCause(err)
+	}
 
 	//nolint:exhaustruct // fields set conditionally below
 	svc := &Service{
 		repository:          repo,
 		membershipRepo:      membershipRepo,
+		tenantRepo:          tenantRepo,
+		botRepo:             botRepo,
 		dispatcher:          dispatcher,
 		readModel:           readModel,
 		membershipReadModel: membershipReadModel,
+		tenantReadModel:     tenantReadModel,
+		botReadModel:        botReadModel,
 		casbinProjection:    casbinProjection,
 		authz:               authz,
 		sessions:            cfg.SessionStore,
@@ -294,6 +332,8 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	if cfg.EventHandler != nil {
 		svc.bridgeEventHandler(bus)
 	}
+
+	svc.tokenPepper = cfg.TokenPepper
 
 	return svc, nil
 }

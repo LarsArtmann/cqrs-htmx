@@ -74,6 +74,24 @@ cqrs-htmx/
 │   ├── es_membership_decide.go    # MembershipDecider() + 3 decide functions
 │   ├── es_membership_dispatch.go  # RegisterMembershipCommands — wires membership commands
 │   ├── es_membership_readmodel.go # MembershipReadModel projection + FindByActor query
+│   ├── es_tenant_events.go    # TenantCreated/Suspended/Reactivated/Deleted payloads
+│   ├── es_tenant_commands.go  # CreateTenant/Suspend/Reactivate/DeleteTenant commands
+│   ├── es_tenant_state.go     # TenantState + foldTenant
+│   ├── es_tenant_decide.go    # TenantDecider + decide functions
+│   ├── es_tenant_dispatch.go  # RegisterTenantCommands
+│   ├── es_tenant_readmodel.go # TenantReadModel projection + FindByID/FindByName
+│   ├── es_bot_events.go       # BotRegistered/Deleted payloads
+│   ├── es_bot_commands.go     # RegisterBot/DeleteBot commands
+│   ├── es_bot_state.go        # BotState + foldBot
+│   ├── es_bot_decide.go       # BotDecider + decide functions
+│   ├── es_bot_dispatch.go     # RegisterBotCommands
+│   ├── es_bot_readmodel.go    # BotReadModel projection + FindByTokenHash
+│   ├── es_migration.go        # MigrateRolesToMemberships — opt-in legacy role migration
+│   ├── crypto.go              # GenerateToken, HashToken (HMAC-SHA256), VerifyToken
+│   ├── api_token_middleware.go # NewAPITokenMiddleware, RequireBot
+│   ├── service_tenant.go      # Service.CreateTenant/Suspend/Reactivate/Delete/GetTenant
+│   ├── service_bot.go         # Service.RegisterBot/DeleteBot/GetBot/ResolveBotByToken
+│   ├── service_impersonation.go # Service.BeginImpersonation/EndImpersonation with guards
 │   ├── es_dispatch.go     # RegisterCommands — wires commands to decider.Repository
 │   ├── es_setup.go        # EventSourcedConfig, DefaultEventSourcedSetup, UserDecider
 │   ├── es_readmodel.go    # UserReadModel projection + email index

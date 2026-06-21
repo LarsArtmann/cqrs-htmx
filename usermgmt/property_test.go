@@ -49,9 +49,6 @@ func TestFoldUserProperty_RegistrationSetsEmail(t *testing.T) {
 		if state.Email != email {
 			t.Errorf("email = %q, want %q", state.Email, email)
 		}
-		if len(state.Roles) != len(roles) {
-			t.Errorf("roles len = %d, want %d", len(state.Roles), len(roles))
-		}
 		if state.Deleted {
 			t.Error("newly registered user should not be deleted")
 		}
@@ -60,10 +57,8 @@ func TestFoldUserProperty_RegistrationSetsEmail(t *testing.T) {
 
 func TestFoldUserProperty_EmailChangedPreservesRoles(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		originalRoles := rapid.SliceOfN(rapidRole(), 1, 4).Draw(t, "roles")
 		initial := UserState{
 			Email: "before@test.com",
-			Roles: originalRoles,
 		}
 		newEmail := rapidEmail().Draw(t, "newEmail")
 
@@ -77,18 +72,15 @@ func TestFoldUserProperty_EmailChangedPreservesRoles(t *testing.T) {
 		if state.Email != newEmail {
 			t.Errorf("email = %q, want %q", state.Email, newEmail)
 		}
-		if len(state.Roles) != len(originalRoles) {
-			t.Errorf("roles len changed: %d → %d", len(originalRoles), len(state.Roles))
-		}
 	})
 }
 
 func TestFoldUserProperty_DisplayNameChangedPreservesEmail(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		email := rapidEmail().Draw(t, "email")
-		initial := UserState{Email: email, Roles: []Role{RoleUser}}
 		newName := rapid.StringN(1, 50, 50).Draw(t, "displayName")
 
+		initial := UserState{Email: email}
 		evt := mustPropEvent(eventDisplayNameChanged, 2, DisplayNameChangedPayload{
 			DisplayName: newName,
 		})
@@ -109,7 +101,6 @@ func TestFoldUserProperty_DeletedSetsTombstone(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		initial := UserState{
 			Email: "doomed@test.com",
-			Roles: []Role{RoleUser},
 		}
 		reason := rapid.StringN(0, 100, 100).Draw(t, "reason")
 
@@ -133,7 +124,6 @@ func TestFoldUserProperty_CredentialAddRemoveRoundTrip(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		initial := UserState{
 			Email:       "cred@test.com",
-			Roles:       []Role{RoleUser},
 			Credentials: []WebAuthnCredential{},
 		}
 		credID := rapid.SliceOfN(rapid.Byte(), 16, 32).Draw(t, "credID")
@@ -171,9 +161,9 @@ func TestFoldUserProperty_CredentialAddRemoveRoundTrip(t *testing.T) {
 func TestFoldUserProperty_RolesUpdatedPreservesEmail(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		email := rapidEmail().Draw(t, "email")
-		initial := UserState{Email: email, Roles: []Role{RoleUser}}
 		newRoles := rapid.SliceOfN(rapidRole(), 1, 3).Draw(t, "newRoles")
 
+		initial := UserState{Email: email}
 		evt := mustPropEvent(eventRolesUpdated, 2, RolesUpdatedPayload{
 			Roles:  newRoles,
 			Domain: "test",
@@ -185,9 +175,6 @@ func TestFoldUserProperty_RolesUpdatedPreservesEmail(t *testing.T) {
 		if state.Email != email {
 			t.Errorf("email changed: %q → %q", email, state.Email)
 		}
-		if len(state.Roles) != len(newRoles) {
-			t.Errorf("roles len = %d, want %d", len(state.Roles), len(newRoles))
-		}
 	})
 }
 
@@ -196,7 +183,6 @@ func TestFoldUserProperty_UnknownEventNoChange(t *testing.T) {
 		email := rapidEmail().Draw(t, "email")
 		initial := UserState{
 			Email: email,
-			Roles: []Role{RoleUser},
 		}
 		unknownEvt, err := event.NewEvent(
 			event.Type("FutureUnknownEvent"), propAggID, aggregateTypeUser, 1,
@@ -212,9 +198,6 @@ func TestFoldUserProperty_UnknownEventNoChange(t *testing.T) {
 		if state.Email != initial.Email {
 			t.Errorf("email changed on unknown event")
 		}
-		if len(state.Roles) != len(initial.Roles) {
-			t.Errorf("roles changed on unknown event")
-		}
 	})
 }
 
@@ -226,7 +209,6 @@ func TestFoldUserProperty_Idempotency(t *testing.T) {
 		evt := mustPropEvent(eventUserRegistered, 1, UserRegisteredPayload{
 			Email:       email,
 			DisplayName: displayName,
-			Roles:       []Role{RoleUser},
 		})
 		s1, err := foldUser(UserState{}, evt)
 		if err != nil {

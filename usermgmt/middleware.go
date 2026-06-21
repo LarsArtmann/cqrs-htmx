@@ -13,6 +13,16 @@ type userContextKeyType struct{}
 
 var userContextKey userContextKeyType //nolint:gochecknoglobals // sentinel type for context keys, standard Go pattern
 
+type sessionOriginKeyType struct{}
+
+var sessionOriginKey sessionOriginKeyType //nolint:gochecknoglobals // stores impersonator info from session
+// sessionOriginInfo stores the actor and impersonator extracted from a session.
+// Stored in context by authenticateRequest for audit-trail purposes.
+type sessionOriginInfo struct {
+	ActorID        string
+	ImpersonatorID string // empty if not impersonating
+}
+
 // WithUser stores the authenticated User in the context.
 func WithUser(ctx context.Context, user *User) context.Context {
 	return context.WithValue(ctx, userContextKey, user)
@@ -38,21 +48,18 @@ func UserFromContextOr(ctx context.Context, fallback *User) *User {
 
 // NewSessionMiddleware returns HTTP middleware that authenticates requests
 // via session cookie or Bearer token and stores the User in context.
+// When the session has an Impersonation origin, the impersonator info is also
+// stored for retrieval via ImpersonatorIDFromRequest.
+//
+// To bridge impersonation info to cqrs-htmx's context chain:
+//
+//	if id := usermgmt.ImpersonatorIDFromRequest(r); id != "" {
+//	    ctx = cqrshtmx.WithImpersonatorID(ctx, id)
+//	}
 func NewSessionMiddleware(service *Service, cookieName string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token := extractToken(r, cookieName)
-			if token != "" {
-				if user, err := service.Authenticate(r.Context(), token); err == nil {
-					r = r.WithContext(WithUser(r.Context(), user))
-				} else {
-					slog.DebugContext(
-						r.Context(), "session authentication failed",
-						"error", err,
-						"cookie_name", cookieName,
-					)
-				}
-			}
+			r = authenticateRequest(service, cookieName, w, r)
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -73,6 +80,20 @@ func UserIDFromRequest(r *http.Request) string {
 	return ""
 }
 
+// ImpersonatorIDFromRequest extracts the impersonator's user ID from the
+// request context. Returns empty string if the request is not an impersonation
+// session. Bridge to cqrs-htmx's context chain as shown in NewSessionMiddleware docs.
+func ImpersonatorIDFromRequest(r *http.Request) string {
+	if r == nil {
+		return ""
+	}
+	info, ok := r.Context().Value(sessionOriginKey).(*sessionOriginInfo)
+	if !ok || info == nil {
+		return ""
+	}
+	return info.ImpersonatorID
+}
+
 func extractToken(r *http.Request, cookieName string) string {
 	if c, err := r.Cookie(cookieName); err == nil && c.Value != "" {
 		return c.Value
@@ -82,4 +103,30 @@ func extractToken(r *http.Request, cookieName string) string {
 		return token
 	}
 	return ""
+}
+
+// authenticateRequest authenticates the request via session token and enriches
+// the context with User and session origin info (actor + impersonator).
+func authenticateRequest(service *Service, cookieName string, _ http.ResponseWriter, r *http.Request) *http.Request {
+	token := extractToken(r, cookieName)
+	if token == "" {
+		return r
+	}
+	user, err := service.Authenticate(r.Context(), token)
+	if err != nil {
+		slog.DebugContext(r.Context(), "session authentication failed",
+			"error", err, "cookie_name", cookieName)
+		return r
+	}
+	ctx := WithUser(r.Context(), user)
+	if session, err := service.sessions.Find(r.Context(), token); err == nil {
+		info := &sessionOriginInfo{ //nolint:exhaustruct // ImpersonatorID set conditionally below
+			ActorID: session.ActorID.String(),
+		}
+		if imp, ok := session.Origin.(Impersonation); ok {
+			info.ImpersonatorID = imp.By.String()
+		}
+		ctx = context.WithValue(ctx, sessionOriginKey, info)
+	}
+	return r.WithContext(ctx)
 }

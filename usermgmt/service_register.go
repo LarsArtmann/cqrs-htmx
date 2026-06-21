@@ -91,7 +91,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 		)
 	}
 
-	session, err := s.sessions.Create(ctx, req.ID, s.sessionTTL)
+	session, err := s.createSession(ctx, req.ID)
 	if err != nil {
 		return nil, withUserIDContext(
 			event.NewTransient("internal", "create session").WithCause(err), req.ID,
@@ -135,6 +135,18 @@ func (s *Service) revokeSessionsBestEffort(ctx context.Context, userID UserID, f
 	if err := s.sessions.DeleteByUserID(ctx, userID); err != nil {
 		s.logger.Warn("usermgmt: "+failureReason, "user_id", userID, "error", err)
 	}
+}
+
+// createSession creates a new session for the user and persists it to the store.
+func (s *Service) createSession(ctx context.Context, userID UserID) (*Session, error) {
+	session, err := NewSession(userID, s.sessionTTL)
+	if err != nil {
+		return nil, event.NewTransient("internal", "create session").WithCause(err)
+	}
+	if err := s.sessions.Create(ctx, session); err != nil {
+		return nil, event.NewTransient("internal", "store session").WithCause(err)
+	}
+	return session, nil
 }
 
 func (s *Service) emit(userID UserID, evt any) {

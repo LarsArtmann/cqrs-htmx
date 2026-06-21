@@ -118,31 +118,23 @@ func (s *SQLSessionStore) Close() error {
 	return nil
 }
 
-// Create generates a new session for the user with the given TTL and persists it.
-func (s *SQLSessionStore) Create(
-	ctx context.Context, userID UserID, ttl time.Duration,
-) (*Session, error) {
-	session, err := NewSession(userID, ttl)
-	if err != nil {
-		return nil, event.NewTransient("session_create_failed",
-			fmt.Sprintf("create session for user %q", userID)).WithCause(err)
-	}
-
+// Create persists a pre-built session.
+func (s *SQLSessionStore) Create(ctx context.Context, session *Session) error {
 	p1 := s.placeholder(1)
 	p2 := s.placeholder(2)
 	p3 := s.placeholder(3)
 	p4 := s.placeholder(4)
 
-	_, err = s.db.ExecContext(
+	_, err := s.db.ExecContext(
 		ctx,
 		`INSERT INTO user_sessions (token, user_id, created_at, expires_at)
 		 VALUES (`+p1+`, `+p2+`, `+p3+`, `+p4+`)`,
-		session.Token, userID.Get(), session.CreatedAt, session.ExpiresAt,
+		session.Token, session.UserID.Get(), session.CreatedAt, session.ExpiresAt,
 	)
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_session.insert_failed", "insert session")
+		return event.WrapTransient(err, "usermgmt.sql_session.insert_failed", "insert session")
 	}
-	return session, nil
+	return nil
 }
 
 // Find returns the session for the given token, or ErrSessionNotFound.
@@ -170,6 +162,8 @@ func (s *SQLSessionStore) Find(ctx context.Context, token string) (*Session, err
 	return &Session{
 		Token:     dbToken,
 		UserID:    NewUserID(dbUserID),
+		ActorID:   ActorIDFromUser(NewUserID(dbUserID)),
+		Origin:    DirectLogin{AuthenticatedAs: ActorIDFromUser(NewUserID(dbUserID))},
 		CreatedAt: createdAt,
 		ExpiresAt: expiresAt,
 	}, nil

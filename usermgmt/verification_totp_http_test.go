@@ -32,7 +32,7 @@ func setupAuthenticatedHandler(t *testing.T, cfg ServiceConfig) (*Service, http.
 	grantTestRole(t, svc, reg.User.ID, RoleAdmin)
 
 	// UpdateRoles revokes sessions — create a fresh one.
-	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
+	sess, err := svc.createSession(context.Background(), reg.User.ID)
 	if err != nil {
 		t.Fatalf("Create session: %v", err)
 	}
@@ -307,7 +307,7 @@ func TestHandlers_ImportRateLimit(t *testing.T) {
 		t.Fatalf("Register: %v", err)
 	}
 	grantTestRole(t, svc, reg.User.ID, RoleAdmin)
-	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
+	sess, err := svc.createSession(context.Background(), reg.User.ID)
 	if err != nil {
 		t.Fatalf("Create session: %v", err)
 	}
@@ -343,7 +343,7 @@ func TestHandlers_TOTPRateLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
-	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
+	sess, err := svc.createSession(context.Background(), reg.User.ID)
 	if err != nil {
 		t.Fatalf("Create session: %v", err)
 	}
@@ -378,7 +378,7 @@ func TestHandlers_VerificationRateLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Register: %v", err)
 	}
-	sess, err := svc.sessions.Create(context.Background(), reg.User.ID, defaultSessionTTL)
+	sess, err := svc.createSession(context.Background(), reg.User.ID)
 	if err != nil {
 		t.Fatalf("Create session: %v", err)
 	}

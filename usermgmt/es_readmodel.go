@@ -280,17 +280,24 @@ func (m *UserReadModel) FindByUserID(userID UserID) (*User, bool) {
 
 var _ event.Projection = (*UserReadModel)(nil)
 
-func aggIDFromUser(userID UserID) (id.AggregateID, error) {
-	aggID, err := id.ParseAggregateID(userID.Get())
+// aggIDFromBranded converts any branded string ID to an AggregateID.
+// Shared by aggIDFromUser, aggIDFromTenant, aggIDFromBot — eliminates
+// triplicated ParseAggregateID + Wrapf boilerplate.
+func aggIDFromBranded(raw, sentinel string) (id.AggregateID, error) {
+	aggID, err := id.ParseAggregateID(raw)
 	if err != nil {
 		return id.AggregateID{}, event.Wrapf(
 			err,
 			event.Infrastructure,
-			"usermgmt.readmodel.invalid_userid",
-			"invalid UserID for AggregateID conversion",
+			sentinel,
+			"invalid branded ID for AggregateID conversion",
 		)
 	}
 	return aggID, nil
+}
+
+func aggIDFromUser(userID UserID) (id.AggregateID, error) {
+	return aggIDFromBranded(userID.Get(), "usermgmt.readmodel.invalid_userid")
 }
 
 func nowUTC() time.Time { return time.Now().UTC() }

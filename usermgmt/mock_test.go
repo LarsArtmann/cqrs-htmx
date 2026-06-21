@@ -4,28 +4,26 @@ import (
 	"context"
 	"errors"
 	"sync"
-	"time"
 )
 
 // mockSessionStore is a configurable test double for SessionStore.
 type mockSessionStore struct {
 	mu               sync.RWMutex
-	CreateFn         func(ctx context.Context, userID UserID, ttl time.Duration) (*Session, error)
+	CreateFn         func(ctx context.Context, session *Session) error
 	FindFn           func(ctx context.Context, token string) (*Session, error)
 	DeleteFn         func(ctx context.Context, token string) error
 	DeleteByUserIDFn func(ctx context.Context, userID UserID) error
 }
 
 func (m *mockSessionStore) Create(
-	ctx context.Context, userID UserID, ttl time.Duration,
-) (*Session, error) {
+	ctx context.Context, session *Session,
+) error {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	if m.CreateFn != nil {
-		return m.CreateFn(ctx, userID, ttl)
+		return m.CreateFn(ctx, session)
 	}
-	s, _ := NewSession(userID, ttl)
-	return s, nil
+	return nil
 }
 
 func (m *mockSessionStore) Find(ctx context.Context, token string) (*Session, error) {

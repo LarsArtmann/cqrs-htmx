@@ -43,12 +43,18 @@ func TestSQLSessionStore_EvictExpired(t *testing.T) {
 	ctx := context.Background()
 	uid := NewUserID("expire-test")
 
-	_, err := store.Create(ctx, uid, -1*time.Second)
+	s1, err := NewSession(uid, -1*time.Second)
 	if err != nil {
+		t.Fatalf("NewSession expired: %v", err)
+	}
+	if err := store.Create(ctx, s1); err != nil {
 		t.Fatalf("Create expired session: %v", err)
 	}
-	_, err = store.Create(ctx, uid, 1*time.Hour)
+	s2, err := NewSession(uid, 1*time.Hour)
 	if err != nil {
+		t.Fatalf("NewSession live: %v", err)
+	}
+	if err := store.Create(ctx, s2); err != nil {
 		t.Fatalf("Create live session: %v", err)
 	}
 
@@ -80,8 +86,11 @@ func TestSQLSessionStore_StartCleanupSweeper(t *testing.T) {
 	defer cancel()
 
 	uid := NewUserID("sweeper-test")
-	_, err := store.Create(ctx, uid, -1*time.Second)
+	expired, err := NewSession(uid, -1*time.Second)
 	if err != nil {
+		t.Fatalf("NewSession expired: %v", err)
+	}
+	if err := store.Create(ctx, expired); err != nil {
 		t.Fatalf("Create expired session: %v", err)
 	}
 

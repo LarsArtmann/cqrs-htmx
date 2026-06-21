@@ -8,6 +8,8 @@ import (
 const (
 	aggregateTypeUser       event.AggregateType = "User"
 	aggregateTypeMembership event.AggregateType = "Membership"
+	aggregateTypeTenant     event.AggregateType = "Tenant"
+	aggregateTypeBot        event.AggregateType = "Bot"
 
 	eventUserRegistered          event.Type = "UserRegistered"
 	eventRolesUpdated            event.Type = "RolesUpdated"
@@ -26,6 +28,14 @@ const (
 	eventMemberRolesChanged event.Type = "MemberRolesChanged"
 	eventMemberRemoved      event.Type = "MemberRemoved"
 
+	eventTenantCreated     event.Type = "TenantCreated"
+	eventTenantSuspended   event.Type = "TenantSuspended"
+	eventTenantReactivated event.Type = "TenantReactivated"
+	eventTenantDeleted     event.Type = "TenantDeleted"
+
+	eventBotRegistered event.Type = "BotRegistered"
+	eventBotDeleted    event.Type = "BotDeleted"
+
 	cmdRegisterUser          command.Type = "RegisterUser"
 	cmdUpdateRoles           command.Type = "UpdateRoles"
 	cmdChangeEmail           command.Type = "ChangeEmail"
@@ -42,6 +52,14 @@ const (
 	cmdAddMember         command.Type = "AddMember"
 	cmdUpdateMemberRoles command.Type = "UpdateMemberRoles"
 	cmdRemoveMember      command.Type = "RemoveMember"
+
+	cmdCreateTenant     command.Type = "CreateTenant"
+	cmdSuspendTenant    command.Type = "SuspendTenant"
+	cmdReactivateTenant command.Type = "ReactivateTenant"
+	cmdDeleteTenant     command.Type = "DeleteTenant"
+
+	cmdRegisterBot command.Type = "RegisterBot"
+	cmdDeleteBot   command.Type = "DeleteBot"
 )
 
 var allUserEventTypes = []event.Type{
@@ -65,6 +83,18 @@ var allMembershipEventTypes = []event.Type{
 	eventMemberAdded,
 	eventMemberRolesChanged,
 	eventMemberRemoved,
+}
+
+var allTenantEventTypes = []event.Type{
+	eventTenantCreated,
+	eventTenantSuspended,
+	eventTenantReactivated,
+	eventTenantDeleted,
+}
+
+var allBotEventTypes = []event.Type{
+	eventBotRegistered,
+	eventBotDeleted,
 }
 
 // currentSchemaVersion is the payload schema version for all new events.

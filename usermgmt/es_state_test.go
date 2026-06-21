@@ -37,26 +37,24 @@ func TestFoldUser_EmptyState(t *testing.T) {
 	if state.DisplayName != "Alice" {
 		t.Errorf("DisplayName = %q", state.DisplayName)
 	}
-	if len(state.Roles) != 1 || state.Roles[0] != RoleUser {
-		t.Errorf("Roles = %v", state.Roles)
-	}
 }
 
 func TestFoldUser_RolesUpdated(t *testing.T) {
-	initial := UserState{Email: "carol@example.com", Roles: []Role{RoleUser}}
+	initial := UserState{Email: "carol@example.com"}
 	state, err := foldUser(initial, makeEvent(t, eventRolesUpdated, 2, RolesUpdatedPayload{
 		Roles: []Role{RoleAdmin, RoleOwner}, Domain: "domain1",
 	}))
 	if err != nil {
 		t.Fatalf("foldUser: %v", err)
 	}
-	if len(state.Roles) != 2 || state.Roles[0] != RoleAdmin || state.Roles[1] != RoleOwner {
-		t.Errorf("Roles = %v", state.Roles)
+	// Roles are no longer part of UserState — verify state is otherwise unchanged.
+	if state.Email != "carol@example.com" {
+		t.Errorf("Email changed: got %q", state.Email)
 	}
 }
 
 func TestFoldUser_EmailChanged(t *testing.T) {
-	initial := UserState{Email: "old@example.com", Roles: []Role{RoleUser}}
+	initial := UserState{Email: "old@example.com"}
 	state, err := foldUser(initial, makeEvent(t, eventEmailChanged, 2, EmailChangedPayload{Email: "new@example.com"}))
 	if err != nil {
 		t.Fatalf("foldUser: %v", err)
@@ -67,7 +65,7 @@ func TestFoldUser_EmailChanged(t *testing.T) {
 }
 
 func TestFoldUser_DisplayNameChanged(t *testing.T) {
-	initial := UserState{Email: "d@example.com", DisplayName: "Old", Roles: []Role{RoleUser}}
+	initial := UserState{Email: "d@example.com", DisplayName: "Old"}
 	state, err := foldUser(
 		initial,
 		makeEvent(t, eventDisplayNameChanged, 2, DisplayNameChangedPayload{DisplayName: "New Name"}),
@@ -81,7 +79,7 @@ func TestFoldUser_DisplayNameChanged(t *testing.T) {
 }
 
 func TestFoldUser_UserDeleted(t *testing.T) {
-	initial := UserState{Email: "e@example.com", Roles: []Role{RoleUser}}
+	initial := UserState{Email: "e@example.com"}
 	state, err := foldUser(initial, makeEvent(t, eventUserDeleted, 2, UserDeletedPayload{Reason: "GDPR"}))
 	if err != nil {
 		t.Fatalf("foldUser: %v", err)
@@ -95,7 +93,7 @@ func TestFoldUser_UserDeleted(t *testing.T) {
 }
 
 func TestFoldUser_CredentialAdded(t *testing.T) {
-	initial := UserState{Email: "f@example.com", Roles: []Role{RoleUser}}
+	initial := UserState{Email: "f@example.com"}
 	state, err := foldUser(initial, makeEvent(t, eventCredentialAdded, 2, CredentialAddedPayload{
 		ID:              []byte{1, 2, 3},
 		PublicKey:       []byte{4, 5, 6},
@@ -115,7 +113,6 @@ func TestFoldUser_CredentialAdded(t *testing.T) {
 func TestFoldUser_CredentialRemoved(t *testing.T) {
 	initial := UserState{
 		Email: "g@example.com",
-		Roles: []Role{RoleUser},
 		Credentials: []WebAuthnCredential{
 			{ID: []byte{1, 2, 3}},
 			{ID: []byte{4, 5, 6}},
@@ -160,13 +157,10 @@ func TestFoldUser_MultipleEvents(t *testing.T) {
 	if state.DisplayName != "Updated" {
 		t.Errorf("DisplayName = %q", state.DisplayName)
 	}
-	if len(state.Roles) != 1 || state.Roles[0] != RoleAdmin {
-		t.Errorf("Roles = %v", state.Roles)
-	}
 }
 
 func TestFoldUser_UnknownEvent(t *testing.T) {
-	initial := UserState{Email: "u@example.com", Roles: []Role{RoleUser}}
+	initial := UserState{Email: "u@example.com"}
 	unknownPayload, _ := marshalPayload(map[string]string{"data": "whatever"})
 	unknownEvt, err := event.NewEvent(
 		event.Type("SomeFutureEvent"), testAggID, aggregateTypeUser, 2,
