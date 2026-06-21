@@ -2,11 +2,11 @@ package cqrshtmx
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
@@ -85,7 +85,10 @@ func (a *App) handleCommandDispatch(
 	defer cancel()
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		a.handleErr(w, r, ctx, cfg, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err))
+		a.handleErr(w, r, ctx, cfg, event.Compose(
+			event.Newf(event.Transient, "cqrshtmx.dispatch.command_failed", "dispatch command %s", cmdType),
+			err,
+		))
 		return
 	}
 
@@ -99,8 +102,8 @@ func (a *App) executePreDispatchChecks(
 	cfg *handlerConfig,
 ) error {
 	if cfg.requireMethod != "" && r.Method != cfg.requireMethod {
-		a.errorHandler(w, r, fmt.Errorf("%w: got %s, want %s",
-			ErrMethodNotAllowed, r.Method, cfg.requireMethod))
+		a.errorHandler(w, r, event.Wrapf(ErrMethodNotAllowed, event.Rejection,
+			"cqrshtmx.handler.method_not_allowed", "got %s, want %s", r.Method, cfg.requireMethod))
 		return ErrMethodNotAllowed
 	}
 
@@ -175,7 +178,8 @@ func (a *App) handleQueryDispatch(
 
 	qry, err := cfg.queryDecoder(r)
 	if err != nil {
-		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDecodeFailed, qryType, err)
+		wrappedErr := event.Wrapf(err, event.Rejection,
+			"cqrshtmx.decode.query_failed", "decode query %s", qryType)
 		a.handleErr(w, r, ctx, cfg, wrappedErr)
 		return
 	}
@@ -190,7 +194,10 @@ func (a *App) handleQueryDispatch(
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		a.handleErr(w, r, ctx, cfg, fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err))
+		a.handleErr(w, r, ctx, cfg, event.Compose(
+			event.Newf(event.Transient, "cqrshtmx.dispatch.query_failed", "dispatch query %s", qryType),
+			err,
+		))
 		return
 	}
 

@@ -3,14 +3,13 @@ package usermgmt
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"golang.org/x/oauth2"
 )
 
@@ -53,19 +52,18 @@ type OAuth2ProviderConfig struct {
 // Validate returns an error if the configuration is incomplete or inconsistent.
 func (c OAuth2ProviderConfig) Validate() error {
 	if c.ClientID == "" {
-		return errors.New("oauth2 provider: ClientID is required")
+		return event.NewRejection("usermgmt.oauth2.client_id_required", "oauth2 provider: ClientID is required")
 	}
 	if c.ClientSecret == "" {
-		return errors.New("oauth2 provider: ClientSecret is required")
+		return event.NewRejection("usermgmt.oauth2.client_secret_required", "oauth2 provider: ClientSecret is required")
 	}
 	if c.RedirectURL == "" {
-		return errors.New("oauth2 provider: RedirectURL is required")
+		return event.NewRejection("usermgmt.oauth2.redirect_url_required", "oauth2 provider: RedirectURL is required")
 	}
 	if c.IssuerURL == "" {
 		if c.AuthURL == "" || c.TokenURL == "" || c.UserInfoURL == "" {
-			return errors.New(
-				"oauth2 provider: when IssuerURL is empty, AuthURL, TokenURL, and UserInfoURL are required",
-			)
+			return event.NewRejection("usermgmt.oauth2.endpoints_required",
+				"oauth2 provider: when IssuerURL is empty, AuthURL, TokenURL, and UserInfoURL are required")
 		}
 	}
 	return nil
@@ -101,7 +99,7 @@ type oauth2UserInfo struct {
 // and returns an initialized provider.
 func initOAuth2Provider(ctx context.Context, name string, cfg OAuth2ProviderConfig) (*oauth2Provider, error) {
 	if err := cfg.Validate(); err != nil {
-		return nil, fmt.Errorf("init oauth2 provider %q: %w", name, err)
+		return nil, event.Wrapf(err, event.Rejection, "usermgmt.oauth2.init_failed", "init oauth2 provider %q", name)
 	}
 
 	scopes := cfg.Scopes
@@ -122,7 +120,13 @@ func initOAuth2Provider(ctx context.Context, name string, cfg OAuth2ProviderConf
 	if cfg.IssuerURL != "" {
 		oidcProv, err := oidc.NewProvider(ctx, cfg.IssuerURL)
 		if err != nil {
-			return nil, fmt.Errorf("discover oidc provider %q: %w", name, err)
+			return nil, event.Wrapf(
+				err,
+				event.Transient,
+				"usermgmt.oauth2.discovery_failed",
+				"discover oidc provider %q",
+				name,
+			)
 		}
 		p.oidcProvider = oidcProv
 		p.verifier = oidcProv.Verifier(
@@ -157,7 +161,7 @@ func (p *oauth2Provider) exchangeAndExtractUser(
 		ctx, code, oauth2.VerifierOption(pkceVerifier),
 	)
 	if err != nil {
-		return oauth2UserInfo{}, fmt.Errorf("exchange oauth2 code: %w", err)
+		return oauth2UserInfo{}, event.WrapTransient(err, "usermgmt.oauth2.exchange_failed", "exchange oauth2 code")
 	}
 
 	if p.oidcProvider != nil {
@@ -171,11 +175,14 @@ func (p *oauth2Provider) extractFromIDToken(
 ) (oauth2UserInfo, error) {
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return oauth2UserInfo{}, errors.New("id_token missing from oauth2 token response")
+		return oauth2UserInfo{}, event.NewTransient(
+			"usermgmt.oauth2.id_token_missing",
+			"id_token missing from oauth2 token response",
+		)
 	}
 	idToken, err := p.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
-		return oauth2UserInfo{}, fmt.Errorf("verify id_token: %w", err)
+		return oauth2UserInfo{}, event.WrapTransient(err, "usermgmt.oauth2.verify_failed", "verify id_token")
 	}
 	var claims struct {
 		Sub           string `json:"sub"`
@@ -184,7 +191,7 @@ func (p *oauth2Provider) extractFromIDToken(
 		Name          string `json:"name"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
-		return oauth2UserInfo{}, fmt.Errorf("extract id_token claims: %w", err)
+		return oauth2UserInfo{}, event.WrapTransient(err, "usermgmt.oauth2.claims_failed", "extract id_token claims")
 	}
 	return oauth2UserInfo{
 		Subject:       claims.Sub,
@@ -198,18 +205,21 @@ func (p *oauth2Provider) fetchUserInfo(ctx context.Context, token *oauth2.Token)
 	client := p.config.Client(ctx, token)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.userInfoURL, nil)
 	if err != nil {
-		return oauth2UserInfo{}, fmt.Errorf("create userinfo request: %w", err)
+		return oauth2UserInfo{}, event.WrapTransient(
+			err,
+			"usermgmt.oauth2.userinfo_request_failed",
+			"create userinfo request",
+		)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return oauth2UserInfo{}, fmt.Errorf("fetch userinfo: %w", err)
+		return oauth2UserInfo{}, event.WrapTransient(err, "usermgmt.oauth2.userinfo_fetch_failed", "fetch userinfo")
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return oauth2UserInfo{}, fmt.Errorf(
-			"userinfo returned %d: %s", resp.StatusCode, string(body),
-		)
+		return oauth2UserInfo{}, event.Newf(event.Transient, "usermgmt.oauth2.userinfo_status",
+			"userinfo returned %d: %s", resp.StatusCode, string(body))
 	}
 	// GitHub uses "id" as subject and "login" as display name
 	var raw struct {
@@ -221,7 +231,11 @@ func (p *oauth2Provider) fetchUserInfo(ctx context.Context, token *oauth2.Token)
 		EmailVerified bool        `json:"email_verified"`
 	}
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&raw); err != nil {
-		return oauth2UserInfo{}, fmt.Errorf("decode userinfo response: %w", err)
+		return oauth2UserInfo{}, event.WrapTransient(
+			err,
+			"usermgmt.oauth2.userinfo_decode_failed",
+			"decode userinfo response",
+		)
 	}
 	subject := raw.Sub
 	if subject == "" {

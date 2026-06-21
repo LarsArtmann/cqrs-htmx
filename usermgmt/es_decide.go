@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -44,14 +43,18 @@ func decideRegisterUser(
 			Roles:       rolesCopy,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal UserRegistered payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.register.marshal_failed",
+				"marshal UserRegistered payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventUserRegistered, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create UserRegistered event: %w", err)
+			return nil, event.WrapInfrastructure(err, "usermgmt.register.event_failed", "create UserRegistered event")
 		}
 		return []event.Event{evt}, nil
 	}
@@ -77,14 +80,18 @@ func decideUpdateRoles(
 			Domain: domain,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal RolesUpdated payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.update_roles.marshal_failed",
+				"marshal RolesUpdated payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventRolesUpdated, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create RolesUpdated event: %w", err)
+			return nil, event.WrapInfrastructure(err, "usermgmt.update_roles.event_failed", "create RolesUpdated event")
 		}
 		return []event.Event{evt}, nil
 	}
@@ -109,14 +116,18 @@ func decideChangeEmail(
 			Email: email,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal EmailChanged payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.change_email.marshal_failed",
+				"marshal EmailChanged payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventEmailChanged, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create EmailChanged event: %w", err)
+			return nil, event.WrapInfrastructure(err, "usermgmt.change_email.event_failed", "create EmailChanged event")
 		}
 		return []event.Event{evt}, nil
 	}
@@ -141,14 +152,22 @@ func decideChangeDisplayName(
 			DisplayName: displayName,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal DisplayNameChanged payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.change_display_name.marshal_failed",
+				"marshal DisplayNameChanged payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventDisplayNameChanged, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create DisplayNameChanged event: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.change_display_name.event_failed",
+				"create DisplayNameChanged event",
+			)
 		}
 		return []event.Event{evt}, nil
 	}
@@ -170,18 +189,22 @@ func decideDeleteUser(
 			Reason: reason,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal UserDeleted payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.delete_user.marshal_failed",
+				"marshal UserDeleted payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventUserDeleted, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create UserDeleted event: %w", err)
+			return nil, event.WrapInfrastructure(err, "usermgmt.delete_user.event_failed", "create UserDeleted event")
 		}
 		marked, markErr := event.MarkTombstone(evt)
 		if markErr != nil {
-			return nil, fmt.Errorf("mark tombstone: %w", markErr)
+			return nil, event.WrapInfrastructure(markErr, "usermgmt.delete_user.tombstone_failed", "mark tombstone")
 		}
 		return []event.Event{marked}, nil
 	}
@@ -217,14 +240,22 @@ func decideAddCredential(
 			Name:            cred.Name,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal CredentialAdded payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.add_credential.marshal_failed",
+				"marshal CredentialAdded payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventCredentialAdded, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create CredentialAdded event: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.add_credential.event_failed",
+				"create CredentialAdded event",
+			)
 		}
 		return []event.Event{evt}, nil
 	}
@@ -257,14 +288,22 @@ func decideRemoveCredential(
 			ID: credentialID,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal CredentialRemoved payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.remove_credential.marshal_failed",
+				"marshal CredentialRemoved payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventCredentialRemoved, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create CredentialRemoved event: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.remove_credential.event_failed",
+				"create CredentialRemoved event",
+			)
 		}
 		return []event.Event{evt}, nil
 	}
@@ -288,14 +327,22 @@ func decideVerifyEmail(
 			Email: state.Email,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal EmailVerified payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.verify_email.marshal_failed",
+				"marshal EmailVerified payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventEmailVerified, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create EmailVerified event: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.verify_email.event_failed",
+				"create EmailVerified event",
+			)
 		}
 		return []event.Event{evt}, nil
 	}
@@ -321,14 +368,18 @@ func decideEnableTOTP(
 			Secret:        secret,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal TOTPEnabled payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.enable_totp.marshal_failed",
+				"marshal TOTPEnabled payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventTOTPEnabled, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create TOTPEnabled event: %w", err)
+			return nil, event.WrapInfrastructure(err, "usermgmt.enable_totp.event_failed", "create TOTPEnabled event")
 		}
 		return []event.Event{evt}, nil
 	}
@@ -352,14 +403,18 @@ func decideDisableTOTP(
 			SchemaVersion: currentSchemaVersion,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal TOTPDisabled payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.disable_totp.marshal_failed",
+				"marshal TOTPDisabled payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventTOTPDisabled, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create TOTPDisabled event: %w", err)
+			return nil, event.WrapInfrastructure(err, "usermgmt.disable_totp.event_failed", "create TOTPDisabled event")
 		}
 		return []event.Event{evt}, nil
 	}
@@ -395,14 +450,22 @@ func decideLinkExternalAccount(
 			DisplayName:   displayName,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal ExternalAccountLinked payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.link_external_account.marshal_failed",
+				"marshal ExternalAccountLinked payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventExternalAccountLinked, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create ExternalAccountLinked event: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.link_external_account.event_failed",
+				"create ExternalAccountLinked event",
+			)
 		}
 		return []event.Event{evt}, nil
 	}
@@ -443,14 +506,22 @@ func decideUnlinkExternalAccount(
 			Subject:       subject,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("marshal ExternalAccountUnlinked payload: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.unlink_external_account.marshal_failed",
+				"marshal ExternalAccountUnlinked payload",
+			)
 		}
 		evt, err := event.NewEvent(
 			eventExternalAccountUnlinked, aggID, aggregateTypeUser, version.Increment(),
 			payload,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create ExternalAccountUnlinked event: %w", err)
+			return nil, event.WrapInfrastructure(
+				err,
+				"usermgmt.unlink_external_account.event_failed",
+				"create ExternalAccountUnlinked event",
+			)
 		}
 		return []event.Event{evt}, nil
 	}

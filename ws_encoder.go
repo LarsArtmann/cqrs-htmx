@@ -2,9 +2,10 @@ package cqrshtmx
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"maps"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // WriteWSMessage serializes a WSMessage to the HTMX WebSocket JSON format and
@@ -27,11 +28,11 @@ func WriteWSMessage(w io.Writer, msg WSMessage) error {
 
 	data, err := json.Marshal(combined)
 	if err != nil {
-		return fmt.Errorf("write ws message: %w", err)
+		return event.Wrapf(err, event.Infrastructure, "cqrshtmx.ws.encode_marshal_failed", "write ws message")
 	}
 
 	if _, err := w.Write(data); err != nil {
-		return fmt.Errorf("write ws message: %w", err)
+		return event.Wrapf(err, event.Transient, "cqrshtmx.ws.encode_write_failed", "write ws message")
 	}
 
 	return nil
@@ -59,12 +60,12 @@ func WriteWSMessage(w io.Writer, msg WSMessage) error {
 func WriteWSMessageInto[T any](w io.Writer, body T, headers map[string]string) error {
 	bodyData, err := json.Marshal(body)
 	if err != nil {
-		return fmt.Errorf("write ws message into: marshal body: %w", err)
+		return event.Wrapf(err, event.Infrastructure, "cqrshtmx.ws.encode_body_marshal_failed", "marshal body")
 	}
 
 	var combined map[string]any
 	if err := json.Unmarshal(bodyData, &combined); err != nil {
-		return fmt.Errorf("write ws message into: unmarshal body: %w", err)
+		return event.Wrapf(err, event.Infrastructure, "cqrshtmx.ws.encode_body_unmarshal_failed", "unmarshal body")
 	}
 
 	if len(headers) > 0 {
@@ -73,11 +74,11 @@ func WriteWSMessageInto[T any](w io.Writer, body T, headers map[string]string) e
 
 	data, err := json.Marshal(combined)
 	if err != nil {
-		return fmt.Errorf("write ws message into: marshal combined: %w", err)
+		return event.Wrapf(err, event.Infrastructure, "cqrshtmx.ws.encode_combined_marshal_failed", "marshal combined")
 	}
 
 	if _, err := w.Write(data); err != nil {
-		return fmt.Errorf("write ws message into: write: %w", err)
+		return event.Wrapf(err, event.Transient, "cqrshtmx.ws.encode_write_failed", "write")
 	}
 
 	return nil

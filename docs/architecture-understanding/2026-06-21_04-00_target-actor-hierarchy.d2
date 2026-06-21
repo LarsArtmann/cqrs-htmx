@@ -1,0 +1,88 @@
+direction: down
+
+title: "TARGET STATE — Actor-Centric Identity Model (Users + Bots unified under Actor)"
+
+# Actor Union
+Actor: {
+  shape: rectangle
+  style: {fill: "#0f3460"; stroke: "#16c79a"; font-color: "#16c79a"}
+  label: "interface Actor (sealed)\n\n• ID(): ActorID\n• Type(): ActorType\n• DisplayName(): string\n• actor()  // unexported seal"
+}
+
+ActorID: {
+  shape: rectangle
+  style: {fill: "#0f3460"; stroke: "#16c79a"; font-color: "#16c79a"}
+  label: "interface ActorID (sealed)\n\n• String(): string\n• Kind(): ActorKind\n• actorID()  // unexported seal"
+}
+
+# Variants
+UserID: {
+  shape: rectangle
+  style: {fill: "#16213e"; stroke: "#16c79a"}
+  label: "UserID\n= brandid.ID[userBrand, string]\n\n• Get(): string\n• IsZero(): bool"
+}
+
+BotID: {
+  shape: rectangle
+  style: {fill: "#16213e"; stroke: "#16c79a"}
+  label: "BotID\n= brandid.ID[botBrand, string]\n\n• Get(): string\n• IsZero(): bool"
+}
+
+User: {
+  shape: rectangle
+  style: {fill: "#191919"; stroke: "#16c79a"}
+  label: "User — Human Actor\n\n• ID: UserID\n• Email: string\n• DisplayName: string\n• Credentials: []WebAuthnCredential\n• ExternalAccounts: []ExternalAccount\n• TOTPEnabled: bool"
+}
+
+Bot: {
+  shape: rectangle
+  style: {fill: "#191919"; stroke: "#16c79a"}
+  label: "Bot — Machine Actor\n\n• ID: BotID\n• Name: string\n• TenantID: TenantID\n• Scopes: []Scope\n• APIToken: APIToken (hashed)\n• LastSeenAt: time.Time"
+}
+
+# Tenant
+TenantID: {
+  shape: rectangle
+  style: {fill: "#1a1a2e"; stroke: "#e8c546"}
+  label: "TenantID\n= brandid.ID[tenantBrand, string]\n\nReplaces free-form domain string"
+}
+
+Tenant: {
+  shape: rectangle
+  style: {fill: "#16213e"; stroke: "#e8c546"}
+  label: "Tenant — Organizational Boundary\n\n• ID: TenantID\n• Name: string\n• Status: TenantStatus (active|suspended|deleted)\n• CreatedAt: time.Time"
+}
+
+# Membership
+Membership: {
+  shape: rectangle
+  style: {fill: "#1a1a2e"; stroke: "#16c79a"}
+  label: "Membership — Actor to Tenant link\n\n• ActorID: ActorID\n• TenantID: TenantID\n• Roles: []Role (scoped to THIS tenant)\n• AddedAt: time.Time"
+}
+
+# Authz
+Authz: {
+  shape: rectangle
+  style: {fill: "#0f3460"; stroke: "#16c79a"}
+  label: "Authz (RBAC with typed TenantID)\n\n• Enforce(actorID, tenantID, obj, act)\n• RolesForActor(ActorID, TenantID)\n• ImplicitRolesForActor(ActorID, TenantID)"
+}
+
+KeyInsight: {
+  shape: page
+  style: {fill: "#0d2e25"; stroke: "#16c79a"}
+  label: "KEY INSIGHT: Actor is the unifying abstraction.\nAuthorization, sessions, and audit all key on ActorID.\nUser and Bot are just auth-mechanism variants."
+}
+
+# Relationships
+Actor <- User: implements
+Actor <- Bot: implements
+ActorID <- UserID: implements
+ActorID <- BotID: implements
+
+User -> Membership: "belongs to"
+Bot -> Membership: "belongs to"
+Membership -> Tenant: "scoped within"
+Authz -> Membership: "queries"
+Tenant -> TenantID
+
+KeyInsight -> Actor: "unifies"

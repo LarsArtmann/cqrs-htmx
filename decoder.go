@@ -3,10 +3,11 @@ package cqrshtmx
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // DefaultMaxBodySize is the default maximum request body size (10 MB).
@@ -18,16 +19,13 @@ const DefaultMaxBodySize int64 = 10 << 20
 func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
 	body, readErr := readBody(r, maxBodySize)
 	if readErr != nil {
-		return out, fmt.Errorf("maxBodySize=%d: %w", maxBodySize, readErr)
+		return out, event.Wrapf(readErr, event.Rejection,
+			"cqrshtmx.decode.json.read_failed", "maxBodySize=%d", maxBodySize)
 	}
 
 	if decodeErr := json.Unmarshal(body, &out); decodeErr != nil {
-		return out, fmt.Errorf(
-			"maxBodySize=%d: %w: decode JSON: %w",
-			maxBodySize,
-			ErrDecodeFailed,
-			decodeErr,
-		)
+		return out, event.Wrapf(decodeErr, event.Rejection,
+			"cqrshtmx.decode.json.unmarshal_failed", "maxBodySize=%d: decode JSON", maxBodySize)
 	}
 
 	return out, nil
@@ -44,20 +42,12 @@ func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
 	closeErr := r.Body.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf(
-			"%w: read body (maxBodySize=%d): %w",
-			ErrDecodeFailed,
-			maxBodySize,
-			err,
-		)
+		return nil, event.Wrapf(err, event.Rejection,
+			"cqrshtmx.decode.body.read_failed", "read body (maxBodySize=%d)", maxBodySize)
 	}
 	if closeErr != nil {
-		return nil, fmt.Errorf(
-			"%w: close body (maxBodySize=%d): %w",
-			ErrDecodeFailed,
-			maxBodySize,
-			closeErr,
-		)
+		return nil, event.Wrapf(closeErr, event.Rejection,
+			"cqrshtmx.decode.body.close_failed", "close body (maxBodySize=%d)", maxBodySize)
 	}
 
 	if maxBodySize > 0 && int64(len(body)) > maxBodySize {
@@ -87,28 +77,21 @@ func decodeRequest[T, R any](
 func decodeFormBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
 	body, readErr := readBody(r, maxBodySize)
 	if readErr != nil {
-		return out, fmt.Errorf("maxBodySize=%d: %w", maxBodySize, readErr)
+		return out, event.Wrapf(readErr, event.Rejection,
+			"cqrshtmx.decode.form.read_failed", "maxBodySize=%d", maxBodySize)
 	}
 
 	// Restore body so ParseForm can read it.
 	r.Body = io.NopCloser(bytes.NewReader(body))
 
 	if parseErr := r.ParseForm(); parseErr != nil {
-		return out, fmt.Errorf(
-			"maxBodySize=%d: %w: parse form: %w",
-			maxBodySize,
-			ErrDecodeFailed,
-			parseErr,
-		)
+		return out, event.Wrapf(parseErr, event.Rejection,
+			"cqrshtmx.decode.form.parse_failed", "maxBodySize=%d: parse form", maxBodySize)
 	}
 
 	if decodeErr := decodeFormValues(r.PostForm, &out); decodeErr != nil {
-		return out, fmt.Errorf(
-			"maxBodySize=%d: %w: decode form values: %w",
-			maxBodySize,
-			ErrDecodeFailed,
-			decodeErr,
-		)
+		return out, event.Wrapf(decodeErr, event.Rejection,
+			"cqrshtmx.decode.form.values_failed", "maxBodySize=%d: decode form values", maxBodySize)
 	}
 
 	return out, nil
@@ -126,14 +109,13 @@ func decodeFormValues(form url.Values, target any) error {
 
 	encoded, err := json.Marshal(jsonMap)
 	if err != nil {
-		return fmt.Errorf("%w: marshal form values for keys=%v: %w", ErrDecodeFailed, form, err)
+		return event.Wrapf(err, event.Rejection,
+			"cqrshtmx.decode.form.marshal_failed", "marshal form values for keys=%v", form)
 	}
 
 	if err := json.Unmarshal(encoded, target); err != nil {
-		return fmt.Errorf(
-			"%w: unmarshal form values for target=%T: %w",
-			ErrDecodeFailed, target, err,
-		)
+		return event.Wrapf(err, event.Rejection,
+			"cqrshtmx.decode.form.unmarshal_failed", "unmarshal form values for target=%T", target)
 	}
 
 	return nil

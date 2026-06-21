@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -57,7 +56,7 @@ func (s *Service) FinishOAuthLogin(
 	storedProvider, pkceVerifier, err := s.oauth2States.Consume(state)
 	if err != nil {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "invalid_state")
-		return nil, fmt.Errorf("consume oauth2 state: %w", err)
+		return nil, event.WrapRejection(err, "usermgmt.oauth.state_consume_failed", "consume oauth2 state")
 	}
 	if storedProvider != provider {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "provider_mismatch")
@@ -67,7 +66,7 @@ func (s *Service) FinishOAuthLogin(
 	userInfo, err := prov.exchangeAndExtractUser(ctx, code, pkceVerifier)
 	if err != nil {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "token_exchange")
-		return nil, fmt.Errorf("%w: %w", ErrOAuthTokenExchange, err)
+		return nil, event.WrapRejection(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token")
 	}
 
 	if userInfo.Email == "" {
@@ -181,7 +180,7 @@ func (s *Service) linkExternalAccount(
 
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return fmt.Errorf("convert userID for link: %w", err)
+		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID for link")
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewLinkExternalAccountCmd(
 		aggID, provider, info.Subject, info.Email, info.DisplayName,
@@ -220,7 +219,7 @@ func (s *Service) markEmailVerifiedIfMatch(ctx context.Context, aggID id.Aggrega
 func (s *Service) UnlinkExternalAccount(ctx context.Context, userID UserID, provider string) error {
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
-		return fmt.Errorf("unlink external account: %w", ErrUserNotFound)
+		return event.WrapRejection(ErrUserNotFound, "usermgmt.service.user_not_found", "unlink external account")
 	}
 
 	var subject string
@@ -236,7 +235,7 @@ func (s *Service) UnlinkExternalAccount(ctx context.Context, userID UserID, prov
 
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return fmt.Errorf("convert userID for unlink: %w", err)
+		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID for unlink")
 	}
 
 	if err := s.dispatcher.Dispatch(ctx, NewUnlinkExternalAccountCmd(
@@ -255,7 +254,13 @@ func (s *Service) getOAuth2Provider(provider string) (*oauth2Provider, error) {
 	}
 	prov, ok := s.oauth2Providers[provider]
 	if !ok {
-		return nil, fmt.Errorf("%w: %s", ErrOAuthProviderNotFound, provider)
+		return nil, event.Wrapf(
+			ErrOAuthProviderNotFound,
+			event.Rejection,
+			"usermgmt.oauth.provider_not_found",
+			"%s",
+			provider,
+		)
 	}
 	return prov, nil
 }

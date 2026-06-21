@@ -3,10 +3,10 @@ package cqrshtmx
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
@@ -56,7 +56,7 @@ func makeWSDecoder[T, C any](errPrefix string, mapper func(T) (C, error)) func([
 	return func(data []byte) (C, error) {
 		var t T
 		if err := json.Unmarshal(data, &t); err != nil {
-			return zero[C](), fmt.Errorf("%s: %w", errPrefix, err)
+			return zero[C](), event.Wrapf(err, event.Rejection, "cqrshtmx.ws.decode_failed", "%s", errPrefix)
 		}
 		return mapper(t)
 	}
@@ -115,7 +115,8 @@ func (a *App) DispatchWSCommand(
 
 	cmd, err := decoder(data)
 	if err != nil {
-		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDecodeFailed, cmdType, err)
+		wrappedErr := event.Wrapf(err, event.Rejection,
+			"cqrshtmx.ws.decode_command_failed", "decode command %s", cmdType)
 		a.afterDispatchHook(ctx, r, wrappedErr)
 		return wrappedErr
 	}
@@ -129,7 +130,10 @@ func (a *App) DispatchWSCommand(
 	defer cancel()
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDispatchFailed, cmdType, err)
+		wrappedErr := event.Compose(
+			event.Newf(event.Transient, "cqrshtmx.ws.dispatch_command_failed", "dispatch command %s", cmdType),
+			err,
+		)
 		a.afterDispatchHook(ctx, r, wrappedErr)
 		return wrappedErr
 	}
@@ -177,7 +181,8 @@ func (a *App) DispatchWSQuery(
 
 	qry, err := decoder(data)
 	if err != nil {
-		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDecodeFailed, qryType, err)
+		wrappedErr := event.Wrapf(err, event.Rejection,
+			"cqrshtmx.ws.decode_query_failed", "decode query %s", qryType)
 		a.afterDispatchHook(ctx, r, wrappedErr)
 		return nil, wrappedErr
 	}
@@ -192,7 +197,10 @@ func (a *App) DispatchWSQuery(
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		wrappedErr := fmt.Errorf("%w: %s: %w", ErrDispatchFailed, qryType, err)
+		wrappedErr := event.Compose(
+			event.Newf(event.Transient, "cqrshtmx.ws.dispatch_query_failed", "dispatch query %s", qryType),
+			err,
+		)
 		a.afterDispatchHook(ctx, r, wrappedErr)
 		return nil, wrappedErr
 	}

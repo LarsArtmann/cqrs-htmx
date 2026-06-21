@@ -4,6 +4,7 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
 	github.com/starfederation/datastar-go v1.2.2
@@ -17,7 +18,6 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect

@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
@@ -30,7 +29,7 @@ func (s UserState) Exists() bool {
 func unmarshalPayload[T any](evt event.Event) (T, error) {
 	raw, err := applyUpcasters(evt.Type(), evt.Payload())
 	if err != nil {
-		return *new(T), fmt.Errorf("upcast payload: %w", err)
+		return *new(T), event.WrapCorruption(err, "usermgmt.payload.upcast_failed", "upcast payload")
 	}
 	var target T
 	if err := json.Unmarshal(raw, &target); err != nil {

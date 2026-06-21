@@ -247,7 +247,7 @@ func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		writeError(
 			w,
 			http.StatusBadRequest,
-			fmt.Errorf("%w: unmarshal register request: %w", ErrValidation, err).Error(),
+			fmt.Sprintf("%s: unmarshal register request: %s", ErrValidation, err),
 		)
 		return
 	}

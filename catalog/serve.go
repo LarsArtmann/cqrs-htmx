@@ -2,7 +2,6 @@ package cataloghtmx
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
@@ -10,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/d2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/openapi"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ServeOption configures HTTP handler behavior.
@@ -118,7 +118,8 @@ func D2Handler(cat *catalog.Catalog, opts ...ServeOption) http.HandlerFunc {
 func GenerateEventCatalog(cat *catalog.Catalog, outputDir string) error {
 	exporter := eventcatalog.NewExporter(outputDir)
 	if err := exporter.Export(cat); err != nil {
-		return fmt.Errorf("generate EventCatalog files in %q: %w", outputDir, err)
+		return errorfamily.Wrapf(err, errorfamily.Infrastructure,
+			"cataloghtmx.event_catalog.generate_failed", "generate EventCatalog files in %q", outputDir)
 	}
 
 	return nil

@@ -2,10 +2,10 @@ package usermgmt
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // RegisterCommands wires all user aggregate commands to the dispatcher.
@@ -23,7 +23,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdRegisterUser, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdRegisterUser,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -35,7 +41,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdUpdateRoles, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdUpdateRoles,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -47,7 +59,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdChangeEmail, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdChangeEmail,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -59,7 +77,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdChangeDisplayName, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdChangeDisplayName,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -71,7 +95,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdDeleteUser, err)
+		return event.Wrapf(err, event.Infrastructure, "usermgmt.dispatch.register_failed", "register %s", cmdDeleteUser)
 	}
 
 	if err := command.RegisterTyped(
@@ -83,7 +107,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdAddCredential, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdAddCredential,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -95,7 +125,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdRemoveCredential, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdRemoveCredential,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -107,7 +143,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdVerifyEmail, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdVerifyEmail,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -119,7 +161,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdEnableTOTP, err)
+		return event.Wrapf(err, event.Infrastructure, "usermgmt.dispatch.register_failed", "register %s", cmdEnableTOTP)
 	}
 
 	if err := command.RegisterTyped(
@@ -131,7 +173,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdDisableTOTP, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdDisableTOTP,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -145,7 +193,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdLinkExternalAccount, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdLinkExternalAccount,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -157,7 +211,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return fmt.Errorf("register %s: %w", cmdUnlinkExternalAccount, err)
+		return event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdUnlinkExternalAccount,
+		)
 	}
 
 	return nil

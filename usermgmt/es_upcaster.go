@@ -83,7 +83,8 @@ func (r *UpcasterRegistry) Upcast(eventType event.Type, raw []byte) ([]byte, err
 		}
 		upcasted, err := fn(current)
 		if err != nil {
-			return nil, fmt.Errorf("upcast %s v%d→v%d: %w", eventType, version, version+1, err)
+			return nil, event.Wrapf(err, event.Corruption, "usermgmt.upcast.failed",
+				"upcast %s v%d→v%d", eventType, version, version+1)
 		}
 		current = upcasted
 		version++

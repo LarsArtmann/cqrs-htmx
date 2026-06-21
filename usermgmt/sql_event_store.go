@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
@@ -56,11 +55,11 @@ func NewSQLEventStore(ctx context.Context, db *sql.DB, dialect string) (*SQLEven
 	}
 	store, err := storage.NewSQLEventStoreWithDialect(db, d)
 	if err != nil {
-		return nil, fmt.Errorf("create sql event store: %w", err)
+		return nil, event.WrapTransient(err, "usermgmt.sql_event_store.create_failed", "create sql event store")
 	}
 	// Upstream does not auto-migrate — apply the event schema ourselves.
 	if _, err := db.ExecContext(ctx, d.EventSchema()); err != nil {
-		return nil, fmt.Errorf("migrate sql event store: %w", err)
+		return nil, event.WrapTransient(err, "usermgmt.sql_event_store.migrate_failed", "migrate sql event store")
 	}
 	return store, nil
 }
@@ -74,9 +73,8 @@ func dialectToUpstream(dialect string) (sqlpkg.Dialect, error) {
 	case dialectSQLite, dialectSQLite3:
 		return sqlpkg.SQLiteDialect{}, nil
 	default:
-		return nil, fmt.Errorf(
-			"unsupported event store dialect %q: use postgres, pgx, sqlite, or sqlite3", dialect,
-		)
+		return nil, event.Newf(event.Rejection, "usermgmt.sql_event_store.unsupported_dialect",
+			"unsupported event store dialect %q: use postgres, pgx, sqlite, or sqlite3", dialect)
 	}
 }
 

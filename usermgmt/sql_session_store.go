@@ -43,7 +43,8 @@ func placeholderFor(dialect string) (placeholderFunc, error) {
 	case dialectSQLite, dialectSQLite3, dialectMySQL:
 		return func(i int) string { return "?" }, nil
 	default:
-		return nil, fmt.Errorf("unsupported dialect %q: use postgres, pgx, sqlite, sqlite3, or mysql", dialect)
+		return nil, event.Newf(event.Rejection, "usermgmt.sql_session.unsupported_dialect",
+			"unsupported dialect %q: use postgres, pgx, sqlite, sqlite3, or mysql", dialect)
 	}
 }
 
@@ -56,7 +57,7 @@ func NewSQLSessionStore(ctx context.Context, db *sql.DB, dialect string) (*SQLSe
 	}
 	s := &SQLSessionStore{db: db, placeholder: pf}
 	if err := s.migrateSessions(ctx, dialect); err != nil {
-		return nil, fmt.Errorf("migrate sql session store: %w", err)
+		return nil, event.WrapTransient(err, "usermgmt.sql_session.migrate_failed", "migrate sql session store")
 	}
 	return s, nil
 }
@@ -95,11 +96,16 @@ func (s *SQLSessionStore) migrateSessions(ctx context.Context, dialect string) e
 			INDEX idx_user_sessions_expires (expires_at)
 		);`
 	default:
-		return fmt.Errorf("unsupported dialect %q", dialect)
+		return event.Newf(
+			event.Rejection,
+			"usermgmt.sql_session.unsupported_dialect",
+			"unsupported dialect %q",
+			dialect,
+		)
 	}
 	_, err := s.db.ExecContext(ctx, ddl)
 	if err != nil {
-		return fmt.Errorf("exec ddl: %w", err)
+		return event.WrapTransient(err, "usermgmt.sql_session.exec_ddl_failed", "exec ddl")
 	}
 	return nil
 }
@@ -107,7 +113,7 @@ func (s *SQLSessionStore) migrateSessions(ctx context.Context, dialect string) e
 // Close closes the underlying database connection.
 func (s *SQLSessionStore) Close() error {
 	if err := s.db.Close(); err != nil {
-		return fmt.Errorf("close sql session store db: %w", err)
+		return event.WrapTransient(err, "usermgmt.sql_session.close_failed", "close sql session store db")
 	}
 	return nil
 }
@@ -134,7 +140,7 @@ func (s *SQLSessionStore) Create(
 		session.Token, userID.Get(), session.CreatedAt, session.ExpiresAt,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("insert session: %w", err)
+		return nil, event.WrapTransient(err, "usermgmt.sql_session.insert_failed", "insert session")
 	}
 	return session, nil
 }
@@ -158,7 +164,7 @@ func (s *SQLSessionStore) Find(ctx context.Context, token string) (*Session, err
 		return nil, ErrSessionNotFound
 	}
 	if err != nil {
-		return nil, fmt.Errorf("find session: %w", err)
+		return nil, event.WrapTransient(err, "usermgmt.sql_session.find_failed", "find session")
 	}
 
 	return &Session{
@@ -179,7 +185,7 @@ func (s *SQLSessionStore) Delete(ctx context.Context, token string) error {
 		token,
 	)
 	if err != nil {
-		return fmt.Errorf("delete session: %w", err)
+		return event.WrapTransient(err, "usermgmt.sql_session.delete_failed", "delete session")
 	}
 	return nil
 }
@@ -193,7 +199,7 @@ func (s *SQLSessionStore) DeleteByUserID(ctx context.Context, userID UserID) err
 		userID.Get(),
 	)
 	if err != nil {
-		return fmt.Errorf("delete sessions by user: %w", err)
+		return event.WrapTransient(err, "usermgmt.sql_session.delete_by_user_failed", "delete sessions by user")
 	}
 	return nil
 }
@@ -208,11 +214,11 @@ func (s *SQLSessionStore) EvictExpired(ctx context.Context) (int64, error) {
 		time.Now().UTC(),
 	)
 	if err != nil {
-		return 0, fmt.Errorf("evict expired sessions: %w", err)
+		return 0, event.WrapTransient(err, "usermgmt.sql_session.evict_failed", "evict expired sessions")
 	}
 	n, err := res.RowsAffected()
 	if err != nil {
-		return 0, fmt.Errorf("rows affected: %w", err)
+		return 0, event.WrapTransient(err, "usermgmt.sql_session.rows_affected_failed", "rows affected")
 	}
 	return n, nil
 }

@@ -21,7 +21,7 @@ func NewUserID() UserID {
 func parseID[T any](s string, parse func(string) (T, error), label string) (T, error) {
 	v, err := parse(s)
 	if err != nil {
-		return v, fmt.Errorf("parse %s: %w", label, err)
+		return v, event.Wrapf(err, event.Rejection, "cqrshtmx.context.id_parse_failed", "parse %s", label)
 	}
 	return v, nil
 }

@@ -1,9 +1,10 @@
 package usermgmt
 
 import (
-	"fmt"
 	"net/mail"
 	"strings"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // Email is a validated, normalized email address.
@@ -17,14 +18,20 @@ type Email string
 func ParseEmail(raw string) (Email, error) {
 	s := strings.ToLower(strings.TrimSpace(raw))
 	if s == "" {
-		return "", fmt.Errorf("%w: email is required", ErrValidation)
+		return "", event.WrapRejection(ErrValidation, "usermgmt.email.required", "email is required")
 	}
 	addr, err := mail.ParseAddress(s)
 	if err != nil {
-		return "", fmt.Errorf("%w: invalid email %q: %w", ErrValidation, s, err)
+		return "", event.Wrapf(ErrValidation, event.Rejection, "usermgmt.email.invalid", "invalid email %q", s)
 	}
 	if len(addr.Address) > maxEmailLength {
-		return "", fmt.Errorf("%w: email too long (max %d)", ErrValidation, maxEmailLength)
+		return "", event.Wrapf(
+			ErrValidation,
+			event.Rejection,
+			"usermgmt.email.too_long",
+			"email too long (max %d)",
+			maxEmailLength,
+		)
 	}
 	return Email(addr.Address), nil
 }

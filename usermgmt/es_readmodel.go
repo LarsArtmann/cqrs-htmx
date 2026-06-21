@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -50,7 +49,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventUserRegistered:
 		p, err := unmarshalPayload[UserRegisteredPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode UserRegistered in read model: %w", err)
+			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode UserRegistered in read model")
 		}
 		roles := make([]Role, len(p.Roles))
 		copy(roles, p.Roles)
@@ -67,7 +66,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventRolesUpdated:
 		p, err := unmarshalPayload[RolesUpdatedPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode RolesUpdated in read model: %w", err)
+			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode RolesUpdated in read model")
 		}
 		if u, ok := m.users[aggID]; ok {
 			roles := make([]Role, len(p.Roles))
@@ -79,7 +78,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventEmailChanged:
 		p, err := unmarshalPayload[EmailChangedPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode EmailChanged in read model: %w", err)
+			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode EmailChanged in read model")
 		}
 		if u, ok := m.users[aggID]; ok {
 			delete(m.emails, u.Email)
@@ -92,7 +91,11 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventDisplayNameChanged:
 		p, err := unmarshalPayload[DisplayNameChangedPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode DisplayNameChanged in read model: %w", err)
+			return event.WrapCorruption(
+				err,
+				"usermgmt.readmodel.decode_failed",
+				"decode DisplayNameChanged in read model",
+			)
 		}
 		if u, ok := m.users[aggID]; ok {
 			u.DisplayName = p.DisplayName
@@ -102,7 +105,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventCredentialAdded:
 		p, err := unmarshalPayload[CredentialAddedPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode CredentialAdded in read model: %w", err)
+			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode CredentialAdded in read model")
 		}
 		if u, ok := m.users[aggID]; ok {
 			u.Credentials = append(u.Credentials, newCredentialFromPayload(p, evt.OccurredAt()))
@@ -112,7 +115,11 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventCredentialRemoved:
 		p, err := unmarshalPayload[CredentialRemovedPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode CredentialRemoved in read model: %w", err)
+			return event.WrapCorruption(
+				err,
+				"usermgmt.readmodel.decode_failed",
+				"decode CredentialRemoved in read model",
+			)
 		}
 		if u, ok := m.users[aggID]; ok {
 			filtered := u.Credentials[:0]
@@ -143,7 +150,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventTOTPEnabled:
 		p, err := unmarshalPayload[TOTPEnabledPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode TOTPEnabled in read model: %w", err)
+			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode TOTPEnabled in read model")
 		}
 		if u, ok := m.users[aggID]; ok {
 			u.TOTPEnabled = true
@@ -161,7 +168,11 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventExternalAccountLinked:
 		p, err := unmarshalPayload[ExternalAccountLinkedPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode ExternalAccountLinked in read model: %w", err)
+			return event.WrapCorruption(
+				err,
+				"usermgmt.readmodel.decode_failed",
+				"decode ExternalAccountLinked in read model",
+			)
 		}
 		if u, ok := m.users[aggID]; ok {
 			u.ExternalAccounts = append(u.ExternalAccounts, ExternalAccount{
@@ -178,7 +189,11 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventExternalAccountUnlinked:
 		p, err := unmarshalPayload[ExternalAccountUnlinkedPayload](evt)
 		if err != nil {
-			return fmt.Errorf("decode ExternalAccountUnlinked in read model: %w", err)
+			return event.WrapCorruption(
+				err,
+				"usermgmt.readmodel.decode_failed",
+				"decode ExternalAccountUnlinked in read model",
+			)
 		}
 		if u, ok := m.users[aggID]; ok {
 			filtered := u.ExternalAccounts[:0]
@@ -268,7 +283,12 @@ var _ event.Projection = (*UserReadModel)(nil)
 func aggIDFromUser(userID UserID) (id.AggregateID, error) {
 	aggID, err := id.ParseAggregateID(userID.Get())
 	if err != nil {
-		return id.AggregateID{}, fmt.Errorf("invalid UserID for AggregateID conversion: %w", err)
+		return id.AggregateID{}, event.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.readmodel.invalid_userid",
+			"invalid UserID for AggregateID conversion",
+		)
 	}
 	return aggID, nil
 }

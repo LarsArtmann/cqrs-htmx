@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"fmt"
 	"net/mail"
 	"strconv"
 	"strings"
@@ -76,7 +75,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 
 	aggID, err := aggIDFromUser(req.ID)
 	if err != nil {
-		return nil, fmt.Errorf("convert userID: %w", err)
+		return nil, event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
 	}
 	err = s.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
 		aggID, req.Email, req.DisplayName, []Role{RoleViewer, RoleUser},
