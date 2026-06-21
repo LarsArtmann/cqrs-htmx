@@ -308,6 +308,35 @@
                 '';
               };
             };
+
+            render-diagrams = {
+              type = "app";
+              meta.description = "Render all .d2 source files under docs/ to SVG (dark canvas → theme 200, light → default)";
+              program = pkgs.writeShellApplication {
+                name = "render-diagrams";
+                runtimeInputs = [ pkgs.d2 ];
+                text = ''
+                  shopt -s nullglob
+                  found=0
+                  for file in docs/**/*.d2 docs/*.d2; do
+                    [ -f "$file" ] || continue
+                    found=1
+                    out="''${file%.d2}.svg"
+                    if sed -n '1,10p' "$file" | grep -qE 'style:\s*\{[^}]*fill:\s*"#[01][0-9a-fA-F]{5}"'; then
+                      echo "[dark]  $file"
+                      d2 --layout=elk --theme=200 "$file" "$out"
+                    else
+                      echo "[light] $file"
+                      d2 --layout=elk "$file" "$out"
+                    fi
+                  done
+                  if [ "$found" -eq 0 ]; then
+                    echo "No .d2 files found under docs/"
+                    exit 1
+                  fi
+                '';
+              };
+            };
           };
 
         };

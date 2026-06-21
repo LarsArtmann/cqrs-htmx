@@ -13,15 +13,15 @@
 
 ### Migration completed across all modules
 
-| Module | Violations Before | Violations After | Status |
-|--------|------------------|------------------|--------|
-| Root (cqrs-htmx) | 33 | 0 | ✅ Done |
-| usermgmt | 132 | 0 | ✅ Done |
-| catalog | 1 | 0 | ✅ Done |
-| examples/datastar-demo | 8 | 0 | ✅ Done |
-| examples/basic | 0 | 0 | ✅ Clean (no violations) |
-| integration_test | 0 | 0 | ✅ Clean (no violations) |
-| **TOTAL** | **175** | **0** | ✅ |
+| Module                 | Violations Before | Violations After | Status                   |
+| ---------------------- | ----------------- | ---------------- | ------------------------ |
+| Root (cqrs-htmx)       | 33                | 0                | ✅ Done                  |
+| usermgmt               | 132               | 0                | ✅ Done                  |
+| catalog                | 1                 | 0                | ✅ Done                  |
+| examples/datastar-demo | 8                 | 0                | ✅ Done                  |
+| examples/basic         | 0                 | 0                | ✅ Clean (no violations) |
+| integration_test       | 0                 | 0                | ✅ Clean (no violations) |
+| **TOTAL**              | **175**           | **0**            | ✅                       |
 
 ### What was converted
 
@@ -33,17 +33,18 @@
 
 ### Family assignment rules applied
 
-| Family | HTTP Status | Used for | Count |
-|--------|------------|----------|-------|
-| Rejection | 400 | parse/validation, bad config, invalid IDs, decode failures | ~45 |
-| Conflict | 409 | duplicates (user/email/credential/external-account) | (already classified) |
-| Transient | 503 | DB I/O, OAuth2 provider calls, SSE/WS stream writes | ~30 |
-| Corruption | 422 | projection payload unmarshal, upcaster failures | ~15 |
-| Infrastructure | 500 | marshal failures, event construction, nil deps, cmd registration | ~60 |
+| Family         | HTTP Status | Used for                                                         | Count                |
+| -------------- | ----------- | ---------------------------------------------------------------- | -------------------- |
+| Rejection      | 400         | parse/validation, bad config, invalid IDs, decode failures       | ~45                  |
+| Conflict       | 409         | duplicates (user/email/credential/external-account)              | (already classified) |
+| Transient      | 503         | DB I/O, OAuth2 provider calls, SSE/WS stream writes              | ~30                  |
+| Corruption     | 422         | projection payload unmarshal, upcaster failures                  | ~15                  |
+| Infrastructure | 500         | marshal failures, event construction, nil deps, cmd registration | ~60                  |
 
 ### Files changed (38 source files)
 
 **Root module (11 files):**
+
 - `errors.go` — sentinel migration + removed sync.Once machinery
 - `decoder.go` — 9 decode/read/form wraps
 - `handler.go` — 4 dispatch/method/decode wraps
@@ -52,6 +53,7 @@
 - `ws.go`, `ws_dispatch.go`, `ws_encoder.go` — 13 WS wraps
 
 **usermgmt module (22 files):**
+
 - `es_decide.go` (25), `es_dispatch.go` (12), `es_readmodel.go` (10)
 - `es_casbin_projection.go` (7), `es_projection_setup.go` (5)
 - `es_events.go` (1), `es_state.go` (1), `es_upcaster.go` (1)
@@ -62,10 +64,12 @@
 - `http.go` (1), `user.go` (1), `random.go` (1), `verification_totp_http.go` (1)
 
 **Other modules:**
+
 - `catalog/serve.go` (1)
 - `examples/datastar-demo/domain_commands.go` (6), `handlers_helpers.go` (2)
 
 ### Documentation
+
 - `AGENTS.md` updated with:
   - ErrorFamily command in Quick Reference table
   - Comprehensive family assignment rules (5 families → HTTP status)
@@ -109,18 +113,23 @@ After the auto-commit (`58e4b9e`), I fixed `wrapcheck` violations by replacing `
 ## c) NOT STARTED ❌
 
 ### 1. CI/flake.nix integration
+
 `branching-flow errorfamily .` is NOT in `flake.nix` as a lint app. Enforcement is documented only — no automated gate.
 
 ### 2. Pre-commit hook integration
+
 The pre-commit hook (`.git/hooks/pre-commit`) runs `buildflow` only. No `branching-flow errorfamily` check.
 
 ### 3. Error code constants
+
 All error codes are inline magic strings (e.g., `"usermgmt.totp.user_not_found"`). No typed constants prevent typos.
 
 ### 4. HTTP response body cleanup
+
 `DefaultErrorHandler` writes `err.Error()` to HTTP response, which includes `[Family:code]` bracket notation. Should use `*event.Error.Message` (clean message) or `*event.Error.JSON()` (RFC 7807 format) instead.
 
 ### 5. Error code naming convention test
+
 No test validates that all codes follow `package.area.detail` format.
 
 ---
@@ -165,33 +174,33 @@ Initially used `WrapInfrastructure` for projection decode errors in `es_readmode
 
 ## f) Top 25 Things to Get Done Next
 
-| # | Task | Impact | Effort | Priority |
-|---|------|--------|--------|----------|
-| 1 | Commit uncommitted Wrapf/nolint/AGENTS.md changes | HIGH | 2min | 🔴 NOW |
-| 2 | Fix 12 double-wrapped sentinels → return directly | HIGH | 15min | 🔴 NOW |
-| 3 | Add `branching-flow errorfamily --exit-code` to flake.nix as `.#errorfamily` app | HIGH | 10min | 🔴 NOW |
-| 4 | Add errorfamily check to pre-commit hook | MEDIUM | 5min | 🔴 NOW |
-| 5 | Add `branching-flow errorfamily .` to `nix run .#lint` | MEDIUM | 5min | 🟡 NEXT |
-| 6 | Verify `examples/catalog-demo` is clean (not yet checked) | LOW | 2min | 🟡 NEXT |
-| 7 | Extract error codes to typed constants in each package | MEDIUM | 30min | 🟡 NEXT |
-| 8 | Change `DefaultErrorHandler` to use `Message` field for response body | HIGH | 20min | 🟡 NEXT |
-| 9 | Add test: all error codes follow naming convention | LOW | 15min | 🟡 NEXT |
-| 10 | Unify `errorStatus` (usermgmt) and `MapError` (root) → single family-based mapper | HIGH | 45min | 🟠 LATER |
-| 11 | Add `errorfamily --format sarif` output for CI dashboards | LOW | 10min | 🟠 LATER |
-| 12 | Replace `fmt.Sprintf` exceptions in http.go with `event.NewRejection` | LOW | 5min | 🟠 LATER |
-| 13 | Add `WithContext` to sentinels for structured error context | MEDIUM | 20min | 🟠 LATER |
-| 14 | Document error code taxonomy in `docs/DOMAIN_LANGUAGE.md` | LOW | 15min | 🟠 LATER |
-| 15 | Audit `StructuredError` usage — make it the default error response format | MEDIUM | 30min | 🟠 LATER |
-| 16 | Add errorfamily to `nix flake check` | LOW | 5min | 🟠 LATER |
-| 17 | Consider `errorfamily.Registry.Clone()` for test isolation | LOW | 15min | ⚪ SOMEDAY |
-| 18 | Add OpenTelemetry integration for classified errors (span attributes from family) | LOW | 30min | ⚪ SOMEDAY |
-| 19 | Evaluate `samber/oops` bridge for application-layer enrichment | LOW | 20min | ⚪ SOMEDAY |
-| 20 | Add retry middleware using `event.IsRetryable` (Transient family) | MEDIUM | 45min | ⚪ SOMEDAY |
-| 21 | Add `errorfamily.ExitCode` to CLI examples in datastar-demo | LOW | 10min | ⚪ SOMEDAY |
-| 22 | Add changelog entry for go-error-family v0.4.0 adoption | LOW | 10min | ⚪ SOMEDAY |
-| 23 | Consider branded error code type (`type ErrorCode string`) | LOW | 30min | ⚪ SOMEDAY |
-| 24 | Add migration guide for consumers updating to latest version | LOW | 20min | ⚪ SOMEDAY |
-| 25 | Evaluate `RegisterStdlibDefaults` for third-party errors (sql, context, os) | LOW | 15min | ⚪ SOMEDAY |
+| #   | Task                                                                              | Impact | Effort | Priority   |
+| --- | --------------------------------------------------------------------------------- | ------ | ------ | ---------- |
+| 1   | Commit uncommitted Wrapf/nolint/AGENTS.md changes                                 | HIGH   | 2min   | 🔴 NOW     |
+| 2   | Fix 12 double-wrapped sentinels → return directly                                 | HIGH   | 15min  | 🔴 NOW     |
+| 3   | Add `branching-flow errorfamily --exit-code` to flake.nix as `.#errorfamily` app  | HIGH   | 10min  | 🔴 NOW     |
+| 4   | Add errorfamily check to pre-commit hook                                          | MEDIUM | 5min   | 🔴 NOW     |
+| 5   | Add `branching-flow errorfamily .` to `nix run .#lint`                            | MEDIUM | 5min   | 🟡 NEXT    |
+| 6   | Verify `examples/catalog-demo` is clean (not yet checked)                         | LOW    | 2min   | 🟡 NEXT    |
+| 7   | Extract error codes to typed constants in each package                            | MEDIUM | 30min  | 🟡 NEXT    |
+| 8   | Change `DefaultErrorHandler` to use `Message` field for response body             | HIGH   | 20min  | 🟡 NEXT    |
+| 9   | Add test: all error codes follow naming convention                                | LOW    | 15min  | 🟡 NEXT    |
+| 10  | Unify `errorStatus` (usermgmt) and `MapError` (root) → single family-based mapper | HIGH   | 45min  | 🟠 LATER   |
+| 11  | Add `errorfamily --format sarif` output for CI dashboards                         | LOW    | 10min  | 🟠 LATER   |
+| 12  | Replace `fmt.Sprintf` exceptions in http.go with `event.NewRejection`             | LOW    | 5min   | 🟠 LATER   |
+| 13  | Add `WithContext` to sentinels for structured error context                       | MEDIUM | 20min  | 🟠 LATER   |
+| 14  | Document error code taxonomy in `docs/DOMAIN_LANGUAGE.md`                         | LOW    | 15min  | 🟠 LATER   |
+| 15  | Audit `StructuredError` usage — make it the default error response format         | MEDIUM | 30min  | 🟠 LATER   |
+| 16  | Add errorfamily to `nix flake check`                                              | LOW    | 5min   | 🟠 LATER   |
+| 17  | Consider `errorfamily.Registry.Clone()` for test isolation                        | LOW    | 15min  | ⚪ SOMEDAY |
+| 18  | Add OpenTelemetry integration for classified errors (span attributes from family) | LOW    | 30min  | ⚪ SOMEDAY |
+| 19  | Evaluate `samber/oops` bridge for application-layer enrichment                    | LOW    | 20min  | ⚪ SOMEDAY |
+| 20  | Add retry middleware using `event.IsRetryable` (Transient family)                 | MEDIUM | 45min  | ⚪ SOMEDAY |
+| 21  | Add `errorfamily.ExitCode` to CLI examples in datastar-demo                       | LOW    | 10min  | ⚪ SOMEDAY |
+| 22  | Add changelog entry for go-error-family v0.4.0 adoption                           | LOW    | 10min  | ⚪ SOMEDAY |
+| 23  | Consider branded error code type (`type ErrorCode string`)                        | LOW    | 30min  | ⚪ SOMEDAY |
+| 24  | Add migration guide for consumers updating to latest version                      | LOW    | 20min  | ⚪ SOMEDAY |
+| 25  | Evaluate `RegisterStdlibDefaults` for third-party errors (sql, context, os)       | LOW    | 15min  | ⚪ SOMEDAY |
 
 ---
 
