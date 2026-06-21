@@ -71,6 +71,10 @@ type correlationIDKey struct{}
 
 type requestIDKey struct{}
 
+type actorIDKey struct{}
+
+type impersonatorIDKey struct{}
+
 // RequestID is a strongly-typed per-request identifier, preventing accidental
 // mixing with other ID types at compile time.
 type RequestID = id.RequestID
@@ -131,6 +135,34 @@ func UserIDFromContext(ctx context.Context) UserID {
 	return v
 }
 
+// WithActorID stores the effective actor ID in the context.
+// This is who the request ACTS AS — the target user in impersonation,
+// or the authenticated user in direct login.
+func WithActorID(ctx context.Context, actorID string) context.Context {
+	return context.WithValue(ctx, actorIDKey{}, actorID)
+}
+
+// ActorIDFromContext retrieves the effective actor ID stored by WithActorID.
+// Returns empty string if no actor ID is present.
+func ActorIDFromContext(ctx context.Context) string {
+	v, _ := ctx.Value(actorIDKey{}).(string)
+	return v
+}
+
+// WithImpersonatorID stores the real actor (impersonator) in the context.
+// When set, the request is an impersonation: ActorID is the target,
+// ImpersonatorID is the admin acting on their behalf.
+func WithImpersonatorID(ctx context.Context, impersonatorID string) context.Context {
+	return context.WithValue(ctx, impersonatorIDKey{}, impersonatorID)
+}
+
+// ImpersonatorIDFromContext retrieves the impersonator ID stored by WithImpersonatorID.
+// Returns empty string if not an impersonation request.
+func ImpersonatorIDFromContext(ctx context.Context) string {
+	v, _ := ctx.Value(impersonatorIDKey{}).(string)
+	return v
+}
+
 // EventOptionsFromContext builds event.Options from request context,
 // propagating user identity, correlation ID, request ID, and context deadline
 // into event metadata for auditing, tracing, and distributed request correlation.
@@ -143,6 +175,17 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 
 	if userID := UserIDFromContext(ctx); !userID.IsZero() {
 		opts = append(opts, event.WithUserID(userID))
+	}
+
+	// Propagate actor chain for audit trail.
+	// ActorID = who the request acts AS (effective identity).
+	// ImpersonatorID = who is REALLY authenticated (the admin).
+	// When both are set, every event carries the full chain for compliance queries.
+	if actorID := ActorIDFromContext(ctx); actorID != "" {
+		opts = append(opts, event.WithCustom("actor_id", actorID))
+	}
+	if impersonatorID := ImpersonatorIDFromContext(ctx); impersonatorID != "" {
+		opts = append(opts, event.WithCustom("impersonator_id", impersonatorID))
 	}
 
 	if cid := CorrelationIDFromContext(ctx); !cid.IsZero() {
