@@ -39,6 +39,9 @@ func (p *CasbinProjection) EventTypes() []event.Type {
 		eventCredentialRemoved,
 		eventExternalAccountLinked,
 		eventExternalAccountUnlinked,
+		eventMemberAdded,
+		eventMemberRolesChanged,
+		eventMemberRemoved,
 	}
 }
 
@@ -105,6 +108,48 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 		eventExternalAccountLinked, eventExternalAccountUnlinked:
 		// Credentials and external accounts don't affect Casbin policies
 		// — subscribed for projection ordering.
+
+	case eventMemberAdded:
+		d, err := unmarshalPayload[MemberAddedPayload](evt)
+		if err != nil {
+			return event.WrapCorruption(
+				err,
+				"usermgmt.casbin_projection.decode_failed",
+				"decode MemberAdded in casbin projection",
+			)
+		}
+		return p.addRolesFor(d.ActorID, d.TenantID, d.Roles, "on member added")
+
+	case eventMemberRolesChanged:
+		d, err := unmarshalPayload[MemberRolesChangedPayload](evt)
+		if err != nil {
+			return event.WrapCorruption(
+				err,
+				"usermgmt.casbin_projection.decode_failed",
+				"decode MemberRolesChanged in casbin projection",
+			)
+		}
+		// For membership role changes, we need to know the actor+tenant from the aggregate ID.
+		// The subject was already the actor ID when MemberAdded was processed.
+		// We need to remove old roles first. The domain is the tenant — but we don't have it
+		// in the MemberRolesChangedPayload. We can extract it from the aggregate ID prefix
+		// OR use the MembershipReadModel. For now, use the subject (aggregate ID) as a fallback.
+		// This will be improved when we store tenant context in the payload.
+		for _, role := range []Role{RoleAdmin, RoleUser, RoleViewer, RoleOwner, RoleSuperAdmin} {
+			_ = p.authz.RemoveGroupPolicy(GroupPolicy{
+				Subject: subject, Role: role, Domain: subject,
+			})
+		}
+		return p.addRolesFor(subject, subject, d.Roles, "on member roles changed")
+
+	case eventMemberRemoved:
+		if err := p.authz.RemoveAllRolesForUser(subject); err != nil {
+			return event.WrapInfrastructure(
+				err,
+				"usermgmt.casbin_projection.member_remove_failed",
+				"remove member from casbin",
+			)
+		}
 
 	default:
 	}

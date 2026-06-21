@@ -22,8 +22,10 @@ const (
 // using event-sourced CQRS under the hood.
 type Service struct {
 	repository               *decider.Repository[UserState]
+	membershipRepo           *decider.Repository[MembershipState]
 	dispatcher               *command.Dispatcher
 	readModel                *UserReadModel
+	membershipReadModel      *MembershipReadModel
 	casbinProjection         *CasbinProjection
 	authz                    *Authz
 	sessions                 SessionStore
@@ -177,6 +179,11 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		return nil, event.NewTransient("internal", "create decider repository").WithCause(err)
 	}
 
+	membershipRepo, err := decider.NewRepository(store, bus, MembershipDecider())
+	if err != nil {
+		return nil, event.NewTransient("internal", "create membership repository").WithCause(err)
+	}
+
 	authz := cfg.Authz
 	if authz == nil {
 		authz, err = NewAuthz()
@@ -191,8 +198,16 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	}
 
 	readModel := NewUserReadModel()
+	membershipReadModel := NewMembershipReadModel()
 
-	if err := StartProjections(journal, bus, readModel, casbinProjection, cfg.AuditLog); err != nil {
+	if err := StartProjections(
+		journal,
+		bus,
+		readModel,
+		membershipReadModel,
+		casbinProjection,
+		cfg.AuditLog,
+	); err != nil {
 		return nil, event.NewTransient("internal", "start projections").WithCause(err)
 	}
 
@@ -212,22 +227,27 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	if err := RegisterCommands(dispatcher, repo); err != nil {
 		return nil, event.NewTransient("internal", "register commands").WithCause(err)
 	}
+	if err := RegisterMembershipCommands(dispatcher, membershipRepo); err != nil {
+		return nil, event.NewTransient("internal", "register membership commands").WithCause(err)
+	}
 
 	//nolint:exhaustruct // fields set conditionally below
 	svc := &Service{
-		repository:       repo,
-		dispatcher:       dispatcher,
-		readModel:        readModel,
-		casbinProjection: casbinProjection,
-		authz:            authz,
-		sessions:         cfg.SessionStore,
-		sessionTTL:       cfg.SessionTTL,
-		logger:           logger,
-		lockout:          cfg.Lockout,
-		eventHandler:     cfg.EventHandler,
-		bus:              bus,
-		store:            store,
-		auditLog:         cfg.AuditLog,
+		repository:          repo,
+		membershipRepo:      membershipRepo,
+		dispatcher:          dispatcher,
+		readModel:           readModel,
+		membershipReadModel: membershipReadModel,
+		casbinProjection:    casbinProjection,
+		authz:               authz,
+		sessions:            cfg.SessionStore,
+		sessionTTL:          cfg.SessionTTL,
+		logger:              logger,
+		lockout:             cfg.Lockout,
+		eventHandler:        cfg.EventHandler,
+		bus:                 bus,
+		store:               store,
+		auditLog:            cfg.AuditLog,
 	}
 
 	if cfg.WebAuthnConfig != nil {

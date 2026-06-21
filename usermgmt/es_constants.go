@@ -59,7 +59,8 @@ var allUserEventTypes = []event.Type{
 	eventExternalAccountUnlinked,
 }
 
-//nolint:unused // wired into CasbinProjection in Tier 2
+// allMembershipEventTypes is used by MembershipReadModel and CasbinProjection
+// to subscribe to membership lifecycle events.
 var allMembershipEventTypes = []event.Type{
 	eventMemberAdded,
 	eventMemberRolesChanged,
@@ -68,5 +69,5 @@ var allMembershipEventTypes = []event.Type{
 
 // currentSchemaVersion is the payload schema version for all new events.
 // Old events without the field decode as 0; foldUser treats 0 as v1.
-// v2 adds: TenantID on RolesUpdatedPayload, Membership aggregate events.
+// v2 adds: Membership aggregate events (MemberAdded, MemberRolesChanged, MemberRemoved).
 const currentSchemaVersion = 2
