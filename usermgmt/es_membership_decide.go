@@ -86,6 +86,9 @@ func decideUpdateMemberRoles(
 		copy(rolesCopy, roles)
 		payload, err := marshalPayload(MemberRolesChangedPayload{
 			SchemaVersion: currentSchemaVersion,
+			ActorKind:     state.ActorID.Kind().String(),
+			ActorID:       state.ActorID.String(),
+			TenantID:      state.TenantID.Get(),
 			Roles:         rolesCopy,
 		})
 		if err != nil {
@@ -122,6 +125,8 @@ func decideRemoveMember(
 		}
 		payload, err := marshalPayload(MemberRemovedPayload{
 			SchemaVersion: currentSchemaVersion,
+			ActorID:       state.ActorID.String(),
+			TenantID:      state.TenantID.Get(),
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(

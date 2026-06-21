@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"slices"
 	"testing"
 )
 
@@ -18,40 +19,39 @@ func TestMembershipLifecycle_AddUpdateRemove(t *testing.T) {
 		t.Fatalf("AddMember failed: %v", err)
 	}
 
-	// 2. Verify membership appears in read model
+	// 2. Verify Casbin has viewer role
+	assertRolesForActor(t, svc, actorID, tenantID, []Role{RoleViewer})
+
+	// 3. Verify read model
 	memberships := svc.membershipReadModel.FindByActor(actorID.String())
-	if len(memberships) != 1 {
-		t.Fatalf("expected 1 membership, got %d", len(memberships))
-	}
-	if !memberships[0].HasRole(RoleViewer) {
-		t.Error("expected viewer role")
+	if len(memberships) != 1 || !memberships[0].HasRole(RoleViewer) {
+		t.Fatalf("expected 1 membership with viewer, got %+v", memberships)
 	}
 
-	// 3. Update roles to admin
-	updateCmd := NewUpdateMemberRolesCmd(actorID, tenantID, []Role{RoleAdmin})
-	if err := svc.dispatcher.Dispatch(ctx, updateCmd); err != nil {
+	// 4. Update roles to admin
+	if err := svc.dispatcher.Dispatch(
+		ctx,
+		NewUpdateMemberRolesCmd(actorID, tenantID, []Role{RoleAdmin}),
+	); err != nil {
 		t.Fatalf("UpdateMemberRoles failed: %v", err)
 	}
 
-	// 4. Verify role change
-	memberships = svc.membershipReadModel.FindByActor(actorID.String())
-	if len(memberships) != 1 {
-		t.Fatalf("expected 1 membership after update, got %d", len(memberships))
-	}
-	if !memberships[0].HasRole(RoleAdmin) {
-		t.Error("expected admin role after update")
-	}
-	if memberships[0].HasRole(RoleViewer) {
-		t.Error("should no longer have viewer role")
-	}
+	// 5. Verify Casbin updated: admin yes, viewer no
+	assertRolesForActor(t, svc, actorID, tenantID, []Role{RoleAdmin})
+	assertRolesAbsent(t, svc, actorID, tenantID, []Role{RoleViewer})
 
-	// 5. Remove member
-	removeCmd := NewRemoveMemberCmd(actorID, tenantID)
-	if err := svc.dispatcher.Dispatch(ctx, removeCmd); err != nil {
+	// 6. Remove member
+	if err := svc.dispatcher.Dispatch(
+		ctx,
+		NewRemoveMemberCmd(actorID, tenantID),
+	); err != nil {
 		t.Fatalf("RemoveMember failed: %v", err)
 	}
 
-	// 6. Verify membership removed
+	// 7. Verify Casbin cleared: no roles at all
+	assertRolesForActor(t, svc, actorID, tenantID, nil)
+
+	// 8. Verify read model cleared
 	memberships = svc.membershipReadModel.FindByActor(actorID.String())
 	if len(memberships) != 0 {
 		t.Errorf("expected 0 memberships after removal, got %d", len(memberships))
@@ -80,28 +80,21 @@ func TestMembershipLifecycle_MultipleTenants(t *testing.T) {
 		t.Fatalf("AddMember to tenantB failed: %v", err)
 	}
 
-	// Verify two memberships exist
-	memberships := svc.membershipReadModel.FindByActor(actorID.String())
-	if len(memberships) != 2 {
-		t.Fatalf("expected 2 memberships, got %d", len(memberships))
+	// Verify Casbin: admin in tenantA, viewer in tenantB
+	assertRolesForActor(t, svc, actorID, tenantA, []Role{RoleAdmin})
+	assertRolesForActor(t, svc, actorID, tenantB, []Role{RoleViewer})
+
+	// Remove from tenantA only — tenantB should be unaffected
+	if err := svc.dispatcher.Dispatch(
+		ctx,
+		NewRemoveMemberCmd(actorID, tenantA),
+	); err != nil {
+		t.Fatalf("RemoveMember from tenantA failed: %v", err)
 	}
 
-	// Verify each has the correct roles
-	foundAdmin, foundViewer := false, false
-	for _, m := range memberships {
-		if m.HasRole(RoleAdmin) {
-			foundAdmin = true
-		}
-		if m.HasRole(RoleViewer) {
-			foundViewer = true
-		}
-	}
-	if !foundAdmin {
-		t.Error("missing admin membership")
-	}
-	if !foundViewer {
-		t.Error("missing viewer membership")
-	}
+	// tenantA: no roles. tenantB: still viewer.
+	assertRolesForActor(t, svc, actorID, tenantA, nil)
+	assertRolesForActor(t, svc, actorID, tenantB, []Role{RoleViewer})
 }
 
 func TestMembershipLifecycle_DoubleAdd_Conflict(t *testing.T) {
@@ -111,7 +104,6 @@ func TestMembershipLifecycle_DoubleAdd_Conflict(t *testing.T) {
 	actorID := ActorIDFromUser(NewUserID("user-double-add"))
 	tenantID := NewTenantID("tenant-double")
 
-	// First add should succeed
 	if err := svc.dispatcher.Dispatch(
 		ctx,
 		NewAddMemberCmd(actorID, tenantID, []Role{RoleUser}),
@@ -119,7 +111,6 @@ func TestMembershipLifecycle_DoubleAdd_Conflict(t *testing.T) {
 		t.Fatalf("first AddMember failed: %v", err)
 	}
 
-	// Second add should fail with conflict
 	err := svc.dispatcher.Dispatch(
 		ctx,
 		NewAddMemberCmd(actorID, tenantID, []Role{RoleAdmin}),
@@ -136,12 +127,49 @@ func TestMembershipLifecycle_UpdateNonExistent_Rejection(t *testing.T) {
 	actorID := ActorIDFromUser(NewUserID("user-nonexistent"))
 	tenantID := NewTenantID("tenant-nonexistent")
 
-	// Update on non-existent membership should fail
 	err := svc.dispatcher.Dispatch(
 		ctx,
 		NewUpdateMemberRolesCmd(actorID, tenantID, []Role{RoleAdmin}),
 	)
 	if err == nil {
 		t.Error("expected rejection error on update non-existent, got nil")
+	}
+}
+
+// assertRolesForActor verifies that the actor has EXACTLY the given roles
+// in the given tenant (via Casbin authz).
+func assertRolesForActor(
+	t *testing.T, svc *Service, actorID ActorID, tenantID TenantID, expected []Role,
+) {
+	t.Helper()
+	roles, err := svc.authz.RolesForActor(actorID, tenantID)
+	if err != nil {
+		t.Fatalf("RolesForActor failed: %v", err)
+	}
+	if len(roles) != len(expected) {
+		t.Errorf("RolesForActor(%s, %s) = %v, want %v", actorID.PrefixedString(), tenantID.Get(), roles, expected)
+		return
+	}
+	for _, exp := range expected {
+		if !slices.Contains(roles, exp) {
+			t.Errorf("RolesForActor(%s, %s) = %v, missing %v", actorID.PrefixedString(), tenantID.Get(), roles, exp)
+		}
+	}
+}
+
+// assertRolesAbsent verifies that NONE of the given roles are assigned.
+func assertRolesAbsent(
+	t *testing.T, svc *Service, actorID ActorID, tenantID TenantID, absent []Role,
+) {
+	t.Helper()
+	roles, err := svc.authz.RolesForActor(actorID, tenantID)
+	if err != nil {
+		t.Fatalf("RolesForActor failed: %v", err)
+	}
+	for _, unwanted := range absent {
+		if slices.Contains(roles, unwanted) {
+			t.Errorf("RolesForActor(%s, %s) = %v, should NOT contain %v",
+				actorID.PrefixedString(), tenantID.Get(), roles, unwanted)
+		}
 	}
 }
