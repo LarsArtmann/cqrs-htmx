@@ -56,10 +56,12 @@ type EventSourcedConfig struct {
 // Store and Bus are interfaces so that wrapped stores (e.g. encrypted stores)
 // and middleware-applied buses are correctly exposed to callers.
 type EventSourcedSetup struct {
-	Store      event.Store
-	Bus        event.Bus
-	Repository *decider.Repository[UserState]
-	ReadModel  *UserReadModel
+	Store                event.Store
+	Bus                  event.Bus
+	Repository           *decider.Repository[UserState]
+	MembershipRepository *decider.Repository[MembershipState]
+	ReadModel            *UserReadModel
+	MembershipReadModel  *MembershipReadModel
 }
 
 // UserDecider returns the Decider for the User aggregate.
@@ -113,7 +115,14 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		return nil, event.NewTransient("internal", "create decider repository").WithCause(err)
 	}
 
+	membershipRepo, err := decider.NewRepository(store, bus, MembershipDecider())
+	if err != nil {
+		_ = bus.Close()
+		return nil, event.NewTransient("internal", "create membership decider repository").WithCause(err)
+	}
+
 	readModel := NewUserReadModel()
+	membershipReadModel := NewMembershipReadModel()
 	authz, err := NewAuthz()
 	if err != nil {
 		_ = bus.Close()
@@ -126,15 +135,17 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	}
 
 	journal := journalFromStore(store)
-	if err := StartProjections(journal, bus, readModel, casbinProjection, nil); err != nil {
+	if err := StartProjections(journal, bus, readModel, membershipReadModel, casbinProjection, nil); err != nil {
 		_ = bus.Close()
 		return nil, event.NewTransient("internal", "start projections").WithCause(err)
 	}
 
 	return &EventSourcedSetup{
-		Store:      store,
-		Bus:        bus,
-		Repository: repo,
-		ReadModel:  readModel,
+		Store:                store,
+		Bus:                  bus,
+		Repository:           repo,
+		MembershipRepository: membershipRepo,
+		ReadModel:            readModel,
+		MembershipReadModel:  membershipReadModel,
 	}, nil
 }

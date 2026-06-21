@@ -57,6 +57,7 @@ func StartProjections(
 	journal event.Journal,
 	bus event.Subscriber,
 	readModel *UserReadModel,
+	membershipReadModel *MembershipReadModel,
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
 ) error {
@@ -70,6 +71,16 @@ func StartProjections(
 
 	if err := runner.Register(readModel); err != nil {
 		return event.WrapInfrastructure(err, "usermgmt.projection.register_failed", "register read model projection")
+	}
+
+	if membershipReadModel != nil {
+		if err := runner.Register(membershipReadModel); err != nil {
+			return event.WrapInfrastructure(
+				err,
+				"usermgmt.projection.register_failed",
+				"register membership read model projection",
+			)
+		}
 	}
 
 	if err := runner.Register(casbinProjection); err != nil {
