@@ -1,0 +1,69 @@
+direction: down
+
+title: "TARGET STATE — Event Metadata IS the Audit Trail (No Separate Stream)"
+
+# HTTP Request
+HTTPRequest: {
+  shape: rectangle
+  style: {fill: "#191919"; stroke: "#16c79a"}
+  label: "HTTP Request\n\nAuthorization: Bearer <token>\nSession resolved via middleware"
+}
+
+# Session lookup
+SessionLookup: {
+  shape: rectangle
+  style: {fill: "#16213e"; stroke: "#16c79a"}
+  label: "Session Middleware\n\n1. Find session by token\n2. Extract Session.Origin\n3. Populate context:\n   - ActorID (who they act AS)\n   - ImpersonatorID (if Origin=Impersonation)\n   - CorrelationID\n   - RequestID"
+}
+
+# Context
+Context: {
+  shape: rectangle
+  style: {fill: "#0f3460"; stroke: "#16c79a"}
+  label: "context.Context\n\nKeys:\n• actorIDKey{} → ActorID\n• impersonatorIDKey{} → ActorID (or absent)\n• correlationIDKey{} → CorrelationID\n• requestIDKey{} → RequestID"
+}
+
+# CQRS Command
+Command: {
+  shape: hexagon
+  style: {fill: "#16213e"; stroke: "#16c79a"}
+  label: "CQRS Command\n\nCommandDispatcher.Execute()\ncalls Repository which:\n1. Loads aggregate\n2. Decides events\n3. Appends to store WITH options"
+}
+
+# EventOptionsFromContext
+EventOptions: {
+  shape: rectangle
+  style: {fill: "#16213e"; stroke: "#16c79a"}
+  label: "EventOptionsFromContext(ctx)\n\nExtracts from context:\n• event.WithActor(actorID)\n• event.WithImpersonator(impersonatorID)\n• event.WithCorrelationID(cid)\n• event.WithRequestID(rid)\n\nReturns []event.Option"
+}
+
+# Event Store
+EventStore: {
+  shape: cylinder
+  style: {fill: "#1a1a2e"; stroke: "#16c79a"}
+  label: "Event Store\n\n┌──────────────────────────────────────┐\n│ event_id | type      | aggregate_id  │\n│ metadata | payload   | occurred_at   │\n└──────────────────────────────────────┘\n\nmetadata JSONB column contains:\n{\n  \"actor_id\": \"user:01JX...\",\n  \"impersonator_id\": \"user:01JY...\",\n  \"correlation_id\": \"01JZ...\",\n  \"request_id\": \"01JW...\"\n}"
+}
+
+# Audit Query
+AuditQuery: {
+  shape: page
+  style: {fill: "#0d2e25"; stroke: "#16c79a"}
+  label: "AUDIT QUERIES (no separate infrastructure)\n\n-- What did admin X do while impersonating?\nSELECT type, aggregate_id, occurred_at\nFROM events\nWHERE metadata->>'impersonator_id' = 'user:01JY...'\nORDER BY occurred_at;\n\n-- All actions by actor Y (direct + impersonated):\nSELECT type, occurred_at,\n       metadata->>'impersonator_id' AS imp_by\nFROM events\nWHERE metadata->>'actor_id' = 'user:01JX...';\n\n-- Full audit trail for a correlation:\nSELECT * FROM events\nWHERE metadata->>'correlation_id' = '01JZ...';"
+}
+
+# Flow
+HTTPRequest -> SessionLookup: "1. authenticate"
+SessionLookup -> Context: "2. populate"
+Context -> Command: "3. dispatched with ctx"
+Command -> EventOptions: "4. builds options from ctx"
+EventOptions -> EventStore: "5. events appended\n   with full metadata"
+EventStore -> AuditQuery: "6. query any time\n   for compliance"
+
+# Key insight callout
+NoSeparateStream: {
+  shape: page
+  style: {fill: "#0d2e25"; stroke: "#16c79a"}
+  label: "WHY THIS IS BETTER\n\n- Zero additional infrastructure\n- No duplication (events are the source of truth)\n- Tamper-evident (append-only event store)\n- Replayable (full event history)\n- Queryable (JSONB metadata indexing)\n- The CQRS/ES advantage: audit is free\n  if you propagate identity correctly"
+}
+
+NoSeparateStream -> EventStore: "no extra stream\nno extra events\nno extra tables"

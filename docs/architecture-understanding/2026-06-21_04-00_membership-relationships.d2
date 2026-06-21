@@ -1,0 +1,71 @@
+direction: down
+
+title: "TARGET STATE — Membership: Actor, Tenant, Roles Relationships"
+
+# Actor
+Actor: {
+  shape: rectangle
+  style: {fill: "#0f3460"; stroke: "#16c79a"; font-color: "#16c79a"}
+  label: "Actor (sealed interface)\n\n• User (human, WebAuthn/OAuth2)\n• Bot (machine, API token)\n\nIdentity is auth-mechanism-agnostic"
+}
+
+# Tenant
+Tenant: {
+  shape: rectangle
+  style: {fill: "#16213e"; stroke: "#e8c546"}
+  label: "Tenant (event-sourced aggregate)\n\n• ID: TenantID (branded)\n• Name: string\n• Status: active | suspended | deleted\n• Owns resources, users, bots\n\nOrganizational boundary"
+}
+
+# Membership (the join table)
+Membership: {
+  shape: rectangle
+  style: {fill: "#1a1a2e"; stroke: "#16c79a"}
+  label: "Membership (event-sourced)\n\n• ActorID: ActorID\n• TenantID: TenantID\n• Roles: []Role (scoped to THIS tenant)\n• AddedAt: time.Time\n\nReplaces UserState.Roles\nAn actor can have multiple memberships\n(different roles in different tenants)"
+}
+
+# Roles
+Roles: {
+  shape: package
+  style: {fill: "#191919"; stroke: "#16c79a"}
+  label: "Roles (hierarchical)"
+
+  SuperAdmin: "super_admin\nglobal (*)"
+  Admin: "admin\ntenant-scoped"
+  UserRole: "user\ntenant-scoped"
+  Viewer: "viewer\ntenant-scoped"
+}
+
+# Example: User in 2 tenants
+Example: {
+  shape: page
+  style: {fill: "#0d2e25"; stroke: "#16c79a"}
+  label: "EXAMPLE: Alice in two tenants\n\nAlice (user_01AAA) has TWO memberships:\n\nMembership 1:\n  ActorID: user_01AAA\n  TenantID: tenant_01XXX\n  Roles: [admin]\n\nMembership 2:\n  ActorID: user_01AAA\n  TenantID: tenant_01YYY\n  Roles: [viewer]\n\nAlice is admin in one tenant,\nviewer in another.\nHer identity never changes —\nonly her scoped roles do."
+}
+
+# Scopes for bots
+BotScopes: {
+  shape: page
+  style: {fill: "#0a2138"; stroke: "#6eb5ff"}
+  label: "BOT SCOPES = fine-grained roles\n\nBots use OAuth2-style scopes:\n  read:users, write:catalog, etc.\n\nThese map to Casbin policies:\n  p: bot_01BBB, tenant_01XXX, users, read, allow\n\nSame enforcer, different granularity.\nNo separate authorization mechanism."
+}
+
+# Relationships
+Actor -> Membership: "has many (one per tenant)"
+Tenant -> Membership: "has many (one per actor)"
+Membership -> Roles: "carries scoped roles"
+
+SuperAdmin -> Admin: "inherits (g2)"
+Admin -> UserRole: "inherits (g2)"
+UserRole -> Viewer: "inherits (g2)"
+
+Example -> Membership: "concrete case"
+BotScopes -> Roles: "same mechanism"
+
+# Key insight
+KeyInsight: {
+  shape: page
+  style: {fill: "#0d2e25"; stroke: "#16c79a"}
+  label: "KEY INSIGHT\n\nRoles are NOT part of identity.\nRoles are part of MEMBERSHIP.\n\nThis decouples 'who you are' (Actor)\nfrom 'what you can do' (Membership+Roles).\n\nChanging roles = Membership event,\nNOT a User event.\nThe User aggregate never changes\nwhen roles change."
+}
+
+KeyInsight -> Membership: "the decoupling"
