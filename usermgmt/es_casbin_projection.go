@@ -42,6 +42,8 @@ func (p *CasbinProjection) EventTypes() []event.Type {
 		eventMemberAdded,
 		eventMemberRolesChanged,
 		eventMemberRemoved,
+		eventTenantDeleted,
+		eventBotDeleted,
 	}
 }
 
@@ -96,6 +98,25 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 
 	case eventMemberAdded, eventMemberRolesChanged, eventMemberRemoved:
 		return p.handleMembershipEvent(evt)
+
+	case eventTenantDeleted:
+		// Remove all Casbin policies in the tenant's domain (the tenant's aggregate ID).
+		// This cascades role cleanup for all members of the deleted tenant.
+		if err := p.authz.RemoveAllRolesForUser(subject); err != nil {
+			return event.WrapInfrastructure(
+				err, "usermgmt.casbin_projection.tenant_delete_failed",
+				"remove all policies for deleted tenant "+subject,
+			)
+		}
+
+	case eventBotDeleted:
+		// Remove all Casbin policies for the deleted bot.
+		if err := p.authz.RemoveAllRolesForUser(subject); err != nil {
+			return event.WrapInfrastructure(
+				err, "usermgmt.casbin_projection.bot_delete_failed",
+				"remove all policies for deleted bot "+subject,
+			)
+		}
 
 	default:
 	}

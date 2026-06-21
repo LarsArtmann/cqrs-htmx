@@ -66,16 +66,40 @@ func (s *Service) ReactivateTenant(ctx context.Context, tenantID TenantID) error
 	)
 }
 
-// DeleteTenant permanently deletes a tenant.
+// DeleteTenant permanently deletes a tenant and cleans up all memberships
+// associated with it. The CasbinProjection handles policy removal automatically
+// via the TenantDeleted event.
 func (s *Service) DeleteTenant(ctx context.Context, tenantID TenantID, reason string) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
 		return event.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
 	}
-	return s.dispatcher.Dispatch( //nolint:wrapcheck // decider returns typed domain errors
+	if err := s.dispatcher.Dispatch(
 		ctx,
 		NewDeleteTenantCmd(aggID, reason),
-	)
+	); err != nil {
+		return err //nolint:wrapcheck // decider returns typed domain errors
+	}
+	// Best-effort membership cleanup: remove all members from the deleted tenant.
+	s.revokeMembershipsForTenantBestEffort(ctx, tenantID)
+	return nil
+}
+
+// revokeMembershipsForTenantBestEffort removes all memberships for a tenant.
+// Errors are logged but not returned — the tenant is already deleted.
+func (s *Service) revokeMembershipsForTenantBestEffort(ctx context.Context, tenantID TenantID) {
+	memberships := s.membershipReadModel.FindByTenant(tenantID.Get())
+	for _, mem := range memberships {
+		removalCmd := NewRemoveMemberCmd(mem.ActorID, tenantID)
+		if err := s.dispatcher.Dispatch(ctx, removalCmd); err != nil {
+			s.logger.Warn(
+				"usermgmt: failed to remove membership on tenant deletion",
+				"tenant_id", tenantID.Get(),
+				"actor_id", mem.ActorID.String(),
+				"error", err,
+			)
+		}
+	}
 }
 
 // GetTenant retrieves a tenant by ID from the read model.

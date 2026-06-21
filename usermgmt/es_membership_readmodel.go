@@ -108,6 +108,19 @@ func (m *MembershipReadModel) FindByActor(actorID string) []*Membership {
 	return result
 }
 
+// FindByTenant returns all memberships for the given tenant ID.
+func (m *MembershipReadModel) FindByTenant(tenantID string) []*Membership {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	result := make([]*Membership, 0)
+	for _, mem := range m.memberships {
+		if mem.TenantID.Get() == tenantID {
+			result = append(result, mem)
+		}
+	}
+	return result
+}
+
 func removeAggID(slice []id.AggregateID, target id.AggregateID) []id.AggregateID {
 	for i, v := range slice {
 		if v == target {
