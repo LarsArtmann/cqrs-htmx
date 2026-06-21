@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	aggregateTypeUser event.AggregateType = "User"
+	aggregateTypeUser       event.AggregateType = "User"
+	aggregateTypeMembership event.AggregateType = "Membership"
 
 	eventUserRegistered          event.Type = "UserRegistered"
 	eventRolesUpdated            event.Type = "RolesUpdated"
@@ -21,6 +22,10 @@ const (
 	eventExternalAccountLinked   event.Type = "ExternalAccountLinked"
 	eventExternalAccountUnlinked event.Type = "ExternalAccountUnlinked"
 
+	eventMemberAdded        event.Type = "MemberAdded"
+	eventMemberRolesChanged event.Type = "MemberRolesChanged"
+	eventMemberRemoved      event.Type = "MemberRemoved"
+
 	cmdRegisterUser          command.Type = "RegisterUser"
 	cmdUpdateRoles           command.Type = "UpdateRoles"
 	cmdChangeEmail           command.Type = "ChangeEmail"
@@ -33,6 +38,10 @@ const (
 	cmdDisableTOTP           command.Type = "DisableTOTP"
 	cmdLinkExternalAccount   command.Type = "LinkExternalAccount"
 	cmdUnlinkExternalAccount command.Type = "UnlinkExternalAccount"
+
+	cmdAddMember         command.Type = "AddMember"
+	cmdUpdateMemberRoles command.Type = "UpdateMemberRoles"
+	cmdRemoveMember      command.Type = "RemoveMember"
 )
 
 var allUserEventTypes = []event.Type{
@@ -50,6 +59,14 @@ var allUserEventTypes = []event.Type{
 	eventExternalAccountUnlinked,
 }
 
+//nolint:unused // wired into CasbinProjection in Tier 2
+var allMembershipEventTypes = []event.Type{
+	eventMemberAdded,
+	eventMemberRolesChanged,
+	eventMemberRemoved,
+}
+
 // currentSchemaVersion is the payload schema version for all new events.
 // Old events without the field decode as 0; foldUser treats 0 as v1.
-const currentSchemaVersion = 1
+// v2 adds: TenantID on RolesUpdatedPayload, Membership aggregate events.
+const currentSchemaVersion = 2

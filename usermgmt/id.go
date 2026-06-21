@@ -49,13 +49,20 @@ const (
 	ActorBot
 )
 
+// actorKindUserStr and actorKindBotStr are the string representations
+// used in ActorKind.String(), ActorID prefixes, and event payloads.
+const (
+	actorKindUserStr = "user"
+	actorKindBotStr  = "bot"
+)
+
 // String returns the lowercase kind name used in prefixed identifiers.
 func (k ActorKind) String() string {
 	switch k {
 	case ActorUser:
-		return "user"
+		return actorKindUserStr
 	case ActorBot:
-		return "bot"
+		return actorKindBotStr
 	default:
 		return "unknown"
 	}
