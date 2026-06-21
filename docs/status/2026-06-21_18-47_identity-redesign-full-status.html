@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Identity Model Redesign — Full Status Report</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+      .main { max-width: 900px; margin: 0 auto; padding: 2rem; }
+      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
+      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
+      .stat-grid, .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+      .stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
+      .stat-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
+      .stat-good::before { background: var(--solution); }
+      .stat-bad::before { background: var(--problem); }
+      .stat-warn::before { background: var(--warning); }
+      .stat-value { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
+      .stat-good .stat-value { color: var(--solution); }
+      .stat-bad .stat-value { color: var(--problem); }
+      .stat-warn .stat-value { color: var(--warning); }
+      .stat-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
+      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
+      .badge-critical { color: var(--problem); border-color: var(--problem); }
+      .badge-high { color: var(--warning); border-color: var(--warning); }
+      .badge-medium { color: var(--accent); border-color: var(--accent); }
+      .badge-low { color: var(--text-muted); }
+      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface); }
+      .severity-critical { background: var(--problem); }
+      .severity-important { background: var(--warning); }
+      .severity-nice { background: var(--solution); }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+      th { text-align: left; font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); padding: 0.6rem 0.8rem; border-bottom: 2px solid var(--border-strong); }
+      td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); }
+      tr:hover td { background: color-mix(in srgb, var(--text) 3%, transparent); }
+      code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; color: var(--accent); }
+      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
+      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
+      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+      .callout-question { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); font-size: 1rem; }
+      ul, ol { margin: 0 0 1rem 1.5rem; }
+      li { margin-bottom: 0.3rem; }
+      a { color: var(--accent); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>cqrs-htmx / usermgmt</span>
+      <span>2026-06-21 18:47 CET</span>
+    </div>
+
+    <div class="main">
+      <div class="hero">
+        <div class="hero-badge">Status Report</div>
+        <h1>Identity Model Redesign — Full Status</h1>
+        <p class="hero-subtitle">
+          Actor/Tenant/Membership/Bot/Impersonation redesign of the <code>usermgmt</code> module.
+          Covers the complete implementation from Tier 0 keystone types through Tenant/Bot aggregates,
+          impersonation, session refactoring, and self-review fixes.
+        </p>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card stat-good">
+          <div class="stat-value">570+</div>
+          <div class="stat-label">Tests Passing</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Lint Issues</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">77.9%</div>
+          <div class="stat-label">usermgmt Coverage</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">95.2%</div>
+          <div class="stat-label">Root Coverage</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">20</div>
+          <div class="stat-label">New Source Files</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Commits This Session</div>
+        </div>
+      </div>
+
+      <!-- a) FULLY DONE -->
+      <section id="done">
+        <h2><span class="num">A</span> Fully Done</h2>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Tier 0: Keystone Types</h3>
+          <p><code>ActorID</code>, <code>TenantID</code>, <code>BotID</code>, <code>SessionOrigin</code> sealed interface,
+          <code>Membership</code> struct, <code>RoleSuperAdmin</code> + Casbin g2 role hierarchy. All committed, tested, integrated.</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Tier 1: Membership Aggregate</h3>
+          <p>Full event-sourced lifecycle: 3 events, 3 commands, <code>MembershipState</code> + <code>foldMembership</code>,
+          <code>MembershipDecider</code>, <code>RegisterMembershipCommands</code>, <code>MembershipReadModel</code> projection,
+          <code>CasbinProjection</code> integration. Dual-indexed (aggregate ID + actor ID).</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Tier 2: Authz + Context</h3>
+          <p><code>RolesForActor</code>/<code>ImplicitRolesForActor</code>, Casbin g2 matcher, <code>EventOptionsFromContext</code>
+          propagating actor chain. Root <code>WithActorID</code>/<code>WithImpersonatorID</code>.</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Tenant Aggregate</h3>
+          <p>4 events (Created, Suspended, Reactivated, Deleted), 4 commands, <code>TenantState</code> + <code>foldTenant</code>,
+          <code>TenantDecider</code>, <code>TenantReadModel</code> with <code>FindByID</code>/<code>FindByName</code>/<code>All</code>.
+          Wired into Service with <code>CreateTenant</code>/<code>SuspendTenant</code>/<code>ReactivateTenant</code>/<code>DeleteTenant</code>.</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Bot Aggregate + HMAC Token Hashing</h3>
+          <p>2 events (Registered, Deleted), <code>BotState</code> + <code>foldBot</code>, <code>BotDecider</code>,
+          <code>BotReadModel</code> with token-hash index. <code>crypto.go</code>: <code>GenerateToken</code> (256-bit),
+          <code>HashToken</code> (HMAC-SHA256), <code>VerifyToken</code> (constant-time). <code>TokenPepper</code> named type.</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Impersonation</h3>
+          <p><code>BeginImpersonation</code> with 4 security guards (reason required, no self-impersonation,
+          super_admin role check, target existence). <code>EndImpersonation</code> with session-origin verification.
+          <code>Session.Origin</code> sealed interface (<code>DirectLogin</code> / <code>Impersonation</code>).</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>API Token Middleware</h3>
+          <p><code>NewAPITokenMiddleware</code> (pass-through Bearer token resolution), <code>RequireBot</code> enforcement,
+          <code>WithBot</code>/<code>BotFromContext</code>, <code>ResolveBotByToken</code> service method.</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Session Redesign</h3>
+          <p><code>Session</code> now carries <code>ActorID</code> + <code>Origin</code>. <code>SessionStore.Create</code>
+          accepts pre-built <code>*Session</code> (cleaner separation). <code>NewImpersonationSession</code> constructor.
+          <code>SQLSessionStore</code> + <code>InMemorySessionStore</code> updated.</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Roles Removed from UserState</h3>
+          <p><code>UserState.Roles</code> field removed. Roles are now exclusively a Membership concern.
+          <code>foldUser</code> no longer processes <code>eventRolesUpdated</code> for state (only decodes for corruption detection).</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Security Fixes (Self-Review)</h3>
+          <p>CasbinProjection handles <code>TenantDeleted</code>/<code>BotDeleted</code> (policy cleanup).
+          Tenant deletion cascades membership cleanup via <code>FindByTenant</code>.
+          Context split brain eliminated (removed duplicate actor/impersonator keys from usermgmt middleware).</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Code Quality Improvements</h3>
+          <p><code>SchemaVersion</code> stamped in all 8 missing deciders. <code>RemoveAllRolesInDomain</code> added to Authz (DRY).
+          <code>containsRole</code> replaced with <code>slices.Contains</code>. <code>aggIDFrom*</code> triplication deduplicated into <code>aggIDFromBranded</code>.</p>
+        </div>
+
+        <div class="card card-solution">
+          <span class="severity severity-nice">COMPLETE</span>
+          <h3>Migration Tool</h3>
+          <p><code>MigrateRolesToMemberships</code> — opt-in converter for legacy <code>UserRegistered</code>/<code>RolesUpdated</code>
+          events into Membership commands. Idempotent (skips conflicts).</p>
+        </div>
+      </section>
+
+      <!-- b) PARTIALLY DONE -->
+      <section id="partial">
+        <h2><span class="num">B</span> Partially Done</h2>
+
+        <div class="card card-warning">
+          <span class="severity severity-important">PARTIAL</span>
+          <h3>Test Coverage for New Code</h3>
+          <p>30+ new tests added covering crypto, Tenant fold+decide, Bot fold+decide+readmodel, impersonation guards+success,
+          API middleware. However, the following areas still lack tests:</p>
+          <ul>
+            <li><strong>TenantReadModel</strong> projection — no integration test for created/suspended/deleted flow through the read model</li>
+            <li><strong>Bot HTTP endpoints</strong> — no <code>service_bot.go</code> integration tests (RegisterBot with pepper, ResolveBotByToken round-trip through the Service)</li>
+            <li><strong>Migration</strong> — <code>MigrateRolesToMemberships</code> has zero tests (idempotency, legacy event conversion)</li>
+            <li><strong>Session impersonation through middleware</strong> — <code>NewSessionMiddleware</code> + impersonation session → <code>ImpersonatorIDFromRequest</code> not tested end-to-end</li>
+            <li><strong>Tenant deletion cascade</strong> — <code>revokeMembershipsForTenantBestEffort</code> not tested with actual memberships</li>
+            <li><strong>CasbinProjection tenant/bot deletion</code> — <code>eventTenantDeleted</code>/<code>eventBotDeleted</code> handlers not tested</li>
+          </ul>
+        </div>
+
+        <div class="card card-warning">
+          <span class="severity severity-important">PARTIAL</span>
+          <h3>Bot OwnerID Type Safety</h3>
+          <p><code>BotRegisteredPayload.OwnerID</code> and <code>BotState.OwnerID</code> are still <code>string</code> instead of <code>UserID</code>.
+          This is a known type-safety gap — an <code>OwnerID UserID</code> would prevent passing arbitrary strings but requires
+          JSON serialization changes (UserID is a branded type).</p>
+        </div>
+
+        <div class="card card-warning">
+          <span class="severity severity-important">PARTIAL</span>
+          <h3>RolesUpdatedPayload.Domain Still <code>string</code></h3>
+          <p>Per ADR 0015, <code>RolesUpdatedPayload.Domain</code> remains <code>string</code> for backward compatibility.
+          Migration to <code>TenantID</code> requires an upcaster (infrastructure exists, not yet registered).</p>
+        </div>
+
+        <div class="card card-warning">
+          <span class="severity severity-important">PARTIAL</span>
+          <h3>HTTP Handlers for Tenant/Bot/Impersonation</h3>
+          <p>Service methods exist (<code>CreateTenant</code>, <code>RegisterBot</code>, <code>BeginImpersonation</code>) but no HTTP handler
+          functions (like <code>AuthHandler</code> for user endpoints). Consumers must wire their own HTTP for now.</p>
+        </div>
+      </section>
+
+      <!-- c) NOT STARTED -->
+      <section id="not-started">
+        <h2><span class="num">C</span> Not Started</h2>
+
+        <div class="card">
+          <span class="badge badge-low">PLANNED</span>
+          <h3>Schema v1→v2 Upcasters</h3>
+          <p>Event upcaster infrastructure exists in <code>es_state.go</code> (<code>applyUpcasters</code>) but no upcasters are registered.
+          Old v0/v1 events (without <code>schema_version</code>) decode as 0 and are treated as v1. Production consumers upgrading
+          from pre-membership event stores need upcasters for <code>RolesUpdatedPayload.Domain</code> → <code>TenantID</code>.</p>
+        </div>
+
+        <div class="card">
+          <span class="badge badge-low">PLANNED</span>
+          <h3>SQL Event Store for Tenant/Bot</h3>
+          <p><code>SQLEventStore</code> currently handles User + Membership aggregates. Tenant and Bot use the same event store
+          infrastructure (same <code>event.Store</code> interface), but no DDL migrations or schema tests exist specifically for
+          the new aggregate types.</p>
+        </div>
+
+        <div class="card">
+          <span class="badge badge-low">PLANNED</span>
+          <h3>Tenant Suspend → Session Revocation</h3>
+          <p>When a tenant is suspended, active sessions for its members should be revoked (like <code>DeleteUser</code> revokes sessions).
+          Currently <code>SuspendTenant</code> only dispatches the event — no session cleanup.</p>
+        </div>
+
+        <div class="card">
+          <span class="badge badge-low">PLANNED</span>
+          <h3>Integration Test Module Updates</h3>
+          <p>The <code>integration_test/</code> module tests cross-module bridges but has no tests for Tenant, Bot, or impersonation flows.</p>
+        </div>
+
+        <div class="card">
+          <span class="badge badge-low">PLANNED</span>
+          <h3>Bot Token Rotation</h3>
+          <p>No <code>RotateBotToken</code> method exists. Bot tokens can only be created (at registration) and deleted (at deletion).
+          A rotate method would dispatch <code>BotTokenRotated</code> event with a new hash.</p>
+        </div>
+
+        <div class="card">
+          <span class="badge badge-low">PLANNED</span>
+          <h3>Membership Service Methods</h3>
+          <p>No <code>Service.AddMember</code>/<code>UpdateMemberRoles</code>/<code>RemoveMember</code> wrapper methods exist.
+          Consumers must use <code>NewAddMemberCmd</code> + <code>dispatcher.Dispatch</code> directly.</p>
+        </div>
+      </section>
+
+      <!-- d) TOTALLY FUCKED UP -->
+      <section id="fucked-up">
+        <h2><span class="num">D</span> Totally Fucked Up</h2>
+
+        <div class="card card-problem">
+          <span class="severity severity-critical">CRITICAL DEBT</span>
+          <h3>UserState.Roles vs User.Roles Split Brain</h3>
+          <p><code>UserState.Roles</code> was removed (correct). But <code>User.Roles</code> (the read model) still exists and is still
+          populated by <code>UserReadModel</code> from <code>UserRegisteredPayload.Roles</code> and <code>RolesUpdatedPayload.Roles</code>.
+          This means the read model still shows roles on the User, but the aggregate state does not.
+          Consumers reading <code>User.Roles</code> will see stale data that doesn't reflect Membership-managed roles.</p>
+          <div class="callout callout-warning">
+            <strong>Impact:</strong> Any consumer using <code>User.HasRole()</code> or <code>User.Roles</code> will get incorrect results.
+            Roles are now managed exclusively through Membership/Casbin, but the read model hasn't caught up.
+          </div>
+        </div>
+
+        <div class="card card-problem">
+          <span class="severity severity-critical">CRITICAL DEBT</span>
+          <h3>CasbinProjection UserRegistered Still Seeds Roles from Payload</h3>
+          <p><code>CasbinProjection.Handle</code> for <code>eventUserRegistered</code> still calls <code>p.addRolesFor(subject, subject, d.Roles, "on register")</code>.
+          This means legacy <code>UserRegisteredPayload.Roles</code> still creates Casbin policies — but since <code>UserState</code> no longer
+          tracks roles, these policies are <strong>invisible to the aggregate</strong> and can never be updated through the User stream.
+          They should only come from the Membership stream now.</p>
+          <div class="callout callout-warning">
+            <strong>Impact:</strong> Double source of truth for roles at registration time. The Casbin policy is seeded from BOTH
+            <code>UserRegistered</code> (legacy) and <code>MemberAdded</code> (new). If they diverge, the projection silently creates duplicates.
+          </div>
+        </div>
+
+        <div class="card card-problem">
+          <span class="severity severity-critical">CRITICAL DEBT</span>
+          <h3>Service.Register Still Passes Roles to RegisterUserCmd</h3>
+          <p><code>service_register.go:81</code> still dispatches <code>NewRegisterUserCmd(aggID, req.Email, req.DisplayName, []Role{RoleViewer, RoleUser})</code>.
+          These roles go into <code>UserRegisteredPayload</code>, which the CasbinProjection picks up and seeds as Casbin policies.
+          But since <code>UserState</code> no longer has <code>Roles</code>, these roles exist only in the event payload and Casbin —
+          not in any queryable state. This is a ghost system.</p>
+        </div>
+      </section>
+
+      <!-- e) WHAT WE SHOULD IMPROVE -->
+      <section id="improve">
+        <h2><span class="num">E</span> What We Should Improve</h2>
+
+        <div class="card card-warning">
+          <h3>1. Remove Roles from UserRegisteredPayload and CasbinProjection</h3>
+          <p>The biggest architectural debt. The entire role-on-User pattern should be replaced by auto-creating a Membership
+          at registration time (in the <code>Service.Register</code> method). Then <code>UserRegisteredPayload</code> becomes role-free,
+          and <code>CasbinProjection</code> stops handling <code>eventUserRegistered</code> for role seeding.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h3>2. Remove Roles from User Read Model</h3>
+          <p><code>User.Roles</code> field and <code>User.HasRole()</code> should be removed or deprecated. Consumers should use
+          <code>Authz.RolesForActor</code> or <code>MembershipReadModel.FindByActor</code> instead.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h3>3. Type Bot OwnerID as UserID</h3>
+          <p>Change <code>BotRegisteredPayload.OwnerID</code> and <code>BotState.OwnerID</code> from <code>string</code> to <code>UserID</code>.
+          This requires JSON serialization handling but prevents type confusion.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h3>4. Tenant Suspend Should Revoke Sessions</h3>
+          <p><code>SuspendTenant</code> should cascade-revoke sessions for all members of the tenant, similar to how
+          <code>DeleteUser</code> revokes sessions via <code>revokeSessionsBestEffort</code>.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h3>5. Add Membership Service Wrapper Methods</h3>
+          <p><code>Service.AddMember</code>, <code>Service.UpdateMemberRoles</code>, <code>Service.RemoveMember</code> should wrap
+          the command dispatch pattern, matching the <code>Service.CreateTenant</code> / <code>Service.RegisterBot</code> pattern.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h3>6. Integration Tests for Cross-Aggregate Flows</h3>
+          <p>Register user → Create tenant → Add member → Verify Casbin roles → Impersonate → Verify session.
+          This is the critical path that currently has zero integration coverage.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h3>7. Consider go-composable-business-types for Domain Types</h3>
+          <p>The how-to-golang skill recommends <code>go-composable-business-types/id.ID[Brand, V]</code> for branded types.
+          We currently use <code>go-branded-id</code> which provides similar functionality. Evaluate if migration adds value
+          (e.g., built-in validation, URL-safe encoding).</p>
+        </div>
+      </section>
+
+      <!-- f) Top 25 Next Tasks -->
+      <section id="next-25">
+        <h2><span class="num">F</span> Top 25 Things to Get Done Next</h2>
+        <p>Sorted by impact / effort ratio (highest impact first).</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><strong>Fix User.Roles split brain</strong> — remove from read model or auto-create Membership at registration</td>
+              <td><span class="badge badge-critical">CRITICAL</span></td>
+              <td><span class="badge badge-high">2h</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><strong>Remove CasbinProjection role seeding from UserRegistered</strong> — roles only from Membership events</td>
+              <td><span class="badge badge-critical">CRITICAL</span></td>
+              <td><span class="badge badge-medium">1h</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><strong>Remove <code>[]Role{RoleViewer, RoleUser}</code> from Service.Register</strong> — stop passing roles to RegisterUserCmd</td>
+              <td><span class="badge badge-critical">CRITICAL</span></td>
+              <td><span class="badge badge-low">15m</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><strong>Auto-create default Membership at registration</strong> — Service.Register dispatches AddMemberCmd</td>
+              <td><span class="badge badge-critical">CRITICAL</span></td>
+              <td><span class="badge badge-medium">1h</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><strong>Integration test: Register → CreateTenant → AddMember → Casbin verify</strong></td>
+              <td><span class="badge badge-high">HIGH</span></td>
+              <td><span class="badge badge-medium">2h</span></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><strong>TenantReadModel integration test</strong> — created/suspended/reactivated/deleted through projection</td>
+              <td><span class="badge badge-high">HIGH</span></td>
+              <td><span class="badge badge-low">30m</span></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><strong>Migration test</strong> — MigrateRolesToMemberships with legacy events</td>
+              <td><span class="badge badge-high">HIGH</span></td>
+              <td><span class="badge badge-low">45m</span></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><strong>CasbinProjection TenantDeleted/BotDeleted test</strong> — verify policies removed</td>
+              <td><span class="badge badge-high">HIGH</span></td>
+              <td><span class="badge badge-low">30m</span></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><strong>Membership Service wrapper methods</strong> — AddMember/UpdateMemberRoles/RemoveMember on Service</td>
+              <td><span class="badge badge-high">HIGH</span></td>
+              <td><span class="badge badge-medium">1h</span></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><strong>Bot Service integration test</strong> — RegisterBot with pepper → ResolveBotByToken round-trip</td>
+              <td><span class="badge badge-high">HIGH</span></td>
+              <td><span class="badge badge-low">45m</span></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><strong>Tenant suspend → session revocation</strong> — cascade like DeleteUser</td>
+              <td><span class="badge badge-medium">MEDIUM</span></td>
+              <td><span class="badge badge-medium">1h</span></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><strong>Type Bot OwnerID as UserID</strong> — replace string with branded type</td>
+              <td><span class="badge badge-medium">MEDIUM</span></td>
+              <td><span class="badge badge-medium">1h</span></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><strong>Impersonation middleware E2E test</strong> — session → ImpersonatorIDFromRequest</td>
+              <td><span class="badge badge-medium">MEDIUM</span></td>
+              <td><span class="badge badge-low">45m</span></td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><strong>HTTP handlers for Tenant CRUD</strong> — service_tenant.go has methods, needs HTTP wrappers</td>
+              <td><span class="badge badge-medium">MEDIUM</span></td>
+              <td><span class="badge badge-medium">2h</span></td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><strong>HTTP handlers for Bot CRUD + token display</strong></td>
+              <td><span class="badge badge-medium">MEDIUM</span></td>
+              <td><span class="badge badge-medium">2h</span></td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><strong>HTTP handler for impersonation</strong> — POST /auth/impersonate, DELETE /auth/impersonate</td>
+              <td><span class="badge badge-medium">MEDIUM</span></td>
+              <td><span class="badge badge-medium">1h</span></td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><strong>Bot token rotation</strong> — RotateBotToken method + BotTokenRotated event</td>
+              <td><span class="badge badge-low">LOW</span></td>
+              <td><span class="badge badge-medium">1h</span></td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><strong>Schema v1→v2 upcasters</strong> — register upcasters for RolesUpdatedPayload.Domain</td>
+              <td><span class="badge badge-low">LOW</span></td>
+              <td><span class="badge badge-medium">2h</span></td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><strong>Update integration_test module</strong> — add Tenant/Bot/impersonation cross-module tests</td>
+              <td><span class="badge badge-low">LOW</span></td>
+              <td><span class="badge badge-medium">2h</span></td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><strong>Update FEATURES.md</strong> — add Tenant, Bot, Impersonation, API Token features</td>
+              <td><span class="badge badge-low">LOW</span></td>
+              <td><span class="badge badge-low">30m</span></td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><strong>Update TODO_LIST.md</strong> — track remaining identity redesign tasks</td>
+              <td><span class="badge badge-low">LOW</span></td>
+              <td><span class="badge badge-low">15m</span></td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><strong>Update ADR 0015</strong> — mark completed items, add new decisions (tenant cascade, context bridge)</td>
+              <td><span class="badge badge-low">LOW</span></td>
+              <td><span class="badge badge-low">20m</span></td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><strong>Deprecate User.HasRole / User.Roles</code></strong> — add deprecation comments, point to Membership</td>
+              <td><span class="badge badge-low">LOW</span></td>
+              <td><span class="badge badge-low">15m</span></td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><strong>Add MemberAdded event to CasbinProjection EventTypes</strong> — verify it's subscribed for ordering</td>
+              <td><span class="badge badge-low">LOW</span></td>
+              <td><span class="badge badge-low">10m</span></td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><strong>Evaluate go-composable-business-types</strong> — compare with go-branded-id for future type needs</td>
+              <td><span class="badge badge-low">LOW</span></td>
+              <td><span class="badge badge-medium">2h</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- g) Top Question -->
+      <section id="question">
+        <h2><span class="num">G</span> Top #1 Question I Cannot Figure Out</h2>
+
+        <div class="callout callout-question">
+          <h3 style="margin-bottom: 0.5rem;">How should we handle the transition from <code>User.Roles</code> to Membership-managed roles without breaking existing consumers?</h3>
+          <p style="margin-bottom: 0.5rem;"><strong>The problem:</strong> <code>User.Roles</code> is a public field on the read model that consumers may depend on.
+          We've already removed <code>Roles</code> from <code>UserState</code> (the aggregate), but the read model (<code>User</code> struct) still has it.
+          The CasbinProjection still seeds roles from <code>UserRegistered</code> events. We have three options:</p>
+          <ol>
+            <li><strong>Break completely:</strong> Remove <code>User.Roles</code> entirely. Auto-create a Membership at registration. Consumers must use <code>RolesForActor</code>. This is a v3 breaking change.</li>
+            <li><strong>Deprecate gradually:</strong> Keep <code>User.Roles</code> but mark it deprecated. Have <code>Service.Register</code> dispatch both the old <code>RegisterUserCmd</code> (with roles for backward compat) AND a new <code>AddMemberCmd</code>. Eventually remove the old path.</li>
+            <li><strong>Bridge internally:</strong> Keep <code>User.Roles</code> on the read model but populate it from the Membership read model (not from the User event stream). This hides the migration from consumers but creates a read-model join.</li>
+          </ol>
+          <p style="margin-bottom: 0;"><strong>My recommendation:</strong> Option 1 (break completely). This is already a v3 release with breaking API changes.
+          The Membership aggregate is the single source of truth. But this is a product decision — it depends on whether you have existing consumers
+          that read <code>User.Roles</code> and need a migration path.</p>
+        </div>
+      </section>
+
+    </div>
+  </body>
+</html>
