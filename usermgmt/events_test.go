@@ -40,10 +40,9 @@ func TestService_EventHandler_Register(t *testing.T) {
 
 func TestService_EventHandler_UpdateRoles(t *testing.T) {
 	var captured any
-	svc, ctx, _ := newTestServiceWithUser(t, "u1", "ur@test.com")
-	svc.eventHandler = func(_ UserID, evt any) {
+	svc, ctx, _ := newTestServiceWithUserAndHandler(t, "u1", "ur@test.com", func(_ UserID, evt any) {
 		captured = evt
-	}
+	})
 
 	err := svc.UpdateRoles(ctx, NewUserID("u1"), []Role{RoleAdmin}, "u1")
 	if err != nil {
