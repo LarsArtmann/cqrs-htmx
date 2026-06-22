@@ -12,7 +12,7 @@ const (
 	aggregateTypeBot        event.AggregateType = "Bot"
 
 	eventUserRegistered          event.Type = "UserRegistered"
-	eventRolesUpdated            event.Type = "RolesUpdated"
+	eventRolesUpdated            event.Type = "RolesUpdated" // legacy: no longer emitted, decoded for backward compat
 	eventEmailChanged            event.Type = "EmailChanged"
 	eventDisplayNameChanged      event.Type = "DisplayNameChanged"
 	eventUserDeleted             event.Type = "UserDeleted"
@@ -37,7 +37,6 @@ const (
 	eventBotDeleted    event.Type = "BotDeleted"
 
 	cmdRegisterUser          command.Type = "RegisterUser"
-	cmdUpdateRoles           command.Type = "UpdateRoles"
 	cmdChangeEmail           command.Type = "ChangeEmail"
 	cmdChangeDisplayName     command.Type = "ChangeDisplayName"
 	cmdDeleteUser            command.Type = "DeleteUser"
@@ -64,7 +63,7 @@ const (
 
 var allUserEventTypes = []event.Type{
 	eventUserRegistered,
-	eventRolesUpdated,
+	eventRolesUpdated, // legacy: decoded for backward compat, no longer emitted
 	eventEmailChanged,
 	eventDisplayNameChanged,
 	eventUserDeleted,

@@ -406,20 +406,6 @@ func (s *Service) bridgeEventHandler(bus event.Subscriber) {
 	}); err != nil {
 		s.logger.Warn("usermgmt: failed to subscribe to UserRegistered events", "error", err)
 	}
-	if err := bus.Subscribe(eventRolesUpdated, func(_ context.Context, evt event.Event) error {
-		p, err := unmarshalPayload[RolesUpdatedPayload](evt)
-		if err != nil {
-			return err
-		}
-		s.emit(userIDFromAggID(evt.AggregateID()), RolesUpdatedEvent{
-			Roles:      append([]Role(nil), p.Roles...),
-			Domain:     p.Domain,
-			OccurredAt: evt.OccurredAt(),
-		})
-		return nil
-	}); err != nil {
-		s.logger.Warn("usermgmt: failed to subscribe to RolesUpdated events", "error", err)
-	}
 }
 
 func userIDFromAggID(aggID interface{ String() string }) UserID {

@@ -44,38 +44,6 @@ func TestDecideRegisterUser_EmptyEmail(t *testing.T) {
 	}
 }
 
-func TestDecideUpdateRoles_Success(t *testing.T) {
-	decide := decideUpdateRoles(id.NewAggregateID(), []Role{RoleAdmin}, "domain1")
-	state := UserState{Email: "u@example.com"}
-	events, err := decide(state, 1)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1", len(events))
-	}
-	if events[0].Type() != eventRolesUpdated {
-		t.Errorf("type = %s", events[0].Type())
-	}
-}
-
-func TestDecideUpdateRoles_Deleted(t *testing.T) {
-	decide := decideUpdateRoles(id.NewAggregateID(), []Role{RoleAdmin}, "d")
-	state := UserState{Email: "u@example.com", Deleted: true}
-	events, err := decide(state, 1)
-	if err == nil {
-		t.Fatalf("expected error, got %d events", len(events))
-	}
-}
-
-func TestDecideUpdateRoles_NotFound(t *testing.T) {
-	decide := decideUpdateRoles(id.NewAggregateID(), []Role{RoleAdmin}, "d")
-	events, err := decide(UserState{}, 0)
-	if err == nil {
-		t.Fatalf("expected error, got %d events", len(events))
-	}
-}
-
 func TestDecideChangeEmail(t *testing.T) {
 	cases := []struct {
 		name        string

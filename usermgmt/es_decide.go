@@ -59,44 +59,6 @@ func decideRegisterUser(
 	}
 }
 
-func decideUpdateRoles(
-	aggID id.AggregateID,
-	roles []Role,
-	domain string,
-) func(UserState, event.Version) ([]event.Event, error) {
-	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if err := requireExists(state, "update_roles"); err != nil {
-			return nil, err
-		}
-		if state.Deleted {
-			return nil, event.NewRejection("usermgmt.update_roles.deleted",
-				"cannot update roles of deleted user")
-		}
-		rolesCopy := make([]Role, len(roles))
-		copy(rolesCopy, roles)
-		payload, err := marshalPayload(RolesUpdatedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Roles:         rolesCopy,
-			Domain:        domain,
-		})
-		if err != nil {
-			return nil, event.WrapInfrastructure(
-				err,
-				"usermgmt.update_roles.marshal_failed",
-				"marshal RolesUpdated payload",
-			)
-		}
-		evt, err := event.NewEvent(
-			eventRolesUpdated, aggID, aggregateTypeUser, version.Increment(),
-			payload,
-		)
-		if err != nil {
-			return nil, event.WrapInfrastructure(err, "usermgmt.update_roles.event_failed", "create RolesUpdated event")
-		}
-		return []event.Event{evt}, nil
-	}
-}
-
 func decideDeleteUser(
 	aggID id.AggregateID,
 	reason string,

@@ -16,10 +16,3 @@ type UserRegisteredEvent struct {
 	Roles       []Role    `json:"roles"`
 	OccurredAt  time.Time `json:"occurred_at"`
 }
-
-// RolesUpdatedEvent is emitted after a successful role update.
-type RolesUpdatedEvent struct {
-	Roles      []Role    `json:"roles"`
-	Domain     string    `json:"domain"`
-	OccurredAt time.Time `json:"occurred_at"`
-}

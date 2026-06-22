@@ -58,7 +58,7 @@ func TestUser_Clone(t *testing.T) {
 		ID:          NewUserID("u1"),
 		Email:       "clone@test.com",
 		DisplayName: "Original",
-		Roles:       []Role{RoleUser},
+		Credentials: []WebAuthnCredential{{ID: []byte{1}}},
 	}
 
 	cloned := original.Clone()
@@ -70,12 +70,12 @@ func TestUser_Clone(t *testing.T) {
 	}
 
 	cloned.Email = "modified@test.com"
-	cloned.Roles[0] = RoleAdmin
+	cloned.Credentials[0].ID = []byte{2}
 	if original.Email != "clone@test.com" {
 		t.Error("Clone mutation affected original Email")
 	}
-	if original.Roles[0] != RoleUser {
-		t.Error("Clone mutation affected original Roles")
+	if original.Credentials[0].ID[0] != 1 {
+		t.Error("Clone mutation affected original Credentials")
 	}
 }
 

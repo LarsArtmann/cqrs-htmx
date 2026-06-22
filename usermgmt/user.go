@@ -14,14 +14,16 @@ const (
 	sessionTokenBytes = 32
 )
 
-// User represents a registered user with authentication credentials and authorization roles.
+// User represents a registered user with authentication credentials.
 // In the event-sourced architecture, User is a read-only projection — all mutations
 // happen through commands that produce events.
+//
+// Roles are NOT stored on User — they are managed by the Membership aggregate
+// and queryable via Service.Authz().RolesForActor().
 type User struct {
 	ID               UserID               `json:"id"`
 	Email            string               `json:"email"`
 	DisplayName      string               `json:"display_name,omitempty"`
-	Roles            []Role               `json:"roles"`
 	Credentials      []WebAuthnCredential `json:"credentials,omitempty"`
 	ExternalAccounts []ExternalAccount    `json:"external_accounts,omitempty"`
 	EmailVerified    bool                 `json:"email_verified"`
@@ -31,14 +33,13 @@ type User struct {
 	UpdatedAt        time.Time            `json:"updated_at"`
 }
 
-// NewUser creates a User with the given identity fields and a default "viewer" role.
+// NewUser creates a User with the given identity fields.
 func NewUser(id UserID, email, displayName string) *User {
 	now := time.Now().UTC()
 	return &User{
 		ID:          id,
 		Email:       email,
 		DisplayName: displayName,
-		Roles:       []Role{RoleViewer},
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -51,8 +52,6 @@ func (u *User) Clone() *User {
 		return nil
 	}
 	cp := *u
-	cp.Roles = make([]Role, len(u.Roles))
-	copy(cp.Roles, u.Roles)
 	cp.Credentials = make([]WebAuthnCredential, len(u.Credentials))
 	for i, c := range u.Credentials {
 		cp.Credentials[i] = c.Clone()
@@ -61,11 +60,6 @@ func (u *User) Clone() *User {
 	copy(cp.ExternalAccounts, u.ExternalAccounts)
 	cp.TOTPSecret = append([]byte(nil), u.TOTPSecret...)
 	return &cp
-}
-
-// HasRole reports whether the user has the specified role.
-func (u *User) HasRole(role Role) bool {
-	return slices.Contains(u.Roles, role)
 }
 
 // HasCredential reports whether the user has a credential with the given ID.

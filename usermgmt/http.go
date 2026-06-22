@@ -15,12 +15,24 @@ import (
 // Return an error (typically ErrForbidden) to deny access.
 type AuthorizerFunc func(user *User) error
 
-// RequireAdminRole is the default authorizer that requires the admin role.
-func RequireAdminRole(user *User) error {
-	if user == nil || !user.HasRole(RoleAdmin) {
+// RequireAdminRole returns an AuthorizerFunc that checks the admin role
+// via the membership/Authz system. Use this as the default ImportExportAuthorizer.
+func RequireAdminRole(authz *Authz) AuthorizerFunc {
+	return func(user *User) error {
+		if user == nil {
+			return ErrForbidden
+		}
+		roles, err := authz.RolesForUser(user.ID, user.ID.Get())
+		if err != nil {
+			return err
+		}
+		for _, r := range roles {
+			if r == RoleAdmin {
+				return nil
+			}
+		}
 		return ErrForbidden
 	}
-	return nil
 }
 
 // AuthHandler provides HTTP endpoints for user registration, login, logout, and identity.
@@ -153,7 +165,7 @@ func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
 		cfg.Secure = &secure
 	}
 	if cfg.ImportExportAuthorizer == nil {
-		cfg.ImportExportAuthorizer = RequireAdminRole
+		cfg.ImportExportAuthorizer = nil // set in NewAuthHandler where service is available
 	}
 	return cfg
 }
@@ -180,6 +192,9 @@ func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
 	config := applyConfigDefaults(HandlerConfig{})
 	if len(cfg) > 0 {
 		config = applyConfigDefaults(cfg[0])
+	}
+	if config.ImportExportAuthorizer == nil {
+		config.ImportExportAuthorizer = RequireAdminRole(service.authz)
 	}
 	secure := true
 	if config.Secure != nil {

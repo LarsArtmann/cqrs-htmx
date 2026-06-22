@@ -117,7 +117,6 @@ func TestService_ExportUsersToCSV_IncludesTOTPEnabled(t *testing.T) {
 		csvColumnID,
 		csvColumnEmail,
 		csvColumnDisplayName,
-		csvColumnRoles,
 		csvColumnEmailVerified,
 		csvColumnTOTPEnabled,
 	}

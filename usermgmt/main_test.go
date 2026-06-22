@@ -30,18 +30,6 @@ func newTestServiceWithUser(
 	return svc, ctx, reg
 }
 
-func newTestServiceWithUserAndHandler(
-	t *testing.T,
-	id, email string,
-	handler EventHandler,
-) (*Service, context.Context, *RegisterResponse) {
-	t.Helper()
-	svc := newTestServiceWithConfig(t, ServiceConfig{EventHandler: handler})
-	ctx := context.Background()
-	reg := registerTestUser(t, svc, id, email)
-	return svc, ctx, reg
-}
-
 func addTestGroupPolicy(t *testing.T, a *Authz, gp GroupPolicy) {
 	t.Helper()
 	if err := a.AddGroupPolicy(gp); err != nil {
@@ -130,8 +118,11 @@ func registerTestUser(t *testing.T, svc *Service, id, email string) *RegisterRes
 
 func grantTestRole(t *testing.T, svc *Service, userID UserID, role Role) {
 	t.Helper()
-	if err := svc.UpdateRoles(context.Background(), userID, []Role{role}, "test"); err != nil {
-		t.Fatalf("UpdateRoles: %v", err)
+	actor := ActorIDFromUser(userID)
+	tenant := NewTenantID(userID.Get()) // self-scoped domain (matches legacy Casbin behavior)
+	ctx := context.Background()
+	if err := svc.dispatcher.Dispatch(ctx, NewAddMemberCmd(actor, tenant, []Role{role})); err != nil {
+		t.Fatalf("grantTestRole AddMember: %v", err)
 	}
 }
 

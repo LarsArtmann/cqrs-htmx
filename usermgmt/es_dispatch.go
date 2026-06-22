@@ -33,24 +33,6 @@ func RegisterCommands(
 	}
 
 	if err := command.RegisterTyped(
-		dispatcher, cmdUpdateRoles,
-		func(ctx context.Context, c *UpdateRolesCmd) error {
-			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideUpdateRoles(c.AggregateID(), c.roles, c.domain),
-			)
-		},
-	); err != nil {
-		return event.Wrapf(
-			err,
-			event.Infrastructure,
-			"usermgmt.dispatch.register_failed",
-			"register %s",
-			cmdUpdateRoles,
-		)
-	}
-
-	if err := command.RegisterTyped(
 		dispatcher, cmdChangeEmail,
 		func(ctx context.Context, c *ChangeEmailCmd) error {
 			return repo.Execute(

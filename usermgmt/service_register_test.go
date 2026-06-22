@@ -23,9 +23,6 @@ func TestService_Register(t *testing.T) {
 	if resp.Session == nil {
 		t.Error("expected non-nil session")
 	}
-	if !resp.User.HasRole(RoleUser) {
-		t.Error("expected user role")
-	}
 }
 
 func TestService_Register_DuplicateEmail(t *testing.T) {
