@@ -10,7 +10,7 @@ import (
 func TenantDecider() decider.Decider[TenantState] {
 	return decider.Decider[TenantState]{
 		Initial: TenantState{}, //nolint:exhaustruct // zero-value is correct for aggregate initial state
-		Apply:    foldTenant,
+		Apply:   foldTenant,
 	}
 }
 

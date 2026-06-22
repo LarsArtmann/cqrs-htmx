@@ -11,7 +11,7 @@ import (
 func MembershipDecider() decider.Decider[MembershipState] {
 	return decider.Decider[MembershipState]{
 		Initial: MembershipState{}, //nolint:exhaustruct // zero-value is correct for aggregate initial state
-		Apply:    foldMembership,
+		Apply:   foldMembership,
 	}
 }
 
