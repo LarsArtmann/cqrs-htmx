@@ -13,24 +13,24 @@
 
 ### Audit
 
-| Deliverable | Status | Artifact |
-|---|---|---|
-| Split-brain audit report | Done | `docs/research/SPLIT-BRAIN.html` (53KB, 10 findings, file:line evidence) |
-| Comprehensive execution plan | Done | 32 tasks, each ≤12 min, sorted by impact/effort |
-| Self-review (M1–M5 findings) | Done | Amended into report — 5 additional gaps found and folded into plan |
+| Deliverable                  | Status | Artifact                                                                 |
+| ---------------------------- | ------ | ------------------------------------------------------------------------ |
+| Split-brain audit report     | Done   | `docs/research/SPLIT-BRAIN.html` (53KB, 10 findings, file:line evidence) |
+| Comprehensive execution plan | Done   | 32 tasks, each ≤12 min, sorted by impact/effort                          |
+| Self-review (M1–M5 findings) | Done   | Amended into report — 5 additional gaps found and folded into plan       |
 
 ### Split-brain fixes shipped
 
-| # | Split Brain | What Was Done | Commit |
-|---|---|---|---|
-| **1** | Roles in 3 places | Removed `User.Roles`, `User.HasRole()`, `UpdateRolesCmd`, `decideUpdateRoles`, `RolesUpdatedEvent`. Membership aggregate is now the sole source of roles. `RequireAdminRole` now a factory that checks Authz. | `7a8e87f` |
-| **6a** | Ghost `UserLoggedInEvent` | Deleted (0 usages). | `6019748` |
-| **6b** | Double event emission | Removed direct `s.emit()` calls; enriched bridge to carry full payloads. | `73d7e3e` |
-| **6c** | Legacy EventHandler system | Removed `EventHandler` type, `ServiceConfig.EventHandler` field, `bridgeEventHandler`, `emit()` method, `UserRegisteredEvent` struct, and all EventHandler tests. Consumers use the bus directly. | `3f95cf6` |
-| **5** | Twin setup constructors | `NewService` now delegates to `NewEventSourcedSetup` for all shared infra (store, bus, repos, projections, authz). -81 lines of duplicated wiring. | `2894292` |
-| **10** | Credential/ExternalAccount field clone | Extracted `credentialCore` (8 fields) and `externalAccountCore` (4 fields) embedded structs. Domain types and event payloads now share fields via embedding. | `3541f8a` |
-| **7** | SSE/WS broadcaster hook duplication | All 4 inline hook builders (`BroadcastOnSuccess`, `BroadcastOnError`, + WS variants) now delegate to shared `fanOut.broadcastOnSuccessHook`/`broadcastOnErrorHook`. | `1dbbc0b` |
-| **8** | Email validation split | `RegisterRequest.Validate` now routes through `ParseEmail` (was using raw `mail.ParseAddress` with different normalization). | `b921dca` |
+| #      | Split Brain                            | What Was Done                                                                                                                                                                                                 | Commit    |
+| ------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| **1**  | Roles in 3 places                      | Removed `User.Roles`, `User.HasRole()`, `UpdateRolesCmd`, `decideUpdateRoles`, `RolesUpdatedEvent`. Membership aggregate is now the sole source of roles. `RequireAdminRole` now a factory that checks Authz. | `7a8e87f` |
+| **6a** | Ghost `UserLoggedInEvent`              | Deleted (0 usages).                                                                                                                                                                                           | `6019748` |
+| **6b** | Double event emission                  | Removed direct `s.emit()` calls; enriched bridge to carry full payloads.                                                                                                                                      | `73d7e3e` |
+| **6c** | Legacy EventHandler system             | Removed `EventHandler` type, `ServiceConfig.EventHandler` field, `bridgeEventHandler`, `emit()` method, `UserRegisteredEvent` struct, and all EventHandler tests. Consumers use the bus directly.             | `3f95cf6` |
+| **5**  | Twin setup constructors                | `NewService` now delegates to `NewEventSourcedSetup` for all shared infra (store, bus, repos, projections, authz). -81 lines of duplicated wiring.                                                            | `2894292` |
+| **10** | Credential/ExternalAccount field clone | Extracted `credentialCore` (8 fields) and `externalAccountCore` (4 fields) embedded structs. Domain types and event payloads now share fields via embedding.                                                  | `3541f8a` |
+| **7**  | SSE/WS broadcaster hook duplication    | All 4 inline hook builders (`BroadcastOnSuccess`, `BroadcastOnError`, + WS variants) now delegate to shared `fanOut.broadcastOnSuccessHook`/`broadcastOnErrorHook`.                                           | `1dbbc0b` |
+| **8**  | Email validation split                 | `RegisterRequest.Validate` now routes through `ParseEmail` (was using raw `mail.ParseAddress` with different normalization).                                                                                  | `b921dca` |
 
 ### Test suite verification
 
@@ -45,10 +45,10 @@
 
 ## b) PARTIALLY DONE
 
-| Item | What's Done | What Remains |
-|---|---|---|
-| **Email type enforcement (#8)** | Validation unified through `ParseEmail` at the register boundary | `User.Email`, `UserState.Email`, and event payload `Email` fields are still `string`, not the `Email` branded type. Full enforcement requires changing the `User` struct field type — a breaking API change that touches serialization, the read model, fold functions, and every command. Not done due to cascading scope. |
-| **Roles legacy event decoding** | Write path fully removed (no new `RolesUpdated` events can be created). `eventRolesUpdated` constant and `RolesUpdatedPayload` retained and marked legacy for backward-compatible decoding of existing events in stores. | The `MigrateRolesToMemberships` tool exists but hasn't been documented as mandatory upgrade step in CHANGELOG. |
+| Item                            | What's Done                                                                                                                                                                                                              | What Remains                                                                                                                                                                                                                                                                                                                |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Email type enforcement (#8)** | Validation unified through `ParseEmail` at the register boundary                                                                                                                                                         | `User.Email`, `UserState.Email`, and event payload `Email` fields are still `string`, not the `Email` branded type. Full enforcement requires changing the `User` struct field type — a breaking API change that touches serialization, the read model, fold functions, and every command. Not done due to cascading scope. |
+| **Roles legacy event decoding** | Write path fully removed (no new `RolesUpdated` events can be created). `eventRolesUpdated` constant and `RolesUpdatedPayload` retained and marked legacy for backward-compatible decoding of existing events in stores. | The `MigrateRolesToMemberships` tool exists but hasn't been documented as mandatory upgrade step in CHANGELOG.                                                                                                                                                                                                              |
 
 ---
 
@@ -56,11 +56,11 @@
 
 These 3 split brains were identified but **cannot be fixed without breaking the module architecture**:
 
-| # | Split Brain | Why Skipped |
-|---|---|---|
+| #     | Split Brain                                                                              | Why Skipped                                                                                                                                                                                                                                                            |
+| ----- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **2** | Two `UserID` types (root `id.UserID` ULID-backed vs usermgmt `brandid.ID` string-backed) | Root and usermgmt are **independent Go modules with zero mutual imports**. Unifying requires either a new shared `identity` sub-module both depend on, or one module adopting the other's ID library. Both are major architectural decisions beyond a split-brain fix. |
-| **3** | Two `RateLimitConfig` types (root token-bucket vs usermgmt hand-rolled fixed-window) | Same module boundary constraint. usermgmt cannot import root's `RateLimiterConfig`. The usermgmt limiter is simpler (no eviction, no burst) but serves a different need (per-endpoint HTTP rate limiting within the auth handler). |
-| **4** | Actor identity: root `string` vs usermgmt typed `ActorID` | Same root cause as #2 — context API is in root, typed `ActorID` is in usermgmt. |
+| **3** | Two `RateLimitConfig` types (root token-bucket vs usermgmt hand-rolled fixed-window)     | Same module boundary constraint. usermgmt cannot import root's `RateLimiterConfig`. The usermgmt limiter is simpler (no eviction, no burst) but serves a different need (per-endpoint HTTP rate limiting within the auth handler).                                     |
+| **4** | Actor identity: root `string` vs usermgmt typed `ActorID`                                | Same root cause as #2 — context API is in root, typed `ActorID` is in usermgmt.                                                                                                                                                                                        |
 
 These are **architectural constraints, not oversights**. The "zero mutual imports" rule is documented in `AGENTS.md` and is intentional.
 
@@ -103,33 +103,33 @@ After all fixes, the LSP showed 23 `typecheck` warnings in test files. `go vet` 
 
 ## f) Top 25 Things to Get Done Next
 
-| Priority | Task | Impact | Effort |
-|---|---|---|---|
-| **P0** | Update `AGENTS.md` to remove references to `User.Roles`, `EventHandler`, `UpdateRoles`, legacy event structs | High (prevents confusion) | S |
-| **P0** | Write CHANGELOG / BREAKING CHANGES entry for v2.7.0 (roles removal, EventHandler removal, constructor change, credential core extraction) | High (consumer communication) | M |
-| **P0** | Add integration test for `MigrateRolesToMemberships` against a realistic event store with legacy roles events | High (migration safety) | M |
-| **P1** | Restore usermgmt coverage to 88%+ — add tests for membership-based roles flow, credential core, external account core | High (regression safety) | M |
-| **P1** | Add roles export to `ExportUser` via `Authz.RolesForUser` query during export | Medium (feature parity) | S |
-| **P1** | Run `nix run .#lint` and fix any lint issues from the session's changes | High (quality gate) | S |
-| **P1** | Document the `RequireAdminRole` API change (factory pattern) in handler docs | Medium (consumer UX) | XS |
-| **P2** | Enforce `Email` branded type on `User.Email` and event payloads (finish split-brain #8) | Medium (type safety) | M |
-| **P2** | Extract a shared `identity` sub-module to unify `UserID` across root + usermgmt (split-brain #2) | High (architecture) | L |
-| **P2** | Document the module boundary constraint for rate limiters and actor identity in a new ADR | Medium (architecture clarity) | S |
-| **P2** | Run `nix fmt` to normalize formatting after all the test file edits | Medium (hygiene) | XS |
-| **P3** | Consider deprecating `eventRolesUpdated` and `RolesUpdatedPayload` entirely after 2 release cycles | Low (tech debt) | XS |
-| **P3** | Add `gofmt -l` check to pre-commit hook to catch formatting issues before commit | Low (process) | XS |
-| **P3** | Review whether `MigrateRolesToMemberships` should be called automatically in `NewService` when legacy events are detected | Medium (consumer UX) | M |
-| **P3** | Add `casbinProjection` as exported field or accessor on `EventSourcedSetup` for consumers who need it | Low (API completeness) | XS |
-| **P3** | Consider adding `Roles()` method to `Service` that queries memberships and returns roles for a user (replaces the removed `User.HasRole`) | Medium (consumer convenience) | S |
-| **P4** | Audit `integration_test` module for any references to removed APIs | Medium (compatibility) | S |
-| **P4** | Review whether `NewEventSourcedSetup` should accept a custom `Authz` (currently always creates its own) | Low (flexibility) | S |
-| **P4** | Add benchmarks for the new membership-based roles lookup vs old `User.HasRole` (perf regression check) | Low (performance) | S |
-| **P4** | Consider whether `UserRegisteredPayload.Roles` should be removed (currently retained for backward compat but no longer meaningful) | Low (tech debt) | XS |
-| **P4** | Document the `credentialCore` / `externalAccountCore` embedding pattern in a brief ADR | Low (knowledge sharing) | S |
-| **P5** | Review all `//nolint:gocognit` comments — the constructor simplification may have reduced complexity enough to remove some | Low (hygiene) | XS |
-| **P5** | Consider unifying the two `Membership.HasRole` / `Membership.HasAnyRole` methods with `slices.Contains` (LSP hint) | Low (code quality) | XS |
-| **P5** | Review `events.go` — now just a package comment; consider whether the file should be renamed or merged into `doc.go` | Low (hygiene) | XS |
-| **P5** | Consider adding `Service.RolesForUser(userID UserID, tenant TenantID) ([]Role, error)` as a convenience method | Low (consumer UX) | XS |
+| Priority | Task                                                                                                                                      | Impact                        | Effort |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------ |
+| **P0**   | Update `AGENTS.md` to remove references to `User.Roles`, `EventHandler`, `UpdateRoles`, legacy event structs                              | High (prevents confusion)     | S      |
+| **P0**   | Write CHANGELOG / BREAKING CHANGES entry for v2.7.0 (roles removal, EventHandler removal, constructor change, credential core extraction) | High (consumer communication) | M      |
+| **P0**   | Add integration test for `MigrateRolesToMemberships` against a realistic event store with legacy roles events                             | High (migration safety)       | M      |
+| **P1**   | Restore usermgmt coverage to 88%+ — add tests for membership-based roles flow, credential core, external account core                     | High (regression safety)      | M      |
+| **P1**   | Add roles export to `ExportUser` via `Authz.RolesForUser` query during export                                                             | Medium (feature parity)       | S      |
+| **P1**   | Run `nix run .#lint` and fix any lint issues from the session's changes                                                                   | High (quality gate)           | S      |
+| **P1**   | Document the `RequireAdminRole` API change (factory pattern) in handler docs                                                              | Medium (consumer UX)          | XS     |
+| **P2**   | Enforce `Email` branded type on `User.Email` and event payloads (finish split-brain #8)                                                   | Medium (type safety)          | M      |
+| **P2**   | Extract a shared `identity` sub-module to unify `UserID` across root + usermgmt (split-brain #2)                                          | High (architecture)           | L      |
+| **P2**   | Document the module boundary constraint for rate limiters and actor identity in a new ADR                                                 | Medium (architecture clarity) | S      |
+| **P2**   | Run `nix fmt` to normalize formatting after all the test file edits                                                                       | Medium (hygiene)              | XS     |
+| **P3**   | Consider deprecating `eventRolesUpdated` and `RolesUpdatedPayload` entirely after 2 release cycles                                        | Low (tech debt)               | XS     |
+| **P3**   | Add `gofmt -l` check to pre-commit hook to catch formatting issues before commit                                                          | Low (process)                 | XS     |
+| **P3**   | Review whether `MigrateRolesToMemberships` should be called automatically in `NewService` when legacy events are detected                 | Medium (consumer UX)          | M      |
+| **P3**   | Add `casbinProjection` as exported field or accessor on `EventSourcedSetup` for consumers who need it                                     | Low (API completeness)        | XS     |
+| **P3**   | Consider adding `Roles()` method to `Service` that queries memberships and returns roles for a user (replaces the removed `User.HasRole`) | Medium (consumer convenience) | S      |
+| **P4**   | Audit `integration_test` module for any references to removed APIs                                                                        | Medium (compatibility)        | S      |
+| **P4**   | Review whether `NewEventSourcedSetup` should accept a custom `Authz` (currently always creates its own)                                   | Low (flexibility)             | S      |
+| **P4**   | Add benchmarks for the new membership-based roles lookup vs old `User.HasRole` (perf regression check)                                    | Low (performance)             | S      |
+| **P4**   | Consider whether `UserRegisteredPayload.Roles` should be removed (currently retained for backward compat but no longer meaningful)        | Low (tech debt)               | XS     |
+| **P4**   | Document the `credentialCore` / `externalAccountCore` embedding pattern in a brief ADR                                                    | Low (knowledge sharing)       | S      |
+| **P5**   | Review all `//nolint:gocognit` comments — the constructor simplification may have reduced complexity enough to remove some                | Low (hygiene)                 | XS     |
+| **P5**   | Consider unifying the two `Membership.HasRole` / `Membership.HasAnyRole` methods with `slices.Contains` (LSP hint)                        | Low (code quality)            | XS     |
+| **P5**   | Review `events.go` — now just a package comment; consider whether the file should be renamed or merged into `doc.go`                      | Low (hygiene)                 | XS     |
+| **P5**   | Consider adding `Service.RolesForUser(userID UserID, tenant TenantID) ([]Role, error)` as a convenience method                            | Low (consumer UX)             | XS     |
 
 ---
 
@@ -138,10 +138,12 @@ After all fixes, the LSP showed 23 `typecheck` warnings in test files. `go vet` 
 **Should `MigrateRolesToMemberships` be called automatically inside `NewService` when legacy roles events are detected in the store?**
 
 Arguments for automatic:
+
 - Zero-friction upgrade for existing consumers — their stores are migrated on first boot
 - Prevents the split-brain from manifesting if someone has old events
 
 Arguments against:
+
 - `NewService` doesn't read the event store during construction (it starts projections but doesn't scan historical events)
 - Automatic mutation of an event store on startup is a dangerous side effect for a library
 - The migration dispatches commands that produce NEW events — doing this implicitly could double-migrate or conflict with consumer-controlled migration timing

@@ -155,13 +155,13 @@ cqrs-htmx/
 
 | Module           | go.mod                                              | Tests | Notes                                             |
 | ---------------- | --------------------------------------------------- | ----- | ------------------------------------------------- |
-| Root             | `github.com/larsartmann/cqrs-htmx/v3`          | Yes   | Core library                                      |
-| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3` | Yes   | Independent submodule                             |
+| Root             | `github.com/larsartmann/cqrs-htmx/v3`               | Yes   | Core library                                      |
+| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`      | Yes   | Independent submodule                             |
 | integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                        |
 | datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                 |
 | catalog-demo     | `examples/catalog-demo/`                            | No    | Catalog doc-server example (main package)         |
 | basic            | `examples/basic/`                                   | No    | Minimal cqrs-htmx consumer example                |
-| catalog          | `github.com/larsartmann/cqrs-htmx/catalog/v3`  | Yes   | API doc generation (opt-in, no root/usermgmt dep) |
+| catalog          | `github.com/larsartmann/cqrs-htmx/catalog/v3`       | Yes   | API doc generation (opt-in, no root/usermgmt dep) |
 
 ## Dependencies
 

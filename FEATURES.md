@@ -23,111 +23,111 @@
 
 ### Core
 
-| Feature          | Status                | Notes                                                                                                                                                |
-| ---------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| App Builder      | 🟢 `FULLY_FUNCTIONAL` | `New(Config)` creates App with command/query dispatchers, enforcer, error handler. `MustNew(cfg)` panics on error. Validates at least one dispatcher. |
-| Command Dispatch | 🟢 `FULLY_FUNCTIONAL` | `app.Command(type, opts...)` → HTTP handler. Decodes, dispatches, applies HTMX response. 204 on success by default.                                  |
-| Query Dispatch   | 🟢 `FULLY_FUNCTIONAL` | `app.Query(type, opts...)` → HTTP handler. Decodes, dispatches, renders result. 204 when no renderer.                                                |
+| Feature          | Status                | Notes                                                                                                                                                                      |
+| ---------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App Builder      | 🟢 `FULLY_FUNCTIONAL` | `New(Config)` creates App with command/query dispatchers, enforcer, error handler. `MustNew(cfg)` panics on error. Validates at least one dispatcher.                      |
+| Command Dispatch | 🟢 `FULLY_FUNCTIONAL` | `app.Command(type, opts...)` → HTTP handler. Decodes, dispatches, applies HTMX response. 204 on success by default.                                                        |
+| Query Dispatch   | 🟢 `FULLY_FUNCTIONAL` | `app.Query(type, opts...)` → HTTP handler. Decodes, dispatches, renders result. 204 when no renderer.                                                                      |
 | Handler Options  | 🟢 `FULLY_FUNCTIONAL` | Decoders, renderers, auth, validation, notifications, `Redirect`, `Trigger`, `PushURL`, `RequireMethod`, `WithSuccessStatus`, `OnError`, `WithMaxBodySize`, `WithTimeout`. |
-| Health Check     | 🟢 `FULLY_FUNCTIONAL` | `App.HealthHandler()` → 200/503 JSON for load balancer probes.                                                                                       |
-| WS Dispatch      | 🟢 `FULLY_FUNCTIONAL` | `DispatchWSCommand` / `DispatchWSQuery` — decode WS message → dispatch via App. Runs lifecycle hooks. `DecodeWSJSON[T]` / `DecodeWSJSONQuery[T]`.    |
+| Health Check     | 🟢 `FULLY_FUNCTIONAL` | `App.HealthHandler()` → 200/503 JSON for load balancer probes.                                                                                                             |
+| WS Dispatch      | 🟢 `FULLY_FUNCTIONAL` | `DispatchWSCommand` / `DispatchWSQuery` — decode WS message → dispatch via App. Runs lifecycle hooks. `DecodeWSJSON[T]` / `DecodeWSJSONQuery[T]`.                          |
 
 ### Decoding
 
-| Feature          | Status                | Notes                                                                                 |
-| ---------------- | --------------------- | ------------------------------------------------------------------------------------- |
-| JSON Decoding    | 🟢 `FULLY_FUNCTIONAL` | `DecodeJSON[T]` / `DecodeJSONQuery[T]` with mapper. Invalid JSON → 400.               |
-| Form Decoding    | 🟢 `FULLY_FUNCTIONAL` | `DecodeForm[T]` / `DecodeFormQuery[T]` via JSON round-trip. Parse errors → 400.       |
-| Pagination       | 🟢 `FULLY_FUNCTIONAL` | `DecodePagination(r)` extracts page/page_size, delegates to `query.NewPagination`.    |
+| Feature          | Status                | Notes                                                                                       |
+| ---------------- | --------------------- | ------------------------------------------------------------------------------------------- |
+| JSON Decoding    | 🟢 `FULLY_FUNCTIONAL` | `DecodeJSON[T]` / `DecodeJSONQuery[T]` with mapper. Invalid JSON → 400.                     |
+| Form Decoding    | 🟢 `FULLY_FUNCTIONAL` | `DecodeForm[T]` / `DecodeFormQuery[T]` via JSON round-trip. Parse errors → 400.             |
+| Pagination       | 🟢 `FULLY_FUNCTIONAL` | `DecodePagination(r)` extracts page/page_size, delegates to `query.NewPagination`.          |
 | Body Size Limits | 🟢 `FULLY_FUNCTIONAL` | `DefaultMaxBodySize` (10 MB). Per-App `Config.MaxBodySize` + per-handler `WithMaxBodySize`. |
 
 ### Rendering
 
-| Feature           | Status                | Notes                                                                                                 |
-| ----------------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
-| Custom Render     | 🟢 `FULLY_FUNCTIONAL` | `Render(fn)` HandlerOption for arbitrary response writing.                                            |
+| Feature           | Status                | Notes                                                                                                       |
+| ----------------- | --------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Custom Render     | 🟢 `FULLY_FUNCTIONAL` | `Render(fn)` HandlerOption for arbitrary response writing.                                                  |
 | Templ Integration | 🟢 `FULLY_FUNCTIONAL` | `RenderTempl(component)` and `RenderTemplResult[T](mapper)`. Duck-typed `TemplComponent` — no templ import. |
-| JSON Rendering    | 🟢 `FULLY_FUNCTIONAL` | `RenderJSON[T]()` renders query result as JSON 200. `RenderJSONStatus[T](status)` for custom status.  |
-| Paginated JSON    | 🟢 `FULLY_FUNCTIONAL` | `RenderPaginatedJSON[T]()` renders `query.PaginatedResult[T]` as JSON 200. Type-safe via generics.    |
+| JSON Rendering    | 🟢 `FULLY_FUNCTIONAL` | `RenderJSON[T]()` renders query result as JSON 200. `RenderJSONStatus[T](status)` for custom status.        |
+| Paginated JSON    | 🟢 `FULLY_FUNCTIONAL` | `RenderPaginatedJSON[T]()` renders `query.PaginatedResult[T]` as JSON 200. Type-safe via generics.          |
 
 ### HTMX
 
-| Feature               | Status                | Notes                                                                                                                            |
-| --------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| HTMX Request Context  | 🟢 `FULLY_FUNCTIONAL` | `HTMXMiddleware` parses all `HX-*` headers into context. `HTMXRequest` struct with all accessors.                                |
-| HTMX Response Builder | 🟢 `FULLY_FUNCTIONAL` | Fluent `Response`: `PushURL`, `ReplaceURL`, `Redirect`, `Refresh`, `Reswap`, `Retarget`, `Reselect`, `Trigger*`, `Notify*`, `Status`, `Header`, `ContentType`, `JSON`, `Body`. HTMX-aware redirect. |
-| Notifications         | 🟢 `FULLY_FUNCTIONAL` | `NotifySuccess/Error/Warning/Info` as HandlerOptions and Response methods. `NotifyWithEvent` builder.                            |
-| Swap Strategies       | 🟢 `FULLY_FUNCTIONAL` | All 8 HTMX swap strategies as typed constants.                                                                                   |
+| Feature               | Status                | Notes                                                                                                                                                                                                     |
+| --------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTMX Request Context  | 🟢 `FULLY_FUNCTIONAL` | `HTMXMiddleware` parses all `HX-*` headers into context. `HTMXRequest` struct with all accessors.                                                                                                         |
+| HTMX Response Builder | 🟢 `FULLY_FUNCTIONAL` | Fluent `Response`: `PushURL`, `ReplaceURL`, `Redirect`, `Refresh`, `Reswap`, `Retarget`, `Reselect`, `Trigger*`, `Notify*`, `Status`, `Header`, `ContentType`, `JSON`, `Body`. HTMX-aware redirect.       |
+| Notifications         | 🟢 `FULLY_FUNCTIONAL` | `NotifySuccess/Error/Warning/Info` as HandlerOptions and Response methods. `NotifyWithEvent` builder.                                                                                                     |
+| Swap Strategies       | 🟢 `FULLY_FUNCTIONAL` | All 8 HTMX swap strategies as typed constants.                                                                                                                                                            |
 | Embedded HTMX JS      | 🟢 `FULLY_FUNCTIONAL` | `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified, ~49KB) with ETag/caching. `HTMXVersion()`, `HTMXScriptTag(path)`, `HTMXCDNScriptTag(version)`, `HTMXScriptHandlerWith(js, version)`. Opt-in. |
 
 ### Auth & Security
 
-| Feature              | Status                | Notes                                                                                                                                                                            |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Casbin Authorization | 🟢 `FULLY_FUNCTIONAL` | `Authorize(resource, action)`, `RequireAuth()`, `Enforce()`, `AuthorizeMiddleware`. `Enforcer` interface enables mocks.                                                          |
+| Feature              | Status                | Notes                                                                                                                                                                                                                    |
+| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Casbin Authorization | 🟢 `FULLY_FUNCTIONAL` | `Authorize(resource, action)`, `RequireAuth()`, `Enforce()`, `AuthorizeMiddleware`. `Enforcer` interface enables mocks.                                                                                                  |
 | CSRF Protection      | 🟢 `FULLY_FUNCTIONAL` | `CSRFMiddleware` using justinas/nosurf. `CSRFProtect` per-handler. Template helpers: `CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`, `CSRFTokenFormField`. Custom header/field translation. TrustedProxies for origin bypass. |
-| Security Headers     | 🟢 `FULLY_FUNCTIONAL` | `SecurityHeadersMiddleware` with configurable CSP, HSTS, X-Frame-Options, etc. `RecommendedCSP`/`RecommendedHSTS` constants. `SecurityHeadersMiddlewareWithConfig` for custom config. |
-| Rate Limiting        | 🟢 `FULLY_FUNCTIONAL` | `RateLimiterMiddleware` with token-bucket per key. Min-heap O(log n) eviction. `MaxKeys` cap. `Retry-After` header. `ActiveKeys()` monitoring. `KeyExtractorFromRemoteAddr` / `KeyExtractorFromClientIP`. |
-| Panic Recovery       | 🟢 `FULLY_FUNCTIONAL` | `RecoveryMiddleware` recovers panics, logs stack trace, writes 500. `App.RecoverHandler()` uses App's ErrorHandler. Re-raises `http.ErrAbortHandler`.                            |
+| Security Headers     | 🟢 `FULLY_FUNCTIONAL` | `SecurityHeadersMiddleware` with configurable CSP, HSTS, X-Frame-Options, etc. `RecommendedCSP`/`RecommendedHSTS` constants. `SecurityHeadersMiddlewareWithConfig` for custom config.                                    |
+| Rate Limiting        | 🟢 `FULLY_FUNCTIONAL` | `RateLimiterMiddleware` with token-bucket per key. Min-heap O(log n) eviction. `MaxKeys` cap. `Retry-After` header. `ActiveKeys()` monitoring. `KeyExtractorFromRemoteAddr` / `KeyExtractorFromClientIP`.                |
+| Panic Recovery       | 🟢 `FULLY_FUNCTIONAL` | `RecoveryMiddleware` recovers panics, logs stack trace, writes 500. `App.RecoverHandler()` uses App's ErrorHandler. Re-raises `http.ErrAbortHandler`.                                                                    |
 
 ### Context & Identity
 
-| Feature         | Status                | Notes                                                                                                                                                                        |
-| --------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| User Identity   | 🟢 `FULLY_FUNCTIONAL` | `UserIDExtractor` → context → event metadata. `WithUserID`/`UserIDFromContext` (branded `id.UserID`). `IsAuthenticated(r)` helper.                                            |
-| Correlation ID  | 🟢 `FULLY_FUNCTIONAL` | `WithCorrelationID`/`CorrelationIDFromContext` (branded `id.CorrelationID`). Auto-extracted from `X-Correlation-ID`. Propagated to event metadata.                             |
-| Request ID      | 🟢 `FULLY_FUNCTIONAL` | `RequestID` (branded `id.RequestID`). `NewRequestID`/`ParseRequestID`/`MustParseRequestID`. Propagated to event metadata and `X-Request-ID` response header.                  |
-| Actor ID        | 🟢 `FULLY_FUNCTIONAL` | `WithActorID`/`ActorIDFromContext` — supports user and bot actors in context. Impersonator support: `WithImpersonatorID`/`ImpersonatorIDFromContext`.                          |
-| Event Options   | 🟢 `FULLY_FUNCTIONAL` | `EventOptionsFromContext(ctx)` / `EventOptionsFromContextWithSource(ctx, serviceName)` — propagates user, correlation, request IDs + deadline to event metadata.              |
+| Feature        | Status                | Notes                                                                                                                                                            |
+| -------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User Identity  | 🟢 `FULLY_FUNCTIONAL` | `UserIDExtractor` → context → event metadata. `WithUserID`/`UserIDFromContext` (branded `id.UserID`). `IsAuthenticated(r)` helper.                               |
+| Correlation ID | 🟢 `FULLY_FUNCTIONAL` | `WithCorrelationID`/`CorrelationIDFromContext` (branded `id.CorrelationID`). Auto-extracted from `X-Correlation-ID`. Propagated to event metadata.               |
+| Request ID     | 🟢 `FULLY_FUNCTIONAL` | `RequestID` (branded `id.RequestID`). `NewRequestID`/`ParseRequestID`/`MustParseRequestID`. Propagated to event metadata and `X-Request-ID` response header.     |
+| Actor ID       | 🟢 `FULLY_FUNCTIONAL` | `WithActorID`/`ActorIDFromContext` — supports user and bot actors in context. Impersonator support: `WithImpersonatorID`/`ImpersonatorIDFromContext`.            |
+| Event Options  | 🟢 `FULLY_FUNCTIONAL` | `EventOptionsFromContext(ctx)` / `EventOptionsFromContextWithSource(ctx, serviceName)` — propagates user, correlation, request IDs + deadline to event metadata. |
 
 ### Error Handling
 
-| Feature               | Status                | Notes                                                                                                      |
-| --------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Error Classification  | 🟢 `FULLY_FUNCTIONAL` | go-error-family registers sentinels. `MapError` maps families → HTTP status. Custom `ErrorHandler` support. |
-| Default Error Handler | 🟢 `FULLY_FUNCTIONAL` | Plain text. HTMX auth → HX-Redirect. Per-App `LoginRedirect`. `text/plain` prevents XSS.                   |
-| JSON Error Handler    | 🟢 `FULLY_FUNCTIONAL` | `JSONErrorHandlerWithRedirect` writes `{error, status}`. Includes `request_id` when available.             |
-| Request ID in Errors  | 🟢 `FULLY_FUNCTIONAL` | `Config.IncludeRequestIDInErrors` auto-selects request-ID-aware handler. Plain-text prefix: `[request_id: RID]`. |
+| Feature               | Status                | Notes                                                                                                                                             |
+| --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Error Classification  | 🟢 `FULLY_FUNCTIONAL` | go-error-family registers sentinels. `MapError` maps families → HTTP status. Custom `ErrorHandler` support.                                       |
+| Default Error Handler | 🟢 `FULLY_FUNCTIONAL` | Plain text. HTMX auth → HX-Redirect. Per-App `LoginRedirect`. `text/plain` prevents XSS.                                                          |
+| JSON Error Handler    | 🟢 `FULLY_FUNCTIONAL` | `JSONErrorHandlerWithRedirect` writes `{error, status}`. Includes `request_id` when available.                                                    |
+| Request ID in Errors  | 🟢 `FULLY_FUNCTIONAL` | `Config.IncludeRequestIDInErrors` auto-selects request-ID-aware handler. Plain-text prefix: `[request_id: RID]`.                                  |
 | StructuredError       | 🟢 `FULLY_FUNCTIONAL` | RFC 7807-shaped transport-agnostic error payload. `NewStructuredError(err, r)` maps via MapError + request ID. Used by SSE/WS error broadcasting. |
 
 ### Middleware & Observability
 
-| Feature            | Status                | Notes                                                                                                                      |
-| ------------------ | --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Middleware Chain   | 🟢 `FULLY_FUNCTIONAL` | `Chain(mw1, mw2, ...)` composes left-to-right.                                                                             |
-| Context Enrichment | 🟢 `FULLY_FUNCTIONAL` | `ContextEnrichmentMiddleware` extracts User ID, Correlation ID, Request ID from headers. Sets `X-Request-ID` response header. |
+| Feature            | Status                | Notes                                                                                                                                                                   |
+| ------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Middleware Chain   | 🟢 `FULLY_FUNCTIONAL` | `Chain(mw1, mw2, ...)` composes left-to-right.                                                                                                                          |
+| Context Enrichment | 🟢 `FULLY_FUNCTIONAL` | `ContextEnrichmentMiddleware` extracts User ID, Correlation ID, Request ID from headers. Sets `X-Request-ID` response header.                                           |
 | Request Logging    | 🟢 `FULLY_FUNCTIONAL` | `RequestLogging(formatter, writer)`. `DefaultLogFormatter` and `JSONLogFormatter`. `RequestLoggingSlog(logger)` for slog. Captures method, path, status, duration, IDs. |
-| Lifecycle Hooks    | 🟢 `FULLY_FUNCTIONAL` | `BeforeDispatchHook(ctx, r)` / `AfterDispatchHook(ctx, r, err)` on Config.                                                |
-| Timeout            | 🟢 `FULLY_FUNCTIONAL` | `Config.Timeout` wraps dispatch with `context.WithTimeout`. Dispatch-only, not decode/auth.                                |
+| Lifecycle Hooks    | 🟢 `FULLY_FUNCTIONAL` | `BeforeDispatchHook(ctx, r)` / `AfterDispatchHook(ctx, r, err)` on Config.                                                                                              |
+| Timeout            | 🟢 `FULLY_FUNCTIONAL` | `Config.Timeout` wraps dispatch with `context.WithTimeout`. Dispatch-only, not decode/auth.                                                                             |
 
 ### Convenience
 
-| Feature                | Status                | Notes                                                                                           |
-| ---------------------- | --------------------- | ----------------------------------------------------------------------------------------------- |
-| HasCommands/HasQueries | 🟢 `FULLY_FUNCTIONAL` | Report dispatcher availability.                                                                 |
-| Request Validation     | 🟢 `FULLY_FUNCTIONAL` | `ValidateCommand(validator)` / `ValidateQuery(validator)` wrap decoders. `ErrValidationFailed` → 400. |
+| Feature                | Status                    | Notes                                                                                                         |
+| ---------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| HasCommands/HasQueries | 🟢 `FULLY_FUNCTIONAL`     | Report dispatcher availability.                                                                               |
+| Request Validation     | 🟢 `FULLY_FUNCTIONAL`     | `ValidateCommand(validator)` / `ValidateQuery(validator)` wrap decoders. `ErrValidationFailed` → 400.         |
 | ClientIP (deprecated)  | 🟡 `PARTIALLY_FUNCTIONAL` | Delegates to `httputil.ClientIP`. Deprecated — import `larsartmann/httputil` directly. Scheduled for removal. |
 
 ### Real-Time — SSE
 
-| Feature             | Status                | Notes                                                                                                                                                                                                                            |
-| ------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SSE Event Writer    | 🟢 `FULLY_FUNCTIONAL` | `SSEEvent` struct, `WriteSSEEvent(w, event)` — properly formatted SSE events (event/data/id/retry, multi-line, CRLF normalization). `SSEEventID` branded type with `ParseSSEEventID`/`MustParseSSEEventID`/`NewSSEEventID`.        |
-| SSE Stream          | 🟢 `FULLY_FUNCTIONAL` | `SSEStream` manages a single SSE connection. Correct headers, flush after send, context-aware lifecycle. `LastEventID()` for reconnection. `Heartbeat(ctx, interval)` prevents proxy idle kills. `OnDisconnect(fn)` cleanup callbacks. |
-| SSE Broadcaster     | 🟢 `FULLY_FUNCTIONAL` | `Broadcaster` — thread-safe fan-out via generic `fanOut[T]`. O(1) Unsubscribe via channel identity. Buffered channels (64). Non-blocking broadcast drops to slow consumers. `SubscriberCount()`.                                  |
-| SSE Reconnection    | 🟢 `FULLY_FUNCTIONAL` | `LastEventIDFromRequest(r)`, `SSEEventStore` interface, `ReplayEvents(stream, store, lastID)` — full reconnection support per SSE spec.                                                                                          |
-| SSE + CQRS Bridge   | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnSuccess(event, data)` / `BroadcastOnSuccessFunc(fn)` / `BroadcastOnError(eventName)` / `BroadcastOnErrorFunc(fn)` — AfterDispatchHook factories for SSE Broadcaster.                                                 |
+| Feature           | Status                | Notes                                                                                                                                                                                                                                  |
+| ----------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SSE Event Writer  | 🟢 `FULLY_FUNCTIONAL` | `SSEEvent` struct, `WriteSSEEvent(w, event)` — properly formatted SSE events (event/data/id/retry, multi-line, CRLF normalization). `SSEEventID` branded type with `ParseSSEEventID`/`MustParseSSEEventID`/`NewSSEEventID`.            |
+| SSE Stream        | 🟢 `FULLY_FUNCTIONAL` | `SSEStream` manages a single SSE connection. Correct headers, flush after send, context-aware lifecycle. `LastEventID()` for reconnection. `Heartbeat(ctx, interval)` prevents proxy idle kills. `OnDisconnect(fn)` cleanup callbacks. |
+| SSE Broadcaster   | 🟢 `FULLY_FUNCTIONAL` | `Broadcaster` — thread-safe fan-out via generic `fanOut[T]`. O(1) Unsubscribe via channel identity. Buffered channels (64). Non-blocking broadcast drops to slow consumers. `SubscriberCount()`.                                       |
+| SSE Reconnection  | 🟢 `FULLY_FUNCTIONAL` | `LastEventIDFromRequest(r)`, `SSEEventStore` interface, `ReplayEvents(stream, store, lastID)` — full reconnection support per SSE spec.                                                                                                |
+| SSE + CQRS Bridge | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnSuccess(event, data)` / `BroadcastOnSuccessFunc(fn)` / `BroadcastOnError(eventName)` / `BroadcastOnErrorFunc(fn)` — AfterDispatchHook factories for SSE Broadcaster.                                                       |
 
 ### Real-Time — WebSocket
 
-| Feature                 | Status                | Notes                                                                                                                                                                                                                            |
-| ----------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| WebSocket Message       | 🟢 `FULLY_FUNCTIONAL` | `WSMessage`, `ParseWSMessage` — parses HTMX WebSocket JSON (form fields + HEADERS). `StringBody` helper for typed field access.                                                                                                   |
-| Typed WS Message Parser | 🟢 `FULLY_FUNCTIONAL` | `ParseWSMessageInto[T](data)` — generic typed parser that deserializes body into struct T while separating HEADERS. Compile-time safe.                                                                                           |
-| WebSocket OOB HTML      | 🟢 `FULLY_FUNCTIONAL` | `WSOOBHTML(id, html, strategy)` — wraps HTML with hx-swap-oob attributes for OOB swap. Uses `SwapStrategy` type. Passthrough for custom markup.                                                                                  |
-| WS Message Encoder      | 🟢 `FULLY_FUNCTIONAL` | `WriteWSMessage(w, msg)` / `WriteWSMessageInto[T](w, body, headers)` — outbound WS encoders, counterparts to `ParseWSMessage` / `ParseWSMessageInto[T]`. Round-trip verified.                                                    |
-| WS Broadcaster          | 🟢 `FULLY_FUNCTIONAL` | `WSBroadcaster` — thread-safe fan-out for WS messages via generic `fanOut[T]`. Mirrors SSE `Broadcaster` API. `BroadcastHTML` for OOB swaps. `SubscriberCount()`.                                                                |
-| WS + CQRS Bridge        | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnSuccessWS(msg)` / `BroadcastOnSuccessWSFunc(fn)` / `BroadcastOnErrorWS()` / `BroadcastOnErrorWSFunc(fn)` — AfterDispatchHook factories for `WSBroadcaster`. Full parity with SSE hooks.                              |
+| Feature                 | Status                | Notes                                                                                                                                                                                               |
+| ----------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WebSocket Message       | 🟢 `FULLY_FUNCTIONAL` | `WSMessage`, `ParseWSMessage` — parses HTMX WebSocket JSON (form fields + HEADERS). `StringBody` helper for typed field access.                                                                     |
+| Typed WS Message Parser | 🟢 `FULLY_FUNCTIONAL` | `ParseWSMessageInto[T](data)` — generic typed parser that deserializes body into struct T while separating HEADERS. Compile-time safe.                                                              |
+| WebSocket OOB HTML      | 🟢 `FULLY_FUNCTIONAL` | `WSOOBHTML(id, html, strategy)` — wraps HTML with hx-swap-oob attributes for OOB swap. Uses `SwapStrategy` type. Passthrough for custom markup.                                                     |
+| WS Message Encoder      | 🟢 `FULLY_FUNCTIONAL` | `WriteWSMessage(w, msg)` / `WriteWSMessageInto[T](w, body, headers)` — outbound WS encoders, counterparts to `ParseWSMessage` / `ParseWSMessageInto[T]`. Round-trip verified.                       |
+| WS Broadcaster          | 🟢 `FULLY_FUNCTIONAL` | `WSBroadcaster` — thread-safe fan-out for WS messages via generic `fanOut[T]`. Mirrors SSE `Broadcaster` API. `BroadcastHTML` for OOB swaps. `SubscriberCount()`.                                   |
+| WS + CQRS Bridge        | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnSuccessWS(msg)` / `BroadcastOnSuccessWSFunc(fn)` / `BroadcastOnErrorWS()` / `BroadcastOnErrorWSFunc(fn)` — AfterDispatchHook factories for `WSBroadcaster`. Full parity with SSE hooks. |
 
 ---
 
@@ -135,129 +135,129 @@
 
 ### User Aggregate (Event-Sourced)
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Event-Sourced User   | 🟢 `FULLY_FUNCTIONAL` | 12 events, 11 commands, Decider pattern via go-cqrs-lite v3. Pure decide functions + foldUser. No CRUD UserStore. Read-your-writes via watermill EventBus (synchronous delivery).                        |
-| User Read Model      | 🟢 `FULLY_FUNCTIONAL` | `UserReadModel` projection: `FindByID`, `FindByEmail`, `FindByExternalAccount`, `FindByUserID`, `Count`, `AllUsers`. Email index + external account index.                                               |
-| Branded UserID       | 🟢 `FULLY_FUNCTIONAL` | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.Get()` for cross-module conversion. `NewUserID(s)` constructor.                                                                            |
-| Email Value Type     | 🟢 `FULLY_FUNCTIONAL` | `type Email string` with `ParseEmail`/`MustParseEmail` (RFC 5322 validation). Used in ExportUser.                                                                                                        |
-| Schema Versioning    | 🟢 `FULLY_FUNCTIONAL` | Events carry `schema_version`. `UpcasterRegistry` for v1→v2 migration. `SetUpcasterRegistry()` on EventSourcedSetup. ADR-0013.                                                                            |
+| Feature            | Status                | Notes                                                                                                                                                                             |
+| ------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Event-Sourced User | 🟢 `FULLY_FUNCTIONAL` | 12 events, 11 commands, Decider pattern via go-cqrs-lite v3. Pure decide functions + foldUser. No CRUD UserStore. Read-your-writes via watermill EventBus (synchronous delivery). |
+| User Read Model    | 🟢 `FULLY_FUNCTIONAL` | `UserReadModel` projection: `FindByID`, `FindByEmail`, `FindByExternalAccount`, `FindByUserID`, `Count`, `AllUsers`. Email index + external account index.                        |
+| Branded UserID     | 🟢 `FULLY_FUNCTIONAL` | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.Get()` for cross-module conversion. `NewUserID(s)` constructor.                                                     |
+| Email Value Type   | 🟢 `FULLY_FUNCTIONAL` | `type Email string` with `ParseEmail`/`MustParseEmail` (RFC 5322 validation). Used in ExportUser.                                                                                 |
+| Schema Versioning  | 🟢 `FULLY_FUNCTIONAL` | Events carry `schema_version`. `UpcasterRegistry` for v1→v2 migration. `SetUpcasterRegistry()` on EventSourcedSetup. ADR-0013.                                                    |
 
 ### Authentication
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| WebAuthn Passwordless | 🟢 `FULLY_FUNCTIONAL` | go-webauthn v0.17.4. `BeginRegistration`/`FinishRegistration`/`BeginLogin`/`FinishLogin`. In-memory challenge store with proactive eviction.                                                             |
-| Account Lockout      | 🟢 `FULLY_FUNCTIONAL` | Wired into BeginLogin (check) and FinishLogin (record/reset). Configurable max attempts + duration. `ErrAccountLocked` → 429. `EvictStale()` for cleanup.                                                |
-| Session Management   | 🟢 `FULLY_FUNCTIONAL` | `SessionStore` interface + `InMemorySessionStore` + `SQLSessionStore`. TTL-based expiry. `DeleteByUserID` for user deletion revocation. `Session` struct with `SessionOrigin` (DirectLogin/Impersonation). |
-| Session Rotation     | 🟢 `FULLY_FUNCTIONAL` | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                                                                                 |
+| Feature               | Status                | Notes                                                                                                                                                                                                      |
+| --------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WebAuthn Passwordless | 🟢 `FULLY_FUNCTIONAL` | go-webauthn v0.17.4. `BeginRegistration`/`FinishRegistration`/`BeginLogin`/`FinishLogin`. In-memory challenge store with proactive eviction.                                                               |
+| Account Lockout       | 🟢 `FULLY_FUNCTIONAL` | Wired into BeginLogin (check) and FinishLogin (record/reset). Configurable max attempts + duration. `ErrAccountLocked` → 429. `EvictStale()` for cleanup.                                                  |
+| Session Management    | 🟢 `FULLY_FUNCTIONAL` | `SessionStore` interface + `InMemorySessionStore` + `SQLSessionStore`. TTL-based expiry. `DeleteByUserID` for user deletion revocation. `Session` struct with `SessionOrigin` (DirectLogin/Impersonation). |
+| Session Rotation      | 🟢 `FULLY_FUNCTIONAL` | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                                                                                   |
 
 ### Identity Model (ADR-0015)
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tenant Lifecycle     | 🟢 `FULLY_FUNCTIONAL` | 4 events (Created/Suspended/Reactivated/Deleted), 4 commands, TenantDecider, TenantReadModel (FindByID/FindByName/All). Service: CreateTenant/Suspend/Reactivate/Delete/GetTenant/AllTenants.            |
-| Bot Management       | 🟢 `FULLY_FUNCTIONAL` | 2 events (Registered/Deleted), 2 commands, BotDecider, BotReadModel (FindByID/FindByTokenHash). Service: RegisterBot/DeleteBot/GetBot/ResolveBotByToken. Token hashing with HMAC-SHA256 + pepper.         |
-| Membership RBAC      | 🟢 `FULLY_FUNCTIONAL` | 3 events (Added/RolesChanged/Removed), 3 commands, MembershipDecider, MembershipReadModel (FindByActor/FindByTenant). Derives Casbin group policies from membership events.                               |
-| Impersonation        | 🟢 `FULLY_FUNCTIONAL` | `BeginImpersonation(callerID, targetID, reason)` → creates session with Impersonation origin. `EndImpersonation(token)`. Guards: caller must exist, target must exist, reason required.                    |
-| ActorID              | 🟢 `FULLY_FUNCTIONAL` | Kind-discriminated union (ActorUser/ActorBot). `ActorIDFromUser`/`ActorIDFromBot`. Used throughout identity model for unified user/bot authorization.                                                    |
-| API Token Middleware | 🟢 `FULLY_FUNCTIONAL` | `NewAPITokenMiddleware(service)` validates Bearer tokens via ResolveBotByToken. `RequireBot(next)` rejects requests without Bot in context. `WithBot`/`BotFromContext` context helpers.                  |
+| Feature              | Status                | Notes                                                                                                                                                                                             |
+| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tenant Lifecycle     | 🟢 `FULLY_FUNCTIONAL` | 4 events (Created/Suspended/Reactivated/Deleted), 4 commands, TenantDecider, TenantReadModel (FindByID/FindByName/All). Service: CreateTenant/Suspend/Reactivate/Delete/GetTenant/AllTenants.     |
+| Bot Management       | 🟢 `FULLY_FUNCTIONAL` | 2 events (Registered/Deleted), 2 commands, BotDecider, BotReadModel (FindByID/FindByTokenHash). Service: RegisterBot/DeleteBot/GetBot/ResolveBotByToken. Token hashing with HMAC-SHA256 + pepper. |
+| Membership RBAC      | 🟢 `FULLY_FUNCTIONAL` | 3 events (Added/RolesChanged/Removed), 3 commands, MembershipDecider, MembershipReadModel (FindByActor/FindByTenant). Derives Casbin group policies from membership events.                       |
+| Impersonation        | 🟢 `FULLY_FUNCTIONAL` | `BeginImpersonation(callerID, targetID, reason)` → creates session with Impersonation origin. `EndImpersonation(token)`. Guards: caller must exist, target must exist, reason required.           |
+| ActorID              | 🟢 `FULLY_FUNCTIONAL` | Kind-discriminated union (ActorUser/ActorBot). `ActorIDFromUser`/`ActorIDFromBot`. Used throughout identity model for unified user/bot authorization.                                             |
+| API Token Middleware | 🟢 `FULLY_FUNCTIONAL` | `NewAPITokenMiddleware(service)` validates Bearer tokens via ResolveBotByToken. `RequireBot(next)` rejects requests without Bot in context. `WithBot`/`BotFromContext` context helpers.           |
 
 ### OAuth2/OIDC (ADR-0014)
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| OAuth2/OIDC Login    | 🟢 `FULLY_FUNCTIONAL` | Dual-mode: OIDC discovery (IssuerURL set) or pure OAuth2 (explicit endpoints). PKCE S256 on every flow. `BeginOAuthLogin`/`FinishOAuthLogin`/`UnlinkExternalAccount`. 3 HTTP endpoints.                   |
-| Subject-First Match  | 🟢 `FULLY_FUNCTIONAL` | `matchOrCreateUser` checks FindByExternalAccount FIRST (stable ID), then email. Recognizes returning users even when provider email changed. Global provider+subject uniqueness enforced.                 |
-| External Account Link | 🟢 `FULLY_FUNCTIONAL` | 2 events (Linked/Unlinked), 2 commands. Email-based linking for new providers. Auto-trust provider emails when `email_verified: true`. Last-auth-method guard prevents account lockout on unlink.          |
+| Feature               | Status                | Notes                                                                                                                                                                                             |
+| --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OAuth2/OIDC Login     | 🟢 `FULLY_FUNCTIONAL` | Dual-mode: OIDC discovery (IssuerURL set) or pure OAuth2 (explicit endpoints). PKCE S256 on every flow. `BeginOAuthLogin`/`FinishOAuthLogin`/`UnlinkExternalAccount`. 3 HTTP endpoints.           |
+| Subject-First Match   | 🟢 `FULLY_FUNCTIONAL` | `matchOrCreateUser` checks FindByExternalAccount FIRST (stable ID), then email. Recognizes returning users even when provider email changed. Global provider+subject uniqueness enforced.         |
+| External Account Link | 🟢 `FULLY_FUNCTIONAL` | 2 events (Linked/Unlinked), 2 commands. Email-based linking for new providers. Auto-trust provider emails when `email_verified: true`. Last-auth-method guard prevents account lockout on unlink. |
 
 ### RBAC Authorization
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Casbin RBAC          | 🟢 `FULLY_FUNCTIONAL` | Casbin RBAC with domains. Roles: SuperAdmin, Admin, User, Viewer, Owner. `Authz` struct with `Enforce`/`EnforceAny`/`EnforceEx`/`Authorize`/`AsEnforcer`.                                                |
-| CasbinProjection     | 🟢 `FULLY_FUNCTIONAL` | Subscribes to all identity events (User, Tenant, Bot, Membership, Credentials, ExternalAccount). Derives policies via public Authz methods only. Handles user/tenant/bot deletion cleanup.               |
-| Role Hierarchy       | 🟢 `FULLY_FUNCTIONAL` | g2 policies for role inheritance. `RolesForActor`/`ImplicitRolesForActor` traverse hierarchy. `RemoveAllRolesForUser`/`RemoveAllRolesInDomain` for cleanup.                                              |
+| Feature          | Status                | Notes                                                                                                                                                                                      |
+| ---------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Casbin RBAC      | 🟢 `FULLY_FUNCTIONAL` | Casbin RBAC with domains. Roles: SuperAdmin, Admin, User, Viewer, Owner. `Authz` struct with `Enforce`/`EnforceAny`/`EnforceEx`/`Authorize`/`AsEnforcer`.                                  |
+| CasbinProjection | 🟢 `FULLY_FUNCTIONAL` | Subscribes to all identity events (User, Tenant, Bot, Membership, Credentials, ExternalAccount). Derives policies via public Authz methods only. Handles user/tenant/bot deletion cleanup. |
+| Role Hierarchy   | 🟢 `FULLY_FUNCTIONAL` | g2 policies for role inheritance. `RolesForActor`/`ImplicitRolesForActor` traverse hierarchy. `RemoveAllRolesForUser`/`RemoveAllRolesInDomain` for cleanup.                                |
 
 ### Credential Management
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Credential HTTP API  | 🟢 `FULLY_FUNCTIONAL` | `GET /auth/credentials` (paginated, sanitized summaries), `DELETE /auth/credentials/{id}` (remove by base64url ID). Credential summaries exclude sensitive fields.                                       |
+| Feature             | Status                | Notes                                                                                                                                                              |
+| ------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Credential HTTP API | 🟢 `FULLY_FUNCTIONAL` | `GET /auth/credentials` (paginated, sanitized summaries), `DELETE /auth/credentials/{id}` (remove by base64url ID). Credential summaries exclude sensitive fields. |
 
 ### Verification & MFA
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Email Verification   | 🟢 `FULLY_FUNCTIONAL` | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback (`SendVerificationEmailFunc`). Email change resets verification. Single-use tokens with TTL (10 min). `EvictExpired()`.     |
-| TOTP MFA             | 🟢 `FULLY_FUNCTIONAL` | pquerna/otp/totp v1.5.0 (RFC 6238). Two-phase setup: `EnableTOTP` → `VerifyTOTPSetup`. `VerifyTOTP` for login. `DisableTOTP` requires valid code (prevents MFA stripping). Event-sourced secret.          |
+| Feature            | Status                | Notes                                                                                                                                                                                                 |
+| ------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Email Verification | 🟢 `FULLY_FUNCTIONAL` | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback (`SendVerificationEmailFunc`). Email change resets verification. Single-use tokens with TTL (10 min). `EvictExpired()`. |
+| TOTP MFA           | 🟢 `FULLY_FUNCTIONAL` | pquerna/otp/totp v1.5.0 (RFC 6238). Two-phase setup: `EnableTOTP` → `VerifyTOTPSetup`. `VerifyTOTP` for login. `DisableTOTP` requires valid code (prevents MFA stripping). Event-sourced secret.      |
 
 ### Import/Export
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| User Import          | 🟢 `FULLY_FUNCTIONAL` | JSON/CSV batch import (`ImportUsersFromJSON`/`ImportUsersFromCSV`). Skips existing emails. `ImportUser.Validate()` checks email format/length + display name. Admin authorization required.               |
-| User Export          | 🟢 `FULLY_FUNCTIONAL` | JSON/CSV export (`ExportUsersToJSON`/`ExportUsersToCSV`). Public profile only (ExportUser). Flexible CSV header detection. `UserDataFormat` type for both import/export.                                  |
+| Feature     | Status                | Notes                                                                                                                                                                                       |
+| ----------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User Import | 🟢 `FULLY_FUNCTIONAL` | JSON/CSV batch import (`ImportUsersFromJSON`/`ImportUsersFromCSV`). Skips existing emails. `ImportUser.Validate()` checks email format/length + display name. Admin authorization required. |
+| User Export | 🟢 `FULLY_FUNCTIONAL` | JSON/CSV export (`ExportUsersToJSON`/`ExportUsersToCSV`). Public profile only (ExportUser). Flexible CSV header detection. `UserDataFormat` type for both import/export.                    |
 
 ### SQL Stores
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SQL Event Store      | 🟢 `FULLY_FUNCTIONAL` | `SQLEventStore` — type alias over `storage.SQLEventStore` from go-cqrs-lite v3. Postgres + SQLite. Auto-migrates schema. Upstream provides schema_version, payload_encoding, OTel tracing. ADR-0016.      |
-| SQL Session Store    | 🟢 `FULLY_FUNCTIONAL` | `SQLSessionStore` — Postgres, SQLite, MySQL. Auto-migrates schema. `StartCleanupSweeper(ctx, interval)`. Fuzz-tested (`FuzzSQLSessionStore_CreateFindRoundTrip`). Benchmarks. ADR-0012.                  |
+| Feature           | Status                | Notes                                                                                                                                                                                                |
+| ----------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SQL Event Store   | 🟢 `FULLY_FUNCTIONAL` | `SQLEventStore` — type alias over `storage.SQLEventStore` from go-cqrs-lite v3. Postgres + SQLite. Auto-migrates schema. Upstream provides schema_version, payload_encoding, OTel tracing. ADR-0016. |
+| SQL Session Store | 🟢 `FULLY_FUNCTIONAL` | `SQLSessionStore` — Postgres, SQLite, MySQL. Auto-migrates schema. `StartCleanupSweeper(ctx, interval)`. Fuzz-tested (`FuzzSQLSessionStore_CreateFindRoundTrip`). Benchmarks. ADR-0012.              |
 
 ### Security & Infrastructure
 
-| Feature              | Status                | Notes                                                                                                                                                                                                    |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Event Signing (Opt-in) | 🟢 `FULLY_FUNCTIONAL` | `ServiceConfig.PublishMiddleware` / `HandlerMiddleware` for `signing.SignMiddleware` / `VerifyMiddleware`. HMAC-SHA256 + Ed25519. Dependency-free seams — consumer imports `go-cqrs-lite/signing/v3`. ADR-0011. |
-| Event Encryption (Opt-in) | 🟢 `FULLY_FUNCTIONAL` | `ServiceConfig.StoreWrapper` for `encryption.NewEncryptedStore` (at-rest). `PublishMiddleware`/`HandlerMiddleware` for `EncryptMiddleware`/`DecryptMiddleware` (in-transit). AES-256-GCM + XChaCha20-Poly1305. |
-| Security Hooks Parity | 🟢 `FULLY_FUNCTIONAL` | Both `NewService(ServiceConfig)` and `NewEventSourcedSetup(EventSourcedConfig)` support the same `StoreWrapper`, `PublishMiddleware`, and `HandlerMiddleware` hooks. No split brain.                     |
-| Audit Log            | 🟢 `FULLY_FUNCTIONAL` | Event-sourced audit log projection. Queryable by user (`EntriesFor`), recent N (`Recent`), total count. 11 audit action types. Optional via `ServiceConfig.AuditLog`.                                     |
-| Per-Endpoint Rate Limit | 🟢 `FULLY_FUNCTIONAL` | `HandlerConfig.RegistrationRateLimit`, `ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit`, `WebAuthnRateLimit`, `OAuthRateLimit`. All use shared `RateLimitConfig`. All disabled by default.      |
-| Roles→Memberships Migration | 🟢 `FULLY_FUNCTIONAL` | `MigrateRolesToMemberships(ctx, events, dispatcher)` — opt-in legacy role migration to membership model.                                                                                               |
-| Projection Setup     | 🟢 `FULLY_FUNCTIONAL` | `StartProjections()` — manual journal replay + `bus.SubscribeAll()` + `id.EventID` dedup map. Handles User, Membership, Tenant, Bot, Casbin, AuditLog projections. ADR-0016.                               |
+| Feature                     | Status                | Notes                                                                                                                                                                                                           |
+| --------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Event Signing (Opt-in)      | 🟢 `FULLY_FUNCTIONAL` | `ServiceConfig.PublishMiddleware` / `HandlerMiddleware` for `signing.SignMiddleware` / `VerifyMiddleware`. HMAC-SHA256 + Ed25519. Dependency-free seams — consumer imports `go-cqrs-lite/signing/v3`. ADR-0011. |
+| Event Encryption (Opt-in)   | 🟢 `FULLY_FUNCTIONAL` | `ServiceConfig.StoreWrapper` for `encryption.NewEncryptedStore` (at-rest). `PublishMiddleware`/`HandlerMiddleware` for `EncryptMiddleware`/`DecryptMiddleware` (in-transit). AES-256-GCM + XChaCha20-Poly1305.  |
+| Security Hooks Parity       | 🟢 `FULLY_FUNCTIONAL` | Both `NewService(ServiceConfig)` and `NewEventSourcedSetup(EventSourcedConfig)` support the same `StoreWrapper`, `PublishMiddleware`, and `HandlerMiddleware` hooks. No split brain.                            |
+| Audit Log                   | 🟢 `FULLY_FUNCTIONAL` | Event-sourced audit log projection. Queryable by user (`EntriesFor`), recent N (`Recent`), total count. 11 audit action types. Optional via `ServiceConfig.AuditLog`.                                           |
+| Per-Endpoint Rate Limit     | 🟢 `FULLY_FUNCTIONAL` | `HandlerConfig.RegistrationRateLimit`, `ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit`, `WebAuthnRateLimit`, `OAuthRateLimit`. All use shared `RateLimitConfig`. All disabled by default.           |
+| Roles→Memberships Migration | 🟢 `FULLY_FUNCTIONAL` | `MigrateRolesToMemberships(ctx, events, dispatcher)` — opt-in legacy role migration to membership model.                                                                                                        |
+| Projection Setup            | 🟢 `FULLY_FUNCTIONAL` | `StartProjections()` — manual journal replay + `bus.SubscribeAll()` + `id.EventID` dedup map. Handles User, Membership, Tenant, Bot, Casbin, AuditLog projections. ADR-0016.                                    |
 
 ---
 
 ## catalog Sub-Package (`github.com/larsartmann/cqrs-htmx/catalog/v3`)
 
-| Feature             | Status                | Notes                                                                                                                         |
-| ------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Feature             | Status                | Notes                                                                                                                                                                                            |
+| ------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Catalog Builder     | 🟢 `FULLY_FUNCTIONAL` | `New(title, version)` wraps `catalog.Builder`. `Command[T]`, `Query[T]`, `Event[T]` register messages with auto-derived schemas. `WithServiceName`/`WithServiceSummary`/`WithServiceID` options. |
-| OpenAPI Handler     | 🟢 `FULLY_FUNCTIONAL` | `OpenAPIHandler(cat)` serves OpenAPI 3.0.3 JSON/YAML. Auto-generates paths from message IDs and HTTP operations. `WithBasePath` default `/api`. |
-| AsyncAPI Handler    | 🟢 `FULLY_FUNCTIONAL` | `AsyncAPIHandler(cat)` serves AsyncAPI 3.0.0 JSON/YAML. Maps commands→receive, events→send/receive, queries→handle.           |
-| D2 Diagram Handler  | 🟢 `FULLY_FUNCTIONAL` | `D2Handler(cat)` serves D2 architecture diagrams as text/plain. Cross-service event flows, domain grouping, CSS classes.      |
-| EventCatalog Export | 🟢 `FULLY_FUNCTIONAL` | `GenerateEventCatalog(cat, dir)` writes MDX file tree for EventCatalog CLI. Auto-derives producers/consumers from event directions. |
-| Health Check        | 🟢 `FULLY_FUNCTIONAL` | `HealthCheckHandler(cat)` → 200 `{"status":"healthy","services":N}` or 503 `{"status":"unhealthy"}`.                         |
-| Schema Reflection   | 🟢 `FULLY_FUNCTIONAL` | Auto-derives JSON Schema from Go struct tags (`json`, `doc`, `format`, `enum`, `default`). Delegated to go-cqrs-lite catalog. |
-| Catalog Validation  | 🟢 `FULLY_FUNCTIONAL` | `Build()` panics on invalid catalogs (duplicate IDs, empty names). `BuildValid()` returns violations for non-panic usage.     |
-| Format Options      | 🟢 `FULLY_FUNCTIONAL` | `WithFormat(FormatJSON)` (default) or `WithFormat(FormatYAML)`. Honored by OpenAPI and AsyncAPI handlers.                     |
+| OpenAPI Handler     | 🟢 `FULLY_FUNCTIONAL` | `OpenAPIHandler(cat)` serves OpenAPI 3.0.3 JSON/YAML. Auto-generates paths from message IDs and HTTP operations. `WithBasePath` default `/api`.                                                  |
+| AsyncAPI Handler    | 🟢 `FULLY_FUNCTIONAL` | `AsyncAPIHandler(cat)` serves AsyncAPI 3.0.0 JSON/YAML. Maps commands→receive, events→send/receive, queries→handle.                                                                              |
+| D2 Diagram Handler  | 🟢 `FULLY_FUNCTIONAL` | `D2Handler(cat)` serves D2 architecture diagrams as text/plain. Cross-service event flows, domain grouping, CSS classes.                                                                         |
+| EventCatalog Export | 🟢 `FULLY_FUNCTIONAL` | `GenerateEventCatalog(cat, dir)` writes MDX file tree for EventCatalog CLI. Auto-derives producers/consumers from event directions.                                                              |
+| Health Check        | 🟢 `FULLY_FUNCTIONAL` | `HealthCheckHandler(cat)` → 200 `{"status":"healthy","services":N}` or 503 `{"status":"unhealthy"}`.                                                                                             |
+| Schema Reflection   | 🟢 `FULLY_FUNCTIONAL` | Auto-derives JSON Schema from Go struct tags (`json`, `doc`, `format`, `enum`, `default`). Delegated to go-cqrs-lite catalog.                                                                    |
+| Catalog Validation  | 🟢 `FULLY_FUNCTIONAL` | `Build()` panics on invalid catalogs (duplicate IDs, empty names). `BuildValid()` returns violations for non-panic usage.                                                                        |
+| Format Options      | 🟢 `FULLY_FUNCTIONAL` | `WithFormat(FormatJSON)` (default) or `WithFormat(FormatYAML)`. Honored by OpenAPI and AsyncAPI handlers.                                                                                        |
 
 ---
 
 ## Integration Tests (`github.com/larsartmann/cqrs-htmx/integration_test`)
 
-| Scenario               | Status                | Notes                                                                                                                      |
-| ---------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| UserID Bridge          | 🟢 `FULLY_FUNCTIONAL` | Root `UserID` ↔ usermgmt `UserID` conversion via `Get()`/`ParseUserID`. Context round-trip verified.                       |
-| Authorization Wiring   | 🟢 `FULLY_FUNCTIONAL` | `usermgmt.Authz.AsEnforcer()` plumbed into root `Config.Enforcer`. Full register → authenticate → authorize cycle tested.  |
-| Catalog Generation     | 🟢 `FULLY_FUNCTIONAL` | cataloghtmx builder producing OpenAPI/AsyncAPI/D2/EventCatalog docs from App and usermgmt-derived types.                    |
-| README Recipe Guard    | 🟢 `FULLY_FUNCTIONAL` | The documented catalog-for-usermgmt recipe compiles and reflects against real event payload types. Guards against breakage. |
-| Typed Query Dispatch   | 🟢 `FULLY_FUNCTIONAL` | Typed queries registered and dispatched across cqrs-htmx and usermgmt, including through HTTP handlers and pagination.     |
-| CSRF + AuthHandler     | 🟢 `FULLY_FUNCTIONAL` | Root `CSRFMiddleware` composed with `usermgmt.SessionMiddleware` protecting `usermgmt.AuthHandler`.                        |
-| Event Crypto E2E       | 🟢 `FULLY_FUNCTIONAL` | Signing (HMAC, Ed25519) and encryption (AES-256-GCM, XChaCha20-Poly1305) through `usermgmt.SecurityHooks`. Verifies ciphertext-at-rest, decrypt-on-reload, Casbin projection survival. |
+| Scenario             | Status                | Notes                                                                                                                                                                                  |
+| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UserID Bridge        | 🟢 `FULLY_FUNCTIONAL` | Root `UserID` ↔ usermgmt `UserID` conversion via `Get()`/`ParseUserID`. Context round-trip verified.                                                                                   |
+| Authorization Wiring | 🟢 `FULLY_FUNCTIONAL` | `usermgmt.Authz.AsEnforcer()` plumbed into root `Config.Enforcer`. Full register → authenticate → authorize cycle tested.                                                              |
+| Catalog Generation   | 🟢 `FULLY_FUNCTIONAL` | cataloghtmx builder producing OpenAPI/AsyncAPI/D2/EventCatalog docs from App and usermgmt-derived types.                                                                               |
+| README Recipe Guard  | 🟢 `FULLY_FUNCTIONAL` | The documented catalog-for-usermgmt recipe compiles and reflects against real event payload types. Guards against breakage.                                                            |
+| Typed Query Dispatch | 🟢 `FULLY_FUNCTIONAL` | Typed queries registered and dispatched across cqrs-htmx and usermgmt, including through HTTP handlers and pagination.                                                                 |
+| CSRF + AuthHandler   | 🟢 `FULLY_FUNCTIONAL` | Root `CSRFMiddleware` composed with `usermgmt.SessionMiddleware` protecting `usermgmt.AuthHandler`.                                                                                    |
+| Event Crypto E2E     | 🟢 `FULLY_FUNCTIONAL` | Signing (HMAC, Ed25519) and encryption (AES-256-GCM, XChaCha20-Poly1305) through `usermgmt.SecurityHooks`. Verifies ciphertext-at-rest, decrypt-on-reload, Casbin projection survival. |
 
 ---
 
 ## Not Planned
 
-| Feature                 | Reason                                                                                              |
-| ----------------------- | --------------------------------------------------------------------------------------------------- |
-| WebSocket upgrade logic | Consumers choose their own WebSocket library (gorilla, coder, etc.). Protocol helpers only.          |
-| ORM integration         | Store interfaces are intentionally simple; consumers provide their own implementations.             |
-| Template engine beyond templ | The `TemplComponent` duck-typing pattern covers any `Render(ctx, w) error` interface.           |
-| Built-in HTTP router    | Framework-agnostic: works with `net/http`, Gin, Chi, etc. — no router dependency.                  |
+| Feature                      | Reason                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| WebSocket upgrade logic      | Consumers choose their own WebSocket library (gorilla, coder, etc.). Protocol helpers only. |
+| ORM integration              | Store interfaces are intentionally simple; consumers provide their own implementations.     |
+| Template engine beyond templ | The `TemplComponent` duck-typing pattern covers any `Render(ctx, w) error` interface.       |
+| Built-in HTTP router         | Framework-agnostic: works with `net/http`, Gin, Chi, etc. — no router dependency.           |
 
 ---
 
