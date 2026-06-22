@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"net/mail"
 	"strconv"
 	"strings"
 
@@ -31,13 +30,15 @@ func withUserIDContext(err *event.Error, userID UserID) *event.Error {
 
 func (r *RegisterRequest) Validate() error {
 	var errs []string
-	r.Email = strings.ToLower(strings.TrimSpace(r.Email))
 	r.DisplayName = strings.TrimSpace(r.DisplayName)
 	if r.ID.IsZero() {
 		errs = append(errs, "id is required")
 	}
-	if _, err := mail.ParseAddress(r.Email); err != nil {
+	email, err := ParseEmail(r.Email)
+	if err != nil {
 		errs = append(errs, "invalid email")
+	} else {
+		r.Email = email.String()
 	}
 	if len(r.DisplayName) > maxDisplayNameLength {
 		errs = append(errs,
