@@ -232,7 +232,7 @@ func TestFinishOAuthLogin_DuplicateReLogin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("second login failed: %v", err)
 	}
-	if resp2.User.ID.Get() != resp1.User.ID.Get() {
+	if resp2.User.ID.Get().String() != resp1.User.ID.Get().String() {
 		t.Fatal("second login created a different user")
 	}
 	if len(resp2.User.ExternalAccounts) != 1 {
@@ -385,7 +385,7 @@ func TestFinishOAuthLogin_SubjectMatchOnRelogin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("first login: %v", err)
 	}
-	originalID := resp1.User.ID.Get()
+	originalID := resp1.User.ID.Get().String()
 
 	// Provider changes the user's email (same subject "12345")
 	prov.userInfo["email"] = "changed@example.com"
@@ -397,9 +397,9 @@ func TestFinishOAuthLogin_SubjectMatchOnRelogin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("second login: %v", err)
 	}
-	if resp2.User.ID.Get() != originalID {
+	if resp2.User.ID.Get().String() != originalID {
 		t.Fatalf("expected same user ID %s, got %s (subject matching failed)",
-			originalID, resp2.User.ID.Get())
+			originalID, resp2.User.ID.Get().String())
 	}
 }
 
@@ -470,8 +470,8 @@ func TestReadModel_FindByExternalAccount(t *testing.T) {
 	if !ok {
 		t.Fatal("expected to find user by external account after login")
 	}
-	if found.ID.Get() != resp.User.ID.Get() {
-		t.Errorf("found wrong user: got %s, want %s", found.ID.Get(), resp.User.ID.Get())
+	if found.ID.Get().String() != resp.User.ID.Get().String() {
+		t.Errorf("found wrong user: got %s, want %s", found.ID.Get().String(), resp.User.ID.Get().String())
 	}
 
 	// Different subject should not match
@@ -531,7 +531,7 @@ func TestMultiProvider_Login(t *testing.T) {
 	if err != nil {
 		t.Fatalf("github login: %v", err)
 	}
-	if respH.User.ID.Get() != respG.User.ID.Get() {
+	if respH.User.ID.Get().String() != respG.User.ID.Get().String() {
 		t.Fatal("expected github login to link to same user as google")
 	}
 	if len(respH.User.ExternalAccounts) != 2 {

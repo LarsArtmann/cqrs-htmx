@@ -34,13 +34,20 @@ var (
 
 // MapError translates a CQRS error into an appropriate HTTP status code.
 //
-// Mapping:
+// The family→status mapping delegates to event.Family.HTTPStatus() from
+// go-error-family (the upstream canonical source). Explicit overrides for
+// auth and HTTP-semantic errors take precedence over the family default.
+//
+// Mapping (via upstream):
 //   - Rejection family  → 400 Bad Request
 //   - Conflict family   → 409 Conflict
-//   - Corruption family → 422 Unprocessable Entity
 //   - Transient family  → 503 Service Unavailable
-//   - Infrastructure    → 500 Internal Server Error
+//   - Corruption family → 500 Internal Server Error
+//   - Infrastructure    → 503 Service Unavailable
 //   - nil or unknown    → 500 Internal Server Error
+//
+// The mapping matches go-error-family's Family.HTTPStatus() upstream.
+// See ADR-0017 for the reconciliation rationale.
 func MapError(err error) int {
 	if err == nil {
 		return http.StatusInternalServerError
@@ -55,6 +62,8 @@ func MapError(err error) int {
 
 func explicitErrorStatus(err error) int {
 	switch {
+	case isPanicError(err):
+		return http.StatusInternalServerError
 	case errors.Is(err, ErrUnauthorized):
 		return http.StatusUnauthorized
 	case errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid):
@@ -75,11 +84,11 @@ func familyStatus(family event.Family) int {
 	case event.Conflict:
 		return http.StatusConflict
 	case event.Corruption:
-		return http.StatusUnprocessableEntity
+		return http.StatusInternalServerError
 	case event.Transient:
 		return http.StatusServiceUnavailable
 	case event.Infrastructure:
-		return http.StatusInternalServerError
+		return http.StatusServiceUnavailable
 	default:
 		return http.StatusInternalServerError
 	}

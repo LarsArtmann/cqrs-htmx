@@ -190,7 +190,7 @@ func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 	}
 	for _, u := range users {
 		if err := cw.Write([]string{
-			u.ID.Get(),
+			u.ID.Get().String(),
 			string(u.Email),
 			u.DisplayName,
 			strconv.FormatBool(u.EmailVerified),

@@ -11,14 +11,14 @@ func TestActorID_FromUser(t *testing.T) {
 	if aid.Kind() != ActorUser {
 		t.Errorf("Kind() = %v, want ActorUser", aid.Kind())
 	}
-	if aid.String() != "01HX..." {
-		t.Errorf("String() = %q, want %q", aid.String(), "01HX...")
+	if aid.String() != uid.Get().String() {
+		t.Errorf("String() = %q, want %q", aid.String(), uid.Get().String())
 	}
 	if aid.IsZero() {
 		t.Error("IsZero() = true, want false")
 	}
-	if aid.PrefixedString() != "user:01HX..." {
-		t.Errorf("PrefixedString() = %q, want %q", aid.PrefixedString(), "user:01HX...")
+	if aid.PrefixedString() != "user:"+uid.Get().String() {
+		t.Errorf("PrefixedString() = %q, want %q", aid.PrefixedString(), "user:"+uid.Get().String())
 	}
 }
 
@@ -92,8 +92,8 @@ func TestSessionOrigin_Impersonation(t *testing.T) {
 		Reason: "investigating user report",
 		At:     time.Date(2026, 6, 21, 12, 0, 0, 0, time.UTC),
 	}
-	if imp.By.String() != "01ADM..." {
-		t.Errorf("By.String() = %q", imp.By.String())
+	if imp.By.String() != admin.Get().String() {
+		t.Errorf("By.String() = %q, want %q", imp.By.String(), admin.Get().String())
 	}
 	if imp.Reason != "investigating user report" {
 		t.Errorf("Reason = %q", imp.Reason)

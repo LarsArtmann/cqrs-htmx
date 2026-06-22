@@ -36,7 +36,7 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 		return nil, event.NewTransient("internal", "begin webauthn registration").WithCause(err)
 	}
 
-	sessionKey := userID.Get()
+	sessionKey := userID.Get().String()
 	s.webauthnSessions.Save(sessionKey, session)
 	s.logger.Info("usermgmt: registration ceremony begun", "user_id", userID)
 
@@ -60,7 +60,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 		return event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish registration")
 	}
 
-	sessionKey := userID.Get()
+	sessionKey := userID.Get().String()
 	session, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish registration failed – session not found",
@@ -135,7 +135,7 @@ func (s *Service) BeginLogin(_ context.Context, email string) (*BeginLoginRespon
 		return nil, event.NewTransient("internal", "begin webauthn login").WithCause(err)
 	}
 
-	sessionKey := user.ID.Get()
+	sessionKey := user.ID.Get().String()
 	s.webauthnSessions.Save(sessionKey, session)
 	s.logger.Debug("usermgmt: login ceremony begun", "email", email)
 
@@ -162,7 +162,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		return nil, event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish login")
 	}
 
-	sessionKey := userID.Get()
+	sessionKey := userID.Get().String()
 	session, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish login failed – session not found",

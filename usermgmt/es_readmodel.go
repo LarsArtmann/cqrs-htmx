@@ -260,13 +260,13 @@ func (m *UserReadModel) AllUsers() []*User {
 		if !users[i].CreatedAt.Equal(users[j].CreatedAt) {
 			return users[i].CreatedAt.Before(users[j].CreatedAt)
 		}
-		return users[i].ID.Get() < users[j].ID.Get()
+		return users[i].ID.Get().String() < users[j].ID.Get().String()
 	})
 	return users
 }
 
 func (m *UserReadModel) FindByUserID(userID UserID) (*User, bool) {
-	aggID, err := id.ParseAggregateID(userID.Get())
+	aggID, err := id.ParseAggregateID(userID.Get().String())
 	if err != nil {
 		return nil, false
 	}
@@ -292,7 +292,7 @@ func aggIDFromBranded(raw, sentinel string) (id.AggregateID, error) {
 }
 
 func aggIDFromUser(userID UserID) (id.AggregateID, error) {
-	return aggIDFromBranded(userID.Get(), "usermgmt.readmodel.invalid_userid")
+	return aggIDFromBranded(userID.Get().String(), "usermgmt.readmodel.invalid_userid")
 }
 
 func nowUTC() time.Time { return time.Now().UTC() }

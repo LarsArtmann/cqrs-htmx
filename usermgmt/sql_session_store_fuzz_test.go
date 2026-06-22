@@ -82,8 +82,8 @@ func verifySessionRoundTrip(t *testing.T, userID UserID, created, found *Session
 	if found.Token != created.Token {
 		t.Errorf("token mismatch: created=%q found=%q", created.Token, found.Token)
 	}
-	if found.UserID.Get() != userID.Get() {
-		t.Errorf("userID mismatch: in=%q out=%q", userID.Get(), found.UserID.Get())
+	if found.UserID.Get().String() != userID.Get().String() {
+		t.Errorf("userID mismatch: in=%q out=%q", userID.Get().String(), found.UserID.Get().String())
 	}
 	if !found.CreatedAt.Equal(created.CreatedAt) {
 		t.Errorf("CreatedAt mismatch: created=%v found=%v", created.CreatedAt, found.CreatedAt)

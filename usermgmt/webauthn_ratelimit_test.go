@@ -24,7 +24,7 @@ func TestHandlers_WebAuthnRateLimit(t *testing.T) {
 	wrapped := NewSessionMiddleware(svc, "session_token")(mux)
 
 	// First begin-registration request is allowed.
-	body := `{"user_id":"` + reg.User.ID.Get() + `"}`
+	body := `{"user_id":"` + reg.User.ID.Get().String() + `"}`
 	w1 := authenticatedRequest(t, wrapped, http.MethodPost, "/auth/webauthn/register/begin", sess.Token, body)
 	if w1.Code == http.StatusTooManyRequests {
 		t.Fatalf("first request should not be rate-limited, got %d", w1.Code)

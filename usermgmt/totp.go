@@ -83,7 +83,7 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 	}
 	// Store the pending secret temporarily
 	s.pendingTOTP.mu.Lock()
-	s.pendingTOTP.secrets[userID.Get()] = pendingTOTPSecret{
+	s.pendingTOTP.secrets[userID.Get().String()] = pendingTOTPSecret{
 		secret:    rawSecret,
 		expiresAt: time.Now().Add(5 * time.Minute),
 	}
@@ -102,9 +102,9 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 		return ErrTOTPNotConfigured
 	}
 	s.pendingTOTP.mu.Lock()
-	pending, ok := s.pendingTOTP.secrets[userID.Get()]
+	pending, ok := s.pendingTOTP.secrets[userID.Get().String()]
 	if ok {
-		delete(s.pendingTOTP.secrets, userID.Get())
+		delete(s.pendingTOTP.secrets, userID.Get().String())
 	}
 	s.pendingTOTP.mu.Unlock()
 	if !ok || time.Now().After(pending.expiresAt) {

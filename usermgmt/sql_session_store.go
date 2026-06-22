@@ -129,7 +129,7 @@ func (s *SQLSessionStore) Create(ctx context.Context, session *Session) error {
 		ctx,
 		`INSERT INTO user_sessions (token, user_id, created_at, expires_at)
 		 VALUES (`+p1+`, `+p2+`, `+p3+`, `+p4+`)`,
-		session.Token, session.UserID.Get(), session.CreatedAt, session.ExpiresAt,
+		session.Token, session.UserID.Get().String(), session.CreatedAt, session.ExpiresAt,
 	)
 	if err != nil {
 		return event.WrapTransient(err, "usermgmt.sql_session.insert_failed", "insert session")
@@ -190,7 +190,7 @@ func (s *SQLSessionStore) DeleteByUserID(ctx context.Context, userID UserID) err
 	_, err := s.db.ExecContext(
 		ctx,
 		`DELETE FROM user_sessions WHERE user_id = `+p1,
-		userID.Get(),
+		userID.Get().String(),
 	)
 	if err != nil {
 		return event.WrapTransient(err, "usermgmt.sql_session.delete_by_user_failed", "delete sessions by user")

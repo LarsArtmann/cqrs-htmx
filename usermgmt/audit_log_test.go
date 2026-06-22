@@ -71,18 +71,18 @@ func TestAuditLog_EntriesFor(t *testing.T) {
 		t.Fatalf("ChangeEmail: %v", err)
 	}
 
-	entries1 := auditLog.EntriesFor(mustParseAggID(t, reg1.User.ID.Get()))
+	entries1 := auditLog.EntriesFor(mustParseAggID(t, reg1.User.ID.Get().String()))
 	if len(entries1) < 2 {
 		t.Errorf("expected at least 2 entries for user1, got %d", len(entries1))
 	}
 
-	entries2 := auditLog.EntriesFor(mustParseAggID(t, reg2.User.ID.Get()))
+	entries2 := auditLog.EntriesFor(mustParseAggID(t, reg2.User.ID.Get().String()))
 	if len(entries2) < 1 {
 		t.Errorf("expected at least 1 entry for user2, got %d", len(entries2))
 	}
 
 	// Verify all entries for user1 have the right aggregate ID
-	expectedAggID := mustParseAggID(t, reg1.User.ID.Get())
+	expectedAggID := mustParseAggID(t, reg1.User.ID.Get().String())
 	for _, e := range entries1 {
 		if e.AggregateID != expectedAggID {
 			t.Errorf("entry aggregate ID mismatch: %q vs %q", e.AggregateID, expectedAggID)

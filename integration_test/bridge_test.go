@@ -54,7 +54,7 @@ func TestUsermgmtBridge_FullRegisterAuthCycle(t *testing.T) {
 		t.Fatalf("Authenticate: %v", err)
 	}
 
-	parsedID, parseErr := cqrshtmx.ParseUserID(user.ID.Get())
+	parsedID, parseErr := cqrshtmx.ParseUserID(user.ID.Get().String())
 	if parseErr != nil {
 		t.Fatalf("ParseUserID: %v", parseErr)
 	}

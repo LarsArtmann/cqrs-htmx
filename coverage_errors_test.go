@@ -32,10 +32,10 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 	})
 
 	Describe("MapError unknown family", func() {
-		It("returns 500 for errors with no classification", func() {
+		It("returns 503 for Infrastructure errors", func() {
 			Expect(cqrshtmx.MapError(
-				event.NewInfrastructure("test.unknown", "unknown"),
-			)).To(Equal(http.StatusInternalServerError))
+				event.NewInfrastructure("test.infra", "infra failure"),
+			)).To(Equal(http.StatusServiceUnavailable))
 		})
 	})
 

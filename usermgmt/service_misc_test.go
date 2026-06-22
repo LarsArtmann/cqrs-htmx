@@ -98,8 +98,8 @@ func TestWithUserIDContext(t *testing.T) {
 		if !got.HasContext("user_id") {
 			t.Errorf("expected user_id context, got %#v", got.ErrorContext())
 		}
-		if got.ContextValue("user_id") != "user-42" {
-			t.Errorf("expected user_id=user-42, got %q", got.ContextValue("user_id"))
+		if got.ContextValue("user_id") != uid.Get().String() {
+			t.Errorf("expected user_id=%s, got %q", uid.Get().String(), got.ContextValue("user_id"))
 		}
 	})
 

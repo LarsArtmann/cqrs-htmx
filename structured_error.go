@@ -148,18 +148,10 @@ func familyType(family event.Family) string {
 }
 
 func familyTitle(family event.Family, status int) string {
-	switch family {
-	case event.Rejection:
-		return http.StatusText(status)
-	case event.Conflict:
-		return "Conflict"
-	case event.Corruption:
-		return "Unprocessable Entity"
-	case event.Transient:
-		return "Service Unavailable"
-	case event.Infrastructure:
-		return "Internal Server Error"
-	default:
-		return http.StatusText(status)
+	// Delegate to http.StatusText for all families — the status code is already
+	// derived from family.HTTPStatus() upstream, so this stays in sync automatically.
+	if text := http.StatusText(status); text != "" {
+		return text
 	}
+	return "Internal Server Error"
 }

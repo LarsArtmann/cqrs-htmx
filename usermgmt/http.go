@@ -22,7 +22,7 @@ func RequireAdminRole(authz *Authz) AuthorizerFunc {
 		if user == nil {
 			return ErrForbidden
 		}
-		roles, err := authz.RolesForUser(user.ID, user.ID.Get())
+		roles, err := authz.RolesForUser(user.ID, user.ID.Get().String())
 		if err != nil {
 			return err
 		}

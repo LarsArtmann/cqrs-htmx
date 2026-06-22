@@ -11,7 +11,7 @@ type webauthnUser struct {
 }
 
 func (w *webauthnUser) WebAuthnID() []byte {
-	return []byte(w.user.ID.Get())
+	return []byte(w.user.ID.Get().String())
 }
 
 func (w *webauthnUser) WebAuthnName() string {
