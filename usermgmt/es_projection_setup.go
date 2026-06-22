@@ -18,8 +18,6 @@ import (
 //
 // Dedup: event IDs processed during replay are tracked and skipped in the
 // live handler to prevent double-processing at the replay-to-live boundary.
-//
-//nolint:cyclop,funlen // inherent to multi-projection registration
 func StartProjections(
 	journal event.Journal,
 	bus event.Subscriber,

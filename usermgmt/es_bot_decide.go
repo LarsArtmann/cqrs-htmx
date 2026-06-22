@@ -10,7 +10,7 @@ import (
 func BotDecider() decider.Decider[BotState] {
 	return decider.Decider[BotState]{
 		Initial: BotState{}, //nolint:exhaustruct // zero-value is correct for aggregate initial state
-		Apply:    foldBot,
+		Apply:   foldBot,
 	}
 }
 

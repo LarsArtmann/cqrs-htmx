@@ -75,7 +75,7 @@ type EventSourcedSetup struct {
 func UserDecider() decider.Decider[UserState] {
 	return decider.Decider[UserState]{
 		Initial: UserState{},
-		Apply:    foldUser,
+		Apply:   foldUser,
 	}
 }
 
