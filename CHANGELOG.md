@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-06-22
+
 ### Added
 
 - **`migrations/0001_user_events_to_events.sql`**: Migration script for deployments that used the pre-delegation `user_events` table. Renames `user_events` → `events`, adds the upstream columns (`schema_version`, `payload_encoding`, `created_at`), and backfills them with defaults (`schema_version = 1`, `payload_encoding = 'json'`, `created_at = occurred_at`). Idempotent via `IF NOT EXISTS` on columns and a guard on the old table name.
@@ -15,8 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-- **`SQLEventStore` is now a type alias** over `go-cqrs-lite/storage/v2`'s `storage.SQLEventStore`. The hand-rolled 413-LOC store was replaced by a 78-LOC facade. The upstream store is a strict superset: richer schema (`schema_version`, `payload_encoding`, `created_at`), `event.SeekableJournal` / `BackwardsSource` conformance, OpenTelemetry tracing, and `event.WrapInfrastructure` error wrapping.
-- **go-error-family upgraded to v0.5.0.** `MapError` now delegates to upstream `Family.HTTPStatus()` — the hand-rolled `familyStatus()` switch (E04) is deleted. The upstream method returns identical status codes (Rejection→400, Conflict→409, Transient→503, Corruption→500, Infrastructure→503), confirming the ADR-0017 reconciliation was correct.
+- **`SQLEventStore` is now a type alias** over `go-cqrs-lite/storage/v3`'s `storage.SQLEventStore`. The hand-rolled 413-LOC store was replaced by a 78-LOC facade. The upstream store is a strict superset: richer schema (`schema_version`, `payload_encoding`, `created_at`), `event.SeekableJournal` / `BackwardsSource` conformance, OpenTelemetry tracing, and `event.WrapInfrastructure` error wrapping.
+- **go-error-family upgraded to v0.5.0** across all modules. `MapError` now delegates to upstream `Family.HTTPStatus()` — the hand-rolled `familyStatus()` switch (E04) is deleted. The upstream method returns identical status codes (Rejection→400, Conflict→409, Transient→503, Corruption→500, Infrastructure→503), confirming the ADR-0017 reconciliation was correct. The upgrade is now applied uniformly (root, usermgmt, catalog, integration_test) — the initial upgrade had left usermgmt and catalog stranded on v0.4.0.
 
 ### Fixed
 
@@ -33,7 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   store, _ := usermgmt.NewSQLEventStore(ctx, db, "postgres")
   defer store.Close() // closed db too
 
-  // After (Unreleased):
+  // After (v3.0.0):
   store, _ := usermgmt.NewSQLEventStore(ctx, db, "postgres")
   defer store.Close() // marks store closed; db stays open
   defer db.Close()    // caller owns the DB lifecycle
@@ -61,7 +63,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Generic fanOut[T]**: Extracted the shared subscriber hub from SSE `Broadcaster` and WS `WSBroadcaster` into a single generic `fanOut[T any]` type. Both broadcasters embed it, gaining Subscribe/Unsubscribe/Broadcast/SubscriberCount via method promotion. Eliminates ~100 lines of copy-pasted code. Zero breaking changes — identical public API. `channelPtr` helper moved to `fanout.go` (was misplaced in `sse_broadcaster.go` despite being transport-agnostic).
 - **WS Func variants**: Added `BroadcastOnSuccessWSFunc(fn)` and `BroadcastOnErrorWSFunc(fn)` for dynamic message generation, closing the parity gap with SSE's `BroadcastOnSuccessFunc` / `BroadcastOnErrorFunc`.
 - **Unified timeout**: Removed `dispatchTimeout` split brain. WS dispatch now calls `timeoutCtx(ctx, nil)` — the same method the HTTP path uses, made nil-safe for `*handlerConfig`.
-- **catalog sub-package** (5th Go module): Automatic API documentation generation from Go CQRS types. Produces OpenAPI 3.0, AsyncAPI 3.0, D2 diagrams, and EventCatalog MDX file trees from a single registration. Zero dependency on root or usermgmt modules — consumers opt in via `go get github.com/larsartmann/cqrs-htmx/catalog/v2`. Includes HTTP handlers (`OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `GenerateEventCatalog`), JSON/YAML output via `WithFormat()`, schema auto-derivation from struct tags, and catalog validation (`Build()` panics, `BuildValid()` returns violations). See [catalog/README.md](catalog/README.md) and ADR 0008.
+- **catalog sub-package** (5th Go module): Automatic API documentation generation from Go CQRS types. Produces OpenAPI 3.0, AsyncAPI 3.0, D2 diagrams, and EventCatalog MDX file trees from a single registration. Zero dependency on root or usermgmt modules — consumers opt in via `go get github.com/larsartmann/cqrs-htmx/catalog/v3`. Includes HTTP handlers (`OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `GenerateEventCatalog`), JSON/YAML output via `WithFormat()`, schema auto-derivation from struct tags, and catalog validation (`Build()` panics, `BuildValid()` returns violations). See [catalog/README.md](catalog/README.md) and ADR 0008.
 - **ADR 0009**: Documents the rationale for which go-cqrs-lite modules are used (8 direct) vs not used (13 excluded), with specific reasons for each exclusion. Cross-references the middleware integration guide.
 - **Middleware integration guide** (`docs/integrations/go-cqrs-lite-middleware.md`): Documents how go-cqrs-lite dispatch middleware (retry, circuit breaker, metrics, tracing) composes with cqrs-htmx HTTP middleware. Different layers, no conflict.
 - **`ForbiddenErrorHandler`**: Exported named CSRF error handler for `CSRFConfig.ErrorHandler` — writes HTTP 403 with no body. Convenient default for consumers wiring CSRF protection without rendering nosurf's default error page.
@@ -73,7 +75,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`applyConfigDefaults` silent field loss**: The `HandlerConfig` defaults logic created a fresh config and manually copied each field — any field not copied was silently zeroed. `WebAuthnRateLimit` was missing, silently disabling rate limiting on all 4 WebAuthn endpoints. Refactored to start from the caller's config and override only fields needing non-zero defaults, eliminating the entire class of "forgot to copy a field" bugs.
 - **Removed lying `EventCatalogHandler`**: The handler set `Content-Type: application/zip` but served a JSON file listing — a critical honesty violation. Removed entirely; kept `GenerateEventCatalog()` (build-time/startup-time file generation, which is the correct EventCatalog model).
 - **Fixed `flake.nix` split brain**: `nix run .#test` (and `.#lint`/`.#build`/`.#coverage`) silently skipped the catalog module. Catalog is now included in all four multi-module nix apps.
-- **Removed self-referential `replace` directive** in `catalog/go.mod` (`replace github.com/larsartmann/cqrs-htmx/catalog/v2 => ./`) — pointed the module at itself.
+- **Removed self-referential `replace` directive** in `catalog/go.mod` (`replace github.com/larsartmann/cqrs-htmx/catalog/v3 => ./`) — pointed the module at itself.
 - **Bumped `flake.nix` `packages.default` version** from stale `2.3.0` to `2.4.0` to match the current release.
 - **Fixed `errors.Join` anti-pattern**: Replaced `errors.Join(errors.New("..."), err)` with idiomatic `fmt.Errorf("...: %w", err)` for proper error wrapping.
 - **Fixed 7 lint issues** in the catalog module: errchkjson, exhaustive, exhaustruct×3, forcetypeassert, gci. All modules report 0 lint issues.

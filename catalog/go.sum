@@ -18,8 +18,8 @@ github.com/google/pprof v0.0.0-20260604005048-7023385849c0 h1:h1QTMDl6q9wDvDCJVp
 github.com/google/pprof v0.0.0-20260604005048-7023385849c0/go.mod h1:MxpfABSjhmINe3F1It9d+8exIHFvUqtLIRCdOGNXqiI=
 github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.0.0 h1:rvKhosZReILWmzOUxD8QfRm4XzNfn6LSc5H0E6Xk/Rw=
 github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.0.0/go.mod h1:rCD+r6285w6SrSqcqp0a6HU2I/0/ZGBryng6jbXbKkM=
-github.com/larsartmann/go-error-family v0.4.0 h1:y4ykkSJJaqr7jtilitrdX+bByVAm6UTlTbccQMlu1Fw=
-github.com/larsartmann/go-error-family v0.4.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
+github.com/larsartmann/go-error-family v0.5.0 h1:BCRn+IKHtzQlmH7F+BWq1El1ZUWHRNpdfq5HKzTv9o8=
+github.com/larsartmann/go-error-family v0.5.0/go.mod h1:JbSRM+qePUMzqr2L28oEeIf7QjWUnwAnUHpUfqp/flg=
 github.com/onsi/ginkgo/v2 v2.31.0 h1:GtuJos5DFUV9EerYJo8RhYxosYNGvOdDE5haKq6Grfs=
 github.com/onsi/ginkgo/v2 v2.31.0/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
 github.com/onsi/gomega v1.42.0 h1:CJby8u36xb7v34W78F8WKvqTQP7PCMIPB78IVDB73l4=

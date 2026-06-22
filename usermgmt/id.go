@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	brandid "github.com/larsartmann/go-branded-id"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/oklog/ulid/v2"
 )
@@ -38,7 +39,11 @@ func NewUserID(s string) UserID {
 
 // ParseUserID converts a ULID string to a UserID, returning an error for invalid ULIDs.
 func ParseUserID(s string) (UserID, error) {
-	return id.ParseUserID(s)
+	uid, err := id.ParseUserID(s)
+	if err != nil {
+		return uid, event.Wrapf(err, event.Rejection, "usermgmt.userid.invalid", "invalid user id %q", s)
+	}
+	return uid, nil
 }
 
 // MustParseUserID converts a ULID string to a UserID, panicking on invalid input.
