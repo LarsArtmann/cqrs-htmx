@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"log/slog"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -96,7 +97,7 @@ func replayProjections(
 		seenIDs[evt.ID()] = struct{}{}
 
 		for _, proj := range projections {
-			if !shouldDispatch(proj, evt.Type()) {
+			if !slices.Contains(proj.EventTypes(), evt.Type()) {
 				continue
 			}
 
@@ -135,7 +136,7 @@ func buildLiveHandler(
 		}
 
 		for _, proj := range projections {
-			if !shouldDispatch(proj, evt.Type()) {
+			if !slices.Contains(proj.EventTypes(), evt.Type()) {
 				continue
 			}
 
@@ -151,13 +152,3 @@ func buildLiveHandler(
 	})
 }
 
-// shouldDispatch reports whether the projection handles events of the given type.
-func shouldDispatch(proj event.Projection, eventType event.Type) bool {
-	for _, t := range proj.EventTypes() {
-		if t == eventType {
-			return true
-		}
-	}
-
-	return false
-}
