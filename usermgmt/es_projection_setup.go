@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // StartProjections replays historical events from the journal into all
@@ -80,7 +81,7 @@ func collectProjections(
 func replayProjections(
 	journal event.Journal,
 	projections []event.Projection,
-) (map[string]struct{}, error) {
+) (map[id.EventID]struct{}, error) {
 	replayCtx := event.WithProcessingMode(context.Background(), event.ModeReplay)
 
 	events, err := journal.ReadAll(context.Background())
@@ -90,9 +91,9 @@ func replayProjections(
 			"read events from journal")
 	}
 
-	seenIDs := make(map[string]struct{}, len(events))
+	seenIDs := make(map[id.EventID]struct{}, len(events))
 	for _, evt := range events {
-		seenIDs[evt.ID().String()] = struct{}{}
+		seenIDs[evt.ID()] = struct{}{}
 
 		for _, proj := range projections {
 			if !shouldDispatch(proj, evt.Type()) {
@@ -112,12 +113,24 @@ func replayProjections(
 
 // buildLiveHandler creates an event.Handler that routes live events to all
 // projections. Events already seen during replay are skipped (dedup).
+//
+// Error handling: projection errors during live processing are logged at
+// error level but do not stop event delivery. This is intentional — a single
+// failing projection should not block other projections or cause the bus to
+// retry the event indefinitely. The previous projection.Runner had retry
+// and dead-letter-queue support; that complexity was intentionally dropped
+// in favor of simplicity (ADR-0016). Consumers needing retry semantics can
+// wrap their projection's Handle method.
+//
+// Memory: the seenIDs map is seeded once during replay and never grows
+// during live processing. Its size is bounded by the number of events in
+// the journal at startup time.
 func buildLiveHandler(
 	projections []event.Projection,
-	seenIDs map[string]struct{},
+	seenIDs map[id.EventID]struct{},
 ) event.Handler {
 	return event.Handler(func(ctx context.Context, evt event.Event) error {
-		if _, seen := seenIDs[evt.ID().String()]; seen {
+		if _, seen := seenIDs[evt.ID()]; seen {
 			return nil
 		}
 
