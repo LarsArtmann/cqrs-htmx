@@ -10,7 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
-	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 const (
@@ -163,78 +162,27 @@ func journalFromStore(store event.Store) event.Journal {
 // It sets up event-sourced infrastructure (store, bus, repository, projections) with
 // in-memory defaults if not provided.
 //
-//nolint:gocognit // inherent to multi-aggregate service wiring
+
 func NewService(cfg ServiceConfig) (*Service, error) {
-	store := cfg.EventStore
-	if store == nil {
-		store = memory.NewMemoryStore()
-	}
-
-	store, err := wrapEventStore(cfg.StoreWrapper, store)
+	setup, err := NewEventSourcedSetup(EventSourcedConfig{
+		EventStore:    cfg.EventStore,
+		EventBus:      cfg.EventBus,
+		AuditLog:      cfg.AuditLog,
+		SecurityHooks: cfg.SecurityHooks,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	bus := cfg.EventBus
-	if bus == nil {
-		bus = watermill.NewEventBus()
-	}
-
-	if err := applyBusMiddleware(cfg.PublishMiddleware, cfg.HandlerMiddleware, bus); err != nil {
-		return nil, err
-	}
-
-	journal := journalFromStore(store)
-
-	repo, err := decider.NewRepository(store, bus, UserDecider())
-	if err != nil {
-		return nil, event.NewTransient("internal", "create decider repository").WithCause(err)
-	}
-
-	membershipRepo, err := decider.NewRepository(store, bus, MembershipDecider())
-	if err != nil {
-		return nil, event.NewTransient("internal", "create membership repository").WithCause(err)
-	}
-
-	tenantRepo, err := decider.NewRepository(store, bus, TenantDecider())
-	if err != nil {
-		return nil, event.NewTransient("internal", "create tenant repository").WithCause(err)
-	}
-
-	botRepo, err := decider.NewRepository(store, bus, BotDecider())
-	if err != nil {
-		return nil, event.NewTransient("internal", "create bot repository").WithCause(err)
-	}
-
-	authz := cfg.Authz
-	if authz == nil {
-		authz, err = NewAuthz()
+	// Use custom Authz if provided (with a fresh projection); otherwise use setup's.
+	authz := setup.casbinProjection.authz
+	casbinProjection := setup.casbinProjection
+	if cfg.Authz != nil {
+		authz = cfg.Authz
+		casbinProjection, err = NewCasbinProjection(authz)
 		if err != nil {
-			return nil, event.NewTransient("internal", "create authz").WithCause(err)
+			return nil, event.NewTransient("internal", "create casbin projection").WithCause(err)
 		}
-	}
-
-	casbinProjection, err := NewCasbinProjection(authz)
-	if err != nil {
-		return nil, event.NewTransient("internal", "create casbin projection").WithCause(err)
-	}
-
-	readModel := NewUserReadModel()
-	membershipReadModel := NewMembershipReadModel()
-	tenantReadModel := NewTenantReadModel()
-	botReadModel := NewBotReadModel()
-
-	if err := StartProjections(
-		journal,
-		bus,
-		readModel,
-		membershipReadModel,
-		tenantReadModel,
-		botReadModel,
-		casbinProjection,
-		cfg.AuditLog,
-	); err != nil {
-		return nil, event.NewTransient("internal", "start projections").WithCause(err)
 	}
 
 	if cfg.SessionStore == nil {
@@ -250,38 +198,38 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	}
 
 	dispatcher := command.NewDispatcher()
-	if err := RegisterCommands(dispatcher, repo); err != nil {
+	if err := RegisterCommands(dispatcher, setup.Repository); err != nil {
 		return nil, event.NewTransient("internal", "register commands").WithCause(err)
 	}
-	if err := RegisterMembershipCommands(dispatcher, membershipRepo); err != nil {
+	if err := RegisterMembershipCommands(dispatcher, setup.MembershipRepository); err != nil {
 		return nil, event.NewTransient("internal", "register membership commands").WithCause(err)
 	}
-	if err := RegisterTenantCommands(dispatcher, tenantRepo); err != nil {
+	if err := RegisterTenantCommands(dispatcher, setup.TenantRepository); err != nil {
 		return nil, event.NewTransient("internal", "register tenant commands").WithCause(err)
 	}
-	if err := RegisterBotCommands(dispatcher, botRepo); err != nil {
+	if err := RegisterBotCommands(dispatcher, setup.BotRepository); err != nil {
 		return nil, event.NewTransient("internal", "register bot commands").WithCause(err)
 	}
 
 	//nolint:exhaustruct // fields set conditionally below
 	svc := &Service{
-		repository:          repo,
-		membershipRepo:      membershipRepo,
-		tenantRepo:          tenantRepo,
-		botRepo:             botRepo,
+		repository:          setup.Repository,
+		membershipRepo:      setup.MembershipRepository,
+		tenantRepo:          setup.TenantRepository,
+		botRepo:             setup.BotRepository,
 		dispatcher:          dispatcher,
-		readModel:           readModel,
-		membershipReadModel: membershipReadModel,
-		tenantReadModel:     tenantReadModel,
-		botReadModel:        botReadModel,
+		readModel:           setup.ReadModel,
+		membershipReadModel: setup.MembershipReadModel,
+		tenantReadModel:     setup.TenantReadModel,
+		botReadModel:        setup.BotReadModel,
 		casbinProjection:    casbinProjection,
 		authz:               authz,
 		sessions:            cfg.SessionStore,
 		sessionTTL:          cfg.SessionTTL,
 		logger:              logger,
 		lockout:             cfg.Lockout,
-		bus:                 bus,
-		store:               store,
+		bus:                 setup.Bus,
+		store:               setup.Store,
 		auditLog:            cfg.AuditLog,
 	}
 
