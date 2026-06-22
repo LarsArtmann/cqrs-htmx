@@ -17,12 +17,6 @@ type UserRegisteredEvent struct {
 	OccurredAt  time.Time `json:"occurred_at"`
 }
 
-// UserLoggedInEvent is emitted after a successful login.
-type UserLoggedInEvent struct {
-	Email      string    `json:"email"`
-	OccurredAt time.Time `json:"occurred_at"`
-}
-
 // RolesUpdatedEvent is emitted after a successful role update.
 type RolesUpdatedEvent struct {
 	Roles      []Role    `json:"roles"`
