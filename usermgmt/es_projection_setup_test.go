@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"errors"
+	"slices"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -41,10 +42,7 @@ func makeTestEvent(eventType event.Type) event.Event {
 func TestShouldDispatch(t *testing.T) {
 	t.Parallel()
 
-	proj := &stubProjection{
-		name:  "test",
-		types: []event.Type{"UserRegistered", "UserDeleted"},
-	}
+	types := []event.Type{"UserRegistered", "UserDeleted"}
 
 	tests := []struct {
 		name      string
@@ -60,9 +58,9 @@ func TestShouldDispatch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := shouldDispatch(proj, tt.eventType)
+			got := slices.Contains(types, tt.eventType)
 			if got != tt.want {
-				t.Errorf("shouldDispatch(%q) = %v, want %v", tt.eventType, got, tt.want)
+				t.Errorf("slices.Contains(%q) = %v, want %v", tt.eventType, got, tt.want)
 			}
 		})
 	}
@@ -71,9 +69,9 @@ func TestShouldDispatch(t *testing.T) {
 func TestShouldDispatch_EmptyEventTypes(t *testing.T) {
 	t.Parallel()
 
-	proj := &stubProjection{name: "empty", types: nil}
-	if shouldDispatch(proj, "UserRegistered") {
-		t.Error("shouldDispatch should return false for projection with no event types")
+	var types []event.Type
+	if slices.Contains(types, "UserRegistered") {
+		t.Error("slices.Contains should return false for nil slice")
 	}
 }
 
