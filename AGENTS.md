@@ -165,21 +165,21 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency                  | Purpose                                                                 | Used in          |
-| --------------------------- | ----------------------------------------------------------------------- | ---------------- |
+| Dependency                  | Purpose                                                                            | Used in          |
+| --------------------------- | ---------------------------------------------------------------------------------- | ---------------- |
 | go-cqrs-lite v3.0.0         | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus) | All modules      |
-| casbin/casbin/v3            | Authorization                                                           | Root, usermgmt   |
-| justinas/nosurf v1.2.0      | CSRF protection                                                         | Root             |
-| go-error-family v0.4.0      | Error classification                                                    | All modules      |
-| larsartmann/httputil        | ClientIP extraction                                                     | Root             |
-| go-branded-id v0.3.1        | Branded types                                                           | usermgmt         |
-| go-webauthn v0.17.4         | WebAuthn/Passkey passwordless authentication                            | usermgmt         |
-| pquerna/otp v1.5.0          | TOTP (RFC 6238) multi-factor authentication                             | usermgmt         |
-| golang.org/x/oauth2 v0.36.0 | OAuth2 authorization code flow with PKCE                                | usermgmt         |
-| coreos/go-oidc/v3 v3.19.0   | OIDC provider discovery + ID token verification                         | usermgmt         |
-| go-jose/go-jose/v4 v4.1.4   | JWT/JWS signing (transitive from go-oidc, used in tests)                | usermgmt (tests) |
-| golang.org/x/time           | Rate limiting                                                           | Root             |
-| onsi/ginkgo/v2 + gomega     | BDD test framework                                                      | All test modules |
+| casbin/casbin/v3            | Authorization                                                                      | Root, usermgmt   |
+| justinas/nosurf v1.2.0      | CSRF protection                                                                    | Root             |
+| go-error-family v0.4.0      | Error classification                                                               | All modules      |
+| larsartmann/httputil        | ClientIP extraction                                                                | Root             |
+| go-branded-id v0.3.1        | Branded types                                                                      | usermgmt         |
+| go-webauthn v0.17.4         | WebAuthn/Passkey passwordless authentication                                       | usermgmt         |
+| pquerna/otp v1.5.0          | TOTP (RFC 6238) multi-factor authentication                                        | usermgmt         |
+| golang.org/x/oauth2 v0.36.0 | OAuth2 authorization code flow with PKCE                                           | usermgmt         |
+| coreos/go-oidc/v3 v3.19.0   | OIDC provider discovery + ID token verification                                    | usermgmt         |
+| go-jose/go-jose/v4 v4.1.4   | JWT/JWS signing (transitive from go-oidc, used in tests)                           | usermgmt (tests) |
+| golang.org/x/time           | Rate limiting                                                                      | Root             |
+| onsi/ginkgo/v2 + gomega     | BDD test framework                                                                 | All test modules |
 
 ## Key Decisions
 
