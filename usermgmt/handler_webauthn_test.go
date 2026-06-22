@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -20,7 +21,8 @@ func TestHandler_WebAuthnBeginRegistration_Success(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	w := postJSON(t, mux, "/auth/webauthn/register/begin", `{"user_id":"u1"}`)
+	w := postJSON(t, mux, "/auth/webauthn/register/begin",
+		fmt.Sprintf(`{"user_id":%q}`, NewUserID("u1").Get().String()))
 	if w.Code != http.StatusOK {
 		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
 	}
@@ -112,7 +114,8 @@ func TestHandler_WebAuthnNotConfigured_BeginRegistration(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	w := postJSON(t, mux, "/auth/webauthn/register/begin", `{"user_id":"u1"}`)
+	w := postJSON(t, mux, "/auth/webauthn/register/begin",
+		fmt.Sprintf(`{"user_id":%q}`, NewUserID("u1").Get().String()))
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("status = %d, want %d (webauthn not configured)", w.Code, http.StatusUnauthorized)
 	}

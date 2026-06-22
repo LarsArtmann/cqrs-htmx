@@ -53,7 +53,7 @@ Event-sourced CQRS using go-cqrs-lite Decider pattern. All state changes are eve
 
 ### Types
 
-14. **UserID is go-branded-id** — `brandid.ID[userBrand, string]`, NOT ULID-backed. Use `.Get()` for cross-module conversion (not `.String()` which includes brand prefix).
+14. **UserID is ULID-backed** — Alias of `id.UserID` from `go-cqrs-lite/id/v3` (ADR-0018). Backed by `ulid.ULID`, unified with root module's `cqrshtmx.UserID`. Use `.Get().String()` for string conversion at boundaries (SQL, Casbin, logging). `NewUserID(s)` accepts any string (valid ULIDs pass through, non-ULIDs are deterministically hashed). `MustParseUserID(s)` panics on invalid ULID.
 15. **Email value type** — `type Email string` with `ParseEmail`/`MustParseEmail`. Used in `ExportUser`. Not propagated to `User`/`UserState`/event payloads (they stay `string` for backward compat).
 16. **UserDataFormat** (renamed from ExportFormat) — Used for both import and export. Constants: `UserDataFormatJSON`, `UserDataFormatCSV`.
 

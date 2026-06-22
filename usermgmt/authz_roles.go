@@ -9,7 +9,7 @@ func (a *Authz) RolesForUser(userID UserID, domain string) ([]Role, error) {
 	if a.enforcer == nil {
 		return nil, ErrEnforcerNotInitialized
 	}
-	roles, err := a.enforcer.GetRolesForUser(userID.Get(), domain)
+	roles, err := a.enforcer.GetRolesForUser(userID.Get().String(), domain)
 	if err != nil {
 		return nil, event.WrapTransient(err, "casbin_error", "domain="+domain)
 	}
@@ -21,7 +21,7 @@ func (a *Authz) ImplicitRolesForUser(userID UserID, domain string) ([]Role, erro
 	if a.enforcer == nil {
 		return nil, ErrEnforcerNotInitialized
 	}
-	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get(), domain)
+	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get().String(), domain)
 	if err != nil {
 		return nil, event.WrapTransient(err, "casbin_error", "domain="+domain)
 	}
@@ -34,7 +34,7 @@ func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain string) ([][]st
 	if a.enforcer == nil {
 		return nil, ErrEnforcerNotInitialized
 	}
-	p, err := a.enforcer.GetImplicitPermissionsForUser(userID.Get(), domain)
+	p, err := a.enforcer.GetImplicitPermissionsForUser(userID.Get().String(), domain)
 	if err != nil {
 		return nil, event.WrapTransient(
 			err, "casbin_error",
@@ -49,7 +49,7 @@ func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 	if a.enforcer == nil {
 		return nil, ErrEnforcerNotInitialized
 	}
-	d, err := a.enforcer.GetDomainsForUser(userID.Get())
+	d, err := a.enforcer.GetDomainsForUser(userID.Get().String())
 	if err != nil {
 		return nil, event.WrapTransient(err, "casbin_error", "domains for user")
 	}

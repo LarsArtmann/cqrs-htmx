@@ -71,7 +71,7 @@ cqrs-htmx/
 ├── recovery.go       # RecoveryMiddleware (package-level), App.RecoverHandler() — panic recovery
 ├── usermgmt/         # User management submodule (EVENT-SOURCED CQRS, RBAC, sessions, password auth)
 │   ├── go.mod        # Independent Go module
-│   ├── id.go         # Branded UserID type (go-branded-id), NewUserID constructor
+│   ├── id.go         # UserID (alias of id.UserID), ActorID struct, TenantID, BotID
 │   ├── authz_types.go     # Authz wrapper around Casbin (RBAC with domains), AsEnforcer adapter
 │   ├── authz_policies.go  # Apply, AddGroupPolicy, RemoveGroupPolicy, AddPolicy, RemovePolicy
 │   ├── authz_roles.go     # RolesForUser, RolesForActor, ImplicitRolesForActor, role hierarchy seed (g2)

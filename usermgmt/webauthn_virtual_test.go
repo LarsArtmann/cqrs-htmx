@@ -188,12 +188,12 @@ func overrideSessionChallenge(t *testing.T, svc *Service, userID UserID, challen
 	challengeBytes := decodeHex(t, challengeHex)
 	challenge := base64RawURL(challengeBytes)
 
-	session, err := svc.webauthnSessions.Get(userID.Get())
+	session, err := svc.webauthnSessions.Get(userID.Get().String())
 	if err != nil {
 		t.Fatalf("get session for override: %v", err)
 	}
 	session.Challenge = challenge
-	svc.webauthnSessions.Save(userID.Get(), session)
+	svc.webauthnSessions.Save(userID.Get().String(), session)
 }
 
 func buildRegistrationRequest(t *testing.T) *http.Request {

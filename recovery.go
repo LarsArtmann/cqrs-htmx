@@ -19,6 +19,21 @@ func shouldRePanic(rec any) bool {
 }
 
 // writePanicResponse logs the panic and writes a 500 response via handler.
+//
+// The panic error is classified as Infrastructure for logging purposes, but
+// MapError's explicit override returns 500 — a panic is a server bug, not a
+// "service unavailable" condition (503 would imply the service is down when
+// it is actually serving other requests fine).
+const panicCode = "panic"
+
+func isPanicError(err error) bool {
+	var e *event.Error
+	if errors.As(err, &e) {
+		return e.Code() == panicCode
+	}
+	return false
+}
+
 func writePanicResponse(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -33,7 +48,7 @@ func writePanicResponse(
 		slog.String("stack", string(debug.Stack())),
 	)
 
-	handler(w, r, event.Newf(event.Infrastructure, "panic", "panic: %v", rec))
+	handler(w, r, event.Newf(event.Infrastructure, panicCode, "panic: %v", rec))
 }
 
 // RecoveryMiddleware returns HTTP middleware that recovers from panics in

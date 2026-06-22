@@ -28,14 +28,14 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 				http.StatusConflict,
 			),
 			Entry(
-				"Corruption to 422",
+				"Corruption to 500",
 				event.NewCorruption("test.corruption", "corrupted data"),
-				http.StatusUnprocessableEntity,
+				http.StatusInternalServerError,
 			),
 			Entry(
-				"Infrastructure to 500",
+				"Infrastructure to 503",
 				event.NewInfrastructure("test.infra", "infrastructure failure"),
-				http.StatusInternalServerError,
+				http.StatusServiceUnavailable,
 			),
 			Entry(
 				"Transient to 503",
@@ -127,7 +127,7 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 			app, _ := cqrshtmx.New(cqrshtmx.Config{Commands: command.NewDispatcher()})
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query("GetUser", decodeGetUserJSONQuery()), r)
-			Expect(w.code()).To(Equal(http.StatusInternalServerError))
+			Expect(w.code()).To(Equal(http.StatusServiceUnavailable))
 		})
 	})
 
@@ -136,7 +136,7 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 			app, _ := cqrshtmx.New(cqrshtmx.Config{Queries: query.NewDispatcher()})
 			w := serve(app.Command("CreateUser", decodeCreateUserJSON()),
 				newPostRequest("/users", `{}`))
-			Expect(w.code()).To(Equal(http.StatusInternalServerError))
+			Expect(w.code()).To(Equal(http.StatusServiceUnavailable))
 		})
 	})
 

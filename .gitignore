@@ -44,3 +44,5 @@ examples/catalog-demo/eventcatalog/
 /report/
 # Build artifacts
 /v2
+# Build artifacts
+/v3

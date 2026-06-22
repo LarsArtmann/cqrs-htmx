@@ -56,7 +56,7 @@ func TestWebAuthn_BeginRegistration_WithSessionStored(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BeginRegistration: %v", err)
 	}
-	_, err = svc.webauthnSessions.Get("u1")
+	_, err = svc.webauthnSessions.Get(NewUserID("u1").Get().String())
 	if err != nil {
 		t.Errorf("expected session data stored, got: %v", err)
 	}
@@ -143,8 +143,9 @@ func TestWebAuthnServiceAdapter(t *testing.T) {
 
 	waUser := &webauthnUser{user: user}
 
-	if string(waUser.WebAuthnID()) != "adapter-test" {
-		t.Errorf("WebAuthnID = %q", waUser.WebAuthnID())
+	expectedID := NewUserID("adapter-test").Get().String()
+	if string(waUser.WebAuthnID()) != expectedID {
+		t.Errorf("WebAuthnID = %q, want %q", waUser.WebAuthnID(), expectedID)
 	}
 	if waUser.WebAuthnName() != "adapter@test.com" {
 		t.Errorf("WebAuthnName = %q", waUser.WebAuthnName())

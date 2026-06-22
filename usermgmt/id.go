@@ -1,22 +1,54 @@
 package usermgmt
 
 import (
+	"crypto/sha256"
 	"fmt"
 
 	brandid "github.com/larsartmann/go-branded-id"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/oklog/ulid/v2"
 )
 
-type userBrand struct{}
+// UserID is a strongly-typed identifier for users, backed by ULID.
+// This is an alias of id.UserID from go-cqrs-lite, ensuring type-level
+// interoperability with the root cqrs-htmx module and event metadata.
+// See ADR-0018 for the unification rationale.
+type UserID = id.UserID
 
-func (userBrand) Name() string { return "User" }
+// NewUserID creates a UserID from a string. If the string is a valid ULID,
+// it is parsed directly. Otherwise, a deterministic ULID is derived via
+// SHA-256 hashing — this preserves backward compatibility for callers that
+// pass short identifiers (e.g., "u1", "alice") while ensuring the resulting
+// type is always a valid id.UserID.
+//
+// For production code that validates external input, use ParseUserID instead.
+func NewUserID(s string) UserID {
+	if s == "" {
+		var zero UserID
+		return zero
+	}
+	if uid, err := id.ParseUserID(s); err == nil {
+		return uid
+	}
+	h := sha256.Sum256([]byte(s))
+	var u ulid.ULID
+	copy(u[:], h[:16])
+	return brandid.NewID[id.UserMarker](u)
+}
 
-// UserID is a branded type for user identifiers backed by ULID strings.
-// Use NewUserID to construct instances from string values.
-type UserID = brandid.ID[userBrand, string]
+// ParseUserID converts a ULID string to a UserID, returning an error for invalid ULIDs.
+func ParseUserID(s string) (UserID, error) {
+	return id.ParseUserID(s)
+}
 
-// NewUserID constructs a UserID from a string value.
-// In tests, prefer passing a known ULID string for determinism.
-func NewUserID(s string) UserID { return brandid.NewID[userBrand](s) }
+// MustParseUserID converts a ULID string to a UserID, panicking on invalid input.
+func MustParseUserID(s string) UserID {
+	uid, err := id.ParseUserID(s)
+	if err != nil {
+		panic(fmt.Sprintf("usermgmt.MustParseUserID(%q): %v", s, err))
+	}
+	return uid
+}
 
 type tenantBrand struct{}
 
@@ -83,7 +115,7 @@ func NewActorID(kind ActorKind, raw string) ActorID {
 
 // ActorIDFromUser creates an ActorID from a UserID.
 func ActorIDFromUser(uid UserID) ActorID {
-	return ActorID{kind: ActorUser, raw: uid.Get()}
+	return ActorID{kind: ActorUser, raw: uid.Get().String()}
 }
 
 // ActorIDFromBot creates an ActorID from a BotID.

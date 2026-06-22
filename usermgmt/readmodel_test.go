@@ -22,15 +22,15 @@ func TestUserReadModel_AllUsers(t *testing.T) {
 
 	ids := make([]string, len(all))
 	for i, u := range all {
-		ids[i] = u.ID.Get()
+		ids[i] = u.ID.Get().String()
 	}
-	if !slices.Contains(ids, reg1.User.ID.Get()) || !slices.Contains(ids, reg2.User.ID.Get()) {
+	if !slices.Contains(ids, reg1.User.ID.Get().String()) || !slices.Contains(ids, reg2.User.ID.Get().String()) {
 		t.Errorf("expected both user IDs in result: %v", ids)
 	}
 
 	// Mutating returned users must not affect the read model.
 	all[0].Email = "mutated@test.com"
-	aggID, err := id.ParseAggregateID(reg1.User.ID.Get())
+	aggID, err := id.ParseAggregateID(reg1.User.ID.Get().String())
 	if err != nil {
 		t.Fatalf("parse aggregate id: %v", err)
 	}
@@ -53,8 +53,9 @@ func TestUserReadModel_AllUsersSorted(t *testing.T) {
 	if len(all) != 2 {
 		t.Fatalf("expected 2 users, got %d", len(all))
 	}
-	if all[0].ID.Get() != "a" || all[1].ID.Get() != "z" {
-		t.Errorf("expected sorted order a,z, got %s,%s", all[0].ID.Get(), all[1].ID.Get())
+	if all[0].ID.Get().String() != NewUserID("a").Get().String() ||
+		all[1].ID.Get().String() != NewUserID("z").Get().String() {
+		t.Errorf("expected sorted order a,z, got %s,%s", all[0].ID.Get().String(), all[1].ID.Get().String())
 	}
 }
 

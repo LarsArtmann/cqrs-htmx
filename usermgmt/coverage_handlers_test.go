@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -26,7 +27,7 @@ func TestHandlers_Register_Success(t *testing.T) {
 	_, mux := setupMux(t)
 
 	w := postJSON(t, mux, "/auth/register",
-		`{"id":"u2","email":"reg@test.com","display_name":"Reg"}`)
+		fmt.Sprintf(`{"id":%q,"email":"reg@test.com","display_name":"Reg"}`, NewUserID("u2").Get().String()))
 	if w.Code != http.StatusCreated {
 		t.Errorf("expected 201 for register, got %d: %s", w.Code, w.Body.String())
 	}

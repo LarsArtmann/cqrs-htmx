@@ -331,7 +331,7 @@ func TestService_StoreWrapper_TransformationRoundTrip(t *testing.T) {
 		t.Fatal("inner store was not captured — wrapper did not receive *memory.MemoryStore")
 	}
 	rawEvents, err := innerStore.Load(context.Background(), event.AggregateRef{
-		ID: mustParseAggIDSvc(t, reg.User.ID.Get()), Type: aggregateTypeUser,
+		ID: mustParseAggIDSvc(t, reg.User.ID.Get().String()), Type: aggregateTypeUser,
 	})
 	if err != nil {
 		t.Fatalf("inner store Load: %v", err)

@@ -25,7 +25,7 @@ func withUserIDContext(err *event.Error, userID UserID) *event.Error {
 	if err == nil || userID.IsZero() {
 		return err
 	}
-	return err.WithContext("user_id", userID.Get())
+	return err.WithContext("user_id", userID.Get().String())
 }
 
 func (r *RegisterRequest) Validate() error {

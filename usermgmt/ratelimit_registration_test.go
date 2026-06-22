@@ -27,7 +27,8 @@ func newRateLimitedHandler(t *testing.T) (*Service, *AuthHandler, *http.ServeMux
 
 func postRegister(t *testing.T, mux *http.ServeMux, prefix string, i int) *httptest.ResponseRecorder {
 	t.Helper()
-	body := fmt.Sprintf(`{"id":"%s%d","email":"%s%d@test.com"}`, prefix, i, prefix, i)
+	uid := NewUserID(fmt.Sprintf("%s%d", prefix, i)).Get().String()
+	body := fmt.Sprintf(`{"id":%q,"email":"%s%d@test.com"}`, uid, prefix, i)
 	return postJSON(t, mux, "/auth/register", body)
 }
 
@@ -58,7 +59,7 @@ func TestHandleRegister_RateLimitBlocks(t *testing.T) {
 		}
 	}
 
-	body := `{"id":"rlb3","email":"rlb3@test.com"}`
+	body := fmt.Sprintf(`{"id":%q,"email":"rlb3@test.com"}`, NewUserID("rlb3").Get().String())
 	w := postJSON(t, mux, "/auth/register", body)
 	if w.Code != http.StatusTooManyRequests {
 		t.Errorf("third request: status = %d, want %d", w.Code, http.StatusTooManyRequests)
@@ -121,13 +122,13 @@ func TestRegistrationRateLimiter_RapidRequests(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	body1 := `{"id":"rr1","email":"rr1@test.com"}`
+	body1 := fmt.Sprintf(`{"id":%q,"email":"rr1@test.com"}`, NewUserID("rr1").Get().String())
 	w1 := postJSON(t, mux, "/auth/register", body1)
 	if w1.Code != http.StatusCreated {
 		t.Fatalf("first request: status = %d", w1.Code)
 	}
 
-	body2 := `{"id":"rr2","email":"rr2@test.com"}`
+	body2 := fmt.Sprintf(`{"id":%q,"email":"rr2@test.com"}`, NewUserID("rr2").Get().String())
 	w2 := postJSON(t, mux, "/auth/register", body2)
 	if w2.Code != http.StatusTooManyRequests {
 		t.Errorf("second request: status = %d, want %d", w2.Code, http.StatusTooManyRequests)

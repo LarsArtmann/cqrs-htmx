@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -76,7 +77,7 @@ func TestUserIDFromRequest(t *testing.T) {
 		user := &User{ID: NewUserID("u1")}
 		ctx := WithUser(context.Background(), user)
 		req := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
-		if got := UserIDFromRequest(req); got != "u1" {
+		if got := UserIDFromRequest(req); got != NewUserID("u1").Get().String() {
 			t.Errorf("expected u1, got %s", got)
 		}
 	})
@@ -127,7 +128,7 @@ func TestNewAuthHandler_CustomCookieName(t *testing.T) {
 	h.RegisterRoutes(mux)
 
 	w := postJSON(t, mux, "/auth/register",
-		`{"id":"u1","email":"cookie@test.com"}`)
+		fmt.Sprintf(`{"id":%q,"email":"cookie@test.com"}`, NewUserID("u1").Get().String()))
 	assertStatusCode(t, w, http.StatusCreated)
 	assertCookie(t, w, "my_session", func(c *http.Cookie) bool { return c.Value != "" })
 }

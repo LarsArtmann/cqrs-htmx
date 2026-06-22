@@ -208,7 +208,7 @@ func TestOIDC_RelognWithChangedEmail(t *testing.T) {
 	begin1, _ := svc.BeginOAuthLogin(context.Background(), "oidc")
 	u1, _ := url.Parse(begin1.RedirectURL)
 	resp1, _ := svc.FinishOAuthLogin(context.Background(), "oidc", "test-auth-code", u1.Query().Get("state"))
-	originalID := resp1.User.ID.Get()
+	originalID := resp1.User.ID.Get().String()
 
 	// Change email at provider (same subject)
 	prov.idTokenClaims["email"] = "changed-oidc@example.com"
@@ -220,7 +220,7 @@ func TestOIDC_RelognWithChangedEmail(t *testing.T) {
 	if err != nil {
 		t.Fatalf("second login: %v", err)
 	}
-	if resp2.User.ID.Get() != originalID {
+	if resp2.User.ID.Get().String() != originalID {
 		t.Fatalf("expected same user, got different ID")
 	}
 }

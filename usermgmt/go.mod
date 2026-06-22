@@ -15,6 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0
+	github.com/oklog/ulid/v2 v2.1.1
 	github.com/pquerna/otp v1.5.0
 	golang.org/x/oauth2 v0.36.0
 	modernc.org/sqlite v1.52.0
@@ -59,7 +60,6 @@ require (
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
