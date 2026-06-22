@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // AuditEntry represents a single auditable user action derived from events.

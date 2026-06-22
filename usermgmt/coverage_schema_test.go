@@ -9,11 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/decider/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // --- writeJSON error path ---
@@ -53,7 +54,7 @@ func TestWriteJSON_WriteError(t *testing.T) {
 
 func TestRegisterCommands_NilDispatcherPanics(t *testing.T) {
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := watermill.NewEventBus()
 	defer func() { _ = bus.Close() }()
 	repo, err := decider.NewRepository(store, bus, UserDecider())
 	if err != nil {
@@ -77,7 +78,7 @@ func TestDefaultEventSourcedSetup_Success(t *testing.T) {
 	if setup.Store == nil || setup.Bus == nil || setup.Repository == nil || setup.ReadModel == nil {
 		t.Error("expected all fields non-nil")
 	}
-	_ = setup.Bus.Close()
+	closeBus(setup.Bus)
 }
 
 // --- emailFromEvent not found ---
@@ -246,7 +247,7 @@ func TestHandleDeleteCredential_Unauthorized(t *testing.T) {
 
 func TestRegisterCommands_AllWired(t *testing.T) {
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := watermill.NewEventBus()
 	defer func() { _ = bus.Close() }()
 	repo, err := decider.NewRepository(store, bus, UserDecider())
 	if err != nil {

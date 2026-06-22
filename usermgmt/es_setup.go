@@ -1,9 +1,12 @@
 package usermgmt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/decider/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"io"
+
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // SecurityHooks configures opt-in event signing and encryption for the
@@ -72,7 +75,16 @@ type EventSourcedSetup struct {
 func UserDecider() decider.Decider[UserState] {
 	return decider.Decider[UserState]{
 		Initial: UserState{},
-		Fold:    foldUser,
+		Apply:    foldUser,
+	}
+}
+
+// closeBus closes the bus if it implements io.Closer. In go-cqrs-lite v3, core
+// interfaces no longer embed io.Closer, but concrete implementations
+// (e.g. *watermill.EventBus) retain their Close method.
+func closeBus(bus event.Bus) {
+	if c, ok := bus.(io.Closer); ok {
+		_ = c.Close()
 	}
 }
 
@@ -106,7 +118,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 
 	bus := cfg.EventBus
 	if bus == nil {
-		bus = memory.NewMemoryBus()
+		bus = watermill.NewEventBus()
 	}
 
 	if err := applyBusMiddleware(cfg.PublishMiddleware, cfg.HandlerMiddleware, bus); err != nil {
@@ -115,25 +127,25 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 
 	repo, err := decider.NewRepository(store, bus, UserDecider())
 	if err != nil {
-		_ = bus.Close()
+		closeBus(bus)
 		return nil, event.NewTransient("internal", "create decider repository").WithCause(err)
 	}
 
 	membershipRepo, err := decider.NewRepository(store, bus, MembershipDecider())
 	if err != nil {
-		_ = bus.Close()
+		closeBus(bus)
 		return nil, event.NewTransient("internal", "create membership decider repository").WithCause(err)
 	}
 
 	tenantRepo, err := decider.NewRepository(store, bus, TenantDecider())
 	if err != nil {
-		_ = bus.Close()
+		closeBus(bus)
 		return nil, event.NewTransient("internal", "create tenant decider repository").WithCause(err)
 	}
 
 	botRepo, err := decider.NewRepository(store, bus, BotDecider())
 	if err != nil {
-		_ = bus.Close()
+		closeBus(bus)
 		return nil, event.NewTransient("internal", "create bot decider repository").WithCause(err)
 	}
 
@@ -143,12 +155,12 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	botReadModel := NewBotReadModel()
 	authz, err := NewAuthz()
 	if err != nil {
-		_ = bus.Close()
+		closeBus(bus)
 		return nil, event.NewTransient("internal", "create authz").WithCause(err)
 	}
 	casbinProjection, err := NewCasbinProjection(authz)
 	if err != nil {
-		_ = bus.Close()
+		closeBus(bus)
 		return nil, event.NewTransient("internal", "create casbin projection").WithCause(err)
 	}
 
@@ -163,7 +175,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		casbinProjection,
 		nil,
 	); err != nil {
-		_ = bus.Close()
+		closeBus(bus)
 		return nil, event.NewTransient("internal", "start projections").WithCause(err)
 	}
 

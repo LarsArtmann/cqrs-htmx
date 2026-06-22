@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 func TestAuditLog_RecordsRegistration(t *testing.T) {

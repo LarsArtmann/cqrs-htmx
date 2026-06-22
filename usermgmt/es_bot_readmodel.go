@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // Bot is the read-model representation of a bot (machine actor).

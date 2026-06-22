@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // SQLSessionStore implements SessionStore using a SQL database.
@@ -35,7 +35,7 @@ type placeholderFunc func(i int) string
 
 // placeholderFor maps a dialect string to its placeholder function.
 // Used only by SQLSessionStore — the event store delegates to
-// go-cqrs-lite/storage/v2's Dialect abstraction.
+// go-cqrs-lite/storage/v3's Dialect abstraction.
 func placeholderFor(dialect string) (placeholderFunc, error) {
 	switch dialect {
 	case dialectPostgres, dialectPgx:

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // addSchemaVersionV1 is the v0→v1 UserRegistered upcaster used in tests: it

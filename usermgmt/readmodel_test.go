@@ -7,7 +7,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 func TestUserReadModel_AllUsers(t *testing.T) {

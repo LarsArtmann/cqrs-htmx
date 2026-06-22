@@ -3,7 +3,7 @@ package usermgmt
 import (
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // Action represents an authorization action verb (e.g. "read", "execute").

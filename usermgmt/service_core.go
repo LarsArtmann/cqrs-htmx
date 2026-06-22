@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/decider/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 const (
@@ -179,7 +180,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 
 	bus := cfg.EventBus
 	if bus == nil {
-		bus = memory.NewMemoryBus()
+		bus = watermill.NewEventBus()
 	}
 
 	if err := applyBusMiddleware(cfg.PublishMiddleware, cfg.HandlerMiddleware, bus); err != nil {

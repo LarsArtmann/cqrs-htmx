@@ -4,7 +4,7 @@ import (
 	"context"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // BeginImpersonation creates a session that allows the caller to act as the

@@ -3,8 +3,8 @@ package usermgmt
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // existingState is a valid, non-deleted user state used as the base for guard tests.
