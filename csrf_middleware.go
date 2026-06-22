@@ -75,10 +75,14 @@ var warnTrustedProxiesOnce sync.Once
 
 func warnEmptyTrustedProxies(cfg CSRFConfig) {
 	warnTrustedProxiesOnce.Do(func() {
+		if !cfg.AllowPlaintextBypass {
+			return
+		}
 		if len(cfg.TrustedProxies) == 0 && len(cfg.TrustedProxiesCIDR) == 0 {
 			slog.Warn(
-				"cqrs-htmx: CSRF plaintext HTTP origin bypass is active for non-loopback requests — " +
-					"configure CSRFConfig.TrustedProxies or TrustedProxiesCIDR in production",
+				"cqrs-htmx: CSRFConfig.AllowPlaintextBypass is enabled with no TrustedProxies — " +
+					"ALL non-TLS requests bypass origin validation. Set TrustedProxies or remove " +
+					"AllowPlaintextBypass in production",
 			)
 		}
 	})
@@ -145,12 +149,14 @@ func isLoopback(ip net.IP) bool {
 
 // isTrustedProxy returns true when remoteHost or remoteAddr matches an entry
 // in cfg.TrustedProxies, or remoteIP falls within a cfg.TrustedProxiesCIDR
-// network. When no proxies are configured, it grants bypass for back-compat
-// with earlier versions. The warning for this permissive mode is logged once
-// at middleware construction time via warnEmptyTrustedProxies.
+// network. When no proxies are configured, the result is governed by
+// cfg.AllowPlaintextBypass: false (the secure zero-value default) denies the
+// bypass to everyone except loopback; true restores the permissive pre-hardening
+// behavior. A startup warning for the permissive mode is logged via
+// warnEmptyTrustedProxies.
 func isTrustedProxy(remoteHost string, remoteIP net.IP, remoteAddr string, cfg CSRFConfig) bool {
 	if len(cfg.TrustedProxies) == 0 && len(cfg.TrustedProxiesCIDR) == 0 {
-		return true
+		return cfg.AllowPlaintextBypass
 	}
 
 	if remoteIP != nil {

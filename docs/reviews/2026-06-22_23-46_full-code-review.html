@@ -1,0 +1,1752 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cqrs-htmx Full Code Review — 2026-06-22</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>cqrs-htmx/v3 &middot; Full Code Review</span>
+      <span>2026-06-22 23:46</span>
+    </div>
+    <div class="layout">
+      <aside class="sidebar">
+        <nav data-nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#critical">Critical Findings</a>
+          <a href="#high">High Findings</a>
+          <a href="#medium">Medium Findings</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#stats">Module Stats</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Full Code Review</div>
+          <h1>cqrs-htmx v3.0.0 — Architectural Audit</h1>
+          <p class="hero-subtitle">
+            Every file reviewed across 4 Go modules (root, usermgmt, catalog, integration_test). 42K
+            lines of Go. 150+ files. Build, lint, tests all green.
+          </p>
+        </div>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <div class="stat-grid">
+            <div class="stat-card stat-bad">
+              <div class="stat-value">13</div>
+              <div class="stat-label">Critical</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">23</div>
+              <div class="stat-label">High</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">36</div>
+              <div class="stat-label">Medium</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">40</div>
+              <div class="stat-label">Low</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">150+</div>
+              <div class="stat-label">Files Reviewed</div>
+            </div>
+          </div>
+          <div class="card card-solution">
+            <p>
+              <strong>Build: PASS</strong> (all 4 modules) &middot;
+              <strong>Lint: 0 issues</strong> (all modules) &middot;
+              <strong>Tests: PASS</strong> (root + usermgmt + integration, -race) &middot;
+              <strong>Coverage:</strong> 96.4% root, 88.7% usermgmt, 95.3% catalog
+            </p>
+          </div>
+          <p>
+            The codebase demonstrates genuine CQRS/ES discipline with excellent error taxonomy,
+            strong typing, and comprehensive test coverage. However, there are
+            <strong>security-critical issues</strong> in CSRF defaults, SSE concurrency, and session
+            handling that should be addressed before production deployment. The
+            <strong>v3 migration documentation drift</strong> (README/AGENTS.md still referencing v2
+            paths) affects every new consumer.
+          </p>
+        </section>
+
+        <section id="critical">
+          <h2><span class="num">01</span>Critical Findings</h2>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Security</span>
+            <h3>CSRF origin validation bypass by default</h3>
+            <div class="where">csrf_middleware.go:152-153</div>
+            <p>
+              <code>isTrustedProxy</code> returns <code>true</code> when no proxies are configured
+              (the zero-value default). Combined with <code>setPlaintextHTTPOrigin</code>, ANY
+              non-TLS request without Origin/Referer/Sec-Fetch-Site headers gets
+              <code>Sec-Fetch-Site: same-origin</code> injected, bypassing nosurf's origin check
+              entirely. A plain-HTTP deployment using <code>CSRFConfig{}</code> is wide open to
+              origin-spoofing CSRF attacks.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Default to <code>false</code> when no proxies configured. Add
+              explicit opt-in flag (<code>AllowPlaintextBypass bool</code>).
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Security</span>
+            <h3>CSRF validation failure silently ignored</h3>
+            <div class="where">csrf_middleware.go:37-38</div>
+            <p>
+              <code>CSRFMiddleware</code> logs the <code>Validate()</code> error but proceeds to
+              build and return a middleware with a broken config. <code>SameSite=None</code> without
+              <code>Secure</code> is a real misconfiguration that the code detects but doesn't
+              prevent.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Return a middleware that panics, or change the API to return an
+              error.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Concurrency</span>
+            <h3>SSE concurrent writes to ResponseWriter race condition</h3>
+            <div class="where">sse_stream.go:68-76, 120-137</div>
+            <p>
+              <code>Send()</code> writes to <code>s.w</code> from the event-loop goroutine while
+              <code>Heartbeat()</code> writes to the same <code>s.w</code> from a separate goroutine
+              (as the doc explicitly instructs: <code>go stream.Heartbeat(...)</code>).
+              <code>http.ResponseWriter</code> is <strong>not safe for concurrent use</strong>. Data
+              race will corrupt the SSE wire stream or panic under the race detector.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Add a <code>sync.Mutex</code> to <code>SSEStream</code>; guard
+              every <code>s.w.Write</code> / <code>Flush</code> pair under <code>s.mu</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Security</span>
+            <h3>SSE protocol injection via Event field</h3>
+            <div class="where">sse_event.go:96-100</div>
+            <p>
+              <code>WriteSSEEvent</code> writes <code>evt.Event</code> directly into the
+              <code>event:</code> line with no newline validation. If <code>Event</code> contains
+              <code>\n</code> (e.g. <code>"foo\ndata: &lt;script&gt;"</code>), it injects arbitrary
+              SSE fields. The <code>Data</code> field is properly line-split, but
+              <code>Event</code> and <code>ID</code> are not.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Validate <code>evt.Event</code> and <code>evt.ID</code> for
+              <code>\n</code>, <code>\r</code>, <code>\x00</code> in <code>WriteSSEEvent</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Data Integrity</span>
+            <h3>Non-deterministic replay in membership readmodel</h3>
+            <div class="where">usermgmt/es_membership_readmodel.go:55</div>
+            <p>
+              <code>AddedAt: time.Now().UTC()</code> uses wall-clock time instead of
+              <code>evt.OccurredAt()</code>. Every journal replay produces different timestamps.
+              <code>UserReadModel</code> correctly uses <code>evt.OccurredAt()</code> everywhere.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> <code>AddedAt: evt.OccurredAt()</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Logic Bug</span>
+            <h3>TenantDeleted cleanup is a no-op in Casbin projection</h3>
+            <div class="where">usermgmt/es_casbin_projection.go:102-110</div>
+            <p>
+              On <code>TenantDeleted</code>, <code>RemoveAllRolesForUser(tenantID)</code> is called,
+              but member policies are stored as
+              <code>g, actorID, role, tenantID</code> (subject=actorID, domain=tenantID). No
+              policies have the tenant as subject. The comment claims it "cascades role cleanup for
+              all members" — it does not. Deleted tenants leave orphaned member policies.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Need a domain-scoped cascade like
+              <code>RemoveAllPoliciesInDomain(tenantID)</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Data Loss</span>
+            <h3>SQL session store permanently loses impersonation origin</h3>
+            <div class="where">usermgmt/sql_session_store.go:166</div>
+            <p>
+              <code>SQLSessionStore.Find</code> always reconstructs sessions with
+              <code>Origin: DirectLogin{...}</code>. Impersonation sessions stored in SQL
+              <strong>permanently lose</strong> their <code>Impersonation</code> origin. The
+              middleware check <code>session.Origin.(Impersonation)</code> will
+              <strong>never match</strong> for SQL-stored sessions, breaking impersonation detection
+              and audit trails.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Add <code>originType</code> + <code>OriginData</code> columns to
+              the schema. Serialize/deserialize <code>SessionOrigin</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Security</span>
+            <h3>Verification token leaked in production HTTP responses</h3>
+            <div class="where">usermgmt/verification_totp_http.go:101</div>
+            <p>
+              <code>handleSendVerificationEmail</code> <strong>always</strong> returns the raw
+              verification token in the JSON response: <code>{"token": token}</code>. Even when
+              <code>SendEmail</code> is configured (production mode), the token is exposed to the
+              HTTP client. Any XSS or log interceptor captures the verification token.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Only return the token when
+              <code>sendVerificationEmail == nil</code> (dev mode).
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Performance</span>
+            <h3>Double session store lookup per authenticated request</h3>
+            <div class="where">usermgmt/middleware.go:115+122</div>
+            <p>
+              <code>authenticateRequest</code> calls <code>service.Authenticate()</code> (which
+              internally calls <code>sessions.Find</code>), then <strong>immediately</strong> calls
+              <code>service.sessions.Find()</code> again. Every authenticated request hits the
+              session store <strong>twice</strong>. With <code>SQLSessionStore</code>, that's two
+              SQL queries per request.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Refactor <code>Authenticate</code> to return both
+              <code>*User</code> and <code>*Session</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Documentation</span>
+            <h3>README.md Quick Start uses v2 import paths — won't compile</h3>
+            <div class="where">README.md:53,59,70-72</div>
+            <p>
+              Quick Start import paths use <code>/v2</code> but <code>go.mod</code> is
+              <code>github.com/larsartmann/cqrs-htmx/v3</code>. <code>go get</code> commands also
+              missing <code>/v3</code>. Every consumer following this README gets broken imports.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Change all import paths and <code>go get</code> commands to
+              <code>/v3</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Documentation</span>
+            <h3>AGENTS.md stale v2/error-family v0.4 references</h3>
+            <div class="where">
+              AGENTS.md:144,198 &middot; catalog/README.md (entire file) &middot; TODO_LIST.md:48
+              &middot; flake.nix:43
+            </div>
+            <p>
+              AGENTS.md states <code>go-error-family v0.4.0</code> and <code>event/v2</code>, but
+              all <code>go.mod</code> files use <code>v0.5.0</code> and <code>event/v3</code>.
+              Catalog README references <code>/v2</code> throughout. flake.nix says
+              <code>version = "2.4.0"</code> but module is <code>v3.0.0</code>.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Update all documentation to v3 paths and versions.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Documentation</span>
+            <h3>GONOSUMCHECK is a no-op since Go 1.16</h3>
+            <div class="where">flake.nix (all apps: test, build, lint, coverage, fuzz)</div>
+            <p>
+              Every Nix app sets <code>GONOSUMCHECK='github.com/larsartmann/*'</code>. This
+              environment variable was <strong>removed in Go 1.16</strong> and is a complete no-op
+              on Go 1.26.3. The correct variable is <code>GOPRIVATE</code>.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix:</strong> Replace with <code>GOPRIVATE='github.com/larsartmann/*'</code>.
+            </div>
+          </div>
+        </section>
+
+        <section id="high">
+          <h2><span class="num">02</span>High Findings</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 70px">Sev</th>
+                <th>File</th>
+                <th>Issue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>response.go:198-229</td>
+                <td>
+                  Body()/JSON() ignore Apply() return → double-write after redirect. JSON() commits
+                  headers before marshal succeeds → superfluous WriteHeader on marshal failure.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>errors.go:86-178</td>
+                <td>
+                  6 error handler variants should be one configurable function. API surface
+                  explosion that confuses users.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>handler.go:51-52, 93-94</td>
+                <td>
+                  onError silently skipped for pre-dispatch errors. afterDispatchHook receives
+                  inconsistent r vs ctx (context deadline mismatch).
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>ratelimit_middleware.go:71-80</td>
+                <td>
+                  Fast-path doesn't update lastUsed → unfair eviction under MaxKeys. Actively-used
+                  keys evicted because fast-path freezes their timestamp.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>ratelimit_config.go:44</td>
+                <td>
+                  Rate limit bypass via X-Forwarded-For spoofing. ClientIP blindly trusts XFF first
+                  value. Attacker sends unique XFF per request → fresh rate-limit key each time.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>sse_stream.go:105-107</td>
+                <td>
+                  LastEventID() bypasses ParseSSEEventID validation. Branded type's safety contract
+                  defeated. Malicious Last-Event-ID header carries injected content.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>sse_stream.go:39,93-100</td>
+                <td>
+                  onDisconnect slice not goroutine-safe. OnDisconnect appends while Close iterates —
+                  data race.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>ws_dispatch.go:112-113</td>
+                <td>
+                  beforeDispatch (auth, tracing) silently skipped when r==nil. Authorization
+                  middleware bypassed. Decoder runs outside timeout protection.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>es_state.go:166-167</td>
+                <td>
+                  foldUser silently ignores unknown event types (empty default). Other three folds
+                  return errors. Corrupt/misrouted User event silently swallowed.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>es_state.go:26-28</td>
+                <td>
+                  UserState.Exists() inconsistent — doesn't check !Deleted. Every decider must
+                  manually re-check state.Deleted. Footgun for new decider authors. Other aggregates
+                  bake !Deleted into Exists().
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>es_membership_readmodel.go, es_tenant_readmodel.go, es_bot_readmodel.go</td>
+                <td>
+                  Read models return raw pointers without cloning. Only UserReadModel returns
+                  .Clone(). Callers can mutate projection state concurrently.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>es_migration.go:67-80</td>
+                <td>
+                  Migration fails for users registered without roles. UpdateMemberRoles dispatched
+                  against non-existent membership → rejection → migration aborts.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>webauthn_http.go:32,72</td>
+                <td>
+                  user_id accepted from query parameters. Client who knows a user ID can initiate
+                  WebAuthn finish ceremony for that user.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>service_core.go:23-57</td>
+                <td>
+                  Service is a god object — 33 fields, methods in 12 files. Manages users, tenants,
+                  bots, memberships, sessions, OAuth2, TOTP, WebAuthn, email, lockout,
+                  import/export. Violates SRP.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>service_core.go:289-305</td>
+                <td>
+                  Service.Stop() not thread-safe. Sets nil without sync.Once. Double-close panic
+                  risk on eviction done channels.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>service_login.go:19-39</td>
+                <td>
+                  Authenticate returns different errors for expired vs unknown tokens — leaks
+                  whether a token was once valid. Timing oracle for token validity probing.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>service_oauth2.go:119-127</td>
+                <td>
+                  TOCTOU race in matchOrCreateUser. FindByEmail check → Dispatch has a window for
+                  concurrent registration. Dispatch conflict returned as error without retry.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>store.go:43-51</td>
+                <td>
+                  InMemorySessionStore.Find returns live pointer without copy. SQLSessionStore
+                  correctly returns fresh struct. Inconsistent safety.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>csrf_middleware.go:74-85</td>
+                <td>
+                  warnTrustedProxiesOnce sync.Once suppresses warning for subsequent configs. First
+                  call with proxies → second call with empty config never warns.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>examples/datastar-demo/go.mod:22</td>
+                <td>
+                  Indirect dep go-error-family v0.4.0 while root/usermgmt/catalog use v0.5.0.
+                  Version skew — go mod tidy not run after bump.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>examples/datastar-demo/handlers_routes.go:111-124</td>
+                <td>
+                  extractTitle searches for span.todo-title but renderTodo generates
+                  input.todo-title-input. Marker never matches — extractTitle always returns "".
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>app.go:294-305</td>
+                <td>
+                  HealthHandler loses its godoc comment — a var block sits between the comment and
+                  the function.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-high">HIGH</span></td>
+                <td>http.go:311-321</td>
+                <td>
+                  No __Host- cookie prefix for session cookies. Missing defense-in-depth against
+                  subdomain cookie injection.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="medium">
+          <h2><span class="num">03</span>Medium Findings</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 70px">Sev</th>
+                <th>File</th>
+                <th>Issue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>options_render.go:67,74</td>
+                <td>
+                  Parameter named <code>event</code> shadows the imported
+                  <code>event</code> package. Any future reference to event.NewRejection is a
+                  compile error inside these functions.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>options_types.go:53-70</td>
+                <td>
+                  handlerConfig has 17 untyped fields. successStatus int accepts any int (no HTTP
+                  status validation). maxBodySize uses 0 as sentinel.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>response.go (358 lines)</td>
+                <td>
+                  File exceeds 350-line limit. Mixes Response builder, URL sanitization, and trigger
+                  serialization — three distinct responsibilities.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>handler.go:44-49</td>
+                <td>
+                  All dispatch errors logged at Warn level including expected 4xx client errors.
+                  Floods production logs.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>context.go:141-163</td>
+                <td>
+                  ActorID and ImpersonatorID use bare string while all other IDs are strongly-typed
+                  branded types. Breaks "impossible states unrepresentable" principle.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>csrf_config.go:141-180</td>
+                <td>
+                  Validate() has hidden mutation side-effect — clears and repopulates
+                  TrustedProxiesCIDR. Callers running Validate for inspection get silently modified
+                  config.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>csrf_handler.go:50</td>
+                <td>
+                  Production code imports net/http/httptest. httptest.NewRecorder() in production
+                  hot path + new nosurf.New() handler per request.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>middleware.go:23-31</td>
+                <td>
+                  Unvalidated client-supplied X-Request-ID/X-Correlation-ID headers. Client can
+                  inject arbitrary valid IDs to pollute logs and metrics.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>decoder.go:100-122</td>
+                <td>
+                  Form decode via JSON round-trip is lossy (array vs scalar ambiguity) and
+                  double-serializes every request.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>htmx_serve.go:41</td>
+                <td>
+                  HEAD requests return a body. HTTP spec requires HEAD responses have no body. Go
+                  doesn't auto-suppress for custom handlers.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>ws_encoder.go:60-85</td>
+                <td>
+                  WriteWSMessageInto does marshal→unmarshal→marshal triple serialization on WS
+                  broadcast hot path.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>structured_error.go:31</td>
+                <td>
+                  Type field not a URI, violating RFC 7807 §3.1. Uses family strings instead of URI
+                  references.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>es_constants.go:99-102</td>
+                <td>
+                  Misleading schema-version comment. Claims foldUser treats 0 as v1 — foldUser has
+                  zero schema-version logic.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>es_upcaster.go:79-91</td>
+                <td>
+                  Silent gap in upcaster chain. Missing upcaster for a version → loop silently
+                  breaks → un-transformed payload decodes incorrectly.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>es_decide_security.go:8-43</td>
+                <td>
+                  decideEnableTOTP accepts nil/empty secret. Caller can enable TOTP with nil secret
+                  → permanently broken TOTP state persisted.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>es_decide_profile.go:9-44</td>
+                <td>
+                  decideChangeEmail missing empty-email guard. Can persist EmailChanged{Email: ""}
+                  corrupting email index.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>es_tenant_decide.go:151, es_bot_decide.go:91</td>
+                <td>
+                  Dead code — Deleted check unreachable because Exists() already returns false when
+                  Deleted=true.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>http.go (391 lines)</td>
+                <td>
+                  File exceeds 350-line project limit. errorStatus function is 40 lines of brittle
+                  switch.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>service_core.go:277</td>
+                <td>
+                  tokenPepper stored without defensive copy. Caller can mutate backing array after
+                  NewService.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>crypto.go:35-38</td>
+                <td>
+                  VerifyToken is dead code — never called. service_bot.go uses HashToken +
+                  FindByTokenHash instead.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>webauthn_adapter.go:41-43</td>
+                <td>
+                  Hardcoded UserPresent/UserVerified flags. Adapter lies that UV was performed even
+                  if credential was registered without it.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>import_export.go:75</td>
+                <td>
+                  ImportUsersFromJSON has no reader size limit. Direct service callers can OOM the
+                  process.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>AGENTS.md:60,64</td>
+                <td>
+                  sse_broadcaster.go appears twice in architecture tree with same comment. Duplicate
+                  entry.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>catalog/serve.go:103-104</td>
+                <td>
+                  D2Handler calls exporter.Export(cat) per request while OpenAPI/AsyncAPI compute
+                  once at construction time. Inconsistent.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>examples/datastar-demo/domain_store.go:49</td>
+                <td>
+                  Projector uses sync.Mutex for read-heavy data structure. All reads acquire write
+                  lock. Should use RWMutex.
+                </td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-medium">MED</span></td>
+                <td>AGENTS.md:25 vs TODO_LIST.md:3</td>
+                <td>
+                  Coverage numbers contradict: AGENTS says 96.4%/88.7%/95.3%, TODO says
+                  95.2%/82.8%/95.3%.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="strengths">
+          <h2><span class="num">&diams;</span>Strengths</h2>
+          <p>What this codebase does exceptionally well — preserve and protect these patterns.</p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Pure decide/fold functions</strong>
+                <span
+                  >Every decide function is a closure with no I/O — only event construction. Folds
+                  are pure value-in/value-out. Genuine CQRS/ES discipline across all 4
+                  aggregates.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Consistent error taxonomy</strong>
+                <span
+                  >Every error uses event.NewRejection/NewTransient/NewInfrastructure/NewConflict.
+                  No bare errors.New or fmt.Errorf in non-test code. Error→HTTP status mapping
+                  centralized via MapError.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>fanOut[T] generic hub</strong>
+                <span
+                  >Correctly shared between SSE and WS broadcasters. RLock-during-broadcast +
+                  non-blocking-select + close-in-Unsubscribe prevents "send on closed channel" panic
+                  without complex coordination.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Strong typed IDs throughout</strong>
+                <span
+                  >UserID, TenantID, BotID, ActorID, CorrelationID, RequestID, SSEEventID — all
+                  branded types preventing compile-time mixing. Context keys use unexported struct
+                  types.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>OAuth2 PKCE + single-use state tokens</strong>
+                <span
+                  >Cryptographically random, single-use (Consume deletes on read), TTL-expired,
+                  provider-validated. PKCE S256 challenge. Textbook CSRF protection for
+                  OAuth2.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>HMAC-peppered bot tokens</strong>
+                <span
+                  >API tokens never stored raw — only HMAC-SHA256 with server-side pepper. DB leak
+                  alone doesn't compromise tokens.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Defensive slice copying everywhere</strong>
+                <span
+                  >Every decider copies slices before embedding in events. User.Clone(),
+                  WebAuthnCredential.Clone() deep-copy. No aliasing of caller data into
+                  events.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Session origin as sealed interface</strong>
+                <span
+                  >SessionOrigin with unexported isSessionOrigin() — only DirectLogin and
+                  Impersonation can implement it. Impossible auth states unrepresentable.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Catalog module is exemplary</strong>
+                <span
+                  >471 lines total, zero external deps beyond go-cqrs-lite/catalog +
+                  go-error-family. Build()/BuildValid() dual API well-designed.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>WriteSSEEvent zero-allocation fast path</strong>
+                <span
+                  >append-based buffer building with strconv.AppendInt and direct byte literals.
+                  Well-optimized for SSE hot path.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Rate limiting per endpoint group</strong>
+                <span
+                  >Registration, TOTP, verification, WebAuthn, OAuth2, import/export each have
+                  independent per-IP rate limiters — granular brute-force protection.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Deterministic membership IDs</strong>
+                <span
+                  >deriveMembershipID uses id.DeriveAggregateID — idempotent by construction. Same
+                  actor+tenant always maps to same aggregate.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Documentation quality is consistently high</strong>
+                <span
+                  >Every exported symbol has a doc comment. Many include usage examples. doc.go
+                  package overviews are comprehensive.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>File sizes well-controlled</strong>
+                <span
+                  >Almost all files under 350 lines. Most are 50-200 lines. Clear, focused,
+                  single-responsibility files.</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="stats">
+          <h2><span class="num">04</span>Module Statistics</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Go Files</th>
+                <th>Total Lines</th>
+                <th>Build</th>
+                <th>Lint</th>
+                <th>Tests</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Root (cqrs-htmx/v3)</td>
+                <td>40 + 75 tests</td>
+                <td>~5,400 + ~14,000 test</td>
+                <td style="color: var(--solution)">PASS</td>
+                <td style="color: var(--solution)">0 issues</td>
+                <td style="color: var(--solution)">PASS (-race)</td>
+              </tr>
+              <tr>
+                <td>usermgmt (usermgmt/v3)</td>
+                <td>73 + ~50 tests</td>
+                <td>~9,500 + ~12,000 test</td>
+                <td style="color: var(--solution)">PASS</td>
+                <td style="color: var(--solution)">0 issues</td>
+                <td style="color: var(--solution)">PASS (-race)</td>
+              </tr>
+              <tr>
+                <td>catalog (catalog/v3)</td>
+                <td>3 + 3 tests</td>
+                <td>~450 + ~900 test</td>
+                <td style="color: var(--solution)">PASS</td>
+                <td style="color: var(--solution)">0 issues</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>integration_test</td>
+                <td>8 test files</td>
+                <td>~1,500 test</td>
+                <td>—</td>
+                <td>—</td>
+                <td style="color: var(--solution)">PASS (-race)</td>
+              </tr>
+              <tr>
+                <td>examples/datastar-demo</td>
+                <td>6</td>
+                <td>~1,200</td>
+                <td style="color: var(--solution)">PASS</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>examples/basic</td>
+                <td>1</td>
+                <td>~150</td>
+                <td style="color: var(--solution)">PASS</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>examples/catalog-demo</td>
+                <td>1</td>
+                <td>~200</td>
+                <td style="color: var(--solution)">PASS</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <footer class="footer">
+          Generated 2026-06-22 &middot; Reviewed against cqrs-htmx v3.0.0 (commit 24a17c3)
+        </footer>
+      </main>
+    </div>
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

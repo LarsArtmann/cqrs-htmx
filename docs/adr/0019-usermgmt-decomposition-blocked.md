@@ -23,6 +23,7 @@ package. Moving implementation files (e.g., `webauthn_service.go`) to a
 The decomposition requires **redesigning Service to use composition**:
 
 1. Extract domain-specific service types:
+
    ```go
    // webauthn/service.go
    type Service struct {
@@ -35,6 +36,7 @@ The decomposition requires **redesigning Service to use composition**:
    ```
 
 2. Root Service composes sub-services:
+
    ```go
    // usermgmt/service_core.go
    type Service struct {
@@ -62,6 +64,7 @@ This is a multi-day architectural refactoring, not a mechanical file move.
 ## Future Path
 
 When undertaking E10:
+
 1. Start with the most self-contained domain (TOTP — 6 methods, minimal deps)
 2. Extract `totp.Service` with its own dependencies
 3. Root `Service` embeds `*totp.Service` as `TOTP` field

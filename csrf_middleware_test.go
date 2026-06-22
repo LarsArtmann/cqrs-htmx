@@ -293,6 +293,23 @@ var _ = Describe("CSRF Middleware", func() {
 			Expect(code).To(Equal(http.StatusOK))
 		})
 
+		It("rejects plain HTTP POST from non-loopback by default (secure zero-value config)", func() {
+			// defaultCSRFConfig leaves TrustedProxies empty and AllowPlaintextBypass
+			// false: a non-loopback attacker with no Origin/Referer/Sec-Fetch-Site
+			// must NOT get the bypass injected.
+			mw := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
+			code := csrfGETThenPOSTWithRemoteAddr(mw, attackerRemoteIP)
+			Expect(code).To(Equal(http.StatusForbidden))
+		})
+
+		It("allows plain HTTP POST from non-loopback when AllowPlaintextBypass is set (opt-in)", func() {
+			cfg := defaultCSRFConfig()
+			cfg.AllowPlaintextBypass = true
+			mw := cqrshtmx.CSRFMiddleware(cfg)
+			code := csrfGETThenPOSTWithRemoteAddr(mw, attackerRemoteIP)
+			Expect(code).To(Equal(http.StatusOK))
+		})
+
 		It("bypasses origin check for configured TrustedProxies (CIDR)", func() {
 			cfg := defaultCSRFConfig()
 			cfg.TrustedProxies = []string{commonProxyCIDR}
