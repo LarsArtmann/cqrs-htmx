@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 // writeStringHandler returns an http.Handler that writes the given

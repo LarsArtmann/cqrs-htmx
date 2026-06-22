@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/basic
 go 1.26.3
 
 require (
-	github.com/larsartmann/cqrs-htmx/v2 v2.5.0
+	github.com/larsartmann/cqrs-htmx/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0
@@ -23,4 +23,4 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 )
 
-replace github.com/larsartmann/cqrs-htmx/v2 => ../..
+replace github.com/larsartmann/cqrs-htmx/v3 => ../..

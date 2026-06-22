@@ -3,7 +3,7 @@ package cataloghtmx_test
 import (
 	"testing"
 
-	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
+	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v3"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
+	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v3"
 )
 
 // updateGolden regenerates the golden files under testdata/ when set.

@@ -1,4 +1,4 @@
-module github.com/larsartmann/cqrs-htmx/catalog/v2
+module github.com/larsartmann/cqrs-htmx/catalog/v3
 
 go 1.26.3
 

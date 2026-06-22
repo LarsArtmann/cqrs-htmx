@@ -1,4 +1,4 @@
-module github.com/larsartmann/cqrs-htmx/v2
+module github.com/larsartmann/cqrs-htmx/v3
 
 go 1.26.3
 

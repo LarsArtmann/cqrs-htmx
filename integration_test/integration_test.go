@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v2"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 // registerTestUser creates a fresh user with a unique email and the given

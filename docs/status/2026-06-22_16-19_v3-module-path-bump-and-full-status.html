@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cqrs-htmx v3.0.0 — Full Status Report</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
+      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; line-height: 1.4; font-weight: 500; }
+      .sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+      .main { flex: 1; min-width: 0; }
+      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
+      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
+      .hero-shapes { position: relative; height: 80px; margin-bottom: 1rem; }
+      .hero-shapes .circle { position: absolute; top: 0; left: 0; width: 56px; height: 56px; background: var(--problem); border-radius: 50%; }
+      .hero-shapes .square { position: absolute; top: 24px; left: 72px; width: 48px; height: 48px; background: var(--solution); }
+      .hero-shapes .tri { position: absolute; top: 8px; left: 140px; width: 0; height: 0; border-left: 28px solid transparent; border-right: 28px solid transparent; border-bottom: 48px solid var(--warning); }
+      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .issue { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .issue-critical { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .issue-important { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .issue-nice { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .issue h3 { margin-bottom: 0.3rem; }
+      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
+      .issue p:last-child { margin-bottom: 0; }
+      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface); }
+      .severity-critical { background: var(--problem); }
+      .severity-important { background: var(--warning); }
+      .severity-nice { background: var(--solution); }
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
+      .badge-critical { color: var(--problem); border-color: var(--problem); }
+      .badge-high { color: var(--warning); border-color: var(--warning); }
+      .badge-medium { color: var(--accent); border-color: var(--accent); }
+      .badge-low { color: var(--text-muted); }
+      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
+      .callout strong { display: inline-block; margin-right: 0.4rem; }
+      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
+      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+      .stat-grid, .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+      .stat-card, .score-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
+      .stat-card::before, .score-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
+      .stat-bad::before, .score-bad::before { background: var(--problem); }
+      .stat-good::before, .score-good::before { background: var(--solution); }
+      .stat-warn::before, .score-warn::before { background: var(--warning); }
+      .stat-value, .score { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
+      .stat-bad .stat-value, .score-bad .score { color: var(--problem); }
+      .stat-good .stat-value, .score-good .score { color: var(--solution); }
+      .stat-warn .stat-value, .score-warn .score { color: var(--warning); }
+      .stat-label, .score-card .label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
+      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+      .strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; line-height: 1.4; }
+      .strength .text strong { display: block; margin-bottom: 0.15rem; }
+      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
+      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
+      tr:hover td { background: var(--surface-raised); }
+      pre { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; }
+      code { font-family: var(--font-mono); }
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
+      .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1rem 0; }
+      .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; } .grid-2, .grid-3 { grid-template-columns: 1fr; } .stat-grid, .scorecard { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>STATUS REPORT &middot; COMPREHENSIVE</span>
+      <span>2026-06-22 16:19</span>
+      <span>cqrs-htmx v3.0.0</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#notstarted">Not Started</a>
+          <a href="#fuckedup">Totally Fucked Up</a>
+          <a href="#improve">Improve</a>
+          <a href="#next25">Top 25 Next</a>
+          <a href="#question">Top Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">STATUS &middot; v3.0.0 RELEASE</div>
+          <h1>cqrs-htmx v3.0.0 &mdash; Full Status Report</h1>
+          <p class="hero-subtitle">
+            Comprehensive snapshot of all 7 Go modules after go-cqrs-lite v3.0.0 migration,
+            module path bump /v2 &rarr; /v3, identity model redesign (Tenant, Bot, Membership,
+            Impersonation), and two rounds of brutal self-review. 632 tests, 0 lint issues,
+            0 errorfamily violations. The library is at its cleanest state ever &mdash; but
+            documentation is actively lying about what exists.
+          </p>
+        </div>
+
+        <!-- ============ SUMMARY ============ -->
+        <h2 id="summary"><span class="num">00</span>Summary &mdash; At a Glance</h2>
+
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">632</div>
+            <div class="stat-label">Tests Passing</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Lint Issues</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">ErrorFamily Violations</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">7</div>
+            <div class="stat-label">Go Modules</div>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">17.2K</div>
+            <div class="stat-label">Production LOC</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">24.8K</div>
+            <div class="stat-label">Test LOC</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">82.8%</div>
+            <div class="stat-label">usermgmt Coverage</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">95.2%</div>
+            <div class="stat-label">Root Coverage</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>What happened this session</h4>
+          <p>
+            Bumped all 3 publishable modules from <code>/v2</code> &rarr; <code>/v3</code>
+            (root, usermgmt, catalog). 92 files changed: module declarations, ~85 <code>.go</code>
+            import paths, 6 <code>.mod</code> require/replace directives, 2 <code>.golangci.yml</code>
+            exclusion regexes. All 7 modules tidied, built, tested (race), linted, and formatted clean.
+            Also removed 1 dead function (<code>userIDFromAggID</code>) surfaced by the fresh lint cache.
+          </p>
+        </div>
+
+        <h3>Module Inventory</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Path</th>
+              <th>Tests</th>
+              <th>Coverage</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Root</td>
+              <td><code>cqrs-htmx/v3</code></td>
+              <td>59</td>
+              <td>95.2%</td>
+              <td><span class="badge badge-fixed">Green</span></td>
+            </tr>
+            <tr>
+              <td>usermgmt</td>
+              <td><code>cqrs-htmx/usermgmt/v3</code></td>
+              <td>517</td>
+              <td>82.8%</td>
+              <td><span class="badge badge-high">Coverage Debt</span></td>
+            </tr>
+            <tr>
+              <td>catalog</td>
+              <td><code>cqrs-htmx/catalog/v3</code></td>
+              <td>41</td>
+              <td>95.3%</td>
+              <td><span class="badge badge-fixed">Green</span></td>
+            </tr>
+            <tr>
+              <td>integration_test</td>
+              <td><code>cqrs-htmx/integration_test</code></td>
+              <td>15</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-fixed">Green</span></td>
+            </tr>
+            <tr>
+              <td>examples/basic</td>
+              <td><code>cqrs-htmx/examples/basic</code></td>
+              <td>&mdash;</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-fixed">Builds</span></td>
+            </tr>
+            <tr>
+              <td>examples/catalog-demo</td>
+              <td><code>cqrs-htmx/examples/catalog-demo</code></td>
+              <td>&mdash;</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-fixed">Builds</span></td>
+            </tr>
+            <tr>
+              <td>examples/datastar-demo</td>
+              <td><code>cqrs-htmx/examples/datastar-demo</code></td>
+              <td>&mdash;</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-fixed">Builds</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============ FULLY DONE ============ -->
+        <h2 id="done"><span class="num">01</span>Section A &mdash; FULLY DONE</h2>
+
+        <p>These are complete, tested, and production-ready. No further work needed.</p>
+
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>go-cqrs-lite v3.0.0 migration (all 7 modules)</strong>
+              <span>Complete: 11 breaking changes analyzed, 4 affected us, all resolved. Manual projection replay (~130 LOC) replaces projection.Runner. Bus replaced (MemoryBus &rarr; watermill.EventBus). Storage split (memory/ &rarr; storage/memory/ + watermill/). Fold &rarr; Apply. closeBus() helper for io.Closer removal. ADR-0016 documents the decision.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Module path bump /v2 &rarr; /v3 (this session)</strong>
+              <span>92 files changed. All 3 publishable modules now at /v3. All require versions, replace directives, .golangci.yml exclusion regexes updated. Zero v2 references remaining in code or configs.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Identity model redesign (ADR-0015)</strong>
+              <span>Tenant (create/suspend/reactivate/delete), Bot (register/delete/resolve-by-token), Membership (add/update-roles/remove), Impersonation (begin/end). All event-sourced with pure deciders + read model projections. CasbinProjection derives policies for all identity events.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>WebAuthn passwordless authentication</strong>
+              <span>go-webauthn v0.17.4. Full registration + login ceremonies. In-memory challenge store with proactive eviction. Account lockout wired into login flow. Credential management HTTP endpoints.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>OAuth2/OIDC integration (ADR-0014)</strong>
+              <span>Dual-mode providers (OIDC discovery + pure OAuth2). PKCE S256 on every flow. Subject-first matching. Global provider+subject uniqueness. 2 events, 2 commands, 3 HTTP endpoints. Google (OIDC) + GitHub (OAuth2) both covered.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>SSE + WebSocket real-time (ADR-0004, 0010)</strong>
+              <span>Full transport parity: Broadcaster fan-out (O(1) unsubscribe), SSE reconnection (SSEEventStore + ReplayEvents), CQRS dispatch bridges (BroadcastOnSuccess/OnError), WS message parser + encoder, WS dispatch bridge. Generic fanOut[T] shared by SSE + WS.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>CSRF + Rate Limiting + Security Headers</strong>
+              <span>justinas/nosurf CSRF with custom header/field translation + per-handler CSRFProtect. Token-bucket rate limiter with min-heap O(log n) eviction. SecurityHeadersMiddleware with configurable CSP/HSTS. All opt-in (library principle).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Catalog sub-package (ADR-0008, 0009)</strong>
+              <span>Independent Go module. Builder API with generics. OpenAPI + AsyncAPI + D2 handlers. EventCatalog MDX export. Schema reflection from struct tags. BuildValid() for non-panic validation. Zero dependency on root or usermgmt.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Event signing + encryption (opt-in) (ADR-0011)</strong>
+              <span>Dependency-free seams: StoreWrapper, PublishMiddleware, HandlerMiddleware. Store-level encryption + bus-level signing. Consistent with duck-typing pattern (Enforcer, TemplComponent). Consumers who don't need crypto pull zero new deps.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>TOTP MFA + Email verification + Import/Export</strong>
+              <span>pquerna/otp/totp (audited). Two-phase TOTP setup with event-sourced secret. Email verification with single-use tokens. JSON/CSV import/export with admin authorization + per-IP rate limiting.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>go-error-family adoption (0 violations)</strong>
+              <span>NO stdlib error constructors (errors.New, fmt.Errorf, errors.Join banned). Enforced by branching-flow errorfamily. All errors use event.New*/Wrap*/Wrapf/Newf. Family assignment rules mapped to HTTP status. Dispatch wrapping preserves inner domain family.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>16 ADRs documenting every major decision</strong>
+              <span>From 0001 (HTMX+Go) through 0016 (v3 migration). Every architecture choice has a recorded rationale, alternatives considered, and tradeoffs. Domain Language (DOMAIN_LANGUAGE.md) defines all ubiquitous language terms.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>God object decomposition</strong>
+              <span>es_decide.go split from 539 lines (13 functions) into 5 concern-based files: lifecycle (136 LOC), profile (126 LOC), credentials (109 LOC), security (78 LOC), external accounts (113 LOC). Each file owns one domain boundary.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ PARTIALLY DONE ============ -->
+        <h2 id="partial"><span class="num">02</span>Section B &mdash; PARTIALLY DONE</h2>
+
+        <p>Core functionality exists but has known gaps, stale metadata, or missing test coverage.</p>
+
+        <div class="card card-warning">
+          <h4>usermgmt coverage regression (88.7% &rarr; 82.8%)</h4>
+          <p>
+            Tenant, Bot, Membership, Impersonation, and OAuth2 features were added rapidly
+            with strong decider-level tests but insufficient service-level dispatch tests.
+            The identity model redesign added ~3,000 LOC of production code but only ~1,200 LOC
+            of test code for those features. Coverage dropped 6 percentage points.
+            <strong>5 tests added this session</strong> (tenant CRUD + bot lifecycle) but more needed.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Gap:</strong> Missing: impersonation service tests, membership service tests,
+            projection replay integration test, OAuth2 callback flow tests.
+          </div>
+        </div>
+
+        <div class="card card-warning">
+          <h4>FEATURES.md stale (last updated 2026-06-18)</h4>
+          <p>
+            Missing entries for: Tenant lifecycle, Bot management, Membership RBAC,
+            Impersonation, OAuth2/OIDC, Event signing/encryption, Identity model redesign,
+            v3 migration. The metrics table says "96.4% root, 88.7% usermgmt" which is
+            no longer accurate (95.2% root, 82.8% usermgmt).
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix:</strong> Run features-audit skill to regenerate from source code.
+          </div>
+        </div>
+
+        <div class="card card-warning">
+          <h4>ROADMAP.md stale (last updated 2026-06-17)</h4>
+          <p>
+            Says "Version: v2.4.0" and "Dependencies: go-cqrs-lite v2.4.0" when we're now at
+            v3.0.0 + go-cqrs-lite v3.0.0. OAuth2/OIDC listed as "Planned" under v3.0.0 when
+            it's DONE. Identity model (Tenant, Bot, Membership) not mentioned at all.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix:</strong> Rewrite to reflect v3.0.0 state. Move done items to history,
+            add new future work (OpenTelemetry, Prometheus, Redis store).
+          </div>
+        </div>
+
+        <div class="card card-warning">
+          <h4>Deprecated ClientIP() wrapper still present</h4>
+          <p>
+            <code>httputil.go:38</code> &mdash; <code>ClientIP()</code> delegates to
+            <code>httputil.ClientIP</code> with a deprecation comment. Should be removed
+            or at minimum the deprecation timeline should be stated.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>BrandNamer for root module marker types</h4>
+          <p>
+            go-cqrs-lite v3.0.0 exports marker types, partially unblocking this.
+            Needs verification that the types are usable and wiring into root module's
+            branded ID types. Listed as PARTIALLY UNBLOCKED in TODO_LIST.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>AGENTS.md module table was stale (fixed this session)</h4>
+          <p>
+            The module path table in AGENTS.md was showing paths without any version suffix
+            (not even /v2). Fixed to /v3 this session. However, other sections of AGENTS.md
+            may still reference old patterns.
+          </p>
+        </div>
+
+        <!-- ============ NOT STARTED ============ -->
+        <h2 id="notstarted"><span class="num">03</span>Section C &mdash; NOT STARTED</h2>
+
+        <p>Planned or valuable work that hasn't been touched yet.</p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Consumer migration guide (v2 &rarr; v3)</h4>
+            <p>Document what consumers need to change when upgrading from /v2 to /v3. Import paths, bus type, projection mechanics. Critical for adoption.</p>
+          </div>
+          <div class="card">
+            <h4>OpenTelemetry wiring</h4>
+            <p>go-cqrs-lite v3 has an otel module. Wire it in via lifecycle hooks (hook-based pattern already documented in example_otel_test.go).</p>
+          </div>
+          <div class="card">
+            <h4>Prometheus metrics endpoint</h4>
+            <p>Dispatch latency, error rates, request counts. Standard middleware pattern.</p>
+          </div>
+          <div class="card">
+            <h4>Redis session store</h4>
+            <p>For distributed deployments. SessionStore interface is ready; needs a Redis adapter. OAuth2StateStore also needs distributed adapter.</p>
+          </div>
+          <div class="card">
+            <h4>PostgreSQL session store</h4>
+            <p>SQLSessionStore exists for sessions. A production-ready PostgreSQL preset would reduce consumer boilerplate.</p>
+          </div>
+          <div class="card">
+            <h4>VERSIONING.md</h4>
+            <p>Document semver policy: when do we bump major/minor/patch? What's the stability guarantee? Important for consumer trust.</p>
+          </div>
+          <div class="card">
+            <h4>CI badge in README.md</h4>
+            <p>Simple trust signal. 10 minutes if CI is already set up.</p>
+          </div>
+          <div class="card">
+            <h4>schema/v3 validator</h4>
+            <p>go-cqrs-lite v3 has a schema module. Could validate event payloads at registration time to catch struct tag issues early.</p>
+          </div>
+          <div class="card">
+            <h4>revive:exported linter</h4>
+            <p>Enforce godoc on all exported symbols. Would catch missing documentation early. May produce many violations initially.</p>
+          </div>
+          <div class="card">
+            <h4>Streaming replay via SeekableJournal</h4>
+            <p>Current projection replay loads all events into memory. For large event stores, streaming via SeekableJournal.ReadFrom would be more efficient.</p>
+          </div>
+        </div>
+
+        <!-- ============ TOTALLY FUCKED UP ============ -->
+        <h2 id="fuckedup"><span class="num">04</span>Section D &mdash; TOTALLY FUCKED UP!</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Critical</span>
+          <h3>FEATURES.md is actively lying about what exists</h3>
+          <div class="where">FEATURES.md &mdash; last updated 2026-06-18</div>
+          <p>
+            FEATURES.md lists 60 features across root + usermgmt + catalog + real-time.
+            It does NOT mention: Tenant lifecycle, Bot management, Membership RBAC,
+            Impersonation, OAuth2/OIDC integration, Event signing/encryption opt-in seams,
+            Security hooks parity, or the v3 migration. The metrics table claims
+            "96.4% root, 88.7% usermgmt" &mdash; actual is 95.2% root, 82.8% usermgmt.
+            A consumer reading FEATURES.md today would have no idea that multi-tenancy,
+            bot accounts, or social login exist. This is the #1 documentation debt.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix:</strong> Run <code>features-audit</code> skill to regenerate from source.
+            Estimated 30 minutes.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Critical</span>
+          <h3>ROADMAP.md is in a parallel universe</h3>
+          <div class="where">ROADMAP.md &mdash; last updated 2026-06-17</div>
+          <p>
+            Says "Version: v2.4.0" &mdash; we're at v3.0.0. Says "Dependencies: go-cqrs-lite v2.4.0"
+            &mdash; we're on v3.0.0. Lists "OAuth2/OIDC integration helpers" as "Planned" under
+            v3.0.0 &mdash; it's DONE (ADR-0014). Lists "PostgreSQL event store" as "High priority"
+            &mdash; it's DONE (SQLEventStore). The entire "v3.0.0 &mdash; Observability" section
+            is misnumbered since v3.0.0 is now the current version, not the future. The roadmap
+            is actively misleading anyone who reads it for planning.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix:</strong> Rewrite from scratch reflecting actual v3.0.0 state.
+            Move completed items to a "Shipped" section. Estimated 20 minutes.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>usermgmt coverage silently regressed 6 percentage points</h3>
+          <div class="where">usermgmt/ &mdash; coverage 88.7% &rarr; 82.8%</div>
+          <p>
+            The identity model redesign added Tenant, Bot, Membership, Impersonation, and OAuth2
+            features with strong unit tests but insufficient service-level integration tests.
+            The coverage drop happened silently because FEATURES.md still claims 88.7%.
+            No CI gate prevents this from happening again.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Watch out:</strong> Without a coverage gate, this will keep happening.
+            Every new feature without proportional tests erodes confidence in the suite.
+          </div>
+        </div>
+
+        <!-- ============ IMPROVE ============ -->
+        <h2 id="improve"><span class="num">05</span>Section E &mdash; WHAT WE SHOULD IMPROVE!</h2>
+
+        <div class="grid-2">
+          <div class="card card-solution">
+            <h4>Documentation hygiene as a habit</h4>
+            <p>
+              FEATURES.md and ROADMAP.md drifted badly because nobody updated them when features
+              shipped. The fix isn't just updating them once &mdash; it's making the update
+              part of the definition of done. Every PR that adds a feature updates FEATURES.md.
+              Every version bump updates ROADMAP.md.
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>Coverage gate in CI</h4>
+            <p>
+              usermgmt coverage dropped 6 points silently. A CI gate that fails on coverage
+              regression (&lt;85% for usermgmt, &lt;93% for root) would prevent this. Even
+              a simple <code>go test -coverprofile</code> + threshold check in the nix flake
+              would catch it.
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>Service-level test coverage for identity model</h4>
+            <p>
+              Tenant, Bot, Membership, and Impersonation all have decider-level tests but
+              only Tenant and Bot have service-level tests (added this session). Membership
+              and Impersonation need service-level tests through full dispatch to verify
+              the event &rarr; projection &rarr; read model &rarr; Casbin policy pipeline.
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>Projection replay test</h4>
+            <p>
+              The manual projection replay (~130 LOC in <code>es_projection_setup.go</code>)
+              replaced the upstream projection.Runner but has no integration test verifying
+              that events replayed from the journal match events received live. A single
+              test that writes events, restarts projections, and verifies read model state
+              would provide confidence.
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>Consumer migration documentation</h4>
+            <p>
+              The /v2 &rarr; /v3 bump is a breaking change for every consumer. Without a
+              migration guide, adoption friction is high. The guide should cover: import
+              path changes (mechanical), bus type change (watermill.EventBus), projection
+              mechanics (manual replay vs projection.Runner), and the Apply vs Fold rename.
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>Fuzz testing expansion</h4>
+            <p>
+              Only SQLSessionStore has fuzz tests. The projection dedup logic, event payload
+              unmarshaling, and the new identity model decide functions would all benefit
+              from fuzz testing. Property-based testing (rapid) exists for foldUser but not
+              for the new Tenant/Bot/Membership deciders.
+            </p>
+          </div>
+        </div>
+
+        <!-- ============ TOP 25 NEXT ============ -->
+        <h2 id="next25"><span class="num">06</span>Section F &mdash; Top #25 Things We Should Get Done Next</h2>
+
+        <p>Sorted by impact/effort ratio (highest first).</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Ratio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><strong>Update FEATURES.md</strong> &mdash; add Tenant, Bot, Impersonation, OAuth2, signing/encryption, v3 migration</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>30min</td>
+              <td><span class="badge badge-fixed">★★★★★</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><strong>Update ROADMAP.md</strong> &mdash; reflect v3.0.0 state, move done items to history</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>20min</td>
+              <td><span class="badge badge-fixed">★★★★★</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><strong>Update TODO_LIST.md version header</strong> &mdash; says "v3.0.0" but coverage numbers stale</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10min</td>
+              <td><span class="badge badge-fixed">★★★★★</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><strong>Add service-level impersonation tests</strong> &mdash; through full dispatch pipeline</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>30min</td>
+              <td><span class="badge badge-fixed">★★★★☆</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><strong>Add service-level membership tests</strong> &mdash; through full dispatch pipeline</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>30min</td>
+              <td><span class="badge badge-fixed">★★★★☆</span></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><strong>Add projection replay integration test</strong> &mdash; journal &rarr; live dedup verification</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>30min</td>
+              <td><span class="badge badge-fixed">★★★★☆</span></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><strong>Re-measure coverage</strong> &mdash; update FEATURES.md + TODO_LIST.md + ROADMAP.md metrics</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10min</td>
+              <td><span class="badge badge-fixed">★★★★☆</span></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><strong>Remove deprecated ClientIP()</strong> &mdash; or set a removal version</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>15min</td>
+              <td><span class="badge badge-high">★★★★☆</span></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><strong>Write consumer migration guide</strong> (v2&rarr;v3) &mdash; import paths, bus, projections</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>45min</td>
+              <td><span class="badge badge-medium">★★★☆☆</span></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><strong>Enable revive:exported linter</strong> + fix violations</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>30min</td>
+              <td><span class="badge badge-medium">★★★☆☆</span></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><strong>Add godoc examples</strong> for App, Handler, Service entry points</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>60min</td>
+              <td><span class="badge badge-medium">★★★☆☆</span></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><strong>Wire OpenTelemetry</strong> &mdash; go-cqrs-lite v3 otel module</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>90min</td>
+              <td><span class="badge badge-medium">★★★☆☆</span></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><strong>Expand integration tests</strong> &mdash; more cross-module scenarios</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>90min</td>
+              <td><span class="badge badge-medium">★★★☆☆</span></td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><strong>Add fuzz tests</strong> for projection dedup + identity model deciders</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>30min</td>
+              <td><span class="badge badge-medium">★★★☆☆</span></td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><strong>Add property-based tests</strong> for foldTenant, foldBot, foldMembership</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>45min</td>
+              <td><span class="badge badge-medium">★★★☆☆</span></td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><strong>Add schema/v3 validator</strong> for event payloads at registration</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>60min</td>
+              <td><span class="badge badge-medium">★★★☆☆</span></td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><strong>CI badge</strong> in README.md</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>10min</td>
+              <td><span class="badge badge-medium">★★★☆☆</span></td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><strong>Add VERSIONING.md</strong> documenting semver policy</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>30min</td>
+              <td><span class="badge badge-high">★★☆☆☆</span></td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><strong>Benchmark projection replay</strong> with large stores (10K+ events)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>30min</td>
+              <td><span class="badge badge-high">★★☆☆☆</span></td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><strong>Streaming replay</strong> via SeekableJournal.ReadFrom</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>60min</td>
+              <td><span class="badge badge-high">★★☆☆☆</span></td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><strong>PostgreSQL session store preset</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>45min</td>
+              <td><span class="badge badge-high">★★☆☆☆</span></td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><strong>Prometheus metrics</strong> endpoint</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>45min</td>
+              <td><span class="badge badge-high">★★☆☆☆</span></td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><strong>Redis session store</strong> for distributed deployments</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>60min</td>
+              <td><span class="badge badge-low">★☆☆☆☆</span></td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><strong>Profile and optimize</strong> hot paths (dispatch, decode)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>90min</td>
+              <td><span class="badge badge-low">★☆☆☆☆</span></td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><strong>stack.Materialize</strong> for persistent read models</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>120min</td>
+              <td><span class="badge badge-low">★☆☆☆☆</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============ TOP QUESTION ============ -->
+        <h2 id="question"><span class="num">07</span>Section G &mdash; Top #1 Question I Cannot Figure Out Myself</h2>
+
+        <div class="card card-problem">
+          <h4>Should we tag the first v3.0.0 release NOW, or wait for the doc updates?</h4>
+          <p>
+            The module paths are bumped to /v3. All 632 tests pass, 0 lint, 0 errorfamily.
+            The code is the cleanest it has ever been. But FEATURES.md and ROADMAP.md are
+            actively lying about what exists. A consumer who finds the v3.0.0 tag on GitHub
+            and reads FEATURES.md would not know that multi-tenancy, bot accounts, OAuth2,
+            or event encryption exist.
+          </p>
+          <p>
+            <strong>Option A:</strong> Tag v3.0.0 now. The code is ready. Docs can follow.
+            Consumers who read the source code will see everything. The git log tells the story.
+          </p>
+          <p>
+            <strong>Option B:</strong> Fix FEATURES.md + ROADMAP.md first (~50 min), then tag.
+            The documentation matches reality. First impression for new consumers is accurate.
+          </p>
+          <p>
+            <strong>My recommendation:</strong> Option B. We're 50 minutes away from having
+            accurate documentation. The v3.0.0 tag is permanent &mdash; it's the first thing
+            consumers see. Shipping a major version with lying documentation undermines trust
+            in the library's quality. The code has been ready for hours; the docs are the blocker.
+          </p>
+          <p>
+            <strong>But I can't decide this alone</strong> because it depends on your urgency.
+            Are there consumers waiting on v3.0.0 right now? Is there a deadline? Or is this
+            an internal versioning milestone where doc accuracy matters more than speed?
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-22 16:19 &middot; All metrics verified against source code &middot; 632 tests, 0 lint, 0 errorfamily violations
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) { return document.getElementById(id); })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) { observer.observe(s); });
+      })();
+    </script>
+  </body>
+</html>

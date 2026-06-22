@@ -3,9 +3,9 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.26.3
 
 require (
-	github.com/larsartmann/cqrs-htmx/catalog/v2 v2.0.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v2 v2.1.0
-	github.com/larsartmann/cqrs-htmx/v2 v2.5.0
+	github.com/larsartmann/cqrs-htmx/catalog/v3 v3.0.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.0.0
+	github.com/larsartmann/cqrs-htmx/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v3 v3.0.0
@@ -81,7 +81,7 @@ require (
 )
 
 replace (
-	github.com/larsartmann/cqrs-htmx/catalog/v2 => ../catalog
-	github.com/larsartmann/cqrs-htmx/usermgmt/v2 => ../usermgmt
-	github.com/larsartmann/cqrs-htmx/v2 => ../
+	github.com/larsartmann/cqrs-htmx/catalog/v3 => ../catalog
+	github.com/larsartmann/cqrs-htmx/usermgmt/v3 => ../usermgmt
+	github.com/larsartmann/cqrs-htmx/v3 => ../
 )

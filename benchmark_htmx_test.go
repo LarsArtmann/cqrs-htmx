@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 func BenchmarkParseHTMXRequest(b *testing.B) {
