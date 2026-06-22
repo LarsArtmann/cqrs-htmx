@@ -169,11 +169,13 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		}
 		if u, ok := m.users[aggID]; ok {
 			u.ExternalAccounts = append(u.ExternalAccounts, ExternalAccount{
-				Provider:    p.Provider,
-				Subject:     p.Subject,
-				Email:       p.Email,
-				DisplayName: p.DisplayName,
-				LinkedAt:    evt.OccurredAt(),
+				externalAccountCore: externalAccountCore{
+					Provider:    p.Provider,
+					Subject:     p.Subject,
+					Email:       p.Email,
+					DisplayName: p.DisplayName,
+				},
+				LinkedAt: evt.OccurredAt(),
 			})
 			u.UpdatedAt = evt.OccurredAt()
 			m.externalAccounts[externalAccountKey{provider: p.Provider, subject: p.Subject}] = aggID

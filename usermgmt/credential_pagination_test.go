@@ -43,8 +43,10 @@ func setupPaginationTestHandler(t *testing.T, userID string) (http.Handler, *Use
 
 	for i := range 5 {
 		cred := WebAuthnCredential{
-			ID:   []byte{byte(i + 1)},
-			Name: "key-" + string(rune('A'+i)),
+			credentialCore: credentialCore{
+				ID:   []byte{byte(i + 1)},
+				Name: "key-" + string(rune('A'+i)),
+			},
 		}
 		if err := svc.AddCredential(context.Background(), NewUserID(userID), cred); err != nil {
 			t.Fatalf("AddCredential %d: %v", i, err)

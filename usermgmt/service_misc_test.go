@@ -58,7 +58,7 @@ func TestUser_Clone(t *testing.T) {
 		ID:          NewUserID("u1"),
 		Email:       "clone@test.com",
 		DisplayName: "Original",
-		Credentials: []WebAuthnCredential{{ID: []byte{1}}},
+		Credentials: []WebAuthnCredential{{credentialCore: credentialCore{ID: []byte{1}}}},
 	}
 
 	cloned := original.Clone()

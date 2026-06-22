@@ -104,12 +104,14 @@ func TestWebAuthn_BeginLogin_Success(t *testing.T) {
 	registerTestUser(t, svc, "u1", "login@test.com")
 
 	fakeCred := WebAuthnCredential{
-		ID:              []byte{0x01, 0x02, 0x03},
-		PublicKey:       []byte{0x04, 0x05, 0x06},
-		AttestationType: "none",
-		Transports:      []string{"internal"},
-		BackupEligible:  true,
-		BackupState:     true,
+		credentialCore: credentialCore{
+			ID:              []byte{0x01, 0x02, 0x03},
+			PublicKey:       []byte{0x04, 0x05, 0x06},
+			AttestationType: "none",
+			Transports:      []string{"internal"},
+			BackupEligible:  true,
+			BackupState:     true,
+		},
 	}
 	if err := svc.AddCredential(context.Background(), NewUserID("u1"), fakeCred); err != nil {
 		t.Fatalf("AddCredential: %v", err)
@@ -130,12 +132,12 @@ func TestWebAuthnServiceAdapter(t *testing.T) {
 		Email:       "adapter@test.com",
 		DisplayName: "Adapter",
 		Credentials: []WebAuthnCredential{
-			{
+			{credentialCore: credentialCore{
 				ID:              []byte{0x01},
 				PublicKey:       []byte{0x02},
 				AttestationType: "none",
 				Transports:      []string{"internal"},
-			},
+			}},
 		},
 	}
 
@@ -158,15 +160,17 @@ func TestWebAuthnServiceAdapter(t *testing.T) {
 
 func TestWebAuthn_CredentialRoundTrip(t *testing.T) {
 	original := WebAuthnCredential{
-		ID:              []byte{0xAA, 0xBB, 0xCC},
-		PublicKey:       []byte{0x01, 0x02},
-		AttestationType: "packed",
-		Transports:      []string{"usb", "nfc"},
-		AAGUID:          []byte{0x00, 0x01},
-		SignCount:       42,
-		BackupEligible:  true,
-		BackupState:     false,
-		Name:            "YubiKey 5C",
+		credentialCore: credentialCore{
+			ID:              []byte{0xAA, 0xBB, 0xCC},
+			PublicKey:       []byte{0x01, 0x02},
+			AttestationType: "packed",
+			Transports:      []string{"usb", "nfc"},
+			AAGUID:          []byte{0x00, 0x01},
+			SignCount:       42,
+			BackupEligible:  true,
+			BackupState:     false,
+			Name:            "YubiKey 5C",
+		},
 	}
 
 	waCred := toWebAuthnCredential(original)

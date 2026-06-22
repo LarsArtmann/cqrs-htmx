@@ -60,10 +60,12 @@ func TestUserReadModel_AllUsersSorted(t *testing.T) {
 
 func TestWebAuthnCredential_Clone(t *testing.T) {
 	orig := WebAuthnCredential{
-		ID:         []byte{1, 2, 3},
-		PublicKey:  []byte{4, 5, 6},
-		Transports: []string{"usb", "nfc"},
-		AAGUID:     []byte{7, 8, 9},
+		credentialCore: credentialCore{
+			ID:         []byte{1, 2, 3},
+			PublicKey:  []byte{4, 5, 6},
+			Transports: []string{"usb", "nfc"},
+			AAGUID:     []byte{7, 8, 9},
+		},
 	}
 	cp := orig.Clone()
 
@@ -84,8 +86,10 @@ func TestUser_Clone_DeepCopiesCredentials(t *testing.T) {
 	u := &User{
 		ID: NewUserID("u1"),
 		Credentials: []WebAuthnCredential{{
-			ID:        []byte{1},
-			PublicKey: []byte{2},
+			credentialCore: credentialCore{
+				ID:        []byte{1},
+				PublicKey: []byte{2},
+			},
 		}},
 	}
 	cp := u.Clone()

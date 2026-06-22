@@ -38,16 +38,8 @@ type UserDeletedPayload struct {
 }
 
 type CredentialAddedPayload struct {
-	SchemaVersion   int      `json:"schema_version"`
-	ID              []byte   `json:"id"`
-	PublicKey       []byte   `json:"public_key"`
-	AttestationType string   `json:"attestation_type"`
-	Transports      []string `json:"transports,omitempty"`
-	AAGUID          []byte   `json:"aaguid,omitempty"`
-	SignCount       uint32   `json:"sign_count"`
-	BackupEligible  bool     `json:"backup_eligible"`
-	BackupState     bool     `json:"backup_state"`
-	Name            string   `json:"name,omitempty"`
+	SchemaVersion int `json:"schema_version"`
+	credentialCore
 }
 
 type CredentialRemovedPayload struct {
@@ -70,11 +62,8 @@ type TOTPDisabledPayload struct {
 }
 
 type ExternalAccountLinkedPayload struct {
-	SchemaVersion int    `json:"schema_version"`
-	Provider      string `json:"provider"`
-	Subject       string `json:"subject"`
-	Email         string `json:"email,omitempty"`
-	DisplayName   string `json:"display_name,omitempty"`
+	SchemaVersion int `json:"schema_version"`
+	externalAccountCore
 }
 
 type ExternalAccountUnlinkedPayload struct {

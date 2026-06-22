@@ -65,7 +65,9 @@ func TestHandler_WebAuthnBeginLogin_Success(t *testing.T) {
 	registerTestUser(t, svc, "u1", "hbl@test.com")
 
 	cred := WebAuthnCredential{
-		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+		credentialCore: credentialCore{
+			ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+		},
 	}
 	addTestCredential(t, svc, NewUserID("u1"), cred)
 

@@ -29,10 +29,12 @@ func decideLinkExternalAccount(
 		}
 		payload, err := marshalPayload(ExternalAccountLinkedPayload{
 			SchemaVersion: currentSchemaVersion,
-			Provider:      provider,
-			Subject:       subject,
-			Email:         email,
-			DisplayName:   displayName,
+			externalAccountCore: externalAccountCore{
+				Provider:    provider,
+				Subject:     subject,
+				Email:       email,
+				DisplayName: displayName,
+			},
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(
