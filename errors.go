@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 const defaultLoginRedirect = "/login"
@@ -14,7 +14,7 @@ const defaultLoginRedirect = "/login"
 // Sentinel errors for HTTP→CQRS integration.
 //
 // Each sentinel is natively classified via its go-error-family family (re-exported
-// through go-cqrs-lite/event/v2), so MapError derives the HTTP status directly —
+// through go-cqrs-lite/event/v3), so MapError derives the HTTP status directly —
 // no runtime RegisterClassification is needed.
 var (
 	ErrUnauthorized     = event.NewRejection("unauthorized", "unauthorized: authentication required")

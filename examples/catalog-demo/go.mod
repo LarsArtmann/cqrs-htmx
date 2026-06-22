@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/cqrs-htmx/catalog/v2 v2.0.0
-	github.com/larsartmann/go-cqrs-lite/catalog/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.0.0
 )
 
 require (

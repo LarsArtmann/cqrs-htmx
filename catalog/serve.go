@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2/d2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2/openapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/asyncapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/d2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/openapi"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 

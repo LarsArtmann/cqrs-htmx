@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
 )
 
 func ExampleRequireMethod() {
