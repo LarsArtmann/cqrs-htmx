@@ -142,15 +142,3 @@ func (s *Service) createSession(ctx context.Context, userID UserID) (*Session, e
 	}
 	return session, nil
 }
-
-func (s *Service) emit(userID UserID, evt any) {
-	if s.eventHandler == nil {
-		return
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			s.logger.Warn("usermgmt: event handler panicked", "user_id", userID, "recover", r)
-		}
-	}()
-	s.eventHandler(userID, evt)
-}
