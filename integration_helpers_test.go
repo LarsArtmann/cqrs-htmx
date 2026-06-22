@@ -17,11 +17,12 @@ const (
 
 func integrationCSRFConfig() cqrshtmx.CSRFConfig {
 	return cqrshtmx.CSRFConfig{
-		MaxAge:       24 * time.Hour,
-		Secure:       false,
-		SameSite:     http.SameSiteLaxMode,
-		Path:         "/",
-		ErrorHandler: cqrshtmx.ForbiddenErrorHandler,
+		MaxAge:               24 * time.Hour,
+		Secure:               false,
+		SameSite:             http.SameSiteLaxMode,
+		Path:                 "/",
+		ErrorHandler:         cqrshtmx.ForbiddenErrorHandler,
+		AllowPlaintextBypass: true, // integration tests run over plain-HTTP httptest, not a browser
 	}
 }
 

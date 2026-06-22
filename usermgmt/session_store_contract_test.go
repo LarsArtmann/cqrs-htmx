@@ -142,4 +142,58 @@ func runSessionStoreContract(t *testing.T, factory func(t *testing.T) SessionSto
 			t.Fatal("two sessions have the same token")
 		}
 	})
+
+	// Guards the impersonation-origin data-loss bug: a store MUST round-trip the
+	// SessionOrigin discriminator so the middleware type-assertion
+	// (session.Origin.(Impersonation)) keeps working after persistence.
+	t.Run("Create_and_Find_preserves_session_origin", func(t *testing.T) {
+		store := factory(t)
+		ctx := context.Background()
+
+		// DirectLogin (normal session).
+		direct, err := NewSession(NewUserID("origin-direct"), time.Hour)
+		if err != nil {
+			t.Fatalf("NewSession: %v", err)
+		}
+		if err := store.Create(ctx, direct); err != nil {
+			t.Fatalf("Create direct: %v", err)
+		}
+		found, err := store.Find(ctx, direct.Token)
+		if err != nil {
+			t.Fatalf("Find direct: %v", err)
+		}
+		if _, ok := found.Origin.(DirectLogin); !ok {
+			t.Fatalf("direct session origin = %T, want DirectLogin", found.Origin)
+		}
+
+		// Impersonation — this is the case SQLSessionStore used to lose.
+		target := ActorIDFromUser(NewUserID("origin-target"))
+		impersonator := ActorIDFromUser(NewUserID("origin-admin"))
+		impersonation, err := NewImpersonationSession(target, impersonator, "support escalation", time.Hour)
+		if err != nil {
+			t.Fatalf("NewImpersonationSession: %v", err)
+		}
+		if err := store.Create(ctx, impersonation); err != nil {
+			t.Fatalf("Create impersonation: %v", err)
+		}
+
+		foundImp, err := store.Find(ctx, impersonation.Token)
+		if err != nil {
+			t.Fatalf("Find impersonation: %v", err)
+		}
+		imp, ok := foundImp.Origin.(Impersonation)
+		if !ok {
+			t.Fatalf("impersonation session origin = %T, want Impersonation", foundImp.Origin)
+		}
+		if imp.By != impersonator {
+			t.Fatalf("impersonation By = %v, want %v", imp.By, impersonator)
+		}
+		if imp.Reason != "support escalation" {
+			t.Fatalf("impersonation Reason = %q, want %q", imp.Reason, "support escalation")
+		}
+		originalAt := impersonation.Origin.(Impersonation).At
+		if !imp.At.Equal(originalAt) {
+			t.Fatalf("impersonation At = %v, want %v", imp.At, originalAt)
+		}
+	})
 }

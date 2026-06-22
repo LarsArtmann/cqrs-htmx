@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -37,6 +38,12 @@ type SSEStream struct {
 	fw           flusher
 	ctx          context.Context
 	onDisconnect []func()
+
+	// mu guards every write to w and every flush against concurrent access.
+	// Send runs from the event-loop goroutine while Heartbeat runs from a
+	// separate goroutine (see Heartbeat docs). http.ResponseWriter is not
+	// safe for concurrent use, so both paths must hold mu.
+	mu sync.Mutex
 }
 
 type flusher interface{ Flush() }
@@ -65,7 +72,14 @@ func NewSSEStream(w http.ResponseWriter, r *http.Request) *SSEStream {
 
 // Send writes an SSE event to the stream and flushes the response.
 // Returns an error if the write fails (e.g., client disconnected).
+//
+// Send is safe to call concurrently with Heartbeat: both serialize on the
+// stream's mutex so the underlying ResponseWriter is never written by two
+// goroutines at once.
 func (s *SSEStream) Send(event SSEEvent) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if err := WriteSSEEvent(s.w, event); err != nil {
 		return err
 	}
@@ -91,9 +105,11 @@ func (s *SSEStream) Context() context.Context {
 // Close flushes any buffered data and fires any registered OnDisconnect callbacks.
 // Call this (typically via defer) when done with the stream.
 func (s *SSEStream) Close() {
+	s.mu.Lock()
 	if s.fw != nil {
 		s.fw.Flush()
 	}
+	s.mu.Unlock()
 	for _, fn := range s.onDisconnect {
 		fn()
 	}
@@ -126,11 +142,14 @@ func (s *SSEStream) Heartbeat(ctx context.Context, interval time.Duration) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if _, err := s.w.Write([]byte(": keepalive\n\n")); err != nil {
-				return
-			}
-			if s.fw != nil {
+			s.mu.Lock()
+			_, err := s.w.Write([]byte(": keepalive\n\n"))
+			if err == nil && s.fw != nil {
 				s.fw.Flush()
+			}
+			s.mu.Unlock()
+			if err != nil {
+				return
 			}
 		}
 	}

@@ -95,6 +95,20 @@ type CSRFConfig struct {
 	// (logged at startup).
 	TrustedProxiesCIDR []*net.IPNet
 
+	// AllowPlaintextBypass grants the plaintext-HTTP origin bypass to ALL
+	// non-TLS requests when no TrustedProxies are configured, regardless of
+	// source IP. This is the pre-hardening default, retained for backward
+	// compatibility.
+	//
+	// It is INSECURE for internet-facing plain-HTTP deployments: any client
+	// can omit Origin/Referer/Sec-Fetch-Site headers and have
+	// Sec-Fetch-Site: same-origin injected, bypassing nosurf's origin check
+	// entirely. Prefer configuring TrustedProxies (or serving over TLS).
+	//
+	// The zero value (false) is secure: only loopback addresses and
+	// configured trusted proxies receive the bypass.
+	AllowPlaintextBypass bool
+
 	// ErrorHandler is called when CSRF validation fails.
 	// Default: writes 403 Forbidden with plain text
 	ErrorHandler ErrorHandler
