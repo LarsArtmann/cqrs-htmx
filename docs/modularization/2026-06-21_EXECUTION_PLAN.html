@@ -1,0 +1,1141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Execution Plan — usermgmt Decomposition — 2026-06-21</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: #a0a0a8;
+        --text-faint: #6a6a72;
+        --border: #2a2a30;
+        --border-strong: #3a3a42;
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0;
+        --font-heading:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: var(--font-heading);
+        --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.65;
+        font-size: 15px;
+      }
+      .layout {
+        display: flex;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        width: 220px;
+        flex-shrink: 0;
+        border-right: 1px solid var(--border);
+        padding: 32px 20px;
+        overflow-y: auto;
+      }
+      .sidebar .label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-bottom: 12px;
+        font-weight: 700;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 5px 10px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 13px;
+        border-left: 2px solid transparent;
+        margin-bottom: 2px;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        border-left-color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        padding: 48px 56px;
+        max-width: 1180px;
+        min-width: 0;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+        padding: 4px 10px;
+        border: 1px solid var(--accent);
+        margin-bottom: 16px;
+      }
+      .main h1 {
+        font-size: 34px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin-bottom: 10px;
+      }
+      .main .subtitle {
+        font-size: 16px;
+        color: var(--text-muted);
+        max-width: 680px;
+        margin-bottom: 32px;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin: 24px 0;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 16px;
+        text-align: center;
+      }
+      .stat-value {
+        font-size: 28px;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      h2 {
+        font-size: 24px;
+        font-weight: 800;
+        margin: 48px 0 16px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 10px;
+      }
+      h2 .num {
+        color: var(--accent);
+        font-weight: 900;
+        margin-right: 8px;
+      }
+      h3 {
+        font-size: 17px;
+        font-weight: 700;
+        margin: 24px 0 8px;
+      }
+      p {
+        margin-bottom: 10px;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 2px 6px;
+        color: var(--color-yellow);
+      }
+      pre {
+        background: var(--surface-sunken);
+        padding: 12px 16px;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        margin: 10px 0;
+        border: 1px solid var(--border);
+      }
+      .step {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--text-muted);
+        margin: 16px 0;
+        padding: 20px 24px;
+      }
+      .step.tier1 {
+        border-left-color: var(--problem);
+      }
+      .step.tier2 {
+        border-left-color: var(--warning);
+      }
+      .step.tier3 {
+        border-left-color: var(--solution);
+      }
+      .step.tier4 {
+        border-left-color: var(--text-muted);
+      }
+      .step-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+      .badge {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 3px 8px;
+        border: 1px solid;
+      }
+      .badge-tier1 {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-tier2 {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-tier3 {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .badge-tier4 {
+        color: var(--text-faint);
+        border-color: var(--text-faint);
+      }
+      .step h3 {
+        margin: 0;
+      }
+      .step-meta {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 8px 0;
+      }
+      .step-meta strong {
+        color: var(--text);
+      }
+      .verify {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 10px 14px;
+        margin: 10px 0;
+        font-size: 13px;
+      }
+      .verify strong {
+        color: var(--solution);
+      }
+      .rollback {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .rollback strong {
+        color: var(--problem);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+        font-size: 13px;
+      }
+      th {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 2px solid var(--border-strong);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-faint);
+        font-weight: 700;
+      }
+      td {
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      td code {
+        font-size: 12px;
+      }
+      .footer {
+        border-top: 1px solid var(--border);
+        padding: 24px 0;
+        margin-top: 64px;
+        font-size: 12px;
+        color: var(--text-faint);
+        text-align: center;
+      }
+      @media (max-width: 1024px) {
+        .sidebar {
+          display: none;
+        }
+        .main {
+          padding: 32px 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <nav data-nav>
+          <div class="label">Contents</div>
+          <a href="#overview">Overview</a>
+          <a href="#prereq">Prerequisites</a>
+          <a href="#tier1">Tier 1: Core</a>
+          <a href="#tier2">Tier 2: Untangle</a>
+          <a href="#tier3">Tier 3: Subsystems</a>
+          <a href="#tier4">Tier 4: Polish</a>
+          <a href="#verify">Final Verification</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero-badge">Execution Plan · go-modularize Phase 5</div>
+        <h1>usermgmt God-Package Decomposition</h1>
+        <p class="subtitle">
+          Step-by-step migration to decompose the 71-file usermgmt god-package into 8 cohesive
+          sub-packages with a backward-compatible facade. Each step leaves the project buildable and
+          testable.
+        </p>
+
+        <div class="stat-grid" id="overview">
+          <div class="stat-card">
+            <div class="stat-value">7</div>
+            <div class="stat-label">Migration Steps</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">8</div>
+            <div class="stat-label">Target Packages</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">71</div>
+            <div class="stat-label">Files to Move</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Breaking Changes</div>
+          </div>
+        </div>
+
+        <div class="step tier1" id="prereq">
+          <div class="step-head">
+            <span class="badge badge-tier1">Prerequisite</span>
+            <h3>Fix critical issues from code review FIRST</h3>
+          </div>
+          <p>
+            Before structural refactoring, fix the 8 critical issues found in the code review
+            (<code>docs/reviews/2026-06-21_19-21_full-code-review.html</code>). The SSE heartbeat
+            race, rate-limiter bypass, TOTP enforcement gap, and token leaks are urgent.
+            Decomposition is structural improvement; these are correctness/security fixes.
+          </p>
+          <div class="verify">
+            <strong>Verify:</strong> All tests pass with <code>-race</code>. No new lint issues.
+          </div>
+        </div>
+
+        <h2 id="tier1"><span class="num">T1</span>Tier 1 — Core (Foundational)</h2>
+
+        <div class="step tier1">
+          <div class="step-head">
+            <span class="badge badge-tier1">Tier 1</span><span class="badge">Step 1</span>
+            <h3>Extract <code>domain/</code> package</h3>
+          </div>
+          <p class="step-meta">
+            <strong>Files to move:</strong> <code>user.go</code>, <code>id.go</code>,
+            <code>email.go</code>, <code>credential.go</code>, <code>external_account.go</code>,
+            domain errors from <code>errors.go</code>
+          </p>
+          <p>
+            <strong>Target:</strong> <code>usermgmt/domain/</code> — pure domain types with zero
+            internal dependencies.
+          </p>
+          <p>
+            <strong>Backward compat:</strong> Add type aliases in root
+            <code>usermgmt</code> package:
+          </p>
+          <pre>
+// usermgmt/aliases.go
+package usermgmt
+import "github.com/larsartmann/cqrs-htmx/usermgmt/v2/domain"
+type UserID = domain.UserID
+type User = domain.User
+type Session = domain.Session
+type Email = domain.Email
+// ... etc for all moved types</pre
+          >
+          <div class="verify">
+            <strong>Verify:</strong> <code>GOWORK=off go build ./...</code> +
+            <code>GOWORK=off go test ./... -race -count=1</code> in usermgmt. Zero import path
+            changes for consumers.
+          </div>
+          <p class="rollback">
+            <strong>Rollback:</strong> <code>git revert HEAD</code> — single commit restores flat
+            package.
+          </p>
+        </div>
+
+        <div class="step tier1">
+          <div class="step-head">
+            <span class="badge badge-tier1">Tier 1</span><span class="badge">Step 2</span>
+            <h3>Extract <code>authz/</code> package</h3>
+          </div>
+          <p class="step-meta">
+            <strong>Files to move:</strong> <code>authz_types.go</code>,
+            <code>authz_policies.go</code>, <code>authz_roles.go</code>
+          </p>
+          <p>
+            <strong>Target:</strong> <code>usermgmt/authz/</code> — Casbin RBAC wrapper. Depends on
+            <code>domain/</code> only.
+          </p>
+          <p>
+            <strong>Note:</strong> <code>AsEnforcer()</code> is currently broken (3-value vs 4-field
+            mismatch — see code review C7). Fix this while moving: provide a domain-aware Enforcer
+            or inject default domain.
+          </p>
+          <div class="verify">
+            <strong>Verify:</strong> <code>go build ./...</code> +
+            <code>go test ./authz/... ./... -race</code>
+          </div>
+          <p class="rollback"><strong>Rollback:</strong> <code>git revert HEAD</code></p>
+        </div>
+
+        <h2 id="tier2"><span class="num">T2</span>Tier 2 — Untangle (High Leverage)</h2>
+
+        <div class="step tier2">
+          <div class="step-head">
+            <span class="badge badge-tier2">Tier 2</span><span class="badge">Step 3</span>
+            <h3>Extract <code>store/</code> package</h3>
+          </div>
+          <p class="step-meta">
+            <strong>Files to move:</strong> <code>store.go</code> (SessionStore interface +
+            InMemorySessionStore), <code>sql_session_store.go</code>,
+            <code>sql_event_store.go</code>
+          </p>
+          <p>
+            <strong>Target:</strong> <code>usermgmt/store/</code>. Depends on
+            <code>domain/</code> only. SQL implementations in <code>store/</code> or
+            <code>store/sql/</code> sub-package.
+          </p>
+          <div class="verify">
+            <strong>Verify:</strong> <code>go build ./...</code> +
+            <code>go test ./store/... -race</code> (fuzz tests must pass)
+          </div>
+        </div>
+
+        <div class="step tier2">
+          <div class="step-head">
+            <span class="badge badge-tier2">Tier 2</span><span class="badge">Step 4</span>
+            <h3>Extract <code>eventsource/</code> package</h3>
+          </div>
+          <p class="step-meta">
+            <strong>Files to move:</strong> All 35 <code>es_*.go</code> files (User, Bot,
+            Membership, Tenant aggregates + projections + setup + upcasters + migration)
+          </p>
+          <p><strong>Target structure:</strong></p>
+          <pre>
+usermgmt/eventsource/
+├── user/          # User aggregate: es_state, es_decide, es_dispatch, etc.
+├── bot/           # Bot aggregate: es_bot_*.go
+├── membership/    # Membership aggregate: es_membership_*.go
+├── tenant/        # Tenant aggregate: es_tenant_*.go
+├── readmodel.go   # UserReadModel (cross-aggregate)
+├── casbin_projection.go
+├── setup.go       # EventSourcedConfig, StartProjections
+├── upcaster.go
+└── migration.go</pre
+          >
+          <p>
+            <strong>Depends on:</strong> <code>domain/</code> + <code>authz/</code> (for
+            CasbinProjection).
+          </p>
+          <p>
+            <strong>Re-export from root:</strong> <code>RegisterCommands</code>,
+            <code>EventSourcedConfig</code>, <code>StartProjections</code>,
+            <code>UserDecider</code>.
+          </p>
+          <div class="verify">
+            <strong>Verify:</strong> <code>go build ./...</code> + full test suite with
+            <code>-race</code>. This is the largest step — expect ~30 min of import path fixing.
+          </div>
+        </div>
+
+        <h2 id="tier3"><span class="num">T3</span>Tier 3 — Subsystems (Complete the Graph)</h2>
+
+        <div class="step tier3">
+          <div class="step-head">
+            <span class="badge badge-tier3">Tier 3</span><span class="badge">Step 5</span>
+            <h3>
+              Extract <code>webauthn/</code>, <code>oauth2/</code>, <code>totp/</code> packages
+            </h3>
+          </div>
+          <p class="step-meta">
+            <strong>WebAuthn:</strong> <code>webauthn_adapter.go</code>,
+            <code>webauthn_session.go</code>, <code>webauthn_service.go</code> →
+            <code>usermgmt/webauthn/</code>
+          </p>
+          <p class="step-meta">
+            <strong>OAuth2:</strong> <code>oauth2.go</code>, <code>service_oauth2.go</code>,
+            <code>oauth2_http.go</code> → <code>usermgmt/oauth2/</code>
+          </p>
+          <p class="step-meta">
+            <strong>TOTP:</strong> <code>totp.go</code> → <code>usermgmt/totp/</code>
+          </p>
+          <p>
+            Each subsystem service is embedded into the root <code>Service</code> struct. Methods
+            are promoted via Go embedding (preserves flat API). Each depends on
+            <code>domain/</code> only.
+          </p>
+          <p>
+            <strong>Fix while moving:</strong> WebAuthn UV flag hardcoding (H3), OAuth2 token
+            exchange error mapping (H2), TOTP replay protection (L3).
+          </p>
+          <div class="verify">
+            <strong>Verify:</strong> <code>go build ./...</code> + targeted tests for each subsystem
+            with <code>-race</code>
+          </div>
+        </div>
+
+        <h2 id="tier4"><span class="num">T4</span>Tier 4 — Polish</h2>
+
+        <div class="step tier4">
+          <div class="step-head">
+            <span class="badge badge-tier4">Tier 4</span><span class="badge">Step 6</span>
+            <h3>Extract <code>httpapi/</code> + <code>internal/</code></h3>
+          </div>
+          <p class="step-meta">
+            <strong>HTTP:</strong> <code>http.go</code>, <code>verification_totp_http.go</code>,
+            <code>credential_http.go</code>, import/export endpoints →
+            <code>usermgmt/httpapi/</code>
+          </p>
+          <p class="step-meta">
+            <strong>Internal:</strong> <code>crypto.go</code>, <code>random.go</code>,
+            <code>eviction.go</code> → <code>usermgmt/internal/</code>
+          </p>
+          <p>
+            The <code>internal/</code> package makes these truly opaque — no consumer can import
+            them.
+          </p>
+          <div class="verify">
+            <strong>Verify:</strong> <code>go build ./...</code> + full test suite
+          </div>
+        </div>
+
+        <div class="step tier4">
+          <div class="step-head">
+            <span class="badge badge-tier4">Tier 4</span><span class="badge">Step 7</span>
+            <h3>Update documentation</h3>
+          </div>
+          <p>
+            Update <code>AGENTS.md</code> file listing to reflect the new package structure. Update
+            <code>docs/modularization/DEPENDENCY_GRAPH.md</code>. Add ADR
+            <code>0016-usermgmt-package-decomposition.md</code>. Update
+            <code>docs/adr/0006-event-sourced-user-aggregate.md</code> cross-references.
+          </p>
+          <div class="verify">
+            <strong>Verify:</strong> <code>nix flake check</code> passes.
+            <code>docs-freshness-check</code> if available.
+          </div>
+        </div>
+
+        <h2 id="depgraph"><span class="num">D</span>Step Dependency Graph</h2>
+        <p>
+          Steps must be executed in order — each depends on packages created in prior steps. The
+          dependency chain is linear (no parallel steps).
+        </p>
+        <div
+          class="diagram-container"
+          style="
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            padding: 16px;
+            margin: 16px 0;
+            overflow-x: auto;
+          "
+        >
+          <?xml version="1.0" encoding="utf-8"?><svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            data-d2-version="v0.7.1"
+            preserveAspectRatio="xMinYMin meet"
+            viewBox="0 0 1840 566"
+          >
+            <svg class="d2-1224262254 d2-svg" width="1840" height="566" viewBox="-89 -89 1840 566">
+              <rect
+                x="-89.000000"
+                y="-89.000000"
+                width="1840.000000"
+                height="566.000000"
+                rx="0.000000"
+                fill="#FFFFFF"
+                class="fill-N7"
+                stroke-width="0"
+              />
+              <style type="text/css">
+                <![CDATA[
+                .d2-1224262254 .text {
+                	font-family: "d2-1224262254-font-regular";
+                }
+                @font-face {
+                	font-family: d2-1224262254-font-regular;
+                	src: url("data:application/font-woff;base64,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");
+                }
+                .d2-1224262254 .text-bold {
+                	font-family: "d2-1224262254-font-bold";
+                }
+                @font-face {
+                	font-family: d2-1224262254-font-bold;
+                	src: url("data:application/font-woff;base64,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");
+                }
+                .d2-1224262254 .text-italic {
+                	font-family: "d2-1224262254-font-italic";
+                }
+                @font-face {
+                	font-family: d2-1224262254-font-italic;
+                	src: url("data:application/font-woff;base64,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");
+                }]]>
+              </style>
+              <style type="text/css">
+                <![CDATA[.shape {
+                  shape-rendering: geometricPrecision;
+                  stroke-linejoin: round;
+                }
+                .connection {
+                  stroke-linecap: round;
+                  stroke-linejoin: round;
+                }
+                .blend {
+                  mix-blend-mode: multiply;
+                  opacity: 0.5;
+                }
+
+                		.d2-1224262254 .fill-N1{fill:#0A0F25;}
+                		.d2-1224262254 .fill-N2{fill:#676C7E;}
+                		.d2-1224262254 .fill-N3{fill:#9499AB;}
+                		.d2-1224262254 .fill-N4{fill:#CFD2DD;}
+                		.d2-1224262254 .fill-N5{fill:#DEE1EB;}
+                		.d2-1224262254 .fill-N6{fill:#EEF1F8;}
+                		.d2-1224262254 .fill-N7{fill:#FFFFFF;}
+                		.d2-1224262254 .fill-B1{fill:#0D32B2;}
+                		.d2-1224262254 .fill-B2{fill:#0D32B2;}
+                		.d2-1224262254 .fill-B3{fill:#E3E9FD;}
+                		.d2-1224262254 .fill-B4{fill:#E3E9FD;}
+                		.d2-1224262254 .fill-B5{fill:#EDF0FD;}
+                		.d2-1224262254 .fill-B6{fill:#F7F8FE;}
+                		.d2-1224262254 .fill-AA2{fill:#4A6FF3;}
+                		.d2-1224262254 .fill-AA4{fill:#EDF0FD;}
+                		.d2-1224262254 .fill-AA5{fill:#F7F8FE;}
+                		.d2-1224262254 .fill-AB4{fill:#EDF0FD;}
+                		.d2-1224262254 .fill-AB5{fill:#F7F8FE;}
+                		.d2-1224262254 .stroke-N1{stroke:#0A0F25;}
+                		.d2-1224262254 .stroke-N2{stroke:#676C7E;}
+                		.d2-1224262254 .stroke-N3{stroke:#9499AB;}
+                		.d2-1224262254 .stroke-N4{stroke:#CFD2DD;}
+                		.d2-1224262254 .stroke-N5{stroke:#DEE1EB;}
+                		.d2-1224262254 .stroke-N6{stroke:#EEF1F8;}
+                		.d2-1224262254 .stroke-N7{stroke:#FFFFFF;}
+                		.d2-1224262254 .stroke-B1{stroke:#0D32B2;}
+                		.d2-1224262254 .stroke-B2{stroke:#0D32B2;}
+                		.d2-1224262254 .stroke-B3{stroke:#E3E9FD;}
+                		.d2-1224262254 .stroke-B4{stroke:#E3E9FD;}
+                		.d2-1224262254 .stroke-B5{stroke:#EDF0FD;}
+                		.d2-1224262254 .stroke-B6{stroke:#F7F8FE;}
+                		.d2-1224262254 .stroke-AA2{stroke:#4A6FF3;}
+                		.d2-1224262254 .stroke-AA4{stroke:#EDF0FD;}
+                		.d2-1224262254 .stroke-AA5{stroke:#F7F8FE;}
+                		.d2-1224262254 .stroke-AB4{stroke:#EDF0FD;}
+                		.d2-1224262254 .stroke-AB5{stroke:#F7F8FE;}
+                		.d2-1224262254 .background-color-N1{background-color:#0A0F25;}
+                		.d2-1224262254 .background-color-N2{background-color:#676C7E;}
+                		.d2-1224262254 .background-color-N3{background-color:#9499AB;}
+                		.d2-1224262254 .background-color-N4{background-color:#CFD2DD;}
+                		.d2-1224262254 .background-color-N5{background-color:#DEE1EB;}
+                		.d2-1224262254 .background-color-N6{background-color:#EEF1F8;}
+                		.d2-1224262254 .background-color-N7{background-color:#FFFFFF;}
+                		.d2-1224262254 .background-color-B1{background-color:#0D32B2;}
+                		.d2-1224262254 .background-color-B2{background-color:#0D32B2;}
+                		.d2-1224262254 .background-color-B3{background-color:#E3E9FD;}
+                		.d2-1224262254 .background-color-B4{background-color:#E3E9FD;}
+                		.d2-1224262254 .background-color-B5{background-color:#EDF0FD;}
+                		.d2-1224262254 .background-color-B6{background-color:#F7F8FE;}
+                		.d2-1224262254 .background-color-AA2{background-color:#4A6FF3;}
+                		.d2-1224262254 .background-color-AA4{background-color:#EDF0FD;}
+                		.d2-1224262254 .background-color-AA5{background-color:#F7F8FE;}
+                		.d2-1224262254 .background-color-AB4{background-color:#EDF0FD;}
+                		.d2-1224262254 .background-color-AB5{background-color:#F7F8FE;}
+                		.d2-1224262254 .color-N1{color:#0A0F25;}
+                		.d2-1224262254 .color-N2{color:#676C7E;}
+                		.d2-1224262254 .color-N3{color:#9499AB;}
+                		.d2-1224262254 .color-N4{color:#CFD2DD;}
+                		.d2-1224262254 .color-N5{color:#DEE1EB;}
+                		.d2-1224262254 .color-N6{color:#EEF1F8;}
+                		.d2-1224262254 .color-N7{color:#FFFFFF;}
+                		.d2-1224262254 .color-B1{color:#0D32B2;}
+                		.d2-1224262254 .color-B2{color:#0D32B2;}
+                		.d2-1224262254 .color-B3{color:#E3E9FD;}
+                		.d2-1224262254 .color-B4{color:#E3E9FD;}
+                		.d2-1224262254 .color-B5{color:#EDF0FD;}
+                		.d2-1224262254 .color-B6{color:#F7F8FE;}
+                		.d2-1224262254 .color-AA2{color:#4A6FF3;}
+                		.d2-1224262254 .color-AA4{color:#EDF0FD;}
+                		.d2-1224262254 .color-AA5{color:#F7F8FE;}
+                		.d2-1224262254 .color-AB4{color:#EDF0FD;}
+                		.d2-1224262254 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-1224262254);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-1224262254);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-1224262254);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-1224262254);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-1224262254);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-1224262254);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-1224262254);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-1224262254);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]>
+              </style>
+              <g class="c3RlcDE=">
+                <g class="shape">
+                  <rect
+                    x="12.000000"
+                    y="81.000000"
+                    width="159.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#e63946"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="91.500000"
+                  y="119.500000"
+                  fill="#fff"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="91.500000" dy="0.000000">Step 1</tspan>
+                  <tspan x="91.500000" dy="18.500000">Extract domain/</tspan>
+                </text>
+              </g>
+              <g class="c3RlcDI=">
+                <g class="shape">
+                  <rect
+                    x="407.000000"
+                    y="41.000000"
+                    width="145.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#e63946"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="479.500000"
+                  y="79.500000"
+                  fill="#fff"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="479.500000" dy="0.000000">Step 2</tspan>
+                  <tspan x="479.500000" dy="18.500000">Extract authz/</tspan>
+                </text>
+              </g>
+              <g class="c3RlcDM=">
+                <g class="shape">
+                  <rect
+                    x="794.000000"
+                    y="12.000000"
+                    width="142.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#f4d35e"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="865.000000"
+                  y="50.500000"
+                  fill="#111"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="865.000000" dy="0.000000">Step 3</tspan>
+                  <tspan x="865.000000" dy="18.500000">Extract store/</tspan>
+                </text>
+              </g>
+              <g class="c3RlcDQ=">
+                <g class="shape">
+                  <rect
+                    x="769.000000"
+                    y="119.000000"
+                    width="193.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#f4d35e"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="865.500000"
+                  y="157.500000"
+                  fill="#111"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="865.500000" dy="0.000000">Step 4</tspan>
+                  <tspan x="865.500000" dy="18.500000">Extract eventsource/</tspan>
+                </text>
+              </g>
+              <g class="c3RlcDU=">
+                <g class="shape">
+                  <rect
+                    x="1042.000000"
+                    y="60.000000"
+                    width="177.000000"
+                    height="98.000000"
+                    stroke="#0D32B2"
+                    fill="#1d3557"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1130.500000"
+                  y="98.500000"
+                  fill="#fff"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="1130.500000" dy="0.000000">Step 5</tspan>
+                  <tspan x="1130.500000" dy="17.666667">Extract webauthn/</tspan>
+                  <tspan x="1130.500000" dy="17.666667">oauth2/ totp/</tspan>
+                </text>
+              </g>
+              <g class="c3RlcDY=">
+                <g class="shape">
+                  <rect
+                    x="1289.000000"
+                    y="60.000000"
+                    width="158.000000"
+                    height="98.000000"
+                    stroke="#0D32B2"
+                    fill="#4a4a52"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1368.000000"
+                  y="98.500000"
+                  fill="#fff"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="1368.000000" dy="0.000000">Step 6</tspan>
+                  <tspan x="1368.000000" dy="17.666667">Extract httpapi/</tspan>
+                  <tspan x="1368.000000" dy="17.666667">internal/</tspan>
+                </text>
+              </g>
+              <g class="c3RlcDc=">
+                <g class="shape">
+                  <rect
+                    x="1517.000000"
+                    y="68.000000"
+                    width="133.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#4a4a52"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1583.500000"
+                  y="106.500000"
+                  fill="#fff"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="1583.500000" dy="0.000000">Step 7</tspan>
+                  <tspan x="1583.500000" dy="18.500000">Update docs</tspan>
+                </text>
+              </g>
+              <g class="dGllcjE=">
+                <g class="shape"></g>
+                <text
+                  x="91.000000"
+                  y="200.000000"
+                  fill="#e63946"
+                  class="text"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="91.000000" dy="0.000000">Tier 1: Core</tspan>
+                  <tspan x="91.000000" dy="18.500000">(foundational)</tspan>
+                </text>
+              </g>
+              <g class="dGllcjI=">
+                <g class="shape"></g>
+                <text
+                  x="91.000000"
+                  y="257.000000"
+                  fill="#c08000"
+                  class="text"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="91.000000" dy="0.000000">Tier 2: Untangle</tspan>
+                  <tspan x="91.000000" dy="18.500000">(high leverage)</tspan>
+                </text>
+              </g>
+              <g class="dGllcjM=">
+                <g class="shape"></g>
+                <text
+                  x="91.500000"
+                  y="314.000000"
+                  fill="#1d3557"
+                  class="text"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="91.500000" dy="0.000000">Tier 3: Subsystems</tspan>
+                  <tspan x="91.500000" dy="18.500000">(complete graph)</tspan>
+                </text>
+              </g>
+              <g class="dGllcjQ=">
+                <g class="shape"></g>
+                <text
+                  x="91.500000"
+                  y="371.000000"
+                  fill="#555"
+                  class="text"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Tier 4: Polish
+                </text>
+              </g>
+              <g class="KHN0ZXAxIC0mZ3Q7IHN0ZXAyKVswXQ==">
+                <marker
+                  id="mk-d2-1224262254-3488378134"
+                  markerWidth="10.000000"
+                  markerHeight="12.000000"
+                  refX="7.000000"
+                  refY="6.000000"
+                  viewBox="0.000000 0.000000 10.000000 12.000000"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <polygon
+                    points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000"
+                    fill="#0D32B2"
+                    class="connection fill-B1"
+                    stroke-width="2"
+                  />
+                </marker>
+                <path
+                  d="M 173.000000 109.333000 L 403.000000 109.333000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1224262254-3488378134)"
+                  mask="url(#d2-1224262254)"
+                />
+                <text
+                  x="289.000000"
+                  y="107.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="289.000000" dy="0.000000">domain/</tspan>
+                  <tspan x="289.000000" dy="18.500000">depended on</tspan>
+                </text>
+              </g>
+              <g class="KHN0ZXAyIC0mZ3Q7IHN0ZXAzKVswXQ==">
+                <path
+                  d="M 554.000000 53.000000 L 791.000000 53.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1224262254-3488378134)"
+                  mask="url(#d2-1224262254)"
+                />
+              </g>
+              <g class="KHN0ZXAxIC0mZ3Q7IHN0ZXA0KVswXQ==">
+                <path
+                  d="M 173.000000 136.666000 L 201.000000 136.666000 S 211.000000 136.666000 211.000000 146.666000 L 211.000000 180.332993 S 211.000000 190.332993 221.000000 190.332993 L 765.000000 190.332993"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1224262254-3488378134)"
+                  mask="url(#d2-1224262254)"
+                />
+                <text
+                  x="443.000000"
+                  y="188.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="443.000000" dy="0.000000">domain/</tspan>
+                  <tspan x="443.000000" dy="18.500000">required</tspan>
+                </text>
+              </g>
+              <g class="KHN0ZXAyIC0mZ3Q7IHN0ZXA0KVswXQ==">
+                <path
+                  d="M 554.000000 96.666000 L 719.000000 96.666000 S 729.000000 96.666000 729.000000 106.666000 L 729.000000 136.666000 S 729.000000 146.666000 739.000000 146.666000 L 765.000000 146.666000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1224262254-3488378134)"
+                  mask="url(#d2-1224262254)"
+                />
+                <text
+                  x="685.500000"
+                  y="94.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="685.500000" dy="0.000000">authz/</tspan>
+                  <tspan x="685.500000" dy="18.500000">required</tspan>
+                </text>
+              </g>
+              <g class="KHN0ZXAzIC0mZ3Q7IHN0ZXA1KVswXQ==">
+                <path
+                  d="M 938.000000 53.000000 L 992.000000 53.000000 S 1002.000000 53.000000 1002.000000 63.000000 L 1002.000000 83.000000 S 1002.000000 93.000000 1012.000000 93.000000 L 1038.000000 93.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1224262254-3488378134)"
+                  mask="url(#d2-1224262254)"
+                />
+              </g>
+              <g class="KHN0ZXA0IC0mZ3Q7IHN0ZXA1KVswXQ==">
+                <path
+                  d="M 964.000000 160.332993 L 992.000000 160.332993 S 1002.000000 160.332993 1002.000000 150.332993 L 1002.000000 135.666000 S 1002.000000 125.666000 1012.000000 125.666000 L 1038.000000 125.666000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1224262254-3488378134)"
+                  mask="url(#d2-1224262254)"
+                />
+              </g>
+              <g class="KHN0ZXA1IC0mZ3Q7IHN0ZXA2KVswXQ==">
+                <path
+                  d="M 1221.000000 109.333000 L 1285.000000 109.333000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1224262254-3488378134)"
+                  mask="url(#d2-1224262254)"
+                />
+              </g>
+              <g class="KHN0ZXA2IC0mZ3Q7IHN0ZXA3KVswXQ==">
+                <path
+                  d="M 1449.000000 109.333000 L 1513.000000 109.333000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1224262254-3488378134)"
+                  mask="url(#d2-1224262254)"
+                />
+              </g>
+              <mask
+                id="d2-1224262254"
+                maskUnits="userSpaceOnUse"
+                x="-89"
+                y="-89"
+                width="1840"
+                height="566"
+              >
+                <rect x="-89" y="-89" width="1840" height="566" fill="white"></rect>
+                <rect x="244.000000" y="91.000000" width="90" height="37" fill="black"></rect>
+                <rect x="412.000000" y="172.000000" width="62" height="37" fill="black"></rect>
+                <rect x="655.000000" y="78.000000" width="61" height="37" fill="black"></rect>
+              </mask>
+            </svg>
+          </svg>
+        </div>
+
+        <h2 id="verify"><span class="num">V</span>Final Verification Checklist</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Command</th>
+              <th>Expected</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Root module builds</td>
+              <td><code>go build ./...</code></td>
+              <td>Exit 0</td>
+            </tr>
+            <tr>
+              <td>usermgmt builds (isolated)</td>
+              <td><code>cd usermgmt && GOWORK=off go build ./...</code></td>
+              <td>Exit 0</td>
+            </tr>
+            <tr>
+              <td>All tests pass (root)</td>
+              <td><code>go test ./... -race -count=1</code></td>
+              <td>ok, 0 failures</td>
+            </tr>
+            <tr>
+              <td>All tests pass (usermgmt)</td>
+              <td><code>cd usermgmt && GOWORK=off go test ./... -race -count=1</code></td>
+              <td>ok, 0 failures</td>
+            </tr>
+            <tr>
+              <td>integration_test passes</td>
+              <td><code>cd integration_test && GOWORK=off go test ./... -race</code></td>
+              <td>ok</td>
+            </tr>
+            <tr>
+              <td>Lint clean</td>
+              <td><code>golangci-lint run</code></td>
+              <td>0 issues</td>
+            </tr>
+            <tr>
+              <td>No import cycles</td>
+              <td><code>go vet ./...</code></td>
+              <td>Exit 0</td>
+            </tr>
+            <tr>
+              <td>go.work sync</td>
+              <td><code>go work sync</code></td>
+              <td>No errors</td>
+            </tr>
+            <tr>
+              <td>Consumer compat</td>
+              <td><code>cd examples/basic && GOWORK=off go build ./...</code></td>
+              <td>Exit 0 (backward compat verified)</td>
+            </tr>
+            <tr>
+              <td>Flake check</td>
+              <td><code>nix flake check</code></td>
+              <td>Exit 0</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="footer">
+          Generated 2026-06-21 · go-modularize skill Phase 5 · Companion to 2026-06-21_PROPOSAL.html
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

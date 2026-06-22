@@ -1,0 +1,3383 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modularization Proposal — cqrs-htmx — 2026-06-21</title>
+    <style>
+      :root {
+        --color-paper: #f4f4f0;
+        --color-paper-2: #fff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: #555;
+        --text-faint: #888;
+        --border: #d0d0c8;
+        --border-strong: #b0b0a8;
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: var(--font-heading);
+        --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.65;
+        font-size: 15px;
+      }
+      .layout {
+        display: flex;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        width: 240px;
+        flex-shrink: 0;
+        border-right: 1px solid var(--border);
+        padding: 32px 20px;
+        overflow-y: auto;
+        background: var(--surface);
+      }
+      .sidebar .label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-bottom: 12px;
+        font-weight: 700;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 5px 10px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 13px;
+        border-left: 2px solid transparent;
+        margin-bottom: 2px;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        border-left-color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        padding: 48px 56px;
+        max-width: 1160px;
+        min-width: 0;
+      }
+      header.hero {
+        margin-bottom: 48px;
+        padding-bottom: 24px;
+        border-bottom: 3px solid var(--color-ink);
+      }
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+        margin-bottom: 12px;
+      }
+      header.hero h1 {
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin-bottom: 12px;
+      }
+      .subtitle {
+        font-size: 17px;
+        color: var(--text-muted);
+        max-width: 720px;
+        margin-bottom: 16px;
+      }
+      .meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .tag {
+        font-size: 11px;
+        padding: 3px 10px;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .tag.amber {
+        border-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 15%, transparent);
+      }
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 12px;
+        margin: 32px 0;
+      }
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 18px;
+        text-align: center;
+      }
+      .score {
+        font-size: 30px;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .label-s {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .score-good .score {
+        color: var(--color-blue);
+      }
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .score-warn .score {
+        color: #c08000;
+      }
+      h2 {
+        font-size: 26px;
+        font-weight: 800;
+        margin: 56px 0 20px;
+        letter-spacing: -0.01em;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 10px;
+      }
+      h2 .num {
+        color: var(--accent);
+        font-weight: 900;
+        margin-right: 10px;
+        font-size: 22px;
+      }
+      h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 28px 0 10px;
+      }
+      h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 16px 0 6px;
+      }
+      p {
+        margin-bottom: 12px;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 2px 6px;
+      }
+      pre {
+        background: var(--surface-sunken);
+        padding: 14px 16px;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        margin: 12px 0;
+        border: 1px solid var(--border);
+      }
+      .diagram-container {
+        margin: 24px 0;
+        border: 1px solid var(--border);
+        background: var(--surface-raised);
+        padding: 16px;
+        overflow-x: auto;
+      }
+      .diagram-container svg {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--text-muted);
+        padding: 18px 22px;
+        margin-bottom: 14px;
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .callout {
+        padding: 16px 20px;
+        margin: 16px 0;
+        border: 1px solid;
+      }
+      .callout-solution {
+        border-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 6%, transparent);
+      }
+      .callout-warning {
+        border-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, transparent);
+      }
+      .callout-problem {
+        border-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 6%, transparent);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 13px;
+      }
+      th {
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 2px solid var(--border-strong);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-faint);
+        font-weight: 700;
+      }
+      td {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      td code {
+        font-size: 12px;
+      }
+      tr:hover td {
+        background: var(--surface-sunken);
+      }
+      .migration-step {
+        display: flex;
+        gap: 16px;
+        margin: 16px 0;
+        padding: 16px;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .migration-num {
+        font-size: 24px;
+        font-weight: 900;
+        color: var(--accent);
+        flex-shrink: 0;
+        width: 36px;
+        text-align: center;
+      }
+      .migration-content {
+        flex: 1;
+      }
+      .migration-content h4 {
+        margin-top: 0;
+      }
+      .footer {
+        border-top: 1px solid var(--border);
+        padding: 24px 0;
+        margin-top: 64px;
+        font-size: 12px;
+        color: var(--text-faint);
+        text-align: center;
+      }
+      @media (max-width: 1024px) {
+        .sidebar {
+          display: none;
+        }
+        .main {
+          padding: 32px 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <nav data-nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Executive Summary</a>
+          <a href="#current">Current State</a>
+          <a href="#assessment">Re-modularization Assessment</a>
+          <a href="#proposal">Proposed Structure</a>
+          <a href="#mapping">File Mapping (71 files)</a>
+          <a href="#coupling">Coupling Analysis</a>
+          <a href="#alternatives">Approach Comparison</a>
+          <a href="#dag">DAG Verification</a>
+          <a href="#strategy">Strategy</a>
+          <a href="#errors">Error Placement</a>
+          <a href="#breaking">Breaking Changes</a>
+          <a href="#migration">Migration</a>
+          <a href="#risks">Risks</a>
+          <a href="#build">Build Impact</a>
+          <a href="#reflection">Reflection</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <header class="hero">
+          <div class="eyebrow">MODULARIZATION PROPOSAL &middot; 2026-06-21</div>
+          <h1>cqrs-htmx Re-modularization Proposal</h1>
+          <p class="subtitle">
+            Fresh assessment of the 7-module workspace after explosive growth: root 19→40 files,
+            usermgmt 9→71 files. The module boundaries are sound; the <code>usermgmt</code>
+            <strong>package</strong> has become a god-package requiring decomposition.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Supersedes: 2026-05-27 PROPOSAL.md</span>
+            <span class="tag">7 modules</span>
+            <span class="tag">go.work workspace</span>
+            <span class="tag">Unix Philosophy</span>
+          </div>
+        </header>
+
+        <div class="scorecard" id="summary">
+          <div class="score-card score-good">
+            <div class="score">7</div>
+            <div class="label-s">Modules (correct)</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">1</div>
+            <div class="label-s">God-Package (usermgmt)</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">71</div>
+            <div class="label-s">usermgmt prod files</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label-s">Import cycles</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label-s">Replace in go.work</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">8</div>
+            <div class="label-s">Proposed sub-packages</div>
+          </div>
+        </div>
+
+        <h2 id="current"><span class="num">01</span>Current State Analysis</h2>
+
+        <h3>Module Landscape (7 modules)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Path</th>
+              <th>Prod Files</th>
+              <th>External Deps</th>
+              <th>Internal Deps</th>
+              <th>go.work</th>
+              <th>State</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Root</strong></td>
+              <td><code>./</code></td>
+              <td>40</td>
+              <td>nosurf, cqrs-lite, error-family, httputil, x/time</td>
+              <td>0</td>
+              <td>Yes</td>
+              <td><strong>Clean</strong></td>
+            </tr>
+            <tr>
+              <td><strong>usermgmt</strong></td>
+              <td><code>./usermgmt</code></td>
+              <td>71</td>
+              <td>casbin, webauthn, oidc, oauth2, otp, sqlite, cqrs-lite</td>
+              <td>0</td>
+              <td>Yes</td>
+              <td><strong>God-package</strong></td>
+            </tr>
+            <tr>
+              <td><strong>catalog</strong></td>
+              <td><code>./catalog</code></td>
+              <td>3</td>
+              <td>cqrs-lite/catalog, error-family</td>
+              <td>0</td>
+              <td>Yes</td>
+              <td><strong>Clean</strong></td>
+            </tr>
+            <tr>
+              <td>integration_test</td>
+              <td><code>./integration_test</code></td>
+              <td>0</td>
+              <td>root, usermgmt, catalog + signing/encryption</td>
+              <td>3</td>
+              <td>Yes</td>
+              <td>Clean (replace directives)</td>
+            </tr>
+            <tr>
+              <td>examples/basic</td>
+              <td><code>./examples/basic</code></td>
+              <td>1</td>
+              <td>root</td>
+              <td>1</td>
+              <td>Yes</td>
+              <td>Clean (replace)</td>
+            </tr>
+            <tr>
+              <td>examples/catalog-demo</td>
+              <td><code>./examples/catalog-demo</code></td>
+              <td>1</td>
+              <td>catalog</td>
+              <td>1</td>
+              <td>Yes</td>
+              <td>Clean (replace)</td>
+            </tr>
+            <tr>
+              <td>examples/datastar-demo</td>
+              <td><code>./examples/datastar-demo</code></td>
+              <td>7</td>
+              <td>cqrs-lite, datastar</td>
+              <td>0</td>
+              <td>Yes</td>
+              <td>Clean (standalone)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Classification: Clean Workspace Mode</h3>
+        <p>
+          The project is in clean workspace mode. <code>go.work</code> coordinates all 7 modules. No
+          <code>replace</code> directives in go.work. Replace directives in
+          <code>integration_test/go.mod</code> and examples are correct (needed for
+          <code>GOWORK=off</code> CI builds). The cross-module DAG is acyclic with zero mutual
+          imports between root and usermgmt.
+        </p>
+
+        <div class="diagram-container">
+          <?xml version="1.0" encoding="utf-8"?><svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            data-d2-version="v0.7.1"
+            preserveAspectRatio="xMinYMin meet"
+            viewBox="0 0 1342 1620"
+          >
+            <svg
+              class="d2-1537433646 d2-svg"
+              width="1342"
+              height="1620"
+              viewBox="-89 -89 1342 1620"
+            >
+              <rect
+                x="-89.000000"
+                y="-89.000000"
+                width="1342.000000"
+                height="1620.000000"
+                rx="0.000000"
+                fill="#FFFFFF"
+                class="fill-N7"
+                stroke-width="0"
+              />
+              <style type="text/css">
+                <![CDATA[
+                .d2-1537433646 .text {
+                	font-family: "d2-1537433646-font-regular";
+                }
+                @font-face {
+                	font-family: d2-1537433646-font-regular;
+                	src: url("data:application/font-woff;base64,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");
+                }
+                .d2-1537433646 .text-bold {
+                	font-family: "d2-1537433646-font-bold";
+                }
+                @font-face {
+                	font-family: d2-1537433646-font-bold;
+                	src: url("data:application/font-woff;base64,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");
+                }
+                .d2-1537433646 .text-italic {
+                	font-family: "d2-1537433646-font-italic";
+                }
+                @font-face {
+                	font-family: d2-1537433646-font-italic;
+                	src: url("data:application/font-woff;base64,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");
+                }]]>
+              </style>
+              <style type="text/css">
+                <![CDATA[.shape {
+                  shape-rendering: geometricPrecision;
+                  stroke-linejoin: round;
+                }
+                .connection {
+                  stroke-linecap: round;
+                  stroke-linejoin: round;
+                }
+                .blend {
+                  mix-blend-mode: multiply;
+                  opacity: 0.5;
+                }
+
+                		.d2-1537433646 .fill-N1{fill:#0A0F25;}
+                		.d2-1537433646 .fill-N2{fill:#676C7E;}
+                		.d2-1537433646 .fill-N3{fill:#9499AB;}
+                		.d2-1537433646 .fill-N4{fill:#CFD2DD;}
+                		.d2-1537433646 .fill-N5{fill:#DEE1EB;}
+                		.d2-1537433646 .fill-N6{fill:#EEF1F8;}
+                		.d2-1537433646 .fill-N7{fill:#FFFFFF;}
+                		.d2-1537433646 .fill-B1{fill:#0D32B2;}
+                		.d2-1537433646 .fill-B2{fill:#0D32B2;}
+                		.d2-1537433646 .fill-B3{fill:#E3E9FD;}
+                		.d2-1537433646 .fill-B4{fill:#E3E9FD;}
+                		.d2-1537433646 .fill-B5{fill:#EDF0FD;}
+                		.d2-1537433646 .fill-B6{fill:#F7F8FE;}
+                		.d2-1537433646 .fill-AA2{fill:#4A6FF3;}
+                		.d2-1537433646 .fill-AA4{fill:#EDF0FD;}
+                		.d2-1537433646 .fill-AA5{fill:#F7F8FE;}
+                		.d2-1537433646 .fill-AB4{fill:#EDF0FD;}
+                		.d2-1537433646 .fill-AB5{fill:#F7F8FE;}
+                		.d2-1537433646 .stroke-N1{stroke:#0A0F25;}
+                		.d2-1537433646 .stroke-N2{stroke:#676C7E;}
+                		.d2-1537433646 .stroke-N3{stroke:#9499AB;}
+                		.d2-1537433646 .stroke-N4{stroke:#CFD2DD;}
+                		.d2-1537433646 .stroke-N5{stroke:#DEE1EB;}
+                		.d2-1537433646 .stroke-N6{stroke:#EEF1F8;}
+                		.d2-1537433646 .stroke-N7{stroke:#FFFFFF;}
+                		.d2-1537433646 .stroke-B1{stroke:#0D32B2;}
+                		.d2-1537433646 .stroke-B2{stroke:#0D32B2;}
+                		.d2-1537433646 .stroke-B3{stroke:#E3E9FD;}
+                		.d2-1537433646 .stroke-B4{stroke:#E3E9FD;}
+                		.d2-1537433646 .stroke-B5{stroke:#EDF0FD;}
+                		.d2-1537433646 .stroke-B6{stroke:#F7F8FE;}
+                		.d2-1537433646 .stroke-AA2{stroke:#4A6FF3;}
+                		.d2-1537433646 .stroke-AA4{stroke:#EDF0FD;}
+                		.d2-1537433646 .stroke-AA5{stroke:#F7F8FE;}
+                		.d2-1537433646 .stroke-AB4{stroke:#EDF0FD;}
+                		.d2-1537433646 .stroke-AB5{stroke:#F7F8FE;}
+                		.d2-1537433646 .background-color-N1{background-color:#0A0F25;}
+                		.d2-1537433646 .background-color-N2{background-color:#676C7E;}
+                		.d2-1537433646 .background-color-N3{background-color:#9499AB;}
+                		.d2-1537433646 .background-color-N4{background-color:#CFD2DD;}
+                		.d2-1537433646 .background-color-N5{background-color:#DEE1EB;}
+                		.d2-1537433646 .background-color-N6{background-color:#EEF1F8;}
+                		.d2-1537433646 .background-color-N7{background-color:#FFFFFF;}
+                		.d2-1537433646 .background-color-B1{background-color:#0D32B2;}
+                		.d2-1537433646 .background-color-B2{background-color:#0D32B2;}
+                		.d2-1537433646 .background-color-B3{background-color:#E3E9FD;}
+                		.d2-1537433646 .background-color-B4{background-color:#E3E9FD;}
+                		.d2-1537433646 .background-color-B5{background-color:#EDF0FD;}
+                		.d2-1537433646 .background-color-B6{background-color:#F7F8FE;}
+                		.d2-1537433646 .background-color-AA2{background-color:#4A6FF3;}
+                		.d2-1537433646 .background-color-AA4{background-color:#EDF0FD;}
+                		.d2-1537433646 .background-color-AA5{background-color:#F7F8FE;}
+                		.d2-1537433646 .background-color-AB4{background-color:#EDF0FD;}
+                		.d2-1537433646 .background-color-AB5{background-color:#F7F8FE;}
+                		.d2-1537433646 .color-N1{color:#0A0F25;}
+                		.d2-1537433646 .color-N2{color:#676C7E;}
+                		.d2-1537433646 .color-N3{color:#9499AB;}
+                		.d2-1537433646 .color-N4{color:#CFD2DD;}
+                		.d2-1537433646 .color-N5{color:#DEE1EB;}
+                		.d2-1537433646 .color-N6{color:#EEF1F8;}
+                		.d2-1537433646 .color-N7{color:#FFFFFF;}
+                		.d2-1537433646 .color-B1{color:#0D32B2;}
+                		.d2-1537433646 .color-B2{color:#0D32B2;}
+                		.d2-1537433646 .color-B3{color:#E3E9FD;}
+                		.d2-1537433646 .color-B4{color:#E3E9FD;}
+                		.d2-1537433646 .color-B5{color:#EDF0FD;}
+                		.d2-1537433646 .color-B6{color:#F7F8FE;}
+                		.d2-1537433646 .color-AA2{color:#4A6FF3;}
+                		.d2-1537433646 .color-AA4{color:#EDF0FD;}
+                		.d2-1537433646 .color-AA5{color:#F7F8FE;}
+                		.d2-1537433646 .color-AB4{color:#EDF0FD;}
+                		.d2-1537433646 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-1537433646);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-1537433646);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-1537433646);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-1537433646);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-1537433646);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-1537433646);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-1537433646);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-1537433646);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]>
+              </style>
+              <g class="ZXh0ZXJuYWw=">
+                <g class="shape">
+                  <path
+                    d="M 62 265 L 212 265 L 212 320 L 1152 320 L 1152 598 L 62 598 Z"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-AA4"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="607.000000"
+                  y="353.000000"
+                  fill="#0A0F25"
+                  class="text fill-N1"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  External Dependencies
+                </text>
+              </g>
+              <g class="cm9vdA==">
+                <g class="shape">
+                  <path
+                    d="M 493 983 L 592 983 L 592 998 L 690 998 L 690 1056 L 493 1056 Z"
+                    stroke="#0D32B2"
+                    fill="#1d3557"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="591.500000"
+                  y="1032.300000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Root Module (40 files)
+                </text>
+              </g>
+              <g class="dXNlcm1nbXQ=">
+                <g class="shape">
+                  <path
+                    d="M 837 983 L 956 983 L 956 998 L 1074 998 L 1074 1056 L 837 1056 Z"
+                    stroke="#0D32B2"
+                    fill="#7f1d1d"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="955.500000"
+                  y="1032.300000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  usermgmt Module (71 files)
+                </text>
+              </g>
+              <g class="Y2F0YWxvZw==">
+                <g class="shape">
+                  <path
+                    d="M 50 983 L 155 983 L 155 998 L 259 998 L 259 1056 L 50 1056 Z"
+                    stroke="#0D32B2"
+                    fill="#1d6b3a"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="154.500000"
+                  y="1032.300000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  catalog Module (3 files)
+                </text>
+              </g>
+              <g class="aW50ZWc=">
+                <g class="shape">
+                  <path
+                    d="M 480 1186 H 619 C 620 1186 621 1186 622 1187 L 639 1203 C 640 1204 640 1205 640 1206 V 1273 C 640 1273 640 1273 640 1273 H 480 C 479 1273 479 1273 479 1273 V 1187 C 479 1186 479 1186 480 1186 Z"
+                    stroke="#0D32B2"
+                    fill="#4a4a52"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                  <path
+                    d="M 639 1273 H 480 C 479 1273 479 1273 479 1272 V 1187 C 479 1186 479 1186 480 1186 H 618 C 619 1186 619 1186 619 1187 V 1204 C 619 1205 620 1206 621 1206 H 639 C 640 1206 640 1206 640 1207 V 1272 C 639 1273 640 1273 639 1273 Z"
+                    stroke="#0D32B2"
+                    fill="#4a4a52"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="559.500000"
+                  y="1235.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  integration_test
+                </text>
+              </g>
+              <g class="ZXhfYmFzaWM=">
+                <g class="shape">
+                  <path
+                    d="M 608 1343 H 742 C 743 1343 744 1343 745 1344 L 762 1360 C 763 1361 763 1362 763 1363 V 1430 C 763 1430 763 1430 763 1430 H 608 C 607 1430 607 1430 607 1430 V 1344 C 607 1343 607 1343 608 1343 Z"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-AB4"
+                    style="stroke-width: 2"
+                  />
+                  <path
+                    d="M 762 1430 H 608 C 607 1430 607 1430 607 1429 V 1344 C 607 1343 607 1343 608 1343 H 741 C 742 1343 742 1343 742 1344 V 1361 C 742 1362 743 1363 744 1363 H 762 C 763 1363 763 1363 763 1364 V 1429 C 762 1430 763 1430 762 1430 Z"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-AB4"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="685.000000"
+                  y="1392.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  examples/basic
+                </text>
+              </g>
+              <g class="ZXhfY2F0YWxvZw==">
+                <g class="shape">
+                  <path
+                    d="M 13 1343 H 208 C 209 1343 210 1343 211 1344 L 228 1360 C 229 1361 229 1362 229 1363 V 1430 C 229 1430 229 1430 229 1430 H 12 C 12 1430 12 1430 12 1430 V 1344 C 12 1343 12 1343 13 1343 Z"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-AB4"
+                    style="stroke-width: 2"
+                  />
+                  <path
+                    d="M 228 1430 H 13 C 12 1430 12 1430 12 1429 V 1344 C 12 1343 12 1343 13 1343 H 207 C 208 1343 208 1343 208 1344 V 1361 C 208 1362 209 1363 210 1363 H 228 C 229 1363 229 1363 229 1364 V 1429 C 228 1430 229 1430 228 1430 Z"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-AB4"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="120.500000"
+                  y="1392.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  examples/catalog-demo
+                </text>
+              </g>
+              <g class="ZXhfZGF0YXN0YXI=">
+                <g class="shape">
+                  <path
+                    d="M 87 12 H 289 C 290 12 291 12 292 13 L 309 29 C 310 30 310 31 310 32 V 99 C 310 99 310 99 310 99 H 87 C 86 99 86 99 86 99 V 12 C 86 12 86 12 87 12 Z"
+                    stroke="#0D32B2"
+                    fill="#4a4a52"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                  <path
+                    d="M 309 99 H 87 C 86 99 86 99 86 98 V 13 C 86 12 86 12 87 12 H 288 C 289 12 289 12 289 13 V 30 C 289 31 290 32 291 32 H 309 C 310 32 310 32 310 33 V 98 C 309 99 310 99 309 99 Z"
+                    stroke="#0D32B2"
+                    fill="#4a4a52"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="198.000000"
+                  y="61.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  examples/datastar-demo
+                </text>
+              </g>
+              <g class="ZXh0ZXJuYWwuY3Fyc19saXRl">
+                <g class="shape">
+                  <rect
+                    x="112.000000"
+                    y="352.000000"
+                    width="173.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="198.500000"
+                  y="390.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  go-cqrs-lite v2.6.0
+                </text>
+              </g>
+              <g class="ZXh0ZXJuYWwuY2FzYmlu">
+                <g class="shape">
+                  <rect
+                    x="305.000000"
+                    y="352.000000"
+                    width="113.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="361.500000"
+                  y="390.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  casbin/v3
+                </text>
+              </g>
+              <g class="ZXh0ZXJuYWwubm9zdXJm">
+                <g class="shape">
+                  <rect
+                    x="438.000000"
+                    y="352.000000"
+                    width="154.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="515.000000"
+                  y="390.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  justinas/nosurf
+                </text>
+              </g>
+              <g class="ZXh0ZXJuYWwud2ViYXV0aG4=">
+                <g class="shape">
+                  <rect
+                    x="612.000000"
+                    y="352.000000"
+                    width="140.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="682.000000"
+                  y="390.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  go-webauthn
+                </text>
+              </g>
+              <g class="ZXh0ZXJuYWwub2lkYw==">
+                <g class="shape">
+                  <rect
+                    x="772.000000"
+                    y="352.000000"
+                    width="176.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="860.000000"
+                  y="390.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  go-oidc + x/oauth2
+                </text>
+              </g>
+              <g class="ZXh0ZXJuYWwub3Rw">
+                <g class="shape">
+                  <rect
+                    x="968.000000"
+                    y="352.000000"
+                    width="134.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1035.000000"
+                  y="390.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  pquerna/otp
+                </text>
+              </g>
+              <g class="KGV4dGVybmFsLmNxcnNfbGl0ZSAtJmd0OyByb290KVswXQ==">
+                <marker
+                  id="mk-d2-1537433646-3488378134"
+                  markerWidth="10.000000"
+                  markerHeight="12.000000"
+                  refX="7.000000"
+                  refY="6.000000"
+                  viewBox="0.000000 0.000000 10.000000 12.000000"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <polygon
+                    points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000"
+                    fill="#0D32B2"
+                    class="connection fill-B1"
+                    stroke-width="2"
+                  />
+                </marker>
+                <path
+                  d="M 198.582993 420.000000 L 198.582993 933.000000 S 198.582993 943.000000 208.582993 943.000000 L 533.208008 943.000000 S 543.208008 943.000000 543.156007 952.999865 L 543.020801 979.000054"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KGV4dGVybmFsLmNhc2JpbiAtJmd0OyByb290KVswXQ==">
+                <path
+                  d="M 342.750000 420.000000 L 342.750000 883.000000 S 342.750000 893.000000 352.750000 893.000000 L 582.458008 893.000000 S 592.458008 893.000000 592.414388 902.999905 L 592.017448 994.000038"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KGV4dGVybmFsLm5vc3VyZiAtJmd0OyByb290KVswXQ==">
+                <path
+                  d="M 515.083008 420.000000 L 515.083008 833.000000 S 515.083008 843.000000 525.083008 843.000000 L 631.708008 843.000000 S 641.708008 843.000000 641.726846 852.999982 L 641.992465 994.000007"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KGV4dGVybmFsLmNxcnNfbGl0ZSAtJmd0OyB1c2VybWdtdClbMF0=">
+                <path
+                  d="M 241.832993 420.000000 L 241.832993 783.000000 S 241.832993 793.000000 251.832993 793.000000 L 867.083008 793.000000 S 877.083008 793.000000 877.078639 802.999999 L 877.001748 979.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KGV4dGVybmFsLmNhc2JpbiAtJmd0OyB1c2VybWdtdClbMF0=">
+                <path
+                  d="M 380.415985 420.000000 L 380.415985 733.000000 S 380.415985 743.000000 390.415985 743.000000 L 906.583008 743.000000 S 916.583008 743.000000 916.600382 752.999985 L 916.993050 979.000006"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KGV4dGVybmFsLndlYmF1dGhuIC0mZ3Q7IHVzZXJtZ210KVswXQ==">
+                <path
+                  d="M 682.083008 420.000000 L 682.083008 683.000000 S 682.083008 693.000000 692.083008 693.000000 L 946.083008 693.000000 S 956.083008 693.000000 956.080286 703.000000 L 956.001089 994.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KGV4dGVybmFsLm9pZGMgLSZndDsgdXNlcm1nbXQpWzBd">
+                <path
+                  d="M 860.083008 420.000000 L 860.083008 633.000000 S 860.083008 643.000000 870.083008 643.000000 L 985.583008 643.000000 S 995.583008 643.000000 995.594754 652.999993 L 995.995301 994.000003"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KGV4dGVybmFsLm90cCAtJmd0OyB1c2VybWdtdClbMF0=">
+                <path
+                  d="M 1035.082722 420.000000 L 1035.000572 994.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KGV4dGVybmFsLmNxcnNfbGl0ZSAtJmd0OyBjYXRhbG9nKVswXQ==">
+                <path
+                  d="M 155.331844 420.000000 L 155.002296 994.000001"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KHJvb3QgLSZndDsgaW50ZWcpWzBd">
+                <path
+                  d="M 560.000000 1058.000000 L 560.000000 1182.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KHVzZXJtZ210IC0mZ3Q7IGludGVnKVswXQ==">
+                <path
+                  d="M 956.004150 1057.999996 L 956.062256 1086.000022 S 956.083008 1096.000000 946.083008 1096.000000 L 609.875000 1096.000000 S 599.875000 1096.000000 599.888889 1105.999990 L 599.994444 1182.000004"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KGNhdGFsb2cgLSZndDsgaW50ZWcpWzBd">
+                <path
+                  d="M 190.008300 1057.999983 L 190.124501 1086.000086 S 190.166000 1096.000000 200.166000 1096.000000 L 509.375000 1096.000000 S 519.375000 1096.000000 519.333334 1105.999913 L 519.016667 1182.000035"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+              </g>
+              <g class="KHJvb3QgLSZndDsgZXhfYmFzaWMpWzBd">
+                <path
+                  d="M 625.006467 1057.999990 L 625.258681 1136.000052 S 625.291016 1146.000000 635.291016 1146.000000 L 675.125000 1146.000000 S 685.125000 1146.000000 685.118655 1155.999998 L 685.002538 1339.000001"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+                <text
+                  x="685.000000"
+                  y="1175.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  replace
+                </text>
+              </g>
+              <g class="KGNhdGFsb2cgLSZndDsgZXhfY2F0YWxvZylbMF0=">
+                <path
+                  d="M 120.006969 1057.999988 L 120.986063 1339.000024"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+                <text
+                  x="121.000000"
+                  y="1205.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  replace
+                </text>
+              </g>
+              <g class="KGV4X2RhdGFzdGFyIC0mZ3Q7IGV4dGVybmFsLmNxcnNfbGl0ZSlbMF0=">
+                <path
+                  d="M 199.000000 101.000000 L 199.000000 348.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-1537433646-3488378134)"
+                  mask="url(#d2-1537433646)"
+                />
+                <text
+                  x="199.000000"
+                  y="231.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  standalone
+                </text>
+              </g>
+              <mask
+                id="d2-1537433646"
+                maskUnits="userSpaceOnUse"
+                x="-89"
+                y="-89"
+                width="1342"
+                height="1620"
+              >
+                <rect x="-89" y="-89" width="1342" height="1620" fill="white"></rect>
+                <rect x="658.000000" y="1159.000000" width="54" height="21" fill="black"></rect>
+                <rect x="94.000000" y="1189.000000" width="54" height="21" fill="black"></rect>
+                <rect x="159.000000" y="215.000000" width="80" height="21" fill="black"></rect>
+              </mask>
+            </svg>
+          </svg>
+        </div>
+
+        <div class="callout callout-problem">
+          <strong
+            >The core problem is NOT module boundaries — it's the god-PACKAGE inside
+            usermgmt</strong
+          >
+          The 2026-05-27 proposal concluded "do not split root" based on 19 root files. Root has
+          since grown to 40 files but remains a cohesive "HTMX-aware CQRS HTTP integration" library.
+          However, <code>usermgmt</code> exploded from 9 → 71 production files. A single Go package
+          now hosts <strong>4 event-sourced aggregates</strong> (User, Bot, Membership, Tenant),
+          <strong>5 authentication subsystems</strong> (WebAuthn, OAuth2/OIDC, TOTP, email
+          verification, sessions), <strong>Casbin authorization</strong>,
+          <strong>SQL stores</strong>, <strong>HTTP handlers</strong>, and
+          <strong>import/export</strong>. This violates the Unix principle: "do one thing well."
+        </div>
+
+        <h2 id="assessment"><span class="num">02</span>Re-modularization Assessment</h2>
+
+        <h3>Module Boundary Scores</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Cohesion (1-5)</th>
+              <th>Coupling (1-5, lower=better)</th>
+              <th>Independence</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Root</td>
+              <td>4 — all files serve "HTMX CQRS integration"</td>
+              <td>2 — errors↔response↔csrf cycle</td>
+              <td>Yes</td>
+              <td><strong>Keep</strong></td>
+            </tr>
+            <tr>
+              <td>usermgmt</td>
+              <td><strong>1</strong> — 6 unrelated subsystems in 1 package</td>
+              <td>2 — zero mutual imports with root</td>
+              <td>Yes</td>
+              <td><strong>Reorganize</strong> (god-package)</td>
+            </tr>
+            <tr>
+              <td>catalog</td>
+              <td>5 — single purpose (API doc generation)</td>
+              <td>1 — depends only on cqrs-lite/catalog</td>
+              <td>Yes</td>
+              <td><strong>Keep</strong></td>
+            </tr>
+            <tr>
+              <td>integration_test</td>
+              <td>N/A — test bridge</td>
+              <td>3 — imports 3 internal modules</td>
+              <td>Yes</td>
+              <td><strong>Keep</strong></td>
+            </tr>
+            <tr>
+              <td>examples/*</td>
+              <td>5 — each is a focused demo</td>
+              <td>1</td>
+              <td>Yes</td>
+              <td><strong>Keep</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>usermgmt God-Package Decomposition</h3>
+        <p>The 71 production files in usermgmt cluster into 8 natural concern groups:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Cluster</th>
+              <th>Files</th>
+              <th>External Dep</th>
+              <th>Cohesion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Event-sourcing core</strong></td>
+              <td>
+                es_state, es_decide, es_dispatch, es_events, es_commands, es_constants,
+                es_readmodel, es_casbin_projection, es_projection_setup, es_setup, es_upcaster,
+                es_migration + Bot/Membership/Tenant aggregates (35 files)
+              </td>
+              <td>cqrs-lite (decider, projection, storage)</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>Domain types</strong></td>
+              <td>id, email, credential, external_account, user, errors (6 files)</td>
+              <td>go-branded-id</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>WebAuthn</strong></td>
+              <td>webauthn_adapter, webauthn_session, webauthn_service (3 files)</td>
+              <td><strong>go-webauthn</strong> (heavy)</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>OAuth2/OIDC</strong></td>
+              <td>oauth2, service_oauth2, oauth2_http (3 files)</td>
+              <td><strong>x/oauth2 + go-oidc + go-jose</strong> (heavy)</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>TOTP</strong></td>
+              <td>totp (1 file)</td>
+              <td><strong>pquerna/otp</strong></td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>Casbin authz</strong></td>
+              <td>authz_types, authz_policies, authz_roles (3 files)</td>
+              <td><strong>casbin/v3</strong></td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>Stores</strong></td>
+              <td>store, sql_session_store, sql_event_store (3 files)</td>
+              <td>cqrs-lite/storage, modernc.org/sqlite</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>HTTP + Service</strong></td>
+              <td>
+                http, *_http, service_*, middleware, import_export, lockout, audit_log, crypto,
+                random, eviction, events (17 files)
+              </td>
+              <td>—</td>
+              <td>Medium (integration layer)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Remodel Classification</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Module</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Keep</strong></td>
+              <td>Root, catalog, examples/*, integration_test</td>
+              <td>Cohesion high, coupling low, clear purpose</td>
+            </tr>
+            <tr>
+              <td><strong>Reorganize (internal)</strong></td>
+              <td>usermgmt</td>
+              <td>
+                Right files, wrong package boundaries — decompose into sub-packages within the same
+                module
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="proposal"><span class="num">03</span>Proposed Structure</h2>
+
+        <div class="callout callout-solution">
+          <strong>Recommendation: Package-level decomposition, NOT module splitting</strong>
+          Keep <code>usermgmt</code> as a single Go <strong>module</strong> (preserves consumer UX:
+          one <code>go get</code>). Decompose the internal structure into sub-<strong
+            >packages</strong
+          >
+          with a root facade. This addresses the god-package problem without breaking import paths
+          or adding versioning complexity. Dependency isolation via sub-modules is documented as a
+          future option driven by consumer demand.
+        </div>
+
+        <h3>Proposed Package Structure</h3>
+        <pre>
+usermgmt/                          # ONE module, ONE go.mod
+├── go.mod                         # unchanged module path
+├── service.go                     # Facade: Service struct embeds subsystems
+├── config.go                      # ServiceConfig (composes sub-configs)
+├── middleware.go                  # User context helpers (public API)
+├── errors.go                      # Re-exports sentinel errors (backward compat)
+│
+├── domain/                        # Foundation: zero internal deps
+│   ├── user.go                    # User, Session, SessionOrigin
+│   ├── id.go                      # UserID, TenantID, BotID, ActorID
+│   ├── email.go                   # Email value type
+│   ├── credential.go             # WebAuthnCredential
+│   ├── external_account.go        # ExternalAccount
+│   ├── role.go                    # Role constants
+│   └── errors.go                  # Domain sentinel errors
+│
+├── eventsource/                   # Event-sourced aggregates
+│   ├── user/                      # User aggregate (fold, decide, dispatch)
+│   ├── bot/                       # Bot aggregate
+│   ├── membership/                # Membership aggregate
+│   ├── tenant/                    # Tenant aggregate
+│   ├── readmodel.go               # UserReadModel projection
+│   ├── casbin_projection.go       # CasbinProjection
+│   ├── setup.go                   # EventSourcedConfig, StartProjections
+│   └── upcaster.go                # Schema evolution
+│
+├── authz/                         # Casbin RBAC wrapper
+│   ├── enforcer.go                # Authz, AsEnforcer
+│   ├── policies.go                # AddPolicy, RemovePolicy, Apply
+│   └── roles.go                   # RolesForUser, ImplicitRoles
+│
+├── store/                         # Persistence adapters
+│   ├── session_store.go           # SessionStore interface + InMemory
+│   └── sql/                       # SQL implementations
+│       ├── session_store.go
+│       └── event_store.go
+│
+├── webauthn/                      # WebAuthn ceremony (heavy dep: go-webauthn)
+│   ├── service.go                 # BeginRegistration, FinishRegistration...
+│   ├── adapter.go                 # webauthnUser adapter
+│   └── session.go                 # Challenge store
+│
+├── oauth2/                        # OAuth2/OIDC (heavy dep: x/oauth2 + go-oidc)
+│   ├── provider.go                # OAuth2ProviderConfig
+│   ├── service.go                 # BeginOAuthLogin, FinishOAuthLogin
+│   └── http.go                    # OAuth2 HTTP handlers
+│
+├── totp/                          # TOTP MFA (dep: pquerna/otp)
+│   └── totp.go
+│
+├── httpapi/                       # HTTP handlers (depends on all)
+│   ├── auth.go                    # AuthHandler (register, logout, me)
+│   ├── verification.go            # Email verification + TOTP endpoints
+│   ├── credentials.go             # Credential management endpoints
+│   └── import_export.go           # Import/export endpoints
+│
+└── internal/                      # Shared internals (not exported)
+    ├── crypto.go                  # Token generation
+    ├── random.go                  # randomBase64URLString
+    └── eviction.go                # startPeriodicEviction
+</pre
+        >
+
+        <div class="diagram-container">
+          <?xml version="1.0" encoding="utf-8"?><svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            data-d2-version="v0.7.1"
+            preserveAspectRatio="xMinYMin meet"
+            viewBox="0 0 1849 1458"
+          >
+            <svg class="d2-595674296 d2-svg" width="1849" height="1458" viewBox="-89 -89 1849 1458">
+              <rect
+                x="-89.000000"
+                y="-89.000000"
+                width="1849.000000"
+                height="1458.000000"
+                rx="0.000000"
+                fill="#FFFFFF"
+                class="fill-N7"
+                stroke-width="0"
+              />
+              <style type="text/css">
+                <![CDATA[
+                .d2-595674296 .text {
+                	font-family: "d2-595674296-font-regular";
+                }
+                @font-face {
+                	font-family: d2-595674296-font-regular;
+                	src: url("data:application/font-woff;base64,d09GRgABAAAAABBIAAoAAAAAGKgAAguFAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgXd/Vo2NtYXAAAAFUAAAAqwAAAOAEBQUtZ2x5ZgAAAgAAAAmAAAAM/Pn0Vx5oZWFkAAALgAAAADYAAAA2G4Ue32hoZWEAAAu4AAAAJAAAACQKhAXvaG10eAAAC9wAAACpAAAAtFBZCLxsb2NhAAAMiAAAAFwAAABcTZpQ7m1heHAAAAzkAAAAIAAAACAARQD2bmFtZQAADQQAAAMjAAAIFAbDVU1wb3N0AAAQKAAAAB0AAAAg/9EAMgADAgkBkAAFAAACigJYAAAASwKKAlgAAAFeADIBIwAAAgsFAwMEAwICBGAAAvcAAAADAAAAAAAAAABBREJPAEAAIP//Au7/BgAAA9gBESAAAZ8AAAAAAeYClAAAACAAA3icdM07LgQBHIDx35jxHoz3azDeMxGROIJEodBIHEArDiBuhF4hkTiEC7iCyjbz3+wU2+3X/ooPiVSCXOYHpUIqV2mcOXfh0rUbt+49evYSgUo91KtO7zx4Gmj8Rhtt/Ecv/uI7vuIzPuI93uK1+4wuceJU41jtyJhUZtyESVOmzZiVmzNvQWHRkmUrVq1Zt2HTlm2lHbv2VPYdOKQPAAD//wEAAP//RcknHQB4nGxWfWwb9d3//n52fElsJ7nG57MdO/bdJT6/xonP50ti59z4rWkSx4mT0CZt0hbSJpDnqdpUtOpDAPG0ULZpwhOgoY03bUwTEgwYUrSJ/+jGuhdAkyaggiLEJg8JtI0oTEOQ83RnJyTT/rrT6Xffl8/38/l8f9AAcwBYxI+BDpqgFQ4ABSCQDNnN8DxHSIIkcbRO4hFJzKEPlDJCh2P6eFzfl/40ffn++9HR+/Bj2/8zeHV5+deLly4p3618okTRW5+ADuYBcBcuAwkO4NSYQtRqpSwGgtIeBk4nRONizMtx5M7L/PXM6YG+SGIsdW70vlMzo4XC6bXZxYXb1nDZkx/sK7bqjRPZg7cF0OXB6EDv9lYqPTQAAAhi1S3cgZ8EF0AD6/WKsXhciFppwuvlWIOBslitQjQu0QYDKpUeGBu/Op087gw70gF5QYgekyOj7h7+dtPUE6t3PVHq88Sd7PDFUuly2sfGwlEAwFovMVyGRiDrnVAWA8fv1v3cE08/9fjs2IULFy6M4fLzTz71s+x31tcf1GqbB0Af4jIYNVwphhIojmKoefR/ys0vv0R9uJx/69DfDu2chRdxGXRaFnJ+Gpe3z9W+43txWe1PIIV2q5UW4nGpXSA5MhaXOELH6XjOaqXI+aX7TLRJb6JM66cnGnX62Lq0HtPrCFxWfsTmWDbHosXtc+jO0GrwceUFNPN4cDWkfH+3Rw8uQwvQe6fVzuk48psJvZlZSUxmf7r49KWzhVKpcBaXuans+AKpfIwo5VM0lzo4HAOtl0B1C/0dPwlhbSa8pM1AjHm9PN+D909IHRBNd2KVFqgtdzEY5U4IwyOuPveie8gvLiYSS1y483CPlGGijgXvUFd8ySSGBrvDiV7W52zxmwPp3mgxHO6Ku5hYyO13GH1t4eG+2GwUEDgB0Ne4DITaFScyFEd+/Ab66A08ms9vb9RqPVLdwj24rHJf4w8pkDXOxLVXgwFlMqvytD8XDOX9k/Jdpvj6negB5d7iMa/3WBFdUe6/cz0OWOUhegVtggO6AGhWJaIU01okeK1hiuR4zmDgo3FJ1Ij5+tDUIz8kg77AqMvD3jE4N5kldOyUlZO5y6eipsPDk7Oku5/zWAas/v89prwz6AykWfe11mTE3w0YStUt9BW+Ae3gqaHMERwpUEQtl0VLpM6N1VSH/Oxhj45IlzBT9J24PXEinywmcu6DnCdlYlxRfOP1oy7+ofPTF+Xc8vzkHayn6qRr+PRUt9BLaFPF8r/ra0deBw6uJIdX5d6cPUBFXKEcP51hB61dzKQpuTZZWkuydLzdFpntn152WSQXo/IuUt1CN3d6qGGmBedFYQcsSdxN9K9jZxOnpIDs0U9nCZ1z3H4w6R7o5FPevOnBy8ULcqdj+rXt/gGnP5dRnHRkuv/IHYC1+n+HNsEG7n0dqARnds1Bx2hQIXr4Ljm1JC2cRlj5RcORPJfocLmLv0f61IAwZRpaK06uyesrZntT4ThFxi2dyDtaKGo4dQKgFP5TzUM5URJjdZw4llJ1T55Mp3OH6UDbgQ5ndnkZ/VhuKIweaSJSpsVCRlkAAB2Eqx70GdqEPhiCwi6LRO+ehxZUoLi6kbJ8bQb1met2Zk5ZrO113bLe2pl/zp3zMgfsbLuNj870WbrMzy+RdO9klGfNB7r7Fmdnk2fHA0PJYDA5FM/PCJGZFqbNYRv7KJtyD1j1Rp/T3WPWW7JBcSJANKTaRHds3E8aOyx0pzQUHo+gV1KimEyKYkp5eMjLOvT69gDF92jYlADQu/gGWDR32eGo6mAaP8lSSccVooVDpVBvd6Ib33h9iYmcWlD+gPxZ2dutPAvVKuQA4FW8gb0QAAADBNcBoFqtvlfl4efa91Dt+z013paqW/AevgGtNRw1WdeH/XyPv9TSpCcIY6PVNCDiM9uPtZMIyXp9rVb8OdoERqtVNVsV8X0VE7vPUpbQecaD/alW70Ro7HAp1BPPlkKReBZV8lykL+SP7bQxpjxbf+zggTbreNRz7MUjS+i4iV1AtGD78Kjz+h9oE1qhYx+v92ufslhRa2I5lVpOJM+kUmeSqUIhJU9M1DWZXCtNriWzy9MzKysz08ug+YqAvkKbdU1+U53GNi9PU+17fUWtlCkGF29PnOhnMyy+pNlKqouR38Sv9jt9186XLsqdjtnnkGGfr6jaF9DNnTwNoqSF3yW4JJC6vdpHD+ldY4GaARxkcGP67V3xv/niUadPMwCXq2e7gAzfqH+He4tos769a93U3asGtH3E76LbTJZWd8aOKkd74s0jen1UVm7UeOSsbqEraFNlHb1/l2mr7D82WW2R/TG2yPk92WBvLyN0sOnAXDE84fTZ456eYGdvB5cN+4sm3inZmbDbztLNZkb0J4oeOtZuCzhpF2U0M1IPn/Zp+W3VLZTDZ9XNrPGYEyVJ0Axll8+fTgyNjDfnrlxhAuZOU5slYpofQWa54eGHM8pmuK9JLxNGLdZYdQu9hSoq7/Zpgqzb7UeFkelgrzfBqriw46ZTCyimvJuV+SCaUxzjvl5AYAJAv0EVMAMIuj33Ed1rL80eN9JGvZFuPj71Aqoon3WNcNxIF7IoDrUPALyBKpqu9v63JwKn83rVMgjdM9dmRhpbCH1jW9PY5HgT2ahvbCUOTfz/Ur6ptUnf2NacRRXlr2yGZTMssu95c6AGLtvdneOUrwFBCwB6GVXADiBIvEDXU0kCQXN8PRfR8syjc8NGm1lvtBoTtz369Nwhs6NFb7aZ0sonq+0BiyXQvvr5F+etIYoK0uc1HN0A6BFUgSYAQUTqxQIxlBvBX9B4FVBjCF3KhJRvZbSzXQDoV/jbqkoFUcZ16fC7olLNUKB8Jx/KJ4d8WWfEd0yeO5O5e9zRb/9l38nv3S1I+bAnEhKXZ5P3XCti/SFA4If3UStyqHdFSRQof+X9VKrmeZOoCX+gzoauLQ1aUw/9jpzPy8LgwMDgy6dvXb364ZLtxK21tVsnAIG3Ogm36v/wcZXZKscpi2FOOy/I+fzL9dO2pQ+vXr0FCJqrJ9EUfkPNTyMBNSNjUvniWd2Zr39Q0wwLK+htHFLvvZLIiYKoEZZ6b2NjeGNj5bp8/bp8va5NeA5Vdu68pRKqqFyp/haPgoQ31P9JzRRqWNncbpvN7cajLruts9NmdwEgzf9/gip1n9/Rp3Z181i7zWSTzdxlKyVvNjbIugYhhF3bfx49+m8AAAD//wEAAP//F5O9awABAAAAAguFWDoNQ18PPPUAAwPoAAAAANhdoKEAAAAA3WYvNv46/tsIbwPIAAAAAwACAAAAAAAAAAEAAAPY/u8AAAiY/jr+OghvAAEAAAAAAAAAAAAAAAAAAAAteJwczKFKxWAcxuHf+xoEEW2yMObQIUxxKwMRMZo0/Yv4CVavxOhVmLwJ8ywWg17GWdlZ2+GsPzx+54ke/EDyDZ1fST4kaZfkP5KvST7i3Bm533jUROeaUE/jC1qtaFRRaOLSJcHIHev5n5nYuSV8SrhYbCz+mdAHuYLMJff6Zd8/ZPriQJ8ca6DSFbVaQi1nemFPAyeMBMzf23sDAAD//wEAAP//my0kSwAAAAAAACwALABiAJIAsADGANIBBAEsAXABggGmAd4CEgJAAnICpgLIAzQDVgNiA24DigO8A94ECgQ+BHIEkgTSBPgFGgU2BXAFnAWyBdwF6AYCBhwGLAZABkwGYgZ+AAEAAAAtAIwADABmAAcAAQAAAAAAAAAAAAAAAAAEAAN4nJyU3U4bVxSFPwfbbVQ1FxWKyA06l22VjN0IogSuTAmKVYRTj9Mfqao0eMY/Yjwz8gxQqj5Ar/sWfYtc9Tn6EFWvq7O8DTaqFIEQsM6cvfdZZ6+1D7DJv2xQqz8E/mr+YLjGdnPP8AMeNZ8a3uC48bfh+kpMg7jxm+EmXzb6hj/iff0Pwx+zU//Z8EO26keGP+F5fdPwpxuOfww/Yof3C1yDl/xuuMYWheEHbPKT4Q0eYzVrdR7TNtzgM7YNN9kGBkypSJmSMcYxYsqYc+YklIQkzJkyIiHG0aVDSqWvGZGQY/y/XyNCKuZEqjihwpESkhJRMrGKvyor561OHGk1t70OFRMiTpVxRkSGI2dMTkbCmepUVBTs0aJFyVB8CypKAkqmpATkzBnToscRxwyYMKXEcaRKnllIzoiKSyKd7yzCd2ZIQkZprM7JiMXTiV+i7C7HOHoUil2tfLxW4SmO75TtueWK/YpAv26F2fq5SzYRF+pnqq6k2rmUghPt+nM7fCtcsYe7V3/WmXy4R7H+V6p8yrn0j6VUJiYZzm3RIZSDQvcEx4HWXUJ15Hu6DHhDj3cMtO7Qp0+HEwZ0ea3cHn0cX9PjhENldIUXe0dyzAk/4viGrmJ87cT6s1As4RcKc3cpjnPdY0ahnnvmge6a6IZ3V9jPUL7mjlI5Q82Rj3TSL9OcRYzNFYUYztTLpTdK619sjpjpLl7bm30/DRc2e8spviLXDHu3Ljh55RaMPqRqcMszl/oJiIjJOVXEkJwZLSquxPstEeekOA7VvTeakorOdY4/50ouSZiJQZdMdeYU+huZb0LjPlzzvbO3JFa+Z3p2fav7nOLUqxuN3ql7y73QupysKNAyVfMVNw3FNTPvJ5qpVf6hcku9bjnP6JNI9VQ3uP0OPCegzQ677DPROUPtXNgb0dY70eYV++rBGYmiRnJ1YhV2CXjBLru84sVazQ6HHNBj/w4cF1k9Dnh9a2ddp2UVZ3X+FJu2+DqeXa9e3luvz+/gyy80UTcvY1/a+G5fWLUb/58QMfNc3NbqndwTgv8AAAD//wEAAP//B1tMMAB4nGJgZgCD/+cYjBiwAAAAAAD//wEAAP//LwECAwAAAA==");
+                }
+                .d2-595674296 .text-bold {
+                	font-family: "d2-595674296-font-bold";
+                }
+                @font-face {
+                	font-family: d2-595674296-font-bold;
+                	src: url("data:application/font-woff;base64,d09GRgABAAAAABBIAAoAAAAAGIwAAguFAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgXxHXrmNtYXAAAAFUAAAAqwAAAOAEBQUtZ2x5ZgAAAgAAAAl2AAAMyDI7iBFoZWFkAAALeAAAADYAAAA2G38e1GhoZWEAAAuwAAAAJAAAACQKfwXsaG10eAAAC9QAAACwAAAAtFVABx9sb2NhAAAMhAAAAFwAAABcTDJPgG1heHAAAAzgAAAAIAAAACAARQD3bmFtZQAADQAAAAMoAAAIKgjwVkFwb3N0AAAQKAAAAB0AAAAg/9EAMgADAioCvAAFAAACigJYAAAASwKKAlgAAAFeADIBKQAAAgsHAwMEAwICBGAAAvcAAAADAAAAAAAAAABBREJPACAAIP//Au7/BgAAA9gBESAAAZ8AAAAAAfAClAAAACAAA3icdM07LgQBHIDx35jxHoz3azDeMxGROIJEodBIHEArDiBuhF4hkTiEC7iCyjbz3+wU2+3X/ooPiVSCXOYHpUIqV2mcOXfh0rUbt+49evYSgUo91KtO7zx4Gmj8Rhtt/Ecv/uI7vuIzPuI93uK1+4wuceJU41jtyJhUZtyESVOmzZiVmzNvQWHRkmUrVq1Zt2HTlm2lHbv2VPYdOKQPAAD//wEAAP//RcknHQB4nFxWfWwb5Rl/3teOr3Gdj/P5fLbj74vv7Dh2Yp/Plw8nzoedpK2dzzZNIV+tGG1J+rEmrIGl6iQq2JhZN9yxAhJjCLRNAqmomxSQur8mtggmsZUtf61lEuIPkMCgCI2R2NN7dpq0fySvdbp7nt/7e36/53mgCkYB8Al8DTRQDXVgBBZAoj20TxJFnlIkReE5jSIimhrFxuIbr4sBbSCgbXJfdz05N4eys/ja9uLD2RMnvpnr7Cy+8s67xefQ0rsAGsgC4ATOAQ028JKYUtRsZk06ilUPHa+RonE5JvA8LUXVM3s3tdgT8kf7UxcG59LxSDQ2MPFEomsC5xwDyeBEnbbmUG//4QB6pokX3MWpqaAPAEG4tIlb8XVoAKjyCoIci8elqJmjBIH36nSsySxF4wqnQzPjz04ceW48+Yhn2KrwzQeCk0P+pGV43JD55ZnFF8ck7yzniM72PXK+0To9D1jFn8E50JcZqaDX8aIUjRPcBPDaI8+PjV6dD9nbJsLhiTY7zqWunj///OBF//Tw8DEfEHxZAPQlzsF+lVfWw0osz3rYLLpe/O7OHVSHc6tP/fCF1Z134WOcA42akc7mcW57ufwcv4Vz4FKfM2YzJ8XjCiPRPLmuwlMUL4q8E7Ns9jen9Ua9Vk/rT776NFWt0cozYzMxrXYfhXPFO/Zup7Pbjrzby1+6R0ZdL3/77cuu0RH3l1C57wTOQS1we6vF8CLP0julyn6evpBKytfeuDSW6ejq6sjgnG9qeGiGK373+edoPtLaKpB78KVNrMfXoUmtiaiYzeUAohjG9xeINZk5rswsMvVcjh7mJ/3hkBQ84kkInadTbeebDrl7RCHU3nS4c6DjrKE1/D2n4HW4HMbG2paBlvhUrLlpxtrgsjudtNdyOB2fbgMEVgDM4BxQ5Ca87GF5+oOb6H83cf3q6nYBVK4PlDbxiKpPglGmJVqVivpDh4YvP32tQ1ESP3vK8MLraLaYn89k5tGZ4muvvwAYmkqb6CO0BVbgATgvEZ2iXocS1cuxNC/yOp0SjSuyqsE/pUav5DEfcPU0yi0LHXOPrui1rsF9Vh8znHAZjiaHp+o8ooU97mg8e6H4iWTnL3DMUX3QYeGA1Ka3tInN+BaYiAIIozzF0xJLqclU8kTCL+8l5kJpT79Da1jKax0pb2KqJTE3JcQnmwMmv8HjlvGtNzM2R/f3M0eeSK4MZJ4OvW+sVfloLG2iW2gLbA/6qFylsot0yJo+1zv0g1R40J7m3XIy2WoJMx2+SUPX4+MTy11Obs6R6e3JsnXz7gZQsYulTbSFbwED7h2u1MCiLO1haUcMX0+f65yLBdqsuvyKXmsbwBbRyARNfLzF8NMnxh7vtlsyv9/uj9j4FZP1fWNt/+CBNGAV+3/QFlgq/OwkURXsIeoj2DVSjGRBrsELff2LnYMzLVpc3NAPROR4RJh96abY7I0bupfHx5aTyYUU46uOS55jNifqCMgtZc1YANAyXicn0ZXygJaJtemH+voaR/tdsfqGGpuhwXnsGLp0pqpBnowZdItVVR7BuVR8ivRHbymEKbQFLdAJB1VmBDlGiCBikneuwEksX2k8XlGtA5GXSafTlB2pksZU3OkV1Fe+7phtG2Qa3BZboGNWbvb8cYSqjk0pDpfRGxidPp5aPegQRYdDFAPRHtEnWT2Ghq7btrbmhF9b43c1ROu1xlQwMeI3LOz3mtoPNurrzIyxs18aC6P1poAY8PsDTcV8o5Wr12gsVrujzE0vKbaqUdI9KtpkaZ5WUVJ0b56yH4qOHcg73Ha/Bd9685g1uDBT/AB54n4rV3wbSiVQAODf+DYWSOcACoLwLECpVPpbKQF31efNlee5cs7SJjLiW1BXVtaOh0mx/5rpzNPVVZTOaPAZHj6E+e0NzojQmSqqjFXjQFvgUbGSZkqqeB9i6t7ZS7w6EJF7Gc/ByOihvMPtayX/WlChxxUK+r2RnWu0Ft+uHDt8oK0KH5Uce/lY0Wvd2XuEoELSGbqPj7KuVY3UPTDddi1fUQAyJ8+lUueSybOp1NlkKBwOhUOhiie7lifGH++6mO3pzRBrlvvJEDajLWDACcDtolNlJogcy+y2E4LTcUB86FRiLu5O2KpGhPhksMnkX8O/i9j4nywdWUk2WEd+gRrvNRPi+SG0pcZ3A1TJihp2xyySItGavZ5Hp3XWPm/Z+N2kc31yz/Rrv8pYXKrxHe7I9hRq3HV9RXPoKtoC4311LLuxzHBDRmDtekuNtd7eZUKFo9FIVdVlrTYQLX4MCNjSJvo12gJR1c/unBLKc+peMDKlnJg16W5HTgp93qTL43SEbc5O/+kj7UddfbaYrb1dcHcFThkE17S1gWNoM6M3NLYH0pOiZcpkFi3W2v18e7h/puwVurSJzuJlMmnJ7JF5WVEkdTHYbbQwPZLK0E9evMg7DFY9xyiGxybXz+iuXFn6S5NPp13QGcqxEqVN9F9UIDq7zwN0pb3+a+xA3um2C+b8yn6N66BhYQbFinflgM2Bhor1aV8zIDAAoBIqQA2ApJG4yn6hSJqbv73Wo2f02mpG3/vca6jwmS8rilnfZ8X6nX6IC6ig+mjvd3si8KIgEBgUdW31+VadXqelaqqVy23VdZSWqqZafnzxzRBVQ2mp/VQzKnzqGxKEg/yn6jnk+7RY/x4/4PcP8O+p+WoB0CYqkPkuMeKeNBS3m6f2+tVXmvVmvXafcZ/3+s9ffKXVwBm01aZqEeEvRtkgywbZ0dJX42wzywbN4yQuWVr+gApQDSDJDFkYNBIrfPgOOv/hxggKLw0X/75E3nMCoE/wM2An73Xjsv0qM191D+l6EusbuzQQCXgVy2jLiVRyVu6cjlkS5h8dzl46HWqJiLaRqBR9uEs+dy6uqVolcYOwjjwoQvY+RZbY4Dfrp06R50OlLPLju6QuXHkwcOo6wX2QTKeT00o0qtw8eefKlTsnheMbC49tnAAEraUsqq98I6qbKtE1a9Llptui0bbpZDp9Uzix8djCxnFB/RYQ1JTmURy/R/JzjKSpWZ9ff1Xz6NZLBIMXZtEXOE72V0XmZUkuC/UfN24s3rgxu3Zqbe3UWsWL8BEq7OyuvXlUKNYDKr2F22EC3ybf02oTKDcaXzjs84XDuL2J55vIH5Eg6fP/RAWov8+P6kama3QF6mx6Ru/g8u7sn/fpFjVaMYC+KjLxhxT4PwAAAP//AQAA//8tcq0cAAAAAQAAAAILhdoFrQFfDzz1AAED6AAAAADYXaCEAAAAAN1mLzb+N/7ECG0D8QABAAMAAgAAAAAAAAABAAAD2P7vAAAImP43/jcIbQABAAAAAAAAAAAAAAAAAAAALXicHMw/SsNwGMfhz/sNiOC/CDHEJUMMCiaKm4LJ8C6i4A8EEeLQsafo0Bt07yG6dO0FOrRTb9MlJd0fHi35YQ0aEfTBsyYElQR7ImhP0JigmjvV3GrOl654VIvbjlItDzqhtD8ypRR6xy3h1dJ+azke/eNqcFVH64O3GW4rbmzKtd5odMZ5dEomcWkb7hWT2zeVdXxax4v9cqGYwhIc+sVwHwAAAP//AQAA//9ZIxqiAAAALAAsAGAAjACwAMYA0gEEASoBagF8AZoB0gIEAjACYgKWArwDJANGA1IDXgN6A6wDzgP6BCoEXgR+BLoE4AUCBR4FVgWCBZYFwgXOBegGAgYQBiQGMAZGBmQAAQAAAC0AkAAMAGMABwABAAAAAAAAAAAAAAAAAAQAA3icnJTPbhtVFMZ/TmzTCsECRVW6ie6CRZHo2FRJ1TYrh9SKRRQHjwtCQkgTz/iPMp4ZeSYO4QlY8xa8RVc8BM+BWKP5fOzYBdEmipJ8d+75851zvnOBHf5mm0r1IfBHPTFcYa9+bniLB/UTw9u061uGqzyp/Wm4RlibG67zea1n+CPeVn8z/ID96k+GH7JbbRv+mGfVHcOfbDv+Mvwp+7xd4Aq84FfDFXbJDG+xw4+Gt3mExaxUeUTTcI3P2DNcZw/oM6EgZkLCCMeQCSOumBGR4xMxY8KQiBBHhxYxhb4mBEKO0X9+DfApmBEo4pgCR4xPTEDO2CL+Iq+Uc2Uc6jSzuxYFYwIu5HFJQIIjZURKQsSl4hQUZLyiQYOcgfhmFOR45EyI8UiZMaJBlzan9BkzIcfRVqSSmU/KkIJrAuV3ZlF2ZkBEQm6srkgIxdOJXyTvDqc4umSyXY98uhHhSxzfybvklsr2Kzz9ujVmm3mXbALm6mesrsS6udYEx7ot87b4VrjgFe5e/dlk8v4ehfpfKPIFV5p/qEklYpLg3C4tfCnId49xHOncwVdHvqdDnxO6vKGvc4sePVqc0afDa/l26eH4mi5nHMujI7y4a0sxZ/yA4xs6siljR9afxcQifiYzdefiOFMdUzL1vGTuqdZIFd59wuUOpRvqyOUz0B6Vlk7zS7RnASNTRSaGU/VyqY3c+heaIqaqpZzt7X25DXPbveUW35Bqh0u1LjiVk1swet9UvXc0c60fj4CQlAtZDEiZ0qDgRrzPCbgixnGs7p1oSwpaK58yz41UEjEVgw6J4szI9Dcw3fjGfbChe2dvSSj/kunlqqr7ZHHq1e2M3qh7yzvfuhytTaBhU03X1DQQ18S0H2mn1vn78s31uqU85YiUmPBfL8AzPJrsc8AhY2UY6GZur0NTL0STlxyq+ksiWQ2l58giHODxnAMOeMnzd/q4ZOKMi1txWc/d4pgjuhx+UBUL+y5HvF59+/+sv4tpU7U4nq5OL+49xSd3UOsX2rPb97KniZWTmFu02604I2BacnG76zW5x3j/AAAA//8BAAD///S3T1F4nGJgZgCD/+cYjBiwAAAAAAD//wEAAP//LwECAwAAAA==");
+                }
+                .d2-595674296 .text-italic {
+                	font-family: "d2-595674296-font-italic";
+                }
+                @font-face {
+                	font-family: d2-595674296-font-italic;
+                	src: url("data:application/font-woff;base64,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");
+                }]]>
+              </style>
+              <style type="text/css">
+                <![CDATA[.shape {
+                  shape-rendering: geometricPrecision;
+                  stroke-linejoin: round;
+                }
+                .connection {
+                  stroke-linecap: round;
+                  stroke-linejoin: round;
+                }
+                .blend {
+                  mix-blend-mode: multiply;
+                  opacity: 0.5;
+                }
+
+                		.d2-595674296 .fill-N1{fill:#0A0F25;}
+                		.d2-595674296 .fill-N2{fill:#676C7E;}
+                		.d2-595674296 .fill-N3{fill:#9499AB;}
+                		.d2-595674296 .fill-N4{fill:#CFD2DD;}
+                		.d2-595674296 .fill-N5{fill:#DEE1EB;}
+                		.d2-595674296 .fill-N6{fill:#EEF1F8;}
+                		.d2-595674296 .fill-N7{fill:#FFFFFF;}
+                		.d2-595674296 .fill-B1{fill:#0D32B2;}
+                		.d2-595674296 .fill-B2{fill:#0D32B2;}
+                		.d2-595674296 .fill-B3{fill:#E3E9FD;}
+                		.d2-595674296 .fill-B4{fill:#E3E9FD;}
+                		.d2-595674296 .fill-B5{fill:#EDF0FD;}
+                		.d2-595674296 .fill-B6{fill:#F7F8FE;}
+                		.d2-595674296 .fill-AA2{fill:#4A6FF3;}
+                		.d2-595674296 .fill-AA4{fill:#EDF0FD;}
+                		.d2-595674296 .fill-AA5{fill:#F7F8FE;}
+                		.d2-595674296 .fill-AB4{fill:#EDF0FD;}
+                		.d2-595674296 .fill-AB5{fill:#F7F8FE;}
+                		.d2-595674296 .stroke-N1{stroke:#0A0F25;}
+                		.d2-595674296 .stroke-N2{stroke:#676C7E;}
+                		.d2-595674296 .stroke-N3{stroke:#9499AB;}
+                		.d2-595674296 .stroke-N4{stroke:#CFD2DD;}
+                		.d2-595674296 .stroke-N5{stroke:#DEE1EB;}
+                		.d2-595674296 .stroke-N6{stroke:#EEF1F8;}
+                		.d2-595674296 .stroke-N7{stroke:#FFFFFF;}
+                		.d2-595674296 .stroke-B1{stroke:#0D32B2;}
+                		.d2-595674296 .stroke-B2{stroke:#0D32B2;}
+                		.d2-595674296 .stroke-B3{stroke:#E3E9FD;}
+                		.d2-595674296 .stroke-B4{stroke:#E3E9FD;}
+                		.d2-595674296 .stroke-B5{stroke:#EDF0FD;}
+                		.d2-595674296 .stroke-B6{stroke:#F7F8FE;}
+                		.d2-595674296 .stroke-AA2{stroke:#4A6FF3;}
+                		.d2-595674296 .stroke-AA4{stroke:#EDF0FD;}
+                		.d2-595674296 .stroke-AA5{stroke:#F7F8FE;}
+                		.d2-595674296 .stroke-AB4{stroke:#EDF0FD;}
+                		.d2-595674296 .stroke-AB5{stroke:#F7F8FE;}
+                		.d2-595674296 .background-color-N1{background-color:#0A0F25;}
+                		.d2-595674296 .background-color-N2{background-color:#676C7E;}
+                		.d2-595674296 .background-color-N3{background-color:#9499AB;}
+                		.d2-595674296 .background-color-N4{background-color:#CFD2DD;}
+                		.d2-595674296 .background-color-N5{background-color:#DEE1EB;}
+                		.d2-595674296 .background-color-N6{background-color:#EEF1F8;}
+                		.d2-595674296 .background-color-N7{background-color:#FFFFFF;}
+                		.d2-595674296 .background-color-B1{background-color:#0D32B2;}
+                		.d2-595674296 .background-color-B2{background-color:#0D32B2;}
+                		.d2-595674296 .background-color-B3{background-color:#E3E9FD;}
+                		.d2-595674296 .background-color-B4{background-color:#E3E9FD;}
+                		.d2-595674296 .background-color-B5{background-color:#EDF0FD;}
+                		.d2-595674296 .background-color-B6{background-color:#F7F8FE;}
+                		.d2-595674296 .background-color-AA2{background-color:#4A6FF3;}
+                		.d2-595674296 .background-color-AA4{background-color:#EDF0FD;}
+                		.d2-595674296 .background-color-AA5{background-color:#F7F8FE;}
+                		.d2-595674296 .background-color-AB4{background-color:#EDF0FD;}
+                		.d2-595674296 .background-color-AB5{background-color:#F7F8FE;}
+                		.d2-595674296 .color-N1{color:#0A0F25;}
+                		.d2-595674296 .color-N2{color:#676C7E;}
+                		.d2-595674296 .color-N3{color:#9499AB;}
+                		.d2-595674296 .color-N4{color:#CFD2DD;}
+                		.d2-595674296 .color-N5{color:#DEE1EB;}
+                		.d2-595674296 .color-N6{color:#EEF1F8;}
+                		.d2-595674296 .color-N7{color:#FFFFFF;}
+                		.d2-595674296 .color-B1{color:#0D32B2;}
+                		.d2-595674296 .color-B2{color:#0D32B2;}
+                		.d2-595674296 .color-B3{color:#E3E9FD;}
+                		.d2-595674296 .color-B4{color:#E3E9FD;}
+                		.d2-595674296 .color-B5{color:#EDF0FD;}
+                		.d2-595674296 .color-B6{color:#F7F8FE;}
+                		.d2-595674296 .color-AA2{color:#4A6FF3;}
+                		.d2-595674296 .color-AA4{color:#EDF0FD;}
+                		.d2-595674296 .color-AA5{color:#F7F8FE;}
+                		.d2-595674296 .color-AB4{color:#EDF0FD;}
+                		.d2-595674296 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-595674296);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-595674296);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-595674296);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-595674296);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-595674296);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-595674296);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-595674296);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-595674296);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]>
+              </style>
+              <g class="dXNlcm1nbXRfcGtn">
+                <g class="shape">
+                  <path
+                    d="M 756 246 L 856 246 L 856 261 L 956 261 L 956 319 L 756 319 Z"
+                    stroke="#0D32B2"
+                    fill="#7f1d1d"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="856.000000"
+                  y="295.300000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  usermgmt (facade)
+                </text>
+              </g>
+              <g class="ZG9tYWlu">
+                <g class="shape">
+                  <path
+                    d="M 481 449 L 631 449 L 631 490 L 1231 490 L 1231 652 L 481 652 Z"
+                    stroke="#0D32B2"
+                    fill="#1d3557"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="856.000000"
+                  y="522.600000"
+                  fill="#f4f4f0"
+                  class="text"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  domain/
+                </text>
+              </g>
+              <g class="ZXM=">
+                <g class="shape">
+                  <path
+                    d="M 658 1065 L 808 1065 L 808 1106 L 1659 1106 L 1659 1268 L 658 1268 Z"
+                    stroke="#0D32B2"
+                    fill="#1d6b3a"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1158.500000"
+                  y="1138.600000"
+                  fill="#f4f4f0"
+                  class="text"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  eventsource/
+                </text>
+              </g>
+              <g class="YXV0aHpfcGtn">
+                <g class="shape">
+                  <path
+                    d="M 757 782 L 803 782 L 803 797 L 848 797 L 848 855 L 757 855 Z"
+                    stroke="#0D32B2"
+                    fill="#4a4a52"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="802.500000"
+                  y="831.300000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  authz/
+                </text>
+              </g>
+              <g class="c3RvcmVfcGtn">
+                <g class="shape">
+                  <path
+                    d="M 973 782 L 1017 782 L 1017 797 L 1060 797 L 1060 855 L 973 855 Z"
+                    stroke="#0D32B2"
+                    fill="#4a4a52"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1016.500000"
+                  y="831.300000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  store/
+                </text>
+              </g>
+              <g class="d2ViYXV0aG5fcGtn">
+                <g class="shape">
+                  <path
+                    d="M 1097 782 L 1232 782 L 1232 823 L 1367 823 L 1367 985 L 1097 985 Z"
+                    stroke="#0D32B2"
+                    fill="#6b4226"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1232.000000"
+                  y="855.600000"
+                  fill="#f4f4f0"
+                  class="text"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  webauthn/
+                </text>
+              </g>
+              <g class="b2F1dGgyX3BrZw==">
+                <g class="shape">
+                  <path
+                    d="M 12 782 L 162 782 L 162 823 L 326 823 L 326 985 L 12 985 Z"
+                    stroke="#0D32B2"
+                    fill="#6b4226"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="169.000000"
+                  y="855.600000"
+                  fill="#f4f4f0"
+                  class="text"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  oauth2/
+                </text>
+              </g>
+              <g class="dG90cF9wa2c=">
+                <g class="shape">
+                  <path
+                    d="M 346 782 L 478 782 L 478 823 L 609 823 L 609 985 L 346 985 Z"
+                    stroke="#0D32B2"
+                    fill="#6b4226"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="477.500000"
+                  y="855.600000"
+                  fill="#f4f4f0"
+                  class="text"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  totp/
+                </text>
+              </g>
+              <g class="aHR0cGFwaQ==">
+                <g class="shape">
+                  <path
+                    d="M 805 12 L 856 12 L 856 27 L 907 27 L 907 85 L 805 85 Z"
+                    stroke="#0D32B2"
+                    fill="#2a2a30"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="856.000000"
+                  y="61.300000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  httpapi/
+                </text>
+              </g>
+              <g class="ZG9tYWluLlVzZXI=">
+                <g class="shape">
+                  <rect
+                    x="531.000000"
+                    y="536.000000"
+                    width="78.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="570.000000"
+                  y="574.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  User
+                </text>
+              </g>
+              <g class="ZG9tYWluLlNlc3Npb24=">
+                <g class="shape">
+                  <rect
+                    x="629.000000"
+                    y="536.000000"
+                    width="99.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="678.500000"
+                  y="574.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Session
+                </text>
+              </g>
+              <g class="ZG9tYWluLlVzZXJJRA==">
+                <g class="shape">
+                  <rect
+                    x="748.000000"
+                    y="536.000000"
+                    width="92.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="794.000000"
+                  y="574.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  UserID
+                </text>
+              </g>
+              <g class="ZG9tYWluLkVtYWls">
+                <g class="shape">
+                  <rect
+                    x="860.000000"
+                    y="536.000000"
+                    width="85.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="902.500000"
+                  y="574.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Email
+                </text>
+              </g>
+              <g class="ZG9tYWluLkNyZWRlbnRpYWw=">
+                <g class="shape">
+                  <rect
+                    x="965.000000"
+                    y="536.000000"
+                    width="120.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1025.000000"
+                  y="574.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Credential
+                </text>
+              </g>
+              <g class="ZG9tYWluLlJvbGU=">
+                <g class="shape">
+                  <rect
+                    x="1105.000000"
+                    y="536.000000"
+                    width="76.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1143.000000"
+                  y="574.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Role
+                </text>
+              </g>
+              <g class="ZXMuVXNlciBhZ2c=">
+                <g class="shape">
+                  <rect
+                    x="708.000000"
+                    y="1152.000000"
+                    width="106.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="761.000000"
+                  y="1190.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  User agg
+                </text>
+              </g>
+              <g class="ZXMuQm90IGFnZw==">
+                <g class="shape">
+                  <rect
+                    x="834.000000"
+                    y="1152.000000"
+                    width="98.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="883.000000"
+                  y="1190.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Bot agg
+                </text>
+              </g>
+              <g class="ZXMuTWVtYmVyc2hpcCBhZ2c=">
+                <g class="shape">
+                  <rect
+                    x="952.000000"
+                    y="1152.000000"
+                    width="162.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1033.000000"
+                  y="1190.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Membership agg
+                </text>
+              </g>
+              <g class="ZXMuVGVuYW50IGFnZw==">
+                <g class="shape">
+                  <rect
+                    x="1134.000000"
+                    y="1152.000000"
+                    width="125.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1196.500000"
+                  y="1190.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Tenant agg
+                </text>
+              </g>
+              <g class="ZXMuZm9sZA==">
+                <g class="shape">
+                  <rect
+                    x="1279.000000"
+                    y="1152.000000"
+                    width="73.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1315.500000"
+                  y="1190.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  fold
+                </text>
+              </g>
+              <g class="ZXMuZGVjaWRl">
+                <g class="shape">
+                  <rect
+                    x="1372.000000"
+                    y="1152.000000"
+                    width="92.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1418.000000"
+                  y="1190.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  decide
+                </text>
+              </g>
+              <g class="ZXMucHJvamVjdGlvbnM=">
+                <g class="shape">
+                  <rect
+                    x="1484.000000"
+                    y="1152.000000"
+                    width="125.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1546.500000"
+                  y="1190.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  projections
+                </text>
+              </g>
+              <g class="d2ViYXV0aG5fcGtnLmdvLXdlYmF1dGhuIGRlcA==">
+                <g class="shape">
+                  <rect
+                    x="1147.000000"
+                    y="869.000000"
+                    width="170.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1232.000000"
+                  y="907.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  go-webauthn dep
+                </text>
+              </g>
+              <g class="b2F1dGgyX3BrZy54L29hdXRoMiArIGdvLW9pZGMgZGVwcw==">
+                <g class="shape">
+                  <rect
+                    x="62.000000"
+                    y="869.000000"
+                    width="214.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="169.000000"
+                  y="907.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  x/oauth2 + go-oidc deps
+                </text>
+              </g>
+              <g class="dG90cF9wa2cucHF1ZXJuYS9vdHAgZGVw">
+                <g class="shape">
+                  <rect
+                    x="396.000000"
+                    y="869.000000"
+                    width="163.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="477.500000"
+                  y="907.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  pquerna/otp dep
+                </text>
+              </g>
+              <g class="KGRvbWFpbiAmbHQ7LSBlcylbMF0=">
+                <marker
+                  id="mk-d2-595674296-2451250203"
+                  markerWidth="10.000000"
+                  markerHeight="12.000000"
+                  refX="3.000000"
+                  refY="6.000000"
+                  viewBox="0.000000 0.000000 10.000000 12.000000"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <polygon
+                    points="10.000000,0.000000 0.000000,6.000000 10.000000,12.000000"
+                    fill="#0D32B2"
+                    class="connection fill-B1"
+                    stroke-width="2"
+                  />
+                </marker>
+                <path
+                  d="M 910.000000 656.000000 L 910.000000 1104.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-start="url(#mk-d2-595674296-2451250203)"
+                  mask="url(#d2-595674296)"
+                />
+                <text
+                  x="910.000000"
+                  y="885.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  depends on
+                </text>
+              </g>
+              <g class="KGRvbWFpbiAmbHQ7LSBhdXRoel9wa2cpWzBd">
+                <path
+                  d="M 803.000000 656.000000 L 803.000000 780.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-start="url(#mk-d2-595674296-2451250203)"
+                  mask="url(#d2-595674296)"
+                />
+              </g>
+              <g class="KGRvbWFpbiAmbHQ7LSBzdG9yZV9wa2cpWzBd">
+                <path
+                  d="M 1017.000000 656.000000 L 1017.000000 780.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-start="url(#mk-d2-595674296-2451250203)"
+                  mask="url(#d2-595674296)"
+                />
+              </g>
+              <g class="KGRvbWFpbiAmbHQ7LSB3ZWJhdXRobl9wa2cpWzBd">
+                <path
+                  d="M 1188.000000 656.000000 L 1188.000000 780.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-start="url(#mk-d2-595674296-2451250203)"
+                  mask="url(#d2-595674296)"
+                />
+              </g>
+              <g class="KGRvbWFpbiAmbHQ7LSBvYXV0aDJfcGtnKVswXQ==">
+                <path
+                  d="M 588.030901 655.999881 L 588.231768 682.000298 S 588.309021 692.000000 578.309021 692.000000 L 231.332993 692.000000 S 221.332993 692.000000 221.307573 701.999968 L 221.005084 821.000006"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-start="url(#mk-d2-595674296-2451250203)"
+                  mask="url(#d2-595674296)"
+                />
+              </g>
+              <g class="KGRvbWFpbiAmbHQ7LSB0b3RwX3BrZylbMF0=">
+                <path
+                  d="M 695.020090 655.999950 L 695.401802 732.000126 S 695.452026 742.000000 685.452026 742.000000 L 531.333008 742.000000 S 521.333008 742.000000 521.291896 751.999915 L 521.008222 821.000017"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-start="url(#mk-d2-595674296-2451250203)"
+                  mask="url(#d2-595674296)"
+                />
+              </g>
+              <g class="KHVzZXJtZ210X3BrZyAtJmd0OyBkb21haW4pWzBd">
+                <marker
+                  id="mk-d2-595674296-3488378134"
+                  markerWidth="10.000000"
+                  markerHeight="12.000000"
+                  refX="7.000000"
+                  refY="6.000000"
+                  viewBox="0.000000 0.000000 10.000000 12.000000"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <polygon
+                    points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000"
+                    fill="#0D32B2"
+                    class="connection fill-B1"
+                    stroke-width="2"
+                  />
+                </marker>
+                <path
+                  d="M 856.000000 321.000000 L 856.000000 486.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-595674296-3488378134)"
+                  mask="url(#d2-595674296)"
+                />
+              </g>
+              <g class="KHVzZXJtZ210X3BrZyAtJmd0OyBlcylbMF0=">
+                <path
+                  d="M 922.991650 320.999983 L 922.874755 349.000087 S 922.833008 359.000000 932.833008 359.000000 L 1397.666016 359.000000 S 1407.666016 359.000000 1407.670487 368.999999 L 1407.998212 1102.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-595674296-3488378134)"
+                  mask="url(#d2-595674296)"
+                />
+              </g>
+              <g class="KHVzZXJtZ210X3BrZyAtJmd0OyB3ZWJhdXRobl9wa2cpWzBd">
+                <path
+                  d="M 889.011089 320.999969 L 889.443577 399.000154 S 889.499023 409.000000 899.499023 409.000000 L 1267.666016 409.000000 S 1277.666016 409.000000 1277.674083 418.999997 L 1277.996773 819.000001"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-595674296-3488378134)"
+                  mask="url(#d2-595674296)"
+                />
+                <text
+                  x="1245.500000"
+                  y="415.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  embeds
+                </text>
+              </g>
+              <g class="KHVzZXJtZ210X3BrZyAtJmd0OyBvYXV0aDJfcGtnKVswXQ==">
+                <path
+                  d="M 789.024998 320.999844 L 789.375010 349.000781 S 789.500000 359.000000 779.500000 359.000000 L 126.666000 359.000000 S 116.666000 359.000000 116.673896 368.999997 L 116.996842 778.000001"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-595674296-3488378134)"
+                  mask="url(#d2-595674296)"
+                />
+                <text
+                  x="261.500000"
+                  y="365.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  embeds
+                </text>
+              </g>
+              <g class="KHVzZXJtZ210X3BrZyAtJmd0OyB0b3RwX3BrZylbMF0=">
+                <path
+                  d="M 822.996289 320.999997 L 822.851562 399.000017 S 822.833008 409.000000 812.833008 409.000000 L 443.665985 409.000000 S 433.665985 409.000000 433.674940 418.999996 L 433.996418 778.000002"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-595674296-3488378134)"
+                  mask="url(#d2-595674296)"
+                />
+                <text
+                  x="486.500000"
+                  y="415.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  embeds
+                </text>
+              </g>
+              <g class="KGh0dHBhcGkgLSZndDsgdXNlcm1nbXRfcGtnKVswXQ==">
+                <path
+                  d="M 856.000000 87.000000 L 856.000000 242.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-595674296-3488378134)"
+                  mask="url(#d2-595674296)"
+                />
+                <text
+                  x="856.000000"
+                  y="171.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  uses Service
+                </text>
+              </g>
+              <mask
+                id="d2-595674296"
+                maskUnits="userSpaceOnUse"
+                x="-89"
+                y="-89"
+                width="1849"
+                height="1458"
+              >
+                <rect x="-89" y="-89" width="1849" height="1458" fill="white"></rect>
+                <rect x="870.000000" y="869.000000" width="80" height="21" fill="black"></rect>
+                <rect x="1217.000000" y="399.000000" width="57" height="21" fill="black"></rect>
+                <rect x="233.000000" y="349.000000" width="57" height="21" fill="black"></rect>
+                <rect x="458.000000" y="399.000000" width="57" height="21" fill="black"></rect>
+                <rect x="814.000000" y="155.000000" width="84" height="21" fill="black"></rect>
+              </mask>
+            </svg>
+          </svg>
+        </div>
+
+        <h2 id="dag"><span class="num">04</span>DAG Verification</h2>
+        <p>The proposed structure forms a clean directed acyclic graph:</p>
+        <pre>
+domain/          ← zero internal deps (foundation)
+    ↑
+eventsource/     ← depends on domain/ only
+    ↑
+authz/           ← depends on domain/ only (CasbinProjection → eventsource events)
+store/           ← depends on domain/ only
+webauthn/        ← depends on domain/ only
+oauth2/          ← depends on domain/ only
+totp/            ← depends on domain/ only
+    ↑
+usermgmt (root)  ← facade: embeds/composes webauthn, oauth2, totp services
+    ↑
+httpapi/         ← depends on usermgmt Service + all sub-packages
+</pre
+        >
+        <p>
+          <strong>No cycles.</strong> Every arrow points "downward" toward <code>domain/</code>. The
+          facade pattern ensures the <code>Service</code> struct can delegate to subsystems without
+          creating upward dependencies.
+        </p>
+
+        <h2 id="strategy"><span class="num">05</span>Strategy</h2>
+
+        <h3>Module Strategy: Keep go.work (no changes)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>Decision</th>
+              <th>Rationale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>go.work at repo root</td>
+              <td><strong>Keep</strong></td>
+              <td>Already in place, coordinates all 7 modules cleanly</td>
+            </tr>
+            <tr>
+              <td>Replace directives in integration_test</td>
+              <td><strong>Keep</strong></td>
+              <td>Needed for GOWORK=off CI builds (each module uses own go.mod)</td>
+            </tr>
+            <tr>
+              <td>Replace in examples/*</td>
+              <td><strong>Keep</strong></td>
+              <td>Examples are standalone consumers; replace simulates real-world usage</td>
+            </tr>
+            <tr>
+              <td>usermgmt → sub-modules?</td>
+              <td><strong>No (Phase 2 future)</strong></td>
+              <td>
+                Would break consumer import paths. Package decomposition addresses god-package
+                without module split
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Versioning Strategy: Shared version (unchanged)</h3>
+        <p>
+          Single git tag <code>v2.X.Y</code> bumps all modules together. usermgmt and catalog use
+          <code>/v2</code> suffix. This matches the tight-coupling monorepo model — all modules are
+          released together. <strong>No change needed.</strong>
+        </p>
+
+        <div class="callout callout-warning">
+          <strong>Version hygiene issue to fix</strong>
+          <code>integration_test/go.mod</code> requires <code>cqrs-htmx/v2 v2.5.0</code>,
+          <code>usermgmt/v2 v2.1.0</code>, <code>catalog/v2 v2.0.0</code> — old placeholder versions
+          that don't match actual releases. They work via replace directives but are misleading.
+          <code>examples/basic</code> requires <code>v2.5.0</code>. These should be bumped to the
+          current version or use <code>v2.0.0</code> consistently (the replace overrides anyway).
+        </div>
+
+        <h2 id="errors"><span class="num">06</span>Error Type Placement</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Error</th>
+              <th>Current Location</th>
+              <th>Proposed Location</th>
+              <th>Rationale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ErrUserNotFound</code>, <code>ErrValidation</code>, etc.</td>
+              <td><code>usermgmt/errors.go</code></td>
+              <td><code>usermgmt/domain/errors.go</code></td>
+              <td>Domain sentinels must be importable by all sub-packages</td>
+            </tr>
+            <tr>
+              <td><code>ErrCSRFInvalid</code></td>
+              <td><code>csrf_config.go</code> (root)</td>
+              <td><code>errors.go</code> (root)</td>
+              <td>Already flagged in code review — misplaced symbol</td>
+            </tr>
+            <tr>
+              <td><code>ErrOAuthTokenExchange</code></td>
+              <td><code>usermgmt/errors.go</code></td>
+              <td><code>usermgmt/oauth2/</code> or keep in domain</td>
+              <td>If only OAuth2 checks it, move closer</td>
+            </tr>
+            <tr>
+              <td>Root sentinels (<code>ErrForbidden</code>, etc.)</td>
+              <td><code>errors.go</code></td>
+              <td><strong>Keep</strong></td>
+              <td>Correctly placed in the most-depended-on file</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="breaking"><span class="num">07</span>Breaking Change Analysis</h2>
+
+        <div class="card card-solution">
+          <h4>Package decomposition with backward-compatible facade</h4>
+          <p>
+            The root <code>usermgmt</code> package will <strong>re-export</strong> all public types
+            and functions from sub-packages. Consumers who import <code>usermgmt.Service</code>,
+            <code>usermgmt.UserID</code>, <code>usermgmt.NewService</code> etc. will see zero
+            changes. Only consumers who reach into internal file structure (which doesn't exist as
+            packages today — it's all one flat package) would be affected, and that's not possible
+            since there are no sub-packages today.
+          </p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol Category</th>
+              <th>Current Import Path</th>
+              <th>After Decomposition</th>
+              <th>Breaking?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Service, NewService, ServiceConfig</td>
+              <td><code>usermgmt</code></td>
+              <td><code>usermgmt</code> (facade re-exports)</td>
+              <td><strong>No</strong></td>
+            </tr>
+            <tr>
+              <td>UserID, User, Session, Email</td>
+              <td><code>usermgmt</code></td>
+              <td><code>usermgmt</code> (type aliases)</td>
+              <td><strong>No</strong></td>
+            </tr>
+            <tr>
+              <td>AuthHandler, routes</td>
+              <td><code>usermgmt</code></td>
+              <td><code>usermgmt</code> (re-exports)</td>
+              <td><strong>No</strong></td>
+            </tr>
+            <tr>
+              <td>RegisterCommands, EventSourcedConfig</td>
+              <td><code>usermgmt</code></td>
+              <td><code>usermgmt</code> (re-exports)</td>
+              <td><strong>No</strong></td>
+            </tr>
+            <tr>
+              <td>Internal types (foldUser, decide*)</td>
+              <td>Not exported</td>
+              <td>Move to <code>eventsource/</code></td>
+              <td><strong>No</strong> (already unexported)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="migration"><span class="num">08</span>Migration Strategy</h2>
+
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Extract <code>domain/</code> package (Tier 1 — foundational)</h4>
+            <p>
+              Move <code>user.go</code>, <code>id.go</code>, <code>email.go</code>,
+              <code>credential.go</code>, <code>external_account.go</code>, domain errors into
+              <code>usermgmt/domain/</code>. Add type aliases in root <code>usermgmt</code> package
+              for backward compat. <strong>Verify:</strong> <code>go build ./...</code> +
+              <code>go test ./...</code> pass.
+            </p>
+          </div>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Extract <code>authz/</code> package (Tier 1)</h4>
+            <p>
+              Move <code>authz_types.go</code>, <code>authz_policies.go</code>,
+              <code>authz_roles.go</code> into <code>usermgmt/authz/</code>. Depends on domain/
+              only. Re-export <code>Authz</code>, <code>AsEnforcer</code> from root.
+            </p>
+          </div>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Extract <code>store/</code> package (Tier 2)</h4>
+            <p>
+              Move <code>store.go</code>, <code>sql_session_store.go</code>,
+              <code>sql_event_store.go</code> into <code>usermgmt/store/</code>. Depends on domain/
+              only.
+            </p>
+          </div>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Extract <code>eventsource/</code> package (Tier 2 — largest)</h4>
+            <p>
+              Move all <code>es_*.go</code> files (35 files across 4 aggregates) into
+              <code>usermgmt/eventsource/</code> with sub-directories per aggregate. Depends on
+              domain/ + authz/. Re-export <code>RegisterCommands</code>,
+              <code>EventSourcedConfig</code>, <code>StartProjections</code>.
+            </p>
+          </div>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">5</div>
+          <div class="migration-content">
+            <h4>
+              Extract <code>webauthn/</code>, <code>oauth2/</code>, <code>totp/</code> packages
+              (Tier 3)
+            </h4>
+            <p>
+              Each subsystem into its own package. The <code>Service</code> struct embeds each
+              subsystem's service. Methods are promoted via embedding (preserves flat API) or
+              delegated via wrapper methods.
+            </p>
+          </div>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">6</div>
+          <div class="migration-content">
+            <h4>Extract <code>httpapi/</code> + <code>internal/</code> (Tier 4 — polish)</h4>
+            <p>
+              Move HTTP handlers into <code>usermgmt/httpapi/</code>. Move <code>crypto.go</code>,
+              <code>random.go</code>, <code>eviction.go</code> into <code>usermgmt/internal/</code>.
+              Update <code>flake.nix</code> per-module apps if needed.
+            </p>
+          </div>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">7</div>
+          <div class="migration-content">
+            <h4>Update documentation (Tier 4)</h4>
+            <p>
+              Update <code>AGENTS.md</code> file listing,
+              <code>docs/modularization/DEPENDENCY_GRAPH.md</code>, and add an ADR for the package
+              decomposition decision.
+            </p>
+          </div>
+        </div>
+
+        <h2 id="risks"><span class="num">09</span>Risk Assessment</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Risk</th>
+              <th>Likelihood</th>
+              <th>Mitigation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Service struct embedding breaks method resolution (ambiguity)</td>
+              <td>Low</td>
+              <td>
+                Each subsystem service has distinct method names. Test via
+                <code>go build</code> after each step.
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                CasbinProjection depends on event types from eventsource/ — circular if authz/
+                imports eventsource/
+              </td>
+              <td>Medium</td>
+              <td>
+                Keep CasbinProjection in <code>eventsource/</code> (it's a projection, not authz
+                core). Authz/ defines the interface; eventsource/ implements the projection.
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Re-export type aliases don't preserve method sets</td>
+              <td>Low</td>
+              <td>
+                Use <code>type UserID = domain.UserID</code> (type alias, not type definition).
+                Aliases preserve method sets.
+              </td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Consumer reaches into <code>usermgmt</code> internal types that move</td>
+              <td>Low</td>
+              <td>Current flat package has no sub-packages. Moving unexported types is safe.</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Build system (flake.nix) breaks on new package paths</td>
+              <td>Low</td>
+              <td>
+                flake.nix uses <code>go test ./...</code> (pattern match). No path-specific logic.
+              </td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Test files reference types that moved</td>
+              <td>Medium</td>
+              <td>
+                Test files stay in root package; they use re-exported types.
+                <code>go test</code> resolves via aliases.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="build"><span class="num">10</span>Build System Impact</h2>
+        <div class="card">
+          <p>
+            <strong>flake.nix:</strong> No changes needed. The nix apps use
+            <code>go test ./...</code> and <code>go build ./...</code> which automatically discover
+            new packages. The per-module <code>GOWORK=off</code> apps are unaffected — package
+            decomposition is within the usermgmt module.
+          </p>
+          <p>
+            <strong>CI:</strong> No changes. The module count stays at 7. The
+            <code>go.work</code> file is unchanged.
+          </p>
+          <p>
+            <strong>Lint:</strong> <code>golangci-lint run</code> uses <code>./...</code> pattern.
+            New packages are automatically included.
+          </p>
+        </div>
+
+        <h2 id="reflection"><span class="num">11</span>Unix Philosophy Reflection</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Principle</th>
+              <th>Current State</th>
+              <th>After Decomposition</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Do one thing well</strong></td>
+              <td>usermgmt does 8 things</td>
+              <td>Each sub-package does one thing</td>
+            </tr>
+            <tr>
+              <td><strong>Small is beautiful</strong></td>
+              <td>71 files in one package</td>
+              <td>Largest sub-package: eventsource/ (~35 files, 4 aggregates)</td>
+            </tr>
+            <tr>
+              <td><strong>Composition over monoliths</strong></td>
+              <td>Service is a god-object (35 fields)</td>
+              <td>Service composes subsystem services via embedding</td>
+            </tr>
+            <tr>
+              <td><strong>Mechanism, not policy</strong></td>
+              <td>Domain types mixed with HTTP + OAuth2 impl</td>
+              <td>domain/ defines what; webauthn/, oauth2/ define how</td>
+            </tr>
+            <tr>
+              <td><strong>Opaque internals</strong></td>
+              <td>No <code>internal/</code> packages</td>
+              <td><code>internal/</code> for crypto, random, eviction</td>
+            </tr>
+            <tr>
+              <td><strong>Thin textual interfaces</strong></td>
+              <td>Casbin wrapped behind Authz (good)</td>
+              <td>Preserved — interfaces stay in the right packages</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-solution">
+          <strong>Bottom line</strong>
+          The module boundaries are correct. The problem is package-level: <code>usermgmt</code> is
+          a 71-file god-package. The proposed decomposition into 8 sub-packages with a
+          backward-compatible facade addresses this without module-splitting complexity, versioning
+          overhead, or consumer breakage. This is partial modularization — the right outcome for a
+          library whose module boundaries are already sound.
+        </div>
+
+        <h2 id="mapping"><span class="num">12</span>Complete File-to-Package Mapping (71 files)</h2>
+        <p>
+          Every production file in <code>usermgmt/</code> mapped to its proposed sub-package with
+          line count. This is the executable spec for the migration.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Current File</th>
+              <th>Lines</th>
+              <th>Target Package</th>
+              <th>Rationale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" style="background: var(--surface-sunken); font-weight: 800">
+                domain/ — Pure domain types, zero internal deps (6 files, 556 lines)
+              </td>
+            </tr>
+            <tr>
+              <td><code>user.go</code></td>
+              <td>207</td>
+              <td><code>domain/</code></td>
+              <td>User, Session, SessionOrigin, MarshalJSON</td>
+            </tr>
+            <tr>
+              <td><code>id.go</code></td>
+              <td>106</td>
+              <td><code>domain/</code></td>
+              <td>UserID, TenantID, BotID, ActorID</td>
+            </tr>
+            <tr>
+              <td><code>email.go</code></td>
+              <td>49</td>
+              <td><code>domain/</code></td>
+              <td>Email value type + ParseEmail</td>
+            </tr>
+            <tr>
+              <td><code>credential.go</code></td>
+              <td>46</td>
+              <td><code>domain/</code></td>
+              <td>WebAuthnCredential type</td>
+            </tr>
+            <tr>
+              <td><code>external_account.go</code></td>
+              <td>24</td>
+              <td><code>domain/</code></td>
+              <td>ExternalAccount value type</td>
+            </tr>
+            <tr>
+              <td><code>errors.go</code></td>
+              <td>124</td>
+              <td><code>domain/</code></td>
+              <td>Sentinel errors (importable by all sub-packages)</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background: var(--surface-sunken); font-weight: 800">
+                authz/ — Casbin RBAC wrapper (3 files, 552 lines)
+              </td>
+            </tr>
+            <tr>
+              <td><code>authz_types.go</code></td>
+              <td>252</td>
+              <td><code>authz/</code></td>
+              <td>Authz, model, Policy, EnforcerConfig, AsEnforcer</td>
+            </tr>
+            <tr>
+              <td><code>authz_policies.go</code></td>
+              <td>186</td>
+              <td><code>authz/</code></td>
+              <td>Apply, AddPolicy, RemovePolicy, AddGroupPolicy</td>
+            </tr>
+            <tr>
+              <td><code>authz_roles.go</code></td>
+              <td>114</td>
+              <td><code>authz/</code></td>
+              <td>RolesForUser, ImplicitRolesForUser</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background: var(--surface-sunken); font-weight: 800">
+                store/ — Persistence adapters (3 files, 412 lines)
+              </td>
+            </tr>
+            <tr>
+              <td><code>store.go</code></td>
+              <td>88</td>
+              <td><code>store/</code></td>
+              <td>SessionStore interface + InMemorySessionStore</td>
+            </tr>
+            <tr>
+              <td><code>sql_session_store.go</code></td>
+              <td>240</td>
+              <td><code>store/</code></td>
+              <td>SQL session store + fuzz tests</td>
+            </tr>
+            <tr>
+              <td><code>sql_event_store.go</code></td>
+              <td>84</td>
+              <td><code>store/</code></td>
+              <td>Type alias over upstream storage.SQLEventStore</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background: var(--surface-sunken); font-weight: 800">
+                eventsource/ — Event-sourced aggregates (35 files, ~3,800 lines)
+              </td>
+            </tr>
+            <tr>
+              <td><code>es_constants.go</code></td>
+              <td>103</td>
+              <td><code>eventsource/</code></td>
+              <td>Shared: aggregate types, event/command constants</td>
+            </tr>
+            <tr>
+              <td><code>es_dispatch.go</code></td>
+              <td>224</td>
+              <td><code>eventsource/</code></td>
+              <td>Shared: RegisterCommands (User aggregate)</td>
+            </tr>
+            <tr>
+              <td><code>es_events.go</code></td>
+              <td>89</td>
+              <td><code>eventsource/user/</code></td>
+              <td>User event payloads</td>
+            </tr>
+            <tr>
+              <td><code>es_commands.go</code></td>
+              <td>178</td>
+              <td><code>eventsource/user/</code></td>
+              <td>User command structs</td>
+            </tr>
+            <tr>
+              <td><code>es_state.go</code></td>
+              <td>168</td>
+              <td><code>eventsource/user/</code></td>
+              <td>UserState + foldUser</td>
+            </tr>
+            <tr>
+              <td><code>es_decide.go</code></td>
+              <td>538</td>
+              <td><code>eventsource/user/</code></td>
+              <td>User decide functions (guards + event creation)</td>
+            </tr>
+            <tr>
+              <td><code>es_readmodel.go</code></td>
+              <td>303</td>
+              <td><code>eventsource/</code></td>
+              <td>UserReadModel projection (cross-aggregate)</td>
+            </tr>
+            <tr>
+              <td><code>es_casbin_projection.go</code></td>
+              <td>206</td>
+              <td><code>eventsource/</code></td>
+              <td>CasbinProjection (derives policies from events)</td>
+            </tr>
+            <tr>
+              <td><code>es_setup.go</code></td>
+              <td>182</td>
+              <td><code>eventsource/</code></td>
+              <td>EventSourcedConfig, DefaultEventSourcedSetup</td>
+            </tr>
+            <tr>
+              <td><code>es_projection_setup.go</code></td>
+              <td>138</td>
+              <td><code>eventsource/</code></td>
+              <td>StartProjections orchestration</td>
+            </tr>
+            <tr>
+              <td><code>es_upcaster.go</code></td>
+              <td>132</td>
+              <td><code>eventsource/</code></td>
+              <td>Schema version transforms</td>
+            </tr>
+            <tr>
+              <td><code>es_migration.go</code></td>
+              <td>89</td>
+              <td><code>eventsource/</code></td>
+              <td>Legacy role migration</td>
+            </tr>
+            <tr>
+              <td><code>es_bot_*.go</code> (6 files)</td>
+              <td>325</td>
+              <td><code>eventsource/bot/</code></td>
+              <td>Bot aggregate (state, decide, dispatch, events, commands, readmodel)</td>
+            </tr>
+            <tr>
+              <td><code>es_membership_*.go</code> (6 files)</td>
+              <td>499</td>
+              <td><code>eventsource/membership/</code></td>
+              <td>Membership aggregate (full set)</td>
+            </tr>
+            <tr>
+              <td><code>es_tenant_*.go</code> (6 files)</td>
+              <td>610</td>
+              <td><code>eventsource/tenant/</code></td>
+              <td>Tenant aggregate (full set)</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background: var(--surface-sunken); font-weight: 800">
+                webauthn/ — WebAuthn ceremony (3 files, 377 lines, dep: go-webauthn)
+              </td>
+            </tr>
+            <tr>
+              <td><code>webauthn_adapter.go</code></td>
+              <td>90</td>
+              <td><code>webauthn/</code></td>
+              <td>Domain User → webauthn.User adapter</td>
+            </tr>
+            <tr>
+              <td><code>webauthn_session.go</code></td>
+              <td>83</td>
+              <td><code>webauthn/</code></td>
+              <td>Challenge store + WebAuthnConfig</td>
+            </tr>
+            <tr>
+              <td><code>webauthn_service.go</code></td>
+              <td>204</td>
+              <td><code>webauthn/</code></td>
+              <td>BeginRegistration/FinishRegistration/BeginLogin/FinishLogin</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background: var(--surface-sunken); font-weight: 800">
+                oauth2/ — OAuth2/OIDC (3 files, 721 lines, dep: x/oauth2 + go-oidc)
+              </td>
+            </tr>
+            <tr>
+              <td><code>oauth2.go</code></td>
+              <td>340</td>
+              <td><code>oauth2/</code></td>
+              <td>Provider config, PKCE, state store, token exchange</td>
+            </tr>
+            <tr>
+              <td><code>service_oauth2.go</code></td>
+              <td>276</td>
+              <td><code>oauth2/</code></td>
+              <td>BeginOAuthLogin, FinishOAuthLogin, matchOrCreateUser</td>
+            </tr>
+            <tr>
+              <td><code>oauth2_http.go</code></td>
+              <td>105</td>
+              <td><code>oauth2/</code></td>
+              <td>HTTP handlers for begin/callback/unlink</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background: var(--surface-sunken); font-weight: 800">
+                totp/ — TOTP MFA (1 file, 237 lines, dep: pquerna/otp)
+              </td>
+            </tr>
+            <tr>
+              <td><code>totp.go</code></td>
+              <td>237</td>
+              <td><code>totp/</code></td>
+              <td>EnableTOTP, VerifyTOTP, DisableTOTP</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background: var(--surface-sunken); font-weight: 800">
+                usermgmt (root facade) — Service + wiring (17 files, ~2,500 lines)
+              </td>
+            </tr>
+            <tr>
+              <td><code>service_core.go</code></td>
+              <td>422</td>
+              <td><code>usermgmt</code></td>
+              <td>Service struct, ServiceConfig, NewService</td>
+            </tr>
+            <tr>
+              <td><code>service_register.go</code></td>
+              <td>162</td>
+              <td><code>usermgmt</code></td>
+              <td>RegisterRequest, Service.Register</td>
+            </tr>
+            <tr>
+              <td><code>service_login.go</code></td>
+              <td>45</td>
+              <td><code>usermgmt</code></td>
+              <td>Logout, Authenticate, Authorize</td>
+            </tr>
+            <tr>
+              <td><code>service_misc.go</code></td>
+              <td>114</td>
+              <td><code>usermgmt</code></td>
+              <td>GetUser, UpdateRoles, ChangeEmail, DeleteUser, etc.</td>
+            </tr>
+            <tr>
+              <td><code>service_bot.go</code></td>
+              <td>119</td>
+              <td><code>usermgmt</code></td>
+              <td>Bot lifecycle (RegisterBot, DeleteBot, ResolveBotByToken)</td>
+            </tr>
+            <tr>
+              <td><code>service_tenant.go</code></td>
+              <td>125</td>
+              <td><code>usermgmt</code></td>
+              <td>Tenant lifecycle (Create, Suspend, Reactivate, Delete)</td>
+            </tr>
+            <tr>
+              <td><code>service_impersonation.go</code></td>
+              <td>133</td>
+              <td><code>usermgmt</code></td>
+              <td>BeginImpersonation, EndImpersonation</td>
+            </tr>
+            <tr>
+              <td><code>http.go</code></td>
+              <td>376</td>
+              <td><code>usermgmt</code></td>
+              <td>AuthHandler, route registration, rate limiter, cookies</td>
+            </tr>
+            <tr>
+              <td><code>verification_totp_http.go</code></td>
+              <td>296</td>
+              <td><code>usermgmt</code></td>
+              <td>Verification, TOTP, import/export HTTP endpoints</td>
+            </tr>
+            <tr>
+              <td><code>credential_http.go</code></td>
+              <td>140</td>
+              <td><code>usermgmt</code></td>
+              <td>Credential management HTTP endpoints</td>
+            </tr>
+            <tr>
+              <td><code>webauthn_http.go</code></td>
+              <td>86</td>
+              <td><code>usermgmt</code></td>
+              <td>WebAuthn ceremony HTTP endpoints</td>
+            </tr>
+            <tr>
+              <td><code>import_export.go</code></td>
+              <td>240</td>
+              <td><code>usermgmt</code></td>
+              <td>ImportUsersFromJSON/CSV, ExportUsersToJSON/CSV</td>
+            </tr>
+            <tr>
+              <td><code>middleware.go</code></td>
+              <td>132</td>
+              <td><code>usermgmt</code></td>
+              <td>User context helpers, UserIDFromRequest</td>
+            </tr>
+            <tr>
+              <td><code>api_token_middleware.go</code></td>
+              <td>74</td>
+              <td><code>usermgmt</code></td>
+              <td>API token middleware, RequireBot</td>
+            </tr>
+            <tr>
+              <td><code>email_verification.go</code></td>
+              <td>168</td>
+              <td><code>usermgmt</code></td>
+              <td>Verification token store, SendVerificationEmail</td>
+            </tr>
+            <tr>
+              <td><code>lockout.go</code></td>
+              <td>130</td>
+              <td><code>usermgmt</code></td>
+              <td>AccountLockout (max attempts + duration)</td>
+            </tr>
+            <tr>
+              <td><code>audit_log.go</code></td>
+              <td>146</td>
+              <td><code>usermgmt</code></td>
+              <td>AuditLog — append-only audit event recorder</td>
+            </tr>
+            <tr>
+              <td><code>events.go</code></td>
+              <td>31</td>
+              <td><code>usermgmt</code></td>
+              <td>EventHandler callback bridge (backward compat)</td>
+            </tr>
+            <tr>
+              <td><code>doc.go</code></td>
+              <td>58</td>
+              <td><code>usermgmt</code></td>
+              <td>Package documentation</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background: var(--surface-sunken); font-weight: 800">
+                internal/ — Shared utilities, not exported (3 files, 86 lines)
+              </td>
+            </tr>
+            <tr>
+              <td><code>crypto.go</code></td>
+              <td>38</td>
+              <td><code>internal/</code></td>
+              <td>GenerateToken, HashToken, VerifyToken</td>
+            </tr>
+            <tr>
+              <td><code>random.go</code></td>
+              <td>22</td>
+              <td><code>internal/</code></td>
+              <td>randomBase64URLString (CSPRNG)</td>
+            </tr>
+            <tr>
+              <td><code>eviction.go</code></td>
+              <td>26</td>
+              <td><code>internal/</code></td>
+              <td>startPeriodicEviction (shared TTL sweep)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-solution">
+          <strong>Package size distribution after decomposition:</strong> domain/ (556 LOC), authz/
+          (552), store/ (412), eventsource/ (~3,800), webauthn/ (377), oauth2/ (721), totp/ (237),
+          root facade (~2,500), internal/ (86). The largest is eventsource/ at ~3,800 LOC across 4
+          aggregate sub-directories — each aggregate is ~600-1,200 LOC, well within the "do one
+          thing well" threshold.
+        </div>
+
+        <h2 id="coupling"><span class="num">13</span>Coupling Analysis — Symbol-Level</h2>
+        <p>
+          Since all files are in one Go package today, coupling is through symbol usage (not
+          imports). This analysis maps which subsystems reference symbols from other subsystems.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>From →</th>
+              <th>domain</th>
+              <th>authz</th>
+              <th>store</th>
+              <th>eventsource</th>
+              <th>webauthn</th>
+              <th>oauth2</th>
+              <th>totp</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>domain</strong></td>
+              <td>—</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td><strong>authz</strong></td>
+              <td><strong>uses</strong></td>
+              <td>—</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td><strong>store</strong></td>
+              <td><strong>uses</strong></td>
+              <td>0</td>
+              <td>—</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td><strong>eventsource</strong></td>
+              <td><strong>uses</strong></td>
+              <td><strong>uses*</strong></td>
+              <td>0</td>
+              <td>—</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td><strong>webauthn</strong></td>
+              <td><strong>uses</strong></td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>—</td>
+              <td>0</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td><strong>oauth2</strong></td>
+              <td><strong>uses</strong></td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>—</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td><strong>totp</strong></td>
+              <td><strong>uses</strong></td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <strong>* eventsource → authz:</strong> CasbinProjection calls
+          <code>authz.AddRoleForUser</code>, <code>authz.RemoveAllRolesForUser</code>. This is the
+          ONLY cross-subsystem dependency beyond domain/. It means CasbinProjection must live in
+          <code>eventsource/</code> (which depends on <code>authz/</code>), not in
+          <code>authz/</code> (which must not depend on event types).
+        </p>
+
+        <div class="callout callout-solution">
+          <strong>The coupling graph is nearly perfectly layered.</strong> All subsystems depend on
+          domain/ only. The one exception (eventsource → authz for CasbinProjection) is a clean
+          one-way dependency. WebAuthn, OAuth2, and TOTP are completely independent of each other —
+          they could be extracted as separate modules in Phase 2 with zero refactoring.
+        </div>
+
+        <h2 id="alternatives"><span class="num">14</span>Alternative Approaches Comparison</h2>
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>Criterion</th>
+              <th>Status Quo</th>
+              <th>Package Decomposition (proposed)</th>
+              <th>Sub-Module Extraction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Consumer breakage</strong></td>
+              <td>None</td>
+              <td><strong>None</strong> (type aliases)</td>
+              <td>High (import path changes)</td>
+            </tr>
+            <tr>
+              <td><strong>God-package fix</strong></td>
+              <td class="no">71 files, 8 concerns</td>
+              <td class="yes">8 packages, max ~15 files each</td>
+              <td class="yes">Same + module isolation</td>
+            </tr>
+            <tr>
+              <td><strong>Dependency isolation</strong></td>
+              <td class="no">go-webauthn pulled by all</td>
+              <td class="no">Same module = same go.mod</td>
+              <td class="yes">Per-module go.mod</td>
+            </tr>
+            <tr>
+              <td><strong>CI parallelization</strong></td>
+              <td>1 test run</td>
+              <td>1 test run (same module)</td>
+              <td class="yes">N parallel test runs</td>
+            </tr>
+            <tr>
+              <td><strong>Versioning complexity</strong></td>
+              <td>1 version tag</td>
+              <td>1 version tag</td>
+              <td>N tags per release</td>
+            </tr>
+            <tr>
+              <td><strong>Effort</strong></td>
+              <td>0</td>
+              <td>~4-6 hours</td>
+              <td>~2-3 days + consumer migration</td>
+            </tr>
+            <tr>
+              <td><strong>Reversibility</strong></td>
+              <td>—</td>
+              <td class="yes">Trivial (merge packages)</td>
+              <td>Hard (consumer migration)</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout callout-solution">
+          <strong>Decision: Package decomposition now, sub-module extraction later.</strong> The
+          proposed approach fixes the god-package (the real problem) with zero consumer breakage and
+          full reversibility. Sub-module extraction becomes trivial AFTER decomposition — the clean
+          package boundaries are the prerequisite. Extract modules only when consumer demand for
+          dependency isolation materializes.
+        </div>
+
+        <h2 id="selfreview"><span class="num">15</span>Self-Review Refinements (Phase 4)</h2>
+        <p>
+          Critical evaluation against the go-modularize checklist. Five gaps identified and
+          addressed:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Question</th>
+              <th>Finding</th>
+              <th>Resolution</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>What about test files?</td>
+              <td>74 test files in usermgmt — placement unclear</td>
+              <td>
+                Tests co-locate with sub-packages (<code>domain/user_test.go</code>). Root Service
+                tests stay in root package.
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Where does <code>import_export.go</code> go?</td>
+              <td>Cross-cutting: uses Service + HTTP + file I/O</td>
+              <td>
+                <code>httpapi/import_export.go</code>. Validation (<code>ImportUser.Validate</code>)
+                moves to <code>domain/</code>.
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Where does <code>events.go</code> bridge go?</td>
+              <td>Backward-compat callback bridging bus → consumer</td>
+              <td>Stays in root package — bridges Service to external callbacks.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Embedding method ambiguity?</td>
+              <td>Service embeds 3+ subsystem services</td>
+              <td>
+                <strong>Not a risk.</strong> Each subsystem has distinct method names. Verified:
+                zero collisions across 71 files.
+              </td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Is eventsource/ (35 files) too coarse?</td>
+              <td>4 aggregates + infrastructure</td>
+              <td>
+                Sub-directories: <code>eventsource/user/</code>, <code>bot/</code>,
+                <code>membership/</code>, <code>tenant/</code>. Shared infra stays in root.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout callout-solution">
+          <strong>Verdict: Proposal stands.</strong> No fundamental flaws. The 5 refinements are
+          clarifications, not redesigns.
+        </div>
+
+        <h2>Phase 2 (Future, Opt-in): Dependency Isolation via Sub-modules</h2>
+        <p>
+          If consumer feedback shows dependency overreach (e.g., "I only want basic user management
+          but get go-webauthn + go-oidc + pquerna/otp"), extract <code>webauthn/</code>,
+          <code>oauth2/</code>, <code>totp/</code> as independent sub-modules:
+        </p>
+        <pre>
+usermgmt-webauthn/    → go.mod depends on go-webauthn
+usermgmt-oauth2/      → go.mod depends on x/oauth2 + go-oidc
+usermgmt-totp/        → go.mod depends on pquerna/otp</pre
+        >
+        <p>
+          This gives true dependency isolation: consumers who don't need WebAuthn don't pull in
+          <code>go-webauthn</code>. But this should be driven by real demand, not premature
+          modularization. The package decomposition in this proposal is the prerequisite — it
+          creates the clean seams that make future module extraction trivial.
+        </p>
+
+        <div class="footer">
+          Generated 2026-06-21 &middot; Supersedes docs/modularization/PROPOSAL.md (2026-05-27)
+          &middot; go-modularize skill Phase 3
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
