@@ -81,7 +81,9 @@ func TestService_DeleteUser_RevokesSessions(t *testing.T) {
 func TestService_AddCredential_Success(t *testing.T) {
 	svc, ctx, _ := newTestServiceWithUser(t, "u1", "addcred@test.com")
 	cred := WebAuthnCredential{
-		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+		credentialCore: credentialCore{
+			ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+		},
 	}
 	err := svc.AddCredential(ctx, NewUserID("u1"), cred)
 	if err != nil {
@@ -97,7 +99,9 @@ func TestService_AddCredential_Success(t *testing.T) {
 func TestService_AddCredential_UserNotFound(t *testing.T) {
 	svc := newTestService(t)
 	err := svc.AddCredential(context.Background(), NewUserID("ghost"), WebAuthnCredential{
-		ID: []byte{1},
+		credentialCore: credentialCore{
+			ID: []byte{1},
+		},
 	})
 	if err == nil {
 		t.Fatal("expected error for nonexistent user")
@@ -108,7 +112,9 @@ func TestService_RemoveCredential_Success(t *testing.T) {
 	svc, ctx, _ := newTestServiceWithUser(t, "u1", "remcred@test.com")
 
 	cred := WebAuthnCredential{
-		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+		credentialCore: credentialCore{
+			ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+		},
 	}
 	if err := svc.AddCredential(ctx, NewUserID("u1"), cred); err != nil {
 		t.Fatalf("AddCredential: %v", err)
@@ -146,7 +152,9 @@ func TestService_AddCredential_Duplicate(t *testing.T) {
 	svc, ctx, _ := newTestServiceWithUser(t, "u1", "dupcred@test.com")
 
 	cred := WebAuthnCredential{
-		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+		credentialCore: credentialCore{
+			ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+		},
 	}
 	if err := svc.AddCredential(ctx, NewUserID("u1"), cred); err != nil {
 		t.Fatalf("first AddCredential: %v", err)

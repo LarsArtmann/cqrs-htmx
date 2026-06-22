@@ -2,19 +2,27 @@ package usermgmt
 
 import "time"
 
+// credentialCore contains the shared WebAuthn credential fields used by both
+// WebAuthnCredential (domain model) and CredentialAddedPayload (event payload).
+// Embedding this struct ensures both types stay in sync — adding a field here
+// automatically updates both.
+type credentialCore struct {
+	ID              []byte   `json:"id"`
+	PublicKey       []byte   `json:"public_key"`
+	AttestationType string   `json:"attestation_type"`
+	Transports      []string `json:"transports,omitempty"`
+	AAGUID          []byte   `json:"aaguid,omitempty"`
+	SignCount       uint32   `json:"sign_count"`
+	BackupEligible  bool     `json:"backup_eligible"`
+	BackupState     bool     `json:"backup_state"`
+	Name            string   `json:"name,omitempty"`
+}
+
 // WebAuthnCredential represents a registered passkey/WebAuthn credential.
 // Stored as part of the User aggregate state, updated via events.
 type WebAuthnCredential struct {
-	ID              []byte    `json:"id"`
-	PublicKey       []byte    `json:"public_key"`
-	AttestationType string    `json:"attestation_type"`
-	Transports      []string  `json:"transports,omitempty"`
-	AAGUID          []byte    `json:"aaguid,omitempty"`
-	SignCount       uint32    `json:"sign_count"`
-	BackupEligible  bool      `json:"backup_eligible"`
-	BackupState     bool      `json:"backup_state"`
-	Name            string    `json:"name,omitempty"`
-	CreatedAt       time.Time `json:"created_at"`
+	credentialCore
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // newCredentialFromPayload builds a WebAuthnCredential from a
@@ -22,16 +30,18 @@ type WebAuthnCredential struct {
 // slices so the result does not alias event payload memory.
 func newCredentialFromPayload(p CredentialAddedPayload, createdAt time.Time) WebAuthnCredential {
 	return WebAuthnCredential{
-		ID:              p.ID,
-		PublicKey:       p.PublicKey,
-		AttestationType: p.AttestationType,
-		Transports:      append([]string(nil), p.Transports...),
-		AAGUID:          append([]byte(nil), p.AAGUID...),
-		SignCount:       p.SignCount,
-		BackupEligible:  p.BackupEligible,
-		BackupState:     p.BackupState,
-		Name:            p.Name,
-		CreatedAt:       createdAt,
+		credentialCore: credentialCore{
+			ID:              p.ID,
+			PublicKey:       p.PublicKey,
+			AttestationType: p.AttestationType,
+			Transports:      append([]string(nil), p.Transports...),
+			AAGUID:          append([]byte(nil), p.AAGUID...),
+			SignCount:       p.SignCount,
+			BackupEligible:  p.BackupEligible,
+			BackupState:     p.BackupState,
+			Name:            p.Name,
+		},
+		CreatedAt: createdAt,
 	}
 }
 

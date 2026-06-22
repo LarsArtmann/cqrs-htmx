@@ -38,7 +38,7 @@ func TestDecideLinkExternalAccount_Deleted(t *testing.T) {
 func TestDecideLinkExternalAccount_Duplicate(t *testing.T) {
 	state := existingState()
 	state.ExternalAccounts = []ExternalAccount{
-		{Provider: "google", Subject: "sub-123"},
+		{externalAccountCore: externalAccountCore{Provider: "google", Subject: "sub-123"}},
 	}
 	decide := decideLinkExternalAccount(id.NewAggregateID(), "google", "sub-123", "", "")
 	events, err := decide(state, 1)
@@ -50,7 +50,7 @@ func TestDecideLinkExternalAccount_Duplicate(t *testing.T) {
 func TestDecideLinkExternalAccount_DifferentProviderAllowed(t *testing.T) {
 	state := existingState()
 	state.ExternalAccounts = []ExternalAccount{
-		{Provider: "google", Subject: "sub-123"},
+		{externalAccountCore: externalAccountCore{Provider: "google", Subject: "sub-123"}},
 	}
 	decide := decideLinkExternalAccount(id.NewAggregateID(), "github", "sub-123", "", "")
 	events, err := decide(state, 1)
@@ -78,8 +78,8 @@ func TestDecideLinkExternalAccount_Invalid(t *testing.T) {
 func TestDecideUnlinkExternalAccount_Success(t *testing.T) {
 	state := existingState()
 	state.ExternalAccounts = []ExternalAccount{
-		{Provider: "google", Subject: "sub-123"},
-		{Provider: "github", Subject: "sub-456"},
+		{externalAccountCore: externalAccountCore{Provider: "google", Subject: "sub-123"}},
+		{externalAccountCore: externalAccountCore{Provider: "github", Subject: "sub-456"}},
 	}
 	decide := decideUnlinkExternalAccount(id.NewAggregateID(), "google", "sub-123")
 	events, err := decide(state, 1)
@@ -101,7 +101,7 @@ func TestDecideUnlinkExternalAccount_NotFound(t *testing.T) {
 func TestDecideUnlinkExternalAccount_Deleted(t *testing.T) {
 	state := deletedState()
 	state.ExternalAccounts = []ExternalAccount{
-		{Provider: "google", Subject: "sub-123"},
+		{externalAccountCore: externalAccountCore{Provider: "google", Subject: "sub-123"}},
 	}
 	decide := decideUnlinkExternalAccount(id.NewAggregateID(), "google", "sub-123")
 	if _, err := decide(state, 1); err == nil {
@@ -119,7 +119,7 @@ func TestDecideUnlinkExternalAccount_NotLinked(t *testing.T) {
 func TestDecideUnlinkExternalAccount_LastAuthMethod(t *testing.T) {
 	state := existingState()
 	state.ExternalAccounts = []ExternalAccount{
-		{Provider: "google", Subject: "sub-123"},
+		{externalAccountCore: externalAccountCore{Provider: "google", Subject: "sub-123"}},
 	}
 	// 0 credentials + 1 external account = last auth method
 	decide := decideUnlinkExternalAccount(id.NewAggregateID(), "google", "sub-123")
@@ -132,9 +132,9 @@ func TestDecideUnlinkExternalAccount_LastAuthMethod(t *testing.T) {
 func TestDecideUnlinkExternalAccount_AllowedWithCredential(t *testing.T) {
 	state := existingState()
 	state.ExternalAccounts = []ExternalAccount{
-		{Provider: "google", Subject: "sub-123"},
+		{externalAccountCore: externalAccountCore{Provider: "google", Subject: "sub-123"}},
 	}
-	state.Credentials = []WebAuthnCredential{{ID: []byte{1}}}
+	state.Credentials = []WebAuthnCredential{{credentialCore: credentialCore{ID: []byte{1}}}}
 	// Has a WebAuthn credential, so removing the external account is OK
 	decide := decideUnlinkExternalAccount(id.NewAggregateID(), "google", "sub-123")
 	events, err := decide(state, 1)
@@ -149,8 +149,8 @@ func TestDecideUnlinkExternalAccount_AllowedWithCredential(t *testing.T) {
 func TestDecideUnlinkExternalAccount_AllowedWithMultipleExternal(t *testing.T) {
 	state := existingState()
 	state.ExternalAccounts = []ExternalAccount{
-		{Provider: "google", Subject: "sub-123"},
-		{Provider: "github", Subject: "sub-456"},
+		{externalAccountCore: externalAccountCore{Provider: "google", Subject: "sub-123"}},
+		{externalAccountCore: externalAccountCore{Provider: "github", Subject: "sub-456"}},
 	}
 	// Has another external account, so removing one is OK
 	decide := decideUnlinkExternalAccount(id.NewAggregateID(), "google", "sub-123")

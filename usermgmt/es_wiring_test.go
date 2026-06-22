@@ -28,7 +28,7 @@ func newTestDispatcher(t *testing.T, setup *EventSourcedSetup) *command.Dispatch
 
 func sampleWebAuthnCredential() WebAuthnCredential {
 	return WebAuthnCredential{
-		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
+		credentialCore: credentialCore{ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none"},
 	}
 }
 

@@ -53,15 +53,17 @@ func toWebAuthnCredential(c WebAuthnCredential) webauthn.Credential {
 func fromWebAuthnCredential(c *webauthn.Credential, name string) WebAuthnCredential {
 	//nolint:exhaustruct // CreatedAt set by event system via OccurredAt
 	return WebAuthnCredential{
-		ID:              c.ID,
-		PublicKey:       c.PublicKey,
-		AttestationType: c.AttestationType,
-		Transports:      fromProtocolTransports(c.Transport),
-		AAGUID:          c.Authenticator.AAGUID,
-		SignCount:       c.Authenticator.SignCount,
-		BackupEligible:  c.Flags.BackupEligible,
-		BackupState:     c.Flags.BackupState,
-		Name:            name,
+		credentialCore: credentialCore{
+			ID:              c.ID,
+			PublicKey:       c.PublicKey,
+			AttestationType: c.AttestationType,
+			Transports:      fromProtocolTransports(c.Transport),
+			AAGUID:          c.Authenticator.AAGUID,
+			SignCount:       c.Authenticator.SignCount,
+			BackupEligible:  c.Flags.BackupEligible,
+			BackupState:     c.Flags.BackupState,
+			Name:            name,
+		},
 	}
 }
 

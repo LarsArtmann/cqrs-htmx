@@ -276,9 +276,11 @@ func TestUnlinkExternalAccount(t *testing.T) {
 	// Add a WebAuthn credential so unlinking is allowed
 	aggID, _ := aggIDFromUser(resp.User.ID)
 	_ = svc.dispatcher.Dispatch(context.Background(), NewAddCredentialCmd(aggID, WebAuthnCredential{
-		ID:              []byte{1, 2, 3},
-		PublicKey:       []byte{4, 5, 6},
-		AttestationType: "none",
+		credentialCore: credentialCore{
+			ID:              []byte{1, 2, 3},
+			PublicKey:       []byte{4, 5, 6},
+			AttestationType: "none",
+		},
 	}))
 
 	// Unlink should succeed

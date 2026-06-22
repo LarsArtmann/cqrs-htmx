@@ -26,16 +26,18 @@ func decideAddCredential(
 			}
 		}
 		payload, err := marshalPayload(CredentialAddedPayload{
-			SchemaVersion:   currentSchemaVersion,
-			ID:              cred.ID,
-			PublicKey:       cred.PublicKey,
-			AttestationType: cred.AttestationType,
-			Transports:      cred.Transports,
-			AAGUID:          cred.AAGUID,
-			SignCount:       cred.SignCount,
-			BackupEligible:  cred.BackupEligible,
-			BackupState:     cred.BackupState,
-			Name:            cred.Name,
+			SchemaVersion: currentSchemaVersion,
+			credentialCore: credentialCore{
+				ID:              cred.ID,
+				PublicKey:       cred.PublicKey,
+				AttestationType: cred.AttestationType,
+				Transports:      cred.Transports,
+				AAGUID:          cred.AAGUID,
+				SignCount:       cred.SignCount,
+				BackupEligible:  cred.BackupEligible,
+				BackupState:     cred.BackupState,
+				Name:            cred.Name,
+			},
 		})
 		if err != nil {
 			return nil, event.WrapInfrastructure(
