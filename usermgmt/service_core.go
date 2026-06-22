@@ -329,10 +329,6 @@ func (s *Service) ReadModel() *UserReadModel { return s.readModel }
 // AuditLog returns the configured audit log, or nil if not configured.
 func (s *Service) AuditLog() *AuditLog { return s.auditLog }
 
-func userIDFromAggID(aggID interface{ String() string }) UserID {
-	return NewUserID(aggID.String())
-}
-
 func (s *Service) emailFromEvent(evt event.Event) string {
 	user, ok := s.readModel.FindByID(evt.AggregateID())
 	if !ok {

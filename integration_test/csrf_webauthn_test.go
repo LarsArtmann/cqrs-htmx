@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v2"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 // TestCSRF_WithAuthHandler demonstrates wiring CSRF protection around the

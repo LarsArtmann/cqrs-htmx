@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 func defaultCSRFConfig() cqrshtmx.CSRFConfig {

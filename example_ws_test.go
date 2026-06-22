@@ -3,7 +3,7 @@ package cqrshtmx_test
 import (
 	"fmt"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 func ExampleParseWSMessage() {

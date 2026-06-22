@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/catalog-demo
 go 1.26.3
 
 require (
-	github.com/larsartmann/cqrs-htmx/catalog/v2 v2.0.0
+	github.com/larsartmann/cqrs-htmx/catalog/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.0.0
 )
 
@@ -17,4 +17,4 @@ require (
 	golang.org/x/sys v0.46.0 // indirect
 )
 
-replace github.com/larsartmann/cqrs-htmx/catalog/v2 => ../../catalog
+replace github.com/larsartmann/cqrs-htmx/catalog/v3 => ../../catalog

@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v2"
+	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 

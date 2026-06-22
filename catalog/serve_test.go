@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
+	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v3"
 )
 
 func unmarshalJSONBody(t *testing.T, w *httptest.ResponseRecorder) map[string]any {

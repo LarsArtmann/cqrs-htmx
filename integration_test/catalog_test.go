@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"

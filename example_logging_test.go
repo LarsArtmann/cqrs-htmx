@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 func ExampleRequestLogging() {
