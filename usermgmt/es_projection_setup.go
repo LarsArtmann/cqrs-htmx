@@ -3,56 +3,21 @@ package usermgmt
 import (
 	"context"
 	"log/slog"
-	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
-// subscribeSignal wraps an event.Subscriber so the first Subscribe/SubscribeAll
-// call closes a readiness channel. StartProjections uses it to block until the
-// projection Runner has registered its live subscription with the bus —
-// deterministically guaranteeing that the first event a caller publishes is
-// delivered, instead of relying on a time.Sleep to paper over the race.
-type subscribeSignal struct {
-	event.Subscriber
-	once  sync.Once
-	ready chan struct{}
-}
-
-func newSubscribeSignal(s event.Subscriber) *subscribeSignal {
-	return &subscribeSignal{ //nolint:exhaustruct // once must start zero-valued
-		Subscriber: s,
-		ready:      make(chan struct{}),
-	}
-}
-
-func (s *subscribeSignal) Subscribe(t event.Type, h event.Handler) error {
-	err := s.Subscriber.Subscribe(t, h)
-	s.once.Do(func() { close(s.ready) })
-
-	return err //nolint:wrapcheck // transparent delegation
-}
-
-func (s *subscribeSignal) SubscribeAll(h event.Handler) error {
-	err := s.Subscriber.SubscribeAll(h)
-	s.once.Do(func() { close(s.ready) })
-
-	return err //nolint:wrapcheck // transparent delegation
-}
-
-// StartProjections creates a projection Runner, registers the read model and
-// Casbin projection, replays history, and starts live tailing of the bus.
+// StartProjections replays historical events from the journal into all
+// registered projections, then subscribes to live events from the bus.
 //
-// Replay is synchronous: RunReplay replays every historical event from the
-// journal (using checkpoints) and returns only once all registered projections
-// have caught up to the current event stream.
+// Replay is synchronous: every historical event is dispatched to projections
+// before StartProjections returns. Combined with the synchronous event bus
+// (watermill.EventBus with BlockPublishUntilSubscriberAck), this provides
+// read-your-writes consistency: after a command completes, the read model
+// already reflects the change — no timing-based sleeps.
 //
-// The live subscription is established before StartProjections returns: it waits
-// for the Runner to register its bus handler, so the very first event a caller
-// publishes is delivered. Combined with memory.MemoryBus (synchronous publish),
-// this gives read-your-writes consistency with no timing-based sleeps.
+// Dedup: event IDs processed during replay are tracked and skipped in the
+// live handler to prevent double-processing at the replay-to-live boundary.
 //
 //nolint:cyclop,funlen // inherent to multi-projection registration
 func StartProjections(
@@ -65,74 +30,123 @@ func StartProjections(
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
 ) error {
-	checkpointStore := memory.NewMemoryCheckpointStore()
-	signal := newSubscribeSignal(bus)
+	projections := collectProjections(
+		readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog,
+	)
 
-	runner, err := projection.NewRunner(journal, signal, checkpointStore)
+	seenIDs, err := replayProjections(journal, projections)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.projection.runner_failed", "create projection runner")
+		return err
 	}
 
-	if err := runner.Register(readModel); err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.projection.register_failed", "register read model projection")
+	liveHandler := buildLiveHandler(projections, seenIDs)
+	if err := bus.SubscribeAll(liveHandler); err != nil {
+		return event.WrapInfrastructure(err,
+			"usermgmt.projection.subscribe_failed",
+			"subscribe to live events")
 	}
-
-	if membershipReadModel != nil {
-		if err := runner.Register(membershipReadModel); err != nil {
-			return event.WrapInfrastructure(
-				err,
-				"usermgmt.projection.register_failed",
-				"register membership read model projection",
-			)
-		}
-	}
-
-	if tenantReadModel != nil {
-		if err := runner.Register(tenantReadModel); err != nil {
-			return event.WrapInfrastructure(
-				err,
-				"usermgmt.projection.register_failed",
-				"register tenant read model projection",
-			)
-		}
-	}
-
-	if botReadModel != nil {
-		if err := runner.Register(botReadModel); err != nil {
-			return event.WrapInfrastructure(
-				err,
-				"usermgmt.projection.register_failed",
-				"register bot read model projection",
-			)
-		}
-	}
-
-	if err := runner.Register(casbinProjection); err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.projection.register_failed", "register casbin projection")
-	}
-
-	if auditLog != nil {
-		if err := runner.Register(auditLog); err != nil {
-			return event.WrapInfrastructure(err, "usermgmt.projection.register_failed", "register audit log projection")
-		}
-	}
-
-	// RunReplay is synchronous: it returns only once the read model reflects
-	// every committed event, catching up history with no sleeps.
-	if err := runner.RunReplay(context.Background()); err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.projection.replay_failed", "replay projections")
-	}
-
-	// RunLive tails live events from the bus until the context is cancelled.
-	go func() {
-		if err := runner.RunLive(context.Background()); err != nil {
-			slog.Error("usermgmt: projection runner stopped", "error", err)
-		}
-	}()
-
-	// Block until the Runner has registered its live subscription, so callers
-	// cannot publish before the projection is listening.
-	<-signal.ready
 
 	return nil
+}
+
+// collectProjections gathers all projection implementations into a slice.
+// The read model and casbin projection are always present; the rest are optional.
+func collectProjections(
+	readModel *UserReadModel,
+	membershipReadModel *MembershipReadModel,
+	tenantReadModel *TenantReadModel,
+	botReadModel *BotReadModel,
+	casbinProjection *CasbinProjection,
+	auditLog *AuditLog,
+) []event.Projection {
+	projections := []event.Projection{readModel, casbinProjection}
+	if membershipReadModel != nil {
+		projections = append(projections, membershipReadModel)
+	}
+	if tenantReadModel != nil {
+		projections = append(projections, tenantReadModel)
+	}
+	if botReadModel != nil {
+		projections = append(projections, botReadModel)
+	}
+	if auditLog != nil {
+		projections = append(projections, auditLog)
+	}
+
+	return projections
+}
+
+// replayProjections reads all events from the journal and dispatches each to
+// every projection that handles its event type. Returns a set of seen event
+// IDs for live-handler dedup.
+func replayProjections(
+	journal event.Journal,
+	projections []event.Projection,
+) (map[string]struct{}, error) {
+	replayCtx := event.WithProcessingMode(context.Background(), event.ModeReplay)
+
+	events, err := journal.ReadAll(context.Background())
+	if err != nil {
+		return nil, event.WrapInfrastructure(err,
+			"usermgmt.projection.replay_failed",
+			"read events from journal")
+	}
+
+	seenIDs := make(map[string]struct{}, len(events))
+	for _, evt := range events {
+		seenIDs[evt.ID().String()] = struct{}{}
+
+		for _, proj := range projections {
+			if !shouldDispatch(proj, evt.Type()) {
+				continue
+			}
+
+			if err := proj.Handle(replayCtx, evt); err != nil {
+				return nil, event.WrapInfrastructure(err,
+					"usermgmt.projection.replay_failed",
+					"replay event in projection "+proj.Name())
+			}
+		}
+	}
+
+	return seenIDs, nil
+}
+
+// buildLiveHandler creates an event.Handler that routes live events to all
+// projections. Events already seen during replay are skipped (dedup).
+func buildLiveHandler(
+	projections []event.Projection,
+	seenIDs map[string]struct{},
+) event.Handler {
+	return event.Handler(func(ctx context.Context, evt event.Event) error {
+		if _, seen := seenIDs[evt.ID().String()]; seen {
+			return nil
+		}
+
+		for _, proj := range projections {
+			if !shouldDispatch(proj, evt.Type()) {
+				continue
+			}
+
+			if err := proj.Handle(ctx, evt); err != nil {
+				slog.Error("usermgmt: projection handler failed",
+					"projection", proj.Name(),
+					"event_type", evt.Type().String(),
+					"error", err)
+			}
+		}
+
+		return nil
+	})
+}
+
+// shouldDispatch reports whether the projection handles events of the given type.
+func shouldDispatch(proj event.Projection, eventType event.Type) bool {
+	for _, t := range proj.EventTypes() {
+		if t == eventType {
+			return true
+		}
+	}
+
+	return false
 }

@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/decider/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // TestAuditLog_AllEventActions feeds every event type through the audit log and
@@ -107,7 +108,7 @@ func TestEmailVerification_SendEmailCallbackError(t *testing.T) {
 
 func TestRegisterCommands_DuplicateReturnsError(t *testing.T) {
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := watermill.NewEventBus()
 	defer func() { _ = bus.Close() }()
 	repo, err := decider.NewRepository(store, bus, UserDecider())
 	if err != nil {

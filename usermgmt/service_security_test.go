@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
 
 // recordingStore embeds *memory.MemoryStore, overriding Save to count writes.
@@ -240,7 +240,7 @@ func TestNewEventSourcedSetup_SecurityHooks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewEventSourcedSetup: %v", err)
 	}
-	t.Cleanup(func() { _ = setup.Bus.Close() })
+	t.Cleanup(func() { closeBus(setup.Bus) })
 
 	// Publish through the bus to verify middleware fires.
 	aggID := id.NewAggregateID()
@@ -276,7 +276,7 @@ func TestNewEventSourcedSetup_StoreWrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewEventSourcedSetup: %v", err)
 	}
-	t.Cleanup(func() { _ = setup.Bus.Close() })
+	t.Cleanup(func() { closeBus(setup.Bus) })
 
 	if !wrapped.Load() {
 		t.Error("expected StoreWrapper to be invoked in NewEventSourcedSetup")

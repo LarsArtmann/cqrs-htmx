@@ -1,16 +1,16 @@
 package usermgmt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/decider/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // TenantDecider returns the Decider for the Tenant aggregate.
 func TenantDecider() decider.Decider[TenantState] {
 	return decider.Decider[TenantState]{
 		Initial: TenantState{}, //nolint:exhaustruct // zero-value is correct for aggregate initial state
-		Fold:    foldTenant,
+		Apply:    foldTenant,
 	}
 }
 

@@ -3,8 +3,8 @@ package usermgmt
 import (
 	"bytes"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // requireExists returns a "user does not exist" rejection if the user has not

@@ -3,7 +3,7 @@ package usermgmt
 import (
 	"encoding/json"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 type UserRegisteredPayload struct {

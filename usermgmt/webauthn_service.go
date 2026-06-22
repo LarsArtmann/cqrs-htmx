@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // BeginRegistrationResponse contains the credential creation options to send to the client.

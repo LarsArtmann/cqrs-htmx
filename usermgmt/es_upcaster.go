@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // Upcaster transforms raw event payload bytes from schema version N to version N+1.

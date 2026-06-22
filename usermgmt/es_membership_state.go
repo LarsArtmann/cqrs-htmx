@@ -1,7 +1,7 @@
 package usermgmt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // MembershipState is the aggregate state for a Membership (actor+tenant pair),

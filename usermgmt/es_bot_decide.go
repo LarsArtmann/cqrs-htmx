@@ -1,16 +1,16 @@
 package usermgmt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/decider/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // BotDecider returns the Decider for the Bot aggregate.
 func BotDecider() decider.Decider[BotState] {
 	return decider.Decider[BotState]{
 		Initial: BotState{}, //nolint:exhaustruct // zero-value is correct for aggregate initial state
-		Fold:    foldBot,
+		Apply:    foldBot,
 	}
 }
 

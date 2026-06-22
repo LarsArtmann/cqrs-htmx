@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 )
