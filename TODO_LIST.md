@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-17 | **Coverage:** 96.4% root, 88.7% usermgmt, 95.3% catalog | **Lint:** 0 issues (all modules) | **Version:** v2.4.0
+**Updated:** 2026-06-22 | **Coverage:** 96.4% root, 88.7% usermgmt, 95.3% catalog | **Lint:** 0 issues (all modules) | **Version:** v3.0.0 (go-cqrs-lite v3.0.0)
 
 ## Status Legend
 
@@ -58,8 +58,10 @@
 ### Future Work
 
 - [x] **SQL event store** — Postgres/SQLite/MySQL event persistence for production use (SQLEventStore added)
-- [ ] **OAuth2/OIDC integration** — Social login as alternative to WebAuthn
-- [ ] **Event schema versioning** — Version field on events for future migrations
+- [x] **OAuth2/OIDC integration** — Social login as alternative to WebAuthn (ADR-0014, 2026-06-18)
+- [x] **Event schema versioning** — Version field on events for future migrations (ADR-0013, upcaster registry)
+- [x] **go-cqrs-lite v3.0.0 migration** — All 7 modules migrated from v2.6.0 to v3.0.0 (ADR-0016, 2026-06-22)
+- [x] **Identity model redesign** — Actor, Tenant, Membership, Bot, Impersonation (ADR-0015, 2026-06-21)
 - [x] **CSRF protection on WebAuthn endpoints** — Documented wiring recipe in `integration_test/csrf_webauthn_test.go` (CSRFMiddleware composes with SessionMiddleware via Chain)
 - [x] **Rate limiting on WebAuthn endpoints** — `HandlerConfig.WebAuthnRateLimit` wired into all 4 WebAuthn handlers, matching the existing per-endpoint rate-limit pattern
 - [x] **Property-based testing for foldUser** — 8 rapid-based property tests verify fold invariants
@@ -83,7 +85,7 @@
 
 ### Upstream-Blocked
 
-- [ ] **BrandNamer for root module marker types** — BLOCKED: upstream `go-cqrs-lite/core/pkg/id` marker types (`userMarker`, `correlationMarker`) are unexported. Requires upstream change to expose them or provide BrandNamer integration.
+- [~] **BrandNamer for root module marker types** — PARTIALLY UNBLOCKED: go-cqrs-lite v3.0.0 exports marker types. Needs verification and wiring.
 - [x] **Remove local replace directives** — go-cqrs-lite v2.0.0 tags are published upstream. All go-cqrs-lite replace directives removed from all 4 go.mod files. Only `integration_test` retains cqrs-htmx local replaces (library not yet published).
 
 ### Future Enhancements (Not Started)
