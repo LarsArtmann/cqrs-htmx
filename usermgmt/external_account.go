@@ -15,10 +15,3 @@ type ExternalAccount struct {
 	DisplayName string    `json:"display_name,omitempty"`
 	LinkedAt    time.Time `json:"linked_at"`
 }
-
-// Clone returns a deep copy of the external account.
-// All fields are value types so this is effectively a copy, but the method
-// is provided for API consistency with WebAuthnCredential.Clone().
-func (e ExternalAccount) Clone() ExternalAccount {
-	return e
-}
