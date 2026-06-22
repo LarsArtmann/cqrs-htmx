@@ -34,9 +34,10 @@ var (
 
 // MapError translates a CQRS error into an appropriate HTTP status code.
 //
-// The family→status mapping delegates to event.Family.HTTPStatus() from
-// go-error-family (the upstream canonical source). Explicit overrides for
-// auth and HTTP-semantic errors take precedence over the family default.
+// The family→status mapping delegates to Family.HTTPStatus() from
+// go-error-family (the upstream canonical source, adopted in v0.5.0).
+// Explicit overrides for auth and HTTP-semantic errors take precedence
+// over the family default.
 //
 // Mapping (via upstream):
 //   - Rejection family  → 400 Bad Request
@@ -46,7 +47,6 @@ var (
 //   - Infrastructure    → 503 Service Unavailable
 //   - nil or unknown    → 500 Internal Server Error
 //
-// The mapping matches go-error-family's Family.HTTPStatus() upstream.
 // See ADR-0017 for the reconciliation rationale.
 func MapError(err error) int {
 	if err == nil {
@@ -57,7 +57,7 @@ func MapError(err error) int {
 		return status
 	}
 
-	return familyStatus(event.Classify(err))
+	return event.Classify(err).HTTPStatus()
 }
 
 func explicitErrorStatus(err error) int {
@@ -74,23 +74,6 @@ func explicitErrorStatus(err error) int {
 		return http.StatusMethodNotAllowed
 	default:
 		return 0
-	}
-}
-
-func familyStatus(family event.Family) int {
-	switch family {
-	case event.Rejection:
-		return http.StatusBadRequest
-	case event.Conflict:
-		return http.StatusConflict
-	case event.Corruption:
-		return http.StatusInternalServerError
-	case event.Transient:
-		return http.StatusServiceUnavailable
-	case event.Infrastructure:
-		return http.StatusServiceUnavailable
-	default:
-		return http.StatusInternalServerError
 	}
 }
 

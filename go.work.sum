@@ -46,6 +46,7 @@ github.com/larsartmann/go-cqrs-lite/query/v2 v2.0.0/go.mod h1:8hBFmtAEChRbz3Ms+O
 github.com/larsartmann/go-cqrs-lite/schema/v2 v2.0.0/go.mod h1:T8IID5ry5c9DAr2ogSZA2ozoZsVEPQKWu92lApuu/74=
 github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.0.0/go.mod h1:T5wP6K9ip/uauAZZnMmleUZc5gj/91gySYJT43/ZT8M=
 github.com/larsartmann/go-error-family v0.3.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
+github.com/larsartmann/go-error-family/diagnose v0.1.0/go.mod h1:yjLhP+5go9A50hbzaidbviaTkejBNValDufSLekBAx4=
 github.com/larsartmann/httputil v0.1.0 h1:SFk6OSXhZqdmDNjlFKpfqP6S7WCBIoujEzNmxz3fgEY=
 github.com/larsartmann/httputil v0.1.0/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
 github.com/lucasb-eyer/go-colorful v1.2.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=

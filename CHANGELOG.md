@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - **`SQLEventStore` is now a type alias** over `go-cqrs-lite/storage/v2`'s `storage.SQLEventStore`. The hand-rolled 413-LOC store was replaced by a 78-LOC facade. The upstream store is a strict superset: richer schema (`schema_version`, `payload_encoding`, `created_at`), `event.SeekableJournal` / `BackwardsSource` conformance, OpenTelemetry tracing, and `event.WrapInfrastructure` error wrapping.
+- **go-error-family upgraded to v0.5.0.** `MapError` now delegates to upstream `Family.HTTPStatus()` — the hand-rolled `familyStatus()` switch (E04) is deleted. The upstream method returns identical status codes (Rejection→400, Conflict→409, Transient→503, Corruption→500, Infrastructure→503), confirming the ADR-0017 reconciliation was correct.
 
 ### Fixed
 
