@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
@@ -14,22 +13,6 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 		return nil, event.Wrapf(ErrUserNotFound, event.Rejection, "usermgmt.service.user_not_found", "get user %q", id)
 	}
 	return user, nil
-}
-
-// UpdateRoles dispatches an UpdateRoles command and revokes existing sessions
-// to force re-authentication with the new privilege level.
-func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, domain string) error {
-	aggID, err := aggIDFromUser(userID)
-	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
-	}
-	err = s.dispatcher.Dispatch(ctx, NewUpdateRolesCmd(aggID, roles, domain))
-	if err != nil {
-		return s.classifyDispatchError(err, userID)
-	}
-	s.revokeSessionsBestEffort(ctx, userID, "failed to rotate sessions after role update")
-	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
-	return nil
 }
 
 // ChangeEmail dispatches a ChangeEmail command.
@@ -98,12 +81,4 @@ func (s *Service) RemoveCredential(ctx context.Context, userID UserID, credentia
 	}
 	s.logAuth("credential_removed", userID)
 	return nil
-}
-
-func formatRoles(roles []Role) string {
-	strs := make([]string, len(roles))
-	for i, r := range roles {
-		strs[i] = string(r)
-	}
-	return strings.Join(strs, ",")
 }

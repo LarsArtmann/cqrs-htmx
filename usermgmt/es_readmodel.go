@@ -51,28 +51,21 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		if err != nil {
 			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode UserRegistered in read model")
 		}
-		roles := make([]Role, len(p.Roles))
-		copy(roles, p.Roles)
 		m.users[aggID] = &User{
 			ID:          NewUserID(aggID.String()),
 			Email:       p.Email,
 			DisplayName: p.DisplayName,
-			Roles:       roles,
 			CreatedAt:   evt.OccurredAt(),
 			UpdatedAt:   evt.OccurredAt(),
 		}
 		m.emails[p.Email] = aggID
 
 	case eventRolesUpdated:
-		p, err := unmarshalPayload[RolesUpdatedPayload](evt)
+		// Roles are managed by the Membership aggregate. We still decode the
+		// payload to detect corruption, but no longer store roles on User.
+		_, err := unmarshalPayload[RolesUpdatedPayload](evt)
 		if err != nil {
 			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode RolesUpdated in read model")
-		}
-		if u, ok := m.users[aggID]; ok {
-			roles := make([]Role, len(p.Roles))
-			copy(roles, p.Roles)
-			u.Roles = roles
-			u.UpdatedAt = evt.OccurredAt()
 		}
 
 	case eventEmailChanged:

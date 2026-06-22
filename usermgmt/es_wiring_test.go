@@ -85,24 +85,6 @@ func TestWiring_RegisterDuplicate(t *testing.T) {
 	}
 }
 
-func TestWiring_UpdateRoles(t *testing.T) {
-	setup := newTestSetup(t)
-	disp := newTestDispatcher(t, setup)
-	ctx := context.Background()
-
-	aggID := id.NewAggregateID()
-	dispatchRegisterUser(t, disp, ctx, aggID, "carol@example.com", "Carol")
-
-	if err := disp.Dispatch(ctx, NewUpdateRolesCmd(aggID, []Role{RoleAdmin}, "domain1")); err != nil {
-		t.Fatalf("update roles: %v", err)
-	}
-
-	user, _ := setup.ReadModel.FindByID(aggID)
-	if len(user.Roles) != 1 || user.Roles[0] != RoleAdmin {
-		t.Errorf("roles = %v", user.Roles)
-	}
-}
-
 func TestWiring_DeleteUser(t *testing.T) {
 	setup := newTestSetup(t)
 	disp := newTestDispatcher(t, setup)

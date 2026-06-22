@@ -11,9 +11,6 @@ func TestNewUser_Defaults(t *testing.T) {
 	if u.Email != "test@example.com" {
 		t.Errorf("email = %q", u.Email)
 	}
-	if len(u.Roles) != 1 || u.Roles[0] != RoleViewer {
-		t.Errorf("expected default [viewer] role, got %v", u.Roles)
-	}
 	if u.CreatedAt.IsZero() {
 		t.Error("expected non-zero CreatedAt")
 	}
@@ -23,18 +20,13 @@ func TestUser_Clone_DeepCopy(t *testing.T) {
 	u := &User{
 		ID:    NewUserID("u1"),
 		Email: "a@b.com",
-		Roles: []Role{RoleAdmin},
 		Credentials: []WebAuthnCredential{
 			{ID: []byte{1}},
 		},
 	}
 	cp := u.Clone()
-	cp.Roles[0] = RoleViewer
 	cp.Credentials[0].ID = []byte{2}
 
-	if u.Roles[0] != RoleAdmin {
-		t.Error("Clone did not deep copy Roles")
-	}
 	if u.Credentials[0].ID[0] != 1 {
 		t.Error("Clone did not deep copy Credentials")
 	}
@@ -66,7 +58,6 @@ func TestUser_MarshalJSON(t *testing.T) {
 		ID:          NewUserID("u1"),
 		Email:       "test@example.com",
 		DisplayName: "Test",
-		Roles:       []Role{RoleUser},
 		Credentials: []WebAuthnCredential{{ID: []byte{1}}},
 	}
 

@@ -13,6 +13,9 @@ type UserRegisteredPayload struct {
 	Roles         []Role `json:"roles"`
 }
 
+// RolesUpdatedPayload is the legacy payload for the RolesUpdated event.
+// No longer emitted (roles are managed by the Membership aggregate), but
+// retained for decoding existing events in stores and the migration tool.
 type RolesUpdatedPayload struct {
 	SchemaVersion int    `json:"schema_version"`
 	Roles         []Role `json:"roles"`

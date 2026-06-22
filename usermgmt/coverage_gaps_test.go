@@ -11,7 +11,7 @@ import (
 
 func TestAggIDFromUser_InvalidID(t *testing.T) {
 	svc := newTestService(t)
-	err := svc.UpdateRoles(context.Background(), NewUserID("not-a-valid-ulid"), []Role{RoleAdmin}, "d")
+	err := svc.ChangeEmail(context.Background(), NewUserID("not-a-valid-ulid"), "new@test.com")
 	if err == nil {
 		t.Fatal("expected error for invalid UserID")
 	}

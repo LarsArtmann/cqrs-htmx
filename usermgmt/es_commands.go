@@ -26,19 +26,6 @@ func NewRegisterUserCmd(
 func (c *RegisterUserCmd) Type() command.Type          { return cmdRegisterUser }
 func (c *RegisterUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
-type UpdateRolesCmd struct {
-	aggregateID id.AggregateID
-	roles       []Role
-	domain      string
-}
-
-func NewUpdateRolesCmd(aggID id.AggregateID, roles []Role, domain string) *UpdateRolesCmd {
-	return &UpdateRolesCmd{aggregateID: aggID, roles: roles, domain: domain}
-}
-
-func (c *UpdateRolesCmd) Type() command.Type          { return cmdUpdateRoles }
-func (c *UpdateRolesCmd) AggregateID() id.AggregateID { return c.aggregateID }
-
 type ChangeEmailCmd struct {
 	aggregateID id.AggregateID
 	email       string

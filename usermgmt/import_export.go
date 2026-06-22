@@ -42,11 +42,11 @@ func (u *ImportUser) Validate() error {
 
 // ExportUser is a user in the export format. It omits credentials and
 // sensitive data — only public profile information is included.
+// Roles are not included: query them via Service.Authz().RolesForUser().
 type ExportUser struct {
 	ID               UserID            `json:"id"`
 	Email            Email             `json:"email"`
 	DisplayName      string            `json:"display_name,omitempty"`
-	Roles            []Role            `json:"roles"`
 	EmailVerified    bool              `json:"email_verified"`
 	TOTPEnabled      bool              `json:"totp_enabled"`
 	ExternalAccounts []ExternalAccount `json:"external_accounts,omitempty"`
@@ -169,12 +169,11 @@ const (
 	csvColumnDisplayName   = "display_name"
 	csvColumnName          = "name"
 	csvColumnNameAlt       = "displayname"
-	csvColumnRoles         = "roles"
 	csvColumnEmailVerified = "email_verified"
 	csvColumnTOTPEnabled   = "totp_enabled"
 )
 
-// ExportUsersToCSV writes all users as CSV with columns: id, email, display_name, roles, email_verified, totp_enabled.
+// ExportUsersToCSV writes all users as CSV with columns: id, email, display_name, email_verified, totp_enabled.
 func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 	users := s.exportAllUsers()
 	cw := csv.NewWriter(w)
@@ -184,22 +183,16 @@ func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 		csvColumnID,
 		csvColumnEmail,
 		csvColumnDisplayName,
-		csvColumnRoles,
 		csvColumnEmailVerified,
 		csvColumnTOTPEnabled,
 	}); err != nil {
 		return event.WrapTransient(err, "usermgmt.export.csv_header_failed", "write CSV header")
 	}
 	for _, u := range users {
-		roles := make([]string, 0, len(u.Roles))
-		for _, r := range u.Roles {
-			roles = append(roles, string(r))
-		}
 		if err := cw.Write([]string{
 			u.ID.Get(),
 			string(u.Email),
 			u.DisplayName,
-			strings.Join(roles, ";"),
 			strconv.FormatBool(u.EmailVerified),
 			strconv.FormatBool(u.TOTPEnabled),
 		}); err != nil {
@@ -217,7 +210,6 @@ func (s *Service) exportAllUsers() []ExportUser {
 			ID:               u.ID,
 			Email:            Email(u.Email),
 			DisplayName:      u.DisplayName,
-			Roles:            append([]Role(nil), u.Roles...),
 			EmailVerified:    u.EmailVerified,
 			TOTPEnabled:      u.TOTPEnabled,
 			ExternalAccounts: append([]ExternalAccount(nil), u.ExternalAccounts...),

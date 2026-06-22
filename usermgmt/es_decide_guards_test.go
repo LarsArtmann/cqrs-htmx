@@ -215,7 +215,6 @@ func TestDecideGuardErrorsAreRejections(t *testing.T) {
 		name   string
 		decide func(UserState, event.Version) ([]event.Event, error)
 	}{
-		{"update_roles", decideUpdateRoles(aggID, nil, "d")},
 		{"change_email", decideChangeEmail(aggID, "new@example.com")},
 		{"change_display_name", decideChangeDisplayName(aggID, "N")},
 		{"delete_user", decideDeleteUser(aggID, "r")},

@@ -33,32 +33,6 @@ func TestService_EventHandler_Register(t *testing.T) {
 	if evt.Email != "evt@test.com" {
 		t.Errorf("expected email evt@test.com, got %s", evt.Email)
 	}
-	if len(evt.Roles) != 2 {
-		t.Errorf("expected 2 roles, got %d", len(evt.Roles))
-	}
-}
-
-func TestService_EventHandler_UpdateRoles(t *testing.T) {
-	var captured any
-	svc, ctx, _ := newTestServiceWithUserAndHandler(t, "u1", "ur@test.com", func(_ UserID, evt any) {
-		captured = evt
-	})
-
-	err := svc.UpdateRoles(ctx, NewUserID("u1"), []Role{RoleAdmin}, "u1")
-	if err != nil {
-		t.Fatalf("UpdateRoles: %v", err)
-	}
-
-	if captured == nil {
-		t.Fatal("expected event to be emitted")
-	}
-	evt, ok := captured.(RolesUpdatedEvent)
-	if !ok {
-		t.Fatalf("expected RolesUpdatedEvent, got %T", captured)
-	}
-	if evt.Domain != "u1" {
-		t.Errorf("expected domain u1, got %s", evt.Domain)
-	}
 }
 
 func TestService_EventHandler_PanicRecovered(t *testing.T) {
