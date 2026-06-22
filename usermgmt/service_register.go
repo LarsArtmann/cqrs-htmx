@@ -99,13 +99,6 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 		)
 	}
 
-	s.emit(req.ID, UserRegisteredEvent{
-		Email:       user.Email,
-		DisplayName: user.DisplayName,
-		Roles:       append([]Role(nil), user.Roles...),
-		OccurredAt:  nowUTC(),
-	})
-
 	return &RegisterResponse{User: user, Session: session}, nil
 }
 

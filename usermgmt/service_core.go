@@ -392,16 +392,28 @@ func (s *Service) AuditLog() *AuditLog { return s.auditLog }
 // bridgeEventHandler subscribes to the bus and translates events to the old EventHandler callback.
 func (s *Service) bridgeEventHandler(bus event.Subscriber) {
 	if err := bus.Subscribe(eventUserRegistered, func(_ context.Context, evt event.Event) error {
+		p, err := unmarshalPayload[UserRegisteredPayload](evt)
+		if err != nil {
+			return err
+		}
 		s.emit(userIDFromAggID(evt.AggregateID()), UserRegisteredEvent{
-			Email:      s.emailFromEvent(evt),
-			OccurredAt: evt.OccurredAt(),
+			Email:       p.Email,
+			DisplayName: p.DisplayName,
+			Roles:       append([]Role(nil), p.Roles...),
+			OccurredAt:  evt.OccurredAt(),
 		})
 		return nil
 	}); err != nil {
 		s.logger.Warn("usermgmt: failed to subscribe to UserRegistered events", "error", err)
 	}
 	if err := bus.Subscribe(eventRolesUpdated, func(_ context.Context, evt event.Event) error {
+		p, err := unmarshalPayload[RolesUpdatedPayload](evt)
+		if err != nil {
+			return err
+		}
 		s.emit(userIDFromAggID(evt.AggregateID()), RolesUpdatedEvent{
+			Roles:      append([]Role(nil), p.Roles...),
+			Domain:     p.Domain,
 			OccurredAt: evt.OccurredAt(),
 		})
 		return nil

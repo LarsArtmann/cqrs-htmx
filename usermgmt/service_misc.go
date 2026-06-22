@@ -29,11 +29,6 @@ func (s *Service) UpdateRoles(ctx context.Context, userID UserID, roles []Role, 
 	}
 	s.revokeSessionsBestEffort(ctx, userID, "failed to rotate sessions after role update")
 	s.logAuth("roles_updated", userID, "roles", formatRoles(roles), "domain", domain)
-	s.emit(userID, RolesUpdatedEvent{
-		Roles:      append([]Role(nil), roles...),
-		Domain:     domain,
-		OccurredAt: nowUTC(),
-	})
 	return nil
 }
 

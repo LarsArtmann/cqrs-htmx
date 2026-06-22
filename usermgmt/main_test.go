@@ -30,6 +30,18 @@ func newTestServiceWithUser(
 	return svc, ctx, reg
 }
 
+func newTestServiceWithUserAndHandler(
+	t *testing.T,
+	id, email string,
+	handler EventHandler,
+) (*Service, context.Context, *RegisterResponse) {
+	t.Helper()
+	svc := newTestServiceWithConfig(t, ServiceConfig{EventHandler: handler})
+	ctx := context.Background()
+	reg := registerTestUser(t, svc, id, email)
+	return svc, ctx, reg
+}
+
 func addTestGroupPolicy(t *testing.T, a *Authz, gp GroupPolicy) {
 	t.Helper()
 	if err := a.AddGroupPolicy(gp); err != nil {
