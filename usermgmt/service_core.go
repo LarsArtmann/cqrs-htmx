@@ -61,9 +61,9 @@ type Service struct {
 // ServiceConfig holds optional dependencies for NewService.
 // Zero-valued fields are replaced with sensible defaults.
 type ServiceConfig struct {
-	// EventStore is the event persistence backend. Defaults to MemoryStore.
+	// EventStore is the event persistence backend. Defaults to storage/memory.MemoryStore.
 	EventStore event.Store
-	// EventBus is the event pub/sub backend. Defaults to MemoryBus.
+	// EventBus is the event pub/sub backend. Defaults to watermill.EventBus.
 	EventBus event.Bus
 	// Authz is the authorization engine. Defaults to a new Authz with default policies.
 	Authz *Authz
@@ -149,7 +149,7 @@ func applyBusMiddleware(publishMW []event.PublishMiddleware, handlerMW []event.M
 
 // journalFromStore extracts the projection-replay journal from the store.
 // Falls back to a fresh in-memory store when the store implements neither
-// *memory.MemoryStore nor event.Journal.
+// *storage/memory.MemoryStore nor event.Journal.
 func journalFromStore(store event.Store) event.Journal {
 	if memStore, ok := store.(*memory.MemoryStore); ok {
 		return memStore
