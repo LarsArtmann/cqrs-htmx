@@ -131,20 +131,10 @@ func (e StructuredError) String() string { return e.JSON() }
 func (e StructuredError) Unwrap() error { return e.cause }
 
 func familyType(family event.Family) string {
-	switch family {
-	case event.Rejection:
-		return "rejection"
-	case event.Conflict:
-		return "conflict"
-	case event.Corruption:
-		return "corruption"
-	case event.Transient:
-		return "transient"
-	case event.Infrastructure:
-		return "infrastructure"
-	default:
-		return "about:blank"
+	if family.IsValid() {
+		return family.String()
 	}
+	return "about:blank"
 }
 
 func familyTitle(family event.Family, status int) string {

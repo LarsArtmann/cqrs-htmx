@@ -106,8 +106,8 @@ github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0 h1:/udmN+c2fKHEDruQtMSeKMT
 github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0/go.mod h1:fgRte23aWAns1lvCXZM5+FFkCwSMnktJgbTnQWAm+W0=
 github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0 h1:YfLPpMpE5IugPDA1dlyJkN89HAmHnCIji22KNd/XWtg=
 github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0/go.mod h1:nupH/Izaw+G+g5tkU/RET5zgtRfl8rqYBMueGsi4BPQ=
-github.com/larsartmann/go-error-family v0.4.0 h1:y4ykkSJJaqr7jtilitrdX+bByVAm6UTlTbccQMlu1Fw=
-github.com/larsartmann/go-error-family v0.4.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
+github.com/larsartmann/go-error-family v0.5.0 h1:BCRn+IKHtzQlmH7F+BWq1El1ZUWHRNpdfq5HKzTv9o8=
+github.com/larsartmann/go-error-family v0.5.0/go.mod h1:JbSRM+qePUMzqr2L28oEeIf7QjWUnwAnUHpUfqp/flg=
 github.com/larsartmann/httputil v0.3.0 h1:/j1PUI2K79mkZZ6QtRD92hfLK0ij0d+kkXacAgBoXlc=
 github.com/larsartmann/httputil v0.3.0/go.mod h1:+zSz4Ru4W61NzDhN91eyZaJD5xR3cEwav55Z4899ROg=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
