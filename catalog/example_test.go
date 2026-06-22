@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 
 	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 
 type RegisterUserCmd struct {

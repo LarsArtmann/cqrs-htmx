@@ -1,6 +1,6 @@
 package cqrshtmx
 
-import "github.com/larsartmann/go-cqrs-lite/event/v2"
+import "github.com/larsartmann/go-cqrs-lite/event/v3"
 
 // SSEEventStore retrieves events for SSE reconnection replay.
 // Implementations must be safe for concurrent access.

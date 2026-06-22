@@ -25,7 +25,7 @@ import (
 	"time"
 
 	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 
 // --- Domain message types (these drive all schema generation) ---

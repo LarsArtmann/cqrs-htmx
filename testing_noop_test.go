@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
 )
 
 func noOpCommandHandler(_ context.Context, _ command.Command) error { return nil }

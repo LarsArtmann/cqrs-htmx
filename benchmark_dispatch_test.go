@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 func BenchmarkCommandDispatch(b *testing.B) {

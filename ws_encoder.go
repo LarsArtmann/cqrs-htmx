@@ -5,7 +5,7 @@ import (
 	"io"
 	"maps"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // WriteWSMessage serializes a WSMessage to the HTMX WebSocket JSON format and
