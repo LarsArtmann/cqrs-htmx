@@ -37,7 +37,6 @@ type Service struct {
 	sessionTTL               time.Duration
 	logger                   *slog.Logger
 	lockout                  *AccountLockout
-	eventHandler             EventHandler
 	bus                      event.Bus
 	store                    event.Store
 	webauthn                 *webauthn.WebAuthn
@@ -75,8 +74,6 @@ type ServiceConfig struct {
 	Logger *slog.Logger
 	// Lockout, if provided, enables account lockout after repeated login failures.
 	Lockout *AccountLockout
-	// EventHandler, if provided, is called after successful domain operations.
-	EventHandler EventHandler
 	// WebAuthnConfig configures passwordless authentication. Required for login.
 	WebAuthnConfig *WebAuthnConfig
 	// AuditLog, if provided, is registered as a projection to record all
@@ -283,7 +280,6 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		sessionTTL:          cfg.SessionTTL,
 		logger:              logger,
 		lockout:             cfg.Lockout,
-		eventHandler:        cfg.EventHandler,
 		bus:                 bus,
 		store:               store,
 		auditLog:            cfg.AuditLog,
@@ -328,10 +324,6 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		if err := svc.initOAuth2(cfg.OAuth2Config, stateStore); err != nil {
 			return nil, err
 		}
-	}
-
-	if cfg.EventHandler != nil {
-		svc.bridgeEventHandler(bus)
 	}
 
 	svc.tokenPepper = cfg.TokenPepper
@@ -388,25 +380,6 @@ func (s *Service) ReadModel() *UserReadModel { return s.readModel }
 
 // AuditLog returns the configured audit log, or nil if not configured.
 func (s *Service) AuditLog() *AuditLog { return s.auditLog }
-
-// bridgeEventHandler subscribes to the bus and translates events to the old EventHandler callback.
-func (s *Service) bridgeEventHandler(bus event.Subscriber) {
-	if err := bus.Subscribe(eventUserRegistered, func(_ context.Context, evt event.Event) error {
-		p, err := unmarshalPayload[UserRegisteredPayload](evt)
-		if err != nil {
-			return err
-		}
-		s.emit(userIDFromAggID(evt.AggregateID()), UserRegisteredEvent{
-			Email:       p.Email,
-			DisplayName: p.DisplayName,
-			Roles:       append([]Role(nil), p.Roles...),
-			OccurredAt:  evt.OccurredAt(),
-		})
-		return nil
-	}); err != nil {
-		s.logger.Warn("usermgmt: failed to subscribe to UserRegistered events", "error", err)
-	}
-}
 
 func userIDFromAggID(aggID interface{ String() string }) UserID {
 	return NewUserID(aggID.String())
