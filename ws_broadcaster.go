@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"context"
 	"net/http"
 )
 
@@ -54,12 +53,7 @@ func (b *WSBroadcaster) BroadcastHTML(id, html string, swapStrategy ...SwapStrat
 // when a command dispatch succeeds (err == nil). This is the WebSocket equivalent
 // of [Broadcaster.BroadcastOnSuccess].
 func (b *WSBroadcaster) BroadcastOnSuccessWS(msg string) AfterDispatchHook {
-	return func(_ context.Context, _ *http.Request, err error) {
-		if err != nil {
-			return
-		}
-		b.Broadcast(msg)
-	}
+	return b.broadcastOnSuccessHook(func(_ *http.Request) string { return msg })
 }
 
 // BroadcastOnSuccessWSFunc creates an AfterDispatchHook that generates a WS
@@ -76,13 +70,10 @@ func (b *WSBroadcaster) BroadcastOnSuccessWSFunc(msgFunc func(r *http.Request) s
 // as a StructuredError JSON string. This is the WebSocket equivalent of
 // [Broadcaster.BroadcastOnError].
 func (b *WSBroadcaster) BroadcastOnErrorWS() AfterDispatchHook {
-	return func(_ context.Context, r *http.Request, err error) {
-		if err == nil {
-			return
-		}
+	return b.broadcastOnErrorHook(func(r *http.Request, err error) string {
 		payload := NewStructuredError(err, r)
-		b.Broadcast(payload.JSON())
-	}
+		return payload.JSON()
+	})
 }
 
 // BroadcastOnErrorWSFunc creates an AfterDispatchHook that generates a WS error

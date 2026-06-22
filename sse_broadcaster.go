@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"context"
 	"net/http"
 )
 
@@ -41,12 +40,9 @@ func NewBroadcaster() *Broadcaster {
 //
 // For dynamic event data based on the request, use BroadcastOnSuccessFunc.
 func (b *Broadcaster) BroadcastOnSuccess(eventName, data string) AfterDispatchHook {
-	return func(_ context.Context, _ *http.Request, err error) {
-		if err != nil {
-			return
-		}
-		b.Broadcast(SSEEvent{Event: eventName, Data: data})
-	}
+	return b.broadcastOnSuccessHook(func(_ *http.Request) SSEEvent {
+		return SSEEvent{Event: eventName, Data: data}
+	})
 }
 
 // BroadcastOnSuccessFunc creates an AfterDispatchHook that generates an SSE event
@@ -85,13 +81,10 @@ func (b *Broadcaster) BroadcastOnSuccessFunc(eventFunc func(r *http.Request) SSE
 //
 // For dynamic error event generation, use BroadcastOnErrorFunc.
 func (b *Broadcaster) BroadcastOnError(eventName string) AfterDispatchHook {
-	return func(_ context.Context, r *http.Request, err error) {
-		if err == nil {
-			return
-		}
+	return b.broadcastOnErrorHook(func(r *http.Request, err error) SSEEvent {
 		payload := NewStructuredError(err, r)
-		b.Broadcast(SSEEvent{Event: eventName, Data: payload.JSON()})
-	}
+		return SSEEvent{Event: eventName, Data: payload.JSON()}
+	})
 }
 
 // BroadcastOnErrorFunc creates an AfterDispatchHook that generates an SSE error
