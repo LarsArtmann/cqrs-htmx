@@ -143,3 +143,5 @@ func (m *MembershipReadModel) removeMembership(aggID id.AggregateID) {
 	}
 	delete(m.memberships, aggID)
 }
+
+var _ event.Projection = (*MembershipReadModel)(nil)
