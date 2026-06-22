@@ -61,7 +61,7 @@ func NewStructuredError(err error, r *http.Request) StructuredError {
 
 	status := MapError(err)
 	family := event.Classify(err)
-	title := familyTitle(family, status)
+	title := statusTitle(status)
 	instance := ""
 
 	if r != nil {
@@ -99,7 +99,7 @@ func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredErr
 
 	return StructuredError{
 		Type:     familyType(family),
-		Title:    familyTitle(family, status),
+		Title:    statusTitle(status),
 		Status:   status,
 		Detail:   err.Error(),
 		Instance: instance,
@@ -137,9 +137,9 @@ func familyType(family event.Family) string {
 	return "about:blank"
 }
 
-func familyTitle(family event.Family, status int) string {
-	// Delegate to http.StatusText for all families — the status code is already
-	// derived from family.HTTPStatus() upstream, so this stays in sync automatically.
+func statusTitle(status int) string {
+	// Delegate to http.StatusText — the status code is already derived from
+	// family.HTTPStatus() upstream, so this stays in sync automatically.
 	if text := http.StatusText(status); text != "" {
 		return text
 	}
