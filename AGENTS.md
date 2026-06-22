@@ -108,7 +108,7 @@ cqrs-htmx/
 │   ├── es_setup.go        # EventSourcedConfig, DefaultEventSourcedSetup, UserDecider
 │   ├── es_readmodel.go    # UserReadModel projection + email index
 │   ├── es_casbin_projection.go  # CasbinProjection — derives policies from events
-│   ├── es_projection_setup.go   # StartProjections — projection.Runner orchestration
+│   ├── es_projection_setup.go   # StartProjections — manual journal replay + bus.SubscribeAll
 │   ├── service_core.go    # Service struct, ServiceConfig, NewService (event-sourced + WebAuthn wiring)
 │   ├── service_register.go # RegisterRequest (email only), Service.Register
 │   ├── service_login.go   # Service.Logout/Authenticate/Authorize (no password login)
@@ -167,7 +167,7 @@ cqrs-htmx/
 
 | Dependency                  | Purpose                                                                 | Used in          |
 | --------------------------- | ----------------------------------------------------------------------- | ---------------- |
-| go-cqrs-lite v2.6.0         | CQRS dispatch, pagination, event sourcing (decider, memory, projection) | All modules      |
+| go-cqrs-lite v3.0.0         | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus) | All modules      |
 | casbin/casbin/v3            | Authorization                                                           | Root, usermgmt   |
 | justinas/nosurf v1.2.0      | CSRF protection                                                         | Root             |
 | go-error-family v0.4.0      | Error classification                                                    | All modules      |
@@ -307,9 +307,9 @@ cqrs-htmx/
 - **Casbin as projection**: `CasbinProjection` subscribes to events and derives all policies via public Authz methods only.
 - **WebAuthn ceremonies**: BeginRegistration/FinishRegistration/BeginLogin/FinishLogin via go-webauthn. Challenge sessions stored in-memory (webauthnSessionStore).
 - **Registration = email only**: RegisterRequest has ID + Email + DisplayName. No password field.
-- **Read-your-writes consistency**: `MemoryBus` blocks publishers until handlers complete, so projections update before `Execute()` returns. Projection startup is deterministic (go-cqrs-lite v2.6.0): `StartProjections` calls `Runner.RunReplay` synchronously (catches up history), then `Runner.RunLive` in the background, and blocks on a `subscribeSignal` until the live bus subscription is registered — no `time.Sleep`-based catch-up. See `es_projection_setup.go`.
+- **Read-your-writes consistency**: `watermill.EventBus` (GoChannel backend, `BlockPublishUntilSubscriberAck: true`) blocks publishers until handlers complete, so projections update before `Execute()` returns. `StartProjections` replays all historical events from the journal synchronously (via `journal.ReadAll`), then subscribes to live events via `bus.SubscribeAll` with replay→live dedup. No `time.Sleep`-based catch-up. See `es_projection_setup.go`.
 - **Sessions NOT event-sourced**: `SessionStore` interface unchanged. Ephemeral auth artifacts.
-- **SQL event store delegates to upstream (RESOLVED 2026-06-19)**: `usermgmt.SQLEventStore` is now a type alias over `storage.SQLEventStore` from `go-cqrs-lite/storage/v2` (v2.6.0). The hand-rolled 413-LOC store was replaced by a 78-LOC facade. The upstream store provides a richer schema (`schema_version`, `payload_encoding`, `created_at`), OpenTelemetry tracing, `event.SeekableJournal`/`BackwardsSource`, and `event.WrapInfrastructure` error wrapping. `NewSQLEventStore` maps dialect strings → `sqlpkg.Dialect`, creates the upstream store, and applies the event schema DDL. **Breaking changes**: (1) `Close()` no longer closes the `*sql.DB` — upstream uses a borrowed handle; callers must close the DB separately. (2) `Load()` on empty aggregate returns `event.ErrAggregateNotFound` (decider's `Repository` handles this by returning Initial state). (3) MySQL is no longer supported for the event store (upstream has no MySQL dialect). `SQLSessionStore` retains MySQL support — it manages its own schema. **Migration script**: `usermgmt/migrations/0001_user_events_to_events.sql` for Postgres deployments upgrading from `< v2.5.0`. **Fuzz tests**: `FuzzSQLSessionStore_CreateFindRoundTrip` and `FuzzSQLSessionStore_DeleteByUserID` cover arbitrary userID strings (SQL injection, unicode, null bytes). **Benchmarks**: `BenchmarkSQLSessionStore_{Create,Find,FindMiss,Delete,DeleteByUserID,EvictExpired}`.
+- **SQL event store delegates to upstream (RESOLVED 2026-06-19)**: `usermgmt.SQLEventStore` is now a type alias over `storage.SQLEventStore` from `go-cqrs-lite/storage/v3` (v3.0.0). The hand-rolled 413-LOC store was replaced by a 78-LOC facade. The upstream store provides a richer schema (`schema_version`, `payload_encoding`, `created_at`), OpenTelemetry tracing, `event.SeekableJournal`/`BackwardsSource`, and `event.WrapInfrastructure` error wrapping. `NewSQLEventStore` maps dialect strings → `sqlpkg.Dialect`, creates the upstream store, and applies the event schema DDL. **Breaking changes**: (1) `Close()` no longer closes the `*sql.DB` — upstream uses a borrowed handle; callers must close the DB separately. (2) `Load()` on empty aggregate returns `event.ErrAggregateNotFound` (decider's `Repository` handles this by returning Initial state). (3) MySQL is no longer supported for the event store (upstream has no MySQL dialect). `SQLSessionStore` retains MySQL support — it manages its own schema. **Migration script**: `usermgmt/migrations/0001_user_events_to_events.sql` for Postgres deployments upgrading from `< v2.5.0`. **Fuzz tests**: `FuzzSQLSessionStore_CreateFindRoundTrip` and `FuzzSQLSessionStore_DeleteByUserID` cover arbitrary userID strings (SQL injection, unicode, null bytes). **Benchmarks**: `BenchmarkSQLSessionStore_{Create,Find,FindMiss,Delete,DeleteByUserID,EvictExpired}`.
 - **UserID bridge**: `usermgmt.UserID` ↔ `id.AggregateID` via `id.ParseAggregateID(userID.Get())`. Conversion at Service boundary.
 - **Email uniqueness**: Pre-checked in Service.Register via read model before dispatching command.
 - **DeleteUser revokes sessions**: Sessions deleted on user deletion for security.
@@ -357,7 +357,7 @@ cqrs-htmx/
 
 1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-3. **go-cqrs-lite v2.6.0**: Per-module tags (`command/v2.6.0`, `event/v2.6.0`, etc.) published. All `go.mod` files declare `v2.6.0`. No replace directives needed
+3. **go-cqrs-lite v3.0.0**: Per-module tags (`command/v3.0.0`, `event/v3.0.0`, etc.) published. All `go.mod` files declare `v3.0.0`. No replace directives needed
 4. **Removed APIs in v2.3.0+**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
 5. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
 6. **LSP vs CLI discrepancy**: LSP may show stale warnings after golangci.yml changes; CLI (`golangci-lint run`) is authoritative. Both report 0 issues as of go-error-family v0.4.0 adoption
