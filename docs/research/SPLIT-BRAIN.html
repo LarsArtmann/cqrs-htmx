@@ -1,0 +1,1518 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Split-Brain Audit — cqrs-htmx</title>
+    <style>
+      :root {
+        --bg: #0a0c10;
+        --bg-card: #141821;
+        --bg-card-2: #1a1f2b;
+        --bg-inset: #07090d;
+        --border: #2a313d;
+        --border-light: #1e242e;
+        --text: #e6edf3;
+        --text-dim: #9aa6b6;
+        --text-faint: #6b7585;
+        --text-bright: #f6f8fa;
+        --accent: #6cb6ff;
+        --accent-dim: #2f6fd0;
+        --green: #46d389;
+        --green-bg: rgba(70, 211, 137, 0.1);
+        --green-border: rgba(70, 211, 137, 0.3);
+        --yellow: #e3b341;
+        --yellow-bg: rgba(227, 179, 65, 0.1);
+        --yellow-border: rgba(227, 179, 65, 0.3);
+        --orange: #f0883e;
+        --orange-bg: rgba(240, 136, 62, 0.1);
+        --orange-border: rgba(240, 136, 62, 0.3);
+        --red: #ff6b6b;
+        --red-bg: rgba(255, 107, 107, 0.1);
+        --red-border: rgba(255, 107, 107, 0.35);
+        --purple: #c9a0ff;
+        --teal: #39d0d8;
+        --mono: "SF Mono", "Cascadia Code", "JetBrains Code", "Fira Code", Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 90px;
+      }
+
+      body {
+        background: var(--bg);
+        background-image:
+          radial-gradient(900px 500px at 85% -5%, rgba(108, 182, 255, 0.06), transparent 60%),
+          radial-gradient(700px 400px at -5% 5%, rgba(255, 107, 107, 0.05), transparent 60%);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.6;
+        font-size: 15px;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      /* --- Layout --- */
+      .layout {
+        display: grid;
+        grid-template-columns: 250px minmax(0, 1fr);
+        gap: 40px;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 28px 80px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        max-height: calc(100vh - 48px);
+        overflow-y: auto;
+        padding-top: 40px;
+      }
+      .sidebar .brand {
+        font-weight: 800;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-bottom: 14px;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 6px 12px;
+        margin-left: -12px;
+        border-left: 2px solid transparent;
+        color: var(--text-dim);
+        font-size: 13.5px;
+        border-radius: 0 4px 4px 0;
+        transition:
+          color 0.15s,
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        border-left-color: var(--border);
+        text-decoration: none;
+        background: var(--bg-card);
+      }
+      .sidebar nav a.crit {
+        border-left-color: var(--red);
+      }
+      .sidebar nav a.high {
+        border-left-color: var(--orange);
+      }
+      .sidebar nav a.med {
+        border-left-color: var(--yellow);
+      }
+      .sidebar nav .grp {
+        font-size: 10.5px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        padding: 18px 12px 6px;
+      }
+      .sidebar .legend {
+        margin-top: 22px;
+        padding: 14px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        font-size: 12px;
+        color: var(--text-dim);
+        line-height: 1.7;
+      }
+      .sidebar .legend b {
+        color: var(--text);
+      }
+
+      .main {
+        min-width: 0;
+        padding-top: 40px;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 44px 0 36px;
+        border-bottom: 1px solid var(--border-light);
+        margin-bottom: 40px;
+      }
+      .eyebrow {
+        display: inline-block;
+        font-size: 11.5px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--red);
+        padding: 5px 11px;
+        background: var(--red-bg);
+        border: 1px solid var(--red-border);
+        border-radius: 999px;
+        margin-bottom: 22px;
+      }
+      .hero h1 {
+        font-size: 42px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.08;
+        color: var(--text-bright);
+        margin-bottom: 14px;
+      }
+      .hero h1 .accent {
+        color: var(--accent);
+      }
+      .hero p.lead {
+        font-size: 17px;
+        color: var(--text-dim);
+        max-width: 680px;
+        margin-bottom: 18px;
+      }
+      .hero .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .tag {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 11px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-dim);
+      }
+      .tag.red {
+        color: var(--red);
+        border-color: var(--red-border);
+        background: var(--red-bg);
+      }
+      .tag.orange {
+        color: var(--orange);
+        border-color: var(--orange-border);
+        background: var(--orange-bg);
+      }
+      .tag.yellow {
+        color: var(--yellow);
+        border-color: var(--yellow-border);
+        background: var(--yellow-bg);
+      }
+
+      /* --- Stat grid --- */
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin: 30px 0 44px;
+      }
+      .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        padding: 20px 18px;
+        position: relative;
+        overflow: hidden;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: var(--border);
+      }
+      .stat-card.crit::before {
+        background: var(--red);
+      }
+      .stat-card.high::before {
+        background: var(--orange);
+      }
+      .stat-card.med::before {
+        background: var(--yellow);
+      }
+      .stat-card.sum::before {
+        background: var(--accent);
+      }
+      .stat-card .v {
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--text-bright);
+        letter-spacing: -0.02em;
+      }
+      .stat-card.crit .v {
+        color: var(--red);
+      }
+      .stat-card.high .v {
+        color: var(--orange);
+      }
+      .stat-card.med .v {
+        color: var(--yellow);
+      }
+      .stat-card.sum .v {
+        color: var(--accent);
+      }
+      .stat-card .l {
+        margin-top: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-dim);
+        letter-spacing: 0.02em;
+      }
+
+      /* --- Section headings --- */
+      section {
+        margin-bottom: 56px;
+        scroll-margin-top: 90px;
+      }
+      h2 {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--text-bright);
+        letter-spacing: -0.01em;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      h2 .num {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--accent);
+        background: rgba(108, 182, 255, 0.12);
+        border: 1px solid rgba(108, 182, 255, 0.3);
+        border-radius: 6px;
+        padding: 2px 9px;
+        font-family: var(--mono);
+      }
+      .sec-intro {
+        color: var(--text-dim);
+        font-size: 14.5px;
+        margin-bottom: 22px;
+        max-width: 720px;
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: 24px 26px 22px;
+        margin-bottom: 18px;
+        position: relative;
+        border-left: 4px solid var(--border);
+      }
+      .issue.critical {
+        border-left-color: var(--red);
+      }
+      .issue.high {
+        border-left-color: var(--orange);
+      }
+      .issue.medium {
+        border-left-color: var(--yellow);
+      }
+      .issue-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+      .badge {
+        font-size: 10.5px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 9px;
+        border-radius: 5px;
+        flex-shrink: 0;
+      }
+      .badge.critical {
+        color: var(--red);
+        background: var(--red-bg);
+        border: 1px solid var(--red-border);
+      }
+      .badge.high {
+        color: var(--orange);
+        background: var(--orange-bg);
+        border: 1px solid var(--orange-border);
+      }
+      .badge.medium {
+        color: var(--yellow);
+        background: var(--yellow-bg);
+        border: 1px solid var(--yellow-border);
+      }
+      .issue h3 {
+        font-size: 19px;
+        font-weight: 700;
+        color: var(--text-bright);
+        margin: 0;
+        line-height: 1.3;
+      }
+      .issue p {
+        color: var(--text-dim);
+        margin: 10px 0;
+        font-size: 14.5px;
+      }
+      .issue p strong {
+        color: var(--text);
+      }
+      .issue .where {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text-faint);
+        background: var(--bg-inset);
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin: 12px 0;
+        line-height: 1.7;
+        overflow-x: auto;
+        white-space: pre;
+      }
+      .issue .where .f {
+        color: var(--accent);
+      }
+      .issue .where .n {
+        color: var(--purple);
+      }
+      .callout {
+        margin-top: 14px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        line-height: 1.6;
+      }
+      .callout.fix {
+        background: var(--green-bg);
+        border: 1px solid var(--green-border);
+        color: #b6f0cf;
+      }
+      .callout.risk {
+        background: var(--orange-bg);
+        border: 1px solid var(--orange-border);
+        color: #f5c9a3;
+      }
+      .callout b {
+        color: var(--text-bright);
+      }
+
+      /* --- code --- */
+      pre,
+      code {
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+      .code {
+        background: var(--bg-inset);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin: 12px 0;
+        overflow-x: auto;
+        line-height: 1.65;
+        font-size: 12.5px;
+        color: #c9d4e3;
+      }
+      .kw {
+        color: #c678dd;
+      }
+      .ty {
+        color: #e5c07b;
+      }
+      .st {
+        color: #98c379;
+      }
+      .cm {
+        color: #6b7585;
+        font-style: italic;
+      }
+      .fn {
+        color: #61afef;
+      }
+      .pn {
+        color: #abb2bf;
+      }
+      .nm {
+        color: #d19a66;
+      }
+      .gn {
+        color: #e06c75;
+      }
+
+      /* --- Tables --- */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 13.5px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--border-light);
+        vertical-align: top;
+      }
+      th {
+        background: var(--bg-card-2);
+        color: var(--text-faint);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr:hover {
+        background: var(--bg-card-2);
+      }
+      td .mono {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--accent);
+      }
+      td.no {
+        color: var(--red);
+        font-weight: 600;
+      }
+      td.yes {
+        color: var(--green);
+        font-weight: 600;
+      }
+
+      /* --- compare --- */
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin: 14px 0;
+      }
+      .compare > div {
+        background: var(--bg-inset);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.6;
+        overflow-x: auto;
+        color: #c9d4e3;
+      }
+      .compare .lbl {
+        font-family: var(--sans);
+        font-size: 10.5px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .compare .before .lbl {
+        color: var(--red);
+      }
+      .compare .after .lbl {
+        color: var(--green);
+      }
+
+      /* --- migration steps --- */
+      .steps {
+        counter-reset: step;
+        margin-top: 18px;
+      }
+      .step {
+        position: relative;
+        padding: 16px 18px 16px 58px;
+        margin-bottom: 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+      }
+      .step::before {
+        counter-increment: step;
+        content: counter(step);
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        width: 30px;
+        height: 30px;
+        background: var(--accent-dim);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 14px;
+      }
+      .step h4 {
+        font-size: 15px;
+        color: var(--text-bright);
+        margin-bottom: 4px;
+      }
+      .step p {
+        color: var(--text-dim);
+        font-size: 13.5px;
+        margin: 0;
+      }
+
+      /* --- strengths --- */
+      .strengths {
+        display: grid;
+        gap: 10px;
+      }
+      .strength {
+        display: flex;
+        gap: 12px;
+        padding: 14px 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-left: 3px solid var(--green);
+        border-radius: 8px;
+      }
+      .strength .chk {
+        color: var(--green);
+        font-weight: 900;
+        font-size: 18px;
+        line-height: 1.4;
+      }
+      .strength .t strong {
+        color: var(--text);
+        display: block;
+        font-size: 14px;
+      }
+      .strength .t span {
+        color: var(--text-dim);
+        font-size: 13.5px;
+      }
+
+      .quote {
+        font-size: 19px;
+        font-weight: 600;
+        color: var(--text-bright);
+        line-height: 1.5;
+        padding: 28px 30px;
+        background: linear-gradient(135deg, var(--bg-card), var(--bg-card-2));
+        border: 1px solid var(--border-light);
+        border-left: 4px solid var(--accent);
+        border-radius: 12px;
+        margin: 30px 0;
+      }
+      .quote span {
+        color: var(--accent);
+      }
+
+      footer.footer {
+        margin-top: 60px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border-light);
+        font-size: 12.5px;
+        color: var(--text-faint);
+      }
+
+      @media (max-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .sidebar {
+          position: static;
+          max-height: none;
+          padding-top: 0;
+        }
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .compare {
+          grid-template-columns: 1fr;
+        }
+        .hero h1 {
+          font-size: 32px;
+        }
+      }
+      @media (max-width: 560px) {
+        .stat-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">cqrs-htmx · audit</div>
+        <nav>
+          <a href="#summary">Summary</a>
+          <a href="#matrix">Severity Matrix</a>
+          <div class="grp">Critical</div>
+          <a href="#s1" class="crit">1 · Roles, three sources of truth</a>
+          <a href="#s2" class="crit">2 · Two UserID types</a>
+          <a href="#s3" class="crit">3 · Two rate-limit configs</a>
+          <div class="grp">High</div>
+          <a href="#s4" class="high">4 · Actor identity, two models</a>
+          <a href="#s5" class="high">5 · Twin setup constructors</a>
+          <a href="#s6" class="high">6 · Legacy events vs payloads</a>
+          <div class="grp">Medium</div>
+          <a href="#s7" class="med">7 · SSE/WS broadcaster twins</a>
+          <a href="#s8" class="med">8 · Email type, barely used</a>
+          <a href="#s9" class="med">9 · Two Casbin wrappers</a>
+          <a href="#s10" class="med">10 · Credential field clone</a>
+          <div class="grp">Forward</div>
+          <a href="#strengths">What's already right</a>
+          <a href="#plan">Consolidation plan</a>
+          <a href="#verdict">Verdict</a>
+        </nav>
+        <div class="legend">
+          <b>Split brain</b> = one domain concept modeled by two or more types, stores, or code
+          paths that can drift independently &mdash; a latent source of inconsistency bugs.
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <span class="eyebrow">Data Model Audit · 2026-06-22</span>
+          <h1>Split-Brain Audit of the<br /><span class="accent">cqrs-htmx</span> data model</h1>
+          <p class="lead">
+            Where one concept is modeled by two types, two stores, or two code paths that can fall
+            out of sync. Ten split brains found across the root and
+            <code>usermgmt</code> modules &mdash; three critical, three high, four medium &mdash;
+            with exact file/line evidence and a consolidation plan.
+          </p>
+          <div class="meta">
+            <span class="tag red">3 Critical</span>
+            <span class="tag orange">3 High</span>
+            <span class="tag yellow">4 Medium</span>
+            <span class="tag">Scope: root + usermgmt</span>
+            <span class="tag">10 split brains</span>
+          </div>
+        </header>
+
+        <div class="stat-grid">
+          <div class="stat-card crit">
+            <div class="v">3</div>
+            <div class="l">Critical · 3 sources of truth or divergent types for identity</div>
+          </div>
+          <div class="stat-card high">
+            <div class="v">3</div>
+            <div class="l">High · duplicated wiring &amp; event representations</div>
+          </div>
+          <div class="stat-card med">
+            <div class="v">4</div>
+            <div class="l">Medium · parallel families &amp; under-used types</div>
+          </div>
+          <div class="stat-card sum">
+            <div class="v">10</div>
+            <div class="l">Total split brains cataloged</div>
+          </div>
+        </div>
+
+        <section id="summary">
+          <h2><span class="num">00</span>What is a split brain?</h2>
+          <p class="sec-intro">
+            A split brain is a data-model disease: the <em>same</em> domain fact is encoded in
+            <em>two or more</em> places that are updated by different code and can disagree. It is
+            distinct from duplication-for-transparency (e.g. a read-model projection that is
+            deliberately derived from a single write model). The test is simple:
+            <strong
+              >if the two representations can legitimately diverge, it is a split brain.</strong
+            >
+            Below, every finding passes that test.
+          </p>
+          <p class="sec-intro">
+            The codebase is otherwise disciplined &mdash; branded IDs, pure
+            <code>fold</code> functions, strong <code>authMode</code> enums. These findings are
+            mostly the residue of a migration from a legacy roles-on-User model to a
+            membership/Casbin model, plus the natural drift between an independent submodule and its
+            root. They are fixable.
+          </p>
+        </section>
+
+        <section id="matrix">
+          <h2><span class="num">&#9830;</span>Severity matrix</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Split brain</th>
+                <th>Concept duplicated</th>
+                <th>Severity</th>
+                <th>Drift risk</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><a href="#s1">Roles in three places</a></td>
+                <td class="mono">authorization roles</td>
+                <td class="no">Critical</td>
+                <td class="no">silent authz inconsistency</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><a href="#s2">Two UserID types</a></td>
+                <td class="mono">user identity</td>
+                <td class="no">Critical</td>
+                <td class="no">cross-module conversion bugs</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><a href="#s3">Two rate-limit configs</a></td>
+                <td class="mono">rate limiting</td>
+                <td class="no">Critical</td>
+                <td class="no">two algorithms, divergent behavior</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><a href="#s4">Actor identity, two models</a></td>
+                <td class="mono">who is acting</td>
+                <td>High</td>
+                <td>lost kind discrimination</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><a href="#s5">Twin setup constructors</a></td>
+                <td class="mono">infra wiring</td>
+                <td>High</td>
+                <td>wiring drift on change</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><a href="#s6">Legacy events vs payloads</a></td>
+                <td class="mono">domain events</td>
+                <td>High</td>
+                <td>double-emission + 1 ghost</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><a href="#s7">SSE/WS broadcaster twins</a></td>
+                <td class="mono">fan-out API</td>
+                <td>Medium</td>
+                <td>naming asymmetry, copy drift</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><a href="#s8">Email type, barely used</a></td>
+                <td class="mono">email value</td>
+                <td>Medium</td>
+                <td>validation bypass</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td><a href="#s9">Two Casbin wrappers</a></td>
+                <td class="mono">RBAC engine</td>
+                <td>Medium</td>
+                <td>two abstraction layers</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td><a href="#s10">Credential field clone</a></td>
+                <td class="mono">credential fields</td>
+                <td>Medium</td>
+                <td>manual field-copy rot</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ===================== CRITICAL ===================== -->
+        <section id="s1">
+          <h2><span class="num">01</span>Roles live in three places</h2>
+          <span class="badge critical" style="margin-bottom: 14px; display: inline-block"
+            >Critical · silent authorization inconsistency</span
+          >
+          <p>
+            A user's <strong>roles</strong> &mdash; the single most security-sensitive fact in the
+            system &mdash; are modeled in three independent locations that are updated by different
+            event handlers and can disagree:
+          </p>
+          <div class="compare">
+            <div class="before">
+              <div class="lbl">Read model (legacy path, still live)</div>
+              <span class="ty">User</span>.<span class="fn">Roles</span> []<span class="ty"
+                >Role</span
+              >
+              <span class="cm">// user.go:24</span><br />
+              set by <span class="fn">eventRolesUpdated</span>
+              <span class="cm">// es_readmodel.go:66-76</span>
+            </div>
+            <div class="after">
+              <div class="lbl">Membership aggregate (the "new" way)</div>
+              <span class="ty">MembershipState</span>.<span class="fn">Roles</span> []<span
+                class="ty"
+                >Role</span
+              >
+              <span class="cm">// es_membership_state.go:12</span><br />
+              set by <span class="fn">MemberAdded</span>/<span class="fn">MemberRolesChanged</span>
+            </div>
+          </div>
+          <p>
+            The write model explicitly <strong>dropped</strong> roles during the membership
+            migration:
+          </p>
+          <div class="where">
+            <span class="cm">// usermgmt/es_state.go:11-12</span>
+            <span class="cm"
+              >// UserState is the aggregate state for the User, reconstructed by folding
+              events.</span
+            >
+            <span class="cm"
+              >// Roles are NOT tracked here — managed by the Membership aggregate and
+              CasbinProjection.</span
+            >
+            <span class="kw">type</span> <span class="ty">UserState</span>
+            <span class="kw">struct</span> {
+            <span class="cm">// ...no Roles field (es_state.go:13)</span>
+          </div>
+          <p>
+            But the <strong>read model never got the memo</strong>. <code>User.Roles</code> still
+            exists, and <code>UserReadModel.Handle</code> still folds
+            <code>eventRolesUpdated</code> to populate it. Meanwhile a <em>third</em> authority
+            &mdash; the Casbin projection &mdash; derives policies from membership events. So a
+            consumer reading <code>user.Roles</code> can see a
+            <strong>different role set</strong> than <code>Authz.RolesForActor</code> returns for
+            the same user, depending on which command path last ran (<code>UpdateRolesCmd</code>
+            legacy vs <code>UpdateMemberRolesCmd</code> new).
+          </p>
+          <div class="where">
+            <span class="f">usermgmt/es_events.go:13</span>
+            <span class="ty">UserRegisteredPayload</span>.<span class="fn">Roles</span> []<span
+              class="ty"
+              >Role</span
+            >
+            <span class="cm"># legacy event still carries roles</span>
+            <span class="f">usermgmt/es_events.go:18</span>
+            <span class="ty">RolesUpdatedPayload</span>.<span class="fn">Roles</span> []<span
+              class="ty"
+              >Role</span
+            >
+            <span class="cm"># legacy event still carries roles</span>
+            <span class="f">usermgmt/es_migration.go:29</span>
+            <span class="fn">MigrateRolesToMemberships</span>(...)
+            <span class="cm"># the half-finished bridge</span>
+            <span class="f">usermgmt/user.go:67</span> <span class="fn">HasRole</span>(...)
+            <span class="cm"># reads the legacy field</span>
+          </div>
+          <div class="callout risk">
+            <b>Drift risk:</b> An admin calls <code>Service.UpdateRoles</code> (legacy) &rarr;
+            <code>User.Roles</code> updates but memberships do not.
+            <code>Authz.Authorize</code> (Casbin) now disagrees with <code>user.HasRole</code>. The
+            UI shows one role set; enforcement uses another. This is an authorization-bypass-shaped
+            hole.
+          </div>
+          <div class="callout fix">
+            <b>Fix:</b> Finish the migration. Remove <code>User.Roles</code>, <code>HasRole</code>,
+            the <code>eventRolesUpdated</code> branch in the read model,
+            <code>RolesUpdatedPayload</code>, and <code>UpdateRolesCmd</code>. Make
+            <code>MembershipReadModel</code> / <code>Authz.RolesForActor</code> the
+            <em>only</em> source of roles. <code>MigrateRolesToMemberships</code> is the one-way
+            valve that makes this safe.
+          </div>
+        </section>
+
+        <section id="s2">
+          <h2><span class="num">02</span>Two UserID types</h2>
+          <span class="badge critical" style="margin-bottom: 14px; display: inline-block"
+            >Critical · same concept, incompatible types</span
+          >
+          <p>
+            "User ID" is one concept, but it has two type definitions in two modules with different
+            backing representations and a manual string bridge:
+          </p>
+          <div class="compare">
+            <div class="before">
+              <div class="lbl">Root module — ULID-backed</div>
+              <span class="cm">// context.go:13</span><br />
+              <span class="kw">type</span> <span class="ty">UserID</span> = id.<span class="ty"
+                >UserID</span
+              >
+              <span class="cm">// ULID, go-cqrs-lite</span>
+            </div>
+            <div class="after">
+              <div class="lbl">usermgmt — string-backed branded</div>
+              <span class="cm">// usermgmt/id.go:15</span><br />
+              <span class="kw">type</span> <span class="ty">UserID</span> =
+              <span class="fn">brandid</span>.<span class="ty">ID</span>[<span class="ty"
+                >userBrand</span
+              >, <span class="kw">string</span>]
+            </div>
+          </div>
+          <p>
+            Both are named <code>UserID</code>, both claim to brand the same domain concept, but
+            they are not assignable to each other. Crossing the module boundary requires
+            <code>.Get()</code> / <code>NewUserID(s)</code> string round-trips (e.g.
+            <code>es_readmodel.go:57</code>: <code>NewUserID(aggID.String())</code>). The AGENTS.md
+            even documents this as a permanent "bridge" &mdash; but a bridge between two types of
+            the same concept is a split brain that has been normalized.
+          </p>
+          <div class="callout risk">
+            <b>Drift risk:</b> Validation differs &mdash; root requires a valid ULID, usermgmt
+            accepts any string. A usermgmt <code>UserID</code> built from a non-ULID string silently
+            fails <code>id.ParseUserID</code> on the root side, and vice-versa. Context-key
+            sentinels (<code>userIDKey{}</code> root vs <code>userContextKeyType{}</code> usermgmt)
+            mean the two contexts do not share identity either.
+          </div>
+          <div class="callout fix">
+            <b>Fix:</b> Pick one canonical <code>UserID</code> definition and re-export it from the
+            other module, or define a shared <code>identity</code> sub-module both depend on. The
+            cleanest option is to make usermgmt's branded type the canonical one and have root alias
+            it &mdash; or adopt go-cqrs-lite's <code>id.UserID</code> everywhere and drop
+            <code>go-branded-id</code> for users.
+          </div>
+        </section>
+
+        <section id="s3">
+          <h2><span class="num">03</span>Two rate-limit configurations, different algorithms</h2>
+          <span class="badge critical" style="margin-bottom: 14px; display: inline-block"
+            >Critical · reinvented mechanism, divergent semantics</span
+          >
+          <p>
+            Rate limiting exists twice, with different names, different algorithms, and different
+            field sets:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Aspect</th>
+                <th>Root <code>RateLimiterConfig</code></th>
+                <th>usermgmt <code>RateLimitConfig</code></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Location</td>
+                <td class="mono">ratelimit_config.go:48</td>
+                <td class="mono">usermgmt/http.go:89</td>
+              </tr>
+              <tr>
+                <td>Algorithm</td>
+                <td>Token bucket (<code>golang.org/x/time</code>)</td>
+                <td>Fixed-window counter (hand-rolled)</td>
+              </tr>
+              <tr>
+                <td>Key</td>
+                <td>Pluggable <code>KeyExtractor</code></td>
+                <td>Hardcoded per-IP</td>
+              </tr>
+              <tr>
+                <td>Burst</td>
+                <td><code>Burst</code> field</td>
+                <td>None</td>
+              </tr>
+              <tr>
+                <td>Eviction</td>
+                <td>min-heap LRU + <code>TTL</code> + <code>MaxKeys</code></td>
+                <td>None (unbounded map)</td>
+              </tr>
+              <tr>
+                <td>Hooks</td>
+                <td>
+                  <code>OnAllowed</code> / <code>OnRejected</code> / <code>RejectionHandler</code>
+                </td>
+                <td>None</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            The usermgmt one is a strict subset of the root's capability, reimplemented from scratch
+            as <code>perIPRateLimiter</code> +
+            <code>rateLimitEntry</code> (<code>http.go:98-107</code>). The AGENTS.md's claim that
+            "all use the shared <code>RateLimitConfig</code> type" is misleading &mdash; they are
+            two unrelated types that happen to share a substring.
+          </p>
+          <div class="callout risk">
+            <b>Drift risk:</b> The hand-rolled fixed-window limiter has no eviction and no burst
+            handling, so under load it both leaks memory and behaves differently from the root
+            limiter. Two algorithms for "limit this" means tuning, observability, and edge-cases all
+            diverge.
+          </div>
+          <div class="callout fix">
+            <b>Fix:</b> Delete <code>usermgmt/http.go</code>'s <code>RateLimitConfig</code>,
+            <code>rateLimitEntry</code>, and <code>perIPRateLimiter</code>. Have
+            <code>HandlerConfig</code> hold root <code>RateLimiterConfig</code> values and build a
+            <code>*RateLimiter</code> per endpoint group. The root module already solves this
+            better.
+          </div>
+        </section>
+
+        <!-- ===================== HIGH ===================== -->
+        <section id="s4">
+          <h2><span class="num">04</span>Actor identity, two models</h2>
+          <span class="badge high" style="margin-bottom: 14px; display: inline-block"
+            >High · lost kind discrimination at the boundary</span
+          >
+          <p>"Who is acting" is modeled two ways depending on which module you are in:</p>
+          <div class="compare">
+            <div class="before">
+              <div class="lbl">Root context API — untyped string</div>
+              <span class="cm">// context.go:141,147</span><br />
+              <span class="fn">WithActorID</span>(ctx, actorID <span class="kw">string</span>)<br />
+              <span class="fn">ActorIDFromContext</span>(ctx) <span class="kw">string</span>
+            </div>
+            <div class="after">
+              <div class="lbl">usermgmt — typed discriminated union</div>
+              <span class="cm">// usermgmt/id.go:74</span><br />
+              <span class="kw">type</span> <span class="ty">ActorID</span>
+              <span class="kw">struct</span> { <br />
+              &nbsp;&nbsp;kind <span class="ty">ActorKind</span>; raw <span class="kw">string</span>
+              <span class="cm">// user | bot</span><br />
+              }
+            </div>
+          </div>
+          <p>
+            usermgmt has a rich <code>ActorID</code> that distinguishes humans
+            (<code>ActorUser</code>) from bots (<code>ActorBot</code>) at the type level. But when
+            identity crosses into the root module's context, it is flattened to a bare
+            <code>string</code> &mdash; the kind is lost. Two models for the same "actor" concept,
+            and the typed one cannot survive the boundary.
+          </p>
+          <div class="callout fix">
+            <b>Fix:</b> Promote usermgmt's <code>ActorID</code> (or a shared equivalent) into the
+            context API so <code>WithActorID</code> carries the kind. This pairs naturally with
+            fixing split brain #2 (canonical identity types).
+          </div>
+        </section>
+
+        <section id="s5">
+          <h2><span class="num">05</span>Twin setup constructors re-implement the same wiring</h2>
+          <span class="badge high" style="margin-bottom: 14px; display: inline-block"
+            >High · duplicated infrastructure wiring</span
+          >
+          <p>
+            <code>NewService(ServiceConfig)</code> and
+            <code>NewEventSourcedSetup(EventSourcedConfig)</code> both build the exact same
+            event-sourced infrastructure, line for line, in parallel:
+          </p>
+          <div class="where">
+            <span class="f">usermgmt/service_core.go</span> <span class="ty">NewService</span>
+            <span class="f">usermgmt/es_setup.go</span> <span class="ty">NewEventSourcedSetup</span>
+            wrapEventStore(cfg.StoreWrapper, ...) wrapEventStore(cfg.StoreWrapper, ...)
+            applyBusMiddleware(...) applyBusMiddleware(...) decider.NewRepository(store, bus,
+            UserDecider()) decider.NewRepository(store, bus, UserDecider()) ...x4 aggregates ...x4
+            aggregates NewAuthz() / NewCasbinProjection() NewAuthz() / NewCasbinProjection()
+            NewUserReadModel() / x4 NewUserReadModel() / x4 StartProjections(...)
+            StartProjections(...)
+          </div>
+          <p>
+            The shared helpers (<code>wrapEventStore</code>,
+            <code>applyBusMiddleware</code>, <code>journalFromStore</code>) were already extracted
+            &mdash; good &mdash; but the <em>orchestration</em> of those helpers is copy-pasted.
+            <code>es_setup.go:104</code> even admits it: "Applies security hooks ... at the same
+            points as NewService." Two copies of the same wiring that must be kept in sync by hand.
+          </p>
+          <div class="callout risk">
+            <b>Drift risk:</b> If the repo-creation order, projection-start sequence, or
+            error-handling changes in one constructor, the other silently diverges. The
+            <code>SecurityHooks</code> unification was a reaction to exactly this drift; the
+            underlying duplication remains.
+          </div>
+          <div class="callout fix">
+            <b>Fix:</b> Make <code>NewService</code> call
+            <code>NewEventSourcedSetup</code> internally and adopt its
+            <code>*EventSourcedSetup</code> as the source of infrastructure. Service then adds only
+            its own concerns (dispatcher, sessions, WebAuthn, TOTP, OAuth2) on top. One wiring, one
+            place.
+          </div>
+        </section>
+
+        <section id="s6">
+          <h2><span class="num">06</span>Legacy event structs duplicate event-sourced payloads</h2>
+          <span class="badge high" style="margin-bottom: 14px; display: inline-block"
+            >High · two event families + double emission + 1 ghost</span
+          >
+          <p>
+            Domain events are represented by <strong>two parallel struct families</strong>. The
+            event-sourced payloads (<code>es_events.go</code>) are the real persisted events; the
+            legacy <code>*Event</code> structs (<code>events.go</code>) feed the old
+            <code>EventHandler</code> callback:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Legacy (<code>events.go</code>)</th>
+                <th>Event-sourced (<code>es_events.go</code>)</th>
+                <th>Emitted?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">UserRegisteredEvent</td>
+                <td class="mono">UserRegisteredPayload</td>
+                <td>twice (direct + bridge)</td>
+              </tr>
+              <tr>
+                <td class="mono">RolesUpdatedEvent</td>
+                <td class="mono">RolesUpdatedPayload</td>
+                <td>twice (direct + bridge)</td>
+              </tr>
+              <tr>
+                <td class="mono">UserLoggedInEvent</td>
+                <td>&mdash;</td>
+                <td class="no">never (ghost)</td>
+              </tr>
+              <tr>
+                <td>&mdash;</td>
+                <td class="mono">UserDeletedPayload, CredentialAdded, ...</td>
+                <td>no legacy shadow</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            The legacy set is incomplete (no <code>UserDeletedEvent</code>,
+            <code>CredentialAddedEvent</code>, etc.), so it has already drifted from the real event
+            taxonomy. Worse, emission is <strong>doubled</strong>: service methods emit directly
+            (<code>service_register.go:101</code>, <code>service_misc.go:32</code>) <em>and</em> a
+            bus bridge re-emits the same structs from projections
+            (<code>service_core.go:395,404</code>). When an <code>EventHandler</code> is configured,
+            it receives <code>UserRegisteredEvent</code> / <code>RolesUpdatedEvent</code> twice.
+          </p>
+          <p>
+            Finally, <code>UserLoggedInEvent</code> (<code>events.go:21</code>) is a
+            <strong>ghost</strong>: defined, documented as "emitted after a successful login," but
+            never referenced anywhere outside its own declaration. Passwordless auth produces no
+            login event.
+          </p>
+          <div class="where">
+            <span class="f">usermgmt/events.go:21</span> <span class="kw">type</span>
+            <span class="ty">UserLoggedInEvent</span> <span class="kw">struct</span> {...}
+            <span class="cm">// GHOST: 0 usages outside the definition</span>
+            <span class="f">usermgmt/service_core.go:334</span> svc.<span class="fn"
+              >bridgeEventHandler</span
+            >(bus) <span class="cm">// bridge IS wired</span>
+            <span class="f">usermgmt/service_register.go:101</span> s.<span class="fn">emit</span
+            >(req.ID, <span class="ty">UserRegisteredEvent</span>{...})
+            <span class="cm">// AND direct emit</span>
+          </div>
+          <div class="callout fix">
+            <b>Fix:</b> Delete <code>events.go</code>'s legacy structs and the
+            <code>EventHandler</code> callback entirely (consumers should subscribe to the bus).
+            That removes the double emission, the ghost, and the incomplete shadow taxonomy in one
+            cut. If the callback must stay for compat, route it <em>only</em> through the bridge and
+            delete the direct <code>s.emit</code> calls.
+          </div>
+        </section>
+
+        <!-- ===================== MEDIUM ===================== -->
+        <section id="s7">
+          <h2><span class="num">07</span>SSE/WS broadcaster twins &amp; naming asymmetry</h2>
+          <span class="badge medium" style="margin-bottom: 14px; display: inline-block"
+            >Medium · parallel API surface, inconsistent naming</span
+          >
+          <p>
+            The transport-agnostic core was already extracted into
+            <code>fanOut[T]</code> (<code>fanout.go</code>) &mdash; a real strength. But the two
+            outer types still mirror each other field-for-field and method-for-method, with an
+            <strong>asymmetric naming convention</strong>:
+          </p>
+          <div class="compare">
+            <div class="before">
+              <div class="lbl">SSE — no suffix</div>
+              <span class="ty">Broadcaster</span> <span class="cm">// sse_broadcaster.go:21</span
+              ><br />
+              <span class="fn">BroadcastOnSuccess</span>(name, data)<br />
+              <span class="fn">BroadcastOnSuccessFunc</span>(fn)<br />
+              <span class="fn">BroadcastOnError</span>(name)<br />
+              <span class="fn">BroadcastOnErrorFunc</span>(fn)
+            </div>
+            <div class="after">
+              <div class="lbl">WS — WS suffix</div>
+              <span class="ty">WSBroadcaster</span> <span class="cm">// ws_broadcaster.go:37</span
+              ><br />
+              <span class="fn">BroadcastOnSuccessWS</span>(msg)<br />
+              <span class="fn">BroadcastOnSuccessWSFunc</span>(fn)<br />
+              <span class="fn">BroadcastOnErrorWS</span>()<br />
+              <span class="fn">BroadcastOnErrorWSFunc</span>(fn)
+            </div>
+          </div>
+          <p>
+            Additionally, the implementation is internally inconsistent:
+            <code>BroadcastOnSuccess</code> / <code>BroadcastOnSuccessWS</code> inline their own
+            err-check loop, while their <code>*Func</code> siblings delegate to the shared
+            <code>fanOut.broadcastOnSuccessHook</code>. Four near-identical hook constructors that
+            should be one generic helper.
+          </p>
+          <div class="callout fix">
+            <b>Fix:</b> Since both already embed <code>*fanOut[T]</code>, expose the hook builders
+            <em>once</em> on <code>fanOut</code> (generic over <code>T</code>) and drop the per-type
+            wrappers, or at minimum make the SSE methods carry an <code>SSE</code> suffix for
+            symmetry.
+          </div>
+        </section>
+
+        <section id="s8">
+          <h2><span class="num">08</span>The Email type exists but is barely used</h2>
+          <span class="badge medium" style="margin-bottom: 14px; display: inline-block"
+            >Medium · validated type bypassed by raw string</span
+          >
+          <p>A validated, normalized <code>Email</code> value type exists:</p>
+          <div class="where">
+            <span class="cm">// usermgmt/email.go:13</span> <span class="kw">type</span>
+            <span class="ty">Email</span> <span class="kw">string</span>
+            <span class="cm">// + ParseEmail / MustParseEmail (RFC 5322, normalized)</span>
+          </div>
+          <p>
+            But virtually every consumer uses raw <code>string</code> instead &mdash;
+            <code>User.Email</code> (<code>user.go:22</code>),
+            <code>UserState.Email</code> (<code>es_state.go:14</code>),
+            <code>UserRegisteredPayload.Email</code> (<code>es_events.go:11</code>),
+            <code>RegisterRequest.Email</code>, every command struct. The validated
+            <code>Email</code> appears almost only in <code>ExportUser</code>. Validation runs in
+            <code>ParseEmail</code>, then the result is immediately <code>.String()</code>'d back to
+            an unvalidated <code>string</code> that flows everywhere.
+          </p>
+          <div class="callout risk">
+            <b>Drift risk:</b> A raw <code>string</code> email can be un-normalized, untrimmed, or
+            structurally invalid by the time it reaches a comparison or uniqueness index. The type
+            exists to prevent exactly this &mdash; it just isn't enforced at the boundary.
+          </div>
+          <div class="callout fix">
+            <b>Fix:</b> Make <code>User.Email</code>, the payload/command structs, and
+            <code>RegisterRequest.Email</code> use <code>Email</code>. Construct at the HTTP
+            boundary via <code>ParseEmail</code>; store the validated value.
+          </div>
+        </section>
+
+        <section id="s9">
+          <h2><span class="num">09</span>Two Casbin wrapper layers</h2>
+          <span class="badge medium" style="margin-bottom: 14px; display: inline-block"
+            >Medium · two abstractions over one engine</span
+          >
+          <p>Casbin authorization is wrapped twice:</p>
+          <div class="compare">
+            <div class="before">
+              <div class="lbl">Root — minimal interface</div>
+              <span class="cm">// authz.go:11</span><br />
+              <span class="kw">type</span> <span class="ty">Enforcer</span>
+              <span class="kw">interface</span> {<br />
+              &nbsp;&nbsp;<span class="fn">Enforce</span>(...any) (<span class="kw">bool</span>,
+              <span class="kw">error</span>)<br />
+              }<br />
+              <span class="cm">// + AuthorizeMiddleware</span>
+            </div>
+            <div class="after">
+              <div class="lbl">usermgmt — rich wrapper</div>
+              <span class="cm">// authz_types.go:110</span><br />
+              <span class="kw">type</span> <span class="ty">Authz</span>
+              <span class="kw">struct</span> { enforcer *casbin.Enforcer }<br />
+              <span class="cm">// + Policy / GroupPolicy / EnforceResult</span>
+            </div>
+          </div>
+          <p>
+            Root's <code>Enforcer</code> is satisfied directly by <code>*casbin.Enforcer</code>;
+            usermgmt's <code>Authz</code> is a richer domain wrapper with its own
+            <code>Policy</code>/<code>GroupPolicy</code> types and an
+            <code>enforcerAdapter</code> (<code>authz_types.go:192</code>) to satisfy root's
+            interface. Two abstraction layers over the same engine, neither referencing the other's
+            vocabulary.
+          </p>
+          <div class="callout fix">
+            <b>Fix:</b> This is lower priority &mdash; the adapter pattern makes it work &mdash; but
+            usermgmt's <code>Authz</code> could satisfy root's <code>Enforcer</code> contract
+            directly via the existing adapter, and the root could document <code>Authz</code> as the
+            reference implementation rather than leaving two unconconnected layers.
+          </div>
+        </section>
+
+        <section id="s10">
+          <h2><span class="num">10</span>Credential fields cloned by hand between two structs</h2>
+          <span class="badge medium" style="margin-bottom: 14px; display: inline-block"
+            >Medium · manual field-copy rot</span
+          >
+          <p>
+            <code>WebAuthnCredential</code> (<code>credential.go:7</code>) and
+            <code>CredentialAddedPayload</code> (<code>es_events.go:37</code>) share
+            <strong>eight identical fields</strong>:
+          </p>
+          <div class="where">
+            <span class="ty">WebAuthnCredential</span>
+            <span class="ty">CredentialAddedPayload</span>
+            ID []byte ID []byte PublicKey []byte PublicKey []byte AttestationType string
+            AttestationType string Transports []string Transports []string AAGUID []byte AAGUID
+            []byte SignCount uint32 SignCount uint32 BackupEligible bool BackupEligible bool
+            BackupState bool BackupState bool Name string Name string
+            <span class="cm">// + CreatedAt time.Time (payload omits it; uses evt.OccurredAt)</span>
+          </div>
+          <p>
+            They are bridged by <code>newCredentialFromPayload</code>
+            (<code>credential.go:23</code>) &mdash; a hand-written field-by-field copy. Add a field
+            to one struct and forget the other (or the copy function) and the credential silently
+            loses data on the round-trip.
+          </p>
+          <div class="callout fix">
+            <b>Fix:</b> Define a <code>CredentialCore</code> struct embedding the shared eight
+            fields; embed it in both <code>WebAuthnCredential</code> and
+            <code>CredentialAddedPayload</code>. The copy becomes a single
+            <code>core</code> assignment. Same pattern applies to <code>ExternalAccount</code> vs
+            <code>ExternalAccountLinkedPayload</code>.
+          </div>
+        </section>
+
+        <!-- ===================== STRENGTHS ===================== -->
+        <section id="strengths">
+          <h2><span class="num">&diams;</span>What the model already gets right</h2>
+          <p class="sec-intro">
+            These were checked and are genuinely single-sourced &mdash; credit where it is due.
+          </p>
+          <div class="strengths">
+            <div class="strength">
+              <div class="chk">+</div>
+              <div class="t">
+                <strong>fanOut[T] generic hub</strong
+                ><span
+                  >The SSE/WS fan-out core was correctly unified into one generic type &mdash; only
+                  the outer shells remain parallel (split brain #7).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="chk">+</div>
+              <div class="t">
+                <strong>authMode enum</strong
+                ><span
+                  ><code>authNone</code>/<code>authRequired</code>/<code>authAuthorized</code> makes
+                  invalid auth states unrepresentable &mdash; no stringly-typed auth mode
+                  anywhere.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="chk">+</div>
+              <div class="t">
+                <strong>Branded TenantID / BotID</strong
+                ><span
+                  >Unlike UserID, the tenant and bot identifiers are each defined exactly once and
+                  consistently branded.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="chk">+</div>
+              <div class="t">
+                <strong>SessionOrigin typed union</strong
+                ><span
+                  ><code>SessionOrigin</code> (DirectLogin / Impersonation) is a clean
+                  interface-based union &mdash; exactly the pattern the rest of the model should
+                  follow.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="chk">+</div>
+              <div class="t">
+                <strong>Pure fold functions</strong
+                ><span
+                  ><code>foldUser</code> / <code>foldMembership</code> / <code>foldTenant</code> /
+                  <code>foldBot</code> are pure, side-effect-free state transitions &mdash; the
+                  write model is clean.</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== PLAN ===================== -->
+        <section id="plan">
+          <h2><span class="num">&#8634;</span>Consolidation plan</h2>
+          <p class="sec-intro">
+            Ordered by impact-to-effort ratio. Each step is independently shippable.
+          </p>
+          <div class="steps">
+            <div class="step">
+              <h4>Delete the ghost + stop double emission</h4>
+              <p>
+                Remove <code>UserLoggedInEvent</code>; delete the direct <code>s.emit</code> calls
+                in <code>service_register.go</code>/<code>service_misc.go</code>, keeping only the
+                bus bridge. Cheapest win, kills the double-delivery bug. (Split brain #6)
+              </p>
+            </div>
+            <div class="step">
+              <h4>Finish the roles migration</h4>
+              <p>
+                Remove <code>User.Roles</code>, <code>HasRole</code>, the
+                <code>eventRolesUpdated</code> read-model branch, <code>RolesUpdatedPayload</code>,
+                <code>UpdateRolesCmd</code>, and the legacy <code>RolesUpdatedEvent</code>. Make
+                <code>Authz.RolesForActor</code> the sole source. Run
+                <code>MigrateRolesToMemberships</code> for existing stores. (Split brain #1)
+              </p>
+            </div>
+            <div class="step">
+              <h4>Adopt the root rate limiter in usermgmt</h4>
+              <p>
+                Delete <code>usermgmt/http.go</code>'s limiter; have <code>HandlerConfig</code> use
+                root <code>RateLimiterConfig</code>. Removes an unbounded map and an inferior
+                algorithm. (Split brain #3)
+              </p>
+            </div>
+            <div class="step">
+              <h4>Unify UserID + ActorID</h4>
+              <p>
+                Pick one canonical <code>UserID</code> across both modules; make
+                <code>WithActorID</code> carry the typed <code>ActorID</code> (kind + raw) instead
+                of a bare string. (Split brains #2, #4)
+              </p>
+            </div>
+            <div class="step">
+              <h4>Make NewService delegate to NewEventSourcedSetup</h4>
+              <p>
+                Service adopts <code>*EventSourcedSetup</code> for infra; adds only
+                dispatcher/sessions/auth on top. (Split brain #5)
+              </p>
+            </div>
+            <div class="step">
+              <h4>Enforce the Email type at boundaries</h4>
+              <p>
+                Switch <code>User.Email</code> and the command/payload structs to
+                <code>Email</code>. (Split brain #8)
+              </p>
+            </div>
+            <div class="step">
+              <h4>Dedupe credential/external-account fields</h4>
+              <p>
+                Introduce shared embedded core structs; collapse the hand-written copies. (Split
+                brains #10, #7)
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="verdict">
+          <h2><span class="num">&#9733;</span>Verdict</h2>
+          <div class="quote">
+            The data model is <span>80% excellent</span> &mdash; pure folds, branded IDs, typed
+            unions. But one security-critical fact (roles) is modeled three times, and the
+            root/usermgmt boundary has fossilized into permanent string bridges. Fixing split brain
+            <span>#1 (roles)</span> alone removes the only finding that can cause an authorization
+            inconsistency. The rest is consolidation.
+          </div>
+        </section>
+
+        <footer class="footer">
+          Generated 2026-06-22 &middot; Split-brain audit of cqrs-htmx root + usermgmt modules
+          &middot; Evidence verified against current source (file:line citations inline). Read-only
+          research &mdash; no code was changed.
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
