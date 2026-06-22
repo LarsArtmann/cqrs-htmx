@@ -29,8 +29,14 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 ```
 cqrs-htmx/
 ├── app.go            # App builder, Config, Command(), Query(), enrichUserID()
+├── doc.go            # Package documentation
 ├── handler.go        # handleCommandDispatch(), handleQueryDispatch()
-├── options.go        # HandlerOption, decoders, Render/RenderTempl, validation, authMode enum
+├── options_types.go  # handlerConfig struct, authMode enum (authNone/authRequired/authAuthorized)
+├── options_decode.go # DecodeJSON/DecodeForm/DecodeQuery HandlerOption factories
+├── options_render.go # Render/RenderTempl/RenderJSON/RenderPaginatedJSON HandlerOptions
+├── options_htmx.go   # HTMX-specific HandlerOptions (Redirect/PushURL/Retarget)
+├── options_json.go   # JSON response HandlerOption helpers
+├── options_validate.go # ValidateCommand/ValidateQuery HandlerOptions
 ├── response.go       # HTMX response builder (fluent API) + notification methods
 ├── authz.go          # Enforcer interface, Authorize, Enforce, AuthorizeMiddleware
 ├── context.go        # UserID/CorrelationID/RequestID types, Parse*/MustParse*, context helpers
@@ -40,13 +46,18 @@ cqrs-htmx/
 ├── htmx_serve.go     # HTMXScriptHandler, HTMXScriptHandlerWith (custom JS), HTMXCDNScriptTag, HTMXScriptTag
 ├── notify.go         # Notification HandlerOptions + NotifyWithEvent builder
 ├── middleware.go      # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
-├── csrf.go           # CSRF middleware, CSRFConfig, context helpers (justinas/nosurf)
+├── csrf_config.go     # CSRFConfig (cookie/header/field names, TrustedProxies, SameSite, Secure)
+├── csrf_context.go    # CSRF token context helpers (set/get token)
+├── csrf_middleware.go # CSRFMiddleware (justinas/nosurf integration, origin checks)
 ├── csrf_handler.go   # CSRFProtect (per-handler CSRF HandlerOption)
 ├── csrf_helpers.go   # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
 ├── decoder.go        # Body reading, form/JSON decoding, MaxBodySize enforcement
 ├── httputil.go       # WriteJSON, ClientIP (delegates to larsartmann/httputil)
 ├── logging.go        # RequestLogging, RequestLoggingSlog, formatters
-├── sse.go            # SSE: SSEEvent, WriteSSEEvent, SSEStream, Broadcaster (O(1) unsubscribe), SSEEventStore, ReplayEvents, LastEventIDFromRequest, BroadcastOnSuccess/BroadcastOnSuccessFunc/BroadcastOnError/BroadcastOnErrorFunc, Heartbeat, OnDisconnect
+├── sse_event.go      # SSEEvent struct, WriteSSEEvent, SSEEventID branded type + ParseSSEEventID
+├── sse_stream.go     # SSEStream (Send/SendHTML/Heartbeat/OnDisconnect/Close), NewSSEStream
+├── sse_store.go      # SSEEventStore interface, ReplayEvents, LastEventIDFromRequest
+├── sse_broadcaster.go # SSE Broadcaster (embeds fanOut[SSEEvent]), BroadcastOnSuccess/OnError/Func hooks
 ├── structured_error.go # StructuredError (RFC 7807), NewStructuredError, NewStructuredErrorWithContext, JSON()
 ├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML
 ├── ws_encoder.go     # WriteWSMessage, WriteWSMessageInto[T] — outbound WS message encoder
@@ -54,7 +65,8 @@ cqrs-htmx/
 ├── ws_broadcaster.go # WSBroadcaster (embeds fanOut[string]), BroadcastOnSuccessWS/OnErrorWS/Func hooks
 ├── fanout.go         # fanOut[T] — generic transport-agnostic fan-out hub (shared by SSE + WS)
 ├── ws_dispatch.go    # DispatchWSCommand/DispatchWSQuery — WS→CQRS bridge, DecodeWSJSON[T]/DecodeWSJSONQuery[T]
-├── ratelimit.go      # RateLimiterMiddleware, per-key token bucket, min-heap eviction
+├── ratelimit_config.go   # RateLimitConfig (Requests, Window, KeyExtractor, MaxKeys, TTL)
+├── ratelimit_middleware.go # RateLimiterMiddleware, per-key token bucket, min-heap LRU eviction
 ├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, RecommendedCSP/HSTS
 ├── recovery.go       # RecoveryMiddleware (package-level), App.RecoverHandler() — panic recovery
 ├── usermgmt/         # User management submodule (EVENT-SOURCED CQRS, RBAC, sessions, password auth)
@@ -123,12 +135,18 @@ cqrs-htmx/
 │   ├── middleware.go  # User context helpers, UserIDFromRequest bridge
 │   ├── lockout.go    # AccountLockout (configurable max attempts + duration)
 │   └── errors.go     # Sentinel errors
+│   ├── es_upcaster.go    # UpcasterRegistry — schema version transforms (v1→v2 migration)
+│   ├── credential_http.go # Credential management HTTP endpoints (list/delete)
+│   ├── audit_log.go       # AuditLog — append-only audit event recorder
+│   ├── eviction.go        # startPeriodicEviction — shared TTL sweep goroutine for ephemeral stores
+│   ├── random.go          # randomBase64URLString — shared CSPRNG token generation (32 bytes)
 ├── catalog/             # API documentation generation (5th Go module, opt-in)
 │   ├── go.mod           # Independent Go module — depends only on go-cqrs-lite/catalog/v2
 │   ├── builder.go       # Builder, New(), Command[T]/Query[T]/Event[T], Build()/BuildValid()
 │   └── serve.go         # OpenAPIHandler, AsyncAPIHandler, D2Handler, GenerateEventCatalog, HealthCheckHandler
 ├── integration_test/ # Cross-module integration tests (3rd Go module)
 └── examples/
+    ├── basic/         # Minimal cqrs-htmx consumer example (register/list items)
     ├── datastar-demo/ # Standalone go-cqrs-lite + datastar SSE example (4th Go module)
     └── catalog-demo/  # Standalone catalog doc-server example (6th Go module)
 ```
@@ -142,6 +160,7 @@ cqrs-htmx/
 | integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                        |
 | datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                 |
 | catalog-demo     | `examples/catalog-demo/`                            | No    | Catalog doc-server example (main package)         |
+| basic            | `examples/basic/`                                   | No    | Minimal cqrs-htmx consumer example                |
 | catalog          | `github.com/larsartmann/cqrs-htmx/catalog`          | Yes   | API doc generation (opt-in, no root/usermgmt dep) |
 
 ## Dependencies

@@ -1,0 +1,2261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Full Code Review — cqrs-htmx — 2026-06-21</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-green: #7fd1a8;
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: #a0a0a8;
+        --text-faint: #6a6a72;
+        --border: #2a2a30;
+        --border-strong: #3a3a42;
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: var(--font-heading);
+        --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.6;
+        font-size: 15px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .layout {
+        display: flex;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        width: 240px;
+        flex-shrink: 0;
+        border-right: 1px solid var(--border);
+        padding: 32px 20px;
+        overflow-y: auto;
+      }
+      .sidebar .label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-bottom: 12px;
+        font-weight: 700;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 5px 10px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 13px;
+        border-left: 2px solid transparent;
+        margin-bottom: 2px;
+        transition: all 0.15s;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        border-left-color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        padding: 48px 56px;
+        max-width: 1160px;
+        min-width: 0;
+      }
+      .hero {
+        margin-bottom: 48px;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+        padding: 4px 10px;
+        border: 1px solid var(--accent);
+        margin-bottom: 16px;
+      }
+      .hero h1 {
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin-bottom: 12px;
+      }
+      .hero-subtitle {
+        font-size: 17px;
+        color: var(--text-muted);
+        max-width: 680px;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin: 32px 0;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 20px;
+      }
+      .stat-value {
+        font-size: 32px;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      h2 {
+        font-size: 26px;
+        font-weight: 800;
+        margin: 56px 0 20px;
+        letter-spacing: -0.01em;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+      }
+      h2 .num {
+        color: var(--accent);
+        font-weight: 900;
+        margin-right: 10px;
+        font-size: 22px;
+      }
+      h3 {
+        font-size: 17px;
+        font-weight: 700;
+        margin: 24px 0 8px;
+      }
+      h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 16px 0 6px;
+      }
+      p {
+        margin-bottom: 12px;
+        color: var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 2px 6px;
+        color: var(--color-yellow);
+      }
+      pre {
+        background: var(--surface-sunken);
+        padding: 14px 16px;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        margin: 12px 0;
+        border: 1px solid var(--border);
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--text-muted);
+        padding: 18px 22px;
+        margin-bottom: 14px;
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-high {
+        border-left-color: var(--color-red);
+        opacity: 0.95;
+      }
+      .issue-medium {
+        border-left-color: var(--warning);
+      }
+      .issue-low {
+        border-left-color: var(--text-faint);
+      }
+      .issue-good {
+        border-left-color: var(--solution);
+      }
+      .issue-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+      .badge {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 3px 8px;
+        border: 1px solid;
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 12%, transparent);
+      }
+      .badge-high {
+        color: var(--color-red);
+        border-color: var(--color-red);
+      }
+      .badge-medium {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-low {
+        color: var(--text-faint);
+        border-color: var(--text-faint);
+      }
+      .badge-good {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .issue-title {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .where {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 4px 0 8px;
+      }
+      .where code {
+        background: none;
+        padding: 0;
+        color: var(--color-blue);
+      }
+      .issue p {
+        font-size: 14px;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+      .issue .fix {
+        font-size: 14px;
+        color: var(--solution);
+      }
+      .issue .fix strong {
+        color: var(--solution);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 13px;
+      }
+      th {
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 2px solid var(--border-strong);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-faint);
+        font-weight: 700;
+      }
+      td {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+      td code {
+        font-size: 12px;
+      }
+      .callout {
+        padding: 16px 20px;
+        margin: 16px 0;
+        border: 1px solid;
+      }
+      .callout-problem {
+        border-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, transparent);
+      }
+      .callout-solution {
+        border-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, transparent);
+      }
+      .callout-warning {
+        border-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, transparent);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .strengths {
+        display: grid;
+        gap: 10px;
+      }
+      .strength {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .strength .check {
+        color: var(--solution);
+        font-weight: 900;
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .strength .text strong {
+        display: block;
+      }
+      .strength .text span {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .footer {
+        border-top: 1px solid var(--border);
+        padding: 24px 0;
+        margin-top: 64px;
+        font-size: 12px;
+        color: var(--text-faint);
+        text-align: center;
+      }
+      @media (max-width: 1024px) {
+        .sidebar {
+          display: none;
+        }
+        .main {
+          padding: 32px 24px;
+        }
+      }
+      .tok-keyword {
+        color: #c678dd;
+      }
+      .tok-type {
+        color: #e5c07b;
+      }
+      .tok-string {
+        color: #98c379;
+      }
+      .tok-comment {
+        color: #5c6370;
+        font-style: italic;
+      }
+      .tok-func {
+        color: #61afef;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <nav data-nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#verify">Verified Code Evidence</a>
+          <a href="#verify-high">Verified High Findings</a>
+          <a href="#critical">Critical (8)</a>
+          <a href="#high">High (20)</a>
+          <a href="#medium">Medium (25)</a>
+          <a href="#low">Low & Nitpicks</a>
+          <a href="#heatmap">Severity Heatmap</a>
+          <a href="#themes">Cross-cutting Themes</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#priority">Fix Priority</a>
+          <a href="#meta">Meta Findings</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Full Code Review · Senior Architect Audit</div>
+          <h1>cqrs-htmx — Full Codebase Review</h1>
+          <p class="hero-subtitle">
+            Every production <code>.go</code> file across 7 Go modules reviewed against type-safety,
+            architecture, security, concurrency, and naming standards. 123 production files, 41,728
+            lines total.
+          </p>
+        </div>
+
+        <div class="stat-grid" id="summary">
+          <div class="stat-card">
+            <div class="stat-value">123</div>
+            <div class="stat-label">Prod Files Reviewed</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">8</div>
+            <div class="stat-label">Critical</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">20</div>
+            <div class="stat-label">High</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">25</div>
+            <div class="stat-label">Medium</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">31</div>
+            <div class="stat-label">Low / Nitpick</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">18</div>
+            <div class="stat-label">Good Patterns</div>
+          </div>
+        </div>
+
+        <div class="callout callout-problem">
+          <strong>Bottom line</strong>
+          The codebase demonstrates strong domain modeling (event-sourced CQRS, branded types, typed
+          enums) but has <strong>8 critical issues</strong> — 3 of them security-breaking
+          (rate-limiter bypass, TOTP not enforced, token leaks) and 1 concurrency hazard (SSE
+          heartbeat race). The <code>usermgmt</code> module has grown from 9 → 71 files into a
+          <strong>god-package</strong> hosting 4 event-sourced aggregates + WebAuthn + OAuth2 + TOTP
+          + Casbin + SQL in a single Go package. AGENTS.md is significantly stale.
+        </div>
+
+        <h2 id="verify"><span class="num">✓</span>Verification & Code Evidence</h2>
+        <p>
+          Every critical finding below was
+          <strong>verified by direct source-code inspection</strong> — not just delegated to
+          sub-agents. Each snippet shows the actual buggy code with line numbers.
+          <span class="badge badge-good" style="display: inline-block; margin-left: 8px"
+            >8/8 VERIFIED</span
+          >
+        </p>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED C1</span
+            ><span class="issue-title"
+              >SSE Heartbeat race — two goroutines writing to ResponseWriter</span
+            >
+          </div>
+          <div class="where">
+            <code>sse_stream.go:68-76</code> + <code>sse_stream.go:120-137</code>
+          </div>
+          <pre><code><span class="tok-comment">// sse_stream.go:68 — Send() called from event loop goroutine</span>
+<span class="tok-keyword">func</span> (s *SSEStream) <span class="tok-func">Send</span>(event SSEEvent) <span class="tok-type">error</span> {
+    <span class="tok-keyword">if</span> err := <span class="tok-func">WriteSSEEvent</span>(s.w, event); err != <span class="tok-keyword">nil</span> { <span class="tok-comment">// ← writes to s.w</span>
+        <span class="tok-keyword">return</span> err
+    }
+    <span class="tok-keyword">if</span> s.fw != <span class="tok-keyword">nil</span> { s.fw.<span class="tok-func">Flush</span>() }
+}
+
+<span class="tok-comment">// sse_stream.go:120 — Heartbeat() called from DIFFERENT goroutine</span>
+<span class="tok-keyword">func</span> (s *SSEStream) <span class="tok-func">Heartbeat</span>(ctx context.Context, interval time.Duration) {
+    <span class="tok-keyword">for</span> {
+        <span class="tok-keyword">case</span> &lt;-ticker.C:
+            s.w.<span class="tok-func">Write</span>([]<span class="tok-type">byte</span>(<span class="tok-string">": keepalive\n\n"</span>)) <span class="tok-comment">// ← RACE: same s.w, no mutex</span>
+            s.fw.<span class="tok-func">Flush</span>()
+    }
+}
+<span class="tok-comment">// Doc says: "go stream.Heartbeat(stream.Context(), 15*time.Second)"</span></code></pre>
+          <p class="fix">
+            <strong>Fix:</strong> Add <code>sync.Mutex</code> to SSEStream, serialize all writes.
+          </p>
+        </div>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED C2</span
+            ><span class="issue-title"
+              >Rate limiter uses RemoteAddr (includes port) — bypassable</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/http.go:237</code></div>
+          <pre><code><span class="tok-comment">// http.go:237 — RemoteAddr is "host:port", port changes per connection</span>
+<span class="tok-keyword">if</span> h.regLimiter != <span class="tok-keyword">nil</span> &amp;&amp; !h.regLimiter.<span class="tok-func">allow</span>(r.RemoteAddr) {
+<span class="tok-comment">//                                       ^^^^^^^^^^ e.g. "203.0.113.5:54321"</span>
+<span class="tok-comment">// Next connection: "203.0.113.5:54322" → fresh key → unlimited budget</span></code></pre>
+          <p class="fix">
+            <strong>Fix:</strong> <code>host, _, _ := net.SplitHostPort(r.RemoteAddr)</code> then
+            pass <code>host</code>. Or reuse root's <code>httputil.ClientIP(r)</code>.
+          </p>
+        </div>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED C3</span
+            ><span class="issue-title"
+              >perIPRateLimiter: no eviction — unbounded memory growth</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/http.go:103-138</code></div>
+          <pre><code><span class="tok-comment">// http.go:104 — map grows forever, never cleaned</span>
+<span class="tok-keyword">type</span> perIPRateLimiter <span class="tok-keyword">struct</span> {
+    mu      sync.Mutex
+    entries <span class="tok-type">map</span>[<span class="tok-type">string</span>]*rateLimitEntry <span class="tok-comment">// ← never swept, no max size</span>
+}
+<span class="tok-comment">// Compare: webauthnSessionStore, verificationTokenStore, oauth2StateStore,</span>
+<span class="tok-comment">// pendingTOTPStore ALL have EvictExpired + background goroutine. This one doesn't.</span></code></pre>
+        </div>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED C4</span
+            ><span class="issue-title">TOTP never enforced at login — MFA is advisory-only</span>
+          </div>
+          <div class="where"><code>usermgmt/webauthn_service.go:154-204</code></div>
+          <pre><code><span class="tok-comment">// webauthn_service.go:189-200 — FinishLogin creates session immediately</span>
+s.webauthnSessions.<span class="tok-func">Delete</span>(sessionKey)
+<span class="tok-keyword">if</span> s.lockout != <span class="tok-keyword">nil</span> { s.lockout.<span class="tok-func">Reset</span>(user.Email) }
+
+sess, err := s.<span class="tok-func">createSession</span>(ctx, user.ID) <span class="tok-comment">// ← session created!</span>
+<span class="tok-comment">// NOTE: user.TOTPEnabled is NEVER checked here.</span>
+<span class="tok-comment">// VerifyTOTP is a separate endpoint that doesn't gate session creation.</span></code></pre>
+          <p class="fix">
+            <strong>Fix:</strong> After FinishLogin succeeds, check <code>user.TOTPEnabled</code>.
+            If true, return intermediate challenge; only createSession after VerifyTOTP.
+          </p>
+        </div>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED C5</span
+            ><span class="issue-title">Verification token ALWAYS leaked in response</span>
+          </div>
+          <div class="where"><code>usermgmt/verification_totp_http.go:101</code></div>
+          <pre><code><span class="tok-comment">// verification_totp_http.go:96-101</span>
+token, err := h.service.<span class="tok-func">SendVerificationEmail</span>(ctx, user.ID)
+<span class="tok-keyword">if</span> err != <span class="tok-keyword">nil</span> {
+    <span class="tok-func">writeError</span>(w, <span class="tok-func">errorStatus</span>(err), err.<span class="tok-func">Error</span>())
+    <span class="tok-keyword">return</span>
+}
+<span class="tok-func">writeJSON</span>(w, http.StatusOK, <span class="tok-type">map</span>[<span class="tok-type">string</span>]<span class="tok-type">string</span>{<span class="tok-string">"token"</span>: token})
+<span class="tok-comment">//                ^^^^^^ ALWAYS returned, even when sendVerificationEmail</span>
+<span class="tok-comment">//                is configured (production mode). Token should only go via email.</span></code></pre>
+        </div>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED C6</span
+            ><span class="issue-title">Session.Token serializable to JSON</span>
+          </div>
+          <div class="where"><code>usermgmt/user.go:97</code></div>
+          <pre><code><span class="tok-comment">// user.go:96-103</span>
+<span class="tok-keyword">type</span> Session <span class="tok-keyword">struct</span> {
+    Token     <span class="tok-type">string</span>        <span class="tok-string">`json:"token"`</span>     <span class="tok-comment">// ← BEARER TOKEN in JSON!</span>
+    UserID    UserID        <span class="tok-string">`json:"user_id"`</span>
+    ActorID   ActorID       <span class="tok-string">`json:"actor_id"`</span>
+    Origin    SessionOrigin <span class="tok-string">`json:"-"`</span>          <span class="tok-comment">// ← Origin hidden, Token NOT</span>
+}
+<span class="tok-comment">// Compare: TOTPSecret correctly uses json:"-" — inconsistent security</span></code></pre>
+          <p class="fix"><strong>Fix:</strong> <code>Token string `json:"-"`</code></p>
+        </div>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED C7</span
+            ><span class="issue-title">AsEnforcer: 3-value Enforce vs 4-field Casbin model</span>
+          </div>
+          <div class="where">
+            <code>usermgmt/authz_types.go:48-63</code> · <code>authz.go:49</code>
+          </div>
+          <pre><code><span class="tok-comment">// authz_types.go:48 — Casbin model requires 4 fields</span>
+<span class="tok-keyword">const</span> defaultModel = <span class="tok-string">`[request_definition]
+r = sub, dom, obj, act    ← 4 fields: subject, DOMAIN, object, action</span>
+
+<span class="tok-comment">// authz.go:49 — root module passes only 3 values</span>
+ok, err := enforcer.<span class="tok-func">Enforce</span>(subject, resource, action)
+<span class="tok-comment">//                       ^^^^^^^^  ^^^^^^^^  ^^^^^^</span>
+<span class="tok-comment">//                       sub       obj       act  ← NO DOMAIN</span>
+<span class="tok-comment">// Casbin receives 3 rvals for a 4-field model → error or silent misbehavior</span></code></pre>
+          <p class="fix">
+            <strong>Fix:</strong> Domain-aware Enforcer interface, or inject default domain in
+            AsEnforcer.
+          </p>
+        </div>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED C8</span
+            ><span class="issue-title">Import/Export: zero authorization</span>
+          </div>
+          <div class="where"><code>usermgmt/import_export.go:73-211</code></div>
+          <pre><code><span class="tok-comment">// import_export.go:73 — no caller identity, no authz check</span>
+<span class="tok-keyword">func</span> (s *Service) <span class="tok-func">ImportUsersFromJSON</span>(ctx context.Context, r io.Reader) (*ImportResult, <span class="tok-type">error</span>) {
+    <span class="tok-comment">// ← no Authorization check, no caller UserID, no role requirement</span>
+}
+
+<span class="tok-comment">// import_export.go:155 — exports ALL users to anyone with a *Service</span>
+<span class="tok-keyword">func</span> (s *Service) <span class="tok-func">ExportUsersToJSON</span>(_ context.Context, w io.Writer) <span class="tok-type">error</span> {</code></pre>
+        </div>
+
+        <h2 id="verify-high"><span class="num">✓</span>Key High Findings — Verified</h2>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED H1</span
+            ><span class="issue-title"
+              >Double event emission — handler called twice with LESS data</span
+            >
+          </div>
+          <div class="where">
+            <code>service_register.go:101</code> + <code>service_core.go:393-397</code>
+          </div>
+          <pre><code><span class="tok-comment">// service_register.go:101 — DIRECT emit (full payload)</span>
+s.<span class="tok-func">emit</span>(req.ID, UserRegisteredEvent{
+    Email:       user.Email,       <span class="tok-comment">// ← HAS email</span>
+    DisplayName: user.DisplayName,  <span class="tok-comment">// ← HAS display name</span>
+    Roles:       append([]<span class="tok-type">Role</span>(<span class="tok-keyword">nil</span>), user.Roles...), <span class="tok-comment">// ← HAS roles</span>
+})
+
+<span class="tok-comment">// service_core.go:393-397 — BUS BRIDGE also emits (partial payload)</span>
+bus.<span class="tok-func">Subscribe</span>(eventUserRegistered, <span class="tok-keyword">func</span>(_ context.Context, evt event.Event) <span class="tok-type">error</span> {
+    s.<span class="tok-func">emit</span>(<span class="tok-func">userIDFromAggID</span>(evt.<span class="tok-func">AggregateID</span>()), UserRegisteredEvent{
+        Email:      s.<span class="tok-func">emailFromEvent</span>(evt), <span class="tok-comment">// ← only email</span>
+        <span class="tok-comment">// DisplayName: MISSING. Roles: MISSING.</span>
+    })</code></pre>
+          <p class="fix">
+            <strong>Fix:</strong> Delete the direct <code>emit</code> calls in service_register.go
+            and service_misc.go. Let bridgeEventHandler be the single source — but fix it to extract
+            full payload.
+          </p>
+        </div>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED H12</span
+            ><span class="issue-title"
+              >Asymmetric last-auth guard — RemoveCredential missing, Unlink has it</span
+            >
+          </div>
+          <div class="where">
+            <code>es_decide.go:272-319</code> (remove) vs <code>es_decide.go:507-512</code> (unlink)
+          </div>
+          <pre><code><span class="tok-comment">// es_decide.go:272 — decideRemoveCredential: NO last-auth guard</span>
+<span class="tok-keyword">func</span> <span class="tok-func">decideRemoveCredential</span>(...) {
+    <span class="tok-keyword">return</span> <span class="tok-keyword">func</span>(state UserState, version event.Version) ([]event.Event, <span class="tok-type">error</span>) {
+        <span class="tok-func">requireExists</span>(state, <span class="tok-string">"remove_credential"</span>)
+        <span class="tok-keyword">if</span> state.Deleted { ... }
+        <span class="tok-comment">// found check...</span>
+        <span class="tok-comment">// ← NO last-auth-method guard! User can delete last passkey → locked out</span>
+    }
+}
+
+<span class="tok-comment">// es_decide.go:507 — decideUnlinkExternalAccount: HAS the guard</span>
+    <span class="tok-keyword">if</span> <span class="tok-func">len</span>(state.Credentials) == <span class="tok-number">0</span> &amp;&amp; <span class="tok-func">len</span>(state.ExternalAccounts) &lt;= <span class="tok-number">1</span> {
+        <span class="tok-keyword">return</span> <span class="tok-keyword">nil</span>, event.<span class="tok-func">NewRejection</span>(<span class="tok-string">"usermgmt.unlink_external_account.last_auth_method"</span>,
+            <span class="tok-string">"cannot remove the last authentication method"</span>)
+    }</code></pre>
+          <p class="fix">
+            <strong>Fix:</strong> Add the identical guard to decideRemoveCredential: reject if
+            <code>len(state.Credentials) &lt;= 1 &amp;&amp; len(state.ExternalAccounts) == 0</code>.
+          </p>
+        </div>
+
+        <div class="issue issue-good">
+          <div class="issue-head">
+            <span class="badge badge-good">VERIFIED H5</span
+            ><span class="issue-title"
+              >CasbinProjection tenant delete — comment lies about cascade</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/es_casbin_projection.go:102-110</code></div>
+          <pre><code><span class="tok-comment">// es_casbin_projection.go:102-110</span>
+<span class="tok-keyword">case</span> eventTenantDeleted:
+    <span class="tok-comment">// Remove all Casbin policies in the tenant's domain (the tenant's aggregate ID).</span>
+    <span class="tok-comment">// This cascades role cleanup for all members of the deleted tenant. ← LIES</span>
+    p.authz.<span class="tok-func">RemoveAllRolesForUser</span>(subject)
+    <span class="tok-comment">//                          ^^^^^^^ subject = tenant's aggregate ID</span>
+    <span class="tok-comment">// But members' policies are g(memberID, role, tenantDomain)</span>
+    <span class="tok-comment">// The tenant is the DOMAIN, not the subject. Member policies SURVIVE.</span></code></pre>
+          <p class="fix">
+            <strong>Fix:</strong> Iterate members, call
+            <code>RemoveAllRolesInDomain(memberID, tenantDomain)</code> for each.
+          </p>
+        </div>
+
+        <h2 id="critical"><span class="num">01</span>Critical Findings (8)</h2>
+
+        <div class="issue issue-critical">
+          <div class="issue-head">
+            <span class="badge badge-critical">Critical</span>
+            <span class="badge">Concurrency</span>
+            <span class="issue-title">SSE Heartbeat races with Send on the ResponseWriter</span>
+          </div>
+          <div class="where">
+            <code>sse_stream.go:68-76</code> (Send) · <code>sse_stream.go:120-137</code> (Heartbeat)
+          </div>
+          <p>
+            <code>Send()</code> and <code>Heartbeat()</code> both call <code>s.w.Write()</code> +
+            <code>s.fw.Flush()</code> from <strong>different goroutines</strong> with zero
+            synchronization. The doc explicitly shows <code>go stream.Heartbeat(...)</code>.
+            <code>http.ResponseWriter</code> is documented as not safe for concurrent use. A
+            keepalive comment (<code>: keepalive\n\n</code>) can interleave between
+            <code>data:</code> lines of an in-flight event, corrupting the SSE wire format.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Add a <code>sync.Mutex</code> to <code>SSEStream</code> and
+            serialize all writes through <code>writeRaw()</code>, or route heartbeats through the
+            same select loop as events.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <div class="issue-head">
+            <span class="badge badge-critical">Critical</span>
+            <span class="badge">Security</span>
+            <span class="issue-title"
+              >Rate limiter uses r.RemoteAddr (includes port) — completely bypassable</span
+            >
+          </div>
+          <div class="where">
+            <code>usermgmt/http.go:237</code> · <code>usermgmt/verification_totp_http.go:57</code>
+          </div>
+          <p>
+            <code>r.RemoteAddr</code> in Go is <code>host:port</code>. Every new TCP connection gets
+            a different ephemeral port → a fresh key in the rate-limiter map. An attacker who opens
+            new connections gets unlimited budget. The rate limiter is decorative. Additionally,
+            zero <code>X-Forwarded-For</code> handling — behind a proxy, all clients share one key.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Strip the port via <code>net.SplitHostPort</code>. Reuse the root
+            module's <code>httputil.ClientIP(r)</code> /
+            <code>KeyExtractorFromClientIP()</code> which already solves this.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <div class="issue-head">
+            <span class="badge badge-critical">Critical</span>
+            <span class="badge">Memory / DoS</span>
+            <span class="issue-title">perIPRateLimiter map grows unbounded — no eviction</span>
+          </div>
+          <div class="where"><code>usermgmt/http.go:104-138</code></div>
+          <p>
+            Every other ephemeral store in this package (<code>webauthnSessionStore</code>,
+            <code>verificationTokenStore</code>, <code>oauth2StateStore</code>,
+            <code>pendingTOTPStore</code>) has <code>EvictExpired</code> + background goroutines.
+            The <code>perIPRateLimiter</code> was forgotten — a rotating attacker causes unbounded
+            memory growth until OOM.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Add periodic sweep or max-entries cap consistent with the
+            <code>eviction.go</code> pattern.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <div class="issue-head">
+            <span class="badge badge-critical">Critical</span>
+            <span class="badge">Security / MFA</span>
+            <span class="issue-title">TOTP is never enforced as a second factor during login</span>
+          </div>
+          <div class="where"><code>usermgmt/webauthn_service.go:154-204</code></div>
+          <p>
+            <code>FinishLogin</code> (WebAuthn) creates a session immediately on successful
+            assertion — it never checks <code>user.TOTPEnabled</code> or calls
+            <code>VerifyTOTP</code>. A user with TOTP enabled authenticates purely via WebAuthn. MFA
+            is advisory-only. For a passwordless system, this defeats the purpose of the second
+            factor.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> After <code>FinishLogin</code> succeeds, if
+            <code>user.TOTPEnabled</code>, return a "TOTP challenge required" intermediate response;
+            only <code>createSession</code> after <code>VerifyTOTP</code> succeeds.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <div class="issue-head">
+            <span class="badge badge-critical">Critical</span>
+            <span class="badge">Security</span>
+            <span class="issue-title">Verification token leaked in API response</span>
+          </div>
+          <div class="where"><code>usermgmt/verification_totp_http.go:101</code></div>
+          <p>
+            <code>handleSendVerificationEmail</code> always returns <code>{"token": token}</code> in
+            the response body, even when <code>sendVerificationEmail</code> is configured
+            (production). The entire point of email verification is that the token is delivered only
+            via email. Any authenticated user trivially bypasses verification.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Only return the token when
+            <code>sendVerificationEmail == nil</code> (dev mode). In production, return a success
+            message without the token.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <div class="issue-head">
+            <span class="badge badge-critical">Critical</span>
+            <span class="badge">Security</span>
+            <span class="issue-title">Session.Token exposed via JSON serialization</span>
+          </div>
+          <div class="where"><code>usermgmt/user.go:97</code></div>
+          <p>
+            <code>Session.Token string json:"token"</code>. If a <code>*Session</code> is ever
+            marshaled to JSON (logging, error envelope, HTTP response, audit trail), the bearer
+            token is serialized in cleartext. <code>TOTPSecret</code> correctly uses
+            <code>json:"-"</code> but the most security-sensitive field does not.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> <code>Token string json:"-"</code>. Provide an explicit
+            <code>Token()</code> accessor for callers that need it.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <div class="issue-head">
+            <span class="badge badge-critical">Critical</span>
+            <span class="badge">Architecture</span>
+            <span class="issue-title"
+              >AsEnforcer bridge is structurally broken — 3-value Enforce vs 4-field Casbin
+              model</span
+            >
+          </div>
+          <div class="where">
+            <code>usermgmt/authz_types.go:196-198</code> · <code>authz.go:49</code>
+          </div>
+          <p>
+            The Casbin model defines <code>r = sub, dom, obj, act</code> (4 request fields). But the
+            root module's <code>Enforce</code> calls
+            <code>enforcer.Enforce(subject, resource, action)</code> — only 3 values. Casbin
+            receives 3 rvals for a 4-field model; the domain is silently missing. The bridge test
+            (<code>TestUsermgmtBridge_AsEnforcer</code>) never calls <code>Enforce</code>, so the
+            mismatch is untested.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Provide a domain-aware <code>Enforcer</code> interface in root, or
+            have <code>AsEnforcer()</code> inject a default domain.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <div class="issue-head">
+            <span class="badge badge-critical">Critical</span>
+            <span class="badge">Security</span>
+            <span class="issue-title">Import/Export has zero authorization checks</span>
+          </div>
+          <div class="where"><code>usermgmt/import_export.go:73-211</code></div>
+          <p>
+            <code>ImportUsersFromJSON/CSV</code>, <code>ExportUsersToJSON/CSV</code> are methods on
+            <code>*Service</code> with no authorization parameter.
+            <code>exportAllUsers()</code> dumps every user's ID, email, display name, roles, and
+            external accounts. Any caller with a <code>*Service</code> reference can exfiltrate the
+            entire user database.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Add an authorization gate (require admin role or explicit caller
+            identity) before reading/writing user data.
+          </p>
+        </div>
+
+        <h2 id="high"><span class="num">02</span>High Findings (20)</h2>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Logic Bug</span
+            ><span class="issue-title"
+              >EventHandler double-emission for UserRegistered & RolesUpdated</span
+            >
+          </div>
+          <div class="where">
+            <code>usermgmt/service_register.go:101</code> · <code>service_misc.go:32</code> ·
+            <code>service_core.go:392-410</code>
+          </div>
+          <p>
+            When <code>cfg.EventHandler != nil</code>: <code>Register()</code> calls
+            <code>s.emit(UserRegisteredEvent{...})</code> directly AND the event bus bridge fires
+            <code>s.emit(...)</code> again. The handler receives every event twice. Worse, the
+            bridged version omits <code>Email</code>, <code>DisplayName</code>, and
+            <code>Roles</code>.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Pick one mechanism. Drop the direct <code>emit</code> calls; let
+            the bus bridge handle it (but fix the payload extraction).
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Error Handling</span
+            ><span class="issue-title"
+              >ErrOAuthTokenExchange defined but never returned → wrong HTTP 500</span
+            >
+          </div>
+          <div class="where">
+            <code>usermgmt/oauth2.go:164</code> · <code>errors.go:113-117</code> ·
+            <code>http.go:370-372</code>
+          </div>
+          <p>
+            <code>exchangeAndExtractUser</code> wraps with <code>event.WrapTransient</code>, which
+            falls through to <code>default → HTTP 500</code>. Every OAuth2 token-exchange failure
+            (expired code, network error) returns 500 instead of 400.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Return <code>ErrOAuthTokenExchange</code> as the cause, or map the
+            event code to 400.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Security</span
+            ><span class="issue-title"
+              >WebAuthn UV flags hardcoded true — discards actual attestation</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/webauthn_adapter.go:40-44</code></div>
+          <p>
+            <code>toWebAuthnCredential</code> hardcodes
+            <code>UserPresent: true, UserVerified: true</code> instead of round-tripping from the
+            stored credential. A relying party requiring UV falsely advertises all credentials as
+            UV-capable.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Store <code>UserPresent</code>/<code>UserVerified</code> in
+            <code>WebAuthnCredential</code> and round-trip faithfully.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Performance</span
+            ><span class="issue-title"
+              >Double session-store lookup on every authenticated request</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/middleware.go:115,122</code></div>
+          <p>
+            <code>authenticateRequest</code> calls <code>service.Authenticate()</code> (which calls
+            <code>s.sessions.Find()</code> internally) then calls
+            <code>s.sessions.Find()</code> again to extract <code>ActorID</code> and
+            <code>Origin</code>. Two SQL round-trips per request.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Have <code>Authenticate</code> return the
+            <code>*Session</code> alongside the user.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Security</span
+            ><span class="issue-title">CSRF token-presence shortcut bypasses validation</span>
+          </div>
+          <div class="where"><code>csrf_handler.go:38-40</code></div>
+          <p>
+            <code>if nosurf.Token(r) != "" { return nil }</code> treats "a token exists in context"
+            as proof the request was already validated. Any code that stamps a token pre-validation
+            silently disables per-handler protection.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Validate unconditionally; let nosurf's idempotency handle the
+            double-check.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Side Effects</span
+            ><span class="issue-title">CSRF handler mutates the inbound *http.Request</span>
+          </div>
+          <div class="where"><code>csrf_handler.go:54,59</code></div>
+          <p>
+            <code>setPlaintextHTTPOrigin(r,…)</code> and
+            <code>translateCSRFHeaders(r,…)</code> mutate the shared request before the real handler
+            sees it. Breaks request immutability expectations.
+          </p>
+          <p class="fix"><strong>Fix:</strong> Operate on <code>r.Clone(r.Context())</code>.</p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Concurrency</span
+            ><span class="issue-title"
+              >perKeyLimiter LRU eviction broken — lastUsed never refreshed in fast path</span
+            >
+          </div>
+          <div class="where"><code>ratelimit_middleware.go:71-107</code></div>
+          <p>
+            The fast path (RLock) reads <code>entry.lastUsed</code> but never writes it. At TTL,
+            <code>evictStale()</code> deletes the entry before the re-check can refresh it →
+            actively-used keys get their token bucket silently reset every TTL. LRU eviction uses
+            stale values too.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Make <code>lastUsed</code> an <code>atomic.Int64</code> so it can
+            be refreshed under RLock.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Type Safety</span
+            ><span class="issue-title">SSEEventID strong type bypassed at HTTP boundary</span>
+          </div>
+          <div class="where"><code>sse_stream.go:105-107</code> · <code>:158-160</code></div>
+          <p>
+            <code>LastEventID()</code> and <code>LastEventIDFromRequest()</code> do
+            <code>SSEEventID(r.Header.Get("Last-Event-ID"))</code> — a raw string cast skipping
+            <code>ParseSSEEventID</code>. The branded type's newline-rejection is defeated at the
+            only place untrusted data enters.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Call <code>ParseSSEEventID</code> and sanitize on parse failure.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Domain Integrity</span
+            ><span class="issue-title">Email value type bypassed in event-sourcing path</span>
+          </div>
+          <div class="where">
+            <code>usermgmt/es_commands.go:9-13</code> · <code>es_decide.go:24-62,103-138</code>
+          </div>
+          <p>
+            <code>ParseEmail</code> does trim + lowercase + RFC 5322 validation, but
+            <code>RegisterUserCmd.email</code> and <code>ChangeEmailCmd.email</code> are raw
+            <code>string</code>. Deciders only check <code>email == ""</code>. Invalid emails
+            persist into the immutable event log forever.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Command constructors should accept <code>Email</code> (or call
+            <code>ParseEmail</code> internally).
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Missing Invariant</span
+            ><span class="issue-title"
+              >Exists() keyed on Email != "" — fragile existence predicate</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/es_state.go:26-28</code></div>
+          <p>
+            <code>Exists()</code> returns <code>s.Email != ""</code>. This is the predicate for
+            every mutating decider's guard. Combined with H11 below,
+            <code>ChangeEmail(aggID, "")</code> makes the aggregate vanish — all subsequent commands
+            return <code>not_found</code>.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Add <code>Registered bool</code> to <code>UserState</code>, set in
+            the <code>eventUserRegistered</code> fold. Key <code>Exists()</code> on it.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Missing Invariant</span
+            ><span class="issue-title"
+              >decideChangeEmail can set email to "" → corrupts existence</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/es_decide.go:103-138</code></div>
+          <p>
+            No <code>email == ""</code> rejection. <code>ChangeEmail(aggID, "")</code> emits
+            <code>EmailChanged{Email:""}</code>, fold sets <code>next.Email = ""</code>, and
+            <code>Exists()</code> returns false. The aggregate silently disappears.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Reject empty/invalid email before emitting. Take
+            <code>Email</code> typed parameter.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Missing Invariant</span
+            ><span class="issue-title"
+              >RemoveCredential has no last-auth-method guard → permanent lockout</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/es_decide.go:272-319</code></div>
+          <p>
+            <code>decideUnlinkExternalAccount</code> rejects if
+            <code>len(Credentials)==0 && len(ExternalAccounts)<=1</code>.
+            <code>decideRemoveCredential</code> has no such guard. In a passwordless system, a user
+            can delete their last passkey and be permanently locked out.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Add the same guard: reject if last credential AND no external
+            accounts linked.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Authorization Gap</span
+            ><span class="issue-title"
+              >CasbinProjection tenant delete doesn't cascade member cleanup</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/es_casbin_projection.go:102-110</code></div>
+          <p>
+            Comment claims cascading role cleanup. Code calls
+            <code>RemoveAllRolesForUser(tenantSubject)</code> — but members' policies are stored as
+            <code>g(memberID, role, tenantDomain)</code>. The tenant is the domain, not the subject.
+            Member policies survive deletion → stale access to deleted tenant's resources.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Iterate members and call
+            <code>RemoveAllRolesInDomain(memberID, tenantDomain)</code>.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Aliasing</span
+            ><span class="issue-title">newCredentialFromPayload doesn't copy ID & PublicKey</span>
+          </div>
+          <div class="where"><code>usermgmt/credential.go:23-36</code></div>
+          <p>
+            Doc claims defensive copying but only copies <code>Transports</code> and
+            <code>AAGUID</code>. <code>ID</code> and <code>PublicKey</code> (the two most
+            security-critical byte slices) alias the <code>json.Unmarshal</code> buffer directly.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> <code>ID: append([]byte(nil), p.ID...)</code>, same for PublicKey.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Type Safety</span
+            ><span class="issue-title"
+              >Session.UserID fabricated from bot's raw ID — branded-type violation</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/user.go:124-139</code></div>
+          <p>
+            <code>newSession</code> unconditionally sets
+            <code>UserID: NewUserID(actorID.String())</code>. When <code>actorID</code> is a bot,
+            the bot's raw ID is branded as <code>UserID</code>. The branded-type system exists to
+            prevent this confusion.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> <code>Session</code> should hold <code>ActorID</code> only. Remove
+            <code>UserID</code> or make it zero for bot sessions.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Race Condition</span
+            ><span class="issue-title"
+              >subscribeSignal fires after first Subscribe, not after all</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/es_projection_setup.go:31-43</code></div>
+          <p>
+            If the projection Runner registers per-event-type subscriptions (N calls),
+            <code><-signal.ready</code> unblocks after the first. Events of other types published in
+            the window between first and Nth Subscribe are missed. Read-your-writes silently breaks.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Signal readiness only after <code>SubscribeAll</code>, or after a
+            configurable barrier.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Security</span
+            ><span class="issue-title">CSV formula injection in export</span>
+          </div>
+          <div class="where"><code>usermgmt/import_export.go:193-208</code></div>
+          <p>
+            <code>ExportUsersToCSV</code> writes <code>DisplayName</code> and
+            <code>Email</code> directly. Go's <code>encoding/csv</code> quotes commas/quotes but
+            does not neutralize formula prefixes (<code>=</code>, <code>+</code>, <code>-</code>,
+            <code>@</code>). <code>=cmd|'/c calc'!A1</code> executes in Excel.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Prefix cells starting with <code>=</code>, <code>+</code>,
+            <code>-</code>, <code>@</code>, <code>\t</code>, <code>\r</code> with a single quote.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Correctness</span
+            ><span class="issue-title"
+              >NewAuthz silently drops default policies when custom config provided</span
+            >
+          </div>
+          <div class="where"><code>usermgmt/authz_types.go:116-128</code></div>
+          <p>
+            When <code>len(cfg) > 0</code>, <code>config = cfg[0]</code> completely replaces
+            defaults. Model string is recovered if empty, but
+            <code>defaultPolicies()</code> (admin/super_admin wildcards) are NOT. Inconsistent
+            recovery: hierarchy present but policies gone.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Recover <code>defaultPolicies()</code> when
+            <code>config.Policies == nil</code>, same pattern as model string.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">Architecture</span
+            ><span class="issue-title"
+              >CSRF Validate() has side effects + split-brain TrustedProxies</span
+            >
+          </div>
+          <div class="where"><code>csrf_config.go:141-180</code></div>
+          <p>
+            <code>Validate()</code> mutates the receiver (<code>TrustedProxiesCIDR = nil</code>) AND
+            emits <code>slog.Warn</code>. A validator should be pure. Additionally, plain entries in
+            <code>TrustedProxies</code> are never validated as IPs — <code>"garbage"</code> passes.
+            Two parallel fields represent the same concept.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Split into pure <code>Validate() error</code> +
+            <code>Resolve()</code>. Define a single typed <code>TrustedProxy</code> set.
+          </p>
+        </div>
+
+        <div class="issue issue-high">
+          <div class="issue-head">
+            <span class="badge badge-high">High</span><span class="badge">False Docs</span
+            ><span class="issue-title">User.MarshalJSON lies — public keys ARE exposed</span>
+          </div>
+          <div class="where"><code>usermgmt/user.go:78-93</code></div>
+          <p>
+            Doc comment claims "Credentials are included but public keys are not exposed in JSON."
+            The implementation embeds <code>*Alias</code> which serializes
+            <code>PublicKey []byte json:"public_key"</code> per credential. No DTO stripping step.
+            The comment is false.
+          </p>
+          <p class="fix">
+            <strong>Fix:</strong> Actually strip public keys via a DTO, or delete the false comment.
+          </p>
+        </div>
+
+        <h2 id="medium"><span class="num">03</span>Medium Findings (25)</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Sev</th>
+              <th>Category</th>
+              <th>Location</th>
+              <th>Issue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>M1</td>
+              <td>Med</td>
+              <td>Split-brain</td>
+              <td><code>authz.go:65-84</code> vs <code>95-132</code></td>
+              <td>
+                Two parallel authorization implementations (per-handler option vs standalone
+                middleware). Divergent behavior, doubled bug surface.
+              </td>
+            </tr>
+            <tr>
+              <td>M2</td>
+              <td>Med</td>
+              <td>Split-brain</td>
+              <td><code>middleware.go:48-53</code> vs <code>app.go:248-255</code></td>
+              <td>
+                UserIDExtractor errors: middleware swallows silently, App.enrichUserID logs at Warn.
+                Two paths, different observability.
+              </td>
+            </tr>
+            <tr>
+              <td>M3</td>
+              <td>Med</td>
+              <td>Duplication</td>
+              <td><code>recovery.go:54-68</code> vs <code>77-93</code></td>
+              <td>
+                RecoveryMiddleware and App.RecoverHandler are near-identical 15-line functions.
+                Extract shared core.
+              </td>
+            </tr>
+            <tr>
+              <td>M4</td>
+              <td>Med</td>
+              <td>API Explosion</td>
+              <td><code>errors.go:94-198</code></td>
+              <td>
+                7 ErrorHandler variants (Default/WithRedirect/WithRequestID/...) = combinatorial
+                explosion of orthogonal concerns. Collapse to options builder.
+              </td>
+            </tr>
+            <tr>
+              <td>M5</td>
+              <td>Med</td>
+              <td>Footgun</td>
+              <td><code>response.go:235</code></td>
+              <td>
+                Apply() returns "did I write?" bool but Body/WriteString/JSON discard it. Callers
+                can silently forget to write the body.
+              </td>
+            </tr>
+            <tr>
+              <td>M6</td>
+              <td>Med</td>
+              <td>Duplication</td>
+              <td><code>notify.go</code> + <code>response.go:141-158</code></td>
+              <td>
+                Same 4-method Success/Error/Warning/Info set duplicated 3× (package funcs, builder,
+                Response methods = 12 near-identical methods).
+              </td>
+            </tr>
+            <tr>
+              <td>M7</td>
+              <td>Med</td>
+              <td>Type Safety</td>
+              <td><code>structured_error.go:57-60</code></td>
+              <td>
+                nil err returns zero-value StructuredError that satisfies error — Error() returns
+                "". A valid error that says nothing.
+              </td>
+            </tr>
+            <tr>
+              <td>M8</td>
+              <td>Med</td>
+              <td>Observability</td>
+              <td><code>fanout.go:65-74</code></td>
+              <td>
+                Non-blocking send silently drops on full buffer. No metric, no log, no callback.
+                Slow consumers degrade silently.
+              </td>
+            </tr>
+            <tr>
+              <td>M9</td>
+              <td>Med</td>
+              <td>God-Object</td>
+              <td><code>usermgmt/service_core.go:23-58</code></td>
+              <td>
+                Service struct: 35 fields. Holds users, sessions, WebAuthn, TOTP, OAuth2, email
+                verification, lockout, bus/store, authz, token pepper. Violates SRP.
+              </td>
+            </tr>
+            <tr>
+              <td>M10</td>
+              <td>Med</td>
+              <td>Naming</td>
+              <td><code>usermgmt/service_misc.go</code></td>
+              <td>
+                "misc" is a dumping ground (7 unrelated methods). "core" and "login" are anti-names.
+                Rename to intent-revealing.
+              </td>
+            </tr>
+            <tr>
+              <td>M11</td>
+              <td>Med</td>
+              <td>Purity</td>
+              <td><code>usermgmt/es_state.go:104,143</code></td>
+              <td>
+                foldUser's <code>next := state</code> is shallow copy. <code>append</code> into
+                shared backing array corrupts prior state if caller retains it.
+              </td>
+            </tr>
+            <tr>
+              <td>M12</td>
+              <td>Med</td>
+              <td>Nil Safety</td>
+              <td><code>usermgmt/es_readmodel.go:226-246</code></td>
+              <td>
+                FindByEmail/FindByExternalAccount assume map consistency. If emails→ID points at
+                deleted user, nil-deref under RLock.
+              </td>
+            </tr>
+            <tr>
+              <td>M13</td>
+              <td>Med</td>
+              <td>Split-brain</td>
+              <td><code>usermgmt/es_state.go:65-72</code> vs <code>es_decide.go:64-100</code></td>
+              <td>
+                UserState comment says "roles NOT tracked here" but RolesUpdated still emits on User
+                aggregate + read model applies it. Two sources of truth for roles.
+              </td>
+            </tr>
+            <tr>
+              <td>M14</td>
+              <td>Med</td>
+              <td>Cancellation</td>
+              <td><code>sse_store.go:19-28</code></td>
+              <td>
+                ReplayEvents sends all events synchronously without checking ctx.Done(). Client
+                disconnect during replay keeps server writing.
+              </td>
+            </tr>
+            <tr>
+              <td>M15</td>
+              <td>Med</td>
+              <td>Error Handling</td>
+              <td><code>ws_dispatch.go:116-122</code></td>
+              <td>
+                Double error wrapping: decoder wraps with cqrshtmx.ws.decode_failed, then
+                DispatchWSCommand wraps again. Two codes for one failure.
+              </td>
+            </tr>
+            <tr>
+              <td>M16</td>
+              <td>Med</td>
+              <td>API Consistency</td>
+              <td><code>ws_dispatch.go:102-104</code></td>
+              <td>
+                DispatchWSCommand panics on empty type but function returns error. Inconsistent — WS
+                connection panics kill the goroutine.
+              </td>
+            </tr>
+            <tr>
+              <td>M17</td>
+              <td>Med</td>
+              <td>Silent Data Loss</td>
+              <td><code>usermgmt/es_readmodel.go</code></td>
+              <td>
+                Every non-registration event silently drops if user not in map. No log, no error, no
+                metric. Projection appears healthy while losing data.
+              </td>
+            </tr>
+            <tr>
+              <td>M18</td>
+              <td>Med</td>
+              <td>Resource Leak</td>
+              <td><code>usermgmt/es_projection_setup.go:122-131</code></td>
+              <td>
+                StartProjections uses context.Background(). RunLive goroutine can only stop by
+                closing the bus. No ctx parameter, no Stop().
+              </td>
+            </tr>
+            <tr>
+              <td>M19</td>
+              <td>Med</td>
+              <td>Split-brain</td>
+              <td><code>csrf_helpers.go:52,70-72</code></td>
+              <td>
+                CSRFTokenHXHeaders hardcodes "X-CSRF-Token", CSRFTokenFormField hardcodes default
+                name, ignoring CSRFConfig.HeaderName/FieldName.
+              </td>
+            </tr>
+            <tr>
+              <td>M20</td>
+              <td>Med</td>
+              <td>Observability</td>
+              <td><code>logging.go:107-122</code></td>
+              <td>
+                RequestLogging writes log AFTER next.ServeHTTP without defer. If handler panics, the
+                log entry is lost — the request most needing logging goes unlogged.
+              </td>
+            </tr>
+            <tr>
+              <td>M21</td>
+              <td>Med</td>
+              <td>Concurrency</td>
+              <td><code>sse_stream.go:142-144</code></td>
+              <td>
+                OnDisconnect appends to callback slice with no lock. Close iterates same slice. Data
+                race if called from different goroutines.
+              </td>
+            </tr>
+            <tr>
+              <td>M22</td>
+              <td>Med</td>
+              <td>Error Handling</td>
+              <td><code>csrf_handler.go:62-72</code></td>
+              <td>
+                Response fully written (status+body+headers) AND ErrCSRFInvalid returned. Callers
+                acting on error get superfluous WriteHeader.
+              </td>
+            </tr>
+            <tr>
+              <td>M23</td>
+              <td>Med</td>
+              <td>Correctness</td>
+              <td><code>structured_error.go:122,126</code></td>
+              <td>
+                Error() returns Detail but String() returns JSON. fmt prefers Stringer, so %v prints
+                JSON while .Error() prints text. Surprising.
+              </td>
+            </tr>
+            <tr>
+              <td>M24</td>
+              <td>Med</td>
+              <td>Resource Leak</td>
+              <td><code>usermgmt/es_setup.go:96-182</code></td>
+              <td>
+                NewEventSourcedSetup creates 4 repos + 4 read models sequentially. Error path does
+                bus.Close() but leaks all prior objects. No defer cleanup.
+              </td>
+            </tr>
+            <tr>
+              <td>M25</td>
+              <td>Med</td>
+              <td>Schema</td>
+              <td><code>usermgmt/es_constants.go:100-103</code></td>
+              <td>
+                currentSchemaVersion is global. User payloads didn't change between v1→v2 but claim
+                v2. Per-event-type versioning needed.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="low"><span class="num">04</span>Low & Nitpick Findings (31)</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Category</th>
+              <th>Location</th>
+              <th>Issue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>L1</td>
+              <td>Security</td>
+              <td><code>decoder.go:36-58</code></td>
+              <td>
+                No Content-Length pre-check before reading body. Malicious client streams gigabytes
+                before LimitReader rejects.
+              </td>
+            </tr>
+            <tr>
+              <td>L2</td>
+              <td>Security</td>
+              <td><code>errors.go:154,184</code></td>
+              <td>
+                io.WriteString echoes raw error message to client. Information disclosure of domain
+                internals.
+              </td>
+            </tr>
+            <tr>
+              <td>L3</td>
+              <td>Security</td>
+              <td><code>usermgmt/totp.go:184-193</code></td>
+              <td>
+                TOTP has no replay protection. Same code accepted multiple times within 30s window.
+                RFC 6238 §5.2 recommends rejection.
+              </td>
+            </tr>
+            <tr>
+              <td>L4</td>
+              <td>Security</td>
+              <td><code>htmx_serve.go:50-52,62-67</code></td>
+              <td>
+                HTMXScriptTag/HTMXCDNScriptTag don't HTML-escape path/version. Template injection
+                from config.
+              </td>
+            </tr>
+            <tr>
+              <td>L5</td>
+              <td>Dead Code</td>
+              <td><code>decoder.go:53</code></td>
+              <td>
+                <code>maxBodySize > 0 &&</code> is always true (DefaultMaxBodySize already applied).
+                Misleading.
+              </td>
+            </tr>
+            <tr>
+              <td>L6</td>
+              <td>Side Effects</td>
+              <td><code>decoder.go:85</code></td>
+              <td>Mutates incoming r.Body. Surprising for shared object.</td>
+            </tr>
+            <tr>
+              <td>L7</td>
+              <td>Duplication</td>
+              <td><code>decoder.go:19-32,77-98</code></td>
+              <td>decodeJSONBody and decodeFormBody have identical read-body prologues.</td>
+            </tr>
+            <tr>
+              <td>L8</td>
+              <td>Naming</td>
+              <td><code>errors.go:89</code></td>
+              <td>
+                ErrorHandler uses "Handler" suffix + collides with http.Handler. Consider
+                ErrorResponder.
+              </td>
+            </tr>
+            <tr>
+              <td>L9</td>
+              <td>Dead Code</td>
+              <td><code>errors.go:60,101-103</code></td>
+              <td>
+                ErrCSRFInvalid already wraps ErrForbidden. The || errors.Is(err, ErrCSRFInvalid)
+                checks are dead.
+              </td>
+            </tr>
+            <tr>
+              <td>L10</td>
+              <td>File Size</td>
+              <td><code>usermgmt/es_decide.go</code></td>
+              <td>
+                539 lines (over 350 threshold). 12 deciders. Split by concern or extract emitEvent
+                helper.
+              </td>
+            </tr>
+            <tr>
+              <td>L11</td>
+              <td>File Size</td>
+              <td><code>usermgmt/service_core.go</code></td>
+              <td>422 lines. Mixes construction, Stop, initOAuth2, accessors, bridge.</td>
+            </tr>
+            <tr>
+              <td>L12</td>
+              <td>File Size</td>
+              <td><code>usermgmt/http.go</code></td>
+              <td>376 lines. Mixes handler struct, rate limiter, cookies, errorStatus mapping.</td>
+            </tr>
+            <tr>
+              <td>L13</td>
+              <td>File Size</td>
+              <td><code>response.go</code></td>
+              <td>
+                358 lines. Mixes Response builder, redirect sanitization, trigger merging. Split
+                into 3 files.
+              </td>
+            </tr>
+            <tr>
+              <td>L14</td>
+              <td>Performance</td>
+              <td><code>ws_encoder.go:60-85</code></td>
+              <td>
+                WriteWSMessageInto does marshal→unmarshal→marshal (3× serialization). Fast-path when
+                headers empty.
+              </td>
+            </tr>
+            <tr>
+              <td>L15</td>
+              <td>Duplication</td>
+              <td><code>ws_dispatch.go:96-141</code> vs <code>160-206</code></td>
+              <td>DispatchWSCommand/Query ~90% duplicated. Extract lifecycle helper.</td>
+            </tr>
+            <tr>
+              <td>L16</td>
+              <td>Naming</td>
+              <td><code>ws_broadcaster.go:56</code></td>
+              <td>
+                BroadcastOnSuccessWS has redundant WS suffix (already on WSBroadcaster). Drop for
+                API parity with SSE.
+              </td>
+            </tr>
+            <tr>
+              <td>L17</td>
+              <td>API Smell</td>
+              <td><code>ws.go:118-136</code></td>
+              <td>
+                WSOOBHTML variadic accepts multiple SwapStrategy but uses only first. Misleading.
+              </td>
+            </tr>
+            <tr>
+              <td>L18</td>
+              <td>Correctness</td>
+              <td><code>ws.go:126-128</code></td>
+              <td>
+                strings.Contains(html,"hx-swap-oob") false positive if substring appears in
+                code/data attrs.
+              </td>
+            </tr>
+            <tr>
+              <td>L19</td>
+              <td>Error Handling</td>
+              <td><code>httputil.go:29</code></td>
+              <td>WriteJSON swallows write error via _, _ = buf.WriteTo(w).</td>
+            </tr>
+            <tr>
+              <td>L20</td>
+              <td>Type Safety</td>
+              <td><code>usermgmt/id.go:19,30,40</code></td>
+              <td>
+                NewUserID/TenantID/BotID accept any string. Branded type carries garbage. Validate
+                format.
+              </td>
+            </tr>
+            <tr>
+              <td>L21</td>
+              <td>Type Safety</td>
+              <td><code>usermgmt/credential.go:13</code></td>
+              <td>
+                SignCount is uint32 (overflows at ~4B). WebAuthn spec uses unsigned long. Use
+                uint64.
+              </td>
+            </tr>
+            <tr>
+              <td>L22</td>
+              <td>Missing Limit</td>
+              <td><code>usermgmt/es_decide.go:220-270</code></td>
+              <td>No max credential count per user. Unbounded aggregate growth.</td>
+            </tr>
+            <tr>
+              <td>L23</td>
+              <td>Dead Code</td>
+              <td><code>usermgmt/errors.go:11,118-123</code></td>
+              <td>
+                ErrEmailExists defined but never returned by ES deciders. Two different codes for
+                same concept.
+              </td>
+            </tr>
+            <tr>
+              <td>L24</td>
+              <td>Resource</td>
+              <td><code>usermgmt/import_export.go:84-87</code></td>
+              <td>
+                CSV import reads entire file into memory. No size limit. FieldsPerRecord=-1 hides
+                malformed data.
+              </td>
+            </tr>
+            <tr>
+              <td>L25</td>
+              <td>Testability</td>
+              <td><code>usermgmt/http.go:124</code></td>
+              <td>
+                Rate limiter uses time.Now() wall clock. Untestable without sleeps. Inject Clock
+                interface.
+              </td>
+            </tr>
+            <tr>
+              <td>L26</td>
+              <td>Defaults</td>
+              <td><code>usermgmt/http.go:57-58</code></td>
+              <td>
+                HandlerConfig.Timeout zero = no timeout. Auth endpoints can hang indefinitely.
+                Default 10-15s safer.
+              </td>
+            </tr>
+            <tr>
+              <td>L27</td>
+              <td>Typo</td>
+              <td><code>usermgmt/totp.go:207,209,236</code></td>
+              <td>
+                pendingTTOTPEvictionInterval — double T. Should be pendingTOTPEvictionInterval.
+              </td>
+            </tr>
+            <tr>
+              <td>L28</td>
+              <td>Naming</td>
+              <td><code>csrf_helpers.go</code></td>
+              <td>
+                "helpers" is vague dumping-ground anti-pattern. These are template/token renderers.
+              </td>
+            </tr>
+            <tr>
+              <td>L29</td>
+              <td>Dead Code</td>
+              <td><code>logging.go:76-79</code></td>
+              <td>sync.Pool New always returns *bytes.Buffer. The if !ok fallback is dead.</td>
+            </tr>
+            <tr>
+              <td>L30</td>
+              <td>Example</td>
+              <td><code>examples/datastar-demo/handlers_routes.go:47-60</code></td>
+              <td>
+                renderTodo interpolates t.Title into HTML without escaping. XSS in teaching example.
+              </td>
+            </tr>
+            <tr>
+              <td>L31</td>
+              <td>Example</td>
+              <td><code>examples/basic/main.go:70</code></td>
+              <td>
+                Manual JSON construction (XSS risk). No ReadHeaderTimeout. Discarded registration
+                errors.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="heatmap"><span class="num">♦</span>Severity Heatmap by File</h2>
+        <p>Files with the highest density of findings. Sort by findings to prioritize cleanup.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Module</th>
+              <th>Lines</th>
+              <th>Crit</th>
+              <th>High</th>
+              <th>Med</th>
+              <th>Low</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>es_decide.go</code></td>
+              <td>usermgmt</td>
+              <td>538</td>
+              <td>0</td>
+              <td>3</td>
+              <td>1</td>
+              <td>2</td>
+              <td><strong>6</strong></td>
+            </tr>
+            <tr>
+              <td><code>http.go</code></td>
+              <td>usermgmt</td>
+              <td>376</td>
+              <td>2</td>
+              <td>1</td>
+              <td>1</td>
+              <td>2</td>
+              <td><strong>6</strong></td>
+            </tr>
+            <tr>
+              <td><code>service_core.go</code></td>
+              <td>usermgmt</td>
+              <td>422</td>
+              <td>0</td>
+              <td>1</td>
+              <td>2</td>
+              <td>2</td>
+              <td><strong>5</strong></td>
+            </tr>
+            <tr>
+              <td><code>user.go</code></td>
+              <td>usermgmt</td>
+              <td>207</td>
+              <td>1</td>
+              <td>2</td>
+              <td>0</td>
+              <td>0</td>
+              <td><strong>3</strong></td>
+            </tr>
+            <tr>
+              <td><code>sse_stream.go</code></td>
+              <td>root</td>
+              <td>161</td>
+              <td>1</td>
+              <td>1</td>
+              <td>2</td>
+              <td>1</td>
+              <td><strong>5</strong></td>
+            </tr>
+            <tr>
+              <td><code>csrf_handler.go</code></td>
+              <td>root</td>
+              <td>~80</td>
+              <td>0</td>
+              <td>2</td>
+              <td>1</td>
+              <td>1</td>
+              <td><strong>4</strong></td>
+            </tr>
+            <tr>
+              <td><code>csrf_config.go</code></td>
+              <td>root</td>
+              <td>234</td>
+              <td>0</td>
+              <td>1</td>
+              <td>0</td>
+              <td>1</td>
+              <td><strong>2</strong></td>
+            </tr>
+            <tr>
+              <td><code>import_export.go</code></td>
+              <td>usermgmt</td>
+              <td>240</td>
+              <td>1</td>
+              <td>1</td>
+              <td>0</td>
+              <td>2</td>
+              <td><strong>4</strong></td>
+            </tr>
+            <tr>
+              <td><code>errors.go</code></td>
+              <td>root</td>
+              <td>219</td>
+              <td>0</td>
+              <td>0</td>
+              <td>2</td>
+              <td>2</td>
+              <td><strong>4</strong></td>
+            </tr>
+            <tr>
+              <td><code>response.go</code></td>
+              <td>root</td>
+              <td>358</td>
+              <td>0</td>
+              <td>0</td>
+              <td>2</td>
+              <td>2</td>
+              <td><strong>4</strong></td>
+            </tr>
+            <tr>
+              <td><code>authz_types.go</code></td>
+              <td>usermgmt</td>
+              <td>252</td>
+              <td>1</td>
+              <td>1</td>
+              <td>0</td>
+              <td>1</td>
+              <td><strong>3</strong></td>
+            </tr>
+            <tr>
+              <td><code>webauthn_service.go</code></td>
+              <td>usermgmt</td>
+              <td>204</td>
+              <td>1</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td><strong>1</strong></td>
+            </tr>
+            <tr>
+              <td><code>ratelimit_middleware.go</code></td>
+              <td>root</td>
+              <td>183</td>
+              <td>0</td>
+              <td>1</td>
+              <td>0</td>
+              <td>0</td>
+              <td><strong>1</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-solution">
+          <strong>What I checked that turned out to be LESS severe than initially reported:</strong>
+          <ul style="margin: 8px 0 0 20px; line-height: 1.8">
+            <li>
+              <strong>fanOut RLock scope</strong> (initially flagged as Medium scalability issue) —
+              After re-reading the AGENTS.md performance notes and the regression test, the
+              RLock-during-broadcast design is <strong>intentionally correct</strong> and prevents
+              send-on-closed-channel panics. The snapshot-then-iterate alternative was tried and
+              reverted. This is a good pattern, not a bug.
+            </li>
+            <li>
+              <strong>RecoveryMiddleware hardcoding DefaultErrorHandler</strong> (initially flagged
+              as High) — This is actually by design for the package-level middleware.
+              <code>App.RecoverHandler()</code> exists for consumers who want their configured error
+              handler. The doc could be clearer but the architecture is sound.
+            </li>
+            <li>
+              <strong>foldUser purity</strong> (initially flagged as Medium aliasing) — The
+              Repository doesn't cache prior state in production, so the shared backing array issue
+              is theoretical. Still worth fixing for correctness, but not production-breaking.
+            </li>
+          </ul>
+        </div>
+
+        <h2 id="themes"><span class="num">05</span>Cross-cutting Themes</h2>
+
+        <div class="callout callout-problem">
+          <strong>Theme 1: Split-brain pattern — 6 instances</strong>
+          The same logic exists in two places with divergent behavior: authorization (per-handler vs
+          middleware), UserIDExtractor error handling, recovery (package vs App method), CSRF header
+          names (config vs hardcoded helpers), roles (User aggregate vs Membership), and notify
+          methods (3× duplication). This is the #1 architectural smell — every bug fix must be
+          applied twice, and the copies drift.
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Theme 2: Security defenses built then bypassed</strong>
+          SSEEventID has a branded type with newline rejection — bypassed at the HTTP boundary.
+          Email has ParseEmail validation — bypassed in the ES command path. Rate limiter exists —
+          bypassed by using RemoteAddr with port. TOTP exists — never enforced at login. CSRF token
+          check exists — bypassed by token-presence shortcut. The pattern is: defense implemented,
+          then defeated at the integration point.
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Theme 3: usermgmt god-package — 71 files, 4 aggregates, 6 subsystems</strong>
+          A single Go package now hosts: User aggregate (16 files), Bot aggregate (6 files),
+          Membership aggregate (6 files), Tenant aggregate (6 files), WebAuthn (4 files), OAuth2 (3
+          files), TOTP (2 files), Casbin authz (3 files), SQL stores (2 files), HTTP handlers (5
+          files), service layer (8 files), and supporting types. This is no longer a cohesive
+          package — it's a monolith. See the modularization proposal for decomposition plan.
+        </div>
+
+        <div class="callout callout-solution">
+          <strong>Theme 4: Strong foundations worth preserving</strong>
+          The event-sourcing domain layer (foldUser/decide pattern), branded ID types, typed enums
+          (authMode, NotificationLevel, SwapStrategy), the fanOut[T] generic core, RFC 7807
+          StructuredError, constant-time token comparison, and the open-redirect sanitizer are all
+          excellent. The problems are in integration/wiring, not in the domain model.
+        </div>
+
+        <h2 id="strengths"><span class="num">06</span>Strengths to Preserve</h2>
+
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>authMode iota enum (options_types.go)</strong
+              ><span
+                >authNone/authRequired/authAuthorized replaces two overlapping bools. Impossible
+                states genuinely unrepresentable.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>fanOut[T] generic core (fanout.go)</strong
+              ><span
+                >Transport-agnostic hub shared by SSE + WS. Subscribe returns <-chan T (consumer
+                can't close). RLock in Broadcast prevents send-on-closed-channel.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Pure foldUser/decide pattern (es_state.go, es_decide.go)</strong
+              ><span
+                >Left-fold over events with no I/O. Decider closures: (state, version) → ([]Event,
+                error). The core ES invariant holds.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Branded ID types via brandid.ID[T, string]</strong
+              ><span
+                >UserID, TenantID, BotID, ActorID — phantom-type discipline prevents
+                cross-assignment at compile time.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>RFC 7807 StructuredError (structured_error.go)</strong
+              ><span
+                >Aligned with the standard. cause unexported + Unwrap() implemented. Construction
+                only via constructors.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>constant.ConstantTimeCompare for tokens (user.go)</strong
+              ><span
+                >Session TokenMatches uses constant-time comparison. Correct timing-attack
+                defense.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Open-redirect sanitizer (response.go:262-313)</strong
+              ><span
+                >scheme/host/opaque rejection + depth-counting .. detector. Solid defense.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>handleErrorCore DRY callback (errors.go:124-141)</strong
+              ><span
+                >Shared login-redirect → HTMX redirect → status-map → body pipeline behind a
+                writeBody callback.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Deep Clone() on read-model types</strong
+              ><span
+                >User, WebAuthnCredential, ExternalAccount all implement Clone(). Queries return
+                defensive copies.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>UpcasterRegistry for schema evolution</strong
+              ><span>Well-designed versioned transform chain with panic-on-duplicate guard.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>emit() wraps handler in recover() (service_register.go)</strong
+              ><span>One panicking EventHandler can't crash the service.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>SecurityHeadersConfig secure-by-default</strong
+              ><span>Zero-value gives nosniff, DENY, strict-origin. CSP and HSTS are opt-in.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>StatusRecorder delegates Pusher/Flusher/Hijacker</strong
+              ><span
+                >Correctly delegates optional interfaces so SSE/WS/HTTP2 work through
+                middleware.</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <h2 id="priority"><span class="num">07</span>Prioritized Fix Order</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Tier</th>
+              <th>Task</th>
+              <th>Effort</th>
+              <th>Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1%</strong></td>
+              <td>Fix rate limiter: strip port from RemoteAddr (C2)</td>
+              <td>5 min</td>
+              <td>Unblocks all rate limiting</td>
+            </tr>
+            <tr>
+              <td><strong>1%</strong></td>
+              <td>Fix SSE heartbeat race: add mutex (C1)</td>
+              <td>15 min</td>
+              <td>Prevents wire corruption</td>
+            </tr>
+            <tr>
+              <td><strong>1%</strong></td>
+              <td>Fix verification token leak (C5)</td>
+              <td>5 min</td>
+              <td>One-line conditional</td>
+            </tr>
+            <tr>
+              <td><strong>1%</strong></td>
+              <td>Fix Session.Token json tag (C6)</td>
+              <td>2 min</td>
+              <td>One character</td>
+            </tr>
+            <tr>
+              <td><strong>4%</strong></td>
+              <td>Fix rate limiter eviction (C3)</td>
+              <td>30 min</td>
+              <td>Prevents OOM</td>
+            </tr>
+            <tr>
+              <td><strong>4%</strong></td>
+              <td>Fix Exists() predicate + ChangeEmail guard (H10, H11)</td>
+              <td>30 min</td>
+              <td>Prevents aggregate corruption</td>
+            </tr>
+            <tr>
+              <td><strong>4%</strong></td>
+              <td>Fix RemoveCredential last-auth guard (H12)</td>
+              <td>15 min</td>
+              <td>Prevents permanent lockout</td>
+            </tr>
+            <tr>
+              <td><strong>4%</strong></td>
+              <td>Fix EventHandler double emission (H1)</td>
+              <td>20 min</td>
+              <td>Delete direct emit calls</td>
+            </tr>
+            <tr>
+              <td><strong>4%</strong></td>
+              <td>Fix perKeyLimiter lastUsed atomic (H7)</td>
+              <td>20 min</td>
+              <td>Fixes LRU eviction</td>
+            </tr>
+            <tr>
+              <td><strong>20%</strong></td>
+              <td>Enforce TOTP at login (C4)</td>
+              <td>2 h</td>
+              <td>Design change — intermediate challenge</td>
+            </tr>
+            <tr>
+              <td><strong>20%</strong></td>
+              <td>Fix AsEnforcer bridge 3→4 fields (C7)</td>
+              <td>1 h</td>
+              <td>Domain-aware interface or default domain</td>
+            </tr>
+            <tr>
+              <td><strong>20%</strong></td>
+              <td>Add import/export authorization (C8)</td>
+              <td>1 h</td>
+              <td>Require admin role</td>
+            </tr>
+            <tr>
+              <td><strong>20%</strong></td>
+              <td>Fix split-brain auth/extractor/recovery (M1-M3)</td>
+              <td>2 h</td>
+              <td>Consolidate to single paths</td>
+            </tr>
+            <tr>
+              <td><strong>20%</strong></td>
+              <td>Collapse ErrorHandler to builder (M4)</td>
+              <td>1.5 h</td>
+              <td>7 variants → 1 builder</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="meta"><span class="num">08</span>Meta Findings</h2>
+
+        <div class="callout callout-warning">
+          <strong>AGENTS.md is significantly stale</strong>
+          The root module file listing references <code>options.go</code>, <code>csrf.go</code>,
+          <code>sse.go</code>, <code>ws.go</code>, <code>ratelimit.go</code> as single files — all
+          have been split into 2-6 files each (options→6, csrf→5, sse→4, ws→4, ratelimit→2). The
+          usermgmt listing omits entire aggregates: Bot (6 files), Membership (6 files), Tenant (6
+          files), plus <code>api_token_middleware.go</code>, <code>audit_log.go</code>,
+          <code>credential_http.go</code>, <code>crypto.go</code>, <code>es_migration.go</code>,
+          <code>es_upcaster.go</code>, <code>random.go</code>, <code>service_bot.go</code>,
+          <code>service_impersonation.go</code>, <code>service_tenant.go</code>. Coverage stats and
+          module descriptions need updating.
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>docs/modularization is stale</strong>
+          The DEPENDENCY_GRAPH.md (2026-06-08) shows root as 21 files (now 40) and usermgmt as 10
+          files (now 71). The PROPOSAL.md (2026-05-27) conclusion "do not split root" was based on
+          19 files. The catalog module, examples/basic, and examples/catalog-demo are not mentioned.
+          A fresh modularization assessment is needed — see the companion proposal.
+        </div>
+
+        <div class="footer">
+          Generated 2026-06-21 · Reviewed against cqrs-htmx at commit b6650e7 · 123 production
+          files, 41,728 lines
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

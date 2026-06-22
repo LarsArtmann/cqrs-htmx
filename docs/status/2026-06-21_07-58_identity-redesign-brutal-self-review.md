@@ -21,20 +21,20 @@ ignores membership events entirely.
 
 ## A. FULLY DONE (working, tested, verified)
 
-| Item | Commit | Tests | Lint |
-|------|--------|-------|------|
-| ActorID struct (kind + raw + Kind/String/PrefixedString/IsZero) | 0db9379 | 5 | ✅ |
-| TenantID + BotID branded types | 0db9379 | 2 | ✅ |
-| SessionOrigin sealed interface (DirectLogin, Impersonation) | 0db9379 | 2 | ✅ |
-| Membership read-model struct (HasRole, HasAnyRole) | 0db9379 | 2 | ✅ |
-| RoleSuperAdmin + Casbin g2 hierarchy (super_admin > admin > user > viewer) | 0db9379 | 2 | ✅ |
-| ActorKind enum with String() | 0db9379 | 1 | ✅ |
-| Membership event payloads (MemberAdded, MemberRolesChanged, MemberRemoved) | 573e2e4 | 0 direct | ✅ |
-| Membership commands (AddMemberCmd, UpdateMemberRolesCmd, RemoveMemberCmd) | 573e2e4 | 2 | ✅ |
-| MembershipState + foldMembership (pure function) | 573e2e4 | 4 | ✅ |
-| Context: WithActorID/ActorFromContext, WithImpersonatorID/ImpersonatorFromContext | b99ca78 | 4 | ✅ |
-| EventOptionsFromContext propagates actor_id + impersonator_id | b99ca78 | 2 | ✅ |
-| DomainsForUser filters empty domains (g2 artifact fix) | 0db9379 | existing | ✅ |
+| Item                                                                              | Commit  | Tests    | Lint |
+| --------------------------------------------------------------------------------- | ------- | -------- | ---- |
+| ActorID struct (kind + raw + Kind/String/PrefixedString/IsZero)                   | 0db9379 | 5        | ✅   |
+| TenantID + BotID branded types                                                    | 0db9379 | 2        | ✅   |
+| SessionOrigin sealed interface (DirectLogin, Impersonation)                       | 0db9379 | 2        | ✅   |
+| Membership read-model struct (HasRole, HasAnyRole)                                | 0db9379 | 2        | ✅   |
+| RoleSuperAdmin + Casbin g2 hierarchy (super_admin > admin > user > viewer)        | 0db9379 | 2        | ✅   |
+| ActorKind enum with String()                                                      | 0db9379 | 1        | ✅   |
+| Membership event payloads (MemberAdded, MemberRolesChanged, MemberRemoved)        | 573e2e4 | 0 direct | ✅   |
+| Membership commands (AddMemberCmd, UpdateMemberRolesCmd, RemoveMemberCmd)         | 573e2e4 | 2        | ✅   |
+| MembershipState + foldMembership (pure function)                                  | 573e2e4 | 4        | ✅   |
+| Context: WithActorID/ActorFromContext, WithImpersonatorID/ImpersonatorFromContext | b99ca78 | 4        | ✅   |
+| EventOptionsFromContext propagates actor_id + impersonator_id                     | b99ca78 | 2        | ✅   |
+| DomainsForUser filters empty domains (g2 artifact fix)                            | 0db9379 | existing | ✅   |
 
 **Total: 26 new tests, all passing. 0 lint issues. Build green across all 4 modules.**
 
@@ -77,6 +77,7 @@ The tradeoff is documented but the type safety gap remains.
 ### B4. Schema Version Bump — No Upcasters
 
 `currentSchemaVersion` was bumped to 2, but:
+
 - No v1→v2 upcaster functions are registered (only test fixtures exist).
 - `RolesUpdatedPayload.Domain` is still `string`, not `TenantID` (the comment
   in es_constants.go claims it was changed — it wasn't).
@@ -89,20 +90,20 @@ The tradeoff is documented but the type safety gap remains.
 
 ## C. NOT STARTED
 
-| Task | Description |
-|------|-------------|
-| Session struct update | `Session.UserID` → `Session.ActorID`, add `Origin SessionOrigin` |
-| SessionStore interface update | Accept Session struct, not just UserID |
-| BeginImpersonation / EndImpersonation | Service methods + security guards |
-| Session middleware update | Extract actor + impersonator from session, inject into context |
-| Tenant aggregate | State, events, commands, fold, decider, wiring |
-| Bot aggregate | State, events, commands, HMAC-SHA256 pepper token hash |
-| API token middleware | Bearer token → Bot resolution |
-| Migration projection | Replay old UserState.Roles → Membership events |
+| Task                                     | Description                                                        |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| Session struct update                    | `Session.UserID` → `Session.ActorID`, add `Origin SessionOrigin`   |
+| SessionStore interface update            | Accept Session struct, not just UserID                             |
+| BeginImpersonation / EndImpersonation    | Service methods + security guards                                  |
+| Session middleware update                | Extract actor + impersonator from session, inject into context     |
+| Tenant aggregate                         | State, events, commands, fold, decider, wiring                     |
+| Bot aggregate                            | State, events, commands, HMAC-SHA256 pepper token hash             |
+| API token middleware                     | Bearer token → Bot resolution                                      |
+| Migration projection                     | Replay old UserState.Roles → Membership events                     |
 | Decide functions for membership commands | `decideAddMember`, `decideUpdateMemberRoles`, `decideRemoveMember` |
-| Membership read model | `MembershipReadModel` projection for queries |
-| Remove Roles from UserState | Breaking change deferred until Membership is fully wired |
-| EventOptionsFromContext in usermgmt | Root has it; usermgmt doesn't use it yet |
+| Membership read model                    | `MembershipReadModel` projection for queries                       |
+| Remove Roles from UserState              | Breaking change deferred until Membership is fully wired           |
+| EventOptionsFromContext in usermgmt      | Root has it; usermgmt doesn't use it yet                           |
 
 ---
 
@@ -126,6 +127,7 @@ supposed to prevent. Should take `ActorID` type, not raw `string`.
 ### D2. MembershipState / Membership split brain
 
 Two structs model the same domain concept:
+
 - `MembershipState` (es_membership_state.go) — aggregate state, has `Removed bool`
 - `Membership` (user.go) — read model, has `AddedAt time.Time`
 
@@ -169,6 +171,7 @@ dispatch → projection → test. An unwired type is dead code with extra steps.
 ### E2. Resolve the MembershipState/Membership split brain
 
 Either:
+
 - Make `Membership` the read-model projection OF `MembershipState` (one is the
   source of truth, the other is the query model), OR
 - Have only ONE struct with both `Removed` and `AddedAt` fields.
@@ -209,33 +212,33 @@ tenant-scoped consistency.
 
 Sorted by **impact / effort ratio** (highest first).
 
-| # | Task | Impact | Effort | Notes |
-|---|------|--------|--------|-------|
-| 1 | **Fix RolesForActor to take ActorID, not string** | 10 | 5min | Type-safety bug fix |
-| 2 | **Remove dead `allMembershipEventTypes` nolint** — wire it or remove it | 9 | 5min | Dead code cleanup |
-| 3 | **Fix stale comments** (es_constants.go, es_upcaster_test.go) | 7 | 5min | Truth in documentation |
-| 4 | **Update AGENTS.md** with new types, file list, event/command counts | 8 | 15min | Docs freshness |
-| 5 | **Write ADR 0015** for identity model redesign | 9 | 30min | Process compliance |
-| 6 | **Resolve MembershipState/Membership split brain** | 9 | 30min | Architectural cleanup |
-| 7 | **Register membership commands in RegisterCommands** | 10 | 45min | Makes aggregate functional |
-| 8 | **Write decide functions for membership commands** | 10 | 45min | Pure domain logic |
-| 9 | **Wire membership events into CasbinProjection** | 10 | 60min | Makes authz work |
-| 10 | **Create MembershipReadModel projection** | 8 | 45min | Query support |
-| 11 | **Wire Membership repository in Service** | 9 | 30min | Service integration |
-| 12 | **Stamp SchemaVersion in ALL deciders** | 7 | 15min | Consistency |
-| 13 | **Write v1→v2 upcaster for RolesUpdatedPayload** | 8 | 30min | Migration support |
-| 14 | **Update Session struct: ActorID + Origin** | 8 | 30min | Impersonation foundation |
-| 15 | **Update SessionStore interface** | 7 | 30min | Session lifecycle |
-| 16 | **Implement BeginImpersonation/EndImpersonation** | 9 | 60min | Core feature |
-| 17 | **Update session middleware for actor+impersonator** | 8 | 45min | HTTP integration |
-| 18 | **Create Tenant aggregate** (state+events+commands+fold) | 7 | 90min | Multi-tenancy |
-| 19 | **Consider Tenant-owned Membership** (refactor from separate aggregate) | 8 | 60min | Simpler model |
-| 20 | **Create Bot aggregate + HMAC pepper hash** | 7 | 60min | Machine identity |
-| 21 | **API token authentication middleware** | 6 | 45min | Bot auth |
-| 22 | **Migration projection: Roles → Membership** | 8 | 60min | Backward compat |
-| 23 | **Integration tests for full membership lifecycle** | 9 | 45min | Verify wiring |
-| 24 | **Update existing tests for ActorID types** | 7 | 45min | Test correctness |
-| 25 | **Catalog integration** (new events/commands in catalog) | 4 | 30min | API docs |
+| #   | Task                                                                    | Impact | Effort | Notes                      |
+| --- | ----------------------------------------------------------------------- | ------ | ------ | -------------------------- |
+| 1   | **Fix RolesForActor to take ActorID, not string**                       | 10     | 5min   | Type-safety bug fix        |
+| 2   | **Remove dead `allMembershipEventTypes` nolint** — wire it or remove it | 9      | 5min   | Dead code cleanup          |
+| 3   | **Fix stale comments** (es_constants.go, es_upcaster_test.go)           | 7      | 5min   | Truth in documentation     |
+| 4   | **Update AGENTS.md** with new types, file list, event/command counts    | 8      | 15min  | Docs freshness             |
+| 5   | **Write ADR 0015** for identity model redesign                          | 9      | 30min  | Process compliance         |
+| 6   | **Resolve MembershipState/Membership split brain**                      | 9      | 30min  | Architectural cleanup      |
+| 7   | **Register membership commands in RegisterCommands**                    | 10     | 45min  | Makes aggregate functional |
+| 8   | **Write decide functions for membership commands**                      | 10     | 45min  | Pure domain logic          |
+| 9   | **Wire membership events into CasbinProjection**                        | 10     | 60min  | Makes authz work           |
+| 10  | **Create MembershipReadModel projection**                               | 8      | 45min  | Query support              |
+| 11  | **Wire Membership repository in Service**                               | 9      | 30min  | Service integration        |
+| 12  | **Stamp SchemaVersion in ALL deciders**                                 | 7      | 15min  | Consistency                |
+| 13  | **Write v1→v2 upcaster for RolesUpdatedPayload**                        | 8      | 30min  | Migration support          |
+| 14  | **Update Session struct: ActorID + Origin**                             | 8      | 30min  | Impersonation foundation   |
+| 15  | **Update SessionStore interface**                                       | 7      | 30min  | Session lifecycle          |
+| 16  | **Implement BeginImpersonation/EndImpersonation**                       | 9      | 60min  | Core feature               |
+| 17  | **Update session middleware for actor+impersonator**                    | 8      | 45min  | HTTP integration           |
+| 18  | **Create Tenant aggregate** (state+events+commands+fold)                | 7      | 90min  | Multi-tenancy              |
+| 19  | **Consider Tenant-owned Membership** (refactor from separate aggregate) | 8      | 60min  | Simpler model              |
+| 20  | **Create Bot aggregate + HMAC pepper hash**                             | 7      | 60min  | Machine identity           |
+| 21  | **API token authentication middleware**                                 | 6      | 45min  | Bot auth                   |
+| 22  | **Migration projection: Roles → Membership**                            | 8      | 60min  | Backward compat            |
+| 23  | **Integration tests for full membership lifecycle**                     | 9      | 45min  | Verify wiring              |
+| 24  | **Update existing tests for ActorID types**                             | 7      | 45min  | Test correctness           |
+| 25  | **Catalog integration** (new events/commands in catalog)                | 4      | 30min  | API docs                   |
 
 ---
 
@@ -247,12 +250,14 @@ This is the single biggest architectural decision remaining, and it affects
 everything downstream:
 
 **Option A: Membership as separate aggregate (current design)**
+
 - Pros: Independent lifecycle, can add/remove members without loading Tenant state
 - Cons: Derived aggregate ID (`DeriveAggregateID("membership", actorID, tenantID)`),
   no transactional consistency with Tenant, need separate read model
 - Risk: Two aggregates can disagree (Tenant says "active", Membership says "removed")
 
 **Option B: Membership as part of Tenant aggregate**
+
 - Pros: Transactional consistency (add member + update tenant in one event),
   natural aggregate boundary, simpler ID (just tenant ID)
 - Cons: Loading a Tenant with 10,000 members loads all membership state,
@@ -260,11 +265,13 @@ everything downstream:
 - Risk: Performance degradation for large tenants
 
 **Option C: Membership as part of User aggregate**
+
 - Pros: Simple — user carries their memberships
 - Cons: Can't query "who are the members of tenant X?" without scanning all users,
   couples user identity to tenant membership (the exact decoupling we wanted)
 
 **My recommendation:** Option B (Tenant-owned), because:
+
 1. Transactional consistency is more valuable than independent lifecycle
 2. Large-tenant performance can be solved with snapshotting or separate read models
 3. The aggregate ID problem disappears
@@ -277,11 +284,11 @@ before I implement Tier 3+.
 
 ## Commit History
 
-| Commit | Description |
-|--------|-------------|
+| Commit  | Description                                                                      |
+| ------- | -------------------------------------------------------------------------------- |
 | 0db9379 | Tier 0: Keystone types (ActorID, TenantID, BotID, SessionOrigin, Membership, g2) |
-| 573e2e4 | Tier 1: Membership aggregate (events, commands, state, fold) |
-| b99ca78 | Tier 2: Context propagation (WithActorID, EventOptionsFromContext actor chain) |
+| 573e2e4 | Tier 1: Membership aggregate (events, commands, state, fold)                     |
+| b99ca78 | Tier 2: Context propagation (WithActorID, EventOptionsFromContext actor chain)   |
 
 ---
 

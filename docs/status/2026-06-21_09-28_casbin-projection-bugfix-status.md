@@ -17,6 +17,7 @@ All 5 bugs are now fixed and verified with Casbin-asserting integration tests.
 ## A. FULLY DONE ✅
 
 ### Core Identity Types (commit 0db9379)
+
 - ActorID (kind-discriminated struct), TenantID, BotID branded types
 - SessionOrigin sealed interface (DirectLogin, Impersonation)
 - Membership read-model struct with HasRole/HasAnyRole
@@ -24,17 +25,20 @@ All 5 bugs are now fixed and verified with Casbin-asserting integration tests.
 - 12 tests, all passing
 
 ### Membership Aggregate — Types (commit 573e2e4)
+
 - 3 event payloads (MemberAdded, MemberRolesChanged, MemberRemoved)
 - 3 commands (AddMemberCmd, UpdateMemberRolesCmd, RemoveMemberCmd)
 - MembershipState + foldMembership (pure function)
 - 8 tests (fold, commands, aggregate ID determinism)
 
 ### Context Propagation (commit b99ca78)
+
 - WithActorID/ActorFromContext, WithImpersonatorID/ImpersonatorFromContext
 - EventOptionsFromContext propagates actor_id + impersonator_id into event metadata
 - 6 tests (context set/get, event metadata verification)
 
 ### Membership Aggregate — Full Wiring (commit 0f06f34)
+
 - MembershipDecider() + 3 decide functions (guards for existence, mandatory fields)
 - RegisterMembershipCommands (3 commands via command.RegisterTyped)
 - MembershipReadModel projection (FindByActor, FindByAggregateID)
@@ -43,6 +47,7 @@ All 5 bugs are now fixed and verified with Casbin-asserting integration tests.
 - 4 integration tests (lifecycle, multi-tenant, conflict, rejection)
 
 ### Bug Fixes (commit 85ac594)
+
 - **MemberRolesChangedPayload** now carries ActorKind, ActorID, TenantID
 - **MemberRemovedPayload** now carries ActorID, TenantID
 - **decideUpdateMemberRoles** populates ActorID/TenantID from state
@@ -58,12 +63,14 @@ All 5 bugs are now fixed and verified with Casbin-asserting integration tests.
 ## B. PARTIALLY DONE ⚠️
 
 ### CasbinProjection for Membership Events
+
 - **Status:** Now WORKING (was broken before commit 85ac594)
 - **Remaining:** The `eventRolesUpdated` case still uses the domain fallback hack
   (`domain = subject` when empty). This is pre-existing User aggregate behavior, not
   related to Membership. Will be cleaned up when Roles are migrated off UserState.
 
 ### Schema Versioning
+
 - `currentSchemaVersion = 2` but no production upcasters registered
 - Only 4 of 12 User deciders stamp SchemaVersion (TOTP, ExternalAccount)
 - Core deciders (RegisterUser, UpdateRoles, etc.) don't stamp it
@@ -72,19 +79,19 @@ All 5 bugs are now fixed and verified with Casbin-asserting integration tests.
 
 ## C. NOT STARTED ❌
 
-| Task | Description |
-|------|-------------|
-| Session struct update | `Session.UserID` → `Session.ActorID`, add `Origin SessionOrigin` |
-| SessionStore interface update | Accept Session struct |
-| BeginImpersonation / EndImpersonation | Service methods + security guards |
-| Session middleware update | Extract actor + impersonator, inject into context |
-| Tenant aggregate | State, events, commands, fold, decider, wiring |
-| Bot aggregate | State, events, commands, HMAC-SHA256 pepper token hash |
-| API token middleware | Bearer token → Bot resolution |
-| Migration projection | Replay old UserState.Roles → Membership events |
-| Remove Roles from UserState | Breaking change, needs migration |
-| Schema v1→v2 upcasters | Production upcaster registration |
-| Catalog integration | New events/commands in catalog docs |
+| Task                                  | Description                                                      |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| Session struct update                 | `Session.UserID` → `Session.ActorID`, add `Origin SessionOrigin` |
+| SessionStore interface update         | Accept Session struct                                            |
+| BeginImpersonation / EndImpersonation | Service methods + security guards                                |
+| Session middleware update             | Extract actor + impersonator, inject into context                |
+| Tenant aggregate                      | State, events, commands, fold, decider, wiring                   |
+| Bot aggregate                         | State, events, commands, HMAC-SHA256 pepper token hash           |
+| API token middleware                  | Bearer token → Bot resolution                                    |
+| Migration projection                  | Replay old UserState.Roles → Membership events                   |
+| Remove Roles from UserState           | Breaking change, needs migration                                 |
+| Schema v1→v2 upcasters                | Production upcaster registration                                 |
+| Catalog integration                   | New events/commands in catalog docs                              |
 
 ---
 
@@ -130,33 +137,33 @@ fixed in commit 85ac594:
 
 Sorted by **impact / effort ratio** (highest first).
 
-| # | Task | Impact | Effort | Notes |
-|---|------|--------|--------|-------|
-| 1 | **Stamp SchemaVersion in ALL deciders** | 8 | 10min | Consistency fix |
-| 2 | **Add `RemoveAllRolesInDomain` to Authz** | 7 | 15min | DRY: 3 callers share pattern |
-| 3 | **Update Session struct: ActorID + Origin** | 9 | 30min | Impersonation foundation |
-| 4 | **Update SessionStore interface** | 7 | 30min | Session lifecycle |
-| 5 | **Implement BeginImpersonation/EndImpersonation** | 9 | 60min | Core feature |
-| 6 | **Update session middleware for actor+impersonator** | 8 | 45min | HTTP integration |
-| 7 | **Create Tenant aggregate** (state+events+commands+fold) | 7 | 90min | Multi-tenancy |
-| 8 | **Wire Tenant aggregate in Service** | 6 | 30min | Service integration |
-| 9 | **Create Bot aggregate + HMAC-SHA256 pepper** | 7 | 60min | Machine identity |
-| 10 | **API token authentication middleware** | 6 | 45min | Bot auth |
-| 11 | **Write v1→v2 upcaster for RolesUpdatedPayload** | 8 | 30min | Migration support |
-| 12 | **Migration projection: Roles → Membership** | 8 | 60min | Backward compat |
-| 13 | **Remove Roles from UserState** | 7 | 45min | Breaking change, needs migration |
-| 14 | **Tenant read model + queries** | 5 | 30min | Tenant management UI |
-| 15 | **Membership Service methods** (AddMember, RemoveMember, etc.) | 8 | 45min | Public API |
-| 16 | **Integration test: impersonation → event metadata** | 9 | 30min | Audit trail verification |
-| 17 | **Integration test: cross-tenant isolation** | 8 | 30min | Security verification |
-| 18 | **Property-based tests for foldMembership** | 6 | 30min | Invariant verification |
-| 19 | **Catalog integration** (new events/commands) | 4 | 30min | API docs |
-| 20 | **Update README examples with ActorID/Membership** | 4 | 20min | Docs |
-| 21 | **Fix RolesUpdated domain fallback hack** | 5 | 15min | Pre-existing tech debt |
-| 22 | **Add Service.AddMember/UpdateMemberRoles/RemoveMember** | 8 | 30min | Public Service API |
-| 23 | **Add MembershipHTTPHandler** (REST endpoints) | 5 | 45min | HTTP API for membership |
-| 24 | **Bot scope → Casbin policy mapping** | 6 | 30min | Fine-grained bot authz |
-| 25 | **Pepper rotation strategy** (dual-pepper window) | 3 | 30min | Ops documentation |
+| #   | Task                                                           | Impact | Effort | Notes                            |
+| --- | -------------------------------------------------------------- | ------ | ------ | -------------------------------- |
+| 1   | **Stamp SchemaVersion in ALL deciders**                        | 8      | 10min  | Consistency fix                  |
+| 2   | **Add `RemoveAllRolesInDomain` to Authz**                      | 7      | 15min  | DRY: 3 callers share pattern     |
+| 3   | **Update Session struct: ActorID + Origin**                    | 9      | 30min  | Impersonation foundation         |
+| 4   | **Update SessionStore interface**                              | 7      | 30min  | Session lifecycle                |
+| 5   | **Implement BeginImpersonation/EndImpersonation**              | 9      | 60min  | Core feature                     |
+| 6   | **Update session middleware for actor+impersonator**           | 8      | 45min  | HTTP integration                 |
+| 7   | **Create Tenant aggregate** (state+events+commands+fold)       | 7      | 90min  | Multi-tenancy                    |
+| 8   | **Wire Tenant aggregate in Service**                           | 6      | 30min  | Service integration              |
+| 9   | **Create Bot aggregate + HMAC-SHA256 pepper**                  | 7      | 60min  | Machine identity                 |
+| 10  | **API token authentication middleware**                        | 6      | 45min  | Bot auth                         |
+| 11  | **Write v1→v2 upcaster for RolesUpdatedPayload**               | 8      | 30min  | Migration support                |
+| 12  | **Migration projection: Roles → Membership**                   | 8      | 60min  | Backward compat                  |
+| 13  | **Remove Roles from UserState**                                | 7      | 45min  | Breaking change, needs migration |
+| 14  | **Tenant read model + queries**                                | 5      | 30min  | Tenant management UI             |
+| 15  | **Membership Service methods** (AddMember, RemoveMember, etc.) | 8      | 45min  | Public API                       |
+| 16  | **Integration test: impersonation → event metadata**           | 9      | 30min  | Audit trail verification         |
+| 17  | **Integration test: cross-tenant isolation**                   | 8      | 30min  | Security verification            |
+| 18  | **Property-based tests for foldMembership**                    | 6      | 30min  | Invariant verification           |
+| 19  | **Catalog integration** (new events/commands)                  | 4      | 30min  | API docs                         |
+| 20  | **Update README examples with ActorID/Membership**             | 4      | 20min  | Docs                             |
+| 21  | **Fix RolesUpdated domain fallback hack**                      | 5      | 15min  | Pre-existing tech debt           |
+| 22  | **Add Service.AddMember/UpdateMemberRoles/RemoveMember**       | 8      | 30min  | Public Service API               |
+| 23  | **Add MembershipHTTPHandler** (REST endpoints)                 | 5      | 45min  | HTTP API for membership          |
+| 24  | **Bot scope → Casbin policy mapping**                          | 6      | 30min  | Fine-grained bot authz           |
+| 25  | **Pepper rotation strategy** (dual-pepper window)              | 3      | 30min  | Ops documentation                |
 
 ---
 
@@ -169,6 +176,7 @@ make it even larger. But a separate service would need access to the same dispat
 authz, and read model — all of which are already wired into `Service`.
 
 Options:
+
 - **A) Methods on Service**: `svc.AddMember(actorID, tenantID, roles)` — simplest,
   but Service grows
 - **B) Separate MembershipService**: wraps a `*Service` reference, accesses its
@@ -193,11 +201,11 @@ Tests:         540+ (26 new identity, 4 membership integration with Casbin asser
 
 ## Commit History
 
-| Commit | Description |
-|--------|-------------|
-| 0db9379 | Tier 0: Keystone types (ActorID, TenantID, BotID, g2 hierarchy) |
-| 573e2e4 | Tier 1: Membership aggregate (events, commands, state, fold) |
-| b99ca78 | Tier 2: Context propagation (WithActorID, EventOptionsFromContext) |
+| Commit  | Description                                                            |
+| ------- | ---------------------------------------------------------------------- |
+| 0db9379 | Tier 0: Keystone types (ActorID, TenantID, BotID, g2 hierarchy)        |
+| 573e2e4 | Tier 1: Membership aggregate (events, commands, state, fold)           |
+| b99ca78 | Tier 2: Context propagation (WithActorID, EventOptionsFromContext)     |
 | 0f06f34 | Membership wiring (decider, dispatch, projection, read model, service) |
-| 9c254c3 | ADR 0015 + AGENTS.md update |
-| 85ac594 | **Bugfix: CasbinProjection membership bugs + Casbin test assertions** |
+| 9c254c3 | ADR 0015 + AGENTS.md update                                            |
+| 85ac594 | **Bugfix: CasbinProjection membership bugs + Casbin test assertions**  |
