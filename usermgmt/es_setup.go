@@ -51,6 +51,10 @@ type EventSourcedConfig struct {
 	EventStore event.Store
 	EventBus   event.Bus
 
+	// AuditLog, if provided, is registered as a projection to record
+	// all user-related events for compliance and security monitoring.
+	AuditLog *AuditLog
+
 	// SecurityHooks configures opt-in event signing and encryption.
 	SecurityHooks
 }
@@ -69,6 +73,7 @@ type EventSourcedSetup struct {
 	MembershipReadModel  *MembershipReadModel
 	TenantReadModel      *TenantReadModel
 	BotReadModel         *BotReadModel
+	casbinProjection     *CasbinProjection
 }
 
 // UserDecider returns the Decider for the User aggregate.
@@ -173,7 +178,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		tenantReadModel,
 		botReadModel,
 		casbinProjection,
-		nil,
+		cfg.AuditLog,
 	); err != nil {
 		closeBus(bus)
 		return nil, event.NewTransient("internal", "start projections").WithCause(err)
@@ -190,5 +195,6 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		MembershipReadModel:  membershipReadModel,
 		TenantReadModel:      tenantReadModel,
 		BotReadModel:         botReadModel,
+		casbinProjection:     casbinProjection,
 	}, nil
 }
