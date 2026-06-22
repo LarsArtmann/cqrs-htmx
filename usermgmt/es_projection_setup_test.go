@@ -12,14 +12,14 @@ import (
 // stubProjection is a minimal event.Projection for testing the projection
 // setup machinery without pulling in real read models.
 type stubProjection struct {
-	name       string
-	types      []event.Type
-	handled    []event.Event
-	handleErr  error
+	name      string
+	types     []event.Type
+	handled   []event.Event
+	handleErr error
 }
 
-func (s *stubProjection) Name() string                         { return s.name }
-func (s *stubProjection) EventTypes() []event.Type             { return s.types }
+func (s *stubProjection) Name() string             { return s.name }
+func (s *stubProjection) EventTypes() []event.Type { return s.types }
 func (s *stubProjection) Handle(_ context.Context, evt event.Event) error {
 	s.handled = append(s.handled, evt)
 
