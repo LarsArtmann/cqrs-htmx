@@ -139,7 +139,7 @@ func (s *Service) matchOrCreateUser(
 		return nil, false, s.classifyDispatchError(err, userID)
 	}
 
-	// Read model is updated synchronously (MemoryBus blocks until handlers complete)
+	// Read model is updated synchronously (watermill.EventBus blocks until handlers complete)
 	user, ok := s.readModel.FindByID(aggID)
 	if !ok {
 		return nil, false, withUserIDContext(
