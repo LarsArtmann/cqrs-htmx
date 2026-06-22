@@ -7,7 +7,7 @@ import (
 
 	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 
 // These DTOs mirror catalog/README.md's "Recipe: Catalog for the usermgmt Module".
