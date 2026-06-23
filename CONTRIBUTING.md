@@ -43,7 +43,7 @@ The project uses a **multi-module Go workspace** with 5 modules:
 | Root          | `./`                        | `github.com/larsartmann/cqrs-htmx`            |
 | Usermgmt      | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt`   |
 | Integration   | `./integration_test/`       | separate test module                          |
-| Catalog       | `./catalog/`                | `github.com/larsartmann/cqrs-htmx/catalog/v2` |
+| Catalog       | `./catalog/`                | `github.com/larsartmann/cqrs-htmx/catalog/v3` |
 | Datastar Demo | `./examples/datastar-demo/` | example app                                   |
 
 ```

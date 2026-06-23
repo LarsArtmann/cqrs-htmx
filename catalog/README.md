@@ -1,25 +1,25 @@
 # catalog — Automatic API Documentation for CQRS-HTMX
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/catalog/v2.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/catalog/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/catalog/v3.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/catalog/v3)
 
 Generate [OpenAPI 3.0](https://swagger.io/specification/), [AsyncAPI 3.0](https://www.asyncapi.com/), [D2](https://d2lang.com/) architecture diagrams, and [EventCatalog](https://www.eventcatalog.dev/) documentation from your Go CQRS types.
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/catalog/v2
+go get github.com/larsartmann/cqrs-htmx/catalog/v3
 ```
 
 ## Overview
 
 Describe your commands, queries, and events once using Go generic type parameters. The catalog sub-package auto-derives JSON schemas from struct tags, generates human-readable names from type names, and serves everything as HTTP endpoints.
 
-**Zero dependencies on cqrs-htmx root or usermgmt.** This module only depends on `go-cqrs-lite/catalog/v2`. Consumers opt in independently.
+**Zero dependencies on cqrs-htmx root or usermgmt.** This module only depends on `go-cqrs-lite/catalog/v3`. Consumers opt in independently.
 
 ## Quick Start
 
 ```go
 import (
-    cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v2"
+    cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v3"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 
 type RegisterUserCmd struct {
@@ -188,9 +188,9 @@ thin exported DTO types that mirror their HTTP request shapes:
 
 ```go
 import (
-    cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v2"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v2"
-    "github.com/larsartmann/cqrs-htmx/usermgmt/v2"
+    cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v3"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v3"
+    "github.com/larsartmann/cqrs-htmx/usermgmt/v3"
 )
 
 // Command request DTOs — exported fields with struct tags for schema reflection.
@@ -239,5 +239,5 @@ HTTP layer.
 
 | Dependency                | Purpose                                       |
 | ------------------------- | --------------------------------------------- |
-| `go-cqrs-lite/catalog/v2` | Catalog builder, schema reflection, exporters |
+| `go-cqrs-lite/catalog/v3` | Catalog builder, schema reflection, exporters |
 | `go-faster/yaml`          | YAML marshaling (transitive)                  |
