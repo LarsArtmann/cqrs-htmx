@@ -8,21 +8,21 @@ RBAC authorization via Casbin, and opt-in event signing/encryption.
 ## Installation
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/usermgmt/v2
+go get github.com/larsartmann/cqrs-htmx/usermgmt/v3
 ```
 
 ## Event Signing & Encryption (Opt-in)
 
 Signing and encryption are **zero-dependency by default** — consumers who don't
-need crypto pull nothing extra. To enable, import `go-cqrs-lite/signing/v2` and/or
-`go-cqrs-lite/encryption/v2` and wire them via `ServiceConfig`:
+need crypto pull nothing extra. To enable, import `go-cqrs-lite/signing/v3` and/or
+`go-cqrs-lite/encryption/v3` and wire them via `ServiceConfig`:
 
 ### Encryption-at-rest + bus-level signing (recommended)
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/encryption/v2"
-    "github.com/larsartmann/go-cqrs-lite/signing/v2"
+    "github.com/larsartmann/go-cqrs-lite/encryption/v3"
+    "github.com/larsartmann/go-cqrs-lite/signing/v3"
 )
 
 signer, _ := signing.NewHMAC(signingKey)       // 32+ bytes

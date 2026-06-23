@@ -42,7 +42,3 @@ examples/catalog-demo/eventcatalog/
 # Generated reports (buildflow coverage / jscpd / lint output)
 /reports/
 /report/
-# Build artifacts
-/v2
-# Build artifacts
-/v3

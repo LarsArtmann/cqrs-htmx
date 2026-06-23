@@ -141,7 +141,7 @@ cqrs-htmx/
 │   ├── eviction.go        # startPeriodicEviction — shared TTL sweep goroutine for ephemeral stores
 │   ├── random.go          # randomBase64URLString — shared CSPRNG token generation (32 bytes)
 ├── catalog/             # API documentation generation (5th Go module, opt-in)
-│   ├── go.mod           # Independent Go module — depends only on go-cqrs-lite/catalog/v2
+│   ├── go.mod           # Independent Go module — depends only on go-cqrs-lite/catalog/v3
 │   ├── builder.go       # Builder, New(), Command[T]/Query[T]/Event[T], Build()/BuildValid()
 │   └── serve.go         # OpenAPIHandler, AsyncAPIHandler, D2Handler, GenerateEventCatalog, HealthCheckHandler
 ├── integration_test/ # Cross-module integration tests (3rd Go module)
@@ -170,7 +170,7 @@ cqrs-htmx/
 | go-cqrs-lite v3.0.0         | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus) | All modules      |
 | casbin/casbin/v3            | Authorization                                                                      | Root, usermgmt   |
 | justinas/nosurf v1.2.0      | CSRF protection                                                                    | Root             |
-| go-error-family v0.4.0      | Error classification                                                               | All modules      |
+| go-error-family v0.5.0      | Error classification                                                               | All modules      |
 | larsartmann/httputil        | ClientIP extraction                                                                | Root             |
 | go-branded-id v0.3.1        | Branded types                                                                      | usermgmt         |
 | go-webauthn v0.17.4         | WebAuthn/Passkey passwordless authentication                                       | usermgmt         |
@@ -195,7 +195,7 @@ cqrs-htmx/
 
 ### Error Handling
 
-- **go-error-family v0.4.0**: Replaced `cockroachdb/errors` for error classification. Re-exported via `go-cqrs-lite/event/v2` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). Root + usermgmt import it transitively via `event/v2` (indirect); `catalog` imports `go-error-family` directly (no event/v2 dep). `ErrDispatchFailed` is now natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
+- **go-error-family v0.5.0**: Replaced `cockroachdb/errors` for error classification. Re-exported via `go-cqrs-lite/event/v3` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). Root + usermgmt import it transitively via `event/v3` (indirect); `catalog` imports `go-error-family` directly (no event/v3 dep). `ErrDispatchFailed` is now natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
 - **NO stdlib error constructors**: `errors.New`, `fmt.Errorf` (as error), and `errors.Join` are banned in non-test code. Enforced by `branching-flow errorfamily .` (must report 0). Use `event.New*/Wrap*/Wrapf/Newf` instead. Exception: `fmt.Sprintf` is fine when building a _message string_ (not an error object), e.g. `http.go`/`verification_totp_http.go` format a 400 response body
 - **Family assignment rules** (maps to HTTP status via `MapError`):
   - **Rejection (400)** — caller/user input invalid: parse failures, validation (`ParseEmail`, `ImportUser.Validate`), bad config (`OAuth2ProviderConfig.Validate`, unsupported SQL dialect), missing/invalid IDs
@@ -360,7 +360,7 @@ cqrs-htmx/
 3. **go-cqrs-lite v3.0.0**: Per-module tags (`command/v3.0.0`, `event/v3.0.0`, etc.) published. All `go.mod` files declare `v3.0.0`. No replace directives needed
 4. **Removed APIs in v2.3.0+**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
 5. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
-6. **LSP vs CLI discrepancy**: LSP may show stale warnings after golangci.yml changes; CLI (`golangci-lint run`) is authoritative. Both report 0 issues as of go-error-family v0.4.0 adoption
+6. **LSP vs CLI discrepancy**: LSP may show stale warnings after golangci.yml changes; CLI (`golangci-lint run`) is authoritative. Both report 0 issues as of go-error-family v0.5.0 adoption
 7. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
 
 ### Type System
@@ -382,7 +382,7 @@ cqrs-htmx/
 
 ### Error Handling
 
-15. **No stdlib error constructors**: `errors.New`/`fmt.Errorf`/`errors.Join` are banned in non-test code — `branching-flow errorfamily .` enforces 0 violations. Use `event.New*/Wrap*/Wrapf/Newf` (re-exported via `event/v2`). For dispatch errors that must preserve the inner domain family, use `event.Wrapf(err, event.Classify(err), code, msg)` — never force a family. `fmt.Sprintf` is allowed only for message strings, not error objects
+15. **No stdlib error constructors**: `errors.New`/`fmt.Errorf`/`errors.Join` are banned in non-test code — `branching-flow errorfamily .` enforces 0 violations. Use `event.New*/Wrap*/Wrapf/Newf` (re-exported via `event/v3`). For dispatch errors that must preserve the inner domain family, use `event.Wrapf(err, event.Classify(err), code, msg)` — never force a family. `fmt.Sprintf` is allowed only for message strings, not error objects
 16. **Middleware logs invalid IDs**: Correlation ID parse failures logged at debug level. Request ID parse failures silently generate a new ID
 17. **DefaultMaxBodySize**: 10 MB when both `Config.MaxBodySize` and per-handler `WithMaxBodySize` are zero
 

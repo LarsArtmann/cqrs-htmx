@@ -1,6 +1,6 @@
 # cqrs-htmx
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v3.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v3)
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.26+](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://go.dev/)
@@ -68,8 +68,8 @@ import (
     "net/http"
 
     cqrshtmx "github.com/larsartmann/cqrs-htmx"
-    "github.com/larsartmann/go-cqrs-lite/command/v2"
-    "github.com/larsartmann/go-cqrs-lite/query/v2"
+    "github.com/larsartmann/go-cqrs-lite/command/v3"
+    "github.com/larsartmann/go-cqrs-lite/query/v3"
     "github.com/casbin/casbin/v3"
 )
 
@@ -1107,7 +1107,7 @@ cqrs-htmx/
 Generate OpenAPI, AsyncAPI, D2 diagrams, and EventCatalog docs from your Go CQRS types:
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/catalog/v2
+go get github.com/larsartmann/cqrs-htmx/catalog/v3
 ```
 
 ```go
