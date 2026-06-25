@@ -850,270 +850,827 @@
     </style>
   </head>
   <body>
+    <main>
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-badge">Comprehensive Status Report</div>
+        <h1>cqrs-htmx v3 &mdash; Full Status</h1>
+        <p class="hero-subtitle">
+          42K LOC &bull; 4 Go modules &bull; 21 events / 20 commands / 4 aggregates &bull; 0 lint
+          issues &bull; 0 clones &bull; 0 error-family violations
+        </p>
+      </div>
 
-    <!-- Hero -->
-    <div class="hero">
-      <div class="hero-badge">Comprehensive Status Report</div>
-      <h1>cqrs-htmx v3 &mdash; Full Status</h1>
-      <p class="hero-subtitle">42K LOC &bull; 4 Go modules &bull; 21 events / 20 commands / 4 aggregates &bull; 0 lint issues &bull; 0 clones &bull; 0 error-family violations</p>
-    </div>
+      <!-- TOC -->
+      <nav class="toc">
+        <h3>Contents</h3>
+        <ul>
+          <li><a href="#dashboard">Dashboard</a></li>
+          <li><a href="#done">Fully Done</a></li>
+          <li><a href="#partial">Partially Done</a></li>
+          <li><a href="#notstarted">Not Started</a></li>
+          <li><a href="#fuckedup">Problems</a></li>
+          <li><a href="#improve">What We Should Improve</a></li>
+          <li><a href="#top25">Top 25 Next Tasks</a></li>
+          <li><a href="#question">Blocking Question</a></li>
+        </ul>
+      </nav>
 
-    <!-- TOC -->
-    <nav class="toc">
-      <h3>Contents</h3>
-      <ul>
-        <li><a href="#dashboard">Dashboard</a></li>
-        <li><a href="#done">Fully Done</a></li>
-        <li><a href="#partial">Partially Done</a></li>
-        <li><a href="#notstarted">Not Started</a></li>
-        <li><a href="#fuckedup">Problems</a></li>
-        <li><a href="#improve">What We Should Improve</a></li>
-        <li><a href="#top25">Top 25 Next Tasks</a></li>
-        <li><a href="#question">Blocking Question</a></li>
-      </ul>
-    </nav>
+      <!-- DASHBOARD -->
+      <h2 id="dashboard"><span class="num">00</span>Dashboard</h2>
+      <div class="stat-grid">
+        <div class="stat-card stat-good">
+          <div class="stat-value">4/4</div>
+          <div class="stat-label">Modules Building</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Lint Issues (71 linters)</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Code Clones (t=15)</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Error Family Violations</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">All</div>
+          <div class="stat-label">Tests Passing (-race)</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">6</div>
+          <div class="stat-label">In-Memory Stores (no iface)</div>
+        </div>
+        <div class="stat-card stat-bad">
+          <div class="stat-value">1</div>
+          <div class="stat-label">Critical Type Hole</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">6</div>
+          <div class="stat-label">High-Severity Findings</div>
+        </div>
+      </div>
 
-    <!-- DASHBOARD -->
-    <h2 id="dashboard"><span class="num">00</span>Dashboard</h2>
-    <div class="stat-grid">
-      <div class="stat-card stat-good"><div class="stat-value">4/4</div><div class="stat-label">Modules Building</div></div>
-      <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">Lint Issues (71 linters)</div></div>
-      <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">Code Clones (t=15)</div></div>
-      <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">Error Family Violations</div></div>
-      <div class="stat-card stat-good"><div class="stat-value">All</div><div class="stat-label">Tests Passing (-race)</div></div>
-      <div class="stat-card stat-warn"><div class="stat-value">6</div><div class="stat-label">In-Memory Stores (no iface)</div></div>
-      <div class="stat-card stat-bad"><div class="stat-value">1</div><div class="stat-label">Critical Type Hole</div></div>
-      <div class="stat-card stat-warn"><div class="stat-value">6</div><div class="stat-label">High-Severity Findings</div></div>
-    </div>
-
-    <table>
-      <thead>
-        <tr><th>Module</th><th>Files</th><th>LOC (prod)</th><th>LOC (tests)</th><th>Role</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Root</td><td>40 + 76 test</td><td>5,476</td><td>11,046</td><td>HTMX-aware CQRS HTTP integration</td></tr>
-        <tr><td>usermgmt</td><td>75 + 77 test</td><td>9,835</td><td>11,956</td><td>Event-sourced user management</td></tr>
-        <tr><td>catalog</td><td>3 + 4 test</td><td>470</td><td>&mdash;</td><td>API doc generation</td></tr>
-        <tr><td>integration_test</td><td>8</td><td>1,027</td><td>1,027</td><td>Cross-module tests</td></tr>
-        <tr style="font-weight:bold;"><td>Total</td><td>126 + 157 test</td><td>16,808</td><td>24,029</td><td>~41K LOC total</td></tr>
-      </tbody>
-    </table>
-
-    <!-- FULLY DONE -->
-    <h2 id="done"><span class="num">01</span>Fully Done (a)</h2>
-    <div class="card card-solution">
-      <h4>Core Library &mdash; Production Ready</h4>
       <table>
-        <thead><tr><th>Feature</th><th>Status</th><th>Evidence</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>Files</th>
+            <th>LOC (prod)</th>
+            <th>LOC (tests)</th>
+            <th>Role</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td>App Builder + Command/Query dispatch</td><td>🟢</td><td>app.go, handler.go, 500+ tests</td></tr>
-          <tr><td>HandlerOptions (decode, render, validate, htmx)</td><td>🟢</td><td>options_*.go, functional options pattern</td></tr>
-          <tr><td>CSRF protection (justinas/nosurf)</td><td>🟢</td><td>csrf_middleware.go, TrustedProxies, origin checks</td></tr>
-          <tr><td>Rate limiting (token bucket + LRU heap)</td><td>🟢</td><td>ratelimit_middleware.go, O(log n) eviction</td></tr>
-          <tr><td>Security headers middleware</td><td>🟢</td><td>security.go, RecommendedCSP/HSTS</td></tr>
-          <tr><td>Panic recovery middleware</td><td>🟢</td><td>recovery.go, package-level + App.RecoverHandler</td></tr>
-          <tr><td>Embedded HTMX v2.0.9 JS</td><td>🟢</td><td>htmx_embed.go, ETag/Cache-Control, ~49KB</td></tr>
-          <tr><td>SSE (Stream, Broadcaster, Store, Replay)</td><td>🟢</td><td>sse_*.go, 64-msg buffer, non-blocking fan-out</td></tr>
-          <tr><td>WebSocket (Parse, Encode, Dispatch)</td><td>🟢</td><td>ws_*.go, ParseWSMessageInto[T], DispatchWSCommand/Query</td></tr>
-          <tr><td>Fan-out hub (generic, transport-agnostic)</td><td>🟢</td><td>fanout.go, fanOut[T], race-safe RLock iteration</td></tr>
-          <tr><td>Structured errors (RFC 7807)</td><td>🟢</td><td>structured_error.go, NewStructuredErrorWithContext</td></tr>
-          <tr><td>Error &rarr; HTTP mapping</td><td>🟢</td><td>errors.go, MapError, go-error-family v0.5.0</td></tr>
-          <tr><td>Pagination (DecodePagination, RenderPaginatedJSON[T])</td><td>🟢</td><td>options_render.go, go-cqrs-lite v3.0.0</td></tr>
-          <tr><td>Context enrichment middleware</td><td>🟢</td><td>middleware.go, branded context keys</td></tr>
+          <tr>
+            <td>Root</td>
+            <td>40 + 76 test</td>
+            <td>5,476</td>
+            <td>11,046</td>
+            <td>HTMX-aware CQRS HTTP integration</td>
+          </tr>
+          <tr>
+            <td>usermgmt</td>
+            <td>75 + 77 test</td>
+            <td>9,835</td>
+            <td>11,956</td>
+            <td>Event-sourced user management</td>
+          </tr>
+          <tr>
+            <td>catalog</td>
+            <td>3 + 4 test</td>
+            <td>470</td>
+            <td>&mdash;</td>
+            <td>API doc generation</td>
+          </tr>
+          <tr>
+            <td>integration_test</td>
+            <td>8</td>
+            <td>1,027</td>
+            <td>1,027</td>
+            <td>Cross-module tests</td>
+          </tr>
+          <tr style="font-weight: bold">
+            <td>Total</td>
+            <td>126 + 157 test</td>
+            <td>16,808</td>
+            <td>24,029</td>
+            <td>~41K LOC total</td>
+          </tr>
         </tbody>
       </table>
-    </div>
 
-    <div class="card card-solution">
-      <h4>usermgmt &mdash; Passwordless Event-Sourced CQRS</h4>
+      <!-- FULLY DONE -->
+      <h2 id="done"><span class="num">01</span>Fully Done (a)</h2>
+      <div class="card card-solution">
+        <h4>Core Library &mdash; Production Ready</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Status</th>
+              <th>Evidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>App Builder + Command/Query dispatch</td>
+              <td>🟢</td>
+              <td>app.go, handler.go, 500+ tests</td>
+            </tr>
+            <tr>
+              <td>HandlerOptions (decode, render, validate, htmx)</td>
+              <td>🟢</td>
+              <td>options_*.go, functional options pattern</td>
+            </tr>
+            <tr>
+              <td>CSRF protection (justinas/nosurf)</td>
+              <td>🟢</td>
+              <td>csrf_middleware.go, TrustedProxies, origin checks</td>
+            </tr>
+            <tr>
+              <td>Rate limiting (token bucket + LRU heap)</td>
+              <td>🟢</td>
+              <td>ratelimit_middleware.go, O(log n) eviction</td>
+            </tr>
+            <tr>
+              <td>Security headers middleware</td>
+              <td>🟢</td>
+              <td>security.go, RecommendedCSP/HSTS</td>
+            </tr>
+            <tr>
+              <td>Panic recovery middleware</td>
+              <td>🟢</td>
+              <td>recovery.go, package-level + App.RecoverHandler</td>
+            </tr>
+            <tr>
+              <td>Embedded HTMX v2.0.9 JS</td>
+              <td>🟢</td>
+              <td>htmx_embed.go, ETag/Cache-Control, ~49KB</td>
+            </tr>
+            <tr>
+              <td>SSE (Stream, Broadcaster, Store, Replay)</td>
+              <td>🟢</td>
+              <td>sse_*.go, 64-msg buffer, non-blocking fan-out</td>
+            </tr>
+            <tr>
+              <td>WebSocket (Parse, Encode, Dispatch)</td>
+              <td>🟢</td>
+              <td>ws_*.go, ParseWSMessageInto[T], DispatchWSCommand/Query</td>
+            </tr>
+            <tr>
+              <td>Fan-out hub (generic, transport-agnostic)</td>
+              <td>🟢</td>
+              <td>fanout.go, fanOut[T], race-safe RLock iteration</td>
+            </tr>
+            <tr>
+              <td>Structured errors (RFC 7807)</td>
+              <td>🟢</td>
+              <td>structured_error.go, NewStructuredErrorWithContext</td>
+            </tr>
+            <tr>
+              <td>Error &rarr; HTTP mapping</td>
+              <td>🟢</td>
+              <td>errors.go, MapError, go-error-family v0.5.0</td>
+            </tr>
+            <tr>
+              <td>Pagination (DecodePagination, RenderPaginatedJSON[T])</td>
+              <td>🟢</td>
+              <td>options_render.go, go-cqrs-lite v3.0.0</td>
+            </tr>
+            <tr>
+              <td>Context enrichment middleware</td>
+              <td>🟢</td>
+              <td>middleware.go, branded context keys</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card card-solution">
+        <h4>usermgmt &mdash; Passwordless Event-Sourced CQRS</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Status</th>
+              <th>Evidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>WebAuthn (passkeys) registration + login</td>
+              <td>🟢</td>
+              <td>webauthn_service.go, go-webauthn v0.17.4</td>
+            </tr>
+            <tr>
+              <td>TOTP MFA (enable/verify/disable)</td>
+              <td>🟢</td>
+              <td>totp.go, pquerna/otp v1.5.0</td>
+            </tr>
+            <tr>
+              <td>OAuth2/OIDC (Google + GitHub)</td>
+              <td>🟢</td>
+              <td>oauth2.go, service_oauth2.go, PKCE S256</td>
+            </tr>
+            <tr>
+              <td>Event sourcing (4 aggregates)</td>
+              <td>🟢</td>
+              <td>User, Membership, Tenant, Bot &mdash; 21 events, 20 commands</td>
+            </tr>
+            <tr>
+              <td>Casbin RBAC projection</td>
+              <td>🟢</td>
+              <td>es_casbin_projection.go, derives policies from events</td>
+            </tr>
+            <tr>
+              <td>SQL event store (upstream delegation)</td>
+              <td>🟢</td>
+              <td>go-cqrs-lite/storage/v3, 78-LOC facade</td>
+            </tr>
+            <tr>
+              <td>SQL session store (Postgres + MySQL + SQLite)</td>
+              <td>🟢</td>
+              <td>sql_session_store.go, fuzz-tested</td>
+            </tr>
+            <tr>
+              <td>Impersonation (begin/end with guards)</td>
+              <td>🟢</td>
+              <td>service_impersonation.go</td>
+            </tr>
+            <tr>
+              <td>Tenant lifecycle (create/suspend/reactivate/delete)</td>
+              <td>🟢</td>
+              <td>es_tenant_*.go, service_tenant.go</td>
+            </tr>
+            <tr>
+              <td>Bot registration + API token middleware</td>
+              <td>🟢</td>
+              <td>es_bot_*.go, api_token_middleware.go</td>
+            </tr>
+            <tr>
+              <td>Email verification</td>
+              <td>🟢</td>
+              <td>email_verification.go, token store</td>
+            </tr>
+            <tr>
+              <td>Import/Export (JSON + CSV)</td>
+              <td>🟢</td>
+              <td>import_export.go, ImportUser.Validate</td>
+            </tr>
+            <tr>
+              <td>Account lockout (configurable)</td>
+              <td>🟢</td>
+              <td>lockout.go</td>
+            </tr>
+            <tr>
+              <td>Audit log (append-only)</td>
+              <td>🟢</td>
+              <td>audit_log.go</td>
+            </tr>
+            <tr>
+              <td>Event signing &amp; encryption (opt-in seams)</td>
+              <td>🟢</td>
+              <td>ServiceConfig StoreWrapper/PublishMiddleware/HandlerMiddleware</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card card-solution">
+        <h4>Session: Fixes Done This Session (2026-06-25)</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Fix</th>
+              <th>Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>SSEStream.OnDisconnect data race</td>
+              <td>🟢 Bug fix &mdash; append without mutex</td>
+            </tr>
+            <tr>
+              <td>startPeriodicEviction double-close panic</td>
+              <td>🟢 Bug fix &mdash; sync.Once guard</td>
+            </tr>
+            <tr>
+              <td>foldUser silently ignored unknown events</td>
+              <td>🟢 Domain safety &mdash; now returns error like other folds</td>
+            </tr>
+            <tr>
+              <td>actorKindFromString silently defaulted to ActorUser</td>
+              <td>🟢 Domain safety &mdash; now validates input</td>
+            </tr>
+            <tr>
+              <td>3 lint issues (exhaustruct, gochecknoglobals, forcetypeassert)</td>
+              <td>🟢 Zero lint</td>
+            </tr>
+            <tr>
+              <td>LastEventIDFromRequest duplicated SSEStream.LastEventID</td>
+              <td>🟢 Dedup &mdash; method delegates to free function</td>
+            </tr>
+            <tr>
+              <td>3 stale AGENTS.md claims (file counts, event counts)</td>
+              <td>🟢 Docs accuracy</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PARTIALLY DONE -->
+      <h2 id="partial"><span class="num">02</span>Partially Done (b)</h2>
+
+      <div class="card card-warning">
+        <h4>Multi-Instance Deployment &mdash; 6/8 stores have no interface</h4>
+        <p>
+          <code>SessionStore</code> and <code>OAuth2StateStore</code> have interfaces + SQL
+          backends. The remaining 6 ephemeral stores are in-memory only with no interface:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Store</th>
+              <th>Interface?</th>
+              <th>SQL Alt?</th>
+              <th>Multi-Instance?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>InMemorySessionStore</td>
+              <td>✅ SessionStore</td>
+              <td>✅ SQLSessionStore</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>oauth2StateStore</td>
+              <td>✅ OAuth2StateStore</td>
+              <td>❌ Consumer provides</td>
+              <td>⚠ With custom impl</td>
+            </tr>
+            <tr>
+              <td>webauthnSessionStore</td>
+              <td>❌ Concrete</td>
+              <td>❌</td>
+              <td>❌ Single-process</td>
+            </tr>
+            <tr>
+              <td>verificationTokenStore</td>
+              <td>❌ Concrete</td>
+              <td>❌</td>
+              <td>❌ Single-process</td>
+            </tr>
+            <tr>
+              <td>pendingTOTPStore</td>
+              <td>❌ Concrete</td>
+              <td>❌</td>
+              <td>❌ Single-process</td>
+            </tr>
+            <tr>
+              <td>AccountLockout</td>
+              <td>❌ Concrete</td>
+              <td>❌</td>
+              <td>❌ Per-instance</td>
+            </tr>
+            <tr>
+              <td>UserReadModel</td>
+              <td>❌ Concrete</td>
+              <td>❌</td>
+              <td>❌ Full replay on startup</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card card-warning">
+        <h4>O(n) Startup Replay &mdash; No snapshot integration</h4>
+        <p>
+          <code>service_core.go:149-159</code> replays all events through projections on every
+          <code>NewService</code>. <code>go-cqrs-lite/snapshot/v3</code> is an indirect dependency
+          but not wired. Acceptable for small event stores, but startup time grows linearly.
+        </p>
+      </div>
+
+      <div class="card card-warning">
+        <h4>WebAuthn Service Leaks <code>*http.Request</code></h4>
+        <p>
+          <code>webauthn_service.go:52,154</code> &mdash; <code>FinishRegistration</code> and
+          <code>FinishLogin</code> take <code>*http.Request</code> directly because go-webauthn
+          parses the authenticator response from the request body. This couples the service to HTTP,
+          making it untestable without <code>*http.Request</code> and unusable from gRPC/CLI.
+        </p>
+      </div>
+
+      <!-- NOT STARTED -->
+      <h2 id="notstarted"><span class="num">03</span>Not Started (c)</h2>
       <table>
-        <thead><tr><th>Feature</th><th>Status</th><th>Evidence</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Effort</th>
+            <th>Impact</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td>WebAuthn (passkeys) registration + login</td><td>🟢</td><td>webauthn_service.go, go-webauthn v0.17.4</td></tr>
-          <tr><td>TOTP MFA (enable/verify/disable)</td><td>🟢</td><td>totp.go, pquerna/otp v1.5.0</td></tr>
-          <tr><td>OAuth2/OIDC (Google + GitHub)</td><td>🟢</td><td>oauth2.go, service_oauth2.go, PKCE S256</td></tr>
-          <tr><td>Event sourcing (4 aggregates)</td><td>🟢</td><td>User, Membership, Tenant, Bot &mdash; 21 events, 20 commands</td></tr>
-          <tr><td>Casbin RBAC projection</td><td>🟢</td><td>es_casbin_projection.go, derives policies from events</td></tr>
-          <tr><td>SQL event store (upstream delegation)</td><td>🟢</td><td>go-cqrs-lite/storage/v3, 78-LOC facade</td></tr>
-          <tr><td>SQL session store (Postgres + MySQL + SQLite)</td><td>🟢</td><td>sql_session_store.go, fuzz-tested</td></tr>
-          <tr><td>Impersonation (begin/end with guards)</td><td>🟢</td><td>service_impersonation.go</td></tr>
-          <tr><td>Tenant lifecycle (create/suspend/reactivate/delete)</td><td>🟢</td><td>es_tenant_*.go, service_tenant.go</td></tr>
-          <tr><td>Bot registration + API token middleware</td><td>🟢</td><td>es_bot_*.go, api_token_middleware.go</td></tr>
-          <tr><td>Email verification</td><td>🟢</td><td>email_verification.go, token store</td></tr>
-          <tr><td>Import/Export (JSON + CSV)</td><td>🟢</td><td>import_export.go, ImportUser.Validate</td></tr>
-          <tr><td>Account lockout (configurable)</td><td>🟢</td><td>lockout.go</td></tr>
-          <tr><td>Audit log (append-only)</td><td>🟢</td><td>audit_log.go</td></tr>
-          <tr><td>Event signing &amp; encryption (opt-in seams)</td><td>🟢</td><td>ServiceConfig StoreWrapper/PublishMiddleware/HandlerMiddleware</td></tr>
+          <tr>
+            <td>BotState.OwnerID typed as UserID (currently raw string)</td>
+            <td>30min</td>
+            <td>High</td>
+          </tr>
+          <tr>
+            <td>Email branded type used in domain models (exists, unused)</td>
+            <td>30min</td>
+            <td>Medium</td>
+          </tr>
+          <tr>
+            <td>Duplicate sentinel error reconciliation (root vs usermgmt)</td>
+            <td>1h</td>
+            <td>High</td>
+          </tr>
+          <tr>
+            <td>Ephemeral store interfaces for multi-instance</td>
+            <td>2-3h</td>
+            <td>High</td>
+          </tr>
+          <tr>
+            <td>Snapshot integration for O(1) startup</td>
+            <td>1-2h</td>
+            <td>Medium</td>
+          </tr>
+          <tr>
+            <td>gosec + govulncheck in CI</td>
+            <td>30min</td>
+            <td>Medium</td>
+          </tr>
         </tbody>
       </table>
-    </div>
 
-    <div class="card card-solution">
-      <h4>Session: Fixes Done This Session (2026-06-25)</h4>
+      <!-- TOTALLY FUCKED UP -->
+      <h2 id="fuckedup"><span class="num">04</span>Problems (d)</h2>
+
+      <div class="issue issue-critical">
+        <span class="severity severity-critical">Critical</span>
+        <h3>ActorID/ImpersonatorID stored as raw <code>string</code> in context</h3>
+        <div class="where">context.go:141,147,155,161</div>
+        <p>
+          The typed <code>usermgmt.ActorID</code> is discarded at the context boundary. Callers pass
+          raw strings &mdash; a UserID, a BotID, garbage &mdash; with no type checking. The single
+          biggest type-safety hole. <strong>Blocked</strong> by module boundary: root can't import
+          usermgmt.ActorID.
+        </p>
+      </div>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">High</span>
+        <h3>Duplicate sentinel errors across packages</h3>
+        <div class="where">errors.go:20-21 vs usermgmt/errors.go:37,39</div>
+        <p>
+          <code>cqrshtmx.ErrUnauthorized</code> and <code>usermgmt.ErrUnauthorized</code> are
+          different sentinel values.
+          <code>errors.Is(usermgmt.ErrUnauthorized, cqrshtmx.ErrUnauthorized)</code> returns
+          <strong>false</strong>. A handler checking
+          <code>errors.Is(err, cqrshtmx.ErrUnauthorized)</code> on a usermgmt-originated error
+          silently fails. Real silent-bug risk at the module boundary.
+        </p>
+      </div>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">High</span>
+        <h3>NewActorID(kind, raw string) bypasses validation</h3>
+        <div class="where">id.go:117</div>
+        <p>
+          Exported constructor takes raw string. Any caller can construct
+          <code>NewActorID(ActorUser, "some-bot-uuid")</code> bypassing the kind/raw pairing. Should
+          be unexported or validate.
+        </p>
+      </div>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">High</span>
+        <h3>Authz functions take raw <code>string</code> for domain</h3>
+        <div class="where">authz_roles.go:8,20,33,48 &mdash; authz_types.go:77,166</div>
+        <p>
+          <code>RolesForUser(userID UserID, domain string)</code> &mdash; the domain should be
+          <code>TenantID</code>. <code>GroupPolicy.Subject</code> and
+          <code>GroupPolicy.Domain</code> are raw strings, conflating UserID/ActorID/TenantID in a
+          single struct.
+        </p>
+      </div>
+
+      <!-- WHAT WE SHOULD IMPROVE -->
+      <h2 id="improve"><span class="num">05</span>What We Should Improve (e)</h2>
+      <div class="card card-solution">
+        <h4>Architectural Improvements</h4>
+        <ul>
+          <li>
+            <strong>Type the context boundary</strong> &mdash; The #1 improvement. Define a
+            root-level actor type or accept a typed interface at the context API.
+          </li>
+          <li>
+            <strong>Extract ephemeral store interfaces</strong> &mdash; 6 stores need
+            <code>WebAuthnSessionStore</code>, <code>VerificationTokenStore</code>,
+            <code>TOTPStore</code>, <code>LockoutStore</code> interfaces. Enables Redis adapters for
+            multi-instance.
+          </li>
+          <li>
+            <strong>Decouple WebAuthn service from HTTP</strong> &mdash; Parse request in
+            <code>webauthn_http.go</code>, pass parsed bytes to the service.
+          </li>
+          <li>
+            <strong>Reconcile sentinel errors</strong> &mdash; Either usermgmt re-exports root's
+            sentinels, or the error checker at module boundary unwraps by code string.
+          </li>
+          <li>
+            <strong>Wire snapshot store</strong> &mdash; <code>go-cqrs-lite/snapshot/v3</code> is
+            already an indirect dep. Wire it to reduce startup from O(n) to O(1).
+          </li>
+        </ul>
+      </div>
+      <div class="card card-solution">
+        <h4>Type Safety Improvements</h4>
+        <ul>
+          <li>
+            <strong>BotState.OwnerID &rarr; UserID</strong> &mdash; A bot owner is always a user. 4
+            files to change.
+          </li>
+          <li>
+            <strong>Wire the existing Email type</strong> &mdash; <code>email.go</code> defines
+            <code>Email</code> with <code>ParseEmail</code> but every struct uses raw
+            <code>string</code>. The type exists &mdash; just use it.
+          </li>
+          <li>
+            <strong>Unexport NewActorID or add validation</strong> &mdash; The kind/raw pairing must
+            be enforced.
+          </li>
+          <li>
+            <strong>TenantState sealed union</strong> &mdash;
+            <code>Suspended=true, Deleted=true</code> is representable but nonsensical. Use a state
+            enum or sealed interface.
+          </li>
+          <li>
+            <strong>Action/Effect/Role validated enums</strong> &mdash; Currently branded strings
+            with no <code>Parse</code>/<code>Valid</code> methods. Unknown values silently pass
+            through Casbin.
+          </li>
+        </ul>
+      </div>
+
+      <!-- TOP 25 NEXT TASKS -->
+      <h2 id="top25"><span class="num">06</span>Top 25 Next Tasks (f)</h2>
+      <p>Sorted by impact/effort ratio. Top items = highest impact, lowest effort.</p>
       <table>
-        <thead><tr><th>Fix</th><th>Impact</th></tr></thead>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Task</th>
+            <th>Impact</th>
+            <th>Effort</th>
+            <th>Tier</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td>SSEStream.OnDisconnect data race</td><td>🟢 Bug fix &mdash; append without mutex</td></tr>
-          <tr><td>startPeriodicEviction double-close panic</td><td>🟢 Bug fix &mdash; sync.Once guard</td></tr>
-          <tr><td>foldUser silently ignored unknown events</td><td>🟢 Domain safety &mdash; now returns error like other folds</td></tr>
-          <tr><td>actorKindFromString silently defaulted to ActorUser</td><td>🟢 Domain safety &mdash; now validates input</td></tr>
-          <tr><td>3 lint issues (exhaustruct, gochecknoglobals, forcetypeassert)</td><td>🟢 Zero lint</td></tr>
-          <tr><td>LastEventIDFromRequest duplicated SSEStream.LastEventID</td><td>🟢 Dedup &mdash; method delegates to free function</td></tr>
-          <tr><td>3 stale AGENTS.md claims (file counts, event counts)</td><td>🟢 Docs accuracy</td></tr>
+          <tr>
+            <td>1</td>
+            <td>
+              BotState.OwnerID &rarr; UserID (es_bot_state.go, es_bot_events.go,
+              es_bot_readmodel.go, service_bot.go)
+            </td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>30min</td>
+            <td>Quick win</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>
+              Wire Email branded type in domain models (email.go exists, structs use raw string)
+            </td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>30min</td>
+            <td>Quick win</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Unexport NewActorID or add kind/raw validation (id.go:117)</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>15min</td>
+            <td>Quick win</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>
+              Dedupe LastEventIDFromRequest &rarr; already done (verify no other dupes remain)
+            </td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>Done</td>
+            <td>✅</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>gosec + govulncheck scan (required by Go stack policy, never run)</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>30min</td>
+            <td>Quick win</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>
+              Duplicate sentinel error reconciliation (root vs usermgmt
+              ErrUnauthorized/ErrForbidden)
+            </td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>1h</td>
+            <td>Needs design</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>TenantState sealed union (prevent Suspended+Deleted simultaneously)</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>45min</td>
+            <td>Type safety</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>Authz domain param &rarr; TenantID (authz_roles.go, authz_policies.go)</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>1h</td>
+            <td>Type safety</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>GroupPolicy.Subject/Domain typed (authz_types.go:77)</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>1h</td>
+            <td>Type safety</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>Extract WebAuthn *http.Request from service layer</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>1h</td>
+            <td>Architecture</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td>WebAuthnSessionStore interface (for multi-instance)</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>45min</td>
+            <td>Architecture</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td>VerificationTokenStore interface</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>30min</td>
+            <td>Architecture</td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td>TOTPStore interface</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>30min</td>
+            <td>Architecture</td>
+          </tr>
+          <tr>
+            <td>14</td>
+            <td>LockoutStore interface</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>30min</td>
+            <td>Architecture</td>
+          </tr>
+          <tr>
+            <td>15</td>
+            <td>Typed ActorID in context (blocked by module boundary &mdash; needs design)</td>
+            <td><span class="badge badge-critical">Critical</span></td>
+            <td>2h</td>
+            <td>Blocked</td>
+          </tr>
+          <tr>
+            <td>16</td>
+            <td>Snapshot integration (O(1) startup)</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>1-2h</td>
+            <td>Architecture</td>
+          </tr>
+          <tr>
+            <td>17</td>
+            <td>Action/Effect/Role validated enums (Parse/Valid methods)</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+            <td>Type safety</td>
+          </tr>
+          <tr>
+            <td>18</td>
+            <td>SSE/WS broadcaster distributed pub-sub (Redis adapter)</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>3h</td>
+            <td>Scalability</td>
+          </tr>
+          <tr>
+            <td>19</td>
+            <td>CSRF config validation should fail-fast (csrf_middleware.go:37-39)</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>15min</td>
+            <td>Quick win</td>
+          </tr>
+          <tr>
+            <td>20</td>
+            <td>Service god-object decomposition (24 fields, ADR-0019 blocked)</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>4h+</td>
+            <td>Architecture</td>
+          </tr>
+          <tr>
+            <td>21</td>
+            <td>Otel spans in fan-out broadcast path (tracing)</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+            <td>Observability</td>
+          </tr>
+          <tr>
+            <td>22</td>
+            <td>OAuth2StateStore SQL backend implementation</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+            <td>Scalability</td>
+          </tr>
+          <tr>
+            <td>23</td>
+            <td>Integration test: full OAuth2 + WebAuthn + TOTP flow</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>2h</td>
+            <td>Testing</td>
+          </tr>
+          <tr>
+            <td>24</td>
+            <td>Property-based test for TenantState state machine</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+            <td>Testing</td>
+          </tr>
+          <tr>
+            <td>25</td>
+            <td>Event payload type tightening (membership events use raw string for ActorKind)</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+            <td>Type safety</td>
+          </tr>
         </tbody>
       </table>
-    </div>
 
-    <!-- PARTIALLY DONE -->
-    <h2 id="partial"><span class="num">02</span>Partially Done (b)</h2>
+      <!-- BLOCKING QUESTION -->
+      <h2 id="question"><span class="num">07</span>Blocking Question (g)</h2>
+      <div class="card card-problem">
+        <h4>How should we type ActorID at the context boundary across module boundaries?</h4>
+        <p>
+          <code>context.go</code> (root module) stores ActorID as <code>string</code> because it
+          cannot import <code>usermgmt.ActorID</code> (zero mutual imports is a core architectural
+          principle). But this creates the single biggest type-safety hole: any string can be
+          passed.
+        </p>
+        <p><strong>Three options I cannot decide between:</strong></p>
+        <ol>
+          <li>
+            <strong>Root-level Actor type</strong> &mdash; Define
+            <code>type ActorID struct { Kind string; Raw string }</code> in root package. Usermgmt
+            converts at the boundary. <em>Pro:</em> type-safe. <em>Con:</em> duplicates usermgmt's
+            ActorID, potential split-brain.
+          </li>
+          <li>
+            <strong>Generic value interface</strong> &mdash;
+            <code>WithActorID[T any](ctx, actor T)</code> using Go generics. <em>Pro:</em> no type
+            duplication. <em>Con:</em> context lookup becomes lossy (<code
+              >ActorIDFromContext[T]()</code
+            >
+            needs to know T).
+          </li>
+          <li>
+            <strong>Accept the boundary</strong> &mdash; Context stores string by design. The typed
+            API is usermgmt's job. Root just passes it through. <em>Pro:</em> no coupling.
+            <em>Con:</em> type hole stays open.
+          </li>
+        </ol>
+        <p>
+          <strong>Which approach do you want?</strong> This is the #1 type-safety improvement and I
+          cannot pick for you because each has a real tradeoff.
+        </p>
+      </div>
 
-    <div class="card card-warning">
-      <h4>Multi-Instance Deployment &mdash; 6/8 stores have no interface</h4>
-      <p><code>SessionStore</code> and <code>OAuth2StateStore</code> have interfaces + SQL backends. The remaining 6 ephemeral stores are in-memory only with no interface:</p>
-      <table>
-        <thead><tr><th>Store</th><th>Interface?</th><th>SQL Alt?</th><th>Multi-Instance?</th></tr></thead>
-        <tbody>
-          <tr><td>InMemorySessionStore</td><td>✅ SessionStore</td><td>✅ SQLSessionStore</td><td>✅</td></tr>
-          <tr><td>oauth2StateStore</td><td>✅ OAuth2StateStore</td><td>❌ Consumer provides</td><td>⚠ With custom impl</td></tr>
-          <tr><td>webauthnSessionStore</td><td>❌ Concrete</td><td>❌</td><td>❌ Single-process</td></tr>
-          <tr><td>verificationTokenStore</td><td>❌ Concrete</td><td>❌</td><td>❌ Single-process</td></tr>
-          <tr><td>pendingTOTPStore</td><td>❌ Concrete</td><td>❌</td><td>❌ Single-process</td></tr>
-          <tr><td>AccountLockout</td><td>❌ Concrete</td><td>❌</td><td>❌ Per-instance</td></tr>
-          <tr><td>UserReadModel</td><td>❌ Concrete</td><td>❌</td><td>❌ Full replay on startup</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="card card-warning">
-      <h4>O(n) Startup Replay &mdash; No snapshot integration</h4>
-      <p><code>service_core.go:149-159</code> replays all events through projections on every <code>NewService</code>. <code>go-cqrs-lite/snapshot/v3</code> is an indirect dependency but not wired. Acceptable for small event stores, but startup time grows linearly.</p>
-    </div>
-
-    <div class="card card-warning">
-      <h4>WebAuthn Service Leaks <code>*http.Request</code></h4>
-      <p><code>webauthn_service.go:52,154</code> &mdash; <code>FinishRegistration</code> and <code>FinishLogin</code> take <code>*http.Request</code> directly because go-webauthn parses the authenticator response from the request body. This couples the service to HTTP, making it untestable without <code>*http.Request</code> and unusable from gRPC/CLI.</p>
-    </div>
-
-    <!-- NOT STARTED -->
-    <h2 id="notstarted"><span class="num">03</span>Not Started (c)</h2>
-    <table>
-      <thead><tr><th>Item</th><th>Effort</th><th>Impact</th></tr></thead>
-      <tbody>
-        <tr><td>BotState.OwnerID typed as UserID (currently raw string)</td><td>30min</td><td>High</td></tr>
-        <tr><td>Email branded type used in domain models (exists, unused)</td><td>30min</td><td>Medium</td></tr>
-        <tr><td>Duplicate sentinel error reconciliation (root vs usermgmt)</td><td>1h</td><td>High</td></tr>
-        <tr><td>Ephemeral store interfaces for multi-instance</td><td>2-3h</td><td>High</td></tr>
-        <tr><td>Snapshot integration for O(1) startup</td><td>1-2h</td><td>Medium</td></tr>
-        <tr><td>gosec + govulncheck in CI</td><td>30min</td><td>Medium</td></tr>
-      </tbody>
-    </table>
-
-    <!-- TOTALLY FUCKED UP -->
-    <h2 id="fuckedup"><span class="num">04</span>Problems (d)</h2>
-
-    <div class="issue issue-critical">
-      <span class="severity severity-critical">Critical</span>
-      <h3>ActorID/ImpersonatorID stored as raw <code>string</code> in context</h3>
-      <div class="where">context.go:141,147,155,161</div>
-      <p>The typed <code>usermgmt.ActorID</code> is discarded at the context boundary. Callers pass raw strings &mdash; a UserID, a BotID, garbage &mdash; with no type checking. The single biggest type-safety hole. <strong>Blocked</strong> by module boundary: root can't import usermgmt.ActorID.</p>
-    </div>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">High</span>
-      <h3>Duplicate sentinel errors across packages</h3>
-      <div class="where">errors.go:20-21 vs usermgmt/errors.go:37,39</div>
-      <p><code>cqrshtmx.ErrUnauthorized</code> and <code>usermgmt.ErrUnauthorized</code> are different sentinel values. <code>errors.Is(usermgmt.ErrUnauthorized, cqrshtmx.ErrUnauthorized)</code> returns <strong>false</strong>. A handler checking <code>errors.Is(err, cqrshtmx.ErrUnauthorized)</code> on a usermgmt-originated error silently fails. Real silent-bug risk at the module boundary.</p>
-    </div>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">High</span>
-      <h3>NewActorID(kind, raw string) bypasses validation</h3>
-      <div class="where">id.go:117</div>
-      <p>Exported constructor takes raw string. Any caller can construct <code>NewActorID(ActorUser, "some-bot-uuid")</code> bypassing the kind/raw pairing. Should be unexported or validate.</p>
-    </div>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">High</span>
-      <h3>Authz functions take raw <code>string</code> for domain</h3>
-      <div class="where">authz_roles.go:8,20,33,48 &mdash; authz_types.go:77,166</div>
-      <p><code>RolesForUser(userID UserID, domain string)</code> &mdash; the domain should be <code>TenantID</code>. <code>GroupPolicy.Subject</code> and <code>GroupPolicy.Domain</code> are raw strings, conflating UserID/ActorID/TenantID in a single struct.</p>
-    </div>
-
-    <!-- WHAT WE SHOULD IMPROVE -->
-    <h2 id="improve"><span class="num">05</span>What We Should Improve (e)</h2>
-    <div class="card card-solution">
-      <h4>Architectural Improvements</h4>
-      <ul>
-        <li><strong>Type the context boundary</strong> &mdash; The #1 improvement. Define a root-level actor type or accept a typed interface at the context API.</li>
-        <li><strong>Extract ephemeral store interfaces</strong> &mdash; 6 stores need <code>WebAuthnSessionStore</code>, <code>VerificationTokenStore</code>, <code>TOTPStore</code>, <code>LockoutStore</code> interfaces. Enables Redis adapters for multi-instance.</li>
-        <li><strong>Decouple WebAuthn service from HTTP</strong> &mdash; Parse request in <code>webauthn_http.go</code>, pass parsed bytes to the service.</li>
-        <li><strong>Reconcile sentinel errors</strong> &mdash; Either usermgmt re-exports root's sentinels, or the error checker at module boundary unwraps by code string.</li>
-        <li><strong>Wire snapshot store</strong> &mdash; <code>go-cqrs-lite/snapshot/v3</code> is already an indirect dep. Wire it to reduce startup from O(n) to O(1).</li>
-      </ul>
-    </div>
-    <div class="card card-solution">
-      <h4>Type Safety Improvements</h4>
-      <ul>
-        <li><strong>BotState.OwnerID &rarr; UserID</strong> &mdash; A bot owner is always a user. 4 files to change.</li>
-        <li><strong>Wire the existing Email type</strong> &mdash; <code>email.go</code> defines <code>Email</code> with <code>ParseEmail</code> but every struct uses raw <code>string</code>. The type exists &mdash; just use it.</li>
-        <li><strong>Unexport NewActorID or add validation</strong> &mdash; The kind/raw pairing must be enforced.</li>
-        <li><strong>TenantState sealed union</strong> &mdash; <code>Suspended=true, Deleted=true</code> is representable but nonsensical. Use a state enum or sealed interface.</li>
-        <li><strong>Action/Effect/Role validated enums</strong> &mdash; Currently branded strings with no <code>Parse</code>/<code>Valid</code> methods. Unknown values silently pass through Casbin.</li>
-      </ul>
-    </div>
-
-    <!-- TOP 25 NEXT TASKS -->
-    <h2 id="top25"><span class="num">06</span>Top 25 Next Tasks (f)</h2>
-    <p>Sorted by impact/effort ratio. Top items = highest impact, lowest effort.</p>
-    <table>
-      <thead><tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Tier</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>BotState.OwnerID &rarr; UserID (es_bot_state.go, es_bot_events.go, es_bot_readmodel.go, service_bot.go)</td><td><span class="badge badge-high">High</span></td><td>30min</td><td>Quick win</td></tr>
-        <tr><td>2</td><td>Wire Email branded type in domain models (email.go exists, structs use raw string)</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Quick win</td></tr>
-        <tr><td>3</td><td>Unexport NewActorID or add kind/raw validation (id.go:117)</td><td><span class="badge badge-high">High</span></td><td>15min</td><td>Quick win</td></tr>
-        <tr><td>4</td><td>Dedupe LastEventIDFromRequest &rarr; already done (verify no other dupes remain)</td><td><span class="badge badge-low">Low</span></td><td>Done</td><td>✅</td></tr>
-        <tr><td>5</td><td>gosec + govulncheck scan (required by Go stack policy, never run)</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Quick win</td></tr>
-        <tr><td>6</td><td>Duplicate sentinel error reconciliation (root vs usermgmt ErrUnauthorized/ErrForbidden)</td><td><span class="badge badge-high">High</span></td><td>1h</td><td>Needs design</td></tr>
-        <tr><td>7</td><td>TenantState sealed union (prevent Suspended+Deleted simultaneously)</td><td><span class="badge badge-medium">Medium</span></td><td>45min</td><td>Type safety</td></tr>
-        <tr><td>8</td><td>Authz domain param &rarr; TenantID (authz_roles.go, authz_policies.go)</td><td><span class="badge badge-high">High</span></td><td>1h</td><td>Type safety</td></tr>
-        <tr><td>9</td><td>GroupPolicy.Subject/Domain typed (authz_types.go:77)</td><td><span class="badge badge-medium">Medium</span></td><td>1h</td><td>Type safety</td></tr>
-        <tr><td>10</td><td>Extract WebAuthn *http.Request from service layer</td><td><span class="badge badge-high">High</span></td><td>1h</td><td>Architecture</td></tr>
-        <tr><td>11</td><td>WebAuthnSessionStore interface (for multi-instance)</td><td><span class="badge badge-high">High</span></td><td>45min</td><td>Architecture</td></tr>
-        <tr><td>12</td><td>VerificationTokenStore interface</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Architecture</td></tr>
-        <tr><td>13</td><td>TOTPStore interface</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Architecture</td></tr>
-        <tr><td>14</td><td>LockoutStore interface</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Architecture</td></tr>
-        <tr><td>15</td><td>Typed ActorID in context (blocked by module boundary &mdash; needs design)</td><td><span class="badge badge-critical">Critical</span></td><td>2h</td><td>Blocked</td></tr>
-        <tr><td>16</td><td>Snapshot integration (O(1) startup)</td><td><span class="badge badge-medium">Medium</span></td><td>1-2h</td><td>Architecture</td></tr>
-        <tr><td>17</td><td>Action/Effect/Role validated enums (Parse/Valid methods)</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Type safety</td></tr>
-        <tr><td>18</td><td>SSE/WS broadcaster distributed pub-sub (Redis adapter)</td><td><span class="badge badge-low">Low</span></td><td>3h</td><td>Scalability</td></tr>
-        <tr><td>19</td><td>CSRF config validation should fail-fast (csrf_middleware.go:37-39)</td><td><span class="badge badge-low">Low</span></td><td>15min</td><td>Quick win</td></tr>
-        <tr><td>20</td><td>Service god-object decomposition (24 fields, ADR-0019 blocked)</td><td><span class="badge badge-medium">Medium</span></td><td>4h+</td><td>Architecture</td></tr>
-        <tr><td>21</td><td>Otel spans in fan-out broadcast path (tracing)</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Observability</td></tr>
-        <tr><td>22</td><td>OAuth2StateStore SQL backend implementation</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Scalability</td></tr>
-        <tr><td>23</td><td>Integration test: full OAuth2 + WebAuthn + TOTP flow</td><td><span class="badge badge-medium">Medium</span></td><td>2h</td><td>Testing</td></tr>
-        <tr><td>24</td><td>Property-based test for TenantState state machine</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Testing</td></tr>
-        <tr><td>25</td><td>Event payload type tightening (membership events use raw string for ActorKind)</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Type safety</td></tr>
-      </tbody>
-    </table>
-
-    <!-- BLOCKING QUESTION -->
-    <h2 id="question"><span class="num">07</span>Blocking Question (g)</h2>
-    <div class="card card-problem">
-      <h4>How should we type ActorID at the context boundary across module boundaries?</h4>
-      <p><code>context.go</code> (root module) stores ActorID as <code>string</code> because it cannot import <code>usermgmt.ActorID</code> (zero mutual imports is a core architectural principle). But this creates the single biggest type-safety hole: any string can be passed.</p>
-      <p><strong>Three options I cannot decide between:</strong></p>
-      <ol>
-        <li><strong>Root-level Actor type</strong> &mdash; Define <code>type ActorID struct { Kind string; Raw string }</code> in root package. Usermgmt converts at the boundary. <em>Pro:</em> type-safe. <em>Con:</em> duplicates usermgmt's ActorID, potential split-brain.</li>
-        <li><strong>Generic value interface</strong> &mdash; <code>WithActorID[T any](ctx, actor T)</code> using Go generics. <em>Pro:</em> no type duplication. <em>Con:</em> context lookup becomes lossy (<code>ActorIDFromContext[T]()</code> needs to know T).</li>
-        <li><strong>Accept the boundary</strong> &mdash; Context stores string by design. The typed API is usermgmt's job. Root just passes it through. <em>Pro:</em> no coupling. <em>Con:</em> type hole stays open.</li>
-      </ol>
-      <p><strong>Which approach do you want?</strong> This is the #1 type-safety improvement and I cannot pick for you because each has a real tradeoff.</p>
-    </div>
-
-    <div style="margin-top: 3rem; padding: 1.5rem; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.875rem;">
-      Generated by status-report skill &bull; cqrs-htmx v3 &bull; 2026-06-25 18:34 &bull; All modules building, 0 lint, 0 clones, all tests passing (-race)
-    </div>
-
+      <div
+        style="
+          margin-top: 3rem;
+          padding: 1.5rem;
+          border-top: 1px solid var(--border);
+          color: var(--text-dim);
+          font-size: 0.875rem;
+        "
+      >
+        Generated by status-report skill &bull; cqrs-htmx v3 &bull; 2026-06-25 18:34 &bull; All
+        modules building, 0 lint, 0 clones, all tests passing (-race)
+      </div>
     </main>
   </body>
 </html>

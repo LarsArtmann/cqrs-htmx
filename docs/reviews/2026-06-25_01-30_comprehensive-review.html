@@ -850,321 +850,435 @@
     </style>
   </head>
   <body>
-
-    <div class="hero">
-      <div class="hero-badge">Architecture + Data Model + Naming + Code Review</div>
-      <h1>Comprehensive Multi-Skill Review &mdash; cqrs-htmx v3</h1>
-      <p class="hero-subtitle">42K LOC across 4 Go modules. 2 bugs fixed, 18 type-safety findings, architecture assessed, naming audited.</p>
-    </div>
-
-    <nav class="toc">
-      <h3>Contents</h3>
-      <ul>
-        <li><a href="#bugs">Bugs Fixed</a></li>
-        <li><a href="#architecture">Architecture Review</a></li>
-        <li><a href="#data-model">Data Model Review</a></li>
-        <li><a href="#naming">Naming Review</a></li>
-        <li><a href="#code-review">Code Quality</a></li>
-        <li><a href="#strengths">Strengths</a></li>
-      </ul>
-    </nav>
-
-    <!-- BUGS FIXED -->
-    <h2 id="bugs"><span class="num">01</span>Bugs Fixed</h2>
-
-    <div class="issue issue-critical">
-      <span class="severity severity-critical">Bug &mdash; Fixed</span>
-      <h3>SSEStream.OnDisconnect data race</h3>
-      <div class="where">sse_stream.go:162-164</div>
-      <p><code>OnDisconnect()</code> appended to the <code>onDisconnect</code> slice without holding <code>s.mu</code>, while <code>Close()</code> iterated the same slice after releasing the lock. Concurrent registration and close = data race on the slice header.</p>
-      <div class="callout callout-solution">
-        <strong>Fixed</strong>
-        <code>OnDisconnect</code> now acquires <code>s.mu</code> before append. <code>Close</code> snapshots the slice under the lock, nils it, then iterates the snapshot outside the lock (so user callbacks don't block other Send/Heartbeat calls).
+    <main>
+      <div class="hero">
+        <div class="hero-badge">Architecture + Data Model + Naming + Code Review</div>
+        <h1>Comprehensive Multi-Skill Review &mdash; cqrs-htmx v3</h1>
+        <p class="hero-subtitle">
+          42K LOC across 4 Go modules. 2 bugs fixed, 18 type-safety findings, architecture assessed,
+          naming audited.
+        </p>
       </div>
-    </div>
 
-    <div class="issue issue-critical">
-      <span class="severity severity-critical">Bug &mdash; Fixed</span>
-      <h3>StartCleanupSweeper double-close panic</h3>
-      <div class="where">usermgmt/eviction.go:25</div>
-      <p>The stop function returned by <code>startPeriodicEviction</code> called <code>close(done)</code> unconditionally. A second call (e.g. double-defer, or explicit stop + Service.Stop) panics with "close of closed channel".</p>
-      <div class="callout callout-solution">
-        <strong>Fixed</strong>
-        Wrapped <code>close(done)</code> in <code>sync.Once.Do()</code>. Safe to call multiple times.
-      </div>
-    </div>
+      <nav class="toc">
+        <h3>Contents</h3>
+        <ul>
+          <li><a href="#bugs">Bugs Fixed</a></li>
+          <li><a href="#architecture">Architecture Review</a></li>
+          <li><a href="#data-model">Data Model Review</a></li>
+          <li><a href="#naming">Naming Review</a></li>
+          <li><a href="#code-review">Code Quality</a></li>
+          <li><a href="#strengths">Strengths</a></li>
+        </ul>
+      </nav>
 
-    <!-- ARCHITECTURE -->
-    <h2 id="architecture"><span class="num">02</span>Architecture Review</h2>
+      <!-- BUGS FIXED -->
+      <h2 id="bugs"><span class="num">01</span>Bugs Fixed</h2>
 
-    <div class="stat-grid">
-      <div class="stat-card stat-good">
-        <div class="stat-value">4</div>
-        <div class="stat-label">Independent Modules</div>
-      </div>
-      <div class="stat-card stat-good">
-        <div class="stat-value">0</div>
-        <div class="stat-label">Circular Dependencies</div>
-      </div>
-      <div class="stat-card stat-warn">
-        <div class="stat-value">24</div>
-        <div class="stat-label">Fields in Service struct</div>
-      </div>
-      <div class="stat-card stat-warn">
-        <div class="stat-value">6/8</div>
-        <div class="stat-label">In-Memory Stores (no iface)</div>
-      </div>
-    </div>
-
-    <div class="card card-solution">
-      <h4>Module Boundaries &mdash; Excellent</h4>
-      <p>Zero mutual imports between root &harr; usermgmt confirmed. Catalog is a clean leaf module (depends only on go-cqrs-lite/catalog + go-error-family). Strict DAG: <code>integration_test &rarr; {root, usermgmt, catalog}</code>.</p>
-    </div>
-
-    <div class="card card-solution">
-      <h4>Composability (Root) &mdash; Excellent</h4>
-      <p>Functional options pattern (<code>HandlerOption</code>) with generic helpers (<code>decodeAndSet[T,R]</code>, <code>validateDispatch[T]</code>). Duck-typed interfaces (<code>TemplComponent</code>, <code>Enforcer</code>) avoid hard framework dependencies.</p>
-    </div>
-
-    <div class="card card-problem">
-      <h4>WebAuthn Service Leaks <code>*http.Request</code> &mdash; High</h4>
-      <p><code>webauthn_service.go:52,154</code> &mdash; <code>FinishRegistration</code> and <code>FinishLogin</code> take <code>*http.Request</code> directly. This is a dependency inversion violation: the service layer should accept parsed credential response bytes, not HTTP request objects. Makes the service untestable without <code>*http.Request</code> and unusable from non-HTTP transports.</p>
-      <div class="callout callout-solution">
-        <strong>Recommendation</strong>
-        Extract request body parsing into <code>webauthn_http.go</code>, pass <code>[]byte</code> or parsed <code>webauthn.CredentialCreationResponse</code> to the service.
-      </div>
-    </div>
-
-    <div class="card card-problem">
-      <h4>Service is a God Object &mdash; Medium</h4>
-      <p><code>service_core.go:23-57</code> &mdash; <code>Service</code> has 24 fields spanning 4 aggregates (User, Membership, Tenant, Bot) plus WebAuthn, TOTP, OAuth2, sessions, audit, and authorization. ADR-0019 documents that decomposition was attempted and blocked.</p>
-    </div>
-
-    <div class="card card-problem">
-      <h4>Scalability: 6 In-Memory Stores Without Interfaces &mdash; High</h4>
-      <p>WebAuthn sessions, verification tokens, pending TOTP, account lockout, rate limiter, and read models are all in-memory with no interface or SQL alternative. Only <code>SessionStore</code> and <code>SQLEventStore</code> have production-ready backends. Multi-instance deployment is impossible without custom implementations.</p>
-    </div>
-
-    <div class="card card-problem">
-      <h4>O(n) Event Replay on Startup &mdash; Medium</h4>
-      <p><code>service_core.go:149-159</code> &mdash; <code>journalFromStore</code> replays all events through projections on every <code>NewService</code>. No snapshot integration visible despite <code>go-cqrs-lite/snapshot/v3</code> being an indirect dependency.</p>
-    </div>
-
-    <!-- DATA MODEL -->
-    <h2 id="data-model"><span class="num">03</span>Data Model Review</h2>
-
-    <div class="stat-grid">
-      <div class="stat-card stat-good">
-        <div class="stat-value">5</div>
-        <div class="stat-label">Branded ID Types</div>
-      </div>
-      <div class="stat-card stat-bad">
-        <div class="stat-value">1</div>
-        <div class="stat-label">Critical Type Hole</div>
-      </div>
-      <div class="stat-card stat-warn">
-        <div class="stat-value">6</div>
-        <div class="stat-label">High Findings</div>
-      </div>
-      <div class="stat-card stat-good">
-        <div class="stat-value">1</div>
-        <div class="stat-label">Sealed Interface (SessionOrigin)</div>
-      </div>
-    </div>
-
-    <div class="issue issue-critical">
-      <span class="severity severity-critical">Critical</span>
-      <h3>ActorID/ImpersonatorID stored as raw <code>string</code> in context</h3>
-      <div class="where">context.go:141,147,155,161</div>
-      <p>The typed <code>usermgmt.ActorID</code> is discarded at the context boundary. Callers can pass any string &mdash; a UserID, a BotID, garbage &mdash; with no type checking. The single biggest type-safety hole in the codebase.</p>
-    </div>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">High</span>
-      <h3><code>foldUser</code> silently ignores unknown events</h3>
-      <div class="where">es_state.go:166</div>
-      <p>Unlike <code>foldMembership</code>, <code>foldTenant</code>, and <code>foldBot</code> (which return errors), <code>foldUser</code> silently no-ops on unknown events. The most important aggregate has the weakest fold error handling.</p>
-    </div>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">High</span>
-      <h3><code>UserState</code> allows impossible states</h3>
-      <div class="where">es_state.go:13-23</div>
-      <p><code>TOTPEnabled=true</code> + <code>TOTPSecret=nil</code> is representable. Deleted users retain full data (Email, Credentials) with only a bool flag. <code>Exists()</code> infers existence from email non-empty, not from a lifecycle marker.</p>
-    </div>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">High</span>
-      <h3><code>BotState.OwnerID</code> is raw <code>string</code> not <code>UserID</code></h3>
-      <div class="where">es_bot_state.go:11, es_bot_events.go:8, es_bot_readmodel.go:15, service_bot.go:15</div>
-      <p>A bot owner is always a user. This should be <code>UserID</code>.</p>
-    </div>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">High</span>
-      <h3>Authz domain parameter is raw <code>string</code></h3>
-      <div class="where">authz_roles.go:8,20,33,48 &mdash; authz_policies.go:114,140</div>
-      <p><code>RolesForUser(userID UserID, domain string)</code> &mdash; the domain should be <code>TenantID</code>. <code>GroupPolicy.Subject</code> and <code>GroupPolicy.Domain</code> are also raw strings, conflating UserID/ActorID/TenantID.</p>
-    </div>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">High</span>
-      <h3><code>NewActorID(kind, raw string)</code> bypasses validation</h3>
-      <div class="where">id.go:117</div>
-      <p>Exported constructor takes raw string. Any caller can construct <code>NewActorID(ActorUser, "some-bot-uuid")</code> bypassing the kind/raw pairing.</p>
-    </div>
-
-    <div class="issue issue-nice">
-      <span class="severity severity-nice">Medium</span>
-      <h3><code>Email</code> branded type defined but unused in domain models</h3>
-      <div class="where">email.go:13 vs service_register.go:13, es_state.go:14, user.go:25</div>
-      <p>The <code>Email</code> type with <code>ParseEmail</code> exists but every struct uses raw <code>string</code>. Validation is one-time, not enforced by the type system.</p>
-    </div>
-
-    <div class="issue issue-nice">
-      <span class="severity severity-nice">Medium</span>
-      <h3>Duplicate sentinel errors across packages</h3>
-      <div class="where">errors.go:20-21 vs usermgmt/errors.go:37,39</div>
-      <p><code>cqrshtmx.ErrUnauthorized</code> and <code>usermgmt.ErrUnauthorized</code> are different sentinel values. <code>errors.Is(usermgmt.ErrUnauthorized, cqrshtmx.ErrUnauthorized)</code> returns false &mdash; silent check failure at module boundary.</p>
-    </div>
-
-    <!-- NAMING -->
-    <h2 id="naming"><span class="num">04</span>Naming Review</h2>
-
-    <div class="card card-solution">
-      <h4>Exceptionally Clean Naming &mdash; A+</h4>
-      <p>Automated detection across all modules found:</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Check</th>
-            <th>Hits</th>
-            <th>Assessment</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Vague type names (Data/Info/Record/Item)</td>
-            <td>2</td>
-            <td><code>oauth2UserInfo</code> (correct API term), <code>sessionOriginInfo</code> (contextual)</td>
-          </tr>
-          <tr>
-            <td>Manager/Handler/Processor/Helper/Util</td>
-            <td>2</td>
-            <td><code>ErrorHandler</code> (Go func type), <code>AuthHandler</code> (HTTP handler) &mdash; both idiomatic</td>
-          </tr>
-          <tr>
-            <td>Impl suffix</td>
-            <td>0</td>
-            <td>Clean</td>
-          </tr>
-          <tr>
-            <td>Abstract/Base prefix</td>
-            <td>0</td>
-            <td>Clean</td>
-          </tr>
-          <tr>
-            <td>Vague verbs (do/handle/process)</td>
-            <td>0</td>
-            <td>All <code>handle*</code> are specific HTTP dispatchers</td>
-          </tr>
-          <tr>
-            <td>TODO/FIXME/HACK comments</td>
-            <td>0</td>
-            <td>Clean</td>
-          </tr>
-          <tr>
-            <td>Dead code</td>
-            <td>0</td>
-            <td>All exports are public library API</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- CODE QUALITY -->
-    <h2 id="code-review"><span class="num">05</span>Code Quality</h2>
-
-    <div class="card card-solution">
-      <h4>Error Handling &mdash; Clean</h4>
-      <p>Zero <code>errors.New</code>/<code>fmt.Errorf</code> in non-test code. All use <code>event.New*/Wrap*</code>. <code>branching-flow errorfamily .</code> confirms 0 violations.</p>
-    </div>
-
-    <div class="card card-solution">
-      <h4>Security &mdash; Sound</h4>
-      <p>CSRF: nosurf integration with origin validation. Plaintext bypass only for loopback/trusted proxies. SQL: all parameterized queries. No injection risks found.</p>
-    </div>
-
-    <div class="card card-solution">
-      <h4>Race Safety &mdash; Correct (post-fix)</h4>
-      <p><code>fanOut[T]</code> RWMutex pattern is correct: Broadcast holds RLock for full iteration, preventing Unsubscribe from closing channels mid-send. OnDisconnect race fixed.</p>
-    </div>
-
-    <div class="issue issue-nice">
-      <span class="severity severity-nice">Low</span>
-      <h3>CSRF config validation logged but not returned</h3>
-      <div class="where">csrf_middleware.go:37-39</div>
-      <p>Invalid CSRF configuration is logged at error level but the middleware proceeds anyway. Consider returning an error for fail-fast behavior in production.</p>
-    </div>
-
-    <div class="issue issue-nice">
-      <span class="severity severity-nice">Low</span>
-      <h3><code>LastEventIDFromRequest</code> duplicates <code>SSEStream.LastEventID</code></h3>
-      <div class="where">sse_stream.go:122-124 vs 178-180</div>
-      <p>Byte-identical implementations. One should delegate to the other.</p>
-    </div>
-
-    <!-- STRENGTHS -->
-    <h2 id="strengths"><span class="num">06</span>Strengths</h2>
-    <div class="strengths">
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>71-linter golangci-lint config with 0 issues</strong>
-          <span>One of the strictest lint setups in the Go ecosystem. All findings are semantic, not lint-detectable.</span>
+      <div class="issue issue-critical">
+        <span class="severity severity-critical">Bug &mdash; Fixed</span>
+        <h3>SSEStream.OnDisconnect data race</h3>
+        <div class="where">sse_stream.go:162-164</div>
+        <p>
+          <code>OnDisconnect()</code> appended to the <code>onDisconnect</code> slice without
+          holding <code>s.mu</code>, while <code>Close()</code> iterated the same slice after
+          releasing the lock. Concurrent registration and close = data race on the slice header.
+        </p>
+        <div class="callout callout-solution">
+          <strong>Fixed</strong>
+          <code>OnDisconnect</code> now acquires <code>s.mu</code> before append.
+          <code>Close</code> snapshots the slice under the lock, nils it, then iterates the snapshot
+          outside the lock (so user callbacks don't block other Send/Heartbeat calls).
         </div>
       </div>
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>Pure domain layer with clean dependency direction</strong>
-          <span>es_events.go, es_commands.go, es_decide.go, es_state.go have zero infrastructure imports. Domain &larr; infrastructure, always.</span>
-        </div>
-      </div>
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>Sealed SessionOrigin interface</strong>
-          <span>Properly sealed via unexported method. Only DirectLogin and Impersonation implementations possible.</span>
-        </div>
-      </div>
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>Zero code duplication</strong>
-          <span>art-dupl reports 0 clone groups even at threshold 15. Exceptionally clean.</span>
-        </div>
-      </div>
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>Non-blocking fan-out with backpressure handling</strong>
-          <span>64-message buffered channels with non-blocking select/default. Slow consumers drop events instead of blocking broadcasters.</span>
-        </div>
-      </div>
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>Well-managed goroutine lifecycle</strong>
-          <span>Service.Stop() calls all stop functions, niling them for idempotency. No goroutine leaks.</span>
-        </div>
-      </div>
-    </div>
 
-    <div style="margin-top: 3rem; padding: 1.5rem; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.875rem;">
-      Generated by architecture-review + data-model-review + naming-review + full-code-review skills &bull; cqrs-htmx v3 &bull; 2026-06-25
-    </div>
+      <div class="issue issue-critical">
+        <span class="severity severity-critical">Bug &mdash; Fixed</span>
+        <h3>StartCleanupSweeper double-close panic</h3>
+        <div class="where">usermgmt/eviction.go:25</div>
+        <p>
+          The stop function returned by <code>startPeriodicEviction</code> called
+          <code>close(done)</code> unconditionally. A second call (e.g. double-defer, or explicit
+          stop + Service.Stop) panics with "close of closed channel".
+        </p>
+        <div class="callout callout-solution">
+          <strong>Fixed</strong>
+          Wrapped <code>close(done)</code> in <code>sync.Once.Do()</code>. Safe to call multiple
+          times.
+        </div>
+      </div>
 
+      <!-- ARCHITECTURE -->
+      <h2 id="architecture"><span class="num">02</span>Architecture Review</h2>
+
+      <div class="stat-grid">
+        <div class="stat-card stat-good">
+          <div class="stat-value">4</div>
+          <div class="stat-label">Independent Modules</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Circular Dependencies</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">24</div>
+          <div class="stat-label">Fields in Service struct</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">6/8</div>
+          <div class="stat-label">In-Memory Stores (no iface)</div>
+        </div>
+      </div>
+
+      <div class="card card-solution">
+        <h4>Module Boundaries &mdash; Excellent</h4>
+        <p>
+          Zero mutual imports between root &harr; usermgmt confirmed. Catalog is a clean leaf module
+          (depends only on go-cqrs-lite/catalog + go-error-family). Strict DAG:
+          <code>integration_test &rarr; {root, usermgmt, catalog}</code>.
+        </p>
+      </div>
+
+      <div class="card card-solution">
+        <h4>Composability (Root) &mdash; Excellent</h4>
+        <p>
+          Functional options pattern (<code>HandlerOption</code>) with generic helpers
+          (<code>decodeAndSet[T,R]</code>, <code>validateDispatch[T]</code>). Duck-typed interfaces
+          (<code>TemplComponent</code>, <code>Enforcer</code>) avoid hard framework dependencies.
+        </p>
+      </div>
+
+      <div class="card card-problem">
+        <h4>WebAuthn Service Leaks <code>*http.Request</code> &mdash; High</h4>
+        <p>
+          <code>webauthn_service.go:52,154</code> &mdash; <code>FinishRegistration</code> and
+          <code>FinishLogin</code> take <code>*http.Request</code> directly. This is a dependency
+          inversion violation: the service layer should accept parsed credential response bytes, not
+          HTTP request objects. Makes the service untestable without <code>*http.Request</code> and
+          unusable from non-HTTP transports.
+        </p>
+        <div class="callout callout-solution">
+          <strong>Recommendation</strong>
+          Extract request body parsing into <code>webauthn_http.go</code>, pass
+          <code>[]byte</code> or parsed <code>webauthn.CredentialCreationResponse</code> to the
+          service.
+        </div>
+      </div>
+
+      <div class="card card-problem">
+        <h4>Service is a God Object &mdash; Medium</h4>
+        <p>
+          <code>service_core.go:23-57</code> &mdash; <code>Service</code> has 24 fields spanning 4
+          aggregates (User, Membership, Tenant, Bot) plus WebAuthn, TOTP, OAuth2, sessions, audit,
+          and authorization. ADR-0019 documents that decomposition was attempted and blocked.
+        </p>
+      </div>
+
+      <div class="card card-problem">
+        <h4>Scalability: 6 In-Memory Stores Without Interfaces &mdash; High</h4>
+        <p>
+          WebAuthn sessions, verification tokens, pending TOTP, account lockout, rate limiter, and
+          read models are all in-memory with no interface or SQL alternative. Only
+          <code>SessionStore</code> and <code>SQLEventStore</code> have production-ready backends.
+          Multi-instance deployment is impossible without custom implementations.
+        </p>
+      </div>
+
+      <div class="card card-problem">
+        <h4>O(n) Event Replay on Startup &mdash; Medium</h4>
+        <p>
+          <code>service_core.go:149-159</code> &mdash; <code>journalFromStore</code> replays all
+          events through projections on every <code>NewService</code>. No snapshot integration
+          visible despite <code>go-cqrs-lite/snapshot/v3</code> being an indirect dependency.
+        </p>
+      </div>
+
+      <!-- DATA MODEL -->
+      <h2 id="data-model"><span class="num">03</span>Data Model Review</h2>
+
+      <div class="stat-grid">
+        <div class="stat-card stat-good">
+          <div class="stat-value">5</div>
+          <div class="stat-label">Branded ID Types</div>
+        </div>
+        <div class="stat-card stat-bad">
+          <div class="stat-value">1</div>
+          <div class="stat-label">Critical Type Hole</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">6</div>
+          <div class="stat-label">High Findings</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">1</div>
+          <div class="stat-label">Sealed Interface (SessionOrigin)</div>
+        </div>
+      </div>
+
+      <div class="issue issue-critical">
+        <span class="severity severity-critical">Critical</span>
+        <h3>ActorID/ImpersonatorID stored as raw <code>string</code> in context</h3>
+        <div class="where">context.go:141,147,155,161</div>
+        <p>
+          The typed <code>usermgmt.ActorID</code> is discarded at the context boundary. Callers can
+          pass any string &mdash; a UserID, a BotID, garbage &mdash; with no type checking. The
+          single biggest type-safety hole in the codebase.
+        </p>
+      </div>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">High</span>
+        <h3><code>foldUser</code> silently ignores unknown events</h3>
+        <div class="where">es_state.go:166</div>
+        <p>
+          Unlike <code>foldMembership</code>, <code>foldTenant</code>, and
+          <code>foldBot</code> (which return errors), <code>foldUser</code> silently no-ops on
+          unknown events. The most important aggregate has the weakest fold error handling.
+        </p>
+      </div>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">High</span>
+        <h3><code>UserState</code> allows impossible states</h3>
+        <div class="where">es_state.go:13-23</div>
+        <p>
+          <code>TOTPEnabled=true</code> + <code>TOTPSecret=nil</code> is representable. Deleted
+          users retain full data (Email, Credentials) with only a bool flag.
+          <code>Exists()</code> infers existence from email non-empty, not from a lifecycle marker.
+        </p>
+      </div>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">High</span>
+        <h3><code>BotState.OwnerID</code> is raw <code>string</code> not <code>UserID</code></h3>
+        <div class="where">
+          es_bot_state.go:11, es_bot_events.go:8, es_bot_readmodel.go:15, service_bot.go:15
+        </div>
+        <p>A bot owner is always a user. This should be <code>UserID</code>.</p>
+      </div>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">High</span>
+        <h3>Authz domain parameter is raw <code>string</code></h3>
+        <div class="where">authz_roles.go:8,20,33,48 &mdash; authz_policies.go:114,140</div>
+        <p>
+          <code>RolesForUser(userID UserID, domain string)</code> &mdash; the domain should be
+          <code>TenantID</code>. <code>GroupPolicy.Subject</code> and
+          <code>GroupPolicy.Domain</code> are also raw strings, conflating UserID/ActorID/TenantID.
+        </p>
+      </div>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">High</span>
+        <h3><code>NewActorID(kind, raw string)</code> bypasses validation</h3>
+        <div class="where">id.go:117</div>
+        <p>
+          Exported constructor takes raw string. Any caller can construct
+          <code>NewActorID(ActorUser, "some-bot-uuid")</code> bypassing the kind/raw pairing.
+        </p>
+      </div>
+
+      <div class="issue issue-nice">
+        <span class="severity severity-nice">Medium</span>
+        <h3><code>Email</code> branded type defined but unused in domain models</h3>
+        <div class="where">email.go:13 vs service_register.go:13, es_state.go:14, user.go:25</div>
+        <p>
+          The <code>Email</code> type with <code>ParseEmail</code> exists but every struct uses raw
+          <code>string</code>. Validation is one-time, not enforced by the type system.
+        </p>
+      </div>
+
+      <div class="issue issue-nice">
+        <span class="severity severity-nice">Medium</span>
+        <h3>Duplicate sentinel errors across packages</h3>
+        <div class="where">errors.go:20-21 vs usermgmt/errors.go:37,39</div>
+        <p>
+          <code>cqrshtmx.ErrUnauthorized</code> and <code>usermgmt.ErrUnauthorized</code> are
+          different sentinel values.
+          <code>errors.Is(usermgmt.ErrUnauthorized, cqrshtmx.ErrUnauthorized)</code> returns false
+          &mdash; silent check failure at module boundary.
+        </p>
+      </div>
+
+      <!-- NAMING -->
+      <h2 id="naming"><span class="num">04</span>Naming Review</h2>
+
+      <div class="card card-solution">
+        <h4>Exceptionally Clean Naming &mdash; A+</h4>
+        <p>Automated detection across all modules found:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Hits</th>
+              <th>Assessment</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Vague type names (Data/Info/Record/Item)</td>
+              <td>2</td>
+              <td>
+                <code>oauth2UserInfo</code> (correct API term),
+                <code>sessionOriginInfo</code> (contextual)
+              </td>
+            </tr>
+            <tr>
+              <td>Manager/Handler/Processor/Helper/Util</td>
+              <td>2</td>
+              <td>
+                <code>ErrorHandler</code> (Go func type), <code>AuthHandler</code> (HTTP handler)
+                &mdash; both idiomatic
+              </td>
+            </tr>
+            <tr>
+              <td>Impl suffix</td>
+              <td>0</td>
+              <td>Clean</td>
+            </tr>
+            <tr>
+              <td>Abstract/Base prefix</td>
+              <td>0</td>
+              <td>Clean</td>
+            </tr>
+            <tr>
+              <td>Vague verbs (do/handle/process)</td>
+              <td>0</td>
+              <td>All <code>handle*</code> are specific HTTP dispatchers</td>
+            </tr>
+            <tr>
+              <td>TODO/FIXME/HACK comments</td>
+              <td>0</td>
+              <td>Clean</td>
+            </tr>
+            <tr>
+              <td>Dead code</td>
+              <td>0</td>
+              <td>All exports are public library API</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- CODE QUALITY -->
+      <h2 id="code-review"><span class="num">05</span>Code Quality</h2>
+
+      <div class="card card-solution">
+        <h4>Error Handling &mdash; Clean</h4>
+        <p>
+          Zero <code>errors.New</code>/<code>fmt.Errorf</code> in non-test code. All use
+          <code>event.New*/Wrap*</code>. <code>branching-flow errorfamily .</code> confirms 0
+          violations.
+        </p>
+      </div>
+
+      <div class="card card-solution">
+        <h4>Security &mdash; Sound</h4>
+        <p>
+          CSRF: nosurf integration with origin validation. Plaintext bypass only for
+          loopback/trusted proxies. SQL: all parameterized queries. No injection risks found.
+        </p>
+      </div>
+
+      <div class="card card-solution">
+        <h4>Race Safety &mdash; Correct (post-fix)</h4>
+        <p>
+          <code>fanOut[T]</code> RWMutex pattern is correct: Broadcast holds RLock for full
+          iteration, preventing Unsubscribe from closing channels mid-send. OnDisconnect race fixed.
+        </p>
+      </div>
+
+      <div class="issue issue-nice">
+        <span class="severity severity-nice">Low</span>
+        <h3>CSRF config validation logged but not returned</h3>
+        <div class="where">csrf_middleware.go:37-39</div>
+        <p>
+          Invalid CSRF configuration is logged at error level but the middleware proceeds anyway.
+          Consider returning an error for fail-fast behavior in production.
+        </p>
+      </div>
+
+      <div class="issue issue-nice">
+        <span class="severity severity-nice">Low</span>
+        <h3><code>LastEventIDFromRequest</code> duplicates <code>SSEStream.LastEventID</code></h3>
+        <div class="where">sse_stream.go:122-124 vs 178-180</div>
+        <p>Byte-identical implementations. One should delegate to the other.</p>
+      </div>
+
+      <!-- STRENGTHS -->
+      <h2 id="strengths"><span class="num">06</span>Strengths</h2>
+      <div class="strengths">
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>71-linter golangci-lint config with 0 issues</strong>
+            <span
+              >One of the strictest lint setups in the Go ecosystem. All findings are semantic, not
+              lint-detectable.</span
+            >
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Pure domain layer with clean dependency direction</strong>
+            <span
+              >es_events.go, es_commands.go, es_decide.go, es_state.go have zero infrastructure
+              imports. Domain &larr; infrastructure, always.</span
+            >
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Sealed SessionOrigin interface</strong>
+            <span
+              >Properly sealed via unexported method. Only DirectLogin and Impersonation
+              implementations possible.</span
+            >
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Zero code duplication</strong>
+            <span>art-dupl reports 0 clone groups even at threshold 15. Exceptionally clean.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Non-blocking fan-out with backpressure handling</strong>
+            <span
+              >64-message buffered channels with non-blocking select/default. Slow consumers drop
+              events instead of blocking broadcasters.</span
+            >
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Well-managed goroutine lifecycle</strong>
+            <span
+              >Service.Stop() calls all stop functions, niling them for idempotency. No goroutine
+              leaks.</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div
+        style="
+          margin-top: 3rem;
+          padding: 1.5rem;
+          border-top: 1px solid var(--border);
+          color: var(--text-dim);
+          font-size: 0.875rem;
+        "
+      >
+        Generated by architecture-review + data-model-review + naming-review + full-code-review
+        skills &bull; cqrs-htmx v3 &bull; 2026-06-25
+      </div>
     </main>
   </body>
 </html>

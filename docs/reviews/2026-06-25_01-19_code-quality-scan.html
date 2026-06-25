@@ -783,231 +783,272 @@
     </style>
   </head>
   <body>
+    <main>
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-shapes">
+          <div class="circle"></div>
+          <div class="square"></div>
+          <div class="tri"></div>
+        </div>
+        <div class="hero-badge">Code Quality Scan</div>
+        <h1>Code Quality Scan &mdash; cqrs-htmx v3</h1>
+        <p class="hero-subtitle">
+          Build, lint, error-family, duplication, and test analysis across all 4 Go modules (42K
+          LOC).
+        </p>
+      </div>
 
-    <!-- Hero -->
-    <div class="hero">
-      <div class="hero-shapes">
-        <div class="circle"></div>
-        <div class="square"></div>
-        <div class="tri"></div>
+      <!-- Summary Stats -->
+      <h2 id="summary"><span class="num">00</span>Summary</h2>
+      <div class="stat-grid">
+        <div class="stat-card stat-good">
+          <div class="stat-value">4/4</div>
+          <div class="stat-label">Modules Building</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Lint Issues (Post-Fix)</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Error Family Violations</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Code Clones (t=15)</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">All</div>
+          <div class="stat-label">Tests Passing (-race)</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Issues Found &amp; Fixed</div>
+        </div>
       </div>
-      <div class="hero-badge">Code Quality Scan</div>
-      <h1>Code Quality Scan &mdash; cqrs-htmx v3</h1>
-      <p class="hero-subtitle">Build, lint, error-family, duplication, and test analysis across all 4 Go modules (42K LOC).</p>
-    </div>
 
-    <!-- Summary Stats -->
-    <h2 id="summary"><span class="num">00</span>Summary</h2>
-    <div class="stat-grid">
-      <div class="stat-card stat-good">
-        <div class="stat-value">4/4</div>
-        <div class="stat-label">Modules Building</div>
+      <!-- Scan Methodology -->
+      <h2 id="methodology"><span class="num">01</span>Scan Methodology</h2>
+      <div class="card card-solution">
+        <h4>Tools &amp; Commands</h4>
+        <p>Each module analyzed independently:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Tool</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Build</td>
+              <td><code>go build ./...</code></td>
+              <td><span class="badge badge-fixed">All 4 modules pass</span></td>
+            </tr>
+            <tr>
+              <td>Lint (root)</td>
+              <td><code>golangci-lint run</code> (71 linters)</td>
+              <td><span class="badge badge-fixed">0 issues</span></td>
+            </tr>
+            <tr>
+              <td>Lint (usermgmt)</td>
+              <td><code>GOWORK=off golangci-lint run</code></td>
+              <td><span class="badge badge-fixed">0 issues</span></td>
+            </tr>
+            <tr>
+              <td>Error family</td>
+              <td><code>branching-flow errorfamily .</code></td>
+              <td><span class="badge badge-fixed">0 violations</span></td>
+            </tr>
+            <tr>
+              <td>Duplication</td>
+              <td><code>art-dupl --semantic -t 15</code></td>
+              <td><span class="badge badge-fixed">0 clone groups</span></td>
+            </tr>
+            <tr>
+              <td>Tests (root)</td>
+              <td><code>go test -race -count=1</code></td>
+              <td><span class="badge badge-fixed">PASS</span></td>
+            </tr>
+            <tr>
+              <td>Tests (usermgmt)</td>
+              <td><code>go test -race -count=1</code></td>
+              <td><span class="badge badge-fixed">PASS</span></td>
+            </tr>
+            <tr>
+              <td>Tests (integration)</td>
+              <td><code>go test -race -count=1</code></td>
+              <td><span class="badge badge-fixed">PASS</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div class="stat-card stat-good">
-        <div class="stat-value">0</div>
-        <div class="stat-label">Lint Issues (Post-Fix)</div>
-      </div>
-      <div class="stat-card stat-good">
-        <div class="stat-value">0</div>
-        <div class="stat-label">Error Family Violations</div>
-      </div>
-      <div class="stat-card stat-good">
-        <div class="stat-value">0</div>
-        <div class="stat-label">Code Clones (t=15)</div>
-      </div>
-      <div class="stat-card stat-good">
-        <div class="stat-value">All</div>
-        <div class="stat-label">Tests Passing (-race)</div>
-      </div>
-      <div class="stat-card stat-warn">
-        <div class="stat-value">3</div>
-        <div class="stat-label">Issues Found &amp; Fixed</div>
-      </div>
-    </div>
 
-    <!-- Scan Methodology -->
-    <h2 id="methodology"><span class="num">01</span>Scan Methodology</h2>
-    <div class="card card-solution">
-      <h4>Tools &amp; Commands</h4>
-      <p>Each module analyzed independently:</p>
+      <!-- Issues Found & Fixed -->
+      <h2 id="findings"><span class="num">02</span>Issues Found &amp; Fixed</h2>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">Medium</span>
+        <h3>exhaustruct: SSEStream struct literal missing <code>mu</code> field</h3>
+        <div class="where">sse_stream.go:64 (root module)</div>
+        <p>
+          The <code>exhaustruct</code> linter requires all struct fields to be explicitly
+          initialized. The <code>mu sync.Mutex</code> field was omitted (zero-value is valid), but
+          the linter enforces explicit listing.
+        </p>
+        <div class="callout callout-solution">
+          <strong>Fixed</strong>
+          Added <code>mu: sync.Mutex{}</code> to the struct literal in <code>NewSSEStream()</code>.
+        </div>
+      </div>
+
+      <div class="issue issue-important">
+        <span class="severity severity-important">Medium</span>
+        <h3>gochecknoglobals: package-level <code>zeroActorID</code> variable</h3>
+        <div class="where">sql_session_store.go:239 (usermgmt module)</div>
+        <p>
+          The <code>gochecknoglobals</code> linter flags mutable package-level variables.
+          <code>var zeroActorID ActorID</code> was a zero-value sentinel used in
+          <code>parseActorIDPrefixed()</code>.
+        </p>
+        <div class="callout callout-solution">
+          <strong>Fixed</strong>
+          Replaced all 3 usages with inline <code>ActorID{}</code> and removed the global. Added
+          <code>ActorID</code> to the exhaustruct exclude list (it has unexported fields, so
+          zero-value construction is the only option without a constructor).
+        </div>
+      </div>
+
+      <div class="issue issue-nice">
+        <span class="severity severity-nice">Low</span>
+        <h3>forcetypeassert: unchecked type assertion in test</h3>
+        <div class="where">session_store_contract_test.go:194 (usermgmt module)</div>
+        <p>
+          The <code>forcetypeassert</code> linter requires the two-value form for type assertions.
+          <code>impersonation.Origin.(Impersonation).At</code> used the single-value form.
+        </p>
+        <div class="callout callout-solution">
+          <strong>Fixed</strong>
+          Changed to <code>origImp, ok := impersonation.Origin.(Impersonation)</code> with proper
+          error handling.
+        </div>
+      </div>
+
+      <!-- Strengths -->
+      <h2>Strengths</h2>
+      <div class="strengths">
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Zero harmful duplication</strong>
+            <span
+              >art-dupl reports 0 clone groups even at aggressive threshold 15. The codebase has
+              been through prior deduplication rounds and is exceptionally clean.</span
+            >
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>100% error-family compliance</strong>
+            <span
+              ><code>branching-flow errorfamily .</code> reports 0 violations &mdash; no stdlib
+              <code>errors.New</code>/<code>fmt.Errorf</code>/<code>errors.Join</code> in non-test
+              code.</span
+            >
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>71-linter golangci-lint config</strong>
+            <span
+              >One of the strictest lint configurations in the Go ecosystem: exhaustruct,
+              gochecknoglobals, cyclop, nestif, errorlint, wrapcheck, and more. Zero issues
+              post-fix.</span
+            >
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Race-clean test suite</strong>
+            <span
+              >All tests pass with <code>-race</code> across root, usermgmt, and integration_test
+              modules &mdash; no data races detected.</span
+            >
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Clean module boundaries</strong>
+            <span
+              >4 independent Go modules with no circular dependencies. Each builds and tests
+              independently with <code>GOWORK=off</code>.</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Codebase Stats -->
+      <h2 id="stats"><span class="num">03</span>Codebase Profile</h2>
       <table>
         <thead>
           <tr>
-            <th>Check</th>
-            <th>Tool</th>
-            <th>Result</th>
+            <th>Module</th>
+            <th>.go Files</th>
+            <th>Lines</th>
+            <th>Role</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Build</td>
-            <td><code>go build ./...</code></td>
-            <td><span class="badge badge-fixed">All 4 modules pass</span></td>
+            <td>Root</td>
+            <td>116</td>
+            <td>~18K</td>
+            <td>Core HTMX-aware CQRS HTTP integration library</td>
           </tr>
           <tr>
-            <td>Lint (root)</td>
-            <td><code>golangci-lint run</code> (71 linters)</td>
-            <td><span class="badge badge-fixed">0 issues</span></td>
+            <td>usermgmt</td>
+            <td>152</td>
+            <td>~20K</td>
+            <td>Event-sourced user management (WebAuthn, RBAC, OAuth2, TOTP)</td>
           </tr>
           <tr>
-            <td>Lint (usermgmt)</td>
-            <td><code>GOWORK=off golangci-lint run</code></td>
-            <td><span class="badge badge-fixed">0 issues</span></td>
+            <td>catalog</td>
+            <td>7</td>
+            <td>~700</td>
+            <td>API documentation generation (OpenAPI/AsyncAPI/D2)</td>
           </tr>
           <tr>
-            <td>Error family</td>
-            <td><code>branching-flow errorfamily .</code></td>
-            <td><span class="badge badge-fixed">0 violations</span></td>
+            <td>integration_test</td>
+            <td>8</td>
+            <td>~1K</td>
+            <td>Cross-module integration tests</td>
           </tr>
-          <tr>
-            <td>Duplication</td>
-            <td><code>art-dupl --semantic -t 15</code></td>
-            <td><span class="badge badge-fixed">0 clone groups</span></td>
-          </tr>
-          <tr>
-            <td>Tests (root)</td>
-            <td><code>go test -race -count=1</code></td>
-            <td><span class="badge badge-fixed">PASS</span></td>
-          </tr>
-          <tr>
-            <td>Tests (usermgmt)</td>
-            <td><code>go test -race -count=1</code></td>
-            <td><span class="badge badge-fixed">PASS</span></td>
-          </tr>
-          <tr>
-            <td>Tests (integration)</td>
-            <td><code>go test -race -count=1</code></td>
-            <td><span class="badge badge-fixed">PASS</span></td>
+          <tr style="font-weight: bold">
+            <td>Total</td>
+            <td>283</td>
+            <td>~42K</td>
+            <td>4 Go modules, 500+ tests</td>
           </tr>
         </tbody>
       </table>
-    </div>
 
-    <!-- Issues Found & Fixed -->
-    <h2 id="findings"><span class="num">02</span>Issues Found &amp; Fixed</h2>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">Medium</span>
-      <h3>exhaustruct: SSEStream struct literal missing <code>mu</code> field</h3>
-      <div class="where">sse_stream.go:64 (root module)</div>
-      <p>The <code>exhaustruct</code> linter requires all struct fields to be explicitly initialized. The <code>mu sync.Mutex</code> field was omitted (zero-value is valid), but the linter enforces explicit listing.</p>
-      <div class="callout callout-solution">
-        <strong>Fixed</strong>
-        Added <code>mu: sync.Mutex{}</code> to the struct literal in <code>NewSSEStream()</code>.
+      <div
+        style="
+          margin-top: 3rem;
+          padding: 1.5rem;
+          border-top: 1px solid var(--border);
+          color: var(--text-dim);
+          font-size: 0.875rem;
+        "
+      >
+        Generated by code-quality-scan skill &bull; cqrs-htmx v3 &bull; 2026-06-25
       </div>
-    </div>
-
-    <div class="issue issue-important">
-      <span class="severity severity-important">Medium</span>
-      <h3>gochecknoglobals: package-level <code>zeroActorID</code> variable</h3>
-      <div class="where">sql_session_store.go:239 (usermgmt module)</div>
-      <p>The <code>gochecknoglobals</code> linter flags mutable package-level variables. <code>var zeroActorID ActorID</code> was a zero-value sentinel used in <code>parseActorIDPrefixed()</code>.</p>
-      <div class="callout callout-solution">
-        <strong>Fixed</strong>
-        Replaced all 3 usages with inline <code>ActorID{}</code> and removed the global. Added <code>ActorID</code> to the exhaustruct exclude list (it has unexported fields, so zero-value construction is the only option without a constructor).
-      </div>
-    </div>
-
-    <div class="issue issue-nice">
-      <span class="severity severity-nice">Low</span>
-      <h3>forcetypeassert: unchecked type assertion in test</h3>
-      <div class="where">session_store_contract_test.go:194 (usermgmt module)</div>
-      <p>The <code>forcetypeassert</code> linter requires the two-value form for type assertions. <code>impersonation.Origin.(Impersonation).At</code> used the single-value form.</p>
-      <div class="callout callout-solution">
-        <strong>Fixed</strong>
-        Changed to <code>origImp, ok := impersonation.Origin.(Impersonation)</code> with proper error handling.
-      </div>
-    </div>
-
-    <!-- Strengths -->
-    <h2>Strengths</h2>
-    <div class="strengths">
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>Zero harmful duplication</strong>
-          <span>art-dupl reports 0 clone groups even at aggressive threshold 15. The codebase has been through prior deduplication rounds and is exceptionally clean.</span>
-        </div>
-      </div>
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>100% error-family compliance</strong>
-          <span><code>branching-flow errorfamily .</code> reports 0 violations &mdash; no stdlib <code>errors.New</code>/<code>fmt.Errorf</code>/<code>errors.Join</code> in non-test code.</span>
-        </div>
-      </div>
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>71-linter golangci-lint config</strong>
-          <span>One of the strictest lint configurations in the Go ecosystem: exhaustruct, gochecknoglobals, cyclop, nestif, errorlint, wrapcheck, and more. Zero issues post-fix.</span>
-        </div>
-      </div>
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>Race-clean test suite</strong>
-          <span>All tests pass with <code>-race</code> across root, usermgmt, and integration_test modules &mdash; no data races detected.</span>
-        </div>
-      </div>
-      <div class="strength">
-        <div class="check">+</div>
-        <div class="text">
-          <strong>Clean module boundaries</strong>
-          <span>4 independent Go modules with no circular dependencies. Each builds and tests independently with <code>GOWORK=off</code>.</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Codebase Stats -->
-    <h2 id="stats"><span class="num">03</span>Codebase Profile</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Module</th>
-          <th>.go Files</th>
-          <th>Lines</th>
-          <th>Role</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Root</td>
-          <td>116</td>
-          <td>~18K</td>
-          <td>Core HTMX-aware CQRS HTTP integration library</td>
-        </tr>
-        <tr>
-          <td>usermgmt</td>
-          <td>152</td>
-          <td>~20K</td>
-          <td>Event-sourced user management (WebAuthn, RBAC, OAuth2, TOTP)</td>
-        </tr>
-        <tr>
-          <td>catalog</td>
-          <td>7</td>
-          <td>~700</td>
-          <td>API documentation generation (OpenAPI/AsyncAPI/D2)</td>
-        </tr>
-        <tr>
-          <td>integration_test</td>
-          <td>8</td>
-          <td>~1K</td>
-          <td>Cross-module integration tests</td>
-        </tr>
-        <tr style="font-weight: bold;">
-          <td>Total</td>
-          <td>283</td>
-          <td>~42K</td>
-          <td>4 Go modules, 500+ tests</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div style="margin-top: 3rem; padding: 1.5rem; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.875rem;">
-      Generated by code-quality-scan skill &bull; cqrs-htmx v3 &bull; 2026-06-25
-    </div>
-
     </main>
   </body>
 </html>
