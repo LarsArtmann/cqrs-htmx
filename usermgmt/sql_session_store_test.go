@@ -16,6 +16,9 @@ func newTestSQLiteSessionStore(t *testing.T) *SQLSessionStore {
 		t.Fatalf("open sqlite: %v", err)
 	}
 	db.SetMaxOpenConns(1) // SQLite :memory: is per-connection — single conn for shared state
+	if err := OptimizeSQLiteDB(context.Background(), db); err != nil {
+		t.Fatalf("OptimizeSQLiteDB: %v", err)
+	}
 	t.Cleanup(func() { _ = db.Close() })
 	store, err := NewSQLSessionStore(context.Background(), db, "sqlite")
 	if err != nil {
@@ -194,4 +197,55 @@ func TestOptimizeSQLiteDB(t *testing.T) {
 		t.Fatalf("read journal_mode: %v", err)
 	}
 	t.Logf("journal_mode=%s", mode)
+}
+
+// TestSharedSQLiteDB_EventAndSessionStores proves that SQLEventStore and
+// SQLSessionStore can coexist on a single WAL-tuned SQLite database.
+// This is the deployment pattern consumers use for embedded SQLite.
+func TestSharedSQLiteDB_EventAndSessionStores(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+
+	if err := OptimizeSQLiteDB(ctx, db); err != nil {
+		t.Fatalf("OptimizeSQLiteDB: %v", err)
+	}
+
+	eventStore, err := NewSQLEventStore(ctx, db, dialectSQLite)
+	if err != nil {
+		t.Fatalf("NewSQLEventStore: %v", err)
+	}
+	t.Cleanup(func() { _ = eventStore.Close() })
+
+	sessionStore, err := NewSQLSessionStore(ctx, db, dialectSQLite)
+	if err != nil {
+		t.Fatalf("NewSQLSessionStore: %v", err)
+	}
+	t.Cleanup(func() { _ = sessionStore.Close() })
+
+	var mode string
+	if err := db.QueryRow("PRAGMA journal_mode").Scan(&mode); err != nil {
+		t.Fatalf("read journal_mode: %v", err)
+	}
+	if mode != "wal" && mode != "memory" {
+		t.Fatalf("expected WAL or memory journal mode, got %q", mode)
+	}
+
+	sess, err := NewSession(NewUserID("01JTESTUSERID0001"), 24*time.Hour)
+	if err != nil {
+		t.Fatalf("NewSession: %v", err)
+	}
+	if err := sessionStore.Create(ctx, sess); err != nil {
+		t.Fatalf("Create session: %v", err)
+	}
+	found, err := sessionStore.Find(ctx, sess.Token)
+	if err != nil || found == nil {
+		t.Fatalf("Find session: err=%v found=%v", err, found != nil)
+	}
 }
