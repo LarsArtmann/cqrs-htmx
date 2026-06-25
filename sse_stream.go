@@ -67,6 +67,7 @@ func NewSSEStream(w http.ResponseWriter, r *http.Request) *SSEStream {
 		fw:           fw,
 		ctx:          r.Context(),
 		onDisconnect: nil,
+		mu:           sync.Mutex{},
 	}
 }
 
@@ -109,8 +110,10 @@ func (s *SSEStream) Close() {
 	if s.fw != nil {
 		s.fw.Flush()
 	}
+	callbacks := s.onDisconnect
+	s.onDisconnect = nil
 	s.mu.Unlock()
-	for _, fn := range s.onDisconnect {
+	for _, fn := range callbacks {
 		fn()
 	}
 }
@@ -159,7 +162,9 @@ func (s *SSEStream) Heartbeat(ctx context.Context, interval time.Duration) {
 // Use this for cleanup, metrics, logging, or session deregistration.
 // Multiple callbacks can be registered and fire in registration order.
 func (s *SSEStream) OnDisconnect(fn func()) {
+	s.mu.Lock()
 	s.onDisconnect = append(s.onDisconnect, fn)
+	s.mu.Unlock()
 }
 
 // This is the SSE reconnection mechanism: when a client reconnects after a
