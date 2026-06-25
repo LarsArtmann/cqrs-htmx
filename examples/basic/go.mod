@@ -16,6 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
