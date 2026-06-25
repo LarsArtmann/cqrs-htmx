@@ -111,7 +111,7 @@ _Bugs found and fixed by code-quality-scan + full-code-review + architecture-rev
 
 ### Architecture Improvements (from architecture-review)
 
-- [ ] **Extract *http.Request from WebAuthn service** (HIGH) — `webauthn_service.go:52,154` leak HTTP into service layer. Parse in `webauthn_http.go`, pass bytes to service.
+- [ ] **Extract \*http.Request from WebAuthn service** (HIGH) — `webauthn_service.go:52,154` leak HTTP into service layer. Parse in `webauthn_http.go`, pass bytes to service.
 - [ ] **Add interfaces for ephemeral stores** (HIGH) — 6 in-memory stores (WebAuthn sessions, verification tokens, TOTP, lockout, rate limiter, read models) have no interface or SQL alt. Multi-instance impossible.
 - [ ] **Consider snapshot integration** (MEDIUM) — `service_core.go:149-159` replays all events on startup. `go-cqrs-lite/snapshot/v3` is an indirect dep but not wired.
 - [ ] **LastEventIDFromRequest should delegate** (LOW) — `sse_stream.go:178` duplicates `SSEStream.LastEventID()` (line 122). Byte-identical implementations.
