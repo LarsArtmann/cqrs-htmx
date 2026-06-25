@@ -165,21 +165,21 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency                  | Purpose                                                                            | Used in          |
-| --------------------------- | ---------------------------------------------------------------------------------- | ---------------- |
-| go-cqrs-lite v3.0.0         | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus) | All modules      |
-| casbin/casbin/v3            | Authorization                                                                      | Root, usermgmt   |
-| justinas/nosurf v1.2.0      | CSRF protection                                                                    | Root             |
-| go-error-family v0.5.0      | Error classification                                                               | All modules      |
-| larsartmann/httputil        | ClientIP extraction                                                                | Root             |
-| go-branded-id v0.3.1        | Branded types                                                                      | usermgmt         |
-| go-webauthn v0.17.4         | WebAuthn/Passkey passwordless authentication                                       | usermgmt         |
-| pquerna/otp v1.5.0          | TOTP (RFC 6238) multi-factor authentication                                        | usermgmt         |
-| golang.org/x/oauth2 v0.36.0 | OAuth2 authorization code flow with PKCE                                           | usermgmt         |
-| coreos/go-oidc/v3 v3.19.0   | OIDC provider discovery + ID token verification                                    | usermgmt         |
-| go-jose/go-jose/v4 v4.1.4   | JWT/JWS signing (transitive from go-oidc, used in tests)                           | usermgmt (tests) |
-| golang.org/x/time           | Rate limiting                                                                      | Root             |
-| onsi/ginkgo/v2 + gomega     | BDD test framework                                                                 | All test modules |
+| Dependency                  | Purpose                                                                                                             | Used in          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| go-cqrs-lite v3.1.0         | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus, SQL view stores, typed metadata) | All modules      |
+| casbin/casbin/v3            | Authorization                                                                                                       | Root, usermgmt   |
+| justinas/nosurf v1.2.0      | CSRF protection                                                                                                     | Root             |
+| go-error-family v0.5.1      | Error classification                                                                                                | All modules      |
+| larsartmann/httputil        | ClientIP extraction                                                                                                 | Root             |
+| go-branded-id v0.3.1        | Branded types                                                                                                       | usermgmt         |
+| go-webauthn v0.17.4         | WebAuthn/Passkey passwordless authentication                                                                        | usermgmt         |
+| pquerna/otp v1.5.0          | TOTP (RFC 6238) multi-factor authentication                                                                         | usermgmt         |
+| golang.org/x/oauth2 v0.36.0 | OAuth2 authorization code flow with PKCE                                                                            | usermgmt         |
+| coreos/go-oidc/v3 v3.19.0   | OIDC provider discovery + ID token verification                                                                     | usermgmt         |
+| go-jose/go-jose/v4 v4.1.4   | JWT/JWS signing (transitive from go-oidc, used in tests)                                                            | usermgmt (tests) |
+| golang.org/x/time           | Rate limiting                                                                                                       | Root             |
+| onsi/ginkgo/v2 + gomega     | BDD test framework                                                                                                  | All test modules |
 
 ## Key Decisions
 
@@ -195,7 +195,7 @@ cqrs-htmx/
 
 ### Error Handling
 
-- **go-error-family v0.5.0**: Replaced `cockroachdb/errors` for error classification. Re-exported via `go-cqrs-lite/event/v3` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). Root + usermgmt import it transitively via `event/v3` (indirect); `catalog` imports `go-error-family` directly (no event/v3 dep). `ErrDispatchFailed` is now natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
+- **go-error-family v0.5.1**: Replaced `cockroachdb/errors` for error classification. Re-exported via `go-cqrs-lite/event/v3` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). Root + usermgmt import it transitively via `event/v3` (indirect); `catalog` imports `go-error-family` directly (no event/v3 dep). `ErrDispatchFailed` is now natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
 - **NO stdlib error constructors**: `errors.New`, `fmt.Errorf` (as error), and `errors.Join` are banned in non-test code. Enforced by `branching-flow errorfamily .` (must report 0). Use `event.New*/Wrap*/Wrapf/Newf` instead. Exception: `fmt.Sprintf` is fine when building a _message string_ (not an error object), e.g. `http.go`/`verification_totp_http.go` format a 400 response body
 - **Family assignment rules** (maps to HTTP status via `MapError`):
   - **Rejection (400)** — caller/user input invalid: parse failures, validation (`ParseEmail`, `ImportUser.Validate`), bad config (`OAuth2ProviderConfig.Validate`, unsupported SQL dialect), missing/invalid IDs
@@ -309,7 +309,7 @@ cqrs-htmx/
 - **Registration = email only**: RegisterRequest has ID + Email + DisplayName. No password field.
 - **Read-your-writes consistency**: `watermill.EventBus` (GoChannel backend, `BlockPublishUntilSubscriberAck: true`) blocks publishers until handlers complete, so projections update before `Execute()` returns. `StartProjections` replays all historical events from the journal synchronously (via `journal.ReadAll`), then subscribes to live events via `bus.SubscribeAll` with replay→live dedup. No `time.Sleep`-based catch-up. See `es_projection_setup.go`.
 - **Sessions NOT event-sourced**: `SessionStore` interface unchanged. Ephemeral auth artifacts.
-- **SQL event store delegates to upstream (RESOLVED 2026-06-19)**: `usermgmt.SQLEventStore` is now a type alias over `storage.SQLEventStore` from `go-cqrs-lite/storage/v3` (v3.0.0). The hand-rolled 413-LOC store was replaced by a 78-LOC facade. The upstream store provides a richer schema (`schema_version`, `payload_encoding`, `created_at`), OpenTelemetry tracing, `event.SeekableJournal`/`BackwardsSource`, and `event.WrapInfrastructure` error wrapping. `NewSQLEventStore` maps dialect strings → `sqlpkg.Dialect`, creates the upstream store, and applies the event schema DDL. **Breaking changes**: (1) `Close()` no longer closes the `*sql.DB` — upstream uses a borrowed handle; callers must close the DB separately. (2) `Load()` on empty aggregate returns `event.ErrAggregateNotFound` (decider's `Repository` handles this by returning Initial state). (3) MySQL is no longer supported for the event store (upstream has no MySQL dialect). `SQLSessionStore` retains MySQL support — it manages its own schema. **Migration script**: `usermgmt/migrations/0001_user_events_to_events.sql` for Postgres deployments upgrading from `< v2.5.0`. **Fuzz tests**: `FuzzSQLSessionStore_CreateFindRoundTrip` and `FuzzSQLSessionStore_DeleteByUserID` cover arbitrary userID strings (SQL injection, unicode, null bytes). **Benchmarks**: `BenchmarkSQLSessionStore_{Create,Find,FindMiss,Delete,DeleteByUserID,EvictExpired}`.
+- **SQL event store delegates to upstream (RESOLVED 2026-06-19)**: `usermgmt.SQLEventStore` is now a type alias over `storage.SQLEventStore` from `go-cqrs-lite/storage/v3` (v3.1.0). The hand-rolled 413-LOC store was replaced by a 78-LOC facade. The upstream store provides a richer schema (`schema_version`, `payload_encoding`, `created_at`), OpenTelemetry tracing, `event.SeekableJournal`/`BackwardsSource`, and `event.WrapInfrastructure` error wrapping. `NewSQLEventStore` maps dialect strings → `sqlpkg.Dialect`, creates the upstream store, and applies the event schema DDL. **Breaking changes**: (1) `Close()` no longer closes the `*sql.DB` — upstream uses a borrowed handle; callers must close the DB separately. (2) `Load()` on empty aggregate returns `event.ErrAggregateNotFound` (decider's `Repository` handles this by returning Initial state). (3) MySQL is no longer supported for the event store (upstream has no MySQL dialect). `SQLSessionStore` retains MySQL support — it manages its own schema. **Migration script**: `usermgmt/migrations/0001_user_events_to_events.sql` for Postgres deployments upgrading from `< v2.5.0`. **Fuzz tests**: `FuzzSQLSessionStore_CreateFindRoundTrip` and `FuzzSQLSessionStore_DeleteByUserID` cover arbitrary userID strings (SQL injection, unicode, null bytes). **Benchmarks**: `BenchmarkSQLSessionStore_{Create,Find,FindMiss,Delete,DeleteByUserID,EvictExpired}`.
 - **UserID bridge**: `usermgmt.UserID` ↔ `id.AggregateID` via `id.ParseAggregateID(userID.Get())`. Conversion at Service boundary.
 - **Email uniqueness**: Pre-checked in Service.Register via read model before dispatching command.
 - **DeleteUser revokes sessions**: Sessions deleted on user deletion for security.
@@ -357,10 +357,10 @@ cqrs-htmx/
 
 1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-3. **go-cqrs-lite v3.0.0**: Per-module tags (`command/v3.0.0`, `event/v3.0.0`, etc.) published. All `go.mod` files declare `v3.0.0`. No replace directives needed
+3. **go-cqrs-lite v3.1.0**: Per-module tags (`command/v3.1.0`, `event/v3.1.0`, etc.) published. All `go.mod` files declare `v3.1.0`. No replace directives needed. v3.1.0 adds SQL-backed view stores (`storage.SQLViewStore`/`ViewMapper`/`AutoMapper`), typed command/query metadata (`event.CustomData[K]`), multi-DB split presets, and `synchronous=NORMAL` WAL tuning — zero breaking changes over v3.0.0
 4. **Removed APIs in v2.3.0+**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
 5. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
-6. **LSP vs CLI discrepancy**: LSP may show stale warnings after golangci.yml changes; CLI (`golangci-lint run`) is authoritative. Both report 0 issues as of go-error-family v0.5.0 adoption
+6. **LSP vs CLI discrepancy**: LSP may show stale warnings after golangci.yml changes; CLI (`golangci-lint run`) is authoritative. Both report 0 issues as of go-error-family v0.5.1 adoption
 7. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
 
 ### Type System

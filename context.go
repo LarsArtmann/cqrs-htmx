@@ -75,6 +75,15 @@ type actorIDKey struct{}
 
 type impersonatorIDKey struct{}
 
+// MetadataKeyActorID is the event metadata custom-data key for the effective
+// identity — who the request acts AS. Written by EventOptionsFromContext.
+const MetadataKeyActorID = "actor_id"
+
+// MetadataKeyImpersonatorID is the event metadata custom-data key for the real
+// authenticated identity (the admin). Written by EventOptionsFromContext when
+// impersonation is active.
+const MetadataKeyImpersonatorID = "impersonator_id"
+
 // RequestID is a strongly-typed per-request identifier, preventing accidental
 // mixing with other ID types at compile time.
 type RequestID = id.RequestID
@@ -182,10 +191,10 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 	// ImpersonatorID = who is REALLY authenticated (the admin).
 	// When both are set, every event carries the full chain for compliance queries.
 	if actorID := ActorIDFromContext(ctx); actorID != "" {
-		opts = append(opts, event.WithCustom("actor_id", actorID))
+		opts = append(opts, event.WithCustom(MetadataKeyActorID, actorID))
 	}
 	if impersonatorID := ImpersonatorIDFromContext(ctx); impersonatorID != "" {
-		opts = append(opts, event.WithCustom("impersonator_id", impersonatorID))
+		opts = append(opts, event.WithCustom(MetadataKeyImpersonatorID, impersonatorID))
 	}
 
 	if cid := CorrelationIDFromContext(ctx); !cid.IsZero() {

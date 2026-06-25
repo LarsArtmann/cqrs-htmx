@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/catalog/v3
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.1.0
 	github.com/larsartmann/go-error-family v0.5.1
 )
 
