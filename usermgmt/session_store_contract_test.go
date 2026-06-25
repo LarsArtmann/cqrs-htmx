@@ -191,7 +191,11 @@ func runSessionStoreContract(t *testing.T, factory func(t *testing.T) SessionSto
 		if imp.Reason != "support escalation" {
 			t.Fatalf("impersonation Reason = %q, want %q", imp.Reason, "support escalation")
 		}
-		originalAt := impersonation.Origin.(Impersonation).At
+		origImp, ok := impersonation.Origin.(Impersonation)
+		if !ok {
+			t.Fatalf("impersonation.Origin type assertion failed: got %T", impersonation.Origin)
+		}
+		originalAt := origImp.At
 		if !imp.At.Equal(originalAt) {
 			t.Fatalf("impersonation At = %v, want %v", imp.At, originalAt)
 		}

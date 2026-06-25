@@ -91,6 +91,7 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.RegisterRequest$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.User$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.AccountLockout$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.ActorID$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.InMemorySessionStore$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.UserState$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.UserReadModel$

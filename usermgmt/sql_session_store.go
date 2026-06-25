@@ -234,19 +234,15 @@ func unmarshalSessionOrigin(originType, data string) (SessionOrigin, error) {
 	}
 }
 
-// zeroActorID is the zero-value ActorID returned when an origin payload cannot
-// be parsed (e.g. a legacy row with no stored actor). It has an empty raw id.
-var zeroActorID ActorID
-
 // parseActorIDPrefixed reconstructs an ActorID from its prefixed string form
 // ("user:<id>" / "bot:<id>"), the inverse of ActorID.PrefixedString.
 func parseActorIDPrefixed(s string) ActorID {
 	if s == "" {
-		return zeroActorID
+		return ActorID{}
 	}
 	kindStr, raw, found := strings.Cut(s, ":")
 	if !found {
-		return zeroActorID
+		return ActorID{}
 	}
 	switch kindStr {
 	case actorKindUserStr:
@@ -254,7 +250,7 @@ func parseActorIDPrefixed(s string) ActorID {
 	case actorKindBotStr:
 		return NewActorID(ActorBot, raw)
 	default:
-		return zeroActorID
+		return ActorID{}
 	}
 }
 
