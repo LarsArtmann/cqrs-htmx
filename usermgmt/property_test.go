@@ -180,7 +180,7 @@ func TestFoldUserProperty_RolesUpdatedPreservesEmail(t *testing.T) {
 	})
 }
 
-func TestFoldUserProperty_UnknownEventNoChange(t *testing.T) {
+func TestFoldUserProperty_UnknownEventReturnsError(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		email := rapidEmail().Draw(t, "email")
 		initial := UserState{
@@ -194,8 +194,8 @@ func TestFoldUserProperty_UnknownEventNoChange(t *testing.T) {
 			t.Fatalf("create unknown event: %v", err)
 		}
 		state, err := foldUser(initial, unknownEvt)
-		if err != nil {
-			t.Fatalf("foldUser: %v", err)
+		if err == nil {
+			t.Fatalf("foldUser should return error for unknown event")
 		}
 		if state.Email != initial.Email {
 			t.Errorf("email changed on unknown event")

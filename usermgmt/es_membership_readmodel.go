@@ -38,23 +38,7 @@ func (m *MembershipReadModel) Handle(_ context.Context, evt event.Event) error {
 
 	switch evt.Type() {
 	case eventMemberAdded:
-		p, err := unmarshalPayload[MemberAddedPayload](evt)
-		if err != nil {
-			return event.WrapCorruption(
-				err,
-				"usermgmt.membership_readmodel.decode_failed",
-				"decode MemberAdded in read model",
-			)
-		}
-		roles := make([]Role, len(p.Roles))
-		copy(roles, p.Roles)
-		m.memberships[aggID] = &Membership{
-			ActorID:  NewActorID(actorKindFromString(p.ActorKind), p.ActorID),
-			TenantID: NewTenantID(p.TenantID),
-			Roles:    roles,
-			AddedAt:  time.Now().UTC(),
-		}
-		m.byActor[p.ActorID] = append(m.byActor[p.ActorID], aggID)
+		return m.applyMemberAdded(aggID, evt)
 
 	case eventMemberRolesChanged:
 		p, err := unmarshalPayload[MemberRolesChangedPayload](evt)
@@ -83,6 +67,35 @@ func (m *MembershipReadModel) Handle(_ context.Context, evt event.Event) error {
 		)
 	}
 
+	return nil
+}
+
+func (m *MembershipReadModel) applyMemberAdded(aggID id.AggregateID, evt event.Event) error {
+	p, err := unmarshalPayload[MemberAddedPayload](evt)
+	if err != nil {
+		return event.WrapCorruption(
+			err,
+			"usermgmt.membership_readmodel.decode_failed",
+			"decode MemberAdded in read model",
+		)
+	}
+	roles := make([]Role, len(p.Roles))
+	copy(roles, p.Roles)
+	kind, err := actorKindFromString(p.ActorKind)
+	if err != nil {
+		return event.WrapCorruption(
+			err,
+			"usermgmt.membership_readmodel.unknown_actor_kind",
+			"decode actor kind in MemberAdded",
+		)
+	}
+	m.memberships[aggID] = &Membership{
+		ActorID:  NewActorID(kind, p.ActorID),
+		TenantID: NewTenantID(p.TenantID),
+		Roles:    roles,
+		AddedAt:  time.Now().UTC(),
+	}
+	m.byActor[p.ActorID] = append(m.byActor[p.ActorID], aggID)
 	return nil
 }
 

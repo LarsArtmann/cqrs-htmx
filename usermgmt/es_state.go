@@ -164,6 +164,10 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		next.ExternalAccounts = filtered
 
 	default:
+		return state, event.NewRejection(
+			"usermgmt.user.unknown_event",
+			"foldUser received unknown event type: "+string(evt.Type()),
+		)
 	}
 
 	return next, nil
