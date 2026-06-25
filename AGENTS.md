@@ -75,9 +75,9 @@ cqrs-htmx/
 │   ├── authz_types.go     # Authz wrapper around Casbin (RBAC with domains), AsEnforcer adapter
 │   ├── authz_policies.go  # Apply, AddGroupPolicy, RemoveGroupPolicy, AddPolicy, RemovePolicy
 │   ├── authz_roles.go     # RolesForUser, RolesForActor, ImplicitRolesForActor, role hierarchy seed (g2)
-│   ├── es_constants.go    # Aggregate types (User, Membership) + 15 event + 15 command constants + schema v2
-│   ├── es_events.go       # 7 event payload structs (UserRegistered, CredentialAdded, etc.)
-│   ├── es_commands.go     # 7 command structs (RegisterUserCmd, AddCredentialCmd, etc.)
+│   ├── es_constants.go    # Aggregate types (User, Membership, Tenant, Bot) + 21 event + 20 command constants + schema v2
+│   ├── es_events.go       # 12 event payload structs (UserRegistered, CredentialAdded, EmailVerified, TOTPEnabled, ExternalAccountLinked, etc.)
+│   ├── es_commands.go     # 11 command structs (RegisterUserCmd, AddCredentialCmd, VerifyEmailCmd, EnableTOTPCmd, LinkExternalAccountCmd, etc.)
 │   ├── es_state.go        # UserState + foldUser() pure function (event → state)
 │   ├── es_decide.go       # 7 pure decide functions (guards + event creation)
 │   ├── es_membership_events.go    # 3 membership event payloads (MemberAdded, MemberRolesChanged, MemberRemoved)
@@ -190,7 +190,7 @@ cqrs-htmx/
 - **templ duck-typing**: `TemplComponent` interface matches `templ.Component` without importing templ
 - **authMode enum**: `authNone`/`authRequired`/`authAuthorized` — impossible states unrepresentable
 - **Library principle**: Never enforce defaults that consumers might disagree with (no mandatory CSP/HSTS, no mandatory CSRF)
-- **Root module is intentionally a single flat package**: 19 files form a cohesive "HTMX-aware CQRS HTTP integration" library. The errors↔response↔csrf cycle prevents further splitting. Sub-package extraction would harm consumer UX. See `docs/modularization/PROPOSAL.md` for full analysis
+- **Root module is intentionally a single flat package**: 40 files form a cohesive "HTMX-aware CQRS HTTP integration" library. The errors↔response↔csrf cycle prevents further splitting. Sub-package extraction would harm consumer UX. See `docs/modularization/PROPOSAL.md` for full analysis
 - **Root ↔ usermgmt: zero mutual imports**: Clean module boundary. Cross-module bridging happens in `integration_test/` only
 
 ### Error Handling
@@ -299,8 +299,8 @@ cqrs-htmx/
 
 - **PASSWORDLESS**: ALL password code removed. No bcrypt, no PasswordHash, no ChangePassword. Authentication is exclusively via WebAuthn (Passkeys/FIDO2) using go-webauthn v0.17.4.
 - **FULLY EVENT-SOURCED**: User aggregate uses go-cqrs-lite Decider pattern. All state changes are events persisted to an event store. `UserStore` interface REMOVED — replaced by `UserReadModel` projection.
-- **7 events**: `UserRegistered`, `RolesUpdated`, `EmailChanged`, `DisplayNameChanged`, `UserDeleted` (tombstone), `CredentialAdded`, `CredentialRemoved`
-- **7 commands**: `RegisterUser`, `UpdateRoles`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`, `AddCredential`, `RemoveCredential`
+- **12 events**: `UserRegistered`, `RolesUpdated` (legacy), `EmailChanged`, `DisplayNameChanged`, `UserDeleted` (tombstone), `CredentialAdded`, `CredentialRemoved`, `EmailVerified`, `TOTPEnabled`, `TOTPDisabled`, `ExternalAccountLinked`, `ExternalAccountUnlinked`
+- **11 commands**: `RegisterUser`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`, `AddCredential`, `RemoveCredential`, `VerifyEmail`, `EnableTOTP`, `DisableTOTP`, `LinkExternalAccount`, `UnlinkExternalAccount`
 - **Pure domain layer**: `foldUser()` reconstructs state from events. `decide*()` functions validate guards and emit events. No I/O in domain code.
 - **Write path**: Service → CommandDispatcher → DeciderRepository.Execute (load→fold→decide→save→publish)
 - **Read path**: Service queries `UserReadModel` (projection from events) — `FindByID`, `FindByEmail`
