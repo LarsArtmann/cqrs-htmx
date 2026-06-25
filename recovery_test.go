@@ -16,6 +16,7 @@ var _ = Describe("Recovery Middleware", func() {
 	// RecoveryMiddleware must re-raise this panic instead of swallowing it
 	// as a generic 500. Both the standalone and App-level recovery paths
 	// share this behavior, so the handler is built once.
+	//nolint:ginkgolinter // shared across all It blocks in this Describe
 	httpAbortHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		panic(http.ErrAbortHandler)
 	})

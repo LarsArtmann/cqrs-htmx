@@ -215,6 +215,7 @@ var _ = Describe("Context", func() {
 			length  int
 			service string
 		}
+		//nolint:ginkgolinter // table-driven cases iterated once, not per-test
 		cases := []struct {
 			name    string
 			service string

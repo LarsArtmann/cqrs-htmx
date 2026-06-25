@@ -63,10 +63,10 @@ func TestEventOptionsFromContext_ActorChain(t *testing.T) {
 	if custom == nil {
 		t.Fatal("expected non-nil Custom metadata")
 	}
-	if v := custom["actor_id"]; v != "user:01JX..." {
+	if v := custom[MetadataKeyActorID]; v != "user:01JX..." {
 		t.Errorf("metadata actor_id = %q, want %q", v, "user:01JX...")
 	}
-	if v := custom["impersonator_id"]; v != "user:01ADM..." {
+	if v := custom[MetadataKeyImpersonatorID]; v != "user:01ADM..." {
 		t.Errorf("metadata impersonator_id = %q, want %q", v, "user:01ADM...")
 	}
 }
@@ -90,10 +90,10 @@ func TestEventOptionsFromContext_NoActorChain(t *testing.T) {
 	if custom == nil {
 		return
 	}
-	if _, ok := custom["actor_id"]; ok {
+	if _, ok := custom[MetadataKeyActorID]; ok {
 		t.Error("should not have actor_id in metadata")
 	}
-	if _, ok := custom["impersonator_id"]; ok {
+	if _, ok := custom[MetadataKeyImpersonatorID]; ok {
 		t.Error("should not have impersonator_id in metadata")
 	}
 }
