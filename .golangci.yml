@@ -91,6 +91,9 @@ linters:
         - .+\.fakeTracer$
         - .+\.cidCapture$
         - .+\.SSEEvent$
+    ginkgolinter:
+      forbid-focus-container: true
+      forbid-spec-pollution: true
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -100,6 +103,10 @@ linters:
           name: exported
         - disabled: true
           name: package-comments
+    testifylint:
+      disable:
+        - go-require
+      enable-all: true
   exclusions:
     generated: lax
     rules:
@@ -136,6 +143,7 @@ linters:
       - \.gen\.go$
       - _mock\.go$
       - _templ\.go$
+      - usermgmt/
       - vendor/
 formatters:
   enable:
@@ -151,6 +159,7 @@ formatters:
     paths:
       - _mock\.go$
       - _templ\.go$
+      - usermgmt/
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
