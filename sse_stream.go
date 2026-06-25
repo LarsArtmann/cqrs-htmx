@@ -122,7 +122,7 @@ func (s *SSEStream) Close() {
 // The browser sends this on reconnection to indicate the last event it received.
 // Returns empty SSEEventID if not present.
 func (s *SSEStream) LastEventID() SSEEventID {
-	return SSEEventID(s.r.Header.Get("Last-Event-ID"))
+	return LastEventIDFromRequest(s.r)
 }
 
 // Heartbeat sends SSE comment-frame pings at the given interval until ctx

@@ -41,7 +41,11 @@ func foldMembership(state MembershipState, evt event.Event) (MembershipState, er
 		}
 		roles := make([]Role, len(p.Roles))
 		copy(roles, p.Roles)
-		next.ActorID = NewActorID(actorKindFromString(p.ActorKind), p.ActorID)
+		kind, err := actorKindFromString(p.ActorKind)
+		if err != nil {
+			return state, err
+		}
+		next.ActorID = NewActorID(kind, p.ActorID)
 		next.TenantID = NewTenantID(p.TenantID)
 		next.Roles = roles
 		next.Removed = false
@@ -69,9 +73,16 @@ func foldMembership(state MembershipState, evt event.Event) (MembershipState, er
 	return next, nil
 }
 
-func actorKindFromString(s string) ActorKind {
-	if s == actorKindBotStr {
-		return ActorBot
+func actorKindFromString(s string) (ActorKind, error) {
+	switch s {
+	case actorKindUserStr:
+		return ActorUser, nil
+	case actorKindBotStr:
+		return ActorBot, nil
+	default:
+		return ActorUser, event.NewRejection(
+			"usermgmt.membership.unknown_actor_kind",
+			"unknown actor kind: "+s,
+		)
 	}
-	return ActorUser
 }

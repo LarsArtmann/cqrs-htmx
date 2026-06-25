@@ -172,8 +172,8 @@ func TestFoldUser_UnknownEvent(t *testing.T) {
 		t.Fatalf("create unknown event: %v", err)
 	}
 	state, err := foldUser(initial, unknownEvt)
-	if err != nil {
-		t.Fatalf("foldUser unknown event: %v", err)
+	if err == nil {
+		t.Fatal("foldUser should error on unknown event")
 	}
 	if state.Email != "u@example.com" {
 		t.Errorf("state changed on unknown event")
