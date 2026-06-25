@@ -34,6 +34,7 @@ node_modules/
 *.db
 
 # Example binaries
+examples/basic/basic
 examples/datastar-demo/datastar-demo
 examples/catalog-demo/catalog-demo
 examples/catalog-demo/eventcatalog/
