@@ -1,0 +1,142 @@
+direction: down
+
+# cqrs-htmx v3 — Current Architecture (2026-06-25)
+
+root_module: {
+  label: "Root Module\ngithub.com/larsartmann/cqrs-htmx/v3\n40 files, ~18K LOC"
+  style.fill: "#1a2a3a"
+
+  cqrs_layer: {
+    label: "CQRS HTTP Integration"
+    app_builder: {label: "App Builder\n(New, Config, Command, Query)"}
+    handler: {label: "Dispatch Handlers\n(handleCommand/Query)"}
+    options: {label: "HandlerOptions\n(decode, render, validate, htmx)"}
+  }
+
+  transport_layer: {
+    label: "Transport Layer"
+    sse: {label: "SSE\n(Stream, Broadcaster, Store)"}
+    ws: {label: "WebSocket\n(Parse, Encode, Dispatch)"}
+    htmx: {label: "HTMX\n(ScriptHandler, Response)"}
+  }
+
+  security_layer: {
+    label: "Security"
+    csrf: {label: "CSRF\n(nosurf middleware)"}
+    ratelimit: {label: "Rate Limiter\n(token bucket)"}
+    authz: {label: "Authorization\n(Enforcer interface)"}
+    security_headers: {label: "Security Headers"}
+    recovery: {label: "Recovery"}
+  }
+}
+
+usermgmt_module: {
+  label: "Usermgmt Module\ngithub.com/larsartmann/cqrs-htmx/usermgmt/v3\n152 files, ~20K LOC"
+  style.fill: "#2a1a3a"
+
+  domain_layer: {
+    label: "Event-Sourced Domain (Pure)"
+
+    user_agg: {
+      label: "User Aggregate"
+      user_events: {label: "12 Events"}
+      user_commands: {label: "11 Commands"}
+      user_state: {label: "foldUser()"}
+    }
+
+    membership_agg: {
+      label: "Membership Aggregate"
+      membership_events: {label: "3 Events"}
+      membership_commands: {label: "3 Commands"}
+    }
+
+    tenant_agg: {
+      label: "Tenant Aggregate"
+      tenant_events: {label: "4 Events"}
+      tenant_commands: {label: "4 Commands"}
+    }
+
+    bot_agg: {
+      label: "Bot Aggregate"
+      bot_events: {label: "2 Events"}
+      bot_commands: {label: "2 Commands"}
+    }
+  }
+
+  service_layer: {
+    label: "Service (God Object — 24 fields)"
+    service_core: {label: "Service Core\n(Register, Auth, Logout)"}
+    service_auth: {label: "WebAuthn\n(Begin/Finish Reg+Login)"}
+    service_totp: {label: "TOTP MFA"}
+    service_oauth2: {label: "OAuth2/OIDC"}
+    service_impersonation: {label: "Impersonation"}
+    service_tenant: {label: "Tenant CRUD"}
+    service_bot: {label: "Bot CRUD"}
+  }
+
+  infra_layer: {
+    label: "Infrastructure"
+    readmodels: {label: "Read Models\n(User, Membership, Tenant, Bot)"}
+    casbin_proj: {label: "Casbin Projection"}
+    session_store: {label: "Session Store\n(InMemory + SQL)"}
+    event_store: {label: "SQL Event Store\n(upstream delegation)"}
+    ephemeral_stores: {
+      label: "Ephemeral Stores\n(IN-MEMORY ONLY)"
+      style.fill: "#3a1a1a"
+      webauthn_sessions: {label: "WebAuthn Sessions"}
+      verification: {label: "Verification Tokens"}
+      totp_pending: {label: "Pending TOTP"}
+      lockout: {label: "Account Lockout"}
+    }
+  }
+}
+
+catalog_module: {
+  label: "Catalog Module\ngithub.com/larsartmann/cqrs-htmx/catalog/v3\n7 files, ~700 LOC"
+  style.fill: "#1a3a2a"
+  catalog_builder: {label: "Builder + Serve\n(OpenAPI, AsyncAPI, D2)"}
+}
+
+integration_test: {
+  label: "Integration Test\n(cross-module bridge)"
+  style.fill: "#3a3a1a"
+}
+
+# External dependencies
+go_cqrs_lite: {label: "go-cqrs-lite v3.0.0\n(command, event, id, query,\ndecider, storage, catalog)"; style.fill: "#0d1117"}
+casbin: {label: "casbin/v3"; style.fill: "#0d1117"}
+nosurf: {label: "justinas/nosurf v1.2.0"; style.fill: "#0d1117"}
+webauthn: {label: "go-webauthn v0.17.4"; style.fill: "#0d1117"}
+error_family: {label: "go-error-family v0.5.0"; style.fill: "#0d1117"}
+
+# Module boundaries (zero mutual imports between root ↔ usermgmt)
+root_module -> integration_test: "tested by"
+usermgmt_module -> integration_test: "tested by"
+catalog_module -> integration_test: "tested by"
+
+# Dependency edges
+root_module -> go_cqrs_lite: "dispatch"
+root_module -> casbin: "authorization"
+root_module -> nosurf: "CSRF"
+root_module -> error_family: "error classification"
+
+usermgmt_module -> go_cqrs_lite: "event sourcing"
+usermgmt_module -> casbin: "RBAC"
+usermgmt_module -> webauthn: "passkeys"
+usermgmt_module -> error_family: "error classification"
+
+catalog_module -> go_cqrs_lite: "catalog types"
+catalog_module -> error_family: "errors"
+
+# Data flow within usermgmt
+usermgmt_module.domain_layer.user_agg -> usermgmt_module.service_layer.service_core: "decide/fold"
+usermgmt_module.service_layer -> usermgmt_module.infra_layer.readmodels: "projects to"
+usermgmt_module.infra_layer.event_store -> usermgmt_module.domain_layer: "replays events"
+
+# Known issues
+ephemeral_stores_note: {
+  label: "⚠ 6 ephemeral stores have\nNO interface or SQL backend\n→ single-instance only"
+  style.fill: "#3a1a1a"
+  style.stroke: "#ff6b6b"
+}
+usermgmt_module.infra_layer.ephemeral_stores -> ephemeral_stores_note: "scalability risk"

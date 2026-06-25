@@ -88,6 +88,34 @@
 - [~] **BrandNamer for root module marker types** — PARTIALLY UNBLOCKED: go-cqrs-lite v3.0.0 exports marker types. Needs verification and wiring.
 - [x] **Remove local replace directives** — go-cqrs-lite v2.0.0 tags are published upstream. All go-cqrs-lite replace directives removed from all 4 go.mod files. Only `integration_test` retains cqrs-htmx local replaces (library not yet published).
 
+### Comprehensive Review Session (2026-06-25)
+
+_Bugs found and fixed by code-quality-scan + full-code-review + architecture-review + data-model-review skills._
+
+- [x] **Fix SSEStream.OnDisconnect data race** — `OnDisconnect()` appended to slice without mutex; `Close()` iterated without mutex. Fixed: both now acquire `s.mu`. Close snapshots under lock, iterates outside.
+- [x] **Fix StartCleanupSweeper double-close panic** — `close(done)` in stop function panicked on second call. Fixed: wrapped in `sync.Once.Do()`.
+- [x] **Fix 3 lint issues** — exhaustruct on sse_stream.go (add `mu: sync.Mutex{}`), gochecknoglobals on sql_session_store.go (replace `var zeroActorID` with inline `ActorID{}`), forcetypeassert on session_store_contract_test.go (use ok-pattern).
+- [x] **Fix 3 stale AGENTS.md claims** — "19 files" → "40 files", "15 event + 15 command constants" → "21 event + 20 command constants", "7 events/7 commands" → "12 events/11 commands" with updated lists.
+
+### Type Safety Improvements (from data-model-review)
+
+- [ ] **Type ActorID/ImpersonatorID in context** (CRITICAL) — `context.go:141,147,155,161` store raw `string` losing all type safety. Should use `usermgmt.ActorID`.
+- [ ] **Make foldUser return error on unknown events** (HIGH) — `es_state.go:166` silently no-ops. Other folds (Membership, Tenant, Bot) correctly return errors.
+- [ ] **Use UserID for BotState.OwnerID** (HIGH) — `es_bot_state.go:11`, `es_bot_events.go:8`, `es_bot_readmodel.go:15`, `service_bot.go:15` use raw `string`.
+- [ ] **Use TenantID in Authz domain parameters** (HIGH) — `authz_roles.go:8,20,33,48` and `authz_policies.go:114,140` take raw `string`.
+- [ ] **Unexport or validate NewActorID** (HIGH) — `id.go:117` takes raw `string`, bypassing kind/raw pairing.
+- [ ] **Use Email branded type in domain models** (MEDIUM) — `email.go:13` defines `Email` but all structs use raw `string`.
+- [ ] **Fix duplicate sentinel errors across packages** (MEDIUM) — `cqrshtmx.ErrUnauthorized` vs `usermgmt.ErrUnauthorized` are different values. `errors.Is` fails at module boundary.
+- [ ] **Prevent impossible TenantState** (MEDIUM) — `es_tenant_state.go:8-15` allows `Suspended=true, Deleted=true` simultaneously.
+- [ ] **Validate actorKindFromString** (MEDIUM) — `es_membership_state.go:72-77` silently defaults unknown strings to `ActorUser`.
+
+### Architecture Improvements (from architecture-review)
+
+- [ ] **Extract *http.Request from WebAuthn service** (HIGH) — `webauthn_service.go:52,154` leak HTTP into service layer. Parse in `webauthn_http.go`, pass bytes to service.
+- [ ] **Add interfaces for ephemeral stores** (HIGH) — 6 in-memory stores (WebAuthn sessions, verification tokens, TOTP, lockout, rate limiter, read models) have no interface or SQL alt. Multi-instance impossible.
+- [ ] **Consider snapshot integration** (MEDIUM) — `service_core.go:149-159` replays all events on startup. `go-cqrs-lite/snapshot/v3` is an indirect dep but not wired.
+- [ ] **LastEventIDFromRequest should delegate** (LOW) — `sse_stream.go:178` duplicates `SSEStream.LastEventID()` (line 122). Byte-identical implementations.
+
 ### Future Enhancements (Not Started)
 
 - [x] **Upgrade to go-cqrs-lite v2.0.0** — All 4 modules migrated to v2 import paths (`/v2` suffix). CatalogEntries removed (dead upstream code). go-error-family v0.3.0. Replace directives removed (v2.0.0 tags published).

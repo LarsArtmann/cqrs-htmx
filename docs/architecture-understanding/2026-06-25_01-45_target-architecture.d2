@@ -1,0 +1,124 @@
+direction: down
+
+# cqrs-htmx v3 — Target/Improved Architecture (2026-06-25)
+
+root_module: {
+  label: "Root Module\n(Typesafe Context API)"
+  style.fill: "#1a2a3a"
+
+  cqrs_layer: {
+    label: "CQRS HTTP Integration (unchanged — excellent)"
+    app_builder: { label: "App Builder" }
+    handler: { label: "Dispatch Handlers" }
+    options: { label: "HandlerOptions" }
+  }
+
+  transport_layer: {
+    label: "Transport Layer"
+    sse: { label: "SSE" }
+    ws: { label: "WebSocket" }
+    htmx: { label: "HTMX" }
+  }
+
+  security_layer: {
+    label: "Security"
+    csrf: { label: "CSRF" }
+    ratelimit: { label: "Rate Limiter" }
+    authz: { label: "Authz (typed)" }
+  }
+
+  typed_context: {
+    label: "✅ Typed Context API"
+    style.fill: "#1a3a1a"
+    actor_id: { label: "WithActorID(ctx, ActorID)\n— no more raw string" }
+    impersonator: { label: "WithImpersonatorID(ctx, ActorID)\n— type-safe" }
+  }
+}
+
+usermgmt_module: {
+  label: "Usermgmt Module\n(Decomposed + Multi-Instance Ready)"
+  style.fill: "#2a1a3a"
+
+  domain_layer: {
+    label: "Event-Sourced Domain (Pure — unchanged)"
+
+    user_agg: {
+      label: "User Aggregate"
+      user_fold: { label: "foldUser()\n✅ returns error on\nunknown events" }
+    }
+    membership_agg: { label: "Membership" }
+    tenant_agg: {
+      label: "Tenant\n✅ sealed state\n(no Suspended+Deleted)"
+    }
+    bot_agg: {
+      label: "Bot\n✅ OwnerID: UserID\n(not raw string)"
+    }
+  }
+
+  service_layer: {
+    label: "Services (Decomposed from God Object)"
+
+    user_service: { label: "UserService\n(Register, Auth)" }
+    webauthn_service: {
+      label: "WebAuthnService\n✅ accepts []byte\n(no *http.Request)"
+      style.fill: "#1a3a1a"
+    }
+    totp_service: { label: "TOTPService" }
+    oauth2_service: { label: "OAuth2Service" }
+    tenant_service: { label: "TenantService" }
+    bot_service: { label: "BotService" }
+  }
+
+  store_interfaces: {
+    label: "✅ Store Interfaces (Multi-Instance Ready)"
+    style.fill: "#1a3a1a"
+
+    session_iface: { label: "SessionStore" }
+    webauthn_iface: { label: "WebAuthnSessionStore\n(NEW)" }
+    verification_iface: { label: "VerificationTokenStore\n(NEW)" }
+    totp_iface: { label: "TOTPStore\n(NEW)" }
+    lockout_iface: { label: "LockoutStore\n(NEW)" }
+    oauth2_iface: { label: "OAuth2StateStore" }
+  }
+
+  sql_backends: {
+    label: "SQL Backends"
+    session_sql: { label: "SQLSessionStore" }
+    event_sql: { label: "SQLEventStore" }
+    snapshot: {
+      label: "✅ Snapshot Store\n(NEW — fast startup)"
+      style.fill: "#1a3a1a"
+    }
+  }
+}
+
+catalog_module: {
+  label: "Catalog Module (unchanged — clean leaf)"
+  style.fill: "#1a3a2a"
+}
+
+# Improvements legend
+improvements: {
+  label: "✅ Key Improvements"
+  style.fill: "#1a3a1a"
+
+  i1: { label: "1. Typed context — no more raw string for ActorID" }
+  i2: { label: "2. Ephemeral store interfaces — multi-instance ready" }
+  i3: { label: "3. WebAuthn service decoupled from HTTP" }
+  i4: { label: "4. foldUser returns errors like other folds" }
+  i5: { label: "5. Bot OwnerID typed as UserID" }
+  i6: { label: "6. Authz domain params typed as TenantID" }
+  i7: { label: "7. Snapshot integration — O(1) startup" }
+  i8: { label: "8. TenantState sealed — no impossible states" }
+  i9: { label: "9. Service decomposed — no god object" }
+}
+
+# Module boundaries unchanged
+root_module -> catalog_module: "no dependency"
+usermgmt_module -> catalog_module: "no dependency"
+
+# Store interface wiring
+usermgmt_module.store_interfaces -> usermgmt_module.sql_backends: "SQL implementations"
+
+# Snapshot speeds up startup
+usermgmt_module.sql_backends.snapshot -> usermgmt_module.domain_layer: "fast load"
