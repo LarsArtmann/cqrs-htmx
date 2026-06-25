@@ -19,6 +19,9 @@ func newBenchSQLiteSessionStore(b *testing.B) *SQLSessionStore {
 		b.Fatalf("open sqlite: %v", err)
 	}
 	db.SetMaxOpenConns(1)
+	if err := OptimizeSQLiteDB(context.Background(), db); err != nil {
+		b.Fatalf("OptimizeSQLiteDB: %v", err)
+	}
 	b.Cleanup(func() { _ = db.Close() })
 
 	store, err := NewSQLSessionStore(context.Background(), db, "sqlite")

@@ -254,6 +254,15 @@ cqrs-htmx/
 - **Package-level RecoveryMiddleware**: Uses `DefaultErrorHandler` for panics
 - **App.RecoverHandler()**: Uses the App's configured error handler (renamed from RecoveryMiddleware to avoid naming collision)
 
+### Lifecycle & Shutdown (usermgmt)
+
+- **`Service.Stop()`**: Stops all background eviction goroutines (WebAuthn sessions, verification tokens, TOTP, OAuth2 state). Does NOT close bus/store. Idempotent.
+- **`Service.Close()`**: Full shutdown — calls `Stop()` then closes the event bus and event store (if they implement `io.Closer`). Idempotent. Returns first error encountered.
+- **`Service.GracefulClose(ctx)`**: Same as `Close()` but also returns `ctx.Err()` if the context is cancelled. Use in servers with graceful shutdown signals.
+- **`EventSourcedSetup.Close()`**: Closes the setup's bus and store (if they implement `io.Closer`). Idempotent.
+- **`closeBus()` helper** (`es_setup.go`): Internal — used at error-return sites during setup to clean up partially-wired infrastructure.
+- **In-memory defaults are NOT io.Closer**: `memory.NewMemoryStore()` and `watermill.NewEventBus()` may or may not implement `io.Closer` — `Close()` handles both cases via type assertion.
+
 ### Embedded HTMX JS
 
 - **HTMX v2.0.9 minified**: Embedded via `//go:embed htmx.min.js` in `htmx_embed.go` (~49KB). No CDN dependency — consumers serve it from their Go binary
@@ -458,3 +467,28 @@ cd integration_test && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go tes
 # Build only (no tests — it's a main package)
 cd examples/datastar-demo && GOWORK=off go build ./...
 ```
+
+### SQL-Backed Read Models (v3.1.0)
+
+- **`SQLUserReadModel`**: Persistent read model wrapping `storage.SQLViewStore[UserView, UserID]`. Data survives restart. Wraps in-memory `UserReadModel` for read-your-writes consistency.
+- **`SQLMembershipReadModel`**, **`SQLTenantReadModel`**, **`SQLBotReadModel`**: Same pattern for all 4 aggregates.
+- **`UserView`**: DTO with scalar SQL columns (email, display_name, etc.) + JSON blob column (`Data`) for full User reconstruction. Time fields stored as RFC3339 strings (SQLite driver limitation).
+- **Construction**: `NewSQLiteUserReadModel(db)` or `NewSQLUserReadModel(db)` (Postgres). Auto-migrates the view table.
+- **Query methods**: `FindByIDSQL`, `FindByEmailSQL`, `CountSQL`, `FindByActorSQL`, `FindByNameSQL`, `FindByTokenHashSQL` — all use `kv.ViewQuery` DSL for server-side filtering.
+- **ServiceConfig hook**: `ReadModelDB *sql.DB` — when set, `NewService` creates SQL-backed read models automatically.
+- **EventSourcedConfig hook**: Same `ReadModelDB` field.
+- **`AutoMapper[V]`**: Generates `ViewMapper` from `view:"col"` struct tags. No manual column mapping needed.
+
+### Stack Preset Adoption (v3.1.0)
+
+- **`NewSQLiteEventSourcedSetup(cfg)`**: One-call setup using `stack/sqlite.New(dsn)`. Creates event store + bus + 4 SQL read models + projections + graceful shutdown. Recommended for production single-process deployments.
+- **`NewPostgresEventSourcedSetup(cfg)`**: Same for PostgreSQL. Supports multi-DB split (`EventDSN`/`QueryDSN` for I/O isolation).
+- **SecurityHooks preserved**: Stack presets don't expose injection points directly, but `stack.Repository(bundle, decider)` accesses the internal store. The wrapping happens via `wrapEventStore` before repository creation.
+- **`stack.Materialize[V,K]`**: Evaluated but not adopted — our read models have complex event handling (12-event switches, external account indexes) that don't fit the declarative OnCreate/OnUpdate/OnTombstone pattern.
+- **`CatchUpSubscriber`**: Not yet adopted — `StartProjections` still uses manual journal replay + `bus.SubscribeAll`. Migration is a future task.
+- **`stack/v3` + `stack/sqlite/v3` + `stack/postgres/v3`**: New dependencies in usermgmt. Added `pgx/v5` transitively.
+
+### CI Gates
+
+- **`nix run .#errorfamily`**: Runs `branching-flow errorfamily` on root + usermgmt. Verifies zero stdlib error constructors.
+- **`nix run .#coverage-gate`**: Tests all modules and fails if coverage drops below thresholds (root 90%, usermgmt 75%, catalog 90%).

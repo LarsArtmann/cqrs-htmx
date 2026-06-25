@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"time"
 
@@ -91,6 +92,12 @@ type ServiceConfig struct {
 	// Ignored when OAuth2Config is nil.
 	OAuth2StateStore OAuth2StateStore
 
+	// ReadModelDB, when set, creates SQL-backed read models (User, Membership,
+	// Tenant, Bot) that persist across restarts. Use [OptimizeSQLiteDB] to tune
+	// the connection before passing it here. When nil, in-memory read models
+	// are used (data lost on restart).
+	ReadModelDB *sql.DB
+
 	// SecurityHooks configures opt-in event signing and encryption.
 	// See SecurityHooks for field documentation.
 	SecurityHooks
@@ -167,6 +174,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	setup, err := NewEventSourcedSetup(EventSourcedConfig{
 		EventStore:    cfg.EventStore,
 		EventBus:      cfg.EventBus,
+		ReadModelDB:   cfg.ReadModelDB,
 		AuditLog:      cfg.AuditLog,
 		SecurityHooks: cfg.SecurityHooks,
 	})
@@ -285,23 +293,66 @@ func (s *Service) Authz() *Authz { return s.authz }
 // Stop gracefully shuts down background resources associated with the Service,
 // such as the WebAuthn session eviction goroutine. It is safe to call multiple
 // times and is a no-op when no background resources are running.
+//
+// Stop does NOT close the event bus or event store. Use [Service.Close] for
+// full lifecycle shutdown.
 func (s *Service) Stop() {
-	if s.stopWebAuthnEviction != nil {
-		s.stopWebAuthnEviction()
-		s.stopWebAuthnEviction = nil
+	s.stopEvictions()
+}
+
+// stopEvictions stops all background eviction goroutines. Idempotent.
+func (s *Service) stopEvictions() {
+	for _, stop := range []*func(){
+		&s.stopWebAuthnEviction,
+		&s.stopVerificationEviction,
+		&s.stopPendingTOTPEviction,
+		&s.stopOAuth2Eviction,
+	} {
+		if *stop != nil {
+			(*stop)()
+			*stop = nil
+		}
 	}
-	if s.stopVerificationEviction != nil {
-		s.stopVerificationEviction()
-		s.stopVerificationEviction = nil
+}
+
+// Close performs a full lifecycle shutdown: stops all background eviction
+// goroutines, then closes the event bus and event store (if they implement
+// io.Closer). It is safe to call multiple times.
+//
+// For context-bounded shutdown prefer [Service.GracefulClose].
+func (s *Service) Close() error {
+	s.stopEvictions()
+	return s.closeInfra()
+}
+
+// GracefulClose is identical to [Service.Close] but bounded by ctx.
+// If the context expires before resources are closed, the context error is
+// returned alongside any resource errors.
+func (s *Service) GracefulClose(ctx context.Context) error {
+	s.stopEvictions()
+	if err := s.closeInfra(); err != nil {
+		return err
 	}
-	if s.stopPendingTOTPEviction != nil {
-		s.stopPendingTOTPEviction()
-		s.stopPendingTOTPEviction = nil
+	if err := ctx.Err(); err != nil {
+		return event.WrapTransient(err, "usermgmt.service.graceful_close", "context cancelled during graceful close")
 	}
-	if s.stopOAuth2Eviction != nil {
-		s.stopOAuth2Eviction()
-		s.stopOAuth2Eviction = nil
+	return nil
+}
+
+// closeInfra closes the bus and store if they implement io.Closer.
+// Returns the first error encountered.
+func (s *Service) closeInfra() error {
+	if c, ok := s.bus.(interface{ Close() error }); ok {
+		if err := c.Close(); err != nil {
+			return event.WrapTransient(err, "usermgmt.service.close_bus", "close event bus")
+		}
 	}
+	if c, ok := s.store.(interface{ Close() error }); ok {
+		if err := c.Close(); err != nil {
+			return event.WrapTransient(err, "usermgmt.service.close_store", "close event store")
+		}
+	}
+	return nil
 }
 
 // initOAuth2 initializes the OAuth2 providers, state store, and background eviction.

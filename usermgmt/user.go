@@ -175,10 +175,10 @@ func (Impersonation) isSessionOrigin() {}
 // It replaces the flat Roles field on UserState, decoupling "who you are"
 // from "what you can do" in a given tenant.
 type Membership struct {
-	ActorID  ActorID
-	TenantID TenantID
-	Roles    []Role
-	AddedAt  time.Time
+	ActorID  ActorID   `json:"actor_id"`
+	TenantID TenantID  `json:"tenant_id"`
+	Roles    []Role    `json:"roles"`
+	AddedAt  time.Time `json:"added_at"`
 }
 
 // HasRole reports whether the membership grants the given role.

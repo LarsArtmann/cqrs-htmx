@@ -10,11 +10,11 @@ import (
 
 // Tenant is the read-model representation of a tenant.
 type Tenant struct {
-	ID          TenantID
-	Name        string
-	DisplayName string
-	Suspended   bool
-	Deleted     bool
+	ID          TenantID `json:"id"`
+	Name        string   `json:"name"`
+	DisplayName string   `json:"display_name"`
+	Suspended   bool     `json:"suspended"`
+	Deleted     bool     `json:"deleted"`
 }
 
 // TenantReadModel is the projection-side store for tenants.

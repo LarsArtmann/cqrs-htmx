@@ -103,6 +103,10 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.RolesUpdatedEvent$
         - github\.com/pquerna/otp/totp\.GenerateOpts$
         - github\.com/pquerna/otp/totp\.ValidateOpts$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.\w+View$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v3\.SQL\w+ReadModel$
+        - github\.com/larsartmann/go-cqrs-lite/kv/v3\.ViewQuery$
+        - github\.com/larsartmann/go-cqrs-lite/kv/v3\.Condition$
     gocritic:
       disabled-checks:
         - ifElseChain

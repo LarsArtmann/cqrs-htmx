@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"database/sql"
 	"io"
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
@@ -51,6 +52,12 @@ type EventSourcedConfig struct {
 	EventStore event.Store
 	EventBus   event.Bus
 
+	// ReadModelDB, when set, creates SQL-backed read models (User, Membership,
+	// Tenant, Bot) that persist across restarts. Use [OptimizeSQLiteDB] to tune
+	// the connection before passing it here. When nil, in-memory read models
+	// are used (data lost on restart).
+	ReadModelDB *sql.DB
+
 	// AuditLog, if provided, is registered as a projection to record
 	// all user-related events for compliance and security monitoring.
 	AuditLog *AuditLog
@@ -91,6 +98,23 @@ func closeBus(bus event.Bus) {
 	if c, ok := bus.(io.Closer); ok {
 		_ = c.Close()
 	}
+}
+
+// Close stops the event bus and closes the event store (if they implement
+// io.Closer). It is safe to call multiple times. Use this for graceful
+// shutdown of event-sourced infrastructure created by NewEventSourcedSetup.
+func (s *EventSourcedSetup) Close() error {
+	if c, ok := s.Bus.(io.Closer); ok {
+		if err := c.Close(); err != nil {
+			return event.WrapTransient(err, "usermgmt.es_setup.close_bus", "close event bus")
+		}
+	}
+	if c, ok := s.Store.(io.Closer); ok {
+		if err := c.Close(); err != nil {
+			return event.WrapTransient(err, "usermgmt.es_setup.close_store", "close event store")
+		}
+	}
+	return nil
 }
 
 // DefaultEventSourcedSetup creates a complete event-sourced infrastructure with in-memory
@@ -158,6 +182,49 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	membershipReadModel := NewMembershipReadModel()
 	tenantReadModel := NewTenantReadModel()
 	botReadModel := NewBotReadModel()
+
+	// Projections registered with StartProjections. When ReadModelDB is set,
+	// these are SQL wrappers (which embed the concrete read models above);
+	// otherwise they are the concrete read models themselves.
+	userProj := event.Projection(readModel)
+	membershipProj := event.Projection(membershipReadModel)
+	tenantProj := event.Projection(tenantReadModel)
+	botProj := event.Projection(botReadModel)
+
+	if cfg.ReadModelDB != nil {
+		sqlUserRM, err := NewSQLiteUserReadModel(cfg.ReadModelDB)
+		if err != nil {
+			closeBus(bus)
+			return nil, event.WrapTransient(err, "internal", "create SQL user read model")
+		}
+		readModel = sqlUserRM.UserReadModel
+		userProj = sqlUserRM
+
+		sqlMembershipRM, err := NewSQLiteMembershipReadModel(cfg.ReadModelDB)
+		if err != nil {
+			closeBus(bus)
+			return nil, event.WrapTransient(err, "internal", "create SQL membership read model")
+		}
+		membershipReadModel = sqlMembershipRM.MembershipReadModel
+		membershipProj = sqlMembershipRM
+
+		sqlTenantRM, err := NewSQLiteTenantReadModel(cfg.ReadModelDB)
+		if err != nil {
+			closeBus(bus)
+			return nil, event.WrapTransient(err, "internal", "create SQL tenant read model")
+		}
+		tenantReadModel = sqlTenantRM.TenantReadModel
+		tenantProj = sqlTenantRM
+
+		sqlBotRM, err := NewSQLiteBotReadModel(cfg.ReadModelDB)
+		if err != nil {
+			closeBus(bus)
+			return nil, event.WrapTransient(err, "internal", "create SQL bot read model")
+		}
+		botReadModel = sqlBotRM.BotReadModel
+		botProj = sqlBotRM
+	}
+
 	authz, err := NewAuthz()
 	if err != nil {
 		closeBus(bus)
@@ -173,10 +240,10 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	if err := StartProjections(
 		journal,
 		bus,
-		readModel,
-		membershipReadModel,
-		tenantReadModel,
-		botReadModel,
+		userProj,
+		membershipProj,
+		tenantProj,
+		botProj,
 		casbinProjection,
 		cfg.AuditLog,
 	); err != nil {

@@ -23,10 +23,10 @@ import (
 func StartProjections(
 	journal event.Journal,
 	bus event.Subscriber,
-	readModel *UserReadModel,
-	membershipReadModel *MembershipReadModel,
-	tenantReadModel *TenantReadModel,
-	botReadModel *BotReadModel,
+	readModel event.Projection,
+	membershipReadModel event.Projection,
+	tenantReadModel event.Projection,
+	botReadModel event.Projection,
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
 ) error {
@@ -52,10 +52,10 @@ func StartProjections(
 // collectProjections gathers all projection implementations into a slice.
 // The read model and casbin projection are always present; the rest are optional.
 func collectProjections(
-	readModel *UserReadModel,
-	membershipReadModel *MembershipReadModel,
-	tenantReadModel *TenantReadModel,
-	botReadModel *BotReadModel,
+	readModel event.Projection,
+	membershipReadModel event.Projection,
+	tenantReadModel event.Projection,
+	botReadModel event.Projection,
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
 ) []event.Projection {

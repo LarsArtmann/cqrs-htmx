@@ -10,12 +10,12 @@ import (
 
 // Bot is the read-model representation of a bot (machine actor).
 type Bot struct {
-	ID        BotID
-	Name      string
-	OwnerID   string
-	TokenHash []byte
-	Scopes    []string
-	Deleted   bool
+	ID        BotID    `json:"id"`
+	Name      string   `json:"name"`
+	OwnerID   string   `json:"owner_id"`
+	TokenHash []byte   `json:"token_hash"`
+	Scopes    []string `json:"scopes"`
+	Deleted   bool     `json:"deleted"`
 }
 
 // BotReadModel is the projection-side store for bots.

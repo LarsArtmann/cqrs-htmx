@@ -337,6 +337,53 @@
                 '';
               };
             };
+
+            errorfamily = {
+              type = "app";
+              meta.description = "Verify all errors use go-error-family constructors (no stdlib errors.New/fmt.Errorf/errors.Join)";
+              program = pkgs.writeShellApplication {
+                name = "check-errorfamily";
+                text = ''
+                  echo "==> Root module"
+                  branching-flow errorfamily .
+                  echo "==> usermgmt submodule"
+                  branching-flow errorfamily usermgmt
+                  echo "All modules pass errorfamily check."
+                '';
+              };
+            };
+
+            coverage-gate = {
+              type = "app";
+              meta.description = "Run tests and fail if coverage drops below thresholds (root 90%, usermgmt 75%, catalog 90%)";
+              program = pkgs.writeShellApplication {
+                name = "coverage-gate";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  fail=0
+                  check_cov() {
+                    local mod="$1" threshold="$2"
+                    local cov
+                    cov=$(cd "$mod" && go test ./... -count=1 -coverprofile=/tmp/cov 2>/dev/null && go tool cover -func=/tmp/cov | tail -1 | grep -oP '\d+\.\d+(?=%)')
+                    echo "$mod coverage: ''${cov}% (threshold: ''${threshold}%)"
+                    if (( $(echo "$cov < $threshold" | bc -l) )); then
+                      echo "FAIL: $mod coverage ''${cov}% < ''${threshold}%"
+                      fail=1
+                    fi
+                  }
+                  check_cov . 90
+                  check_cov usermgmt 75
+                  check_cov catalog 90
+                  if [ "$fail" -eq 1 ]; then
+                    echo "Coverage gate FAILED"
+                    exit 1
+                  fi
+                  echo "Coverage gate PASSED"
+                '';
+              };
+            };
           };
 
         };
