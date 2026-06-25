@@ -41,10 +41,12 @@ github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0 h1:n/sj6xNctK6R6MYqZ8Sa85Sak
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0/go.mod h1:iSS5bnkQop6zZ3tbM5wF6XVYgNW6k02+tfo01f2oyCY=
 github.com/larsartmann/go-cqrs-lite/schema/v3 v3.0.0 h1:6f0fcorVfPgpMMTVb/LKcYKbOxLEoJ4C+tpl/3ukfxg=
 github.com/larsartmann/go-cqrs-lite/schema/v3 v3.0.0/go.mod h1:glHbQ8sBwhIhc++m065IRUobcGE/Q/XOTAClD+WGwY4=
-github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0 h1:cuv0zwYWMQQVWEHwpv3Gm2NztLfJavSxPR2GlkfWTak=
-github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0/go.mod h1:u0iMLyDA0F1enTZsUYRQuOcT88ENz0wwz3aH9WmrbyA=
-github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0 h1:K87yvgQoFUc/uLR7zcYRkgRaWZczIIM77FTX8cloPUU=
-github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0/go.mod h1:fVSYaW6Wd0uzKVJQgje+o1egJ5aecNw2HSaGjwpikus=
+github.com/larsartmann/go-cqrs-lite/schema/v3 v3.1.0 h1:STc/1Rb2/ZPDmZJMTLgXL9VJRbxmir6OCmwjoZ4fbaY=
+github.com/larsartmann/go-cqrs-lite/schema/v3 v3.1.0/go.mod h1:gOEnjE87XwU4zwlkoBswW7civfx9aix2EpBodOWsWPU=
+github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0 h1:E/qlhskaWU9VCe1zBxtSr+urPzjtEVJfgZv5q7UOnyQ=
+github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0/go.mod h1:cRsq7hm2Lr3T6r7a2sk+I9oJinZTZrC5iBooTBRxqGw=
+github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.1.0 h1:pEAUyclQqlWHbkrnGxSeLsH58KeTAzMQXKRCSEKk6Ro=
+github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.1.0/go.mod h1:hTUmpftXY33+p7ffGWzXyq1AUnhwxu5v2Xxe/6+U+IA=
 github.com/larsartmann/go-error-family v0.5.1 h1:rYDNU0sv+6ri0xel6MswIeDT2dRh3q+RSc5uWnAwecg=
 github.com/larsartmann/go-error-family v0.5.1/go.mod h1:JbSRM+qePUMzqr2L28oEeIf7QjWUnwAnUHpUfqp/flg=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=

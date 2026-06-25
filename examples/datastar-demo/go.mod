@@ -13,15 +13,16 @@ require (
 require (
 	github.com/CAFxX/httpcompression v0.0.9 // indirect
 	github.com/andybalholm/brotli v1.2.1 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 )
