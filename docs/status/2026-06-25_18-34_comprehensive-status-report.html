@@ -1,0 +1,1119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+      /* Bauhaus color blocks */
+      .score-card:nth-child(1),
+      .stat-card:nth-child(1) {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .score-card:nth-child(2),
+      .stat-card:nth-child(2) {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-card:nth-child(3),
+      .stat-card:nth-child(3) {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-card:nth-child(4),
+      .stat-card:nth-child(4) {
+        background: var(--text);
+        color: var(--surface);
+      }
+      .score-card:nth-child(5),
+      .stat-card:nth-child(5) {
+        background: var(--surface-raised);
+      }
+      .score-card:nth-child(6),
+      .stat-card:nth-child(6) {
+        background: var(--surface-raised);
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* State classes override the nth-child coloring */
+      .score-good,
+      .stat-good {
+        background: var(--solution) !important;
+        color: var(--surface) !important;
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning) !important;
+        color: var(--text) !important;
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem) !important;
+        color: var(--surface) !important;
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised));
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised));
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">Comprehensive Status Report</div>
+      <h1>cqrs-htmx v3 &mdash; Full Status</h1>
+      <p class="hero-subtitle">42K LOC &bull; 4 Go modules &bull; 21 events / 20 commands / 4 aggregates &bull; 0 lint issues &bull; 0 clones &bull; 0 error-family violations</p>
+    </div>
+
+    <!-- TOC -->
+    <nav class="toc">
+      <h3>Contents</h3>
+      <ul>
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#done">Fully Done</a></li>
+        <li><a href="#partial">Partially Done</a></li>
+        <li><a href="#notstarted">Not Started</a></li>
+        <li><a href="#fuckedup">Problems</a></li>
+        <li><a href="#improve">What We Should Improve</a></li>
+        <li><a href="#top25">Top 25 Next Tasks</a></li>
+        <li><a href="#question">Blocking Question</a></li>
+      </ul>
+    </nav>
+
+    <!-- DASHBOARD -->
+    <h2 id="dashboard"><span class="num">00</span>Dashboard</h2>
+    <div class="stat-grid">
+      <div class="stat-card stat-good"><div class="stat-value">4/4</div><div class="stat-label">Modules Building</div></div>
+      <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">Lint Issues (71 linters)</div></div>
+      <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">Code Clones (t=15)</div></div>
+      <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">Error Family Violations</div></div>
+      <div class="stat-card stat-good"><div class="stat-value">All</div><div class="stat-label">Tests Passing (-race)</div></div>
+      <div class="stat-card stat-warn"><div class="stat-value">6</div><div class="stat-label">In-Memory Stores (no iface)</div></div>
+      <div class="stat-card stat-bad"><div class="stat-value">1</div><div class="stat-label">Critical Type Hole</div></div>
+      <div class="stat-card stat-warn"><div class="stat-value">6</div><div class="stat-label">High-Severity Findings</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Module</th><th>Files</th><th>LOC (prod)</th><th>LOC (tests)</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Root</td><td>40 + 76 test</td><td>5,476</td><td>11,046</td><td>HTMX-aware CQRS HTTP integration</td></tr>
+        <tr><td>usermgmt</td><td>75 + 77 test</td><td>9,835</td><td>11,956</td><td>Event-sourced user management</td></tr>
+        <tr><td>catalog</td><td>3 + 4 test</td><td>470</td><td>&mdash;</td><td>API doc generation</td></tr>
+        <tr><td>integration_test</td><td>8</td><td>1,027</td><td>1,027</td><td>Cross-module tests</td></tr>
+        <tr style="font-weight:bold;"><td>Total</td><td>126 + 157 test</td><td>16,808</td><td>24,029</td><td>~41K LOC total</td></tr>
+      </tbody>
+    </table>
+
+    <!-- FULLY DONE -->
+    <h2 id="done"><span class="num">01</span>Fully Done (a)</h2>
+    <div class="card card-solution">
+      <h4>Core Library &mdash; Production Ready</h4>
+      <table>
+        <thead><tr><th>Feature</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>App Builder + Command/Query dispatch</td><td>🟢</td><td>app.go, handler.go, 500+ tests</td></tr>
+          <tr><td>HandlerOptions (decode, render, validate, htmx)</td><td>🟢</td><td>options_*.go, functional options pattern</td></tr>
+          <tr><td>CSRF protection (justinas/nosurf)</td><td>🟢</td><td>csrf_middleware.go, TrustedProxies, origin checks</td></tr>
+          <tr><td>Rate limiting (token bucket + LRU heap)</td><td>🟢</td><td>ratelimit_middleware.go, O(log n) eviction</td></tr>
+          <tr><td>Security headers middleware</td><td>🟢</td><td>security.go, RecommendedCSP/HSTS</td></tr>
+          <tr><td>Panic recovery middleware</td><td>🟢</td><td>recovery.go, package-level + App.RecoverHandler</td></tr>
+          <tr><td>Embedded HTMX v2.0.9 JS</td><td>🟢</td><td>htmx_embed.go, ETag/Cache-Control, ~49KB</td></tr>
+          <tr><td>SSE (Stream, Broadcaster, Store, Replay)</td><td>🟢</td><td>sse_*.go, 64-msg buffer, non-blocking fan-out</td></tr>
+          <tr><td>WebSocket (Parse, Encode, Dispatch)</td><td>🟢</td><td>ws_*.go, ParseWSMessageInto[T], DispatchWSCommand/Query</td></tr>
+          <tr><td>Fan-out hub (generic, transport-agnostic)</td><td>🟢</td><td>fanout.go, fanOut[T], race-safe RLock iteration</td></tr>
+          <tr><td>Structured errors (RFC 7807)</td><td>🟢</td><td>structured_error.go, NewStructuredErrorWithContext</td></tr>
+          <tr><td>Error &rarr; HTTP mapping</td><td>🟢</td><td>errors.go, MapError, go-error-family v0.5.0</td></tr>
+          <tr><td>Pagination (DecodePagination, RenderPaginatedJSON[T])</td><td>🟢</td><td>options_render.go, go-cqrs-lite v3.0.0</td></tr>
+          <tr><td>Context enrichment middleware</td><td>🟢</td><td>middleware.go, branded context keys</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card card-solution">
+      <h4>usermgmt &mdash; Passwordless Event-Sourced CQRS</h4>
+      <table>
+        <thead><tr><th>Feature</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>WebAuthn (passkeys) registration + login</td><td>🟢</td><td>webauthn_service.go, go-webauthn v0.17.4</td></tr>
+          <tr><td>TOTP MFA (enable/verify/disable)</td><td>🟢</td><td>totp.go, pquerna/otp v1.5.0</td></tr>
+          <tr><td>OAuth2/OIDC (Google + GitHub)</td><td>🟢</td><td>oauth2.go, service_oauth2.go, PKCE S256</td></tr>
+          <tr><td>Event sourcing (4 aggregates)</td><td>🟢</td><td>User, Membership, Tenant, Bot &mdash; 21 events, 20 commands</td></tr>
+          <tr><td>Casbin RBAC projection</td><td>🟢</td><td>es_casbin_projection.go, derives policies from events</td></tr>
+          <tr><td>SQL event store (upstream delegation)</td><td>🟢</td><td>go-cqrs-lite/storage/v3, 78-LOC facade</td></tr>
+          <tr><td>SQL session store (Postgres + MySQL + SQLite)</td><td>🟢</td><td>sql_session_store.go, fuzz-tested</td></tr>
+          <tr><td>Impersonation (begin/end with guards)</td><td>🟢</td><td>service_impersonation.go</td></tr>
+          <tr><td>Tenant lifecycle (create/suspend/reactivate/delete)</td><td>🟢</td><td>es_tenant_*.go, service_tenant.go</td></tr>
+          <tr><td>Bot registration + API token middleware</td><td>🟢</td><td>es_bot_*.go, api_token_middleware.go</td></tr>
+          <tr><td>Email verification</td><td>🟢</td><td>email_verification.go, token store</td></tr>
+          <tr><td>Import/Export (JSON + CSV)</td><td>🟢</td><td>import_export.go, ImportUser.Validate</td></tr>
+          <tr><td>Account lockout (configurable)</td><td>🟢</td><td>lockout.go</td></tr>
+          <tr><td>Audit log (append-only)</td><td>🟢</td><td>audit_log.go</td></tr>
+          <tr><td>Event signing &amp; encryption (opt-in seams)</td><td>🟢</td><td>ServiceConfig StoreWrapper/PublishMiddleware/HandlerMiddleware</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card card-solution">
+      <h4>Session: Fixes Done This Session (2026-06-25)</h4>
+      <table>
+        <thead><tr><th>Fix</th><th>Impact</th></tr></thead>
+        <tbody>
+          <tr><td>SSEStream.OnDisconnect data race</td><td>🟢 Bug fix &mdash; append without mutex</td></tr>
+          <tr><td>startPeriodicEviction double-close panic</td><td>🟢 Bug fix &mdash; sync.Once guard</td></tr>
+          <tr><td>foldUser silently ignored unknown events</td><td>🟢 Domain safety &mdash; now returns error like other folds</td></tr>
+          <tr><td>actorKindFromString silently defaulted to ActorUser</td><td>🟢 Domain safety &mdash; now validates input</td></tr>
+          <tr><td>3 lint issues (exhaustruct, gochecknoglobals, forcetypeassert)</td><td>🟢 Zero lint</td></tr>
+          <tr><td>LastEventIDFromRequest duplicated SSEStream.LastEventID</td><td>🟢 Dedup &mdash; method delegates to free function</td></tr>
+          <tr><td>3 stale AGENTS.md claims (file counts, event counts)</td><td>🟢 Docs accuracy</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PARTIALLY DONE -->
+    <h2 id="partial"><span class="num">02</span>Partially Done (b)</h2>
+
+    <div class="card card-warning">
+      <h4>Multi-Instance Deployment &mdash; 6/8 stores have no interface</h4>
+      <p><code>SessionStore</code> and <code>OAuth2StateStore</code> have interfaces + SQL backends. The remaining 6 ephemeral stores are in-memory only with no interface:</p>
+      <table>
+        <thead><tr><th>Store</th><th>Interface?</th><th>SQL Alt?</th><th>Multi-Instance?</th></tr></thead>
+        <tbody>
+          <tr><td>InMemorySessionStore</td><td>✅ SessionStore</td><td>✅ SQLSessionStore</td><td>✅</td></tr>
+          <tr><td>oauth2StateStore</td><td>✅ OAuth2StateStore</td><td>❌ Consumer provides</td><td>⚠ With custom impl</td></tr>
+          <tr><td>webauthnSessionStore</td><td>❌ Concrete</td><td>❌</td><td>❌ Single-process</td></tr>
+          <tr><td>verificationTokenStore</td><td>❌ Concrete</td><td>❌</td><td>❌ Single-process</td></tr>
+          <tr><td>pendingTOTPStore</td><td>❌ Concrete</td><td>❌</td><td>❌ Single-process</td></tr>
+          <tr><td>AccountLockout</td><td>❌ Concrete</td><td>❌</td><td>❌ Per-instance</td></tr>
+          <tr><td>UserReadModel</td><td>❌ Concrete</td><td>❌</td><td>❌ Full replay on startup</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card card-warning">
+      <h4>O(n) Startup Replay &mdash; No snapshot integration</h4>
+      <p><code>service_core.go:149-159</code> replays all events through projections on every <code>NewService</code>. <code>go-cqrs-lite/snapshot/v3</code> is an indirect dependency but not wired. Acceptable for small event stores, but startup time grows linearly.</p>
+    </div>
+
+    <div class="card card-warning">
+      <h4>WebAuthn Service Leaks <code>*http.Request</code></h4>
+      <p><code>webauthn_service.go:52,154</code> &mdash; <code>FinishRegistration</code> and <code>FinishLogin</code> take <code>*http.Request</code> directly because go-webauthn parses the authenticator response from the request body. This couples the service to HTTP, making it untestable without <code>*http.Request</code> and unusable from gRPC/CLI.</p>
+    </div>
+
+    <!-- NOT STARTED -->
+    <h2 id="notstarted"><span class="num">03</span>Not Started (c)</h2>
+    <table>
+      <thead><tr><th>Item</th><th>Effort</th><th>Impact</th></tr></thead>
+      <tbody>
+        <tr><td>BotState.OwnerID typed as UserID (currently raw string)</td><td>30min</td><td>High</td></tr>
+        <tr><td>Email branded type used in domain models (exists, unused)</td><td>30min</td><td>Medium</td></tr>
+        <tr><td>Duplicate sentinel error reconciliation (root vs usermgmt)</td><td>1h</td><td>High</td></tr>
+        <tr><td>Ephemeral store interfaces for multi-instance</td><td>2-3h</td><td>High</td></tr>
+        <tr><td>Snapshot integration for O(1) startup</td><td>1-2h</td><td>Medium</td></tr>
+        <tr><td>gosec + govulncheck in CI</td><td>30min</td><td>Medium</td></tr>
+      </tbody>
+    </table>
+
+    <!-- TOTALLY FUCKED UP -->
+    <h2 id="fuckedup"><span class="num">04</span>Problems (d)</h2>
+
+    <div class="issue issue-critical">
+      <span class="severity severity-critical">Critical</span>
+      <h3>ActorID/ImpersonatorID stored as raw <code>string</code> in context</h3>
+      <div class="where">context.go:141,147,155,161</div>
+      <p>The typed <code>usermgmt.ActorID</code> is discarded at the context boundary. Callers pass raw strings &mdash; a UserID, a BotID, garbage &mdash; with no type checking. The single biggest type-safety hole. <strong>Blocked</strong> by module boundary: root can't import usermgmt.ActorID.</p>
+    </div>
+
+    <div class="issue issue-important">
+      <span class="severity severity-important">High</span>
+      <h3>Duplicate sentinel errors across packages</h3>
+      <div class="where">errors.go:20-21 vs usermgmt/errors.go:37,39</div>
+      <p><code>cqrshtmx.ErrUnauthorized</code> and <code>usermgmt.ErrUnauthorized</code> are different sentinel values. <code>errors.Is(usermgmt.ErrUnauthorized, cqrshtmx.ErrUnauthorized)</code> returns <strong>false</strong>. A handler checking <code>errors.Is(err, cqrshtmx.ErrUnauthorized)</code> on a usermgmt-originated error silently fails. Real silent-bug risk at the module boundary.</p>
+    </div>
+
+    <div class="issue issue-important">
+      <span class="severity severity-important">High</span>
+      <h3>NewActorID(kind, raw string) bypasses validation</h3>
+      <div class="where">id.go:117</div>
+      <p>Exported constructor takes raw string. Any caller can construct <code>NewActorID(ActorUser, "some-bot-uuid")</code> bypassing the kind/raw pairing. Should be unexported or validate.</p>
+    </div>
+
+    <div class="issue issue-important">
+      <span class="severity severity-important">High</span>
+      <h3>Authz functions take raw <code>string</code> for domain</h3>
+      <div class="where">authz_roles.go:8,20,33,48 &mdash; authz_types.go:77,166</div>
+      <p><code>RolesForUser(userID UserID, domain string)</code> &mdash; the domain should be <code>TenantID</code>. <code>GroupPolicy.Subject</code> and <code>GroupPolicy.Domain</code> are raw strings, conflating UserID/ActorID/TenantID in a single struct.</p>
+    </div>
+
+    <!-- WHAT WE SHOULD IMPROVE -->
+    <h2 id="improve"><span class="num">05</span>What We Should Improve (e)</h2>
+    <div class="card card-solution">
+      <h4>Architectural Improvements</h4>
+      <ul>
+        <li><strong>Type the context boundary</strong> &mdash; The #1 improvement. Define a root-level actor type or accept a typed interface at the context API.</li>
+        <li><strong>Extract ephemeral store interfaces</strong> &mdash; 6 stores need <code>WebAuthnSessionStore</code>, <code>VerificationTokenStore</code>, <code>TOTPStore</code>, <code>LockoutStore</code> interfaces. Enables Redis adapters for multi-instance.</li>
+        <li><strong>Decouple WebAuthn service from HTTP</strong> &mdash; Parse request in <code>webauthn_http.go</code>, pass parsed bytes to the service.</li>
+        <li><strong>Reconcile sentinel errors</strong> &mdash; Either usermgmt re-exports root's sentinels, or the error checker at module boundary unwraps by code string.</li>
+        <li><strong>Wire snapshot store</strong> &mdash; <code>go-cqrs-lite/snapshot/v3</code> is already an indirect dep. Wire it to reduce startup from O(n) to O(1).</li>
+      </ul>
+    </div>
+    <div class="card card-solution">
+      <h4>Type Safety Improvements</h4>
+      <ul>
+        <li><strong>BotState.OwnerID &rarr; UserID</strong> &mdash; A bot owner is always a user. 4 files to change.</li>
+        <li><strong>Wire the existing Email type</strong> &mdash; <code>email.go</code> defines <code>Email</code> with <code>ParseEmail</code> but every struct uses raw <code>string</code>. The type exists &mdash; just use it.</li>
+        <li><strong>Unexport NewActorID or add validation</strong> &mdash; The kind/raw pairing must be enforced.</li>
+        <li><strong>TenantState sealed union</strong> &mdash; <code>Suspended=true, Deleted=true</code> is representable but nonsensical. Use a state enum or sealed interface.</li>
+        <li><strong>Action/Effect/Role validated enums</strong> &mdash; Currently branded strings with no <code>Parse</code>/<code>Valid</code> methods. Unknown values silently pass through Casbin.</li>
+      </ul>
+    </div>
+
+    <!-- TOP 25 NEXT TASKS -->
+    <h2 id="top25"><span class="num">06</span>Top 25 Next Tasks (f)</h2>
+    <p>Sorted by impact/effort ratio. Top items = highest impact, lowest effort.</p>
+    <table>
+      <thead><tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Tier</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>BotState.OwnerID &rarr; UserID (es_bot_state.go, es_bot_events.go, es_bot_readmodel.go, service_bot.go)</td><td><span class="badge badge-high">High</span></td><td>30min</td><td>Quick win</td></tr>
+        <tr><td>2</td><td>Wire Email branded type in domain models (email.go exists, structs use raw string)</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Quick win</td></tr>
+        <tr><td>3</td><td>Unexport NewActorID or add kind/raw validation (id.go:117)</td><td><span class="badge badge-high">High</span></td><td>15min</td><td>Quick win</td></tr>
+        <tr><td>4</td><td>Dedupe LastEventIDFromRequest &rarr; already done (verify no other dupes remain)</td><td><span class="badge badge-low">Low</span></td><td>Done</td><td>✅</td></tr>
+        <tr><td>5</td><td>gosec + govulncheck scan (required by Go stack policy, never run)</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Quick win</td></tr>
+        <tr><td>6</td><td>Duplicate sentinel error reconciliation (root vs usermgmt ErrUnauthorized/ErrForbidden)</td><td><span class="badge badge-high">High</span></td><td>1h</td><td>Needs design</td></tr>
+        <tr><td>7</td><td>TenantState sealed union (prevent Suspended+Deleted simultaneously)</td><td><span class="badge badge-medium">Medium</span></td><td>45min</td><td>Type safety</td></tr>
+        <tr><td>8</td><td>Authz domain param &rarr; TenantID (authz_roles.go, authz_policies.go)</td><td><span class="badge badge-high">High</span></td><td>1h</td><td>Type safety</td></tr>
+        <tr><td>9</td><td>GroupPolicy.Subject/Domain typed (authz_types.go:77)</td><td><span class="badge badge-medium">Medium</span></td><td>1h</td><td>Type safety</td></tr>
+        <tr><td>10</td><td>Extract WebAuthn *http.Request from service layer</td><td><span class="badge badge-high">High</span></td><td>1h</td><td>Architecture</td></tr>
+        <tr><td>11</td><td>WebAuthnSessionStore interface (for multi-instance)</td><td><span class="badge badge-high">High</span></td><td>45min</td><td>Architecture</td></tr>
+        <tr><td>12</td><td>VerificationTokenStore interface</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Architecture</td></tr>
+        <tr><td>13</td><td>TOTPStore interface</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Architecture</td></tr>
+        <tr><td>14</td><td>LockoutStore interface</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td><td>Architecture</td></tr>
+        <tr><td>15</td><td>Typed ActorID in context (blocked by module boundary &mdash; needs design)</td><td><span class="badge badge-critical">Critical</span></td><td>2h</td><td>Blocked</td></tr>
+        <tr><td>16</td><td>Snapshot integration (O(1) startup)</td><td><span class="badge badge-medium">Medium</span></td><td>1-2h</td><td>Architecture</td></tr>
+        <tr><td>17</td><td>Action/Effect/Role validated enums (Parse/Valid methods)</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Type safety</td></tr>
+        <tr><td>18</td><td>SSE/WS broadcaster distributed pub-sub (Redis adapter)</td><td><span class="badge badge-low">Low</span></td><td>3h</td><td>Scalability</td></tr>
+        <tr><td>19</td><td>CSRF config validation should fail-fast (csrf_middleware.go:37-39)</td><td><span class="badge badge-low">Low</span></td><td>15min</td><td>Quick win</td></tr>
+        <tr><td>20</td><td>Service god-object decomposition (24 fields, ADR-0019 blocked)</td><td><span class="badge badge-medium">Medium</span></td><td>4h+</td><td>Architecture</td></tr>
+        <tr><td>21</td><td>Otel spans in fan-out broadcast path (tracing)</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Observability</td></tr>
+        <tr><td>22</td><td>OAuth2StateStore SQL backend implementation</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Scalability</td></tr>
+        <tr><td>23</td><td>Integration test: full OAuth2 + WebAuthn + TOTP flow</td><td><span class="badge badge-medium">Medium</span></td><td>2h</td><td>Testing</td></tr>
+        <tr><td>24</td><td>Property-based test for TenantState state machine</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Testing</td></tr>
+        <tr><td>25</td><td>Event payload type tightening (membership events use raw string for ActorKind)</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Type safety</td></tr>
+      </tbody>
+    </table>
+
+    <!-- BLOCKING QUESTION -->
+    <h2 id="question"><span class="num">07</span>Blocking Question (g)</h2>
+    <div class="card card-problem">
+      <h4>How should we type ActorID at the context boundary across module boundaries?</h4>
+      <p><code>context.go</code> (root module) stores ActorID as <code>string</code> because it cannot import <code>usermgmt.ActorID</code> (zero mutual imports is a core architectural principle). But this creates the single biggest type-safety hole: any string can be passed.</p>
+      <p><strong>Three options I cannot decide between:</strong></p>
+      <ol>
+        <li><strong>Root-level Actor type</strong> &mdash; Define <code>type ActorID struct { Kind string; Raw string }</code> in root package. Usermgmt converts at the boundary. <em>Pro:</em> type-safe. <em>Con:</em> duplicates usermgmt's ActorID, potential split-brain.</li>
+        <li><strong>Generic value interface</strong> &mdash; <code>WithActorID[T any](ctx, actor T)</code> using Go generics. <em>Pro:</em> no type duplication. <em>Con:</em> context lookup becomes lossy (<code>ActorIDFromContext[T]()</code> needs to know T).</li>
+        <li><strong>Accept the boundary</strong> &mdash; Context stores string by design. The typed API is usermgmt's job. Root just passes it through. <em>Pro:</em> no coupling. <em>Con:</em> type hole stays open.</li>
+      </ol>
+      <p><strong>Which approach do you want?</strong> This is the #1 type-safety improvement and I cannot pick for you because each has a real tradeoff.</p>
+    </div>
+
+    <div style="margin-top: 3rem; padding: 1.5rem; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.875rem;">
+      Generated by status-report skill &bull; cqrs-htmx v3 &bull; 2026-06-25 18:34 &bull; All modules building, 0 lint, 0 clones, all tests passing (-race)
+    </div>
+
+    </main>
+  </body>
+</html>
