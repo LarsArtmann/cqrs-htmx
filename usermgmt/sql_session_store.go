@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 // SQLSessionStore implements SessionStore using a SQL database.
@@ -50,8 +51,33 @@ func placeholderFor(dialect string) (placeholderFunc, error) {
 	}
 }
 
+// OptimizeSQLiteDB applies production PRAGMAs to a SQLite *sql.DB:
+// WAL mode, synchronous=NORMAL (3-10x faster writes, safe with WAL),
+// busy_timeout=5000ms, 64 MB page cache, temp_store=MEMORY, and 256 MB mmap.
+//
+// Call this BEFORE creating any stores that share the connection:
+//
+//	db, _ := sql.Open("sqlite", "file:app.db?_pragma=foreign_keys(1)")
+//	_ = usermgmt.OptimizeSQLiteDB(ctx, db)
+//	sessionStore, _ := usermgmt.NewSQLSessionStore(ctx, db, "sqlite")
+//	eventStore, _ := usermgmt.NewSQLEventStore(db, "sqlite")
+//
+// For Postgres or MySQL this function is a no-op.
+func OptimizeSQLiteDB(ctx context.Context, db *sql.DB) error {
+	if err := storage.SQLiteEnableWAL(ctx, db); err != nil {
+		return event.WrapTransient(err, "usermgmt.sqlite.enable_wal", "enable SQLite WAL")
+	}
+	if err := storage.SQLiteApplyOptimizations(ctx, db); err != nil {
+		return event.WrapTransient(err, "usermgmt.sqlite.apply_optimizations", "apply SQLite optimizations")
+	}
+	return nil
+}
+
 // NewSQLSessionStore creates a SQLSessionStore and auto-migrates the sessions table.
 // The dialect must be "postgres", "pgx", "sqlite", "sqlite3", or "mysql".
+//
+// For SQLite, call [OptimizeSQLiteDB] before this constructor to enable WAL mode
+// and production-safe PRAGMAs (3-10x write throughput improvement).
 func NewSQLSessionStore(ctx context.Context, db *sql.DB, dialect string) (*SQLSessionStore, error) {
 	pf, err := placeholderFor(dialect)
 	if err != nil {

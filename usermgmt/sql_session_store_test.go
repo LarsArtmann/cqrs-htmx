@@ -176,3 +176,22 @@ func TestSQLSessionStore_StartCleanupSweeper(t *testing.T) {
 		t.Fatalf("sweeper should have evicted expired sessions, found %d remaining", n)
 	}
 }
+
+func TestOptimizeSQLiteDB(t *testing.T) {
+	t.Parallel()
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	if err := OptimizeSQLiteDB(context.Background(), db); err != nil {
+		t.Fatalf("OptimizeSQLiteDB: %v", err)
+	}
+
+	var mode string
+	if err := db.QueryRow("PRAGMA journal_mode").Scan(&mode); err != nil {
+		t.Fatalf("read journal_mode: %v", err)
+	}
+	t.Logf("journal_mode=%s", mode)
+}
