@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-06-22 | **Version:** v3.0.0 (go-cqrs-lite v3.0.0) | **Source:** All .go files analyzed
+**Updated:** 2026-06-26 | **Version:** v3.1.0 (go-cqrs-lite v3.1.0) | **Source:** All .go files analyzed
 
 ## Status legend
 
@@ -205,6 +205,9 @@
 | ----------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | SQL Event Store   | 🟢 `FULLY_FUNCTIONAL` | `SQLEventStore` — type alias over `storage.SQLEventStore` from go-cqrs-lite v3. Postgres + SQLite. Auto-migrates schema. Upstream provides schema_version, payload_encoding, OTel tracing. ADR-0016. |
 | SQL Session Store | 🟢 `FULLY_FUNCTIONAL` | `SQLSessionStore` — Postgres, SQLite, MySQL. Auto-migrates schema. `StartCleanupSweeper(ctx, interval)`. Fuzz-tested (`FuzzSQLSessionStore_CreateFindRoundTrip`). Benchmarks. ADR-0012.              |
+| SQL Read Models   | 🟢 `FULLY_FUNCTIONAL` | `SQLUserReadModel`, `SQLMembershipReadModel`, `SQLTenantReadModel`, `SQLBotReadModel` — persistent projections surviving restarts. Dual SQLite/Postgres constructors. `FindByIDSQL`/`FindByEmailSQL`/`CountSQL` query methods. v3.1.0. |
+| Stack Presets     | 🟢 `FULLY_FUNCTIONAL` | `NewSQLiteEventSourcedSetup(cfg)` / `NewPostgresEventSourcedSetup(cfg)` — one-call infrastructure (event store + bus + repos + SQL read models + projections). Postgres supports multi-DB split. v3.1.0. |
+| SQLite Optimization | 🟢 `FULLY_FUNCTIONAL` | `OptimizeSQLiteDB(ctx, db)` — WAL mode, synchronous=NORMAL, busy_timeout, 64 MB cache. 3-10x write throughput. v3.1.0. |
 
 ### Security & Infrastructure
 
@@ -217,6 +220,7 @@
 | Per-Endpoint Rate Limit     | 🟢 `FULLY_FUNCTIONAL` | `HandlerConfig.RegistrationRateLimit`, `ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit`, `WebAuthnRateLimit`, `OAuthRateLimit`. All use shared `RateLimitConfig`. All disabled by default.           |
 | Roles→Memberships Migration | 🟢 `FULLY_FUNCTIONAL` | `MigrateRolesToMemberships(ctx, events, dispatcher)` — opt-in legacy role migration to membership model.                                                                                                        |
 | Projection Setup            | 🟢 `FULLY_FUNCTIONAL` | `StartProjections()` — manual journal replay + `bus.SubscribeAll()` + `id.EventID` dedup map. Handles User, Membership, Tenant, Bot, Casbin, AuditLog projections. ADR-0016.                                    |
+| Graceful Shutdown           | 🟢 `FULLY_FUNCTIONAL` | `Service.Close()` / `Service.GracefulClose(ctx)` / `EventSourcedSetup.Close()` — stops eviction goroutines, closes bus and store. Idempotent. v3.1.0. |
 
 ---
 

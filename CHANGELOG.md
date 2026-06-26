@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-06-26
+
+### Added
+
+- **SQL-backed persistent read models**: `SQLUserReadModel`, `SQLMembershipReadModel`, `SQLTenantReadModel`, `SQLBotReadModel` — survive process restarts without rebuilding from the event journal. Each stores data as queryable scalar SQL columns + a JSON blob for full reconstruction. Dual SQLite and Postgres constructors (`NewSQLite*ReadModel` / `NewSQL*ReadModel`). Uses go-cqrs-lite `storage.SQLViewStore[V,K]` + `AutoMapperWithTombstone[V]`.
+- **One-call stack presets**: `NewSQLiteEventSourcedSetup(cfg)` and `NewPostgresEventSourcedSetup(cfg)` — create event store, bus, repositories, SQL read models, and projections in a single call. Postgres preset supports multi-DB split (`EventDSN` / `QueryDSN`). Each returns a setup struct with `Close()`, `GracefulClose(ctx)`, and `Authz()`.
+- **`OptimizeSQLiteDB(ctx, db)`**: Applies WAL mode, synchronous=NORMAL, busy_timeout=5000ms, 64 MB cache, temp_store=MEMORY, 256 MB mmap. 3-10x write throughput improvement. Call before creating stores. No-op for Postgres/MySQL.
+- **`Service.Close()` / `Service.GracefulClose(ctx)`**: Full lifecycle shutdown — stops eviction goroutines, then closes bus and store (if they implement `io.Closer`). Idempotent.
+- **`EventSourcedSetup.Close()`**: Closes the setup's bus and store. Idempotent.
+- **CI gate apps**: `nix run .#coverage-gate` (fails if coverage drops below thresholds: root 90%, usermgmt 75%, catalog 90%) and `nix run .#errorfamily` (verifies zero stdlib error constructors).
+- **Restart-survival test**: Proves read model persistence across database close/reopen via journal replay.
+
+### Changed
+
+- **go-cqrs-lite upgraded to v3.1.0** across all 7 modules. Adds SQL-backed view stores (`storage.SQLViewStore`), `AutoMapper`/`AutoMapperWithTombstone`, `stack/sqlite` and `stack/postgres` one-call presets, typed command/query metadata (`event.CustomData[K]`), multi-DB split presets, and SQLite WAL tuning. Zero breaking changes over v3.0.0.
+- **go-error-family upgraded to v0.5.1** across all modules. `ErrDispatchFailed` is now natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed.
+- **Coverage**: root 95.4%, usermgmt 79.5% (was 74.7%), catalog 95.3%. 697 usermgmt tests (was ~500).
+- **`flake.nix` package version**: Updated from `2.4.0` → `3.1.0`.
+
+### Fixed
+
+- **Coverage CI gate was silently always passing**: `bc` was missing from `runtimeInputs` and `go test` stdout leaked into the coverage variable, corrupting the `bc` comparison. Fixed: added `pkgs.bc`, fully suppressed stdout.
+- **foldUser now errors on unknown events**: Previously silently ignored. Now returns a `Rejection` error, matching upstream's strict event handling.
+- **SSEStream race condition**: Fixed concurrent access to stream state during Send/Close.
+- **Sweeper double-close panic**: Fixed panic when periodic eviction tried to close an already-closed store.
+- **CSRF plaintext HTTP origin bypass**: Hardened — defaults to off unless explicitly trusted via `TrustedProxies`.
+- **actorKindFromString validates input**: Previously accepted any string; now rejects unknown actor kinds.
+
 ## [3.0.0] - 2026-06-22
 
 ### Added
