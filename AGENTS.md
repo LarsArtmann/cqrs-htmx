@@ -22,7 +22,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200) |
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                         |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage    | 95.4% root, 79.5% usermgmt, 95.3% catalog (697 tests)                                                |
+| Coverage    | 95.4% root, 79.5% usermgmt, 95.3% catalog (697 tests)                                                 |
 
 ## Architecture
 
