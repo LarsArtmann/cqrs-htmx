@@ -37,25 +37,9 @@ func NewSQLiteEventSourcedSetup(cfg SQLiteSetupConfig) (*SQLiteEventSourcedSetup
 }
 
 func newSQLiteSetup(bundle *stack.Bundle, auditLog *AuditLog) (*SQLiteEventSourcedSetup, error) {
-	repo, err := stack.Repository(bundle, UserDecider())
+	repos, err := buildStackRepositories(bundle)
 	if err != nil {
-		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create user repository")
-	}
-	membershipRepo, err := stack.Repository(bundle, MembershipDecider())
-	if err != nil {
-		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create membership repository")
-	}
-	tenantRepo, err := stack.Repository(bundle, TenantDecider())
-	if err != nil {
-		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create tenant repository")
-	}
-	botRepo, err := stack.Repository(bundle, BotDecider())
-	if err != nil {
-		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create bot repository")
+		return nil, err
 	}
 
 	rm, memRm, tenRm, botRm, err := createSQLReadModels(bundle)
@@ -79,10 +63,10 @@ func newSQLiteSetup(bundle *stack.Bundle, auditLog *AuditLog) (*SQLiteEventSourc
 	}
 
 	return &SQLiteEventSourcedSetup{
-		UserRepository:       repo,
-		MembershipRepository: membershipRepo,
-		TenantRepository:     tenantRepo,
-		BotRepository:        botRepo,
+		UserRepository:       repos.User,
+		MembershipRepository: repos.Membership,
+		TenantRepository:     repos.Tenant,
+		BotRepository:        repos.Bot,
 		ReadModel:            rm,
 		MembershipReadModel:  memRm,
 		TenantReadModel:      tenRm,

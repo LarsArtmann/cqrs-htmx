@@ -83,14 +83,10 @@ func (h *AuthHandler) decodeAuthJSON(w http.ResponseWriter, r *http.Request, tar
 }
 
 func (h *AuthHandler) handleSendVerificationEmail(w http.ResponseWriter, r *http.Request) {
-	if !h.checkRateLimit(w, r, h.verificationLimiter, "too many verification requests") {
-		return
-	}
-	user, ok := h.currentUser(w, r)
+	user, ctx, cancel, ok := h.authContext(w, r, h.verificationLimiter, "too many verification requests")
 	if !ok {
 		return
 	}
-	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
 	token, err := h.service.SendVerificationEmail(ctx, user.ID)
@@ -120,14 +116,10 @@ func (h *AuthHandler) handleVerifyEmail(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AuthHandler) handleTOTPSetup(w http.ResponseWriter, r *http.Request) {
-	if !h.checkRateLimit(w, r, h.totpLimiter, "too many TOTP requests") {
-		return
-	}
-	user, ok := h.currentUser(w, r)
+	user, ctx, cancel, ok := h.authContext(w, r, h.totpLimiter, "too many TOTP requests")
 	if !ok {
 		return
 	}
-	ctx, cancel := h.withTimeout(r)
 	defer cancel()
 
 	resp, err := h.service.EnableTOTP(ctx, user.ID)
@@ -156,19 +148,16 @@ func (h *AuthHandler) handleTOTPCode(
 	verify func(context.Context, UserID, string) error,
 	status string,
 ) {
-	if !h.checkRateLimit(w, r, h.totpLimiter, "too many TOTP requests") {
-		return
-	}
-	user, ok := h.currentUser(w, r)
+	user, ctx, cancel, ok := h.authContext(w, r, h.totpLimiter, "too many TOTP requests")
 	if !ok {
 		return
 	}
+	defer cancel()
+
 	var req totpCodeRequest
 	if !h.decodeAuthJSON(w, r, &req) {
 		return
 	}
-	ctx, cancel := h.withTimeout(r)
-	defer cancel()
 
 	if err := verify(ctx, user.ID, req.Code); err != nil {
 		writeError(w, errorStatus(err), err.Error())
@@ -178,19 +167,16 @@ func (h *AuthHandler) handleTOTPCode(
 }
 
 func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) {
-	if !h.checkRateLimit(w, r, h.totpLimiter, "too many TOTP requests") {
-		return
-	}
-	user, ok := h.currentUser(w, r)
+	user, ctx, cancel, ok := h.authContext(w, r, h.totpLimiter, "too many TOTP requests")
 	if !ok {
 		return
 	}
+	defer cancel()
+
 	var req totpCodeRequest
 	if !h.decodeAuthJSON(w, r, &req) {
 		return
 	}
-	ctx, cancel := h.withTimeout(r)
-	defer cancel()
 
 	if err := h.service.DisableTOTP(ctx, user.ID, req.Code); err != nil {
 		writeError(w, errorStatus(err), err.Error())
@@ -221,6 +207,27 @@ func (h *AuthHandler) importExportContext(
 	}
 	ctx, cancel := h.withTimeout(r)
 	return ctx, cancel, true
+}
+
+// authContext runs the common preflight for authenticated endpoints:
+// rate-limit, current user, and a timeout-bound context. Returns the
+// authenticated user alongside the context so handlers don't have to
+// re-derive it. On any failure it writes the response and returns ok=false.
+func (h *AuthHandler) authContext(
+	w http.ResponseWriter,
+	r *http.Request,
+	limiter *perIPRateLimiter,
+	limitMsg string,
+) (*User, context.Context, context.CancelFunc, bool) {
+	if !h.checkRateLimit(w, r, limiter, limitMsg) {
+		return nil, nil, nil, false
+	}
+	user, ok := h.currentUser(w, r)
+	if !ok {
+		return nil, nil, nil, false
+	}
+	ctx, cancel := h.withTimeout(r)
+	return user, ctx, cancel, true
 }
 
 func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) {

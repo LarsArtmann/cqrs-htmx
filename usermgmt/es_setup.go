@@ -154,28 +154,9 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		return nil, err
 	}
 
-	repo, err := decider.NewRepository(store, bus, UserDecider())
+	repos, err := buildDeciderRepositories(store, bus, func() { closeBus(bus) })
 	if err != nil {
-		closeBus(bus)
-		return nil, event.NewTransient("internal", "create decider repository").WithCause(err)
-	}
-
-	membershipRepo, err := decider.NewRepository(store, bus, MembershipDecider())
-	if err != nil {
-		closeBus(bus)
-		return nil, event.NewTransient("internal", "create membership decider repository").WithCause(err)
-	}
-
-	tenantRepo, err := decider.NewRepository(store, bus, TenantDecider())
-	if err != nil {
-		closeBus(bus)
-		return nil, event.NewTransient("internal", "create tenant decider repository").WithCause(err)
-	}
-
-	botRepo, err := decider.NewRepository(store, bus, BotDecider())
-	if err != nil {
-		closeBus(bus)
-		return nil, event.NewTransient("internal", "create bot decider repository").WithCause(err)
+		return nil, err
 	}
 
 	readModel := NewUserReadModel()
@@ -254,10 +235,10 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	return &EventSourcedSetup{
 		Store:                store,
 		Bus:                  bus,
-		Repository:           repo,
-		MembershipRepository: membershipRepo,
-		TenantRepository:     tenantRepo,
-		BotRepository:        botRepo,
+		Repository:           repos.User,
+		MembershipRepository: repos.Membership,
+		TenantRepository:     repos.Tenant,
+		BotRepository:        repos.Bot,
 		ReadModel:            readModel,
 		MembershipReadModel:  membershipReadModel,
 		TenantReadModel:      tenantReadModel,

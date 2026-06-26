@@ -52,9 +52,7 @@ func (s *InMemorySessionStore) Find(_ context.Context, token string) (*Session, 
 
 // Delete removes the session with the given token.
 func (s *InMemorySessionStore) Delete(_ context.Context, token string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	delete(s.sessions, token)
+	deleteKeyed(&s.mu, s.sessions, token)
 	return nil
 }
 
@@ -74,15 +72,8 @@ func (s *InMemorySessionStore) DeleteByUserID(_ context.Context, userID UserID) 
 // number of sessions evicted. This is a maintenance method for the in-memory
 // store — call periodically to prevent unbounded memory growth.
 func (s *InMemorySessionStore) EvictExpired() int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	now := time.Now().UTC()
-	evicted := 0
-	for token, session := range s.sessions {
-		if now.After(session.ExpiresAt) {
-			delete(s.sessions, token)
-			evicted++
-		}
-	}
-	return evicted
+	return evictExpired(&s.mu, s.sessions, func(_ string, sess *Session) bool {
+		return now.After(sess.ExpiresAt)
+	})
 }

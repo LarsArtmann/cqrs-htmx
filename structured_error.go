@@ -58,26 +58,7 @@ func NewStructuredError(err error, r *http.Request) StructuredError {
 	if err == nil {
 		return StructuredError{} //nolint:exhaustruct // zero-value return
 	}
-
-	status := MapError(err)
-	family := event.Classify(err)
-	title := statusTitle(status)
-	instance := ""
-
-	if r != nil {
-		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
-			instance = rid.String()
-		}
-	}
-
-	return StructuredError{
-		Type:     familyType(family),
-		Title:    title,
-		Status:   status,
-		Detail:   err.Error(),
-		Instance: instance,
-		cause:    err,
-	}
+	return newStructuredErrorFromContext(err, requestContextOrBackground(r))
 }
 
 // NewStructuredErrorWithContext is like NewStructuredError but accepts a context
@@ -86,17 +67,22 @@ func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredErr
 	if err == nil {
 		return StructuredError{} //nolint:exhaustruct // zero-value return
 	}
+	return newStructuredErrorFromContext(err, ctx)
+}
 
+// newStructuredErrorFromContext is the shared builder used by
+// NewStructuredError and NewStructuredErrorWithContext. Both functions
+// delegate here after adapting their input (request vs context) to a
+// context.Context.
+func newStructuredErrorFromContext(err error, ctx context.Context) StructuredError {
 	status := MapError(err)
 	family := event.Classify(err)
 	instance := ""
-
 	if ctx != nil {
 		if rid := RequestIDFromContext(ctx); !rid.IsZero() {
 			instance = rid.String()
 		}
 	}
-
 	return StructuredError{
 		Type:     familyType(family),
 		Title:    statusTitle(status),
@@ -105,6 +91,17 @@ func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredErr
 		Instance: instance,
 		cause:    err,
 	}
+}
+
+// requestContextOrBackground returns r.Context() when r is non-nil, otherwise
+// context.Background(). Centralises the nil-request handling so callers can
+// pass a possibly-nil *http.Request without triggering the contextcheck
+// linter on a fresh context.Background().
+func requestContextOrBackground(r *http.Request) context.Context {
+	if r == nil {
+		return context.Background()
+	}
+	return r.Context()
 }
 
 // JSON returns the StructuredError serialized as a JSON string.

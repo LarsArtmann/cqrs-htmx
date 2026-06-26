@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -77,16 +76,16 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 	if !ok {
 		return nil
 	}
-	data, err := json.Marshal(user)
+	data, err := marshalViewJSON(user, "usermgmt.sql_readmodel.marshal", "marshal user data")
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.sql_readmodel.marshal", "marshal user data")
+		return err
 	}
 	view := UserView{
 		Email: user.Email, DisplayName: user.DisplayName,
 		EmailVerified: user.EmailVerified, TOTPEnabled: user.TOTPEnabled,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
-		Data:      string(data),
+		Data:      data,
 	}
 	userID := NewUserID(aggID.String())
 	if err := m.store.Set(ctx, userID, &view); err != nil {

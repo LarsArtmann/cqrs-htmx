@@ -322,17 +322,9 @@ func (s *oauth2StateStore) Consume(state string) (provider, pkceVerifier string,
 
 // EvictExpired removes all expired state tokens. Returns the count evicted.
 func (s *oauth2StateStore) EvictExpired() int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	now := time.Now()
-	count := 0
-	for state, entry := range s.states {
-		if now.After(entry.expiresAt) {
-			delete(s.states, state)
-			count++
-		}
-	}
-	return count
+	return evictExpired(&s.mu, s.states, func(_ string, e oauth2StateEntry) bool {
+		return time.Now().After(e.expiresAt)
+	})
 }
 
 func generateOAuth2State() (string, error) {
