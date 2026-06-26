@@ -4,22 +4,22 @@
 > For short-term work, see [TODO_LIST.md](TODO_LIST.md).
 > For what exists today, see [FEATURES.md](FEATURES.md).
 
-**Updated:** 2026-06-22 | **Version:** v3.0.0
+**Updated:** 2026-06-26 | **Version:** v3.1.0
 
 ## Current State
 
-- **Version:** v3.0.0 (all 3 publishable modules at `/v3`)
-- **Coverage:** 95.2% root, 82.8% usermgmt, 95.3% catalog
+- **Version:** v3.1.0 (all 3 publishable modules at `/v3`)
+- **Coverage:** 95.4% root, 79.5% usermgmt, 95.3% catalog
 - **Lint:** 0 issues (all modules)
 - **ErrorFamily:** 0 violations (no stdlib error constructors)
-- **Tests:** 632 passing (59 root + 517 usermgmt + 41 catalog + 15 integration), race-safe
-- **Dependencies:** go-cqrs-lite v3.0.0, go-error-family v0.4.0, go-branded-id v0.3.1, justinas/nosurf, go-webauthn v0.17.4, pquerna/otp, coreos/go-oidc, golang.org/x/oauth2
+- **Tests:** 697 usermgmt + ~430 root + ~15 catalog + ~10 integration, race-safe
+- **Dependencies:** go-cqrs-lite v3.1.0, go-error-family v0.5.1, go-branded-id v0.3.1, justinas/nosurf, go-webauthn v0.17.4, pquerna/otp, coreos/go-oidc, golang.org/x/oauth2
 - **Architecture:** Fully event-sourced usermgmt (12 events, 11 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation)
 - **Modules:** 7 Go modules in go.work (root, usermgmt, catalog, integration_test, 3 examples)
 
 ---
 
-## Shipped (v1.0.0 → v3.0.0)
+## Shipped (v1.0.0 → v3.1.0)
 
 Major milestones delivered. Maintained here for historical context.
 
@@ -35,6 +35,7 @@ Major milestones delivered. Maintained here for historical context.
 | v2.5.0  | Event signing + encryption opt-in seams (ADR-0011), OAuth2/OIDC integration (ADR-0014), event schema versioning + upcasters (ADR-0013), catalog sub-package (ADR-0008)                                                    |
 | v2.6.0  | Identity model redesign (ADR-0015): Tenant, Bot, Membership, Impersonation, ActorID. go-cqrs-lite v2.6.0. SQL event store delegation to upstream. Roles→memberships migration.                                            |
 | v3.0.0  | go-cqrs-lite v3.0.0 migration (ADR-0016): manual projection replay, watermill EventBus, storage/memory split, Decider.Fold→Apply. Module path bump /v2→/v3. God object split (es_decide.go → 5 files). Dead code removal. |
+| v3.1.0  | go-cqrs-lite v3.1.0: SQL-backed persistent read models (4 aggregates), one-call SQLite/Postgres stack presets, `OptimizeSQLiteDB`, graceful shutdown (`Service.Close`/`GracefulClose`), CI coverage gate, 697 tests. |
 
 ---
 

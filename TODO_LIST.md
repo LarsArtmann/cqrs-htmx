@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-22 | **Coverage:** 95.2% root, 82.8% usermgmt, 95.3% catalog | **Lint:** 0 issues (all modules) | **Version:** v3.0.0 (go-cqrs-lite v3.0.0)
+**Updated:** 2026-06-26 | **Coverage:** 95.4% root, 79.5% usermgmt, 95.3% catalog | **Lint:** 0 issues (all modules) | **Version:** v3.1.0 (go-cqrs-lite v3.1.0)
 
 ## Status Legend
 
@@ -85,7 +85,7 @@
 
 ### Upstream-Blocked
 
-- [~] **BrandNamer for root module marker types** — PARTIALLY UNBLOCKED: go-cqrs-lite v3.0.0 exports marker types. Needs verification and wiring.
+- [~] **BrandNamer for root module marker types** — PARTIALLY UNBLOCKED: go-cqrs-lite v3.1.0 exports marker types. Needs verification and wiring.
 - [x] **Remove local replace directives** — go-cqrs-lite v2.0.0 tags are published upstream. All go-cqrs-lite replace directives removed from all 4 go.mod files. Only `integration_test` retains cqrs-htmx local replaces (library not yet published).
 
 ### Comprehensive Review Session (2026-06-25)

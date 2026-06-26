@@ -40,7 +40,7 @@
 
           packages.default = pkgs.stdenvNoCC.mkDerivation {
             pname = "cqrs-htmx";
-            version = "2.4.0";
+            version = "3.1.0";
 
             dontUnpack = true;
             dontConfigure = true;
