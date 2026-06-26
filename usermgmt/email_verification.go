@@ -77,17 +77,9 @@ func (s *verificationTokenStore) Consume(token string) (UserID, error) {
 }
 
 func (s *verificationTokenStore) EvictExpired() int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	now := time.Now()
-	count := 0
-	for token, entry := range s.tokens {
-		if now.After(entry.expiresAt) {
-			delete(s.tokens, token)
-			count++
-		}
-	}
-	return count
+	return evictExpired(&s.mu, s.tokens, func(_ string, e verificationEntry) bool {
+		return time.Now().After(e.expiresAt)
+	})
 }
 
 // verificationEvictionInterval is how often expired verification tokens are

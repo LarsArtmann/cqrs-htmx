@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"reflect"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -107,33 +108,20 @@ func (a *App) DispatchWSCommand(
 		return errCommandsNil
 	}
 
-	ctx := wsContext(r)
+	ctx := a.wsCallContext(r)
 
-	if a.beforeDispatch != nil && r != nil {
-		ctx = a.beforeDispatch(ctx, r)
-	}
-
-	cmd, err := decoder(data)
+	cmd, err := decodeWSMessage(a, ctx, r, decoder, data,
+		"cqrshtmx.ws.decode_command_failed", "decode command %s", cmdType)
 	if err != nil {
-		wrappedErr := event.Wrapf(err, event.Rejection,
-			"cqrshtmx.ws.decode_command_failed", "decode command %s", cmdType)
-		a.afterDispatchHook(ctx, r, wrappedErr)
-		return wrappedErr
-	}
-
-	if cmd == nil {
-		a.afterDispatchHook(ctx, r, errDecoderMissing)
-		return errDecoderMissing
+		return err
 	}
 
 	ctx, cancel := a.timeoutCtx(ctx, nil)
 	defer cancel()
 
-	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		wrappedErr := event.Wrapf(err, event.Classify(err),
+	if dispatchErr := a.commands.Dispatch(ctx, cmd); dispatchErr != nil {
+		return a.wrapWSDispatchErr(ctx, r, dispatchErr,
 			"cqrshtmx.ws.dispatch_command_failed", "dispatch command %s", cmdType)
-		a.afterDispatchHook(ctx, r, wrappedErr)
-		return wrappedErr
 	}
 
 	a.afterDispatchHook(ctx, r, nil)
@@ -171,34 +159,21 @@ func (a *App) DispatchWSQuery(
 		return nil, errQueriesNil
 	}
 
-	ctx := wsContext(r)
+	ctx := a.wsCallContext(r)
 
-	if a.beforeDispatch != nil && r != nil {
-		ctx = a.beforeDispatch(ctx, r)
-	}
-
-	qry, err := decoder(data)
+	qry, err := decodeWSMessage(a, ctx, r, decoder, data,
+		"cqrshtmx.ws.decode_query_failed", "decode query %s", qryType)
 	if err != nil {
-		wrappedErr := event.Wrapf(err, event.Rejection,
-			"cqrshtmx.ws.decode_query_failed", "decode query %s", qryType)
-		a.afterDispatchHook(ctx, r, wrappedErr)
-		return nil, wrappedErr
-	}
-
-	if qry == nil {
-		a.afterDispatchHook(ctx, r, errDecoderMissing)
-		return nil, errDecoderMissing
+		return nil, err
 	}
 
 	ctx, cancel := a.timeoutCtx(ctx, nil)
 	defer cancel()
 
-	result, err := a.queries.Dispatch(ctx, qry)
-	if err != nil {
-		wrappedErr := event.Wrapf(err, event.Classify(err),
+	result, dispatchErr := a.queries.Dispatch(ctx, qry)
+	if dispatchErr != nil {
+		return nil, a.wrapWSDispatchErr(ctx, r, dispatchErr,
 			"cqrshtmx.ws.dispatch_query_failed", "dispatch query %s", qryType)
-		a.afterDispatchHook(ctx, r, wrappedErr)
-		return nil, wrappedErr
 	}
 
 	a.afterDispatchHook(ctx, r, nil)
@@ -211,4 +186,72 @@ func wsContext(r *http.Request) context.Context {
 		return context.Background()
 	}
 	return r.Context()
+}
+
+// wsCallContext returns the request context enriched by the BeforeDispatch hook,
+// or context.Background() when no request is supplied. Shared by every
+// WebSocket dispatch entry point.
+func (a *App) wsCallContext(r *http.Request) context.Context {
+	ctx := wsContext(r)
+	if a.beforeDispatch != nil && r != nil {
+		ctx = a.beforeDispatch(ctx, r)
+	}
+	return ctx
+}
+
+// decodeWSMessage runs the shared decode → wrap → nil-check pipeline used by
+// DispatchWSCommand and DispatchWSQuery. On any failure the AfterDispatch hook
+// fires and the returned error is non-nil (so the caller can `return err`).
+//
+// code and msgFormat are forwarded to event.Wrapf so the caller can produce a
+// domain-specific error code (e.g. cqrshtmx.ws.decode_command_failed).
+func decodeWSMessage[T any](
+	a *App,
+	ctx context.Context,
+	r *http.Request,
+	decoder func([]byte) (T, error),
+	data []byte,
+	code, msgFormat string,
+	msgArgs ...any,
+) (T, error) {
+	var zero T
+	v, err := decoder(data)
+	if err != nil {
+		wrapped := event.Wrapf(err, event.Rejection, code, msgFormat, msgArgs...)
+		a.afterDispatchHook(ctx, r, wrapped)
+		return zero, wrapped
+	}
+	if isWSValueNil(v) {
+		a.afterDispatchHook(ctx, r, errDecoderMissing)
+		return zero, errDecoderMissing
+	}
+	return v, nil
+}
+
+// isWSValueNil reports whether a freshly decoded CQRS message is the zero
+// value for its type. Generics can't compare arbitrary types with `==` (some
+// are incomparable), so we route through reflect: nil for reference kinds,
+// otherwise false (we trust the decoder to produce a meaningful value).
+func isWSValueNil(v any) bool {
+	if v == nil {
+		return true
+	}
+	k := reflect.ValueOf(v).Kind()
+	switch k { //nolint:exhaustive // only reference kinds can be nil
+	case reflect.Pointer, reflect.Interface, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func:
+		return reflect.ValueOf(v).IsNil()
+	}
+	return false
+}
+
+// wrapWSDispatchErr wraps a dispatch error preserving its error family (so a
+// domain Rejection isn't forced into a Transient), fires the AfterDispatch
+// hook, and returns the wrapped error.
+func (a *App) wrapWSDispatchErr(
+	ctx context.Context, r *http.Request, err error,
+	code, msgFormat string, msgArgs ...any,
+) error {
+	wrapped := event.Wrapf(err, event.Classify(err), code, msgFormat, msgArgs...)
+	a.afterDispatchHook(ctx, r, wrapped)
+	return wrapped
 }

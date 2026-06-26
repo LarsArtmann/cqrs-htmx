@@ -216,17 +216,9 @@ func newPendingTOTPStore() pendingTOTPStore {
 // EvictExpired removes all pending TOTP secrets whose expiry time has passed.
 // Returns the number of secrets evicted.
 func (s *pendingTOTPStore) EvictExpired() int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	now := time.Now()
-	count := 0
-	for key, entry := range s.secrets {
-		if now.After(entry.expiresAt) {
-			delete(s.secrets, key)
-			count++
-		}
-	}
-	return count
+	return evictExpired(&s.mu, s.secrets, func(_ string, e pendingTOTPSecret) bool {
+		return time.Now().After(e.expiresAt)
+	})
 }
 
 // startEviction launches a background goroutine that periodically removes

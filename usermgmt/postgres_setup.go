@@ -33,25 +33,9 @@ func NewPostgresEventSourcedSetup(cfg PostgresSetupConfig) (*PostgresEventSource
 }
 
 func newPostgresSetup(bundle *stack.Bundle, auditLog *AuditLog) (*PostgresEventSourcedSetup, error) {
-	repo, err := stack.Repository(bundle, UserDecider())
+	repos, err := buildStackRepositories(bundle)
 	if err != nil {
-		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create user repository")
-	}
-	membershipRepo, err := stack.Repository(bundle, MembershipDecider())
-	if err != nil {
-		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create membership repository")
-	}
-	tenantRepo, err := stack.Repository(bundle, TenantDecider())
-	if err != nil {
-		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create tenant repository")
-	}
-	botRepo, err := stack.Repository(bundle, BotDecider())
-	if err != nil {
-		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create bot repository")
+		return nil, err
 	}
 
 	db := extractDB(bundle)
@@ -76,10 +60,10 @@ func newPostgresSetup(bundle *stack.Bundle, auditLog *AuditLog) (*PostgresEventS
 	}
 
 	return &PostgresEventSourcedSetup{
-		UserRepository:       repo,
-		MembershipRepository: membershipRepo,
-		TenantRepository:     tenantRepo,
-		BotRepository:        botRepo,
+		UserRepository:       repos.User,
+		MembershipRepository: repos.Membership,
+		TenantRepository:     repos.Tenant,
+		BotRepository:        repos.Bot,
 		ReadModel:            rm,
 		MembershipReadModel:  memRm,
 		TenantReadModel:      tenRm,

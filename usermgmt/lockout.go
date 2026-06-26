@@ -118,13 +118,11 @@ func (l *AccountLockout) EvictStale() int {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	now := time.Now()
-	evicted := 0
-	for email, lockedAt := range l.lockedAt {
-		if now.Sub(lockedAt) > l.config.Duration {
-			delete(l.lockedAt, email)
-			delete(l.attempts, email)
-			evicted++
+	return deleteExpired(l.lockedAt, func(email string, lockedAt time.Time) bool {
+		if now.Sub(lockedAt) <= l.config.Duration {
+			return false
 		}
-	}
-	return evicted
+		delete(l.attempts, email)
+		return true
+	})
 }

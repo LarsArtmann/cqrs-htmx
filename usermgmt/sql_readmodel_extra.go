@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -72,11 +71,11 @@ func (m *SQLMembershipReadModel) Handle(ctx context.Context, evt event.Event) er
 	if !ok {
 		return nil
 	}
-	data, err := json.Marshal(mem)
+	data, err := marshalViewJSON(mem, "usermgmt.sql_readmodel.membership_marshal", "marshal membership data")
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.sql_readmodel.membership_marshal", "marshal membership data")
+		return err
 	}
-	view := MembershipView{ActorID: mem.ActorID.String(), TenantID: mem.TenantID.Get(), Data: string(data)}
+	view := MembershipView{ActorID: mem.ActorID.String(), TenantID: mem.TenantID.Get(), Data: data}
 	if err := m.store.Set(ctx, aggID, &view); err != nil {
 		return event.WrapTransient(err, "usermgmt.sql_readmodel.membership_upsert", "upsert membership view")
 	}
@@ -149,13 +148,13 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 	if !ok {
 		return nil
 	}
-	data, err := json.Marshal(tenant)
+	data, err := marshalViewJSON(tenant, "usermgmt.sql_readmodel.tenant_marshal", "marshal tenant data")
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.sql_readmodel.tenant_marshal", "marshal tenant data")
+		return err
 	}
 	view := TenantView{
 		Name: tenant.Name, DisplayName: tenant.DisplayName,
-		Suspended: tenant.Suspended, Deleted: tenant.Deleted, Data: string(data),
+		Suspended: tenant.Suspended, Deleted: tenant.Deleted, Data: data,
 	}
 	if err := m.store.Set(ctx, tid, &view); err != nil {
 		return event.WrapTransient(err, "usermgmt.sql_readmodel.tenant_upsert", "upsert tenant view")
@@ -229,13 +228,13 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 	if !ok {
 		return nil
 	}
-	data, err := json.Marshal(bot)
+	data, err := marshalViewJSON(bot, "usermgmt.sql_readmodel.bot_marshal", "marshal bot data")
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.sql_readmodel.bot_marshal", "marshal bot data")
+		return err
 	}
 	view := BotView{
 		Name: bot.Name, OwnerID: bot.OwnerID,
-		TokenHash: string(bot.TokenHash), Deleted: bot.Deleted, Data: string(data),
+		TokenHash: string(bot.TokenHash), Deleted: bot.Deleted, Data: data,
 	}
 	if err := m.store.Set(ctx, bid, &view); err != nil {
 		return event.WrapTransient(err, "usermgmt.sql_readmodel.bot_upsert", "upsert bot view")

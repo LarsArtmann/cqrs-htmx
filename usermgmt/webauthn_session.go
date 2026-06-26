@@ -54,25 +54,15 @@ func (s *webauthnSessionStore) Get(key string) (*webauthn.SessionData, error) {
 }
 
 func (s *webauthnSessionStore) Delete(key string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	delete(s.sessions, key)
+	deleteKeyed(&s.mu, s.sessions, key)
 }
 
 // EvictExpired removes all sessions whose Expires time has passed.
 // Returns the number of sessions evicted.
 func (s *webauthnSessionStore) EvictExpired() int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	now := time.Now()
-	evicted := 0
-	for key, data := range s.sessions {
-		if !data.Expires.IsZero() && now.After(data.Expires) {
-			delete(s.sessions, key)
-			evicted++
-		}
-	}
-	return evicted
+	return evictExpired(&s.mu, s.sessions, func(_ string, data *webauthn.SessionData) bool {
+		return !data.Expires.IsZero() && time.Now().After(data.Expires)
+	})
 }
 
 // startEviction launches a background goroutine that periodically removes
