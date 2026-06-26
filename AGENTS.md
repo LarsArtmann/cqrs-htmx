@@ -22,7 +22,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200) |
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                         |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage    | 96.4% root, 88.7% usermgmt, 95.3% catalog (500+ tests)                                                |
+| Coverage    | 95.4% root, 79.5% usermgmt, 95.3% catalog (697 tests)                                                |
 
 ## Architecture
 
@@ -109,6 +109,10 @@ cqrs-htmx/
 │   ├── es_readmodel.go    # UserReadModel projection + email index
 │   ├── es_casbin_projection.go  # CasbinProjection — derives policies from events
 │   ├── es_projection_setup.go   # StartProjections — manual journal replay + bus.SubscribeAll
+│   ├── sql_readmodel.go         # SQLUserReadModel (SQLite/Postgres) — UserView DTO + Handle/syncToSQL + FindByIDSQL/FindByEmailSQL/CountSQL
+│   ├── sql_readmodel_extra.go   # SQLMembershipReadModel, SQLTenantReadModel, SQLBotReadModel — same pattern for 3 aggregates
+│   ├── sqlite_setup.go          # NewSQLiteEventSourcedSetup — one-call SQLite stack preset (bundle + repos + SQL read models + projections)
+│   ├── postgres_setup.go        # NewPostgresEventSourcedSetup — one-call Postgres stack preset (supports multi-DB split)
 │   ├── service_core.go    # Service struct, ServiceConfig, NewService (event-sourced + WebAuthn wiring)
 │   ├── service_register.go # RegisterRequest (email only), Service.Register
 │   ├── service_login.go   # Service.Logout/Authenticate/Authorize (no password login)
