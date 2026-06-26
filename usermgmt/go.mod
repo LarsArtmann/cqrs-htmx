@@ -12,6 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.1.0
@@ -64,7 +65,6 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
@@ -82,7 +82,7 @@ require (
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
-	modernc.org/libc v1.73.4 // indirect
+	modernc.org/libc v1.73.5 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )

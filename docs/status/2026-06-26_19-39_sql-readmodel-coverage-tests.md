@@ -18,29 +18,30 @@ The usermgmt coverage gate was **failing** at 74.7% (threshold: 75%). The root c
 
 ### SQL Read Model Unit Tests (4 aggregates)
 
-| File | Tests | Coverage Before | Coverage After |
-|------|-------|-----------------|----------------|
-| `sql_readmodel_test.go` (User) | 3 tests: RegisterAndQuery, UpdateAndDelete, PostgresConstructor | 0% | ~75-100% per function |
-| `sql_readmodel_extra_test.go` (Membership) | 1 test: LifecycleAndQuery (Added→RolesChanged→Removed + FindByActorSQL) | 0% | ~70-75% |
-| `sql_readmodel_extra_test.go` (Tenant) | 1 test: LifecycleAndQuery (Created→Suspended→Reactivated→Deleted + FindByNameSQL) | 0% | ~72-75% |
-| `sql_readmodel_extra_test.go` (Bot) | 1 test: LifecycleAndQuery (Registered→Deleted + FindByNameSQL) | 0% | ~72-75% |
+| File                                       | Tests                                                                             | Coverage Before | Coverage After        |
+| ------------------------------------------ | --------------------------------------------------------------------------------- | --------------- | --------------------- |
+| `sql_readmodel_test.go` (User)             | 3 tests: RegisterAndQuery, UpdateAndDelete, PostgresConstructor                   | 0%              | ~75-100% per function |
+| `sql_readmodel_extra_test.go` (Membership) | 1 test: LifecycleAndQuery (Added→RolesChanged→Removed + FindByActorSQL)           | 0%              | ~70-75%               |
+| `sql_readmodel_extra_test.go` (Tenant)     | 1 test: LifecycleAndQuery (Created→Suspended→Reactivated→Deleted + FindByNameSQL) | 0%              | ~72-75%               |
+| `sql_readmodel_extra_test.go` (Bot)        | 1 test: LifecycleAndQuery (Registered→Deleted + FindByNameSQL)                    | 0%              | ~72-75%               |
 
 Each test feeds typed event payloads through the SQL read model's `Handle` method, then verifies data is persisted to the SQL store via the `FindBy*SQL` query methods.
 
 ### SQLite Setup Integration Tests
 
-| Test | What it verifies |
-|------|-----------------|
-| `TestSQLiteSetup_CreateAndClose` | Full setup creation, DB/Authz/ReadModel non-nil, Close + idempotent Close |
-| `TestSQLiteSetup_GracefulClose` | GracefulClose with valid context |
-| `TestSQLiteSetup_GracefulClose_CancelledContext` | GracefulClose with cancelled context (no panic) |
-| `TestSQLiteSetup_RegisterUserThroughStack` | End-to-end: dispatch RegisterUser command → verify in-memory read model + SQL store |
-| `TestSQLiteSetup_RestartSurvival` | **Restart persistence**: register user → close DB → reopen → verify data survived via journal replay |
-| `TestCreatePostgresReadModels_NilDB` | Edge case: nil-db fallback returns in-memory read models |
+| Test                                             | What it verifies                                                                                     |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `TestSQLiteSetup_CreateAndClose`                 | Full setup creation, DB/Authz/ReadModel non-nil, Close + idempotent Close                            |
+| `TestSQLiteSetup_GracefulClose`                  | GracefulClose with valid context                                                                     |
+| `TestSQLiteSetup_GracefulClose_CancelledContext` | GracefulClose with cancelled context (no panic)                                                      |
+| `TestSQLiteSetup_RegisterUserThroughStack`       | End-to-end: dispatch RegisterUser command → verify in-memory read model + SQL store                  |
+| `TestSQLiteSetup_RestartSurvival`                | **Restart persistence**: register user → close DB → reopen → verify data survived via journal replay |
+| `TestCreatePostgresReadModels_NilDB`             | Edge case: nil-db fallback returns in-memory read models                                             |
 
 ### CI Gate Bug Fix (Critical)
 
 **`flake.nix` coverage-gate was silently always passing.** Two bugs:
+
 1. `bc` (arbitrary precision calculator) was not in `runtimeInputs` — the comparison command `echo "$cov < $threshold" | bc -l` failed silently
 2. `go test` stdout was only redirected with `2>/dev/null` — the `ok ... coverage: 79.5%` line leaked into the `cov` variable, corrupting the `bc` comparison with illegal characters
 
@@ -48,12 +49,12 @@ Each test feeds typed event payloads through the SQL read model's `Handle` metho
 
 ### Lint & Formatting Cleanup
 
-| Change | File | Reason |
-|--------|------|--------|
-| Added `cyclop` exclusion for `_test.go` | `.golangci.yml` | Test functions naturally have higher complexity |
-| Added `funlen` exclusion for `_test.go` | `.golangci.yml` | Lifecycle tests exceed 40 statements |
-| Removed stale `//nolint:errcheck` | `sql_readmodel_test.go` | Unused directive |
-| Cleaned `//nolint` from `cyclop,funlen` → `gocognit` only | `session_store_contract_test.go` | cyclop/funlen now excluded globally for tests |
+| Change                                                    | File                             | Reason                                          |
+| --------------------------------------------------------- | -------------------------------- | ----------------------------------------------- |
+| Added `cyclop` exclusion for `_test.go`                   | `.golangci.yml`                  | Test functions naturally have higher complexity |
+| Added `funlen` exclusion for `_test.go`                   | `.golangci.yml`                  | Lifecycle tests exceed 40 statements            |
+| Removed stale `//nolint:errcheck`                         | `sql_readmodel_test.go`          | Unused directive                                |
+| Cleaned `//nolint` from `cyclop,funlen` → `gocognit` only | `session_store_contract_test.go` | cyclop/funlen now excluded globally for tests   |
 
 ### Documentation
 
@@ -62,13 +63,13 @@ Each test feeds typed event payloads through the SQL read model's `Handle` metho
 
 ### Full Pipeline Verification
 
-| Gate | Result | Details |
-|------|--------|---------|
-| Build | ✅ PASS | All 5 buildable modules compile |
-| Test (-race) | ✅ PASS | All 4 testable modules pass (697 tests) |
-| Lint | ✅ PASS | 0 issues across root + catalog + usermgmt |
-| Errorfamily | ✅ PASS | 0 stdlib error constructors |
-| Fmt | ✅ PASS | `nix flake check` passes |
+| Gate          | Result  | Details                                                        |
+| ------------- | ------- | -------------------------------------------------------------- |
+| Build         | ✅ PASS | All 5 buildable modules compile                                |
+| Test (-race)  | ✅ PASS | All 4 testable modules pass (697 tests)                        |
+| Lint          | ✅ PASS | 0 issues across root + catalog + usermgmt                      |
+| Errorfamily   | ✅ PASS | 0 stdlib error constructors                                    |
+| Fmt           | ✅ PASS | `nix flake check` passes                                       |
 | Coverage gate | ✅ PASS | root 95.4% (≥90%), usermgmt 79.5% (≥75%), catalog 95.3% (≥90%) |
 
 ---
@@ -124,11 +125,13 @@ Evaluated but not adopted — our read models have complex 12-event switches tha
 ### CI Coverage Gate Was a No-Op (FIXED)
 
 The `nix run .#coverage-gate` app was **silently passing regardless of actual coverage**. This means:
+
 - If coverage had dropped to 60%, the gate would still report "PASSED"
 - The entire purpose of the gate (preending coverage regressions) was defeated
 - This bug existed since the coverage-gate app was created (commit in the v3.1.0 adoption work)
 
 **Root cause**: Two compounding bugs:
+
 1. `bc` not in `runtimeInputs` → `bc -l` command not found → comparison silently fails
 2. `go test` stdout not fully suppressed → `ok github.com/... coverage: 79.5% of statements` leaked into the `cov` variable → `bc` received `79.5 of statements < 75` which is a syntax error
 
@@ -169,33 +172,33 @@ No regressions, no broken APIs, no data loss. All other work is clean.
 
 Sorted by **impact × customer-value ÷ effort**:
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | **T5: Generic SQL read model** — consolidate 4 implementations into 1 generic | 🔴 High | Med | Code quality |
-| 2 | **Add testable coverage-gate** — verify FAIL path works (regression test for the `bc` bug) | 🔴 High | Low | CI/CD |
-| 3 | **Postgres Docker test** — test `postgres_setup.go` + Postgres read models locally | 🔴 High | Med | Testing |
-| 4 | **Tenant restart-survival test** — same pattern as User restart test | 🟡 Med | Low | Testing |
-| 5 | **Bot restart-survival test** — same pattern as User restart test | 🟡 Med | Low | Testing |
-| 6 | **Membership restart-survival test** — same pattern as User restart test | 🟡 Med | Low | Testing |
-| 7 | **Error path tests for SQL read models** — mock store that returns errors | 🟡 Med | Med | Testing |
-| 8 | **Error path tests for sqlite_setup** — inject failing repo/readmodel | 🟡 Med | Med | Testing |
-| 9 | **Migrate `StartProjections` to `CatchUpSubscriber`** — upstream provides this | 🟡 Med | Med | Architecture |
-| 10 | **Add `WithSecurityHooks` to stack presets** — enables signing/encryption in one-call setups | 🟡 Med | High | Architecture |
-| 11 | **OAuth2 restart-survival** — verify OAuth2 state store survives restart (currently in-memory) | 🟡 Med | Med | Testing |
-| 12 | **WebAuthn restart-survival** — verify WebAuthn session store survives restart (currently in-memory) | 🟡 Med | Med | Testing |
-| 13 | **Per-package coverage gate** — catch packages dropping to 0% | 🟢 Low | Low | CI/CD |
-| 14 | **Tenant/Bot/Membership integration test through SQLiteSetup** — dispatch commands, verify SQL | 🟡 Med | Low | Testing |
-| 15 | **`NewSQLUserReadModel` on Postgres** — currently untested, needs Postgres | 🟡 Med | Med | Testing |
-| 16 | **Fuzz tests for SQL view stores** — arbitrary UserID/aggID strings | 🟢 Low | Med | Testing |
-| 17 | **Benchmark SQL read model Handle** — measure projection throughput | 🟢 Low | Med | Performance |
-| 18 | **Consolidate sqlite/postgres setup helpers** — share more code between presets | 🟡 Med | Low | Code quality |
-| 19 | **Document stack preset SecurityHooks limitation in README** — consumer-facing docs | 🟢 Low | Low | Docs |
-| 20 | **Add `examples/sqlite-demo`** — show consumers how to use `NewSQLiteEventSourcedSetup` | 🟡 Med | Med | Examples |
-| 21 | **SQL read model projection lag test** — verify read-your-writes under concurrent load | 🟡 Med | High | Testing |
-| 22 | **Add `GracefulClose` to Service for stack-based setups** — currently only on EventSourcedSetup | 🟢 Low | Low | API |
-| 23 | **Audit log persistence** — AuditLog is currently in-memory, should survive restarts | 🟡 Med | High | Feature |
-| 24 | **Session store SQL restart-survival** — verify sessions survive process restart | 🟡 Med | Med | Testing |
-| 25 | **Coverage badge in README** — auto-update coverage % in README via CI | 🟢 Low | Low | Docs |
+| #   | Task                                                                                                 | Impact  | Effort | Category     |
+| --- | ---------------------------------------------------------------------------------------------------- | ------- | ------ | ------------ |
+| 1   | **T5: Generic SQL read model** — consolidate 4 implementations into 1 generic                        | 🔴 High | Med    | Code quality |
+| 2   | **Add testable coverage-gate** — verify FAIL path works (regression test for the `bc` bug)           | 🔴 High | Low    | CI/CD        |
+| 3   | **Postgres Docker test** — test `postgres_setup.go` + Postgres read models locally                   | 🔴 High | Med    | Testing      |
+| 4   | **Tenant restart-survival test** — same pattern as User restart test                                 | 🟡 Med  | Low    | Testing      |
+| 5   | **Bot restart-survival test** — same pattern as User restart test                                    | 🟡 Med  | Low    | Testing      |
+| 6   | **Membership restart-survival test** — same pattern as User restart test                             | 🟡 Med  | Low    | Testing      |
+| 7   | **Error path tests for SQL read models** — mock store that returns errors                            | 🟡 Med  | Med    | Testing      |
+| 8   | **Error path tests for sqlite_setup** — inject failing repo/readmodel                                | 🟡 Med  | Med    | Testing      |
+| 9   | **Migrate `StartProjections` to `CatchUpSubscriber`** — upstream provides this                       | 🟡 Med  | Med    | Architecture |
+| 10  | **Add `WithSecurityHooks` to stack presets** — enables signing/encryption in one-call setups         | 🟡 Med  | High   | Architecture |
+| 11  | **OAuth2 restart-survival** — verify OAuth2 state store survives restart (currently in-memory)       | 🟡 Med  | Med    | Testing      |
+| 12  | **WebAuthn restart-survival** — verify WebAuthn session store survives restart (currently in-memory) | 🟡 Med  | Med    | Testing      |
+| 13  | **Per-package coverage gate** — catch packages dropping to 0%                                        | 🟢 Low  | Low    | CI/CD        |
+| 14  | **Tenant/Bot/Membership integration test through SQLiteSetup** — dispatch commands, verify SQL       | 🟡 Med  | Low    | Testing      |
+| 15  | **`NewSQLUserReadModel` on Postgres** — currently untested, needs Postgres                           | 🟡 Med  | Med    | Testing      |
+| 16  | **Fuzz tests for SQL view stores** — arbitrary UserID/aggID strings                                  | 🟢 Low  | Med    | Testing      |
+| 17  | **Benchmark SQL read model Handle** — measure projection throughput                                  | 🟢 Low  | Med    | Performance  |
+| 18  | **Consolidate sqlite/postgres setup helpers** — share more code between presets                      | 🟡 Med  | Low    | Code quality |
+| 19  | **Document stack preset SecurityHooks limitation in README** — consumer-facing docs                  | 🟢 Low  | Low    | Docs         |
+| 20  | **Add `examples/sqlite-demo`** — show consumers how to use `NewSQLiteEventSourcedSetup`              | 🟡 Med  | Med    | Examples     |
+| 21  | **SQL read model projection lag test** — verify read-your-writes under concurrent load               | 🟡 Med  | High   | Testing      |
+| 22  | **Add `GracefulClose` to Service for stack-based setups** — currently only on EventSourcedSetup      | 🟢 Low  | Low    | API          |
+| 23  | **Audit log persistence** — AuditLog is currently in-memory, should survive restarts                 | 🟡 Med  | High   | Feature      |
+| 24  | **Session store SQL restart-survival** — verify sessions survive process restart                     | 🟡 Med  | Med    | Testing      |
+| 25  | **Coverage badge in README** — auto-update coverage % in README via CI                               | 🟢 Low  | Low    | Docs         |
 
 ---
 
@@ -217,26 +220,26 @@ A truly generic solution would need callbacks/adapters for the field mapping and
 
 ## Appendix: Coverage Numbers
 
-| Module | Coverage | Threshold | Delta | Status |
-|--------|----------|-----------|-------|--------|
-| Root | 95.5% | 90% | — | ✅ |
-| usermgmt | **79.5%** | 75% | **+4.8pp** (was 74.7%) | ✅ |
-| catalog | 95.3% | 90% | — | ✅ |
+| Module   | Coverage  | Threshold | Delta                  | Status |
+| -------- | --------- | --------- | ---------------------- | ------ |
+| Root     | 95.5%     | 90%       | —                      | ✅     |
+| usermgmt | **79.5%** | 75%       | **+4.8pp** (was 74.7%) | ✅     |
+| catalog  | 95.3%     | 90%       | —                      | ✅     |
 
 ## Appendix: Test Counts
 
-| Module | Tests |
-|--------|-------|
-| Root | ~430 |
-| usermgmt | **697** |
-| catalog | ~15 |
-| integration_test | ~10 |
-| **Total** | **~1,150+** |
+| Module           | Tests       |
+| ---------------- | ----------- |
+| Root             | ~430        |
+| usermgmt         | **697**     |
+| catalog          | ~15         |
+| integration_test | ~10         |
+| **Total**        | **~1,150+** |
 
 ## Appendix: LOC
 
-| Metric | Count |
-|--------|-------|
-| Total Go LOC | 43,999 |
-| Test files | 169 |
-| Non-test Go files | 131 |
+| Metric            | Count  |
+| ----------------- | ------ |
+| Total Go LOC      | 43,999 |
+| Test files        | 169    |
+| Non-test Go files | 131    |
