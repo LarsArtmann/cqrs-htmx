@@ -162,6 +162,12 @@ linters:
         linters:
           - unparam
       - path: _test\.go
+        linters:
+          - cyclop
+      - path: _test\.go
+        linters:
+          - funlen
+      - path: _test\.go
         text: G124
         linters:
           - gosec

@@ -358,7 +358,10 @@
               meta.description = "Run tests and fail if coverage drops below thresholds (root 90%, usermgmt 75%, catalog 90%)";
               program = pkgs.writeShellApplication {
                 name = "coverage-gate";
-                runtimeInputs = [ pkgs.go_1_26 ];
+                runtimeInputs = [
+                  pkgs.go_1_26
+                  pkgs.bc
+                ];
                 text = ''
                   export GOWORK=off
                   export GONOSUMCHECK='github.com/larsartmann/*'
@@ -366,7 +369,7 @@
                   check_cov() {
                     local mod="$1" threshold="$2"
                     local cov
-                    cov=$(cd "$mod" && go test ./... -count=1 -coverprofile=/tmp/cov 2>/dev/null && go tool cover -func=/tmp/cov | tail -1 | grep -oP '\d+\.\d+(?=%)')
+                    cov=$(cd "$mod" && go test ./... -count=1 -coverprofile=/tmp/cov >/dev/null 2>&1 && go tool cover -func=/tmp/cov | tail -1 | grep -oP '\d+\.\d+(?=%)')
                     echo "$mod coverage: ''${cov}% (threshold: ''${threshold}%)"
                     if (( $(echo "$cov < $threshold" | bc -l) )); then
                       echo "FAIL: $mod coverage ''${cov}% < ''${threshold}%"

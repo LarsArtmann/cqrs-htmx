@@ -24,7 +24,7 @@ func createTestSession(t *testing.T, store SessionStore, ctx context.Context, ui
 // SessionStore implementation. Both InMemorySessionStore and SQLSessionStore
 // use it to verify identical semantics.
 //
-//nolint:gocognit,cyclop,funlen // contract suite — each subtest is independently simple
+//nolint:gocognit // contract suite — each subtest is independently simple
 func runSessionStoreContract(t *testing.T, factory func(t *testing.T) SessionStore) {
 	t.Helper()
 
