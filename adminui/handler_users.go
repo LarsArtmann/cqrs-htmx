@@ -54,8 +54,8 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *userm
 	if authz := h.cfg.Service.Authz(); authz != nil {
 		if domains, derr := authz.DomainsForUser(shown.ID); derr == nil {
 			for _, dom := range domains {
-				if rs, rerr := authz.RolesForUser(shown.ID, usermgmt.NewTenantID(dom)); rerr == nil && len(rs) > 0 {
-					roles[dom] = rs
+				if rs, rerr := authz.RolesForUser(shown.ID, dom); rerr == nil && len(rs) > 0 {
+					roles[dom.Get()] = rs
 				}
 			}
 		}
