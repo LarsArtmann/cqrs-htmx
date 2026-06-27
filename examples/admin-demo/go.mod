@@ -5,6 +5,7 @@ go 1.26.4
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v3 v3.0.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.1.0
+	github.com/larsartmann/cqrs-htmx/v3 v3.1.0
 )
 
 require (
@@ -34,7 +35,6 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/cqrs-htmx/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.1.0 // indirect

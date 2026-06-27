@@ -8,6 +8,9 @@ templ Layout(p pageData) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<meta name="color-scheme" content="light dark"/>
 			<meta name="robots" content="noindex"/>
+			if p.CSRFMeta != "" {
+				@templ.Raw(p.CSRFMeta)
+			}
 			<title>{ p.Title } · { p.Brand }</title>
 			<style>:root&#123;--accent:{ p.Accent };&#125;</style>
 			<link rel="stylesheet" href={ p.BasePath + "/-/admin.css" }/>

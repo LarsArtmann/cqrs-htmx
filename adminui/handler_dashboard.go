@@ -8,7 +8,7 @@ import (
 )
 
 func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
-	p := h.page("Dashboard", "/", user)
+	p := h.page("Dashboard", "/", user, r)
 	svc := h.cfg.Service
 
 	var stats []statCard

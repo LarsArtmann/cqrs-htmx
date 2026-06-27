@@ -17,7 +17,7 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *userm
 		renderPartial(w, r, usersTable(d))
 		return
 	}
-	p := h.page("Users", "/users", user)
+	p := h.page("Users", "/users", user, r)
 	renderPage(w, r, usersPage(p, d))
 }
 
@@ -61,7 +61,7 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *userm
 		}
 	}
 
-	p := h.page(shown.Email, "/users", user)
+	p := h.page(shown.Email, "/users", user, r)
 	renderPage(w, r, userDetailPage(p, userDetailData{
 		User: shown, BasePath: h.cfg.BasePath, TenantRoles: roles,
 	}))

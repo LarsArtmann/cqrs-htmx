@@ -14,6 +14,6 @@ func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *userm
 	if al := h.cfg.Service.AuditLog(); al != nil {
 		entries = al.Recent(100)
 	}
-	p := h.page("Audit log", "/audit", user)
+	p := h.page("Audit log", "/audit", user, r)
 	renderPage(w, r, auditPage(p, auditData{Entries: entries, BasePath: h.cfg.BasePath}))
 }

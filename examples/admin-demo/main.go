@@ -18,6 +18,7 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v3"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 const (
@@ -57,11 +58,14 @@ func main() {
 		log.Fatalf("adminui.New: %v", err)
 	}
 
-	// 4. Wire routes. The panel sits behind the session middleware so that
-	//    *usermgmt.User is in the request context.
+	// 4. Wire routes. The panel sits behind session middleware + CSRF + the
+	//    panel's recommended middleware (recovery + security headers). This is
+	//    the production-ready wiring pattern.
 	mux := http.NewServeMux()
 	sessionMW := usermgmt.NewSessionMiddleware(svc, cookieName)
-	mux.Handle("/admin/", sessionMW(http.StripPrefix("/admin", panel.Handler())))
+	csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+	panelMW := panel.Middleware()
+	mux.Handle("/admin/", sessionMW(csrfMW(panelMW(http.StripPrefix("/admin", panel.Handler())))))
 
 	mux.HandleFunc("/dev-login", func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{
