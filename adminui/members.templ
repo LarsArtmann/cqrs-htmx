@@ -57,12 +57,30 @@ templ membersCard(d tenantDetailData) {
 	</div>
 }
 
+// tenantHeader renders the page title + tenant status badge + display name.
+// Extracted as a component because templ's parser rejects if/else blocks
+// directly inside @Layout children.
+templ tenantHeader(d tenantDetailData) {
+	<div class="admin-content__head">
+		<h1>Members</h1>
+		<div class="spacer"></div>
+		if d.Tenant != nil {
+			if d.Tenant.Suspended {
+				@badge("suspended", "amber")
+			} else {
+				@badge("active", "green")
+			}
+		}
+	</div>
+	if d.Tenant != nil {
+		<div class="muted" style="margin-bottom:18px">{ d.Tenant.DisplayName } · <span class="mono">{ d.Tenant.Name }</span></div>
+	}
+}
+
 // membersPage is the tenant-scoped members view (ModeTenantAdmin).
 templ membersPage(p pageData, d tenantDetailData) {
 	@Layout(p) {
-		<div class="admin-content__head">
-			<h1>Members</h1>
-		</div>
+		@tenantHeader(d)
 		@membersCard(d)
 	}
 }

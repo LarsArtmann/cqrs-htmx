@@ -39,7 +39,9 @@
     setTimeout(function () {
       el.style.opacity = "0";
       el.style.transition = "opacity .2s";
-      setTimeout(function () { el.remove(); }, 220);
+      setTimeout(function () {
+        el.remove();
+      }, 220);
     }, 3200);
   }
   document.body.addEventListener("htmx:afterSettle", function (e) {

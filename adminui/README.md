@@ -6,7 +6,7 @@ HTMX-driven UI: a dashboard with live metrics, user management, tenant
 management, tenant members, and an audit log.
 
 - **One-call mount** behind your existing session middleware.
-- **Two scopes**: a global *Super Admin* panel, or a per-tenant *Tenant Admin* panel.
+- **Two scopes**: a global _Super Admin_ panel, or a per-tenant _Tenant Admin_ panel.
 - **Modern look** out of the box — a self-contained stylesheet with automatic
   light/dark theming and a configurable accent color. No Tailwind, no build step.
 - **HTMX interactivity** — live search, inline actions, toast notifications.
@@ -57,26 +57,26 @@ or your own middleware). Requests without a user get `401`; users that fail
 
 The default authorizer checks roles:
 
-| Mode             | Default check                                              |
-| ---------------- | --------------------------------------------------------- |
-| `ModeSuperAdmin` | `super_admin` or `admin` in the global (`*`) domain       |
-| `ModeTenantAdmin`| `admin` or `owner` within [`Config.TenantID`](config.go)  |
+| Mode              | Default check                                            |
+| ----------------- | -------------------------------------------------------- |
+| `ModeSuperAdmin`  | `super_admin` or `admin` in the global (`*`) domain      |
+| `ModeTenantAdmin` | `admin` or `owner` within [`Config.TenantID`](config.go) |
 
 Override with your own `Config.Authorizer`, or use the helpers
 [`RequireAnyRole`](authz.go) and [`RequireAuthenticated`](authz.go).
 
 ## Configuration
 
-| Field          | Purpose                                            | Default        |
-| -------------- | -------------------------------------------------- | -------------- |
-| `Service`      | The backing `*usermgmt.Service`. **Required.**     | —              |
-| `Title`        | Brand text in the sidebar / tab.                   | `"Admin"`      |
-| `BasePath`     | URL prefix the panel is mounted under.             | `"/admin"`     |
-| `Mode`         | `ModeSuperAdmin` or `ModeTenantAdmin`.             | SuperAdmin     |
-| `TenantID`     | Scopes a tenant-admin panel.                       | —              |
-| `AccentColor`  | Highlight color (any CSS color).                   | indigo         |
-| `Authorizer`   | Access-control function.                           | role-based     |
-| `LogoutURL`    | "Sign out" link target. Empty hides the link.      | —              |
+| Field         | Purpose                                        | Default    |
+| ------------- | ---------------------------------------------- | ---------- |
+| `Service`     | The backing `*usermgmt.Service`. **Required.** | —          |
+| `Title`       | Brand text in the sidebar / tab.               | `"Admin"`  |
+| `BasePath`    | URL prefix the panel is mounted under.         | `"/admin"` |
+| `Mode`        | `ModeSuperAdmin` or `ModeTenantAdmin`.         | SuperAdmin |
+| `TenantID`    | Scopes a tenant-admin panel.                   | —          |
+| `AccentColor` | Highlight color (any CSS color).               | indigo     |
+| `Authorizer`  | Access-control function.                       | role-based |
+| `LogoutURL`   | "Sign out" link target. Empty hides the link.  | —          |
 
 ## What you get
 

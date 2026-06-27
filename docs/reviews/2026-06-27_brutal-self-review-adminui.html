@@ -1,98 +1,308 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>adminui — Brutal Self-Review</title>
-<style>
-  :root { --bg:#0b1120; --surface:#131c31; --text:#e6edf6; --muted:#93a4bd; --border:#233049;
-    --accent:#4f46e5; --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:14.5px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif; padding:32px; }
-  h1 { font-size:26px; margin:0 0 4px; letter-spacing:-.02em; }
-  h2 { font-size:18px; margin:34px 0 12px; }
-  .sub { color:var(--muted); margin-bottom:28px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:8px; }
-  .stat { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; }
-  .stat b { font-size:30px; display:block; }
-  .stat span { color:var(--muted); font-size:12.5px; }
-  .card { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--muted); border-radius:10px; padding:16px 18px; margin:12px 0; }
-  .card h3 { margin:0 0 6px; font-size:15.5px; }
-  .card p { margin:4px 0; color:var(--muted); }
-  .card code { background:rgba(255,255,255,.07); padding:1px 6px; border-radius:5px; font-size:13px; }
-  .problem { border-left-color:var(--err); }
-  .warning { border-left-color:var(--warn); }
-  .solution { border-left-color:var(--ok); }
-  .tag { display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; margin-left:8px; vertical-align:middle; }
-  .t-err { background:rgba(239,68,68,.16); color:var(--err); }
-  .t-warn { background:rgba(245,158,11,.18); color:var(--warn); }
-  .t-ok { background:rgba(34,197,94,.16); color:var(--ok); }
-  ol.steps { counter-reset:s; list-style:none; padding:0; }
-  ol.steps > li { counter-increment:s; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px 14px 52px; margin:10px 0; position:relative; }
-  ol.steps > li::before { content:counter(s); position:absolute; left:14px; top:14px; width:26px; height:26px; background:var(--accent); color:#fff; border-radius:8px; display:grid; place-items:center; font-weight:800; font-size:14px; }
-  ol.steps b { font-size:15px; }
-  .impact { float:right; font-size:11px; color:var(--muted); }
-  .ok { color:var(--ok); } .err { color:var(--err); }
-</style>
-</head>
-<body>
-<h1>adminui — Brutal Self-Review</h1>
-<div class="sub">Honest reflection on the new <code>github.com/larsartmann/cqrs-htmx/adminui/v3</code> module. Date: 2026-06-27.</div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>adminui — Brutal Self-Review</title>
+    <style>
+      :root {
+        --bg: #0b1120;
+        --surface: #131c31;
+        --text: #e6edf6;
+        --muted: #93a4bd;
+        --border: #233049;
+        --accent: #4f46e5;
+        --ok: #22c55e;
+        --warn: #f59e0b;
+        --err: #ef4444;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14.5px/1.6 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          sans-serif;
+        padding: 32px;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0 0 4px;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 34px 0 12px;
+      }
+      .sub {
+        color: var(--muted);
+        margin-bottom: 28px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 14px;
+        margin-bottom: 8px;
+      }
+      .stat {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+      }
+      .stat b {
+        font-size: 30px;
+        display: block;
+      }
+      .stat span {
+        color: var(--muted);
+        font-size: 12.5px;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--muted);
+        border-radius: 10px;
+        padding: 16px 18px;
+        margin: 12px 0;
+      }
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 15.5px;
+      }
+      .card p {
+        margin: 4px 0;
+        color: var(--muted);
+      }
+      .card code {
+        background: rgba(255, 255, 255, 0.07);
+        padding: 1px 6px;
+        border-radius: 5px;
+        font-size: 13px;
+      }
+      .problem {
+        border-left-color: var(--err);
+      }
+      .warning {
+        border-left-color: var(--warn);
+      }
+      .solution {
+        border-left-color: var(--ok);
+      }
+      .tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+      .t-err {
+        background: rgba(239, 68, 68, 0.16);
+        color: var(--err);
+      }
+      .t-warn {
+        background: rgba(245, 158, 11, 0.18);
+        color: var(--warn);
+      }
+      .t-ok {
+        background: rgba(34, 197, 94, 0.16);
+        color: var(--ok);
+      }
+      ol.steps {
+        counter-reset: s;
+        list-style: none;
+        padding: 0;
+      }
+      ol.steps > li {
+        counter-increment: s;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 16px 14px 52px;
+        margin: 10px 0;
+        position: relative;
+      }
+      ol.steps > li::before {
+        content: counter(s);
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        width: 26px;
+        height: 26px;
+        background: var(--accent);
+        color: #fff;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 14px;
+      }
+      ol.steps b {
+        font-size: 15px;
+      }
+      .impact {
+        float: right;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .ok {
+        color: var(--ok);
+      }
+      .err {
+        color: var(--err);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>adminui — Brutal Self-Review</h1>
+    <div class="sub">
+      Honest reflection on the new <code>github.com/larsartmann/cqrs-htmx/adminui/v3</code> module.
+      Date: 2026-06-27.
+    </div>
 
-<div class="grid">
-  <div class="stat"><b class="err">2</b><span>Honesty bugs (I shipped a default I couldn't demo)</span></div>
-  <div class="stat"><b class="err">1</b><span>Core feature gap (read-only memberships)</span></div>
-  <div class="stat"><b class="err">0</b><span>Split brains</span></div>
-  <div class="stat"><b class="ok">6</b><span>High-impact fixes queued</span></div>
-</div>
+    <div class="grid">
+      <div class="stat">
+        <b class="err">2</b><span>Honesty bugs (I shipped a default I couldn't demo)</span>
+      </div>
+      <div class="stat">
+        <b class="err">1</b><span>Core feature gap (read-only memberships)</span>
+      </div>
+      <div class="stat"><b class="err">0</b><span>Split brains</span></div>
+      <div class="stat"><b class="ok">6</b><span>High-impact fixes queued</span></div>
+    </div>
 
-<h2>What's stupid / forgotten</h2>
+    <h2>What's stupid / forgotten</h2>
 
-<div class="card problem">
-  <h3>My own demo bypasses my own default authorizer <span class="tag t-err">dishonest</span></h3>
-  <p>The panel ships a role-based <code>defaultAuthorizer</code> (super_admin/admin in domain <code>*</code>). But <code>examples/admin-demo</code> uses <code>RequireAuthenticated()</code> instead — because satisfying the real default means wiring a Casbin global role, which I didn't bother to do. So I shipped a "default" I never proved works. <strong>A user who copies the demo gets the wrong mental model.</strong></p>
-</div>
+    <div class="card problem">
+      <h3>
+        My own demo bypasses my own default authorizer <span class="tag t-err">dishonest</span>
+      </h3>
+      <p>
+        The panel ships a role-based <code>defaultAuthorizer</code> (super_admin/admin in domain
+        <code>*</code>). But <code>examples/admin-demo</code> uses
+        <code>RequireAuthenticated()</code> instead — because satisfying the real default means
+        wiring a Casbin global role, which I didn't bother to do. So I shipped a "default" I never
+        proved works. <strong>A user who copies the demo gets the wrong mental model.</strong>
+      </p>
+    </div>
 
-<div class="card problem">
-  <h3>Memberships are read-only <span class="tag t-err">core gap</span></h3>
-  <p>You can <em>see</em> tenant members but not <em>add, remove, or re-role</em> them. A "Tenant Admin UI" that can't manage its own members is half a feature. The commands (<code>AddMember</code>/<code>UpdateMemberRoles</code>/<code>RemoveMember</code>) already exist and are wired — only the <code>Service</code> methods + UI are missing.</p>
-</div>
+    <div class="card problem">
+      <h3>Memberships are read-only <span class="tag t-err">core gap</span></h3>
+      <p>
+        You can <em>see</em> tenant members but not <em>add, remove, or re-role</em> them. A "Tenant
+        Admin UI" that can't manage its own members is half a feature. The commands
+        (<code>AddMember</code>/<code>UpdateMemberRoles</code>/<code>RemoveMember</code>) already
+        exist and are wired — only the <code>Service</code> methods + UI are missing.
+      </p>
+    </div>
 
-<div class="card warning">
-  <h3>No pagination <span class="tag t-warn">scale</span></h3>
-  <p><code>AllUsers()</code> / <code>AllTenants()</code> / <code>Recent(100)</code> render everything into one page. Fine for demos, broken past a few hundred rows. go-cqrs-lite has pagination primitives the root module already wraps — not yet used here.</p>
-</div>
+    <div class="card warning">
+      <h3>No pagination <span class="tag t-warn">scale</span></h3>
+      <p>
+        <code>AllUsers()</code> / <code>AllTenants()</code> / <code>Recent(100)</code> render
+        everything into one page. Fine for demos, broken past a few hundred rows. go-cqrs-lite has
+        pagination primitives the root module already wraps — not yet used here.
+      </p>
+    </div>
 
-<div class="card warning">
-  <h3>Dashboard "Tenant" stat shows a raw ID <span class="tag t-warn">polish</span></h3>
-  <p>Tenant-admin mode renders <code>TenantID.Get()</code> (a slug string) as a big stat value instead of the tenant's display name. Looks like a bug to a user.</p>
-</div>
+    <div class="card warning">
+      <h3>Dashboard "Tenant" stat shows a raw ID <span class="tag t-warn">polish</span></h3>
+      <p>
+        Tenant-admin mode renders <code>TenantID.Get()</code> (a slug string) as a big stat value
+        instead of the tenant's display name. Looks like a bug to a user.
+      </p>
+    </div>
 
-<div class="card warning">
-  <h3>Silent icon fallback <span class="tag t-warn">latent bug</span></h3>
-  <p>A typo in an icon name (e.g. <code>"usr"</code>) silently renders a grey dot — no error, no test catching it. The Go side now uses <code>icon*</code> constants, but the <code>.templ</code> files still use raw strings.</p>
-</div>
+    <div class="card warning">
+      <h3>Silent icon fallback <span class="tag t-warn">latent bug</span></h3>
+      <p>
+        A typo in an icon name (e.g. <code>"usr"</code>) silently renders a grey dot — no error, no
+        test catching it. The Go side now uses <code>icon*</code> constants, but the
+        <code>.templ</code> files still use raw strings.
+      </p>
+    </div>
 
-<div class="card warning">
-  <h3>CSRF is 100% the consumer's problem <span class="tag t-warn">production gap</span></h3>
-  <p>The panel issues state-changing POSTs with no CSRF token, and the demo ships none. Documented, but "very high DX" would at least show the pattern in the demo.</p>
-</div>
+    <div class="card warning">
+      <h3>CSRF is 100% the consumer's problem <span class="tag t-warn">production gap</span></h3>
+      <p>
+        The panel issues state-changing POSTs with no CSRF token, and the demo ships none.
+        Documented, but "very high DX" would at least show the pattern in the demo.
+      </p>
+    </div>
 
-<h2>What's good — keep it</h2>
-<div class="card solution"><h3>templ with committed generated files</h3><p>Consumers import <code>_templ.go</code> directly — zero codegen on their side. First module to adopt templ; flake already formats it.</p></div>
-<div class="card solution"><h3>Clean leaf boundary</h3><p>adminui → root + usermgmt + templ. Nothing depends on it. Mode-based routing genuinely hides global routes in tenant mode (404, not hidden-by-CSS).</p></div>
-<div class="card solution"><h3>Self-contained modern design system</h3><p>Embedded CSS, light/dark, configurable accent. No Tailwind, no JS framework, no build step. Genuinely good-looking.</p></div>
-<div class="card solution"><h3>Correct HTMX patterns</h3><p>Search returns a fragment on <code>HX-Request</code>; destructive actions use <code>HX-Redirect</code>; toasts via <code>HX-Trigger</code>. <code>GET /{$}</code> anchoring prevents the dashboard catch-all bug.</p></div>
+    <h2>What's good — keep it</h2>
+    <div class="card solution">
+      <h3>templ with committed generated files</h3>
+      <p>
+        Consumers import <code>_templ.go</code> directly — zero codegen on their side. First module
+        to adopt templ; flake already formats it.
+      </p>
+    </div>
+    <div class="card solution">
+      <h3>Clean leaf boundary</h3>
+      <p>
+        adminui → root + usermgmt + templ. Nothing depends on it. Mode-based routing genuinely hides
+        global routes in tenant mode (404, not hidden-by-CSS).
+      </p>
+    </div>
+    <div class="card solution">
+      <h3>Self-contained modern design system</h3>
+      <p>
+        Embedded CSS, light/dark, configurable accent. No Tailwind, no JS framework, no build step.
+        Genuinely good-looking.
+      </p>
+    </div>
+    <div class="card solution">
+      <h3>Correct HTMX patterns</h3>
+      <p>
+        Search returns a fragment on <code>HX-Request</code>; destructive actions use
+        <code>HX-Redirect</code>; toasts via <code>HX-Trigger</code>.
+        <code>GET /{$}</code> anchoring prevents the dashboard catch-all bug.
+      </p>
+    </div>
 
-<h2>Prioritized execution plan (work vs. impact)</h2>
-<ol class="steps">
-  <li><b>Make the demo honest</b> — assign <code>super_admin</code> to the demo admin and switch the demo to the real <code>defaultAuthorizer</code>. <span class="impact">LOW work · HIGH impact</span></li>
-  <li><b>Member management</b> — add <code>Service.AddMember/UpdateMemberRoles/RemoveMember</code>; UI to add/remove members and change roles (tenant detail + tenant-admin members). <span class="impact">MED work · HIGH impact</span></li>
-  <li><b>Dashboard tenant stat → display name</b>. <span class="impact">TINY · polish</span></li>
-  <li><b>Icon-name validation test</b> — assert every icon string used in <code>.templ</code> exists in the icon map. <span class="impact">TINY · prevents silent bugs</span></li>
-  <li><b>Log render errors</b> instead of swallowing them as "render error". <span class="impact">TINY · debuggability</span></li>
-  <li><b>Flow tests</b> — tenant create/delete/reactivate, user delete, member add/remove via HTMX. <span class="impact">LOW-MED · coverage</span></li>
-</ol>
-<p class="sub" style="margin-top:24px"><strong>Deferred (noted, not creep):</strong> pagination (needs paginated read-model query methods); CSRF wiring in the demo; favicon.</p>
-</body>
+    <h2>Prioritized execution plan (work vs. impact)</h2>
+    <ol class="steps">
+      <li>
+        <b>Make the demo honest</b> — assign <code>super_admin</code> to the demo admin and switch
+        the demo to the real <code>defaultAuthorizer</code>.
+        <span class="impact">LOW work · HIGH impact</span>
+      </li>
+      <li>
+        <b>Member management</b> — add
+        <code>Service.AddMember/UpdateMemberRoles/RemoveMember</code>; UI to add/remove members and
+        change roles (tenant detail + tenant-admin members).
+        <span class="impact">MED work · HIGH impact</span>
+      </li>
+      <li>
+        <b>Dashboard tenant stat → display name</b>. <span class="impact">TINY · polish</span>
+      </li>
+      <li>
+        <b>Icon-name validation test</b> — assert every icon string used in
+        <code>.templ</code> exists in the icon map.
+        <span class="impact">TINY · prevents silent bugs</span>
+      </li>
+      <li>
+        <b>Log render errors</b> instead of swallowing them as "render error".
+        <span class="impact">TINY · debuggability</span>
+      </li>
+      <li>
+        <b>Flow tests</b> — tenant create/delete/reactivate, user delete, member add/remove via
+        HTMX. <span class="impact">LOW-MED · coverage</span>
+      </li>
+    </ol>
+    <p class="sub" style="margin-top: 24px">
+      <strong>Deferred (noted, not creep):</strong> pagination (needs paginated read-model query
+      methods); CSRF wiring in the demo; favicon.
+    </p>
+  </body>
 </html>
