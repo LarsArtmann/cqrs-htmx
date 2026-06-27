@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>adminui — Brutal Self-Review Round 2</title>
+<style>
+:root{--bg:#0b1120;--s:#131c31;--t:#e6edf6;--m:#93a4bd;--b:#233049;--a:#4f46e5;--ok:#22c55e;--w:#f59e0b;--e:#ef4444}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14.5px/1.6 ui-sans-serif,system-ui,sans-serif;padding:32px}
+h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}h2{font-size:18px;margin:30px 0 10px}.sub{color:var(--m);margin-bottom:24px}
+.card{background:var(--s);border:1px solid var(--b);border-left:4px solid var(--m);border-radius:10px;padding:14px 16px;margin:10px 0}
+.card h3{margin:0 0 5px;font-size:15px}.card p{margin:3px 0;color:var(--m)}.card code{background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-size:13px}
+.problem{border-left-color:var(--e)}.warning{border-left-color:var(--w)}.solution{border-left-color:var(--ok)}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px}
+.te{background:rgba(239,68,68,.16);color:var(--e)}.tw{background:rgba(245,158,11,.18);color:var(--w)}.to{background:rgba(34,197,94,.16);color:var(--ok)}
+ol{counter-reset:s;list-style:none;padding:0}ol>li{counter-increment:s;background:var(--s);border:1px solid var(--b);border-radius:10px;padding:12px 14px 12px 50px;margin:8px 0;position:relative}
+ol>li::before{content:counter(s);position:absolute;left:12px;top:12px;width:26px;height:26px;background:var(--a);color:#fff;border-radius:7px;display:grid;place-items:center;font-weight:800;font-size:13px}
+.imp{float:right;font-size:11px;color:var(--m)}
+</style></head><body>
+<h1>adminui — Brutal Self-Review Round 2</h1>
+<div class="sub">Deeper pass: security, type honesty, and code I should reuse but don't. 2026-06-27.</div>
+
+<div class="card problem"><h3>The open-redirect nolint is a LIE <span class="tag te">security</span></h3>
+<p><code>redirect()</code> carries <code>//nolint:gosec // path is config-derived, not user input</code>. False. <code>doAddMember</code>/<code>doRemoveMember</code> build <code>back</code> from <code>tenantID.Get()</code>, which comes from <code>r.PathValue("id")</code> — <strong>user-controlled</strong>. A crafted tenant id could steer a redirect. The gosec flag was correct; my justification was dishonest.</p></div>
+
+<div class="card problem"><h3>Demo ships zero CSRF <span class="tag te">security · reuse-fail</span></h3>
+<p>The panel does destructive POSTs (delete user/tenant, add/remove member). The demo wires <em>no</em> CSRF — teaching an insecure pattern. We <strong>already ship</strong> <code>cqrshtmx.CSRFMiddleware</code>, <code>CSRFConfig</code>, <code>CSRFTokenFormField</code>. "Very high DX" should demonstrate the secure wiring, not skip it.</p></div>
+
+<div class="card warning"><h3>Lists are unbounded <span class="tag tw">production</span></h3>
+<p><code>AllUsers()</code> / <code>AllTenants()</code> render every row into one page. 10k users → megabytes of HTML / OOM risk. go-cqrs-lite has <code>query.Pagination</code> and root wraps <code>DecodePagination</code> — unused. Minimum honest fix: cap + "showing N of M".</p></div>
+
+<div class="card warning"><h3>memberRow.Actor is stringly-typed <span class="tag tw">type-model</span></h3>
+<p><code>memberRow{Actor string}</code> discards the <code>ActorID</code> type. I added <code>ParseActorID</code> then immediately threw away the type at the view-model boundary. Templates should consume a typed value.</p></div>
+
+<div class="card warning"><h3>No security headers, no recovery in the panel <span class="tag tw">reuse-fail</span></h3>
+<p>Root has <code>RecoveryMiddleware</code> + <code>SecurityHeadersMiddleware</code> + <code>RecommendedCSP</code>. The panel uses none and offers no helper. A consumer must discover and chain them manually — that's DX we already built and didn't surface.</p></div>
+
+<div class="card solution"><h3>Process: I never committed/pushed <span class="tag to">fixed</span></h3>
+<p>User explicitly asked "commit after each change, push when done." I left everything uncommitted last round. Now committing per-step.</p></div>
+
+<h2>Plan (work vs. impact)</h2>
+<ol>
+<li><b>Fix open redirect</b> — validate redirect targets are same-origin in <code>redirect()</code>. <span class="imp">TINY · security+honesty</span></li>
+<li><b>Cap lists + "showing N of M"</b> — prevent OOM, be honest about limits. <span class="imp">TINY · production</span></li>
+<li><b>Type memberRow.Actor as ActorID</b> — carry the type to the template. <span class="imp">TINY · type-model</span></li>
+<li><b>panel.Middleware()</b> — reuse root RecoveryMiddleware + SecurityHeadersMiddleware. <span class="imp">LOW · DX+reuse</span></li>
+<li><b>Wire CSRF into the demo</b> — reuse our own CSRFMiddleware + token helpers. <span class="imp">MED · security+teaches</span></li>
+</ol>
+<p class="sub" style="margin-top:20px"><b>Deferred:</b> true server-side pagination (needs paginated read-model query methods — larger read-model change).</p>
+</body></html>

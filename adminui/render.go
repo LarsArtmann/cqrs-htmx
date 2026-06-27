@@ -54,14 +54,28 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 }
 
 // redirect issues an HTMX-aware redirect: HX-Redirect for HTMX requests, a
-// standard 303 for normal navigation.
+// redirect issues an HTMX-aware redirect: HX-Redirect for HTMX requests, a
+// standard 303 for normal navigation. The target must be a same-origin path:
+// safeRedirect rejects anything that is not root-relative, preventing open-
+// redirect attacks even when the path is derived from user-controlled input
+// (e.g. a tenant id taken from the URL).
 func redirect(w http.ResponseWriter, r *http.Request, path string) {
-	// HTMX clients follow HX-Redirect; browsers follow the 303. The path is always
-	// built from Config.BasePath + a fixed suffix, so it cannot be user-controlled.
+	path = safeRedirectPath(path)
 	if r.Header.Get("HX-Request") == "true" {
 		w.Header().Set("HX-Redirect", path)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	http.Redirect(w, r, path, http.StatusSeeOther) //nolint:gosec // G710: path is config-derived, not user input
+	http.Redirect(w, r, path, http.StatusSeeOther) //nolint:gosec // G710: safeRedirectPath guarantees same-origin
+}
+
+// safeRedirectPath returns path if it is a safe same-origin redirect target
+// (starts with "/" but not "//"), otherwise "/". Protocol-relative URLs ("//")
+// and scheme-bearing URLs ("https://...") are rejected because browsers would
+// follow them off-site.
+func safeRedirectPath(path string) string {
+	if path == "" || path[0] != '/' || len(path) > 1 && path[1] == '/' {
+		return "/"
+	}
+	return path
 }

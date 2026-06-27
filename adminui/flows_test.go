@@ -144,3 +144,22 @@ func TestFlow_AddMemberUnknownEmail(t *testing.T) {
 		t.Errorf("expected no members, got %d", len(got))
 	}
 }
+
+func TestSafeRedirectPath_RejectsOpenRedirect(t *testing.T) {
+	t.Parallel()
+	cases := map[string]string{
+		"/admin/users":        "/admin/users",
+		"/":                   "/",
+		"//evil.com":          "/",
+		"https://evil.com":    "/",
+		"//evil.com/x":        "/",
+		"":                    "/",
+		"relative":            "/",
+		"/admin/tenants/acme": "/admin/tenants/acme",
+	}
+	for in, want := range cases {
+		if got := safeRedirectPath(in); got != want {
+			t.Errorf("safeRedirectPath(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
