@@ -100,3 +100,21 @@ func selectedAttr(current []usermgmt.Role, role usermgmt.Role) string {
 	}
 	return ""
 }
+
+// badgeColor maps a badge kind string to a CSS color value.
+func badgeColor(kind string) string {
+	switch kind {
+	case "accent":
+		return "var(--accent)"
+	case "blue":
+		return "#2563eb"
+	case "green":
+		return "#16a34a"
+	case "red":
+		return "#dc2626"
+	case "amber":
+		return "#d97706"
+	default:
+		return "#6b7280"
+	}
+}

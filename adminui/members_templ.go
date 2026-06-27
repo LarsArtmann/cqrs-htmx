@@ -33,7 +33,7 @@ func membersCard(d tenantDetailData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card\"><div class=\"card__header\"><span class=\"card__title\">Members</span></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"rounded-[10px] border border-gray-200 shadow-sm\" style=\"background:var(--surface)\"><div class=\"flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]\"><span class=\"text-[15px]\">Members</span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -43,38 +43,38 @@ func membersCard(d tenantDetailData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"table-wrap\"><table class=\"data\"><thead><tr><th>Actor</th><th>Role</th><th></th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"overflow-x-auto\"><table class=\"w-full text-sm\"><thead><tr><th class=\"px-4 py-2 text-left font-semibold text-gray-500\">Actor</th><th class=\"px-4 py-2 text-left font-semibold text-gray-500\">Role</th><th></th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, m := range d.Members {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<tr><td class=\"mono\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<tr class=\"border-t border-gray-200 hover:bg-gray-50\"><td class=\"px-4 py-2 font-mono text-xs\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var2 string
 				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(m.Actor.PrefixedString())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 19, Col: 51}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 19, Col: 74}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</td><td><form style=\"display:flex;gap:6px;align-items:center\" hx-post=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</td><td class=\"px-4 py-2\"><form class=\"flex items-center gap-1.5\" hx-post=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(d.UpdateRoleBase + "/" + m.Actor.PrefixedString())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 21, Col: 122}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 21, Col: 108}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><select class=\"select\" name=\"role\" style=\"max-width:120px\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><select class=\"rounded-md border border-gray-300 px-2 py-1 text-sm max-w-[120px]\" name=\"role\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -86,7 +86,7 @@ func membersCard(d tenantDetailData) templ.Component {
 					var templ_7745c5c3_Var4 string
 					templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(r))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 24, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 24, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 					if templ_7745c5c3_Err != nil {
@@ -99,7 +99,7 @@ func membersCard(d tenantDetailData) templ.Component {
 					var templ_7745c5c3_Var5 string
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(selectedAttr(m.Roles, r))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 24, Col: 66}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 24, Col: 66}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(` ` + templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
@@ -112,7 +112,7 @@ func membersCard(d tenantDetailData) templ.Component {
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(string(r))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 24, Col: 80}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 24, Col: 80}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -123,14 +123,14 @@ func membersCard(d tenantDetailData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</select> <button class=\"btn btn--ghost btn--sm\" type=\"submit\">Set</button></form></td><td style=\"text-align:right\"><button class=\"btn btn--ghost btn--sm\" hx-post=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</select> <button class=\"rounded-md px-2.5 py-1 text-sm text-gray-600 hover:bg-gray-100\" type=\"submit\">Set</button></form></td><td class=\"px-4 py-2 text-right\"><button class=\"rounded-md px-2.5 py-1 text-sm text-gray-600 hover:bg-gray-100\" hx-post=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 33, Col: 83}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 33, Col: 83}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 				if templ_7745c5c3_Err != nil {
@@ -143,7 +143,7 @@ func membersCard(d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue("Remove " + m.Actor.PrefixedString() + " from this tenant?")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 34, Col: 82}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 34, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 				if templ_7745c5c3_Err != nil {
@@ -156,7 +156,7 @@ func membersCard(d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue("Remove " + m.Actor.PrefixedString() + " from this tenant?")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 35, Col: 84}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 35, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 				if templ_7745c5c3_Err != nil {
@@ -180,20 +180,20 @@ func membersCard(d tenantDetailData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"card__body\" style=\"border-top:1px solid var(--border)\"><form class=\"toolbar\" style=\"margin:0\" hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"border-t border-gray-200 p-[18px]\"><form class=\"flex items-center gap-2\" hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(d.AddMemberURL)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 47, Col: 66}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 47, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><input class=\"input\" type=\"email\" name=\"email\" placeholder=\"user@example.com\" required style=\"max-width:240px\"> <select class=\"select\" name=\"role\" style=\"max-width:150px\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><input class=\"rounded-md border border-gray-300 px-3 py-1.5 text-sm max-w-[240px]\" type=\"email\" name=\"email\" placeholder=\"user@example.com\" required> <select class=\"rounded-md border border-gray-300 px-2 py-1.5 text-sm max-w-[150px]\" name=\"role\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -205,7 +205,7 @@ func membersCard(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(r))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 51, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 51, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 			if templ_7745c5c3_Err != nil {
@@ -218,7 +218,7 @@ func membersCard(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(string(r))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 51, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 51, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -229,7 +229,7 @@ func membersCard(d tenantDetailData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</select> <button class=\"btn btn--primary btn--sm\" type=\"submit\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</select> <button class=\"inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-blue-500\" type=\"submit\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -269,7 +269,7 @@ func tenantHeader(d tenantDetailData) templ.Component {
 			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"admin-content__head\"><h1>Members</h1><div class=\"spacer\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"mb-5 flex flex-wrap items-center gap-3\"><h1 class=\"text-xl font-semibold\">Members</h1><div class=\"flex-1\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -291,27 +291,27 @@ func tenantHeader(d tenantDetailData) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if d.Tenant != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"muted\" style=\"margin-bottom:18px\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"mb-4 text-sm text-gray-500\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(d.Tenant.DisplayName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 76, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 76, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " · <span class=\"mono\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " · <span class=\"font-mono text-xs\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(d.Tenant.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 76, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 76, Col: 117}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {

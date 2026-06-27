@@ -6,9 +6,12 @@ templ icon(name string) {
 
 templ badge(text, kind string) {
 	if kind == "" {
-		<span class="badge">{ text }</span>
+		<span class="inline-block rounded-full border border-gray-300 px-2 py-0.5 text-xs font-medium text-gray-600">{ text }</span>
 	} else {
-		<span class={ "badge", "badge--" + kind }>{ text }</span>
+		<span
+			class="inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white"
+			style={ templ.SafeCSS("background:" + badgeColor(kind)) }
+		>{ text }</span>
 	}
 }
 
@@ -17,37 +20,37 @@ templ roleBadge(role string) {
 }
 
 templ statCardView(c statCard) {
-	<div class="stat-card">
-		<div class="stat-card__icon">
+	<div class="flex items-center gap-3.5 rounded-[10px] border border-gray-200 px-[18px] py-[17px] shadow-sm" style="background:var(--surface)">
+		<div class="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-[11px]" style="background:color-mix(in srgb, var(--accent) 14%, transparent);color:var(--accent)">
 			@icon(c.Icon)
 		</div>
 		<div>
-			<div class="stat-card__label">{ c.Label }</div>
-			<div class="stat-card__value">{ c.Value }</div>
+			<div class="text-xs font-medium text-gray-500">{ c.Label }</div>
+			<div class="text-2xl font-bold">{ c.Value }</div>
 		</div>
 	</div>
 }
 
 templ empty(iconName, title, hint string) {
-	<div class="empty">
-		<div class="empty__icon">
+	<div class="flex flex-col items-center gap-2 py-10 text-center text-gray-500">
+		<div class="h-8 w-8 opacity-40">
 			@icon(iconName)
 		</div>
-		<div style="font-weight:600;color:var(--text)">{ title }</div>
+		<div class="font-semibold text-gray-900">{ title }</div>
 		if hint != "" {
-			<div style="margin-top:4px">{ hint }</div>
+			<div class="text-sm">{ hint }</div>
 		}
 	</div>
 }
 
 templ spinner() {
-	<span class="htmx-indicator spin" aria-hidden="true">
+	<span class="htmx-indicator inline-block animate-spin" aria-hidden="true">
 		<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
 	</span>
 }
 
 templ toastHost() {
-	<div class="toast-host"></div>
+	<div id="toast-host"></div>
 }
 
 // listNote renders a "showing N of M" hint when a list is truncated by the
@@ -55,7 +58,7 @@ templ toastHost() {
 // count. Renders nothing when all rows fit.
 templ listNote(shown, total int) {
 	if total > shown {
-		<div class="muted" style="padding:10px 18px;font-size:12.5px;border-top:1px solid var(--border)">
+		<div class="border-t border-gray-200 px-[18px] py-2.5 text-xs text-gray-500">
 			Showing { shown } of { total }. Narrow your search to see more.
 		</div>
 	}

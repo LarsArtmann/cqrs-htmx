@@ -7,35 +7,35 @@ templ dashboardPage(p pageData, d dashboardData) {
 }
 
 templ dashboardContent(d dashboardData) {
-	<div class="stat-grid">
+	<div class="mb-5 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]">
 		for _, s := range d.Stats {
 			@statCardView(s)
 		}
 	</div>
-	<div class="card">
-		<div class="card__header">
-			<span class="card__title">Recent activity</span>
+	<div class="rounded-[10px] border border-gray-200 bg-white shadow-sm" style="background:var(--surface)">
+		<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]">
+			<span class="text-[15px]">Recent activity</span>
 		</div>
 		if len(d.Recent) == 0 {
 			@empty("audit", "No activity yet", "User and tenant events will appear here.")
 		} else {
-			<div class="table-wrap">
-				<table class="data">
+			<div class="overflow-x-auto">
+				<table class="w-full text-sm">
 					<thead>
-						<tr><th>Action</th><th>Who</th><th>When</th></tr>
+						<tr><th class="px-4 py-2 text-left font-semibold text-gray-500">Action</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Who</th><th class="px-4 py-2 text-left font-semibold text-gray-500">When</th></tr>
 					</thead>
 					<tbody>
 						for _, e := range d.Recent {
-							<tr>
-								<td><span class="badge badge--accent">{ e.Action }</span></td>
-								<td>
+							<tr class="border-t border-gray-200 hover:bg-gray-50">
+								<td class="px-4 py-2"><span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white" style="background:var(--accent)">{ e.Action }</span></td>
+								<td class="px-4 py-2">
 									if e.Email != "" {
-										<span class="cell-primary">{ e.Email }</span>
+										<span class="font-medium">{ e.Email }</span>
 									} else {
-										<span class="mono">{ e.AggregateID.String() }</span>
+										<span class="font-mono text-xs">{ e.AggregateID.String() }</span>
 									}
 								</td>
-								<td class="muted">{ relTime(e.OccurredAt) }</td>
+								<td class="px-4 py-2 text-gray-500">{ relTime(e.OccurredAt) }</td>
 							</tr>
 						}
 					</tbody>

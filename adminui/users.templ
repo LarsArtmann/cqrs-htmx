@@ -9,12 +9,12 @@ templ usersPage(p pageData, d usersListData) {
 }
 
 templ usersContent(d usersListData) {
-	<div class="admin-content__head">
-		<h1>Users</h1>
+	<div class="mb-5 flex flex-wrap items-center gap-3">
+		<h1 class="text-xl font-semibold">Users</h1>
 	</div>
-	<div class="toolbar">
+	<div class="mb-4 flex items-center gap-2">
 		<form
-			class="search"
+			class="relative"
 			hx-get={ d.BasePath + "/users" }
 			hx-target="#users-table"
 			hx-select="#users-table"
@@ -22,12 +22,12 @@ templ usersContent(d usersListData) {
 			hx-trigger="submit, keyup changed delay:350ms from:find input[name=q]"
 			hx-push-url="true"
 		>
-			<span class="search__icon">@icon("search")</span>
-			<input class="input" type="search" name="q" value={ d.Search } placeholder="Search users…" autocomplete="off"/>
+			<span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">@icon("search")</span>
+			<input class="w-full rounded-md border border-gray-300 py-1.5 pl-9 pr-3 text-sm" type="search" name="q" value={ d.Search } placeholder="Search users…" autocomplete="off"/>
 		</form>
-		<div class="spacer"></div>
+		<div class="flex-1"></div>
 	</div>
-	<div class="card card--flush">
+	<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
 		<div id="users-table">@usersTable(d)</div>
 	</div>
 }
@@ -36,29 +36,29 @@ templ usersTable(d usersListData) {
 	if len(d.Users) == 0 {
 		@empty("users", "No users found", "Registered users will appear here.")
 	} else {
-		<div class="table-wrap">
-			<table class="data">
+		<div class="overflow-x-auto">
+			<table class="w-full text-sm">
 				<thead>
-					<tr><th>User</th><th>Status</th><th>Created</th><th></th></tr>
+					<tr><th class="px-4 py-2 text-left font-semibold text-gray-500">User</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Status</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Created</th><th></th></tr>
 				</thead>
 				<tbody>
 					for _, u := range d.Users {
-						<tr>
-							<td>
-								<a class="row-link" href={ d.BasePath + "/users/" + u.ID.Get().String() }>
-									<div style="display:flex;align-items:center;gap:10px">
-										<span class="avatar">{ initials(u.Email) }</span>
+						<tr class="border-t border-gray-200 hover:bg-gray-50">
+							<td class="px-4 py-2">
+								<a class="flex no-underline" href={ d.BasePath + "/users/" + u.ID.Get().String() }>
+									<div class="flex items-center gap-2.5">
+										<span class="grid h-7 w-7 place-items-center rounded-full text-xs font-semibold text-white" style="background:var(--accent)">{ initials(u.Email) }</span>
 										<div>
-											<div class="cell-primary">{ u.Email }</div>
+											<div class="font-medium text-gray-900">{ u.Email }</div>
 											if u.DisplayName != "" {
-												<div class="cell-sub">{ u.DisplayName }</div>
+												<div class="text-xs text-gray-400">{ u.DisplayName }</div>
 											}
 										</div>
 									</div>
 								</a>
 							</td>
-							<td>
-								<div class="badge-row">
+							<td class="px-4 py-2">
+								<div class="flex flex-wrap gap-1">
 									if u.EmailVerified {
 										@badge("verified", "green")
 									} else {
@@ -69,9 +69,9 @@ templ usersTable(d usersListData) {
 									}
 								</div>
 							</td>
-							<td class="muted">{ relTime(u.CreatedAt) }</td>
-							<td style="text-align:right">
-								<a class="btn btn--ghost btn--sm" href={ d.BasePath + "/users/" + u.ID.Get().String() }>View</a>
+							<td class="px-4 py-2 text-gray-500">{ relTime(u.CreatedAt) }</td>
+							<td class="px-4 py-2 text-right">
+								<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users/" + u.ID.Get().String() }>View</a>
 							</td>
 						</tr>
 					}
@@ -84,40 +84,40 @@ templ usersTable(d usersListData) {
 
 templ userDetailPage(p pageData, d userDetailData) {
 	@Layout(p) {
-		<div class="admin-content__head">
-			<a class="btn btn--ghost btn--sm" href={ d.BasePath + "/users" }>← Users</a>
-			<div class="spacer"></div>
+		<div class="mb-5 flex flex-wrap items-center gap-3">
+			<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users" }>← Users</a>
+			<div class="flex-1"></div>
 		</div>
-		<div style="display:flex;align-items:center;gap:16px;margin-bottom:22px">
-			<span class="avatar" style="width:52px;height:52px;font-size:18px;border-radius:14px">{ initials(d.User.Email) }</span>
+		<div class="mb-5 flex items-center gap-4">
+			<span class="grid h-[52px] w-[52px] place-items-center rounded-[14px] text-lg font-semibold text-white" style="background:var(--accent)">{ initials(d.User.Email) }</span>
 			<div>
-				<h1>{ d.User.Email }</h1>
+				<h1 class="text-xl font-semibold">{ d.User.Email }</h1>
 				if d.User.DisplayName != "" {
-					<div class="muted">{ d.User.DisplayName }</div>
+					<div class="text-sm text-gray-500">{ d.User.DisplayName }</div>
 				}
 			</div>
 		</div>
-		<div class="stat-grid" style="margin-bottom:22px">
-			<div class="card"><div class="card__body">
-				<div class="cell-sub">Credentials</div>
-				<div class="stat-card__value">{ strconv.Itoa(len(d.User.Credentials)) }</div>
+		<div class="mb-5 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]">
+			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)"><div class="p-[18px]">
+				<div class="text-xs text-gray-400">Credentials</div>
+				<div class="text-2xl font-bold">{ strconv.Itoa(len(d.User.Credentials)) }</div>
 			</div></div>
-			<div class="card"><div class="card__body">
-				<div class="cell-sub">External accounts</div>
-				<div class="stat-card__value">{ strconv.Itoa(len(d.User.ExternalAccounts)) }</div>
+			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)"><div class="p-[18px]">
+				<div class="text-xs text-gray-400">External accounts</div>
+				<div class="text-2xl font-bold">{ strconv.Itoa(len(d.User.ExternalAccounts)) }</div>
 			</div></div>
-			<div class="card"><div class="card__body">
-				<div class="cell-sub">Member since</div>
-				<div class="stat-card__value" style="font-size:16px">{ d.User.CreatedAt.Format("Jan 2, 2006") }</div>
+			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)"><div class="p-[18px]">
+				<div class="text-xs text-gray-400">Member since</div>
+				<div class="text-base font-bold">{ d.User.CreatedAt.Format("Jan 2, 2006") }</div>
 			</div></div>
 		</div>
-		<div class="card" style="margin-bottom:18px">
-			<div class="card__header"><span class="card__title">Details</span></div>
-			<div class="card__body">
-				<dl class="kv">
-					<dt>User ID</dt><dd class="mono">{ d.User.ID.Get().String() }</dd>
-					<dt>Email</dt><dd>{ d.User.Email }</dd>
-					<dt>Verified</dt>
+		<div class="mb-4 rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
+			<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px]">Details</span></div>
+			<div class="p-[18px]">
+				<dl class="grid gap-2 [grid-template-columns:auto_1fr]">
+					<dt class="text-sm text-gray-500">User ID</dt><dd class="font-mono text-xs">{ d.User.ID.Get().String() }</dd>
+					<dt class="text-sm text-gray-500">Email</dt><dd>{ d.User.Email }</dd>
+					<dt class="text-sm text-gray-500">Verified</dt>
 					<dd>
 						if d.User.EmailVerified {
 							@badge("verified", "green")
@@ -125,7 +125,7 @@ templ userDetailPage(p pageData, d userDetailData) {
 							@badge("unverified", "")
 						}
 					</dd>
-					<dt>TOTP MFA</dt>
+					<dt class="text-sm text-gray-500">TOTP MFA</dt>
 					<dd>
 						if d.User.TOTPEnabled {
 							@badge("enabled", "blue")
@@ -137,18 +137,18 @@ templ userDetailPage(p pageData, d userDetailData) {
 			</div>
 		</div>
 		if len(d.TenantRoles) > 0 {
-			<div class="card" style="margin-bottom:18px">
-				<div class="card__header"><span class="card__title">Roles & memberships</span></div>
-				<div class="card__body">
-					<div class="table-wrap">
-						<table class="data">
-							<thead><tr><th>Tenant</th><th>Roles</th></tr></thead>
+			<div class="mb-4 rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
+				<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px]">Roles & memberships</span></div>
+				<div class="p-[18px]">
+					<div class="overflow-x-auto">
+						<table class="w-full text-sm">
+							<thead><tr><th class="px-4 py-2 text-left font-semibold text-gray-500">Tenant</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Roles</th></tr></thead>
 							<tbody>
 								for tenant, roles := range d.TenantRoles {
-									<tr>
-										<td class="mono">{ tenant }</td>
-										<td>
-											<div class="badge-row">
+									<tr class="border-t border-gray-200 hover:bg-gray-50">
+										<td class="px-4 py-2 font-mono text-xs">{ tenant }</td>
+										<td class="px-4 py-2">
+											<div class="flex flex-wrap gap-1">
 												for _, r := range roles {
 													@roleBadge(string(r))
 												}
@@ -162,13 +162,13 @@ templ userDetailPage(p pageData, d userDetailData) {
 				</div>
 			</div>
 		}
-		<div class="card">
-			<div class="card__header"><span class="card__title" style="color:var(--err)">Danger zone</span></div>
-			<div class="card__body" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-				<div class="muted">Deleting a user tombstones the account and revokes all sessions. This cannot be undone.</div>
-				<div class="spacer" style="flex:1"></div>
+		<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
+			<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px] text-red-600">Danger zone</span></div>
+			<div class="flex flex-wrap items-center gap-3.5 p-[18px]">
+				<div class="text-sm text-gray-500">Deleting a user tombstones the account and revokes all sessions. This cannot be undone.</div>
+				<div class="flex-1"></div>
 				<button
-					class="btn btn--danger btn--sm"
+					class="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-red-500"
 					hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete" }
 					hx-confirm={ "Delete user " + d.User.Email + "?" }
 					data-confirm={ "Delete user " + d.User.Email + "? This cannot be undone." }

@@ -5,31 +5,31 @@ package adminui
 // (tenant-admin). Role options come from AssignableRoles (typed source of
 // truth), not hardcoded.
 templ membersCard(d tenantDetailData) {
-	<div class="card">
-		<div class="card__header"><span class="card__title">Members</span></div>
+	<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
+		<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px]">Members</span></div>
 		if len(d.Members) == 0 {
 			@empty("members", "No members", "Add a user below to grant tenant access.")
 		} else {
-			<div class="table-wrap">
-				<table class="data">
-					<thead><tr><th>Actor</th><th>Role</th><th></th></tr></thead>
+			<div class="overflow-x-auto">
+				<table class="w-full text-sm">
+					<thead><tr><th class="px-4 py-2 text-left font-semibold text-gray-500">Actor</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Role</th><th></th></tr></thead>
 					<tbody>
 						for _, m := range d.Members {
-							<tr>
-								<td class="mono">{ m.Actor.PrefixedString() }</td>
-								<td>
-									<form style="display:flex;gap:6px;align-items:center" hx-post={ d.UpdateRoleBase + "/" + m.Actor.PrefixedString() }>
-										<select class="select" name="role" style="max-width:120px">
+							<tr class="border-t border-gray-200 hover:bg-gray-50">
+								<td class="px-4 py-2 font-mono text-xs">{ m.Actor.PrefixedString() }</td>
+								<td class="px-4 py-2">
+									<form class="flex items-center gap-1.5" hx-post={ d.UpdateRoleBase + "/" + m.Actor.PrefixedString() }>
+										<select class="rounded-md border border-gray-300 px-2 py-1 text-sm max-w-[120px]" name="role">
 											for _, r := range d.AssignableRoles {
 												<option value={ string(r) } { selectedAttr(m.Roles, r) }>{ string(r) }</option>
 											}
 										</select>
-										<button class="btn btn--ghost btn--sm" type="submit">Set</button>
+										<button class="rounded-md px-2.5 py-1 text-sm text-gray-600 hover:bg-gray-100" type="submit">Set</button>
 									</form>
 								</td>
-								<td style="text-align:right">
+								<td class="px-4 py-2 text-right">
 									<button
-										class="btn btn--ghost btn--sm"
+										class="rounded-md px-2.5 py-1 text-sm text-gray-600 hover:bg-gray-100"
 										hx-post={ d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete" }
 										hx-confirm={ "Remove " + m.Actor.PrefixedString() + " from this tenant?" }
 										data-confirm={ "Remove " + m.Actor.PrefixedString() + " from this tenant?" }
@@ -43,15 +43,15 @@ templ membersCard(d tenantDetailData) {
 				</table>
 			</div>
 		}
-		<div class="card__body" style="border-top:1px solid var(--border)">
-			<form class="toolbar" style="margin:0" hx-post={ d.AddMemberURL }>
-				<input class="input" type="email" name="email" placeholder="user@example.com" required style="max-width:240px"/>
-				<select class="select" name="role" style="max-width:150px">
+		<div class="border-t border-gray-200 p-[18px]">
+			<form class="flex items-center gap-2" hx-post={ d.AddMemberURL }>
+				<input class="rounded-md border border-gray-300 px-3 py-1.5 text-sm max-w-[240px]" type="email" name="email" placeholder="user@example.com" required/>
+				<select class="rounded-md border border-gray-300 px-2 py-1.5 text-sm max-w-[150px]" name="role">
 					for _, r := range d.AssignableRoles {
 						<option value={ string(r) }>{ string(r) }</option>
 					}
 				</select>
-				<button class="btn btn--primary btn--sm" type="submit">@icon("plus") Add member</button>
+				<button class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-blue-500" type="submit">@icon("plus") Add member</button>
 			</form>
 		</div>
 	</div>
@@ -61,9 +61,9 @@ templ membersCard(d tenantDetailData) {
 // Extracted as a component because templ's parser rejects if/else blocks
 // directly inside @Layout children.
 templ tenantHeader(d tenantDetailData) {
-	<div class="admin-content__head">
-		<h1>Members</h1>
-		<div class="spacer"></div>
+	<div class="mb-5 flex flex-wrap items-center gap-3">
+		<h1 class="text-xl font-semibold">Members</h1>
+		<div class="flex-1"></div>
 		if d.Tenant != nil {
 			if d.Tenant.Suspended {
 				@badge("suspended", "amber")
@@ -73,7 +73,7 @@ templ tenantHeader(d tenantDetailData) {
 		}
 	</div>
 	if d.Tenant != nil {
-		<div class="muted" style="margin-bottom:18px">{ d.Tenant.DisplayName } · <span class="mono">{ d.Tenant.Name }</span></div>
+		<div class="mb-4 text-sm text-gray-500">{ d.Tenant.DisplayName } · <span class="font-mono text-xs">{ d.Tenant.Name }</span></div>
 	}
 }
 
