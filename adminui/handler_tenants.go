@@ -8,7 +8,8 @@ import (
 )
 
 func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
-	d := tenantsListData{Tenants: h.cfg.Service.AllTenants(), BasePath: h.cfg.BasePath}
+	tenants, total := capList(h.cfg.Service.AllTenants())
+	d := tenantsListData{Tenants: tenants, Total: total, BasePath: h.cfg.BasePath}
 	p := h.page("Tenants", "/tenants", user)
 	renderPage(w, r, tenantsPage(p, d))
 }

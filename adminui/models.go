@@ -41,6 +41,7 @@ type dashboardData struct {
 // usersListData drives the users index.
 type usersListData struct {
 	Users    []*usermgmt.User
+	Total    int // total matching the search (may exceed len(Users) when capped)
 	Search   string
 	BasePath string
 }
@@ -55,6 +56,7 @@ type userDetailData struct {
 // tenantsListData drives the tenants index.
 type tenantsListData struct {
 	Tenants  []*usermgmt.Tenant
+	Total    int
 	BasePath string
 }
 

@@ -20,6 +20,12 @@ const (
 // [Config.AccentColor] is empty.
 const DefaultAccentColor = "#4f46e5"
 
+// MaxListRows is the maximum number of rows rendered in a single list page. It
+// bounds memory and response size for large datasets. The UI shows a "showing N
+// of M" note when a list is truncated. (Real server-side pagination is a future
+// enhancement — it needs paginated read-model query methods.)
+const MaxListRows = 200
+
 // Config configures an admin panel. Only [Config.Service] is required; every
 // other field has a sensible default applied by [New].
 type Config struct {
