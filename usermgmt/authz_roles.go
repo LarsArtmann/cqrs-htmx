@@ -45,7 +45,7 @@ func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain TenantID) ([][]
 }
 
 // DomainsForUser returns all domains the user has roles in.
-func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
+func (a *Authz) DomainsForUser(userID UserID) ([]TenantID, error) {
 	if a.enforcer == nil {
 		return nil, ErrEnforcerNotInitialized
 	}
@@ -53,10 +53,10 @@ func (a *Authz) DomainsForUser(userID UserID) ([]string, error) {
 	if err != nil {
 		return nil, event.WrapTransient(err, "casbin_error", "domains for user")
 	}
-	filtered := d[:0]
+	filtered := make([]TenantID, 0, len(d))
 	for _, dom := range d {
 		if dom != "" {
-			filtered = append(filtered, dom)
+			filtered = append(filtered, NewTenantID(dom))
 		}
 	}
 	return filtered, nil
