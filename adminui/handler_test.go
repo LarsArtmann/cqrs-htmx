@@ -159,9 +159,10 @@ func TestPanel_AssetsServed(t *testing.T) {
 	h, _ := newTestPanel(t, user)
 
 	for path, ct := range map[string]string{
-		"/admin/-/admin.css": "text/css",
-		"/admin/-/admin.js":  "text/javascript",
-		"/admin/-/htmx.js":   "text/javascript",
+		"/admin/-/admin.css":    "text/css",
+		"/admin/-/admin-tw.css": "text/css",
+		"/admin/-/admin.js":     "text/javascript",
+		"/admin/-/htmx.js":      "text/javascript",
 	} {
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))

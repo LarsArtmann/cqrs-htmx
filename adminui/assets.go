@@ -10,7 +10,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
-//go:embed assets/admin.css assets/admin.js
+//go:embed assets/admin.css assets/admin-tw.css assets/admin.js
 var assetsFS embed.FS
 
 // assetHandler serves a single embedded file with long-lived caching and a
