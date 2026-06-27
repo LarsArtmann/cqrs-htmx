@@ -1,34 +1,182 @@
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>adminui — Brutal Self-Review Round 4</title>
-<style>
-:root{--bg:#0b1120;--s:#131c31;--t:#e6edf6;--m:#93a4bd;--b:#233049;--a:#4f46e5;--ok:#22c55e;--w:#f59e0b;--e:#ef4444}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14.5px/1.6 ui-sans-serif,system-ui,sans-serif;padding:32px}
-h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}h2{font-size:18px;margin:30px 0 10px}.sub{color:var(--m);margin-bottom:24px}
-.card{background:var(--s);border:1px solid var(--b);border-left:4px solid var(--m);border-radius:10px;padding:14px 16px;margin:10px 0}
-.card h3{margin:0 0 5px;font-size:15px}.card p{margin:3px 0;color:var(--m)}.card code{background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-size:13px}
-.problem{border-left-color:var(--e)}.warning{border-left-color:var(--w)}.solution{border-left-color:var(--ok)}
-.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px}
-.te{background:rgba(239,68,68,.16);color:var(--e)}.tw{background:rgba(245,158,11,.18);color:var(--w)}.to{background:rgba(34,197,94,.16);color:var(--ok)}
-ol{counter-reset:s;list-style:none;padding:0}ol>li{counter-increment:s;background:var(--s);border:1px solid var(--b);border-radius:10px;padding:12px 14px 12px 50px;margin:8px 0;position:relative}
-ol>li::before{content:counter(s);position:absolute;left:12px;top:12px;width:26px;height:26px;background:var(--a);color:#fff;border-radius:7px;display:grid;place-items:center;font-weight:800;font-size:13px}
-.imp{float:right;font-size:11px;color:var(--m)}
-</style></head><body>
-<h1>adminui — Brutal Self-Review Round 4</h1>
-<div class="sub">The generated files were never committed. 2026-06-27.</div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>adminui — Brutal Self-Review Round 4</title>
+    <style>
+      :root {
+        --bg: #0b1120;
+        --s: #131c31;
+        --t: #e6edf6;
+        --m: #93a4bd;
+        --b: #233049;
+        --a: #4f46e5;
+        --ok: #22c55e;
+        --w: #f59e0b;
+        --e: #ef4444;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--t);
+        font:
+          14.5px/1.6 ui-sans-serif,
+          system-ui,
+          sans-serif;
+        padding: 32px;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0 0 4px;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 30px 0 10px;
+      }
+      .sub {
+        color: var(--m);
+        margin-bottom: 24px;
+      }
+      .card {
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-left: 4px solid var(--m);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin: 10px 0;
+      }
+      .card h3 {
+        margin: 0 0 5px;
+        font-size: 15px;
+      }
+      .card p {
+        margin: 3px 0;
+        color: var(--m);
+      }
+      .card code {
+        background: rgba(255, 255, 255, 0.07);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .problem {
+        border-left-color: var(--e);
+      }
+      .warning {
+        border-left-color: var(--w);
+      }
+      .solution {
+        border-left-color: var(--ok);
+      }
+      .tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 999px;
+        margin-left: 6px;
+      }
+      .te {
+        background: rgba(239, 68, 68, 0.16);
+        color: var(--e);
+      }
+      .tw {
+        background: rgba(245, 158, 11, 0.18);
+        color: var(--w);
+      }
+      .to {
+        background: rgba(34, 197, 94, 0.16);
+        color: var(--ok);
+      }
+      ol {
+        counter-reset: s;
+        list-style: none;
+        padding: 0;
+      }
+      ol > li {
+        counter-increment: s;
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-radius: 10px;
+        padding: 12px 14px 12px 50px;
+        margin: 8px 0;
+        position: relative;
+      }
+      ol > li::before {
+        content: counter(s);
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        width: 26px;
+        height: 26px;
+        background: var(--a);
+        color: #fff;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .imp {
+        float: right;
+        font-size: 11px;
+        color: var(--m);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>adminui — Brutal Self-Review Round 4</h1>
+    <div class="sub">The generated files were never committed. 2026-06-27.</div>
 
-<div class="card problem"><h3>Consumers cannot build without the templ CLI <span class="tag te">CRITICAL · DX failure</span></h3>
-<p>Root <code>.gitignore</code> line 50 (<code>*_templ.go</code>) silently blocks all generated templ files from being tracked. My docs <strong>lie</strong>: they say "generated files committed so consumers run no codegen" — but <code>git ls-files adminui/*_templ.go</code> returns nothing. Any consumer importing adminui gets <code>undefined: Layout</code> at build time unless they install the templ CLI and run <code>templ generate</code>. This is the single biggest failure of the "very high Developer Experience" promise.</p></div>
+    <div class="card problem">
+      <h3>
+        Consumers cannot build without the templ CLI
+        <span class="tag te">CRITICAL · DX failure</span>
+      </h3>
+      <p>
+        Root <code>.gitignore</code> line 50 (<code>*_templ.go</code>) silently blocks all generated
+        templ files from being tracked. My docs <strong>lie</strong>: they say "generated files
+        committed so consumers run no codegen" — but
+        <code>git ls-files adminui/*_templ.go</code> returns nothing. Any consumer importing adminui
+        gets <code>undefined: Layout</code> at build time unless they install the templ CLI and run
+        <code>templ generate</code>. This is the single biggest failure of the "very high Developer
+        Experience" promise.
+      </p>
+    </div>
 
-<div class="card warning"><h3>Members page lost its tenant info <span class="tag tw">regression</span></h3>
-<p>Round 3's templ parse fix simplified <code>membersPage</code> and dropped the tenant status badge + display name. A tenant admin no longer sees which tenant they're managing. UX regression I didn't flag.</p></div>
+    <div class="card warning">
+      <h3>Members page lost its tenant info <span class="tag tw">regression</span></h3>
+      <p>
+        Round 3's templ parse fix simplified <code>membersPage</code> and dropped the tenant status
+        badge + display name. A tenant admin no longer sees which tenant they're managing. UX
+        regression I didn't flag.
+      </p>
+    </div>
 
-<div class="card warning"><h3>Broken CSS class: select--sm <span class="tag tw">leftover</span></h3>
-<p>An earlier draft used <code>class="select select--sm"</code> but the class was never defined in <code>admin.css</code>. The current code doesn't reference it anymore — but I should verify no stray references remain.</p></div>
+    <div class="card warning">
+      <h3>Broken CSS class: select--sm <span class="tag tw">leftover</span></h3>
+      <p>
+        An earlier draft used <code>class="select select--sm"</code> but the class was never defined
+        in <code>admin.css</code>. The current code doesn't reference it anymore — but I should
+        verify no stray references remain.
+      </p>
+    </div>
 
-<h2>Plan (work vs. impact)</h2>
-<ol>
-<li><b>Commit the generated _templ.go files</b> — add negation rule to .gitignore, force-add, verify a clean clone builds. <span class="imp">TINY · CRITICAL</span></li>
-<li><b>Restore tenant info on the members page</b> — re-add the badge + name (fix the templ parse issue properly). <span class="imp">LOW · UX regression</span></li>
-</ol>
-</body></html>
+    <h2>Plan (work vs. impact)</h2>
+    <ol>
+      <li>
+        <b>Commit the generated _templ.go files</b> — add negation rule to .gitignore, force-add,
+        verify a clean clone builds. <span class="imp">TINY · CRITICAL</span>
+      </li>
+      <li>
+        <b>Restore tenant info on the members page</b> — re-add the badge + name (fix the templ
+        parse issue properly). <span class="imp">LOW · UX regression</span>
+      </li>
+    </ol>
+  </body>
+</html>

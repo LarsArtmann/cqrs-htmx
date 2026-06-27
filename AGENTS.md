@@ -171,17 +171,17 @@ cqrs-htmx/
 
 ### Module Layout
 
-| Module           | go.mod                                              | Tests | Notes                                             |
-| ---------------- | --------------------------------------------------- | ----- | ------------------------------------------------- |
-| Root             | `github.com/larsartmann/cqrs-htmx/v3`               | Yes   | Core library                                      |
-| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`      | Yes   | Independent submodule                             |
+| Module           | go.mod                                              | Tests | Notes                                                     |
+| ---------------- | --------------------------------------------------- | ----- | --------------------------------------------------------- |
+| Root             | `github.com/larsartmann/cqrs-htmx/v3`               | Yes   | Core library                                              |
+| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`      | Yes   | Independent submodule                                     |
 | adminui          | `github.com/larsartmann/cqrs-htmx/adminui/v3`       | Yes   | Admin Dashboard UI (templ+HTMX), depends on root+usermgmt |
-| integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                        |
-| datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                 |
-| catalog-demo     | `examples/catalog-demo/`                            | No    | Catalog doc-server example (main package)         |
-| admin-demo       | `examples/admin-demo/`                              | No    | Runnable admin panel showcase (main package)      |
-| basic            | `examples/basic/`                                   | No    | Minimal cqrs-htmx consumer example                |
-| catalog          | `github.com/larsartmann/cqrs-htmx/catalog/v3`       | Yes   | API doc generation (opt-in, no root/usermgmt dep) |
+| integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                                |
+| datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                         |
+| catalog-demo     | `examples/catalog-demo/`                            | No    | Catalog doc-server example (main package)                 |
+| admin-demo       | `examples/admin-demo/`                              | No    | Runnable admin panel showcase (main package)              |
+| basic            | `examples/basic/`                                   | No    | Minimal cqrs-htmx consumer example                        |
+| catalog          | `github.com/larsartmann/cqrs-htmx/catalog/v3`       | Yes   | API doc generation (opt-in, no root/usermgmt dep)         |
 
 ## Dependencies
 
