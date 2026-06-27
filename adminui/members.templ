@@ -1,8 +1,60 @@
 package adminui
 
-// membersPage is the tenant-scoped members view (ModeTenantAdmin). It reuses
-// tenantDetailData but omits the destructive tenant actions, which a tenant
-// administrator must not perform on their own tenant.
+// membersCard renders the members table with add/remove controls. Shared by the
+// tenant detail page (super-admin) and the members page (tenant-admin). Member
+// actions POST to AddMemberURL and RemoveMemberBase/{actor}/delete.
+templ membersCard(d tenantDetailData) {
+	<div class="card">
+		<div class="card__header"><span class="card__title">Members</span></div>
+		if len(d.Members) == 0 {
+			@empty("members", "No members", "Add a user below to grant tenant access.")
+		} else {
+			<div class="table-wrap">
+				<table class="data">
+					<thead><tr><th>Actor</th><th>Roles</th><th></th></tr></thead>
+					<tbody>
+						for _, m := range d.Members {
+							<tr>
+								<td class="mono">{ m.Actor }</td>
+								<td>
+									<div class="badge-row">
+										for _, r := range m.Roles {
+											@roleBadge(string(r))
+										}
+									</div>
+								</td>
+								<td style="text-align:right">
+									<button
+										class="btn btn--ghost btn--sm"
+										hx-post={ d.RemoveMemberBase + "/" + m.Actor + "/delete" }
+										hx-confirm={ "Remove " + m.Actor + " from this tenant?" }
+										data-confirm={ "Remove " + m.Actor + " from this tenant?" }
+									>
+										@icon("trash")
+									</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+		<div class="card__body" style="border-top:1px solid var(--border)">
+			<form class="toolbar" style="margin:0" hx-post={ d.AddMemberURL }>
+				<input class="input" type="email" name="email" placeholder="user@example.com" required style="max-width:240px"/>
+				<select class="select" name="role" style="max-width:150px">
+					<option value="viewer">viewer</option>
+					<option value="user" selected>user</option>
+					<option value="admin">admin</option>
+					<option value="owner">owner</option>
+				</select>
+				<button class="btn btn--primary btn--sm" type="submit">@icon("plus") Add member</button>
+			</form>
+		</div>
+	</div>
+}
+
+// membersPage is the tenant-scoped members view (ModeTenantAdmin).
 templ membersPage(p pageData, d tenantDetailData) {
 	@Layout(p) {
 		<div class="admin-content__head">
@@ -19,30 +71,6 @@ templ membersPage(p pageData, d tenantDetailData) {
 		if d.Tenant != nil {
 			<div class="muted" style="margin-bottom:18px">{ d.Tenant.DisplayName } · <span class="mono">{ d.Tenant.Name }</span></div>
 		}
-		<div class="card card--flush">
-			if len(d.Members) == 0 {
-				@empty("members", "No members", "This tenant has no members yet.")
-			} else {
-				<div class="table-wrap">
-					<table class="data">
-						<thead><tr><th>Actor</th><th>Roles</th></tr></thead>
-						<tbody>
-							for _, m := range d.Members {
-								<tr>
-									<td class="mono">{ m.Actor }</td>
-									<td>
-										<div class="badge-row">
-											for _, r := range m.Roles {
-												@roleBadge(string(r))
-											}
-										</div>
-									</td>
-								</tr>
-							}
-						</tbody>
-					</table>
-				</div>
-			}
-		</div>
+		@membersCard(d)
 	}
 }

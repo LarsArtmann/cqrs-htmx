@@ -58,11 +58,14 @@ type tenantsListData struct {
 	BasePath string
 }
 
-// tenantDetailData drives a single tenant's page with its members.
+// tenantDetailData drives a single tenant's page with its members. It is also
+// reused for the tenant-admin members page.
 type tenantDetailData struct {
-	Tenant   *usermgmt.Tenant
-	Members  []memberRow
-	BasePath string
+	Tenant           *usermgmt.Tenant
+	Members          []memberRow
+	BasePath         string
+	AddMemberURL     string // POST target to add a member
+	RemoveMemberBase string // append "/{actor}/delete" per row
 }
 
 // memberRow is a flattened membership for display.

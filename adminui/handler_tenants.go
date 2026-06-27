@@ -59,9 +59,14 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *use
 	for _, m := range memberships {
 		members = append(members, memberRow{Actor: m.ActorID.PrefixedString(), Roles: m.Roles})
 	}
+	memberBase := h.cfg.BasePath + "/tenants/" + tenantID.Get() + "/members"
 	p := h.page(tenant.DisplayName, "/tenants", user)
 	renderPage(w, r, tenantDetailPage(p, tenantDetailData{
-		Tenant: tenant, Members: members, BasePath: h.cfg.BasePath,
+		Tenant:           tenant,
+		Members:          members,
+		BasePath:         h.cfg.BasePath,
+		AddMemberURL:     memberBase,
+		RemoveMemberBase: memberBase,
 	}))
 }
 
