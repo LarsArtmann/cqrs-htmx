@@ -19,9 +19,13 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *usermg
 		}
 	} else {
 		members := svc.TenantMembers(r.Context(), h.cfg.TenantID)
+		tenantName := h.cfg.TenantID.Get()
+		if t, err := svc.GetTenant(r.Context(), h.cfg.TenantID); err == nil && t.DisplayName != "" {
+			tenantName = t.DisplayName
+		}
 		stats = []statCard{
 			{Label: "Members", Value: strconv.Itoa(len(members)), Icon: iconMembers},
-			{Label: "Tenant", Value: h.cfg.TenantID.Get(), Icon: iconTenants},
+			{Label: "Tenant", Value: tenantName, Icon: iconTenants},
 		}
 	}
 	if al := svc.AuditLog(); al != nil {

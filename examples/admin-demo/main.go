@@ -44,12 +44,14 @@ func main() {
 	// 3. Build the admin panel. RequireAuthenticated keeps the demo simple; in
 	//    production use adminui.RequireAnyRole(svc, "*", usermgmt.RoleSuperAdmin)
 	//    or your own Config.Authorizer.
+	// 3. Build the admin panel. The default (role-based) authorizer is used, so
+	//    the demo assigns the admin the super_admin role in seed() — proving the
+	//    default works rather than bypassing it with RequireAuthenticated.
 	panel, err := adminui.New(adminui.Config{
 		Service:     svc,
 		Title:       "cqrs-htmx Admin",
 		AccentColor: "#0ea5e9",
 		LogoutURL:   "/dev-logout",
-		Authorizer:  adminui.RequireAuthenticated(),
 	})
 	if err != nil {
 		log.Fatalf("adminui.New: %v", err)
@@ -93,6 +95,13 @@ func seed(ctx context.Context, svc *usermgmt.Service) string {
 	})
 	if err != nil {
 		log.Fatalf("register admin: %v", err)
+	}
+	// Grant super_admin so the panel's default role-based authorizer admits the
+	// demo admin. This exercises the real authorization path (not a bypass).
+	if err := svc.Authz().AddGroupPolicy(usermgmt.GroupPolicy{
+		Subject: adminID.Get().String(), Role: usermgmt.RoleSuperAdmin, Domain: "*",
+	}); err != nil {
+		log.Fatalf("grant super_admin: %v", err)
 	}
 
 	for _, email := range []string{

@@ -96,32 +96,7 @@ templ tenantDetailPage(p pageData, d tenantDetailData) {
 		</div>
 		<h1 style="margin-bottom:4px">{ d.Tenant.DisplayName }</h1>
 		<div class="muted mono" style="margin-bottom:22px">{ d.Tenant.Name }</div>
-		<div class="card" style="margin-bottom:18px">
-			<div class="card__header"><span class="card__title">Members</span></div>
-			if len(d.Members) == 0 {
-				@empty("members", "No members", "Add users to this tenant via memberships.")
-			} else {
-				<div class="table-wrap">
-					<table class="data">
-						<thead><tr><th>Actor</th><th>Roles</th></tr></thead>
-						<tbody>
-							for _, m := range d.Members {
-								<tr>
-									<td class="mono">{ m.Actor }</td>
-									<td>
-										<div class="badge-row">
-											for _, r := range m.Roles {
-												@roleBadge(string(r))
-											}
-										</div>
-									</td>
-								</tr>
-							}
-						</tbody>
-					</table>
-				</div>
-			}
-		</div>
+		<div style="margin-bottom:18px">@membersCard(d)</div>
 		<div class="card">
 			<div class="card__header"><span class="card__title" style="color:var(--err)">Danger zone</span></div>
 			<div class="card__body" style="display:flex;gap:10px;flex-wrap:wrap">

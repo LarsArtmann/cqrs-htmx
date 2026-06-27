@@ -2,6 +2,7 @@ package adminui
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
 )
@@ -17,8 +18,83 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *use
 	for _, m := range memberships {
 		members = append(members, memberRow{Actor: m.ActorID.PrefixedString(), Roles: m.Roles})
 	}
+	memberBase := h.cfg.BasePath + "/members"
 	p := h.page("Members", "/members", user)
 	renderPage(w, r, membersPage(p, tenantDetailData{
-		Tenant: tenant, Members: members, BasePath: h.cfg.BasePath,
+		Tenant:           tenant,
+		Members:          members,
+		BasePath:         h.cfg.BasePath,
+		AddMemberURL:     memberBase,
+		RemoveMemberBase: memberBase,
 	}))
+}
+
+// membersAdd handles "add member" in tenant-admin mode (tenant from config).
+func (h *Handler) membersAdd(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+	h.doAddMember(w, r, h.cfg.TenantID, h.cfg.BasePath+"/members")
+}
+
+// membersRemove handles "remove member" in tenant-admin mode.
+func (h *Handler) membersRemove(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+	actor := usermgmt.ParseActorID(r.PathValue("actor"))
+	h.doRemoveMember(w, r, h.cfg.TenantID, actor, h.cfg.BasePath+"/members")
+}
+
+// tenantAddMember handles "add member" in super-admin mode (tenant from path).
+func (h *Handler) tenantAddMember(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+	tenantID := usermgmt.NewTenantID(r.PathValue("id"))
+	h.doAddMember(w, r, tenantID, h.cfg.BasePath+"/tenants/"+tenantID.Get())
+}
+
+// tenantRemoveMember handles "remove member" in super-admin mode.
+func (h *Handler) tenantRemoveMember(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+	tenantID := usermgmt.NewTenantID(r.PathValue("id"))
+	actor := usermgmt.ParseActorID(r.PathValue("actor"))
+	h.doRemoveMember(w, r, tenantID, actor, h.cfg.BasePath+"/tenants/"+tenantID.Get())
+}
+
+func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID usermgmt.TenantID, back string) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "invalid form", http.StatusBadRequest)
+		return
+	}
+	email := strings.TrimSpace(r.FormValue("email"))
+	role := usermgmt.Role(strings.TrimSpace(r.FormValue("role")))
+	if email == "" || role == "" {
+		triggerToast(w, "err", "Email and role are required")
+		redirect(w, r, back)
+		return
+	}
+	target, ok := h.cfg.Service.ReadModel().FindByEmail(email)
+	if !ok {
+		triggerToast(w, "err", "No user with that email")
+		redirect(w, r, back)
+		return
+	}
+	if err := h.cfg.Service.AddMember(
+		r.Context(),
+		usermgmt.ActorIDFromUser(target.ID),
+		tenantID,
+		[]usermgmt.Role{role},
+	); err != nil {
+		triggerToast(w, "err", "Add failed: "+err.Error())
+	} else {
+		triggerToast(w, "ok", "Member added")
+	}
+	redirect(w, r, back)
+}
+
+func (h *Handler) doRemoveMember(
+	w http.ResponseWriter,
+	r *http.Request,
+	tenantID usermgmt.TenantID,
+	actor usermgmt.ActorID,
+	back string,
+) {
+	if err := h.cfg.Service.RemoveMember(r.Context(), actor, tenantID); err != nil {
+		triggerToast(w, "err", "Remove failed: "+err.Error())
+	} else {
+		triggerToast(w, "ok", "Member removed")
+	}
+	redirect(w, r, back)
 }

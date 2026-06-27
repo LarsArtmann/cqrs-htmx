@@ -84,7 +84,8 @@ Override with your own `Config.Authorizer`, or use the helpers
 - **Users** — searchable list, per-user detail (credentials, MFA, roles across
   tenants), delete.
 - **Tenants** — list, create, suspend, reactivate, delete, and view members.
-- **Members** (tenant-admin mode) — the members of the scoped tenant.
+- **Members** — add a user by email + role, or remove a member, on any tenant
+  (super-admin) or your scoped tenant (tenant-admin).
 - **Audit log** — the recorded user/tenant events.
 
 ## Run the demo

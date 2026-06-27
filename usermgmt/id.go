@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"crypto/sha256"
 	"fmt"
+	"strings"
 
 	brandid "github.com/larsartmann/go-branded-id"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -140,4 +141,18 @@ func (a ActorID) IsZero() bool { return a.raw == "" }
 // PrefixedString returns the identifier with kind prefix (e.g. "user:01JX...").
 func (a ActorID) PrefixedString() string {
 	return fmt.Sprintf("%s:%s", a.kind, a.raw)
+}
+
+// ParseActorID reconstructs an [ActorID] from a [ActorID.PrefixedString] value
+// (e.g. "user:01JX...", "bot:name"). It is the inverse of PrefixedString, used
+// to carry actor identity through URLs and forms. Values without a recognized
+// prefix are treated as a user actor.
+func ParseActorID(s string) ActorID {
+	if after, ok := strings.CutPrefix(s, actorKindBotStr+":"); ok {
+		return ActorID{kind: ActorBot, raw: after}
+	}
+	if _, after, ok := strings.Cut(s, ":"); ok {
+		return ActorID{kind: ActorUser, raw: after}
+	}
+	return ActorID{kind: ActorUser, raw: s}
 }

@@ -2,6 +2,7 @@ package adminui
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/a-h/templ"
@@ -12,6 +13,7 @@ func renderPage(w http.ResponseWriter, r *http.Request, c templ.Component) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	if err := c.Render(r.Context(), w); err != nil {
+		slog.ErrorContext(r.Context(), "adminui: render page", "error", err)
 		http.Error(w, "render error", http.StatusInternalServerError)
 	}
 }
@@ -20,7 +22,9 @@ func renderPage(w http.ResponseWriter, r *http.Request, c templ.Component) {
 func renderPartial(w http.ResponseWriter, r *http.Request, c templ.Component) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
-	_ = c.Render(r.Context(), w)
+	if err := c.Render(r.Context(), w); err != nil {
+		slog.ErrorContext(r.Context(), "adminui: render partial", "error", err)
+	}
 }
 
 // toastDetail is the payload dispatched as the adminui:toast HTMX trigger event.

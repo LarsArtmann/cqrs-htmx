@@ -116,11 +116,15 @@ func (h *Handler) routes() http.Handler {
 		mux.HandleFunc("POST /tenants/{id}/suspend", h.guard(h.tenantSuspend))
 		mux.HandleFunc("POST /tenants/{id}/reactivate", h.guard(h.tenantReactivate))
 		mux.HandleFunc("POST /tenants/{id}/delete", h.guard(h.tenantDelete))
+		mux.HandleFunc("POST /tenants/{id}/members", h.guard(h.tenantAddMember))
+		mux.HandleFunc("POST /tenants/{id}/members/{actor}/delete", h.guard(h.tenantRemoveMember))
 	}
 
 	// --- Members (tenant admin) ---
 	if h.cfg.Mode == ModeTenantAdmin {
 		mux.HandleFunc("GET /members", h.guard(h.membersIndex))
+		mux.HandleFunc("POST /members", h.guard(h.membersAdd))
+		mux.HandleFunc("POST /members/{actor}/delete", h.guard(h.membersRemove))
 	}
 
 	// --- Audit ---
