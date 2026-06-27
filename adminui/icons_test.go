@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // TestIcons_AllReferencedIconsExist scans the committed .templ sources for
@@ -18,7 +19,7 @@ func TestIcons_AllReferencedIconsExist(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read dir: %v", err)
 	}
-	iconCall := regexp.MustCompile(`@icon\("([a-z]+)"\)`)
+	iconCall := regexp.MustCompile(`@icon\("([a-z-]+)"\)`)
 	missing := map[string]bool{}
 	for _, e := range entries {
 		if !strings.HasSuffix(e.Name(), ".templ") {
@@ -30,23 +31,42 @@ func TestIcons_AllReferencedIconsExist(t *testing.T) {
 		}
 		for _, m := range iconCall.FindAllStringSubmatch(string(data), -1) {
 			name := m[1]
-			if _, ok := iconPaths[name]; !ok {
-				missing[name] = true
+			// Unknown icon names fall back to Question in templ-components, but
+			// we still want to catch typos. If the path data matches the Question
+			// fallback and the name isn't "question", it's likely a typo.
+			if name == "question" {
+				continue
+			}
+			paths := icons.IconPathData(icons.Name(name))
+			questionPaths := icons.IconPathData(icons.Question)
+			if len(paths) == len(questionPaths) {
+				match := true
+				for i := range paths {
+					if paths[i] != questionPaths[i] {
+						match = false
+						break
+					}
+				}
+				if match {
+					missing[name] = true
+				}
 			}
 		}
 	}
 	for name := range missing {
-		t.Errorf("icon %q is used in a .templ file but not defined in the icons map", name)
+		t.Errorf("icon %q is used in a .templ file but resolves to the Question fallback — likely a typo", name)
 	}
 }
 
-// TestIcons_ConstantsAreKnown verifies the exported-by-convention icon key
-// constants all map to defined icons.
+// TestIcons_ConstantsAreKnown verifies the icon key constants all resolve to
+// real icons (not the Question fallback).
 func TestIcons_ConstantsAreKnown(t *testing.T) {
 	t.Parallel()
 	for _, name := range []string{iconDashboard, iconUsers, iconTenants, iconMembers, iconAudit} {
-		if _, ok := iconPaths[name]; !ok {
-			t.Errorf("icon constant %q is not in the iconPaths map", name)
+		paths := icons.IconPathData(icons.Name(name))
+		questionPaths := icons.IconPathData(icons.Question)
+		if len(paths) == len(questionPaths) && paths[0] == questionPaths[0] {
+			t.Errorf("icon constant %q resolves to the Question fallback", name)
 		}
 	}
 }
@@ -65,7 +85,7 @@ func TestParseActorID_RoundTrips(t *testing.T) {
 			t.Errorf("round-trip %q -> %q", original.PrefixedString(), got.PrefixedString())
 		}
 		if got.Kind() != original.Kind() {
-			t.Errorf("kind %v -> %v", original.Kind(), got.Kind())
+			t.Errorf("kind %v -> %v", got.Kind(), original.Kind())
 		}
 	}
 }
