@@ -267,12 +267,12 @@
 
 ## Metrics
 
-| Metric         | Root  | usermgmt | catalog | integration_test |
-| -------------- | ----- | -------- | ------- | ---------------- |
-| Coverage       | 95.2% | 82.8%    | 95.3%   | —                |
-| Tests passing  | 59    | 517      | 41      | 15               |
-| Lint issues    | 0     | 0        | 0       | 0                |
-| ErrorFamily    | 0     | 0        | 0       | 0                |
-| Production LOC | ~8.5K | ~7.2K    | ~0.5K   | —                |
-| Test LOC       | ~12K  | ~11K     | ~1.5K   | ~1.3K            |
-| Go modules     | 1     | 1        | 1       | 1                |
+| Metric         | Root  | usermgmt | adminui | catalog | integration_test |
+| -------------- | ----- | -------- | ------- | ------- | ---------------- |
+| Coverage       | 95.6% | 79.6%    | 56.4%   | 95.3%   | —                |
+| Tests passing  | 95    | 699      | 19      | 41      | 15               |
+| Lint issues    | 0     | 0        | 0       | 0       | 0                |
+| ErrorFamily    | 0     | 0        | 0       | 0       | 0                |
+| Production LOC | ~8.5K | ~7.2K    | ~1.7K   | ~0.5K   | —                |
+| Test LOC       | ~12K  | ~11K     | ~0.8K   | ~1.5K   | ~1.3K            |
+| Go modules     | 1     | 1        | 1       | 1       | 1                |
