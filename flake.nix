@@ -341,6 +341,20 @@
               };
             };
 
+            build-adminui-css = {
+              type = "app";
+              meta.description = "Compile adminui Tailwind v4 CSS (tailwind.css → assets/admin-tw.css)";
+              program = pkgs.writeShellApplication {
+                name = "build-adminui-css";
+                runtimeInputs = [ pkgs.tailwindcss_4 ];
+                text = ''
+                  cd adminui
+                  tailwindcss -i tailwind.css -o assets/admin-tw.css --minify
+                  echo "Done: adminui/assets/admin-tw.css"
+                '';
+              };
+            };
+
             build-catalog-demo = {
               type = "app";
               meta.description = "Build the catalog-demo example binary";
