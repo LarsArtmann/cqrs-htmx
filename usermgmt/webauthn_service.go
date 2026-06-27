@@ -65,7 +65,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	if err != nil {
 		s.logger.Warn("usermgmt: finish registration failed – session not found",
 			"user_id", userID, "error", err)
-		return err
+		return err //nolint:wrapcheck // domain sentinel error
 	}
 
 	waUser := &webauthnUser{user: user}
@@ -167,7 +167,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	if err != nil {
 		s.logger.Warn("usermgmt: finish login failed – session not found",
 			"user_id", userID, "error", err)
-		return nil, err
+		return nil, err //nolint:wrapcheck // domain sentinel error
 	}
 
 	waUser := &webauthnUser{user: user}

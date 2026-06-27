@@ -143,7 +143,7 @@ func (s *Service) VerifyEmail(ctx context.Context, token string) error {
 	userID, err := s.verificationTokens.Consume(token)
 	if err != nil {
 		s.logAuth("email_verify_failed", userID, "reason", "invalid_or_expired_token")
-		return err
+		return err //nolint:wrapcheck // domain sentinel error
 	}
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {

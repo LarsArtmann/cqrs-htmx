@@ -114,12 +114,16 @@ func TestTOTP_SetupExpired(t *testing.T) {
 
 	// Enable but don't verify — manually expire the pending secret
 	_, _ = svc.EnableTOTP(ctx, reg.User.ID)
-	svc.pendingTOTP.mu.Lock()
-	for k, v := range svc.pendingTOTP.secrets {
-		v.expiresAt = v.expiresAt.Add(-10 * 60 * 1e9) // expire 10 minutes ago
-		svc.pendingTOTP.secrets[k] = v
+	mem, ok := svc.pendingTOTP.(*pendingTOTPStore)
+	if !ok {
+		t.Skip("pending TOTP store is not in-memory")
 	}
-	svc.pendingTOTP.mu.Unlock()
+	mem.mu.Lock()
+	for k, v := range mem.secrets {
+		v.expiresAt = v.expiresAt.Add(-10 * 60 * 1e9) // expire 10 minutes ago
+		mem.secrets[k] = v
+	}
+	mem.mu.Unlock()
 
 	err := svc.VerifyTOTPSetup(ctx, reg.User.ID, "123456")
 	if err == nil {

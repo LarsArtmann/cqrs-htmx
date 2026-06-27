@@ -36,19 +36,19 @@ type Service struct {
 	sessions                 SessionStore
 	sessionTTL               time.Duration
 	logger                   *slog.Logger
-	lockout                  *AccountLockout
+	lockout                  LockoutStore
 	bus                      event.Bus
 	store                    event.Store
 	webauthn                 *webauthn.WebAuthn
-	webauthnSessions         *webauthnSessionStore
+	webauthnSessions         WebAuthnSessionStore
 	stopWebAuthnEviction     func()
 	auditLog                 *AuditLog
-	verificationTokens       *verificationTokenStore
+	verificationTokens       VerificationTokenStore
 	stopVerificationEviction func()
 	verificationTTL          time.Duration
 	sendVerificationEmail    SendVerificationEmailFunc
 	totpConfig               *TOTPConfig
-	pendingTOTP              pendingTOTPStore
+	pendingTOTP              PendingTOTPStore
 	stopPendingTOTPEviction  func()
 	oauth2Providers          map[string]*oauth2Provider
 	oauth2States             OAuth2StateStore
@@ -73,7 +73,8 @@ type ServiceConfig struct {
 	// Logger is used for structured auth event logging. Defaults to slog.Default().
 	Logger *slog.Logger
 	// Lockout, if provided, enables account lockout after repeated login failures.
-	Lockout *AccountLockout
+	// Defaults to none. Implement [LockoutStore] for distributed lockout.
+	Lockout LockoutStore
 	// WebAuthnConfig configures passwordless authentication. Required for login.
 	WebAuthnConfig *WebAuthnConfig
 	// AuditLog, if provided, is registered as a projection to record all
@@ -84,6 +85,19 @@ type ServiceConfig struct {
 	EmailVerification *EmailVerificationConfig
 	// TOTPConfig, if provided, enables TOTP multi-factor authentication.
 	TOTPConfig *TOTPConfig
+	// WebAuthnSessionStore, if provided, replaces the default in-memory WebAuthn
+	// challenge store. Use this for multi-instance deployments (e.g., Redis).
+	// Ignored when WebAuthnConfig is nil.
+	WebAuthnSessionStore WebAuthnSessionStore
+	// VerificationTokenStore, if provided, replaces the default in-memory email
+	// verification token store. Use this for multi-instance deployments.
+	// Ignored when EmailVerification is nil.
+	VerificationTokenStore VerificationTokenStore
+	// PendingTOTPStore, if provided, replaces the default in-memory pending TOTP
+	// secret store. Use this for multi-instance deployments.
+	// Ignored when TOTPConfig is nil.
+	PendingTOTPStore PendingTOTPStore
+
 	// OAuth2Config, if provided, enables OAuth2/OIDC login with external
 	// identity providers (Google, GitHub, etc.).
 	OAuth2Config *OAuth2Config
@@ -252,13 +266,23 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 			return nil, event.NewTransient("internal", "create webauthn instance").WithCause(err)
 		}
 		svc.webauthn = wa
-		svc.webauthnSessions = newWebAuthnSessionStore()
-		svc.stopWebAuthnEviction = svc.webauthnSessions.startEviction()
+		sessionStore := cfg.WebAuthnSessionStore
+		if sessionStore == nil {
+			mem := newWebAuthnSessionStore()
+			sessionStore = mem
+			svc.stopWebAuthnEviction = mem.startEviction()
+		}
+		svc.webauthnSessions = sessionStore
 	}
 
 	if cfg.EmailVerification != nil {
-		svc.verificationTokens = newVerificationTokenStore()
-		svc.stopVerificationEviction = svc.verificationTokens.startEviction()
+		vStore := cfg.VerificationTokenStore
+		if vStore == nil {
+			mem := newVerificationTokenStore()
+			vStore = mem
+			svc.stopVerificationEviction = mem.startEviction()
+		}
+		svc.verificationTokens = vStore
 		svc.verificationTTL = cfg.EmailVerification.TokenTTL
 		if svc.verificationTTL == 0 {
 			svc.verificationTTL = VerificationTokenTTL
@@ -268,8 +292,13 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 
 	svc.totpConfig = cfg.TOTPConfig
 	if cfg.TOTPConfig != nil {
-		svc.pendingTOTP = newPendingTOTPStore()
-		svc.stopPendingTOTPEviction = svc.pendingTOTP.startEviction()
+		tStore := cfg.PendingTOTPStore
+		if tStore == nil {
+			mem := newPendingTOTPStore()
+			tStore = &mem
+			svc.stopPendingTOTPEviction = mem.startEviction()
+		}
+		svc.pendingTOTP = tStore
 	}
 
 	if cfg.OAuth2Config != nil && len(cfg.OAuth2Config.Providers) > 0 {
