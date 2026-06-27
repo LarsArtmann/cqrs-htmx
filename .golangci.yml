@@ -100,8 +100,7 @@ linters:
         - ifElseChain
     revive:
       rules:
-        - disabled: true
-          name: exported
+        - name: exported
         - disabled: true
           name: package-comments
     testifylint:

@@ -167,8 +167,10 @@ func (s *SSEStream) OnDisconnect(fn func()) {
 	s.mu.Unlock()
 }
 
-// This is the SSE reconnection mechanism: when a client reconnects after a
-// connection drop, the browser sends the ID of the last event it received.
+// LastEventIDFromRequest extracts the Last-Event-ID header from an HTTP request,
+// returning the branded SSEEventID. This is the SSE reconnection mechanism: when a
+// client reconnects after a connection drop, the browser sends the ID of the last
+// event it received.
 //
 // Use this to replay missed events:
 //

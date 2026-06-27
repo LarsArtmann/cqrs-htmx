@@ -302,6 +302,9 @@ var (
 	unhealthyBody = []byte(`{"status":"unhealthy","error":"no dispatchers configured"}`)
 )
 
+// HealthHandler returns an http.HandlerFunc that reports 200 OK when the App
+// has at least one dispatcher configured, or 503 otherwise. Pre-allocates
+// response bodies for zero-allocation health checks.
 func (a *App) HealthHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		hasDispatchers := a.commands != nil || a.queries != nil
