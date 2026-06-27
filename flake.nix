@@ -97,6 +97,8 @@
                   go test ./... -count=1 -race
                   echo "==> catalog submodule"
                   (cd catalog && go test ./... -count=1 -race)
+                  echo "==> adminui submodule"
+                  (cd adminui && go test ./... -count=1 -race)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go test ./... -count=1 -race)
                   echo "==> integration_test submodule"
@@ -118,6 +120,8 @@
                   go test ./... -count=1 -race
                   echo "==> catalog submodule"
                   (cd catalog && go test ./... -count=1 -race)
+                  echo "==> adminui submodule"
+                  (cd adminui && go test ./... -count=1 -race)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go test ./... -count=1 -race)
                   echo "==> integration_test submodule"
@@ -148,6 +152,11 @@
                     echo "    -> $fuzz"
                     go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
                   done)
+                  echo "==> adminui submodule fuzz tests"
+                  (cd adminui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done)
 
                   echo "==> usermgmt submodule fuzz tests"
                   (cd usermgmt && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
@@ -174,6 +183,8 @@
                   golangci-lint run
                   echo "==> catalog submodule"
                   (cd catalog && golangci-lint run)
+                  echo "==> adminui submodule"
+                  (cd adminui && golangci-lint run)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && golangci-lint run)
                 '';
@@ -193,6 +204,8 @@
                   go tool cover -func=coverage.out
                   echo "==> catalog submodule coverage"
                   (cd catalog && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                  echo "==> adminui submodule coverage"
+                  (cd adminui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                   echo "==> usermgmt submodule coverage"
                   (cd usermgmt && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                 '';
@@ -211,6 +224,8 @@
                   go build ./...
                   echo "==> catalog submodule"
                   (cd catalog && go build ./...)
+                  echo "==> adminui submodule"
+                  (cd adminui && go build ./...)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go build ./...)
                   echo "==> integration_test submodule"
@@ -266,6 +281,21 @@
               };
             };
 
+            test-adminui = {
+              type = "app";
+              meta.description = "Run the adminui submodule's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-adminui";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  cd adminui
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
             test-integration = {
               type = "app";
               meta.description = "Run the integration_test module's Go tests in isolation";
@@ -290,6 +320,21 @@
                 text = ''
                   export GOWORK=off
                   cd examples/datastar-demo
+                  go build ./... "$@"
+                '';
+              };
+            };
+
+            build-admin-demo = {
+              type = "app";
+              meta.description = "Build the admin-demo example binary (runnable admin panel showcase)";
+              program = pkgs.writeShellApplication {
+                name = "build-admin-demo";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  cd examples/admin-demo
                   go build ./... "$@"
                 '';
               };
@@ -348,6 +393,8 @@
                   branching-flow errorfamily .
                   echo "==> usermgmt submodule"
                   branching-flow errorfamily usermgmt
+                  echo "==> adminui submodule"
+                  branching-flow errorfamily adminui
                   echo "All modules pass errorfamily check."
                 '';
               };

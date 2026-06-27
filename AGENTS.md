@@ -148,11 +148,25 @@ cqrs-htmx/
 │   ├── go.mod           # Independent Go module — depends only on go-cqrs-lite/catalog/v3
 │   ├── builder.go       # Builder, New(), Command[T]/Query[T]/Event[T], Build()/BuildValid()
 │   └── serve.go         # OpenAPIHandler, AsyncAPIHandler, D2Handler, GenerateEventCatalog, HealthCheckHandler
+├── adminui/             # Ready-made Admin Dashboard UI (7th Go module, templ + HTMX)
+│   ├── go.mod          # Independent Go module — depends on root + usermgmt + a-h/templ
+│   ├── config.go       # Config, Mode (SuperAdmin/TenantAdmin), defaults
+│   ├── authz.go        # defaultAuthorizer, RequireAnyRole, RequireAuthenticated
+│   ├── handler.go      # Handler, New(), Mount()/Handler(), routing, guard (auth+authz)
+│   ├── render.go       # renderPage/renderPartial, triggerToast (HX-Trigger), redirect (HX-Redirect)
+│   ├── assets.go       # go:embed admin.css/admin.js; reuses root HTMXScriptHandler for htmx.js
+│   ├── models.go       # view-model structs (navItem, pageData, per-section data)
+│   ├── icons.go        # inline SVG icon set (stroke=currentColor)
+│   ├── *.templ         # templ components (layout, dashboard, users, tenants, members, audit, components)
+│   ├── *_templ.go      # GENERATED templ output — committed so consumers run no codegen
+│   ├── handler_*.go    # per-section HTTP handlers (dashboard/users/tenants/members/audit)
+│   └── assets/         # admin.css (modern design system, light/dark) + admin.js (toasts, mobile nav)
 ├── integration_test/ # Cross-module integration tests (3rd Go module)
 └── examples/
     ├── basic/         # Minimal cqrs-htmx consumer example (register/list items)
     ├── datastar-demo/ # Standalone go-cqrs-lite + datastar SSE example (4th Go module)
-    └── catalog-demo/  # Standalone catalog doc-server example (6th Go module)
+    ├── catalog-demo/  # Standalone catalog doc-server example (6th Go module)
+    └── admin-demo/    # Runnable admin panel showcase (8th Go module) — go run ., open :8097
 ```
 
 ### Module Layout
@@ -161,9 +175,11 @@ cqrs-htmx/
 | ---------------- | --------------------------------------------------- | ----- | ------------------------------------------------- |
 | Root             | `github.com/larsartmann/cqrs-htmx/v3`               | Yes   | Core library                                      |
 | usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`      | Yes   | Independent submodule                             |
+| adminui          | `github.com/larsartmann/cqrs-htmx/adminui/v3`       | Yes   | Admin Dashboard UI (templ+HTMX), depends on root+usermgmt |
 | integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                        |
 | datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                 |
 | catalog-demo     | `examples/catalog-demo/`                            | No    | Catalog doc-server example (main package)         |
+| admin-demo       | `examples/admin-demo/`                              | No    | Runnable admin panel showcase (main package)      |
 | basic            | `examples/basic/`                                   | No    | Minimal cqrs-htmx consumer example                |
 | catalog          | `github.com/larsartmann/cqrs-htmx/catalog/v3`       | Yes   | API doc generation (opt-in, no root/usermgmt dep) |
 
@@ -183,6 +199,7 @@ cqrs-htmx/
 | coreos/go-oidc/v3 v3.19.0   | OIDC provider discovery + ID token verification                                                                     | usermgmt         |
 | go-jose/go-jose/v4 v4.1.4   | JWT/JWS signing (transitive from go-oidc, used in tests)                                                            | usermgmt (tests) |
 | golang.org/x/time           | Rate limiting                                                                                                       | Root             |
+| a-h/templ v0.3.1020         | Type-safe HTML templating (admin UI components)                                                                     | adminui          |
 | onsi/ginkgo/v2 + gomega     | BDD test framework                                                                                                  | All test modules |
 
 ## Key Decisions
@@ -365,11 +382,24 @@ cqrs-htmx/
 - **See**: `docs/adr/0014-oauth2-oidc-integration.md`
 - **Split brain fixed**: Both `NewService(ServiceConfig)` and `NewEventSourcedSetup(EventSourcedConfig)` support the same security hooks. `DefaultEventSourcedSetup()` delegates to `NewEventSourcedSetup(EventSourcedConfig{})`.
 
+### Admin UI module (adminui) — 2026-06-27
+
+- **PURPOSE**: A ready-made, good-looking Admin Dashboard for usermgmt-backed apps. One-call mount behind session middleware. See `adminui/README.md`.
+- **Leaf integration module**: `adminui` depends on root `cqrs-htmx/v3` (reuses `HTMXScriptHandler` for embedded htmx.js) + `usermgmt/v3` + `a-h/templ`. Nothing depends on it. `examples/admin-demo/` is the runnable showcase.
+- **templ adopted here (first module to use it)**: Markup authored in `.templ`, compiled to committed `_templ.go`. Consumers import the generated files directly — they never run `templ generate`. The templ runtime is a normal transitive dep. `flake.nix` treefmt already had `templ.enable`. After editing `.templ`, contributors run `templ generate` (CLI v0.3.x) in `adminui/`, then commit both `.templ` and `_templ.go`. Module pins `a-h/templ v0.3.1020` (latest published); CLI may be newer.
+- **Two scopes**: `ModeSuperAdmin` (global: dashboard/users/tenants/audit) and `ModeTenantAdmin` (scoped to `Config.TenantID`: dashboard/members/audit). Route table is built per-mode — tenant-admin mode does NOT register `/users` or `/tenants`, so they 404 (dashboard anchored with `GET /{$}` so it doesn't catch-all).
+- **Auth-agnostic**: Panel reads `*usermgmt.User` from context (consumer's `NewSessionMiddleware`). No user → 401; authorizer fail → 403. Default authorizer is role-based (overridable via `Config.Authorizer`); helpers `RequireAnyRole(service, domain, roles...)` and `RequireAuthenticated()`.
+- **No build step for consumers**: Modern CSS design system (`assets/admin.css`) + tiny vanilla JS (`assets/admin.js`) embedded via `go:embed`. Light/dark via `prefers-color-scheme`; accent color injected inline from `Config.AccentColor`. No Tailwind, no JS framework.
+- **HTMX patterns**: Live user search = `GET /users` returns full page, but `HX-Request` returns just the table fragment (`renderPartial`); `hx-select`/`hx-target` swap it; `hx-push-url` syncs URL. Destructive actions use `hx-confirm` + `data-confirm` (JS double-confirm) → POST → `HX-Redirect` (via `redirect()`). Toasts via `HX-Trigger: {"adminui:toast": {...}}` consumed by `admin.js`.
+- **usermgmt addition**: `Service.TenantMembers(ctx, tenantID) []*Membership` added — the public accessor the tenant-admin/members views need (wraps `membershipReadModel.FindByTenant`). Member role assignment/creation is NOT yet exposed by the panel (future enhancement).
+- **errorfamily**: adminui follows the no-stdlib-error-constructors rule (`errConfig`/`errForbidden` use `event.NewRejection`). HTTP handlers mostly emit message strings (not error objects), so the rule is naturally satisfied.
+- **Tests**: stdlib `testing` + `httptest` (not ginkgo) — pragmatic for a rendering/HTTP-glue module. `seed_render_test.go` is the end-to-end smoke test (seeds users+tenants, asserts they render, exercises search + tenant suspend via HX-Redirect).
+
 ## Key Gotchas
 
 ### Module & Build
 
-1. **GOWORK=off required**: `go.work` covers root + usermgmt + integration_test. `GOWORK=off` needed for CI/commands using per-module go.mod
+1. **GOWORK=off required**: `go.work` covers root + adminui + usermgmt + integration_test + catalog + examples. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
 3. **go-cqrs-lite v3.1.0**: Per-module tags (`command/v3.1.0`, `event/v3.1.0`, etc.) published. All `go.mod` files declare `v3.1.0`. No replace directives needed. v3.1.0 adds SQL-backed view stores (`storage.SQLViewStore`/`ViewMapper`/`AutoMapper`), typed command/query metadata (`event.CustomData[K]`), multi-DB split presets, and `synchronous=NORMAL` WAL tuning — zero breaking changes over v3.0.0
 4. **Removed APIs in v2.3.0+**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
@@ -465,11 +495,28 @@ cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...
 cd integration_test && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
 ```
 
+### adminui module
+
+```bash
+# All tests (renders the full panel via httptest + seeded data)
+cd adminui && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+
+# Regenerate templ after editing *.templ (CLI: templ v0.3.x). Commit *_templ.go too.
+cd adminui && templ generate
+```
+
 ### datastar-demo example
 
 ```bash
 # Build only (no tests — it's a main package)
 cd examples/datastar-demo && GOWORK=off go build ./...
+```
+
+### admin-demo example
+
+```bash
+# Build & run the admin panel showcase, then open http://localhost:8097/
+cd examples/admin-demo && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go run .
 ```
 
 ### SQL-Backed Read Models (v3.1.0)

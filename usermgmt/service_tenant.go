@@ -120,6 +120,13 @@ func (s *Service) AllTenants() []*Tenant {
 	return s.tenantReadModel.All()
 }
 
+// TenantMembers returns all memberships within a tenant. Each entry links an
+// actor (user or bot) to the roles they hold in the tenant. Useful for tenant
+// admin UIs and auditing.
+func (s *Service) TenantMembers(_ context.Context, tenantID TenantID) []*Membership {
+	return s.membershipReadModel.FindByTenant(tenantID.Get())
+}
+
 func aggIDFromTenant(tenantID TenantID) (id.AggregateID, error) {
 	return aggIDFromBranded(tenantID.Get(), "usermgmt.invalid_tenant_id")
 }

@@ -1,0 +1,48 @@
+package adminui
+
+// membersPage is the tenant-scoped members view (ModeTenantAdmin). It reuses
+// tenantDetailData but omits the destructive tenant actions, which a tenant
+// administrator must not perform on their own tenant.
+templ membersPage(p pageData, d tenantDetailData) {
+	@Layout(p) {
+		<div class="admin-content__head">
+			<h1>Members</h1>
+			<div class="spacer"></div>
+			if d.Tenant != nil {
+				if d.Tenant.Suspended {
+					@badge("suspended", "amber")
+				} else {
+					@badge("active", "green")
+				}
+			}
+		</div>
+		if d.Tenant != nil {
+			<div class="muted" style="margin-bottom:18px">{ d.Tenant.DisplayName } · <span class="mono">{ d.Tenant.Name }</span></div>
+		}
+		<div class="card card--flush">
+			if len(d.Members) == 0 {
+				@empty("members", "No members", "This tenant has no members yet.")
+			} else {
+				<div class="table-wrap">
+					<table class="data">
+						<thead><tr><th>Actor</th><th>Roles</th></tr></thead>
+						<tbody>
+							for _, m := range d.Members {
+								<tr>
+									<td class="mono">{ m.Actor }</td>
+									<td>
+										<div class="badge-row">
+											for _, r := range m.Roles {
+												@roleBadge(string(r))
+											}
+										</div>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</div>
+	}
+}
