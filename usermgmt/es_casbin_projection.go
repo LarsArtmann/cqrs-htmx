@@ -75,7 +75,7 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 		if domain == "" {
 			domain = subject
 		}
-		if err := p.authz.RemoveAllRolesInDomain(subject, domain); err != nil {
+		if err := p.authz.RemoveAllRolesInDomain(subject, NewTenantID(domain)); err != nil {
 			return event.Wrapf(
 				err,
 				event.Infrastructure,
@@ -194,7 +194,7 @@ func (p *CasbinProjection) handleMembershipEvent(evt event.Event) error {
 // within a specific domain. Delegates to Authz.RemoveAllRolesInDomain.
 // Used by MemberRolesChanged and MemberRemoved.
 func (p *CasbinProjection) removeAllRolesInDomain(subject, domain, errContext string) error {
-	if err := p.authz.RemoveAllRolesInDomain(subject, domain); err != nil {
+	if err := p.authz.RemoveAllRolesInDomain(subject, NewTenantID(domain)); err != nil {
 		return event.Wrapf(
 			err, event.Infrastructure,
 			"usermgmt.casbin_projection.remove_roles_failed",

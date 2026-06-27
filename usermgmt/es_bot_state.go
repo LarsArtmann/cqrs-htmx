@@ -8,7 +8,7 @@ import (
 // by folding events.
 type BotState struct {
 	Name      string
-	OwnerID   string
+	OwnerID   UserID
 	TokenHash []byte
 	Scopes    []string
 	Deleted   bool

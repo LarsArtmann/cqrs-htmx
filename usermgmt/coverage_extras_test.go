@@ -148,11 +148,14 @@ func TestAuthz_NilEnforcer(t *testing.T) {
 		{"RemoveAllRolesForUser", func() error { return a.RemoveAllRolesForUser("user1") }},
 		{"Policies", func() error { _, err := a.Policies(); return err }},
 		{"GroupPolicies", func() error { _, err := a.GroupPolicies(); return err }},
-		{"RolesForUser", func() error { _, err := a.RolesForUser(uid, "d"); return err }},
-		{"ImplicitRolesForUser", func() error { _, err := a.ImplicitRolesForUser(uid, "d"); return err }},
-		{"ImplicitPermissionsForUser", func() error { _, err := a.ImplicitPermissionsForUser(uid, "d"); return err }},
+		{"RolesForUser", func() error { _, err := a.RolesForUser(uid, NewTenantID("d")); return err }},
+		{"ImplicitRolesForUser", func() error { _, err := a.ImplicitRolesForUser(uid, NewTenantID("d")); return err }},
+		{
+			"ImplicitPermissionsForUser",
+			func() error { _, err := a.ImplicitPermissionsForUser(uid, NewTenantID("d")); return err },
+		},
 		{"DomainsForUser", func() error { _, err := a.DomainsForUser(uid); return err }},
-		{"UsersForRole", func() error { _, err := a.UsersForRole(RoleAdmin, "d"); return err }},
+		{"UsersForRole", func() error { _, err := a.UsersForRole(RoleAdmin, NewTenantID("d")); return err }},
 	}
 
 	for _, tt := range tests {

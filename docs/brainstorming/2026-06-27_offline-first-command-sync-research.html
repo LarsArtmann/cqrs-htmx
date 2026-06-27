@@ -1,0 +1,2077 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline-First Command Sync — Research & Brainstorming</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem 1.5rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
+      strong {
+        font-weight: 700;
+      }
+      em {
+        font-style: italic;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: underline;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+      .score-card:nth-child(1),
+      .stat-card:nth-child(1) {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .score-card:nth-child(2),
+      .stat-card:nth-child(2) {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-card:nth-child(3),
+      .stat-card:nth-child(3) {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-card:nth-child(4),
+      .stat-card:nth-child(4) {
+        background: var(--text);
+        color: var(--surface);
+      }
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      .score-good,
+      .stat-good {
+        background: var(--solution) !important;
+        color: var(--surface) !important;
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning) !important;
+        color: var(--text) !important;
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem) !important;
+        color: var(--surface) !important;
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised));
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised));
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+        vertical-align: top;
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code {
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.3rem;
+        font-size: 0.88em;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Brainstorming &middot; Research</span>
+      <span>2026-06-27</span>
+      <span>cqrs-htmx + go-localsync</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#context">Context</a>
+          <a href="#livestore">LiveStore Deep Dive</a>
+          <a href="#sw-vs-shared">Service Worker vs SharedWorker</a>
+          <a href="#fanout-watermill">fanOut vs Watermill</a>
+          <a href="#indexeddb">IndexedDB is Dead</a>
+          <a href="#honest-ui">Honest Optimistic UI</a>
+          <a href="#command-problem">The Command Problem</a>
+          <a href="#command-sync">Command-Sync Architecture</a>
+          <a href="#open-questions">Open Questions</a>
+          <a href="#references">References</a>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <!-- Hero -->
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">BRAINSTORMING &middot; 2026-06-27</div>
+          <h1>Offline-First Command Sync</h1>
+          <p class="subtitle">
+            Research session exploring how cqrs-htmx and go-localsync can leverage the browser's
+            native event loop, Service Workers, OPFS, and LiveStore-inspired architecture to build a
+            truly offline-first, honest-UI system where <strong>commands</strong> &mdash; not events
+            &mdash; are the sync unit.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Projects: cqrs-htmx, go-localsync</span>
+            <span class="tag">Inspiration: LiveStore</span>
+            <span class="tag teal">Status: research / brainstorming</span>
+          </div>
+        </header>
+
+        <!-- Context -->
+        <section id="context">
+          <h2><span class="num">00</span>Context &amp; Starting Point</h2>
+          <p>
+            The exploration began with a question:
+            <em>how can we use JavaScript and the web's native event loop to our benefit?</em> There
+            are events we want on the backend, events we need on the backend, different transport
+            mechanisms, and the desire to work superbly offline. Two existing projects form the
+            foundation:
+          </p>
+
+          <div class="grid-2">
+            <div class="card card-solution">
+              <h3>cqrs-htmx</h3>
+              <p>
+                A Go library for CQRS + HTMX + event sourcing. Has a clean transport-agnostic
+                <code>fanOut[T]</code> (shared by <code>Broadcaster</code> /
+                <code>WSBroadcaster</code>), SSE with Last-Event-ID reconnection, an
+                <code>SSEEventStore</code> interface (<strong>no production impl yet</strong>), and
+                full CQRS command/decider/event-store infrastructure in the
+                <code>usermgmt</code> submodule.
+              </p>
+            </div>
+            <div class="card card-solution">
+              <h3>go-localsync</h3>
+              <p>
+                An SDK for syncing data from external providers to local event-sourced storage. Has
+                <code>ConflictResolver</code>/<code>LWWResolver</code> wired in, but
+                <code>VectorClock</code>/<code>Operation[T]</code>/<code>SyncMessage</code> are
+                <strong>implemented + tested yet not wired</strong>. Strictly provider&rarr;local
+                PULL. Vector clocks currently empty &mdash; LWW always falls through to timestamp.
+              </p>
+            </div>
+          </div>
+
+          <h3>The core opportunity</h3>
+          <p>
+            The web gives you event primitives most people ignore: <strong>Service Worker</strong>
+            (a sync daemon that can survive page close, intercept fetch, run Background Sync),
+            <strong>SharedWorker</strong> (one instance across all tabs),
+            <strong>OPFS</strong> (synchronous file I/O for sqlite-wasm), and the
+            <strong>microtask/macrotask split</strong> (optimistic UI now, reconcile later). The
+            cqrs-htmx <code>fanOut</code> pattern maps cleanly onto a client-side
+            <code>EventTarget</code> + <code>BroadcastChannel</code> bus.
+          </p>
+
+          <div class="callout callout-amber">
+            <strong>The fundamental question</strong>
+            Is the browser a <em>write peer</em> (a CRDT node with local mutation authority) or a
+            <em>command-queuing thin client</em> (the server is authoritative, the client replays)?
+            These are radically different architectures, and the answer determines everything
+            downstream.
+          </div>
+        </section>
+
+        <!-- LiveStore Deep Dive -->
+        <section id="livestore">
+          <h2><span class="num">01</span>LiveStore Architecture Deep Dive</h2>
+          <p>
+            <a href="https://livestore.dev/">LiveStore</a> is a local-first, event-sourced, reactive
+            state management layer built on SQLite-WASM in the browser. The research revealed
+            several critical design decisions.
+          </p>
+
+          <h3>Three-tier thread architecture</h3>
+          <p>
+            LiveStore does <strong>NOT</strong> use a Service Worker. It uses a
+            <strong>SharedWorker + DedicatedWorker</strong> topology with leader election.
+          </p>
+
+          <div class="dep-tree">
+            <span class="root">TAB A (Main Thread)</span> └─ ClientSession └─ In-memory SQLite
+            (synchronous reactive queries) └─ MessagePort └─ <span class="ok">SharedWorker</span> (1
+            per store, shared across tabs) │ proxy / message router │ holds termination WebLock └─
+            MessagePort (elected via navigator.locks) └─
+            <span class="ok">Dedicated Worker (LEADER)</span>
+            ├─ LeaderThread │ ├─ State DB (OPFS, materialized view) │ ├─ Eventlog DB (OPFS, source
+            of truth) │ ├─ LeaderSyncProcessor │ └─ SyncBackend connection └─ single writer to OPFS
+            + single sync connection
+
+            <span class="root">TAB B (Follower)</span>
+            └─ ClientSession └─ In-memory SQLite (receives changesets from leader) └─ routes through
+            SharedWorker &rarr; Leader Worker
+          </div>
+
+          <h3>Dual-database pattern</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Database</th>
+                <th>Role</th>
+                <th>Properties</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>eventlog.db</code></td>
+                <td>Append-only event log &mdash; the source of truth</td>
+                <td>Immutable, git-inspired, sync unit</td>
+              </tr>
+              <tr>
+                <td><code>state.db</code></td>
+                <td>Materialized view derived from events</td>
+                <td>Optimized for queries, recreated on schema change</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Leader election via Web Locks</h3>
+          <p>
+            A lock named <code>livestore-tab-lock-${storeId}</code> is acquired via the
+            <strong>Web Locks API</strong> (<code>navigator.locks</code>). The tab holding the lock
+            spawns a Dedicated Web Worker (the "leader worker") and connects it to the SharedWorker.
+            When the leader tab closes, the lock releases and another tab takes over automatically.
+          </p>
+
+          <div class="callout callout-solution">
+            <strong>Key property</strong>
+            Only the leader worker is the single writer to persistent storage and the single
+            connection to the sync backend. All other tabs are followers that receive changesets.
+          </div>
+
+          <h3>OPFS + sqlite-wasm (no IndexedDB, no SharedArrayBuffer)</h3>
+          <p>
+            LiveStore ships its own WebAssembly SQLite build (<code>@livestore/wa-sqlite</code>, a
+            fork of rhashimoto/wa-sqlite with synchronous APIs). Persistence uses
+            <strong>OPFS (Origin Private File System)</strong> exclusively via
+            <code>FileSystemSyncAccessHandle</code>.
+          </p>
+
+          <ul>
+            <li>
+              <strong>AccessHandlePoolVFS</strong> &mdash; a custom SQLite VFS that wraps OPFS's
+              <code>FileSystemSyncAccessHandle</code> for <em>synchronous</em> file I/O. SQLite (a
+              synchronous C library) requires this.
+            </li>
+            <li>
+              Pre-allocates a <strong>pool of 20 OPFS files</strong> to avoid async operations
+              during queries (covering main DBs, journal files, WAL files, temp files).
+            </li>
+            <li>
+              Each OPFS file has a <strong>4096-byte header</strong>: 512 bytes for the SQLite path,
+              4 bytes for open flags, 8 bytes for integrity digest.
+            </li>
+            <li>
+              <strong>Private browsing fallback</strong>: When OPFS is unavailable (Safari/Firefox
+              private mode), falls back to in-memory storage.
+            </li>
+            <li>
+              <strong>No SharedArrayBuffer / Atomics needed</strong> &mdash; unlike upstream
+              sqlite-wasm's async-proxy approach, LiveStore's VFS uses sync OPFS handles directly.
+            </li>
+          </ul>
+
+          <h3>Sync layer (event-sourcing-based, "git-inspired")</h3>
+          <p>Sync is <strong>two-tier</strong> with rebasing:</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Processor</th>
+                <th>Location</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>ClientSessionSyncProcessor</code></td>
+                <td>Each client session (main thread)</td>
+                <td>
+                  Manages local rebase logic, materializes events into in-memory DB, pushes batches
+                </td>
+              </tr>
+              <tr>
+                <td><code>LeaderSyncProcessor</code></td>
+                <td>Leader worker</td>
+                <td>
+                  Persists to eventlog, materializes to state DB, communicates with sync backend
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>Each event has a composite sequence number with three components:</p>
+          <ul>
+            <li><code>global</code> &mdash; global ordering across all clients</li>
+            <li><code>client</code> &mdash; per-client ordering</li>
+            <li><code>rebaseGeneration</code> &mdash; for conflict resolution during rebasing</li>
+          </ul>
+
+          <p>
+            When incoming remote events conflict with pending local events, the system performs a
+            <strong>rebase</strong>: rolls back local changesets (using SQLite session changeset
+            tracking), re-materializes the remote events, then re-chains the pending local events.
+          </p>
+
+          <h3>Browser APIs used</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>API</th>
+                <th>Where</th>
+                <th>Why</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>OPFS</strong> (<code>FileSystemSyncAccessHandle</code>)</td>
+                <td>Dedicated leader worker</td>
+                <td>Synchronous file I/O for SQLite-WASM persistence</td>
+              </tr>
+              <tr>
+                <td><strong>Web Locks</strong> (<code>navigator.locks</code>)</td>
+                <td>Main thread of each tab</td>
+                <td>Leader election</td>
+              </tr>
+              <tr>
+                <td><strong>SharedWorker</strong></td>
+                <td>Cross-tab coordination</td>
+                <td>Single shared instance; message routing hub</td>
+              </tr>
+              <tr>
+                <td><strong>Dedicated Web Worker</strong></td>
+                <td>Leader tab</td>
+                <td>Runs SQLite + OPFS + sync off the main thread</td>
+              </tr>
+              <tr>
+                <td><strong>MessagePort</strong></td>
+                <td>Between all layers</td>
+                <td>Binary message channels (transferable, zero-copy)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-amber">
+            <strong>Notably NOT used</strong>
+            <code>SharedArrayBuffer</code>/<code>Atomics</code>, <code>BroadcastChannel</code>,
+            <code>IndexedDB</code>, and <strong>Service Workers</strong>.
+          </div>
+        </section>
+
+        <!-- Service Worker vs SharedWorker -->
+        <section id="sw-vs-shared">
+          <h2><span class="num">02</span>Service Worker vs SharedWorker</h2>
+          <p>
+            <strong>Question:</strong> Should all sync from frontend to backend happen in the
+            Service Worker?
+          </p>
+
+          <h3>LiveStore's explicit rejection of the Service Worker</h3>
+          <p>LiveStore gives three concrete reasons for not using a SW:</p>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>SW limitation</th>
+                <th>Why it kills the LiveStore pattern</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Idle eviction</strong></td>
+                <td class="no">
+                  Browsers tear down SWs after ~30s of inactivity. A sync engine holding a WebSocket
+                  + SQLite handles must be <em>always alive</em>. Non-negotiable for push-based
+                  sync.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>No OPFS</strong></td>
+                <td class="no">
+                  <code>FileSystemSyncAccessHandle</code> (synchronous OPFS) is unavailable in SW
+                  context. sqlite-wasm needs sync I/O. This alone is fatal.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Wrong abstraction</strong></td>
+                <td class="no">
+                  SW is a <em>network interceptor</em> (fetch handler, cache). A sync leader is a
+                  <em>long-lived compute+state node</em>. Conflating them creates fragile lifecycle
+                  bugs.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>The nuance worth stealing</h3>
+          <p>
+            LiveStore uses <code>navigator.locks</code> (leader election) and the SharedWorker as a
+            message router, then pushes heavy work into a DedicatedWorker that the SharedWorker
+            proxies to. Clean separation.
+          </p>
+
+          <div class="card card-warning">
+            <h3>The contrarian case for Service Workers</h3>
+            <p>
+              There <em>is</em> one thing a SW is uniquely good at that LiveStore doesn't exploit:
+              <strong>Background Sync API + fetch interception</strong>. If you want queued writes
+              to flush <em>after the tab closes</em> (true background sync), only a SW can do that.
+              LiveStore's SharedWorker dies with the last tab.
+            </p>
+            <p>
+              <strong>The real question:</strong> Do you need writes to flush when
+              <em>zero</em> tabs are open? If yes &rarr; you need a SW (for Background Sync), and
+              you must solve the OPFS problem (run sqlite-wasm in a DedicatedWorker spawned
+              <em>by</em> the SW, or accept async storage). If no &rarr; copy LiveStore's
+              SharedWorker+DedicatedWorker topology exactly and ignore the SW entirely.
+            </p>
+          </div>
+        </section>
+
+        <!-- fanOut vs Watermill -->
+        <section id="fanout-watermill">
+          <h2><span class="num">03</span>fanOut[T] vs Watermill &mdash; Why Two Exist</h2>
+          <p>
+            <strong>Question:</strong> Does <code>fanOut[T]</code> use
+            <code>go-cqrs-lite/watermill/</code>, and if not, why not?
+          </p>
+          <p>
+            <strong>Answer:</strong> No. They solve opposite problems with opposite delivery
+            semantics. A deliberate, correct split.
+          </p>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Attribute</th>
+                <th><code>fanOut[T]</code> (root module)</th>
+                <th>Watermill <code>EventBus</code> (usermgmt)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Role</strong></td>
+                <td>Browser-push hub (SSE/WS to N tabs)</td>
+                <td>CQRS domain event bus (decider&rarr;projection)</td>
+              </tr>
+              <tr>
+                <td><strong>Contract</strong></td>
+                <td>4 methods: Subscribe/Unsubscribe/Broadcast/Count</td>
+                <td>
+                  Full <code>event.Bus</code>: Publish/Subscribe/SubscribeAll/Use/UsePublish +
+                  Ack/Nack
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Delivery</strong></td>
+                <td class="no"><strong>Drop</strong> to slow consumers</td>
+                <td class="yes"><strong>Block</strong> publisher until ACK</td>
+              </tr>
+              <tr>
+                <td><strong>Trigger</strong></td>
+                <td><code>AfterDispatchHook</code> (HTTP request lifecycle)</td>
+                <td><code>decider.Repository.Execute()</code> (command dispatch)</td>
+              </tr>
+              <tr>
+                <td><strong>Types</strong></td>
+                <td>Generic <code>T</code> (<code>SSEEvent</code>, <code>string</code>)</td>
+                <td><code>event.Event</code> with metadata + codec</td>
+              </tr>
+              <tr>
+                <td><strong>Dep weight</strong></td>
+                <td class="yes">0 (pure <code>sync.RWMutex</code> + <code>map</code>)</td>
+                <td class="no"><code>ThreeDotsLabs/watermill</code> + gochannel</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>The <code>fanOut[T]</code> implementation (111 lines, zero deps)</h3>
+          <pre><code><span class="tok-comment">// fanout.go — transport-agnostic subscriber hub</span>
+<span class="tok-keyword">type</span> fanOut[T <span class="tok-type">any</span>] <span class="tok-keyword">struct</span> {
+    mu          sync.RWMutex
+    subscribers <span class="tok-keyword">map</span>[<span class="tok-type">uintptr</span>]<span class="tok-keyword">chan</span> T
+}
+
+<span class="tok-comment">// Non-blocking broadcast — drops to slow consumers</span>
+<span class="tok-keyword">func</span> (f *fanOut[T]) <span class="tok-func">Broadcast</span>(msg T) {
+    f.mu.<span class="tok-func">RLock</span>()
+    <span class="tok-keyword">defer</span> f.mu.<span class="tok-func">RUnlock</span>()
+    <span class="tok-keyword">for</span> _, ch := <span class="tok-keyword">range</span> f.subscribers {
+        <span class="tok-keyword">select</span> {
+        <span class="tok-keyword">case</span> ch &lt;- msg:
+        <span class="tok-keyword">default</span>: <span class="tok-comment">// drop to slow consumer</span>
+        }
+    }
+}</code></pre>
+
+          <p>
+            Using watermill for fanout would (a) force a transitive dep on every root-module
+            consumer, (b) <strong>stall command dispatch behind a slow web client</strong>
+            (opposite of what you want for real-time push), and (c) carry the entire
+            Ack/Nack/middleware contract that nobody calls.
+          </p>
+
+          <div class="callout callout-teal">
+            <strong>The interesting question for offline-first work</strong>
+            The <code>fanOut</code> drops messages on purpose, but the client-side reconnection
+            story needs them. Should the durable replay path read from the same watermill-backed
+            <code>event.Store</code> that the decider writes to &mdash; giving
+            <code>SSEEventStore</code> its first production impl for free &mdash; while
+            <code>fanOut</code> stays the best-effort live-push layer?
+          </div>
+        </section>
+
+        <!-- IndexedDB -->
+        <section id="indexeddb">
+          <h2><span class="num">04</span>IndexedDB is Dead &mdash; OPFS or Nothing</h2>
+          <p>
+            <strong>Decision:</strong> Never use IndexedDB. OPFS + sqlite-wasm is strictly better.
+          </p>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>IndexedDB</th>
+                <th>OPFS + sqlite-wasm</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Query model</td>
+                <td class="no">Key-value with async cursors, no joins</td>
+                <td class="yes">Full SQL, joins, transactions, indexes</td>
+              </tr>
+              <tr>
+                <td>Sync I/O</td>
+                <td class="no">Async-only, callback/promise hell</td>
+                <td class="yes">Synchronous via <code>FileSystemSyncAccessHandle</code></td>
+              </tr>
+              <tr>
+                <td>Ecosystem</td>
+                <td class="no">Fragile wrapper libs (Dexie, idb)</td>
+                <td class="yes">SQLite &mdash; the most battle-tested DB in history</td>
+              </tr>
+              <tr>
+                <td>Performance</td>
+                <td class="no">Unpredictable, serialization overhead</td>
+                <td class="yes">Native-speed WASM, predictable</td>
+              </tr>
+              <tr>
+                <td>Developer experience</td>
+                <td class="no">Everyone hates it</td>
+                <td class="yes">Just SQL. The universal language.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            LiveStore, the reference architecture for this work, uses OPFS exclusively.
+            <code>IndexedDB</code> is notably absent from their entire codebase.
+          </p>
+        </section>
+
+        <!-- Honest Optimistic UI -->
+        <section id="honest-ui">
+          <h2><span class="num">05</span>Honest Optimistic UI</h2>
+          <p>
+            <strong>Requirement:</strong> The frontend code must <em>not lie</em> to the user. There
+            should be a human-centric communication that a state was applied locally but not yet on
+            the server, and when the server confirms, that should be clear in the UI.
+          </p>
+
+          <h3>The problem with standard "optimistic UI"</h3>
+          <p>
+            The research surfaced a key finding: the most-cited failure mode of standard optimistic
+            UI is the <strong>"silent rollback"</strong> &mdash; the mutation vanishes on error with
+            no explanation, and screen readers announce pending state as confirmed truth (an
+            accessibility violation).
+          </p>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Cardinal sin &middot; Silent rollback</span>
+            <h3>The Silent Rollback</h3>
+            <p>
+              When the server rejects an optimistic mutation, the default behavior in most
+              frameworks (React's <code>useOptimistic</code>, Remix, etc.) is to silently discard
+              the optimistic state and revert to the "true" state. The user sees their change
+              disappear with no explanation.
+            </p>
+            <p>
+              From the research:
+              <em
+                >"The action throws, the optimistic state vanishes, and the user sees their change
+                disappear with no explanation."</em
+              >
+              And:
+              <em
+                >"Optimistic UI is by definition not the truth yet. Screen readers will announce
+                optimistic content as if it were confirmed, which is misleading."</em
+              >
+            </p>
+          </div>
+
+          <h3>The insight that makes this nearly free</h3>
+          <div class="callout callout-solution">
+            <strong
+              >You're already event-sourcing. Sync provenance is already tracked &mdash; standard
+              optimistic UI just throws it away.</strong
+            >
+            LiveStore tracks <code>clientHead</code> (events committed locally) vs
+            <code>backendHead</code> (events confirmed by server). Every event knows whether it's
+            ACKed. cqrs-htmx's <code>event.Store</code> has the same information. The gap is purely
+            in the <em>materialization layer</em>: standard materializers project events &rarr; rows
+            and discard the provenance. An honest materializer projects
+            <code>event &rarr; (row, sync_state)</code>.
+          </div>
+
+          <h3>The mutation lifecycle state machine</h3>
+          <p>
+            Each mutation should be modeled as a finite state machine with explicitly named states:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>State</th>
+                <th>Meaning</th>
+                <th>UI treatment</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>idle</code></td>
+                <td>No in-flight mutation</td>
+                <td>Normal</td>
+              </tr>
+              <tr>
+                <td><code>pending</code></td>
+                <td>Local state reflects intended outcome; request in flight</td>
+                <td>Muted/dashed, glanceable</td>
+              </tr>
+              <tr>
+                <td><code>confirmed</code></td>
+                <td>Server confirmed; local state matches canonical representation</td>
+                <td>Solid &mdash; transitions from pending</td>
+              </tr>
+              <tr>
+                <td><code>rejected</code></td>
+                <td>Server rejected or transport failed</td>
+                <td>Inline error with reason + retry/discard</td>
+              </tr>
+              <tr>
+                <td><code>superseded</code></td>
+                <td>A newer mutation replaced this operation's view</td>
+                <td>Show diff, let user reconcile</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Production UI patterns surveyed</h3>
+
+          <div class="grid-2">
+            <div class="card">
+              <h4>Ambient indicator</h4>
+              <p><em>"Saving&hellip;", "Saved", "All changes saved"</em></p>
+              <p>Used by: Notion, Google Docs, Figma</p>
+              <p>
+                <strong>Verdict:</strong> Necessary but insufficient &mdash; hides per-item state.
+              </p>
+            </div>
+            <div class="card">
+              <h4>WhatsApp checkmarks</h4>
+              <p><em>1&check; sent, &check;&check; delivered, blue &check;&check; read</em></p>
+              <p>The purest provenance model.</p>
+              <p>
+                <strong>Verdict:</strong> Strong but message-specific; wrong metaphor for most CRUD.
+              </p>
+            </div>
+            <div class="card card-solution">
+              <h4>Muted/dashed pending items</h4>
+              <p>
+                Pending items appear immediately but look different (dashed border, muted colors)
+                until server confirms.
+              </p>
+              <p><strong>Verdict: Recommended default.</strong> Glanceable, honest, non-modal.</p>
+            </div>
+            <div class="card">
+              <h4>Per-item status pill</h4>
+              <p>Explicit <code>pending</code>/<code>failed</code> tags on items.</p>
+              <p><strong>Verdict:</strong> Honest but noisy. Good for destructive/important ops.</p>
+            </div>
+            <div class="card">
+              <h4>Power Apps globe icon</h4>
+              <p>6 states + badge count + outbox screen. The most complete sync indicator.</p>
+              <p>
+                <strong>Verdict:</strong> Right for offline-heavy field apps. Heavy for general use.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Typed SyncState</h4>
+              <p>
+                Evolu: <code>SyncStateInitial | IsSyncing | IsSynced | IsNotSynced</code> as
+                discriminated union.
+              </p>
+              <p><strong>Verdict:</strong> Good as a complement, never alone.</p>
+            </div>
+          </div>
+
+          <div class="callout callout-teal">
+            <strong>Recommended default</strong>
+            Muted/dashed-until-confirmed pattern as the baseline (subtle, glanceable, honest), plus
+            a global sync indicator (&check; saved / &orarr; 3 pending / &#x26A0; 1 failed), plus
+            <strong>never-silent rollback</strong> on rejection (inline error with retry, input
+            preserved). Reserve explicit status pills for destructive operations. <br /><br />
+            <strong>Principle:</strong> Pending state should be felt, not read. A glanceable visual
+            shift communicates state without forcing the user to parse labels &mdash; but the global
+            indicator gives them a precise count when they want to check.
+          </div>
+        </section>
+
+        <!-- The Command Problem -->
+        <section id="command-problem">
+          <h2><span class="num">06</span>The Command Problem &mdash; LiveStore's Biggest Flaw</h2>
+          <p>
+            <strong>Observation:</strong> LiveStore doesn't have the concept of Commands, which is a
+            flaw. How can we improve this with Commands in mind?
+          </p>
+
+          <div class="callout callout-amber">
+            <strong>Validated by LiveStore itself</strong>
+            This is now an <strong>acknowledged gap</strong> with active work:
+            <a href="https://github.com/livestorejs/livestore/issues/717">Issue #717</a> ("Commands
+            Primitive", milestone 0.5.0),
+            <a href="https://github.com/livestorejs/livestore/pull/945">PR #945</a> ("RFC 0002:
+            Command Replay", merged), and
+            <a href="https://github.com/livestorejs/livestore/pull/995">PR #995</a> (experimental
+            implementation). They're trying to bolt commands onto an event-sync architecture.
+            <strong>You don't have to</strong> &mdash; cqrs-htmx already has commands.
+          </div>
+
+          <h3>LiveStore's paper-thin write path</h3>
+          <p>
+            In LiveStore, the entire write-path validation is
+            <strong>schema check then blind append</strong>. There is no command/decision layer:
+          </p>
+
+          <div class="dep-tree">
+            <span class="root">User Action</span>
+            &darr;
+            <span class="ok">Event Constructor</span> (Effect Schema validation &mdash; structural
+            only) &vert; (throws if shape doesn't match schema) &darr;
+            <span class="ok">store.commit()</span>
+            &vert;
+            <span class="unwanted">NO validation, NO decision, NO business rules</span> &darr;
+            Append to local eventlog (pending) &darr; Materialize via SQL (INSERT/UPDATE/DELETE)
+            &vert; (transactional; can throw and rollback, but can't "reject") &darr; Sync to leader
+            &rarr; backend &rarr; all clients &darr; [During rebase: replay materializer against
+            potentially-changed state] &vert;
+            <span class="unwanted"
+              >NO re-validation of business rules &larr; THIS IS THE CORE PROBLEM</span
+            >
+            &darr; Potential invariant violation
+          </div>
+
+          <h3>The three fatal consequences</h3>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical &middot; Invariant violations</span>
+            <h3>No domain validation</h3>
+            <p>
+              Committing <code>todoCompleted</code> for a non-existent todo, or twice, just appends
+              the event. The materializer runs <code>UPDATE ... WHERE id = ?</code> which silently
+              affects 0 rows &mdash; but the event is permanently in the history, synced to
+              everyone, with no observable effect on state.
+            </p>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical &middot; Rebase corruption</span>
+            <h3>No re-validation during sync rebase</h3>
+            <p>
+              When a client's pending events are rebased on top of upstream events during sync, the
+              business rules that were valid at commit time may no longer hold. Without command
+              replay, you get <strong>invariant violations</strong>: referential integrity
+              violations, business rule violations, uniqueness constraint violations.
+            </p>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Important &middot; Security</span>
+            <h3>Client can emit arbitrary events</h3>
+            <p>
+              All domain validation is advisory. The client can emit any event that matches the
+              schema shape. The server has no opportunity to reject based on business rules before
+              the event is committed and synced.
+            </p>
+          </div>
+
+          <h3>Greg Young's warning (2010)</h3>
+          <blockquote
+            style="
+              border-left: 4px solid var(--accent);
+              padding-left: 1rem;
+              margin: 1rem 0;
+              font-style: italic;
+              color: var(--text-muted);
+            "
+          >
+            "It is not natural for the domain to tell a client that something in the past tense no
+            longer happened."
+          </blockquote>
+          <p>
+            Events are immutable facts &mdash; but if the client emits them, the server can't reject
+            them without a "time machine." LiveStore's rebase replays the
+            <strong>materializer</strong> (SQL), never the <strong>decider</strong> (domain logic).
+          </p>
+        </section>
+
+        <!-- Command-Sync Architecture -->
+        <section id="command-sync">
+          <h2><span class="num">07</span>The Command-Sync Architecture</h2>
+          <p>
+            <strong
+              >The core insight: sync commands, not events. Commands are re-decidable. Events are
+              not.</strong
+            >
+          </p>
+
+          <p>This single property unlocks local-first correctness:</p>
+
+          <div class="dep-tree">
+            <span class="root">Command-sync write path</span>
+
+            client queues command &darr; local <span class="ok">decide(state, command)</span> &rarr;
+            optimistic events (pending) &darr; sync <span class="ok">COMMAND</span> to server &darr;
+            server <span class="ok">re-decides</span> against authoritative state &rarr;
+            authoritative events (confirmed) OR rejection &darr; client rebases: replace optimistic
+            events with server events &rarr; honest UI: pending &rarr; confirmed / rejected /
+            superseded
+          </div>
+
+          <p>
+            The server re-validates <em>intent</em> against <em>authoritative state</em>. If two
+            clients sent concurrent commands, the server processes them in order &mdash; each
+            command's decider runs against fresh state. No invariant violations. No time machine
+            paradox. The client's optimistic events are <em>disposable</em> &mdash; they were a
+            prediction, and the server has the real answer.
+          </p>
+
+          <h3>How this maps to cqrs-htmx (already closer than LiveStore)</h3>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Concept</th>
+                <th>LiveStore (missing/bolt-on)</th>
+                <th>cqrs-htmx (already exists)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Command type</td>
+                <td class="no">Not modeled</td>
+                <td class="yes"><code>command.Command</code></td>
+              </tr>
+              <tr>
+                <td>Decider (decide + fold)</td>
+                <td class="no">Events only, evolve via materializer</td>
+                <td class="yes">
+                  <code>decider.Repository</code>, <code>foldUser()</code>, <code>decide*()</code>
+                </td>
+              </tr>
+              <tr>
+                <td>Client&rarr;server transport</td>
+                <td>Events via push/pull</td>
+                <td class="yes"><code>DispatchWSCommand</code></td>
+              </tr>
+              <tr>
+                <td>Server&rarr;client notification</td>
+                <td>Event stream</td>
+                <td class="yes"><code>Broadcaster</code> / SSE</td>
+              </tr>
+              <tr>
+                <td>Read model projection</td>
+                <td class="yes">Materializers &rarr; SQLite</td>
+                <td class="yes"><code>UserReadModel</code> + SQL read models</td>
+              </tr>
+              <tr>
+                <td>Authoritative event store</td>
+                <td>Backend eventlog</td>
+                <td class="yes"><code>event.Store</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-solution">
+            <strong>cqrs-htmx is already closer to the correct architecture than LiveStore.</strong>
+            What's missing is the client half: local command queue + local decide + honest UI +
+            rebase.
+          </div>
+
+          <h3>The three-layer model</h3>
+
+          <div class="dep-tree">
+            <span class="root">SERVICE WORKER (the client's "leader")</span>
+
+            Command Queue (OPFS-backed, durable) &boxvr;&boxh;&boxh; seq &boxv; command &boxv;
+            status &boxv; result &boxvr;&boxh;&boxh; 1 &boxv; AddTodo &boxv; pending &boxv; (local)
+            &boxvr;&boxh;&boxh; 2 &boxv; CompleteT. &boxv; confirmed &boxv; events[.]
+            &boxur;&boxh;&boxh; 3 &boxv; DeleteTodo &boxv; rejected &boxv; error Local SQLite
+            (OPFS): eventlog.db &larr; optimistic events from local decide() state.db &larr;
+            materialized from optimistic events Decider: runs decide(local_state, command) &rarr;
+            events (pure function &mdash; WASM or ported logic) &boxv; WS: push commands, pull
+            confirmed events
+
+            <span class="root">GO BACKEND (authoritative)</span>
+
+            command.Dispatch(AddTodo) &rarr; decider.Execute: load state &rarr; fold(events)
+            decide(state, command) &rarr; events OR rejection save events to event.Store publish via
+            watermill &rarr; projections &rarr; Broadcast confirmed events via SSE/WS to all tabs
+          </div>
+
+          <h3>Why command-sync is strictly better than event-sync</h3>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Concern</th>
+                <th>Event-sync (LiveStore)</th>
+                <th>Command-sync (proposed)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Domain validation</td>
+                <td class="no">Schema only</td>
+                <td class="yes">Full <code>decide()</code> guards</td>
+              </tr>
+              <tr>
+                <td>Server re-validation on rebase</td>
+                <td class="no">Impossible (no intent)</td>
+                <td class="yes">Natural (re-decide against fresh state)</td>
+              </tr>
+              <tr>
+                <td>Concurrent mutations</td>
+                <td class="no">Silent invariant violation</td>
+                <td class="yes">Server decides in order, rejects if invalid</td>
+              </tr>
+              <tr>
+                <td>Security</td>
+                <td class="no">Client can emit arbitrary events</td>
+                <td class="yes">Client can only request (command), server decides</td>
+              </tr>
+              <tr>
+                <td>Conflict resolution</td>
+                <td class="no">Materializer replay (SQL)</td>
+                <td class="yes">Decider replay (domain logic)</td>
+              </tr>
+              <tr>
+                <td>Intent preservation</td>
+                <td class="no">Lost (only outcome recorded)</td>
+                <td class="yes">Preserved (command IS intent)</td>
+              </tr>
+              <tr>
+                <td>Honest UI</td>
+                <td class="no">Hard (events are facts, can't be "pending")</td>
+                <td class="yes">Natural (commands are requests, naturally pending)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>How honest UI falls out for free</h3>
+          <p>
+            Each command in the queue has a visible lifecycle. <strong>No silent rollback.</strong>
+            The command never disappears &mdash; it transitions states visibly. The user always
+            knows the provenance of what they see.
+          </p>
+        </section>
+
+        <!-- Open Questions -->
+        <section id="open-questions">
+          <h2><span class="num">08</span>Open Questions</h2>
+          <p>
+            These are the unresolved questions from the research session, ordered by leverage.
+            Answering the first few unlocks the design for all the rest.
+          </p>
+
+          <div class="card card-problem">
+            <h3>Q1: Where does <code>decide()</code> run on the client?</h3>
+            <p>The decider is pure logic (no I/O) &mdash; it <em>can</em> run anywhere. Options:</p>
+            <ul>
+              <li><strong>(a) Compile Go decider to WASM</strong> and run in the Service Worker</li>
+              <li>
+                <strong>(b) Port decider to TypeScript</strong> &mdash; second implementation with
+                contract tests
+              </li>
+              <li>
+                <strong>(c) Don't run it locally at all</strong> &mdash; just queue commands, show
+                intent in UI, get events back from server
+              </li>
+            </ul>
+            <p>
+              Option (c) is the most honest for HTMX (thin client) but means offline = "queued, not
+              executed." Options (a)/(b) give full offline execution but require the domain logic to
+              exist in the browser.
+            </p>
+            <p>
+              <strong
+                >Which level of offline execution do you actually need &mdash; "I can queue work" or
+                "I can fully work"?</strong
+              >
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>Q2: Closed-tab writes &mdash; hard requirement?</h3>
+            <p>
+              Is "flush queued mutations when no tab is open" a hard requirement, or can you accept
+              "sync runs while &ge;1 tab is alive" (the LiveStore contract)? This single answer
+              determines whether you need a Service Worker at all.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Q3: Provenance granularity &mdash; per-row or per-aggregate?</h3>
+            <p>
+              Per-row is simplest for UI rendering. Per-aggregate is more precise (a "create todo" +
+              "assign tag" share a fate &mdash; one aggregate, two rows). Do you stamp every row, or
+              derive row-state from aggregate-level provenance at query time?
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Q4: Event log divergence strategy</h3>
+            <p>
+              The client has optimistic events; the server has authoritative events. On
+              confirmation, do you (a) replace the client's entire local eventlog with server events
+              (clean slate, simple), or (b) merge by sequence number (complex, but preserves local
+              history for debugging)? Clean-slate is simpler and more honest &mdash; the client's
+              eventlog was always a prediction.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Q5: Cross-tab asymmetry</h3>
+            <p>
+              If the client pushes events up, the server's <code>SSEEventStore</code> would
+              broadcast them to other tabs. Those other tabs should see incoming events as
+              "confirmed" (they came from the server), while the originating tab sees its own writes
+              as "pending" until the round-trip completes. Is that asymmetry acceptable, or should
+              all tabs see uniform state?
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Q6: Conflict visibility &mdash; invisible-merge or honest-merge?</h3>
+            <p>
+              CRDT-based apps (Yjs, Automerge) make conflicts <em>invisible</em> by design &mdash;
+              the data structure converges. But you want honesty. Does "honesty" mean showing the
+              user that a concurrent edit was merged into theirs, or is invisible-merge acceptable
+              when the CRDT guarantees convergence? (Hypothesis: invisible-merge is fine for text,
+              visible for structural changes &mdash; but that's a heuristic.)
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Q7: Command ordering across clients</h3>
+            <p>
+              If client A and client B send concurrent commands for the same aggregate, the server
+              serializes them. Client A's optimistic events might be wrong because B's command
+              changed the state first. The server's re-decide handles this &mdash; but does the
+              client need to re-fetch the full aggregate state after every sync, or can it receive
+              just the delta (server's authoritative events) and re-fold?
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Q8: What is a "command" over the wire?</h3>
+            <p>
+              cqrs-htmx's <code>command.Command</code> carries a type string + JSON payload. The
+              <code>DispatchWSCommand</code> path already exists. But the server currently
+              dispatches and responds in a single HTTP/WS round-trip. For command-sync, you need:
+              push command &rarr; receive async ACK (confirmed/rejected/superseded) &rarr; receive
+              confirmed events. Is the existing <code>DispatchWSCommand</code> +
+              <code>Broadcaster</code>
+              enough, or do you need a dedicated sync protocol with cursors?
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Q9: How honest is too honest?</h3>
+            <p>
+              If a user creates 50 todos offline, do you show 50 dashed items, or one "50 pending"
+              indicator? There's a tension between per-item honesty and cognitive load. Where's the
+              threshold &mdash; is it a UI setting, or baked into the design?
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Q10: Rejection UX &mdash; rollback or preserve-and-flag?</h3>
+            <p>
+              The "silent rollback" is the cardinal sin. But the alternative has two flavors: (a)
+              snap back to pre-edit state + toast with retry, or (b) keep the rejected edit visible
+              inline, flagged as "server rejected: [reason]," let the user decide to
+              edit/discard/retry. Option (b) is more honest but more complex. Which feels right?
+            </p>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>Recommended next step</strong>
+            Question 1 is the keystone. The answer determines whether you're building "LiveStore
+            with commands" (full WASM decider in SW) or "honest optimistic HTMX" (queue commands in
+            SW, server decides, honest pending UI). Both are valuable. The second is dramatically
+            simpler and still a massive improvement over standard optimistic UI.
+          </div>
+        </section>
+
+        <!-- References -->
+        <section id="references">
+          <h2><span class="num">&diams;</span>References &amp; Sources</h2>
+
+          <h3>LiveStore</h3>
+          <ul>
+            <li><a href="https://livestore.dev/">LiveStore &mdash; landing page</a></li>
+            <li>
+              <a href="https://github.com/livestorejs/livestore">LiveStore &mdash; GitHub repo</a>
+            </li>
+            <li>
+              <a href="https://dev.docs.livestore.dev/platform-adapters/web-adapter/"
+                >Web adapter docs (SW rationale, SharedWorker/DedicatedWorker roles, OPFS)</a
+              >
+            </li>
+            <li>
+              <a href="https://dev.docs.livestore.dev/building-with-livestore/state/materializers"
+                >Materializers documentation</a
+              >
+            </li>
+            <li>
+              <a href="https://dev.docs.livestore.dev/understanding-livestore/design-decisions"
+                >Design decisions</a
+              >
+            </li>
+            <li>
+              <a href="https://github.com/livestorejs/livestore/issues/717"
+                >Issue #717: Commands Primitive (tracking, milestone 0.5.0)</a
+              >
+            </li>
+            <li>
+              <a href="https://github.com/livestorejs/livestore/pull/945"
+                >PR #945: RFC 0002 &mdash; Command Replay (merged)</a
+              >
+            </li>
+            <li>
+              <a href="https://github.com/livestorejs/livestore/pull/995"
+                >PR #995: Commands experimental API</a
+              >
+            </li>
+          </ul>
+
+          <h3>CQRS / Event Sourcing Theory</h3>
+          <ul>
+            <li>
+              <a href="https://github.com/keyvanakbary/cqrs-documents"
+                >Greg Young &mdash; CQRS Documents (2010)</a
+              >
+            </li>
+            <li>
+              <a href="https://treeru.com/en/blog/cqrs-documents-greg-young-korean"
+                >CQRS Documents Reader's Guide</a
+              >
+            </li>
+            <li>
+              <a href="https://codeopinion.com/greg-young-answers-your-event-sourcing-questions/"
+                >CodeOpinion &mdash; Greg Young answers Event Sourcing questions</a
+              >
+            </li>
+            <li>
+              <a href="https://fco.github.io/Sourcing-2/concepts/commands.html"
+                >Sourcing Framework &mdash; Commands</a
+              >
+            </li>
+          </ul>
+
+          <h3>Optimistic / Honest UI</h3>
+          <ul>
+            <li>
+              <a href="https://remix.run/docs/en/main/discussion/pending-ui"
+                >Remix &mdash; Pending UI taxonomy</a
+              >
+            </li>
+            <li>
+              <a href="https://matheuspalma.com/blog/optimistic-ui-server-reconciliation-patterns"
+                >Palma &mdash; Optimistic UI with server reconciliation (mutation lifecycle)</a
+              >
+            </li>
+            <li>
+              <a href="https://www.72technologies.com/blog/react-19-useoptimistic-network-failures"
+                >72Technologies &mdash; React 19 useOptimistic and network failures</a
+              >
+            </li>
+            <li>
+              <a href="https://appmaster.io/blog/offline-first-background-sync-conflict-retries-ux"
+                >AppMaster &mdash; Offline-first background sync UX</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://github.com/MicrosoftDocs/powerapps-docs/blob/main/powerapps-docs/mobile/offline-sync-icon.md"
+                >Power Apps &mdash; Offline sync icon states</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://www.evolu.dev/docs/api-reference/common/local-first/interfaces/SyncStateIsSynced"
+                >Evolu &mdash; Typed SyncState</a
+              >
+            </li>
+            <li>
+              <a href="https://rxdb.info/articles/optimistic-ui.html">RxDB &mdash; Optimistic UI</a>
+            </li>
+          </ul>
+
+          <h3>Local-first / Production Examples</h3>
+          <ul>
+            <li>
+              <a href="https://performance.dev/how-is-linear-so-fast-a-technical-breakdown"
+                >How Linear achieves sub-100ms updates</a
+              >
+            </li>
+            <li>
+              <a href="https://www.figma.com/blog/how-figmas-multiplayer-technology-works/"
+                >Figma &mdash; How multiplayer technology works</a
+              >
+            </li>
+            <li>
+              <a href="https://faq.whatsapp.com/665923838265756"
+                >WhatsApp &mdash; Checkmark meaning</a
+              >
+            </li>
+          </ul>
+
+          <h3>Browser APIs</h3>
+          <ul>
+            <li>
+              <a href="https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API"
+                >OPFS / FileSystemSyncAccessHandle (MDN)</a
+              >
+            </li>
+            <li>
+              <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API"
+                >Web Locks API (MDN)</a
+              >
+            </li>
+            <li>
+              <a href="https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker"
+                >SharedWorker (MDN)</a
+              >
+            </li>
+            <li>
+              <a href="https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API"
+                >Service Worker API (MDN)</a
+              >
+            </li>
+          </ul>
+
+          <h3>Project files referenced</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Relevance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>cqrs-htmx/fanout.go</code></td>
+                <td>Transport-agnostic fan-out hub (111 lines, zero deps)</td>
+              </tr>
+              <tr>
+                <td><code>cqrs-htmx/sse_broadcaster.go</code></td>
+                <td>SSE Broadcaster embedding <code>fanOut[SSEEvent]</code></td>
+              </tr>
+              <tr>
+                <td><code>cqrs-htmx/ws_broadcaster.go</code></td>
+                <td>WS Broadcaster embedding <code>fanOut[string]</code></td>
+              </tr>
+              <tr>
+                <td><code>cqrs-htmx/ws_dispatch.go</code></td>
+                <td><code>DispatchWSCommand</code> &mdash; WS&rarr;CQRS bridge</td>
+              </tr>
+              <tr>
+                <td><code>cqrs-htmx/sse_store.go</code></td>
+                <td><code>SSEEventStore</code> interface (no production impl)</td>
+              </tr>
+              <tr>
+                <td><code>cqrs-htmx/usermgmt/es_setup.go</code></td>
+                <td>watermill EventBus wiring (read-your-writes)</td>
+              </tr>
+              <tr>
+                <td><code>cqrs-htmx/usermgmt/es_decide.go</code></td>
+                <td>Pure decide functions (guards + event creation)</td>
+              </tr>
+              <tr>
+                <td><code>cqrs-htmx/usermgmt/es_state.go</code></td>
+                <td><code>foldUser()</code> &mdash; pure event&rarr;state fold</td>
+              </tr>
+              <tr>
+                <td><code>go-localsync/pkg/crdt/conflict.go</code></td>
+                <td><code>ConflictResolver[T]</code>, <code>LWWResolver[T]</code></td>
+              </tr>
+              <tr>
+                <td><code>go-localsync/pkg/crdt/vectorclock.go</code></td>
+                <td>VectorClock (implemented, not wired)</td>
+              </tr>
+              <tr>
+                <td><code>go-localsync/pkg/crdt/operation.go</code></td>
+                <td>Operation[T] (implemented, not wired)</td>
+              </tr>
+              <tr>
+                <td><code>go-localsync/pkg/sync/sync.go</code></td>
+                <td>Syncer (provider&rarr;local pull)</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p>
+            Generated 2026-06-27 &middot; Research session exploring offline-first command sync for
+            cqrs-htmx + go-localsync &middot; Inspired by LiveStore architecture
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

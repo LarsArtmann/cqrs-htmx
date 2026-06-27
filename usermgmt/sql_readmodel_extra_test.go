@@ -165,7 +165,7 @@ func TestSQLBotReadModel_LifecycleAndQuery(t *testing.T) {
 	registered := makeBotEvent(t, eventBotRegistered, 1, BotRegisteredPayload{
 		SchemaVersion: currentSchemaVersion,
 		Name:          "ci-bot",
-		OwnerID:       "user-1",
+		OwnerID:       NewUserID("user-1"),
 		TokenHash:     []byte{1, 2, 3},
 		Scopes:        []string{"read", "write"},
 	})
@@ -184,8 +184,8 @@ func TestSQLBotReadModel_LifecycleAndQuery(t *testing.T) {
 	if views[0].Name != "ci-bot" {
 		t.Errorf("name = %q, want ci-bot", views[0].Name)
 	}
-	if views[0].OwnerID != "user-1" {
-		t.Errorf("owner_id = %q, want user-1", views[0].OwnerID)
+	if views[0].OwnerID != NewUserID("user-1").Get().String() {
+		t.Errorf("owner_id = %q, want %s", views[0].OwnerID, NewUserID("user-1").Get().String())
 	}
 	if views[0].TokenHash != string([]byte{1, 2, 3}) {
 		t.Errorf("token_hash mismatch")

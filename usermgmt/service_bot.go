@@ -12,7 +12,7 @@ import (
 type RegisterBotRequest struct {
 	ID      BotID    `json:"id"`
 	Name    string   `json:"name"`
-	OwnerID string   `json:"owner_id"`
+	OwnerID UserID   `json:"owner_id"`
 	Scopes  []string `json:"scopes"`
 }
 

@@ -141,7 +141,7 @@ func TestAuthz_RolesForUser(t *testing.T) {
 	a := newTestAuthz(t)
 	addTestGroupPolicy(t, a, GroupPolicy{Subject: NewUserID("p1").Get().String(), Role: RoleOwner, Domain: "g1"})
 
-	roles, err := a.RolesForUser(NewUserID("p1"), "g1")
+	roles, err := a.RolesForUser(NewUserID("p1"), NewTenantID("g1"))
 	if err != nil {
 		t.Fatalf("RolesForUser: %v", err)
 	}
@@ -149,7 +149,7 @@ func TestAuthz_RolesForUser(t *testing.T) {
 		t.Errorf("expected [owner], got %v", roles)
 	}
 
-	roles, err = a.RolesForUser(NewUserID("p1"), "other")
+	roles, err = a.RolesForUser(NewUserID("p1"), NewTenantID("other"))
 	if err != nil {
 		t.Fatalf("RolesForUser: %v", err)
 	}
@@ -176,7 +176,7 @@ func TestAuthz_UsersForRole(t *testing.T) {
 	a := newTestAuthz(t)
 	addTestGroupPolicy(t, a, GroupPolicy{Subject: NewUserID("p1").Get().String(), Role: RoleOwner, Domain: "g1"})
 
-	users, err := a.UsersForRole(RoleOwner, "g1")
+	users, err := a.UsersForRole(RoleOwner, NewTenantID("g1"))
 	if err != nil {
 		t.Fatalf("UsersForRole: %v", err)
 	}
@@ -214,7 +214,7 @@ func TestAuthz_ImplicitRolesForUser(t *testing.T) {
 	)
 	_ = a.AddGroupPolicy(GroupPolicy{Subject: NewUserID("p1").Get().String(), Role: RoleOwner, Domain: "g1"})
 
-	roles, err := a.ImplicitRolesForUser(NewUserID("p1"), "g1")
+	roles, err := a.ImplicitRolesForUser(NewUserID("p1"), NewTenantID("g1"))
 	if err != nil {
 		t.Fatalf("ImplicitRolesForUser: %v", err)
 	}
@@ -222,7 +222,7 @@ func TestAuthz_ImplicitRolesForUser(t *testing.T) {
 		t.Errorf("expected [owner], got %v", roles)
 	}
 
-	roles, err = a.ImplicitRolesForUser(NewUserID("p1"), "other")
+	roles, err = a.ImplicitRolesForUser(NewUserID("p1"), NewTenantID("other"))
 	if err != nil {
 		t.Fatalf("ImplicitRolesForUser: %v", err)
 	}
@@ -238,7 +238,7 @@ func TestAuthz_ImplicitPermissionsForUser(t *testing.T) {
 	)
 	_ = a.AddGroupPolicy(GroupPolicy{Subject: NewUserID("p1").Get().String(), Role: RoleOwner, Domain: "g1"})
 
-	perms, err := a.ImplicitPermissionsForUser(NewUserID("p1"), "g1")
+	perms, err := a.ImplicitPermissionsForUser(NewUserID("p1"), NewTenantID("g1"))
 	if err != nil {
 		t.Fatalf("ImplicitPermissionsForUser: %v", err)
 	}

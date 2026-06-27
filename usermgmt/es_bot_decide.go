@@ -16,7 +16,8 @@ func BotDecider() decider.Decider[BotState] {
 
 func decideRegisterBot(
 	aggID id.AggregateID,
-	name, ownerID string,
+	name string,
+	ownerID UserID,
 	tokenHash []byte,
 	scopes []string,
 ) func(BotState, event.Version) ([]event.Event, error) {
@@ -33,7 +34,7 @@ func decideRegisterBot(
 				"bot name is required",
 			)
 		}
-		if ownerID == "" {
+		if ownerID.IsZero() {
 			return nil, event.NewRejection(
 				"usermgmt.bot.owner_required",
 				"bot owner ID is required",

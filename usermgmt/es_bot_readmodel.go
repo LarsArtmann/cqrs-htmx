@@ -12,7 +12,7 @@ import (
 type Bot struct {
 	ID        BotID    `json:"id"`
 	Name      string   `json:"name"`
-	OwnerID   string   `json:"owner_id"`
+	OwnerID   UserID   `json:"owner_id"`
 	TokenHash []byte   `json:"token_hash"`
 	Scopes    []string `json:"scopes"`
 	Deleted   bool     `json:"deleted"`

@@ -35,7 +35,7 @@ func RequireAnyRole(service *usermgmt.Service, domain string, roles ...usermgmt.
 		if user == nil {
 			return errForbidden
 		}
-		held, err := service.Authz().ImplicitRolesForUser(user.ID, domain)
+		held, err := service.Authz().ImplicitRolesForUser(user.ID, usermgmt.NewTenantID(domain))
 		if err != nil {
 			return errForbidden
 		}
