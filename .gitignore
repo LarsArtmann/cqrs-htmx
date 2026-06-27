@@ -46,5 +46,8 @@ examples/admin-demo/admin-demo
 /report/
 # Build artifacts
 /v3
-# Add pattern for Templ generated files
+# Templ generated files are gitignored EXCEPT in modules that commit them.
+# adminui commits its _templ.go so consumers import them directly without
+# running the templ code generator.
 *_templ.go
+!adminui/*_templ.go
