@@ -78,3 +78,13 @@ func initials(s string) string {
 func trimTrailingSlash(s string) string {
 	return strings.TrimRight(s, "/")
 }
+
+// capList returns at most [MaxListRows] entries from in along with the original
+// total length, so views can show a "showing N of M" note when truncated.
+func capList[T any](in []T) ([]T, int) {
+	total := len(in)
+	if total <= MaxListRows {
+		return in, total
+	}
+	return in[:MaxListRows], total
+}

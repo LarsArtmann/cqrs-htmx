@@ -9,8 +9,9 @@ import (
 
 func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
-	users := filterUsers(h.cfg.Service.ReadModel().AllUsers(), q)
-	d := usersListData{Users: users, Search: q, BasePath: h.cfg.BasePath}
+	matched := filterUsers(h.cfg.Service.ReadModel().AllUsers(), q)
+	users, total := capList(matched)
+	d := usersListData{Users: users, Total: total, Search: q, BasePath: h.cfg.BasePath}
 
 	if r.Header.Get("HX-Request") == "true" {
 		renderPartial(w, r, usersTable(d))
