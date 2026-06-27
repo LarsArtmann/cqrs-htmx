@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>adminui — Brutal Self-Review Round 3</title>
+<style>
+:root{--bg:#0b1120;--s:#131c31;--t:#e6edf6;--m:#93a4bd;--b:#233049;--a:#4f46e5;--ok:#22c55e;--w:#f59e0b;--e:#ef4444}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14.5px/1.6 ui-sans-serif,system-ui,sans-serif;padding:32px}
+h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}h2{font-size:18px;margin:30px 0 10px}.sub{color:var(--m);margin-bottom:24px}
+.card{background:var(--s);border:1px solid var(--b);border-left:4px solid var(--m);border-radius:10px;padding:14px 16px;margin:10px 0}
+.card h3{margin:0 0 5px;font-size:15px}.card p{margin:3px 0;color:var(--m)}.card code{background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-size:13px}
+.problem{border-left-color:var(--e)}.warning{border-left-color:var(--w)}.solution{border-left-color:var(--ok)}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px}
+.te{background:rgba(239,68,68,.16);color:var(--e)}.tw{background:rgba(245,158,11,.18);color:var(--w)}.to{background:rgba(34,197,94,.16);color:var(--ok)}
+ol{counter-reset:s;list-style:none;padding:0}ol>li{counter-increment:s;background:var(--s);border:1px solid var(--b);border-radius:10px;padding:12px 14px 12px 50px;margin:8px 0;position:relative}
+ol>li::before{content:counter(s);position:absolute;left:12px;top:12px;width:26px;height:26px;background:var(--a);color:#fff;border-radius:7px;display:grid;place-items:center;font-weight:800;font-size:13px}
+.imp{float:right;font-size:11px;color:var(--m)}
+</style></head><body>
+<h1>adminui — Brutal Self-Review Round 3</h1>
+<div class="sub">Ghost code, split brains, and a claim I never proved. 2026-06-27.</div>
+
+<div class="card problem"><h3>CSRF is wired but never tested <span class="tag te">unproven claim</span></h3>
+<p>I wired <code>CSRFMiddleware</code> into the panel and demo in round 2. Every flow test (<code>flows_test.go</code>) POSTs <strong>without</strong> a CSRF token — because the test stack has no CSRF middleware. So I literally do not know if CSRF works. I shipped a security feature on faith.</p></div>
+
+<div class="card problem"><h3>UpdateMemberRoles is a ghost system <span class="tag te">dead code</span></h3>
+<p>I added <code>Service.UpdateMemberRoles</code> in round 1. It has <strong>zero callers</strong> in the UI. The membership table shows roles as static badges — no inline editing. A member's role can only be changed by removing and re-adding. Dead code is a lie about what the system does.</p></div>
+
+<div class="card warning"><h3>Role list is a split brain <span class="tag tw">type model</span></h3>
+<p>The add-member form hardcodes <code>&lt;option value="viewer"&gt;</code> etc. — duplicating the <code>Role*</code> constants from <code>usermgmt/authz_types.go</code>. Add a role to usermgmt and the UI silently won't offer it. The source of truth for "which roles exist" is scattered across two files in two modules.</p></div>
+
+<h2>Plan (work vs. impact)</h2>
+<ol>
+<li><b>Prove CSRF works</b> — integration test with full stack (session + CSRF + panel.Middleware()), POST with valid token succeeds, POST without token gets 403. <span class="imp">MED work · HONESTY (highest)</span></li>
+<li><b>Inline role editing</b> — each member row gets a <code>&lt;select&gt;</code> + POST to <code>UpdateMemberRoles</code>. Kills the ghost system. <span class="imp">MED work · HIGH (feature + dead code)</span></li>
+<li><b>AssignableRoles() in usermgmt</b> — typed source of truth for role options; template iterates it. Kills the split brain. <span class="imp">LOW work · MED (type model)</span></li>
+</ol>
+</body></html>
