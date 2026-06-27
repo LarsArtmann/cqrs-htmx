@@ -18,7 +18,9 @@ templ roleBadge(role string) {
 
 templ statCardView(c statCard) {
 	<div class="stat-card">
-		<div class="stat-card__icon">@icon(c.Icon)</div>
+		<div class="stat-card__icon">
+			@icon(c.Icon)
+		</div>
 		<div>
 			<div class="stat-card__label">{ c.Label }</div>
 			<div class="stat-card__value">{ c.Value }</div>
@@ -28,7 +30,9 @@ templ statCardView(c statCard) {
 
 templ empty(iconName, title, hint string) {
 	<div class="empty">
-		<div class="empty__icon">@icon(iconName)</div>
+		<div class="empty__icon">
+			@icon(iconName)
+		</div>
 		<div style="font-weight:600;color:var(--text)">{ title }</div>
 		if hint != "" {
 			<div style="margin-top:4px">{ hint }</div>
