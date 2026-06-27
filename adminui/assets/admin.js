@@ -3,6 +3,13 @@
 (function () {
   "use strict";
 
+  // --- CSRF: send token on every HTMX request (double-submit pattern) ---
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta && typeof htmx !== "undefined") {
+    htmx.config.headers = htmx.config.headers || {};
+    htmx.config.headers["X-CSRF-Token"] = meta.content;
+  }
+
   // --- Mobile sidebar toggle ---
   function toggleSidebar() {
     var sb = document.querySelector(".admin-sidebar");

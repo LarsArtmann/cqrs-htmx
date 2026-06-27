@@ -10,12 +10,12 @@ import (
 func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
 	tenants, total := capList(h.cfg.Service.AllTenants())
 	d := tenantsListData{Tenants: tenants, Total: total, BasePath: h.cfg.BasePath}
-	p := h.page("Tenants", "/tenants", user)
+	p := h.page("Tenants", "/tenants", user, r)
 	renderPage(w, r, tenantsPage(p, d))
 }
 
 func (h *Handler) tenantNew(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
-	p := h.page("New tenant", "/tenants", user)
+	p := h.page("New tenant", "/tenants", user, r)
 	renderPage(w, r, tenantNewPage(p, h.cfg.BasePath))
 }
 
@@ -61,7 +61,7 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *use
 		members = append(members, memberRow{Actor: m.ActorID, Roles: m.Roles})
 	}
 	memberBase := h.cfg.BasePath + "/tenants/" + tenantID.Get() + "/members"
-	p := h.page(tenant.DisplayName, "/tenants", user)
+	p := h.page(tenant.DisplayName, "/tenants", user, r)
 	renderPage(w, r, tenantDetailPage(p, tenantDetailData{
 		Tenant:           tenant,
 		Members:          members,

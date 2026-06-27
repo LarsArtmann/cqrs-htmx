@@ -23,6 +23,14 @@ type pageData struct {
 	User      *usermgmt.User
 	Nav       []navItem
 	LogoutURL string
+	// CSRFToken is the rendered hidden input for CSRF protection (empty when no
+	// CSRF middleware is active). Render it inside every POST form via
+	// @templ.Raw(p.CSRFToken).
+	CSRFToken string
+	// CSRFMeta is a <meta name="csrf-token"> tag for the layout head. HTMX
+	// reads it via admin.js to send the token on button POSTs. Empty when no
+	// CSRF middleware is active.
+	CSRFMeta string
 }
 
 // statCard is one metric tile on the dashboard.

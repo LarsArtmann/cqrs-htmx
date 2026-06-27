@@ -51,8 +51,9 @@ func buildNav(mode Mode) []navItem {
 }
 
 // page builds the pageData shell for a page, marking the nav item whose Href
-// matches active. Pass active="/" for the dashboard.
-func (h *Handler) page(title, active string, user *usermgmt.User) pageData {
+// matches active. Pass active="/" for the dashboard. r is used to extract the
+// CSRF token (if a CSRF middleware is active); the token is empty otherwise.
+func (h *Handler) page(title, active string, user *usermgmt.User, r *http.Request) pageData {
 	nav := make([]navItem, len(h.nav))
 	for i, n := range h.nav {
 		n.Active = n.Href == active
@@ -66,6 +67,8 @@ func (h *Handler) page(title, active string, user *usermgmt.User) pageData {
 		Nav:       nav,
 		User:      user,
 		LogoutURL: h.cfg.LogoutURL,
+		CSRFToken: cqrshtmx.CSRFTokenFormField(r),
+		CSRFMeta:  cqrshtmx.CSRFTokenHTMLMeta(r),
 	}
 }
 

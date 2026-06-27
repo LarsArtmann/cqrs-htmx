@@ -19,7 +19,7 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *use
 		members = append(members, memberRow{Actor: m.ActorID, Roles: m.Roles})
 	}
 	memberBase := h.cfg.BasePath + "/members"
-	p := h.page("Members", "/members", user)
+	p := h.page("Members", "/members", user, r)
 	renderPage(w, r, membersPage(p, tenantDetailData{
 		Tenant:           tenant,
 		Members:          members,
