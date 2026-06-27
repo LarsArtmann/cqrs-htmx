@@ -100,14 +100,14 @@ _Bugs found and fixed by code-quality-scan + full-code-review + architecture-rev
 ### Type Safety Improvements (from data-model-review)
 
 - [ ] **Type ActorID/ImpersonatorID in context** (CRITICAL) — `context.go:141,147,155,161` store raw `string` losing all type safety. Should use `usermgmt.ActorID`.
-- [ ] **Make foldUser return error on unknown events** (HIGH) — `es_state.go:166` silently no-ops. Other folds (Membership, Tenant, Bot) correctly return errors.
-- [ ] **Use UserID for BotState.OwnerID** (HIGH) — `es_bot_state.go:11`, `es_bot_events.go:8`, `es_bot_readmodel.go:15`, `service_bot.go:15` use raw `string`.
+- [x] **Make foldUser return error on unknown events** (HIGH) — `es_state.go:166` now returns `event.NewRejection` for unknown types. Other folds (Membership, Tenant, Bot) also correctly return errors.
+- [x] **Use UserID for BotState.OwnerID** (HIGH) — `es_bot_state.go:11`, `service_bot.go:15` now use `UserID`. Other call sites updated.
 - [ ] **Use TenantID in Authz domain parameters** (HIGH) — `authz_roles.go:8,20,33,48` and `authz_policies.go:114,140` take raw `string`.
-- [ ] **Unexport or validate NewActorID** (HIGH) — `id.go:117` takes raw `string`, bypassing kind/raw pairing.
+- [x] **Unexport or validate NewActorID** (HIGH) — `id.go:120` now panics on invalid ActorKind; type-safe constructors `ActorIDFromUser`/`ActorIDFromBot` provided for safe construction.
 - [ ] **Use Email branded type in domain models** (MEDIUM) — `email.go:13` defines `Email` but all structs use raw `string`.
 - [ ] **Fix duplicate sentinel errors across packages** (MEDIUM) — `cqrshtmx.ErrUnauthorized` vs `usermgmt.ErrUnauthorized` are different values. `errors.Is` fails at module boundary.
-- [ ] **Prevent impossible TenantState** (MEDIUM) — `es_tenant_state.go:8-15` allows `Suspended=true, Deleted=true` simultaneously.
-- [ ] **Validate actorKindFromString** (MEDIUM) — `es_membership_state.go:72-77` silently defaults unknown strings to `ActorUser`.
+- [~] **Prevent impossible TenantState** (MEDIUM) — `es_tenant_state.go` event handlers now clear `Suspended` on delete (struct-level invariant). Remaining gap: the struct fields themselves are still independent booleans; a struct-level `IsValid()` method would fully close this.
+- [x] **Validate actorKindFromString** (MEDIUM) — `es_membership_state.go:76` now returns `event.NewRejection` for unknown strings instead of defaulting to ActorUser.
 
 ### Architecture Improvements (from architecture-review)
 
