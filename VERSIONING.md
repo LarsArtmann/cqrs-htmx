@@ -5,11 +5,11 @@ module suffix convention described in the [Go module wiki](https://go.dev/wiki/M
 
 ## Summary
 
-| Change | Version bump | Examples |
-|--------|-------------|----------|
-| Breaking API change | **MAJOR** (v3 → v4) | Renamed/removed exported types, changed signatures, changed import paths |
-| New feature (non-breaking) | **MINOR** (v3.x → v3.x+1) | New exported types, new optional config fields, new HandlerOptions |
-| Bug fix, performance, docs | **PATCH** (v3.x.y → v3.x.y+1) | Internal refactors, error message improvements, test additions |
+| Change                     | Version bump                  | Examples                                                                 |
+| -------------------------- | ----------------------------- | ------------------------------------------------------------------------ |
+| Breaking API change        | **MAJOR** (v3 → v4)           | Renamed/removed exported types, changed signatures, changed import paths |
+| New feature (non-breaking) | **MINOR** (v3.x → v3.x+1)     | New exported types, new optional config fields, new HandlerOptions       |
+| Bug fix, performance, docs | **PATCH** (v3.x.y → v3.x.y+1) | Internal refactors, error message improvements, test additions           |
 
 ## Module Paths
 

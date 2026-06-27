@@ -52,6 +52,7 @@ Non-ULID header values are silently dropped by the middleware.
 ### 3. Passwordless Authentication (usermgmt)
 
 All password-related APIs are removed:
+
 - `RegisterRequest.Password` — removed (registration is email-only)
 - `Service.Authenticate(email, password)` — removed (use WebAuthn `BeginLogin`/`FinishLogin`)
 - `Service.ChangePassword` — removed
