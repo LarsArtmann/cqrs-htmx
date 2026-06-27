@@ -63,6 +63,7 @@
                 pkgs.go_1_26
                 pkgs.gopls
                 pkgs.golangci-lint
+                pkgs.tailwindcss_4
               ];
 
               GOWORK = "off";

@@ -1,0 +1,49 @@
+/*
+ * adminui Tailwind v4 entry point.
+ *
+ * This file maps adminui's CSS custom properties to Tailwind's @theme tokens,
+ * enabling both Tailwind utility classes AND the existing admin.css design
+ * system to coexist during migration.
+ *
+ * Build: tailwindcss -i tailwind.css -o assets/admin-tw.css --minify
+ */
+
+@import "tailwindcss";
+
+/* Scan adminui .templ files for class names */
+@source "../";
+
+/* Class-based dark mode (replaces prefers-color-scheme) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Map adminui tokens to Tailwind color palette.
+ * This makes admin.css custom classes AND Tailwind utilities
+ * use the same underlying values. */
+@theme {
+  /* Accent → blue scale (primary actions, links, focus rings) */
+  --color-blue-600: var(--accent);
+  --color-blue-500: color-mix(in srgb, var(--accent) 85%, white);
+
+  /* Surfaces → gray scale */
+  --color-gray-50: #fbfcfd;   /* --surface-2 */
+  --color-gray-100: #f6f7f9;  /* --bg */
+  --color-gray-200: #e6e8ec;  /* --border */
+  --color-gray-300: #d1d5db;  /* --border-strong */
+  --color-gray-500: #64748b;  /* --muted */
+  --color-gray-900: #0f172a;  /* --text, --sidebar-bg */
+
+  /* Status colors */
+  --color-green-600: #16a34a;  /* --ok */
+  --color-red-600: #dc2626;    /* --err */
+  --color-yellow-600: #d97706; /* --warn */
+}
+
+/* Dark mode token overrides */
+.dark {
+  --color-gray-50: #0f1729;
+  --color-gray-100: #0b1120;
+  --color-gray-200: #233049;
+  --color-gray-300: #2c3a56;
+  --color-gray-500: #93a4bd;
+  --color-gray-900: #e6edf6;
+}
