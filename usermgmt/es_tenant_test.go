@@ -105,6 +105,31 @@ func TestFoldTenant_Deleted(t *testing.T) {
 	}
 }
 
+func TestFoldTenant_DeletedClearsSuspended(t *testing.T) {
+	state := TenantState{Name: "acme", Suspended: true, SuspendReason: "non-payment"}
+	markEvt, err := event.NewEvent(
+		eventTenantDeleted, tenantTestAggID, aggregateTypeTenant, 2,
+		mustMarshalPayload(t, TenantDeletedPayload{Reason: "shutdown"}),
+	)
+	if err != nil {
+		t.Fatalf("create deleted event: %v", err)
+	}
+	markEvt, err = event.MarkTombstone(markEvt)
+	if err != nil {
+		t.Fatalf("mark tombstone: %v", err)
+	}
+	state, err = foldTenant(state, markEvt)
+	if err != nil {
+		t.Fatalf("foldTenant: %v", err)
+	}
+	if state.Suspended {
+		t.Error("deleted tenant must not be suspended (impossible-state invariant)")
+	}
+	if state.SuspendReason != "" {
+		t.Errorf("SuspendReason should be cleared on delete, got %q", state.SuspendReason)
+	}
+}
+
 func TestFoldTenant_UnknownEvent(t *testing.T) {
 	unknownEvt, err := event.NewEvent(
 		event.Type("FutureTenantEvent"), tenantTestAggID, aggregateTypeTenant, 1,

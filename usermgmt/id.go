@@ -115,7 +115,14 @@ type ActorID struct {
 }
 
 // NewActorID creates an ActorID from a kind and raw string value.
+// Panics if kind is not ActorUser or ActorBot — use ActorIDFromUser or
+// ActorIDFromBot for type-safe construction.
 func NewActorID(kind ActorKind, raw string) ActorID {
+	switch kind {
+	case ActorUser, ActorBot:
+	default:
+		panic(fmt.Sprintf("NewActorID: invalid ActorKind %d", kind))
+	}
 	return ActorID{kind: kind, raw: raw}
 }
 

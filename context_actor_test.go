@@ -10,7 +10,7 @@ import (
 
 func TestWithActorID_ActorFromContext(t *testing.T) {
 	t.Parallel()
-	ctx := WithActorID(context.Background(), "user:01JX...")
+	ctx := WithActorID(context.Background(), ActorID("user:01JX..."))
 	if got := ActorIDFromContext(ctx); got != "user:01JX..." {
 		t.Errorf("ActorIDFromContext = %q, want %q", got, "user:01JX...")
 	}
@@ -25,7 +25,7 @@ func TestActorIDFromContext_Empty(t *testing.T) {
 
 func TestWithImpersonatorID_ImpersonatorFromContext(t *testing.T) {
 	t.Parallel()
-	ctx := WithImpersonatorID(context.Background(), "user:01ADM...")
+	ctx := WithImpersonatorID(context.Background(), ImpersonatorID("user:01ADM..."))
 	if got := ImpersonatorIDFromContext(ctx); got != "user:01ADM..." {
 		t.Errorf("ImpersonatorIDFromContext = %q, want %q", got, "user:01ADM...")
 	}
@@ -41,8 +41,8 @@ func TestImpersonatorIDFromContext_Empty(t *testing.T) {
 func TestEventOptionsFromContext_ActorChain(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctx = WithActorID(ctx, "user:01JX...")
-	ctx = WithImpersonatorID(ctx, "user:01ADM...")
+	ctx = WithActorID(ctx, ActorID("user:01JX..."))
+	ctx = WithImpersonatorID(ctx, ImpersonatorID("user:01ADM..."))
 
 	opts := EventOptionsFromContext(ctx)
 	if len(opts) < 2 {

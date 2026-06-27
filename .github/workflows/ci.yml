@@ -35,6 +35,18 @@ jobs:
           GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Build adminui submodule
+        run: cd adminui && go build ./...
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Build catalog submodule
+        run: cd catalog && go build ./...
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Build integration_test submodule
         run: cd integration_test && go build ./...
         env:
@@ -43,6 +55,17 @@ jobs:
 
       - name: Build datastar-demo example
         run: cd examples/datastar-demo && go build ./...
+        env:
+          GOWORK: off
+
+      - name: Build admin-demo example
+        run: cd examples/admin-demo && go build ./...
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Build catalog-demo example
+        run: cd examples/catalog-demo && go build ./...
         env:
           GOWORK: off
 
@@ -109,6 +132,35 @@ jobs:
           version: v2.11
           working-directory: usermgmt
           args: "--timeout=5m"
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: golangci-lint (adminui)
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.11
+          working-directory: adminui
+          args: "--timeout=5m"
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+  mod-tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Verify go mod tidy (all modules)
+        run: |
+          for mod in . usermgmt adminui catalog integration_test; do
+            echo "=== Checking $mod ==="
+            (cd "$mod" && go mod tidy -diff)
+          done
         env:
           GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
