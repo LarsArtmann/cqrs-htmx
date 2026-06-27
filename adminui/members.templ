@@ -1,8 +1,9 @@
 package adminui
 
-// membersCard renders the members table with add/remove controls. Shared by the
-// tenant detail page (super-admin) and the members page (tenant-admin). Member
-// actions POST to AddMemberURL and RemoveMemberBase/{actor}/delete.
+// membersCard renders the members table with add/remove/edit-role controls.
+// Shared by the tenant detail page (super-admin) and the members page
+// (tenant-admin). Role options come from AssignableRoles (typed source of
+// truth), not hardcoded.
 templ membersCard(d tenantDetailData) {
 	<div class="card">
 		<div class="card__header"><span class="card__title">Members</span></div>
@@ -11,17 +12,20 @@ templ membersCard(d tenantDetailData) {
 		} else {
 			<div class="table-wrap">
 				<table class="data">
-					<thead><tr><th>Actor</th><th>Roles</th><th></th></tr></thead>
+					<thead><tr><th>Actor</th><th>Role</th><th></th></tr></thead>
 					<tbody>
 						for _, m := range d.Members {
 							<tr>
 								<td class="mono">{ m.Actor.PrefixedString() }</td>
 								<td>
-									<div class="badge-row">
-										for _, r := range m.Roles {
-											@roleBadge(string(r))
-										}
-									</div>
+									<form style="display:flex;gap:6px;align-items:center" hx-post={ d.UpdateRoleBase + "/" + m.Actor.PrefixedString() }>
+										<select class="select" name="role" style="max-width:120px">
+											for _, r := range d.AssignableRoles {
+												<option value={ string(r) } { selectedAttr(m.Roles, r) }>{ string(r) }</option>
+											}
+										</select>
+										<button class="btn btn--ghost btn--sm" type="submit">Set</button>
+									</form>
 								</td>
 								<td style="text-align:right">
 									<button
@@ -43,10 +47,9 @@ templ membersCard(d tenantDetailData) {
 			<form class="toolbar" style="margin:0" hx-post={ d.AddMemberURL }>
 				<input class="input" type="email" name="email" placeholder="user@example.com" required style="max-width:240px"/>
 				<select class="select" name="role" style="max-width:150px">
-					<option value="viewer">viewer</option>
-					<option value="user" selected>user</option>
-					<option value="admin">admin</option>
-					<option value="owner">owner</option>
+					for _, r := range d.AssignableRoles {
+						<option value={ string(r) }>{ string(r) }</option>
+					}
 				</select>
 				<button class="btn btn--primary btn--sm" type="submit">@icon("plus") Add member</button>
 			</form>
@@ -59,18 +62,7 @@ templ membersPage(p pageData, d tenantDetailData) {
 	@Layout(p) {
 		<div class="admin-content__head">
 			<h1>Members</h1>
-			<div class="spacer"></div>
-			if d.Tenant != nil {
-				if d.Tenant.Suspended {
-					@badge("suspended", "amber")
-				} else {
-					@badge("active", "green")
-				}
-			}
 		</div>
-		if d.Tenant != nil {
-			<div class="muted" style="margin-bottom:18px">{ d.Tenant.DisplayName } · <span class="mono">{ d.Tenant.Name }</span></div>
-		}
 		@membersCard(d)
 	}
 }

@@ -73,9 +73,11 @@ type tenantsListData struct {
 type tenantDetailData struct {
 	Tenant           *usermgmt.Tenant
 	Members          []memberRow
+	AssignableRoles  []usermgmt.Role
 	BasePath         string
-	AddMemberURL     string // POST target to add a member
-	RemoveMemberBase string // append "/{actor}/delete" per row
+	AddMemberURL     string
+	RemoveMemberBase string
+	UpdateRoleBase   string // append "/{actor}" for role-change POSTs
 }
 
 // memberRow is a flattened membership for display.

@@ -122,6 +122,7 @@ func (h *Handler) routes() http.Handler {
 		mux.HandleFunc("POST /tenants/{id}/delete", h.guard(h.tenantDelete))
 		mux.HandleFunc("POST /tenants/{id}/members", h.guard(h.tenantAddMember))
 		mux.HandleFunc("POST /tenants/{id}/members/{actor}/delete", h.guard(h.tenantRemoveMember))
+		mux.HandleFunc("POST /tenants/{id}/members/{actor}", h.guard(h.tenantUpdateMemberRole))
 	}
 
 	// --- Members (tenant admin) ---
@@ -129,6 +130,7 @@ func (h *Handler) routes() http.Handler {
 		mux.HandleFunc("GET /members", h.guard(h.membersIndex))
 		mux.HandleFunc("POST /members", h.guard(h.membersAdd))
 		mux.HandleFunc("POST /members/{actor}/delete", h.guard(h.membersRemove))
+		mux.HandleFunc("POST /members/{actor}", h.guard(h.membersUpdateRole))
 	}
 
 	// --- Audit ---
