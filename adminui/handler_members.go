@@ -16,7 +16,7 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *use
 	memberships := h.cfg.Service.TenantMembers(r.Context(), h.cfg.TenantID)
 	members := make([]memberRow, 0, len(memberships))
 	for _, m := range memberships {
-		members = append(members, memberRow{Actor: m.ActorID.PrefixedString(), Roles: m.Roles})
+		members = append(members, memberRow{Actor: m.ActorID, Roles: m.Roles})
 	}
 	memberBase := h.cfg.BasePath + "/members"
 	p := h.page("Members", "/members", user)
