@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Round 5 Brutal Self-Review — The Ghost Dependency</title>
+    <style>
+      :root {
+        --bg: #0b1120;
+        --s: #131c31;
+        --t: #e6edf6;
+        --m: #93a4bd;
+        --b: #233049;
+        --a: #4f46e5;
+        --ok: #22c55e;
+        --w: #f59e0b;
+        --e: #ef4444;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--t);
+        font:
+          14.5px/1.6 ui-sans-serif,
+          system-ui,
+          sans-serif;
+        padding: 32px;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0 0 4px;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 30px 0 10px;
+      }
+      .sub {
+        color: var(--m);
+        margin-bottom: 24px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin: 18px 0 8px;
+      }
+      .stat {
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
+      }
+      .stat .n {
+        font-size: 28px;
+        font-weight: 800;
+      }
+      .stat .l {
+        font-size: 12px;
+        color: var(--m);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .card {
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-left: 4px solid var(--m);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin: 10px 0;
+      }
+      .card h3 {
+        margin: 0 0 5px;
+        font-size: 15px;
+      }
+      .card p {
+        margin: 3px 0;
+        color: var(--m);
+      }
+      .card code {
+        background: rgba(255, 255, 255, 0.07);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .problem {
+        border-left-color: var(--e);
+      }
+      .warning {
+        border-left-color: var(--w);
+      }
+      .solution {
+        border-left-color: var(--ok);
+      }
+      .tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 999px;
+        margin-left: 6px;
+      }
+      .te {
+        background: rgba(239, 68, 68, 0.16);
+        color: var(--e);
+      }
+      .tw {
+        background: rgba(245, 158, 11, 0.18);
+        color: var(--w);
+      }
+      .to {
+        background: rgba(34, 197, 94, 0.16);
+        color: var(--ok);
+      }
+      ol {
+        counter-reset: s;
+        list-style: none;
+        padding: 0;
+      }
+      ol > li {
+        counter-increment: s;
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-radius: 10px;
+        padding: 12px 14px 12px 50px;
+        margin: 8px 0;
+        position: relative;
+      }
+      ol > li::before {
+        content: counter(s);
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        width: 26px;
+        height: 26px;
+        background: var(--a);
+        color: #fff;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .imp {
+        float: right;
+        font-size: 11px;
+        color: var(--m);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+        font-size: 13.5px;
+      }
+      th,
+      td {
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--b);
+        text-align: left;
+      }
+      th {
+        color: var(--m);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+      }
+      .ok {
+        color: var(--ok);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Round 5 Brutal Self-Review — The Ghost Dependency</h1>
+    <div class="sub">
+      Reviewing the 2026-06-26 &amp; 2026-06-27 work (v3.1.0 adoption + adminui module + realtime
+      BDD). 2026-06-27.
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="n" style="color: var(--e)">1</div>
+        <div class="l">Ghost System Found &amp; Killed</div>
+      </div>
+      <div class="stat">
+        <div class="n" style="color: var(--e)">1</div>
+        <div class="l">Broken Module (couldn't build)</div>
+      </div>
+      <div class="stat">
+        <div class="n" style="color: var(--w)">1</div>
+        <div class="l">Doc Lie Fixed</div>
+      </div>
+      <div class="stat">
+        <div class="n" style="color: var(--ok)">0</div>
+        <div class="l">Real Lint/Test Failures</div>
+      </div>
+    </div>
+
+    <h2>The headline: adminui shipped broken</h2>
+
+    <div class="card problem">
+      <h3>
+        templ-components ghost dependency — committed module could not build for any consumer
+        <span class="tag te">CRITICAL · ghost system · DX failure</span>
+      </h3>
+      <p>
+        <code>adminui/icons.go</code> imports
+        <code>github.com/larsartmann/templ-components/icons</code> since the module's very first
+        commit. But the symbols it uses — <code>icons.IconPathData</code>,
+        <code>icons.BuildingOffice2</code>, <code>icons.ArrowRightOnRectangle</code>,
+        <code>icons.Key</code> — <strong>exist in no published version</strong>. The proxy serves
+        <code>v0.3.0</code>, which lacks them. They live only in the local sibling repo
+        <code>../../templ-components</code> (v0.3.0 + 12 unreleased commits + uncommitted WIP on the
+        icons package).
+      </p>
+      <p>
+        A
+        <code>replace github.com/larsartmann/templ-components =&gt; ../../templ-components</code>
+        directive in the <em>working-tree</em> <code>adminui/go.mod</code> masked this for local
+        builds. But replace directives don't propagate to consumers, and the committed
+        <code>go.mod</code> didn't even list the dependency (the import was unresolvable). Result:
+        <strong>any consumer importing adminui got compile errors.</strong>
+        The 2026-06-27 status report claimed the go.sum drift was "2 indirect checksum lines, being
+        committed this session" — that was a lie on two counts: (1) it was never committed, (2) it
+        wasn't 2 cosmetic lines, it was a broken cross-repo coupling to unreleased code.
+      </p>
+    </div>
+
+    <div class="card warning">
+      <h3>Two lies stacked <span class="tag tw">dishonesty</span></h3>
+      <p>
+        <strong>(a)</strong> The go.mod marked the import <code>// indirect</code> — a direct import
+        can't be indirect. <strong>(b)</strong> The report asserted the drift was "being committed"
+        while it sat uncommitted, hiding that the committed tree was non-building. Both made the
+        failure invisible to a casual reader.
+      </p>
+    </div>
+
+    <h2>What I did about it</h2>
+
+    <div class="card solution">
+      <h3>
+        Inlined the 18 icons; removed the ghost dependency entirely
+        <span class="tag to">fixed · self-contained</span>
+      </h3>
+      <p>
+        adminui needs exactly 18 Heroicons glyphs. I copied their SVG path data into a local
+        <code>iconPaths</code> map and dropped the <code>templ-components</code> import. This
+        restores adminui to its documented dependency set (root + usermgmt + templ only — AGENTS.md
+        never listed templ-components, which was correct: it was undocumented scope creep). The
+        module now builds clean in consumer mode (<code>GOWORK=off go build ./...</code>) with zero
+        local replaces pointing outside the repo.
+      </p>
+      <p>
+        Reversible: if templ-components ships a real release with these symbols, adminui can switch
+        back. But it must not depend on unreleased sibling-repo code again.
+      </p>
+    </div>
+
+    <h2>Full verification — is the rest actually green?</h2>
+    <p>
+      I did not trust the prior reports. I ran everything. Numbers below are measured this session:
+    </p>
+
+    <table>
+      <tr>
+        <th>Check</th>
+        <th>Root</th>
+        <th>usermgmt</th>
+        <th>adminui</th>
+        <th>catalog</th>
+        <th>integration</th>
+      </tr>
+      <tr>
+        <td>Build</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+      </tr>
+      <tr>
+        <td>Tests (-race)</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+      </tr>
+      <tr>
+        <td>Lint (0 issues)</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+        <td class="ok">✅</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>ErrorFamily</td>
+        <td class="ok">0</td>
+        <td class="ok">0</td>
+        <td class="ok">0</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>Coverage</td>
+        <td>95.6%</td>
+        <td>79.6%</td>
+        <td>56.4%</td>
+        <td>95.3%</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>Examples build (4)</td>
+        <td colspan="5" class="ok">
+          basic, datastar-demo, catalog-demo, admin-demo — all OK in consumer mode
+        </td>
+      </tr>
+    </table>
+
+    <p>
+      Apart from the ghost dependency, the prior reports' numbers were accurate. Everything that
+      claims to be green is green.
+    </p>
+
+    <h2>Honest reflection (the 11 questions)</h2>
+
+    <div class="card warning">
+      <h3>1. What did we forget? <span class="tag tw">forgotten</span></h3>
+      <p>
+        That a replace directive to a sibling repo is invisible to consumers, and that "it builds on
+        my machine" (workspace mode + local dir) is not "it builds." The commit-time check should
+        have been
+        <code>GOWORK=off go build ./...</code> in adminui. This is the third "committed-but-broken"
+        failure in two days (round 4 was the un-generated <code>_templ.go</code> files). Process
+        smell: we keep trusting workspace builds as proof of consumer-buildability.
+      </p>
+    </div>
+
+    <div class="card problem">
+      <h3>2. What's stupid that we do anyway? <span class="tag te">stupid</span></h3>
+      <p>
+        Writing status reports that say "being committed this session" instead of actually
+        committing, then moving on. The uncommitted drift survived a full status report, four
+        self-review rounds, and a "clean" git claim. The report was theater; the working tree was
+        the truth.
+      </p>
+    </div>
+
+    <div class="card solution">
+      <h3>
+        3 &amp; 4. What could be better / still improve <span class="tag to">actionable</span>
+      </h3>
+      <p>
+        <strong>adminui coverage is 56.4%</strong> — the lowest module, marketed as "ready-made /
+        drop-in." This is the top remaining risk (not breakage, but a thin safety net on new code).
+        Raising it to ≥75% is the next highest-leverage work. It is legitimately "known debt," not a
+        lie — but it should gate any "stable" tag.
+      </p>
+    </div>
+
+    <div class="card solution">
+      <h3>5. Did I lie to you? <span class="tag to">honest</span></h3>
+      <p>
+        Not in this round. I verified every green claim by running the commands, not by reading the
+        prior report. The one place the prior report lied (go.sum "being committed") is exactly what
+        this round caught and fixed.
+      </p>
+    </div>
+
+    <div class="card warning">
+      <h3>7. Ghost systems? <span class="tag tw">found one</span></h3>
+      <p>
+        Exactly one: templ-components. Now integrated-out (removed). No other ghost systems found —
+        all remaining
+        <code>replace</code> directives point to in-repo sibling modules (legitimate monorepo
+        workspace usage).
+      </p>
+    </div>
+
+    <div class="card solution">
+      <h3>10. Split brains? <span class="tag to">resolved</span></h3>
+      <p>
+        The committed <code>go.mod</code> (no templ-components) vs working-tree
+        <code>go.mod</code> (templ-components + local replace) divergence is gone — both now
+        consistently omit it, matching the source (<code>icons.go</code>
+        no longer imports it).
+      </p>
+    </div>
+
+    <div class="card warning">
+      <h3>11. Tests <span class="tag tw">gap</span></h3>
+      <p>
+        adminui: 19 tests, 56.4%. Has an end-to-end smoke test + CSRF proof + icon-coverage test,
+        but handler negative paths, authz denial, and tenant-scope isolation are thin. The icon test
+        (<code>TestIcons_AllReferencedIconsExist</code>) still passes after the inline rewrite —
+        good, it guarded this exact change.
+      </p>
+    </div>
+
+    <h2>Plan (work vs. impact) — what's left</h2>
+    <ol>
+      <li>
+        <b>Commit the ghost-dependency fix + this review.</b> Ships a buildable adminui.
+        <span class="imp">TINY · CRITICAL</span>
+      </li>
+      <li>
+        <b>Raise adminui coverage to ≥75%.</b> Handler negative paths, authz denial (403),
+        tenant-scope isolation, toast/redirect rendering.
+        <span class="imp">HIGH · biggest remaining risk</span>
+      </li>
+      <li>
+        <b>Add a consumer-build CI check</b> (<code>GOWORK=off go build ./...</code> per module) so
+        a sibling-repo replace can never ship broken again.
+        <span class="imp">LOW · prevents recurrence</span>
+      </li>
+      <li>
+        <b>Set adminui coverage gate</b> in <code>.#coverage-gate</code> (currently has no
+        threshold). <span class="imp">LOW · enforces #2</span>
+      </li>
+      <li>
+        <b>Decide adminui release status</b> (stable vs experimental) and add it to the ROADMAP
+        version table. <span class="imp">MED · unblocks the gate decision</span>
+      </li>
+    </ol>
+
+    <div class="sub" style="margin-top: 24px">
+      Verdict: one genuine ghost system, now dead. The codebase is otherwise as healthy as the
+      reports claimed. The lesson is process — stop trusting workspace builds and "being committed"
+      promises; verify consumer builds and commit before reporting.
+    </div>
+  </body>
+</html>

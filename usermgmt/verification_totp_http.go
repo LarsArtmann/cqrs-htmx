@@ -167,22 +167,9 @@ func (h *AuthHandler) handleTOTPCode(
 }
 
 func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) {
-	user, ctx, cancel, ok := h.authContext(w, r, h.totpLimiter, "too many TOTP requests")
-	if !ok {
-		return
-	}
-	defer cancel()
-
-	var req totpCodeRequest
-	if !h.decodeAuthJSON(w, r, &req) {
-		return
-	}
-
-	if err := h.service.DisableTOTP(ctx, user.ID, req.Code); err != nil {
-		writeError(w, errorStatus(err), err.Error())
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusTOTPDisabled})
+	h.handleTOTPCode(w, r, func(ctx context.Context, userID UserID, code string) error {
+		return h.service.DisableTOTP(ctx, userID, code)
+	}, statusTOTPDisabled)
 }
 
 // importExportContext runs the standard preflight for import/export endpoints:

@@ -30,7 +30,7 @@ func TestIcons_AllReferencedIconsExist(t *testing.T) {
 		}
 		for _, m := range iconCall.FindAllStringSubmatch(string(data), -1) {
 			name := m[1]
-			if _, ok := icons[name]; !ok {
+			if _, ok := iconPaths[name]; !ok {
 				missing[name] = true
 			}
 		}
@@ -45,8 +45,8 @@ func TestIcons_AllReferencedIconsExist(t *testing.T) {
 func TestIcons_ConstantsAreKnown(t *testing.T) {
 	t.Parallel()
 	for _, name := range []string{iconDashboard, iconUsers, iconTenants, iconMembers, iconAudit} {
-		if _, ok := icons[name]; !ok {
-			t.Errorf("icon constant %q is not in the icons map", name)
+		if _, ok := iconPaths[name]; !ok {
+			t.Errorf("icon constant %q is not in the iconPaths map", name)
 		}
 	}
 }

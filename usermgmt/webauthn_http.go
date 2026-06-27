@@ -20,6 +20,17 @@ func (h *AuthHandler) requireUserIDFromQuery(w http.ResponseWriter, r *http.Requ
 	return NewUserID(userID), true
 }
 
+// requireUserIDWithWebAuthnRateLimit rate-limits a WebAuthn ceremony and
+// extracts the user_id query parameter. It writes the error response (429 or
+// 400) on failure and returns ok=false; on success it returns the parsed
+// UserID. Used by WebAuthn finish ceremonies that need a userID from the query.
+func (h *AuthHandler) requireUserIDWithWebAuthnRateLimit(w http.ResponseWriter, r *http.Request) (UserID, bool) {
+	if !h.checkRateLimit(w, r, h.webauthnLimiter, "too many WebAuthn requests") {
+		return UserID{}, false
+	}
+	return h.requireUserIDFromQuery(w, r)
+}
+
 func (h *AuthHandler) handleWebAuthnBeginRegistration(w http.ResponseWriter, r *http.Request) {
 	if !h.checkRateLimit(w, r, h.webauthnLimiter, "too many WebAuthn requests") {
 		return
@@ -38,10 +49,7 @@ func (h *AuthHandler) handleWebAuthnBeginRegistration(w http.ResponseWriter, r *
 }
 
 func (h *AuthHandler) handleWebAuthnFinishRegistration(w http.ResponseWriter, r *http.Request) {
-	if !h.checkRateLimit(w, r, h.webauthnLimiter, "too many WebAuthn requests") {
-		return
-	}
-	userID, ok := h.requireUserIDFromQuery(w, r)
+	userID, ok := h.requireUserIDWithWebAuthnRateLimit(w, r)
 	if !ok {
 		return
 	}
@@ -77,10 +85,7 @@ func (h *AuthHandler) handleWebAuthnBeginLogin(w http.ResponseWriter, r *http.Re
 }
 
 func (h *AuthHandler) handleWebAuthnFinishLogin(w http.ResponseWriter, r *http.Request) {
-	if !h.checkRateLimit(w, r, h.webauthnLimiter, "too many WebAuthn requests") {
-		return
-	}
-	userID, ok := h.requireUserIDFromQuery(w, r)
+	userID, ok := h.requireUserIDWithWebAuthnRateLimit(w, r)
 	if !ok {
 		return
 	}
