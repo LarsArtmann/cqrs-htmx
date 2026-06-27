@@ -25,7 +25,7 @@ func makeBotEvent(t *testing.T, eventType event.Type, version event.Version, pay
 func TestFoldBot_Registered(t *testing.T) {
 	state, err := foldBot(BotState{}, makeBotEvent(t, eventBotRegistered, 1, BotRegisteredPayload{
 		Name:      "ci-bot",
-		OwnerID:   "user-123",
+		OwnerID:   NewUserID("user-123"),
 		TokenHash: []byte{1, 2, 3},
 		Scopes:    []string{"read", "write"},
 	}))
@@ -35,8 +35,8 @@ func TestFoldBot_Registered(t *testing.T) {
 	if state.Name != "ci-bot" {
 		t.Errorf("Name = %q", state.Name)
 	}
-	if state.OwnerID != "user-123" {
-		t.Errorf("OwnerID = %q", state.OwnerID)
+	if state.OwnerID.Get().String() != NewUserID("user-123").Get().String() {
+		t.Errorf("OwnerID = %s", state.OwnerID.Get().String())
 	}
 	if len(state.Scopes) != 2 {
 		t.Errorf("expected 2 scopes, got %d", len(state.Scopes))
@@ -47,7 +47,7 @@ func TestFoldBot_Registered(t *testing.T) {
 }
 
 func TestFoldBot_Deleted(t *testing.T) {
-	state := BotState{Name: "ci-bot", OwnerID: "user-123"}
+	state := BotState{Name: "ci-bot", OwnerID: NewUserID("user-123")}
 	deletedEvt, err := event.NewEvent(
 		eventBotDeleted, botTestAggID, aggregateTypeBot, 2,
 		mustMarshalPayload(t, BotDeletedPayload{Reason: "rotated"}),
@@ -87,7 +87,7 @@ func TestFoldBot_UnknownEvent(t *testing.T) {
 
 func TestDecideRegisterBot_AlreadyExists(t *testing.T) {
 	state := BotState{Name: "existing"}
-	decide := decideRegisterBot(botTestAggID, "new", "owner", []byte{1}, nil)
+	decide := decideRegisterBot(botTestAggID, "new", NewUserID("owner"), []byte{1}, nil)
 	_, err := decide(state, 1)
 	if err == nil {
 		t.Error("expected conflict for already-existing bot")
@@ -95,7 +95,7 @@ func TestDecideRegisterBot_AlreadyExists(t *testing.T) {
 }
 
 func TestDecideRegisterBot_EmptyName(t *testing.T) {
-	decide := decideRegisterBot(botTestAggID, "", "owner", []byte{1}, nil)
+	decide := decideRegisterBot(botTestAggID, "", NewUserID("owner"), []byte{1}, nil)
 	_, err := decide(BotState{}, 1)
 	if err == nil {
 		t.Error("expected rejection for empty name")
@@ -103,7 +103,7 @@ func TestDecideRegisterBot_EmptyName(t *testing.T) {
 }
 
 func TestDecideRegisterBot_EmptyOwner(t *testing.T) {
-	decide := decideRegisterBot(botTestAggID, "bot", "", []byte{1}, nil)
+	decide := decideRegisterBot(botTestAggID, "bot", UserID{}, []byte{1}, nil)
 	_, err := decide(BotState{}, 1)
 	if err == nil {
 		t.Error("expected rejection for empty owner")
@@ -111,7 +111,7 @@ func TestDecideRegisterBot_EmptyOwner(t *testing.T) {
 }
 
 func TestDecideRegisterBot_EmptyTokenHash(t *testing.T) {
-	decide := decideRegisterBot(botTestAggID, "bot", "owner", nil, nil)
+	decide := decideRegisterBot(botTestAggID, "bot", NewUserID("owner"), nil, nil)
 	_, err := decide(BotState{}, 1)
 	if err == nil {
 		t.Error("expected rejection for empty token hash")
@@ -141,7 +141,7 @@ func TestBotReadModel_RegisterAndFind(t *testing.T) {
 
 	evt := makeBotEvent(t, eventBotRegistered, 1, BotRegisteredPayload{
 		Name:      "ci-bot",
-		OwnerID:   "user-123",
+		OwnerID:   NewUserID("user-123"),
 		TokenHash: []byte{0xAA, 0xBB},
 		Scopes:    []string{"read"},
 	})
@@ -171,7 +171,7 @@ func TestBotReadModel_DeleteRemovesFromIndexes(t *testing.T) {
 	ctx := t.Context()
 
 	if err := rm.Handle(ctx, makeBotEvent(t, eventBotRegistered, 1, BotRegisteredPayload{
-		Name: "ci-bot", OwnerID: "u1", TokenHash: []byte{0xAA},
+		Name: "ci-bot", OwnerID: NewUserID("u1"), TokenHash: []byte{0xAA},
 	})); err != nil {
 		t.Fatalf("Handle: %v", err)
 	}

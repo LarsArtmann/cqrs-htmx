@@ -9,13 +9,13 @@ import (
 type RegisterBotCmd struct {
 	aggregateID id.AggregateID
 	name        string
-	ownerID     string
+	ownerID     UserID
 	tokenHash   []byte
 	scopes      []string
 }
 
 func NewRegisterBotCmd(
-	aggID id.AggregateID, name, ownerID string, tokenHash []byte, scopes []string,
+	aggID id.AggregateID, name string, ownerID UserID, tokenHash []byte, scopes []string,
 ) *RegisterBotCmd {
 	return &RegisterBotCmd{
 		aggregateID: aggID,

@@ -233,7 +233,7 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 		return err
 	}
 	view := BotView{
-		Name: bot.Name, OwnerID: bot.OwnerID,
+		Name: bot.Name, OwnerID: bot.OwnerID.Get().String(),
 		TokenHash: string(bot.TokenHash), Deleted: bot.Deleted, Data: data,
 	}
 	if err := m.store.Set(ctx, bid, &view); err != nil {

@@ -10,15 +10,15 @@
 
 ## Health Snapshot (measured this session)
 
-| Check                | Root | usermgmt | adminui | catalog | integration | Examples (4) |
-| -------------------- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Build**            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Tests (`-race`)**  | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| **Lint (0 issues)**  | ✅ | ✅ | ✅ | ✅ | — | — |
-| **ErrorFamily (0)**  | ✅ | ✅ | ✅ | — | — | — |
-| **Coverage**         | 95.6% | 79.5% | 56.4% | 95.3% | — | — |
-| **Test count**       | 95 | 699 | 19 | 41 | 15 | — |
-| **Production LOC**   | ~5.5K | ~10.8K | ~3.6K | ~0.5K | — | — |
+| Check               | Root  | usermgmt | adminui | catalog | integration | Examples (4) |
+| ------------------- | :---: | :------: | :-----: | :-----: | :---------: | :----------: |
+| **Build**           |  ✅   |    ✅    |   ✅    |   ✅    |     ✅      |      ✅      |
+| **Tests (`-race`)** |  ✅   |    ✅    |   ✅    |   ✅    |     ✅      |      —       |
+| **Lint (0 issues)** |  ✅   |    ✅    |   ✅    |   ✅    |      —      |      —       |
+| **ErrorFamily (0)** |  ✅   |    ✅    |   ✅    |    —    |      —      |      —       |
+| **Coverage**        | 95.6% |  79.5%   |  56.4%  |  95.3%  |      —      |      —       |
+| **Test count**      |  95   |   699    |   19    |   41    |     15      |      —       |
+| **Production LOC**  | ~5.5K |  ~10.8K  |  ~3.6K  |  ~0.5K  |      —      |      —       |
 
 **Total: 869 tests passing, race-safe, 0 lint issues, 0 errorfamily violations across all 5 Go modules.**
 
@@ -27,6 +27,7 @@
 ## a) FULLY DONE
 
 ### Session work (this commit window)
+
 - ✅ **Deduplication to zero harmful clones** — `art-dupl --semantic -t 3` reduced from **5 → 3 clone groups**. Two genuine DRY violations extracted:
   - `requireUserIDWithWebAuthnRateLimit` helper collapses the duplicated rate-limit + userID guard in both WebAuthn finish ceremonies (`webauthn_http.go`).
   - `handleTOTPDisable` now delegates to the existing `handleTOTPCode` — it was the lone holdout that copy-pasted the auth/decode/verify body instead of using the shared dispatcher (`verification_totp_http.go`).
@@ -35,6 +36,7 @@
 - ✅ **adminui tenant-info restore** (commit `ff2217c`) — UX regression fix on members page.
 
 ### Library core (root module) — FULLY FUNCTIONAL
+
 - App builder, command/query dispatch, handler options (decode/render/auth/validate/notify/HTMX).
 - Embedded HTMX v2.0.9 JS (`HTMXScriptHandler`, ETag/caching, pluggable).
 - CSRF (justinas/nosurf), rate limiting (token-bucket + heap eviction), security headers, panic recovery, request logging (text/JSON/slog).
@@ -43,6 +45,7 @@
 - go-error-family error classification → HTTP mapping. RFC 7807 StructuredError.
 
 ### usermgmt submodule — FULLY FUNCTIONAL (event-sourced)
+
 - Passwordless WebAuthn (go-webauthn v0.17.4) as sole auth path. No password code.
 - 12 events / 11 commands, pure decide + fold. Read-your-writes via synchronous watermill EventBus.
 - Identity model (ADR-0015): Tenant (4 events), Bot (2), Membership (3), Impersonation, ActorID kind-discriminated union.
@@ -53,12 +56,14 @@
 - Graceful shutdown (`Close`/`GracefulClose`/`Stop`).
 
 ### adminui submodule — SHIPPED (buildable for consumers)
+
 - Ready-made Admin Dashboard (templ + HTMX), one-call mount, two scopes (SuperAdmin/TenantAdmin).
 - Inline SVG icon system (18 glyphs, **no external icon-package dependency**).
 - Auth-agnostic, role-based authorizer, embedded CSS/JS (light/dark), CSRF-ready forms.
 - End-to-end smoke test + CSRF proof + tenant lifecycle flows.
 
 ### catalog submodule + integration_test
+
 - catalog: OpenAPI/AsyncAPI/D2/EventCatalog generation, 95.3% coverage.
 - integration_test: 7 cross-module scenarios (UserID bridge, authz, catalog, CSRF+WebAuthn, crypto E2E, typed dispatch).
 
@@ -88,6 +93,7 @@
 ## d) TOTALLY FUCKED UP
 
 ### 🔴 `adminui/go.mod` + `go.sum` carry a ghost dependency (UNCOMMITTED — see "Top #1 question")
+
 The working tree `adminui/go.mod` and `go.sum` are the **only uncommitted changes** and they **re-introduce the exact ghost dependency** that brutal self-review round 5 (committed in `8091422`) claims to have killed:
 
 ```diff
@@ -100,6 +106,7 @@ The working tree `adminui/go.mod` and `go.sum` are the **only uncommitted change
 This is the **third "committed/near-committed broken" failure** flagged in two days (round 4 = un-generated `_templ.go`; round 5 = ghost import; this = ghost go.mod). If these go.mod/go.sum changes were committed, they'd ship a dependency that builds locally (sibling repo present) but is dead weight / non-resolvable depending on consumer environment. **HEAD is clean and correct; the working-tree drift is the problem.**
 
 ### 🔴 Historical (now fixed, documented for honesty)
+
 - adminui **shipped unbuildable for consumers** from its first commit until `8091422` — `icons.go` imported symbols from an **unreleased** sibling repo. A local `replace` masked it. The 2026-06-27 status report claimed the go.sum drift was "2 cosmetic indirect lines being committed" — that was a **lie** (it was a broken cross-repo coupling, never committed). Fixed by inlining icons. The icon-coverage test (`TestIcons_AllReferencedIconsExist`) correctly guarded this change.
 
 ---
@@ -120,33 +127,33 @@ This is the **third "committed/near-committed broken" failure** flagged in two d
 
 ## f) Top #25 things to get done next
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | **Drop unused `templ-components` from `adminui/go.mod`/`go.sum`** (`go mod tidy`); verify `go.work.sum` | Critical (kills ghost dep) | XS |
-| 2 | **Add consumer-build CI gate** (`GOWORK=off go build ./...` + `go mod tidy -diff` per module) | Critical (prevents recurrence) | S |
-| 3 | Raise **adminui coverage ≥75%** (members/tenants write paths, 403 denial, tenant-scope isolation) | High | M |
-| 4 | Type `ActorID`/`ImpersonatorID` in `context.go` instead of raw `string` | High | S |
-| 5 | Make `foldUser` return error on unknown events (match foldMembership/Tenant/Bot) | High | XS |
-| 6 | Extract `*http.Request` from `webauthn_service.go` (parse in HTTP layer) | High | M |
-| 7 | Use `UserID` branded type for `BotState.OwnerID` (+ events/readmodel/service) | High | S |
-| 8 | Use `TenantID` in Authz domain parameters (authz_roles.go, authz_policies.go) | High | S |
-| 9 | Consolidate duplicate `ErrUnauthorized` sentinels across root/usermgmt | Medium | S |
-| 10 | Make `TenantState` impossible-states unrepresentable (prevent `Suspended+Deleted`) | Medium | XS |
-| 11 | Wire OpenTelemetry via go-cqrs-lite v3 otel module | Medium | M |
-| 12 | Define interfaces for the 6 ephemeral in-memory stores (multi-instance) | Medium | M |
-| 13 | Use `Email` branded type in domain model structs (not just ExportUser) | Medium | S |
-| 14 | Wire snapshot integration (`go-cqrs-lite/snapshot/v3`) to cut startup replay | Medium | M |
-| 15 | Add v2→v3 consumer migration guide | Medium | S |
-| 16 | `LastEventIDFromRequest` should delegate to `SSEStream.LastEventID()` (dedup) | Low | XS |
-| 17 | Add godoc examples for `App`, `Handler`, `Service` entry points | Medium | S |
-| 18 | Add `VERSIONING.md` documenting semver policy | Low | XS |
-| 19 | Remove deprecated `ClientIP()` wrapper (delegates to httputil) | Low | XS |
-| 20 | Service-level impersonation tests through full dispatch | High | M |
-| 21 | Service-level membership tests through full dispatch | High | M |
-| 22 | Projection-replay integration test (journal vs live dedup) | Medium | M |
-| 23 | Property-based tests for foldTenant/foldBot/foldMembership | Medium | M |
-| 24 | Redis session store + OAuth2 state store (multi-instance readiness) | Medium | L |
-| 25 | Enable `revive:exported` linter + fix violations | Low | S |
+| #   | Task                                                                                                    | Impact                         | Effort |
+| --- | ------------------------------------------------------------------------------------------------------- | ------------------------------ | ------ |
+| 1   | **Drop unused `templ-components` from `adminui/go.mod`/`go.sum`** (`go mod tidy`); verify `go.work.sum` | Critical (kills ghost dep)     | XS     |
+| 2   | **Add consumer-build CI gate** (`GOWORK=off go build ./...` + `go mod tidy -diff` per module)           | Critical (prevents recurrence) | S      |
+| 3   | Raise **adminui coverage ≥75%** (members/tenants write paths, 403 denial, tenant-scope isolation)       | High                           | M      |
+| 4   | Type `ActorID`/`ImpersonatorID` in `context.go` instead of raw `string`                                 | High                           | S      |
+| 5   | Make `foldUser` return error on unknown events (match foldMembership/Tenant/Bot)                        | High                           | XS     |
+| 6   | Extract `*http.Request` from `webauthn_service.go` (parse in HTTP layer)                                | High                           | M      |
+| 7   | Use `UserID` branded type for `BotState.OwnerID` (+ events/readmodel/service)                           | High                           | S      |
+| 8   | Use `TenantID` in Authz domain parameters (authz_roles.go, authz_policies.go)                           | High                           | S      |
+| 9   | Consolidate duplicate `ErrUnauthorized` sentinels across root/usermgmt                                  | Medium                         | S      |
+| 10  | Make `TenantState` impossible-states unrepresentable (prevent `Suspended+Deleted`)                      | Medium                         | XS     |
+| 11  | Wire OpenTelemetry via go-cqrs-lite v3 otel module                                                      | Medium                         | M      |
+| 12  | Define interfaces for the 6 ephemeral in-memory stores (multi-instance)                                 | Medium                         | M      |
+| 13  | Use `Email` branded type in domain model structs (not just ExportUser)                                  | Medium                         | S      |
+| 14  | Wire snapshot integration (`go-cqrs-lite/snapshot/v3`) to cut startup replay                            | Medium                         | M      |
+| 15  | Add v2→v3 consumer migration guide                                                                      | Medium                         | S      |
+| 16  | `LastEventIDFromRequest` should delegate to `SSEStream.LastEventID()` (dedup)                           | Low                            | XS     |
+| 17  | Add godoc examples for `App`, `Handler`, `Service` entry points                                         | Medium                         | S      |
+| 18  | Add `VERSIONING.md` documenting semver policy                                                           | Low                            | XS     |
+| 19  | Remove deprecated `ClientIP()` wrapper (delegates to httputil)                                          | Low                            | XS     |
+| 20  | Service-level impersonation tests through full dispatch                                                 | High                           | M      |
+| 21  | Service-level membership tests through full dispatch                                                    | High                           | M      |
+| 22  | Projection-replay integration test (journal vs live dedup)                                              | Medium                         | M      |
+| 23  | Property-based tests for foldTenant/foldBot/foldMembership                                              | Medium                         | M      |
+| 24  | Redis session store + OAuth2 state store (multi-instance readiness)                                     | Medium                         | L      |
+| 25  | Enable `revive:exported` linter + fix violations                                                        | Low                            | S      |
 
 ---
 

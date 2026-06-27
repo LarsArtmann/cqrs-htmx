@@ -25,7 +25,7 @@ func TestService_RegisterBot_Success(t *testing.T) {
 	result, err := svc.RegisterBot(ctx, RegisterBotRequest{
 		ID:      botID,
 		Name:    "deploy-bot",
-		OwnerID: "owner-1",
+		OwnerID: NewUserID("owner-1"),
 		Scopes:  []string{"deploy", "read"},
 	})
 	if err != nil {
@@ -91,7 +91,7 @@ func TestService_ResolveBotByToken(t *testing.T) {
 	result, err := svc.RegisterBot(ctx, RegisterBotRequest{
 		ID:      NewBotID(id.NewAggregateID().String()),
 		Name:    "resolver-bot",
-		OwnerID: "owner-1",
+		OwnerID: NewUserID("owner-1"),
 	})
 	if err != nil {
 		t.Fatalf("RegisterBot: %v", err)
@@ -124,7 +124,7 @@ func TestService_DeleteBot(t *testing.T) {
 	_, err := svc.RegisterBot(ctx, RegisterBotRequest{
 		ID:      botID,
 		Name:    "delete-bot",
-		OwnerID: "owner-1",
+		OwnerID: NewUserID("owner-1"),
 	})
 	if err != nil {
 		t.Fatalf("RegisterBot: %v", err)
