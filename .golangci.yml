@@ -91,6 +91,7 @@ linters:
         - .+\.fakeTracer$
         - .+\.cidCapture$
         - .+\.SSEEvent$
+        - .+\.lockedRecorder$
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true
