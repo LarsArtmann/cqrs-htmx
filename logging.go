@@ -56,6 +56,8 @@ var jsonLogBufferPool = sync.Pool{
 	New: func() any { return new(bytes.Buffer) },
 }
 
+// JSONLogFormatter formats an HTTP request log entry as a JSON string.
+// Uses a sync.Pool'd buffer for allocation efficiency across requests.
 func JSONLogFormatter(r *http.Request, status int, duration time.Duration) string {
 	entry := make(map[string]any, 7)
 	entry["method"] = r.Method
