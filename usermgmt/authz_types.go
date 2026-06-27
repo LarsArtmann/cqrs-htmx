@@ -45,6 +45,14 @@ const (
 	RoleOwner Role = "owner"
 )
 
+// AssignableRoles returns the roles that can be granted to a member within a
+// tenant — i.e. every role except super_admin, which is global-only. This is
+// the single source of truth for role-picker UIs; iterate it instead of
+// hardcoding option lists.
+func AssignableRoles() []Role {
+	return []Role{RoleViewer, RoleUser, RoleAdmin, RoleOwner}
+}
+
 const defaultModel = `[request_definition]
 r = sub, dom, obj, act
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -87,4 +88,15 @@ func capList[T any](in []T) ([]T, int) {
 		return in, total
 	}
 	return in[:MaxListRows], total
+}
+
+// selectedAttr returns "selected" when role is in current, empty otherwise.
+// Used by templ to render the selected attribute on <option> elements.
+func selectedAttr(current []usermgmt.Role, role usermgmt.Role) string {
+	for _, r := range current {
+		if r == role {
+			return "selected"
+		}
+	}
+	return ""
 }

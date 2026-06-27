@@ -23,9 +23,11 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *use
 	renderPage(w, r, membersPage(p, tenantDetailData{
 		Tenant:           tenant,
 		Members:          members,
+		AssignableRoles:  usermgmt.AssignableRoles(),
 		BasePath:         h.cfg.BasePath,
 		AddMemberURL:     memberBase,
 		RemoveMemberBase: memberBase,
+		UpdateRoleBase:   memberBase,
 	}))
 }
 
@@ -95,6 +97,41 @@ func (h *Handler) doRemoveMember(
 		triggerToast(w, "err", "Remove failed: "+err.Error())
 	} else {
 		triggerToast(w, "ok", "Member removed")
+	}
+	redirect(w, r, back)
+}
+
+// membersUpdateRole handles "change role" in tenant-admin mode.
+func (h *Handler) membersUpdateRole(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+	actor := usermgmt.ParseActorID(r.PathValue("actor"))
+	h.doUpdateRole(w, r, h.cfg.TenantID, actor, h.cfg.BasePath+"/members")
+}
+
+// tenantUpdateMemberRole handles "change role" in super-admin mode.
+func (h *Handler) tenantUpdateMemberRole(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+	tenantID := usermgmt.NewTenantID(r.PathValue("id"))
+	actor := usermgmt.ParseActorID(r.PathValue("actor"))
+	h.doUpdateRole(w, r, tenantID, actor, h.cfg.BasePath+"/tenants/"+tenantID.Get())
+}
+
+func (h *Handler) doUpdateRole(
+	w http.ResponseWriter, r *http.Request,
+	tenantID usermgmt.TenantID, actor usermgmt.ActorID, back string,
+) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "invalid form", http.StatusBadRequest)
+		return
+	}
+	role := usermgmt.Role(strings.TrimSpace(r.FormValue("role")))
+	if role == "" {
+		triggerToast(w, "err", "Role is required")
+		redirect(w, r, back)
+		return
+	}
+	if err := h.cfg.Service.UpdateMemberRoles(r.Context(), actor, tenantID, []usermgmt.Role{role}); err != nil {
+		triggerToast(w, "err", "Role update failed: "+err.Error())
+	} else {
+		triggerToast(w, "ok", "Role updated")
 	}
 	redirect(w, r, back)
 }

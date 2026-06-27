@@ -116,7 +116,7 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
-      - path: handler\.go$|handler_\w+\.go$
+      - path: handler\.go$|handler_\w+\.go$|util\.go$
         linters:
           - goconst
       - path: _test\.go

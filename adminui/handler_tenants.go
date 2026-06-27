@@ -65,9 +65,11 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *use
 	renderPage(w, r, tenantDetailPage(p, tenantDetailData{
 		Tenant:           tenant,
 		Members:          members,
+		AssignableRoles:  usermgmt.AssignableRoles(),
 		BasePath:         h.cfg.BasePath,
 		AddMemberURL:     memberBase,
 		RemoveMemberBase: memberBase,
+		UpdateRoleBase:   memberBase,
 	}))
 }
 

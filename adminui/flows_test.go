@@ -163,3 +163,45 @@ func TestSafeRedirectPath_RejectsOpenRedirect(t *testing.T) {
 		}
 	}
 }
+
+func TestFlow_UpdateMemberRole(t *testing.T) {
+	ctx := context.Background()
+	user := mustUser(t, "admin@example.com")
+	h, svc := newTestPanel(t, user)
+
+	tenant, err := svc.CreateTenant(ctx, usermgmt.CreateTenantRequest{
+		ID: usermgmt.NewTenantID("delta"), Name: "delta", DisplayName: "Delta",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	member, err := svc.Register(ctx, usermgmt.RegisterRequest{
+		ID: usermgmt.NewUserID("u-role1"), Email: "role1@example.com",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.AddMember(
+		ctx,
+		usermgmt.ActorIDFromUser(member.User.ID),
+		tenant.ID,
+		[]usermgmt.Role{usermgmt.RoleViewer},
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// Change role from viewer to admin via inline edit endpoint.
+	actor := usermgmt.ActorIDFromUser(member.User.ID).PrefixedString()
+	rec := postForm(h, "/admin/tenants/delta/members/"+actor, url.Values{"role": {"admin"}})
+	if rec.Header().Get("HX-Redirect") != "/admin/tenants/delta" {
+		t.Fatalf("update role HX-Redirect = %q", rec.Header().Get("HX-Redirect"))
+	}
+
+	members := svc.TenantMembers(ctx, tenant.ID)
+	if len(members) != 1 {
+		t.Fatalf("expected 1 member, got %d", len(members))
+	}
+	if len(members[0].Roles) != 1 || members[0].Roles[0] != usermgmt.RoleAdmin {
+		t.Errorf("role = %v, want [admin]", members[0].Roles)
+	}
+}

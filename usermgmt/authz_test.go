@@ -312,3 +312,23 @@ func newTestAuthz(t *testing.T, extra ...Policy) *Authz {
 	}
 	return a
 }
+
+func TestAssignableRoles(t *testing.T) {
+	t.Parallel()
+	roles := AssignableRoles()
+	if len(roles) != 4 {
+		t.Fatalf("AssignableRoles returned %d, want 4", len(roles))
+	}
+	for _, r := range roles {
+		if r == RoleSuperAdmin {
+			t.Error("AssignableRoles should not include super_admin (global-only)")
+		}
+	}
+	// Must include the core assignable roles.
+	want := map[Role]bool{RoleViewer: true, RoleUser: true, RoleAdmin: true, RoleOwner: true}
+	for _, r := range roles {
+		if !want[r] {
+			t.Errorf("unexpected role %q", r)
+		}
+	}
+}
