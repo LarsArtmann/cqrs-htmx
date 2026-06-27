@@ -72,7 +72,7 @@ type tenantDetailData struct {
 
 // memberRow is a flattened membership for display.
 type memberRow struct {
-	Actor string
+	Actor usermgmt.ActorID
 	Roles []usermgmt.Role
 }
 

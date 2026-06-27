@@ -15,7 +15,7 @@ templ membersCard(d tenantDetailData) {
 					<tbody>
 						for _, m := range d.Members {
 							<tr>
-								<td class="mono">{ m.Actor }</td>
+								<td class="mono">{ m.Actor.PrefixedString() }</td>
 								<td>
 									<div class="badge-row">
 										for _, r := range m.Roles {
@@ -26,9 +26,9 @@ templ membersCard(d tenantDetailData) {
 								<td style="text-align:right">
 									<button
 										class="btn btn--ghost btn--sm"
-										hx-post={ d.RemoveMemberBase + "/" + m.Actor + "/delete" }
-										hx-confirm={ "Remove " + m.Actor + " from this tenant?" }
-										data-confirm={ "Remove " + m.Actor + " from this tenant?" }
+										hx-post={ d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete" }
+										hx-confirm={ "Remove " + m.Actor.PrefixedString() + " from this tenant?" }
+										data-confirm={ "Remove " + m.Actor.PrefixedString() + " from this tenant?" }
 									>
 										@icon("trash")
 									</button>
