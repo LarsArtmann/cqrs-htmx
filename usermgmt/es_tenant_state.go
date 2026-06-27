@@ -57,6 +57,8 @@ func foldTenant(state TenantState, evt event.Event) (TenantState, error) {
 			return state, err
 		}
 		next.Deleted = true
+		next.Suspended = false
+		next.SuspendReason = ""
 		next.DeleteReason = p.Reason
 
 	default:

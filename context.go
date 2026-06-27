@@ -144,31 +144,39 @@ func UserIDFromContext(ctx context.Context) UserID {
 	return v
 }
 
+// ActorID is a strongly-typed identifier for the effective actor (user or bot)
+// in the request context. The string form is a prefixed ID like "user:01JX...".
+type ActorID string
+
+// ImpersonatorID is a strongly-typed identifier for the real actor (the admin)
+// performing an impersonation.
+type ImpersonatorID string
+
 // WithActorID stores the effective actor ID in the context.
 // This is who the request ACTS AS — the target user in impersonation,
 // or the authenticated user in direct login.
-func WithActorID(ctx context.Context, actorID string) context.Context {
+func WithActorID(ctx context.Context, actorID ActorID) context.Context {
 	return context.WithValue(ctx, actorIDKey{}, actorID)
 }
 
 // ActorIDFromContext retrieves the effective actor ID stored by WithActorID.
-// Returns empty string if no actor ID is present.
-func ActorIDFromContext(ctx context.Context) string {
-	v, _ := ctx.Value(actorIDKey{}).(string)
+// Returns the zero value (empty string) if no actor ID is present.
+func ActorIDFromContext(ctx context.Context) ActorID {
+	v, _ := ctx.Value(actorIDKey{}).(ActorID)
 	return v
 }
 
 // WithImpersonatorID stores the real actor (impersonator) in the context.
 // When set, the request is an impersonation: ActorID is the target,
 // ImpersonatorID is the admin acting on their behalf.
-func WithImpersonatorID(ctx context.Context, impersonatorID string) context.Context {
+func WithImpersonatorID(ctx context.Context, impersonatorID ImpersonatorID) context.Context {
 	return context.WithValue(ctx, impersonatorIDKey{}, impersonatorID)
 }
 
 // ImpersonatorIDFromContext retrieves the impersonator ID stored by WithImpersonatorID.
-// Returns empty string if not an impersonation request.
-func ImpersonatorIDFromContext(ctx context.Context) string {
-	v, _ := ctx.Value(impersonatorIDKey{}).(string)
+// Returns the zero value (empty string) if not an impersonation request.
+func ImpersonatorIDFromContext(ctx context.Context) ImpersonatorID {
+	v, _ := ctx.Value(impersonatorIDKey{}).(ImpersonatorID)
 	return v
 }
 
@@ -191,10 +199,10 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 	// ImpersonatorID = who is REALLY authenticated (the admin).
 	// When both are set, every event carries the full chain for compliance queries.
 	if actorID := ActorIDFromContext(ctx); actorID != "" {
-		opts = append(opts, event.WithCustom(MetadataKeyActorID, actorID))
+		opts = append(opts, event.WithCustom(MetadataKeyActorID, string(actorID)))
 	}
 	if impersonatorID := ImpersonatorIDFromContext(ctx); impersonatorID != "" {
-		opts = append(opts, event.WithCustom(MetadataKeyImpersonatorID, impersonatorID))
+		opts = append(opts, event.WithCustom(MetadataKeyImpersonatorID, string(impersonatorID)))
 	}
 
 	if cid := CorrelationIDFromContext(ctx); !cid.IsZero() {
