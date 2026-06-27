@@ -82,12 +82,7 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 			"decode totp secret", err)
 	}
 	// Store the pending secret temporarily
-	s.pendingTOTP.mu.Lock()
-	s.pendingTOTP.secrets[userID.Get().String()] = pendingTOTPSecret{
-		secret:    rawSecret,
-		expiresAt: time.Now().Add(5 * time.Minute),
-	}
-	s.pendingTOTP.mu.Unlock()
+	s.pendingTOTP.Save(userID.Get().String(), rawSecret, 5*time.Minute)
 	s.logAuth("totp_setup_initiated", userID)
 	return &TOTPSetupResponse{
 		Secret:    key.Secret(),
@@ -101,17 +96,12 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 	if s.totpConfig == nil {
 		return ErrTOTPNotConfigured
 	}
-	s.pendingTOTP.mu.Lock()
-	pending, ok := s.pendingTOTP.secrets[userID.Get().String()]
-	if ok {
-		delete(s.pendingTOTP.secrets, userID.Get().String())
-	}
-	s.pendingTOTP.mu.Unlock()
-	if !ok || time.Now().After(pending.expiresAt) {
+	secret, ok := s.pendingTOTP.Consume(userID.Get().String())
+	if !ok {
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "setup_expired")
 		return ErrTOTPSetupExpired
 	}
-	if !validateTOTP(pending.secret, code, s.totpConfig.Window) {
+	if !validateTOTP(secret, code, s.totpConfig.Window) {
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "invalid_code")
 		return ErrInvalidTOTPCode
 	}
@@ -120,7 +110,7 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "invalid_user_id")
 		return event.WrapInfrastructure(err, "usermgmt.totp.userid_conversion_failed", "convert userID")
 	}
-	if err := s.dispatcher.Dispatch(ctx, NewEnableTOTPCmd(aggID, pending.secret)); err != nil {
+	if err := s.dispatcher.Dispatch(ctx, NewEnableTOTPCmd(aggID, secret)); err != nil {
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "dispatch_error")
 		return event.Wrapf(err, event.Classify(err),
 			"usermgmt.totp.dispatch_failed", "enable totp dispatch")
@@ -211,6 +201,31 @@ const pendingTTOTPEvictionInterval = 1 * time.Minute
 func newPendingTOTPStore() pendingTOTPStore {
 	return pendingTOTPStore{ //nolint:exhaustruct // mu is zero-value
 		secrets: make(map[string]pendingTOTPSecret)}
+}
+
+// Save stores a pending TOTP secret for the given user with a TTL.
+func (s *pendingTOTPStore) Save(userID string, secret []byte, ttl time.Duration) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.secrets[userID] = pendingTOTPSecret{
+		secret:    secret,
+		expiresAt: time.Now().Add(ttl),
+	}
+}
+
+// Consume removes and returns the pending TOTP secret for the given user.
+// Returns (nil, false) if not found or expired.
+func (s *pendingTOTPStore) Consume(userID string) ([]byte, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	pending, ok := s.secrets[userID]
+	if ok {
+		delete(s.secrets, userID)
+	}
+	if !ok || time.Now().After(pending.expiresAt) {
+		return nil, false
+	}
+	return pending.secret, true
 }
 
 // EvictExpired removes all pending TOTP secrets whose expiry time has passed.
