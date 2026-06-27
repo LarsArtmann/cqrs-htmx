@@ -1,0 +1,61 @@
+package adminui
+
+templ Layout(p pageData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<meta name="color-scheme" content="light dark"/>
+			<meta name="robots" content="noindex"/>
+			<title>{ p.Title } · { p.Brand }</title>
+			<style>:root&#123;--accent:{ p.Accent };&#125;</style>
+			<link rel="stylesheet" href={ p.BasePath + "/-/admin.css" }/>
+			<script src={ p.BasePath + "/-/htmx.js" }></script>
+		</head>
+		<body>
+			<div class="admin-layout">
+				<aside class="admin-sidebar">
+					<div class="admin-sidebar__brand">
+						<span class="dot">{ initials(p.Brand) }</span>
+						{ p.Brand }
+					</div>
+					<nav class="admin-nav">
+						for _, item := range p.Nav {
+							<a
+								href={ p.BasePath + item.Href }
+								class={ "admin-nav__item", templ.KV("admin-nav__item--active", item.Active) }
+							>
+								<span class="admin-nav__icon">@icon(item.Icon)</span>
+								{ item.Label }
+							</a>
+						}
+					</nav>
+					<div class="admin-sidebar__footer">cqrs-htmx admin</div>
+				</aside>
+				<div class="admin-main">
+					<header class="admin-topbar">
+						<button class="admin-toggle" aria-label="Menu">@icon("menu")</button>
+						<div class="admin-topbar__title">{ p.Title }</div>
+						<div class="admin-topbar__spacer"></div>
+						if p.User != nil {
+							<div class="admin-topbar__user">
+								<span class="avatar">{ initials(p.User.Email) }</span>
+								{ p.User.Email }
+							</div>
+							if p.LogoutURL != "" {
+								<a class="btn btn--ghost btn--sm" href={ p.LogoutURL }>@icon("logout") Sign out</a>
+							}
+						}
+					</header>
+					<main class="admin-content">
+						{ children... }
+					</main>
+				</div>
+			</div>
+			<div class="admin-scrim"></div>
+			@toastHost()
+			<script src={ p.BasePath + "/-/admin.js" }></script>
+		</body>
+	</html>
+}

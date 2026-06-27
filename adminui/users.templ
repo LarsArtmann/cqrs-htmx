@@ -1,0 +1,180 @@
+package adminui
+
+import "strconv"
+
+templ usersPage(p pageData, d usersListData) {
+	@Layout(p) {
+		@usersContent(d)
+	}
+}
+
+templ usersContent(d usersListData) {
+	<div class="admin-content__head">
+		<h1>Users</h1>
+	</div>
+	<div class="toolbar">
+		<form
+			class="search"
+			hx-get={ d.BasePath + "/users" }
+			hx-target="#users-table"
+			hx-select="#users-table"
+			hx-swap="outerHTML"
+			hx-trigger="submit, keyup changed delay:350ms from:find input[name=q]"
+			hx-push-url="true"
+		>
+			<span class="search__icon">@icon("search")</span>
+			<input class="input" type="search" name="q" value={ d.Search } placeholder="Search users…" autocomplete="off"/>
+		</form>
+		<div class="spacer"></div>
+	</div>
+	<div class="card card--flush">
+		<div id="users-table">@usersTable(d)</div>
+	</div>
+}
+
+templ usersTable(d usersListData) {
+	if len(d.Users) == 0 {
+		@empty("users", "No users found", "Registered users will appear here.")
+	} else {
+		<div class="table-wrap">
+			<table class="data">
+				<thead>
+					<tr><th>User</th><th>Status</th><th>Created</th><th></th></tr>
+				</thead>
+				<tbody>
+					for _, u := range d.Users {
+						<tr>
+							<td>
+								<a class="row-link" href={ d.BasePath + "/users/" + u.ID.Get().String() }>
+									<div style="display:flex;align-items:center;gap:10px">
+										<span class="avatar">{ initials(u.Email) }</span>
+										<div>
+											<div class="cell-primary">{ u.Email }</div>
+											if u.DisplayName != "" {
+												<div class="cell-sub">{ u.DisplayName }</div>
+											}
+										</div>
+									</div>
+								</a>
+							</td>
+							<td>
+								<div class="badge-row">
+									if u.EmailVerified {
+										@badge("verified", "green")
+									} else {
+										@badge("unverified", "")
+									}
+									if u.TOTPEnabled {
+										@badge("MFA", "blue")
+									}
+								</div>
+							</td>
+							<td class="muted">{ relTime(u.CreatedAt) }</td>
+							<td style="text-align:right">
+								<a class="btn btn--ghost btn--sm" href={ d.BasePath + "/users/" + u.ID.Get().String() }>View</a>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+templ userDetailPage(p pageData, d userDetailData) {
+	@Layout(p) {
+		<div class="admin-content__head">
+			<a class="btn btn--ghost btn--sm" href={ d.BasePath + "/users" }>← Users</a>
+			<div class="spacer"></div>
+		</div>
+		<div style="display:flex;align-items:center;gap:16px;margin-bottom:22px">
+			<span class="avatar" style="width:52px;height:52px;font-size:18px;border-radius:14px">{ initials(d.User.Email) }</span>
+			<div>
+				<h1>{ d.User.Email }</h1>
+				if d.User.DisplayName != "" {
+					<div class="muted">{ d.User.DisplayName }</div>
+				}
+			</div>
+		</div>
+		<div class="stat-grid" style="margin-bottom:22px">
+			<div class="card"><div class="card__body">
+				<div class="cell-sub">Credentials</div>
+				<div class="stat-card__value">{ strconv.Itoa(len(d.User.Credentials)) }</div>
+			</div></div>
+			<div class="card"><div class="card__body">
+				<div class="cell-sub">External accounts</div>
+				<div class="stat-card__value">{ strconv.Itoa(len(d.User.ExternalAccounts)) }</div>
+			</div></div>
+			<div class="card"><div class="card__body">
+				<div class="cell-sub">Member since</div>
+				<div class="stat-card__value" style="font-size:16px">{ d.User.CreatedAt.Format("Jan 2, 2006") }</div>
+			</div></div>
+		</div>
+		<div class="card" style="margin-bottom:18px">
+			<div class="card__header"><span class="card__title">Details</span></div>
+			<div class="card__body">
+				<dl class="kv">
+					<dt>User ID</dt><dd class="mono">{ d.User.ID.Get().String() }</dd>
+					<dt>Email</dt><dd>{ d.User.Email }</dd>
+					<dt>Verified</dt>
+					<dd>
+						if d.User.EmailVerified {
+							@badge("verified", "green")
+						} else {
+							@badge("unverified", "")
+						}
+					</dd>
+					<dt>TOTP MFA</dt>
+					<dd>
+						if d.User.TOTPEnabled {
+							@badge("enabled", "blue")
+						} else {
+							@badge("disabled", "")
+						}
+					</dd>
+				</dl>
+			</div>
+		</div>
+		if len(d.TenantRoles) > 0 {
+			<div class="card" style="margin-bottom:18px">
+				<div class="card__header"><span class="card__title">Roles & memberships</span></div>
+				<div class="card__body">
+					<div class="table-wrap">
+						<table class="data">
+							<thead><tr><th>Tenant</th><th>Roles</th></tr></thead>
+							<tbody>
+								for tenant, roles := range d.TenantRoles {
+									<tr>
+										<td class="mono">{ tenant }</td>
+										<td>
+											<div class="badge-row">
+												for _, r := range roles {
+													@roleBadge(string(r))
+												}
+											</div>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		}
+		<div class="card">
+			<div class="card__header"><span class="card__title" style="color:var(--err)">Danger zone</span></div>
+			<div class="card__body" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+				<div class="muted">Deleting a user tombstones the account and revokes all sessions. This cannot be undone.</div>
+				<div class="spacer" style="flex:1"></div>
+				<button
+					class="btn btn--danger btn--sm"
+					hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete" }
+					hx-confirm={ "Delete user " + d.User.Email + "?" }
+					data-confirm={ "Delete user " + d.User.Email + "? This cannot be undone." }
+				>
+					@icon("trash") Delete user
+				</button>
+			</div>
+		</div>
+	}
+}

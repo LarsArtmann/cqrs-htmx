@@ -1,0 +1,46 @@
+package adminui
+
+templ dashboardPage(p pageData, d dashboardData) {
+	@Layout(p) {
+		@dashboardContent(d)
+	}
+}
+
+templ dashboardContent(d dashboardData) {
+	<div class="stat-grid">
+		for _, s := range d.Stats {
+			@statCardView(s)
+		}
+	</div>
+	<div class="card">
+		<div class="card__header">
+			<span class="card__title">Recent activity</span>
+		</div>
+		if len(d.Recent) == 0 {
+			@empty("audit", "No activity yet", "User and tenant events will appear here.")
+		} else {
+			<div class="table-wrap">
+				<table class="data">
+					<thead>
+						<tr><th>Action</th><th>Who</th><th>When</th></tr>
+					</thead>
+					<tbody>
+						for _, e := range d.Recent {
+							<tr>
+								<td><span class="badge badge--accent">{ e.Action }</span></td>
+								<td>
+									if e.Email != "" {
+										<span class="cell-primary">{ e.Email }</span>
+									} else {
+										<span class="mono">{ e.AggregateID.String() }</span>
+									}
+								</td>
+								<td class="muted">{ relTime(e.OccurredAt) }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	</div>
+}

@@ -38,6 +38,7 @@ examples/basic/basic
 examples/datastar-demo/datastar-demo
 examples/catalog-demo/catalog-demo
 examples/catalog-demo/eventcatalog/
+examples/admin-demo/admin-demo
 # Nix build output
 /result
 # Generated reports (buildflow coverage / jscpd / lint output)
@@ -45,3 +46,5 @@ examples/catalog-demo/eventcatalog/
 /report/
 # Build artifacts
 /v3
+# Add pattern for Templ generated files
+*_templ.go

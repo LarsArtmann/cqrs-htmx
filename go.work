@@ -1,8 +1,10 @@
-go 1.26.3
+go 1.26.4
 
 use (
 	.
+	./adminui
 	./catalog
+	./examples/admin-demo
 	./examples/basic
 	./examples/catalog-demo
 	./examples/datastar-demo

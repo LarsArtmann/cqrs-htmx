@@ -1,0 +1,137 @@
+package adminui
+
+templ tenantsPage(p pageData, d tenantsListData) {
+	@Layout(p) {
+		@tenantsContent(d)
+	}
+}
+
+templ tenantsContent(d tenantsListData) {
+	<div class="admin-content__head">
+		<h1>Tenants</h1>
+		<div class="spacer"></div>
+		<a class="btn btn--primary btn--sm" href={ d.BasePath + "/tenants/new" }>@icon("plus") New tenant</a>
+	</div>
+	<div class="card card--flush">
+		@tenantsTable(d)
+	</div>
+}
+
+templ tenantsTable(d tenantsListData) {
+	if len(d.Tenants) == 0 {
+		@empty("tenants", "No tenants yet", "Create a tenant to scope roles and memberships.")
+	} else {
+		<div class="table-wrap">
+			<table class="data">
+				<thead><tr><th>Name</th><th>Status</th><th></th></tr></thead>
+				<tbody>
+					for _, t := range d.Tenants {
+						<tr>
+							<td>
+								<a class="row-link" href={ d.BasePath + "/tenants/" + t.ID.Get() }>
+									<span class="cell-primary">{ t.DisplayName }</span>
+									<span class="cell-sub mono">{ t.Name }</span>
+								</a>
+							</td>
+							<td>
+								if t.Suspended {
+									@badge("suspended", "amber")
+								} else if t.Deleted {
+									@badge("deleted", "red")
+								} else {
+									@badge("active", "green")
+								}
+							</td>
+							<td style="text-align:right">
+								<a class="btn btn--ghost btn--sm" href={ d.BasePath + "/tenants/" + t.ID.Get() }>Manage</a>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+templ tenantNewPage(p pageData, basePath string) {
+	@Layout(p) {
+		<div class="admin-content__head">
+			<a class="btn btn--ghost btn--sm" href={ basePath + "/tenants" }>← Tenants</a>
+		</div>
+		<h1 style="margin-bottom:18px">New tenant</h1>
+		<div class="card" style="max-width:520px">
+			<div class="card__body">
+				<form hx-post={ basePath + "/tenants" } hx-target="this">
+					<div class="field">
+						<label class="field__label" for="name">Name</label>
+						<input class="input" id="name" name="name" required placeholder="acme-corp"/>
+						<div class="field__hint">A unique, URL-safe identifier.</div>
+					</div>
+					<div class="field">
+						<label class="field__label" for="display_name">Display name</label>
+						<input class="input" id="display_name" name="display_name" placeholder="Acme Corporation"/>
+					</div>
+					<div style="display:flex;gap:10px">
+						<button class="btn btn--primary" type="submit">Create tenant</button>
+						<a class="btn btn--ghost" href={ basePath + "/tenants" }>Cancel</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+templ tenantDetailPage(p pageData, d tenantDetailData) {
+	@Layout(p) {
+		<div class="admin-content__head">
+			<a class="btn btn--ghost btn--sm" href={ d.BasePath + "/tenants" }>← Tenants</a>
+			<div class="spacer"></div>
+			if d.Tenant.Suspended {
+				@badge("suspended", "amber")
+			} else if d.Tenant.Deleted {
+				@badge("deleted", "red")
+			} else {
+				@badge("active", "green")
+			}
+		</div>
+		<h1 style="margin-bottom:4px">{ d.Tenant.DisplayName }</h1>
+		<div class="muted mono" style="margin-bottom:22px">{ d.Tenant.Name }</div>
+		<div class="card" style="margin-bottom:18px">
+			<div class="card__header"><span class="card__title">Members</span></div>
+			if len(d.Members) == 0 {
+				@empty("members", "No members", "Add users to this tenant via memberships.")
+			} else {
+				<div class="table-wrap">
+					<table class="data">
+						<thead><tr><th>Actor</th><th>Roles</th></tr></thead>
+						<tbody>
+							for _, m := range d.Members {
+								<tr>
+									<td class="mono">{ m.Actor }</td>
+									<td>
+										<div class="badge-row">
+											for _, r := range m.Roles {
+												@roleBadge(string(r))
+											}
+										</div>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</div>
+		<div class="card">
+			<div class="card__header"><span class="card__title" style="color:var(--err)">Danger zone</span></div>
+			<div class="card__body" style="display:flex;gap:10px;flex-wrap:wrap">
+				if d.Tenant.Suspended {
+					<button class="btn btn--primary btn--sm" hx-post={ d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate" } hx-confirm="Reactivate this tenant?">Reactivate</button>
+				} else {
+					<button class="btn btn--sm" hx-post={ d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend" } hx-confirm="Suspend this tenant?">Suspend</button>
+				}
+				<button class="btn btn--danger btn--sm" hx-post={ d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete" } data-confirm="Delete this tenant and remove all memberships? This cannot be undone.">@icon("trash") Delete</button>
+			</div>
+		</div>
+	}
+}

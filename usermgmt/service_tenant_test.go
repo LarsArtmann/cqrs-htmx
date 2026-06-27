@@ -157,3 +157,45 @@ func TestService_AllTenants(t *testing.T) {
 		t.Errorf("AllTenants returned %d, want at least 2", len(all))
 	}
 }
+
+func TestService_TenantMembers(t *testing.T) {
+	t.Parallel()
+
+	svc := newTestService(t)
+	t.Cleanup(svc.Stop)
+	ctx := context.Background()
+
+	tenantID := NewTenantID(id.NewAggregateID().String())
+	if _, err := svc.CreateTenant(ctx, CreateTenantRequest{ID: tenantID, Name: "acme"}); err != nil {
+		t.Fatalf("CreateTenant: %v", err)
+	}
+
+	// Empty tenant has no members.
+	if got := svc.TenantMembers(ctx, tenantID); len(got) != 0 {
+		t.Errorf("empty tenant members = %d, want 0", len(got))
+	}
+
+	// Add two members with different roles.
+	alice := registerTestUser(t, svc, "alice-tm", "alice-tm@example.com")
+	bob := registerTestUser(t, svc, "bob-tm", "bob-tm@example.com")
+	if err := svc.dispatcher.Dispatch(ctx, NewAddMemberCmd(
+		ActorIDFromUser(alice.User.ID), tenantID, []Role{RoleAdmin},
+	)); err != nil {
+		t.Fatalf("add alice: %v", err)
+	}
+	if err := svc.dispatcher.Dispatch(ctx, NewAddMemberCmd(
+		ActorIDFromUser(bob.User.ID), tenantID, []Role{RoleViewer},
+	)); err != nil {
+		t.Fatalf("add bob: %v", err)
+	}
+
+	members := svc.TenantMembers(ctx, tenantID)
+	if len(members) != 2 {
+		t.Fatalf("TenantMembers = %d, want 2", len(members))
+	}
+	for _, m := range members {
+		if m.TenantID.Get() != tenantID.Get() {
+			t.Errorf("member tenant = %q, want %q", m.TenantID.Get(), tenantID.Get())
+		}
+	}
+}

@@ -1,0 +1,36 @@
+package adminui
+
+templ auditPage(p pageData, d auditData) {
+	@Layout(p) {
+		<div class="admin-content__head">
+			<h1>Audit log</h1>
+		</div>
+		<div class="card card--flush">
+			if len(d.Entries) == 0 {
+				@empty("audit", "No audit events", "User and tenant changes will be recorded here.")
+			} else {
+				<div class="table-wrap">
+					<table class="data">
+						<thead><tr><th>Action</th><th>Who</th><th>Aggregate</th><th>When</th></tr></thead>
+						<tbody>
+							for _, e := range d.Entries {
+								<tr>
+									<td><span class="badge badge--accent">{ e.Action }</span></td>
+									<td>
+										if e.Email != "" {
+											<span class="cell-primary">{ e.Email }</span>
+										} else {
+											<span class="muted">—</span>
+										}
+									</td>
+									<td class="mono">{ e.AggregateID.String() }</td>
+									<td class="muted">{ relTime(e.OccurredAt) }</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</div>
+	}
+}
