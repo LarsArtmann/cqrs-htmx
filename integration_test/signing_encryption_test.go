@@ -209,7 +209,7 @@ func TestSigningEncryption_AuthzProjectionSurvivesCrypto(t *testing.T) {
 
 	// The Casbin projection derives roles from events. If it received ciphertext
 	// instead of plaintext, the decode would fail and no roles would be assigned.
-	roles, err := svc.Authz().RolesForUser(uid, uid.Get().String())
+	roles, err := svc.Authz().RolesForUser(uid, usermgmt.NewTenantID(uid.Get().String()))
 	if err != nil {
 		t.Fatalf("RolesForUser: %v", err)
 	}

@@ -34,9 +34,11 @@ var (
 	// ErrSessionExpired is returned when a session token has passed its expiration time.
 	ErrSessionExpired = event.NewRejection("usermgmt.session_expired", "session expired")
 	// ErrForbidden is returned when an authorization check denies access.
-	ErrForbidden = event.NewRejection("usermgmt.forbidden", "access denied")
+	// Uses the same code as root cqrshtmx.ErrForbidden for cross-module compatibility.
+	ErrForbidden = event.NewRejection("forbidden", "access denied")
 	// ErrUnauthorized is returned when authentication is required but missing or invalid.
-	ErrUnauthorized = event.NewRejection("usermgmt.unauthorized", "authentication required")
+	// Uses the same code as root cqrshtmx.ErrUnauthorized for cross-module compatibility.
+	ErrUnauthorized = event.NewRejection("unauthorized", "authentication required")
 	// ErrValidation is returned when input validation fails (e.g. invalid email).
 	ErrValidation = event.NewRejection("usermgmt.validation", "validation failed")
 	// ErrAccountLocked is returned when login is rejected because the account exceeded the

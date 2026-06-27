@@ -73,6 +73,12 @@ func explicitErrorStatus(err error) int {
 	case errors.Is(err, ErrMethodNotAllowed):
 		return http.StatusMethodNotAllowed
 	default:
+		// Cross-module code-based check: usermgmt defines separate sentinels
+		// with the same error codes for module independence. This ensures
+		// MapError returns the correct HTTP status regardless of source module.
+		if status, ok := authStatusFromErrorCode(err); ok {
+			return status
+		}
 		return 0
 	}
 }
@@ -90,8 +96,29 @@ func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 // isAuthError returns true if the error is an authentication/authorization error
 // that should trigger a login redirect for HTMX requests.
 func isAuthError(err error) bool {
-	return errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) ||
-		errors.Is(err, ErrCSRFInvalid)
+	if errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) ||
+		errors.Is(err, ErrCSRFInvalid) {
+		return true
+	}
+	_, ok := authStatusFromErrorCode(err)
+	return ok
+}
+
+// authStatusFromErrorCode checks if the error has an auth-related code,
+// enabling cross-module compatibility. Errors from usermgmt (which defines
+// separate sentinels with the same codes for module independence) are
+// recognized by code rather than sentinel identity.
+func authStatusFromErrorCode(err error) (int, bool) {
+	var coder interface{ Code() string }
+	if errors.As(err, &coder) {
+		switch coder.Code() {
+		case "unauthorized":
+			return http.StatusUnauthorized, true
+		case "forbidden":
+			return http.StatusForbidden, true
+		}
+	}
+	return 0, false
 }
 
 // writeHTMXAuthRedirect sets HX-Redirect header and writes 303 See Other.
