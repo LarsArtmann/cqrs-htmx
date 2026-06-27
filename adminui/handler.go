@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 // Handler is a mounted admin panel. Build it with [New] and register it on a
@@ -142,4 +143,20 @@ func (h *Handler) Handler() http.Handler { return h.routes() }
 // the panel at the site root.
 func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 	mux.Handle(pattern, http.StripPrefix(pattern, h.routes()))
+}
+
+// Middleware returns the standard middleware chain the panel recommends:
+// panic recovery and baseline security headers (X-Content-Type-Options,
+// X-Frame-Options, Referrer-Policy). It reuses [cqrshtmx.RecoveryMiddleware]
+// and [cqrshtmx.SecurityHeadersMiddleware] from the root module.
+//
+// Wrap it around the panel — and compose your session and CSRF middleware:
+//
+//	panel.Mount(mux, "/admin/")
+//	mux.Use(sessionMW, csrfMW, panel.Middleware()) // pseudo: chain as you prefer
+//
+// This is optional: the panel works without it, but recovery + security
+// headers are recommended for any production deployment.
+func (h *Handler) Middleware() func(http.Handler) http.Handler {
+	return cqrshtmx.Chain(cqrshtmx.SecurityHeadersMiddleware, cqrshtmx.RecoveryMiddleware)
 }
