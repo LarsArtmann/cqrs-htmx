@@ -69,7 +69,7 @@ func TestPanel_DashboardRenders(t *testing.T) {
 		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
 	}
 	body := rec.Body.String()
-	for _, want := range []string{"Dashboard", "Recent activity", "admin.css", "htmx.js"} {
+	for _, want := range []string{"Dashboard", "Recent activity", "admin-tw.css", "htmx.js"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("dashboard missing %q", want)
 		}
@@ -159,7 +159,6 @@ func TestPanel_AssetsServed(t *testing.T) {
 	h, _ := newTestPanel(t, user)
 
 	for path, ct := range map[string]string{
-		"/admin/-/admin.css":    "text/css",
 		"/admin/-/admin-tw.css": "text/css",
 		"/admin/-/admin.js":     "text/javascript",
 		"/admin/-/htmx.js":      "text/javascript",

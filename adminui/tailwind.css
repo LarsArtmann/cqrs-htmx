@@ -1,9 +1,12 @@
 /*
- * adminui Tailwind v4 entry point.
+ * adminui Tailwind v4 entry point — the single stylesheet.
  *
- * This file maps adminui's CSS custom properties to Tailwind's @theme tokens,
- * enabling both Tailwind utility classes AND the existing admin.css design
- * system to coexist during migration.
+ * This file is the ONE source of truth for all adminui styling:
+ *   1. CSS custom property tokens (--accent, --surface, etc.)
+ *   2. Light/dark mode via prefers-color-scheme
+ *   3. Tailwind @theme color mappings
+ *   4. HTMX indicator visibility convention
+ *   5. Toast container styles (created dynamically by admin.js)
  *
  * Build: tailwindcss -i tailwind.css -o assets/admin-tw.css --minify
  */
@@ -13,37 +16,112 @@
 /* Scan adminui .templ files for class names */
 @source "../";
 
-/* Class-based dark mode (replaces prefers-color-scheme) */
-@custom-variant dark (&:where(.dark, .dark *));
+/* ---------- Theme tokens (light defaults) ---------- */
+:root {
+  --accent: #4f46e5;
+  --accent-weak: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-text: color-mix(in srgb, var(--accent) 78%, white);
 
-/* Map adminui tokens to Tailwind color palette.
- * This makes admin.css custom classes AND Tailwind utilities
- * use the same underlying values. */
+  --radius: 10px;
+  --radius-sm: 7px;
+
+  --ok: #16a34a;
+  --warn: #d97706;
+  --err: #dc2626;
+  --info: #2563eb;
+
+  /* Surface tokens — light mode */
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #fbfcfd;
+  --sidebar-bg: #0f172a;
+  --sidebar-fg: #cbd5e1;
+  --sidebar-fg-strong: #f8fafc;
+  --sidebar-hover: rgba(255, 255, 255, 0.07);
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e6e8ec;
+  --border-strong: #d1d5db;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+
+/* ---------- Dark mode (system preference) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1120;
+    --surface: #131c31;
+    --surface-2: #0f1729;
+    --sidebar-bg: #0a1120;
+    --sidebar-fg: #94a3b8;
+    --sidebar-fg-strong: #f1f5f9;
+    --sidebar-hover: rgba(148, 163, 184, 0.1);
+    --text: #e6edf6;
+    --muted: #93a4bd;
+    --border: #233049;
+    --border-strong: #2c3a56;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* ---------- Tailwind @theme color mappings ---------- */
+/* Maps adminui CSS variables to Tailwind utility classes so both
+   `bg-gray-100` and `var(--bg)` produce the same color. */
 @theme {
-  /* Accent → blue scale (primary actions, links, focus rings) */
   --color-blue-600: var(--accent);
   --color-blue-500: color-mix(in srgb, var(--accent) 85%, white);
 
-  /* Surfaces → gray scale */
-  --color-gray-50: #fbfcfd; /* --surface-2 */
-  --color-gray-100: #f6f7f9; /* --bg */
-  --color-gray-200: #e6e8ec; /* --border */
-  --color-gray-300: #d1d5db; /* --border-strong */
-  --color-gray-500: #64748b; /* --muted */
-  --color-gray-900: #0f172a; /* --text, --sidebar-bg */
+  --color-gray-50: var(--surface-2);
+  --color-gray-100: var(--bg);
+  --color-gray-200: var(--border);
+  --color-gray-300: var(--border-strong);
+  --color-gray-400: var(--sidebar-fg);
+  --color-gray-500: var(--muted);
+  --color-gray-900: var(--text);
 
-  /* Status colors */
-  --color-green-600: #16a34a; /* --ok */
-  --color-red-600: #dc2626; /* --err */
-  --color-yellow-600: #d97706; /* --warn */
+  --color-green-600: var(--ok);
+  --color-red-600: var(--err);
+  --color-yellow-600: var(--warn);
 }
 
-/* Dark mode token overrides */
-.dark {
-  --color-gray-50: #0f1729;
-  --color-gray-100: #0b1120;
-  --color-gray-200: #233049;
-  --color-gray-300: #2c3a56;
-  --color-gray-500: #93a4bd;
-  --color-gray-900: #e6edf6;
+/* ---------- Global body reset ---------- */
+body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- HTMX indicator visibility convention ---------- */
+.htmx-indicator {
+  opacity: 0;
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  opacity: 1;
+}
+
+/* ---------- Toasts (created dynamically by admin.js) ---------- */
+.toast-host {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  box-shadow: var(--shadow);
+  font-size: 14px;
+  animation: toast-in 0.18s ease;
+}
+.toast--err { border-color: var(--err); }
+.toast--ok { border-color: var(--ok); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }

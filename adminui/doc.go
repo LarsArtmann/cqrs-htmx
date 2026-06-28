@@ -25,9 +25,8 @@
 //
 // All markup is authored in templ and compiled to Go (the generated _templ.go
 // files are committed, so consumers never run the templ generator). A modern
-// embedded stylesheet ([assets/admin.css]) provides the look, with automatic
-// light/dark theming. No build step, no JavaScript framework, no Tailwind —
-// just HTMX and a binary.
+// embedded stylesheet ([assets/admin-tw.css]) provides the look, with automatic
+// light/dark theming. No JavaScript framework — just HTMX, Tailwind v4, and a binary.
 //
 //go:generate templ generate
 package adminui
