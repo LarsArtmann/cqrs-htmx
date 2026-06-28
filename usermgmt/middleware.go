@@ -54,7 +54,7 @@ func UserFromContextOr(ctx context.Context, fallback *User) *User {
 // To bridge impersonation info to cqrs-htmx's context chain:
 //
 //	if id := usermgmt.ImpersonatorIDFromRequest(r); id != "" {
-//	    ctx = cqrshtmx.WithImpersonatorID(ctx, id)
+//	    ctx = cqrshtmx.WithImpersonatorID(ctx, cqrshtmx.NewActorID(id))
 //	}
 func NewSessionMiddleware(service *Service, cookieName string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -121,10 +121,10 @@ func authenticateRequest(service *Service, cookieName string, _ http.ResponseWri
 	ctx := WithUser(r.Context(), user)
 	if session, err := service.sessions.Find(r.Context(), token); err == nil {
 		info := &sessionOriginInfo{ //nolint:exhaustruct // ImpersonatorID set conditionally below
-			ActorID: session.ActorID.String(),
+			ActorID: session.ActorID.PrefixedString(),
 		}
 		if imp, ok := session.Origin.(Impersonation); ok {
-			info.ImpersonatorID = imp.By.String()
+			info.ImpersonatorID = imp.By.PrefixedString()
 		}
 		ctx = context.WithValue(ctx, sessionOriginKey, info)
 	}
