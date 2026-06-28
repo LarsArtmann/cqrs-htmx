@@ -1,0 +1,137 @@
+direction: right
+
+# Critical path highlighted; tiers as clusters
+
+tier1: Tier 1 — Proof & Tracking (1%→51%) {
+  shape: package
+  style.fill: "#1a1a20"
+  style.stroke: "#ffb347"
+
+  T01: Integration Test\nJournalSSEStore replay
+  T02: Integration Test\nACK confirmed over SSE
+  T03: Integration Test\nACK rejected over SSE
+  T04: Integration Test\nReconnect + live ACK
+  T05: Run -race
+  fix
+  commit
+
+  T06: Update TODO_LIST.md
+  T07: Update CHANGELOG\n+ README.md
+
+  T01 -> T02 -> T03 -> T04 -> T05
+}
+
+tier2: Tier 2 — Honest UI CSS (4%→64%) {
+  shape: package
+  style.fill: "#15151a"
+  style.stroke: "#6eb5ff"
+
+  T08: Sync-state CSS vars
+  T09: .sync-pending
+  T10: .sync-confirmed
+  T11: .sync-rejected
+  T12: .sync-dot
+  T13: .sync-bar global
+  T14: Rebuild tailwind
+
+  T08 -> T09 -> T10 -> T11 -> T12 -> T13 -> T14
+}
+
+tier3: Tier 3 — Honest UI JS Core (4%→64%) {
+  shape: package
+  style.fill: "#15151a"
+  style.stroke: "#6eb5ff"
+
+  T15: SSE connection mgr
+  T16: sync:ack listener
+  T17: handleSyncAck\nflip data-sync-state
+  T18: Sync counter
+  T19: Indicator DOM update
+  T20: Optimistic render\nbeforeRequest
+  T21: Never-silent rollback\nresponseError
+
+  T15 -> T16 -> T17
+  T17 -> T18 -> T19
+  T17 -> T20 -> T21
+}
+
+tier4: Tier 4 — UI Polish & Templ (20%→80%) {
+  shape: package
+  style.fill: "#121216"
+  style.stroke: "#f4d35e"
+
+  T22: aria-live region
+  T23: Retry button handler
+  T24: data-sync-state\non row templ
+  T25: Global indicator\nin layout.templ
+  T26: templ generate
+
+  T25 -> T26
+}
+
+tier5: Tier 5 — admin-demo (20%→80%) {
+  shape: package
+  style.fill: "#121216"
+  style.stroke: "#f4d35e"
+
+  T27: Wire Broadcaster\n+ JournalSSEStore
+  T28: /events SSE endpoint
+  T29: BroadcastOnAck hook
+  T30: Honest-UI demo\npending→confirmed
+
+  T27 -> T28 -> T29 -> T30
+}
+
+tier6: Tier 6 — Phase 2 Research (blocked) {
+  shape: package
+  style.fill: "#101014"
+  style.stroke: "#ff6b6b"
+
+  T31: Q1 WASM paths
+  T32: Q1 TS port effort
+  T33: Q1 decision doc
+  T34: Q2 closed-tab writes
+  T35: SW vs SharedWorker
+
+  T31 -> T33
+  T32 -> T33
+  T34 -> T35
+  T33 -> T35
+}
+
+tier7: Tier 7 — Verification {
+  shape: package
+  style.fill: "#0e0e10"
+  style.stroke: "#f4f4f0"
+
+  T36: nix test (all)
+  T37: nix lint (all)
+  T38: errorfamily (0)
+  T39: Browser verify
+  T40: Final commit + push
+
+  T36 -> T37 -> T38
+}
+
+# Cross-tier dependencies (the spine / critical path)
+T05 -> tier2
+T14 -> T15
+T13 -> T19
+T13 -> T25
+T14 -> T24
+T21 -> T23
+T19 -> T22
+T26 -> T30
+T05 -> T27
+T30 -> T36
+T30 -> T39
+T38 -> T40
+
+# Critical path emphasis
+T01.style.bold: true
+T05.style.bold: true
+T17.style.bold: true
+T20.style.bold: true
+T21.style.bold: true
+T30.style.bold: true
+T40.style.bold: true
