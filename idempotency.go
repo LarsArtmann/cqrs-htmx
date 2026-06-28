@@ -8,6 +8,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
+// ErrDuplicateCommand is returned when a command ID has already been processed.
+// Maps to HTTP 409 Conflict via MapError.
+var ErrDuplicateCommand = event.NewConflict(
+	"cqrshtmx.idempotency.duplicate_command",
+	"command with this ID has already been processed",
+)
+
 // IdempotencyStore tracks command IDs that have been dispatched to prevent
 // duplicate processing. When a command ID is seen for the first time, the
 // store records it with a TTL. Subsequent dispatches with the same ID are
@@ -24,14 +31,17 @@ type IdempotencyStore interface {
 	// Record marks a command ID as seen with the given TTL.
 	// If the ID is already recorded, it is a no-op.
 	Record(ctx context.Context, commandID string, ttl time.Duration) error
+	// CheckAndRecord atomically checks if a command ID has been seen and, if
+	// not, records it. Returns ErrDuplicateCommand if the ID was already
+	// recorded and not expired.
+	//
+	// Implementations MUST make this atomic (single lock or single
+	// round-trip) to prevent the TOCTOU race that a separate Seen + Record
+	// pair would create. For MemoryIdempotencyStore this is a single mutex;
+	// for a future Redis store it would be a SET NX command; for SQL an
+	// INSERT ... ON CONFLICT DO NOTHING.
+	CheckAndRecord(ctx context.Context, commandID string, ttl time.Duration) error
 }
-
-// ErrDuplicateCommand is returned when a command ID has already been processed.
-// Maps to HTTP 409 Conflict via MapError.
-var ErrDuplicateCommand = event.NewConflict(
-	"cqrshtmx.idempotency.duplicate_command",
-	"command with this ID has already been processed",
-)
 
 // MemoryIdempotencyStore is an in-memory IdempotencyStore with TTL-based
 // expiration. It uses a background goroutine to sweep expired entries.
@@ -76,6 +86,20 @@ func (s *MemoryIdempotencyStore) Record(_ context.Context, commandID string, ttl
 	return nil
 }
 
+// CheckAndRecord atomically claims a command ID. Returns ErrDuplicateCommand
+// if the ID was already recorded and not expired. The check and the record
+// happen under a single write lock, so concurrent callers with the same ID
+// are serialized: exactly one wins.
+func (s *MemoryIdempotencyStore) CheckAndRecord(_ context.Context, commandID string, ttl time.Duration) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if exp, ok := s.entries[commandID]; ok && time.Now().Before(exp) {
+		return ErrDuplicateCommand
+	}
+	s.entries[commandID] = time.Now().Add(ttl)
+	return nil
+}
+
 // Close stops the background sweep goroutine. Safe to call multiple times.
 func (s *MemoryIdempotencyStore) Close() {
 	select {
@@ -104,24 +128,4 @@ func (s *MemoryIdempotencyStore) sweep(interval time.Duration) {
 			s.mu.Unlock()
 		}
 	}
-}
-
-// CheckAndRecord atomically checks if a command ID has been seen, and if not,
-// records it. Returns ErrDuplicateCommand if the ID was already recorded.
-// This is the recommended way to use the store — it avoids the TOCTOU race
-// between Seen and Record.
-func CheckAndRecord(ctx context.Context, store IdempotencyStore, commandID string, ttl time.Duration) error {
-	seen, err := store.Seen(ctx, commandID)
-	if err != nil {
-		return event.Wrapf(err, event.Classify(err),
-			"cqrshtmx.idempotency.seen_failed", "check command ID=%s", commandID)
-	}
-	if seen {
-		return ErrDuplicateCommand
-	}
-	if err := store.Record(ctx, commandID, ttl); err != nil {
-		return event.Wrapf(err, event.Classify(err),
-			"cqrshtmx.idempotency.record_failed", "record command ID=%s", commandID)
-	}
-	return nil
 }

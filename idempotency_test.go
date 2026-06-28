@@ -3,6 +3,8 @@ package cqrshtmx
 import (
 	"context"
 	"errors"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -64,10 +66,10 @@ func TestCheckAndRecord_RejectsDuplicate(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	if err := CheckAndRecord(ctx, store, "cmd-dup", time.Minute); err != nil {
+	if err := store.CheckAndRecord(ctx, "cmd-dup", time.Minute); err != nil {
 		t.Fatalf("first CheckAndRecord: %v", err)
 	}
-	err := CheckAndRecord(ctx, store, "cmd-dup", time.Minute)
+	err := store.CheckAndRecord(ctx, "cmd-dup", time.Minute)
 	if !errors.Is(err, ErrDuplicateCommand) {
 		t.Fatalf("expected ErrDuplicateCommand, got %v", err)
 	}
@@ -79,10 +81,10 @@ func TestCheckAndRecord_AllowsNewID(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	if err := CheckAndRecord(ctx, store, "cmd-new", time.Minute); err != nil {
+	if err := store.CheckAndRecord(ctx, "cmd-new", time.Minute); err != nil {
 		t.Fatalf("CheckAndRecord: %v", err)
 	}
-	if err := CheckAndRecord(ctx, store, "cmd-other", time.Minute); err != nil {
+	if err := store.CheckAndRecord(ctx, "cmd-other", time.Minute); err != nil {
 		t.Fatalf("CheckAndRecord for different ID: %v", err)
 	}
 }
@@ -129,7 +131,7 @@ func TestMemoryIdempotencyStore_ConcurrentAccess(t *testing.T) {
 	go func() {
 		defer close(done)
 		for range 100 {
-			_ = CheckAndRecord(ctx, store, "concurrent-cmd", time.Minute)
+			_ = store.CheckAndRecord(ctx, "concurrent-cmd", time.Minute)
 		}
 	}()
 
@@ -137,4 +139,48 @@ func TestMemoryIdempotencyStore_ConcurrentAccess(t *testing.T) {
 		_, _ = store.Seen(ctx, "concurrent-cmd")
 	}
 	<-done
+}
+
+// TestCheckAndRecord_ConcurrentSameIDExactlyOneSucceeds is the atomicity proof.
+// N goroutines race to claim the same command ID. Because CheckAndRecord holds
+// a single write lock for the check+record, exactly one goroutine must win and
+// all others must receive ErrDuplicateCommand. Under the old racy free function
+// (separate Seen + Record calls), multiple goroutines could slip through.
+func TestCheckAndRecord_ConcurrentSameIDExactlyOneSucceeds(t *testing.T) {
+	t.Parallel()
+	store := NewMemoryIdempotencyStore(0)
+	defer store.Close()
+
+	const n = 200
+	ctx := context.Background()
+	var wg sync.WaitGroup
+	var wins atomic.Int64
+	var dups atomic.Int64
+	start := make(chan struct{})
+
+	wg.Add(n)
+	for range n {
+		go func() {
+			defer wg.Done()
+			<-start // release all goroutines at once
+			err := store.CheckAndRecord(ctx, "race-cmd", time.Minute)
+			switch {
+			case err == nil:
+				wins.Add(1)
+			case errors.Is(err, ErrDuplicateCommand):
+				dups.Add(1)
+			default:
+				t.Errorf("unexpected error: %v", err)
+			}
+		}()
+	}
+	close(start)
+	wg.Wait()
+
+	if wins.Load() != 1 {
+		t.Fatalf("expected exactly 1 winner, got %d", wins.Load())
+	}
+	if dups.Load() != n-1 {
+		t.Fatalf("expected %d duplicates, got %d", n-1, dups.Load())
+	}
 }

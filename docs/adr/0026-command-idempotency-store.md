@@ -33,8 +33,11 @@ type IdempotencyStore interface {
 With a `MemoryIdempotencyStore` implementation that uses TTL-based
 expiration with a background sweep goroutine.
 
-The `CheckAndRecord` helper provides atomic check-and-record, avoiding the
-TOCTOU race between separate `Seen` + `Record` calls.
+The `CheckAndRecord` interface method provides atomic check-and-record under a
+single lock, avoiding the TOCTOU race that separate `Seen` + `Record` calls
+would create. Each implementation is responsible for its own atomicity
+(MemoryIdempotencyStore: single mutex; future Redis store: `SET NX`; future
+SQL store: `INSERT ... ON CONFLICT DO NOTHING`).
 
 `ErrDuplicateCommand` maps to HTTP 409 Conflict via `MapError`.
 
@@ -68,7 +71,7 @@ app := cqrshtmx.New(cqrshtmx.Config{
         if cmdID == "" {
             return nil // ACK not requested; skip idempotency
         }
-        return cqrshtmx.CheckAndRecord(ctx, store, cmdID, 10*time.Minute)
+        return store.CheckAndRecord(ctx, cmdID, 10*time.Minute)
     },
 })
 ```
