@@ -24,6 +24,22 @@ func (s TenantState) IsActive() bool {
 	return s.Exists() && !s.Suspended
 }
 
+// IsValid enforces struct-level invariants that cannot be violated by any
+// sequence of events: a deleted tenant is never suspended; SuspendReason is
+// only set when Suspended; DeleteReason is only set when Deleted.
+func (s TenantState) IsValid() bool {
+	if s.Deleted && s.Suspended {
+		return false
+	}
+	if !s.Suspended && s.SuspendReason != "" {
+		return false
+	}
+	if !s.Deleted && s.DeleteReason != "" {
+		return false
+	}
+	return true
+}
+
 // foldTenant applies an event to the current TenantState, returning the new state.
 func foldTenant(state TenantState, evt event.Event) (TenantState, error) {
 	next := state
