@@ -13,9 +13,9 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.3.0
@@ -71,7 +71,6 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect

@@ -37,11 +37,13 @@ type item struct {
 type createItemCmd struct {
 	typ   command.Type
 	aggID id.AggregateID
+	cmdID id.CommandID
 	Name  string
 }
 
 func (c *createItemCmd) Type() command.Type          { return c.typ }
 func (c *createItemCmd) AggregateID() id.AggregateID { return c.aggID }
+func (c *createItemCmd) ID() id.CommandID            { return c.cmdID }
 
 // listItemsQuery is a custom query.Query.
 type listItemsQuery struct{}
@@ -138,6 +140,7 @@ func main() {
 			return &createItemCmd{
 				typ:   command.Type("CreateItem"),
 				aggID: id.NewAggregateID(),
+				cmdID: id.NewCommandID(),
 				Name:  req.Name,
 			}, nil
 		}),
