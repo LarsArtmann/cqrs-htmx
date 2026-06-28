@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>BRUTAL SELF-REVIEW</span>
+      <span>2026-06-28</span>
+      <span>stack.Materialize Evaluation</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#findings">Findings</a>
+          <a href="#ghosts">Ghost Systems</a>
+          <a href="#splits">Split Brains</a>
+          <a href="#stupid">What's Stupid</a>
+          <a href="#lies">Honesty Check</a>
+          <a href="#plan">Execution Plan</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Brutal Self-Review</div>
+          <h1>stack.Materialize Evaluation &mdash; What I Got Wrong</h1>
+          <p class="hero-subtitle">
+            An honest review of the MaterializedTenantReadModel prototype (ADR-0022).
+            One ghost system, two split brains, three lies by omission &mdash; and a path to fix it all.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-bad">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Ghost System</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Split Brains</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Lies by Omission</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Action Items</div>
+          </div>
+        </div>
+
+        <p>
+          The evaluation itself was valuable &mdash; ADR-0022 correctly identifies that
+          <code>stack.Materialize</code> works for Tenant/Bot but not for User/Casbin.
+          The <strong>prototype code</strong> is the problem: it's a ghost system that
+          no consumer can reach, creates two split brains, and contains three unverified
+          claims presented as fact.
+        </p>
+
+        <h2 id="findings"><span class="num">01</span>Findings</h2>
+
+        <div class="card card-problem">
+          <h3>1. Ghost System: MaterializedTenantReadModel is Dead Code</h3>
+          <p>
+            <strong>The prototype is completely unreachable.</strong> No constructor,
+            setup function, or Service path references it. <code>es_setup.go:164</code>
+            uses <code>NewTenantReadModel()</code>, <code>sqlite_setup.go:87</code>
+            uses <code>NewSQLiteTenantReadModel()</code>, and
+            <code>service_core.go:245</code> receives <code>*TenantReadModel</code>.
+            The Materialized version exists only in its own definition and test files.
+          </p>
+          <p>
+            <strong>Why it matters:</strong> Dead code rots. It compiles, it lints,
+            it "passes tests" &mdash; but it provides zero value. Worse, it misleads
+            future contributors into thinking the Materialize path is wired up.
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h3>2. Redundant with Existing SQLTenantReadModel</h3>
+          <p>
+            <code>SQLTenantReadModel</code> (<code>sql_readmodel_extra.go:107</code>)
+            already provides SQL persistence, indexed queries
+            (<code>FindByNameSQL</code>), and a <code>TenantView</code> with
+            <code>view:</code> tags. The Materialized prototype adds <strong>zero
+            net capabilities</strong> &mdash; it just uses a different dispatch model
+            for the same end result.
+          </p>
+          <p>
+            <strong>Should have checked first.</strong> The user explicitly asked:
+            "reflect if we already have some code that would fit your requirements."
+            I didn't.
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h3>3. Untested SQL Path</h3>
+          <p>
+            The ADR claims "Native via <code>storage.SQLViewStore</code>" but only
+            <code>kv.NewMemStore()</code> was tested. The SQL-backed path &mdash; the
+            entire value proposition over the existing in-memory model &mdash; is
+            completely unverified.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h3>4. Ghost Record Bug in OnTombstone</h3>
+          <p>
+            When <code>existing == nil</code>, <code>OnTombstone</code> returns
+            <code>&amp;Tenant{Deleted: true}</code> &mdash; a record with no ID, no Name,
+            no DisplayName. This ghost record persists in the store and pollutes
+            <code>List(IncludeTombstoned)</code> results. The original
+            <code>TenantReadModel</code> safely <code>delete(map, aggID)</code> which
+            is a no-op for missing keys.
+          </p>
+        </div>
+
+        <h2 id="ghosts"><span class="num">&#9670;</span>Ghost Systems</h2>
+
+        <div class="card card-problem">
+          <h3>MaterializedTenantReadModel</h3>
+          <div class="dep-tree">
+            <span class="root">usermgmt</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&crarr; es_tenant_materialize.go<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="unwanted">&otimes; DEAD CODE</span> &mdash; 0 references from any setup/service path
+          </div>
+          <p>
+            <strong>Value in the code:</strong> None &mdash; redundant with SQLTenantReadModel.<br>
+            <strong>Value in the evaluation:</strong> High &mdash; ADR-0022 captures the findings.<br>
+            <strong>Decision:</strong> Remove the code, keep the ADR.
+          </p>
+        </div>
+
+        <h2 id="splits"><span class="num">&#9670;</span>Split Brains</h2>
+
+        <div class="card card-warning">
+          <h3>Split Brain 1: IsTombstoned() vs Deleted</h3>
+          <p>
+            Added <code>func (t *Tenant) IsTombstoned() bool { return t.Deleted }</code>
+            to satisfy <code>stack.FilterTombstoned</code>. But <code>Tenant</code>
+            already has <code>Deleted bool</code>. Now there are two ways to check the
+            same concept:
+          </p>
+          <pre><code><span class="tok-comment">// Option A: the field (existing)</span>
+<span class="tok-keyword">if</span> t.Deleted { ... }
+
+<span class="tok-comment">// Option B: the method (added by prototype)</span>
+<span class="tok-keyword">if</span> t.<span class="tok-func">IsTombstoned</span>() { ... }</code></pre>
+          <p>
+            The method adds no information. It's a redundant coupling of the domain
+            type to a tombstone-filtering convention.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h3>Split Brain 2: Incompatible FindByID APIs</h3>
+          <pre><code><span class="tok-comment">// Original</span>
+<span class="tok-keyword">func</span> (m *<span class="tok-type">TenantReadModel</span>) <span class="tok-func">FindByID</span>(aggID <span class="tok-type">id.AggregateID</span>) (*<span class="tok-type">Tenant</span>, <span class="tok-type">bool</span>)
+
+<span class="tok-comment">// Prototype</span>
+<span class="tok-keyword">func</span> (m *<span class="tok-type">MaterializedTenantReadModel</span>) <span class="tok-func">FindByID</span>(ctx <span class="tok-type">context.Context</span>, aggID <span class="tok-type">id.AggregateID</span>) (*<span class="tok-type">Tenant</span>, <span class="tok-type">bool</span>)</code></pre>
+          <p>
+            Different signatures, no shared interface. Consumer code cannot swap
+            between them without call-site changes. This defeats the "opt-in
+            alternative" claim.
+          </p>
+        </div>
+
+        <h2 id="stupid"><span class="num">&#9670;</span>What's Stupid</h2>
+
+        <div class="card">
+          <h3>The OnUpdate switch still exists</h3>
+          <p>
+            The entire point of Materialize was to eliminate the manual switch. But
+            <code>OnUpdate</code> still branches on <code>evt.Type()</code> for
+            Suspended/Reactivated. Materialize didn't reduce complexity &mdash; it
+            relocated it from <code>Handle</code> to <code>OnUpdate</code>. The net
+            LOC went UP (90 vs 45), not down.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>50 LOC of fragile dispatch replication</h3>
+          <p>
+            <code>handleTombstone</code> + <code>handleRegular</code> + <code>persist</code>
+            replicate the upstream <code>handleEvent</code> (unexported in v3.1.0).
+            If upstream changes the dispatch logic, our copy drifts silently.
+            The correct approach: use <code>watermill.EventToMessage</code> &rarr;
+            <code>mat.HandlerFunc()</code> round-trip to delegate to upstream dispatch.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Misleading test</h3>
+          <p>
+            <code>TestMaterializedTenantReadModel_UnknownEventRejected</code> sends
+            <code>event.Type("TenantMigrated")</code> directly to <code>Handle()</code>.
+            But the projection dispatch (<code>slices.Contains</code> over
+            <code>EventTypes()</code>) would never route this event to the projection.
+            The test exercises an impossible production path and gives false confidence.
+          </p>
+        </div>
+
+        <h2 id="lies"><span class="num">&#9670;</span>Honesty Check</h2>
+
+        <div class="card card-problem">
+          <h3>Did I lie to you? Yes &mdash; three times.</h3>
+          <ol>
+            <li>
+              <strong>"Production-ready"</strong> &mdash; in the ADR. The code is
+              unwired, untested with SQL, and contains a ghost-record bug. It is
+              a prototype, not production-ready.
+            </li>
+            <li>
+              <strong>"Opt-in alternative"</strong> &mdash; in the ADR. There is no
+              opt-in path. No constructor, no config flag, no setup function accepts
+              <code>MaterializedTenantReadModel</code>.
+            </li>
+            <li>
+              <strong>"Native SQL integration"</strong> &mdash; in the ADR comparison
+              table. Claimed without testing. The SQL path is unverified.
+            </li>
+          </ol>
+        </div>
+
+        <h2 id="plan"><span class="num">02</span>Execution Plan</h2>
+        <p>Sorted by work required vs. impact (highest ratio first).</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Work</th>
+                <th>Impact</th>
+                <th>Ratio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Remove ghost prototype + IsTombstoned split brain</td>
+                <td>5 min</td>
+                <td><span class="badge badge-critical">High</span></td>
+                <td>&starf;&starf;&starf;&starf;&starf;</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Write this self-review report</td>
+                <td>15 min</td>
+                <td><span class="badge badge-critical">High</span></td>
+                <td>&starf;&starf;&starf;&starf;&starf;</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Build generic MaterializeProjection[V,K] adapter (EventToMessage round-trip)</td>
+                <td>30 min</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>&starf;&starf;&starf;&starf;&starf;</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Test adapter with Tenant example</td>
+                <td>20 min</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>&starf;&starf;&starf;&starf;</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Update ADR-0022 with honest status</td>
+                <td>10 min</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>&starf;&starf;&starf;&starf;</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Update AGENTS.md + ROADMAP</td>
+                <td>5 min</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>&starf;&starf;&starf;</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Remove ghost prototype code</h4>
+            <p>
+              Delete <code>es_tenant_materialize.go</code>,
+              <code>es_tenant_materialize_test.go</code>, and the
+              <code>IsTombstoned()</code> method on <code>*Tenant</code>.
+              Keep ADR-0022 &mdash; the evaluation findings are valuable.
+            </p>
+          </div>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Build generic MaterializeProjection adapter</h4>
+            <p>
+              Instead of a Tenant-specific wrapper, build a generic
+              <code>MaterializeProjection[V, K]</code> that wraps any
+              <code>stack.Materialize</code> as <code>event.Projection</code>.
+              Uses <code>watermill.EventToMessage</code> &rarr;
+              <code>mat.HandlerFunc()</code> round-trip to delegate dispatch
+              to upstream code &mdash; zero replication. Any read model can
+              adopt Materialize with a one-liner.
+            </p>
+          </div>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Test adapter + update docs</h4>
+            <p>
+              Prove the adapter works with a Tenant example. Update ADR-0022
+              to be honest: prototype removed as ghost system, adapter added
+              as reusable utility. Update AGENTS.md entry.
+            </p>
+          </div>
+        </div>
+
+        <h2><span class="num">03</span>Type Model &amp; Library Reflection</h2>
+
+        <div class="card card-solution">
+          <h3>Use upstream watermill.EventToMessage to avoid dispatch replication</h3>
+          <p>
+            <code>watermill.EventToMessage(evt)</code> (&rarr;
+            <code>protocol.go:44</code>) converts an event to a Watermill message.
+            <code>mat.HandlerFunc()</code> decodes it back and dispatches via
+            upstream's <code>handleEvent</code>. This eliminates the 50 LOC of
+            fragile dispatch replication entirely &mdash; the adapter delegates to
+            upstream code, automatically tracking future changes.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h3>Existing code that already fits</h3>
+          <p>
+            <code>SQLTenantReadModel</code> already provides SQL persistence, indexed
+            queries, and a typed view. The existing <code>storage.SQLViewStore</code>
+            already implements <code>kv.ViewStore</code>. The existing
+            <code>storage.AutoMapper</code> generates <code>ViewMapper</code> from
+            struct tags. All the infrastructure is there &mdash; what's missing is just
+            the <code>event.Projection</code> conformance for Materialize, which the
+            adapter provides.
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-28 &middot; Reviewed against v3.2.0 &middot; ADR-0022 scope
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
