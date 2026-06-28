@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 // verificationVerifyRequest is the body for POST /auth/email/verify.
@@ -52,11 +54,13 @@ func (h *AuthHandler) currentUser(w http.ResponseWriter, r *http.Request) (*User
 }
 
 func (h *AuthHandler) checkRateLimit(
-	w http.ResponseWriter, r *http.Request, rl *perIPRateLimiter, msg string,
+	w http.ResponseWriter, r *http.Request, rl *cqrshtmx.RateLimiter, msg string,
 ) bool {
-	if rl != nil && !rl.allow(r.RemoteAddr) {
-		writeError(w, http.StatusTooManyRequests, msg)
-		return false
+	if rl != nil {
+		if ok, _ := rl.Check(r); !ok {
+			writeError(w, http.StatusTooManyRequests, msg)
+			return false
+		}
 	}
 	return true
 }
@@ -178,7 +182,7 @@ func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) 
 func (h *AuthHandler) importExportContext(
 	w http.ResponseWriter,
 	r *http.Request,
-	limiter *perIPRateLimiter,
+	limiter *cqrshtmx.RateLimiter,
 	limitMsg string,
 ) (context.Context, context.CancelFunc, bool) {
 	if !h.checkRateLimit(w, r, limiter, limitMsg) {
@@ -203,7 +207,7 @@ func (h *AuthHandler) importExportContext(
 func (h *AuthHandler) authContext(
 	w http.ResponseWriter,
 	r *http.Request,
-	limiter *perIPRateLimiter,
+	limiter *cqrshtmx.RateLimiter,
 	limitMsg string,
 ) (*User, context.Context, context.CancelFunc, bool) {
 	if !h.checkRateLimit(w, r, limiter, limitMsg) {

@@ -8,8 +8,9 @@ import (
 	"io"
 	"net/http"
 	"slices"
-	"sync"
 	"time"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
 // AuthorizerFunc checks whether a user is authorized for a specific operation.
@@ -41,12 +42,12 @@ type AuthHandler struct {
 	secure                 bool
 	sessionMaxAge          int
 	timeout                time.Duration
-	regLimiter             *perIPRateLimiter
-	importLimiter          *perIPRateLimiter
-	totpLimiter            *perIPRateLimiter
-	verificationLimiter    *perIPRateLimiter
-	webauthnLimiter        *perIPRateLimiter
-	oauthLimiter           *perIPRateLimiter
+	regLimiter             *cqrshtmx.RateLimiter
+	importLimiter          *cqrshtmx.RateLimiter
+	totpLimiter            *cqrshtmx.RateLimiter
+	verificationLimiter    *cqrshtmx.RateLimiter
+	webauthnLimiter        *cqrshtmx.RateLimiter
+	oauthLimiter           *cqrshtmx.RateLimiter
 	oauth2SuccessURL       string
 	oauth2ErrorURL         string
 	importExportAuthorizer AuthorizerFunc
@@ -106,51 +107,13 @@ type RateLimitConfig struct {
 	Window time.Duration
 }
 
-type rateLimitEntry struct {
-	count     int
-	windowEnd time.Time
-}
-
-// perIPRateLimiter is a simple in-memory per-IP rate limiter.
-type perIPRateLimiter struct {
-	mu      sync.Mutex
-	entries map[string]*rateLimitEntry
-	max     int
-	window  time.Duration
-}
-
-func newPerIPRateLimiter(maxReq int, window time.Duration) *perIPRateLimiter {
-	//nolint:exhaustruct // mu is fine as zero value
-	return &perIPRateLimiter{
-		entries: make(map[string]*rateLimitEntry),
-		max:     maxReq,
-		window:  window,
-	}
-}
-
-func (rl *perIPRateLimiter) allow(ip string) bool {
-	rl.mu.Lock()
-	defer rl.mu.Unlock()
-
-	now := time.Now()
-	entry, exists := rl.entries[ip]
-	if !exists || now.After(entry.windowEnd) {
-		rl.entries[ip] = &rateLimitEntry{
-			count:     1,
-			windowEnd: now.Add(rl.window),
-		}
-		return true
-	}
-	if entry.count >= rl.max {
-		return false
-	}
-	entry.count++
-	return true
-}
-
-func newLimiterFromConfig(cfg RateLimitConfig) *perIPRateLimiter {
+func newLimiterFromConfig(cfg RateLimitConfig) *cqrshtmx.RateLimiter {
 	if cfg.Enabled && cfg.MaxRequests > 0 {
-		return newPerIPRateLimiter(cfg.MaxRequests, cfg.Window)
+		return cqrshtmx.NewRateLimiter(cqrshtmx.RateLimiterConfig{ //nolint:exhaustruct // consumer defaults
+			Limit:        uint(cfg.MaxRequests),
+			Window:       cfg.Window,
+			KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+		})
 	}
 	return nil
 }
@@ -248,9 +211,11 @@ func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 const maxAuthBodySize = 1 << 20 // 1 MB
 
 func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
-	if h.regLimiter != nil && !h.regLimiter.allow(r.RemoteAddr) {
-		writeError(w, http.StatusTooManyRequests, "too many registration requests")
-		return
+	if h.regLimiter != nil {
+		if ok, _ := h.regLimiter.Check(r); !ok {
+			writeError(w, http.StatusTooManyRequests, "too many registration requests")
+			return
+		}
 	}
 
 	ctx, cancel := h.withTimeout(r)
