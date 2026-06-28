@@ -22,7 +22,8 @@ Sub-modules follow the same pattern:
 
 - `github.com/larsartmann/cqrs-htmx/usermgmt/v3`
 - `github.com/larsartmann/cqrs-htmx/adminui/v3`
-- `github.com/larsartmann/cqrs-htmx/catalog/v3`
+
+API documentation generation now lives in `go-cqrs-lite/catalog/v3` (the `simple` and `docserver` sub-packages), not in cqrs-htmx.
 
 ## What Counts as Breaking
 

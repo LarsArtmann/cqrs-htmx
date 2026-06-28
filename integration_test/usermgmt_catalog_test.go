@@ -11,8 +11,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3/simple"
 )
 
-// These DTOs mirror catalog/README.md's "Recipe: Catalog for the usermgmt Module".
-// They describe the HTTP request shapes for the (unexported) usermgmt commands.
+// These DTOs describe the HTTP request shapes for the (unexported) usermgmt commands.
+// They mirror the recipe documented at https://github.com/LarsArtmann/go-cqrs-lite/tree/master/catalog.
 type recipeRegisterUserRequest struct {
 	Email       string   `json:"email"        doc:"User email address"`
 	DisplayName string   `json:"display_name" doc:"Display name"`
@@ -36,7 +36,7 @@ type recipeDeleteUserRequest struct {
 	Reason string `json:"reason" doc:"Deletion reason"`
 }
 
-// usermgmtCatalogFromRecipe is a faithful copy of the recipe in catalog/README.md.
+// usermgmtCatalogFromRecipe builds a catalog from the real usermgmt event payload types.
 // If this stops compiling, the documented recipe is lying and must be fixed.
 func usermgmtCatalogFromRecipe() *catalog.Catalog {
 	b := simple.New("User Management", "1.0.0")
