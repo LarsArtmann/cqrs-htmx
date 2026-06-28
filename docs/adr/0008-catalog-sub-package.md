@@ -1,7 +1,20 @@
 # ADR 0008: Catalog Sub-Package for API Documentation
 
 **Date:** 2026-06-17
-**Status:** ACCEPTED
+**Status:** SUPERSEDED by ADR 0015 (2026-06-28)
+
+> **Superseded.** The `catalog/` module was merged upstream into
+> [`go-cqrs-lite/catalog/v3`](https://github.com/LarsArtmann/go-cqrs-lite/tree/master/catalog)
+> (v3.2.0). The single-service Builder facade now lives at `catalog/v3/simple`,
+> and the standalone HTTP handlers (D2, Health, EventCatalog) live at
+> `catalog/v3/docserver`. The redundant `OpenAPIHandler`/`AsyncAPIHandler` were
+> removed in favor of the richer upstream `docserver.DocsServer` (which adds
+> HTML UIs and static assets). The `cqrs-htmx/catalog/` module is deleted.
+>
+> See ADR 0015 for the reversal rationale. The text below is the original
+> decision, preserved for history.
+
+---
 
 ## Context
 
