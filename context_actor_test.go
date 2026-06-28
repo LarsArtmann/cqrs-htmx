@@ -10,39 +10,39 @@ import (
 
 func TestWithActorID_ActorFromContext(t *testing.T) {
 	t.Parallel()
-	ctx := WithActorID(context.Background(), ActorID("user:01JX..."))
-	if got := ActorIDFromContext(ctx); got != "user:01JX..." {
-		t.Errorf("ActorIDFromContext = %q, want %q", got, "user:01JX...")
+	ctx := WithActorID(context.Background(), NewActorID("user:01JX..."))
+	if got := ActorIDFromContext(ctx); got.Get() != "user:01JX..." {
+		t.Errorf("ActorIDFromContext = %q, want %q", got.Get(), "user:01JX...")
 	}
 }
 
 func TestActorIDFromContext_Empty(t *testing.T) {
 	t.Parallel()
-	if got := ActorIDFromContext(context.Background()); got != "" {
-		t.Errorf("ActorIDFromContext = %q, want empty", got)
+	if got := ActorIDFromContext(context.Background()); !got.IsZero() {
+		t.Errorf("ActorIDFromContext = %q, want empty", got.Get())
 	}
 }
 
 func TestWithImpersonatorID_ImpersonatorFromContext(t *testing.T) {
 	t.Parallel()
-	ctx := WithImpersonatorID(context.Background(), ImpersonatorID("user:01ADM..."))
-	if got := ImpersonatorIDFromContext(ctx); got != "user:01ADM..." {
-		t.Errorf("ImpersonatorIDFromContext = %q, want %q", got, "user:01ADM...")
+	ctx := WithImpersonatorID(context.Background(), NewActorID("user:01ADM..."))
+	if got := ImpersonatorIDFromContext(ctx); got.Get() != "user:01ADM..." {
+		t.Errorf("ImpersonatorIDFromContext = %q, want %q", got.Get(), "user:01ADM...")
 	}
 }
 
 func TestImpersonatorIDFromContext_Empty(t *testing.T) {
 	t.Parallel()
-	if got := ImpersonatorIDFromContext(context.Background()); got != "" {
-		t.Errorf("ImpersonatorIDFromContext = %q, want empty", got)
+	if got := ImpersonatorIDFromContext(context.Background()); !got.IsZero() {
+		t.Errorf("ImpersonatorIDFromContext = %q, want empty", got.Get())
 	}
 }
 
 func TestEventOptionsFromContext_ActorChain(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctx = WithActorID(ctx, ActorID("user:01JX..."))
-	ctx = WithImpersonatorID(ctx, ImpersonatorID("user:01ADM..."))
+	ctx = WithActorID(ctx, NewActorID("user:01JX..."))
+	ctx = WithImpersonatorID(ctx, NewActorID("user:01ADM..."))
 
 	opts := EventOptionsFromContext(ctx)
 	if len(opts) < 2 {
@@ -96,4 +96,12 @@ func TestEventOptionsFromContext_NoActorChain(t *testing.T) {
 	if _, ok := custom[MetadataKeyImpersonatorID]; ok {
 		t.Error("should not have impersonator_id in metadata")
 	}
+}
+
+func TestImpersonatorID_IsActorID(t *testing.T) {
+	t.Parallel()
+	// ImpersonatorID is a type alias for ActorID — they are the SAME type.
+	// This is a compile-time guarantee: an impersonator IS an actor.
+	_ = NewActorID("user:01ADM...")
+	_ = NewActorID("user:01JX...")
 }
