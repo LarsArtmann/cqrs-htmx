@@ -107,14 +107,14 @@ func badgeColor(kind string) string {
 	case "accent":
 		return "var(--accent)"
 	case "blue":
-		return "#2563eb"
+		return "var(--info)"
 	case "green":
-		return "#16a34a"
+		return "var(--ok)"
 	case "red":
-		return "#dc2626"
+		return "var(--err)"
 	case "amber":
-		return "#d97706"
+		return "var(--warn)"
 	default:
-		return "#6b7280"
+		return "var(--muted, #6b7280)"
 	}
 }
