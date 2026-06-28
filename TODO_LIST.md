@@ -102,7 +102,7 @@ _Bugs found and fixed by code-quality-scan + full-code-review + architecture-rev
 - [ ] **Type ActorID/ImpersonatorID in context** (CRITICAL) — `context.go:141,147,155,161` store raw `string` losing all type safety. Should use `usermgmt.ActorID`.
 - [x] **Make foldUser return error on unknown events** (HIGH) — `es_state.go:166` now returns `event.NewRejection` for unknown types. Other folds (Membership, Tenant, Bot) also correctly return errors.
 - [x] **Use UserID for BotState.OwnerID** (HIGH) — `es_bot_state.go:11`, `service_bot.go:15` now use `UserID`. Other call sites updated.
-- [ ] **Use TenantID in Authz domain parameters** (HIGH) — `authz_roles.go:8,20,33,48` and `authz_policies.go:114,140` take raw `string`.
+- [~] **Use TenantID in Authz domain parameters** (HIGH) — All domain parameters now use `TenantID` across RolesForUser, ImplicitRolesForUser, ImplicitPermissionsForUser, DomainsForUser (returns `[]TenantID`), UsersForRole, RolesForActor, ImplicitRolesForActor. Remaining: `RemoveAllRolesForUser(subject string)` and `RemoveAllRolesInDomain(subject string, ...)` use raw `string` for subject — intentional, as Casbin subjects can be various ID types.
 - [x] **Unexport or validate NewActorID** (HIGH) — `id.go:120` now panics on invalid ActorKind; type-safe constructors `ActorIDFromUser`/`ActorIDFromBot` provided for safe construction.
 - [ ] **Use Email branded type in domain models** (MEDIUM) — `email.go:13` defines `Email` but all structs use raw `string`.
 - [ ] **Fix duplicate sentinel errors across packages** (MEDIUM) — `cqrshtmx.ErrUnauthorized` vs `usermgmt.ErrUnauthorized` are different values. `errors.Is` fails at module boundary.
