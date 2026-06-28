@@ -98,25 +98,33 @@ templ userDetailPage(p pageData, d userDetailData) {
 			</div>
 		</div>
 		<div class="mb-5 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]">
-			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)"><div class="p-[18px]">
-				<div class="text-xs text-gray-400">Credentials</div>
-				<div class="text-2xl font-bold">{ strconv.Itoa(len(d.User.Credentials)) }</div>
-			</div></div>
-			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)"><div class="p-[18px]">
-				<div class="text-xs text-gray-400">External accounts</div>
-				<div class="text-2xl font-bold">{ strconv.Itoa(len(d.User.ExternalAccounts)) }</div>
-			</div></div>
-			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)"><div class="p-[18px]">
-				<div class="text-xs text-gray-400">Member since</div>
-				<div class="text-base font-bold">{ d.User.CreatedAt.Format("Jan 2, 2006") }</div>
-			</div></div>
+			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
+				<div class="p-[18px]">
+					<div class="text-xs text-gray-400">Credentials</div>
+					<div class="text-2xl font-bold">{ strconv.Itoa(len(d.User.Credentials)) }</div>
+				</div>
+			</div>
+			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
+				<div class="p-[18px]">
+					<div class="text-xs text-gray-400">External accounts</div>
+					<div class="text-2xl font-bold">{ strconv.Itoa(len(d.User.ExternalAccounts)) }</div>
+				</div>
+			</div>
+			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
+				<div class="p-[18px]">
+					<div class="text-xs text-gray-400">Member since</div>
+					<div class="text-base font-bold">{ d.User.CreatedAt.Format("Jan 2, 2006") }</div>
+				</div>
+			</div>
 		</div>
 		<div class="mb-4 rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
 			<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px]">Details</span></div>
 			<div class="p-[18px]">
 				<dl class="grid gap-2 [grid-template-columns:auto_1fr]">
-					<dt class="text-sm text-gray-500">User ID</dt><dd class="font-mono text-xs">{ d.User.ID.Get().String() }</dd>
-					<dt class="text-sm text-gray-500">Email</dt><dd>{ d.User.Email }</dd>
+					<dt class="text-sm text-gray-500">User ID</dt>
+					<dd class="font-mono text-xs">{ d.User.ID.Get().String() }</dd>
+					<dt class="text-sm text-gray-500">Email</dt>
+					<dd>{ d.User.Email }</dd>
 					<dt class="text-sm text-gray-500">Verified</dt>
 					<dd>
 						if d.User.EmailVerified {

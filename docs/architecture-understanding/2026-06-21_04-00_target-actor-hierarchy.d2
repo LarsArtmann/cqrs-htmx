@@ -1,9 +1,9 @@
 direction: down
 
-style: { fill: "#0e0e10" }
+style: {fill: "#0e0e10"}
 
 title: "TARGET STATE — Actor-Centric Identity Model (Users + Bots unified under Actor)"
-title.style: { font-color: "#f4f4f0" }
+title.style: {font-color: "#f4f4f0"}
 
 # Actor Union
 Actor: {
@@ -77,15 +77,15 @@ KeyInsight: {
 }
 
 # Relationships
-Actor <- User: { style: { stroke: "#6eb5ff"; font-color: "#f4f4f0" } }
-Actor <- Bot: { style: { stroke: "#6eb5ff"; font-color: "#f4f4f0" } }
-ActorID <- UserID: { style: { stroke: "#6eb5ff"; font-color: "#f4f4f0" } }
-ActorID <- BotID: { style: { stroke: "#6eb5ff"; font-color: "#f4f4f0" } }
+Actor <- User: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+Actor <- Bot: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+ActorID <- UserID: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+ActorID <- BotID: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
 
-User -> Membership: { style: { stroke: "#6eb5ff"; font-color: "#f4f4f0" } }
-Bot -> Membership: { style: { stroke: "#6eb5ff"; font-color: "#f4f4f0" } }
-Membership -> Tenant: { style: { stroke: "#f4d35e"; font-color: "#f4f4f0" } }
-Authz -> Membership: { style: { stroke: "#6eb5ff"; font-color: "#f4f4f0" } }
-Tenant -> TenantID: { style: { stroke: "#f4d35e"; font-color: "#f4f4f0" } }
+User -> Membership: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+Bot -> Membership: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+Membership -> Tenant: {style: {stroke: "#f4d35e"; font-color: "#f4f4f0"}}
+Authz -> Membership: {style: {stroke: "#6eb5ff"; font-color: "#f4f4f0"}}
+Tenant -> TenantID: {style: {stroke: "#f4d35e"; font-color: "#f4f4f0"}}
 
-KeyInsight -> Actor: { style: { stroke: "#ffb347"; font-color: "#ffb347" } }
+KeyInsight -> Actor: {style: {stroke: "#ffb347"; font-color: "#ffb347"}}

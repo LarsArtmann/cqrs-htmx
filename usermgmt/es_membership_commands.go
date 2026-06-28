@@ -14,6 +14,7 @@ func deriveMembershipID(actorID ActorID, tenantID TenantID) id.AggregateID {
 // AddMemberCmd adds an actor to a tenant with the given roles.
 type AddMemberCmd struct {
 	aggregateID id.AggregateID
+	cmdID       id.CommandID
 	actorID     ActorID
 	tenantID    TenantID
 	roles       []Role
@@ -33,10 +34,12 @@ func NewAddMemberCmd(actorID ActorID, tenantID TenantID, roles []Role) *AddMembe
 func (c *AddMemberCmd) Type() command.Type { return cmdAddMember }
 
 func (c *AddMemberCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *AddMemberCmd) ID() id.CommandID            { return c.cmdID }
 
 // UpdateMemberRolesCmd changes the roles of an existing membership.
 type UpdateMemberRolesCmd struct {
 	aggregateID id.AggregateID
+	cmdID       id.CommandID
 	roles       []Role
 }
 
@@ -53,10 +56,12 @@ func NewUpdateMemberRolesCmd(
 func (c *UpdateMemberRolesCmd) Type() command.Type { return cmdUpdateMemberRoles }
 
 func (c *UpdateMemberRolesCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *UpdateMemberRolesCmd) ID() id.CommandID            { return c.cmdID }
 
 // RemoveMemberCmd removes an actor from a tenant.
 type RemoveMemberCmd struct {
 	aggregateID id.AggregateID
+	cmdID       id.CommandID
 }
 
 // NewRemoveMemberCmd constructs a RemoveMemberCmd.
@@ -69,3 +74,4 @@ func NewRemoveMemberCmd(actorID ActorID, tenantID TenantID) *RemoveMemberCmd {
 func (c *RemoveMemberCmd) Type() command.Type { return cmdRemoveMember }
 
 func (c *RemoveMemberCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *RemoveMemberCmd) ID() id.CommandID            { return c.cmdID }
