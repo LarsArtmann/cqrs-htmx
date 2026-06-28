@@ -7,6 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.1.0
 	github.com/larsartmann/cqrs-htmx/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
+	github.com/larsartmann/templ-components v0.5.0
 )
 
 require (
@@ -54,7 +55,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.3.0 // indirect
-	github.com/larsartmann/templ-components v0.5.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
