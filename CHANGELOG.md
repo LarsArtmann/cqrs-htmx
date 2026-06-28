@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **ACK protocol** (command confirmation): `CommandAck` struct with `{commandId, status, error}` JSON. `BroadcastOnAck()` / `BroadcastOnAckFunc()` on `Broadcaster` (SSE) and `BroadcastOnAckWS()` / `BroadcastOnAckWSFunc()` on `WSBroadcaster` (WS parity). Opt-in via `X-Command-Id` header.
 - **Integration tests**: 6 end-to-end tests prove `JournalSSEStore` + `Broadcaster` + ACK protocol work together in real HTTP handlers (replay, confirmed/rejected ACK, reconnect + live ACK, opt-in guard, concurrent race).
 - **ADRs**: 0023 (command-sync — sync commands not events), 0024 (honest UI — never lie about pending state), 0026 (idempotency store), 0027 (decide stays on server).
+- **Offline command queue — Phase 2a** (ADR-0029): `adminui/assets/sync-worker.js` — a SharedWorker (~80 lines vanilla JS) that queues command IDs when the network is down and tells tabs to retry on reconnect. The worker is a coordinator, not a proxy: it does NOT send HTTP requests (HTMX does), does NOT own SSE (per-tab EventSource), does NOT persist to disk (in-memory). Reactive detection via `htmx:sendError`. Served at `GET /-/sync-worker.js` when `Config.SSEURL` is set. IndexedDB banned; OPFS deferred to Phase 2b. admin.js gains `initSyncWorker()`, `enqueueCommand()`, `retryQueuedCommand()`, and an `htmx:sendError` handler that queues instead of rejecting. CSS adds `[data-sync-queued]` (dimmer, slower pulse) and `.sync-bar[data-sync-status="offline"]` (amber).
 
 ### Changed
 
