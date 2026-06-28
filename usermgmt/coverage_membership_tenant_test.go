@@ -3,6 +3,8 @@ package usermgmt
 import (
 	"context"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // TestMembershipService_AddUpdateRemove exercises the Service.AddMember,
@@ -268,5 +270,62 @@ func TestBotService_RegisterDelete(t *testing.T) {
 	_, ok = svc.ResolveBotByToken(result.Token)
 	if ok {
 		t.Error("expected token to not resolve after bot deletion")
+	}
+}
+
+// TestTenantState_IsValid verifies the struct-level invariant method.
+func TestTenantState_IsValid(t *testing.T) {
+	tests := []struct {
+		name string
+		s    TenantState
+		want bool
+	}{
+		{"empty", TenantState{}, true},
+		{"created", TenantState{Name: "acme"}, true},
+		{"suspended with reason", TenantState{Name: "acme", Suspended: true, SuspendReason: "violation"}, true},
+		{"suspended without reason", TenantState{Name: "acme", Suspended: true}, true},
+		{"deleted", TenantState{Name: "acme", Deleted: true, DeleteReason: "cleanup"}, true},
+		{"deleted+suspended (impossible)", TenantState{Name: "acme", Deleted: true, Suspended: true}, false},
+		{"suspended reason without suspended", TenantState{Name: "acme", SuspendReason: "leaked"}, false},
+		{"delete reason without deleted", TenantState{Name: "acme", DeleteReason: "oops"}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.s.IsValid(); got != tt.want {
+				t.Errorf("IsValid() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestTenantState_FoldDeleteClearsSuspended verifies the fold invariant:
+// deleting a suspended tenant clears the Suspended flag.
+func TestTenantState_FoldDeleteClearsSuspended(t *testing.T) {
+	aggID := id.NewAggregateID()
+	suspended := makeEventFor(t, eventTenantSuspended, 2, aggID, aggregateTypeTenant, TenantSuspendedPayload{
+		SchemaVersion: currentSchemaVersion,
+		Reason:        "test",
+	})
+	state, err := foldTenant(TenantState{Name: "acme"}, suspended)
+	if err != nil {
+		t.Fatalf("foldTenant suspend: %v", err)
+	}
+	if !state.Suspended {
+		t.Fatal("expected suspended state after suspend event")
+	}
+
+	deleted := makeEventFor(t, eventTenantDeleted, 3, aggID, aggregateTypeTenant, TenantDeletedPayload{
+		SchemaVersion: currentSchemaVersion,
+		Reason:        "cleanup",
+	})
+	state, err = foldTenant(state, deleted)
+	if err != nil {
+		t.Fatalf("foldTenant delete: %v", err)
+	}
+	if state.Suspended {
+		t.Error("expected Suspended to be cleared after delete")
+	}
+	if !state.IsValid() {
+		t.Error("state should be valid after fold sequence")
 	}
 }
