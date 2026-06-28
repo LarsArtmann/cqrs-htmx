@@ -135,10 +135,10 @@ _Phase 0 + Phase 1 server-side code DONE. See [execution plan](docs/planning/202
 - [x] **ACK protocol** — `CommandAck` struct, `BroadcastOnAck`/`BroadcastOnAckFunc` (SSE), `BroadcastOnAckWS`/`BroadcastOnAckWSFunc` (WS). Opt-in via `X-Command-Id` header.
 - [x] **Integration tests** — 6 end-to-end tests prove SSEEventStore + Broadcaster + ACK protocol work together in real HTTP handlers.
 - [x] **ADRs** — 0023 (command-sync: sync commands not events), 0024 (honest UI: never lie about pending state).
-- [ ] **Honest UI CSS** — `data-sync-state` attribute, `.sync-pending`/`.sync-confirmed`/`.sync-rejected` classes, global sync indicator. (T08-T14)
-- [ ] **Honest UI JS** — SSE EventSource manager, `sync:ack` listener, `handleSyncAck` DOM flip, optimistic render on `htmx:beforeRequest`, never-silent rollback. (T15-T21)
-- [ ] **Honest UI templ + admin-demo** — Layout indicator, `data-sync-state` on rows, demo wiring. (T22-T30)
-- [ ] **Phase 2 research** — Blocked on Q1 (where does `decide()` run: WASM or TS port?) and Q2 (must writes survive closed tabs?). (T31-T35)
+- [x] **Honest UI CSS** — `data-sync-state` attribute, `.sync-pending`/`.sync-confirmed`/`.sync-rejected` classes, global sync indicator. (T08-T14)
+- [x] **Honest UI JS** — SSE EventSource manager, `sync:ack` listener, `handleSyncAck` DOM flip, optimistic render on `htmx:beforeRequest`, never-silent rollback. (T15-T21)
+- [x] **Honest UI templ + admin-demo** — Layout indicator, `data-sync-state` on rows, demo wiring. (T22-T30)
+- [ ] **Phase 2 research** — Blocked on Q1 (where does `decide()` run: Queue-Only / WASM / TS port?) and Q2 (must writes survive closed tabs: SharedWorker / Service Worker + Background Sync?). (T31-T35)
 
 ---
 
