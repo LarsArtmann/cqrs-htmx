@@ -58,6 +58,11 @@ type Config struct {
 
 	// LogoutURL is the destination of the "Sign out" link. Empty hides the link.
 	LogoutURL string
+
+	// SSEURL is the Server-Sent Events endpoint URL. When set, the panel
+	// layout includes a data-sse-url attribute and renders the global sync
+	// indicator (.sync-bar). Empty disables honest UI sync tracking.
+	SSEURL string
 }
 
 // withDefaults returns a copy of cfg with empty fields replaced by defaults and

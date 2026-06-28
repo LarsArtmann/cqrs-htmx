@@ -188,9 +188,19 @@
   }
 
   // --- Optimistic render: mark pending on htmx:beforeRequest ---
+  // Auto-generates X-Command-Id for mutation requests (POST/PUT/DELETE)
+  // so every destructive action is tracked without manual hx-headers.
   document.addEventListener("htmx:beforeRequest", function (e) {
-    var headers = e.detail.requestConfig.headers || {};
-    var cmdID = headers["X-Command-Id"];
+    var verb = (e.detail.requestConfig.verb || "").toLowerCase();
+    var isMutation = verb === "post" || verb === "put" || verb === "delete";
+    if (!isMutation) return;
+
+    e.detail.requestConfig.headers = e.detail.requestConfig.headers || {};
+    var cmdID = e.detail.requestConfig.headers["X-Command-Id"];
+    if (!cmdID && typeof crypto !== "undefined" && crypto.randomUUID) {
+      cmdID = crypto.randomUUID();
+      e.detail.requestConfig.headers["X-Command-Id"] = cmdID;
+    }
     if (!cmdID) return;
 
     var target = e.detail.elt;
