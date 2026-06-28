@@ -2,10 +2,7 @@ module github.com/larsartmann/cqrs-htmx/examples/catalog-demo
 
 go 1.26.3
 
-require (
-	github.com/larsartmann/cqrs-htmx/catalog/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.1.0
-)
+require github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.2.0
 
 require (
 	github.com/go-faster/errors v0.7.1 // indirect
@@ -16,5 +13,3 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 )
-
-replace github.com/larsartmann/cqrs-htmx/catalog/v3 => ../../catalog

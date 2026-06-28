@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-26 | **Coverage:** 95.4% root, 79.5% usermgmt, 95.3% catalog | **Lint:** 0 issues (all modules) | **Version:** v3.1.0 (go-cqrs-lite v3.1.0)
+**Updated:** 2026-06-28 | **Coverage:** 95.4% root, 79.5% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v3.1.0 (go-cqrs-lite v3.2.0 catalog)
 
 ## Status Legend
 
@@ -45,7 +45,7 @@
 
 ### Catalog Sub-Package (2026-06-17)
 
-- [x] **Create catalog/ Go module** — 5th module (`github.com/larsartmann/cqrs-htmx/catalog/v3`). Depends only on go-cqrs-lite/catalog/v3. Zero dep on root or usermgmt.
+- [x] **catalog/ merged into go-cqrs-lite** — The `catalog/` Go module was merged upstream into `go-cqrs-lite/catalog/v3` (v3.2.0). The single-service Builder facade lives at `catalog/v3/simple`, and the standalone HTTP handlers (D2, Health, GenerateEventCatalog) live at `catalog/v3/docserver`. The `OpenAPIHandler`/`AsyncAPIHandler` were replaced by the richer upstream `docserver.DocsServer`. The `catalog/` directory in cqrs-htmx is deleted.
 - [x] **Builder API** — `New(title, version)`, `Command[T](b, id)`, `Query[T](b, id)`, `Event[T](b, id, dir)` using standalone generic functions (Go doesn't allow generic methods).
 - [x] **HTTP handlers** — `OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `GenerateEventCatalog` (file generation, not HTTP), `HealthCheckHandler`.
 - [x] **YAML output** — `WithFormat(FormatYAML)` for all JSON handlers.

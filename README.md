@@ -1094,7 +1094,6 @@ cqrs-htmx/
 │   ├── middleware.go       # NewSessionMiddleware, user context helpers
 │   ├── lockout.go          # AccountLockout (configurable attempts + duration)
 │   └── errors.go           # Sentinel errors
-├── catalog/             # API documentation generation (opt-in, 5th Go module)
 ├── integration_test/   # Cross-module integration tests (independent Go module)
 └── examples/
     └── datastar-demo/  # Standalone datastar + go-cqrs-lite SSE example
@@ -1102,22 +1101,28 @@ cqrs-htmx/
 
 ## Optional Sub-Packages
 
-### catalog — API Documentation Generation
+### API Documentation Generation
 
-Generate OpenAPI, AsyncAPI, D2 diagrams, and EventCatalog docs from your Go CQRS types:
+API documentation (OpenAPI, AsyncAPI, D2 diagrams, EventCatalog) is now provided by **go-cqrs-lite/catalog v3.2.0** directly:
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/catalog/v3
+go get github.com/larsartmann/go-cqrs-lite/catalog/v3
 ```
 
 ```go
-b := cataloghtmx.New("User Service", "1.0.0")
-cataloghtmx.Command[RegisterUserCmd](b, "register-user")
+import (
+    "github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v3/simple"
+)
+
+b := simple.New("User Service", "1.0.0")
+simple.Command[RegisterUserCmd](b, "register-user")
 cat := b.Build()
-mux.Handle("/docs/openapi.json", cataloghtmx.OpenAPIHandler(cat))
+
+mux.Handle("/docs/openapi.json", docserver.NewDocsServer(...).OpenAPISpec())
 ```
 
-See [catalog/README.md](catalog/README.md) for full documentation.
+See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite/tree/master/catalog) for full documentation.
 
 ## Dependencies
 

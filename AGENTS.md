@@ -22,7 +22,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200) |
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                         |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage    | 95.4% root, 79.5% usermgmt, 95.3% catalog (697 tests)                                                 |
+| Coverage    | 95.4% root, 79.5% usermgmt (697 tests)                                                                |
 
 ## Architecture
 
@@ -144,10 +144,6 @@ cqrs-htmx/
 │   ├── audit_log.go       # AuditLog — append-only audit event recorder
 │   ├── eviction.go        # startPeriodicEviction — shared TTL sweep goroutine for ephemeral stores
 │   ├── random.go          # randomBase64URLString — shared CSPRNG token generation (32 bytes)
-├── catalog/             # API documentation generation (5th Go module, opt-in)
-│   ├── go.mod           # Independent Go module — depends only on go-cqrs-lite/catalog/v3
-│   ├── builder.go       # Builder, New(), Command[T]/Query[T]/Event[T], Build()/BuildValid()
-│   └── serve.go         # OpenAPIHandler, AsyncAPIHandler, D2Handler, GenerateEventCatalog, HealthCheckHandler
 ├── adminui/             # Ready-made Admin Dashboard UI (7th Go module, templ + HTMX)
 │   ├── go.mod          # Independent Go module — depends on root + usermgmt + a-h/templ
 │   ├── config.go       # Config, Mode (SuperAdmin/TenantAdmin), defaults
@@ -165,7 +161,7 @@ cqrs-htmx/
 └── examples/
     ├── basic/         # Minimal cqrs-htmx consumer example (register/list items)
     ├── datastar-demo/ # Standalone go-cqrs-lite + datastar SSE example (4th Go module)
-    ├── catalog-demo/  # Standalone catalog doc-server example (6th Go module)
+    ├── catalog-demo/  # Standalone catalog doc-server example (6th Go module, uses go-cqrs-lite/catalog)
     └── admin-demo/    # Runnable admin panel showcase (8th Go module) — go run ., open :8097
 ```
 
@@ -181,7 +177,6 @@ cqrs-htmx/
 | catalog-demo     | `examples/catalog-demo/`                            | No    | Catalog doc-server example (main package)                 |
 | admin-demo       | `examples/admin-demo/`                              | No    | Runnable admin panel showcase (main package)              |
 | basic            | `examples/basic/`                                   | No    | Minimal cqrs-htmx consumer example                        |
-| catalog          | `github.com/larsartmann/cqrs-htmx/catalog/v3`       | Yes   | API doc generation (opt-in, no root/usermgmt dep)         |
 
 ## Dependencies
 
@@ -216,7 +211,7 @@ cqrs-htmx/
 
 ### Error Handling
 
-- **go-error-family v0.5.1**: Replaced `cockroachdb/errors` for error classification. Re-exported via `go-cqrs-lite/event/v3` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). Root + usermgmt import it transitively via `event/v3` (indirect); `catalog` imports `go-error-family` directly (no event/v3 dep). `ErrDispatchFailed` is now natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
+- **go-error-family v0.5.1**: Replaced `cockroachdb/errors` for error classification. Re-exported via `go-cqrs-lite/event/v3` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). Root + usermgmt import it transitively via `event/v3` (indirect). `ErrDispatchFailed` is now natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
 - **NO stdlib error constructors**: `errors.New`, `fmt.Errorf` (as error), and `errors.Join` are banned in non-test code. Enforced by `branching-flow errorfamily .` (must report 0). Use `event.New*/Wrap*/Wrapf/Newf` instead. Exception: `fmt.Sprintf` is fine when building a _message string_ (not an error object), e.g. `http.go`/`verification_totp_http.go` format a 400 response body
 - **Family assignment rules** (maps to HTTP status via `MapError`):
   - **Rejection (400)** — caller/user input invalid: parse failures, validation (`ParseEmail`, `ImportUser.Validate`), bad config (`OAuth2ProviderConfig.Validate`, unsupported SQL dialect), missing/invalid IDs
@@ -399,7 +394,7 @@ cqrs-htmx/
 
 ### Module & Build
 
-1. **GOWORK=off required**: `go.work` covers root + adminui + usermgmt + integration_test + catalog + examples. `GOWORK=off` needed for CI/commands using per-module go.mod
+1. **GOWORK=off required**: `go.work` covers root + adminui + usermgmt + integration_test + examples. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
 3. **go-cqrs-lite v3.1.0**: Per-module tags (`command/v3.1.0`, `event/v3.1.0`, etc.) published. All `go.mod` files declare `v3.1.0`. No replace directives needed. v3.1.0 adds SQL-backed view stores (`storage.SQLViewStore`/`ViewMapper`/`AutoMapper`), typed command/query metadata (`event.CustomData[K]`), multi-DB split presets, and `synchronous=NORMAL` WAL tuning — zero breaking changes over v3.0.0
 4. **Removed APIs in v2.3.0+**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
@@ -542,4 +537,4 @@ cd examples/admin-demo && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go 
 ### CI Gates
 
 - **`nix run .#errorfamily`**: Runs `branching-flow errorfamily` on root + usermgmt. Verifies zero stdlib error constructors.
-- **`nix run .#coverage-gate`**: Tests all modules and fails if coverage drops below thresholds (root 90%, usermgmt 75%, catalog 90%).
+- **`nix run .#coverage-gate`**: Tests all modules and fails if coverage drops below thresholds (root 90%, usermgmt 75%).
