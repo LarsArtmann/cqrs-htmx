@@ -138,6 +138,13 @@ _Phase 0 + Phase 1 server-side code DONE. See [execution plan](docs/planning/202
 - [x] **Honest UI CSS** — `data-sync-state` attribute, `.sync-pending`/`.sync-confirmed`/`.sync-rejected` classes, global sync indicator. (T08-T14)
 - [x] **Honest UI JS** — SSE EventSource manager, `sync:ack` listener, `handleSyncAck` DOM flip, optimistic render on `htmx:beforeRequest`, never-silent rollback. (T15-T21)
 - [x] **Honest UI templ + admin-demo** — Layout indicator, `data-sync-state` on rows, demo wiring. (T22-T30)
+- [x] **Idempotency store** — `IdempotencyStore` interface + `MemoryIdempotencyStore` with TTL sweep. `CheckAndRecord` helper for atomic check-and-record. `ErrDuplicateCommand` → HTTP 409. ADR-0026. (2026-06-28)
+- [x] **Form decoder upgrade** — Replaced JSON round-trip with `go-playground/form/v4` (zero transitive deps, `json` tag mode for backward compat). (2026-06-28)
+- [x] **Pagination unification** — Both root `DecodePagination` and usermgmt `parseUintQueryParam` now delegate to `query.NewPagination`. Same defaults. Standard REST behavior (no silent page clamping). (2026-06-28)
+- [x] **Go.mod version alignment** — All modules aligned to Go 1.26.4 + cqrs-htmx v3.2.0. ETag bumped to `adminui-v3.2.0`. (2026-06-28)
+- [x] **Stdlib modernization** — `slices.Contains`, `min()`, `slices.IndexFunc` replace manual loops. goconst warnings fixed. `context.TODO()` → `context.Background()`. (2026-06-28)
+- [x] **CI umbrella verified** — `nix run .#test` + `nix run .#lint` + `nix run .#errorfamily` all green. All 4 modules pass with -race. (2026-06-28)
+- [x] **go.yaml.in/yaml/v3 investigated** — Confirmed as official Canonical Ltd successor to `gopkg.in/yaml.v3` (same codebase, new import path). NOT a typo-squat. No action needed. (2026-06-28)
 - [ ] **Phase 2 research** — Blocked on Q1 (where does `decide()` run: Queue-Only / WASM / TS port?) and Q2 (must writes survive closed tabs: SharedWorker / Service Worker + Background Sync?). (T31-T35)
 
 ---
