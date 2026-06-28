@@ -51,7 +51,7 @@ cqrs-htmx/
 ├── csrf_middleware.go # CSRFMiddleware (justinas/nosurf integration, origin checks)
 ├── csrf_handler.go   # CSRFProtect (per-handler CSRF HandlerOption)
 ├── csrf_helpers.go   # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
-├── decoder.go        # Body reading, form/JSON decoding, MaxBodySize enforcement
+├── decoder.go        # Body reading, form/JSON decoding (go-playground/form/v4), MaxBodySize enforcement
 ├── httputil.go       # WriteJSON, ClientIP (delegates to larsartmann/httputil)
 ├── logging.go        # RequestLogging, RequestLoggingSlog, formatters
 ├── sse_event.go      # SSEEvent struct, WriteSSEEvent, SSEEventID branded type + ParseSSEEventID
@@ -60,6 +60,7 @@ cqrs-htmx/
 ├── event_store_sse.go # JournalSSEStore — PRODUCTION SSEEventStore backed by event.SeekableJournal
 ├── sse_broadcaster.go # SSE Broadcaster (embeds fanOut[SSEEvent]), BroadcastOnSuccess/OnError/Func hooks
 ├── ack.go            # CommandAck + BroadcastOnAck — ACK protocol for honest UI sync-state
+├── idempotency.go   # IdempotencyStore + MemoryIdempotencyStore — prevents duplicate command execution on retry
 ├── structured_error.go # StructuredError (RFC 7807), NewStructuredError, NewStructuredErrorWithContext, JSON()
 ├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML
 ├── ws_encoder.go     # WriteWSMessage, WriteWSMessageInto[T] — outbound WS message encoder
@@ -197,6 +198,7 @@ cqrs-htmx/
 | coreos/go-oidc/v3 v3.19.0   | OIDC provider discovery + ID token verification                                                                     | usermgmt         |
 | go-jose/go-jose/v4 v4.1.4   | JWT/JWS signing (transitive from go-oidc, used in tests)                                                            | usermgmt (tests) |
 | golang.org/x/time           | Rate limiting                                                                                                       | Root             |
+| go-playground/form/v4 v4.3.0 | Form decoding (url.Values → struct, zero transitive deps, json tag mode for backward compat)                       | Root             |
 | a-h/templ v0.3.1020         | Type-safe HTML templating (admin UI components)                                                                     | adminui          |
 | onsi/ginkgo/v2 + gomega     | BDD test framework                                                                                                  | All test modules |
 
@@ -301,6 +303,7 @@ cqrs-htmx/
 - **Reconnection**: `LastEventIDFromRequest()` parses `Last-Event-ID` header (returns branded `SSEEventID`). `SSEEventStore` interface for event replay. `ReplayEvents()` sends missed events to stream. `SSEEventID` branded type (`ParseSSEEventID`/`MustParseSSEEventID`/`NewSSEEventID`) prevents cross-assignment with other string IDs; rejects newlines that would corrupt the SSE wire format.
 - **Production SSEEventStore**: `JournalSSEStore` (`event_store_sse.go`) wraps `event.Journal`/`event.SeekableJournal` for durable replay. Uses `ReadFrom(afterEventID, limit)` for efficient cursor-based position replay. Falls back to `ReadAll` + in-memory filter when `SeekableJournal` is unavailable. Consumer provides `EventToSSEMapper` to render event payloads. `WithMaxReplay(n)` limits initial sync (default: 1000). See `docs/adr/0023-command-sync.md`.
 - **ACK Protocol**: `CommandAck` (`ack.go`) carries `{commandId, status, error}` JSON over SSE for honest UI sync-state transitions. `BroadcastOnAck()` hook factory on `Broadcaster` broadcasts when the request carries `X-Command-Id` header (opt-in). `BroadcastOnAckFunc(fn)` for custom payloads. See `docs/adr/0024-honest-ui.md`.
+- **Idempotency**: `IdempotencyStore` interface + `MemoryIdempotencyStore` (`idempotency.go`) prevents duplicate command execution on client retry. `CheckAndRecord(ctx, store, cmdID, ttl)` is the atomic check-and-record helper (avoids TOCTOU race). `ErrDuplicateCommand` maps to HTTP 409 Conflict. NOT auto-wired — consumers opt in via `BeforeDispatchHook`. See `docs/adr/0026-command-idempotency-store.md`.
 - **CQRS bridge**: `BroadcastOnSuccess(eventName, data)` / `BroadcastOnSuccessFunc(fn)` — broadcast on success. `BroadcastOnError(eventName)` / `BroadcastOnErrorFunc(fn)` — broadcast StructuredError on failure. Full dispatch feedback for SSE clients.
 - **Heartbeat**: `SSEStream.Heartbeat(ctx, interval)` sends SSE comment-frame pings (": keepalive\n\n"). Prevents proxy/LB idle disconnects (Nginx 30s, Cloudflare 100s).
 - **OnDisconnect**: `SSEStream.OnDisconnect(fn)` registers cleanup callbacks fired on Close().
@@ -351,6 +354,8 @@ cqrs-htmx/
 - **Per-endpoint rate limiting**: `HandlerConfig.RegistrationRateLimit`, `ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit`, `WebAuthnRateLimit`. All use the shared `RateLimitConfig` type. All disabled by default.
 - **Email value type**: `type Email string` with `ParseEmail`/`MustParseEmail`. Used in `ExportUser`. Internal types stay `string` for event backward compat.
 - **UserDataFormat** (renamed from ExportFormat): Used for both import and export. Constants: `UserDataFormatJSON`, `UserDataFormatCSV`.
+- **Bot & Impersonation are service-level APIs** (not ghost systems): `Service.RegisterBot/DeleteBot/GetBot/ResolveBotByToken`, `NewAPITokenMiddleware`, and `Service.BeginImpersonation/EndImpersonation` are intentionally service-level — consumers wire their own HTTP routes. These have full security guards (super_admin checks, reason-required, self-impersonation prevention, HMAC token hashing). No HTTP routes exist because the routing scheme, path prefixes, and auth middleware are consumer-specific decisions.
+- **Pagination unified**: Both root (`DecodePagination`) and usermgmt (`parseUintQueryParam`) now delegate to `query.NewPagination` from go-cqrs-lite. Same defaults (page=1, pageSize=20, max=100). Requesting a page beyond the last page returns an empty page (standard REST, no silent clamping).
 - **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
 
 ### Event Signing & Encryption (Opt-in) — 2026-06-18
