@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 // StartProjections replays historical events from the journal into all
@@ -23,10 +24,10 @@ import (
 func StartProjections(
 	journal event.Journal,
 	bus event.Subscriber,
-	readModel event.Projection,
-	membershipReadModel event.Projection,
-	tenantReadModel event.Projection,
-	botReadModel event.Projection,
+	readModel projection.Projection,
+	membershipReadModel projection.Projection,
+	tenantReadModel projection.Projection,
+	botReadModel projection.Projection,
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
 ) error {
@@ -52,14 +53,14 @@ func StartProjections(
 // collectProjections gathers all projection implementations into a slice.
 // The read model and casbin projection are always present; the rest are optional.
 func collectProjections(
-	readModel event.Projection,
-	membershipReadModel event.Projection,
-	tenantReadModel event.Projection,
-	botReadModel event.Projection,
+	readModel projection.Projection,
+	membershipReadModel projection.Projection,
+	tenantReadModel projection.Projection,
+	botReadModel projection.Projection,
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
-) []event.Projection {
-	projections := []event.Projection{readModel, casbinProjection}
+) []projection.Projection {
+	projections := []projection.Projection{readModel, casbinProjection}
 	if membershipReadModel != nil {
 		projections = append(projections, membershipReadModel)
 	}
@@ -81,7 +82,7 @@ func collectProjections(
 // IDs for live-handler dedup.
 func replayProjections(
 	journal event.Journal,
-	projections []event.Projection,
+	projections []projection.Projection,
 ) (map[id.EventID]struct{}, error) {
 	replayCtx := event.WithProcessingMode(context.Background(), event.ModeReplay)
 
@@ -127,7 +128,7 @@ func replayProjections(
 // during live processing. Its size is bounded by the number of events in
 // the journal at startup time.
 func buildLiveHandler(
-	projections []event.Projection,
+	projections []projection.Projection,
 	seenIDs map[id.EventID]struct{},
 ) event.Handler {
 	return event.Handler(func(ctx context.Context, evt event.Event) error {

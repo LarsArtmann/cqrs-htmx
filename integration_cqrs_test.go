@@ -77,7 +77,7 @@ var _ = Describe("Integration: CQRS + HTMX + Casbin", func() {
 				"DeleteUser",
 				cqrshtmx.RequireAuth(),
 				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &bddDeleteUserCmd{aggID: userID}, nil
+					return &bddDeleteUserCmd{aggID: userID, cmdID: id.NewCommandID()}, nil
 				}),
 			)
 			assertStatusCode(

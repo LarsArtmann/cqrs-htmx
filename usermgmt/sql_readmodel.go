@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
@@ -122,4 +123,4 @@ func (m *SQLUserReadModel) CountSQL(ctx context.Context) (int64, error) {
 	return count, nil
 }
 
-var _ event.Projection = (*SQLUserReadModel)(nil)
+var _ projection.Projection = (*SQLUserReadModel)(nil)

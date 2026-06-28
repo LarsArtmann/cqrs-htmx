@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 // Bot is the read-model representation of a bot (machine actor).
@@ -110,4 +111,4 @@ func (m *BotReadModel) FindByTokenHash(hash []byte) (*Bot, bool) {
 	return bot, ok
 }
 
-var _ event.Projection = (*BotReadModel)(nil)
+var _ projection.Projection = (*BotReadModel)(nil)

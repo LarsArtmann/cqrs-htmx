@@ -6,7 +6,7 @@ require (
 	github.com/a-h/templ v0.3.1020
 	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.2.0
 	github.com/larsartmann/cqrs-htmx/v3 v3.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
 	github.com/larsartmann/templ-components v0.5.0
 )
 
@@ -38,22 +38,24 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.3.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
@@ -73,6 +75,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect

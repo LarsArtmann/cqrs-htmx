@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 // MembershipReadModel is the projection-side store for memberships.
@@ -157,4 +158,4 @@ func (m *MembershipReadModel) removeMembership(aggID id.AggregateID) {
 	delete(m.memberships, aggID)
 }
 
-var _ event.Projection = (*MembershipReadModel)(nil)
+var _ projection.Projection = (*MembershipReadModel)(nil)

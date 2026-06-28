@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
@@ -92,7 +93,7 @@ func (m *SQLMembershipReadModel) FindByActorSQL(ctx context.Context, actorID str
 	return views, nil
 }
 
-var _ event.Projection = (*SQLMembershipReadModel)(nil)
+var _ projection.Projection = (*SQLMembershipReadModel)(nil)
 
 // --- Tenant ---
 
@@ -172,7 +173,7 @@ func (m *SQLTenantReadModel) FindByNameSQL(ctx context.Context, name string) ([]
 	return views, nil
 }
 
-var _ event.Projection = (*SQLTenantReadModel)(nil)
+var _ projection.Projection = (*SQLTenantReadModel)(nil)
 
 // --- Bot ---
 
@@ -252,4 +253,4 @@ func (m *SQLBotReadModel) FindByNameSQL(ctx context.Context, name string) ([]*Bo
 	return views, nil
 }
 
-var _ event.Projection = (*SQLBotReadModel)(nil)
+var _ projection.Projection = (*SQLBotReadModel)(nil)

@@ -38,7 +38,7 @@ func newTestGetUserNameQuery() *testGetUserNameQuery {
 
 func decodeCreateUserJSON() cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-		return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+		return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
 	})
 }
 
@@ -48,7 +48,7 @@ func decodeCreateUserJSONWithBody() cqrshtmx.HandlerOption {
 
 func decodeBDDCreateUserJSON() cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
-		return &bddCreateUserCmd{aggID: id.NewAggregateID()}, nil
+		return &bddCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
 	})
 }
 
@@ -60,13 +60,13 @@ func decodeGetUserJSONQuery() cqrshtmx.HandlerOption {
 
 func decodeCreateUserJSONWithAggID(aggID id.AggregateID) cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-		return &testCreateUserCmd{aggID: aggID}, nil
+		return &testCreateUserCmd{aggID: aggID, cmdID: id.NewCommandID()}, nil
 	})
 }
 
 func decodeCreateUserJSONWithBodyAndAggID(aggID id.AggregateID) cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
-		return &testCreateUserCmd{aggID: aggID, email: req.Email, name: req.Name}, nil
+		return &testCreateUserCmd{aggID: aggID, cmdID: id.NewCommandID(), email: req.Email, name: req.Name}, nil
 	})
 }
 
@@ -75,6 +75,7 @@ func decodeCreateUserJSONWithBodyAndAggID(aggID id.AggregateID) cqrshtmx.Handler
 func bddCreateUserCommand(req bddCreateUserReq) (command.Command, error) {
 	return &bddCreateUserCmd{
 		aggID: id.NewAggregateID(),
+		cmdID: id.NewCommandID(),
 		email: req.Email,
 		name:  req.Name,
 	}, nil
@@ -85,6 +86,7 @@ func bddCreateUserCommand(req bddCreateUserReq) (command.Command, error) {
 func testCreateUserCommand(req testCreateUserRequest) (command.Command, error) {
 	return &testCreateUserCmd{
 		aggID: id.NewAggregateID(),
+		cmdID: id.NewCommandID(),
 		email: req.Email,
 		name:  req.Name,
 	}, nil

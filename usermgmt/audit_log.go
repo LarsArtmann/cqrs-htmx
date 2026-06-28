@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 // AuditEntry represents a single auditable user action derived from events.
@@ -143,4 +144,4 @@ func (a *AuditLog) Recent(n int) []AuditEntry {
 	return result
 }
 
-var _ event.Projection = (*AuditLog)(nil)
+var _ projection.Projection = (*AuditLog)(nil)

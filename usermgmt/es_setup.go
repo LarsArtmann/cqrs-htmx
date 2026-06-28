@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
@@ -167,10 +168,10 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	// Projections registered with StartProjections. When ReadModelDB is set,
 	// these are SQL wrappers (which embed the concrete read models above);
 	// otherwise they are the concrete read models themselves.
-	userProj := event.Projection(readModel)
-	membershipProj := event.Projection(membershipReadModel)
-	tenantProj := event.Projection(tenantReadModel)
-	botProj := event.Projection(botReadModel)
+	userProj := projection.Projection(readModel)
+	membershipProj := projection.Projection(membershipReadModel)
+	tenantProj := projection.Projection(tenantReadModel)
+	botProj := projection.Projection(botReadModel)
 
 	if cfg.ReadModelDB != nil {
 		sqlUserRM, err := NewSQLiteUserReadModel(cfg.ReadModelDB)
