@@ -224,19 +224,11 @@
 
 ---
 
-## catalog Sub-Package (`github.com/larsartmann/cqrs-htmx/catalog/v3`)
+## API Documentation (via go-cqrs-lite/catalog/v3)
 
-| Feature             | Status                | Notes                                                                                                                                                                                            |
-| ------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Catalog Builder     | 🟢 `FULLY_FUNCTIONAL` | `New(title, version)` wraps `catalog.Builder`. `Command[T]`, `Query[T]`, `Event[T]` register messages with auto-derived schemas. `WithServiceName`/`WithServiceSummary`/`WithServiceID` options. |
-| OpenAPI Handler     | 🟢 `FULLY_FUNCTIONAL` | `OpenAPIHandler(cat)` serves OpenAPI 3.0.3 JSON/YAML. Auto-generates paths from message IDs and HTTP operations. `WithBasePath` default `/api`.                                                  |
-| AsyncAPI Handler    | 🟢 `FULLY_FUNCTIONAL` | `AsyncAPIHandler(cat)` serves AsyncAPI 3.0.0 JSON/YAML. Maps commands→receive, events→send/receive, queries→handle.                                                                              |
-| D2 Diagram Handler  | 🟢 `FULLY_FUNCTIONAL` | `D2Handler(cat)` serves D2 architecture diagrams as text/plain. Cross-service event flows, domain grouping, CSS classes.                                                                         |
-| EventCatalog Export | 🟢 `FULLY_FUNCTIONAL` | `GenerateEventCatalog(cat, dir)` writes MDX file tree for EventCatalog CLI. Auto-derives producers/consumers from event directions.                                                              |
-| Health Check        | 🟢 `FULLY_FUNCTIONAL` | `HealthCheckHandler(cat)` → 200 `{"status":"healthy","services":N}` or 503 `{"status":"unhealthy"}`.                                                                                             |
-| Schema Reflection   | 🟢 `FULLY_FUNCTIONAL` | Auto-derives JSON Schema from Go struct tags (`json`, `doc`, `format`, `enum`, `default`). Delegated to go-cqrs-lite catalog.                                                                    |
-| Catalog Validation  | 🟢 `FULLY_FUNCTIONAL` | `Build()` panics on invalid catalogs (duplicate IDs, empty names). `BuildValid()` returns violations for non-panic usage.                                                                        |
-| Format Options      | 🟢 `FULLY_FUNCTIONAL` | `WithFormat(FormatJSON)` (default) or `WithFormat(FormatYAML)`. Honored by OpenAPI and AsyncAPI handlers.                                                                                        |
+API documentation generation (OpenAPI, AsyncAPI, D2, EventCatalog) is now provided by **go-cqrs-lite/catalog v3.2.0** directly. Use the `simple` sub-package for the single-service Builder facade and the `docserver` sub-package for HTTP handlers (D2Handler, HealthCheckHandler, GenerateEventCatalog, and the full DocsServer for OpenAPI/AsyncAPI with HTML UIs).
+
+See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite/tree/master/catalog) for details. The `examples/catalog-demo/` example demonstrates the integration.
 
 ---
 
@@ -246,7 +238,7 @@
 | -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | UserID Bridge        | 🟢 `FULLY_FUNCTIONAL` | Root `UserID` ↔ usermgmt `UserID` conversion via `Get()`/`ParseUserID`. Context round-trip verified.                                                                                   |
 | Authorization Wiring | 🟢 `FULLY_FUNCTIONAL` | `usermgmt.Authz.AsEnforcer()` plumbed into root `Config.Enforcer`. Full register → authenticate → authorize cycle tested.                                                              |
-| Catalog Generation   | 🟢 `FULLY_FUNCTIONAL` | cataloghtmx builder producing OpenAPI/AsyncAPI/D2/EventCatalog docs from App and usermgmt-derived types.                                                                               |
+| Catalog Generation   | 🟢 `FULLY_FUNCTIONAL` | Uses go-cqrs-lite/catalog/v3 `simple` + `docserver` to produce OpenAPI/AsyncAPI/D2/EventCatalog docs from App and usermgmt-derived types.                                               |
 | README Recipe Guard  | 🟢 `FULLY_FUNCTIONAL` | The documented catalog-for-usermgmt recipe compiles and reflects against real event payload types. Guards against breakage.                                                            |
 | Typed Query Dispatch | 🟢 `FULLY_FUNCTIONAL` | Typed queries registered and dispatched across cqrs-htmx and usermgmt, including through HTTP handlers and pagination.                                                                 |
 | CSRF + AuthHandler   | 🟢 `FULLY_FUNCTIONAL` | Root `CSRFMiddleware` composed with `usermgmt.SessionMiddleware` protecting `usermgmt.AuthHandler`.                                                                                    |

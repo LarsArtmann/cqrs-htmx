@@ -42,8 +42,9 @@ The project uses a **multi-module Go workspace** with 5 modules:
 | ------------- | --------------------------- | --------------------------------------------- |
 | Root          | `./`                        | `github.com/larsartmann/cqrs-htmx`            |
 | Usermgmt      | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt`   |
+| Admin UI      | `./adminui/`                | `github.com/larsartmann/cqrs-htmx/adminui/v3` |
 | Integration   | `./integration_test/`       | separate test module                          |
-| Catalog       | `./catalog/`                | `github.com/larsartmann/cqrs-htmx/catalog/v3` |
+| Catalog Demo  | `./examples/catalog-demo/`  | example app (uses go-cqrs-lite/catalog)       |
 | Datastar Demo | `./examples/datastar-demo/` | example app                                   |
 
 ```
