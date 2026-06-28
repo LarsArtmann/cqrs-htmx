@@ -20,8 +20,7 @@ templ Layout(p pageData) {
 		<body>
 			<div class="grid min-h-screen grid-cols-[248px_1fr] max-md:grid-cols-1">
 				<aside
-					id="admin-sidebar"
-					class="sticky top-0 flex h-screen flex-col gap-1.5 p-[18px_14px] text-gray-400 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:w-64 max-md:-translate-x-full max-md:transition-transform [&.open]:translate-x-0"
+					class="admin-sidebar sticky top-0 flex h-screen flex-col gap-1.5 p-[18px_14px] text-gray-400 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:w-64 max-md:-translate-x-full max-md:transition-transform [&.open]:translate-x-0"
 					style="background:var(--sidebar-bg)"
 				>
 					<div class="flex items-center gap-2.5 pt-1.5 pb-4 px-2.5 text-base font-bold text-gray-100">
@@ -48,9 +47,8 @@ templ Layout(p pageData) {
 						style="background:color-mix(in srgb, var(--surface) 86%, transparent)"
 					>
 						<button
-							class="hidden max-md:block"
+							class="admin-toggle hidden max-md:block"
 							aria-label="Menu"
-							onclick="document.getElementById('admin-sidebar').classList.toggle('open')"
 						>@icon("menu")</button>
 						<div class="text-[17px]">{ p.Title }</div>
 						<div class="flex-1"></div>
@@ -73,9 +71,7 @@ templ Layout(p pageData) {
 				</div>
 			</div>
 			<div
-				class="fixed inset-0 z-40 hidden bg-black/40 max-md:block"
-				id="admin-scrim"
-				onclick="document.getElementById('admin-sidebar').classList.remove('open')"
+				class="admin-scrim fixed inset-0 z-40 hidden bg-black/40 max-md:block"
 			></div>
 			@toastHost()
 			<script src={ p.BasePath + "/-/admin.js" }></script>
