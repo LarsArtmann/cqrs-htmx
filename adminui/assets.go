@@ -10,7 +10,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 )
 
-//go:embed assets/admin-tw.css assets/admin.js
+//go:embed assets/admin-tw.css assets/admin.js assets/sync-worker.js
 var assetsFS embed.FS
 
 // assetHandler serves a single embedded file with long-lived caching and a
@@ -33,7 +33,7 @@ func assetHandler(name, contentType string) http.Handler {
 }
 
 // assetETag lets ServeContent answer If-None-Match with a 304.
-const assetETag = `adminui-v3.2.0`
+const assetETag = `adminui-v3.2.1`
 
 // htmxScriptHandler serves the embedded HTMX script (v2.0.9) from the root
 // cqrs-htmx module, so the panel is fully self-contained.

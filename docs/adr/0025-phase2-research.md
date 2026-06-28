@@ -1,6 +1,6 @@
 # ADR 0025: Phase 2 Offline Architecture — Research & Decision Framework
 
-**Status:** Proposed (awaiting Q1/Q2 decisions)
+**Status:** Superseded (Q1/Q2 answered — see [ADR 0027](0027-decide-stays-on-server.md) for Q1 and [ADR 0029](0029-sharedworker-phase2a.md) for Q2)
 **Date:** 2026-06-28
 **Related:** [ADR 0023](0023-command-sync.md), [ADR 0024](0024-honest-ui.md), [Brainstorming](../brainstorming/2026-06-27_offline-first-command-sync-research.html)
 

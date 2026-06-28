@@ -72,6 +72,7 @@
     pending: 0,
     confirmed: 0,
     failed: 0,
+    queued: 0,
   };
 
   function updateIndicator() {
@@ -79,7 +80,10 @@
     if (!bar) return;
 
     var status, text;
-    if (sync.failed > 0) {
+    if (sync.queued > 0) {
+      status = "offline";
+      text = sync.queued + " queued — offline";
+    } else if (sync.failed > 0) {
       status = "failed";
       text = sync.failed + " failed — retry";
     } else if (sync.pending > 0) {
@@ -185,6 +189,67 @@
     };
   }
 
+  // --- Offline command queue (ADR 0029): SharedWorker coordination ---
+  // When a mutation fails with a network error (htmx:sendError), the command
+  // ID is enqueued to a SharedWorker. On reconnect, the worker tells this tab
+  // to retry via htmx.trigger(). The UI shows "queued — offline" (not rejected).
+
+  var syncWorker = null;
+
+  function initSyncWorker() {
+    if (typeof SharedWorker === "undefined") return;
+
+    // Derive worker URL from this script's src (same base path).
+    var script = document.querySelector('script[src$="admin.js"]');
+    if (!script) return;
+    var basePath = script.src.replace(/\/-\/admin\.js$/, "");
+    var workerURL = basePath + "/-/sync-worker.js";
+
+    try {
+      syncWorker = new SharedWorker(workerURL);
+      syncWorker.port.onmessage = function (e) {
+        var data = e.data;
+        if (!data || !data.type) return;
+
+        if (data.type === "retry") {
+          retryQueuedCommand(data.commandId);
+        }
+      };
+      syncWorker.port.start();
+    } catch (e) {
+      // SharedWorker unavailable — online path unaffected (graceful degradation)
+    }
+  }
+
+  function enqueueCommand(commandId) {
+    if (!syncWorker || !commandId) return;
+    syncWorker.port.postMessage({ type: "enqueue", commandId: commandId });
+    sync.queued++;
+    updateIndicator();
+  }
+
+  function retryQueuedCommand(commandId) {
+    if (!commandId) return;
+    var el = document.querySelector('[data-command-id="' + commandId + '"]');
+    if (!el) {
+      // Element gone (user navigated away) — honest: show as failed, not silent
+      sync.queued = Math.max(0, sync.queued - 1);
+      sync.failed++;
+      updateIndicator();
+      return;
+    }
+    // Clear queued state, transition to pending (re-flight)
+    el.removeAttribute("data-sync-queued");
+    sync.queued = Math.max(0, sync.queued - 1);
+    setSyncState(el, "pending");
+    sync.pending++;
+    updateIndicator();
+    // Re-trigger the HTMX request on the originating element
+    if (typeof htmx !== "undefined") {
+      htmx.trigger(el, "click");
+    }
+  }
+
   // --- Optimistic render: mark pending on htmx:beforeRequest ---
   // Auto-generates X-Command-Id for mutation requests (POST/PUT/DELETE)
   // so every destructive action is tracked without manual hx-headers.
@@ -227,6 +292,25 @@
     }
   });
 
+  // --- Network error (offline): queue for retry instead of rejecting ---
+  // htmx:sendError fires when the request can't be sent at all (network down).
+  // This is different from htmx:responseError (server returned an error status).
+  // Offline ≠ rejected — the command is queued, not lost.
+  document.addEventListener("htmx:sendError", function (e) {
+    var target = e.detail.elt;
+    var syncEl = target.closest("[data-command-id]") || target.closest("[data-sync-state]");
+    if (!syncEl) return;
+
+    var cmdID = syncEl.getAttribute("data-command-id");
+    if (!cmdID) return;
+
+    // Mark as queued (offline) — NOT rejected
+    syncEl.setAttribute("data-sync-queued", "");
+    sync.pending = Math.max(0, sync.pending - 1);
+    enqueueCommand(cmdID);
+    announce(syncEl, "Offline — change queued for sync", true);
+  });
+
   // --- Retry button: re-dispatch a rejected command ---
   document.addEventListener("click", function (e) {
     var btn = e.target.closest("[data-sync-retry]");
@@ -248,10 +332,14 @@
     }
   });
 
-  // --- Boot: connect SSE on DOMContentLoaded ---
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", connectSSE);
-  } else {
+  // --- Boot: connect SSE + init offline queue on DOMContentLoaded ---
+  function boot() {
     connectSSE();
+    initSyncWorker();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
   }
 })();

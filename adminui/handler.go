@@ -100,6 +100,7 @@ func (h *Handler) routes() http.Handler {
 	// --- Static assets ---
 	mux.Handle("GET /-/admin-tw.css", assetHandler("admin-tw.css", "text/css; charset=utf-8"))
 	mux.Handle("GET /-/admin.js", assetHandler("admin.js", "text/javascript; charset=utf-8"))
+	mux.Handle("GET /-/sync-worker.js", assetHandler("sync-worker.js", "text/javascript; charset=utf-8"))
 	mux.Handle("GET /-/htmx.js", htmxScriptHandler())
 
 	// --- Dashboard ---

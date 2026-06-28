@@ -1378,3 +1378,16 @@ body {
   color: var(--ok);
   border-color: var(--ok);
 }
+/* Offline (ADR 0029): queued commands waiting for network */
+.sync-bar[data-sync-status="offline"] {
+  color: var(--warn);
+  border-color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 8%, var(--surface));
+}
+/* Queued item: dimmer + slower pulse than in-flight pending */
+[data-sync-queued] {
+  opacity: 0.5 !important;
+}
+[data-sync-queued] .sync-dot {
+  animation: sync-pulse 2.4s ease-in-out infinite;
+}

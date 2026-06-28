@@ -1,0 +1,48 @@
+direction: right
+
+# Phase 2a Execution Graph — SharedWorker Offline Command Sync
+
+tier_1: Phase 2a Execution Graph {
+  keystone: "Tier 1 — Keystone\n(1% → 51%)" {
+    adr: "ADR-0029\nSharedWorker Decision"
+    adr25: "Update ADR-0025\nSuperseded"
+  }
+
+  core: "Tier 2 — Core Worker\n(4% → 64%)" {
+    worker: "sync-worker.js\nSharedWorker + Queue"
+  }
+
+  integration: "Tier 3 — Integration\n(20% → 80%)" {
+    adminjs: "admin.js\nOffline Queue + Retry"
+    css: "admin-tw.css\nOffline Styles"
+  }
+
+  wiring: "Tier 4 — Go Wiring" {
+    embed: "assets.go\ngo:embed sync-worker.js"
+    route: "handler.go\nGET /-/sync-worker.js"
+  }
+
+  docs: "Tier 5 — Documentation" {
+    agents: "AGENTS.md\nPhase 2a Section"
+    changelog: "CHANGELOG.md\nPhase 2a Entry"
+    recipe: "Consumer Recipe\nWiring Doc"
+  }
+
+  verify: "Tier 6 — Verification" {
+    ci: "Full CI\nbuild + test + lint"
+    commit: "Git Commit\n+ Push"
+  }
+
+  adr -> adr25
+  adr -> worker
+  worker -> adminjs
+  worker -> css
+  adminjs -> embed
+  css -> embed
+  embed -> route
+  route -> ci
+  adminjs -> docs
+  route -> docs
+  docs -> ci
+  ci -> commit
+}

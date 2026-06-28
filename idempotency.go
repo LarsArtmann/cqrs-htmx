@@ -8,6 +8,23 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
+// NOTE: The canonical home for command idempotency deduplication is now
+// go-cqrs-lite/idempotency/v3 (Store, MemoryStore, ErrDuplicate). This file
+// keeps a local copy so cqrs-htmx builds against the published go-cqrs-lite
+// v3.1.0 (the idempotency module is not yet released). Once go-cqrs-lite tags
+// a release containing idempotency/v3, this file should become a thin set of
+// backward-compatible aliases:
+//
+//	type IdempotencyStore      = idempotency.Store
+//	type MemoryIdempotencyStore = idempotency.MemoryStore
+//	var  ErrDuplicateCommand   = idempotency.ErrDuplicate
+//	func NewMemoryIdempotencyStore(d time.Duration) *MemoryIdempotencyStore {
+//	    return idempotency.NewMemoryStore(d)
+//	}
+//
+// Verified locally: the alias form passes the full cqrs-htmx root suite (-race)
+// and the admin-demo consumer. See go-cqrs-lite/idempotency/README.md.
+
 // ErrDuplicateCommand is returned when a command ID has already been processed.
 // Maps to HTTP 409 Conflict via MapError.
 var ErrDuplicateCommand = event.NewConflict(

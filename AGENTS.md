@@ -60,7 +60,7 @@ cqrs-htmx/
 ├── event_store_sse.go # JournalSSEStore — PRODUCTION SSEEventStore backed by event.SeekableJournal
 ├── sse_broadcaster.go # SSE Broadcaster (embeds fanOut[SSEEvent]), BroadcastOnSuccess/OnError/Func hooks
 ├── ack.go            # CommandAck + BroadcastOnAck — ACK protocol for honest UI sync-state
-├── idempotency.go   # IdempotencyStore + MemoryIdempotencyStore — prevents duplicate command execution on retry
+├── idempotency.go   # Local IdempotencyStore + MemoryIdempotencyStore copy (canonical home: go-cqrs-lite/idempotency/v3 — awaiting upstream release to delegate)
 ├── structured_error.go # StructuredError (RFC 7807), NewStructuredError, NewStructuredErrorWithContext, JSON()
 ├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML
 ├── ws_encoder.go     # WriteWSMessage, WriteWSMessageInto[T] — outbound WS message encoder
@@ -154,13 +154,13 @@ cqrs-htmx/
 │   ├── authz.go        # defaultAuthorizer, RequireAnyRole, RequireAuthenticated
 │   ├── handler.go      # Handler, New(), Mount()/Handler(), routing, guard (auth+authz)
 │   ├── render.go       # renderPage/renderPartial, triggerToast (HX-Trigger), redirect (HX-Redirect)
-│   ├── assets.go       # go:embed admin.css/admin.js; reuses root HTMXScriptHandler for htmx.js
+│   ├── assets.go       # go:embed admin-tw.css/admin.js/sync-worker.js; reuses root HTMXScriptHandler for htmx.js
 │   ├── models.go       # view-model structs (navItem, pageData, per-section data)
 │   ├── icons.go        # inline SVG icon set (stroke=currentColor)
 │   ├── *.templ         # templ components (layout, dashboard, users, tenants, members, audit, components)
 │   ├── *_templ.go      # GENERATED templ output — committed so consumers run no codegen
 │   ├── handler_*.go    # per-section HTTP handlers (dashboard/users/tenants/members/audit)
-│   └── assets/         # admin.css (modern design system, light/dark) + admin.js (toasts, mobile nav)
+│   └── assets/         # admin-tw.css (compiled Tailwind + sync-state CSS) + admin.js (toasts, mobile nav, SSE ACK, offline queue) + sync-worker.js (SharedWorker, ADR-0029)
 ├── integration_test/ # Cross-module integration tests (3rd Go module)
 └── examples/
     ├── basic/         # Minimal cqrs-htmx consumer example (register/list items)
@@ -303,8 +303,9 @@ cqrs-htmx/
 - **Reconnection**: `LastEventIDFromRequest()` parses `Last-Event-ID` header (returns branded `SSEEventID`). `SSEEventStore` interface for event replay. `ReplayEvents()` sends missed events to stream. `SSEEventID` branded type (`ParseSSEEventID`/`MustParseSSEEventID`/`NewSSEEventID`) prevents cross-assignment with other string IDs; rejects newlines that would corrupt the SSE wire format.
 - **Production SSEEventStore**: `JournalSSEStore` (`event_store_sse.go`) wraps `event.Journal`/`event.SeekableJournal` for durable replay. Uses `ReadFrom(afterEventID, limit)` for efficient cursor-based position replay. Falls back to `ReadAll` + in-memory filter when `SeekableJournal` is unavailable. Consumer provides `EventToSSEMapper` to render event payloads. `WithMaxReplay(n)` limits initial sync (default: 1000). See `docs/adr/0023-command-sync.md`.
 - **ACK Protocol**: `CommandAck` (`ack.go`) carries `{commandId, status, error}` JSON over SSE for honest UI sync-state transitions. `BroadcastOnAck()` hook factory on `Broadcaster` broadcasts when the request carries `X-Command-Id` header (opt-in). `BroadcastOnAckFunc(fn)` for custom payloads. See `docs/adr/0024-honest-ui.md`.
-- **Idempotency**: `IdempotencyStore` interface + `MemoryIdempotencyStore` (`idempotency.go`) prevents duplicate command execution on client retry. `CheckAndRecord(ctx, cmdID, ttl)` is an interface method — each implementation owns its atomicity (single lock for in-memory, `SET NX` for future Redis, `INSERT ON CONFLICT` for future SQL). `ErrDuplicateCommand` maps to HTTP 409 Conflict. NOT auto-wired — consumers opt in via `BeforeDispatchHook` or middleware. See `docs/adr/0026-command-idempotency-store.md`.
+- **Idempotency**: `idempotency.go` keeps a local `IdempotencyStore` + `MemoryIdempotencyStore` implementation. The **canonical home is now `go-cqrs-lite/idempotency/v3`** (Store, MemoryStore, ErrDuplicate — promoted from this prototype). cqrs-htmx keeps the local copy only because the upstream module is not yet released; once tagged, this file becomes thin backward-compatible aliases (verified locally: alias form passes the full root suite + admin-demo). `CheckAndRecord(ctx, key, ttl)` atomicity (single lock in-memory, future `SET NX` for Redis, `INSERT ON CONFLICT` for SQL). `ErrDuplicateCommand` maps to HTTP 409 Conflict. NOT auto-wired — consumers opt in via `BeforeDispatchHook` or middleware. See `docs/adr/0026-command-idempotency-store.md`.
 - **decide() stays on the server** (ADR-0027): The library provides the queue/sync/ACK protocol; the client never runs domain validation. Queue-Only is not just the MVP — it's the only architecturally correct choice for a library that doesn't own the consumer's domain logic. WASM/TS pre-validation is a consumer concern.
+- **Offline command queue — Phase 2a** (ADR-0029): `adminui/assets/sync-worker.js` is a SharedWorker (~80 lines vanilla JS) that queues command IDs when the network is down. On reconnect, it tells each originating tab to retry via `htmx.trigger()`. The worker is a **coordinator, not a proxy** — it does NOT send HTTP requests (tabs do, via HTMX), does NOT own the SSE connection (tabs keep per-tab EventSource), and does NOT persist to disk (in-memory only). Offline detection is reactive: `htmx:sendError` (network failure) enqueues; `htmx:responseError` (HTTP error) rejects. Shipped via `go:embed` + served at `GET /-/sync-worker.js`. IndexedDB is banned (ADR-0029); OPFS deferred to Phase 2b. Served automatically when `Config.SSEURL` is set.
 - **CQRS bridge**: `BroadcastOnSuccess(eventName, data)` / `BroadcastOnSuccessFunc(fn)` — broadcast on success. `BroadcastOnError(eventName)` / `BroadcastOnErrorFunc(fn)` — broadcast StructuredError on failure. Full dispatch feedback for SSE clients.
 - **Heartbeat**: `SSEStream.Heartbeat(ctx, interval)` sends SSE comment-frame pings (": keepalive\n\n"). Prevents proxy/LB idle disconnects (Nginx 30s, Cloudflare 100s).
 - **OnDisconnect**: `SSEStream.OnDisconnect(fn)` registers cleanup callbacks fired on Close().
