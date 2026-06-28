@@ -19,6 +19,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/adminui/v3"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 const (
@@ -203,7 +204,9 @@ func ackMiddleware(bc *cqrshtmx.Broadcaster) func(http.Handler) http.Handler {
 			if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {
 				if cqrshtmx.CommandIDFromRequest(r) != "" {
 					if sr.status >= 400 {
-						hook(r.Context(), r, fmt.Errorf("HTTP %d", sr.status))
+						hook(r.Context(), r, event.NewRejection(
+							"admin-demo.http_error", fmt.Sprintf("HTTP %d", sr.status),
+						))
 					} else {
 						hook(r.Context(), r, nil)
 					}
