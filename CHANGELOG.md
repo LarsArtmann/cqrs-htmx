@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `cataloghtmx.HealthCheckHandler` → `docserver.HealthCheckHandler`,
   `cataloghtmx.GenerateEventCatalog` → `docserver.GenerateEventCatalog`,
   `cataloghtmx.OpenAPIHandler(cat)` → `docserver.NewDocsServer(...).OpenAPISpec()`.
-  See ADR 0015 for rationale.
+  See ADR 0020 for rationale.
 
 ## [3.1.0] - 2026-06-26
 
