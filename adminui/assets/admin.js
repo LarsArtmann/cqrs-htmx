@@ -110,9 +110,7 @@
   function handleSyncAck(detail) {
     if (!detail || !detail.commandId) return;
 
-    var el = document.querySelector(
-      '[data-command-id="' + detail.commandId + '"]'
-    );
+    var el = document.querySelector('[data-command-id="' + detail.commandId + '"]');
     if (!el) return;
 
     if (detail.status === "confirmed") {
@@ -219,9 +217,7 @@
   // --- Never-silent rollback: on transport error, show rejected ---
   document.addEventListener("htmx:responseError", function (e) {
     var target = e.detail.elt;
-    var syncEl =
-      target.closest("[data-command-id]") ||
-      target.closest("[data-sync-state]");
+    var syncEl = target.closest("[data-command-id]") || target.closest("[data-sync-state]");
     if (syncEl) {
       setSyncState(syncEl, "rejected");
       sync.pending = Math.max(0, sync.pending - 1);

@@ -4,6 +4,7 @@ go 1.26.4
 
 require (
 	github.com/casbin/casbin/v3 v3.10.0
+	github.com/go-playground/form/v4 v4.3.0
 	github.com/justinas/nosurf v1.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
@@ -21,7 +22,6 @@ require (
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
-	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect

@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-28 10:56  
 > **Commit:** `1343ece` on `master`  
-> **Scope:** Phase 0 + Phase 1 of offline-first command sync, plus Phase 2 research framework  
+> **Scope:** Phase 0 + Phase 1 of offline-first command sync, plus Phase 2 research framework
 
 ---
 
@@ -10,12 +10,12 @@
 
 The offline-first command sync feature is **functionally complete through Phase 1**.
 
-| Phase | Status | Delivered |
-|-------|--------|-----------|
-| Phase 0 — Production `SSEEventStore` | ✅ DONE | `JournalSSEStore` backed by `event.SeekableJournal` |
-| Phase 1a — ACK protocol | ✅ DONE | `CommandAck`, `BroadcastOnAck`, `BroadcastOnAckWS` |
-| Phase 1b — Honest UI | ✅ DONE | CSS + JS + templ + admin-demo full end-to-end |
-| Phase 2 — Offline queue | ⛔ NOT STARTED | Blocked on Q1/Q2 product decisions |
+| Phase                                | Status         | Delivered                                           |
+| ------------------------------------ | -------------- | --------------------------------------------------- |
+| Phase 0 — Production `SSEEventStore` | ✅ DONE        | `JournalSSEStore` backed by `event.SeekableJournal` |
+| Phase 1a — ACK protocol              | ✅ DONE        | `CommandAck`, `BroadcastOnAck`, `BroadcastOnAckWS`  |
+| Phase 1b — Honest UI                 | ✅ DONE        | CSS + JS + templ + admin-demo full end-to-end       |
+| Phase 2 — Offline queue              | ⛔ NOT STARTED | Blocked on Q1/Q2 product decisions                  |
 
 All CI gates are green: tests pass with `-race`, lint is clean (root/usermgmt/adminui), and `errorfamily` reports zero stdlib error constructors.
 
@@ -143,33 +143,33 @@ _None._ All committed code builds, tests, and lints. There are two pre-existing 
 
 ### f) Top 25 Things to Get Done Next
 
-| # | Task | Impact | Effort | Blocked By |
-|---|------|--------|--------|------------|
-| 1 | Answer Q1: Queue-Only vs WASM vs TS Port | Critical | Research | User decision |
-| 2 | Answer Q2: SharedWorker vs Service Worker + Background Sync | Critical | Research | User decision |
-| 3 | Implement Phase 2a: tab-scoped command queue (SharedWorker) | High | ~3d | Q1, Q2 |
-| 4 | Add command idempotency on server for replay safety | High | ~2d | Phase 2a |
-| 5 | Run `nix run .#test` and `nix run .#lint` CI umbrella | High | 10m | — |
-| 6 | Browser-verify admin-demo honest UI lifecycle | High | 20m | — |
-| 7 | Fix integration_test goconst lint warnings | Low | 10m | — |
-| 8 | Add retry button to rejected UI items (templ + JS) | Medium | 1d | — |
-| 9 | Inline error message rendering for rejected state | Medium | 1d | — |
-| 10 | Regenerate `admin-tw.css` via Tailwind CLI with node_modules | Low | 30m | npm install |
-| 11 | Document consumer wiring recipe (SSE + ACK + honest UI) | Medium | 1d | — |
-| 12 | Add adminui tests for sync indicator rendering | Medium | 1d | — |
-| 13 | Add JS unit tests for sync-state handler | Medium | 2d | — |
-| 14 | Implement Phase 2b: closed-tab persistence (Service Worker) | Medium | ~1w | Q2 = SW |
-| 15 | Implement Phase 2c: WASM decide() for local validation | Medium | 2-4w | Q1 = WASM |
-| 16 | Add offline queue metrics / visibility (count badge) | Low | 1d | Phase 2a |
-| 17 | Support batch sync (send N queued commands at once) | Low | 2d | Phase 2a |
-| 18 | Conflict resolution UI when server rejects stale command | High | 3d | Phase 2a |
-| 19 | Add PWA manifest to admin-demo | Low | 1d | Phase 2b |
-| 20 | Security review: command ID injection / replay | High | 1d | Phase 2a |
-| 21 | Update AGENTS.md with offline-first gotchas | Medium | 1d | — |
-| 22 | Add ADR for command ID idempotency contract | Medium | 1d | Phase 2a |
-| 23 | Benchmark SSE replay with large journals | Low | 1d | — |
-| 24 | Evaluate `go-localsync` CRDT integration for eventual sync | Low | Research | — |
-| 25 | Cut v3.3.0 release with Phase 0+1 | High | 1d | CI umbrella green |
+| #   | Task                                                         | Impact   | Effort   | Blocked By        |
+| --- | ------------------------------------------------------------ | -------- | -------- | ----------------- |
+| 1   | Answer Q1: Queue-Only vs WASM vs TS Port                     | Critical | Research | User decision     |
+| 2   | Answer Q2: SharedWorker vs Service Worker + Background Sync  | Critical | Research | User decision     |
+| 3   | Implement Phase 2a: tab-scoped command queue (SharedWorker)  | High     | ~3d      | Q1, Q2            |
+| 4   | Add command idempotency on server for replay safety          | High     | ~2d      | Phase 2a          |
+| 5   | Run `nix run .#test` and `nix run .#lint` CI umbrella        | High     | 10m      | —                 |
+| 6   | Browser-verify admin-demo honest UI lifecycle                | High     | 20m      | —                 |
+| 7   | Fix integration_test goconst lint warnings                   | Low      | 10m      | —                 |
+| 8   | Add retry button to rejected UI items (templ + JS)           | Medium   | 1d       | —                 |
+| 9   | Inline error message rendering for rejected state            | Medium   | 1d       | —                 |
+| 10  | Regenerate `admin-tw.css` via Tailwind CLI with node_modules | Low      | 30m      | npm install       |
+| 11  | Document consumer wiring recipe (SSE + ACK + honest UI)      | Medium   | 1d       | —                 |
+| 12  | Add adminui tests for sync indicator rendering               | Medium   | 1d       | —                 |
+| 13  | Add JS unit tests for sync-state handler                     | Medium   | 2d       | —                 |
+| 14  | Implement Phase 2b: closed-tab persistence (Service Worker)  | Medium   | ~1w      | Q2 = SW           |
+| 15  | Implement Phase 2c: WASM decide() for local validation       | Medium   | 2-4w     | Q1 = WASM         |
+| 16  | Add offline queue metrics / visibility (count badge)         | Low      | 1d       | Phase 2a          |
+| 17  | Support batch sync (send N queued commands at once)          | Low      | 2d       | Phase 2a          |
+| 18  | Conflict resolution UI when server rejects stale command     | High     | 3d       | Phase 2a          |
+| 19  | Add PWA manifest to admin-demo                               | Low      | 1d       | Phase 2b          |
+| 20  | Security review: command ID injection / replay               | High     | 1d       | Phase 2a          |
+| 21  | Update AGENTS.md with offline-first gotchas                  | Medium   | 1d       | —                 |
+| 22  | Add ADR for command ID idempotency contract                  | Medium   | 1d       | Phase 2a          |
+| 23  | Benchmark SSE replay with large journals                     | Low      | 1d       | —                 |
+| 24  | Evaluate `go-localsync` CRDT integration for eventual sync   | Low      | Research | —                 |
+| 25  | Cut v3.3.0 release with Phase 0+1                            | High     | 1d       | CI umbrella green |
 
 ### g) Top #1 Question I Cannot Figure Out Myself
 
@@ -186,17 +186,18 @@ I need your answer to design Phase 2 correctly.
 
 ## Module Health Snapshot
 
-| Module | Tests | Lint | Errorfamily | Notes |
-|--------|-------|------|-------------|-------|
-| root | ✅ PASS `-race` | ✅ 0 | ✅ 0 | 697 tests baseline |
-| usermgmt | ✅ PASS `-race` | ✅ 0 | ✅ 0 | — |
-| adminui | ✅ PASS `-race` | ✅ 0 | ✅ 0 | — |
-| integration_test | ✅ PASS `-race` | ⚠️ 2 goconst | ✅ 0 | Pre-existing, unrelated |
-| examples/admin-demo | ✅ build | ✅ 0 | N/A | — |
+| Module              | Tests           | Lint         | Errorfamily | Notes                   |
+| ------------------- | --------------- | ------------ | ----------- | ----------------------- |
+| root                | ✅ PASS `-race` | ✅ 0         | ✅ 0        | 697 tests baseline      |
+| usermgmt            | ✅ PASS `-race` | ✅ 0         | ✅ 0        | —                       |
+| adminui             | ✅ PASS `-race` | ✅ 0         | ✅ 0        | —                       |
+| integration_test    | ✅ PASS `-race` | ⚠️ 2 goconst | ✅ 0        | Pre-existing, unrelated |
+| examples/admin-demo | ✅ build        | ✅ 0         | N/A         | —                       |
 
 ## Files Created / Modified This Session
 
 **Created:**
+
 - `command_sync_integration_test.go`
 - `docs/planning/2026-06-28_10-14_offline-first-command-sync-execution.html`
 - `docs/planning/2026-06-28_10-14_execution-graph.d2`
@@ -205,6 +206,7 @@ I need your answer to design Phase 2 correctly.
 - `docs/status/2026-06-28_10-56_offline-first-command-sync-complete.md`
 
 **Modified:**
+
 - `ack.go`, `ack_test.go`
 - `event_store_sse_test.go`
 - `.golangci.yml`
@@ -217,4 +219,4 @@ I need your answer to design Phase 2 correctly.
 
 ---
 
-*Report generated 2026-06-28 10:56. Working tree clean at commit `1343ece`.*
+_Report generated 2026-06-28 10:56. Working tree clean at commit `1343ece`._

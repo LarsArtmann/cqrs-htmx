@@ -6,6 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/adminui/v3 v3.2.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.2.0
 	github.com/larsartmann/cqrs-htmx/v3 v3.2.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
 )
 
 require (
@@ -24,6 +25,7 @@ require (
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-webauthn/webauthn v0.17.4 // indirect
 	github.com/go-webauthn/x v0.2.6 // indirect
@@ -40,7 +42,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.1.0 // indirect

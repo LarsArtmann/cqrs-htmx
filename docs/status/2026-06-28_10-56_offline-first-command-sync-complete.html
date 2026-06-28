@@ -736,21 +736,26 @@
         <h2 id="summary"><span class="num">00</span>Executive Summary</h2>
 
         <p>
-          The offline-first command sync feature is <strong>functionally complete through Phase 1</strong>.
-          All CI gates are green: tests pass with <code>-race</code>, lint is clean across root,
-          usermgmt, and adminui, and <code>errorfamily</code> reports zero stdlib error constructors.
+          The offline-first command sync feature is
+          <strong>functionally complete through Phase 1</strong>. All CI gates are green: tests pass
+          with <code>-race</code>, lint is clean across root, usermgmt, and adminui, and
+          <code>errorfamily</code> reports zero stdlib error constructors.
         </p>
 
         <div class="phase-grid">
           <div class="phase-card phase-done">
             <div class="phase-name">Phase 0</div>
             <div class="phase-status">Production SSEEventStore</div>
-            <div class="phase-deliverable"><code>JournalSSEStore</code> backed by <code>event.SeekableJournal</code></div>
+            <div class="phase-deliverable">
+              <code>JournalSSEStore</code> backed by <code>event.SeekableJournal</code>
+            </div>
           </div>
           <div class="phase-card phase-done">
             <div class="phase-name">Phase 1a</div>
             <div class="phase-status">ACK Protocol</div>
-            <div class="phase-deliverable"><code>CommandAck</code>, <code>BroadcastOnAck</code>, <code>BroadcastOnAckWS</code></div>
+            <div class="phase-deliverable">
+              <code>CommandAck</code>, <code>BroadcastOnAck</code>, <code>BroadcastOnAckWS</code>
+            </div>
           </div>
           <div class="phase-card phase-done">
             <div class="phase-name">Phase 1b</div>
@@ -801,7 +806,8 @@
               <span>
                 <code>JournalSSEStore</code> wraps <code>event.SeekableJournal</code> for efficient
                 cursor-based replay, falls back to <code>ReadAll</code> + in-memory filter, and
-                exposes <code>WithMaxReplay(n)</code> with a consumer-provided <code>EventToSSEMapper</code>.
+                exposes <code>WithMaxReplay(n)</code> with a consumer-provided
+                <code>EventToSSEMapper</code>.
               </span>
             </div>
           </div>
@@ -810,8 +816,8 @@
             <div class="text">
               <strong>ACK Protocol</strong>
               <span>
-                <code>CommandAck{commandId, status, error}</code> JSON payload with SSE and WebSocket
-                broadcaster hooks. Opt-in via <code>X-Command-Id</code> header.
+                <code>CommandAck{commandId, status, error}</code> JSON payload with SSE and
+                WebSocket broadcaster hooks. Opt-in via <code>X-Command-Id</code> header.
               </span>
             </div>
           </div>
@@ -831,8 +837,8 @@
             <div class="text">
               <strong>Honest UI CSS</strong>
               <span>
-                Pending, confirmed, and rejected sync states with animated <code>.sync-dot</code> and a
-                global <code>.sync-bar</code> indicator.
+                Pending, confirmed, and rejected sync states with animated
+                <code>.sync-dot</code> and a global <code>.sync-bar</code> indicator.
               </span>
             </div>
           </div>
@@ -841,9 +847,9 @@
             <div class="text">
               <strong>Honest UI JS</strong>
               <span>
-                SSE <code>EventSource</code> manager with auto-reconnect, <code>sync:ack</code> parsing,
-                optimistic pending render, silent-rollback prevention, retry handler, and
-                <code>aria-live</code> announcements.
+                SSE <code>EventSource</code> manager with auto-reconnect,
+                <code>sync:ack</code> parsing, optimistic pending render, silent-rollback
+                prevention, retry handler, and <code>aria-live</code> announcements.
               </span>
             </div>
           </div>
@@ -853,8 +859,8 @@
               <strong>Templ + adminui Wiring</strong>
               <span>
                 <code>Config.SSEURL</code>, <code>data-sse-url</code> on <code>&lt;body&gt;</code>,
-                <code>.sync-bar</code> in header, and <code>data-sync-target</code> on the user detail
-                danger zone. Generated <code>_templ.go</code> committed.
+                <code>.sync-bar</code> in header, and <code>data-sync-target</code> on the user
+                detail danger zone. Generated <code>_templ.go</code> committed.
               </span>
             </div>
           </div>
@@ -863,8 +869,8 @@
             <div class="text">
               <strong>admin-demo Full Demonstration</strong>
               <span>
-                Broadcaster + SSE endpoint at <code>/admin/-/events</code>, ACK middleware wrapping the
-                panel handler, and an end-to-end pending → confirmed/rejected lifecycle.
+                Broadcaster + SSE endpoint at <code>/admin/-/events</code>, ACK middleware wrapping
+                the panel handler, and an end-to-end pending → confirmed/rejected lifecycle.
               </span>
             </div>
           </div>
@@ -883,8 +889,8 @@
             <div class="text">
               <strong>Quality Gates Passing</strong>
               <span>
-                Root, usermgmt, adminui, and integration_test tests pass with <code>-race</code>. Lint
-                reports 0 issues for root/usermgmt/adminui. errorfamily reports 0 stdlib error
+                Root, usermgmt, adminui, and integration_test tests pass with <code>-race</code>.
+                Lint reports 0 issues for root/usermgmt/adminui. errorfamily reports 0 stdlib error
                 constructors across all three.
               </span>
             </div>
@@ -962,8 +968,8 @@
           <h4>2. Re-run full nix flake check</h4>
           <p>
             Individual modules were verified with <code>go test</code> / <code>golangci-lint</code>,
-            but the umbrella <code>nix run .#test</code> / <code>nix run .#lint</code> CI gate should
-            be run end-to-end before tagging.
+            but the umbrella <code>nix run .#test</code> / <code>nix run .#lint</code> CI gate
+            should be run end-to-end before tagging.
           </p>
         </div>
 
@@ -995,16 +1001,16 @@
         <div class="card card-warning">
           <h4>6. Rejection error UX</h4>
           <p>
-            The rejected state shows a red border. A future polish pass could inline the actual error
-            message from the ACK payload and auto-render a retry button.
+            The rejected state shows a red border. A future polish pass could inline the actual
+            error message from the ACK payload and auto-render a retry button.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>7. Mobile sync indicator placement</h4>
           <p>
-            The <code>.sync-bar</code> is in the header; on very small screens it may wrap awkwardly.
-            Test responsive layout.
+            The <code>.sync-bar</code> is in the header; on very small screens it may wrap
+            awkwardly. Test responsive layout.
           </p>
         </div>
 
@@ -1293,12 +1299,30 @@
         <div class="table-wrap">
           <table>
             <tbody>
-              <tr><td><code>command_sync_integration_test.go</code></td></tr>
-              <tr><td><code>docs/planning/2026-06-28_10-14_offline-first-command-sync-execution.html</code></td></tr>
-              <tr><td><code>docs/planning/2026-06-28_10-14_execution-graph.d2</code></td></tr>
-              <tr><td><code>docs/planning/2026-06-28_10-14_execution-graph.svg</code></td></tr>
-              <tr><td><code>docs/adr/0025-phase2-research.md</code></td></tr>
-              <tr><td><code>docs/status/2026-06-28_10-56_offline-first-command-sync-complete.md</code></td></tr>
+              <tr>
+                <td><code>command_sync_integration_test.go</code></td>
+              </tr>
+              <tr>
+                <td>
+                  <code
+                    >docs/planning/2026-06-28_10-14_offline-first-command-sync-execution.html</code
+                  >
+                </td>
+              </tr>
+              <tr>
+                <td><code>docs/planning/2026-06-28_10-14_execution-graph.d2</code></td>
+              </tr>
+              <tr>
+                <td><code>docs/planning/2026-06-28_10-14_execution-graph.svg</code></td>
+              </tr>
+              <tr>
+                <td><code>docs/adr/0025-phase2-research.md</code></td>
+              </tr>
+              <tr>
+                <td>
+                  <code>docs/status/2026-06-28_10-56_offline-first-command-sync-complete.md</code>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1307,15 +1331,47 @@
         <div class="table-wrap">
           <table>
             <tbody>
-              <tr><td><code>ack.go</code>, <code>ack_test.go</code></td></tr>
-              <tr><td><code>event_store_sse_test.go</code></td></tr>
-              <tr><td><code>.golangci.yml</code></td></tr>
-              <tr><td><code>CHANGELOG.md</code>, <code>README.md</code>, <code>TODO_LIST.md</code></td></tr>
-              <tr><td><code>adminui/tailwind.css</code>, <code>adminui/assets/admin-tw.css</code>, <code>adminui/assets/admin.js</code></td></tr>
-              <tr><td><code>adminui/config.go</code>, <code>adminui/handler.go</code>, <code>adminui/layout.templ</code>, <code>adminui/layout_templ.go</code></td></tr>
-              <tr><td><code>adminui/users.templ</code>, <code>adminui/users_templ.go</code>, <code>adminui/models.go</code></td></tr>
-              <tr><td><code>examples/admin-demo/main.go</code></td></tr>
-              <tr><td><code>adminui/go.mod</code>, <code>examples/admin-demo/go.mod</code>, <code>examples/basic/go.mod</code>, <code>usermgmt/go.mod</code></td></tr>
+              <tr>
+                <td><code>ack.go</code>, <code>ack_test.go</code></td>
+              </tr>
+              <tr>
+                <td><code>event_store_sse_test.go</code></td>
+              </tr>
+              <tr>
+                <td><code>.golangci.yml</code></td>
+              </tr>
+              <tr>
+                <td>
+                  <code>CHANGELOG.md</code>, <code>README.md</code>, <code>TODO_LIST.md</code>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code>adminui/tailwind.css</code>, <code>adminui/assets/admin-tw.css</code>,
+                  <code>adminui/assets/admin.js</code>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code>adminui/config.go</code>, <code>adminui/handler.go</code>,
+                  <code>adminui/layout.templ</code>, <code>adminui/layout_templ.go</code>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code>adminui/users.templ</code>, <code>adminui/users_templ.go</code>,
+                  <code>adminui/models.go</code>
+                </td>
+              </tr>
+              <tr>
+                <td><code>examples/admin-demo/main.go</code></td>
+              </tr>
+              <tr>
+                <td>
+                  <code>adminui/go.mod</code>, <code>examples/admin-demo/go.mod</code>,
+                  <code>examples/basic/go.mod</code>, <code>usermgmt/go.mod</code>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

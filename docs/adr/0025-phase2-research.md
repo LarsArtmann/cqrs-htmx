@@ -23,6 +23,7 @@ When offline, should the client run domain validation (`decide()`) locally befor
 The client queues commands blindly. No domain logic runs in the browser. On reconnect, the server runs `decide()` against the current authoritative state — rejecting stale or invalid commands.
 
 **Pros:**
+
 - Zero client-side domain code (no WASM, no TS port)
 - Server is the single source of truth for domain rules
 - No risk of client/server validation divergence
@@ -30,6 +31,7 @@ The client queues commands blindly. No domain logic runs in the browser. On reco
 - Simplest implementation — the sync protocol already exists (Phase 0+1)
 
 **Cons:**
+
 - User doesn't know if a command is valid until reconnection
 - Potential for "rejection shock" — many queued commands fail at once on reconnect
 
@@ -40,11 +42,13 @@ The client queues commands blindly. No domain logic runs in the browser. On reco
 Compile the Go `decide()` functions to WASM and run them in the browser. The client validates commands locally before queuing, giving instant feedback even offline.
 
 **Pros:**
+
 - Instant local validation (user knows immediately if a command is invalid)
 - Reuses existing Go domain code — no duplication
 - Full offline UX parity with online
 
 **Cons:**
+
 - **TinyGo limitations**: Missing `reflect` support (needed by many Go libraries), limited `net/http`, smaller standard library. Our domain code depends on `event/v3` which uses reflection for event payload marshaling.
 - **Standard compiler WASM**: Large binary (10-20MB for non-trivial Go programs), slow startup (~100ms+), `syscall/js` overhead. Requires running `wasm_exec.js` shim.
 - **Maintenance burden**: Two runtimes (Go server + WASM client) must stay in sync. Every domain change requires recompiling WASM.
@@ -57,11 +61,13 @@ Compile the Go `decide()` functions to WASM and run them in the browser. The cli
 Manually port the `decide()` functions to TypeScript. The client runs the TS port for local validation.
 
 **Pros:**
+
 - Small bundle size (tree-shakeable)
 - Fast startup (native JS)
 - Full control over client-side behavior
 
 **Cons:**
+
 - **Duplication**: Two implementations of every domain rule. High maintenance cost.
 - **Divergence risk**: Go and TS versions drift over time. Bugs in one but not the other.
 - **Effort**: Every new domain event requires updating both Go and TS. Non-trivial for 11 commands + 12 events.
@@ -71,6 +77,7 @@ Manually port the `decide()` functions to TypeScript. The client runs the TS por
 ### Recommendation for Q1
 
 **Option A (Queue-Only)** is the clear winner for v1:
+
 - 80% of the value (offline write capability) at 10% of the effort
 - Honest UI already handles rejection gracefully
 - Can upgrade to Option B/C later if instant-validation is needed
@@ -89,12 +96,14 @@ If the user writes commands while offline and then closes the browser tab, shoul
 Commands persist in a SharedWorker (shared across tabs of the same origin). If all tabs close, the worker is evicted and unsynced commands are lost.
 
 **Pros:**
+
 - Simpler implementation (no Service Worker lifecycle complexity)
 - No background sync permission needed
 - Faster sync (worker is alive while any tab is open)
 - No registration/update/scope complexity
 
 **Cons:**
+
 - Commands lost when ALL tabs close
 - Not truly "offline-first" — requires at least one tab open
 
@@ -105,11 +114,13 @@ Commands persist in a SharedWorker (shared across tabs of the same origin). If a
 Commands persist in a Service Worker with Background Sync API. The SW wakes up when connectivity returns, even if no tab is open.
 
 **Pros:**
+
 - True offline-first: commands sync even with zero tabs open
 - Native browser API (no polyfill needed)
 - Aligns with Progressive Web App (PWA) model
 
 **Cons:**
+
 - **SW lifecycle complexity**: Idle eviction (Chrome evicts after ~30s idle), update flow, scope management
 - **No OPFS in SW context** (SQLite-WASM requires SharedArrayBuffer, not available in SW)
 - **Background Sync limitations**: Only Chrome/Edge support it (not Safari, not Firefox stable). Requires `periodicSync` permission.
@@ -121,6 +132,7 @@ Commands persist in a Service Worker with Background Sync API. The SW wakes up w
 ### Recommendation for Q2
 
 **Option A (Tab-Scoped)** for v1:
+
 - SharedWorker covers the common case (user has the tab open but network drops)
 - True background sync can be added later for PWAs that need it
 - Avoids SW complexity for 90% of the value
@@ -129,13 +141,13 @@ Commands persist in a Service Worker with Background Sync API. The SW wakes up w
 
 ## Combined Decision Matrix
 
-| Q1 Answer | Q2 Answer | Architecture | Effort | Offline Level |
-|-----------|-----------|-------------|--------|---------------|
-| Queue-Only | Tab-Scoped | **SW+Array+ACK** (Phase 0+1 already done) | **Low** | Write while tab open + offline |
-| Queue-Only | Survive Close | SW + Background Sync + queue | Medium | Write while offline, sync on reconnect |
-| WASM | Tab-Scoped | SharedWorker + WASM decide + queue | High | Full offline validation in tab |
-| WASM | Survive Close | SW + WASM + Background Sync | Very High | Full PWA offline |
-| TS Port | Any | TS decide + queue + SW/SW | Very High | Full offline + small bundle |
+| Q1 Answer  | Q2 Answer     | Architecture                              | Effort    | Offline Level                          |
+| ---------- | ------------- | ----------------------------------------- | --------- | -------------------------------------- |
+| Queue-Only | Tab-Scoped    | **SW+Array+ACK** (Phase 0+1 already done) | **Low**   | Write while tab open + offline         |
+| Queue-Only | Survive Close | SW + Background Sync + queue              | Medium    | Write while offline, sync on reconnect |
+| WASM       | Tab-Scoped    | SharedWorker + WASM decide + queue        | High      | Full offline validation in tab         |
+| WASM       | Survive Close | SW + WASM + Background Sync               | Very High | Full PWA offline                       |
+| TS Port    | Any           | TS decide + queue + SW/SW                 | Very High | Full offline + small bundle            |
 
 ### Recommended Path
 
