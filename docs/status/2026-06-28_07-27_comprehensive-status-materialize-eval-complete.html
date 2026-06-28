@@ -801,7 +801,6 @@
       }
     </style>
   </head>
-  </head>
   <body>
     <div class="top-bar">
       <span>STATUS REPORT</span>
@@ -835,9 +834,9 @@
           <div class="hero-badge">Comprehensive Status</div>
           <h1>Post-Materialize-Evaluation Health Snapshot</h1>
           <p class="hero-subtitle">
-            Full project status after the stack.Materialize evaluation cycle (ADR-0022),
-            ghost-code removal, and generic adapter build. All tests pass, 0 lint issues,
-            0 errorfamily violations. Covers what's done, broken, and next.
+            Full project status after the stack.Materialize evaluation cycle (ADR-0022), ghost-code
+            removal, and generic adapter build. All tests pass, 0 lint issues, 0 errorfamily
+            violations. Covers what's done, broken, and next.
           </p>
         </div>
 
@@ -872,12 +871,11 @@
         <div class="card card-solution">
           <h3>Overall Health: STRONG</h3>
           <p>
-            The codebase is in excellent shape after the Materialize evaluation cycle.
-            The ghost prototype was caught and removed by the self-review process,
-            replaced by a cleaner generic adapter. All 4 Go modules build and test
-            clean with the race detector. The 80.0% usermgmt coverage (just under the
-            80.1% reported earlier — likely a test-counting variance) remains the
-            primary quality gap.
+            The codebase is in excellent shape after the Materialize evaluation cycle. The ghost
+            prototype was caught and removed by the self-review process, replaced by a cleaner
+            generic adapter. All 4 Go modules build and test clean with the race detector. The 80.0%
+            usermgmt coverage (just under the 80.1% reported earlier — likely a test-counting
+            variance) remains the primary quality gap.
           </p>
         </div>
 
@@ -885,20 +883,68 @@
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Check</th><th>Status</th><th>Detail</th></tr>
+              <tr>
+                <th>Check</th>
+                <th>Status</th>
+                <th>Detail</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td>Root build</td><td><span class="badge badge-fixed">PASS</span></td><td>40 files, workspace mode</td></tr>
-              <tr><td>Usermgmt build</td><td><span class="badge badge-fixed">PASS</span></td><td>84 files, GOWORK=off</td></tr>
-              <tr><td>Integration test build</td><td><span class="badge badge-fixed">PASS</span></td><td>Cross-module bridges</td></tr>
-              <tr><td>AdminUI build</td><td><span class="badge badge-fixed">PASS</span></td><td>templ + HTMX dashboard</td></tr>
-              <tr><td>Root tests (-race)</td><td><span class="badge badge-fixed">PASS</span></td><td>95 tests, 95.4% coverage</td></tr>
-              <tr><td>Usermgmt tests (-race)</td><td><span class="badge badge-fixed">PASS</span></td><td>747 tests, 80.0% coverage</td></tr>
-              <tr><td>Lint (golangci-lint)</td><td><span class="badge badge-fixed">0 issues</span></td><td>Both modules</td></tr>
-              <tr><td>ErrorFamily</td><td><span class="badge badge-fixed">0 violations</span></td><td>No stdlib error constructors</td></tr>
-              <tr><td>Examples (datastar + admin-demo)</td><td><span class="badge badge-fixed">BUILD OK</span></td><td>Both main packages compile</td></tr>
-              <tr><td>TODO/FIXME comments</td><td><span class="badge badge-fixed">0</span></td><td>No production code TODOs</td></tr>
-              <tr><td>Uncommitted changes</td><td><span class="badge badge-fixed">Clean</span></td><td>Working tree clean</td></tr>
+              <tr>
+                <td>Root build</td>
+                <td><span class="badge badge-fixed">PASS</span></td>
+                <td>40 files, workspace mode</td>
+              </tr>
+              <tr>
+                <td>Usermgmt build</td>
+                <td><span class="badge badge-fixed">PASS</span></td>
+                <td>84 files, GOWORK=off</td>
+              </tr>
+              <tr>
+                <td>Integration test build</td>
+                <td><span class="badge badge-fixed">PASS</span></td>
+                <td>Cross-module bridges</td>
+              </tr>
+              <tr>
+                <td>AdminUI build</td>
+                <td><span class="badge badge-fixed">PASS</span></td>
+                <td>templ + HTMX dashboard</td>
+              </tr>
+              <tr>
+                <td>Root tests (-race)</td>
+                <td><span class="badge badge-fixed">PASS</span></td>
+                <td>95 tests, 95.4% coverage</td>
+              </tr>
+              <tr>
+                <td>Usermgmt tests (-race)</td>
+                <td><span class="badge badge-fixed">PASS</span></td>
+                <td>747 tests, 80.0% coverage</td>
+              </tr>
+              <tr>
+                <td>Lint (golangci-lint)</td>
+                <td><span class="badge badge-fixed">0 issues</span></td>
+                <td>Both modules</td>
+              </tr>
+              <tr>
+                <td>ErrorFamily</td>
+                <td><span class="badge badge-fixed">0 violations</span></td>
+                <td>No stdlib error constructors</td>
+              </tr>
+              <tr>
+                <td>Examples (datastar + admin-demo)</td>
+                <td><span class="badge badge-fixed">BUILD OK</span></td>
+                <td>Both main packages compile</td>
+              </tr>
+              <tr>
+                <td>TODO/FIXME comments</td>
+                <td><span class="badge badge-fixed">0</span></td>
+                <td>No production code TODOs</td>
+              </tr>
+              <tr>
+                <td>Uncommitted changes</td>
+                <td><span class="badge badge-fixed">Clean</span></td>
+                <td>Working tree clean</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -907,37 +953,37 @@
         <div class="card card-solution">
           <h3>stack.Materialize Evaluation (ADR-0022) &mdash; COMPLETE</h3>
           <p>
-            Full cycle completed: prototype built &rarr; self-review caught ghost system
-            &rarr; ghost removed &rarr; generic <code>MaterializeProjection[V,K]</code>
-            adapter built using <code>watermill.EventToMessage</code> round-trip &rarr;
-            ADR-0022 rewritten honestly. The adapter works for ANY read model with a
-            single <code>NewMaterializeProjection()</code> call.
+            Full cycle completed: prototype built &rarr; self-review caught ghost system &rarr;
+            ghost removed &rarr; generic <code>MaterializeProjection[V,K]</code> adapter built using
+            <code>watermill.EventToMessage</code> round-trip &rarr; ADR-0022 rewritten honestly. The
+            adapter works for ANY read model with a single
+            <code>NewMaterializeProjection()</code> call.
           </p>
         </div>
         <div class="card card-solution">
           <h3>v3.2.0 Release &mdash; SHIPPED</h3>
           <p>
-            Catalog merge upstream, doc-honesty sweep, 51 stale reports archived,
-            consumer migration guide, VERSIONING.md, godoc examples, property-based
-            tests for all 3 fold functions, fuzz tests, revive:exported linter.
+            Catalog merge upstream, doc-honesty sweep, 51 stale reports archived, consumer migration
+            guide, VERSIONING.md, godoc examples, property-based tests for all 3 fold functions,
+            fuzz tests, revive:exported linter.
           </p>
         </div>
         <div class="card card-solution">
           <h3>Event-Sourced Usermgmt &mdash; PRODUCTION-READY</h3>
           <p>
-            12 events, 11 commands, Decider pattern, WebAuthn passwordless auth,
-            OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation,
-            TOTP MFA, SQL read models (4 aggregates), SQLite/Postgres stack presets,
-            graceful shutdown, event signing/encryption opt-in seams.
+            12 events, 11 commands, Decider pattern, WebAuthn passwordless auth, OAuth2/OIDC,
+            multi-tenancy, bot accounts, membership RBAC, impersonation, TOTP MFA, SQL read models
+            (4 aggregates), SQLite/Postgres stack presets, graceful shutdown, event
+            signing/encryption opt-in seams.
           </p>
         </div>
         <div class="card card-solution">
           <h3>AdminUI Module &mdash; SHIPPED</h3>
           <p>
-            Ready-made admin dashboard (templ + HTMX). Two scopes (super-admin /
-            tenant-admin). Modern CSS design system (light/dark). Full member management,
-            tenant suspend/reactivate, audit log viewer. <code>examples/admin-demo/</code>
-            is runnable at <code>:8097</code>.
+            Ready-made admin dashboard (templ + HTMX). Two scopes (super-admin / tenant-admin).
+            Modern CSS design system (light/dark). Full member management, tenant
+            suspend/reactivate, audit log viewer. <code>examples/admin-demo/</code> is runnable at
+            <code>:8097</code>.
           </p>
         </div>
 
@@ -946,23 +992,23 @@
         <div class="card card-warning">
           <h3>Usermgmt Coverage: 80.0% (target: 85%)</h3>
           <p>
-            Down from the 80.1% reported earlier (likely test-counting variance from
-            the removed prototype tests). The gap is concentrated in 3 files:
+            Down from the 80.1% reported earlier (likely test-counting variance from the removed
+            prototype tests). The gap is concentrated in 3 files:
             <code>sql_session_store.go</code> (16 funcs @ 0%),
-            <code>verification_totp_http.go</code> (18 funcs @ 0%),
-            <code>oauth2_http.go</code> (4 funcs @ 0%). These are HTTP handler glue
-            and SQL CRUD &mdash; straightforward to test but never prioritized.
+            <code>verification_totp_http.go</code> (18 funcs @ 0%), <code>oauth2_http.go</code> (4
+            funcs @ 0%). These are HTTP handler glue and SQL CRUD &mdash; straightforward to test
+            but never prioritized.
           </p>
         </div>
 
         <div class="card card-warning">
           <h3>MaterializeProjection Adapter: Built but Not Wired</h3>
           <p>
-            The generic adapter (<code>es_materialize_adapter.go</code>) is built and
-            tested with a Tenant example, but no read model uses it yet. This is
-            <strong>intentional</strong> (library principle: don't enforce defaults),
-            but it means the adapter is currently an unused export. Consumers who want
-            Materialize create the projection themselves.
+            The generic adapter (<code>es_materialize_adapter.go</code>) is built and tested with a
+            Tenant example, but no read model uses it yet. This is
+            <strong>intentional</strong> (library principle: don't enforce defaults), but it means
+            the adapter is currently an unused export. Consumers who want Materialize create the
+            projection themselves.
           </p>
         </div>
 
@@ -970,19 +1016,19 @@
           <h3>AdminUI: Tenant Create Action Missing</h3>
           <p>
             Admin panel can suspend/reactivate/delete tenants but cannot
-            <strong>create</strong> them. The <code>CreateTenant</code> service method
-            exists; the templ + handler for the admin form does not. Low impact (tenants
-            are usually seeded programmatically) but a visible gap in the UI.
+            <strong>create</strong> them. The <code>CreateTenant</code> service method exists; the
+            templ + handler for the admin form does not. Low impact (tenants are usually seeded
+            programmatically) but a visible gap in the UI.
           </p>
         </div>
 
         <div class="card card-warning">
           <h3>go-cqrs-lite Has Unpushed Commits</h3>
           <p>
-            The upstream <code>~/projects/go-cqrs-lite</code> repo has local changes
-            (modified <code>example/user/go.mod</code>, <code>go.work.sum</code>,
-            <code>graph/go.mod</code>). No unpushed commits to <code>origin/main</code>,
-            but working tree is dirty. Should be committed/pushed or stashed.
+            The upstream <code>~/projects/go-cqrs-lite</code> repo has local changes (modified
+            <code>example/user/go.mod</code>, <code>go.work.sum</code>, <code>graph/go.mod</code>).
+            No unpushed commits to <code>origin/main</code>, but working tree is dirty. Should be
+            committed/pushed or stashed.
           </p>
         </div>
 
@@ -992,37 +1038,35 @@
           <h3>Observability (ROADMAP v3.3)</h3>
           <p>
             <strong>OpenTelemetry wiring</strong> (High, ~2h) and
-            <strong>Prometheus metrics middleware</strong> (Medium, ~1h). Both have
-            clear paths via go-cqrs-lite v3's otel and prometheus modules. Zero code
-            written.
+            <strong>Prometheus metrics middleware</strong> (Medium, ~1h). Both have clear paths via
+            go-cqrs-lite v3's otel and prometheus modules. Zero code written.
           </p>
         </div>
 
         <div class="card">
           <h3>Persistence &amp; Scale (ROADMAP v3.4)</h3>
           <p>
-            Redis session store, Redis OAuth2 state store, PostgreSQL session store
-            preset, BadgerDB alternative, streaming replay
-            (<code>SeekableJournal.ReadFrom</code>), projection replay benchmarks.
-            All Planned, none started.
+            Redis session store, Redis OAuth2 state store, PostgreSQL session store preset, BadgerDB
+            alternative, streaming replay (<code>SeekableJournal.ReadFrom</code>), projection replay
+            benchmarks. All Planned, none started.
           </p>
         </div>
 
         <div class="card">
           <h3>Advanced ES (ROADMAP v4.0)</h3>
           <p>
-            <code>CatchUpSubscriber</code> adoption (replaces manual journal replay),
-            schema/v3 payload validator, real PostgreSQL integration tests
-            (testcontainers), DB migration tooling. All Planned, none started.
+            <code>CatchUpSubscriber</code> adoption (replaces manual journal replay), schema/v3
+            payload validator, real PostgreSQL integration tests (testcontainers), DB migration
+            tooling. All Planned, none started.
           </p>
         </div>
 
         <div class="card">
           <h3>Identity Model Polish (ADR-0021)</h3>
           <p>
-            The ActorID split brain (root <code>id.UserID</code> vs usermgmt
-            <code>UserID</code>) was documented in ADR-0021 but not resolved.
-            Interim fix: make root <code>ActorID</code> opaque. Not started.
+            The ActorID split brain (root <code>id.UserID</code> vs usermgmt <code>UserID</code>)
+            was documented in ADR-0021 but not resolved. Interim fix: make root
+            <code>ActorID</code> opaque. Not started.
           </p>
         </div>
 
@@ -1031,12 +1075,12 @@
         <div class="card card-problem">
           <h3>MaterializedTenantReadModel Ghost System (FIXED)</h3>
           <p>
-            The initial Materialize prototype was a ghost system: unreachable from any
-            setup path, redundant with <code>SQLTenantReadModel</code>, and created two
-            split brains. The ADR claimed it was "production-ready" and "opt-in" &mdash;
-            both false. <strong>Status: FIXED.</strong> Removed in commit
-            <code>1ea2210</code>, replaced by generic adapter in <code>0de54cb</code>.
-            ADR-0022 rewritten honestly in <code>2dbcf16</code>. Self-review report at
+            The initial Materialize prototype was a ghost system: unreachable from any setup path,
+            redundant with <code>SQLTenantReadModel</code>, and created two split brains. The ADR
+            claimed it was "production-ready" and "opt-in" &mdash; both false.
+            <strong>Status: FIXED.</strong> Removed in commit <code>1ea2210</code>, replaced by
+            generic adapter in <code>0de54cb</code>. ADR-0022 rewritten honestly in
+            <code>2dbcf16</code>. Self-review report at
             <code>docs/reviews/2026-06-28_09-30_*</code>.
           </p>
         </div>
@@ -1046,8 +1090,8 @@
           <p>
             <code>httputil.go:33-40</code> still has the deprecated <code>ClientIP()</code>
             wrapper. All non-test callers have migrated to
-            <code>httputil.ClientIP(r)</code> directly. The wrapper is dead code awaiting
-            deletion. Only blocked because it's a breaking API change (deferred to v4.0).
+            <code>httputil.ClientIP(r)</code> directly. The wrapper is dead code awaiting deletion.
+            Only blocked because it's a breaking API change (deferred to v4.0).
             <strong>Not harmful, just debt.</strong>
           </p>
         </div>
@@ -1057,20 +1101,19 @@
         <div class="card card-solution">
           <h3>1. Self-review BEFORE declaring done</h3>
           <p>
-            The ghost system was caught by the self-review process &mdash; but only
-            after I declared the work "Done" in the previous session. The lesson: always
-            run a critical pass on your own work before committing. "Does this code
-            actually connect to anything?" is the #1 question.
+            The ghost system was caught by the self-review process &mdash; but only after I declared
+            the work "Done" in the previous session. The lesson: always run a critical pass on your
+            own work before committing. "Does this code actually connect to anything?" is the #1
+            question.
           </p>
         </div>
 
         <div class="card card-solution">
           <h3>2. Check existing code before building new</h3>
           <p>
-            The Materialize prototype was redundant with <code>SQLTenantReadModel</code>.
-            The user explicitly asked to check existing code first. I didn't. Always
-            grep for existing implementations of the same capability before writing new
-            code.
+            The Materialize prototype was redundant with <code>SQLTenantReadModel</code>. The user
+            explicitly asked to check existing code first. I didn't. Always grep for existing
+            implementations of the same capability before writing new code.
           </p>
         </div>
 
@@ -1078,9 +1121,9 @@
           <h3>3. Coverage in HTTP handler glue</h3>
           <p>
             The 80% &rarr; 85% gap is entirely in HTTP handler files
-            (<code>verification_totp_http.go</code>, <code>oauth2_http.go</code>) and
-            SQL CRUD (<code>sql_session_store.go</code>). These are easy to test but
-            were never prioritized. A focused 3-hour session would close this gap.
+            (<code>verification_totp_http.go</code>, <code>oauth2_http.go</code>) and SQL CRUD
+            (<code>sql_session_store.go</code>). These are easy to test but were never prioritized.
+            A focused 3-hour session would close this gap.
           </p>
         </div>
 
@@ -1088,19 +1131,17 @@
           <h3>4. No snapshot testing</h3>
           <p>
             HTTP handler JSON responses are tested with manual field-by-field assertions.
-            <code>go-snaps</code> (snapshot testing) would make these tests more
-            maintainable and catch regressions automatically. Recommended by
-            how-to-golang skill but not adopted.
+            <code>go-snaps</code> (snapshot testing) would make these tests more maintainable and
+            catch regressions automatically. Recommended by how-to-golang skill but not adopted.
           </p>
         </div>
 
         <div class="card card-warning">
           <h3>5. LSP lint warning on adapter test (cosmetic)</h3>
           <p>
-            <code>es_materialize_adapter_test.go:95</code> shows a stale golines warning
-            in the LSP, but <code>golangci-lint run</code> reports 0 issues. The line is
-            exactly 100 chars. CLI is authoritative &mdash; this is a false positive from
-            the LSP cache.
+            <code>es_materialize_adapter_test.go:95</code> shows a stale golines warning in the LSP,
+            but <code>golangci-lint run</code> reports 0 issues. The line is exactly 100 chars. CLI
+            is authoritative &mdash; this is a false positive from the LSP cache.
           </p>
         </div>
 
@@ -1110,34 +1151,196 @@
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>#</th><th>Task</th><th>Priority</th><th>Effort</th><th>Why</th></tr>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Priority</th>
+                <th>Effort</th>
+                <th>Why</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td>1</td><td>Push go-cqrs-lite working tree changes (commit/stash dirty files)</td><td><span class="badge badge-critical">Critical</span></td><td>5m</td><td>Upstream repo is dirty</td></tr>
-              <tr><td>2</td><td>Usermgmt coverage 80% &rarr; 85% (sql_session_store + verification_totp_http + oauth2_http)</td><td><span class="badge badge-critical">High</span></td><td>3h</td><td>Closes the primary quality gap</td></tr>
-              <tr><td>3</td><td>OpenTelemetry wiring via go-cqrs-lite otel module</td><td><span class="badge badge-critical">High</span></td><td>2h</td><td>Production observability</td></tr>
-              <tr><td>4</td><td>Prometheus metrics middleware (dispatch latency, error rates)</td><td><span class="badge badge-high">High</span></td><td>1h</td><td>Dashboards for CQRS pipeline</td></tr>
-              <tr><td>5</td><td>Remove deprecated ClientIP() wrapper (breaking, defer to v4.0 tag)</td><td><span class="badge badge-medium">Med</span></td><td>5m</td><td>Dead code removal</td></tr>
-              <tr><td>6</td><td>Make root ActorID opaque (interim fix per ADR-0021)</td><td><span class="badge badge-medium">Med</span></td><td>1h</td><td>Reduces split-brain surface</td></tr>
-              <tr><td>7</td><td>Adopt go-snaps for HTTP handler snapshot tests</td><td><span class="badge badge-high">High</span></td><td>2h</td><td>Test maintainability</td></tr>
-              <tr><td>8</td><td>Streaming replay via SeekableJournal.ReadFrom</td><td><span class="badge badge-medium">Med</span></td><td>4h</td><td>Avoids loading all events in memory</td></tr>
-              <tr><td>9</td><td>Redis session store for distributed deployments</td><td><span class="badge badge-medium">Med</span></td><td>4h</td><td>Multi-instance production</td></tr>
-              <tr><td>10</td><td>Real PostgreSQL integration tests (testcontainers)</td><td><span class="badge badge-medium">Med</span></td><td>4h</td><td>Catch SQL dialect bugs</td></tr>
-              <tr><td>11</td><td>schema/v3 validator for event payloads at registration</td><td><span class="badge badge-medium">Med</span></td><td>4h</td><td>Runtime validation safety net</td></tr>
-              <tr><td>12</td><td>CatchUpSubscriber adoption (replace manual journal replay)</td><td><span class="badge badge-low">Low</span></td><td>4h</td><td>Simpler projection setup</td></tr>
-              <tr><td>13</td><td>AdminUI: tenant create action (templ + handler)</td><td><span class="badge badge-medium">Med</span></td><td>1h</td><td>Visible UI gap</td></tr>
-              <tr><td>14</td><td>Event-signing round-trip test (sign&rarr;encrypt&rarr;persist&rarr;decrypt&rarr;verify)</td><td><span class="badge badge-medium">Med</span></td><td>2h</td><td>Verify opt-in crypto path</td></tr>
-              <tr><td>15</td><td>DB migration tooling (goose vs golang-migrate vs gnorm)</td><td><span class="badge badge-medium">Med</span></td><td>4h</td><td>Schema evolution safety</td></tr>
-              <tr><td>16</td><td>Fuzz tests for projection dedup + identity model deciders</td><td><span class="badge badge-medium">Med</span></td><td>2h</td><td>Invariant verification</td></tr>
-              <tr><td>17</td><td>Benchmark projection replay with 10K+ events</td><td><span class="badge badge-low">Low</span></td><td>2h</td><td>Performance baseline</td></tr>
-              <tr><td>18</td><td>Profile + optimize dispatch/decode hot paths</td><td><span class="badge badge-low">Low</span></td><td>2h</td><td>Latency reduction</td></tr>
-              <tr><td>19</td><td>Redis OAuth2 state store (multi-instance)</td><td><span class="badge badge-low">Low</span></td><td>2h</td><td>Horizontal scaling</td></tr>
-              <tr><td>20</td><td>BadgerDB embedded store alternative</td><td><span class="badge badge-low">Low</span></td><td>4h</td><td>Single-binary deployment</td></tr>
-              <tr><td>21</td><td>SSE heartbeat integration test (proxy idle-disconnect)</td><td><span class="badge badge-low">Low</span></td><td>2h</td><td>Real-world SSE reliability</td></tr>
-              <tr><td>22</td><td>WSBroadcaster integration test (sub&rarr;broadcast&rarr;recv&rarr;unsub)</td><td><span class="badge badge-low">Low</span></td><td>2h</td><td>Real-time feature safety</td></tr>
-              <tr><td>23</td><td>Rate limiter benchmark (1000+ keys)</td><td><span class="badge badge-low">Low</span></td><td>2h</td><td>Performance bounds</td></tr>
-              <tr><td>24</td><td>Root BrandNamer wiring for marker types</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Type safety polish</td></tr>
-              <tr><td>25</td><td>PostgreSQL session store preset (reduced boilerplate)</td><td><span class="badge badge-low">Low</span></td><td>2h</td><td>Production preset</td></tr>
+              <tr>
+                <td>1</td>
+                <td>Push go-cqrs-lite working tree changes (commit/stash dirty files)</td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td>5m</td>
+                <td>Upstream repo is dirty</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>
+                  Usermgmt coverage 80% &rarr; 85% (sql_session_store + verification_totp_http +
+                  oauth2_http)
+                </td>
+                <td><span class="badge badge-critical">High</span></td>
+                <td>3h</td>
+                <td>Closes the primary quality gap</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>OpenTelemetry wiring via go-cqrs-lite otel module</td>
+                <td><span class="badge badge-critical">High</span></td>
+                <td>2h</td>
+                <td>Production observability</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Prometheus metrics middleware (dispatch latency, error rates)</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>1h</td>
+                <td>Dashboards for CQRS pipeline</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Remove deprecated ClientIP() wrapper (breaking, defer to v4.0 tag)</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>5m</td>
+                <td>Dead code removal</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Make root ActorID opaque (interim fix per ADR-0021)</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>1h</td>
+                <td>Reduces split-brain surface</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Adopt go-snaps for HTTP handler snapshot tests</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>2h</td>
+                <td>Test maintainability</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Streaming replay via SeekableJournal.ReadFrom</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>4h</td>
+                <td>Avoids loading all events in memory</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Redis session store for distributed deployments</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>4h</td>
+                <td>Multi-instance production</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Real PostgreSQL integration tests (testcontainers)</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>4h</td>
+                <td>Catch SQL dialect bugs</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>schema/v3 validator for event payloads at registration</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>4h</td>
+                <td>Runtime validation safety net</td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>CatchUpSubscriber adoption (replace manual journal replay)</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>4h</td>
+                <td>Simpler projection setup</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>AdminUI: tenant create action (templ + handler)</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>1h</td>
+                <td>Visible UI gap</td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td>
+                  Event-signing round-trip test
+                  (sign&rarr;encrypt&rarr;persist&rarr;decrypt&rarr;verify)
+                </td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>2h</td>
+                <td>Verify opt-in crypto path</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td>DB migration tooling (goose vs golang-migrate vs gnorm)</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>4h</td>
+                <td>Schema evolution safety</td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td>Fuzz tests for projection dedup + identity model deciders</td>
+                <td><span class="badge badge-medium">Med</span></td>
+                <td>2h</td>
+                <td>Invariant verification</td>
+              </tr>
+              <tr>
+                <td>17</td>
+                <td>Benchmark projection replay with 10K+ events</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>2h</td>
+                <td>Performance baseline</td>
+              </tr>
+              <tr>
+                <td>18</td>
+                <td>Profile + optimize dispatch/decode hot paths</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>2h</td>
+                <td>Latency reduction</td>
+              </tr>
+              <tr>
+                <td>19</td>
+                <td>Redis OAuth2 state store (multi-instance)</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>2h</td>
+                <td>Horizontal scaling</td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td>BadgerDB embedded store alternative</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>4h</td>
+                <td>Single-binary deployment</td>
+              </tr>
+              <tr>
+                <td>21</td>
+                <td>SSE heartbeat integration test (proxy idle-disconnect)</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>2h</td>
+                <td>Real-world SSE reliability</td>
+              </tr>
+              <tr>
+                <td>22</td>
+                <td>WSBroadcaster integration test (sub&rarr;broadcast&rarr;recv&rarr;unsub)</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>2h</td>
+                <td>Real-time feature safety</td>
+              </tr>
+              <tr>
+                <td>23</td>
+                <td>Rate limiter benchmark (1000+ keys)</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>2h</td>
+                <td>Performance bounds</td>
+              </tr>
+              <tr>
+                <td>24</td>
+                <td>Root BrandNamer wiring for marker types</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>1h</td>
+                <td>Type safety polish</td>
+              </tr>
+              <tr>
+                <td>25</td>
+                <td>PostgreSQL session store preset (reduced boilerplate)</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>2h</td>
+                <td>Production preset</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1147,32 +1350,30 @@
           <h3>Should the MaterializeProjection adapter be wired into the stack presets?</h3>
           <p>
             The adapter (<code>es_materialize_adapter.go</code>) is built and tested but
-            <strong>not wired into any setup path</strong>. This is intentional per the
-            library principle ("don't enforce defaults"), but it means the adapter is
-            currently an unused export &mdash; the same "ghost system" risk that bit us
-            with the prototype.
+            <strong>not wired into any setup path</strong>. This is intentional per the library
+            principle ("don't enforce defaults"), but it means the adapter is currently an unused
+            export &mdash; the same "ghost system" risk that bit us with the prototype.
           </p>
           <p>
-            <strong>The question:</strong> Should <code>EventSourcedConfig</code> gain
-            an opt-in field like <code>UseMaterializeProjections bool</code> that wires
-            the adapter into <code>StartProjections</code> for Tenant/Bot read models?
-            Or should it remain purely consumer-side wiring (the consumer creates the
-            projection and passes it to a new setup function)?
+            <strong>The question:</strong> Should <code>EventSourcedConfig</code> gain an opt-in
+            field like <code>UseMaterializeProjections bool</code> that wires the adapter into
+            <code>StartProjections</code> for Tenant/Bot read models? Or should it remain purely
+            consumer-side wiring (the consumer creates the projection and passes it to a new setup
+            function)?
           </p>
           <p>
-            <strong>Why I can't decide:</strong> Both approaches are valid. Wiring it
-            in makes the adapter reachable (no ghost system risk) but adds config surface
-            area. Leaving it consumer-side preserves the library principle but risks the
-            adapter becoming dead code if no one uses it. The right answer depends on
-            whether you envision consumers commonly wanting Materialize-backed read
-            models, or whether the hand-written projections remain the default for the
-            foreseeable future.
+            <strong>Why I can't decide:</strong> Both approaches are valid. Wiring it in makes the
+            adapter reachable (no ghost system risk) but adds config surface area. Leaving it
+            consumer-side preserves the library principle but risks the adapter becoming dead code
+            if no one uses it. The right answer depends on whether you envision consumers commonly
+            wanting Materialize-backed read models, or whether the hand-written projections remain
+            the default for the foreseeable future.
           </p>
           <p>
-            <strong>My recommendation:</strong> Leave it consumer-side for now. The
-            hand-written projections are simpler for the common case (in-memory), and
-            the adapter is there for consumers who want SQL-backed Materialize views.
-            Revisit when we adopt Materialize for Bot or Membership.
+            <strong>My recommendation:</strong> Leave it consumer-side for now. The hand-written
+            projections are simpler for the common case (in-memory), and the adapter is there for
+            consumers who want SQL-backed Materialize views. Revisit when we adopt Materialize for
+            Bot or Membership.
           </p>
         </div>
 

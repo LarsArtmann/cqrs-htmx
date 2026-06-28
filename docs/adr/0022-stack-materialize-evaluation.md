@@ -177,7 +177,7 @@ TenantReadModel.
 
 - **No breaking changes** — all existing read models are unchanged
 - **No new dependencies** — `stack/v3`, `kv/v3`, and `watermill` were already
-direct or indirect deps
+  direct or indirect deps
 
 ## When to Revisit
 
