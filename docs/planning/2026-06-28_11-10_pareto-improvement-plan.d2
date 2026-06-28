@@ -1,0 +1,115 @@
+direction: right
+
+title: |md
+  # Pareto Improvement Plan — cqrs-htmx
+  *Sorted by impact/effort. 1% → 51%, 4% → 64%, 20% → 80%.*
+| {
+  shape: text
+  style: {
+    font-size: 22
+    fill: "#f4f4f0"
+  }
+}
+
+goal: Release v3.3.0 {
+  shape: diamond
+  style: {
+    fill: "#6eb5ff"
+    stroke: "#f4f4f0"
+    stroke-width: 2
+  }
+}
+
+tier1: 1% — 51% value {
+  ci: Run CI umbrella\n(nix run . # test + .#lint)
+  yaml: Resolve go.yaml.in/yaml/v3\ntransitive dependency
+  q1: Decide Q1:\nwhere does decide() run?
+  q2: Decide Q2:\nSharedWorker vs SW?
+  status: Mark docs green\nafter CI verification
+
+  style: {
+    fill: "#ff6b6b"
+    opacity: 0.25
+    stroke: "#ff6b6b"
+    stroke-width: 2
+  }
+}
+
+tier2: 4% — +13% value {
+  docs: Update TODO_LIST.md\n(reflect actual state)
+  etag: Bump adminui ETag\nto v3.2.0
+  gomod: Align go.mod versions\n& Go toolchain
+  lint: Fix goconst +\ncontext.TODO + hints
+  form: Replace JSON round-trip\nform decoder
+  rate: Unify rate limiters\n(root ↔ usermgmt)
+  pag: Unify pagination\n(root DecodePagination)
+  adminint: Add adminui\nintegration test
+  actorbridge: Add actor-chain\nintegration test
+  ghost: Integrate or remove\nBot/Impersonation HTTP
+
+  style: {
+    fill: "#f4d35e"
+    opacity: 0.15
+    stroke: "#f4d35e"
+    stroke-width: 2
+  }
+}
+
+tier3: 20% — +16% value {
+  actor: Unify ActorID\ntype model
+  cmdid: Branded CommandID\nfor ACK
+  ackux: Inline error + retry\nin rejected UI
+  idemp: Server command\nidempotency guard
+  idempadr: ADR for command ID\nidempotency contract
+  mobile: Responsive sync-bar\nmobile layout
+  recipe: Consumer wiring recipe\n(SSE+ACK+honest UI)
+  agents: Update AGENTS.md\noffline-first gotchas
+  browser: Browser-verify\nadmin-demo lifecycle
+  tailwind: Regenerate admin-tw.css\nfrom Tailwind CLI
+  pwa: Add PWA manifest\nto admin-demo
+  bench: Benchmark SSE replay\nwith large journals
+  security: Security review:\ncommand ID injection/replay
+
+  style: {
+    fill: "#6eb5ff"
+    opacity: 0.15
+    stroke: "#6eb5ff"
+    stroke-width: 2
+  }
+}
+
+tail: Long tail {
+  clientip: Remove/un-deprecate\nClientIP
+  crdt: Evaluate go-localsync\nCRDT integration
+  opfs: OPFS/IndexedDB\ntechnical spike
+  release: Cut v3.3.0\ntag + release notes
+
+  style: {
+    fill: "#f4f4f0"
+    opacity: 0.05
+    stroke: "#f4f4f0"
+    stroke-width: 1
+  }
+}
+
+goal -> tier1.ci
+goal -> tier1.yaml
+goal -> tier1.q1
+goal -> tier1.q2
+tier1.ci -> tier1.status
+
+tier1.q1 -> tier2.ghost
+tier1.q2 -> tier2.adminint
+tier1.ci -> tier2.docs
+tier1.ci -> tier2.lint
+
+tier2.docs -> tier3.ackux
+tier2.actorbridge -> tier3.actor
+tier2.ghost -> tier3.idemp
+tier2.form -> tier3.recipe
+tier2.rate -> tier3.security
+tier2.pag -> tier3.browser
+
+tier3.idemp -> tier3.idempadr
+tier3.browser -> tail.release
+tier3.security -> tail.release
