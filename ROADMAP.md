@@ -9,7 +9,7 @@
 ## Current State
 
 - **Version:** v3.2.0 (all 3 publishable modules at `/v3`)
-- **Coverage:** 95.4% root, 79.5% usermgmt
+- **Coverage:** 95.4% root, 80.1% usermgmt
 - **Lint:** 0 issues (all modules)
 - **ErrorFamily:** 0 violations (no stdlib error constructors)
 - **Tests:** 697 usermgmt + ~430 root + ~15 catalog + ~10 integration, race-safe
