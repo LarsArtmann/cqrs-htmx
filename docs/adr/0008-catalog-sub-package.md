@@ -1,7 +1,7 @@
 # ADR 0008: Catalog Sub-Package for API Documentation
 
 **Date:** 2026-06-17
-**Status:** SUPERSEDED by ADR 0015 (2026-06-28)
+**Status:** SUPERSEDED by ADR 0020 (2026-06-28)
 
 > **Superseded.** The `catalog/` module was merged upstream into
 > [`go-cqrs-lite/catalog/v3`](https://github.com/LarsArtmann/go-cqrs-lite/tree/master/catalog)
@@ -11,7 +11,7 @@
 > removed in favor of the richer upstream `docserver.DocsServer` (which adds
 > HTML UIs and static assets). The `cqrs-htmx/catalog/` module is deleted.
 >
-> See ADR 0015 for the reversal rationale. The text below is the original
+> See ADR 0020 for the reversal rationale. The text below is the original
 > decision, preserved for history.
 
 ---

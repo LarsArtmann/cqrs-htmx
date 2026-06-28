@@ -1,4 +1,4 @@
-# ADR 0015: Merge catalog/ into go-cqrs-lite
+# ADR 0020: Merge catalog/ into go-cqrs-lite
 
 **Date:** 2026-06-28
 **Status:** ACCEPTED
