@@ -32,7 +32,7 @@ func main() {
 	ctx := context.Background()
 
 	// 1. Event-sourced user management, in-memory, with an audit log projection.
-	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{ //nolint:exhaustruct // demo uses in-memory defaults
 		AuditLog: usermgmt.NewAuditLog(),
 	})
 	if err != nil {
@@ -47,7 +47,7 @@ func main() {
 	//    default works rather than bypassing it with RequireAuthenticated.
 	//    SSEURL enables the honest UI sync indicator + SSE connection.
 	broadcaster := cqrshtmx.NewBroadcaster()
-	panel, err := adminui.New(adminui.Config{
+	panel, err := adminui.New(adminui.Config{ //nolint:exhaustruct // demo uses sensible defaults
 		Service:     svc,
 		Title:       "cqrs-htmx Admin",
 		AccentColor: "#0ea5e9",
@@ -77,14 +77,16 @@ func main() {
 	mux.Handle("/admin/-/events", sessionMW(sseHandler(broadcaster)))
 
 	mux.HandleFunc("/dev-login", func(w http.ResponseWriter, r *http.Request) {
-		http.SetCookie(w, &http.Cookie{
+		http.SetCookie(w, &http.Cookie{ //nolint:exhaustruct,gosec // dev-only demo cookie
 			Name: cookieName, Value: token, Path: "/",
 			HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: 86400,
 		})
 		http.Redirect(w, r, "/admin/", http.StatusSeeOther)
 	})
 	mux.HandleFunc("/dev-logout", func(w http.ResponseWriter, r *http.Request) {
-		http.SetCookie(w, &http.Cookie{Name: cookieName, Value: "", Path: "/", MaxAge: -1})
+		http.SetCookie(w, &http.Cookie{ //nolint:exhaustruct,gosec // dev-only
+			Name: cookieName, Value: "", Path: "/", MaxAge: -1,
+		})
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +94,11 @@ func main() {
 	})
 
 	fmt.Printf("admin-demo\nOpen http://localhost%s/  (auto-signs in as %s)\n", addr, adminEmail)
-	srv := &http.Server{Addr: addr, Handler: logging(mux), ReadHeaderTimeout: 5 * time.Second}
+	srv := &http.Server{ //nolint:exhaustruct // demo server
+		Addr:              addr,
+		Handler:           logging(mux),
+		ReadHeaderTimeout: 5 * time.Second,
+	}
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
@@ -149,7 +155,7 @@ func nameOf(email string) string {
 		if r == '@' {
 			n := email[:i]
 			if len(n) > 0 {
-				n = string(toUpper(byte(n[0]))) + n[1:]
+				n = string(toUpper(n[0])) + n[1:]
 			}
 			return n
 		}
@@ -167,7 +173,7 @@ func toUpper(b byte) byte {
 // logging is a tiny request logger for the demo.
 func logging(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s", r.Method, r.URL.Path)
+		log.Printf("%s %s", r.Method, r.URL.Path) //nolint:gosec // demo logging
 		h.ServeHTTP(w, r)
 	})
 }
