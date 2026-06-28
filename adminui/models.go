@@ -31,6 +31,11 @@ type pageData struct {
 	// reads it via admin.js to send the token on button POSTs. Empty when no
 	// CSRF middleware is active.
 	CSRFMeta string
+	// SSEURL is the Server-Sent Events endpoint URL. When set, the layout body
+	// gets a data-sse-url attribute that admin.js uses to connect an EventSource.
+	// Also enables the global sync indicator (.sync-bar) in the header. Empty
+	// disables honest UI sync tracking (no SSE connection, no sync bar).
+	SSEURL string
 }
 
 // statCard is one metric tile on the dashboard.

@@ -127,6 +127,19 @@ _Bugs found and fixed by code-quality-scan + full-code-review + architecture-rev
 - [x] **Reactive event streams** — SSE Broadcaster, SSEStream, SSEEventStore, ReplayEvents, CQRS bridge (BroadcastOnSuccess/BroadcastOnSuccessFunc). WebSocket message parser (ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML).
 - [x] **Embedded HTMX JS** — HTMXScriptHandler serves embedded HTMX v2.0.9 (minified, ~49KB) with ETag/caching. HTMXScriptTag, HTMXVersion helpers.
 
+### Offline-First Command Sync (2026-06-28)
+
+_Phase 0 + Phase 1 server-side code DONE. See [execution plan](docs/planning/2026-06-28_10-14_offline-first-command-sync-execution.html) and [ADRs 0023/0024](docs/adr/)._
+
+- [x] **Production SSEEventStore** (`JournalSSEStore`) — Backed by `event.SeekableJournal` for cursor-based replay. `WithMaxReplay(n)` limits first-connection volume. `EventToSSEMapper` consumer-provided function. Falls back to `ReadAll` for non-seekable journals.
+- [x] **ACK protocol** — `CommandAck` struct, `BroadcastOnAck`/`BroadcastOnAckFunc` (SSE), `BroadcastOnAckWS`/`BroadcastOnAckWSFunc` (WS). Opt-in via `X-Command-Id` header.
+- [x] **Integration tests** — 6 end-to-end tests prove SSEEventStore + Broadcaster + ACK protocol work together in real HTTP handlers.
+- [x] **ADRs** — 0023 (command-sync: sync commands not events), 0024 (honest UI: never lie about pending state).
+- [ ] **Honest UI CSS** — `data-sync-state` attribute, `.sync-pending`/`.sync-confirmed`/`.sync-rejected` classes, global sync indicator. (T08-T14)
+- [ ] **Honest UI JS** — SSE EventSource manager, `sync:ack` listener, `handleSyncAck` DOM flip, optimistic render on `htmx:beforeRequest`, never-silent rollback. (T15-T21)
+- [ ] **Honest UI templ + admin-demo** — Layout indicator, `data-sync-state` on rows, demo wiring. (T22-T30)
+- [ ] **Phase 2 research** — Blocked on Q1 (where does `decide()` run: WASM or TS port?) and Q2 (must writes survive closed tabs?). (T31-T35)
+
 ---
 
 ## Completed (2026-05-07 → 2026-06-14)

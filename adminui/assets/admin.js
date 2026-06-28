@@ -62,4 +62,190 @@
       if (window.confirm(msg)) e.detail.issueRequest(true);
     }
   });
+
+  // --- Honest UI: sync-state lifecycle (ADR 0024) ---
+  // Tracks pending mutations, listens for ACK confirmations over SSE,
+  // and flips data-sync-state attributes on matching DOM elements.
+  // Never-silent rollback: rejected items stay visible with error + retry.
+
+  var sync = {
+    pending: 0,
+    confirmed: 0,
+    failed: 0,
+  };
+
+  function updateIndicator() {
+    var bar = document.querySelector("[data-sync-status]");
+    if (!bar) return;
+
+    var status, text;
+    if (sync.failed > 0) {
+      status = "failed";
+      text = sync.failed + " failed — retry";
+    } else if (sync.pending > 0) {
+      status = "pending";
+      text = sync.pending + " pending — syncing…";
+    } else if (sync.confirmed > 0) {
+      status = "ok";
+      text = "All changes saved";
+      // Auto-fade to idle after 2s
+      setTimeout(function () {
+        bar.setAttribute("data-sync-status", "idle");
+        bar.textContent = "Synced";
+        sync.confirmed = 0;
+      }, 2000);
+    } else {
+      status = "idle";
+      text = "Synced";
+    }
+
+    bar.setAttribute("data-sync-status", status);
+    bar.textContent = text;
+  }
+
+  function setSyncState(element, state) {
+    element.setAttribute("data-sync-state", state);
+  }
+
+  function handleSyncAck(detail) {
+    if (!detail || !detail.commandId) return;
+
+    var el = document.querySelector(
+      '[data-command-id="' + detail.commandId + '"]'
+    );
+    if (!el) return;
+
+    if (detail.status === "confirmed") {
+      setSyncState(el, "confirmed");
+      sync.pending = Math.max(0, sync.pending - 1);
+      sync.confirmed++;
+      announce(el, "Change saved");
+    } else if (detail.status === "rejected") {
+      setSyncState(el, "rejected");
+      sync.pending = Math.max(0, sync.pending - 1);
+      sync.failed++;
+      if (detail.error) {
+        announce(el, "Failed: " + detail.error, true);
+      }
+    }
+    updateIndicator();
+  }
+
+  // aria-live region for screen reader announcements (confirmed only).
+  // Created lazily on first use.
+  var liveRegion = null;
+  function announce(element, message, isError) {
+    if (!liveRegion) {
+      liveRegion = document.querySelector("[data-sync-live]");
+      if (!liveRegion) {
+        liveRegion = document.createElement("div");
+        liveRegion.setAttribute("aria-live", "polite");
+        liveRegion.setAttribute("aria-atomic", "true");
+        liveRegion.setAttribute("data-sync-live", "");
+        liveRegion.style.cssText =
+          "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);";
+        document.body.appendChild(liveRegion);
+      }
+    }
+    // Only announce confirmed changes (not pending), per accessibility spec.
+    if (!isError) {
+      liveRegion.textContent = message;
+    }
+  }
+
+  // --- SSE connection manager (auto-reconnect via EventSource) ---
+  var eventSource = null;
+  function connectSSE() {
+    var sseURL = document.body.getAttribute("data-sse-url");
+    if (!sseURL || typeof EventSource === "undefined") return;
+
+    eventSource = new EventSource(sseURL);
+
+    eventSource.addEventListener("sync:ack", function (e) {
+      try {
+        handleSyncAck(JSON.parse(e.data));
+      } catch (err) {
+        // Ignore malformed ACK payloads
+      }
+    });
+
+    eventSource.addEventListener("open", function () {
+      var bar = document.querySelector("[data-sync-status]");
+      if (bar && sync.pending === 0) {
+        bar.setAttribute("data-sync-status", "ok");
+        bar.textContent = "Connected";
+      }
+    });
+
+    eventSource.onerror = function () {
+      // EventSource auto-reconnects; just update the indicator
+      var bar = document.querySelector("[data-sync-status]");
+      if (bar && sync.pending > 0) {
+        bar.setAttribute("data-sync-status", "pending");
+        bar.textContent = "Reconnecting…";
+      }
+    };
+  }
+
+  // --- Optimistic render: mark pending on htmx:beforeRequest ---
+  document.addEventListener("htmx:beforeRequest", function (e) {
+    var headers = e.detail.requestConfig.headers || {};
+    var cmdID = headers["X-Command-Id"];
+    if (!cmdID) return;
+
+    var target = e.detail.elt;
+    // Walk up to find the closest element that should show sync-state
+    var syncEl =
+      target.closest("[data-sync-target]") ||
+      target.closest("tr") ||
+      target.closest("li") ||
+      target;
+    syncEl.setAttribute("data-command-id", cmdID);
+    setSyncState(syncEl, "pending");
+    sync.pending++;
+    updateIndicator();
+  });
+
+  // --- Never-silent rollback: on transport error, show rejected ---
+  document.addEventListener("htmx:responseError", function (e) {
+    var target = e.detail.elt;
+    var syncEl =
+      target.closest("[data-command-id]") ||
+      target.closest("[data-sync-state]");
+    if (syncEl) {
+      setSyncState(syncEl, "rejected");
+      sync.pending = Math.max(0, sync.pending - 1);
+      sync.failed++;
+      announce(syncEl, "Network error — change not saved", true);
+      updateIndicator();
+    }
+  });
+
+  // --- Retry button: re-dispatch a rejected command ---
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-sync-retry]");
+    if (!btn) return;
+
+    var row = btn.closest("[data-command-id]");
+    if (!row) return;
+
+    // Clear rejected state and re-trigger via HTMX if the original element exists
+    setSyncState(row, "pending");
+    sync.failed = Math.max(0, sync.failed - 1);
+    sync.pending++;
+    updateIndicator();
+
+    // If the row has an hx-post/hx-get, re-issue it
+    var trigger = row.querySelector("[hx-post], [hx-get]");
+    if (trigger && typeof htmx !== "undefined") {
+      htmx.trigger(trigger, "retry");
+    }
+  });
+
+  // --- Boot: connect SSE on DOMContentLoaded ---
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", connectSSE);
+  } else {
+    connectSSE();
+  }
 })();
