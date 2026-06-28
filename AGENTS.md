@@ -418,7 +418,9 @@ cqrs-htmx/
 6. **UserID breaking change**: `WithUserID`/`UserIDFromContext` use `id.UserID` (ULID-backed). `UserIDExtractor` still returns `string`. Use `ParseUserID`/`MustParseUserID`
 7. **CorrelationID breaking change**: Branded `id.CorrelationID`. Non-ULID header values silently dropped by middleware
 8. **usermgmt UserID is different type**: `usermgmt.UserID = brandid.ID[userBrand, string]` — NOT the same as root `id.UserID`. Cross-module bridge uses `.Get()` (not `.String()` which includes brand prefix)
-9. **GroupPolicy.User/Domain remain string**: Casbin boundary types. Intentional.
+9. **ActorID/ImpersonatorID/SSEEventID branded**: Root's `ActorID`, `ImpersonatorID`, and `SSEEventID` are now `brandid.ID[brand, string]` — phantom-typed with `.Get()`, `.IsZero()`, `.Equal()`. `ImpersonatorID = ActorID` (type alias — an impersonator IS an actor). Use `NewActorID("user:01JX...")` constructor, not `ActorID("...")` cast. `.String()` returns brand-prefixed form for debug; use `.Get()` for raw value. See ADR-0028
+10. **usermgmt ActorID is a struct**: `usermgmt.ActorID` is a kind-discriminated struct (`{kind, raw}`), NOT a brandid type. Bridging to root uses `.PrefixedString()` → `cqrshtmx.NewActorID()`. The middleware bridging bug (`.String()` instead of `.PrefixedString()`) is fixed
+11. **GroupPolicy.User/Domain remain string**: Casbin boundary types. Intentional.
 
 ### HTTP & Security
 
