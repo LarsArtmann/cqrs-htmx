@@ -104,7 +104,7 @@ func TestUser_Clone_DeepCopiesCredentials(t *testing.T) {
 
 func TestService_ExportUsersToCSV_IncludesTOTPEnabled(t *testing.T) {
 	svc := newTestServiceWithAuthz(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	registerTestUser(t, svc, "csvtotp", "csvtotp@test.com")
 
 	var buf bytes.Buffer

@@ -3,8 +3,8 @@ module github.com/larsartmann/cqrs-htmx/examples/admin-demo
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v3 v3.0.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.1.0
+	github.com/larsartmann/cqrs-htmx/adminui/v3 v3.2.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.2.0
 	github.com/larsartmann/cqrs-htmx/v3 v3.2.0
 )
 

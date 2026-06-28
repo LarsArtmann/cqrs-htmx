@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -93,10 +94,8 @@ func capList[T any](in []T) ([]T, int) {
 // selectedAttr returns "selected" when role is in current, empty otherwise.
 // Used by templ to render the selected attribute on <option> elements.
 func selectedAttr(current []usermgmt.Role, role usermgmt.Role) string {
-	for _, r := range current {
-		if r == role {
-			return "selected"
-		}
+	if slices.Contains(current, role) {
+		return "selected"
 	}
 	return ""
 }

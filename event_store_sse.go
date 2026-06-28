@@ -3,6 +3,7 @@ package cqrshtmx
 import (
 	"context"
 	"log/slog"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -185,13 +186,9 @@ func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID string
 	}
 
 	// Find the position after lastID
-	startIdx := -1
-	for i, evt := range events {
-		if evt.ID().String() == lastID {
-			startIdx = i
-			break
-		}
-	}
+	startIdx := slices.IndexFunc(events, func(evt event.Event) bool {
+		return evt.ID().String() == lastID
+	})
 
 	if startIdx == -1 {
 		// lastID not found — return empty (matches memoryEventStore behavior)

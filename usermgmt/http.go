@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"sync"
 	"time"
 )
@@ -26,10 +27,8 @@ func RequireAdminRole(authz *Authz) AuthorizerFunc {
 		if err != nil {
 			return err
 		}
-		for _, r := range roles {
-			if r == RoleAdmin {
-				return nil
-			}
+		if slices.Contains(roles, RoleAdmin) {
+			return nil
 		}
 		return ErrForbidden
 	}
