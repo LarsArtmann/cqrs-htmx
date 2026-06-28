@@ -92,7 +92,7 @@ cqrs-htmx/
 │   ├── es_tenant_decide.go    # TenantDecider + decide functions
 │   ├── es_tenant_dispatch.go  # RegisterTenantCommands
 │   ├── es_tenant_readmodel.go # TenantReadModel projection + FindByID/FindByName
-│   ├── es_tenant_materialize.go # MaterializedTenantReadModel — stack.Materialize-backed alternative (ADR-0022)
+│   ├── es_materialize_adapter.go # MaterializeProjection[V,K] — wraps stack.Materialize as event.Projection (ADR-0022)
 │   ├── es_bot_events.go       # BotRegistered/Deleted payloads
 │   ├── es_bot_commands.go     # RegisterBot/DeleteBot commands
 │   ├── es_bot_state.go        # BotState + foldBot
@@ -531,7 +531,7 @@ cd examples/admin-demo && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go 
 - **`NewSQLiteEventSourcedSetup(cfg)`**: One-call setup using `stack/sqlite.New(dsn)`. Creates event store + bus + 4 SQL read models + projections + graceful shutdown. Recommended for production single-process deployments.
 - **`NewPostgresEventSourcedSetup(cfg)`**: Same for PostgreSQL. Supports multi-DB split (`EventDSN`/`QueryDSN` for I/O isolation).
 - **SecurityHooks preserved**: Stack presets don't expose injection points directly, but `stack.Repository(bundle, decider)` accesses the internal store. The wrapping happens via `wrapEventStore` before repository creation.
-- **`stack.Materialize[V,K]`**: Evaluated in depth (ADR-0022). **Adopted for TenantReadModel** (`MaterializedTenantReadModel` — opt-in alternative, production-ready, 4 tests). **Deferred for Bot/Membership** until go-cqrs-lite ships Materialize with `event.Projection` interface (v3.1.0 only has `HandlerFunc` for Watermill router — our dispatch uses `slices.Contains` over `EventTypes()`, which Materialize returns nil for, requiring a wrapper). **Rejected for UserReadModel** (composite `externalAccounts` index doesn't map to `ViewQuery`; 12-event switch moves but doesn't shrink) and **CasbinProjection** (side-effecting, no value state — architecturally incompatible). Key correction to prior assessment: the "12-event switch doesn't fit" rationale was partially wrong — `OnUpdate` receives ALL events and you branch internally (same switch, relocated); the real value is the `kv.ViewStore` backend (`ViewQuerier`/`ViewCounter`/`ViewResetter`/`TombstoneQuerier`), not the dispatch.
+- **`stack.Materialize[V,K]`**: Evaluated in depth (ADR-0022). A **generic `MaterializeProjection[V,K]` adapter** (`es_materialize_adapter.go`) wraps any `stack.Materialize` as `event.Projection` using `watermill.EventToMessage` → `Materialize.HandlerFunc` round-trip — zero dispatch replication. Any read model can adopt Materialize with a single `NewMaterializeProjection(mat, name, eventTypes)` call. **Per-read-model fit**: Tenant/Bot = good fit (few events, tombstone-marked). Membership = moderate (no tombstone marking yet). UserReadModel = rejected (composite `externalAccounts` index doesn't map to `ViewQuery`; 12-event switch moves but doesn't shrink). CasbinProjection = never (side-effecting, no value state). Key correction: the "12-event switch doesn't fit" rationale was partially wrong — `OnUpdate` receives ALL events and you branch internally; the real value is the `kv.ViewStore` backend (`ViewQuerier`/`ViewCounter`/`ViewResetter`/`TombstoneQuerier`).
 - **`CatchUpSubscriber`**: Not yet adopted — `StartProjections` still uses manual journal replay + `bus.SubscribeAll`. Migration is a future task.
 - **`stack/v3` + `stack/sqlite/v3` + `stack/postgres/v3`**: New dependencies in usermgmt. Added `pgx/v5` transitively.
 
