@@ -24,6 +24,7 @@ csrf := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 ```
 
 Nginx config:
+
 ```nginx
 location / {
     proxy_pass http://localhost:8080;
@@ -70,6 +71,7 @@ csrf := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 ## Verification
 
 After configuring TrustedProxies, verify:
+
 1. Requests from your proxy are NOT flagged as CSRF violations
 2. Requests from untrusted IPs ARE still blocked
 3. The warning log about empty TrustedProxies no longer appears
@@ -77,6 +79,7 @@ After configuring TrustedProxies, verify:
 ## Format
 
 `TrustedProxies` accepts:
+
 - Single IP: `"127.0.0.1"`
 - CIDR range: `"10.0.0.0/8"`
 - Mix of both: `[]string{"127.0.0.1", "10.0.0.0/8"}`

@@ -36,7 +36,7 @@ Major milestones delivered. Maintained here for historical context.
 | v2.6.0  | Identity model redesign (ADR-0015): Tenant, Bot, Membership, Impersonation, ActorID. go-cqrs-lite v2.6.0. SQL event store delegation to upstream. Roles→memberships migration.                                            |
 | v3.0.0  | go-cqrs-lite v3.0.0 migration (ADR-0016): manual projection replay, watermill EventBus, storage/memory split, Decider.Fold→Apply. Module path bump /v2→/v3. God object split (es_decide.go → 5 files). Dead code removal. |
 | v3.1.0  | go-cqrs-lite v3.1.0: SQL-backed persistent read models (4 aggregates), one-call SQLite/Postgres stack presets, `OptimizeSQLiteDB`, graceful shutdown (`Service.Close`/`GracefulClose`), CI coverage gate, 697 tests.      |
-| v3.2.0  | catalog/ module merged upstream into go-cqrs-lite/catalog/v3 (v3.2.0). ADR number collision fix, migration checklist (AGENTS.md #22-26), doc-honesty sweep, 51 stale status reports archived.      |
+| v3.2.0  | catalog/ module merged upstream into go-cqrs-lite/catalog/v3 (v3.2.0). ADR number collision fix, migration checklist (AGENTS.md #22-26), doc-honesty sweep, 51 stale status reports archived.                             |
 
 ---
 
@@ -94,13 +94,13 @@ _Focus: Production storage backends beyond in-memory and SQL._
 
 _Focus: Leveraging go-cqrs-lite v3's advanced capabilities._
 
-| Area    | Item                                                         | Priority | Status  |
-| ------- | ------------------------------------------------------------ | -------- | ------- |
-| ES      | stack.Materialize for persistent read models                 | Low      | Planned |
-| ES      | CatchUpSubscriber as alternative to manual replay            | Low      | Planned |
-| Schema  | Add schema/v3 validator for event payloads at registration   | Medium   | Planned |
-| Test    | Integration tests against real PostgreSQL                    | Medium   | Planned |
-| Migrate | Database migration tooling (goose, golang-migrate, or gnorm) | Medium   | Planned |
+| Area    | Item                                                         | Priority | Status          |
+| ------- | ------------------------------------------------------------ | -------- | --------------- |
+| ES      | stack.Materialize for persistent read models                 | Low      | Done (ADR-0022) |
+| ES      | CatchUpSubscriber as alternative to manual replay            | Low      | Planned         |
+| Schema  | Add schema/v3 validator for event payloads at registration   | Medium   | Planned         |
+| Test    | Integration tests against real PostgreSQL                    | Medium   | Planned         |
+| Migrate | Database migration tooling (goose, golang-migrate, or gnorm) | Medium   | Planned         |
 
 ---
 

@@ -69,13 +69,13 @@ specific dependencies and serves a broader audience.
 
 ## Common Pitfalls
 
-| Pitfall | Prevention |
-|---------|------------|
-| Stale docs (code green, docs lying) | Step 17 — always run the reference sweep |
-| ADR number collision | Step 21 — check `ls docs/adr/ \| sort` |
-| `go mod tidy` fails on transitive test deps | Use `go get @version` instead |
-| Unpushed upstream tag | Verify `git ls-remote --tags origin \| grep <tag>` |
-| Breaking change without CHANGELOG | Step 18 — mandatory, not optional |
+| Pitfall                                     | Prevention                                         |
+| ------------------------------------------- | -------------------------------------------------- |
+| Stale docs (code green, docs lying)         | Step 17 — always run the reference sweep           |
+| ADR number collision                        | Step 21 — check `ls docs/adr/ \| sort`             |
+| `go mod tidy` fails on transitive test deps | Use `go get @version` instead                      |
+| Unpushed upstream tag                       | Verify `git ls-remote --tags origin \| grep <tag>` |
+| Breaking change without CHANGELOG           | Step 18 — mandatory, not optional                  |
 
 ## See Also
 

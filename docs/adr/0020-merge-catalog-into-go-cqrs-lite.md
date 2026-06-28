@@ -38,11 +38,11 @@ and delete `cqrs-htmx/catalog/`.
 
 ### Where things landed
 
-| What | New home |
-| --- | --- |
-| Single-service Builder facade (`New`, `Command[T]`, `Query[T]`, `Event[T]`, `Build`, `BuildValid`) | `catalog/v3/simple` |
-| `D2Handler`, `HealthCheckHandler`, `GenerateEventCatalog` | `catalog/v3/docserver` (standalone handlers) |
-| `OpenAPIHandler`, `AsyncAPIHandler` | **Deleted** — use upstream `docserver.DocsServer` (richer: HTML UIs, static assets) |
+| What                                                                                               | New home                                                                            |
+| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Single-service Builder facade (`New`, `Command[T]`, `Query[T]`, `Event[T]`, `Build`, `BuildValid`) | `catalog/v3/simple`                                                                 |
+| `D2Handler`, `HealthCheckHandler`, `GenerateEventCatalog`                                          | `catalog/v3/docserver` (standalone handlers)                                        |
+| `OpenAPIHandler`, `AsyncAPIHandler`                                                                | **Deleted** — use upstream `docserver.DocsServer` (richer: HTML UIs, static assets) |
 
 ### Simplifications during the merge
 

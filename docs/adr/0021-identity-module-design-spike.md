@@ -12,7 +12,7 @@ The codebase has two incompatible types named `ActorID`:
   string (e.g. `"user:01JX..."`, `"bot:ci-deploy"`) stored in request context.
   Defined in `context.go:149`.
 - **usermgmt module** (`cqrs-htmx/v3/usermgmt`): `type ActorID struct{ kind
-  ActorKind; raw string }` — a kind-discriminated union with domain methods
+ActorKind; raw string }` — a kind-discriminated union with domain methods
   (`Kind()`, `String()`, `PrefixedString()`, `IsZero()`, `ParseActorID()`).
   Defined in `usermgmt/id.go:60`.
 
@@ -81,6 +81,7 @@ architectural change that:
 ### Trigger for Re-evaluation
 
 Adopt Option A when EITHER:
+
 - ADR 0019 unblocks (usermgmt decomposed into sub-packages)
 - A consumer reports the ActorID type mismatch as a real bug (not theoretical)
 - A third module needs ActorID (currently only root + usermgmt use it)

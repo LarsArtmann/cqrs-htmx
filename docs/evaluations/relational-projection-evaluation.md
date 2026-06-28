@@ -7,6 +7,7 @@
 ## What storage.RelationalProjection Provides
 
 `storage.RelationalProjection` from go-cqrs-lite v3.1.0 provides:
+
 - Declarative multi-table projections via `OnCreate`/`OnUpdate`/`OnTombstone`
 - Automatic table management from `view:"col"` struct tags
 - Built-in dedup and ordering guarantees
@@ -17,12 +18,14 @@ Our read models use `event.Projection` interface (`Name()` + `Handle()` + `Event
 Each read model has a custom `Handle()` with a switch statement over event types.
 
 ### UserReadModel Example
+
 - 12-event switch statement
 - Email index + external account index
 - Tombstone handling
 - `UserView` DTO for SQL persistence
 
 ### MembershipReadModel Example
+
 - 3-event switch statement
 - Actor + tenant indexes
 
