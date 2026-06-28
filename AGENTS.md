@@ -22,7 +22,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200) |
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                         |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage    | 95.4% root, 80.1% usermgmt (~747 usermgmt + ~135 root tests)                                           |
+| Coverage    | 95.4% root, 80.1% usermgmt (~747 usermgmt + ~135 root tests)                                          |
 
 ## Architecture
 
@@ -174,7 +174,7 @@ cqrs-htmx/
 | Module           | go.mod                                              | Tests | Notes                                                     |
 | ---------------- | --------------------------------------------------- | ----- | --------------------------------------------------------- |
 | Root             | `github.com/larsartmann/cqrs-htmx/v3`               | Yes   | Core library                                              |
-| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`      | Yes   | Independent submodule; imports root for RateLimiter          |
+| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`      | Yes   | Independent submodule; imports root for RateLimiter       |
 | adminui          | `github.com/larsartmann/cqrs-htmx/adminui/v3`       | Yes   | Admin Dashboard UI (templ+HTMX), depends on root+usermgmt |
 | integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                                |
 | datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                         |
@@ -184,23 +184,23 @@ cqrs-htmx/
 
 ## Dependencies
 
-| Dependency                  | Purpose                                                                                                             | Used in          |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| go-cqrs-lite v3.1.0         | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus, SQL view stores, typed metadata) | All modules      |
-| casbin/casbin/v3            | Authorization                                                                                                       | Root, usermgmt   |
-| justinas/nosurf v1.2.0      | CSRF protection                                                                                                     | Root             |
-| go-error-family v0.5.1      | Error classification                                                                                                | All modules      |
-| larsartmann/httputil        | ClientIP extraction                                                                                                 | Root             |
-| go-branded-id v0.3.1        | Branded types                                                                                                       | usermgmt         |
-| go-webauthn v0.17.4         | WebAuthn/Passkey passwordless authentication                                                                        | usermgmt         |
-| pquerna/otp v1.5.0          | TOTP (RFC 6238) multi-factor authentication                                                                         | usermgmt         |
-| golang.org/x/oauth2 v0.36.0 | OAuth2 authorization code flow with PKCE                                                                            | usermgmt         |
-| coreos/go-oidc/v3 v3.19.0   | OIDC provider discovery + ID token verification                                                                     | usermgmt         |
-| go-jose/go-jose/v4 v4.1.4   | JWT/JWS signing (transitive from go-oidc, used in tests)                                                            | usermgmt (tests) |
-| golang.org/x/time           | Rate limiting                                                                                                       | Root             |
-| go-playground/form/v4 v4.3.0 | Form decoding (url.Values → struct, zero transitive deps, json tag mode for backward compat)                       | Root             |
-| a-h/templ v0.3.1020         | Type-safe HTML templating (admin UI components)                                                                     | adminui          |
-| onsi/ginkgo/v2 + gomega     | BDD test framework                                                                                                  | All test modules |
+| Dependency                   | Purpose                                                                                                             | Used in          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| go-cqrs-lite v3.1.0          | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus, SQL view stores, typed metadata) | All modules      |
+| casbin/casbin/v3             | Authorization                                                                                                       | Root, usermgmt   |
+| justinas/nosurf v1.2.0       | CSRF protection                                                                                                     | Root             |
+| go-error-family v0.5.1       | Error classification                                                                                                | All modules      |
+| larsartmann/httputil         | ClientIP extraction                                                                                                 | Root             |
+| go-branded-id v0.3.1         | Branded types                                                                                                       | usermgmt         |
+| go-webauthn v0.17.4          | WebAuthn/Passkey passwordless authentication                                                                        | usermgmt         |
+| pquerna/otp v1.5.0           | TOTP (RFC 6238) multi-factor authentication                                                                         | usermgmt         |
+| golang.org/x/oauth2 v0.36.0  | OAuth2 authorization code flow with PKCE                                                                            | usermgmt         |
+| coreos/go-oidc/v3 v3.19.0    | OIDC provider discovery + ID token verification                                                                     | usermgmt         |
+| go-jose/go-jose/v4 v4.1.4    | JWT/JWS signing (transitive from go-oidc, used in tests)                                                            | usermgmt (tests) |
+| golang.org/x/time            | Rate limiting                                                                                                       | Root             |
+| go-playground/form/v4 v4.3.0 | Form decoding (url.Values → struct, zero transitive deps, json tag mode for backward compat)                        | Root             |
+| a-h/templ v0.3.1020          | Type-safe HTML templating (admin UI components)                                                                     | adminui          |
+| onsi/ginkgo/v2 + gomega      | BDD test framework                                                                                                  | All test modules |
 
 ## Key Decisions
 

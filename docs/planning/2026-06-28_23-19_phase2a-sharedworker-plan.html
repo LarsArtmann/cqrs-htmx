@@ -29,52 +29,251 @@
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-      .top-bar { background: var(--text); color: var(--surface); padding: 0.5rem 1.5rem; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; justify-content: space-between; }
-      .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
-      h1 { font-family: var(--font-heading); font-weight: 900; font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1.1; margin-bottom: 0.5rem; }
-      h2 { font-family: var(--font-heading); font-weight: 800; font-size: 1.3rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 3px solid var(--text); display: flex; align-items: baseline; gap: 0.6rem; }
-      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; }
-      h3 { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; margin: 1.5rem 0 0.6rem; }
-      p { margin-bottom: 0.8rem; color: var(--text-muted); }
-      strong { color: var(--text); }
-      code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface-sunken); padding: 0.1em 0.35em; color: var(--solution); }
-      .hero { margin-bottom: 2rem; }
-      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); padding: 0.2rem 0.6rem; margin-bottom: 0.8rem; }
-      .hero-subtitle { color: var(--text-muted); font-size: 1.05rem; max-width: 700px; }
-      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.8rem; margin: 1.5rem 0; }
-      .stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1rem 1.2rem; }
-      .stat-card.stat-good { border-left: 3px solid var(--solution); }
-      .stat-card.stat-warn { border-left: 3px solid var(--warning); }
-      .stat-card.stat-bad { border-left: 3px solid var(--problem); }
-      .stat-value { font-family: var(--font-heading); font-weight: 900; font-size: 2rem; line-height: 1; margin-bottom: 0.3rem; }
-      .stat-label { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-faint); }
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.86rem; }
-      th { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 2px solid var(--border-strong); font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-faint); }
-      td { padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border); color: var(--text-muted); }
-      tr:hover td { color: var(--text); background: var(--surface-sunken); }
-      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
-      .badge-critical { background: var(--problem); color: var(--surface); }
-      .badge-high { background: color-mix(in srgb, var(--warning) 30%, transparent); color: var(--warning); border: 1px solid var(--warning); }
-      .badge-medium { background: var(--surface-sunken); color: var(--text-muted); border: 1px solid var(--border); }
-      .badge-done { background: var(--solution); color: var(--surface); }
-      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 0.8rem 0; }
-      .card-problem { border-left: 3px solid var(--problem); }
-      .card-solution { border-left: 3px solid var(--solution); }
-      .card-warning { border-left: 3px solid var(--warning); }
-      .card p { margin-bottom: 0.4rem; }
-      .card p:last-child { margin-bottom: 0; }
-      .callout { background: var(--surface-sunken); border-left: 3px solid var(--accent); padding: 0.8rem 1.2rem; margin: 1rem 0; }
-      .callout strong { color: var(--accent); }
-      pre { background: var(--surface-sunken); padding: 1rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.5; color: var(--text-muted); }
-      .diagram { margin: 1.5rem 0; text-align: center; }
-      .diagram img { max-width: 100%; height: auto; }
-      .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-faint); }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.5rem 1.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+      }
+      h1 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        font-size: clamp(1.6rem, 4vw, 2.4rem);
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+      }
+      h2 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 1.3rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      h3 {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin: 1.5rem 0 0.6rem;
+      }
+      p {
+        margin-bottom: 0.8rem;
+        color: var(--text-muted);
+      }
+      strong {
+        color: var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface-sunken);
+        padding: 0.1em 0.35em;
+        color: var(--solution);
+      }
+      .hero {
+        margin-bottom: 2rem;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        padding: 0.2rem 0.6rem;
+        margin-bottom: 0.8rem;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        max-width: 700px;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.8rem;
+        margin: 1.5rem 0;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+      }
+      .stat-card.stat-good {
+        border-left: 3px solid var(--solution);
+      }
+      .stat-card.stat-warn {
+        border-left: 3px solid var(--warning);
+      }
+      .stat-card.stat-bad {
+        border-left: 3px solid var(--problem);
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        font-size: 2rem;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-faint);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.86rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.8rem;
+        border-bottom: 2px solid var(--border-strong);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-faint);
+      }
+      td {
+        padding: 0.5rem 0.8rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-muted);
+      }
+      tr:hover td {
+        color: var(--text);
+        background: var(--surface-sunken);
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 0.1rem 0.4rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: color-mix(in srgb, var(--warning) 30%, transparent);
+        color: var(--warning);
+        border: 1px solid var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+      }
+      .badge-done {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 0.8rem 0;
+      }
+      .card-problem {
+        border-left: 3px solid var(--problem);
+      }
+      .card-solution {
+        border-left: 3px solid var(--solution);
+      }
+      .card-warning {
+        border-left: 3px solid var(--warning);
+      }
+      .card p {
+        margin-bottom: 0.4rem;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+      .callout {
+        background: var(--surface-sunken);
+        border-left: 3px solid var(--accent);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+      }
+      .callout strong {
+        color: var(--accent);
+      }
+      pre {
+        background: var(--surface-sunken);
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        color: var(--text-muted);
+      }
+      .diagram {
+        margin: 1.5rem 0;
+        text-align: center;
+      }
+      .diagram img {
+        max-width: 100%;
+        height: auto;
+      }
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-faint);
+      }
     </style>
   </head>
   <body>
@@ -87,9 +286,9 @@
         <div class="hero-badge">Pareto Plan · Phase 2a</div>
         <h1>SharedWorker Offline Command Sync</h1>
         <p class="hero-subtitle">
-          Queue-Only offline command queue using a SharedWorker coordinator. No
-          Service Worker, no IndexedDB, no OPFS. The worker queues command IDs
-          when the network is down and tells tabs to retry via
+          Queue-Only offline command queue using a SharedWorker coordinator. No Service Worker, no
+          IndexedDB, no OPFS. The worker queues command IDs when the network is down and tells tabs
+          to retry via
           <code>htmx.trigger()</code> on reconnect.
         </p>
       </div>
@@ -121,22 +320,36 @@
 
       <div class="card card-solution">
         <h3>The 1% that delivers 51%</h3>
-        <p><strong>ADR-0029 + sync-worker.js.</strong> These two artifacts lock in the SharedWorker architecture and provide the runnable coordinator script. Everything else is wiring and documentation.</p>
+        <p>
+          <strong>ADR-0029 + sync-worker.js.</strong> These two artifacts lock in the SharedWorker
+          architecture and provide the runnable coordinator script. Everything else is wiring and
+          documentation.
+        </p>
       </div>
 
       <div class="card card-solution">
         <h3>The 4% that delivers 64%</h3>
-        <p><strong>Above + admin.js integration.</strong> The offline queue connects to the existing honest-UI lifecycle. <code>htmx:sendError</code> enqueues instead of rejecting. Retry fires via <code>htmx.trigger()</code>.</p>
+        <p>
+          <strong>Above + admin.js integration.</strong> The offline queue connects to the existing
+          honest-UI lifecycle. <code>htmx:sendError</code> enqueues instead of rejecting. Retry
+          fires via <code>htmx.trigger()</code>.
+        </p>
       </div>
 
       <div class="card card-solution">
         <h3>The 20% that delivers 80%</h3>
-        <p><strong>Above + CSS + Go embed/route + admin-demo.</strong> The worker is served from the Go binary, the demo showcases offline behavior, and documentation guides consumers.</p>
+        <p>
+          <strong>Above + CSS + Go embed/route + admin-demo.</strong> The worker is served from the
+          Go binary, the demo showcases offline behavior, and documentation guides consumers.
+        </p>
       </div>
 
       <div class="card card-warning">
         <h3>The 80% that delivers 20%</h3>
-        <p>Phase 2b (Service Worker + Background Sync + OPFS) + Phase 2c (WASM local decide). Deferred — requires product decisions and substantially more complexity.</p>
+        <p>
+          Phase 2b (Service Worker + Background Sync + OPFS) + Phase 2c (WASM local decide).
+          Deferred — requires product decisions and substantially more complexity.
+        </p>
       </div>
 
       <h2><span class="num">02</span>Comprehensive Task Table</h2>
@@ -154,21 +367,126 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td>1</td><td>Keystone</td><td>Write ADR-0029: SharedWorker Phase 2a architecture</td><td><span class="badge badge-critical">Critical</span></td><td>12m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>2</td><td>Keystone</td><td>Update ADR-0025: mark Q1/Q2 superseded by 0029</td><td><span class="badge badge-high">High</span></td><td>3m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>3</td><td>High</td><td>Create sync-worker.js (scaffold + queue + flush + errors)</td><td><span class="badge badge-critical">Critical</span></td><td>10m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>4</td><td>High</td><td>Verify HTMX event names via Context7</td><td><span class="badge badge-high">High</span></td><td>5m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>5</td><td>High</td><td>Implement SharedWorker registration + offline queue + retry in admin.js</td><td><span class="badge badge-critical">Critical</span></td><td>12m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>6</td><td>Medium</td><td>Add offline CSS classes (amber dashed, queue badge)</td><td><span class="badge badge-medium">Medium</span></td><td>8m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>7</td><td>Medium</td><td>Embed sync-worker.js in assets.go + add route in handler.go</td><td><span class="badge badge-high">High</span></td><td>8m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>8</td><td>Medium</td><td>Verify adminui module builds + tests pass</td><td><span class="badge badge-high">High</span></td><td>5m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>9</td><td>Low</td><td>Update AGENTS.md: Phase 2a section</td><td><span class="badge badge-medium">Medium</span></td><td>10m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>10</td><td>Low</td><td>Update CHANGELOG.md</td><td><span class="badge badge-medium">Medium</span></td><td>5m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>11</td><td>Low</td><td>Write consumer wiring recipe doc</td><td><span class="badge badge-medium">Medium</span></td><td>12m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>12</td><td>Verify</td><td>Write D2 execution graph + render to SVG</td><td><span class="badge badge-medium">Medium</span></td><td>10m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>13</td><td>Verify</td><td>Write planning HTML report (this file)</td><td><span class="badge badge-medium">Medium</span></td><td>12m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>14</td><td>Verify</td><td>Run full CI: build + test + lint + errorfamily</td><td><span class="badge badge-critical">Critical</span></td><td>10m</td><td><span class="badge badge-done">Done</span></td></tr>
-          <tr><td>15</td><td>Verify</td><td>Git commit + push</td><td><span class="badge badge-high">High</span></td><td>5m</td><td><span class="badge badge-done">Done</span></td></tr>
+          <tr>
+            <td>1</td>
+            <td>Keystone</td>
+            <td>Write ADR-0029: SharedWorker Phase 2a architecture</td>
+            <td><span class="badge badge-critical">Critical</span></td>
+            <td>12m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Keystone</td>
+            <td>Update ADR-0025: mark Q1/Q2 superseded by 0029</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>3m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>High</td>
+            <td>Create sync-worker.js (scaffold + queue + flush + errors)</td>
+            <td><span class="badge badge-critical">Critical</span></td>
+            <td>10m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>High</td>
+            <td>Verify HTMX event names via Context7</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>5m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>High</td>
+            <td>Implement SharedWorker registration + offline queue + retry in admin.js</td>
+            <td><span class="badge badge-critical">Critical</span></td>
+            <td>12m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Medium</td>
+            <td>Add offline CSS classes (amber dashed, queue badge)</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>8m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>Medium</td>
+            <td>Embed sync-worker.js in assets.go + add route in handler.go</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>8m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>Medium</td>
+            <td>Verify adminui module builds + tests pass</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>5m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>Low</td>
+            <td>Update AGENTS.md: Phase 2a section</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>10m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>Low</td>
+            <td>Update CHANGELOG.md</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>5m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td>Low</td>
+            <td>Write consumer wiring recipe doc</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>12m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td>Verify</td>
+            <td>Write D2 execution graph + render to SVG</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>10m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td>Verify</td>
+            <td>Write planning HTML report (this file)</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>12m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>14</td>
+            <td>Verify</td>
+            <td>Run full CI: build + test + lint + errorfamily</td>
+            <td><span class="badge badge-critical">Critical</span></td>
+            <td>10m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
+          <tr>
+            <td>15</td>
+            <td>Verify</td>
+            <td>Git commit + push</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>5m</td>
+            <td><span class="badge badge-done">Done</span></td>
+          </tr>
         </tbody>
       </table>
 
@@ -178,23 +496,44 @@
         <h3>SharedWorker = Coordinator, Not Proxy</h3>
         <p>The worker does <strong>three things only</strong>:</p>
         <p>1. <strong>Queue</strong> command IDs from tabs when offline</p>
-        <p>2. <strong>Detect</strong> connectivity changes (<code>navigator.onLine</code> + events at worker scope)</p>
-        <p>3. <strong>Retry</strong> — on reconnect, tell each originating tab to re-issue via <code>htmx.trigger()</code></p>
-        <p>It does <strong>not</strong> send HTTP requests (HTMX does), own SSE (per-tab EventSource), or persist to disk (in-memory).</p>
+        <p>
+          2. <strong>Detect</strong> connectivity changes (<code>navigator.onLine</code> + events at
+          worker scope)
+        </p>
+        <p>
+          3. <strong>Retry</strong> — on reconnect, tell each originating tab to re-issue via
+          <code>htmx.trigger()</code>
+        </p>
+        <p>
+          It does <strong>not</strong> send HTTP requests (HTMX does), own SSE (per-tab
+          EventSource), or persist to disk (in-memory).
+        </p>
       </div>
 
       <div class="card card-problem">
         <h3>Why Not Service Worker?</h3>
-        <p>SW's one unique capability — Background Sync for closed-tab writes — is <strong>Chrome/Edge only</strong> and requires the consumer to surrender their SW scope. For a library, that's unacceptable. SharedWorker covers 90% of the value at 10% of the complexity.</p>
+        <p>
+          SW's one unique capability — Background Sync for closed-tab writes — is
+          <strong>Chrome/Edge only</strong> and requires the consumer to surrender their SW scope.
+          For a library, that's unacceptable. SharedWorker covers 90% of the value at 10% of the
+          complexity.
+        </p>
       </div>
 
       <div class="card card-problem">
         <h3>Why Not IndexedDB?</h3>
-        <p>The research doc concluded "IndexedDB is Dead — OPFS or Nothing." For Phase 2a's in-memory queue, there is nothing to persist. IndexedDB is banned (ADR-0029). OPFS deferred to Phase 2b.</p>
+        <p>
+          The research doc concluded "IndexedDB is Dead — OPFS or Nothing." For Phase 2a's in-memory
+          queue, there is nothing to persist. IndexedDB is banned (ADR-0029). OPFS deferred to Phase
+          2b.
+        </p>
       </div>
 
       <div class="callout">
-        <strong>Key design insight:</strong> Offline detection is <em>reactive</em>, not proactive. HTMX attempts requests normally. The browser fails instantly when offline (<code>htmx:sendError</code>). We catch the failure and queue for retry. The online path is completely unchanged.
+        <strong>Key design insight:</strong> Offline detection is <em>reactive</em>, not proactive.
+        HTMX attempts requests normally. The browser fails instantly when offline
+        (<code>htmx:sendError</code>). We catch the failure and queue for retry. The online path is
+        completely unchanged.
       </div>
 
       <h2><span class="num">04</span>Execution Graph</h2>
@@ -205,20 +544,56 @@
       <h2><span class="num">05</span>Files Changed</h2>
       <table>
         <thead>
-          <tr><th>File</th><th>Change</th></tr>
+          <tr>
+            <th>File</th>
+            <th>Change</th>
+          </tr>
         </thead>
         <tbody>
-          <tr><td><code>docs/adr/0029-sharedworker-phase2a.md</code></td><td>NEW — Architecture decision</td></tr>
-          <tr><td><code>docs/adr/0025-phase2-research.md</code></td><td>Status → Superseded by 0029</td></tr>
-          <tr><td><code>adminui/assets/sync-worker.js</code></td><td>NEW — SharedWorker coordinator (~80 lines)</td></tr>
-          <tr><td><code>adminui/assets/admin.js</code></td><td>+ initSyncWorker, enqueueCommand, retryQueuedCommand, htmx:sendError</td></tr>
-          <tr><td><code>adminui/assets/admin-tw.css</code></td><td>+ [data-sync-queued], .sync-bar[offline] styles</td></tr>
-          <tr><td><code>adminui/assets.go</code></td><td>+ sync-worker.js in go:embed, ETag bump</td></tr>
-          <tr><td><code>adminui/handler.go</code></td><td>+ GET /-/sync-worker.js route</td></tr>
-          <tr><td><code>AGENTS.md</code></td><td>+ Phase 2a section, asset listing</td></tr>
-          <tr><td><code>CHANGELOG.md</code></td><td>+ Phase 2a entry</td></tr>
-          <tr><td><code>docs/recipes/offline-command-sync.md</code></td><td>NEW — Consumer wiring recipe</td></tr>
-          <tr><td><code>docs/planning/2026-06-28_23-19_*.d2/.svg</code></td><td>NEW — Execution graph</td></tr>
+          <tr>
+            <td><code>docs/adr/0029-sharedworker-phase2a.md</code></td>
+            <td>NEW — Architecture decision</td>
+          </tr>
+          <tr>
+            <td><code>docs/adr/0025-phase2-research.md</code></td>
+            <td>Status → Superseded by 0029</td>
+          </tr>
+          <tr>
+            <td><code>adminui/assets/sync-worker.js</code></td>
+            <td>NEW — SharedWorker coordinator (~80 lines)</td>
+          </tr>
+          <tr>
+            <td><code>adminui/assets/admin.js</code></td>
+            <td>+ initSyncWorker, enqueueCommand, retryQueuedCommand, htmx:sendError</td>
+          </tr>
+          <tr>
+            <td><code>adminui/assets/admin-tw.css</code></td>
+            <td>+ [data-sync-queued], .sync-bar[offline] styles</td>
+          </tr>
+          <tr>
+            <td><code>adminui/assets.go</code></td>
+            <td>+ sync-worker.js in go:embed, ETag bump</td>
+          </tr>
+          <tr>
+            <td><code>adminui/handler.go</code></td>
+            <td>+ GET /-/sync-worker.js route</td>
+          </tr>
+          <tr>
+            <td><code>AGENTS.md</code></td>
+            <td>+ Phase 2a section, asset listing</td>
+          </tr>
+          <tr>
+            <td><code>CHANGELOG.md</code></td>
+            <td>+ Phase 2a entry</td>
+          </tr>
+          <tr>
+            <td><code>docs/recipes/offline-command-sync.md</code></td>
+            <td>NEW — Consumer wiring recipe</td>
+          </tr>
+          <tr>
+            <td><code>docs/planning/2026-06-28_23-19_*.d2/.svg</code></td>
+            <td>NEW — Execution graph</td>
+          </tr>
         </tbody>
       </table>
 

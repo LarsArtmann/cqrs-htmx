@@ -835,7 +835,10 @@
           </div>
           <div class="hero-badge">Status Dashboard · Post Self-Review Round 6</div>
           <h1>cqrs-htmx v3.2.0 — Healthiest State Ever</h1>
-          <p class="hero-subtitle">934 tests pass with -race · 0 lint issues · 0 errorfamily violations · 27 ADRs · 8 Go modules · 51,431 lines of Go across 341 files.</p>
+          <p class="hero-subtitle">
+            934 tests pass with -race · 0 lint issues · 0 errorfamily violations · 27 ADRs · 8 Go
+            modules · 51,431 lines of Go across 341 files.
+          </p>
         </div>
 
         <!-- Summary Stats -->
@@ -875,7 +878,10 @@
           </div>
         </div>
 
-        <p><strong>Module health:</strong> Root 135 tests · usermgmt 747 tests · adminui 35 tests · integration_test 17 tests. Coverage: 95.4% root, 80.1% usermgmt.</p>
+        <p>
+          <strong>Module health:</strong> Root 135 tests · usermgmt 747 tests · adminui 35 tests ·
+          integration_test 17 tests. Coverage: 95.4% root, 80.1% usermgmt.
+        </p>
 
         <!-- A) FULLY DONE -->
         <h2 id="done"><span class="num">01</span>Fully Done</h2>
@@ -886,63 +892,97 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Idempotency store — atomic &amp; wired</strong>
-              <span><code>IdempotencyStore</code> interface + <code>MemoryIdempotencyStore</code> with truly atomic <code>CheckAndRecord</code> (single write lock, proven by 200-gorrace test). Lazy expiry in <code>Seen()</code>. Wired into admin-demo (409 on duplicate X-Command-Id). ADR-0026.</span>
+              <span
+                ><code>IdempotencyStore</code> interface + <code>MemoryIdempotencyStore</code> with
+                truly atomic <code>CheckAndRecord</code> (single write lock, proven by 200-gorrace
+                test). Lazy expiry in <code>Seen()</code>. Wired into admin-demo (409 on duplicate
+                X-Command-Id). ADR-0026.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Form decoder upgraded</strong>
-              <span>Replaced JSON round-trip with <code>go-playground/form/v4</code> (zero transitive deps, json-tag backward compat). Case-insensitive matching via lowercase normalization.</span>
+              <span
+                >Replaced JSON round-trip with <code>go-playground/form/v4</code> (zero transitive
+                deps, json-tag backward compat). Case-insensitive matching via lowercase
+                normalization.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Pagination unified</strong>
-              <span>Root <code>DecodePagination</code> + usermgmt <code>credential_http.go</code> both delegate to <code>query.NewPagination</code>. No more split-brain.</span>
+              <span
+                >Root <code>DecodePagination</code> + usermgmt <code>credential_http.go</code> both
+                delegate to <code>query.NewPagination</code>. No more split-brain.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>SSE infrastructure (Phase 0)</strong>
-              <span><code>JournalSSEStore</code> (cursor-based replay via <code>event.SeekableJournal</code>), <code>Broadcaster</code> (thread-safe fan-out), <code>SSEStream</code>, reconnection protocol, heartbeat, <code>OnDisconnect</code>.</span>
+              <span
+                ><code>JournalSSEStore</code> (cursor-based replay via
+                <code>event.SeekableJournal</code>), <code>Broadcaster</code> (thread-safe fan-out),
+                <code>SSEStream</code>, reconnection protocol, heartbeat,
+                <code>OnDisconnect</code>.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Honest UI protocol (Phase 1)</strong>
-              <span><code>CommandAck</code> struct, <code>BroadcastOnAck</code> hooks, sync indicator in adminui, full lifecycle in admin-demo. ADR-0024.</span>
+              <span
+                ><code>CommandAck</code> struct, <code>BroadcastOnAck</code> hooks, sync indicator
+                in adminui, full lifecycle in admin-demo. ADR-0024.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>WebSocket parity</strong>
-              <span><code>WSBroadcaster</code>, <code>DispatchWSCommand/Query</code>, <code>ParseWSMessageInto[T]</code>, OOB HTML. Full SSE/WS transport parity.</span>
+              <span
+                ><code>WSBroadcaster</code>, <code>DispatchWSCommand/Query</code>,
+                <code>ParseWSMessageInto[T]</code>, OOB HTML. Full SSE/WS transport parity.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>CSRF (nosurf), rate limiting, security headers</strong>
-              <span><code>CSRFMiddleware</code>, per-handler <code>CSRFProtect</code>, <code>RateLimiterMiddleware</code> (token bucket + heap LRU), <code>SecurityHeadersMiddleware</code>, <code>RecoveryMiddleware</code>.</span>
+              <span
+                ><code>CSRFMiddleware</code>, per-handler <code>CSRFProtect</code>,
+                <code>RateLimiterMiddleware</code> (token bucket + heap LRU),
+                <code>SecurityHeadersMiddleware</code>, <code>RecoveryMiddleware</code>.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Embedded HTMX v2.0.9</strong>
-              <span>Self-hosted via <code>go:embed</code>, ETag + Cache-Control, <code>HTMXScriptHandlerWith</code> for custom versions.</span>
+              <span
+                >Self-hosted via <code>go:embed</code>, ETag + Cache-Control,
+                <code>HTMXScriptHandlerWith</code> for custom versions.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Stdlib modernization</strong>
-              <span><code>slices.Contains</code>, <code>min()</code>, <code>slices.IndexFunc</code> replace 5 manual loops. All 8 modules on Go 1.26.4.</span>
+              <span
+                ><code>slices.Contains</code>, <code>min()</code>,
+                <code>slices.IndexFunc</code> replace 5 manual loops. All 8 modules on Go
+                1.26.4.</span
+              >
             </div>
           </div>
         </div>
@@ -953,28 +993,41 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Fully event-sourced CQRS</strong>
-              <span>12 events, 11 commands, pure <code>foldUser()</code>/<code>decide*()</code> functions, 4 aggregates (User, Membership, Tenant, Bot). 747 tests.</span>
+              <span
+                >12 events, 11 commands, pure <code>foldUser()</code>/<code>decide*()</code>
+                functions, 4 aggregates (User, Membership, Tenant, Bot). 747 tests.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Passwordless auth</strong>
-              <span>WebAuthn/Passkey (go-webauthn v0.17.4), TOTP (pquerna/otp), OAuth2/OIDC (Google + GitHub), session management.</span>
+              <span
+                >WebAuthn/Passkey (go-webauthn v0.17.4), TOTP (pquerna/otp), OAuth2/OIDC (Google +
+                GitHub), session management.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>SQL-backed read models (v3.1.0)</strong>
-              <span><code>SQLUserReadModel</code>, <code>SQLMembershipReadModel</code>, <code>SQLTenantReadModel</code>, <code>SQLBotReadModel</code> via <code>storage.SQLViewStore</code>. SQLite + Postgres presets.</span>
+              <span
+                ><code>SQLUserReadModel</code>, <code>SQLMembershipReadModel</code>,
+                <code>SQLTenantReadModel</code>, <code>SQLBotReadModel</code> via
+                <code>storage.SQLViewStore</code>. SQLite + Postgres presets.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Casbin projection</strong>
-              <span>RBAC policies derived from events via <code>CasbinProjection</code>. Role hierarchy, multi-domain.</span>
+              <span
+                >RBAC policies derived from events via <code>CasbinProjection</code>. Role
+                hierarchy, multi-domain.</span
+              >
             </div>
           </div>
         </div>
@@ -985,7 +1038,11 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Ready-made Admin Dashboard</strong>
-              <span>templ + HTMX, light/dark theme, SuperAdmin + TenantAdmin modes, users/tenants/members/audit sections. One-call mount behind session middleware. 35 tests.</span>
+              <span
+                >templ + HTMX, light/dark theme, SuperAdmin + TenantAdmin modes,
+                users/tenants/members/audit sections. One-call mount behind session middleware. 35
+                tests.</span
+              >
             </div>
           </div>
         </div>
@@ -996,21 +1053,30 @@
             <div class="check">+</div>
             <div class="text">
               <strong>27 ADRs</strong>
-              <span>Including ADR-0027 (decide stays on server — Queue-Only), ADR-0026 (idempotency store), ADR-0024 (honest UI), ADR-0023 (command sync).</span>
+              <span
+                >Including ADR-0027 (decide stays on server — Queue-Only), ADR-0026 (idempotency
+                store), ADR-0024 (honest UI), ADR-0023 (command sync).</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>CHANGELOG current</strong>
-              <span>[Unreleased] section documents all recent work: idempotency, form decoder, pagination, fixes.</span>
+              <span
+                >[Unreleased] section documents all recent work: idempotency, form decoder,
+                pagination, fixes.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>CI umbrella verified</strong>
-              <span><code>nix run .#test</code> + <code>nix run .#lint</code> + <code>nix run .#errorfamily</code> all green across all 4 modules.</span>
+              <span
+                ><code>nix run .#test</code> + <code>nix run .#lint</code> +
+                <code>nix run .#errorfamily</code> all green across all 4 modules.</span
+              >
             </div>
           </div>
         </div>
@@ -1020,30 +1086,62 @@
 
         <div class="card card-warning">
           <h4>Offline-First Command Sync (Phase 0+1 done, Phase 2 blocked)</h4>
-          <p><strong>Phase 0 (server infrastructure):</strong> ✅ DONE — JournalSSEStore, Broadcaster, SSEStream, CommandAck, reconnection</p>
-          <p><strong>Phase 1 (honest UI protocol):</strong> ✅ DONE — CSS/JS/templ, ACK protocol, BroadcastOnAck hooks, admin-demo wiring</p>
-          <p><strong>Phase 2 (client-side queue + offline persistence):</strong> ❌ NOT STARTED — Q1 answered (ADR-0027: Queue-Only), Q2 still open (closed-tab persistence). Design exists but no implementation.</p>
+          <p>
+            <strong>Phase 0 (server infrastructure):</strong> ✅ DONE — JournalSSEStore,
+            Broadcaster, SSEStream, CommandAck, reconnection
+          </p>
+          <p>
+            <strong>Phase 1 (honest UI protocol):</strong> ✅ DONE — CSS/JS/templ, ACK protocol,
+            BroadcastOnAck hooks, admin-demo wiring
+          </p>
+          <p>
+            <strong>Phase 2 (client-side queue + offline persistence):</strong> ❌ NOT STARTED — Q1
+            answered (ADR-0027: Queue-Only), Q2 still open (closed-tab persistence). Design exists
+            but no implementation.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>Idempotency — interface + demo done, production store missing</h4>
-          <p><strong>MemoryIdempotencyStore:</strong> ✅ DONE — atomic CheckAndRecord, lazy expiry, sweep goroutine, 11 tests</p>
+          <p>
+            <strong>MemoryIdempotencyStore:</strong> ✅ DONE — atomic CheckAndRecord, lazy expiry,
+            sweep goroutine, 11 tests
+          </p>
           <p><strong>admin-demo wiring:</strong> ✅ DONE — 409 on duplicate command IDs</p>
-          <p><strong>Redis/Postgres-backed store:</strong> ❌ NOT DONE — interface exists, no implementation. Needed for multi-instance deployments.</p>
+          <p>
+            <strong>Redis/Postgres-backed store:</strong> ❌ NOT DONE — interface exists, no
+            implementation. Needed for multi-instance deployments.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>adminui — functional but thin test coverage</h4>
-          <p><strong>Rendering + routing:</strong> ✅ DONE — full dashboard, all sections, light/dark theme</p>
+          <p>
+            <strong>Rendering + routing:</strong> ✅ DONE — full dashboard, all sections, light/dark
+            theme
+          </p>
           <p><strong>Honest UI integration:</strong> ✅ DONE — sync indicator, SSE, ACK</p>
-          <p><strong>Integration test coverage:</strong> ❌ NOT DONE — no integration_test mounts the panel. Only 35 unit tests (vs 747 in usermgmt).</p>
-          <p><strong>Sync indicator DOM test:</strong> ❌ NOT DONE — no test asserts <code>.sync-pending</code> → <code>.sync-confirmed</code> flip</p>
+          <p>
+            <strong>Integration test coverage:</strong> ❌ NOT DONE — no integration_test mounts the
+            panel. Only 35 unit tests (vs 747 in usermgmt).
+          </p>
+          <p>
+            <strong>Sync indicator DOM test:</strong> ❌ NOT DONE — no test asserts
+            <code>.sync-pending</code> → <code>.sync-confirmed</code> flip
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>Event Signing &amp; Encryption — seams exist, not demonstrated</h4>
-          <p><strong>ServiceConfig hooks:</strong> ✅ DONE — <code>StoreWrapper</code>, <code>PublishMiddleware</code>, <code>HandlerMiddleware</code> opt-in seams</p>
-          <p><strong>Consumer demonstration:</strong> ❌ NOT DONE — no example shows signing or encryption wired end-to-end. The seams are documented (ADR-0011) but unproven in a runnable example.</p>
+          <p>
+            <strong>ServiceConfig hooks:</strong> ✅ DONE — <code>StoreWrapper</code>,
+            <code>PublishMiddleware</code>, <code>HandlerMiddleware</code> opt-in seams
+          </p>
+          <p>
+            <strong>Consumer demonstration:</strong> ❌ NOT DONE — no example shows signing or
+            encryption wired end-to-end. The seams are documented (ADR-0011) but unproven in a
+            runnable example.
+          </p>
         </div>
 
         <!-- C) NOT STARTED -->
@@ -1121,8 +1219,15 @@
 
         <div class="card card-solution">
           <h4>Nothing is currently fucked up.</h4>
-          <p>This is the cleanest state the codebase has ever been in. The two bugs found in the self-review (TOCTOU race + memory leak) were both fixed immediately. The ghost system (idempotency with zero callers) was wired into the admin-demo.</p>
-          <p>The only "fuckup" was the previous session claiming <code>CheckAndRecord</code> was atomic when it wasn't — but that was caught and fixed before it reached any consumer.</p>
+          <p>
+            This is the cleanest state the codebase has ever been in. The two bugs found in the
+            self-review (TOCTOU race + memory leak) were both fixed immediately. The ghost system
+            (idempotency with zero callers) was wired into the admin-demo.
+          </p>
+          <p>
+            The only "fuckup" was the previous session claiming <code>CheckAndRecord</code> was
+            atomic when it wasn't — but that was caught and fixed before it reached any consumer.
+          </p>
         </div>
 
         <!-- E) WHAT WE SHOULD IMPROVE -->
@@ -1130,27 +1235,46 @@
 
         <div class="card card-problem">
           <h4>adminui test coverage is dangerously thin</h4>
-          <p>35 tests vs 747 in usermgmt. No integration test mounts the panel. A templ regression could ship undetected. The <code>nix run .#coverage-gate</code> doesn't cover adminui. <strong>This is the #1 quality risk in the repo right now.</strong></p>
+          <p>
+            35 tests vs 747 in usermgmt. No integration test mounts the panel. A templ regression
+            could ship undetected. The <code>nix run .#coverage-gate</code> doesn't cover adminui.
+            <strong>This is the #1 quality risk in the repo right now.</strong>
+          </p>
         </div>
 
         <div class="card card-problem">
           <h4>Rate limiter split brain</h4>
-          <p>Root uses token-bucket + heap LRU (<code>ratelimit_middleware.go</code>). usermgmt uses fixed-window per-IP (<code>lockout.go</code> + per-endpoint limiters). Two different algorithms, two config shapes, in one repo. Consumers see both.</p>
+          <p>
+            Root uses token-bucket + heap LRU (<code>ratelimit_middleware.go</code>). usermgmt uses
+            fixed-window per-IP (<code>lockout.go</code> + per-endpoint limiters). Two different
+            algorithms, two config shapes, in one repo. Consumers see both.
+          </p>
         </div>
 
         <div class="card card-problem">
           <h4>ActorID type split brain</h4>
-          <p>Root <code>ActorID</code> is <code>string</code>. usermgmt <code>ActorID</code> is a kind-discriminated struct (<code>{Kind, UserID, TenantID, BotID}</code>). Conversion is manual and stringly-typed. A shared type or typed conversion helpers would prevent bugs.</p>
+          <p>
+            Root <code>ActorID</code> is <code>string</code>. usermgmt <code>ActorID</code> is a
+            kind-discriminated struct (<code>{Kind, UserID, TenantID, BotID}</code>). Conversion is
+            manual and stringly-typed. A shared type or typed conversion helpers would prevent bugs.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>go mod tidy broken in submodules</h4>
-          <p>Private <code>go-cqrs-lite/event/v3/eventtest</code> test deps prevent <code>go mod tidy</code> in usermgmt/adminui/integration_test. Manual go.mod editing works but is fragile. A vendor directory or GOPRIVATE proxy would fix this.</p>
+          <p>
+            Private <code>go-cqrs-lite/event/v3/eventtest</code> test deps prevent
+            <code>go mod tidy</code> in usermgmt/adminui/integration_test. Manual go.mod editing
+            works but is fragile. A vendor directory or GOPRIVATE proxy would fix this.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>No benchmark baselines</h4>
-          <p>No SSE replay benchmark exists. Consumers deploying to production don't know the limits of <code>JournalSSEStore</code> replay with 10K/100K events.</p>
+          <p>
+            No SSE replay benchmark exists. Consumers deploying to production don't know the limits
+            of <code>JournalSSEStore</code> replay with 10K/100K events.
+          </p>
         </div>
 
         <!-- F) TOP 25 NEXT -->
@@ -1171,7 +1295,10 @@
           <tbody>
             <tr>
               <td>1</td>
-              <td><strong>Answer Q2: closed-tab persistence?</strong> (SharedWorker / Service Worker + Background Sync)</td>
+              <td>
+                <strong>Answer Q2: closed-tab persistence?</strong> (SharedWorker / Service Worker +
+                Background Sync)
+              </td>
               <td><span class="badge badge-critical">Critical</span></td>
               <td>5m</td>
               <td>—</td>
@@ -1377,24 +1504,55 @@
 
         <div class="card card-problem">
           <h4>Q2: Must writes survive closed tabs?</h4>
-          <p>Q1 (where does <code>decide()</code> run?) is <strong>answered</strong> — ADR-0027: Queue-Only, the client never runs domain validation. That unblocks the protocol design.</p>
-          <p>Q2 remains: when a user closes the browser tab while offline commands are queued, should those commands survive? This determines the persistence architecture:</p>
+          <p>
+            Q1 (where does <code>decide()</code> run?) is <strong>answered</strong> — ADR-0027:
+            Queue-Only, the client never runs domain validation. That unblocks the protocol design.
+          </p>
+          <p>
+            Q2 remains: when a user closes the browser tab while offline commands are queued, should
+            those commands survive? This determines the persistence architecture:
+          </p>
           <ul>
-            <li><strong>Tab-Scoped (SharedWorker or in-memory)</strong> — commands lost when tab closes. Simpler. Matches most web app expectations. The queue lives in a SharedWorker so navigating between pages doesn't lose pending commands, but closing the browser does.</li>
-            <li><strong>Persisted (Service Worker + Background Sync + IndexedDB/OPFS)</strong> — commands survive tab close and browser restart. Synced when connectivity returns even if the app isn't open. Complex: requires Service Worker registration, Background Sync API (Chrome only), IndexedDB for queue persistence, and dealing with OPFS limitations in SW context (no SharedArrayBuffer).</li>
+            <li>
+              <strong>Tab-Scoped (SharedWorker or in-memory)</strong> — commands lost when tab
+              closes. Simpler. Matches most web app expectations. The queue lives in a SharedWorker
+              so navigating between pages doesn't lose pending commands, but closing the browser
+              does.
+            </li>
+            <li>
+              <strong>Persisted (Service Worker + Background Sync + IndexedDB/OPFS)</strong> —
+              commands survive tab close and browser restart. Synced when connectivity returns even
+              if the app isn't open. Complex: requires Service Worker registration, Background Sync
+              API (Chrome only), IndexedDB for queue persistence, and dealing with OPFS limitations
+              in SW context (no SharedArrayBuffer).
+            </li>
           </ul>
-          <p><strong>I cannot decide this for you</strong> because it depends on your offline UX requirements:
-            Do users expect to draft commands offline, close the laptop, and have them sync on reconnect? Or is "pending while tab is open" sufficient?</p>
+          <p>
+            <strong>I cannot decide this for you</strong> because it depends on your offline UX
+            requirements: Do users expect to draft commands offline, close the laptop, and have them
+            sync on reconnect? Or is "pending while tab is open" sufficient?
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>My recommendation: Tab-Scoped for MVP</h4>
-          <p>Start with SharedWorker (survives page navigation, lost on tab close). This covers 90% of offline UX needs: user goes offline in a tunnel, queues commands, comes back online, commands sync. Upgrade to Service Worker + Background Sync only if users explicitly need "survives browser restart" persistence.</p>
-          <p>The library already provides everything needed for Tab-Scoped: the ACK protocol, the SSE broadcast, the honest UI states. The consumer just needs a JS command queue in a SharedWorker that flushes on reconnect.</p>
+          <p>
+            Start with SharedWorker (survives page navigation, lost on tab close). This covers 90%
+            of offline UX needs: user goes offline in a tunnel, queues commands, comes back online,
+            commands sync. Upgrade to Service Worker + Background Sync only if users explicitly need
+            "survives browser restart" persistence.
+          </p>
+          <p>
+            The library already provides everything needed for Tab-Scoped: the ACK protocol, the SSE
+            broadcast, the honest UI states. The consumer just needs a JS command queue in a
+            SharedWorker that flushes on reconnect.
+          </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-28 21:53 &middot; 934 tests pass with -race &middot; 0 lint issues &middot; 0 errorfamily violations &middot; 27 ADRs &middot; All claims verified against source code
+          Generated 2026-06-28 21:53 &middot; 934 tests pass with -race &middot; 0 lint issues
+          &middot; 0 errorfamily violations &middot; 27 ADRs &middot; All claims verified against
+          source code
         </footer>
       </main>
     </div>

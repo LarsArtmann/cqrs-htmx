@@ -832,7 +832,10 @@
           </div>
           <div class="hero-badge">Brutal Self-Review · Round 7</div>
           <h1>Post-Split-Brain Resolution Review</h1>
-          <p class="hero-subtitle">Honest self-critique after the ActorID branding + rate limiter unification session: what I forgot to document, what was stale, and what still needs work.</p>
+          <p class="hero-subtitle">
+            Honest self-critique after the ActorID branding + rate limiter unification session: what
+            I forgot to document, what was stale, and what still needs work.
+          </p>
         </div>
 
         <h2 id="summary"><span class="num">00</span>Summary</h2>
@@ -859,37 +862,73 @@
 
         <div class="card card-problem">
           <h4>STALE: "Zero mutual imports" claim was FALSE</h4>
-          <p>AGENTS.md line 215 claimed "Root ↔ usermgmt: zero mutual imports." But the rate limiter unification added <code>usermgmt → root</code> dependency. The architectural claim was wrong — I changed the architecture and forgot to update the documentation. <strong>Fixed</strong>: updated to "Root → usermgmt: zero imports. usermgmt → root: YES (RateLimiter)."</p>
+          <p>
+            AGENTS.md line 215 claimed "Root ↔ usermgmt: zero mutual imports." But the rate limiter
+            unification added <code>usermgmt → root</code> dependency. The architectural claim was
+            wrong — I changed the architecture and forgot to update the documentation.
+            <strong>Fixed</strong>: updated to "Root → usermgmt: zero imports. usermgmt → root: YES
+            (RateLimiter)."
+          </p>
         </div>
 
         <div class="card card-problem">
           <h4>STALE: AGENTS.md referenced deleted code</h4>
-          <p>The pagination section referenced <code>parseUintQueryParam</code> which was replaced with direct <code>query.NewPagination</code> usage. Test counts said "~95 root" but actual is 135. <strong>Fixed</strong>.</p>
+          <p>
+            The pagination section referenced <code>parseUintQueryParam</code> which was replaced
+            with direct <code>query.NewPagination</code> usage. Test counts said "~95 root" but
+            actual is 135. <strong>Fixed</strong>.
+          </p>
         </div>
 
         <div class="card card-problem">
           <h4>DEPRECATED: ClientIP re-export with zero callers</h4>
-          <p><code>cqrshtmx.ClientIP</code> in httputil.go was a one-line wrapper around <code>httputil.ClientIP</code> marked "Deprecated" — but it had zero callers outside its own test file. Pure dead code. <strong>Fixed</strong>: removed, tests now use <code>httputil.ClientIP</code> directly.</p>
+          <p>
+            <code>cqrshtmx.ClientIP</code> in httputil.go was a one-line wrapper around
+            <code>httputil.ClientIP</code> marked "Deprecated" — but it had zero callers outside its
+            own test file. Pure dead code. <strong>Fixed</strong>: removed, tests now use
+            <code>httputil.ClientIP</code> directly.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>OBSERVATION: 7 files exceed 300 lines</h4>
-          <p>Files over the 300-line limit: <code>sql_session_store.go</code> (424), <code>service_core.go</code> (418), <code>response.go</code> (358), <code>http.go</code> (355), <code>oauth2.go</code> (332), <code>app.go</code> (331). These are candidates for splitting but not urgent — they're cohesive modules.</p>
+          <p>
+            Files over the 300-line limit: <code>sql_session_store.go</code> (424),
+            <code>service_core.go</code> (418), <code>response.go</code> (358),
+            <code>http.go</code> (355), <code>oauth2.go</code> (332), <code>app.go</code> (331).
+            These are candidates for splitting but not urgent — they're cohesive modules.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>OBSERVATION: <code>go.yaml.in/yaml/v3</code> transitive dep</h4>
-          <p>The how-to-golang skill bans <code>gopkg.in/yaml.v3</code> and recommends <code>go-faster/yaml</code>. We have <code>go.yaml.in/yaml/v3</code> (official Canonical successor, same codebase) as a transitive dep from Gomega. Not actionable — it's inside Gomega's dependency tree, not ours.</p>
+          <p>
+            The how-to-golang skill bans <code>gopkg.in/yaml.v3</code> and recommends
+            <code>go-faster/yaml</code>. We have <code>go.yaml.in/yaml/v3</code> (official Canonical
+            successor, same codebase) as a transitive dep from Gomega. Not actionable — it's inside
+            Gomega's dependency tree, not ours.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>GOOD: go-branded-id is the right choice</h4>
-          <p>The how-to-golang skill recommends <code>go-composable-business-types/id</code> for branded IDs. We use <code>go-branded-id</code> — which is the same author's focused ID-only library. The full library is too heavy for a library that only needs branded IDs. <code>go-composable-business-types</code> depends on <code>go-branded-id</code> anyway. Correct choice.</p>
+          <p>
+            The how-to-golang skill recommends <code>go-composable-business-types/id</code> for
+            branded IDs. We use <code>go-branded-id</code> — which is the same author's focused
+            ID-only library. The full library is too heavy for a library that only needs branded
+            IDs. <code>go-composable-business-types</code> depends on
+            <code>go-branded-id</code> anyway. Correct choice.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>GOOD: No ghost systems found</h4>
-          <p>Checked all exported types for zero-caller patterns. WS dispatch/broadcaster code is infrastructure for consumers (same pattern as SSE), not a ghost system. All SSE/broadcaster code is consumed by admin-demo and examples. Idempotency store is wired into admin-demo. No ghost systems.</p>
+          <p>
+            Checked all exported types for zero-caller patterns. WS dispatch/broadcaster code is
+            infrastructure for consumers (same pattern as SSE), not a ghost system. All
+            SSE/broadcaster code is consumed by admin-demo and examples. Idempotency store is wired
+            into admin-demo. No ghost systems.
+          </p>
         </div>
 
         <h2 id="fixed"><span class="num">02</span>Fixed This Session</h2>
@@ -944,27 +983,40 @@
             <div class="check">!</div>
             <div class="text">
               <strong>7 files >300 lines</strong>
-              <span>sql_session_store.go (424), service_core.go (418), response.go (358), http.go (355), oauth2.go (332), app.go (331), datastar-demo main.go (316). Candidates for splitting in a future refactor session.</span>
+              <span
+                >sql_session_store.go (424), service_core.go (418), response.go (358), http.go
+                (355), oauth2.go (332), app.go (331), datastar-demo main.go (316). Candidates for
+                splitting in a future refactor session.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
               <strong>usermgmt ActorID still a struct (not branded)</strong>
-              <span>Root ActorID is now branded. usermgmt ActorID is a kind-discriminated struct. The bridging bug is fixed but the fundamental type mismatch is intentional — the struct carries kind info (User/Bot) that a branded string can't.</span>
+              <span
+                >Root ActorID is now branded. usermgmt ActorID is a kind-discriminated struct. The
+                bridging bug is fixed but the fundamental type mismatch is intentional — the struct
+                carries kind info (User/Bot) that a branded string can't.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
               <strong>v3.3.0 release pending</strong>
-              <span>Requires removing replace directives (or keeping — they're the established pattern). Needs CHANGELOG finalization and tag. Blocked on Q2 (closed-tab persistence) decision.</span>
+              <span
+                >Requires removing replace directives (or keeping — they're the established
+                pattern). Needs CHANGELOG finalization and tag. Blocked on Q2 (closed-tab
+                persistence) decision.</span
+              >
             </div>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-28 22:49 · 934 tests pass with -race · 0 lint issues · 0 errorfamily violations · 28 ADRs
+          Generated 2026-06-28 22:49 · 934 tests pass with -race · 0 lint issues · 0 errorfamily
+          violations · 28 ADRs
         </footer>
       </main>
     </div>

@@ -6,6 +6,7 @@
 ## Context
 
 The root module had three ID types as plain `type X string`:
+
 - `ActorID string`
 - `ImpersonatorID string`
 - `SSEEventID string`

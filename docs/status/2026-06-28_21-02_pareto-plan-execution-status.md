@@ -27,39 +27,39 @@ shipped, and CI umbrella verified end-to-end.
 
 ### Architecture & Code Quality
 
-| Item | Commit | Notes |
-|------|--------|-------|
-| **Form decoder upgrade** | `86a45d9` | Replaced allocation-heavy JSON round-trip with `go-playground/form/v4` (zero transitive deps, `json` tag mode for backward compat) |
-| **Pagination unification** | `fa49858` | Eliminated split-brain: both root `DecodePagination` and usermgmt now delegate to `query.NewPagination` from go-cqrs-lite |
-| **Stdlib modernization** | `f73eb85` | `slices.Contains`, `min()`, `slices.IndexFunc` replace 5 manual loops across root/usermgmt/adminui/examples |
-| **go.mod version alignment** | `f73eb85` | All 8 modules aligned to Go 1.26.4 + cqrs-htmx v3.2.0 declarations |
-| **ETag bump** | `f73eb85` | adminui asset ETag updated from stale `adminui-v2` to `adminui-v3.2.0` |
-| **Lint cleanup** | `f73eb85` | goconst warnings fixed (`testCatalogVersion` constant), `context.TODO()` → `context.Background()` |
+| Item                         | Commit    | Notes                                                                                                                              |
+| ---------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Form decoder upgrade**     | `86a45d9` | Replaced allocation-heavy JSON round-trip with `go-playground/form/v4` (zero transitive deps, `json` tag mode for backward compat) |
+| **Pagination unification**   | `fa49858` | Eliminated split-brain: both root `DecodePagination` and usermgmt now delegate to `query.NewPagination` from go-cqrs-lite          |
+| **Stdlib modernization**     | `f73eb85` | `slices.Contains`, `min()`, `slices.IndexFunc` replace 5 manual loops across root/usermgmt/adminui/examples                        |
+| **go.mod version alignment** | `f73eb85` | All 8 modules aligned to Go 1.26.4 + cqrs-htmx v3.2.0 declarations                                                                 |
+| **ETag bump**                | `f73eb85` | adminui asset ETag updated from stale `adminui-v2` to `adminui-v3.2.0`                                                             |
+| **Lint cleanup**             | `f73eb85` | goconst warnings fixed (`testCatalogVersion` constant), `context.TODO()` → `context.Background()`                                  |
 
 ### Security & Reliability
 
-| Item | Commit | Notes |
-|------|--------|-------|
-| **Idempotency store** | `e8f8e30` | `IdempotencyStore` interface + `MemoryIdempotencyStore` with TTL sweep. `CheckAndRecord` atomic helper. `ErrDuplicateCommand` → HTTP 409. 9 tests covering: new/seen IDs, TTL expiration, sweep cleanup, concurrent access, duplicate rejection, Close idempotency |
-| **go.yaml.in/yaml/v3 investigation** | — (documented) | Confirmed as **official Canonical Ltd successor** to `gopkg.in/yaml.v3` — same codebase, new canonical import path. NOT a typo-squat. No replace/fork needed |
-| **CI umbrella verification** | — (verified) | `nix run .#test` + `nix run .#lint` + `nix run .#errorfamily` all green across root/usermgmt/adminui/integration_test |
+| Item                                 | Commit         | Notes                                                                                                                                                                                                                                                              |
+| ------------------------------------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Idempotency store**                | `e8f8e30`      | `IdempotencyStore` interface + `MemoryIdempotencyStore` with TTL sweep. `CheckAndRecord` atomic helper. `ErrDuplicateCommand` → HTTP 409. 9 tests covering: new/seen IDs, TTL expiration, sweep cleanup, concurrent access, duplicate rejection, Close idempotency |
+| **go.yaml.in/yaml/v3 investigation** | — (documented) | Confirmed as **official Canonical Ltd successor** to `gopkg.in/yaml.v3` — same codebase, new canonical import path. NOT a typo-squat. No replace/fork needed                                                                                                       |
+| **CI umbrella verification**         | — (verified)   | `nix run .#test` + `nix run .#lint` + `nix run .#errorfamily` all green across root/usermgmt/adminui/integration_test                                                                                                                                              |
 
 ### Documentation
 
-| Item | Commit | Notes |
-|------|--------|-------|
-| **ADR-0026** | `16c44eb` | Command Idempotency Store — full ADR with wiring example, design principles, consequences |
+| Item                  | Commit    | Notes                                                                                                                                                             |
+| --------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ADR-0026**          | `16c44eb` | Command Idempotency Store — full ADR with wiring example, design principles, consequences                                                                         |
 | **AGENTS.md updates** | `16c44eb` | Added: idempotency.go to file tree, go-playground/form/v4 to deps table, form decoder note, Bot/Impersonation service-level decision, pagination unification note |
-| **TODO_LIST.md** | `7d3f5aa` | 8 new items marked done; reflects actual codebase state |
+| **TODO_LIST.md**      | `7d3f5aa` | 8 new items marked done; reflects actual codebase state                                                                                                           |
 
 ### Decisions Made
 
-| Decision | Rationale |
-|----------|-----------|
+| Decision                                                       | Rationale                                                                                                                                                                                                                                                                          |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Bot/Impersonation = service-level APIs** (not ghost systems) | These have full security guards (super_admin checks, reason-required, self-impersonation prevention, HMAC token hashing). They're intentionally service-level because routing scheme, path prefixes, and auth middleware are consumer-specific decisions. Documented in AGENTS.md. |
-| **Pagination: no silent page clamping** | Requesting a page beyond the last page now returns an empty page (standard REST). The old behavior silently clamped to the last page, which hides data from clients. The API response includes `total_pages` so clients can detect the valid range. |
-| **Branded CommandID deferred** | The string flows through a single path (header → ack → JSON) with no risk of mixing with other ID types. The marginal value of a branded type doesn't justify the breaking change to `CommandAck`. |
-| **Rate limiter unification deferred** | Root uses token-bucket + heap LRU; usermgmt uses fixed-window per-IP. Unifying requires config-shape changes that risk breaking consumers. Medium-risk refactor for consistency-only value. |
+| **Pagination: no silent page clamping**                        | Requesting a page beyond the last page now returns an empty page (standard REST). The old behavior silently clamped to the last page, which hides data from clients. The API response includes `total_pages` so clients can detect the valid range.                                |
+| **Branded CommandID deferred**                                 | The string flows through a single path (header → ack → JSON) with no risk of mixing with other ID types. The marginal value of a branded type doesn't justify the breaking change to `CommandAck`.                                                                                 |
+| **Rate limiter unification deferred**                          | Root uses token-bucket + heap LRU; usermgmt uses fixed-window per-IP. Unifying requires config-shape changes that risk breaking consumers. Medium-risk refactor for consistency-only value.                                                                                        |
 
 ---
 
@@ -89,23 +89,23 @@ shipped, and CI umbrella verified end-to-end.
 
 ## C) NOT STARTED
 
-| Item | Impact | Blocked By |
-|------|--------|------------|
-| Rate limiter unification (root ↔ usermgmt) | Medium | Config-shape design decision |
-| adminui integration test (mount + route render) | High | Needs cross-module test setup |
-| Actor/impersonator context bridge integration test | High | Needs session middleware wiring |
-| Honest UI error inline + retry button | Medium | Needs browser verification |
-| Responsive `.sync-bar` mobile layout | Low | CSS only |
-| Consumer wiring recipe doc (SSE + ACK + honest UI) | Medium | Documentation task |
-| SSE replay benchmark with large journals | Low | Performance baseline |
-| Security review: command ID injection/replay | High | Can be done independently |
-| OPFS/IndexedDB technical spike (Phase 2) | Medium | Blocked on Q2 decision |
-| go-localsync CRDT evaluation | Low | Future research |
-| ClientIP cleanup | Low | FEATURES.md marks deprecated |
-| Otter cache evaluation for ephemeral stores | Low | Long-tail optimization |
-| PWA manifest for admin-demo | Low | Post-Phase 2 |
-| Tailwind CSS regeneration | Low | Blocked on npm install |
-| v3.3.0 release | High | Blocked on Phase 2 decisions |
+| Item                                               | Impact | Blocked By                      |
+| -------------------------------------------------- | ------ | ------------------------------- |
+| Rate limiter unification (root ↔ usermgmt)         | Medium | Config-shape design decision    |
+| adminui integration test (mount + route render)    | High   | Needs cross-module test setup   |
+| Actor/impersonator context bridge integration test | High   | Needs session middleware wiring |
+| Honest UI error inline + retry button              | Medium | Needs browser verification      |
+| Responsive `.sync-bar` mobile layout               | Low    | CSS only                        |
+| Consumer wiring recipe doc (SSE + ACK + honest UI) | Medium | Documentation task              |
+| SSE replay benchmark with large journals           | Low    | Performance baseline            |
+| Security review: command ID injection/replay       | High   | Can be done independently       |
+| OPFS/IndexedDB technical spike (Phase 2)           | Medium | Blocked on Q2 decision          |
+| go-localsync CRDT evaluation                       | Low    | Future research                 |
+| ClientIP cleanup                                   | Low    | FEATURES.md marks deprecated    |
+| Otter cache evaluation for ephemeral stores        | Low    | Long-tail optimization          |
+| PWA manifest for admin-demo                        | Low    | Post-Phase 2                    |
+| Tailwind CSS regeneration                          | Low    | Blocked on npm install          |
+| v3.3.0 release                                     | High   | Blocked on Phase 2 decisions    |
 
 ---
 
@@ -166,7 +166,7 @@ green" without running the umbrella `nix run .#test` end-to-end. That has been
    events. Consumers deploying to production need to know the limits.
 
 9. **Tailwind regeneration** — `admin-tw.css` may be stale. Needs `npm install`
-   + `npx tailwindcss build` to regenerate. Blocked on Node.js availability.
+   - `npx tailwindcss build` to regenerate. Blocked on Node.js availability.
 
 10. **Deprecation cleanup** — `ClientIP` is marked `PARTIALLY_FUNCTIONAL` in
     FEATURES.md but still exported. Either fix or remove.
@@ -177,33 +177,33 @@ green" without running the umbrella `nix run .#test` end-to-end. That has been
 
 Sorted by impact × effort × customer-value.
 
-| # | Task | Impact | Effort | Module | Blocked? |
-|---|------|--------|--------|--------|----------|
-| 1 | **Answer Q1: where does `decide()` run?** (Queue-Only / WASM / TS Port) | Critical | 5m | — | **User** |
-| 2 | **Answer Q2: closed-tab persistence?** (SharedWorker / Service Worker) | Critical | 5m | — | **User** |
-| 3 | Add adminui integration test (mount + route render) | High | 12m | integration_test | — |
-| 4 | Security review: command ID injection/replay surface | High | 12m | root | — |
-| 5 | Wire idempotency into admin-demo BeforeDispatchHook | High | 10m | admin-demo | — |
-| 6 | Add actor/impersonator context bridge integration test | High | 12m | integration_test | — |
-| 7 | Document consumer wiring recipe (SSE + ACK + honest UI) | Medium | 12m | docs | — |
-| 8 | Design rate-limit config unification (root ↔ usermgmt) | Medium | 10m | usermgmt | — |
-| 9 | Replace usermgmt perIPRateLimiter with root RateLimiterMiddleware | Medium | 12m | usermgmt | #8 |
-| 10 | Honest UI: inline error message in rejected state | Medium | 12m | adminui | — |
-| 11 | Honest UI: add retry button to rejected items | Medium | 12m | adminui | — |
-| 12 | Add adminui sync indicator rendering test | Medium | 12m | adminui | — |
-| 13 | Fix responsive `.sync-bar` mobile layout | Low | 8m | adminui | — |
-| 14 | Add JS unit tests for sync-state handler | Medium | 12m | adminui | — |
-| 15 | Design shared ActorID type (root without importing usermgmt) | High | 12m | root | — |
-| 16 | Implement root ActorID with safe constructors | High | 12m | root | #15 |
-| 17 | Add conversion helpers root ↔ usermgmt ActorID | Medium | 8m | integration_test | #16 |
-| 18 | SSE replay benchmark (10K/100K events) | Low | 12m | root | — |
-| 19 | Browser-verify admin-demo honest UI lifecycle | High | 12m | admin-demo | — |
-| 20 | Evaluate maypok86/otter/v2 for ephemeral stores | Low | 12m | usermgmt | — |
-| 21 | Remove or un-deprecate ClientIP | Low | 8m | root | — |
-| 22 | Add PWA manifest to admin-demo | Low | 10m | admin-demo | — |
-| 23 | Regenerate admin-tw.css from tailwind source | Low | 12m | adminui | npm |
-| 24 | OPFS/IndexedDB technical spike for Phase 2 | Medium | 12m | docs | **Q2** |
-| 25 | Cut v3.3.0 release | High | 12m | repo | **Q1+Q2** |
+| #   | Task                                                                    | Impact   | Effort | Module           | Blocked?  |
+| --- | ----------------------------------------------------------------------- | -------- | ------ | ---------------- | --------- |
+| 1   | **Answer Q1: where does `decide()` run?** (Queue-Only / WASM / TS Port) | Critical | 5m     | —                | **User**  |
+| 2   | **Answer Q2: closed-tab persistence?** (SharedWorker / Service Worker)  | Critical | 5m     | —                | **User**  |
+| 3   | Add adminui integration test (mount + route render)                     | High     | 12m    | integration_test | —         |
+| 4   | Security review: command ID injection/replay surface                    | High     | 12m    | root             | —         |
+| 5   | Wire idempotency into admin-demo BeforeDispatchHook                     | High     | 10m    | admin-demo       | —         |
+| 6   | Add actor/impersonator context bridge integration test                  | High     | 12m    | integration_test | —         |
+| 7   | Document consumer wiring recipe (SSE + ACK + honest UI)                 | Medium   | 12m    | docs             | —         |
+| 8   | Design rate-limit config unification (root ↔ usermgmt)                  | Medium   | 10m    | usermgmt         | —         |
+| 9   | Replace usermgmt perIPRateLimiter with root RateLimiterMiddleware       | Medium   | 12m    | usermgmt         | #8        |
+| 10  | Honest UI: inline error message in rejected state                       | Medium   | 12m    | adminui          | —         |
+| 11  | Honest UI: add retry button to rejected items                           | Medium   | 12m    | adminui          | —         |
+| 12  | Add adminui sync indicator rendering test                               | Medium   | 12m    | adminui          | —         |
+| 13  | Fix responsive `.sync-bar` mobile layout                                | Low      | 8m     | adminui          | —         |
+| 14  | Add JS unit tests for sync-state handler                                | Medium   | 12m    | adminui          | —         |
+| 15  | Design shared ActorID type (root without importing usermgmt)            | High     | 12m    | root             | —         |
+| 16  | Implement root ActorID with safe constructors                           | High     | 12m    | root             | #15       |
+| 17  | Add conversion helpers root ↔ usermgmt ActorID                          | Medium   | 8m     | integration_test | #16       |
+| 18  | SSE replay benchmark (10K/100K events)                                  | Low      | 12m    | root             | —         |
+| 19  | Browser-verify admin-demo honest UI lifecycle                           | High     | 12m    | admin-demo       | —         |
+| 20  | Evaluate maypok86/otter/v2 for ephemeral stores                         | Low      | 12m    | usermgmt         | —         |
+| 21  | Remove or un-deprecate ClientIP                                         | Low      | 8m     | root             | —         |
+| 22  | Add PWA manifest to admin-demo                                          | Low      | 10m    | admin-demo       | —         |
+| 23  | Regenerate admin-tw.css from tailwind source                            | Low      | 12m    | adminui          | npm       |
+| 24  | OPFS/IndexedDB technical spike for Phase 2                              | Medium   | 12m    | docs             | **Q2**    |
+| 25  | Cut v3.3.0 release                                                      | High     | 12m    | repo             | **Q1+Q2** |
 
 ---
 
@@ -212,7 +212,7 @@ Sorted by impact × effort × customer-value.
 **Q1: Where should `decide()` run on the client?**
 
 The offline-first command sync architecture (ADR-0023) requires the client to
-know whether a command is valid *before* sending it to the server — otherwise
+know whether a command is valid _before_ sending it to the server — otherwise
 the "honest UI" can show pending, but can't show confirmed until the server
 responds, which defeats offline-first.
 
@@ -234,6 +234,7 @@ Three options, each with massive architecture implications:
    kept in sync with TS types manually.
 
 **I cannot decide this for you** because it depends on:
+
 - Your offline UX requirements (is "pending → rejected on reconnect" acceptable?)
 - Your tolerance for WASM binary size in the browser
 - Whether you want to maintain a TS port of domain logic
@@ -266,23 +267,23 @@ All modules pass errorfamily check.
 
 ## Module Health
 
-| Module | Tests | Lint | ErrorFamily | Coverage |
-|--------|-------|------|-------------|----------|
-| Root | 133 | 0 issues | ✅ | 95.4% |
-| usermgmt | 747 | 0 issues | ✅ | 80.1% |
-| adminui | 35 | 0 issues | ✅ | — |
-| integration_test | 17 | — | — | — |
-| **Total** | **932** | **0** | **✅** | — |
+| Module           | Tests   | Lint     | ErrorFamily | Coverage |
+| ---------------- | ------- | -------- | ----------- | -------- |
+| Root             | 133     | 0 issues | ✅          | 95.4%    |
+| usermgmt         | 747     | 0 issues | ✅          | 80.1%    |
+| adminui          | 35      | 0 issues | ✅          | —        |
+| integration_test | 17      | —        | —           | —        |
+| **Total**        | **932** | **0**    | **✅**      | —        |
 
 ## Numbers
 
-| Metric | Value |
-|--------|-------|
-| Go files | 341 |
-| Lines of Go | 51,331 |
-| Go modules | 8 |
-| ADRs | 26 |
-| Direct deps (root) | 11 |
-| TODOs open | 2 |
-| TODOs done | 90 |
-| Commits this session | 7 |
+| Metric               | Value  |
+| -------------------- | ------ |
+| Go files             | 341    |
+| Lines of Go          | 51,331 |
+| Go modules           | 8      |
+| ADRs                 | 26     |
+| Direct deps (root)   | 11     |
+| TODOs open           | 2      |
+| TODOs done           | 90     |
+| Commits this session | 7      |
