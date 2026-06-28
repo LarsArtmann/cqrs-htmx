@@ -92,6 +92,43 @@
 //	payload := cqrshtmx.NewStructuredError(err, r)
 //	broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "error", Data: payload.JSON()})
 //
+// # SSE Reconnection with Durable Replay
+//
+// JournalSSEStore provides the production SSEEventStore implementation,
+// backed by the go-cqrs-lite event journal. On SSE reconnection, missed
+// events are replayed via cursor-based ReadFrom:
+//
+//	store := cqrshtmx.NewJournalSSEStore(eventJournal, func(evt event.Event) cqrshtmx.SSEEvent {
+//	    return cqrshtmx.SSEEvent{
+//	        Event: string(evt.Type()),
+//	        Data:  renderHTML(evt),
+//	        ID:    cqrshtmx.NewSSEEventID(evt.ID().String()),
+//	    }
+//	})
+//
+//	lastID := stream.LastEventID()
+//	cqrshtmx.ReplayEvents(stream, store, lastID)
+//
+// # ACK Protocol (Honest UI)
+//
+// CommandAck provides structured command confirmation for honest UI sync-state
+// transitions. Clients send X-Command-Id on requests; the server broadcasts
+// an ACK back via SSE or WS when the command completes:
+//
+//	broadcaster := cqrshtmx.NewBroadcaster()
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    AfterDispatch: broadcaster.BroadcastOnAck(),
+//	})
+//	// Client receives: {"commandId":"abc","status":"confirmed"}
+//	// or:            {"commandId":"abc","status":"rejected","error":"..."}
+//
+// WebSocket variant for real-time push:
+//
+//	wsBroadcaster := cqrshtmx.NewWSBroadcaster()
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    AfterDispatch: wsBroadcaster.BroadcastOnAckWS(),
+//	})
+//
 // # WebSocket
 //
 // Bidirectional WS support with encoder, broadcaster, dispatch bridge, and hooks:
