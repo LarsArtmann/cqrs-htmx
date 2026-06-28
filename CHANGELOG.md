@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Pagination unified**: Both root `DecodePagination` and usermgmt `credential_http.go` now delegate to `query.NewPagination` from go-cqrs-lite. **BREAKING**: Requesting a page beyond the last page now returns an empty page (standard REST) instead of silently clamping to the last page. The response includes `total_pages` so clients can detect the valid range.
 - **go.mod alignment**: All 8 modules aligned to Go 1.26.4.
 - **Stdlib modernization**: `slices.Contains`, `min()`, `slices.IndexFunc` replace 5 manual loops across root/usermgmt/adminui/examples.
+- **ID types branded** (**BREAKING**): `ActorID`, `ImpersonatorID`, `SSEEventID` changed from `type X string` to `brandid.ID[brand, string]` — phantom-typed with `.Get()`, `.IsZero()`, `.Equal()`. `ImpersonatorID = ActorID` (type alias — an impersonator IS an actor). Use `NewActorID("...")` / `NewSSEEventID("...")` constructors instead of casts. `.String()` now returns brand-prefixed form for debug; use `.Get()` for raw value. See ADR-0028.
 
 ### Fixed
 
