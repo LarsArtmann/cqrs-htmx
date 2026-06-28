@@ -4,18 +4,18 @@
 > For short-term work, see [TODO_LIST.md](TODO_LIST.md).
 > For what exists today, see [FEATURES.md](FEATURES.md).
 
-**Updated:** 2026-06-26 | **Version:** v3.1.0
+**Updated:** 2026-06-28 | **Version:** v3.2.0
 
 ## Current State
 
-- **Version:** v3.1.0 (all 3 publishable modules at `/v3`)
-- **Coverage:** 95.4% root, 79.5% usermgmt, 95.3% catalog
+- **Version:** v3.2.0 (all 3 publishable modules at `/v3`)
+- **Coverage:** 95.4% root, 79.5% usermgmt
 - **Lint:** 0 issues (all modules)
 - **ErrorFamily:** 0 violations (no stdlib error constructors)
 - **Tests:** 697 usermgmt + ~430 root + ~15 catalog + ~10 integration, race-safe
 - **Dependencies:** go-cqrs-lite v3.1.0, go-error-family v0.5.1, go-branded-id v0.3.1, justinas/nosurf, go-webauthn v0.17.4, pquerna/otp, coreos/go-oidc, golang.org/x/oauth2
 - **Architecture:** Fully event-sourced usermgmt (12 events, 11 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation)
-- **Modules:** 7 Go modules in go.work (root, usermgmt, catalog, integration_test, 3 examples)
+- **Modules:** 6 Go modules in go.work (root, usermgmt, adminui, integration_test, 3 examples)
 
 ---
 
@@ -36,20 +36,21 @@ Major milestones delivered. Maintained here for historical context.
 | v2.6.0  | Identity model redesign (ADR-0015): Tenant, Bot, Membership, Impersonation, ActorID. go-cqrs-lite v2.6.0. SQL event store delegation to upstream. Roles→memberships migration.                                            |
 | v3.0.0  | go-cqrs-lite v3.0.0 migration (ADR-0016): manual projection replay, watermill EventBus, storage/memory split, Decider.Fold→Apply. Module path bump /v2→/v3. God object split (es_decide.go → 5 files). Dead code removal. |
 | v3.1.0  | go-cqrs-lite v3.1.0: SQL-backed persistent read models (4 aggregates), one-call SQLite/Postgres stack presets, `OptimizeSQLiteDB`, graceful shutdown (`Service.Close`/`GracefulClose`), CI coverage gate, 697 tests.      |
+| v3.2.0  | catalog/ module merged upstream into go-cqrs-lite/catalog/v3 (v3.2.0). ADR number collision fix, migration checklist (AGENTS.md #22-26), doc-honesty sweep, 51 stale status reports archived.      |
 
 ---
 
-## v3.1.0 — Stabilization & Documentation
+## v3.2.0 — Stabilization & Documentation (Current)
 
 _Focus: Close the gap between what shipped and what's documented. Improve test coverage for identity model._
 
 | Area | Item                                                             | Priority | Status |
 | ---- | ---------------------------------------------------------------- | -------- | ------ |
-| Docs | Update FEATURES.md (done this session)                           | Critical | Done   |
-| Docs | Update ROADMAP.md (done this session)                            | Critical | Done   |
+| Docs | Update FEATURES.md                                               | Critical | Done   |
+| Docs | Update ROADMAP.md                                                | Critical | Done   |
+| Docs | Add VERSIONING.md documenting semver policy                      | Medium   | Done   |
 | Docs | Consumer migration guide (v2→v3: import paths, bus, projections) | High     | Open   |
 | Docs | Add godoc examples for App, Handler, Service entry points        | Medium   | Open   |
-| Docs | Add VERSIONING.md documenting semver policy                      | Medium   | Open   |
 | Test | Service-level impersonation tests through full dispatch          | High     | Open   |
 | Test | Service-level membership tests through full dispatch             | High     | Open   |
 | Test | Projection replay integration test (journal vs live dedup)       | High     | Open   |
@@ -61,7 +62,7 @@ _Focus: Close the gap between what shipped and what's documented. Improve test c
 
 ---
 
-## v3.2.0 — Observability & Metrics
+## v3.3.0 — Observability & Metrics
 
 _Focus: Production-grade observability for CQRS dispatch pipelines._
 
@@ -69,11 +70,11 @@ _Focus: Production-grade observability for CQRS dispatch pipelines._
 | ------------- | ------------------------------------------------------------- | -------- | ------- |
 | Observability | Wire OpenTelemetry via go-cqrs-lite v3 otel module            | High     | Planned |
 | Observability | Prometheus metrics middleware (dispatch latency, error rates) | Medium   | Planned |
-| Observability | Coverage gate in CI (fail on regression below threshold)      | Medium   | Planned |
+| CI            | Coverage gate in CI (fail on regression below threshold)      | Medium   | Done    |
 
 ---
 
-## v3.3.0 — Persistence & Scale
+## v3.4.0 — Persistence & Scale
 
 _Focus: Production storage backends beyond in-memory and SQL._
 
