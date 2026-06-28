@@ -717,6 +717,300 @@
         font-family: var(--font-mono);
       }
 
+      /* --- Flow diagram (replaces broken ASCII dep-tree) --- */
+      .flow {
+        margin: 1.5rem 0;
+        padding: 0;
+      }
+      .flow-box {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 0.7rem 1.2rem;
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        position: relative;
+      }
+      .flow-box.box-accent {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+        font-weight: 700;
+      }
+      .flow-box.box-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .flow-box.box-solution {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .flow-box.box-warning {
+        background: var(--warning);
+        color: var(--text);
+        border-color: var(--warning);
+      }
+      .flow-box.box-sunken {
+        background: var(--surface-sunken);
+        color: var(--text-muted);
+      }
+      .flow-box .tag-inline {
+        display: inline-block;
+        font-size: 0.66rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.1rem 0.4rem;
+        margin-left: 0.5rem;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 0;
+      }
+      .flow-arrow {
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 1.1rem;
+        color: var(--text-faint);
+        padding: 0.2rem 0;
+        line-height: 1;
+      }
+      .flow-arrow.down::before {
+        content: "▼";
+      }
+      .flow-arrow.up::before {
+        content: "▲";
+      }
+      .flow-arrow.bidir::before {
+        content: "▲▼";
+      }
+      .flow-note {
+        font-family: var(--font-body);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        text-align: center;
+        padding: 0.1rem 0;
+        font-style: italic;
+      }
+
+      /* --- Architecture stack diagram --- */
+      .stack-diagram {
+        margin: 1.5rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .stack-layer {
+        border: 2px solid var(--text);
+        padding: 0.8rem 1.2rem;
+        background: var(--surface-raised);
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+      .stack-layer + .stack-layer {
+        border-top: none;
+      }
+      .stack-layer.layer-leader {
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        border-left: 8px solid var(--solution);
+      }
+      .stack-layer.layer-client {
+        background: color-mix(in srgb, var(--accent) 6%, var(--surface-raised));
+        border-left: 8px solid var(--accent);
+      }
+      .stack-layer.layer-backend {
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        border-left: 8px solid var(--warning);
+      }
+      .stack-layer-title {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-faint);
+      }
+      .stack-layer-body {
+        font-size: 0.9rem;
+      }
+      .stack-layer-body code {
+        font-size: 0.84rem;
+      }
+
+      /* --- UI Mockup components --- */
+      .mockup {
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+      }
+      .mockup-label {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-bottom: 0.6rem;
+      }
+      .mockup-todo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border-strong);
+        margin-bottom: 0.4rem;
+        font-size: 0.88rem;
+      }
+      .mockup-todo.pending {
+        border: 2px dashed var(--text-faint);
+        opacity: 0.65;
+        background: color-mix(in srgb, var(--text) 3%, var(--surface-raised));
+      }
+      .mockup-todo.confirmed {
+        border: 1px solid var(--solution);
+      }
+      .mockup-todo.rejected {
+        border: 2px solid var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .mockup-todo .todo-check {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        flex-shrink: 0;
+      }
+      .mockup-todo.pending .todo-check {
+        border-style: dashed;
+      }
+      .mockup-todo.confirmed .todo-check {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .mockup-todo .sync-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-left: auto;
+      }
+      .mockup-todo.pending .sync-dot {
+        background: var(--warning);
+      }
+      .mockup-todo.confirmed .sync-dot {
+        background: var(--solution);
+      }
+      .mockup-todo.rejected .sync-dot {
+        background: var(--problem);
+      }
+      .mockup-todo .retry-btn {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        background: var(--problem);
+        color: var(--surface);
+        border: none;
+        margin-left: auto;
+      }
+      .mockup-syncbar {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.75rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+      }
+      .mockup-syncbar .sync-icon {
+        font-size: 0.9rem;
+      }
+      .mockup-syncbar.ok {
+        background: var(--solution);
+      }
+      .mockup-syncbar.pending {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .mockup-syncbar.error {
+        background: var(--problem);
+      }
+
+      /* --- Glossary --- */
+      .glossary {
+        margin: 1rem 0 1.5rem;
+      }
+      .glossary dt {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--accent);
+        margin-top: 0.8rem;
+      }
+      .glossary dd {
+        margin: 0.15rem 0 0 1rem;
+        font-size: 0.92rem;
+        color: var(--text-muted);
+      }
+
+      /* --- Priority indicators --- */
+      .priority {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+      }
+      .priority-keystone {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .priority-high {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .priority-medium {
+        background: var(--surface-sunken);
+        color: var(--text-muted);
+      }
+
+      /* --- Decisions checklist --- */
+      .decision {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .decision .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.2rem;
+        line-height: 1.3;
+      }
+      .decision .text strong {
+        display: block;
+        margin-bottom: 0.1rem;
+      }
+      .decision .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
       /* --- Responsive --- */
       @media (min-width: 1024px) {
         .sidebar {
@@ -772,6 +1066,7 @@
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
+          <a href="#summary">Executive Summary</a>
           <a href="#context">Context</a>
           <a href="#livestore">LiveStore Deep Dive</a>
           <a href="#sw-vs-shared">Service Worker vs SharedWorker</a>
@@ -780,7 +1075,9 @@
           <a href="#honest-ui">Honest Optimistic UI</a>
           <a href="#command-problem">The Command Problem</a>
           <a href="#command-sync">Command-Sync Architecture</a>
+          <a href="#decisions">Decisions Made</a>
           <a href="#open-questions">Open Questions</a>
+          <a href="#glossary">Glossary</a>
           <a href="#references">References</a>
         </nav>
       </aside>
@@ -809,6 +1106,105 @@
             <span class="tag teal">Status: research / brainstorming</span>
           </div>
         </header>
+
+        <!-- Executive Summary -->
+        <section id="summary">
+          <h2><span class="num">&#9733;</span>Executive Summary</h2>
+          <p>
+            This research session explored how cqrs-htmx and go-localsync can leverage
+            browser-native event primitives, Service Workers, OPFS-backed SQLite, and
+            LiveStore-inspired architecture to build a truly offline-first system. The central
+            finding:
+            <strong>sync commands, not events</strong> &mdash; because commands are re-decidable and
+            events are not. cqrs-htmx already has every server-side building block needed; the gap
+            is the client half.
+          </p>
+
+          <div class="scorecard">
+            <div class="score-card score-good">
+              <div class="score">6</div>
+              <div class="label">Building blocks cqrs-htmx already has</div>
+            </div>
+            <div class="score-card score-bad">
+              <div class="score">4</div>
+              <div class="label">Broken diagrams fixed</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">3</div>
+              <div class="label">Decisions made</div>
+            </div>
+            <div class="score-card">
+              <div class="score">10</div>
+              <div class="label">Open questions</div>
+            </div>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            LiveStore is the best reference architecture for browser-side SQLite + offline sync, but
+            it has a fatal flaw: <strong>no commands</strong> &mdash; clients emit events directly,
+            bypassing all domain validation. LiveStore itself acknowledges this (Issue #717, RFC PR
+            #945, milestone 0.5.0). cqrs-htmx already has <code>command.Command</code>,
+            <code>decider.Repository</code>, <code>foldUser()</code>,
+            <code>DispatchWSCommand</code>, and <code>Broadcaster</code>. The missing piece is the
+            client: a Service Worker with a durable command queue, local SQLite (OPFS), and honest
+            UI that never lies about pending state.
+          </div>
+
+          <h3>What you'll find in this document</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Section</th>
+                <th>What it covers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><a href="#livestore">LiveStore Deep Dive</a></td>
+                <td>
+                  Three-tier thread model, OPFS+sqlite-wasm, dual-database pattern, sync layer
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#sw-vs-shared">SW vs SharedWorker</a></td>
+                <td>
+                  Why LiveStore rejected Service Workers, and the one case where you might still
+                  want one
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#fanout-watermill">fanOut vs Watermill</a></td>
+                <td>Why two event-bus abstractions exist with opposite delivery semantics</td>
+              </tr>
+              <tr>
+                <td><a href="#honest-ui">Honest Optimistic UI</a></td>
+                <td>
+                  Why standard optimistic UI lies, and the patterns that don't &mdash; with visual
+                  mockups
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#command-problem">The Command Problem</a></td>
+                <td>
+                  LiveStore's biggest flaw: no domain validation, no re-validation during rebase
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#command-sync">Command-Sync Architecture</a></td>
+                <td>The proposed solution: sync commands, server re-decides, client rebases</td>
+              </tr>
+              <tr>
+                <td><a href="#decisions">Decisions Made</a></td>
+                <td>What's already settled (OPFS, command-sync, honest UI)</td>
+              </tr>
+              <tr>
+                <td><a href="#open-questions">Open Questions</a></td>
+                <td>10 unresolved questions, ordered by leverage &mdash; with priority labels</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
 
         <!-- Context -->
         <section id="context">
@@ -880,19 +1276,49 @@
             <strong>SharedWorker + DedicatedWorker</strong> topology with leader election.
           </p>
 
-          <div class="dep-tree">
-            <span class="root">TAB A (Main Thread)</span> └─ ClientSession └─ In-memory SQLite
-            (synchronous reactive queries) └─ MessagePort └─ <span class="ok">SharedWorker</span> (1
-            per store, shared across tabs) │ proxy / message router │ holds termination WebLock └─
-            MessagePort (elected via navigator.locks) └─
-            <span class="ok">Dedicated Worker (LEADER)</span>
-            ├─ LeaderThread │ ├─ State DB (OPFS, materialized view) │ ├─ Eventlog DB (OPFS, source
-            of truth) │ ├─ LeaderSyncProcessor │ └─ SyncBackend connection └─ single writer to OPFS
-            + single sync connection
+          <div class="stack-diagram">
+            <div class="stack-layer layer-client">
+              <div class="stack-layer-title">Tab A &mdash; Main Thread (Leader)</div>
+              <div class="stack-layer-body">
+                <strong>ClientSession</strong> + in-memory SQLite (synchronous reactive queries).
+                Holds the <code>WebLock</code> &rarr; spawns the Dedicated Worker below.
+              </div>
+            </div>
+            <div class="stack-layer layer-leader">
+              <div class="stack-layer-title">Dedicated Worker (LEADER)</div>
+              <div class="stack-layer-body">
+                <strong>LeaderThread</strong>: State DB (OPFS, materialized view), Eventlog DB
+                (OPFS, source of truth), LeaderSyncProcessor, SyncBackend connection.
+                <strong>Single writer</strong> to OPFS + single sync connection.
+              </div>
+            </div>
+            <div class="flow-note">
+              &uarr; MessagePort &mdash; elected via <code>navigator.locks</code>
+            </div>
+            <div class="stack-layer">
+              <div class="stack-layer-title">
+                SharedWorker (1 per store, shared across all tabs)
+              </div>
+              <div class="stack-layer-body">
+                Proxy / message router. Holds termination WebLock. Validates store invariants across
+                leader transitions.
+              </div>
+            </div>
+            <div class="flow-note">&uarr; MessagePort</div>
+            <div class="stack-layer layer-client">
+              <div class="stack-layer-title">Tab B &mdash; Main Thread (Follower)</div>
+              <div class="stack-layer-body">
+                <strong>ClientSession</strong> + in-memory SQLite (receives changesets from leader).
+                Routes all requests through SharedWorker &rarr; Leader Worker.
+              </div>
+            </div>
+          </div>
 
-            <span class="root">TAB B (Follower)</span>
-            └─ ClientSession └─ In-memory SQLite (receives changesets from leader) └─ routes through
-            SharedWorker &rarr; Leader Worker
+          <div class="callout callout-solution">
+            <strong>Key property</strong>
+            Only the leader worker is the single writer to persistent storage and the single
+            connection to the sync backend. All other tabs are followers that receive changesets.
+            When the leader tab closes, the lock releases and another tab takes over automatically.
           </div>
 
           <h3>Dual-database pattern</h3>
@@ -1360,6 +1786,108 @@
             </tbody>
           </table>
 
+          <h3>What this looks like in practice</h3>
+          <p>
+            Three concrete UI states, showing how the same todo list communicates sync provenance
+            without lying to the user:
+          </p>
+
+          <div class="grid-3">
+            <!-- Pending state -->
+            <div class="mockup">
+              <div class="mockup-label">Pending (applied locally)</div>
+              <div class="mockup-todo pending">
+                <span class="todo-check">&nbsp;</span>
+                <span>Buy groceries</span>
+                <span class="sync-dot" title="pending"></span>
+              </div>
+              <div class="mockup-todo confirmed">
+                <span class="todo-check">&check;</span>
+                <span>Walk the dog</span>
+                <span class="sync-dot" title="confirmed"></span>
+              </div>
+              <div class="mockup-todo confirmed">
+                <span class="todo-check">&check;</span>
+                <span>Write report</span>
+                <span class="sync-dot" title="confirmed"></span>
+              </div>
+            </div>
+
+            <!-- Confirmed state -->
+            <div class="mockup">
+              <div class="mockup-label">Confirmed (server ACKed)</div>
+              <div class="mockup-todo confirmed">
+                <span class="todo-check">&check;</span>
+                <span>Buy groceries</span>
+                <span class="sync-dot" title="confirmed"></span>
+              </div>
+              <div class="mockup-todo confirmed">
+                <span class="todo-check">&check;</span>
+                <span>Walk the dog</span>
+                <span class="sync-dot" title="confirmed"></span>
+              </div>
+              <div class="mockup-todo confirmed">
+                <span class="todo-check">&check;</span>
+                <span>Write report</span>
+                <span class="sync-dot" title="confirmed"></span>
+              </div>
+            </div>
+
+            <!-- Rejected state -->
+            <div class="mockup">
+              <div class="mockup-label">Rejected (server said no)</div>
+              <div class="mockup-todo confirmed">
+                <span class="todo-check">&check;</span>
+                <span>Walk the dog</span>
+                <span class="sync-dot" title="confirmed"></span>
+              </div>
+              <div class="mockup-todo rejected">
+                <span class="todo-check">&times;</span>
+                <span>Delete todo #42 &mdash; <em>not found</em></span>
+                <span class="retry-btn">Retry</span>
+              </div>
+              <div class="mockup-todo confirmed">
+                <span class="todo-check">&check;</span>
+                <span>Write report</span>
+                <span class="sync-dot" title="confirmed"></span>
+              </div>
+            </div>
+          </div>
+
+          <p>The global sync indicator at the top of the page tracks the aggregate state:</p>
+
+          <div class="grid-3">
+            <div class="mockup">
+              <div class="mockup-label">All confirmed</div>
+              <div class="mockup-syncbar ok">
+                <span class="sync-icon">&check;</span>
+                <span>All changes saved</span>
+              </div>
+            </div>
+            <div class="mockup">
+              <div class="mockup-label">3 pending</div>
+              <div class="mockup-syncbar pending">
+                <span class="sync-icon">&orarr;</span>
+                <span>3 pending &mdash; syncing&hellip;</span>
+              </div>
+            </div>
+            <div class="mockup">
+              <div class="mockup-label">1 failed</div>
+              <div class="mockup-syncbar error">
+                <span class="sync-icon">&#x26A0;</span>
+                <span>1 failed &mdash; tap to retry</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>The cardinal rule</strong>
+            Pending items <em>appear immediately</em> (no spinner, no delay) but
+            <em>look different</em> (dashed border, muted opacity) until confirmed. The sync dot
+            gives a glanceable per-item status. The global bar gives the aggregate count.
+            <strong>Nothing ever silently disappears.</strong>
+          </div>
+
           <h3>Production UI patterns surveyed</h3>
 
           <div class="grid-2">
@@ -1447,22 +1975,40 @@
             <strong>schema check then blind append</strong>. There is no command/decision layer:
           </p>
 
-          <div class="dep-tree">
-            <span class="root">User Action</span>
-            &darr;
-            <span class="ok">Event Constructor</span> (Effect Schema validation &mdash; structural
-            only) &vert; (throws if shape doesn't match schema) &darr;
-            <span class="ok">store.commit()</span>
-            &vert;
-            <span class="unwanted">NO validation, NO decision, NO business rules</span> &darr;
-            Append to local eventlog (pending) &darr; Materialize via SQL (INSERT/UPDATE/DELETE)
-            &vert; (transactional; can throw and rollback, but can't "reject") &darr; Sync to leader
-            &rarr; backend &rarr; all clients &darr; [During rebase: replay materializer against
-            potentially-changed state] &vert;
-            <span class="unwanted"
-              >NO re-validation of business rules &larr; THIS IS THE CORE PROBLEM</span
-            >
-            &darr; Potential invariant violation
+          <div class="flow">
+            <div class="flow-box box-accent">User Action</div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-solution">
+              Event Constructor<br /><span style="font-size: 0.76rem; opacity: 0.8"
+                >Effect Schema validation &mdash; structural only (throws if shape doesn't
+                match)</span
+              >
+            </div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-solution">store.commit()</div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-problem">NO validation, NO decision, NO business rules</div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box">Append to local eventlog (pending)</div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box">
+              Materialize via SQL (INSERT/UPDATE/DELETE)<br /><span
+                style="font-size: 0.76rem; opacity: 0.7"
+                >transactional; can throw and rollback, but can't "reject"</span
+              >
+            </div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box">Sync to leader &rarr; backend &rarr; all clients</div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-warning">
+              During rebase: replay materializer against potentially-changed state
+            </div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-problem">
+              NO re-validation of business rules &mdash; THIS IS THE CORE PROBLEM
+            </div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-problem">Potential invariant violation</div>
           </div>
 
           <h3>The three fatal consequences</h3>
@@ -1531,15 +2077,30 @@
 
           <p>This single property unlocks local-first correctness:</p>
 
-          <div class="dep-tree">
-            <span class="root">Command-sync write path</span>
-
-            client queues command &darr; local <span class="ok">decide(state, command)</span> &rarr;
-            optimistic events (pending) &darr; sync <span class="ok">COMMAND</span> to server &darr;
-            server <span class="ok">re-decides</span> against authoritative state &rarr;
-            authoritative events (confirmed) OR rejection &darr; client rebases: replace optimistic
-            events with server events &rarr; honest UI: pending &rarr; confirmed / rejected /
-            superseded
+          <div class="flow">
+            <div class="flow-box box-accent">Client queues command</div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-solution">
+              Local <code>decide(state, command)</code> &rarr; optimistic events (pending)
+            </div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-solution">Sync <strong>COMMAND</strong> to server</div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-solution">
+              Server <strong>re-decides</strong> against authoritative state<br /><span
+                style="font-size: 0.76rem; opacity: 0.8"
+                >&rarr; authoritative events (confirmed) OR rejection</span
+              >
+            </div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-accent">
+              Client rebases: replace optimistic events with server events
+            </div>
+            <div class="flow-arrow down"></div>
+            <div class="flow-box box-solution">
+              Honest UI: <code>pending</code> &rarr; <code>confirmed</code> /
+              <code>rejected</code> / <code>superseded</code>
+            </div>
           </div>
 
           <p>
@@ -1604,23 +2165,63 @@
 
           <h3>The three-layer model</h3>
 
-          <div class="dep-tree">
-            <span class="root">SERVICE WORKER (the client's "leader")</span>
-
-            Command Queue (OPFS-backed, durable) &boxvr;&boxh;&boxh; seq &boxv; command &boxv;
-            status &boxv; result &boxvr;&boxh;&boxh; 1 &boxv; AddTodo &boxv; pending &boxv; (local)
-            &boxvr;&boxh;&boxh; 2 &boxv; CompleteT. &boxv; confirmed &boxv; events[.]
-            &boxur;&boxh;&boxh; 3 &boxv; DeleteTodo &boxv; rejected &boxv; error Local SQLite
-            (OPFS): eventlog.db &larr; optimistic events from local decide() state.db &larr;
-            materialized from optimistic events Decider: runs decide(local_state, command) &rarr;
-            events (pure function &mdash; WASM or ported logic) &boxv; WS: push commands, pull
-            confirmed events
-
-            <span class="root">GO BACKEND (authoritative)</span>
-
-            command.Dispatch(AddTodo) &rarr; decider.Execute: load state &rarr; fold(events)
-            decide(state, command) &rarr; events OR rejection save events to event.Store publish via
-            watermill &rarr; projections &rarr; Broadcast confirmed events via SSE/WS to all tabs
+          <div class="stack-diagram">
+            <div class="stack-layer layer-client">
+              <div class="stack-layer-title">
+                Service Worker / SharedWorker (the client's "leader")
+              </div>
+              <div class="stack-layer-body">
+                <strong>Command Queue</strong> (OPFS-backed, durable):
+                <table style="margin-top: 0.5rem; font-size: 0.82rem">
+                  <thead>
+                    <tr>
+                      <th>seq</th>
+                      <th>command</th>
+                      <th>status</th>
+                      <th>result</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+                      <td>AddTodo</td>
+                      <td class="no" style="color: var(--warning)">pending</td>
+                      <td>(local)</td>
+                    </tr>
+                    <tr>
+                      <td>2</td>
+                      <td>CompleteTodo</td>
+                      <td class="yes">confirmed</td>
+                      <td>events[&hellip;]</td>
+                    </tr>
+                    <tr>
+                      <td>3</td>
+                      <td>DeleteTodo</td>
+                      <td class="no">rejected</td>
+                      <td>error</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <strong>Local SQLite</strong> (OPFS): <code>eventlog.db</code> &larr; optimistic
+                events from local <code>decide()</code>, <code>state.db</code> &larr; materialized
+                from optimistic events.<br />
+                <strong>Decider</strong>: runs <code>decide(local_state, command)</code> &rarr;
+                events (pure function &mdash; WASM or ported logic).
+              </div>
+            </div>
+            <div class="flow-note">
+              &updownarrow; WebSocket: push commands &uarr;, pull confirmed events &darr;
+            </div>
+            <div class="stack-layer layer-backend">
+              <div class="stack-layer-title">Go Backend (authoritative)</div>
+              <div class="stack-layer-body">
+                <code>command.Dispatch(AddTodo)</code> &rarr; <code>decider.Execute</code>: load
+                state &rarr; <code>fold(events)</code> &rarr;
+                <code>decide(state, command)</code> &rarr; events OR rejection &rarr; save to
+                <code>event.Store</code> &rarr; publish via watermill &rarr; projections &rarr;
+                <strong>Broadcast confirmed events via SSE/WS to all tabs</strong>.
+              </div>
+            </div>
           </div>
 
           <h3>Why command-sync is strictly better than event-sync</h3>
@@ -1680,16 +2281,94 @@
           </p>
         </section>
 
+        <!-- Decisions Made -->
+        <section id="decisions">
+          <h2><span class="num">&#10003;</span>Decisions Made</h2>
+          <p>
+            Before the open questions, here's what the research <em>already settled</em>. These are
+            not up for debate &mdash; the evidence was conclusive.
+          </p>
+
+          <div class="decision">
+            <div class="check">&#10003;</div>
+            <div class="text">
+              <strong>OPFS over IndexedDB &mdash; no contest</strong>
+              <span>
+                OPFS + sqlite-wasm gives synchronous I/O, full SQL, joins, transactions, and
+                battle-tested SQLite. IndexedDB gives async key-value hell. LiveStore uses OPFS
+                exclusively. Decision final.
+              </span>
+            </div>
+          </div>
+
+          <div class="decision">
+            <div class="check">&#10003;</div>
+            <div class="text">
+              <strong>Sync commands, not events</strong>
+              <span>
+                Commands are re-decidable against fresh state; events are immutable facts. Syncing
+                commands lets the server re-validate intent during rebase. Syncing events makes
+                rejection a "time machine paradox" (Greg Young, 2010). LiveStore's acknowledged gap
+                (Issue #717) confirms this.
+              </span>
+            </div>
+          </div>
+
+          <div class="decision">
+            <div class="check">&#10003;</div>
+            <div class="text">
+              <strong>Honest UI &mdash; never lie about pending state</strong>
+              <span>
+                Standard optimistic UI's "silent rollback" is the cardinal sin. The UI must
+                communicate local-vs-confirmed provenance visibly (dashed/muted pending items +
+                global sync indicator + never-silent rejection). Sync provenance is already in the
+                event log &mdash; honest UI just surfaces it instead of throwing it away.
+              </span>
+            </div>
+          </div>
+
+          <div class="decision">
+            <div class="check">&#10003;</div>
+            <div class="text">
+              <strong>fanOut stays hand-rolled; watermill stays server-side</strong>
+              <span>
+                They solve opposite problems (browser-push hub vs CQRS event bus) with opposite
+                delivery semantics (drop vs block). Merging them would stall command dispatch behind
+                slow web clients. The SSEEventStore should get a production impl backed by the
+                watermill event.Store &mdash; bridging the two without merging them.
+              </span>
+            </div>
+          </div>
+
+          <div class="decision">
+            <div class="check">&#10003;</div>
+            <div class="text">
+              <strong>cqrs-htmx is the right foundation, not LiveStore</strong>
+              <span>
+                cqrs-htmx already has command.Command, decider.Repository, foldUser(), decide*(),
+                DispatchWSCommand, Broadcaster, event.Store, and SQL read models. LiveStore has none
+                of these. The work is additive (client half), not a rewrite.
+              </span>
+            </div>
+          </div>
+        </section>
+
         <!-- Open Questions -->
         <section id="open-questions">
           <h2><span class="num">08</span>Open Questions</h2>
           <p>
             These are the unresolved questions from the research session, ordered by leverage.
-            Answering the first few unlocks the design for all the rest.
+            Answering the first few unlocks the design for all the rest. Priority labels:
+            <span class="priority priority-keystone">Keystone</span> gates the entire architecture,
+            <span class="priority priority-high">High</span> must be resolved before implementation,
+            <span class="priority priority-medium">Medium</span> can be deferred.
           </p>
 
           <div class="card card-problem">
-            <h3>Q1: Where does <code>decide()</code> run on the client?</h3>
+            <h3>
+              Q1: Where does <code>decide()</code> run on the client?
+              <span class="priority priority-keystone">Keystone</span>
+            </h3>
             <p>The decider is pure logic (no I/O) &mdash; it <em>can</em> run anywhere. Options:</p>
             <ul>
               <li><strong>(a) Compile Go decider to WASM</strong> and run in the Service Worker</li>
@@ -1716,7 +2395,10 @@
           </div>
 
           <div class="card card-problem">
-            <h3>Q2: Closed-tab writes &mdash; hard requirement?</h3>
+            <h3>
+              Q2: Closed-tab writes &mdash; hard requirement?
+              <span class="priority priority-keystone">Keystone</span>
+            </h3>
             <p>
               Is "flush queued mutations when no tab is open" a hard requirement, or can you accept
               "sync runs while &ge;1 tab is alive" (the LiveStore contract)? This single answer
@@ -1725,7 +2407,10 @@
           </div>
 
           <div class="card">
-            <h3>Q3: Provenance granularity &mdash; per-row or per-aggregate?</h3>
+            <h3>
+              Q3: Provenance granularity &mdash; per-row or per-aggregate?
+              <span class="priority priority-high">High</span>
+            </h3>
             <p>
               Per-row is simplest for UI rendering. Per-aggregate is more precise (a "create todo" +
               "assign tag" share a fate &mdash; one aggregate, two rows). Do you stamp every row, or
@@ -1734,7 +2419,9 @@
           </div>
 
           <div class="card">
-            <h3>Q4: Event log divergence strategy</h3>
+            <h3>
+              Q4: Event log divergence strategy <span class="priority priority-medium">Medium</span>
+            </h3>
             <p>
               The client has optimistic events; the server has authoritative events. On
               confirmation, do you (a) replace the client's entire local eventlog with server events
@@ -1745,7 +2432,7 @@
           </div>
 
           <div class="card">
-            <h3>Q5: Cross-tab asymmetry</h3>
+            <h3>Q5: Cross-tab asymmetry <span class="priority priority-high">High</span></h3>
             <p>
               If the client pushes events up, the server's <code>SSEEventStore</code> would
               broadcast them to other tabs. Those other tabs should see incoming events as
@@ -1756,7 +2443,10 @@
           </div>
 
           <div class="card">
-            <h3>Q6: Conflict visibility &mdash; invisible-merge or honest-merge?</h3>
+            <h3>
+              Q6: Conflict visibility &mdash; invisible-merge or honest-merge?
+              <span class="priority priority-medium">Medium</span>
+            </h3>
             <p>
               CRDT-based apps (Yjs, Automerge) make conflicts <em>invisible</em> by design &mdash;
               the data structure converges. But you want honesty. Does "honesty" mean showing the
@@ -1767,7 +2457,10 @@
           </div>
 
           <div class="card">
-            <h3>Q7: Command ordering across clients</h3>
+            <h3>
+              Q7: Command ordering across clients
+              <span class="priority priority-medium">Medium</span>
+            </h3>
             <p>
               If client A and client B send concurrent commands for the same aggregate, the server
               serializes them. Client A's optimistic events might be wrong because B's command
@@ -1778,7 +2471,10 @@
           </div>
 
           <div class="card">
-            <h3>Q8: What is a "command" over the wire?</h3>
+            <h3>
+              Q8: What is a "command" over the wire?
+              <span class="priority priority-high">High</span>
+            </h3>
             <p>
               cqrs-htmx's <code>command.Command</code> carries a type string + JSON payload. The
               <code>DispatchWSCommand</code> path already exists. But the server currently
@@ -1791,7 +2487,9 @@
           </div>
 
           <div class="card">
-            <h3>Q9: How honest is too honest?</h3>
+            <h3>
+              Q9: How honest is too honest? <span class="priority priority-medium">Medium</span>
+            </h3>
             <p>
               If a user creates 50 todos offline, do you show 50 dashed items, or one "50 pending"
               indicator? There's a tension between per-item honesty and cognitive load. Where's the
@@ -1800,7 +2498,10 @@
           </div>
 
           <div class="card">
-            <h3>Q10: Rejection UX &mdash; rollback or preserve-and-flag?</h3>
+            <h3>
+              Q10: Rejection UX &mdash; rollback or preserve-and-flag?
+              <span class="priority priority-medium">Medium</span>
+            </h3>
             <p>
               The "silent rollback" is the cardinal sin. But the alternative has two flavors: (a)
               snap back to pre-edit state + toast with retry, or (b) keep the rejected edit visible
@@ -1816,6 +2517,101 @@
             SW, server decides, honest pending UI). Both are valuable. The second is dramatically
             simpler and still a massive improvement over standard optimistic UI.
           </div>
+        </section>
+
+        <!-- Glossary -->
+        <section id="glossary">
+          <h2><span class="num">&#946;</span>Glossary</h2>
+          <p>Key terms used throughout this document, defined in context.</p>
+
+          <dl class="glossary">
+            <dt>OPFS (Origin Private File System)</dt>
+            <dd>
+              A browser API providing a private file system scoped to the web origin. Supports
+              <code>FileSystemSyncAccessHandle</code> for <em>synchronous</em> file I/O in worker
+              contexts &mdash; required by SQLite-WASM. Available in Chrome, Edge, Safari 17+. Not
+              available in Service Workers (only Dedicated/Shared Workers).
+            </dd>
+
+            <dt>VFS (Virtual File System)</dt>
+            <dd>
+              SQLite's pluggable storage abstraction. LiveStore ships
+              <code>AccessHandlePoolVFS</code>
+              &mdash; a VFS that pools 20 OPFS sync access handles to provide the synchronous file
+              operations SQLite requires, without needing SharedArrayBuffer or Atomics.
+            </dd>
+
+            <dt>Decider</dt>
+            <dd>
+              A pure function <code>decide(state, command) &rarr; events</code> that validates a
+              command against current aggregate state and either emits events or rejects. The core
+              of CQRS domain logic. In cqrs-htmx: <code>decideRegisterUser()</code>,
+              <code>decideAddCredential()</code>, etc. In go-cqrs-lite:
+              <code>decider.Repository</code>.
+            </dd>
+
+            <dt>Fold</dt>
+            <dd>
+              A pure function <code>fold(state, event) &rarr; new_state</code> that reconstructs
+              aggregate state from events. In cqrs-htmx: <code>foldUser()</code>. Combined with
+              <code>decide</code>, forms the complete event-sourcing domain model.
+            </dd>
+
+            <dt>Materializer</dt>
+            <dd>
+              LiveStore's term for a function that maps an event to SQL mutations (<code
+                >event &rarr; INSERT/UPDATE/DELETE</code
+              >). Equivalent to a CQRS projection, but runs synchronously during event commit, not
+              asynchronously. In cqrs-htmx: the equivalent is <code>UserReadModel.Handle()</code> +
+              <code>syncToSQL()</code>.
+            </dd>
+
+            <dt>Rebase</dt>
+            <dd>
+              LiveStore's conflict resolution: when remote events arrive that conflict with pending
+              local events, the client rolls back its local changesets, applies the remote events,
+              then re-chains its local events on top with an incremented
+              <code>rebaseGeneration</code>. Critically, LiveStore replays only the
+              <em>materializer</em> (SQL), never the <em>decider</em> (domain logic) &mdash; which
+              is why invariants can break.
+            </dd>
+
+            <dt>CRDT (Conflict-free Replicated Data Type)</dt>
+            <dd>
+              A data structure that converges across replicas without coordination. Used by Yjs,
+              Automerge. go-localsync has <code>ConflictResolver[T]</code> +
+              <code>LWWResolver[T]</code> (Last-Writer-Wins), with <code>VectorClock</code>/<code
+                >Operation[T]</code
+              >
+              implemented but not wired. CRDTs guarantee <em>convergence</em> but not
+              <em>invariant preservation</em>.
+            </dd>
+
+            <dt>fanOut[T]</dt>
+            <dd>
+              cqrs-htmx's transport-agnostic subscriber hub (111 lines, zero deps). Shared by
+              <code>Broadcaster</code> (SSE) and <code>WSBroadcaster</code> (WebSocket).
+              Non-blocking broadcast &mdash; drops to slow consumers. Intentionally NOT watermill's
+              <code>EventBus</code>, which blocks publishers until ACK.
+            </dd>
+
+            <dt>SSEEventStore</dt>
+            <dd>
+              cqrs-htmx interface (<code>EventsAfter(lastID) []SSEEvent</code>) for durable event
+              replay on SSE reconnection.
+              <strong>No production implementation exists</strong> &mdash; only a test helper. The
+              proposed production impl would read from the same watermill-backed
+              <code>event.Store</code> the decider writes to.
+            </dd>
+
+            <dt>Provenance</dt>
+            <dd>
+              The metadata tracking <em>where data came from</em> &mdash; specifically, whether a
+              given row/state was derived from local-only (optimistic) events or server-confirmed
+              (authoritative) events. The foundation of honest UI. LiveStore tracks this as
+              <code>clientHead</code> vs <code>backendHead</code>.
+            </dd>
+          </dl>
         </section>
 
         <!-- References -->

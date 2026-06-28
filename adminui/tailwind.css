@@ -119,9 +119,19 @@ body {
   font-size: 14px;
   animation: toast-in 0.18s ease;
 }
-.toast--err { border-color: var(--err); }
-.toast--ok { border-color: var(--ok); }
+.toast--err {
+  border-color: var(--err);
+}
+.toast--ok {
+  border-color: var(--ok);
+}
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
