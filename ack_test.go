@@ -19,10 +19,14 @@ func TestCommandAck_JSON(t *testing.T) {
 		Status:    AckConfirmed,
 	}
 
-	data := ack.JSON()
+	data, err := json.Marshal(ack)
+	if err != nil {
+		t.Fatalf("json.Marshal failed: %v", err)
+	}
+
 	var parsed map[string]any
-	if err := json.Unmarshal([]byte(data), &parsed); err != nil {
-		t.Fatalf("JSON() produced invalid JSON: %v", err)
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		t.Fatalf("produced invalid JSON: %v", err)
 	}
 
 	if parsed["commandId"] != "test-123" {
@@ -45,10 +49,14 @@ func TestCommandAck_JSONRejected(t *testing.T) {
 		Error:     "email already exists",
 	}
 
-	data := ack.JSON()
+	data, err := json.Marshal(ack)
+	if err != nil {
+		t.Fatalf("json.Marshal failed: %v", err)
+	}
+
 	var parsed map[string]any
-	if err := json.Unmarshal([]byte(data), &parsed); err != nil {
-		t.Fatalf("JSON() produced invalid JSON: %v", err)
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		t.Fatalf("produced invalid JSON: %v", err)
 	}
 
 	if parsed["status"] != "rejected" {
@@ -189,5 +197,53 @@ func TestBroadcastOnAckFunc_Custom(t *testing.T) {
 
 	if evt.Data != `{"cmd":"cmd-custom-1","ok":true}` {
 		t.Errorf("unexpected data: %q", evt.Data)
+	}
+}
+
+func TestBroadcastOnAckWS_Success(t *testing.T) {
+	broadcaster := NewWSBroadcaster()
+	ch := broadcaster.Subscribe()
+	defer broadcaster.Unsubscribe(ch)
+
+	hook := broadcaster.BroadcastOnAckWS()
+
+	r := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
+	r.Header.Set(CommandIDHeader, "ws-cmd-1")
+
+	hook(context.Background(), r, nil)
+
+	msg, ok := <-ch
+	if !ok {
+		t.Fatal("channel closed without receiving message")
+	}
+
+	var ack CommandAck
+	if err := json.Unmarshal([]byte(msg), &ack); err != nil {
+		t.Fatalf("invalid ack JSON: %v", err)
+	}
+
+	if ack.CommandID != "ws-cmd-1" {
+		t.Errorf("expected commandId 'ws-cmd-1', got %q", ack.CommandID)
+	}
+
+	if ack.Status != AckConfirmed {
+		t.Errorf("expected status 'confirmed', got %q", ack.Status)
+	}
+}
+
+func TestBroadcastOnAckWS_NoCommandID(t *testing.T) {
+	broadcaster := NewWSBroadcaster()
+	ch := broadcaster.Subscribe()
+	defer broadcaster.Unsubscribe(ch)
+
+	hook := broadcaster.BroadcastOnAckWS()
+
+	r := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
+	hook(context.Background(), r, nil)
+
+	select {
+	case msg := <-ch:
+		t.Fatalf("expected no broadcast without command ID, got: %s", msg)
+	default:
 	}
 }
