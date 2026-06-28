@@ -33,7 +33,7 @@ func assetHandler(name, contentType string) http.Handler {
 }
 
 // assetETag lets ServeContent answer If-None-Match with a 304.
-const assetETag = `adminui-v2`
+const assetETag = `adminui-v3.2.0`
 
 // htmxScriptHandler serves the embedded HTMX script (v2.0.9) from the root
 // cqrs-htmx module, so the panel is fully self-contained.

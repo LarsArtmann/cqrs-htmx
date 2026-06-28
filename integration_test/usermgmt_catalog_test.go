@@ -39,7 +39,7 @@ type recipeDeleteUserRequest struct {
 // usermgmtCatalogFromRecipe builds a catalog from the real usermgmt event payload types.
 // If this stops compiling, the documented recipe is lying and must be fixed.
 func usermgmtCatalogFromRecipe() *catalog.Catalog {
-	b := simple.New("User Management", "1.0.0")
+	b := simple.New("User Management", testCatalogVersion)
 
 	// Commands — register the DTOs that describe the HTTP request shapes.
 	simple.Command[recipeRegisterUserRequest](b, "register-user",
@@ -102,7 +102,7 @@ func assertRecipeOpenAPI(t *testing.T, cat *catalog.Catalog) {
 
 	ds := docserver.NewDocsServer(func() *catalog.Catalog { return cat }, docserver.Config{
 		ServiceName: "User Management",
-		Version:     "1.0.0",
+		Version:     testCatalogVersion,
 	})
 	w := serveRecipe(t, ds.OpenAPISpec())
 	if w.Code != http.StatusOK {
@@ -120,7 +120,7 @@ func assertRecipeAsyncAPI(t *testing.T, cat *catalog.Catalog) {
 
 	ds := docserver.NewDocsServer(func() *catalog.Catalog { return cat }, docserver.Config{
 		ServiceName: "User Management",
-		Version:     "1.0.0",
+		Version:     testCatalogVersion,
 	})
 	w := serveRecipe(t, ds.AsyncAPISpec())
 	if w.Code != http.StatusOK {

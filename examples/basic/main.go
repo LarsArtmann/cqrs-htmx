@@ -91,14 +91,8 @@ func (s *itemStore) listPaginated(p query.Pagination) query.PaginatedResult[item
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	total := uint(len(s.items))
-	start := (p.Page - 1) * p.PageSize
-	if start > total {
-		start = total
-	}
-	end := start + p.PageSize
-	if end > total {
-		end = total
-	}
+	start := min((p.Page-1)*p.PageSize, total)
+	end := min(start+p.PageSize, total)
 	return query.NewPaginatedResult(s.items[start:end], total, p)
 }
 

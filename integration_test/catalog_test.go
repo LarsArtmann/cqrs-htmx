@@ -28,10 +28,13 @@ type catalogUserQuery struct {
 	ID string `json:"id" doc:"User ID to retrieve"`
 }
 
+// testCatalogVersion is the version string used across all catalog test fixtures.
+const testCatalogVersion = "1.0.0"
+
 func buildCatalogForApp(app *cqrshtmx.App) *catalog.Catalog {
 	b := simple.New(
 		app.ServiceName(),
-		"1.0.0",
+		testCatalogVersion,
 		simple.WithServiceSummary("Integration test service"),
 	)
 
@@ -94,7 +97,7 @@ func assertOpenAPI(t *testing.T, cat *catalog.Catalog) {
 
 	ds := docserver.NewDocsServer(func() *catalog.Catalog { return cat }, docserver.Config{
 		ServiceName: "Test",
-		Version:     "1.0.0",
+		Version:     testCatalogVersion,
 	})
 	handler := ds.OpenAPISpec()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -117,7 +120,7 @@ func assertAsyncAPI(t *testing.T, cat *catalog.Catalog) {
 
 	ds := docserver.NewDocsServer(func() *catalog.Catalog { return cat }, docserver.Config{
 		ServiceName: "Test",
-		Version:     "1.0.0",
+		Version:     testCatalogVersion,
 	})
 	handler := ds.AsyncAPISpec()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
