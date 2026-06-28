@@ -120,6 +120,28 @@ func TestMemoryIdempotencyStore_CloseIsIdempotent(t *testing.T) {
 	store.Close() // must not panic
 }
 
+func TestMemoryIdempotencyStore_SeenLazyDeletesExpired(t *testing.T) {
+	t.Parallel()
+	store := NewMemoryIdempotencyStore(0) // no sweeper
+	defer store.Close()
+
+	ctx := context.Background()
+	_ = store.Record(ctx, "will-expire", 1*time.Millisecond)
+	time.Sleep(5 * time.Millisecond)
+
+	// Seen returns false (expired) AND removes the entry lazily.
+	seen, _ := store.Seen(ctx, "will-expire")
+	if seen {
+		t.Fatal("expected expired entry to not be seen")
+	}
+	store.mu.RLock()
+	_, exists := store.entries["will-expire"]
+	store.mu.RUnlock()
+	if exists {
+		t.Fatal("expected expired entry to be lazily deleted by Seen")
+	}
+}
+
 func TestMemoryIdempotencyStore_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
 	store := NewMemoryIdempotencyStore(0)

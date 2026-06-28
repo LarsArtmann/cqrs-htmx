@@ -68,14 +68,20 @@ func NewMemoryIdempotencyStore(sweepInterval time.Duration) *MemoryIdempotencySt
 }
 
 // Seen returns true if the command ID is currently recorded and not expired.
+// Expired entries are lazily deleted on read, so the map cannot grow
+// unboundedly even when the sweep goroutine is disabled (sweepInterval=0).
 func (s *MemoryIdempotencyStore) Seen(_ context.Context, commandID string) (bool, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	exp, ok := s.entries[commandID]
 	if !ok {
 		return false, nil
 	}
-	return time.Now().Before(exp), nil
+	if time.Now().Before(exp) {
+		return true, nil
+	}
+	delete(s.entries, commandID)
+	return false, nil
 }
 
 // Record marks a command ID as seen with the given TTL.
