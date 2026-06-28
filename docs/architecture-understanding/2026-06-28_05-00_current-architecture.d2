@@ -1,0 +1,133 @@
+direction: down
+
+# cqrs-htmx v3.2.0 — Current Architecture (2026-06-28)
+
+root_module: {
+  label: "Root Module\ngithub.com/larsartmann/cqrs-htmx/v3\n40 files, ~18K LOC"
+  style.fill: "#1a2a3a"
+
+  cqrs_layer: {
+    label: "CQRS HTTP Integration"
+    app_builder: {label: "App Builder\n(New, Config, Command, Query)"}
+    handler: {label: "Dispatch Handlers\n(handleCommand/Query)"}
+    options: {label: "HandlerOptions\n(decode, render, validate, htmx)"}
+  }
+
+  transport_layer: {
+    label: "Transport Layer"
+    sse: {label: "SSE\n(Stream, Broadcaster, Store)"}
+    ws: {label: "WebSocket\n(Parse, Encode, Dispatch)"}
+    htmx: {label: "HTMX\n(ScriptHandler, Response)"}
+  }
+
+  security_layer: {
+    label: "Security"
+    csrf: {label: "CSRF\n(nosurf middleware)"}
+    ratelimit: {label: "Rate Limiter\n(token bucket)"}
+    authz: {label: "Authorization\n(Enforcer interface)"}
+    security_headers: {label: "Security Headers"}
+    recovery: {label: "Recovery"}
+  }
+}
+
+usermgmt_module: {
+  label: "Usermgmt Module\ngithub.com/larsartmann/cqrs-htmx/usermgmt/v3\n~80 files, ~20K LOC"
+  style.fill: "#2a1a3a"
+
+  domain_layer: {
+    label: "Event-Sourced Domain (Pure)"
+
+    user_agg: {
+      label: "User Aggregate"
+      user_events: {label: "12 Events"}
+      user_commands: {label: "11 Commands"}
+      user_state: {label: "foldUser()"}
+    }
+
+    membership_agg: {
+      label: "Membership Aggregate"
+      membership_events: {label: "3 Events"}
+      membership_commands: {label: "3 Commands"}
+    }
+
+    tenant_agg: {
+      label: "Tenant Aggregate"
+      tenant_events: {label: "4 Events"}
+      tenant_commands: {label: "4 Commands"}
+    }
+
+    bot_agg: {
+      label: "Bot Aggregate"
+      bot_events: {label: "2 Events"}
+      bot_commands: {label: "2 Commands"}
+    }
+  }
+
+  service_layer: {
+    label: "Service"
+    service_core: {label: "Service Core\n(Register, Auth, Logout)"}
+    service_auth: {label: "WebAuthn\n(Begin/Finish Reg+Login)"}
+    service_totp: {label: "TOTP MFA"}
+    service_oauth2: {label: "OAuth2/OIDC"}
+    service_impersonation: {label: "Impersonation"}
+    service_tenant: {label: "Tenant CRUD"}
+    service_bot: {label: "Bot CRUD"}
+  }
+
+  infra_layer: {
+    label: "Infrastructure"
+    readmodels: {label: "Read Models\n(User, Membership, Tenant, Bot)"}
+    casbin_proj: {label: "Casbin Projection"}
+    session_store: {label: "Session Store\n(InMemory + SQL)"}
+    event_store: {label: "SQL Event Store\n(upstream delegation)"}
+    sql_readmodels: {label: "SQL Read Models\n(persistent, v3.1.0)"}
+    stack_presets: {label: "Stack Presets\n(SQLite + Postgres)"}
+  }
+}
+
+adminui_module: {
+  label: "Admin UI Module\ngithub.com/larsartmann/cqrs-htmx/adminui/v3\ntempl + HTMX dashboard"
+  style.fill: "#1a3a2a"
+  adminui_handler: {label: "Handler\n(dashboard, users, tenants, members, audit)"}
+}
+
+integration_test: {
+  label: "Integration Test\n(cross-module bridge)"
+  style.fill: "#3a3a1a"
+}
+
+# External dependencies
+go_cqrs_lite: {label: "go-cqrs-lite v3.1.0\n(command, event, id, query,\ndecider, storage, catalog/v3.2.0)"; style.fill: "#0d1117"}
+casbin: {label: "casbin/v3"; style.fill: "#0d1117"}
+nosurf: {label: "justinas/nosurf v1.2.0"; style.fill: "#0d1117"}
+webauthn: {label: "go-webauthn v0.17.4"; style.fill: "#0d1117"}
+error_family: {label: "go-error-family v0.5.1"; style.fill: "#0d1117"}
+templ: {label: "a-h/templ v0.3.1020"; style.fill: "#0d1117"}
+
+# Module boundaries
+root_module -> integration_test: "tested by"
+usermgmt_module -> integration_test: "tested by"
+adminui_module -> integration_test: "depends on root + usermgmt"
+
+# Dependency edges
+root_module -> go_cqrs_lite: "dispatch"
+root_module -> casbin: "authorization"
+root_module -> nosurf: "CSRF"
+root_module -> error_family: "error classification"
+
+usermgmt_module -> go_cqrs_lite: "event sourcing"
+usermgmt_module -> casbin: "RBAC"
+usermgmt_module -> webauthn: "passkeys"
+usermgmt_module -> error_family: "error classification"
+
+adminui_module -> root_module: "HTMXScriptHandler"
+adminui_module -> usermgmt_module: "Service types"
+adminui_module -> templ: "HTML components"
+
+# Catalog now lives upstream
+go_cqrs_lite_catalog: {
+  label: "go-cqrs-lite/catalog/v3 v3.2.0\n(simple + docserver)\n← catalog merged here (ADR 0020)"
+  style.fill: "#0d1117"
+  style.stroke-dash: 4
+}
+go_cqrs_lite -> go_cqrs_lite_catalog: "includes"

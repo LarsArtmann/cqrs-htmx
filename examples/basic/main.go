@@ -48,6 +48,13 @@ type listItemsQuery struct{}
 
 func (q *listItemsQuery) Type() query.Type { return query.Type("ListItems") }
 
+// listItemsPaginatedQuery carries pagination info.
+type listItemsPaginatedQuery struct {
+	pagination query.Pagination
+}
+
+func (q *listItemsPaginatedQuery) Type() query.Type { return query.Type("ListItemsPaginated") }
+
 // --- In-memory store + SSE broadcaster ---
 
 var (
@@ -80,6 +87,21 @@ func (s *itemStore) list() []item {
 	return cp
 }
 
+func (s *itemStore) listPaginated(p query.Pagination) query.PaginatedResult[item] {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	total := uint(len(s.items))
+	start := (p.Page - 1) * p.PageSize
+	if start > total {
+		start = total
+	}
+	end := start + p.PageSize
+	if end > total {
+		end = total
+	}
+	return query.NewPaginatedResult(s.items[start:end], total, p)
+}
+
 func main() {
 	// --- Command dispatcher ---
 	cmdDisp := command.NewDispatcher()
@@ -96,6 +118,13 @@ func main() {
 	_ = qryDisp.Register(query.Type("ListItems"),
 		func(_ context.Context, _ query.Query) (any, error) {
 			return db.list(), nil
+		})
+	_ = qryDisp.Register(query.Type("ListItemsPaginated"),
+		func(_ context.Context, q query.Query) (any, error) {
+			if pq, ok := q.(*listItemsPaginatedQuery); ok {
+				return db.listPaginated(pq.pagination), nil
+			}
+			return db.listPaginated(query.NewPagination(1, 10)), nil
 		})
 
 	// --- Build the App ---
@@ -128,6 +157,15 @@ func main() {
 			return &listItemsQuery{}, nil
 		}),
 		cqrshtmx.RenderJSON[[]item](),
+	))
+
+	// GET /api/items/paginated — paginated query handler
+	mux.Handle("GET /api/items/paginated", app.Query(
+		"ListItemsPaginated",
+		cqrshtmx.DecodeFormQuery(func(r *http.Request) (query.Query, error) {
+			return &listItemsPaginatedQuery{pagination: cqrshtmx.DecodePagination(r)}, nil
+		}),
+		cqrshtmx.RenderPaginatedJSON[item](),
 	))
 
 	// GET /api/events — SSE live updates
