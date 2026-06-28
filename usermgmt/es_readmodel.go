@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 // UserReadModel is the projection-side store for users.
@@ -273,7 +274,7 @@ func (m *UserReadModel) FindByUserID(userID UserID) (*User, bool) {
 	return m.FindByID(aggID)
 }
 
-var _ event.Projection = (*UserReadModel)(nil)
+var _ projection.Projection = (*UserReadModel)(nil)
 
 // aggIDFromBranded converts any branded string ID to an AggregateID.
 // Shared by aggIDFromUser, aggIDFromTenant, aggIDFromBot — eliminates

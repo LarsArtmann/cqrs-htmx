@@ -11,12 +11,14 @@ import (
 
 type testCreateUserCmd struct {
 	aggID id.AggregateID
+	cmdID id.CommandID
 	email string
 	name  string
 }
 
 func (c *testCreateUserCmd) Type() command.Type          { return "CreateUser" }
 func (c *testCreateUserCmd) AggregateID() id.AggregateID { return c.aggID }
+func (c *testCreateUserCmd) ID() id.CommandID            { return c.cmdID }
 func (c *testCreateUserCmd) IdempotencyKey() string      { return c.aggID.String() }
 
 type testCreateUserRequest struct {
@@ -35,20 +37,24 @@ type bddCreateUserReq struct {
 
 type bddCreateUserCmd struct {
 	aggID id.AggregateID
+	cmdID id.CommandID
 	email string
 	name  string
 }
 
 func (c *bddCreateUserCmd) Type() command.Type          { return "CreateUser" }
 func (c *bddCreateUserCmd) AggregateID() id.AggregateID { return c.aggID }
+func (c *bddCreateUserCmd) ID() id.CommandID            { return c.cmdID }
 func (c *bddCreateUserCmd) IdempotencyKey() string      { return c.aggID.String() }
 
 type bddDeleteUserCmd struct {
 	aggID id.AggregateID
+	cmdID id.CommandID
 }
 
 func (c *bddDeleteUserCmd) Type() command.Type          { return "DeleteUser" }
 func (c *bddDeleteUserCmd) AggregateID() id.AggregateID { return c.aggID }
+func (c *bddDeleteUserCmd) ID() id.CommandID            { return c.cmdID }
 func (c *bddDeleteUserCmd) IdempotencyKey() string      { return c.aggID.String() }
 
 type bddListUsersQuery struct{}

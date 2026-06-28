@@ -8,9 +8,10 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
-// stubProjection is a minimal event.Projection for testing the projection
+// stubProjection is a minimal projection.Projection for testing the projection
 // setup machinery without pulling in real read models.
 type stubProjection struct {
 	name      string
@@ -88,7 +89,7 @@ func TestBuildLiveHandler_DedupSkipsReplayedEvents(t *testing.T) {
 		replayedEvt.ID(): {},
 	}
 
-	handler := buildLiveHandler([]event.Projection{proj}, seenIDs)
+	handler := buildLiveHandler([]projection.Projection{proj}, seenIDs)
 
 	// The replayed event should be skipped (dedup)
 	if err := handler(context.Background(), replayedEvt); err != nil {
@@ -115,7 +116,7 @@ func TestBuildLiveHandler_DispatchesToMatchingProjectionsOnly(t *testing.T) {
 	tenantProj := &stubProjection{name: "tenant", types: []event.Type{"TenantCreated"}}
 
 	handler := buildLiveHandler(
-		[]event.Projection{userProj, tenantProj},
+		[]projection.Projection{userProj, tenantProj},
 		map[id.EventID]struct{}{},
 	)
 
@@ -146,7 +147,7 @@ func TestBuildLiveHandler_ContinuesOnProjectionError(t *testing.T) {
 	}
 
 	handler := buildLiveHandler(
-		[]event.Projection{failingProj, healthyProj},
+		[]projection.Projection{failingProj, healthyProj},
 		map[id.EventID]struct{}{},
 	)
 

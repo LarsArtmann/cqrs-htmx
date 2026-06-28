@@ -182,7 +182,7 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 			w := serve(app.Command(
 				"CreateUser",
 				cqrshtmx.DecodeForm(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
 				}),
 			), r)
 			Expect(w.code()).ToNot(Equal(http.StatusNoContent))

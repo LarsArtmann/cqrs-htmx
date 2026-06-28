@@ -173,7 +173,7 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 					Tags []string
 				},
 				) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
 				}),
 			), r)
 			Expect(receivedEmail).To(Equal("dispatched"))
@@ -188,7 +188,7 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 			w := serve(app.Command(
 				"CreateUser",
 				cqrshtmx.DecodeForm(func(_ struct{ Count int }) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID()}, nil
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
 				}),
 			), r)
 			Expect(w.code()).ToNot(Equal(http.StatusNoContent))

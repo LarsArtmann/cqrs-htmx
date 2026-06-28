@@ -105,11 +105,11 @@ func TestMemoryIdempotencyStore_SweepRemovesExpiredEntries(t *testing.T) {
 	_ = store.Record(ctx, "will-expire", 1*time.Millisecond)
 	time.Sleep(50 * time.Millisecond) // sweeper runs at 10ms intervals
 
-	store.mu.RLock()
-	count := len(store.entries)
-	store.mu.RUnlock()
-	if count > 0 {
-		t.Fatalf("expected 0 entries after sweep, got %d", count)
+	// After sweep, Seen must report false — the entry was removed by the
+	// background goroutine, not just lazily on read.
+	seen, _ := store.Seen(ctx, "will-expire")
+	if seen {
+		t.Fatal("expected swept entry to not be seen")
 	}
 }
 
@@ -134,11 +134,10 @@ func TestMemoryIdempotencyStore_SeenLazyDeletesExpired(t *testing.T) {
 	if seen {
 		t.Fatal("expected expired entry to not be seen")
 	}
-	store.mu.RLock()
-	_, exists := store.entries["will-expire"]
-	store.mu.RUnlock()
-	if exists {
-		t.Fatal("expected expired entry to be lazily deleted by Seen")
+	// Seen returned false AND lazily deleted the entry: a fresh
+	// CheckAndRecord on the same key must now succeed (not ErrDuplicate).
+	if err := store.CheckAndRecord(ctx, "will-expire", time.Minute); err != nil {
+		t.Fatalf("expected CheckAndRecord to succeed after lazy delete, got %v", err)
 	}
 }
 

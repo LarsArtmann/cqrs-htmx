@@ -6,16 +6,17 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
-// MaterializeProjection wraps a [stack.Materialize] as an [event.Projection],
+// MaterializeProjection wraps a [stack.Materialize] as an [projection.Projection],
 // bridging go-cqrs-lite's declarative read-model builder with our manual
 // projection dispatch ([StartProjections]).
 //
 // In go-cqrs-lite v3.1.0, [stack.Materialize] only exposes HandlerFunc for
-// Watermill router integration — it does not implement [event.Projection]
+// Watermill router integration — it does not implement [projection.Projection]
 // directly. This adapter fills that gap by:
 //
 //   - Declaring event types explicitly (Materialize returns nil, which our
@@ -26,7 +27,7 @@ import (
 //     the dispatch (adds retry, changes tombstone routing, etc.), we
 //     automatically benefit.
 //
-// When go-cqrs-lite ships Materialize with native event.Projection conformance
+// When go-cqrs-lite ships Materialize with native projection.Projection conformance
 // (the development branch already has Name/Handle/EventTypes), this adapter
 // becomes a thin pass-through that can be removed.
 //
@@ -41,7 +42,7 @@ import (
 //	    OnTombstone:  func(ctx, evt, existing *Tenant) (*Tenant, error) { ... },
 //	}
 //	proj := NewMaterializeProjection(mat, "tenant-materialize", allTenantEventTypes)
-//	// proj satisfies event.Projection — pass to StartProjections.
+//	// proj satisfies projection.Projection — pass to StartProjections.
 type MaterializeProjection[V any, K fmt.Stringer] struct {
 	mat        *stack.Materialize[V, K]
 	handler    message.NoPublishHandlerFunc
@@ -49,14 +50,14 @@ type MaterializeProjection[V any, K fmt.Stringer] struct {
 	eventTypes []event.Type
 }
 
-// NewMaterializeProjection creates an [event.Projection] wrapper around a
+// NewMaterializeProjection creates an [projection.Projection] wrapper around a
 // [stack.Materialize]. The caller provides:
 //
 //   - mat: a configured Materialize with Store, KeyFromEvent, and On* callbacks.
 //   - name: projection name for diagnostics and runner registration.
 //   - eventTypes: the event types this projection handles (e.g., allTenantEventTypes).
 //
-// The returned value satisfies [event.Projection] and can be passed to
+// The returned value satisfies [projection.Projection] and can be passed to
 // [StartProjections]. It also exposes [MaterializeProjection.Materialize] for
 // direct query access (View, List).
 func NewMaterializeProjection[V any, K fmt.Stringer](
@@ -78,14 +79,14 @@ func (m *MaterializeProjection[V, K]) Materialize() *stack.Materialize[V, K] {
 	return m.mat
 }
 
-// Name implements [event.Projection].
+// Name implements [projection.Projection].
 func (m *MaterializeProjection[V, K]) Name() string { return m.name }
 
-// EventTypes implements [event.Projection]. Returns the caller-provided event
+// EventTypes implements [projection.Projection]. Returns the caller-provided event
 // types — NOT nil — so [slices.Contains]-based dispatch routes events here.
 func (m *MaterializeProjection[V, K]) EventTypes() []event.Type { return m.eventTypes }
 
-// Handle implements [event.Projection]. Converts the event to a Watermill
+// Handle implements [projection.Projection]. Converts the event to a Watermill
 // message, sets the context, and delegates to [Materialize.HandlerFunc] —
 // which calls upstream's handleEvent dispatch (OnCreate/OnUpdate/OnTombstone).
 //
@@ -103,7 +104,7 @@ func (m *MaterializeProjection[V, K]) Handle(ctx context.Context, evt event.Even
 }
 
 // Compile-time assertion.
-var _ event.Projection = (*MaterializeProjection[any, dummyMaterializeStringer])(nil)
+var _ projection.Projection = (*MaterializeProjection[any, dummyMaterializeStringer])(nil)
 
 type dummyMaterializeStringer string
 

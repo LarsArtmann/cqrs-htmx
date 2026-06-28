@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 )
 
@@ -162,5 +163,5 @@ func TestMaterializeProjection_SatisfiesEventProjection(t *testing.T) {
 	proj := NewMaterializeProjection(mat, "test-proj", allTenantEventTypes)
 
 	// Compile-time check is via var _, but let's verify at runtime too
-	var _ event.Projection = proj
+	var _ projection.Projection = proj
 }

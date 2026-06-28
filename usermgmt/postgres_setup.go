@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	stackpostgres "github.com/larsartmann/go-cqrs-lite/stack/postgres/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 )
@@ -75,7 +76,7 @@ func newPostgresSetup(bundle *stack.Bundle, auditLog *AuditLog) (*PostgresEventS
 }
 
 func createPostgresReadModels(db *sql.DB) (
-	event.Projection, event.Projection, event.Projection, event.Projection, error,
+	projection.Projection, projection.Projection, projection.Projection, projection.Projection, error,
 ) {
 	if db == nil {
 		return NewUserReadModel(), NewMembershipReadModel(), NewTenantReadModel(), NewBotReadModel(), nil
@@ -104,10 +105,10 @@ type PostgresEventSourcedSetup struct {
 	MembershipRepository *decider.Repository[MembershipState]
 	TenantRepository     *decider.Repository[TenantState]
 	BotRepository        *decider.Repository[BotState]
-	ReadModel            event.Projection
-	MembershipReadModel  event.Projection
-	TenantReadModel      event.Projection
-	BotReadModel         event.Projection
+	ReadModel            projection.Projection
+	MembershipReadModel  projection.Projection
+	TenantReadModel      projection.Projection
+	BotReadModel         projection.Projection
 	Bundle               *stack.Bundle
 	DB                   *sql.DB
 	casbinProjection     *CasbinProjection

@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 // Tenant is the read-model representation of a tenant.
@@ -111,4 +112,4 @@ func (m *TenantReadModel) All() []*Tenant {
 	return result
 }
 
-var _ event.Projection = (*TenantReadModel)(nil)
+var _ projection.Projection = (*TenantReadModel)(nil)

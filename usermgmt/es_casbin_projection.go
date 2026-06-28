@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 // CasbinProjection derives Casbin policies from User events.
@@ -143,7 +144,7 @@ func (p *CasbinProjection) addRolesFor(subject, domain string, roles []Role, err
 	return nil
 }
 
-var _ event.Projection = (*CasbinProjection)(nil)
+var _ projection.Projection = (*CasbinProjection)(nil)
 
 // handleMembershipEvent processes MemberAdded, MemberRolesChanged, and
 // MemberRemoved events. Extracted from Handle to reduce cognitive complexity.

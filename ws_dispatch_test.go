@@ -22,7 +22,7 @@ func wsCreateUserDecoder() cqrshtmx.WSCommandDecoder {
 
 func wsNoOpCreateUserDecoder() cqrshtmx.WSCommandDecoder {
 	return cqrshtmx.DecodeWSJSON(func(_ testCreateUserRequest) (command.Command, error) {
-		return &testCreateUserCmd{aggID: id.NewAggregateID(), email: "", name: ""}, nil
+		return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID(), email: "", name: ""}, nil
 	})
 }
 

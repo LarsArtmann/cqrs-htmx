@@ -182,7 +182,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			w := serve(app.Command(
 				"DeleteUser",
 				cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
-					return &bddDeleteUserCmd{aggID: id.NewAggregateID()}, nil
+					return &bddDeleteUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
 				}),
 			), newPostRequest("/users/1", `{}`))
 			Expect(w.code()).To(Equal(http.StatusBadRequest))

@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	stacksqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 )
@@ -78,14 +79,14 @@ func newSQLiteSetup(bundle *stack.Bundle, auditLog *AuditLog) (*SQLiteEventSourc
 }
 
 func createSQLReadModels(bundle *stack.Bundle) (
-	event.Projection, event.Projection, event.Projection, event.Projection, error,
+	projection.Projection, projection.Projection, projection.Projection, projection.Projection, error,
 ) {
 	db := extractDB(bundle)
 	if db == nil {
-		userRm := event.Projection(NewUserReadModel())
-		memRm := event.Projection(NewMembershipReadModel())
-		tenRm := event.Projection(NewTenantReadModel())
-		botRm := event.Projection(NewBotReadModel())
+		userRm := projection.Projection(NewUserReadModel())
+		memRm := projection.Projection(NewMembershipReadModel())
+		tenRm := projection.Projection(NewTenantReadModel())
+		botRm := projection.Projection(NewBotReadModel())
 		return userRm, memRm, tenRm, botRm, nil
 	}
 	userRm, err := NewSQLiteUserReadModel(db)
@@ -130,10 +131,10 @@ type SQLiteEventSourcedSetup struct {
 	MembershipRepository *decider.Repository[MembershipState]
 	TenantRepository     *decider.Repository[TenantState]
 	BotRepository        *decider.Repository[BotState]
-	ReadModel            event.Projection
-	MembershipReadModel  event.Projection
-	TenantReadModel      event.Projection
-	BotReadModel         event.Projection
+	ReadModel            projection.Projection
+	MembershipReadModel  projection.Projection
+	TenantReadModel      projection.Projection
+	BotReadModel         projection.Projection
 	Bundle               *stack.Bundle
 	DB                   *sql.DB
 	casbinProjection     *CasbinProjection
