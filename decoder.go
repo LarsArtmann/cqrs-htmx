@@ -6,7 +6,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
+	form "github.com/go-playground/form/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -97,26 +99,24 @@ func decodeFormBody[T any](r *http.Request, maxBodySize int64) (out T, err error
 	return out, nil
 }
 
+// newFormDecoder creates a form decoder that respects json struct tags for
+// backward compatibility with the previous JSON round-trip decoder.
+func newFormDecoder() *form.Decoder {
+	d := form.NewDecoder()
+	d.SetTagName("json")
+	return d
+}
+
 func decodeFormValues(form url.Values, target any) error {
-	jsonMap := make(map[string]any, len(form))
-	for key, values := range form {
-		if len(values) == 1 {
-			jsonMap[key] = values[0]
-		} else {
-			jsonMap[key] = values
-		}
+	// Normalize form keys to lowercase for case-insensitive matching,
+	// preserving the previous JSON round-trip's lenient field matching.
+	normalized := make(url.Values, len(form))
+	for k, v := range form {
+		normalized[strings.ToLower(k)] = v
 	}
-
-	encoded, err := json.Marshal(jsonMap)
-	if err != nil {
+	if err := newFormDecoder().Decode(target, normalized); err != nil {
 		return event.Wrapf(err, event.Rejection,
-			"cqrshtmx.decode.form.marshal_failed", "marshal form values for keys=%v", form)
+			"cqrshtmx.decode.form.decode_failed", "decode form values for target=%T", target)
 	}
-
-	if err := json.Unmarshal(encoded, target); err != nil {
-		return event.Wrapf(err, event.Rejection,
-			"cqrshtmx.decode.form.unmarshal_failed", "unmarshal form values for target=%T", target)
-	}
-
 	return nil
 }
