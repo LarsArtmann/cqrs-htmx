@@ -91,6 +91,9 @@ linters:
         - .+\.fakeTracer$
         - .+\.cidCapture$
         - .+\.SSEEvent$
+        - .+\.CommandAck$
+        - .+\.JournalSSEStore$
+        - .+\.sseReadResult$
         - .+\.lockedRecorder$
     ginkgolinter:
       forbid-focus-container: true

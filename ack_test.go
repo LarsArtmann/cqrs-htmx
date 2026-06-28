@@ -14,6 +14,7 @@ import (
 var errTestDispatch = event.NewRejection("test.dispatch_failed", "dispatch failed")
 
 func TestCommandAck_JSON(t *testing.T) {
+	t.Parallel()
 	ack := CommandAck{
 		CommandID: "test-123",
 		Status:    AckConfirmed,
@@ -43,6 +44,7 @@ func TestCommandAck_JSON(t *testing.T) {
 }
 
 func TestCommandAck_JSONRejected(t *testing.T) {
+	t.Parallel()
 	ack := CommandAck{
 		CommandID: "test-456",
 		Status:    AckRejected,
@@ -69,7 +71,9 @@ func TestCommandAck_JSONRejected(t *testing.T) {
 }
 
 func TestCommandIDFromRequest(t *testing.T) {
+	t.Parallel()
 	t.Run("present", func(t *testing.T) {
+		t.Parallel()
 		r := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
 		r.Header.Set(CommandIDHeader, "cmd-abc")
 		if id := CommandIDFromRequest(r); id != "cmd-abc" {
@@ -78,6 +82,7 @@ func TestCommandIDFromRequest(t *testing.T) {
 	})
 
 	t.Run("absent", func(t *testing.T) {
+		t.Parallel()
 		r := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
 		if id := CommandIDFromRequest(r); id != "" {
 			t.Errorf("expected empty, got %q", id)
@@ -86,6 +91,7 @@ func TestCommandIDFromRequest(t *testing.T) {
 }
 
 func TestBroadcastOnAck_Success(t *testing.T) {
+	t.Parallel()
 	broadcaster := NewBroadcaster()
 	ch := broadcaster.Subscribe()
 	defer broadcaster.Unsubscribe(ch)
@@ -121,6 +127,7 @@ func TestBroadcastOnAck_Success(t *testing.T) {
 }
 
 func TestBroadcastOnAck_Rejected(t *testing.T) {
+	t.Parallel()
 	broadcaster := NewBroadcaster()
 	ch := broadcaster.Subscribe()
 	defer broadcaster.Unsubscribe(ch)
@@ -152,6 +159,7 @@ func TestBroadcastOnAck_Rejected(t *testing.T) {
 }
 
 func TestBroadcastOnAck_NoCommandID(t *testing.T) {
+	t.Parallel()
 	broadcaster := NewBroadcaster()
 	ch := broadcaster.Subscribe()
 	defer broadcaster.Unsubscribe(ch)
@@ -170,6 +178,7 @@ func TestBroadcastOnAck_NoCommandID(t *testing.T) {
 }
 
 func TestBroadcastOnAckFunc_Custom(t *testing.T) {
+	t.Parallel()
 	broadcaster := NewBroadcaster()
 	ch := broadcaster.Subscribe()
 	defer broadcaster.Unsubscribe(ch)
@@ -201,6 +210,7 @@ func TestBroadcastOnAckFunc_Custom(t *testing.T) {
 }
 
 func TestBroadcastOnAckWS_Success(t *testing.T) {
+	t.Parallel()
 	broadcaster := NewWSBroadcaster()
 	ch := broadcaster.Subscribe()
 	defer broadcaster.Unsubscribe(ch)
@@ -232,6 +242,7 @@ func TestBroadcastOnAckWS_Success(t *testing.T) {
 }
 
 func TestBroadcastOnAckWS_NoCommandID(t *testing.T) {
+	t.Parallel()
 	broadcaster := NewWSBroadcaster()
 	ch := broadcaster.Subscribe()
 	defer broadcaster.Unsubscribe(ch)

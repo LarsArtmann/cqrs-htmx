@@ -16,6 +16,7 @@ const CommandIDHeader = "X-Command-Id"
 // AckStatus indicates the outcome of a command dispatch.
 type AckStatus string
 
+// AckStatus constants indicate the outcome of a command dispatch.
 const (
 	AckConfirmed AckStatus = "confirmed" // server accepted and processed the command
 	AckRejected  AckStatus = "rejected"  // server rejected (validation, auth, etc.)
@@ -40,7 +41,7 @@ func (a CommandAck) MarshalJSON() ([]byte, error) {
 		Status    string `json:"status"`
 		Error     string `json:"error,omitempty"`
 	}
-	return json.Marshal(wire{
+	return json.Marshal(wire{ //nolint:wrapcheck // idiomatic MarshalJSON pattern
 		CommandID: a.CommandID,
 		Status:    string(a.Status),
 		Error:     a.Error,
