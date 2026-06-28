@@ -187,7 +187,7 @@ func (m *memoryEventStore) EventsAfter(lastID string) []cqrshtmx.SSEEvent {
 		return m.events
 	}
 	for i, evt := range m.events {
-		if evt.ID == cqrshtmx.SSEEventID(lastID) {
+		if evt.ID == cqrshtmx.NewSSEEventID(lastID) {
 			if i+1 < len(m.events) {
 				return m.events[i+1:]
 			}

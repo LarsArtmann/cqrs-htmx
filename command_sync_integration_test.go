@@ -82,7 +82,7 @@ func newSSEHandler(store *JournalSSEStore, bc *Broadcaster) http.HandlerFunc {
 		}
 
 		if store != nil {
-			if lastID := LastEventIDFromRequest(r); lastID != "" {
+			if lastID := LastEventIDFromRequest(r); !lastID.IsZero() {
 				if _, err := ReplayEvents(stream, store, lastID); err != nil {
 					return
 				}

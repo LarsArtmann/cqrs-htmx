@@ -17,11 +17,11 @@ type SSEEventStore interface {
 //
 // Returns the number of events replayed, or an error if writing fails.
 func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID SSEEventID) (int, error) {
-	events := store.EventsAfter(lastEventID.String())
+	events := store.EventsAfter(lastEventID.Get())
 	for i, evt := range events {
 		if err := stream.Send(evt); err != nil {
 			return i, event.Wrapf(err, event.Transient, "cqrshtmx.sse.replay_failed",
-				"replay after %q (sent %d of %d)", lastEventID, i, len(events))
+				"replay after %q (sent %d of %d)", lastEventID.Get(), i, len(events))
 		}
 	}
 	return len(events), nil

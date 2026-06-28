@@ -14,12 +14,12 @@ var _ = Describe("SSE Reconnection", func() {
 		It("extracts Last-Event-ID from request", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 			r.Header.Set("Last-Event-ID", "evt-42")
-			Expect(cqrshtmx.LastEventIDFromRequest(r)).To(BeEquivalentTo("evt-42"))
+			Expect(cqrshtmx.LastEventIDFromRequest(r)).To(Equal(cqrshtmx.NewSSEEventID("evt-42")))
 		})
 
 		It("returns empty string when Last-Event-ID is not set", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
-			Expect(cqrshtmx.LastEventIDFromRequest(r)).To(BeEmpty())
+			Expect(cqrshtmx.LastEventIDFromRequest(r)).To(BeZero())
 		})
 
 		It("exposes LastEventID on SSEStream", func() {
@@ -29,7 +29,7 @@ var _ = Describe("SSE Reconnection", func() {
 			stream := cqrshtmx.NewSSEStream(w, r)
 			defer stream.Close()
 
-			Expect(stream.LastEventID()).To(BeEquivalentTo("evt-99"))
+			Expect(stream.LastEventID()).To(Equal(cqrshtmx.NewSSEEventID("evt-99")))
 		})
 
 		It("replays events from store", func() {
@@ -41,14 +41,14 @@ var _ = Describe("SSE Reconnection", func() {
 
 			store := &memoryEventStore{
 				events: []cqrshtmx.SSEEvent{
-					{Event: eventItem, Data: dataFirst, ID: "1"},
-					{Event: eventItem, Data: "second", ID: "2"},
-					{Event: eventItem, Data: "third", ID: "3"},
-					{Event: eventItem, Data: "fourth", ID: "4"},
+					{Event: eventItem, Data: dataFirst, ID: cqrshtmx.NewSSEEventID("1")},
+					{Event: eventItem, Data: "second", ID: cqrshtmx.NewSSEEventID("2")},
+					{Event: eventItem, Data: "third", ID: cqrshtmx.NewSSEEventID("3")},
+					{Event: eventItem, Data: "fourth", ID: cqrshtmx.NewSSEEventID("4")},
 				},
 			}
 
-			n, err := cqrshtmx.ReplayEvents(stream, store, "2")
+			n, err := cqrshtmx.ReplayEvents(stream, store, cqrshtmx.NewSSEEventID("2"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(n).To(Equal(2))
 
@@ -69,11 +69,11 @@ var _ = Describe("SSE Reconnection", func() {
 
 			store := &memoryEventStore{
 				events: []cqrshtmx.SSEEvent{
-					{Event: eventItem, Data: dataFirst, ID: "1"},
+					{Event: eventItem, Data: dataFirst, ID: cqrshtmx.NewSSEEventID("1")},
 				},
 			}
 
-			n, err := cqrshtmx.ReplayEvents(stream, store, "1")
+			n, err := cqrshtmx.ReplayEvents(stream, store, cqrshtmx.NewSSEEventID("1"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(n).To(Equal(0))
 		})
@@ -87,11 +87,11 @@ var _ = Describe("SSE Reconnection", func() {
 
 			store := &memoryEventStore{
 				events: []cqrshtmx.SSEEvent{
-					{Event: eventItem, Data: dataFirst, ID: "1"},
+					{Event: eventItem, Data: dataFirst, ID: cqrshtmx.NewSSEEventID("1")},
 				},
 			}
 
-			_, err := cqrshtmx.ReplayEvents(stream, store, "")
+			_, err := cqrshtmx.ReplayEvents(stream, store, cqrshtmx.NewSSEEventID(""))
 			Expect(err).To(HaveOccurred())
 		})
 	})
