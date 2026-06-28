@@ -31,13 +31,27 @@
         --warning: var(--color-yellow);
 
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      [id] { scroll-margin-top: 60px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      [id] {
+        scroll-margin-top: 60px;
+      }
       body {
         background: var(--surface);
         color: var(--text);
@@ -46,7 +60,10 @@
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
       }
-      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
 
       .top-bar {
         background: var(--text);
@@ -61,10 +78,25 @@
         justify-content: space-between;
         align-items: center;
       }
-      .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
 
-      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
-      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
       h2 {
         font-size: 1.4rem;
         margin: 2.5rem 0 1rem;
@@ -74,15 +106,46 @@
         align-items: baseline;
         gap: 0.6rem;
       }
-      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
-      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
-      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; }
-      code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface-sunken); padding: 0.1em 0.35em; }
-      a { color: var(--accent); text-decoration: none; }
-      a:hover { text-decoration: underline; }
-      ul, ol { margin: 0 0 1rem 1.5rem; }
-      li { margin-bottom: 0.3rem; }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface-sunken);
+        padding: 0.1em 0.35em;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem 1.5rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
 
       .hero {
         padding: 1.5rem 0 1.5rem;
@@ -101,8 +164,18 @@
         padding: 0.3rem 0.7rem;
         margin-bottom: 0.9rem;
       }
-      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
-      .hero-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
       .hero-meta .tag {
         font-family: var(--font-mono);
         font-size: 0.72rem;
@@ -124,11 +197,28 @@
         border-left: 4px solid var(--border-strong);
         padding: 1.1rem 1.2rem;
       }
-      .stat-card.stat-good { border-left-color: var(--solution); }
-      .stat-card.stat-warn { border-left-color: var(--warning); }
-      .stat-card.stat-bad { border-left-color: var(--problem); }
-      .stat-value { font-family: var(--font-mono); font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 0.3rem; }
-      .stat-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .stat-card.stat-good {
+        border-left-color: var(--solution);
+      }
+      .stat-card.stat-warn {
+        border-left-color: var(--warning);
+      }
+      .stat-card.stat-bad {
+        border-left-color: var(--problem);
+      }
+      .stat-value {
+        font-family: var(--font-mono);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+      }
+      .stat-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
 
       .card {
         background: var(--surface-raised);
@@ -137,11 +227,24 @@
         margin-bottom: 1rem;
         border-left: 4px solid var(--border-strong);
       }
-      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
-      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
-      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
-      .card h3 { margin-bottom: 0.4rem; }
-      .card p:last-child { margin-bottom: 0; }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .card h3 {
+        margin-bottom: 0.4rem;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
 
       .severity {
         display: inline-block;
@@ -154,9 +257,15 @@
         margin-bottom: 0.6rem;
         color: var(--surface);
       }
-      .severity-critical { background: var(--problem); }
-      .severity-important { background: var(--warning); }
-      .severity-nice { background: var(--solution); }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
 
       .badge {
         display: inline-block;
@@ -169,10 +278,22 @@
         border: 1px solid var(--border-strong);
         color: var(--text-muted);
       }
-      .badge-critical { border-color: var(--problem); color: var(--problem); }
-      .badge-high { border-color: var(--warning); color: var(--warning); }
-      .badge-medium { border-color: var(--accent); color: var(--accent); }
-      .badge-low { border-color: var(--text-faint); color: var(--text-faint); }
+      .badge-critical {
+        border-color: var(--problem);
+        color: var(--problem);
+      }
+      .badge-high {
+        border-color: var(--warning);
+        color: var(--warning);
+      }
+      .badge-medium {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .badge-low {
+        border-color: var(--text-faint);
+        color: var(--text-faint);
+      }
 
       table {
         width: 100%;
@@ -180,7 +301,8 @@
         margin: 1rem 0;
         font-size: 0.9rem;
       }
-      th, td {
+      th,
+      td {
         text-align: left;
         padding: 0.7rem 0.85rem;
         border-bottom: 1px solid var(--border);
@@ -194,7 +316,9 @@
         color: var(--text-muted);
         border-bottom: 2px solid var(--border-strong);
       }
-      tbody tr:hover { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+      tbody tr:hover {
+        background: color-mix(in srgb, var(--accent) 4%, transparent);
+      }
 
       .callout {
         padding: 1rem 1.2rem;
@@ -202,13 +326,30 @@
         border-left: 4px solid var(--border-strong);
         background: var(--surface-raised);
       }
-      .callout-problem { border-left-color: var(--problem); }
-      .callout-solution { border-left-color: var(--solution); }
-      .callout-warning { border-left-color: var(--warning); }
-      .callout strong { display: block; margin-bottom: 0.3rem; }
+      .callout-problem {
+        border-left-color: var(--problem);
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
 
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-      @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      @media (max-width: 700px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
 
       footer {
         margin-top: 3rem;
@@ -233,8 +374,9 @@
         <h1>Catalog Merge Complete — Code Green, Docs Caught Up</h1>
         <p class="hero-subtitle">
           The <code>cqrs-htmx/catalog/</code> module has been fully merged upstream into
-          <code>go-cqrs-lite/catalog/v3</code> (v3.2.0), all 4 cqrs-htmx modules pass test/build/lint,
-          and the self-review caught and fixed 6 categories of stale documentation. Both repos are pushed.
+          <code>go-cqrs-lite/catalog/v3</code> (v3.2.0), all 4 cqrs-htmx modules pass
+          test/build/lint, and the self-review caught and fixed 6 categories of stale documentation.
+          Both repos are pushed.
         </p>
         <div class="hero-meta">
           <span class="tag">v3.1.0</span>
@@ -273,10 +415,11 @@
         <span class="severity severity-nice">Complete</span>
         <h3>Catalog module merge into go-cqrs-lite</h3>
         <p>
-          <code>cqrs-htmx/catalog/</code> (12 files, ~1400 LOC) deleted. Single-service Builder facade ported to
-          <code>go-cqrs-lite/catalog/v3/simple</code>. Standalone HTTP handlers (D2Handler, HealthCheckHandler,
-          GenerateEventCatalog) ported to <code>catalog/v3/docserver</code>. Redundant OpenAPIHandler/AsyncAPIHandler
-          removed (upstream DocsServer is richer). Tagged <code>catalog/v3.2.0</code>, pushed.
+          <code>cqrs-htmx/catalog/</code> (12 files, ~1400 LOC) deleted. Single-service Builder
+          facade ported to <code>go-cqrs-lite/catalog/v3/simple</code>. Standalone HTTP handlers
+          (D2Handler, HealthCheckHandler, GenerateEventCatalog) ported to
+          <code>catalog/v3/docserver</code>. Redundant OpenAPIHandler/AsyncAPIHandler removed
+          (upstream DocsServer is richer). Tagged <code>catalog/v3.2.0</code>, pushed.
         </p>
       </div>
 
@@ -285,8 +428,9 @@
         <h3>3 consumers migrated</h3>
         <p>
           <code>examples/catalog-demo/main.go</code>, <code>integration_test/catalog_test.go</code>,
-          <code>integration_test/usermgmt_catalog_test.go</code> all migrated to <code>simple.*</code> +
-          <code>docserver.*</code>. All integration tests pass with race detector.
+          <code>integration_test/usermgmt_catalog_test.go</code> all migrated to
+          <code>simple.*</code> + <code>docserver.*</code>. All integration tests pass with race
+          detector.
         </p>
       </div>
 
@@ -294,9 +438,10 @@
         <span class="severity severity-nice">Complete</span>
         <h3>Doc honesty sweep (the 80→100%)</h3>
         <p>
-          Fixed 6 categories of stale references after self-review: FEATURES.md (lying FULLY_FUNCTIONAL section),
-          VERSIONING.md, CONTRIBUTING.md, integration_test comments, catalog-demo README (broken link + <code>?format=yaml</code> lie),
-          ADR 0008 (ACCEPTED → SUPERSEDED), new ADR 0015 documenting the reversal, CHANGELOG breaking-change entry,
+          Fixed 6 categories of stale references after self-review: FEATURES.md (lying
+          FULLY_FUNCTIONAL section), VERSIONING.md, CONTRIBUTING.md, integration_test comments,
+          catalog-demo README (broken link + <code>?format=yaml</code> lie), ADR 0008 (ACCEPTED →
+          SUPERSEDED), new ADR 0015 documenting the reversal, CHANGELOG breaking-change entry,
           go-cqrs-lite CHANGELOG entry for catalog/v3.2.0.
         </p>
       </div>
@@ -305,9 +450,10 @@
         <span class="severity severity-nice">Complete</span>
         <h3>Build infrastructure cleaned</h3>
         <p>
-          <code>go.work</code> updated (removed <code>./catalog</code>), <code>flake.nix</code> cleaned
-          (9 catalog references removed: test/lint/coverage/build apps, test-catalog app, coverage-gate threshold),
-          <code>AGENTS.md</code> + <code>README.md</code> + <code>TODO_LIST.md</code> updated.
+          <code>go.work</code> updated (removed <code>./catalog</code>),
+          <code>flake.nix</code> cleaned (9 catalog references removed: test/lint/coverage/build
+          apps, test-catalog app, coverage-gate threshold), <code>AGENTS.md</code> +
+          <code>README.md</code> + <code>TODO_LIST.md</code> updated.
         </p>
       </div>
 
@@ -315,9 +461,10 @@
         <span class="severity severity-nice">Complete</span>
         <h3>Upstream simplifications during merge</h3>
         <p>
-          Hand-rolled 35-line <code>toKebab</code> replaced with upstream <code>internal/caseutil.ToKebab</code>.
-          Double error-wrapping removed in <code>GenerateEventCatalog</code> (upstream already classifies as Infrastructure).
-          Net <strong>-2180 lines</strong> from cqrs-htmx.
+          Hand-rolled 35-line <code>toKebab</code> replaced with upstream
+          <code>internal/caseutil.ToKebab</code>. Double error-wrapping removed in
+          <code>GenerateEventCatalog</code> (upstream already classifies as Infrastructure). Net
+          <strong>-2180 lines</strong> from cqrs-htmx.
         </p>
       </div>
 
@@ -328,10 +475,11 @@
         <h3>ActorID split brain (root vs usermgmt)</h3>
         <p>
           Root module defines <code>type ActorID string</code>; usermgmt defines
-          <code>type ActorID struct{ kind ActorKind; raw string }</code>. Intentionally different — root needs a
-          simple context value, usermgmt needs kind/raw separation for domain logic. The real fix requires a
-          shared identity module both can import. Current bridge: <code>string(actorID)</code> + <code>ParseActorID</code>.
-          See <code>docs/adr/0018-unify-userid.md</code>.
+          <code>type ActorID struct{ kind ActorKind; raw string }</code>. Intentionally different —
+          root needs a simple context value, usermgmt needs kind/raw separation for domain logic.
+          The real fix requires a shared identity module both can import. Current bridge:
+          <code>string(actorID)</code> + <code>ParseActorID</code>. See
+          <code>docs/adr/0018-unify-userid.md</code>.
         </p>
       </div>
 
@@ -339,10 +487,11 @@
         <span class="severity severity-important">Blocked · Serialization</span>
         <h3>Email branded type in event payloads</h3>
         <p>
-          <code>Email</code> branded type exists but 10+ structs (UserState, UserRegisteredPayload, ExternalAccount)
-          still use raw <code>string</code>. Changing them breaks JSON event serialization (existing events in stores
-          have <code>"email": "user@example.com"</code>). Safe for new fields, unsafe for existing payloads.
-          Deferred to next major version with an upcaster.
+          <code>Email</code> branded type exists but 10+ structs (UserState, UserRegisteredPayload,
+          ExternalAccount) still use raw <code>string</code>. Changing them breaks JSON event
+          serialization (existing events in stores have <code>"email": "user@example.com"</code>).
+          Safe for new fields, unsafe for existing payloads. Deferred to next major version with an
+          upcaster.
         </p>
       </div>
 
@@ -350,10 +499,13 @@
         <span class="severity severity-important">Blocked · Upstream</span>
         <h3>WebAuthn *http.Request leak in service layer</h3>
         <p>
-          <code>go-webauthn/webauthn</code>'s <code>FinishRegistration()</code>/<code>FinishLogin()</code> take
-          <code>*http.Request</code> directly to parse attestation/assertion from the body. Can't pass pre-parsed
-          bytes — the library API doesn't accept them. Requires an upstream PR to go-webauthn, or wrapping
-          <code>*http.Request</code> reconstruction (which defeats the purpose). Inherent to the library design.
+          <code>go-webauthn/webauthn</code>'s <code>FinishRegistration()</code>/<code
+            >FinishLogin()</code
+          >
+          take <code>*http.Request</code> directly to parse attestation/assertion from the body.
+          Can't pass pre-parsed bytes — the library API doesn't accept them. Requires an upstream PR
+          to go-webauthn, or wrapping <code>*http.Request</code> reconstruction (which defeats the
+          purpose). Inherent to the library design.
         </p>
       </div>
 
@@ -361,9 +513,10 @@
         <span class="severity severity-important">Deferred · Premature</span>
         <h3>Snapshot integration for event sourcing</h3>
         <p>
-          <code>go-cqrs-lite/snapshot/v3</code> available as indirect dep. Current replay loads all events on startup
-          (works for moderate volumes). Snapshot integration adds complexity (snapshot store, frequency, invalidation)
-          for benefit only at &gt;10K events per aggregate. Defer until production hits limits.
+          <code>go-cqrs-lite/snapshot/v3</code> available as indirect dep. Current replay loads all
+          events on startup (works for moderate volumes). Snapshot integration adds complexity
+          (snapshot store, frequency, invalidation) for benefit only at &gt;10K events per
+          aggregate. Defer until production hits limits.
         </p>
       </div>
 
@@ -371,9 +524,10 @@
         <span class="severity severity-important">Gap</span>
         <h3>TenantState struct-level IsValid()</h3>
         <p>
-          Event handlers clear <code>Suspended</code> on delete (struct-level invariant in fold), but the struct
-          fields are still independent booleans. A struct-level <code>IsValid()</code> method would fully close this.
-          Low-impact: the fold enforces the invariant at the only mutation point.
+          Event handlers clear <code>Suspended</code> on delete (struct-level invariant in fold),
+          but the struct fields are still independent booleans. A struct-level
+          <code>IsValid()</code> method would fully close this. Low-impact: the fold enforces the
+          invariant at the only mutation point.
         </p>
       </div>
 
@@ -382,17 +536,19 @@
       <div class="card">
         <h3>Shared identity module (root + usermgmt)</h3>
         <p>
-          The architectural fix for the ActorID split brain. Extract <code>ActorID</code>, <code>UserID</code>,
-          <code>TenantID</code> into a shared <code>identity/</code> module both root and usermgmt import.
-          Significant change — reverses root's "no deps" principle unless carefully scoped. See ADR 0018.
+          The architectural fix for the ActorID split brain. Extract <code>ActorID</code>,
+          <code>UserID</code>, <code>TenantID</code> into a shared <code>identity/</code> module
+          both root and usermgmt import. Significant change — reverses root's "no deps" principle
+          unless carefully scoped. See ADR 0018.
         </p>
       </div>
 
       <div class="card">
         <h3>CatchUpSubscriber adoption</h3>
         <p>
-          go-cqrs-lite v3.1.0 ships <code>CatchUpSubscriber</code>. <code>StartProjections</code> still uses manual
-          journal replay + <code>bus.SubscribeAll</code>. Migration is a documented future task — the manual approach
+          go-cqrs-lite v3.1.0 ships <code>CatchUpSubscriber</code>.
+          <code>StartProjections</code> still uses manual journal replay +
+          <code>bus.SubscribeAll</code>. Migration is a documented future task — the manual approach
           works and gives explicit control over replay ordering.
         </p>
       </div>
@@ -400,9 +556,10 @@
       <div class="card">
         <h3>stack.Materialize[V] evaluation</h3>
         <p>
-          Evaluated but not adopted — usermgmt read models have complex event handling (12-event switches, external
-          account indexes) that don't fit the declarative OnCreate/OnUpdate/OnTombstone pattern. Custom projections
-          remain the right call for this domain.
+          Evaluated but not adopted — usermgmt read models have complex event handling (12-event
+          switches, external account indexes) that don't fit the declarative
+          OnCreate/OnUpdate/OnTombstone pattern. Custom projections remain the right call for this
+          domain.
         </p>
       </div>
 
@@ -413,24 +570,29 @@
         <h3>ADR number collision: two files share "0015"</h3>
         <p>
           <code>docs/adr/0015-identity-model-redesign.md</code> and
-          <code>docs/adr/0015-merge-catalog-into-go-cqrs-lite.md</code> both use the number 0015. The catalog merge
-          ADR should have been numbered 0020 (next free slot). ADR numbers are immutable sequence identifiers —
-          collisions break the cross-reference contract. This was my mistake: I picked 0015 without checking for a
-          collision with the existing identity-model ADR.
+          <code>docs/adr/0015-merge-catalog-into-go-cqrs-lite.md</code> both use the number 0015.
+          The catalog merge ADR should have been numbered 0020 (next free slot). ADR numbers are
+          immutable sequence identifiers — collisions break the cross-reference contract. This was
+          my mistake: I picked 0015 without checking for a collision with the existing
+          identity-model ADR.
         </p>
-        <p><strong>Fix:</strong> Renumber <code>0015-merge-catalog-into-go-cqrs-lite.md</code> → <code>0020-merge-catalog-into-go-cqrs-lite.md</code>,
-           and update the cross-reference in <code>0008-catalog-sub-package.md</code>.</p>
+        <p>
+          <strong>Fix:</strong> Renumber <code>0015-merge-catalog-into-go-cqrs-lite.md</code> →
+          <code>0020-merge-catalog-into-go-cqrs-lite.md</code>, and update the cross-reference in
+          <code>0008-catalog-sub-package.md</code>.
+        </p>
       </div>
 
       <div class="card card-problem">
         <span class="severity severity-critical">Process Failure</span>
         <h3>Declared "done" without a reference sweep</h3>
         <p>
-          The original catalog migration declared completion at code-green. It left 6 categories of lying docs
-          (ACCEPTED ADR, FULLY_FUNCTIONAL FEATURES section, broken README link, stale CHANGELOG). The self-review
-          caught these reactively, not proactively. <strong>The lesson:</strong> "done" for a deletion/migration =
-          code green AND zero references to the deleted thing AND all status docs tell the truth. The reference
-          sweep belongs in the original plan.
+          The original catalog migration declared completion at code-green. It left 6 categories of
+          lying docs (ACCEPTED ADR, FULLY_FUNCTIONAL FEATURES section, broken README link, stale
+          CHANGELOG). The self-review caught these reactively, not proactively.
+          <strong>The lesson:</strong> "done" for a deletion/migration = code green AND zero
+          references to the deleted thing AND all status docs tell the truth. The reference sweep
+          belongs in the original plan.
         </p>
       </div>
 
@@ -439,34 +601,35 @@
       <div class="card card-warning">
         <h3>1. Make reference sweeps a standard migration step</h3>
         <p>
-          Any task that deletes/renames a public API must include a grep sweep for all references in docs, comments,
-          and config — before declaring done. Add this to the migration checklist in AGENTS.md.
+          Any task that deletes/renames a public API must include a grep sweep for all references in
+          docs, comments, and config — before declaring done. Add this to the migration checklist in
+          AGENTS.md.
         </p>
       </div>
 
       <div class="card card-warning">
         <h3>2. ADR numbering discipline</h3>
         <p>
-          Always <code>ls docs/adr/ | sort -V | tail -1</code> before creating a new ADR. The collision happened
-          because I guessed the next number instead of checking.
+          Always <code>ls docs/adr/ | sort -V | tail -1</code> before creating a new ADR. The
+          collision happened because I guessed the next number instead of checking.
         </p>
       </div>
 
       <div class="card card-warning">
         <h3>3. Breaking-change CHANGELOG discipline</h3>
         <p>
-          Deleting a public Go module is a breaking change. The CHANGELOG entry should be written as part of the
-          migration, not discovered in self-review. Add "CHANGELOG entry for breaking changes" to the migration
-          checklist.
+          Deleting a public Go module is a breaking change. The CHANGELOG entry should be written as
+          part of the migration, not discovered in self-review. Add "CHANGELOG entry for breaking
+          changes" to the migration checklist.
         </p>
       </div>
 
       <div class="card card-warning">
         <h3>4. Cross-repo coordination runbook</h3>
         <p>
-          The catalog merge touched two repos (cqrs-htmx + go-cqrs-lite) with a publish gate between them.
-          Document the pattern: port upstream → tag → push → bump consumers → migrate → delete. This will recur
-          for future consolidations.
+          The catalog merge touched two repos (cqrs-htmx + go-cqrs-lite) with a publish gate between
+          them. Document the pattern: port upstream → tag → push → bump consumers → migrate →
+          delete. This will recur for future consolidations.
         </p>
       </div>
 
@@ -482,51 +645,223 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td>1</td><td><strong>Fix ADR 0015 collision</strong> — renumber catalog merge ADR to 0020, update cross-ref in ADR 0008</td><td><span class="badge badge-critical">Critical</span></td><td>5m</td></tr>
-          <tr><td>2</td><td>Add "reference sweep + CHANGELOG" to migration checklist in AGENTS.md</td><td><span class="badge badge-high">High</span></td><td>10m</td></tr>
-          <tr><td>3</td><td>usermgmt coverage 79.5% → 85% (target the uncovered service_* and es_*_dispatch files)</td><td><span class="badge badge-high">High</span></td><td>4h</td></tr>
-          <tr><td>4</td><td>TenantState struct-level <code>IsValid()</code> method + test</td><td><span class="badge badge-medium">Medium</span></td><td>30m</td></tr>
-          <tr><td>5</td><td>Evaluate CatchUpSubscriber adoption (replace manual journal replay in StartProjections)</td><td><span class="badge badge-medium">Medium</span></td><td>3h</td></tr>
-          <tr><td>6</td><td>Shared identity module design spike (resolve ActorID split brain per ADR 0018)</td><td><span class="badge badge-high">High</span></td><td>1d</td></tr>
-          <tr><td>7</td><td>Upcaster for Email branded type (prep for next major version)</td><td><span class="badge badge-medium">Medium</span></td><td>4h</td></tr>
-          <tr><td>8</td><td>Upstream PR to go-webauthn: accept parsed response bytes (unblocks WebAuthn *http.Request leak)</td><td><span class="badge badge-medium">Medium</span></td><td>1d</td></tr>
-          <tr><td>9</td><td>Admin UI: add tenant create/suspend/reactivate actions (currently read-only for tenants in some modes)</td><td><span class="badge badge-medium">Medium</span></td><td>4h</td></tr>
-          <tr><td>10</td><td>Admin UI: audit log viewer with filtering/pagination</td><td><span class="badge badge-low">Low</span></td><td>3h</td></tr>
-          <tr><td>11</td><td>Integration test: OAuth2 full flow (begin → callback → user created/linked)</td><td><span class="badge badge-high">High</span></td><td>3h</td></tr>
-          <tr><td>12</td><td>Integration test: impersonation begin/end cycle with session swap verification</td><td><span class="badge badge-medium">Medium</span></td><td>2h</td></tr>
-          <tr><td>13</td><td>Document the cross-repo consolidation runbook (port → tag → push → bump → migrate → delete)</td><td><span class="badge badge-medium">Medium</span></td><td>30m</td></tr>
-          <tr><td>14</td><td>Root module: <code>BrandNamer</code> wiring for marker types (partially unblocked, needs verification)</td><td><span class="badge badge-low">Low</span></td><td>1h</td></tr>
-          <tr><td>15</td><td>usermgmt: <code>RemoveAllRolesForUser</code> / <code>RemoveAllRolesInDomain</code> type the subject parameter</td><td><span class="badge badge-low">Low</span></td><td>1h</td></tr>
-          <tr><td>16</td><td>SSE: add integration test for heartbeat preventing proxy idle disconnect</td><td><span class="badge badge-low">Low</span></td><td>1h</td></tr>
-          <tr><td>17</td><td>WebSocket: add WSBroadcaster integration test (subscribe → broadcast → receive → unsubscribe)</td><td><span class="badge badge-low">Low</span></td><td>1h</td></tr>
-          <tr><td>18</td><td>CSRF: document production TrustedProxies setup recipe (Nginx, Cloudflare, Docker)</td><td><span class="badge badge-low">Low</span></td><td>30m</td></tr>
-          <tr><td>19</td><td>Rate limiter: add benchmark for per-key lookup under high cardinality (1000+ keys)</td><td><span class="badge badge-low">Low</span></td><td>1h</td></tr>
-          <tr><td>20</td><td>Event signing: integration test for sign→encrypt→decrypt→verify round-trip with tamper detection</td><td><span class="badge badge-medium">Medium</span></td><td>2h</td></tr>
-          <tr><td>21</td><td>examples/basic: update to demonstrate paginated query + RenderPaginatedJSON</td><td><span class="badge badge-low">Low</span></td><td>1h</td></tr>
-          <tr><td>22</td><td>docs/DOMAIN_LANGUAGE.md: audit for completeness (new terms: Actor, Bot, Membership, Impersonation)</td><td><span class="badge badge-low">Low</span></td><td>30m</td></tr>
-          <tr><td>23</td><td>Architecture diagram (D2): regenerate <code>docs/architecture-understanding/</code> to reflect catalog deletion</td><td><span class="badge badge-low">Low</span></td><td>30m</td></tr>
-          <tr><td>24</td><td>v3.2.0 release prep: version bump, CHANGELOG finalize, tag</td><td><span class="badge badge-high">High</span></td><td>2h</td></tr>
-          <tr><td>25</td><td>go-cqrs-lite: evaluate adopting <code>storage.RelationalProjection</code> for multi-table usermgmt read models</td><td><span class="badge badge-low">Low</span></td><td>3h</td></tr>
+          <tr>
+            <td>1</td>
+            <td>
+              <strong>Fix ADR 0015 collision</strong> — renumber catalog merge ADR to 0020, update
+              cross-ref in ADR 0008
+            </td>
+            <td><span class="badge badge-critical">Critical</span></td>
+            <td>5m</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Add "reference sweep + CHANGELOG" to migration checklist in AGENTS.md</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>10m</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>
+              usermgmt coverage 79.5% → 85% (target the uncovered service_* and es_*_dispatch files)
+            </td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>4h</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>TenantState struct-level <code>IsValid()</code> method + test</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>30m</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>
+              Evaluate CatchUpSubscriber adoption (replace manual journal replay in
+              StartProjections)
+            </td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>3h</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Shared identity module design spike (resolve ActorID split brain per ADR 0018)</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>1d</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>Upcaster for Email branded type (prep for next major version)</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>4h</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>
+              Upstream PR to go-webauthn: accept parsed response bytes (unblocks WebAuthn
+              *http.Request leak)
+            </td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>1d</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>
+              Admin UI: add tenant create/suspend/reactivate actions (currently read-only for
+              tenants in some modes)
+            </td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>4h</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>Admin UI: audit log viewer with filtering/pagination</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>3h</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td>Integration test: OAuth2 full flow (begin → callback → user created/linked)</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>3h</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td>Integration test: impersonation begin/end cycle with session swap verification</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>2h</td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td>
+              Document the cross-repo consolidation runbook (port → tag → push → bump → migrate →
+              delete)
+            </td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>30m</td>
+          </tr>
+          <tr>
+            <td>14</td>
+            <td>
+              Root module: <code>BrandNamer</code> wiring for marker types (partially unblocked,
+              needs verification)
+            </td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+          </tr>
+          <tr>
+            <td>15</td>
+            <td>
+              usermgmt: <code>RemoveAllRolesForUser</code> /
+              <code>RemoveAllRolesInDomain</code> type the subject parameter
+            </td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+          </tr>
+          <tr>
+            <td>16</td>
+            <td>SSE: add integration test for heartbeat preventing proxy idle disconnect</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+          </tr>
+          <tr>
+            <td>17</td>
+            <td>
+              WebSocket: add WSBroadcaster integration test (subscribe → broadcast → receive →
+              unsubscribe)
+            </td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+          </tr>
+          <tr>
+            <td>18</td>
+            <td>
+              CSRF: document production TrustedProxies setup recipe (Nginx, Cloudflare, Docker)
+            </td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>30m</td>
+          </tr>
+          <tr>
+            <td>19</td>
+            <td>
+              Rate limiter: add benchmark for per-key lookup under high cardinality (1000+ keys)
+            </td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+          </tr>
+          <tr>
+            <td>20</td>
+            <td>
+              Event signing: integration test for sign→encrypt→decrypt→verify round-trip with tamper
+              detection
+            </td>
+            <td><span class="badge badge-medium">Medium</span></td>
+            <td>2h</td>
+          </tr>
+          <tr>
+            <td>21</td>
+            <td>examples/basic: update to demonstrate paginated query + RenderPaginatedJSON</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>1h</td>
+          </tr>
+          <tr>
+            <td>22</td>
+            <td>
+              docs/DOMAIN_LANGUAGE.md: audit for completeness (new terms: Actor, Bot, Membership,
+              Impersonation)
+            </td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>30m</td>
+          </tr>
+          <tr>
+            <td>23</td>
+            <td>
+              Architecture diagram (D2): regenerate <code>docs/architecture-understanding/</code> to
+              reflect catalog deletion
+            </td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>30m</td>
+          </tr>
+          <tr>
+            <td>24</td>
+            <td>v3.2.0 release prep: version bump, CHANGELOG finalize, tag</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td>2h</td>
+          </tr>
+          <tr>
+            <td>25</td>
+            <td>
+              go-cqrs-lite: evaluate adopting <code>storage.RelationalProjection</code> for
+              multi-table usermgmt read models
+            </td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>3h</td>
+          </tr>
         </tbody>
       </table>
 
       <h2 id="question"><span class="num">g)</span> Top Question I Cannot Answer Myself</h2>
 
       <div class="callout callout-problem">
-        <strong>Should the catalog merge ADR be renumbered, or should the identity-model ADR be renumbered instead?</strong>
+        <strong
+          >Should the catalog merge ADR be renumbered, or should the identity-model ADR be
+          renumbered instead?</strong
+        >
         <p>
           Both <code>docs/adr/0015-identity-model-redesign.md</code> (2026-06-21) and
-          <code>docs/adr/0015-merge-catalog-into-go-cqrs-lite.md</code> (2026-06-28) share the number 0015.
-          I created the collision by not checking. My instinct: the catalog merge ADR is newer and should be
-          renumbered to 0020 (the next free slot). But the identity-model ADR was committed first and is referenced
-          in TODO_LIST.md as "ADR-0015" — so renumbering it would break that reference. <strong>Which one should move?</strong>
-          I can execute either fix immediately once you decide, but ADR numbering is a historical record and I don't
-          want to guess wrong about which is canonical.
+          <code>docs/adr/0015-merge-catalog-into-go-cqrs-lite.md</code> (2026-06-28) share the
+          number 0015. I created the collision by not checking. My instinct: the catalog merge ADR
+          is newer and should be renumbered to 0020 (the next free slot). But the identity-model ADR
+          was committed first and is referenced in TODO_LIST.md as "ADR-0015" — so renumbering it
+          would break that reference. <strong>Which one should move?</strong>
+          I can execute either fix immediately once you decide, but ADR numbering is a historical
+          record and I don't want to guess wrong about which is canonical.
         </p>
       </div>
 
       <footer>
-        Generated 2026-06-28 02:59 &middot; cqrs-htmx v3.1.0 &middot; go-cqrs-lite catalog/v3.2.0 &middot; 4 modules green
+        Generated 2026-06-28 02:59 &middot; cqrs-htmx v3.1.0 &middot; go-cqrs-lite catalog/v3.2.0
+        &middot; 4 modules green
       </footer>
     </div>
   </body>

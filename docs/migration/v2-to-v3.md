@@ -15,17 +15,17 @@ touches import paths, event-sourcing setup, and type conversions.
 
 ### What Changed at a Glance
 
-| Area | v2 | v3 | Breaking? |
-|------|----|----|-----------|
-| Module paths | `/v2` | `/v3` | Yes |
-| go-cqrs-lite | v2.6.0 | v3.1.0 | Yes |
-| usermgmt.UserID | `brandid.ID` (string) | `id.UserID` (ULID) | Yes |
-| Projection startup | `projection.Runner` | Manual replay + `bus.SubscribeAll` | Yes |
-| Corruption HTTP status | 422 | 500 | Yes |
-| Infrastructure HTTP status | 500 | 503 | Yes |
-| SSEEvent.ID | `string` | `SSEEventID` branded type | Yes |
-| go-error-family | v0.4.0 | v0.5.1 | Internal |
-| Catalog module | `cqrs-htmx/catalog/v3` | `go-cqrs-lite/catalog/v3` (v3.2.0) | Yes |
+| Area                       | v2                     | v3                                 | Breaking? |
+| -------------------------- | ---------------------- | ---------------------------------- | --------- |
+| Module paths               | `/v2`                  | `/v3`                              | Yes       |
+| go-cqrs-lite               | v2.6.0                 | v3.1.0                             | Yes       |
+| usermgmt.UserID            | `brandid.ID` (string)  | `id.UserID` (ULID)                 | Yes       |
+| Projection startup         | `projection.Runner`    | Manual replay + `bus.SubscribeAll` | Yes       |
+| Corruption HTTP status     | 422                    | 500                                | Yes       |
+| Infrastructure HTTP status | 500                    | 503                                | Yes       |
+| SSEEvent.ID                | `string`               | `SSEEventID` branded type          | Yes       |
+| go-error-family            | v0.4.0                 | v0.5.1                             | Internal  |
+| Catalog module             | `cqrs-htmx/catalog/v3` | `go-cqrs-lite/catalog/v3` (v3.2.0) | Yes       |
 
 ---
 
@@ -40,6 +40,7 @@ go get github.com/larsartmann/cqrs-htmx/usermgmt/v3@v3.2.0
 ```
 
 **Before:**
+
 ```go
 import (
     cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
@@ -48,6 +49,7 @@ import (
 ```
 
 **After:**
+
 ```go
 import (
     cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
@@ -56,11 +58,13 @@ import (
 ```
 
 Update your `go.mod` module path if you were using `/v2`:
+
 ```
 module your-app // unchanged — your own module path doesn't change
 ```
 
 Then bump go-cqrs-lite dependencies:
+
 ```bash
 go get github.com/larsartmann/go-cqrs-lite@v3.1.0
 go get github.com/larsartmann/go-cqrs-lite/event/v3@v3.1.0
@@ -79,12 +83,14 @@ go mod tidy
 ### `.Get()` returns `ulid.ULID`, not `string`
 
 **Before (v2):**
+
 ```go
 userIDStr := user.ID.Get()        // string
 usermgmt.NewUserID(userIDStr)     // string → UserID
 ```
 
 **After (v3):**
+
 ```go
 user.ID.Get()                     // ulid.ULID
 user.ID.Get().String()            // string — use at SQL/Casbin/logging boundaries
@@ -116,6 +122,7 @@ go-cqrs-lite v3 deleted the `projection/` module (the `projection.Runner`).
 Replace any custom projection startup with `StartProjections()`:
 
 **Before (v2):**
+
 ```go
 // You may have used projection.Runner directly (now deleted upstream)
 runner := projection.NewRunner(bus, store, projections...)
@@ -123,6 +130,7 @@ runner.Start(ctx)
 ```
 
 **After (v3):**
+
 ```go
 // StartProjections replays all journal events synchronously, then subscribes
 // to live events via bus.SubscribeAll, with id.EventID dedup.
@@ -130,6 +138,7 @@ setup.StartProjections(ctx)
 ```
 
 If you use the one-call stack presets, projections are wired automatically:
+
 ```go
 setup, err := usermgmt.NewSQLiteEventSourcedSetup(usermgmt.EventSourcedConfig{
     // ...
@@ -154,11 +163,11 @@ bus, err := watermill.NewEventBus(watermill.GoChannelConfig{
 
 The HTTP status mapping was reconciled with go-error-family upstream:
 
-| Family | v2 Status | v3 Status | Why |
-|--------|-----------|-----------|-----|
-| Corruption | 422 | **500** | Data integrity breaks are server-side, not client input |
-| Infrastructure | 500 | **503** | Correct "service unavailable, retry later" semantic |
-| Panics | 500 | 500 | Unchanged (explicit override) |
+| Family         | v2 Status | v3 Status | Why                                                     |
+| -------------- | --------- | --------- | ------------------------------------------------------- |
+| Corruption     | 422       | **500**   | Data integrity breaks are server-side, not client input |
+| Infrastructure | 500       | **503**   | Correct "service unavailable, retry later" semantic     |
+| Panics         | 500       | 500       | Unchanged (explicit override)                           |
 
 If clients check for 422 on corruption or 500 on infrastructure, update to 500 and 503.
 
@@ -169,12 +178,14 @@ If clients check for 422 on corruption or 500 on infrastructure, update to 500 a
 `SSEEvent.ID` changed from `string` to the branded `SSEEventID` type:
 
 **Before:**
+
 ```go
 event := sse.SSEEvent{ID: "abc123", Data: "hello"}
 id := stream.LastEventID() // string
 ```
 
 **After:**
+
 ```go
 event := sse.SSEEvent{ID: sse.NewSSEEventID("abc123"), Data: "hello"}
 id := stream.LastEventID() // SSEEventID
@@ -193,14 +204,14 @@ The `cqrs-htmx/catalog/v3` module is deleted. Use `go-cqrs-lite/catalog/v3` v3.2
 go get github.com/larsartmann/go-cqrs-lite/catalog/v3@v3.2.0
 ```
 
-| Old (cqrs-htmx/catalog) | New (go-cqrs-lite/catalog) |
-|------------------------|---------------------------|
-| `cataloghtmx.New(...)` | `simple.New(...)` |
-| `cataloghtmx.Command[T](b, id)` | `simple.Command[T](b, id)` |
-| `cataloghtmx.D2Handler(cat)` | `docserver.D2Handler(cat)` |
-| `cataloghtmx.HealthCheckHandler(cat)` | `docserver.HealthCheckHandler(cat)` |
-| `cataloghtmx.GenerateEventCatalog(...)` | `docserver.GenerateEventCatalog(...)` |
-| `cataloghtmx.OpenAPIHandler(cat)` | `docserver.NewDocsServer(fn, cfg).OpenAPISpec()` |
+| Old (cqrs-htmx/catalog)                 | New (go-cqrs-lite/catalog)                       |
+| --------------------------------------- | ------------------------------------------------ |
+| `cataloghtmx.New(...)`                  | `simple.New(...)`                                |
+| `cataloghtmx.Command[T](b, id)`         | `simple.Command[T](b, id)`                       |
+| `cataloghtmx.D2Handler(cat)`            | `docserver.D2Handler(cat)`                       |
+| `cataloghtmx.HealthCheckHandler(cat)`   | `docserver.HealthCheckHandler(cat)`              |
+| `cataloghtmx.GenerateEventCatalog(...)` | `docserver.GenerateEventCatalog(...)`            |
+| `cataloghtmx.OpenAPIHandler(cat)`       | `docserver.NewDocsServer(fn, cfg).OpenAPISpec()` |
 
 See [ADR 0020](../adr/0020-merge-catalog-into-go-cqrs-lite.md) for rationale.
 
@@ -211,11 +222,13 @@ See [ADR 0020](../adr/0020-merge-catalog-into-go-cqrs-lite.md) for rationale.
 `AuditLog.EntriesFor` now takes `id.AggregateID` instead of `string`:
 
 **Before:**
+
 ```go
 entries := auditLog.EntriesFor(user.ID.Get()) // string
 ```
 
 **After:**
+
 ```go
 entries := auditLog.EntriesFor(id.ParseAggregateID(user.ID.Get().String()))
 ```

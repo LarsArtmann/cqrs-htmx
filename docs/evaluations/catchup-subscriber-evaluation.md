@@ -19,6 +19,7 @@ This is ~130 LOC. It works correctly and is well-tested.
 ## What CatchUpSubscriber Provides
 
 `watermill.CatchUpSubscriber` is a generic subscriber that:
+
 - Reads from a seekable source (journal) from a given offset
 - Then subscribes to live events
 - Handles the journal→live transition internally
@@ -26,11 +27,13 @@ This is ~130 LOC. It works correctly and is well-tested.
 ## Evaluation
 
 ### Pros of Adoption
+
 - Less custom code (~40-50 LOC saved)
 - Battle-tested transition logic
 - Built-in offset tracking
 
 ### Cons of Adoption
+
 - **Requires watermill Router setup** — adds boilerplate (Router, SubscriberAdapter, MessageHandler)
 - **Changes the message model** — watermill uses `message.Message` wrappers; our projections expect `event.Event` directly. Adapter needed.
 - **Our read models don't fit `kv.TypedStore`** — the CatchUpSubscriber is designed for `kv.TypedStore`-backed projections. Our read models have complex event handling (12-event switches, external account indexes) that don't fit the declarative pattern.
@@ -40,6 +43,7 @@ This is ~130 LOC. It works correctly and is well-tested.
 ### Verdict: Defer
 
 The manual replay is correct, tested, and simple. The migration cost (adapters, router setup, test rewrites) exceeds the benefit (~50 LOC saved). Revisit when:
+
 - We need offset-based resumable replay (e.g., after crash)
 - We adopt `kv.TypedStore` for read models (ADR 0019 unblocks)
 - A production deployment reports replay performance issues

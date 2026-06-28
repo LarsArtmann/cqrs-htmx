@@ -22,7 +22,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200) |
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                         |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage    | 95.4% root, 80.1% usermgmt (~745 usermgmt + ~95 root tests)                                          |
+| Coverage    | 95.4% root, 80.1% usermgmt (~745 usermgmt + ~95 root tests)                                           |
 
 ## Architecture
 
@@ -92,6 +92,7 @@ cqrs-htmx/
 │   ├── es_tenant_decide.go    # TenantDecider + decide functions
 │   ├── es_tenant_dispatch.go  # RegisterTenantCommands
 │   ├── es_tenant_readmodel.go # TenantReadModel projection + FindByID/FindByName
+│   ├── es_tenant_materialize.go # MaterializedTenantReadModel — stack.Materialize-backed alternative (ADR-0022)
 │   ├── es_bot_events.go       # BotRegistered/Deleted payloads
 │   ├── es_bot_commands.go     # RegisterBot/DeleteBot commands
 │   ├── es_bot_state.go        # BotState + foldBot
@@ -530,7 +531,7 @@ cd examples/admin-demo && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go 
 - **`NewSQLiteEventSourcedSetup(cfg)`**: One-call setup using `stack/sqlite.New(dsn)`. Creates event store + bus + 4 SQL read models + projections + graceful shutdown. Recommended for production single-process deployments.
 - **`NewPostgresEventSourcedSetup(cfg)`**: Same for PostgreSQL. Supports multi-DB split (`EventDSN`/`QueryDSN` for I/O isolation).
 - **SecurityHooks preserved**: Stack presets don't expose injection points directly, but `stack.Repository(bundle, decider)` accesses the internal store. The wrapping happens via `wrapEventStore` before repository creation.
-- **`stack.Materialize[V,K]`**: Evaluated but not adopted — our read models have complex event handling (12-event switches, external account indexes) that don't fit the declarative OnCreate/OnUpdate/OnTombstone pattern.
+- **`stack.Materialize[V,K]`**: Evaluated in depth (ADR-0022). **Adopted for TenantReadModel** (`MaterializedTenantReadModel` — opt-in alternative, production-ready, 4 tests). **Deferred for Bot/Membership** until go-cqrs-lite ships Materialize with `event.Projection` interface (v3.1.0 only has `HandlerFunc` for Watermill router — our dispatch uses `slices.Contains` over `EventTypes()`, which Materialize returns nil for, requiring a wrapper). **Rejected for UserReadModel** (composite `externalAccounts` index doesn't map to `ViewQuery`; 12-event switch moves but doesn't shrink) and **CasbinProjection** (side-effecting, no value state — architecturally incompatible). Key correction to prior assessment: the "12-event switch doesn't fit" rationale was partially wrong — `OnUpdate` receives ALL events and you branch internally (same switch, relocated); the real value is the `kv.ViewStore` backend (`ViewQuerier`/`ViewCounter`/`ViewResetter`/`TombstoneQuerier`), not the dispatch.
 - **`CatchUpSubscriber`**: Not yet adopted — `StartProjections` still uses manual journal replay + `bus.SubscribeAll`. Migration is a future task.
 - **`stack/v3` + `stack/sqlite/v3` + `stack/postgres/v3`**: New dependencies in usermgmt. Added `pgx/v5` transitively.
 
