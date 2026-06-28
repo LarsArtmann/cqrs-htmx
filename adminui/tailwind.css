@@ -135,3 +135,87 @@ body {
     transform: translateY(0);
   }
 }
+
+/* ---------- Honest UI: sync-state lifecycle ---------- */
+/* Driven by data-sync-state="pending|confirmed|rejected" DOM attributes.
+   CSS reacts to the attribute — no JS class toggling needed for appearance.
+   See ADR 0024 for the mutation lifecycle FSM. */
+
+/* Pending: item appears immediately (optimistic) but looks different.
+   Dashed border signals "not yet confirmed" at a glance. */
+[data-sync-state="pending"] {
+  opacity: 0.65;
+  border: 2px dashed var(--warn) !important;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+
+/* Confirmed: server accepted the command. Solid border, full opacity.
+   Transitions smoothly from pending. */
+[data-sync-state="confirmed"] {
+  opacity: 1;
+  border: 2px solid var(--ok) !important;
+  transition: opacity 0.3s, border-color 0.3s;
+}
+
+/* Rejected: server rejected or transport failed.
+   Never-silent rollback — item stays visible with error styling. */
+[data-sync-state="rejected"] {
+  opacity: 1;
+  border: 2px solid var(--err) !important;
+  background: color-mix(in srgb, var(--err) 8%, var(--surface)) !important;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+
+/* Sync dot: 8px colored circle, glanceable sync provenance indicator. */
+.sync-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+  background: var(--muted);
+}
+[data-sync-state="pending"] .sync-dot {
+  background: var(--warn);
+  animation: sync-pulse 1.2s ease-in-out infinite;
+}
+[data-sync-state="confirmed"] .sync-dot {
+  background: var(--ok);
+}
+[data-sync-state="rejected"] .sync-dot {
+  background: var(--err);
+}
+@keyframes sync-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Sync bar: global indicator in the page header.
+   Shows aggregate counts: "All saved" (green), "N pending" (yellow), "N failed" (red). */
+.sync-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.sync-bar[data-sync-status="idle"] {
+  color: var(--muted);
+}
+.sync-bar[data-sync-status="pending"] {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.sync-bar[data-sync-status="failed"] {
+  color: var(--err);
+  border-color: var(--err);
+}
+.sync-bar[data-sync-status="ok"] {
+  color: var(--ok);
+  border-color: var(--ok);
+}

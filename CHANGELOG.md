@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **Production SSEEventStore** (`JournalSSEStore`): Backed by `event.SeekableJournal` for efficient cursor-based replay. Falls back to `ReadAll` + in-memory filter when the journal doesn't support `ReadFrom`. `WithMaxReplay(n)` limits first-connection replay volume (default 1000). Consumer-provided `EventToSSEMapper` function converts domain events to SSE events.
+- **ACK protocol** (command confirmation): `CommandAck` struct with `{commandId, status, error}` JSON. `BroadcastOnAck()` / `BroadcastOnAckFunc()` on `Broadcaster` (SSE) and `BroadcastOnAckWS()` / `BroadcastOnAckWSFunc()` on `WSBroadcaster` (WS parity). Opt-in via `X-Command-Id` header.
+- **Integration tests**: 6 end-to-end tests prove `JournalSSEStore` + `Broadcaster` + ACK protocol work together in real HTTP handlers (replay, confirmed/rejected ACK, reconnect + live ACK, opt-in guard, concurrent race).
+- **ADRs**: 0023 (command-sync — sync commands not events), 0024 (honest UI — never lie about pending state).
+
 ## [3.2.0] - 2026-06-28
 
 ### Changed

@@ -26,8 +26,8 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 - **Rate limiting** — per-key token-bucket with min-heap eviction, configurable burst, and hook callbacks
 - **Security headers** — automatic `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, plus optional CSP/HSTS/Permissions-Policy
 - **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
-- **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `SSEEventStore` for reconnection replay, CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive
-- **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge
+- **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `JournalSSEStore` (production durable replay via `event.SeekableJournal`), CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive, **ACK protocol** (`BroadcastOnAck` — opt-in command confirmation via `X-Command-Id` header)
+- **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge, `BroadcastOnAckWS` for command confirmation
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v3.1.0
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified) with ETag/caching. Opt-in, zero CDN dependency
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers
