@@ -801,7 +801,6 @@
       }
     </style>
   </head>
-  </head>
   <body>
     <div class="top-bar">
       <span>BRUTAL SELF-REVIEW</span>
@@ -833,8 +832,8 @@
           <div class="hero-badge">Brutal Self-Review</div>
           <h1>stack.Materialize Evaluation &mdash; What I Got Wrong</h1>
           <p class="hero-subtitle">
-            An honest review of the MaterializedTenantReadModel prototype (ADR-0022).
-            One ghost system, two split brains, three lies by omission &mdash; and a path to fix it all.
+            An honest review of the MaterializedTenantReadModel prototype (ADR-0022). One ghost
+            system, two split brains, three lies by omission &mdash; and a path to fix it all.
           </p>
         </div>
 
@@ -860,10 +859,9 @@
 
         <p>
           The evaluation itself was valuable &mdash; ADR-0022 correctly identifies that
-          <code>stack.Materialize</code> works for Tenant/Bot but not for User/Casbin.
-          The <strong>prototype code</strong> is the problem: it's a ghost system that
-          no consumer can reach, creates two split brains, and contains three unverified
-          claims presented as fact.
+          <code>stack.Materialize</code> works for Tenant/Bot but not for User/Casbin. The
+          <strong>prototype code</strong> is the problem: it's a ghost system that no consumer can
+          reach, creates two split brains, and contains three unverified claims presented as fact.
         </p>
 
         <h2 id="findings"><span class="num">01</span>Findings</h2>
@@ -871,34 +869,32 @@
         <div class="card card-problem">
           <h3>1. Ghost System: MaterializedTenantReadModel is Dead Code</h3>
           <p>
-            <strong>The prototype is completely unreachable.</strong> No constructor,
-            setup function, or Service path references it. <code>es_setup.go:164</code>
-            uses <code>NewTenantReadModel()</code>, <code>sqlite_setup.go:87</code>
-            uses <code>NewSQLiteTenantReadModel()</code>, and
-            <code>service_core.go:245</code> receives <code>*TenantReadModel</code>.
-            The Materialized version exists only in its own definition and test files.
+            <strong>The prototype is completely unreachable.</strong> No constructor, setup
+            function, or Service path references it. <code>es_setup.go:164</code> uses
+            <code>NewTenantReadModel()</code>, <code>sqlite_setup.go:87</code> uses
+            <code>NewSQLiteTenantReadModel()</code>, and <code>service_core.go:245</code> receives
+            <code>*TenantReadModel</code>. The Materialized version exists only in its own
+            definition and test files.
           </p>
           <p>
-            <strong>Why it matters:</strong> Dead code rots. It compiles, it lints,
-            it "passes tests" &mdash; but it provides zero value. Worse, it misleads
-            future contributors into thinking the Materialize path is wired up.
+            <strong>Why it matters:</strong> Dead code rots. It compiles, it lints, it "passes
+            tests" &mdash; but it provides zero value. Worse, it misleads future contributors into
+            thinking the Materialize path is wired up.
           </p>
         </div>
 
         <div class="card card-problem">
           <h3>2. Redundant with Existing SQLTenantReadModel</h3>
           <p>
-            <code>SQLTenantReadModel</code> (<code>sql_readmodel_extra.go:107</code>)
-            already provides SQL persistence, indexed queries
-            (<code>FindByNameSQL</code>), and a <code>TenantView</code> with
-            <code>view:</code> tags. The Materialized prototype adds <strong>zero
-            net capabilities</strong> &mdash; it just uses a different dispatch model
+            <code>SQLTenantReadModel</code> (<code>sql_readmodel_extra.go:107</code>) already
+            provides SQL persistence, indexed queries (<code>FindByNameSQL</code>), and a
+            <code>TenantView</code> with <code>view:</code> tags. The Materialized prototype adds
+            <strong>zero net capabilities</strong> &mdash; it just uses a different dispatch model
             for the same end result.
           </p>
           <p>
-            <strong>Should have checked first.</strong> The user explicitly asked:
-            "reflect if we already have some code that would fit your requirements."
-            I didn't.
+            <strong>Should have checked first.</strong> The user explicitly asked: "reflect if we
+            already have some code that would fit your requirements." I didn't.
           </p>
         </div>
 
@@ -906,9 +902,8 @@
           <h3>3. Untested SQL Path</h3>
           <p>
             The ADR claims "Native via <code>storage.SQLViewStore</code>" but only
-            <code>kv.NewMemStore()</code> was tested. The SQL-backed path &mdash; the
-            entire value proposition over the existing in-memory model &mdash; is
-            completely unverified.
+            <code>kv.NewMemStore()</code> was tested. The SQL-backed path &mdash; the entire value
+            proposition over the existing in-memory model &mdash; is completely unverified.
           </p>
         </div>
 
@@ -916,11 +911,11 @@
           <h3>4. Ghost Record Bug in OnTombstone</h3>
           <p>
             When <code>existing == nil</code>, <code>OnTombstone</code> returns
-            <code>&amp;Tenant{Deleted: true}</code> &mdash; a record with no ID, no Name,
-            no DisplayName. This ghost record persists in the store and pollutes
+            <code>&amp;Tenant{Deleted: true}</code> &mdash; a record with no ID, no Name, no
+            DisplayName. This ghost record persists in the store and pollutes
             <code>List(IncludeTombstoned)</code> results. The original
-            <code>TenantReadModel</code> safely <code>delete(map, aggID)</code> which
-            is a no-op for missing keys.
+            <code>TenantReadModel</code> safely <code>delete(map, aggID)</code> which is a no-op for
+            missing keys.
           </p>
         </div>
 
@@ -929,13 +924,17 @@
         <div class="card card-problem">
           <h3>MaterializedTenantReadModel</h3>
           <div class="dep-tree">
-            <span class="root">usermgmt</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&crarr; es_tenant_materialize.go<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="unwanted">&otimes; DEAD CODE</span> &mdash; 0 references from any setup/service path
+            <span class="root">usermgmt</span><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&crarr; es_tenant_materialize.go<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="unwanted"
+              >&otimes; DEAD CODE</span
+            >
+            &mdash; 0 references from any setup/service path
           </div>
           <p>
-            <strong>Value in the code:</strong> None &mdash; redundant with SQLTenantReadModel.<br>
-            <strong>Value in the evaluation:</strong> High &mdash; ADR-0022 captures the findings.<br>
+            <strong>Value in the code:</strong> None &mdash; redundant with SQLTenantReadModel.<br />
+            <strong>Value in the evaluation:</strong> High &mdash; ADR-0022 captures the
+            findings.<br />
             <strong>Decision:</strong> Remove the code, keep the ADR.
           </p>
         </div>
@@ -945,10 +944,9 @@
         <div class="card card-warning">
           <h3>Split Brain 1: IsTombstoned() vs Deleted</h3>
           <p>
-            Added <code>func (t *Tenant) IsTombstoned() bool { return t.Deleted }</code>
-            to satisfy <code>stack.FilterTombstoned</code>. But <code>Tenant</code>
-            already has <code>Deleted bool</code>. Now there are two ways to check the
-            same concept:
+            Added <code>func (t *Tenant) IsTombstoned() bool { return t.Deleted }</code> to satisfy
+            <code>stack.FilterTombstoned</code>. But <code>Tenant</code> already has
+            <code>Deleted bool</code>. Now there are two ways to check the same concept:
           </p>
           <pre><code><span class="tok-comment">// Option A: the field (existing)</span>
 <span class="tok-keyword">if</span> t.Deleted { ... }
@@ -956,8 +954,8 @@
 <span class="tok-comment">// Option B: the method (added by prototype)</span>
 <span class="tok-keyword">if</span> t.<span class="tok-func">IsTombstoned</span>() { ... }</code></pre>
           <p>
-            The method adds no information. It's a redundant coupling of the domain
-            type to a tombstone-filtering convention.
+            The method adds no information. It's a redundant coupling of the domain type to a
+            tombstone-filtering convention.
           </p>
         </div>
 
@@ -969,9 +967,8 @@
 <span class="tok-comment">// Prototype</span>
 <span class="tok-keyword">func</span> (m *<span class="tok-type">MaterializedTenantReadModel</span>) <span class="tok-func">FindByID</span>(ctx <span class="tok-type">context.Context</span>, aggID <span class="tok-type">id.AggregateID</span>) (*<span class="tok-type">Tenant</span>, <span class="tok-type">bool</span>)</code></pre>
           <p>
-            Different signatures, no shared interface. Consumer code cannot swap
-            between them without call-site changes. This defeats the "opt-in
-            alternative" claim.
+            Different signatures, no shared interface. Consumer code cannot swap between them
+            without call-site changes. This defeats the "opt-in alternative" claim.
           </p>
         </div>
 
@@ -982,19 +979,18 @@
           <p>
             The entire point of Materialize was to eliminate the manual switch. But
             <code>OnUpdate</code> still branches on <code>evt.Type()</code> for
-            Suspended/Reactivated. Materialize didn't reduce complexity &mdash; it
-            relocated it from <code>Handle</code> to <code>OnUpdate</code>. The net
-            LOC went UP (90 vs 45), not down.
+            Suspended/Reactivated. Materialize didn't reduce complexity &mdash; it relocated it from
+            <code>Handle</code> to <code>OnUpdate</code>. The net LOC went UP (90 vs 45), not down.
           </p>
         </div>
 
         <div class="card">
           <h3>50 LOC of fragile dispatch replication</h3>
           <p>
-            <code>handleTombstone</code> + <code>handleRegular</code> + <code>persist</code>
-            replicate the upstream <code>handleEvent</code> (unexported in v3.1.0).
-            If upstream changes the dispatch logic, our copy drifts silently.
-            The correct approach: use <code>watermill.EventToMessage</code> &rarr;
+            <code>handleTombstone</code> + <code>handleRegular</code> +
+            <code>persist</code> replicate the upstream <code>handleEvent</code> (unexported in
+            v3.1.0). If upstream changes the dispatch logic, our copy drifts silently. The correct
+            approach: use <code>watermill.EventToMessage</code> &rarr;
             <code>mat.HandlerFunc()</code> round-trip to delegate to upstream dispatch.
           </p>
         </div>
@@ -1003,10 +999,10 @@
           <h3>Misleading test</h3>
           <p>
             <code>TestMaterializedTenantReadModel_UnknownEventRejected</code> sends
-            <code>event.Type("TenantMigrated")</code> directly to <code>Handle()</code>.
-            But the projection dispatch (<code>slices.Contains</code> over
-            <code>EventTypes()</code>) would never route this event to the projection.
-            The test exercises an impossible production path and gives false confidence.
+            <code>event.Type("TenantMigrated")</code> directly to <code>Handle()</code>. But the
+            projection dispatch (<code>slices.Contains</code> over <code>EventTypes()</code>) would
+            never route this event to the projection. The test exercises an impossible production
+            path and gives false confidence.
           </p>
         </div>
 
@@ -1016,18 +1012,17 @@
           <h3>Did I lie to you? Yes &mdash; three times.</h3>
           <ol>
             <li>
-              <strong>"Production-ready"</strong> &mdash; in the ADR. The code is
-              unwired, untested with SQL, and contains a ghost-record bug. It is
-              a prototype, not production-ready.
+              <strong>"Production-ready"</strong> &mdash; in the ADR. The code is unwired, untested
+              with SQL, and contains a ghost-record bug. It is a prototype, not production-ready.
             </li>
             <li>
-              <strong>"Opt-in alternative"</strong> &mdash; in the ADR. There is no
-              opt-in path. No constructor, no config flag, no setup function accepts
+              <strong>"Opt-in alternative"</strong> &mdash; in the ADR. There is no opt-in path. No
+              constructor, no config flag, no setup function accepts
               <code>MaterializedTenantReadModel</code>.
             </li>
             <li>
-              <strong>"Native SQL integration"</strong> &mdash; in the ADR comparison
-              table. Claimed without testing. The SQL path is unverified.
+              <strong>"Native SQL integration"</strong> &mdash; in the ADR comparison table. Claimed
+              without testing. The SQL path is unverified.
             </li>
           </ol>
         </div>
@@ -1063,7 +1058,9 @@
               </tr>
               <tr>
                 <td>3</td>
-                <td>Build generic MaterializeProjection[V,K] adapter (EventToMessage round-trip)</td>
+                <td>
+                  Build generic MaterializeProjection[V,K] adapter (EventToMessage round-trip)
+                </td>
                 <td>30 min</td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>&starf;&starf;&starf;&starf;&starf;</td>
@@ -1099,9 +1096,8 @@
             <h4>Remove ghost prototype code</h4>
             <p>
               Delete <code>es_tenant_materialize.go</code>,
-              <code>es_tenant_materialize_test.go</code>, and the
-              <code>IsTombstoned()</code> method on <code>*Tenant</code>.
-              Keep ADR-0022 &mdash; the evaluation findings are valuable.
+              <code>es_tenant_materialize_test.go</code>, and the <code>IsTombstoned()</code> method
+              on <code>*Tenant</code>. Keep ADR-0022 &mdash; the evaluation findings are valuable.
             </p>
           </div>
         </div>
@@ -1113,10 +1109,9 @@
             <p>
               Instead of a Tenant-specific wrapper, build a generic
               <code>MaterializeProjection[V, K]</code> that wraps any
-              <code>stack.Materialize</code> as <code>event.Projection</code>.
-              Uses <code>watermill.EventToMessage</code> &rarr;
-              <code>mat.HandlerFunc()</code> round-trip to delegate dispatch
-              to upstream code &mdash; zero replication. Any read model can
+              <code>stack.Materialize</code> as <code>event.Projection</code>. Uses
+              <code>watermill.EventToMessage</code> &rarr; <code>mat.HandlerFunc()</code> round-trip
+              to delegate dispatch to upstream code &mdash; zero replication. Any read model can
               adopt Materialize with a one-liner.
             </p>
           </div>
@@ -1127,9 +1122,8 @@
           <div class="migration-content">
             <h4>Test adapter + update docs</h4>
             <p>
-              Prove the adapter works with a Tenant example. Update ADR-0022
-              to be honest: prototype removed as ghost system, adapter added
-              as reusable utility. Update AGENTS.md entry.
+              Prove the adapter works with a Tenant example. Update ADR-0022 to be honest: prototype
+              removed as ghost system, adapter added as reusable utility. Update AGENTS.md entry.
             </p>
           </div>
         </div>
@@ -1139,24 +1133,22 @@
         <div class="card card-solution">
           <h3>Use upstream watermill.EventToMessage to avoid dispatch replication</h3>
           <p>
-            <code>watermill.EventToMessage(evt)</code> (&rarr;
-            <code>protocol.go:44</code>) converts an event to a Watermill message.
-            <code>mat.HandlerFunc()</code> decodes it back and dispatches via
-            upstream's <code>handleEvent</code>. This eliminates the 50 LOC of
-            fragile dispatch replication entirely &mdash; the adapter delegates to
-            upstream code, automatically tracking future changes.
+            <code>watermill.EventToMessage(evt)</code> (&rarr; <code>protocol.go:44</code>) converts
+            an event to a Watermill message. <code>mat.HandlerFunc()</code> decodes it back and
+            dispatches via upstream's <code>handleEvent</code>. This eliminates the 50 LOC of
+            fragile dispatch replication entirely &mdash; the adapter delegates to upstream code,
+            automatically tracking future changes.
           </p>
         </div>
 
         <div class="card card-solution">
           <h3>Existing code that already fits</h3>
           <p>
-            <code>SQLTenantReadModel</code> already provides SQL persistence, indexed
-            queries, and a typed view. The existing <code>storage.SQLViewStore</code>
-            already implements <code>kv.ViewStore</code>. The existing
-            <code>storage.AutoMapper</code> generates <code>ViewMapper</code> from
-            struct tags. All the infrastructure is there &mdash; what's missing is just
-            the <code>event.Projection</code> conformance for Materialize, which the
+            <code>SQLTenantReadModel</code> already provides SQL persistence, indexed queries, and a
+            typed view. The existing <code>storage.SQLViewStore</code> already implements
+            <code>kv.ViewStore</code>. The existing <code>storage.AutoMapper</code> generates
+            <code>ViewMapper</code> from struct tags. All the infrastructure is there &mdash; what's
+            missing is just the <code>event.Projection</code> conformance for Materialize, which the
             adapter provides.
           </p>
         </div>
