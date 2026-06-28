@@ -182,5 +182,5 @@ func (s *SSEStream) OnDisconnect(fn func()) {
 //	    }
 //	}
 func LastEventIDFromRequest(r *http.Request) SSEEventID {
-	return SSEEventID(r.Header.Get("Last-Event-ID"))
+	return NewSSEEventID(r.Header.Get("Last-Event-ID"))
 }

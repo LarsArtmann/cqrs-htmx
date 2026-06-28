@@ -17,7 +17,7 @@ func ExampleWriteSSEEvent() {
 	err := cqrshtmx.WriteSSEEvent(w, cqrshtmx.SSEEvent{
 		Event: "todoCreated",
 		Data:  "<li>Buy milk</li>",
-		ID:    "evt-1",
+		ID:    cqrshtmx.NewSSEEventID("evt-1"),
 	})
 	if err != nil {
 		panic(err)

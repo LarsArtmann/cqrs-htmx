@@ -164,13 +164,13 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				stream := cqrshtmx.NewSSEStream(rec, r)
 				defer stream.Close()
 
-				Expect(stream.LastEventID()).To(BeEquivalentTo("2"))
+				Expect(stream.LastEventID()).To(Equal(cqrshtmx.NewSSEEventID("2")))
 
 				store := &memoryEventStore{events: []cqrshtmx.SSEEvent{
-					{Event: eventItem, Data: "first", ID: "1"},
-					{Event: eventItem, Data: "second", ID: "2"},
-					{Event: eventItem, Data: "third", ID: "3"},
-					{Event: eventItem, Data: "fourth", ID: "4"},
+					{Event: eventItem, Data: "first", ID: cqrshtmx.NewSSEEventID("1")},
+					{Event: eventItem, Data: "second", ID: cqrshtmx.NewSSEEventID("2")},
+					{Event: eventItem, Data: "third", ID: cqrshtmx.NewSSEEventID("3")},
+					{Event: eventItem, Data: "fourth", ID: cqrshtmx.NewSSEEventID("4")},
 				}}
 
 				n, err := cqrshtmx.ReplayEvents(stream, store, stream.LastEventID())
@@ -203,7 +203,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				defer stream.Close()
 
 				Expect(stream.Send(cqrshtmx.SSEEvent{
-					Event: eventUpdate, Data: "ping", ID: "42", Retry: 3000,
+					Event: eventUpdate, Data: "ping", ID: cqrshtmx.NewSSEEventID("42"), Retry: 3000,
 				})).To(Succeed())
 
 				body := rec.Body.String()

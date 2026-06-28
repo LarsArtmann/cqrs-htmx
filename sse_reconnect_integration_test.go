@@ -43,10 +43,10 @@ const reconnectEventKind = "itemCreated"
 func newReconnectStore() *memoryEventStore {
 	return &memoryEventStore{
 		events: []cqrshtmx.SSEEvent{
-			{Event: reconnectEventKind, Data: "<li>first</li>", ID: "1"},
-			{Event: reconnectEventKind, Data: "<li>second</li>", ID: "2"},
-			{Event: reconnectEventKind, Data: "<li>third</li>", ID: "3"},
-			{Event: reconnectEventKind, Data: "<li>fourth</li>", ID: "4"},
+			{Event: reconnectEventKind, Data: "<li>first</li>", ID: cqrshtmx.NewSSEEventID("1")},
+			{Event: reconnectEventKind, Data: "<li>second</li>", ID: cqrshtmx.NewSSEEventID("2")},
+			{Event: reconnectEventKind, Data: "<li>third</li>", ID: cqrshtmx.NewSSEEventID("3")},
+			{Event: reconnectEventKind, Data: "<li>fourth</li>", ID: cqrshtmx.NewSSEEventID("4")},
 		},
 	}
 }
@@ -56,7 +56,7 @@ func newReconnectMux(store *memoryEventStore, includeReplayOnError bool) *http.S
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := cqrshtmx.NewSSEStream(w, r)
 		defer stream.Close()
-		if lastID := cqrshtmx.LastEventIDFromRequest(r); lastID != "" {
+		if lastID := cqrshtmx.LastEventIDFromRequest(r); !lastID.IsZero() {
 			if _, err := cqrshtmx.ReplayEvents(stream, store, lastID); err != nil {
 				if includeReplayOnError {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -132,7 +132,7 @@ func TestSSE_RealServer_ReconnectionNoLastID(t *testing.T) {
 	t.Parallel()
 	store := &memoryEventStore{
 		events: []cqrshtmx.SSEEvent{
-			{Event: "x", Data: "y", ID: "1"},
+			{Event: "x", Data: "y", ID: cqrshtmx.NewSSEEventID("1")},
 		},
 	}
 
@@ -140,7 +140,7 @@ func TestSSE_RealServer_ReconnectionNoLastID(t *testing.T) {
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := cqrshtmx.NewSSEStream(w, r)
 		defer stream.Close()
-		if lastID := cqrshtmx.LastEventIDFromRequest(r); lastID != "" {
+		if lastID := cqrshtmx.LastEventIDFromRequest(r); !lastID.IsZero() {
 			_, _ = cqrshtmx.ReplayEvents(stream, store, lastID)
 		}
 	})

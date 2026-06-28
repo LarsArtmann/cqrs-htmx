@@ -48,8 +48,8 @@ func TestJournalSSEStore_EventsAfterAll(t *testing.T) {
 	// Verify ascending order (events are stored in order)
 	for i, evt := range result {
 		expected := events[i].ID().String()
-		if evt.ID.String() != expected {
-			t.Errorf("event[%d]: expected ID %q, got %q", i, expected, evt.ID.String())
+		if evt.ID.Get() != expected {
+			t.Errorf("event[%d]: expected ID %q, got %q", i, expected, evt.ID.Get())
 		}
 	}
 }
@@ -69,8 +69,8 @@ func TestJournalSSEStore_EventsAfterCursor(t *testing.T) {
 		t.Fatalf("expected 2 events after cursor, got %d", len(result))
 	}
 
-	if result[0].ID.String() != events[3].ID().String() {
-		t.Errorf("expected first event ID %q, got %q", events[3].ID().String(), result[0].ID.String())
+	if result[0].ID.Get() != events[3].ID().String() {
+		t.Errorf("expected first event ID %q, got %q", events[3].ID().String(), result[0].ID.Get())
 	}
 }
 
@@ -136,8 +136,8 @@ func TestJournalSSEStore_MaxReplay(t *testing.T) {
 	}
 
 	// Should be events 8, 9, 10
-	if result[0].ID.String() != events[7].ID().String() {
-		t.Errorf("expected first event ID %q, got %q", events[7].ID().String(), result[0].ID.String())
+	if result[0].ID.Get() != events[7].ID().String() {
+		t.Errorf("expected first event ID %q, got %q", events[7].ID().String(), result[0].ID.Get())
 	}
 }
 
@@ -169,8 +169,8 @@ func TestJournalSSEStore_FullScanFallback(t *testing.T) {
 		t.Fatalf("expected 2 events from full-scan fallback, got %d", len(result))
 	}
 
-	if result[0].ID.String() != events[3].ID().String() {
-		t.Errorf("expected first event ID %q, got %q", events[3].ID().String(), result[0].ID.String())
+	if result[0].ID.Get() != events[3].ID().String() {
+		t.Errorf("expected first event ID %q, got %q", events[3].ID().String(), result[0].ID.Get())
 	}
 }
 

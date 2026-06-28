@@ -38,7 +38,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			var buf bytes.Buffer
 			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
 				Data: "payload",
-				ID:   "42",
+				ID:   cqrshtmx.NewSSEEventID("42"),
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(buf.String()).To(ContainSubstring("id: 42\n"))
@@ -59,7 +59,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
 				Event: "fullEvent",
 				Data:  "multi\nline\ndata",
-				ID:    "evt-123",
+				ID:    cqrshtmx.NewSSEEventID("evt-123"),
 				Retry: 3000,
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -280,7 +280,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			func(input string) {
 				id, err := cqrshtmx.ParseSSEEventID(input)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(id).To(Equal(cqrshtmx.SSEEventID(input)))
+				Expect(id).To(Equal(cqrshtmx.NewSSEEventID(input)))
 			},
 			Entry("empty (initial connection)", ""),
 			Entry("numeric", "42"),
@@ -303,16 +303,16 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		)
 
 		It("NewSSEEventID constructs without validation", func() {
-			Expect(cqrshtmx.NewSSEEventID("any-value")).To(Equal(cqrshtmx.SSEEventID("any-value")))
+			Expect(cqrshtmx.NewSSEEventID("any-value")).To(Equal(cqrshtmx.NewSSEEventID("any-value")))
 		})
 
 		It("IsZero reports emptiness", func() {
-			Expect(cqrshtmx.SSEEventID("").IsZero()).To(BeTrue())
-			Expect(cqrshtmx.SSEEventID("x").IsZero()).To(BeFalse())
+			Expect(cqrshtmx.NewSSEEventID("").IsZero()).To(BeTrue())
+			Expect(cqrshtmx.NewSSEEventID("x").IsZero()).To(BeFalse())
 		})
 
-		It("String returns the underlying value", func() {
-			Expect(cqrshtmx.SSEEventID("evt-1").String()).To(Equal("evt-1"))
+		It("Get returns the underlying value", func() {
+			Expect(cqrshtmx.NewSSEEventID("evt-1").Get()).To(Equal("evt-1"))
 		})
 	})
 })
