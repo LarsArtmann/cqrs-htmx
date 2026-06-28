@@ -67,6 +67,7 @@ func (h *Handler) page(title, active string, user *usermgmt.User, r *http.Reques
 		Nav:       nav,
 		User:      user,
 		LogoutURL: h.cfg.LogoutURL,
+		SSEURL:    h.cfg.SSEURL,
 		CSRFToken: cqrshtmx.CSRFTokenFormField(r),
 		CSRFMeta:  cqrshtmx.CSRFTokenHTMLMeta(r),
 	}

@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/a-h/templ v0.3.1020
 	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.1.0
-	github.com/larsartmann/cqrs-htmx/v3 v3.1.0
+	github.com/larsartmann/cqrs-htmx/v3 v3.2.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
 	github.com/larsartmann/templ-components v0.5.0
 )
