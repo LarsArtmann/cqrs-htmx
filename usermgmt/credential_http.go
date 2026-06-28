@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 // credentialSummary is a sanitized view of a WebAuthnCredential for API responses.
@@ -27,8 +29,6 @@ type credentialListResponse struct {
 }
 
 const (
-	defaultCredentialPageSize    = 20
-	maxCredentialPageSize        = 100
 	credentialPaginationPage     = "page"
 	credentialPaginationPageSize = "page_size"
 )
@@ -52,7 +52,11 @@ func (h *AuthHandler) handleListCredentials(w http.ResponseWriter, r *http.Reque
 	}
 
 	totalCount := len(summaries)
-	page, pageSize := parsePaginationParams(r, totalCount)
+	p := query.NewPagination(
+		parseUintQueryParam(r, credentialPaginationPage),
+		parseUintQueryParam(r, credentialPaginationPageSize),
+	)
+	page, pageSize := int(p.Page), int(p.PageSize)
 	paged := paginate(summaries, page, pageSize)
 
 	writeJSON(w, http.StatusOK, credentialListResponse{
@@ -64,27 +68,18 @@ func (h *AuthHandler) handleListCredentials(w http.ResponseWriter, r *http.Reque
 	})
 }
 
-func parsePaginationParams(r *http.Request, totalCount int) (page, pageSize int) {
-	page = 1
-	pageSize = defaultCredentialPageSize
-	if v := r.URL.Query().Get(credentialPaginationPage); v != "" {
-		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
-			page = parsed
-		}
+// parseUintQueryParam extracts a uint from a query parameter, returning 0 on
+// missing or invalid values (query.NewPagination then applies defaults).
+func parseUintQueryParam(r *http.Request, key string) uint {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		return 0
 	}
-	if v := r.URL.Query().Get(credentialPaginationPageSize); v != "" {
-		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
-			pageSize = parsed
-		}
+	n, err := strconv.ParseUint(v, 10, 32)
+	if err != nil {
+		return 0
 	}
-	if pageSize > maxCredentialPageSize {
-		pageSize = maxCredentialPageSize
-	}
-	maxPage := totalPages(totalCount, pageSize)
-	if maxPage > 0 && page > maxPage {
-		page = maxPage
-	}
-	return page, pageSize
+	return uint(n)
 }
 
 func totalPages(totalCount, pageSize int) int {

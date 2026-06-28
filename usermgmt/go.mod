@@ -12,6 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.1.0
@@ -34,7 +35,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

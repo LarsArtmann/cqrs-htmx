@@ -146,7 +146,9 @@ body {
 [data-sync-state="pending"] {
   opacity: 0.65;
   border: 2px dashed var(--warn) !important;
-  transition: opacity 0.2s, border-color 0.2s;
+  transition:
+    opacity 0.2s,
+    border-color 0.2s;
 }
 
 /* Confirmed: server accepted the command. Solid border, full opacity.
@@ -154,7 +156,9 @@ body {
 [data-sync-state="confirmed"] {
   opacity: 1;
   border: 2px solid var(--ok) !important;
-  transition: opacity 0.3s, border-color 0.3s;
+  transition:
+    opacity 0.3s,
+    border-color 0.3s;
 }
 
 /* Rejected: server rejected or transport failed.
@@ -163,7 +167,9 @@ body {
   opacity: 1;
   border: 2px solid var(--err) !important;
   background: color-mix(in srgb, var(--err) 8%, var(--surface)) !important;
-  transition: opacity 0.2s, border-color 0.2s;
+  transition:
+    opacity 0.2s,
+    border-color 0.2s;
 }
 
 /* Sync dot: 8px colored circle, glanceable sync provenance indicator. */
@@ -186,8 +192,13 @@ body {
   background: var(--err);
 }
 @keyframes sync-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* Sync bar: global indicator in the page header.
@@ -202,7 +213,10 @@ body {
   font-weight: 500;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 .sync-bar[data-sync-status="idle"] {
   color: var(--muted);

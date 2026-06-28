@@ -11,6 +11,7 @@ require (
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
+	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0 // indirect

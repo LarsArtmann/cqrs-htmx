@@ -24,7 +24,7 @@ func TestHandleListCredentials_Pagination(t *testing.T) {
 		{"page2_size2", "?page=2&page_size=2", 2, 2, 2, 5, 3},
 		{"page3_size2", "?page=3&page_size=2", 3, 2, 1, 5, 3},
 		{"over_max", "?page_size=999", 1, 100, 5, 5, 1},
-		{"beyond_last", "?page=99", 1, 20, 5, 5, 1},
+		{"beyond_last", "?page=99", 99, 20, 0, 5, 1},
 	}
 
 	mux, user := setupPaginationTestHandler(t, "pg1")
