@@ -8,10 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Idempotency store** (`IdempotencyStore` interface + `MemoryIdempotencyStore`): Prevents duplicate command execution on client retry. `CheckAndRecord` interface method is truly atomic (single lock for check+record). `ErrDuplicateCommand` → HTTP 409 Conflict. TTL-based expiration with background sweep goroutine + lazy expiry in `Seen()`. See ADR-0026.
+- **admin-demo idempotency wiring**: The admin-demo showcase now rejects duplicate mutations (same `X-Command-Id`) with HTTP 409 before they reach the panel handler. Proves the feature end-to-end.
+- **ADR-0027**: Definitive decision that `decide()` stays on the server (Queue-Only client). The library provides the queue/sync/ACK protocol; pre-validation is a consumer concern. Unblocks all Phase 2 work.
 - **Production SSEEventStore** (`JournalSSEStore`): Backed by `event.SeekableJournal` for efficient cursor-based replay. Falls back to `ReadAll` + in-memory filter when the journal doesn't support `ReadFrom`. `WithMaxReplay(n)` limits first-connection replay volume (default 1000). Consumer-provided `EventToSSEMapper` function converts domain events to SSE events.
 - **ACK protocol** (command confirmation): `CommandAck` struct with `{commandId, status, error}` JSON. `BroadcastOnAck()` / `BroadcastOnAckFunc()` on `Broadcaster` (SSE) and `BroadcastOnAckWS()` / `BroadcastOnAckWSFunc()` on `WSBroadcaster` (WS parity). Opt-in via `X-Command-Id` header.
 - **Integration tests**: 6 end-to-end tests prove `JournalSSEStore` + `Broadcaster` + ACK protocol work together in real HTTP handlers (replay, confirmed/rejected ACK, reconnect + live ACK, opt-in guard, concurrent race).
-- **ADRs**: 0023 (command-sync — sync commands not events), 0024 (honest UI — never lie about pending state).
+- **ADRs**: 0023 (command-sync — sync commands not events), 0024 (honest UI — never lie about pending state), 0026 (idempotency store), 0027 (decide stays on server).
+
+### Changed
+
+- **Form decoder upgraded** (`decoder.go`): Replaced allocation-heavy JSON round-trip (`url.Values → map[string]any → JSON → struct`) with `go-playground/form/v4` (zero transitive deps, `SetTagName("json")` for backward compat). Form keys normalized to lowercase for case-insensitive field matching.
+- **Pagination unified**: Both root `DecodePagination` and usermgmt `credential_http.go` now delegate to `query.NewPagination` from go-cqrs-lite. **BREAKING**: Requesting a page beyond the last page now returns an empty page (standard REST) instead of silently clamping to the last page. The response includes `total_pages` so clients can detect the valid range.
+- **go.mod alignment**: All 8 modules aligned to Go 1.26.4.
+- **Stdlib modernization**: `slices.Contains`, `min()`, `slices.IndexFunc` replace 5 manual loops across root/usermgmt/adminui/examples.
+
+### Fixed
+
+- **Idempotency `CheckAndRecord` atomicity**: The original free function called `Seen()` then `Record()` as two separate interface calls — a TOCTOU race. Fixed by moving `CheckAndRecord` into the `IdempotencyStore` interface; `MemoryIdempotencyStore` now does check+record under a single write lock. Proven by a 200-goroutine concurrency test (exactly 1 winner).
+- **Idempotency memory leak**: `Seen()` now lazily deletes expired entries, preventing unbounded map growth when the sweep goroutine is disabled (`sweepInterval=0`).
 
 ## [3.2.0] - 2026-06-28
 
