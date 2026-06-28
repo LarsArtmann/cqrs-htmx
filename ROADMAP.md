@@ -54,9 +54,9 @@ _Focus: Close the gap between what shipped and what's documented. Improve test c
 | Test | Service-level impersonation tests through full dispatch          | High     | Done   |
 | Test | Service-level membership tests through full dispatch             | High     | Done   |
 | Test | Projection replay integration test (journal vs live dedup)       | High     | Done   |
-| Test | Property-based tests for foldTenant, foldBot, foldMembership     | Medium   | Open   |
-| Test | Fuzz tests for projection dedup + identity model deciders        | Medium   | Open   |
-| Lint | Enable revive:exported linter + fix violations                   | Medium   | Open   |
+| Test | Property-based tests for foldTenant, foldBot, foldMembership     | Medium   | Done   |
+| Test | Fuzz tests for projection dedup + identity model deciders        | Medium   | Done   |
+| Lint | Enable revive:exported linter + fix violations                   | Medium   | Done   |
 | Code | Remove deprecated ClientIP() wrapper                             | Low      | Open   |
 | Code | Verify and wire BrandNamer for root module marker types          | Medium   | Open   |
 
