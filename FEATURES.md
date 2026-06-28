@@ -115,8 +115,9 @@
 | SSE Event Writer  | 🟢 `FULLY_FUNCTIONAL` | `SSEEvent` struct, `WriteSSEEvent(w, event)` — properly formatted SSE events (event/data/id/retry, multi-line, CRLF normalization). `SSEEventID` branded type with `ParseSSEEventID`/`MustParseSSEEventID`/`NewSSEEventID`.            |
 | SSE Stream        | 🟢 `FULLY_FUNCTIONAL` | `SSEStream` manages a single SSE connection. Correct headers, flush after send, context-aware lifecycle. `LastEventID()` for reconnection. `Heartbeat(ctx, interval)` prevents proxy idle kills. `OnDisconnect(fn)` cleanup callbacks. |
 | SSE Broadcaster   | 🟢 `FULLY_FUNCTIONAL` | `Broadcaster` — thread-safe fan-out via generic `fanOut[T]`. O(1) Unsubscribe via channel identity. Buffered channels (64). Non-blocking broadcast drops to slow consumers. `SubscriberCount()`.                                       |
-| SSE Reconnection  | 🟢 `FULLY_FUNCTIONAL` | `LastEventIDFromRequest(r)`, `SSEEventStore` interface, `ReplayEvents(stream, store, lastID)` — full reconnection support per SSE spec.                                                                                                |
-| SSE + CQRS Bridge | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnSuccess(event, data)` / `BroadcastOnSuccessFunc(fn)` / `BroadcastOnError(eventName)` / `BroadcastOnErrorFunc(fn)` — AfterDispatchHook factories for SSE Broadcaster.                                                       |
+| SSE Reconnection  | 🟢 `FULLY_FUNCTIONAL` | `LastEventIDFromRequest(r)`, `SSEEventStore` interface, `ReplayEvents(stream, store, lastID)` — full reconnection support per SSE spec. **`JournalSSEStore`** provides the production impl backed by `event.SeekableJournal` (cursor-based `ReadFrom`). Falls back to `ReadAll`+filter. `WithMaxReplay(n)` limits initial sync. |
+| SSE + CQRS Bridge | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnSuccess(event, data)` / `BroadcastOnSuccessFunc(fn)` / `BroadcastOnError(eventName)` / `BroadcastOnErrorFunc(fn)` — AfterDispatchHook factories for SSE Broadcaster. |
+| ACK Protocol (SSE)| 🟢 `FULLY_FUNCTIONAL` | `CommandAck` + `BroadcastOnAck()` / `BroadcastOnAckFunc(fn)` — structured `{commandId, status, error}` ACK via SSE when request carries `X-Command-Id` header (opt-in). See ADR 0024. |
 
 ### Real-Time — WebSocket
 
@@ -128,6 +129,7 @@
 | WS Message Encoder      | 🟢 `FULLY_FUNCTIONAL` | `WriteWSMessage(w, msg)` / `WriteWSMessageInto[T](w, body, headers)` — outbound WS encoders, counterparts to `ParseWSMessage` / `ParseWSMessageInto[T]`. Round-trip verified.                       |
 | WS Broadcaster          | 🟢 `FULLY_FUNCTIONAL` | `WSBroadcaster` — thread-safe fan-out for WS messages via generic `fanOut[T]`. Mirrors SSE `Broadcaster` API. `BroadcastHTML` for OOB swaps. `SubscriberCount()`.                                   |
 | WS + CQRS Bridge        | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnSuccessWS(msg)` / `BroadcastOnSuccessWSFunc(fn)` / `BroadcastOnErrorWS()` / `BroadcastOnErrorWSFunc(fn)` — AfterDispatchHook factories for `WSBroadcaster`. Full parity with SSE hooks. |
+| ACK Protocol (WS)       | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnAckWS()` / `BroadcastOnAckWSFunc(fn)` — WebSocket ACK counterpart to SSE ACK hooks. Same `CommandAck` JSON payload, same opt-in `X-Command-Id` header. |
 
 ---
 
