@@ -22,7 +22,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200) |
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                         |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage    | 95.4% root, 80.1% usermgmt (~745 usermgmt + ~95 root tests)                                           |
+| Coverage    | 95.4% root, 80.1% usermgmt (~747 usermgmt + ~135 root tests)                                           |
 
 ## Architecture
 
@@ -174,7 +174,7 @@ cqrs-htmx/
 | Module           | go.mod                                              | Tests | Notes                                                     |
 | ---------------- | --------------------------------------------------- | ----- | --------------------------------------------------------- |
 | Root             | `github.com/larsartmann/cqrs-htmx/v3`               | Yes   | Core library                                              |
-| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`      | Yes   | Independent submodule                                     |
+| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`      | Yes   | Independent submodule; imports root for RateLimiter          |
 | adminui          | `github.com/larsartmann/cqrs-htmx/adminui/v3`       | Yes   | Admin Dashboard UI (templ+HTMX), depends on root+usermgmt |
 | integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                                |
 | datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                         |
@@ -212,7 +212,7 @@ cqrs-htmx/
 - **authMode enum**: `authNone`/`authRequired`/`authAuthorized` — impossible states unrepresentable
 - **Library principle**: Never enforce defaults that consumers might disagree with (no mandatory CSP/HSTS, no mandatory CSRF)
 - **Root module is intentionally a single flat package**: 40 files form a cohesive "HTMX-aware CQRS HTTP integration" library. The errors↔response↔csrf cycle prevents further splitting. Sub-package extraction would harm consumer UX. See `docs/modularization/PROPOSAL.md` for full analysis
-- **Root ↔ usermgmt: zero mutual imports**: Clean module boundary. Cross-module bridging happens in `integration_test/` only
+- **Root → usermgmt: zero imports** (clean boundary). **usermgmt → root: YES** (RateLimiter). usermgmt imports `cqrs-htmx/v3` for `RateLimiter` (rate limiting unification). This is a one-way dependency — root never imports usermgmt. Cross-module bridging tests happen in `integration_test/`
 
 ### Error Handling
 
@@ -352,11 +352,18 @@ cqrs-htmx/
 - **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
 - **TOTP via pquerna/otp**: Replaced hand-rolled RFC 6238 with `github.com/pquerna/otp/totp` v1.5.0. `DisableTOTP` requires a valid code to prevent MFA stripping.
 - **Import/export authorization**: `ImportExportAuthorizer` (type `AuthorizerFunc`) defaults to `RequireAdminRole`. Configurable via `HandlerConfig`.
-- **Per-endpoint rate limiting**: `HandlerConfig.RegistrationRateLimit`, `ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit`, `WebAuthnRateLimit`. All use the shared `RateLimitConfig` type. All disabled by default.
+- **Per-endpoint rate limiting**: `HandlerConfig.RegistrationRateLimit`, `ImportRateLimit`, `TOTPRateLimit`, `VerificationRateLimit`, `WebAuthnRateLimit`. All use the shared `RateLimitConfig` type (which creates root `cqrshtmx.RateLimiter` instances — token-bucket, proxy-aware KeyExtractor, TTL eviction). All disabled by default.
 - **Email value type**: `type Email string` with `ParseEmail`/`MustParseEmail`. Used in `ExportUser`. Internal types stay `string` for event backward compat.
 - **UserDataFormat** (renamed from ExportFormat): Used for both import and export. Constants: `UserDataFormatJSON`, `UserDataFormatCSV`.
 - **Bot & Impersonation are service-level APIs** (not ghost systems): `Service.RegisterBot/DeleteBot/GetBot/ResolveBotByToken`, `NewAPITokenMiddleware`, and `Service.BeginImpersonation/EndImpersonation` are intentionally service-level — consumers wire their own HTTP routes. These have full security guards (super_admin checks, reason-required, self-impersonation prevention, HMAC token hashing). No HTTP routes exist because the routing scheme, path prefixes, and auth middleware are consumer-specific decisions.
-- **Pagination unified**: Both root (`DecodePagination`) and usermgmt (`parseUintQueryParam`) now delegate to `query.NewPagination` from go-cqrs-lite. Same defaults (page=1, pageSize=20, max=100). Requesting a page beyond the last page returns an empty page (standard REST, no silent clamping).
+- **Pagination unified**: Both root (`DecodePagination`) and usermgmt (`credential_http.go`) delegate to `query.NewPagination` from go-cqrs-lite. Same defaults (page=1, pageSize=20, max=100). Requesting a page beyond the last page returns an empty page (standard REST, no silent clamping).
+
+### Rate Limiter Unification — 2026-06-28
+
+- **usermgmt → root dependency**: usermgmt now imports `cqrs-htmx/v3` for `RateLimiter`. This is a one-way dependency — root never imports usermgmt. The old claim of "zero mutual imports" is obsolete.
+- **One algorithm**: usermgmt's `perIPRateLimiter` (fixed-window, hardcoded RemoteAddr, unbounded memory leak) is DELETED. All 6 per-endpoint limiters now create root `RateLimiter` instances (token-bucket, pluggable `KeyExtractor`, TTL eviction, `MaxKeys` cap).
+- **`RateLimiter.Check(r)`**: New non-middleware entry point on root `RateLimiter` — allows per-handler rate checks without wrapping as middleware.
+- **`newLimiterFromConfig`**: Creates `cqrshtmx.NewRateLimiter` with `KeyExtractorFromRemoteAddr()` by default. Consumers can upgrade to `KeyExtractorFromClientIP()` for proxy-aware rate limiting.
 - **See**: `docs/adr/0006-event-sourced-user-aggregate.md`
 
 ### Event Signing & Encryption (Opt-in) — 2026-06-18

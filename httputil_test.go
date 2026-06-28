@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	httputil "github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -47,7 +48,7 @@ var _ = Describe("HTTP Utilities", func() {
 					r.Header.Set(headerName, headerValue)
 				}
 				r.RemoteAddr = testRemoteAddr
-				Expect(cqrshtmx.ClientIP(r)).To(Equal(expectedIP))
+				Expect(httputil.ClientIP(r)).To(Equal(expectedIP))
 			},
 			Entry("extracts first IP from X-Forwarded-For",
 				"X-Forwarded-For", "1.2.3.4, 5.6.7.8", "1.2.3.4"),
@@ -61,14 +62,14 @@ var _ = Describe("HTTP Utilities", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.RemoteAddr = "no-colon-or-port"
 
-			Expect(cqrshtmx.ClientIP(r)).To(Equal("no-colon-or-port"))
+			Expect(httputil.ClientIP(r)).To(Equal("no-colon-or-port"))
 		})
 
 		It("trims whitespace from X-Forwarded-For entries", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.Header.Set("X-Forwarded-For", "  1.2.3.4  , 5.6.7.8")
 
-			Expect(cqrshtmx.ClientIP(r)).To(Equal("1.2.3.4"))
+			Expect(httputil.ClientIP(r)).To(Equal("1.2.3.4"))
 		})
 	})
 

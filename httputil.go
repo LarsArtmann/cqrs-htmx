@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	httputil "github.com/larsartmann/httputil"
 )
 
 // WriteJSON encodes v as JSON and writes it to w with the given HTTP status code
@@ -28,13 +27,4 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	w.WriteHeader(status)
 	_, _ = buf.WriteTo(w)
 	return nil
-}
-
-// ClientIP delegates to httputil.ClientIP for client IP extraction.
-//
-// Deprecated: Import github.com/larsartmann/httputil directly and use
-// httputil.ClientIP(r) instead. This re-export will be removed in a future
-// version.
-func ClientIP(r *http.Request) string {
-	return httputil.ClientIP(r)
 }
