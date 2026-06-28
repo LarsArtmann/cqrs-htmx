@@ -96,8 +96,6 @@
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   echo "==> Root module"
                   go test ./... -count=1 -race
-                  echo "==> catalog submodule"
-                  (cd catalog && go test ./... -count=1 -race)
                   echo "==> adminui submodule"
                   (cd adminui && go test ./... -count=1 -race)
                   echo "==> usermgmt submodule"
@@ -119,8 +117,6 @@
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   echo "==> Root module"
                   go test ./... -count=1 -race
-                  echo "==> catalog submodule"
-                  (cd catalog && go test ./... -count=1 -race)
                   echo "==> adminui submodule"
                   (cd adminui && go test ./... -count=1 -race)
                   echo "==> usermgmt submodule"
@@ -148,11 +144,6 @@
                     go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
                   done
 
-                  echo "==> catalog submodule fuzz tests"
-                  (cd catalog && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done)
                   echo "==> adminui submodule fuzz tests"
                   (cd adminui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
                     echo "    -> $fuzz"
@@ -182,8 +173,6 @@
                 text = ''
                   echo "==> Root module"
                   golangci-lint run
-                  echo "==> catalog submodule"
-                  (cd catalog && golangci-lint run)
                   echo "==> adminui submodule"
                   (cd adminui && golangci-lint run)
                   echo "==> usermgmt submodule"
@@ -203,8 +192,6 @@
                   echo "==> Root module coverage"
                   go test ./... -count=1 -coverprofile=coverage.out
                   go tool cover -func=coverage.out
-                  echo "==> catalog submodule coverage"
-                  (cd catalog && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                   echo "==> adminui submodule coverage"
                   (cd adminui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                   echo "==> usermgmt submodule coverage"
@@ -223,8 +210,6 @@
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   echo "==> Root module"
                   go build ./...
-                  echo "==> catalog submodule"
-                  (cd catalog && go build ./...)
                   echo "==> adminui submodule"
                   (cd adminui && go build ./...)
                   echo "==> usermgmt submodule"
@@ -262,21 +247,6 @@
                   export GOWORK=off
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   cd usermgmt
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
-            };
-
-            test-catalog = {
-              type = "app";
-              meta.description = "Run the catalog submodule's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-catalog";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
-                  cd catalog
                   go test ./... -count=1 -race "$@"
                 '';
               };
@@ -417,7 +387,7 @@
 
             coverage-gate = {
               type = "app";
-              meta.description = "Run tests and fail if coverage drops below thresholds (root 90%, usermgmt 75%, catalog 90%)";
+              meta.description = "Run tests and fail if coverage drops below thresholds (root 90%, usermgmt 75%)";
               program = pkgs.writeShellApplication {
                 name = "coverage-gate";
                 runtimeInputs = [
@@ -440,7 +410,6 @@
                   }
                   check_cov . 90
                   check_cov usermgmt 75
-                  check_cov catalog 90
                   if [ "$fail" -eq 1 ]; then
                     echo "Coverage gate FAILED"
                     exit 1

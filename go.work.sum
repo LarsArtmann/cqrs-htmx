@@ -34,6 +34,8 @@ github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfn
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
+github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.2.0 h1:m981yU2+BwXShhup5B15DeOC1fGpW+5sO/xtaaNpi44=
+github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.2.0/go.mod h1:HNbOTuwI2mVH0p2DdO5Tg6H/DtN1lMVsyH7YL8rCT6g=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0 h1:YJ49k6SM93hrBjRw6QbvbalbD7l0dDZ4tYXL2iZHe08=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0/go.mod h1:50woocxkEaz+2Pm8m53KKsNOIU+7bDvTx43LydVgOeQ=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0/go.mod h1:CXE1J8vd0x+vB94tfK/BCyRc9GnZZKzOFVcvY8uHkdQ=

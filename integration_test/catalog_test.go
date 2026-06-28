@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v3"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/simple"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
@@ -28,26 +29,26 @@ type catalogUserQuery struct {
 }
 
 func buildCatalogForApp(app *cqrshtmx.App) *catalog.Catalog {
-	b := cataloghtmx.New(
+	b := simple.New(
 		app.ServiceName(),
 		"1.0.0",
-		cataloghtmx.WithServiceSummary("Integration test service"),
+		simple.WithServiceSummary("Integration test service"),
 	)
 
-	cataloghtmx.Command[catalogUserCmd](
+	simple.Command[catalogUserCmd](
 		b, "create-user",
-		cataloghtmx.WithOperation("POST", "/api/users"),
+		simple.WithOperation("POST", "/api/users"),
 		catalog.WithSummary("Create a new user account"),
 	)
 
-	cataloghtmx.Event[catalogUserEvent](
+	simple.Event[catalogUserEvent](
 		b, "user.created", catalog.Sends,
 		catalog.WithSummary("A user was created"),
 	)
 
-	cataloghtmx.Query[catalogUserQuery](
+	simple.Query[catalogUserQuery](
 		b, "get-user",
-		cataloghtmx.WithOperation("GET", "/api/users/{id}"),
+		simple.WithOperation("GET", "/api/users/{id}"),
 		catalog.WithSummary("Retrieve a user by ID"),
 	)
 
@@ -91,7 +92,11 @@ func TestCatalog_WithApp(t *testing.T) {
 func assertOpenAPI(t *testing.T, cat *catalog.Catalog) {
 	t.Helper()
 
-	handler := cataloghtmx.OpenAPIHandler(cat)
+	ds := docserver.NewDocsServer(func() *catalog.Catalog { return cat }, docserver.Config{
+		ServiceName: "Test",
+		Version:     "1.0.0",
+	})
+	handler := ds.OpenAPISpec()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
@@ -110,7 +115,11 @@ func assertOpenAPI(t *testing.T, cat *catalog.Catalog) {
 func assertAsyncAPI(t *testing.T, cat *catalog.Catalog) {
 	t.Helper()
 
-	handler := cataloghtmx.AsyncAPIHandler(cat)
+	ds := docserver.NewDocsServer(func() *catalog.Catalog { return cat }, docserver.Config{
+		ServiceName: "Test",
+		Version:     "1.0.0",
+	})
+	handler := ds.AsyncAPISpec()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
@@ -123,7 +132,7 @@ func assertAsyncAPI(t *testing.T, cat *catalog.Catalog) {
 func assertD2ContainsService(t *testing.T, cat *catalog.Catalog) {
 	t.Helper()
 
-	handler := cataloghtmx.D2Handler(cat)
+	handler := docserver.D2Handler(cat)
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)

@@ -24,8 +24,9 @@ import (
 	"syscall"
 	"time"
 
-	cataloghtmx "github.com/larsartmann/cqrs-htmx/catalog/v3"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/simple"
 )
 
 // --- Domain message types (these drive all schema generation) ---
@@ -63,32 +64,32 @@ type GetOrderQuery struct {
 
 // buildCatalog wires up the documentation for the Order Service.
 func buildCatalog() *catalog.Catalog {
-	b := cataloghtmx.New(
+	b := simple.New(
 		"Order Service", "1.0.0",
-		cataloghtmx.WithServiceSummary("Example service demonstrating the catalog module"),
+		simple.WithServiceSummary("Example service demonstrating the catalog module"),
 	)
 
 	// Commands — describe the HTTP request shapes.
-	cataloghtmx.Command[CreateOrderCommand](
+	simple.Command[CreateOrderCommand](
 		b, "create-order",
-		cataloghtmx.WithOperation("POST", "/orders"),
+		simple.WithOperation("POST", "/orders"),
 		catalog.WithSummary("Place a new order"),
 	)
 
 	// Events — the persisted payloads are the real contract.
-	cataloghtmx.Event[OrderCreatedEvent](
+	simple.Event[OrderCreatedEvent](
 		b, "order.created", catalog.Sends,
 		catalog.WithSummary("An order was placed"),
 	)
-	cataloghtmx.Event[OrderCancelledEvent](
+	simple.Event[OrderCancelledEvent](
 		b, "order.cancelled", catalog.Sends,
 		catalog.WithSummary("An order was cancelled"),
 	)
 
 	// Queries — read-side request shapes.
-	cataloghtmx.Query[GetOrderQuery](
+	simple.Query[GetOrderQuery](
 		b, "get-order",
-		cataloghtmx.WithOperation("GET", "/orders/{id}"),
+		simple.WithOperation("GET", "/orders/{id}"),
 		catalog.WithSummary("Retrieve an order by ID"),
 	)
 
@@ -108,17 +109,23 @@ func main() {
 
 	// Build-time artifact: generate the EventCatalog MDX file tree.
 	if *eventCatalogDir != "" {
-		if err := cataloghtmx.GenerateEventCatalog(cat, *eventCatalogDir); err != nil {
+		if err := docserver.GenerateEventCatalog(cat, *eventCatalogDir); err != nil {
 			log.Fatalf("generate event catalog: %v", err)
 		}
 		log.Printf("wrote EventCatalog files to %s", *eventCatalogDir)
 	}
 
+	// DocsServer serves OpenAPI/AsyncAPI specs (JSON) + HTML UIs.
+	ds := docserver.NewDocsServer(func() *catalog.Catalog { return cat }, docserver.Config{
+		ServiceName: "Order Service",
+		Version:     "1.0.0",
+	})
+
 	mux := http.NewServeMux()
-	mux.Handle("/openapi.json", cataloghtmx.OpenAPIHandler(cat))
-	mux.Handle("/asyncapi.json", cataloghtmx.AsyncAPIHandler(cat))
-	mux.Handle("/diagram.d2", cataloghtmx.D2Handler(cat))
-	mux.Handle("/health", cataloghtmx.HealthCheckHandler(cat))
+	mux.Handle("/openapi.json", ds.OpenAPISpec())
+	mux.Handle("/asyncapi.json", ds.AsyncAPISpec())
+	mux.Handle("/diagram.d2", docserver.D2Handler(cat))
+	mux.Handle("/health", docserver.HealthCheckHandler(cat))
 
 	srv := &http.Server{
 		Addr:              *addr,
