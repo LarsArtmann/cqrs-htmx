@@ -96,7 +96,7 @@ _Focus: Leveraging go-cqrs-lite v3's advanced capabilities._
 
 | Area    | Item                                                         | Priority | Status          |
 | ------- | ------------------------------------------------------------ | -------- | --------------- |
-| ES      | stack.Materialize for persistent read models                 | Low      | Done (ADR-0022) |
+| ES      | stack.Materialize for persistent read models                 | Low      | Done (ADR-0022: generic adapter, per-read-model decisions) |
 | ES      | CatchUpSubscriber as alternative to manual replay            | Low      | Planned         |
 | Schema  | Add schema/v3 validator for event payloads at registration   | Medium   | Planned         |
 | Test    | Integration tests against real PostgreSQL                    | Medium   | Planned         |

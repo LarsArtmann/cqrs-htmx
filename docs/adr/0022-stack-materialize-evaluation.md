@@ -119,21 +119,27 @@ the concept on the **simplest** read model:
 
 ## Decision
 
-### 1. Adopt Materialize for TenantReadModel
+### 1. Provide a generic MaterializeProjection adapter (not a per-type prototype)
 
-The prototype (`MaterializedTenantReadModel`) is production-ready and available
-as an **opt-in alternative** to `TenantReadModel`. It is NOT wired as the default
-— consumers choose via `NewMaterializedTenantReadModel()` vs `NewTenantReadModel()`.
+The initial prototype (`MaterializedTenantReadModel`) was **removed** — it was
+a ghost system (unreachable from any setup path), redundant with the existing
+`SQLTenantReadModel`, and created two split brains (`IsTombstoned()` vs `Deleted`,
+incompatible `FindByID` signatures). See the self-review report at
+`docs/reviews/2026-06-28_09-30_brutal-self-review-materialize-evaluation.html`
+for details.
 
-Rationale: cleanest fit (0 secondary indexes, tombstone already marked), proves
-the pattern, and the code is already written and tested.
+Instead, a **generic `MaterializeProjection[V, K]` adapter** was built
+(`es_materialize_adapter.go`). It wraps ANY `stack.Materialize` as
+`event.Projection` using `watermill.EventToMessage` → `Materialize.HandlerFunc`
+round-trip — zero dispatch replication, automatically tracks upstream changes.
+Any read model can adopt Materialize with a single `NewMaterializeProjection`
+call.
 
-### 2. Defer Bot + Membership until upstream ships event.Projection
+### 2. Per-read-model fit unchanged
 
-The `handleEvent` dispatch replication in the wrapper is ~50 LOC of boilerplate
-that adds maintenance burden. The unreleased go-cqrs-lite version adds a public
-`Handle()` method to Materialize, which would let the wrapper delegate directly.
-Revisit when we upgrade to that version.
+The per-read-model decision matrix (below) still holds: Tenant/Bot are good fits,
+Membership is moderate, UserReadModel and CasbinProjection are rejected. The
+adapter makes adoption a one-liner for any read model that fits.
 
 ### 3. Reject for UserReadModel and CasbinProjection
 
@@ -151,35 +157,34 @@ TenantReadModel.
 
 ### Positive
 
-- **TenantReadModel** gains: persistence-ready (any `kv.ViewStore`), tombstone-aware
-  queries, server-side filtering (SQL backends), `ViewCounter`/`ViewResetter`/
-  `ViewBatchSetter` for free
+- **Generic adapter** is reusable — any read model that fits Materialize's
+  OnCreate/OnUpdate/OnTombstone model can adopt it with zero boilerplate
+- **Zero dispatch replication** — uses upstream's own `HandlerFunc` via
+  `EventToMessage` round-trip; automatically benefits from upstream changes
 - **Evaluation is evidence-based** — working code + tests, not speculation
 - **Future migration path** is clear: when go-cqrs-lite ships Materialize as
-  `event.Projection`, the wrapper's Handle dispatch can be replaced with a
-  one-line delegation
+  `event.Projection`, the adapter becomes a thin pass-through
 
 ### Negative
 
-- **Two TenantReadModel implementations** coexist — the hand-written original
-  (default) and the Materialize-backed prototype (opt-in). This is intentional
-  during the evaluation period but should be resolved before v4.0
-- **~50 LOC of dispatch replication** in the wrapper that tracks upstream
-  `handleEvent` — must be kept in sync until the upstream ships a public Handle
-- **`IsTombstoned()` method** on `*Tenant` is a new export that couples the
-  domain type to the tombstone-filtering convention
+- **Adapter adds one indirection** per event (event → message → event round-trip).
+  Negligible for projection handling; not in a hot path.
+- **Adapter is not wired into setup** — consumers who want Materialize must
+  create the projection themselves. This is intentional (library principle:
+  don't enforce defaults).
 
 ### Neutral
 
-- **No breaking changes** — `TenantReadModel` API is unchanged; the prototype is
-  a separate, opt-in type
-- **No new dependencies** — `stack/v3` and `kv/v3` were already direct deps
+- **No breaking changes** — all existing read models are unchanged
+- **No new dependencies** — `stack/v3`, `kv/v3`, and `watermill` were already
+direct or indirect deps
 
 ## When to Revisit
 
 - **go-cqrs-lite v3.2.0+** (or whenever Materialize gains `event.Projection`
-  conformance): remove the Handle dispatch replication, delegate directly
+  conformance): the adapter's `Handle` can delegate directly to `mat.Handle()`
+  instead of the EventToMessage round-trip
 - **If UserReadModel's external-accounts index is refactored** to a separate
   view table (enabling `ViewQuery`): reconsider Materialize for User
-- **If a second read model is adopted** (Bot/Membership): factor the dispatch
-  replication into a shared generic helper
+- **If a second read model adopts the adapter** (Bot/Membership): add
+  `IsTombstoned()` to the read-model view type and test with a real SQL store
