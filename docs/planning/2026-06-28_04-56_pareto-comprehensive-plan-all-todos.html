@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pareto Plan — All TODOs, Fine-Grained</title>
+    <style>
+      :root {
+        --bg: #0b1120;
+        --s: #131c31;
+        --t: #e6edf6;
+        --m: #93a4bd;
+        --b: #233049;
+        --a: #4f46e5;
+        --ok: #22c55e;
+        --w: #f59e0b;
+        --e: #ef4444;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--t);
+        font:
+          14px/1.55 ui-sans-serif,
+          system-ui,
+          sans-serif;
+        padding: 28px;
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 25px;
+        margin: 0 0 2px;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 17px;
+        margin: 28px 0 8px;
+        border-bottom: 1px solid var(--b);
+        padding-bottom: 5px;
+      }
+      .sub {
+        color: var(--m);
+        margin-bottom: 18px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin: 14px 0 6px;
+      }
+      .stat {
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-radius: 9px;
+        padding: 12px;
+        text-align: center;
+      }
+      .stat .n {
+        font-size: 26px;
+        font-weight: 800;
+      }
+      .stat .l {
+        font-size: 10.5px;
+        color: var(--m);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .stat.ok .n { color: var(--ok); }
+      .stat.warn .n { color: var(--w); }
+      .stat.bad .n { color: var(--e); }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8px 0 4px;
+        font-size: 12.5px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--b);
+        vertical-align: top;
+      }
+      th {
+        color: var(--m);
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+      }
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .tid {
+        font-family: ui-monospace, monospace;
+        font-size: 11.5px;
+        color: var(--a);
+        white-space: nowrap;
+      }
+      .badge {
+        display: inline-block;
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+      }
+      .b-crit { background: rgba(239, 68, 68, 0.18); color: var(--e); }
+      .b-high { background: rgba(245, 158, 11, 0.18); color: var(--w); }
+      .b-med { background: rgba(79, 70, 229, 0.22); color: #a5b4fc; }
+      .b-low { background: rgba(147, 164, 189, 0.18); color: var(--m); }
+      .b-done { background: rgba(34, 197, 94, 0.18); color: var(--ok); }
+      .tier1 { color: var(--e); font-weight: 700; }
+      .tier2 { color: var(--w); font-weight: 700; }
+      .tier3 { color: var(--m); font-weight: 700; }
+      .card {
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-left: 4px solid var(--a);
+        border-radius: 9px;
+        padding: 12px 14px;
+        margin: 8px 0;
+      }
+      .card h3 { margin: 0 0 4px; font-size: 14px; }
+      .card p { margin: 3px 0; color: var(--m); }
+      .card.prob { border-left-color: var(--e); }
+      .card.sol { border-left-color: var(--ok); }
+      .card.warn { border-left-color: var(--w); }
+      .num { display: inline-block; background: var(--b); color: var(--m); font-size: 10px; padding: 1px 5px; border-radius: 3px; margin-right: 4px; }
+      .footer { color: var(--m); font-size: 11.5px; margin-top: 28px; border-top: 1px solid var(--b); padding-top: 10px; }
+      @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+  </head>
+  <body>
+    <h1>Pareto Plan — All TODOs, Fine-Grained (≤12 min tasks)</h1>
+    <p class="sub">2026-06-28 &middot; cqrs-htmx + go-cqrs-lite &middot; Consolidated from TODO_LIST.md, FEATURES.md, ROADMAP.md, and the catalog-merge self-review Top 25</p>
+
+    <div class="stats">
+      <div class="stat bad"><div class="n">45</div><div class="l">Unique Work Items</div></div>
+      <div class="stat warn"><div class="n">68</div><div class="l">Tasks (≤12 min)</div></div>
+      <div class="stat ok"><div class="n">4</div><div class="l">Already Done (excluded)</div></div>
+      <div class="stat bad"><div class="n">~31h</div><div class="l">Total Effort</div></div>
+    </div>
+
+    <h2>Pareto Breakdown — Where Is the Leverage?</h2>
+
+    <div class="card prob">
+      <h3><span class="num">1%</span> delivers ~51% — SHIP &amp; UNBLOCK</h3>
+      <p>A clean <strong>v3.2.0 release</strong> + a <strong>consumer migration guide (v2→v3)</strong> + an <strong>OAuth2 integration test</strong>. Together these make all prior work shippable and let consumers upgrade safely. Without a release tag and a migration guide, the library's accumulated value is locked.</p>
+    </div>
+    <div class="card warn">
+      <h3><span class="num">4%</span> delivers ~64% — CONFIDENCE IN THE HARD MODULE</h3>
+      <p><strong>usermgmt coverage 79.5%→85%</strong> + integration tests for the three critical event-sourced paths (<strong>impersonation, membership, projection replay dedup</strong>). usermgmt is the most complex module; proving its critical paths builds the trust a library needs.</p>
+    </div>
+    <div class="card sol">
+      <h3><span class="num">20%</span> delivers ~80% — HARDENING, DOCS, DEBT PAYDOWN</h3>
+      <p>Everything in Tier 2: TenantState invariant, event-signing round-trip test, CatchUpSubscriber evaluation, identity-module design spike, OpenTelemetry wiring, godoc examples, stale DOMAIN_LANGUAGE.md (0 identity terms!). These raise the floor without changing the shape.</p>
+    </div>
+
+    <h2>Already Done (Excluded From Plan)</h2>
+    <table>
+      <thead><tr><th>Item</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>ADR 0015 collision fix</td><td><span class="badge b-done">done</span></td><td>Fixed this session — renumbered to 0020</td></tr>
+        <tr><td>Migration checklist in AGENTS.md (#22-26)</td><td><span class="badge b-done">done</span></td><td>Fixed this session — reference sweep + write-once rule</td></tr>
+        <tr><td>VERSIONING.md</td><td><span class="badge b-done">done</span></td><td>Already exists on disk</td></tr>
+        <tr><td>Coverage gate in CI</td><td><span class="badge b-done">done</span></td><td><code>coverage-gate</code> nix app exists (root 90%, usermgmt 75%)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>TIER 1 — High Impact <span class="tier1">●</span> (Ship, Unblock, Prove Critical Paths)</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Task (each ≤12 min)</th><th>Impact</th><th>Effort</th><th>Customer Value</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td class="tid">T1.1</td><td>Verify all modules build green (nix run .#build)</td><td><span class="badge b-crit">Critical</span></td><td>5m</td><td>Release gate</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T1.2</td><td>Run full test suite + race detector</td><td><span class="badge b-crit">Critical</span></td><td>10m</td><td>Release gate</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T1.3</td><td>Bump version strings v3.1.0→v3.2.0 in all go.mod</td><td><span class="badge b-crit">Critical</span></td><td>5m</td><td>Release identity</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T1.4</td><td>Update version refs in VERSIONING.md + ROADMAP headers</td><td><span class="badge b-high">High</span></td><td>8m</td><td>Doc accuracy</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T1.5</td><td>Draft [3.2.0] CHANGELOG section (catalog merge + fixes)</td><td><span class="badge b-crit">Critical</span></td><td>12m</td><td>Consumer changelog</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T1.6</td><td>Update FEATURES.md + TODO_LIST.md version header</td><td><span class="badge b-high">High</span></td><td>5m</td><td>Doc accuracy</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T1.7</td><td>git tag v3.2.0 (annotated) + push</td><td><span class="badge b-crit">Critical</span></td><td>5m</td><td>Release publish</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T1.8</td><td>Smoke-verify <code>go get @v3.2.0</code> resolves in a scratch consumer</td><td><span class="badge b-high">High</span></td><td>8m</td><td>Release integrity</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T2.1</td><td>Outline migration guide sections (paths, bus, projections, breaks)</td><td><span class="badge b-crit">Critical</span></td><td>8m</td><td>Consumer unblock</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T2.2</td><td>Write import-path migration section (v2→/v3)</td><td><span class="badge b-crit">Critical</span></td><td>12m</td><td>Consumer unblock</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T2.3</td><td>Write EventBus/watermill migration section</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Consumer unblock</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T2.4</td><td>Write projection setup migration (manual replay + bus.SubscribeAll)</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Consumer unblock</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T2.5</td><td>Write UserID bridge section (root vs usermgmt, .Get())</td><td><span class="badge b-high">High</span></td><td>10m</td><td>Consumer unblock</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T2.6</td><td>Write breaking-changes checklist (extracted from CHANGELOG)</td><td><span class="badge b-high">High</span></td><td>10m</td><td>Consumer unblock</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T2.7</td><td>Accuracy-review guide against ADR 0016 + ADR 0018</td><td><span class="badge b-high">High</span></td><td>8m</td><td>Doc honesty</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T2.8</td><td>Link migration guide from README + ROADMAP</td><td><span class="badge b-med">Medium</span></td><td>5m</td><td>Discoverability</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T3.1</td><td>usermgmt coverage: identify uncovered funcs (go test -coverprofile)</td><td><span class="badge b-high">High</span></td><td>10m</td><td>Quality confidence</td><td>Top25 #3</td></tr>
+        <tr><td class="tid">T3.2</td><td>Add tests for uncovered service_* dispatch sites (batch 1)</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Quality confidence</td><td>Top25 #3</td></tr>
+        <tr><td class="tid">T3.3</td><td>Add tests for uncovered es_*_decide guards (batch 1)</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Quality confidence</td><td>Top25 #3</td></tr>
+        <tr><td class="tid">T3.4</td><td>Add tests for uncovered es_*_state fold edges (batch 1)</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Quality confidence</td><td>Top25 #3</td></tr>
+        <tr><td class="tid">T3.5</td><td>Re-measure coverage; iterate batches until ≥85%</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Quality confidence</td><td>Top25 #3</td></tr>
+        <tr><td class="tid">T4.1</td><td>OAuth2 integration test: set up provider mock + PKCE state</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Critical-path proof</td><td>Top25 #11</td></tr>
+        <tr><td class="tid">T4.2</td><td>OAuth2 test: begin → callback → user created/linked assertions</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Critical-path proof</td><td>Top25 #11</td></tr>
+        <tr><td class="tid">T4.3</td><td>OAuth2 test: returning-user (subject-first match) assertion</td><td><span class="badge b-high">High</span></td><td>10m</td><td>Critical-path proof</td><td>Top25 #11</td></tr>
+        <tr><td class="tid">T5.1</td><td>Impersonation integration test: BeginImpersonation through dispatch</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Critical-path proof</td><td>ROADMAP / Top25 #12</td></tr>
+        <tr><td class="tid">T5.2</td><td>Impersonation test: session-swap (origin=Impersonation) + EndImpersonation</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Critical-path proof</td><td>ROADMAP / Top25 #12</td></tr>
+        <tr><td class="tid">T6.1</td><td>Membership integration test: AddMember → roles → RemoveMember through dispatch</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Critical-path proof</td><td>ROADMAP</td></tr>
+        <tr><td class="tid">T6.2</td><td>Membership test: Casbin group-policy derivation assertions</td><td><span class="badge b-high">High</span></td><td>10m</td><td>Critical-path proof</td><td>ROADMAP</td></tr>
+        <tr><td class="tid">T7.1</td><td>Projection replay test: seed journal events, StartProjections, assert read-model state</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Critical-path proof</td><td>ROADMAP</td></tr>
+        <tr><td class="tid">T7.2</td><td>Projection test: assert journal→live dedup (no double-apply)</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Critical-path proof</td><td>ROADMAP</td></tr>
+        <tr><td class="tid">T8.1</td><td>Identity module design spike: draft ADR (root vs usermgmt ActorID)</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Architectural debt</td><td>Top25 #6 / TODO_LIST</td></tr>
+        <tr><td class="tid">T8.2</td><td>Identity spike: evaluate go-composable-business-types id.ID[Brand,V]</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Architectural debt</td><td>how-to-golang skill</td></tr>
+        <tr><td class="tid">T8.3</td><td>Identity spike: decision record + dependency-direction diagram</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Architectural debt</td><td>Top25 #6</td></tr>
+      </tbody>
+    </table>
+
+    <h2>TIER 2 — Medium Impact <span class="tier2">●</span> (Hardening, Docs, Debt)</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Task (each ≤12 min)</th><th>Impact</th><th>Effort</th><th>Customer Value</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td class="tid">T9.1</td><td>TenantState struct-level <code>IsValid()</code> method</td><td><span class="badge b-med">Medium</span></td><td>10m</td><td>Impossible-state prevention</td><td>TODO_LIST / Top25 #4</td></tr>
+        <tr><td class="tid">T9.2</td><td>TenantState IsValid() unit test (delete clears Suspended)</td><td><span class="badge b-med">Medium</span></td><td>8m</td><td>Impossible-state prevention</td><td>TODO_LIST</td></tr>
+        <tr><td class="tid">T10.1</td><td>Event-signing round-trip test: sign→encrypt→persist→decrypt→verify</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Security proof</td><td>Top25 #20</td></tr>
+        <tr><td class="tid">T10.2</td><td>Event-signing test: tamper-detection assertion (verify fails on mutation)</td><td><span class="badge b-med">Medium</span></td><td>10m</td><td>Security proof</td><td>Top25 #20</td></tr>
+        <tr><td class="tid">T11.1</td><td>DOMAIN_LANGUAGE.md: add Actor, Bot, Membership, Impersonation, Tenant terms</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Domain clarity (currently 0 identity terms!)</td><td>Top25 #22</td></tr>
+        <tr><td class="tid">T11.2</td><td>DOMAIN_LANGUAGE.md: cross-reference with ADR 0015 identity redesign</td><td><span class="badge b-med">Medium</span></td><td>5m</td><td>Domain clarity</td><td>Top25 #22</td></tr>
+        <tr><td class="tid">T12.1</td><td>Cross-repo consolidation runbook doc (port→tag→push→bump→migrate→delete)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Process repeatability</td><td>Top25 #13</td></tr>
+        <tr><td class="tid">T12.2</td><td>Link runbook from AGENTS.md migration section</td><td><span class="badge b-med">Medium</span></td><td>5m</td><td>Process repeatability</td><td>Top25 #13</td></tr>
+        <tr><td class="tid">T13.1</td><td>godoc examples: ExampleApp_Command + ExampleApp_Query</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>DX / onboarding</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T13.2</td><td>godoc examples: ExampleService_Register + ExampleSession</td><td><span class="badge b-med">Medium</span></td><td>10m</td><td>DX / onboarding</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T14.1</td><td>Enable revive:exported linter in .golangci.yml</td><td><span class="badge b-med">Medium</span></td><td>5m</td><td>Lint rigor</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T14.2</td><td>Fix revive:exported violations (add missing godoc)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Lint rigor</td><td>ROADMAP v3.1</td></tr>
+        <tr><td class="tid">T15.1</td><td>Property-based tests: foldTenant invariants (rapid)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Correctness proof</td><td>ROADMAP</td></tr>
+        <tr><td class="tid">T15.2</td><td>Property-based tests: foldBot + foldMembership invariants</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Correctness proof</td><td>ROADMAP</td></tr>
+        <tr><td class="tid">T16.1</td><td>Fuzz tests: projection dedup (idempotent apply)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Correctness proof</td><td>ROADMAP</td></tr>
+        <tr><td class="tid">T16.2</td><td>Fuzz tests: identity deciders (invalid inputs rejected)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Correctness proof</td><td>ROADMAP</td></tr>
+        <tr><td class="tid">T17.1</td><td>CatchUpSubscriber evaluation: read upstream API, write comparison memo</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Simplification potential</td><td>Top25 #5</td></tr>
+        <tr><td class="tid">T18.1</td><td>Email branded-type upcaster design (schema v1→v2 migration plan)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Next-major prep</td><td>Top25 #7 / TODO_LIST</td></tr>
+        <tr><td class="tid">T19.1</td><td>Admin UI: tenant create action (templ + handler)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Admin UX</td><td>Top25 #9</td></tr>
+        <tr><td class="tid">T19.2</td><td>Admin UI: tenant suspend/reactivate actions</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Admin UX</td><td>Top25 #9</td></tr>
+        <tr><td class="tid">T19.3</td><td>Admin UI: tenant action tests (seed_render_test extension)</td><td><span class="badge b-med">Medium</span></td><td>10m</td><td>Admin UX</td><td>Top25 #9</td></tr>
+        <tr><td class="tid">T20.1</td><td>Wire OpenTelemetry via go-cqrs-lite otel module (Config hooks)</td><td><span class="badge b-high">High</span></td><td>12m</td><td>Production observability</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T20.2</td><td>OTel: example_otel_test update + doc</td><td><span class="badge b-med">Medium</span></td><td>10m</td><td>Production observability</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T21.1</td><td>Prometheus metrics middleware (dispatch latency, error rates)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Production observability</td><td>ROADMAP v3.2</td></tr>
+        <tr><td class="tid">T22.1</td><td>schema/v3 validator for event payloads at registration (design)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Runtime safety</td><td>ROADMAP v4</td></tr>
+        <tr><td class="tid">T23.1</td><td>Integration tests against real PostgreSQL (testcontainers)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Real-dep verification</td><td>ROADMAP v4</td></tr>
+        <tr><td class="tid">T24.1</td><td>Database migration tooling spike (goose vs golang-migrate vs gnorm)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Ops DX</td><td>ROADMAP v4</td></tr>
+        <tr><td class="tid">T25.1</td><td>Redis session store implementation</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Distributed deploy</td><td>ROADMAP v3.3</td></tr>
+        <tr><td class="tid">T26.1</td><td>Streaming replay via SeekableJournal.ReadFrom (design + spike)</td><td><span class="badge b-med">Medium</span></td><td>12m</td><td>Scale</td><td>ROADMAP v3.3</td></tr>
+      </tbody>
+    </table>
+
+    <h2>TIER 3 — Low Impact <span class="tier3">●</span> (Polish, Examples, Benchmarks)</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Task (each ≤12 min)</th><th>Impact</th><th>Effort</th><th>Customer Value</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td class="tid">T27.1</td><td>Admin UI audit log viewer (list + paginate)</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Admin UX</td><td>Top25 #10</td></tr>
+        <tr><td class="tid">T27.2</td><td>Admin UI audit log viewer (filter by user/action)</td><td><span class="badge b-low">Low</span></td><td>10m</td><td>Admin UX</td><td>Top25 #10</td></tr>
+        <tr><td class="tid">T28.1</td><td>Root BrandNamer wiring for marker types (verify + wire)</td><td><span class="badge b-low">Low</span></td><td>10m</td><td>Type safety polish</td><td>TODO_LIST / Top25 #14</td></tr>
+        <tr><td class="tid">T29.1</td><td>RemoveAllRolesForUser/InDomain: type the subject param (or document why string)</td><td><span class="badge b-low">Low</span></td><td>10m</td><td>Type safety polish</td><td>TODO_LIST / Top25 #15</td></tr>
+        <tr><td class="tid">T30.1</td><td>SSE heartbeat integration test (proxy idle-disconnect)</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Realtime robustness</td><td>Top25 #16</td></tr>
+        <tr><td class="tid">T31.1</td><td>WSBroadcaster integration test (sub→broadcast→recv→unsub)</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Realtime robustness</td><td>Top25 #17</td></tr>
+        <tr><td class="tid">T32.1</td><td>CSRF TrustedProxies production recipe doc (Nginx/CF/Docker)</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Deploy safety</td><td>Top25 #18</td></tr>
+        <tr><td class="tid">T33.1</td><td>Rate limiter benchmark: per-key lookup high cardinality (1000+ keys)</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Perf confidence</td><td>Top25 #19</td></tr>
+        <tr><td class="tid">T34.1</td><td>examples/basic: paginated query + RenderPaginatedJSON demo</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>DX example</td><td>Top25 #21</td></tr>
+        <tr><td class="tid">T35.1</td><td>Architecture D2 diagram regenerate (reflect catalog deletion)</td><td><span class="badge b-low">Low</span></td><td>10m</td><td>Doc accuracy</td><td>Top25 #23</td></tr>
+        <tr><td class="tid">T36.1</td><td>storage.RelationalProjection evaluation memo (multi-table read models)</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Simplification potential</td><td>Top25 #25</td></tr>
+        <tr><td class="tid">T37.1</td><td>Remove deprecated ClientIP() wrapper (breaking — defer to next major)</td><td><span class="badge b-low">Low</span></td><td>8m</td><td>Code hygiene</td><td>FEATURES / ROADMAP</td></tr>
+        <tr><td class="tid">T38.1</td><td>Redis OAuth2 state store (multi-instance)</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Distributed deploy</td><td>ROADMAP v3.3</td></tr>
+        <tr><td class="tid">T39.1</td><td>PostgreSQL session store preset (reduced boilerplate)</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Deploy DX</td><td>ROADMAP v3.3</td></tr>
+        <tr><td class="tid">T40.1</td><td>Profile + optimize dispatch/decode hot paths</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Perf</td><td>ROADMAP v3.3</td></tr>
+        <tr><td class="tid">T41.1</td><td>Benchmark projection replay with 10K+ events</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Perf confidence</td><td>ROADMAP v3.3</td></tr>
+        <tr><td class="tid">T42.1</td><td>stack.Materialize evaluation for usermgmt read models</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Simplification potential</td><td>ROADMAP v4</td></tr>
+        <tr><td class="tid">T43.1</td><td>BadgerDB embedded store alternative</td><td><span class="badge b-low">Low</span></td><td>12m</td><td>Storage option</td><td>ROADMAP v3.3</td></tr>
+      </tbody>
+    </table>
+
+    <h2>External / Blocked (Noted, Owner-Action Needed)</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Task</th><th>Impact</th><th>Blocker</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td class="tid">E1</td><td>go-cqrs-lite: commit/push 2 unpushed commits + watermill/ WIP</td><td><span class="badge b-high">High</span></td><td>Owner action (not my work)</td><td>Self-review</td></tr>
+        <tr><td class="tid">E2</td><td>Upstream PR to go-webauthn: accept parsed response bytes</td><td><span class="badge b-med">Medium</span></td><td>External repo + maintainer review</td><td>TODO_LIST / Top25 #8</td></tr>
+        <tr><td class="tid">E3</td><td>Snapshot integration (deferred — premature until prod hits &gt;10K events/aggregate)</td><td><span class="badge b-low">Low</span></td><td>Production need</td><td>TODO_LIST</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Sorting Rationale (Impact / Effort / Customer-Value)</h2>
+    <div class="card sol">
+      <h3>How to read this plan</h3>
+      <p><strong>Tier 1 first</strong> — these ship the release, unblock consumers, and prove the critical event-sourced paths. Highest customer value per minute. <strong>Tier 2 next</strong> — hardening, docs, and debt that raise the floor. <strong>Tier 3 last</strong> — polish, examples, and benchmarks that are nice-to-have. Within each tier, tasks are ordered by impact, then by effort (lowest effort first for quick wins). All tasks are ≤12 min so each is a single focused commit.</p>
+    </div>
+
+    <div class="footer">
+      Generated 2026-06-28 &middot; Pareto plan consolidated from TODO_LIST.md, FEATURES.md, ROADMAP.md, catalog-merge self-review Top 25 &middot; 4 already-done items excluded &middot; 68 actionable tasks across 3 tiers
+    </div>
+  </body>
+</html>
