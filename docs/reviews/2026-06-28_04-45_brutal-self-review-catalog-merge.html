@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brutal Self-Review — Catalog Merge Follow-Up</title>
+    <style>
+      :root {
+        --bg: #0b1120;
+        --s: #131c31;
+        --t: #e6edf6;
+        --m: #93a4bd;
+        --b: #233049;
+        --a: #4f46e5;
+        --ok: #22c55e;
+        --w: #f59e0b;
+        --e: #ef4444;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--t);
+        font:
+          14.5px/1.6 ui-sans-serif,
+          system-ui,
+          sans-serif;
+        padding: 32px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0 0 4px;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 30px 0 10px;
+        border-bottom: 1px solid var(--b);
+        padding-bottom: 6px;
+      }
+      h3 {
+        font-size: 15px;
+        margin: 0 0 5px;
+      }
+      .sub {
+        color: var(--m);
+        margin-bottom: 24px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin: 18px 0 8px;
+      }
+      .stat {
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
+      }
+      .stat .n {
+        font-size: 28px;
+        font-weight: 800;
+      }
+      .stat .l {
+        font-size: 11px;
+        color: var(--m);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .stat.ok .n {
+        color: var(--ok);
+      }
+      .stat.warn .n {
+        color: var(--w);
+      }
+      .stat.bad .n {
+        color: var(--e);
+      }
+      .card {
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-left: 4px solid var(--m);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin: 10px 0;
+      }
+      .card p {
+        margin: 4px 0;
+        color: var(--m);
+      }
+      .card code {
+        background: rgba(255, 255, 255, 0.07);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12.5px;
+      }
+      .problem {
+        border-left-color: var(--e);
+      }
+      .warning {
+        border-left-color: var(--w);
+      }
+      .solution {
+        border-left-color: var(--ok);
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .b-crit {
+        background: rgba(239, 68, 68, 0.18);
+        color: var(--e);
+      }
+      .b-high {
+        background: rgba(245, 158, 11, 0.18);
+        color: var(--w);
+      }
+      .b-done {
+        background: rgba(34, 197, 94, 0.18);
+        color: var(--ok);
+      }
+      .b-low {
+        background: rgba(147, 164, 189, 0.18);
+        color: var(--m);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+        font-size: 13.5px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--b);
+      }
+      th {
+        color: var(--m);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .q {
+        background: var(--s);
+        border: 1px solid var(--b);
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin: 8px 0;
+      }
+      .q h3 {
+        color: var(--a);
+      }
+      .q p {
+        color: var(--m);
+        margin: 3px 0;
+      }
+      .step {
+        display: flex;
+        gap: 12px;
+        margin: 8px 0;
+      }
+      .step .num {
+        background: var(--ok);
+        color: var(--bg);
+        font-weight: 800;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        flex-shrink: 0;
+        text-align: center;
+        line-height: 26px;
+        font-size: 13px;
+      }
+      .step .body h3 {
+        margin: 2px 0 3px;
+      }
+      .step .body p {
+        color: var(--m);
+        margin: 0;
+        font-size: 13.5px;
+      }
+      pre {
+        background: #0a0f1c;
+        border: 1px solid var(--b);
+        border-radius: 8px;
+        padding: 12px;
+        overflow-x: auto;
+        font-size: 12.5px;
+        color: var(--m);
+      }
+      code.inl {
+        background: rgba(255, 255, 255, 0.07);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12.5px;
+      }
+      .footer {
+        color: var(--m);
+        font-size: 12px;
+        margin-top: 36px;
+        border-top: 1px solid var(--b);
+        padding-top: 12px;
+      }
+      @media (max-width: 640px) {
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Brutal Self-Review — Catalog Merge Follow-Up</h1>
+    <p class="sub">2026-06-28 &middot; cqrs-htmx + go-cqrs-lite &middot; Honest reflection on the catalog module merge &amp; its aftermath</p>
+
+    <div class="stats">
+      <div class="stat bad">
+        <div class="n">5</div>
+        <div class="l">Findings</div>
+      </div>
+      <div class="stat ok">
+        <div class="n">4</div>
+        <div class="l">Fixed This Session</div>
+      </div>
+      <div class="stat warn">
+        <div class="n">3</div>
+        <div class="l">Deferred (Noted)</div>
+      </div>
+      <div class="stat bad">
+        <div class="n">1</div>
+        <div class="l">Ghost System Killed</div>
+      </div>
+    </div>
+
+    <h2>Verdict</h2>
+    <div class="card solution">
+      <h3>The catalog merge was executed well — but "done" was claimed too early.</h3>
+      <p>The code port, consumer migration, upstream tag, and build-green were all correct. The failure was a documentation-honesty gap: the prior status report declared the work "complete" and "pushed" while an ADR number collision, a broken CHANGELOG link, and 96 unarchived stale reports were all still live. A deletion is not done until the docs tell the truth.</p>
+    </div>
+
+    <h2>The 11 Self-Review Questions</h2>
+
+    <div class="q">
+      <h3>1. What did you forget?</h3>
+      <p>Three things, all documentation: (a) checking for the ADR 0015 number collision before creating a new ADR; (b) sweeping the CHANGELOG for broken links to the deleted <code class="inl">catalog/README.md</code>; (c) the <strong>doc-bloat ghost system</strong> — 96 unarchived status reports that nobody reads. The reference sweep in the prior session covered living prose docs but skipped historical CHANGELOG entries and the accumulation problem.</p>
+    </div>
+
+    <div class="q">
+      <h3>2. What is something stupid that we do anyway?</h3>
+      <p>Generating one HTML status report per session without ever archiving the old ones. The <code class="inl">docs/status/archive/</code> directory existed but only caught 34 of 96 files. This is a compounding ghost system: every session adds a report, none leave. The signal-to-noise ratio of <code class="inl">docs/status/</code> was effectively zero. <strong>Fixed: 51 reports &gt;2 weeks old archived.</strong></p>
+    </div>
+
+    <div class="q">
+      <h3>3. What could you have done better?</h3>
+      <p>Treated "code green + pushed" as the finish line. The honest finish line is "code green + pushed + every living doc tells the truth + ADR numbering is consistent." The prior session's self-review <em>did</em> catch 6 categories of lying docs — but it stopped before re-verifying the ADR namespace and the historical CHANGELOG. The lesson is now encoded in AGENTS.md gotcha #22-26.</p>
+    </div>
+
+    <div class="q">
+      <h3>4. What could you still improve?</h3>
+      <p>See the deferred items below: usermgmt coverage (79.5% → 85%), a shared identity module design spike, and the accumulating uncommitted <code class="inl">watermill/</code> WIP in go-cqrs-lite (not mine, but sitting in the tree). None are blockers.</p>
+    </div>
+
+    <div class="q">
+      <h3>5. Did you lie to me?</h3>
+      <p>Not deliberately, but the prior status report's "0 unpushed commits" claim was <strong>true at write-time and false by the time anyone read it</strong> — go-cqrs-lite now has 2 unpushed commits from a later work stream. This is temporal drift, not a lie, but it illustrates why snapshot reports should be write-once: they decay. No code-level lies found; the merge tag <code class="inl">catalog/v3.2.0</code> is genuinely pushed and all tests genuinely pass.</p>
+    </div>
+
+    <div class="q">
+      <h3>6. How can we be less stupid?</h3>
+      <p>Encode the deletion checklist (AGENTS.md gotcha #25) so the next module migration runs the reference grep automatically. Check <code class="inl">ls docs/adr/ | sort</code> before minting an ADR number. Treat "status report" as write-once and archive aggressively. Stop generating reports that duplicate what a git log already says.</p>
+    </div>
+
+    <div class="q">
+      <h3>7. Ghost systems?</h3>
+      <p>Yes — one major: the <strong>96-file status-report graveyard</strong>. These are reports generated by the status-report/brutal-self-review/pareto-planning skills across ~2 months. Nobody reads 96 reports. They exist because the skills produce them and nothing prunes them. <strong>Resolved this session: archived 51 (&gt;2 weeks old), 85 now in archive/, 45 visible.</strong> The ported upstream catalog code is <em>not</em> a ghost — it is wired, tested, lint-clean, and documented in the upstream README + CHANGELOG.</p>
+    </div>
+
+    <div class="q">
+      <h3>8. Scope creep?</h3>
+      <p>No. This session stayed tightly scoped to the catalog-merge follow-up: fix the split brain (ADR), fix the broken link, kill the ghost system (archive), encode the lesson. The deferred items (coverage, identity module) were deliberately NOT started — they are noted, not half-done.</p>
+    </div>
+
+    <div class="q">
+      <h3>9. Did we remove something that was actually useful?</h3>
+      <p>No. The catalog module deletion removed redundant OpenAPI/AsyncAPI handlers that were strict subsets of upstream's richer <code class="inl">DocsServer</code>. Nothing unique was lost — the unique parts (Builder facade, D2/Health/EventCatalog handlers) were ported upstream first. Verified: integration tests pass, catalog-demo builds, all consumers migrated.</p>
+    </div>
+
+    <div class="q">
+      <h3>10. Split brains?</h3>
+      <p>Yes — the ADR 0015 collision was a literal split brain: two ADRs sharing one number (<code class="inl">0015-identity-model-redesign</code> and <code class="inl">0015-merge-catalog-into-go-cqrs-lite</code>). <strong>Fixed: catalog-merge ADR renumbered 0015 → 0020, cross-refs in ADR 0008 + CHANGELOG updated.</strong> No other split brains found in the merge scope.</p>
+    </div>
+
+    <div class="q">
+      <h3>11. How are we doing on tests?</h3>
+      <p>Good on this merge: both new upstream packages (<code class="inl">catalog/simple</code>, <code class="inl">catalog/docserver</code>) have ported tests, lint at 0 issues, and all consumer modules (root, integration_test, catalog-demo) build + test green. The broader gap remains usermgmt coverage at 79.5% (target 85%) — deferred, not ignored.</p>
+    </div>
+
+    <h2>Findings Detail</h2>
+
+    <div class="card problem">
+      <h3><span class="badge b-crit">Critical</span> ADR 0015 number collision</h3>
+      <p>Two ADRs shared number 0015. Created the catalog-merge ADR without running <code>ls docs/adr/ | sort</code>. A namespace collision in a sequential-numbering scheme is a classic split brain.</p>
+      <p><strong>Fixed:</strong> renumbered catalog-merge ADR 0015 → 0020 (next free). Updated cross-refs in ADR 0008 + CHANGELOG. Commit <code class="inl">d19fb35</code>.</p>
+    </div>
+
+    <div class="card problem">
+      <h3><span class="badge b-high">High</span> Broken CHANGELOG link to deleted file</h3>
+      <p><code>CHANGELOG.md:110</code> linked to <code>[catalog/README.md](catalog/README.md)</code> — a file deleted by the merge. Historical entry, but the link 404s on GitHub.</p>
+      <p><strong>Fixed:</strong> replaced with a valid link to ADR 0008 + a note pointing to ADR 0020. Commit <code class="inl">cefb0a3</code>.</p>
+    </div>
+
+    <div class="card problem">
+      <h3><span class="badge b-crit">Critical</span> Doc-bloat ghost system (96 unarchived reports)</h3>
+      <p><code>docs/status/</code> held 96 snapshot reports with only 34 archived. Nobody reads 96 reports. Signal-to-noise ≈ 0. This is the #1 stupid recurring behavior.</p>
+      <p><strong>Fixed:</strong> archived 51 reports &gt;2 weeks old via <code>git mv</code>. 45 recent reports remain visible, 85 now in <code>archive/</code>. Commit <code class="inl">41eff21</code>.</p>
+    </div>
+
+    <div class="card warning">
+      <h3><span class="badge b-high">High</span> Missing process lesson — no migration checklist</h3>
+      <p>The catalog merge repeated a known failure mode: claiming "done" at code-green. No checklist existed to force a doc-honesty sweep after a module deletion.</p>
+      <p><strong>Fixed:</strong> added "Module Deletion / Migration" gotchas (#22-26) to AGENTS.md — including the exact reference-sweep grep command and the "status reports are write-once" rule. Commit <code class="inl">71bc95e</code>.</p>
+    </div>
+
+    <div class="card warning">
+      <h3><span class="badge b-low">Low</span> go-cqrs-lite has unpushed commits + uncommitted WIP</h3>
+      <p>go-cqrs-lite is 2 commits ahead of origin (a follow-up status report + a format commit — not from this session) and has uncommitted <code>watermill/command_bus*.go</code> WIP (6 untracked files + modified go.mod). <strong>Not mine — left untouched per safety rules.</strong> Flagged for the owner: this is accumulating work at risk of loss.</p>
+    </div>
+
+    <h2>What Was Fixed This Session</h2>
+
+    <div class="step">
+      <div class="num">1</div>
+      <div class="body">
+        <h3>Renumber ADR 0015 → 0020 <span class="badge b-done">pushed</span></h3>
+        <p>git mv + updated cross-refs in ADR 0008 and CHANGELOG. Resolves the split brain. BuildFlow green.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="body">
+        <h3>Fix broken CHANGELOG link <span class="badge b-done">pushed</span></h3>
+        <p>Replaced deleted <code>catalog/README.md</code> link with valid ADR 0008 link + reversal note.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="body">
+        <h3>Archive 51 stale status reports <span class="badge b-done">pushed</span></h3>
+        <p>Moved reports &gt;2 weeks old to <code>docs/status/archive/</code> via git mv. Kills the ghost system.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">4</div>
+      <div class="body">
+        <h3>Encode migration checklist in AGENTS.md <span class="badge b-done">pushed</span></h3>
+        <p>Gotchas #22-26: deletion-isn't-done, ADR collision-check, breaking-change CHANGELOG, reference-sweep grep, write-once reports.</p>
+      </div>
+    </div>
+
+    <h2>Deferred Items (Noted, Not Started)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item</th>
+          <th>Effort</th>
+          <th>Why deferred</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>usermgmt coverage 79.5% → 85%</td>
+          <td><span class="badge b-high">~4h</span></td>
+          <td>Large focused session; not a merge-hygiene task</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Shared identity module design spike</td>
+          <td><span class="badge b-high">~1d</span></td>
+          <td>Needs its own ADR + design discussion</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>go-cqrs-lite unpushed commits + watermill/ WIP</td>
+          <td><span class="badge b-low">owner</span></td>
+          <td>Not my work — flagged for the owner to commit/push</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Verification</h2>
+    <div class="card solution">
+      <h3>All green, re-confirmed this session</h3>
+      <p>Root tests pass (cached). Integration tests pass. catalog-demo builds. Upstream <code>catalog/simple</code> + <code>catalog/docserver</code> tests pass + lint 0 issues. Tag <code>catalog/v3.2.0</code> confirmed pushed to remote. go.work + flake.nix clean of deleted module (4 flake refs are the legitimate catalog-demo build app).</p>
+    </div>
+
+    <h2>Reference Sweep Command (now in AGENTS.md #25)</h2>
+    <pre>grep -rn "&lt;old-module&gt;" \
+  --include="*.go" --include="*.md" --include="*.nix" \
+  --include="go.mod" --include="go.work" . \
+  | grep -v "docs/status/" | grep -v "docs/planning/" | grep -v "docs/reviews/"</pre>
+
+    <div class="footer">
+      Generated 2026-06-28 &middot; Brutal self-review of the catalog merge follow-up &middot; 4 fixes pushed (d19fb35, cefb0a3, 41eff21, 71bc95e)
+    </div>
+  </body>
+</html>
