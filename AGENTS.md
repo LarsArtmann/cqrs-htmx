@@ -432,6 +432,14 @@ cqrs-htmx/
 20. **Benchmark/example lint exclusions**: `.golangci.yml` relaxes `intrange`, `noctx`, `nilnil` for benchmark/example test files only
 21. **usermgmt golines**: `.golangci.yml` uses golines formatter (100-char default). Long signatures must be split
 
+### Module Deletion / Migration
+
+22. **A deletion is not done when the code is green.** When deleting or merging a Go module, "done" means code green AND zero stale references AND all status docs tell the truth. The catalog merge (2026-06-28) shipped code-green but a reactive self-review then caught 6 categories of lying docs (ACCEPTED→should-be-SUPERSEDED ADR, FULLY_FUNCTIONAL→deleted FEATURES row, broken README link, stale CHANGELOG). Always run a full reference sweep after the code change.
+23. **ADR numbers must be collision-checked.** `ls docs/adr/ | sort` before creating a new ADR. The catalog-merge ADR was created as 0015 without noticing 0015-identity-model-redesign already existed. Highest used is now 0020.
+24. **Deleting a public Go module is a breaking change.** CHANGELOG `[Unreleased]` entry with a migration mapping (old import → new import) is mandatory, not optional.
+25. **Reference sweep checklist** (run after any module deletion): `grep -rn "<old-module>" --include="*.go" --include="*.md" --include="*.nix" --include="go.mod" --include="go.work" . | grep -v "docs/status/" | grep -v "docs/planning/" | grep -v "docs/reviews/"`. Living docs (AGENTS.md, README.md, FEATURES.md, CHANGELOG.md, VERSIONING.md, CONTRIBUTING.md) must be clean. Snapshot reports (docs/status|planning|reviews) are point-in-time and left untouched.
+26. **Status reports are write-once snapshots.** Never edit a committed `docs/status/` report to "fix" its claims — it captured the truth at that moment. If it later becomes inaccurate, write a NEW report. Archive old reports (>2 weeks) into `docs/status/archive/` rather than editing them.
+
 ## Test Commands
 
 ### Via Nix (preferred)
