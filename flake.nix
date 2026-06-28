@@ -45,7 +45,10 @@
             dontUnpack = true;
             dontConfigure = true;
             dontBuild = true;
-            dontInstall = true;
+
+            installPhase = ''
+              mkdir -p $out
+            '';
 
             meta = with lib; {
               description = "Go library for go-cqrs-lite with HTMX, templ, and Casbin authorization";
