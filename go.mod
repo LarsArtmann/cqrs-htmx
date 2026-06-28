@@ -6,6 +6,7 @@ require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/justinas/nosurf v1.2.0
+	github.com/larsartmann/go-branded-id v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0
@@ -27,7 +28,6 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.1.0 // indirect
