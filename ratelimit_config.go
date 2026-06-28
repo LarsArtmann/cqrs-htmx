@@ -87,6 +87,15 @@ func (rl *RateLimiter) ActiveKeys() int {
 	return rl.limiter.Len()
 }
 
+// Check tests whether the request is allowed under the rate limit.
+// Returns (true, "") if allowed, (false, retryAfter) if rejected.
+// This is the non-middleware entry point — use it when you need to
+// check rate limits inside a handler (e.g., per-endpoint limiters in
+// usermgmt) rather than as global middleware.
+func (rl *RateLimiter) Check(r *http.Request) (bool, string) {
+	return rl.limiter.allow(r)
+}
+
 // Middleware returns the underlying middleware function.
 func (rl *RateLimiter) Middleware() func(http.Handler) http.Handler {
 	return rl.middleware
