@@ -59,6 +59,8 @@ For the user management submodule:
 go get github.com/larsartmann/cqrs-htmx/usermgmt
 ```
 
+> **Upgrading from v2?** See the [v2→v3 Migration Guide](docs/migration/v2-to-v3.md).
+
 ## Quick Start
 
 ```go

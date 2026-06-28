@@ -49,7 +49,7 @@ _Focus: Close the gap between what shipped and what's documented. Improve test c
 | Docs | Update FEATURES.md                                               | Critical | Done   |
 | Docs | Update ROADMAP.md                                                | Critical | Done   |
 | Docs | Add VERSIONING.md documenting semver policy                      | Medium   | Done   |
-| Docs | Consumer migration guide (v2→v3: import paths, bus, projections) | High     | Open   |
+| Docs | Consumer migration guide (v2→v3: import paths, bus, projections) | High     | Done   |
 | Docs | Add godoc examples for App, Handler, Service entry points        | Medium   | Open   |
 | Test | Service-level impersonation tests through full dispatch          | High     | Open   |
 | Test | Service-level membership tests through full dispatch             | High     | Open   |
