@@ -102,19 +102,27 @@ func selectedAttr(current []usermgmt.Role, role usermgmt.Role) string {
 }
 
 // badgeColor maps a badge kind string to a CSS color value.
+//
+//nolint:gochecknoglobals // Package-level lookup table for badge colors
+var badgeColors = map[string]string{
+	"accent": "var(--accent)",
+	"blue":   "var(--info)",
+	"green":  "var(--ok)",
+	"red":    "var(--err)",
+	"amber":  "var(--warn)",
+}
+
 func badgeColor(kind string) string {
-	switch kind {
-	case "accent":
-		return "var(--accent)"
-	case "blue":
-		return "var(--info)"
-	case "green":
-		return "var(--ok)"
-	case "red":
-		return "var(--err)"
-	case "amber":
-		return "var(--warn)"
-	default:
-		return "var(--muted, #6b7280)"
+	if c, ok := badgeColors[kind]; ok {
+		return c
 	}
+	return "var(--muted, #6b7280)"
+}
+
+// navBg returns the CSS background value for a nav item based on active state.
+func navBg(active bool) string {
+	if active {
+		return "var(--accent)"
+	}
+	return "transparent"
 }
