@@ -1,0 +1,1365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Status — Offline-First Command Sync</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Status dashboard
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         ========================================================================= */
+
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem 1.3rem;
+      }
+      li {
+        margin: 0.25rem 0;
+      }
+      li:last-child {
+        margin-bottom: 0;
+      }
+
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+      .hero-meta .tag {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        border: 1px solid var(--border-strong);
+        padding: 0.25rem 0.6rem;
+      }
+
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--warning);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--problem);
+      }
+
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .card h4 {
+        margin-bottom: 0.3rem;
+      }
+      .card p:last-child,
+      .card ul:last-child,
+      .card ol:last-child {
+        margin-bottom: 0;
+      }
+
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .badge-blocked {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before {
+        background: var(--warning);
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+      td code,
+      th code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      .phase-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .phase-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1rem;
+        position: relative;
+      }
+      .phase-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+      }
+      .phase-done::before {
+        background: var(--solution);
+      }
+      .phase-notstarted::before {
+        background: var(--problem);
+      }
+      .phase-name {
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+      }
+      .phase-status {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.5rem;
+      }
+      .phase-done .phase-status {
+        color: var(--solution);
+      }
+      .phase-notstarted .phase-status {
+        color: var(--problem);
+      }
+      .phase-deliverable {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .stat-grid,
+        .phase-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Status Report</span>
+      <span>2026-06-28 10:56</span>
+      <span>Commit 1343ece</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#notstarted">Not Started</a>
+          <a href="#fucked">Totally Fucked Up</a>
+          <a href="#improve">What We Should Improve</a>
+          <a href="#next">Top 25 Next</a>
+          <a href="#question">Top Question</a>
+          <a href="#health">Module Health</a>
+          <a href="#files">Files Changed</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Offline-First Command Sync</div>
+          <h1>Comprehensive Status Report</h1>
+          <p class="hero-subtitle">
+            Phase 0 + Phase 1 of offline-first command sync are functionally complete. Phase 2
+            research is documented and waiting on product decisions.
+          </p>
+          <div class="hero-meta">
+            <span class="tag">Scope: Phase 0 / 1 / 2-research</span>
+            <span class="tag">Branch: master</span>
+            <span class="tag">CI: green</span>
+          </div>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#done">Fully Done</a></li>
+            <li><a href="#partial">Partially Done</a></li>
+            <li><a href="#notstarted">Not Started</a></li>
+            <li><a href="#fucked">Totally Fucked Up</a></li>
+            <li><a href="#improve">What We Should Improve</a></li>
+            <li><a href="#next">Top 25 Next</a></li>
+            <li><a href="#question">Top Question</a></li>
+            <li><a href="#health">Module Health</a></li>
+            <li><a href="#files">Files Changed</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Executive Summary</h2>
+
+        <p>
+          The offline-first command sync feature is <strong>functionally complete through Phase 1</strong>.
+          All CI gates are green: tests pass with <code>-race</code>, lint is clean across root,
+          usermgmt, and adminui, and <code>errorfamily</code> reports zero stdlib error constructors.
+        </p>
+
+        <div class="phase-grid">
+          <div class="phase-card phase-done">
+            <div class="phase-name">Phase 0</div>
+            <div class="phase-status">Production SSEEventStore</div>
+            <div class="phase-deliverable"><code>JournalSSEStore</code> backed by <code>event.SeekableJournal</code></div>
+          </div>
+          <div class="phase-card phase-done">
+            <div class="phase-name">Phase 1a</div>
+            <div class="phase-status">ACK Protocol</div>
+            <div class="phase-deliverable"><code>CommandAck</code>, <code>BroadcastOnAck</code>, <code>BroadcastOnAckWS</code></div>
+          </div>
+          <div class="phase-card phase-done">
+            <div class="phase-name">Phase 1b</div>
+            <div class="phase-status">Honest UI</div>
+            <div class="phase-deliverable">CSS + JS + templ + admin-demo end-to-end</div>
+          </div>
+          <div class="phase-card phase-notstarted">
+            <div class="phase-name">Phase 2</div>
+            <div class="phase-status">Offline Queue</div>
+            <div class="phase-deliverable">Blocked on Q1 / Q2 product decisions</div>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">10</div>
+            <div class="stat-label">Fully Done</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Partially Done</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Not Started</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Totally Fucked Up</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">8</div>
+            <div class="stat-label">Improvements</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">25</div>
+            <div class="stat-label">Next Tasks</div>
+          </div>
+        </div>
+
+        <h2 id="done"><span class="num">01</span>Fully Done</h2>
+
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Production SSEEventStore</strong>
+              <span>
+                <code>JournalSSEStore</code> wraps <code>event.SeekableJournal</code> for efficient
+                cursor-based replay, falls back to <code>ReadAll</code> + in-memory filter, and
+                exposes <code>WithMaxReplay(n)</code> with a consumer-provided <code>EventToSSEMapper</code>.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>ACK Protocol</strong>
+              <span>
+                <code>CommandAck{commandId, status, error}</code> JSON payload with SSE and WebSocket
+                broadcaster hooks. Opt-in via <code>X-Command-Id</code> header.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Integration Tests</strong>
+              <span>
+                Six new integration tests cover replay, confirmed/rejected ACKs, reconnect-and-live,
+                no-broadcast without command ID, and concurrent replay + broadcast. All pass with
+                <code>-race</code>.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Honest UI CSS</strong>
+              <span>
+                Pending, confirmed, and rejected sync states with animated <code>.sync-dot</code> and a
+                global <code>.sync-bar</code> indicator.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Honest UI JS</strong>
+              <span>
+                SSE <code>EventSource</code> manager with auto-reconnect, <code>sync:ack</code> parsing,
+                optimistic pending render, silent-rollback prevention, retry handler, and
+                <code>aria-live</code> announcements.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Templ + adminui Wiring</strong>
+              <span>
+                <code>Config.SSEURL</code>, <code>data-sse-url</code> on <code>&lt;body&gt;</code>,
+                <code>.sync-bar</code> in header, and <code>data-sync-target</code> on the user detail
+                danger zone. Generated <code>_templ.go</code> committed.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>admin-demo Full Demonstration</strong>
+              <span>
+                Broadcaster + SSE endpoint at <code>/admin/-/events</code>, ACK middleware wrapping the
+                panel handler, and an end-to-end pending → confirmed/rejected lifecycle.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Documentation</strong>
+              <span>
+                CHANGELOG, README, TODO_LIST, ADRs 0023–0025, execution plan HTML + D2/SVG, and this
+                status report updated.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Quality Gates Passing</strong>
+              <span>
+                Root, usermgmt, adminui, and integration_test tests pass with <code>-race</code>. Lint
+                reports 0 issues for root/usermgmt/adminui. errorfamily reports 0 stdlib error
+                constructors across all three.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Lint Cleanup</strong>
+              <span>
+                Added <code>CommandAck</code>, <code>JournalSSEStore</code>, and
+                <code>sseReadResult</code> to exhaustruct excludes; fixed ack.go revive + wrapcheck;
+                added <code>t.Parallel()</code> to 23 test functions; fixed admin-demo errorfamily
+                violation.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="partial"><span class="num">02</span>Partially Done</h2>
+
+        <div class="card card-solution">
+          <p>
+            <strong>None.</strong> Phase 0 and Phase 1 server-side + client-side are fully complete.
+            The only partial state is the broader "offline-first" vision, by design.
+          </p>
+        </div>
+
+        <h2 id="notstarted"><span class="num">03</span>Not Started</h2>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Blocked</span>
+          <h3>Phase 2 — Offline Queue</h3>
+          <p>
+            Tab-scoped command queue (SharedWorker or Service Worker), sync loop that sends queued
+            commands when online, server-side deduplication / idempotency on command IDs, and a
+            persistence strategy decision (IndexedDB vs localStorage vs OPFS).
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Blocked</span>
+          <h3>Local decide() / Offline Validation</h3>
+          <p>Depends on the Q1 decision: Queue-Only, WASM, or TypeScript port.</p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Blocked</span>
+          <h3>Closed-Tab Write Persistence</h3>
+          <p>Depends on the Q2 decision: SharedWorker vs Service Worker + Background Sync.</p>
+        </div>
+
+        <h2 id="fucked"><span class="num">04</span>Totally Fucked Up</h2>
+
+        <div class="card card-solution">
+          <p>
+            <strong>None.</strong> All committed code builds, tests, and lints. There are two
+            pre-existing <code>goconst</code> warnings in <code>integration_test/</code> (string
+            <code>"1.0.0"</code> repeated) that are unrelated to this work and do not fail builds.
+          </p>
+        </div>
+
+        <h2 id="improve"><span class="num">05</span>What We Should Improve</h2>
+
+        <div class="card card-warning">
+          <h4>1. Integration test module lint</h4>
+          <p>
+            Fix the 2 <code>goconst</code> warnings in
+            <code>integration_test/catalog_test.go</code> and
+            <code>integration_test/usermgmt_catalog_test.go</code>. They predate this work but are
+            the only non-zero lint in any module.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>2. Re-run full nix flake check</h4>
+          <p>
+            Individual modules were verified with <code>go test</code> / <code>golangci-lint</code>,
+            but the umbrella <code>nix run .#test</code> / <code>nix run .#lint</code> CI gate should
+            be run end-to-end before tagging.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>3. Browser verification of admin-demo</h4>
+          <p>
+            The demo code is correct and builds, but it was not launched in a real browser to
+            visually confirm the pending → confirmed lifecycle.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>4. Tailwind rebuild</h4>
+          <p>
+            Raw CSS was appended to <code>admin-tw.css</code> because the Tailwind CLI could not
+            resolve <code>@import "tailwindcss"</code> without an npm install. When node_modules is
+            available, regenerate <code>admin-tw.css</code> from <code>tailwind.css</code>.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>5. OPFS / IndexedDB decision documentation</h4>
+          <p>
+            Phase 2 research covers the question but does not include a detailed technical spike for
+            <code>sqlite-wasm</code> + OPFS in SharedWorker.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>6. Rejection error UX</h4>
+          <p>
+            The rejected state shows a red border. A future polish pass could inline the actual error
+            message from the ACK payload and auto-render a retry button.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>7. Mobile sync indicator placement</h4>
+          <p>
+            The <code>.sync-bar</code> is in the header; on very small screens it may wrap awkwardly.
+            Test responsive layout.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>8. Command ID collision</h4>
+          <p>
+            Currently using <code>crypto.randomUUID()</code> in JS. Document server-side idempotency
+            expectations if Phase 2 stores and replays command IDs.
+          </p>
+        </div>
+
+        <h2 id="next"><span class="num">06</span>Top 25 Things to Get Done Next</h2>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Impact</th>
+                <th>Effort</th>
+                <th>Blocked By</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Answer Q1: Queue-Only vs WASM vs TS Port</td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td>Research</td>
+                <td><span class="badge badge-blocked">User decision</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Answer Q2: SharedWorker vs Service Worker + Background Sync</td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td>Research</td>
+                <td><span class="badge badge-blocked">User decision</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Implement Phase 2a: tab-scoped command queue (SharedWorker)</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>~3d</td>
+                <td>Q1, Q2</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Add command idempotency on server for replay safety</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>~2d</td>
+                <td>Phase 2a</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Run <code>nix run .#test</code> and <code>nix run .#lint</code> CI umbrella</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>10m</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Browser-verify admin-demo honest UI lifecycle</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>20m</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Fix integration_test goconst lint warnings</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>10m</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Add retry button to rejected UI items (templ + JS)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1d</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Inline error message rendering for rejected state</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1d</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Regenerate <code>admin-tw.css</code> via Tailwind CLI with node_modules</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>30m</td>
+                <td>npm install</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>Document consumer wiring recipe (SSE + ACK + honest UI)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1d</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>Add adminui tests for sync indicator rendering</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1d</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>Add JS unit tests for sync-state handler</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>2d</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td>Implement Phase 2b: closed-tab persistence (Service Worker)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>~1w</td>
+                <td>Q2 = SW</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td>Implement Phase 2c: WASM decide() for local validation</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>2–4w</td>
+                <td>Q1 = WASM</td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td>Add offline queue metrics / visibility (count badge)</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>1d</td>
+                <td>Phase 2a</td>
+              </tr>
+              <tr>
+                <td>17</td>
+                <td>Support batch sync (send N queued commands at once)</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>2d</td>
+                <td>Phase 2a</td>
+              </tr>
+              <tr>
+                <td>18</td>
+                <td>Conflict resolution UI when server rejects stale command</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>3d</td>
+                <td>Phase 2a</td>
+              </tr>
+              <tr>
+                <td>19</td>
+                <td>Add PWA manifest to admin-demo</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>1d</td>
+                <td>Phase 2b</td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td>Security review: command ID injection / replay</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>1d</td>
+                <td>Phase 2a</td>
+              </tr>
+              <tr>
+                <td>21</td>
+                <td>Update AGENTS.md with offline-first gotchas</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1d</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>22</td>
+                <td>Add ADR for command ID idempotency contract</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1d</td>
+                <td>Phase 2a</td>
+              </tr>
+              <tr>
+                <td>23</td>
+                <td>Benchmark SSE replay with large journals</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>1d</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>24</td>
+                <td>Evaluate <code>go-localsync</code> CRDT integration for eventual sync</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Research</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>25</td>
+                <td>Cut v3.3.0 release with Phase 0+1</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>1d</td>
+                <td>CI umbrella green</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="question"><span class="num">07</span>Top #1 Question I Cannot Figure Out Myself</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Blocking Decision</span>
+          <h3>Q1: Where should decide() run in Phase 2?</h3>
+          <p>
+            The engineering tradeoffs are clear (documented in ADR 0025), but the answer depends on
+            the product/UX priority that only you can set:
+          </p>
+          <ul>
+            <li>
+              <strong>Queue-Only</strong> gives offline write capability at very low cost, but the
+              user won't know if a command is invalid until reconnect. Is that acceptable?
+            </li>
+            <li>
+              <strong>WASM / TS Port</strong> gives instant local validation but adds massive
+              complexity/maintenance. Is the UX gain worth 2–4 weeks and ongoing dual-domain cost?
+            </li>
+          </ul>
+          <div class="callout callout-warning">
+            <strong>Need your answer</strong>
+            to design Phase 2 correctly.
+          </div>
+        </div>
+
+        <h2 id="health"><span class="num">08</span>Module Health Snapshot</h2>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Tests</th>
+                <th>Lint</th>
+                <th>Errorfamily</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>root</td>
+                <td><span class="badge badge-fixed">PASS -race</span></td>
+                <td><span class="badge badge-fixed">0</span></td>
+                <td><span class="badge badge-fixed">0</span></td>
+                <td>697 tests baseline</td>
+              </tr>
+              <tr>
+                <td>usermgmt</td>
+                <td><span class="badge badge-fixed">PASS -race</span></td>
+                <td><span class="badge badge-fixed">0</span></td>
+                <td><span class="badge badge-fixed">0</span></td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>adminui</td>
+                <td><span class="badge badge-fixed">PASS -race</span></td>
+                <td><span class="badge badge-fixed">0</span></td>
+                <td><span class="badge badge-fixed">0</span></td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>integration_test</td>
+                <td><span class="badge badge-fixed">PASS -race</span></td>
+                <td><span class="badge badge-high">2 goconst</span></td>
+                <td><span class="badge badge-fixed">0</span></td>
+                <td>Pre-existing, unrelated</td>
+              </tr>
+              <tr>
+                <td>examples/admin-demo</td>
+                <td><span class="badge badge-fixed">build</span></td>
+                <td><span class="badge badge-fixed">0</span></td>
+                <td>N/A</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="files"><span class="num">09</span>Files Created / Modified This Session</h2>
+
+        <h3>Created</h3>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td><code>command_sync_integration_test.go</code></td></tr>
+              <tr><td><code>docs/planning/2026-06-28_10-14_offline-first-command-sync-execution.html</code></td></tr>
+              <tr><td><code>docs/planning/2026-06-28_10-14_execution-graph.d2</code></td></tr>
+              <tr><td><code>docs/planning/2026-06-28_10-14_execution-graph.svg</code></td></tr>
+              <tr><td><code>docs/adr/0025-phase2-research.md</code></td></tr>
+              <tr><td><code>docs/status/2026-06-28_10-56_offline-first-command-sync-complete.md</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Modified</h3>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td><code>ack.go</code>, <code>ack_test.go</code></td></tr>
+              <tr><td><code>event_store_sse_test.go</code></td></tr>
+              <tr><td><code>.golangci.yml</code></td></tr>
+              <tr><td><code>CHANGELOG.md</code>, <code>README.md</code>, <code>TODO_LIST.md</code></td></tr>
+              <tr><td><code>adminui/tailwind.css</code>, <code>adminui/assets/admin-tw.css</code>, <code>adminui/assets/admin.js</code></td></tr>
+              <tr><td><code>adminui/config.go</code>, <code>adminui/handler.go</code>, <code>adminui/layout.templ</code>, <code>adminui/layout_templ.go</code></td></tr>
+              <tr><td><code>adminui/users.templ</code>, <code>adminui/users_templ.go</code>, <code>adminui/models.go</code></td></tr>
+              <tr><td><code>examples/admin-demo/main.go</code></td></tr>
+              <tr><td><code>adminui/go.mod</code>, <code>examples/admin-demo/go.mod</code>, <code>examples/basic/go.mod</code>, <code>usermgmt/go.mod</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-28 10:56 &middot; Working tree clean at commit 1343ece
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
