@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **catalog/ module merged into go-cqrs-lite** (**BREAKING**): The
+  `github.com/larsartmann/cqrs-htmx/catalog/v3` module is deleted. Its
+  single-service Builder facade and standalone HTTP handlers (D2, Health,
+  EventCatalog) are now part of `go-cqrs-lite/catalog/v3` v3.2.0 (`simple` and
+  `docserver` sub-packages). The redundant `OpenAPIHandler`/`AsyncAPIHandler`
+  are removed — use the richer upstream `docserver.DocsServer` (HTML UIs,
+  static assets, YAML+JSON). Migrate by swapping imports:
+  `cataloghtmx.New` → `simple.New`, `cataloghtmx.Command[T]` → `simple.Command[T]`,
+  `cataloghtmx.D2Handler` → `docserver.D2Handler`,
+  `cataloghtmx.HealthCheckHandler` → `docserver.HealthCheckHandler`,
+  `cataloghtmx.GenerateEventCatalog` → `docserver.GenerateEventCatalog`,
+  `cataloghtmx.OpenAPIHandler(cat)` → `docserver.NewDocsServer(...).OpenAPISpec()`.
+  See ADR 0015 for rationale.
+
 ## [3.1.0] - 2026-06-26
 
 ### Added

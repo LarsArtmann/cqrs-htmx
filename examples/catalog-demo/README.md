@@ -1,8 +1,9 @@
 # catalog-demo
 
-A standalone, runnable example showing end-to-end use of the
-[`catalog`](../../catalog) module: build an API catalog from Go types and serve
-it as live OpenAPI, AsyncAPI, and D2 documentation.
+A standalone, runnable example showing end-to-end API documentation generation
+via [`go-cqrs-lite/catalog/v3`](https://github.com/LarsArtmann/go-cqrs-lite/tree/master/catalog):
+build an API catalog from Go types and serve it as live OpenAPI, AsyncAPI, and
+D2 documentation.
 
 ## What it demonstrates
 
@@ -10,10 +11,11 @@ it as live OpenAPI, AsyncAPI, and D2 documentation.
   `required` are all derived automatically (see `main.go`).
 - **All four export formats** — OpenAPI 3.0.3, AsyncAPI 3.0.0, D2 diagrams, and
   the EventCatalog MDX file tree.
-- **JSON and YAML output** — every spec handler accepts `?format=yaml`.
+- **JSON and YAML output** — the `docserver.DocsServer` exposes both
+  `OpenAPISpec()` (JSON) and `OpenAPISpecYAML()` (YAML) handlers.
 - **Build-time doc generation** — EventCatalog files are written to disk on
   startup (pass `-eventcatalog ""` to skip).
-- **Health check** — `HealthCheckHandler` reports catalog service count.
+- **Health check** — `docserver.HealthCheckHandler` reports catalog service count.
 
 ## Run it
 
