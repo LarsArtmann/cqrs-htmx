@@ -51,9 +51,9 @@ _Focus: Close the gap between what shipped and what's documented. Improve test c
 | Docs | Add VERSIONING.md documenting semver policy                      | Medium   | Done   |
 | Docs | Consumer migration guide (v2→v3: import paths, bus, projections) | High     | Done   |
 | Docs | Add godoc examples for App, Handler, Service entry points        | Medium   | Open   |
-| Test | Service-level impersonation tests through full dispatch          | High     | Open   |
-| Test | Service-level membership tests through full dispatch             | High     | Open   |
-| Test | Projection replay integration test (journal vs live dedup)       | High     | Open   |
+| Test | Service-level impersonation tests through full dispatch          | High     | Done   |
+| Test | Service-level membership tests through full dispatch             | High     | Done   |
+| Test | Projection replay integration test (journal vs live dedup)       | High     | Done   |
 | Test | Property-based tests for foldTenant, foldBot, foldMembership     | Medium   | Open   |
 | Test | Fuzz tests for projection dedup + identity model deciders        | Medium   | Open   |
 | Lint | Enable revive:exported linter + fix violations                   | Medium   | Open   |
