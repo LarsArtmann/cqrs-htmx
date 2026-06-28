@@ -33,6 +33,7 @@ The SharedWorker does **three things only**:
 3. **Retry** — on reconnect, tell each originating tab to re-issue its queued command via `htmx.trigger()`
 
 The SharedWorker does **not**:
+
 - Send HTTP requests (tabs do, via HTMX — preserving response swaps)
 - Own the SSE connection (tabs keep per-tab `EventSource` — simpler, already works)
 - Persist to disk (in-memory only — Queue-Only accepts lost commands on last-tab-close)
@@ -63,27 +64,27 @@ On reconnect, the SharedWorker posts `{type: "retry", commandId}` to the origina
 
 Extends [ADR 0024](0024-honest-ui.md) with one new sub-state:
 
-| State | Meaning | UI treatment |
-|-------|---------|-------------|
-| `pending` | Request in flight (online) | Muted/dashed, yellow dot |
-| `pending` + `[data-sync-queued]` | Queued, waiting for network | Amber dashed, "offline" badge |
-| `confirmed` | Server confirmed | Solid, green dot |
-| `rejected` | Server rejected or element gone | Red border, error + retry |
+| State                            | Meaning                         | UI treatment                  |
+| -------------------------------- | ------------------------------- | ----------------------------- |
+| `pending`                        | Request in flight (online)      | Muted/dashed, yellow dot      |
+| `pending` + `[data-sync-queued]` | Queued, waiting for network     | Amber dashed, "offline" badge |
+| `confirmed`                      | Server confirmed                | Solid, green dot              |
+| `rejected`                       | Server rejected or element gone | Red border, error + retry     |
 
 The `data-sync-queued` attribute distinguishes "pending because in-flight" from "pending because offline." The sync-bar indicator gains an "Offline — N queued" status.
 
 ## Why Not Service Worker?
 
-| Factor | SharedWorker | Service Worker |
-|--------|-------------|----------------|
-| Survives individual tab close | **Yes** | Yes |
-| Survives last-tab-close | No (acceptable for Queue-Only) | Yes |
-| Background Sync (closed-tab flush) | N/A | **Chrome/Edge only** — Firefox disabled, Safari nonexistent |
-| OPFS / sync I/O | **Full access** | **Unavailable** (fatal for sqlite-wasm — irrelevant for Queue-Only) |
-| Idle eviction | None (alive while ≥1 tab open) | ~30s inactivity teardown |
-| Long-lived SSE connection | **Yes** | Fighting eviction constantly |
-| One-per-origin collision | No | **Yes** — can't ship a SW from a library; consumer already owns theirs |
-| Matches Queue-Only needs | **Perfect** | Over-engineered |
+| Factor                             | SharedWorker                   | Service Worker                                                         |
+| ---------------------------------- | ------------------------------ | ---------------------------------------------------------------------- |
+| Survives individual tab close      | **Yes**                        | Yes                                                                    |
+| Survives last-tab-close            | No (acceptable for Queue-Only) | Yes                                                                    |
+| Background Sync (closed-tab flush) | N/A                            | **Chrome/Edge only** — Firefox disabled, Safari nonexistent            |
+| OPFS / sync I/O                    | **Full access**                | **Unavailable** (fatal for sqlite-wasm — irrelevant for Queue-Only)    |
+| Idle eviction                      | None (alive while ≥1 tab open) | ~30s inactivity teardown                                               |
+| Long-lived SSE connection          | **Yes**                        | Fighting eviction constantly                                           |
+| One-per-origin collision           | No                             | **Yes** — can't ship a SW from a library; consumer already owns theirs |
+| Matches Queue-Only needs           | **Perfect**                    | Over-engineered                                                        |
 
 The SW's one unique capability — Background Sync API for closed-tab writes — is Chrome-only and requires the consumer to surrender their SW scope. For a library, that's unacceptable. The SharedWorker covers 90% of the value (cross-tab queue, survives tab switches, single coordinator) at 10% of the complexity.
 

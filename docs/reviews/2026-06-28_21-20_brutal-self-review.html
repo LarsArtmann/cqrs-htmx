@@ -833,7 +833,11 @@
           </div>
           <div class="hero-badge">Brutal Self-Review · Round 6</div>
           <h1>What We Lied About, What We Fixed, What's Left</h1>
-          <p class="hero-subtitle">A self-critique of the 28-task Pareto execution: the bugs hidden in "done" work, the ghost system nobody noticed, and the architectural question that was never actually open.</p>
+          <p class="hero-subtitle">
+            A self-critique of the 28-task Pareto execution: the bugs hidden in "done" work, the
+            ghost system nobody noticed, and the architectural question that was never actually
+            open.
+          </p>
         </div>
 
         <!-- Stats Dashboard -->
@@ -870,24 +874,51 @@
 
         <div class="card card-problem">
           <h4>BUG: CheckAndRecord was NOT atomic — lying comment + untested race</h4>
-          <p>The free function <code>CheckAndRecord(ctx, store, cmdID, ttl)</code> called <code>store.Seen()</code> then <code>store.Record()</code> as two separate interface method calls. Two concurrent requests with the same command ID could both pass <code>Seen()</code> (both see <code>false</code>) and both proceed to <code>Record()</code>. The doc comment claimed it "avoids the TOCTOU race" — it didn't.</p>
-          <p>The concurrency test (<code>TestMemoryIdempotencyStore_ConcurrentAccess</code>) only ran <code>CheckAndRecord</code> in ONE goroutine — it never tested concurrent calls with the same ID. The test passed but proved nothing.</p>
+          <p>
+            The free function <code>CheckAndRecord(ctx, store, cmdID, ttl)</code> called
+            <code>store.Seen()</code> then <code>store.Record()</code> as two separate interface
+            method calls. Two concurrent requests with the same command ID could both pass
+            <code>Seen()</code> (both see <code>false</code>) and both proceed to
+            <code>Record()</code>. The doc comment claimed it "avoids the TOCTOU race" — it didn't.
+          </p>
+          <p>
+            The concurrency test (<code>TestMemoryIdempotencyStore_ConcurrentAccess</code>) only ran
+            <code>CheckAndRecord</code> in ONE goroutine — it never tested concurrent calls with the
+            same ID. The test passed but proved nothing.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>FIX: Moved CheckAndRecord into the IdempotencyStore interface</h4>
-          <p>Each implementation now owns its own atomicity. <code>MemoryIdempotencyStore.CheckAndRecord</code> does check+record under a single write lock. The old racy free function is removed (added yesterday, zero consumers).</p>
-          <p>Added <code>TestCheckAndRecord_ConcurrentSameIDExactlyOneSucceeds</code>: 200 goroutines race to claim the same ID. Exactly one must win, 199 must get <code>ErrDuplicateCommand</code>. This test <strong>would fail</strong> under the old implementation.</p>
+          <p>
+            Each implementation now owns its own atomicity.
+            <code>MemoryIdempotencyStore.CheckAndRecord</code> does check+record under a single
+            write lock. The old racy free function is removed (added yesterday, zero consumers).
+          </p>
+          <p>
+            Added <code>TestCheckAndRecord_ConcurrentSameIDExactlyOneSucceeds</code>: 200 goroutines
+            race to claim the same ID. Exactly one must win, 199 must get
+            <code>ErrDuplicateCommand</code>. This test <strong>would fail</strong> under the old
+            implementation.
+          </p>
         </div>
 
         <div class="card card-problem">
           <h4>BUG: Memory leak with sweepInterval=0</h4>
-          <p><code>Seen()</code> returned <code>false</code> for expired entries but never deleted them. With <code>sweepInterval=0</code> (no background sweeper — used by all tests and available to consumers), expired entries leaked forever. The map grew unboundedly.</p>
+          <p>
+            <code>Seen()</code> returned <code>false</code> for expired entries but never deleted
+            them. With <code>sweepInterval=0</code> (no background sweeper — used by all tests and
+            available to consumers), expired entries leaked forever. The map grew unboundedly.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>FIX: Lazy expiry in Seen()</h4>
-          <p><code>Seen()</code> now deletes the entry it finds expired on read. The sweep goroutine still handles bulk cleanup; this is the per-key safety net for when it's disabled. Test: <code>TestMemoryIdempotencyStore_SeenLazyDeletesExpired</code>.</p>
+          <p>
+            <code>Seen()</code> now deletes the entry it finds expired on read. The sweep goroutine
+            still handles bulk cleanup; this is the per-key safety net for when it's disabled. Test:
+            <code>TestMemoryIdempotencyStore_SeenLazyDeletesExpired</code>.
+          </p>
         </div>
 
         <!-- Ghost System -->
@@ -897,10 +928,20 @@
           <span class="severity severity-critical">Ghost System</span>
           <h3>Idempotency store shipped with ZERO callers</h3>
           <div class="where">idempotency.go · 127 LOC + 141 LOC tests + ADR-0026</div>
-          <p>The previous session shipped <code>IdempotencyStore</code>, <code>MemoryIdempotencyStore</code>, <code>CheckAndRecord</code>, <code>ErrDuplicateCommand</code>, 9 tests, and a full ADR. Nothing in the entire codebase called it. Not the admin-demo. Not the examples. Not any integration test. The "library principle" excuse (consumers opt in) is weak when our own showcase doesn't use it.</p>
+          <p>
+            The previous session shipped <code>IdempotencyStore</code>,
+            <code>MemoryIdempotencyStore</code>, <code>CheckAndRecord</code>,
+            <code>ErrDuplicateCommand</code>, 9 tests, and a full ADR. Nothing in the entire
+            codebase called it. Not the admin-demo. Not the examples. Not any integration test. The
+            "library principle" excuse (consumers opt in) is weak when our own showcase doesn't use
+            it.
+          </p>
           <div class="callout callout-solution">
             <strong>Fixed</strong>
-            Wired into <code>examples/admin-demo/main.go</code>: the <code>ackMiddleware</code> now checks each mutation's <code>X-Command-Id</code> against the store before forwarding to the panel handler. Duplicates get HTTP 409. This proves the feature end-to-end and gives consumers a concrete wiring pattern.
+            Wired into <code>examples/admin-demo/main.go</code>: the <code>ackMiddleware</code> now
+            checks each mutation's <code>X-Command-Id</code> against the store before forwarding to
+            the panel handler. Duplicates get HTTP 409. This proves the feature end-to-end and gives
+            consumers a concrete wiring pattern.
           </div>
         </div>
 
@@ -909,15 +950,38 @@
 
         <div class="card card-problem">
           <h4>QUESTION: Where should decide() run on the client? (Queue-Only / WASM / TS Port)</h4>
-          <p>The previous status report framed this as an open question "I cannot figure out myself" and recommended Queue-Only as the "simplest MVP." That framing was wrong — the question was never actually open.</p>
+          <p>
+            The previous status report framed this as an open question "I cannot figure out myself"
+            and recommended Queue-Only as the "simplest MVP." That framing was wrong — the question
+            was never actually open.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>ANSWER: Queue-Only — and it's the only architecturally correct choice</h4>
-          <p><strong>cqrs-htmx is a LIBRARY, not an application.</strong> Consumers write their <em>own</em> <code>decide()</code> functions for <em>their</em> domain. The library cannot ship a WASM/TS port of <code>decide()</code> because the library doesn't own the consumer's domain logic. Only <code>usermgmt</code>'s decide functions exist in this repo — and those are a consumer-facing feature, not a library mechanism.</p>
-          <p>The library's job is the <strong>protocol</strong> (command ID → ACK → honest UI state), not the <strong>validation strategy</strong>. Pre-validation is a consumer concern. If a consumer wants offline validation, they compile their own decide() to WASM. The library stays out of it.</p>
-          <p>The decide functions are already pure (event-sourcing decider pattern), so WASM is <em>always available as a future option</em> without restructuring. The door is open — we just don't force consumers through it.</p>
-          <p><strong>This unblocks all Phase 2 work immediately.</strong> No WASM pipeline, no TS port, no dual-maintenance. Documented as <a href="../../adr/0027-decide-stays-on-server.md">ADR-0027</a>.</p>
+          <p>
+            <strong>cqrs-htmx is a LIBRARY, not an application.</strong> Consumers write their
+            <em>own</em> <code>decide()</code> functions for <em>their</em> domain. The library
+            cannot ship a WASM/TS port of <code>decide()</code> because the library doesn't own the
+            consumer's domain logic. Only <code>usermgmt</code>'s decide functions exist in this
+            repo — and those are a consumer-facing feature, not a library mechanism.
+          </p>
+          <p>
+            The library's job is the <strong>protocol</strong> (command ID → ACK → honest UI state),
+            not the <strong>validation strategy</strong>. Pre-validation is a consumer concern. If a
+            consumer wants offline validation, they compile their own decide() to WASM. The library
+            stays out of it.
+          </p>
+          <p>
+            The decide functions are already pure (event-sourcing decider pattern), so WASM is
+            <em>always available as a future option</em> without restructuring. The door is open —
+            we just don't force consumers through it.
+          </p>
+          <p>
+            <strong>This unblocks all Phase 2 work immediately.</strong> No WASM pipeline, no TS
+            port, no dual-maintenance. Documented as
+            <a href="../../adr/0027-decide-stays-on-server.md">ADR-0027</a>.
+          </p>
         </div>
 
         <!-- What We Fixed -->
@@ -980,35 +1044,50 @@
             <div class="check">!</div>
             <div class="text">
               <strong>Rate limiter split brain (root ↔ usermgmt)</strong>
-              <span>Root uses token-bucket + heap LRU; usermgmt uses fixed-window. Different config shapes. Medium-risk refactor. Not blocking.</span>
+              <span
+                >Root uses token-bucket + heap LRU; usermgmt uses fixed-window. Different config
+                shapes. Medium-risk refactor. Not blocking.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
               <strong>ActorID split brain (root string vs usermgmt struct)</strong>
-              <span>Root ActorID is string; usermgmt has kind-discriminated struct. Manual conversion. Would benefit from typed helpers.</span>
+              <span
+                >Root ActorID is string; usermgmt has kind-discriminated struct. Manual conversion.
+                Would benefit from typed helpers.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
               <strong>adminui integration test coverage</strong>
-              <span>Only 35 tests vs 747 in usermgmt. No integration test mounts the panel. No coverage gate for adminui.</span>
+              <span
+                >Only 35 tests vs 747 in usermgmt. No integration test mounts the panel. No coverage
+                gate for adminui.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
               <strong>Phase 2 Q2: closed-tab persistence</strong>
-              <span>SharedWorker vs Service Worker + Background Sync. Now unblocked by ADR-0027 (Queue-Only decision). Needs implementation design.</span>
+              <span
+                >SharedWorker vs Service Worker + Background Sync. Now unblocked by ADR-0027
+                (Queue-Only decision). Needs implementation design.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
               <strong>Security review: X-Command-Id injection/replay</strong>
-              <span>Max length, character restrictions, cross-client poisoning. Can be done independently.</span>
+              <span
+                >Max length, character restrictions, cross-client poisoning. Can be done
+                independently.</span
+              >
             </div>
           </div>
         </div>
@@ -1018,16 +1097,26 @@
 
         <div class="card card-problem">
           <h4>"sync.RWMutex{} is redundant" — WRONG</h4>
-          <p>I initially flagged <code>mu: sync.RWMutex{}</code> in the struct literal as "redundant noise." It's not — <code>exhaustruct</code> linter requires all fields explicit. Removing it caused a lint failure. Caught by testing immediately. Lesson: test before claiming something is redundant.</p>
+          <p>
+            I initially flagged <code>mu: sync.RWMutex{}</code> in the struct literal as "redundant
+            noise." It's not — <code>exhaustruct</code> linter requires all fields explicit.
+            Removing it caused a lint failure. Caught by testing immediately. Lesson: test before
+            claiming something is redundant.
+          </p>
         </div>
 
         <div class="card card-problem">
           <h4>"CHANGELOG stops at v0.2.0" — WRONG</h4>
-          <p>I only looked at the tail of the CHANGELOG (which showed old entries). The file actually has <code>[Unreleased]</code> and <code>[3.2.0]</code> sections. But the recent work still wasn't documented there. Lesson: read from the top, not the bottom.</p>
+          <p>
+            I only looked at the tail of the CHANGELOG (which showed old entries). The file actually
+            has <code>[Unreleased]</code> and <code>[3.2.0]</code> sections. But the recent work
+            still wasn't documented there. Lesson: read from the top, not the bottom.
+          </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-28 &middot; All findings verified against source code · 934 tests pass with -race · 0 lint issues · 0 errorfamily violations
+          Generated 2026-06-28 &middot; All findings verified against source code · 934 tests pass
+          with -race · 0 lint issues · 0 errorfamily violations
         </footer>
       </main>
     </div>

@@ -111,6 +111,7 @@ panel, _ := adminui.New(adminui.Config{
 ```
 
 Setting `SSEURL` activates:
+
 - `data-sse-url` attribute on `<body>` → admin.js connects EventSource
 - `.sync-bar` indicator in the header
 - `sync-worker.js` registration (offline command queue)
@@ -129,23 +130,23 @@ cqrshtmx.SecurityHeadersConfig{
 
 ## How Offline Detection Works
 
-| Event | Fired when | admin.js action |
-|-------|-----------|-----------------|
-| `htmx:beforeRequest` | Any HTMX request | Stamps `X-Command-Id`, sets `data-sync-state="pending"` |
-| `htmx:sendError` | Network failure (offline, DNS, server unreachable) | Enqueues to SharedWorker, shows "queued — offline" |
-| `htmx:responseError` | HTTP error response (4xx, 5xx) | Shows "rejected" (server rejected) |
-| SSE `sync:ack` | Server confirms/rejects command | Flips `data-sync-state` to confirmed/rejected |
-| SharedWorker `retry` | Network restored, queued command retried | `htmx.trigger(element)` re-sends request |
+| Event                | Fired when                                         | admin.js action                                         |
+| -------------------- | -------------------------------------------------- | ------------------------------------------------------- |
+| `htmx:beforeRequest` | Any HTMX request                                   | Stamps `X-Command-Id`, sets `data-sync-state="pending"` |
+| `htmx:sendError`     | Network failure (offline, DNS, server unreachable) | Enqueues to SharedWorker, shows "queued — offline"      |
+| `htmx:responseError` | HTTP error response (4xx, 5xx)                     | Shows "rejected" (server rejected)                      |
+| SSE `sync:ack`       | Server confirms/rejects command                    | Flips `data-sync-state` to confirmed/rejected           |
+| SharedWorker `retry` | Network restored, queued command retried           | `htmx.trigger(element)` re-sends request                |
 
 **Key distinction:** `htmx:sendError` (offline) enqueues for retry. `htmx:responseError` (server error) shows rejected. Offline ≠ rejected.
 
 ## Browser Support
 
-| Feature | Chrome | Firefox | Safari | Edge |
-|---------|--------|---------|--------|------|
-| SharedWorker | Yes | Yes | 16+ | Yes |
-| EventSource (SSE) | Yes | Yes | Yes | Yes |
-| Offline queue | Yes | Yes | 16+ | Yes |
+| Feature           | Chrome | Firefox | Safari | Edge |
+| ----------------- | ------ | ------- | ------ | ---- |
+| SharedWorker      | Yes    | Yes     | 16+    | Yes  |
+| EventSource (SSE) | Yes    | Yes     | Yes    | Yes  |
+| Offline queue     | Yes    | Yes     | 16+    | Yes  |
 
 Browsers without SharedWorker support gracefully degrade: the online path works
 normally, offline commands fail with `htmx:sendError` and show as rejected

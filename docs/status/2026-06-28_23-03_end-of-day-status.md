@@ -27,47 +27,47 @@ updated to match reality.
 
 ### Core Library (root module) — 136 tests
 
-| Item | Notes |
-|------|-------|
+| Item                               | Notes                                                                                                                                               |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **ActorID/ImpersonatorID branded** | `brandid.ID[actorBrand, string]` — phantom-typed, `.Get()`, `.IsZero()`, `.Equal()`, BrandNamer. `ImpersonatorID = ActorID` (type alias). ADR-0028. |
-| **SSEEventID branded** | `brandid.ID[sseEventBrand, string]` — same treatment. `.Get()` for raw value, `.String()` for debug. |
-| **go-branded-id direct dep** | Promoted from `// indirect` to direct in root go.mod |
-| **Idempotency store** | `IdempotencyStore` interface + `MemoryIdempotencyStore` with truly atomic `CheckAndRecord`. Lazy expiry in `Seen()`. ADR-0026. |
-| **Idempotency wired** | admin-demo rejects duplicate `X-Command-Id` with 409 (ghost system killed) |
-| **Form decoder** | `go-playground/form/v4` replaces JSON round-trip. Case-insensitive matching. |
-| **Pagination unified** | Root + usermgmt delegate to `query.NewPagination`. No silent clamping. |
-| **SSE infrastructure** | JournalSSEStore, Broadcaster, SSEStream, reconnection, heartbeat |
-| **Honest UI protocol** | CommandAck, BroadcastOnAck hooks, admin-demo lifecycle |
-| **WebSocket parity** | WSBroadcaster, DispatchWSCommand/Query, OOB HTML |
-| **Security** | CSRF (nosurf), rate limiting (token bucket), security headers, recovery |
-| **Embedded HTMX v2.0.9** | Self-hosted via go:embed |
-| **Deprecated ClientIP removed** | Zero callers; tests use httputil.ClientIP directly |
+| **SSEEventID branded**             | `brandid.ID[sseEventBrand, string]` — same treatment. `.Get()` for raw value, `.String()` for debug.                                                |
+| **go-branded-id direct dep**       | Promoted from `// indirect` to direct in root go.mod                                                                                                |
+| **Idempotency store**              | `IdempotencyStore` interface + `MemoryIdempotencyStore` with truly atomic `CheckAndRecord`. Lazy expiry in `Seen()`. ADR-0026.                      |
+| **Idempotency wired**              | admin-demo rejects duplicate `X-Command-Id` with 409 (ghost system killed)                                                                          |
+| **Form decoder**                   | `go-playground/form/v4` replaces JSON round-trip. Case-insensitive matching.                                                                        |
+| **Pagination unified**             | Root + usermgmt delegate to `query.NewPagination`. No silent clamping.                                                                              |
+| **SSE infrastructure**             | JournalSSEStore, Broadcaster, SSEStream, reconnection, heartbeat                                                                                    |
+| **Honest UI protocol**             | CommandAck, BroadcastOnAck hooks, admin-demo lifecycle                                                                                              |
+| **WebSocket parity**               | WSBroadcaster, DispatchWSCommand/Query, OOB HTML                                                                                                    |
+| **Security**                       | CSRF (nosurf), rate limiting (token bucket), security headers, recovery                                                                             |
+| **Embedded HTMX v2.0.9**           | Self-hosted via go:embed                                                                                                                            |
+| **Deprecated ClientIP removed**    | Zero callers; tests use httputil.ClientIP directly                                                                                                  |
 
 ### usermgmt submodule — 745 tests
 
-| Item | Notes |
-|------|-------|
-| **Fully event-sourced CQRS** | 12 events, 11 commands, pure decide/fold, 4 aggregates |
-| **Passwordless auth** | WebAuthn/Passkey, TOTP, OAuth2/OIDC |
-| **Rate limiter unified** | perIPRateLimiter DELETED → root RateLimiter (token-bucket, proxy-aware, bounded memory) |
-| **ActorID bridging fixed** | `.PrefixedString()` instead of `.String()` — prefix survives crossing |
-| **SQL read models** | SQLite + Postgres, 4 aggregates |
-| **Casbin projection** | RBAC policies derived from events |
+| Item                         | Notes                                                                                   |
+| ---------------------------- | --------------------------------------------------------------------------------------- |
+| **Fully event-sourced CQRS** | 12 events, 11 commands, pure decide/fold, 4 aggregates                                  |
+| **Passwordless auth**        | WebAuthn/Passkey, TOTP, OAuth2/OIDC                                                     |
+| **Rate limiter unified**     | perIPRateLimiter DELETED → root RateLimiter (token-bucket, proxy-aware, bounded memory) |
+| **ActorID bridging fixed**   | `.PrefixedString()` instead of `.String()` — prefix survives crossing                   |
+| **SQL read models**          | SQLite + Postgres, 4 aggregates                                                         |
+| **Casbin projection**        | RBAC policies derived from events                                                       |
 
 ### adminui module — 35 tests
 
-| Item | Notes |
-|------|-------|
+| Item                | Notes                                                    |
+| ------------------- | -------------------------------------------------------- |
 | **Admin Dashboard** | templ + HTMX, light/dark, SuperAdmin + TenantAdmin modes |
 
 ### Documentation
 
-| Item | Notes |
-|------|-------|
-| **28 ADRs** | 0026 (idempotency), 0027 (decide stays on server), 0028 (brand all ID types) |
-| **CHANGELOG** | [Unreleased] documents all recent work + breaking changes |
-| **AGENTS.md** | Updated: one-way dependency, rate limiter unification, branded types, correct test counts |
-| **CI umbrella** | `nix run .#test` + `nix run .#lint` + `nix run .#errorfamily` all green |
+| Item            | Notes                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| **28 ADRs**     | 0026 (idempotency), 0027 (decide stays on server), 0028 (brand all ID types)              |
+| **CHANGELOG**   | [Unreleased] documents all recent work + breaking changes                                 |
+| **AGENTS.md**   | Updated: one-way dependency, rate limiter unification, branded types, correct test counts |
+| **CI umbrella** | `nix run .#test` + `nix run .#lint` + `nix run .#errorfamily` all green                   |
 
 ---
 
@@ -98,18 +98,18 @@ updated to match reality.
 
 ## C) NOT STARTED
 
-| Item | Impact | Blocked By |
-|------|--------|------------|
-| Phase 2 client-side command queue + offline persistence | Critical | Q2 decision |
-| Redis/Postgres IdempotencyStore implementation | High | — |
-| adminui integration test (mount + route render) | High | — |
-| Security review: X-Command-Id injection/replay surface | High | — |
-| Split 7 files >300 lines (sql_session_store, service_core, response, etc.) | Medium | — |
-| JS test harness for admin.js sync-state handler | Medium | — |
-| Consumer wiring recipe doc (SSE + ACK + honest UI) | Medium | — |
-| Honest UI: inline error + retry button in rejected state | Medium | — |
-| SSE replay benchmark (10K/100K events) | Low | — |
-| v3.3.0 release | High | Q2 + release checklist |
+| Item                                                                       | Impact   | Blocked By             |
+| -------------------------------------------------------------------------- | -------- | ---------------------- |
+| Phase 2 client-side command queue + offline persistence                    | Critical | Q2 decision            |
+| Redis/Postgres IdempotencyStore implementation                             | High     | —                      |
+| adminui integration test (mount + route render)                            | High     | —                      |
+| Security review: X-Command-Id injection/replay surface                     | High     | —                      |
+| Split 7 files >300 lines (sql_session_store, service_core, response, etc.) | Medium   | —                      |
+| JS test harness for admin.js sync-state handler                            | Medium   | —                      |
+| Consumer wiring recipe doc (SSE + ACK + honest UI)                         | Medium   | —                      |
+| Honest UI: inline error + retry button in rejected state                   | Medium   | —                      |
+| SSE replay benchmark (10K/100K events)                                     | Low      | —                      |
+| v3.3.0 release                                                             | High     | Q2 + release checklist |
 
 ---
 
@@ -154,33 +154,33 @@ limiter unification made it false — caught and fixed in self-review round 7.
 
 Sorted by impact × effort × customer-value.
 
-| # | Task | Impact | Effort | Blocked? |
-|---|------|--------|--------|----------|
-| 1 | **Answer Q2: closed-tab persistence?** (SharedWorker / Service Worker) | Critical | 5m | **User** |
-| 2 | Add adminui integration test (mount + route render) | High | 30m | — |
-| 3 | Security review: X-Command-Id injection/replay surface | High | 30m | — |
-| 4 | Implement Redis IdempotencyStore (SET NX + TTL) | High | 45m | — |
-| 5 | Document consumer wiring recipe (SSE + ACK + honest UI) | Medium | 30m | — |
-| 6 | Split sql_session_store.go (424 lines) | Medium | 30m | — |
-| 7 | Split service_core.go (418 lines) | Medium | 30m | — |
-| 8 | Split response.go (358 lines) | Medium | 20m | — |
-| 9 | Split http.go (355 lines) | Medium | 20m | — |
-| 10 | Add actor/impersonator context bridge integration test | High | 30m | — |
-| 11 | Browser-verify admin-demo honest UI lifecycle | High | 30m | — |
-| 12 | Honest UI: inline error message in rejected state | Medium | 30m | — |
-| 13 | Honest UI: add retry button to rejected items | Medium | 30m | — |
-| 14 | Add adminui sync indicator rendering test (DOM flip) | Medium | 30m | — |
-| 15 | Add coverage gate for adminui | Medium | 20m | — |
-| 16 | Signing/encryption runnable example (prove ADR-0011 seams) | Medium | 45m | — |
-| 17 | Add JS unit tests for sync-state handler | Medium | 30m | — |
-| 18 | SSE replay benchmark (10K/100K events) | Low | 30m | — |
-| 19 | Split oauth2.go (332 lines) | Low | 20m | — |
-| 20 | Split app.go (331 lines) | Low | 20m | — |
-| 21 | Fix responsive .sync-bar mobile layout | Low | 20m | — |
-| 22 | Add PWA manifest to admin-demo | Low | 20m | — |
-| 23 | Evaluate maypok86/otter/v2 for ephemeral stores | Low | 30m | — |
-| 24 | Phase 2 client-side command queue implementation | Critical | 2h+ | **Q2** |
-| 25 | Cut v3.3.0 release | High | 30m | Q2 + #2 |
+| #   | Task                                                                   | Impact   | Effort | Blocked? |
+| --- | ---------------------------------------------------------------------- | -------- | ------ | -------- |
+| 1   | **Answer Q2: closed-tab persistence?** (SharedWorker / Service Worker) | Critical | 5m     | **User** |
+| 2   | Add adminui integration test (mount + route render)                    | High     | 30m    | —        |
+| 3   | Security review: X-Command-Id injection/replay surface                 | High     | 30m    | —        |
+| 4   | Implement Redis IdempotencyStore (SET NX + TTL)                        | High     | 45m    | —        |
+| 5   | Document consumer wiring recipe (SSE + ACK + honest UI)                | Medium   | 30m    | —        |
+| 6   | Split sql_session_store.go (424 lines)                                 | Medium   | 30m    | —        |
+| 7   | Split service_core.go (418 lines)                                      | Medium   | 30m    | —        |
+| 8   | Split response.go (358 lines)                                          | Medium   | 20m    | —        |
+| 9   | Split http.go (355 lines)                                              | Medium   | 20m    | —        |
+| 10  | Add actor/impersonator context bridge integration test                 | High     | 30m    | —        |
+| 11  | Browser-verify admin-demo honest UI lifecycle                          | High     | 30m    | —        |
+| 12  | Honest UI: inline error message in rejected state                      | Medium   | 30m    | —        |
+| 13  | Honest UI: add retry button to rejected items                          | Medium   | 30m    | —        |
+| 14  | Add adminui sync indicator rendering test (DOM flip)                   | Medium   | 30m    | —        |
+| 15  | Add coverage gate for adminui                                          | Medium   | 20m    | —        |
+| 16  | Signing/encryption runnable example (prove ADR-0011 seams)             | Medium   | 45m    | —        |
+| 17  | Add JS unit tests for sync-state handler                               | Medium   | 30m    | —        |
+| 18  | SSE replay benchmark (10K/100K events)                                 | Low      | 30m    | —        |
+| 19  | Split oauth2.go (332 lines)                                            | Low      | 20m    | —        |
+| 20  | Split app.go (331 lines)                                               | Low      | 20m    | —        |
+| 21  | Fix responsive .sync-bar mobile layout                                 | Low      | 20m    | —        |
+| 22  | Add PWA manifest to admin-demo                                         | Low      | 20m    | —        |
+| 23  | Evaluate maypok86/otter/v2 for ephemeral stores                        | Low      | 30m    | —        |
+| 24  | Phase 2 client-side command queue implementation                       | Critical | 2h+    | **Q2**   |
+| 25  | Cut v3.3.0 release                                                     | High     | 30m    | Q2 + #2  |
 
 ---
 
@@ -205,16 +205,16 @@ just needs a JS command queue that flushes on reconnect.
 
 ## Numbers
 
-| Metric | Value |
-|--------|-------|
-| Go files | 341 |
-| Lines of Go | 51,423 |
-| Go modules | 8 |
-| ADRs | 28 |
-| TODOs open | 2 |
-| TODOs done | 93 |
-| Commits today | 90 |
-| Tests | 933 (136 + 745 + 35 + 17) |
-| Lint issues | 0 |
-| ErrorFamily violations | 0 |
-| Direct deps (root) | 12 |
+| Metric                 | Value                     |
+| ---------------------- | ------------------------- |
+| Go files               | 341                       |
+| Lines of Go            | 51,423                    |
+| Go modules             | 8                         |
+| ADRs                   | 28                        |
+| TODOs open             | 2                         |
+| TODOs done             | 93                        |
+| Commits today          | 90                        |
+| Tests                  | 933 (136 + 745 + 35 + 17) |
+| Lint issues            | 0                         |
+| ErrorFamily violations | 0                         |
+| Direct deps (root)     | 12                        |

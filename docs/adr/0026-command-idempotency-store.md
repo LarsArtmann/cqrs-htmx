@@ -11,6 +11,7 @@ The offline-first command sync protocol (ADR-0023) and honest UI ACK protocol
 submits a command, loses the ACK, and retries?**
 
 Without idempotency protection, the same command executes twice. For example:
+
 - A user creates an item, the server processes it, but the network drops
   the SSE ACK. The client shows "pending" and retries.
 - The server processes the retry, creating a **duplicate** item.

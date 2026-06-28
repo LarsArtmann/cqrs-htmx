@@ -29,13 +29,13 @@ Pre-validation is explicitly out of scope.
 ### Why Queue-Only is the library-correct choice
 
 1. **cqrs-htmx is a library, not an application.** Consumers write their
-   *own* `decide()` functions for *their* domain. The library cannot ship a
+   _own_ `decide()` functions for _their_ domain. The library cannot ship a
    WASM or TS port of `decide()` because the library does not own the
    consumer's domain logic. Only `usermgmt`'s decide functions exist in this
    repo, and those are a consumer-facing feature, not a library mechanism.
 
 2. **WASM/TS port is a consumer concern, not a library concern.** If a
-   consumer wants offline pre-validation, *they* compile *their* decide
+   consumer wants offline pre-validation, _they_ compile _their_ decide
    functions to WASM. The library's job is to provide the transport protocol
    (command ID → ACK → honest UI state), not to dictate validation strategy.
 
@@ -47,7 +47,7 @@ Pre-validation is explicitly out of scope.
 
 4. **The decide functions are already pure** (event-sourcing decider
    pattern: `decide(state, cmd) → ([]event, error)`, no I/O). This means
-   WASM is *always available as a future option* for any consumer who wants
+   WASM is _always available as a future option_ for any consumer who wants
    it, without restructuring the library. The door is open; we just don't
    force consumers through it.
 
