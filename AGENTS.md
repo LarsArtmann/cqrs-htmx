@@ -57,7 +57,9 @@ cqrs-htmx/
 ├── sse_event.go      # SSEEvent struct, WriteSSEEvent, SSEEventID branded type + ParseSSEEventID
 ├── sse_stream.go     # SSEStream (Send/SendHTML/Heartbeat/OnDisconnect/Close), NewSSEStream
 ├── sse_store.go      # SSEEventStore interface, ReplayEvents, LastEventIDFromRequest
+├── event_store_sse.go # JournalSSEStore — PRODUCTION SSEEventStore backed by event.SeekableJournal
 ├── sse_broadcaster.go # SSE Broadcaster (embeds fanOut[SSEEvent]), BroadcastOnSuccess/OnError/Func hooks
+├── ack.go            # CommandAck + BroadcastOnAck — ACK protocol for honest UI sync-state
 ├── structured_error.go # StructuredError (RFC 7807), NewStructuredError, NewStructuredErrorWithContext, JSON()
 ├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML
 ├── ws_encoder.go     # WriteWSMessage, WriteWSMessageInto[T] — outbound WS message encoder
@@ -297,6 +299,8 @@ cqrs-htmx/
 - **SSEStream**: Sets correct headers (Content-Type, Cache-Control, Connection). Flushes after each Send. Context-aware (cancelled when client disconnects). `LastEventID()` for reconnection
 - **Broadcaster**: Thread-safe fan-out using buffered channels (64 capacity). O(1) Unsubscribe via `uintptr` channel identity. Non-blocking broadcast — slow consumers have events dropped. Subscribe/Unsubscribe with channel close
 - **Reconnection**: `LastEventIDFromRequest()` parses `Last-Event-ID` header (returns branded `SSEEventID`). `SSEEventStore` interface for event replay. `ReplayEvents()` sends missed events to stream. `SSEEventID` branded type (`ParseSSEEventID`/`MustParseSSEEventID`/`NewSSEEventID`) prevents cross-assignment with other string IDs; rejects newlines that would corrupt the SSE wire format.
+- **Production SSEEventStore**: `JournalSSEStore` (`event_store_sse.go`) wraps `event.Journal`/`event.SeekableJournal` for durable replay. Uses `ReadFrom(afterEventID, limit)` for efficient cursor-based position replay. Falls back to `ReadAll` + in-memory filter when `SeekableJournal` is unavailable. Consumer provides `EventToSSEMapper` to render event payloads. `WithMaxReplay(n)` limits initial sync (default: 1000). See `docs/adr/0023-command-sync.md`.
+- **ACK Protocol**: `CommandAck` (`ack.go`) carries `{commandId, status, error}` JSON over SSE for honest UI sync-state transitions. `BroadcastOnAck()` hook factory on `Broadcaster` broadcasts when the request carries `X-Command-Id` header (opt-in). `BroadcastOnAckFunc(fn)` for custom payloads. See `docs/adr/0024-honest-ui.md`.
 - **CQRS bridge**: `BroadcastOnSuccess(eventName, data)` / `BroadcastOnSuccessFunc(fn)` — broadcast on success. `BroadcastOnError(eventName)` / `BroadcastOnErrorFunc(fn)` — broadcast StructuredError on failure. Full dispatch feedback for SSE clients.
 - **Heartbeat**: `SSEStream.Heartbeat(ctx, interval)` sends SSE comment-frame pings (": keepalive\n\n"). Prevents proxy/LB idle disconnects (Nginx 30s, Cloudflare 100s).
 - **OnDisconnect**: `SSEStream.OnDisconnect(fn)` registers cleanup callbacks fired on Close().
