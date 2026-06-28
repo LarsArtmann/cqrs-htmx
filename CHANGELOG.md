@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [3.2.0] - 2026-06-28
 
 ### Changed
 
@@ -21,6 +21,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `cataloghtmx.GenerateEventCatalog` → `docserver.GenerateEventCatalog`,
   `cataloghtmx.OpenAPIHandler(cat)` → `docserver.NewDocsServer(...).OpenAPISpec()`.
   See ADR 0020 for rationale.
+
+### Fixed
+
+- **ADR number collision** (0015): The catalog-merge ADR shared number 0015 with the identity-model-redesign ADR. Renumbered catalog-merge ADR → 0020. Cross-references in ADR 0008 and CHANGELOG updated.
+- **Broken CHANGELOG link**: The v2.2.0 changelog entry linked to `catalog/README.md` (deleted by the merge). Replaced with a valid link to ADR 0008.
+- **Stale status reports archived**: 51 status reports >2 weeks old moved to `docs/status/archive/`. Reduces noise from 96 → 45 visible reports.
+- **Migration checklist added to AGENTS.md**: New "Module Deletion / Migration" gotchas (#22-26) encode the reference-sweep, ADR-collision-check, breaking-change-CHANGELOG, and write-once-report lessons. Prevents recurrence of the "code green but docs lie" failure mode.
 
 ## [3.1.0] - 2026-06-26
 
