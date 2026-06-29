@@ -17,15 +17,17 @@ type SSEEventID = http.SSEEventID
 type SSEEvent = http.SSEEvent
 
 // NewSSEEventID constructs an SSEEventID from a string without validation.
-var NewSSEEventID = http.NewSSEEventID
+func NewSSEEventID(s string) SSEEventID { return http.NewSSEEventID(s) }
 
 // ParseSSEEventID converts a string to an SSEEventID, rejecting newlines.
-var ParseSSEEventID = http.ParseSSEEventID
+func ParseSSEEventID(s string) (SSEEventID, error) {
+	return http.ParseSSEEventID(s) //nolint:wrapcheck // pure delegation to upstream
+}
 
 // MustParseSSEEventID is the panicking variant for tests and constants.
-var MustParseSSEEventID = http.MustParseSSEEventID
+func MustParseSSEEventID(s string) SSEEventID { return http.MustParseSSEEventID(s) }
 
 // WriteSSEEvent writes a single SSE event in the standard wire format.
 func WriteSSEEvent(w io.Writer, evt SSEEvent) error {
-	return http.WriteSSEEvent(w, evt)
+	return http.WriteSSEEvent(w, evt) //nolint:wrapcheck // pure delegation to upstream
 }
