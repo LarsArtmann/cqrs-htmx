@@ -103,11 +103,11 @@
 
 ### Convenience
 
-| Feature                | Status                    | Notes                                                                                                         |
-| ---------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| HasCommands/HasQueries | 🟢 `FULLY_FUNCTIONAL`     | Report dispatcher availability.                                                                               |
-| Request Validation     | 🟢 `FULLY_FUNCTIONAL`     | `ValidateCommand(validator)` / `ValidateQuery(validator)` wrap decoders. `ErrValidationFailed` → 400.         |
-| ClientIP (deprecated)  | 🟡 `PARTIALLY_FUNCTIONAL` | Delegates to `httputil.ClientIP`. Deprecated — import `larsartmann/httputil` directly. Scheduled for removal. |
+| Feature                | Status                | Notes                                                                                                 |
+| ---------------------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
+| HasCommands/HasQueries | 🟢 `FULLY_FUNCTIONAL` | Report dispatcher availability.                                                                       |
+| Request Validation     | 🟢 `FULLY_FUNCTIONAL` | `ValidateCommand(validator)` / `ValidateQuery(validator)` wrap decoders. `ErrValidationFailed` → 400. |
+| ClientIP (deprecated)  | 🟢 `FULLY_FUNCTIONAL` | Delegates to `httputil.ClientIP`. Use `larsartmann/httputil` directly.                                |
 
 ### Real-Time — SSE
 
@@ -263,12 +263,12 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Metrics
 
-| Metric         | Root  | usermgmt | adminui | catalog | integration_test |
-| -------------- | ----- | -------- | ------- | ------- | ---------------- |
-| Coverage       | 95.6% | 79.6%    | 56.4%   | 95.3%   | —                |
-| Tests passing  | 95    | 699      | 19      | 41      | 15               |
-| Lint issues    | 0     | 0        | 0       | 0       | 0                |
-| ErrorFamily    | 0     | 0        | 0       | 0       | 0                |
-| Production LOC | ~8.5K | ~7.2K    | ~1.7K   | ~0.5K   | —                |
-| Test LOC       | ~12K  | ~11K     | ~0.8K   | ~1.5K   | ~1.3K            |
-| Go modules     | 1     | 1        | 1       | 1       | 1                |
+| Metric         | Root  | usermgmt | adminui | integration_test |
+| -------------- | ----- | -------- | ------- | ---------------- |
+| Coverage       | 94.2% | 79.3%    | 56.4%   | —                |
+| Tests passing  | 246   | 595      | 35      | 15               |
+| Lint issues    | 0     | 0        | 0       | 0                |
+| ErrorFamily    | 0     | 0        | 0       | 0                |
+| Production LOC | ~8.5K | ~7.2K    | ~1.7K   | —                |
+| Test LOC       | ~12K  | ~11K     | ~0.8K   | ~1.3K            |
+| Go modules     | 1     | 1        | 1       | 1                |

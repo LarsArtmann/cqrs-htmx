@@ -151,18 +151,22 @@ func formatMillis(d time.Duration) string {
 }
 
 // escapeQuotedString escapes a value for an RFC 7230 quoted-string: backslash
-// and double-quote are backslash-escaped. All other bytes (including commas,
+// and double-quote are backslash-escaped. CR and LF are replaced with spaces
+// to prevent HTTP header injection. All other bytes (including commas,
 // semicolons, and spaces) are safe inside a quoted-string.
 func escapeQuotedString(s string) string {
-	if !strings.ContainsAny(s, `"\`) {
+	if !strings.ContainsAny(s, `"\`+"\r\n") {
 		return s
 	}
 	var b strings.Builder
 	b.Grow(len(s) + 4)
 	for i := range s {
 		c := s[i]
-		if c == '\\' || c == '"' {
+		switch c {
+		case '\\', '"':
 			b.WriteByte('\\')
+		case '\r', '\n':
+			c = ' '
 		}
 		b.WriteByte(c)
 	}
