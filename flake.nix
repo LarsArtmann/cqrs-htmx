@@ -67,6 +67,7 @@
                 pkgs.gopls
                 pkgs.golangci-lint
                 pkgs.tailwindcss_4
+                pkgs.templ
               ];
 
               GOWORK = "off";
@@ -345,6 +346,24 @@
                   cd adminui
                   tailwindcss -i tailwind.css -o assets/admin-tw.css --minify
                   echo "Done: adminui/assets/admin-tw.css"
+                '';
+              };
+            };
+
+            gen = {
+              type = "app";
+              meta.description = "Regenerate adminui templ components and normalize formatting";
+              program = pkgs.writeShellApplication {
+                name = "templ-generate";
+                runtimeInputs = [
+                  pkgs.go_1_26
+                  pkgs.templ
+                ];
+                text = ''
+                  cd adminui
+                  templ generate
+                  gofmt -w *_templ.go
+                  echo "Done: adminui templ components regenerated and formatted"
                 '';
               };
             };
