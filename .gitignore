@@ -44,6 +44,8 @@ examples/admin-demo/admin-demo
 # Generated reports (buildflow coverage / jscpd / lint output)
 /reports/
 /report/
+# Buildflow pre-commit resume state (regenerated on every buildflow run)
+/.buildflow-resume.json
 # Build artifacts
 /v3
 # Templ generated files are gitignored EXCEPT in modules that commit them.
