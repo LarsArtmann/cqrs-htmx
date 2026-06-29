@@ -437,6 +437,62 @@ func TestServerTimingMiddleware_UnwrapExposesUnderlying(t *testing.T) {
 	h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
 }
 
+// TestServerTimingMiddleware_FlushActuallyDelegates verifies that Flush()
+// calls propagate through the wrapper to the underlying writer — not just
+// that the interface is present, but that the delegation actually fires.
+// This is critical for SSE streaming (sse_stream.go does w.(flusher).Flush()).
+func TestServerTimingMiddleware_FlushActuallyDelegates(t *testing.T) {
+	t.Parallel()
+	h := ServerTimingMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f, ok := w.(http.Flusher)
+		if !ok {
+			t.Fatal("http.Flusher not available")
+		}
+		f.Flush()
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	if !rec.Flushed {
+		t.Fatal("Flush did not propagate through serverTimingWriter to the underlying recorder")
+	}
+}
+
+// TestServerTiming_HeaderValue_SpecCompliant verifies the emitted header is
+// parseable as valid W3C Server-Timing: each metric is comma-space separated,
+// has a token name, optional desc="...", and optional dur=<number>.
+func TestServerTiming_HeaderValue_SpecCompliant(t *testing.T) {
+	t.Parallel()
+	st := newServerTiming()
+	st.Record("db", "Database query", 53*time.Millisecond)
+	st.Record("cache", "", 2*time.Millisecond)
+	st.Record("render", "HTML render", 0) // zero dur → omitted
+
+	hv := st.HeaderValue()
+
+	// Split by ", " (spec-compliant separator between metrics).
+	parts := strings.Split(hv, ", ")
+	if len(parts) != 3 {
+		t.Fatalf("expected 3 metrics, got %d in %q", len(parts), hv)
+	}
+
+	// Verify each part has the expected structure.
+	expected := map[string]struct {
+		hasDesc bool
+		hasDur  bool
+	}{
+		`db;desc="Database query";dur=53`: {true, true},
+		`cache;dur=2`:                     {false, true},
+		`render;desc="HTML render"`:       {true, false},
+	}
+	for _, p := range parts {
+		if _, ok := expected[p]; !ok {
+			t.Errorf("unexpected metric format: %q", p)
+		}
+	}
+}
+
 func TestServerTimingMiddleware_NilPredicateDisablesAll(t *testing.T) {
 	t.Parallel()
 	h := ServerTimingMiddlewareWhen(nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
