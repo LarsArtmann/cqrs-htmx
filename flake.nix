@@ -428,6 +428,30 @@
               };
             };
 
+            check-codegen = {
+              type = "app";
+              meta.description = "Verify adminui _templ.go files match .templ sources (no codegen drift)";
+              program = pkgs.writeShellApplication {
+                name = "check-codegen";
+                runtimeInputs = [
+                  pkgs.go_1_26
+                  pkgs.templ
+                ];
+                text = ''
+                  cd adminui
+                  templ generate
+                  gofmt -w *_templ.go
+                  if ! git diff --exit-code -- *_templ.go; then
+                    echo ""
+                    echo "FAIL: Generated _templ.go files differ from committed versions."
+                    echo "Run 'nix run .#gen' to regenerate and commit the result."
+                    exit 1
+                  fi
+                  echo "Codegen drift check PASSED"
+                '';
+              };
+            };
+
             coverage-gate = {
               type = "app";
               meta.description = "Run tests and fail if coverage drops below thresholds (root 90%, usermgmt 78%)";

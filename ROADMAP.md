@@ -67,12 +67,12 @@ _Focus: Close the gap between what shipped and what's documented. Improve test c
 
 _Focus: Production-grade observability for CQRS dispatch pipelines._
 
-| Area          | Item                                                                          | Priority | Status  |
-| ------------- | ----------------------------------------------------------------------------- | -------- | ------- |
-| Observability | Server-Timing API (W3C header, debug-gated, nil-receiver)                     | High     | Done    |
-| Observability | OTel seam: document `go-cqrs-lite/otel/v3` + `middleware/v3` wiring guide     | Medium   | Planned |
-| Observability | Prometheus seam: document `go-cqrs-lite/prometheus/v3` `/metrics` integration | Low      | Planned |
-| CI            | Coverage gate in CI (fail on regression below threshold)                      | Medium   | Done    |
+| Area          | Item                                                                          | Priority | Status                                |
+| ------------- | ----------------------------------------------------------------------------- | -------- | ------------------------------------- |
+| Observability | Server-Timing API (W3C header, debug-gated, nil-receiver)                     | High     | Done                                  |
+| Observability | OTel seam: document `go-cqrs-lite/otel/v3` + `middleware/v3` wiring guide     | Medium   | Done (`docs/observability-wiring.md`) |
+| Observability | Prometheus seam: document `go-cqrs-lite/prometheus/v3` `/metrics` integration | Low      | Done (`docs/observability-wiring.md`) |
+| CI            | Coverage gate in CI (fail on regression below threshold)                      | Medium   | Done                                  |
 
 > **Note:** OpenTelemetry and Prometheus are already available via go-cqrs-lite upstream
 > (`otel/v3`, `middleware/v3`, `prometheus/v3`). cqrs-htmx doesn't need to re-implement
@@ -88,7 +88,7 @@ _Focus: Adopting go-cqrs-lite v3.4.0 capabilities to reduce hand-rolled code._
 | ---- | ------------------------------------------------------------------ | -------- | --------------------------------------------------------------- |
 | ES   | Adopt `projectionhost/v3` — replace hand-rolled `StartProjections` | High     | Planned (checkpoint replay shipped in v3.3.0 as interim fix)    |
 | ES   | Adopt `CatchUpSubscriber` — ordered durable projections            | Medium   | Planned (ADR-0031 Accepted; deferred — needs sync-wait wrapper) |
-| Test | Adopt `scenario/v3` BDD DSL for usermgmt decider tests             | Medium   | Partially done (RegisterUser + ChangeEmail scenarios shipped)   |
+| Test | Adopt `scenario/v3` BDD DSL for usermgmt decider tests             | Medium   | Done (all 4 aggregates: User + Tenant + Bot + Membership)       |
 | Perf | Adopt `snapshot/v3` for aggregates with 100+ events                | Medium   | Planned                                                         |
 | Perf | Profile and optimize hot paths (dispatch, decode)                  | Low      | Planned                                                         |
 | Perf | Benchmark projection replay with large stores (10K+ events)        | Low      | Planned                                                         |
