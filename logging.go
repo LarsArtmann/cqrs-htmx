@@ -1,11 +1,9 @@
 package cqrshtmx
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"log/slog"
-	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -124,10 +122,10 @@ func RequestLogging(
 }
 
 // StatusRecorder wraps http.ResponseWriter to capture the HTTP status code.
-// It also implements http.Pusher, http.Flusher, and http.Hijacker by delegating
-// to the underlying ResponseWriter when available.
+// It embeds delegatingWriter so Flush/Hijack/Push/Unwrap are promoted
+// automatically — preserving SSE, WebSocket, and HTTP/2 capabilities.
 type StatusRecorder struct {
-	http.ResponseWriter
+	delegatingWriter
 	status int
 	wrote  bool
 }
@@ -135,7 +133,11 @@ type StatusRecorder struct {
 // NewStatusRecorder wraps w to capture the status code. The initial status is
 // 0 (unset) — callers should check WroteHeader() before relying on Status().
 func NewStatusRecorder(w http.ResponseWriter) *StatusRecorder {
-	return &StatusRecorder{ResponseWriter: w, status: 0, wrote: false}
+	return &StatusRecorder{
+		delegatingWriter: delegatingWriter{ResponseWriter: w},
+		status:           0,
+		wrote:            false,
+	}
 }
 
 // Status returns the captured HTTP status code, or 0 if WriteHeader has not
@@ -152,14 +154,6 @@ func (r *StatusRecorder) WriteHeader(code int) {
 		r.wrote = true
 	}
 	r.ResponseWriter.WriteHeader(code)
-}
-
-// Push delegates HTTP/2 server push to the underlying Pusher, if available.
-func (r *StatusRecorder) Push(target string, opts *http.PushOptions) error {
-	if pusher, ok := r.ResponseWriter.(http.Pusher); ok {
-		return pusher.Push(target, opts) //nolint:wrapcheck // delegate to underlying Pusher
-	}
-	return http.ErrNotSupported
 }
 
 // RequestLoggingSlog returns HTTP middleware that logs each request using
@@ -214,21 +208,4 @@ func (r *StatusRecorder) Write(p []byte) (int, error) {
 	}
 
 	return r.ResponseWriter.Write(p) //nolint:wrapcheck // delegate to underlying ResponseWriter
-}
-
-// Flush delegates to the underlying Flusher, if available.
-func (r *StatusRecorder) Flush() {
-	if f, ok := r.ResponseWriter.(http.Flusher); ok {
-		f.Flush()
-	}
-}
-
-// Hijack delegates to the underlying Hijacker, if available.
-func (r *StatusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	h, ok := r.ResponseWriter.(http.Hijacker)
-	if !ok {
-		return nil, nil, http.ErrNotSupported
-	}
-	conn, rw, err := h.Hijack()
-	return conn, rw, err //nolint:wrapcheck // delegate to underlying ResponseWriter
 }
