@@ -186,7 +186,7 @@ cqrs-htmx/
 
 | Dependency                   | Purpose                                                                                                             | Used in          |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| go-cqrs-lite v3.1.0          | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus, SQL view stores, typed metadata) | All modules      |
+| go-cqrs-lite v3.4.0          | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus, SQL view stores, typed metadata) | All modules      |
 | casbin/casbin/v3             | Authorization                                                                                                       | Root, usermgmt   |
 | justinas/nosurf v1.2.0       | CSRF protection                                                                                                     | Root             |
 | go-error-family v0.5.1       | Error classification                                                                                                | All modules      |
@@ -415,7 +415,7 @@ cqrs-htmx/
 
 1. **GOWORK=off required**: `go.work` covers root + adminui + usermgmt + integration_test + examples. `GOWORK=off` needed for CI/commands using per-module go.mod
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
-3. **go-cqrs-lite v3.1.0**: Per-module tags (`command/v3.1.0`, `event/v3.1.0`, etc.) published. All `go.mod` files declare `v3.1.0`. No replace directives needed. v3.1.0 adds SQL-backed view stores (`storage.SQLViewStore`/`ViewMapper`/`AutoMapper`), typed command/query metadata (`event.CustomData[K]`), multi-DB split presets, and `synchronous=NORMAL` WAL tuning — zero breaking changes over v3.0.0
+3. **go-cqrs-lite v3.4.0**: Per-module tags (`command/v3.4.0`, `event/v3.4.0`, etc.) published. Modules declare the latest tag per module (most at v3.4.0; decider/id/otel/watermill/codec/dispatcher/catalog/schema at v3.3.0/v3.3.1; transport/http at v3.3.1). No replace directives needed. v3.4.0 adds managed projection host (`projectionhost`), durable scheduling, scenario-testing DSL, and `go mod tidy` sweep. v3.3.0 added `command.Command.ID()` (embed `command.BasicCommand`), `event.Projection` moved to `projection/`, SQL dead-letter store. v3.1.0 added SQL-backed view stores, typed metadata, multi-DB split presets
 4. **Removed APIs in v2.3.0+**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
 5. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
 6. **LSP vs CLI discrepancy**: LSP may show stale warnings after golangci.yml changes; CLI (`golangci-lint run`) is authoritative. Both report 0 issues as of go-error-family v0.5.1 adoption
