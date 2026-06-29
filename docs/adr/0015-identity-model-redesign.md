@@ -115,24 +115,24 @@ request. Argon2id's 10-100ms per bot API call is unjustified.
 
 ## Implementation Status
 
-| Component                                | Status  | Commit  |
-| ---------------------------------------- | ------- | ------- |
-| ActorID, TenantID, BotID types           | Done    | 0db9379 |
-| SessionOrigin sealed interface           | Done    | 0db9379 |
-| Casbin g2 role hierarchy                 | Done    | 0db9379 |
-| Membership events/commands/state/fold    | Done    | 573e2e4 |
-| Context actor chain propagation          | Done    | b99ca78 |
-| MembershipDecider + decide functions     | Done    | 0f06f34 |
-| RegisterMembershipCommands               | Done    | 0f06f34 |
-| MembershipReadModel projection           | Done    | 0f06f34 |
-| CasbinProjection membership events       | Done    | 0f06f34 |
-| Service/Setup wiring                     | Done    | 0f06f34 |
-| Session struct update (ActorID + Origin) | Planned | —       |
-| BeginImpersonation/EndImpersonation      | Planned | —       |
-| Tenant aggregate                         | Planned | —       |
-| Bot aggregate + HMAC tokens              | Planned | —       |
-| Schema v1→v2 upcasters                   | Planned | —       |
-| Remove Roles from UserState              | Planned | —       |
+| Component                                | Status | Commit  |
+| ---------------------------------------- | ------ | ------- |
+| ActorID, TenantID, BotID types           | Done   | 0db9379 |
+| SessionOrigin sealed interface           | Done   | 0db9379 |
+| Casbin g2 role hierarchy                 | Done   | 0db9379 |
+| Membership events/commands/state/fold    | Done   | 573e2e4 |
+| Context actor chain propagation          | Done   | b99ca78 |
+| MembershipDecider + decide functions     | Done   | 0f06f34 |
+| RegisterMembershipCommands               | Done   | 0f06f34 |
+| MembershipReadModel projection           | Done   | 0f06f34 |
+| CasbinProjection membership events       | Done   | 0f06f34 |
+| Service/Setup wiring                     | Done   | 0f06f34 |
+| Session struct update (ActorID + Origin) | Done   | v2.6.0  |
+| BeginImpersonation/EndImpersonation      | Done   | v2.6.0  |
+| Tenant aggregate                         | Done   | v2.6.0  |
+| Bot aggregate + HMAC tokens              | Done   | v2.6.0  |
+| Schema v1→v2 upcasters                   | Done   | v3.0.0  |
+| Remove Roles from UserState              | Done   | v3.0.0  |
 
 ## Related
 

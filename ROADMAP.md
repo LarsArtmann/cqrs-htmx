@@ -86,7 +86,7 @@ _Focus: Adopting go-cqrs-lite v3.4.0 capabilities to reduce hand-rolled code._
 
 | Area | Item                                                               | Priority | Status                                                          |
 | ---- | ------------------------------------------------------------------ | -------- | --------------------------------------------------------------- |
-| ES   | Adopt `projectionhost/v3` — replace hand-rolled `StartProjections` | High     | Planned (checkpoint replay shipped in v3.30 as interim fix)     |
+| ES   | Adopt `projectionhost/v3` — replace hand-rolled `StartProjections` | High     | Planned (checkpoint replay shipped in v3.3.0 as interim fix)    |
 | ES   | Adopt `CatchUpSubscriber` — ordered durable projections            | Medium   | Planned (ADR-0031 Accepted; deferred — needs sync-wait wrapper) |
 | Test | Adopt `scenario/v3` BDD DSL for usermgmt decider tests             | Medium   | Partially done (RegisterUser + ChangeEmail scenarios shipped)   |
 | Perf | Adopt `snapshot/v3` for aggregates with 100+ events                | Medium   | Planned                                                         |
