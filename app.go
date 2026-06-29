@@ -264,11 +264,11 @@ func (a *App) applyServerTiming(w http.ResponseWriter, r *http.Request) (http.Re
 	st := newServerTiming()
 	ctx := WithServerTiming(r.Context(), st)
 	wrapped := &serverTimingWriter{
-		ResponseWriter: w,
-		st:             st,
-		start:          time.Now(),
-		injected:       false,
-		wrote:          false,
+		delegatingWriter: delegatingWriter{ResponseWriter: w},
+		st:               st,
+		start:            time.Now(),
+		injected:         false,
+		wrote:            false,
 	}
 	return wrapped, r.WithContext(ctx)
 }

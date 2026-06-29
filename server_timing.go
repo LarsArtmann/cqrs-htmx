@@ -1,9 +1,7 @@
 package cqrshtmx
 
 import (
-	"bufio"
 	"context"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -244,7 +242,7 @@ func MeasureServerTiming(ctx context.Context, name string) func() {
 // to work transparently through the wrapper — matching the StatusRecorder
 // delegation pattern in logging.go.
 type serverTimingWriter struct {
-	http.ResponseWriter
+	delegatingWriter
 	st       *ServerTiming
 	start    time.Time
 	injected bool
@@ -254,7 +252,7 @@ type serverTimingWriter struct {
 func (w *serverTimingWriter) WriteHeader(code int) {
 	w.flushHeader()
 	w.wrote = true
-	w.ResponseWriter.WriteHeader(code)
+	w.delegatingWriter.WriteHeader(code)
 }
 
 func (w *serverTimingWriter) Write(b []byte) (int, error) {
@@ -262,7 +260,7 @@ func (w *serverTimingWriter) Write(b []byte) (int, error) {
 		w.flushHeader()
 		w.wrote = true
 	}
-	return w.ResponseWriter.Write(b) //nolint:wrapcheck // delegate to underlying ResponseWriter
+	return w.delegatingWriter.Write(b) //nolint:wrapcheck // delegate to underlying ResponseWriter
 }
 
 // flushHeader finalizes the total metric and writes the Server-Timing header
@@ -274,41 +272,12 @@ func (w *serverTimingWriter) flushHeader() {
 	w.injected = true
 	w.st.prependTotal("total", "Total request", time.Since(w.start))
 	if h := w.st.HeaderValue(); h != "" {
-		w.ResponseWriter.Header().Set(headerServerTiming, h)
+		w.delegatingWriter.Header().Set(headerServerTiming, h)
 	}
 }
 
-// Flush delegates to the underlying Flusher so streaming responses (SSE)
-// remain flushable through the wrapper.
-func (w *serverTimingWriter) Flush() {
-	if f, ok := w.ResponseWriter.(http.Flusher); ok {
-		f.Flush()
-	}
-}
-
-// Hijack delegates to the underlying Hijacker so WebSocket upgrades work
-// through the wrapper. Returns http.ErrNotSupported when unavailable,
-// matching the StatusRecorder pattern (logging.go:230).
-func (w *serverTimingWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	h, ok := w.ResponseWriter.(http.Hijacker)
-	if !ok {
-		return nil, nil, http.ErrNotSupported
-	}
-	conn, rw, err := h.Hijack()
-	return conn, rw, err //nolint:wrapcheck // delegate to underlying Hijacker
-}
-
-// Push delegates HTTP/2 server push to the underlying Pusher, if available.
-func (w *serverTimingWriter) Push(target string, opts *http.PushOptions) error {
-	if pusher, ok := w.ResponseWriter.(http.Pusher); ok {
-		return pusher.Push(target, opts) //nolint:wrapcheck // delegate to underlying Pusher
-	}
-	return http.ErrNotSupported
-}
-
-// Unwrap exposes the underlying ResponseWriter so http.ResponseController (Go
-// 1.20+) can locate Flusher/Hijacker/Pusher through this wrapper.
-func (w *serverTimingWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+// Flush, Hijack, Push, and Unwrap are promoted from delegatingWriter.
+// See responsewriter.go.
 
 // prependTotal inserts the total metric at the front of the collector. It is
 // only called once, at flushHeader time, so the total reflects time-to-first
@@ -375,11 +344,11 @@ func ServerTimingMiddlewareWhen(pred func(*http.Request) bool) func(http.Handler
 			st := newServerTiming()
 			ctx := WithServerTiming(r.Context(), st)
 			wrapped := &serverTimingWriter{
-				ResponseWriter: w,
-				st:             st,
-				start:          time.Now(),
-				injected:       false,
-				wrote:          false,
+				delegatingWriter: delegatingWriter{ResponseWriter: w},
+				st:               st,
+				start:            time.Now(),
+				injected:         false,
+				wrote:            false,
 			}
 			next.ServeHTTP(wrapped, r.WithContext(ctx))
 		})
