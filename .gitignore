@@ -80,15 +80,11 @@ ehthumbs.db
 *.tmp
 *.temp
 
-## Reports and coverage
-reports/
-
 ## Go
 go.work
 go.work.sum
 
 ## Nix
-result
 result-*
 .envrc
 .direnv/
@@ -97,6 +93,12 @@ result-*
 dist/
 build/
 *.tsbuildinfo
+.next/
+.nuxt/
+.docusaurus/
+.eslintcache
+.cache/
+.parcel-cache/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
