@@ -145,7 +145,7 @@ _Phase 0 + Phase 1 server-side code DONE. See [execution plan](docs/planning/202
 - [x] **Stdlib modernization** — `slices.Contains`, `min()`, `slices.IndexFunc` replace manual loops. goconst warnings fixed. `context.TODO()` → `context.Background()`. (2026-06-28)
 - [x] **CI umbrella verified** — `nix run .#test` + `nix run .#lint` + `nix run .#errorfamily` all green. All 4 modules pass with -race. (2026-06-28)
 - [x] **go.yaml.in/yaml/v3 investigated** — Confirmed as official Canonical Ltd successor to `gopkg.in/yaml.v3` (same codebase, new import path). NOT a typo-squat. No action needed. (2026-06-28)
-- [ ] **Phase 2 implementation** — Q1 ANSWERED (ADR-0027: Queue-Only — decide() stays on server). Q2 still open: must writes survive closed tabs? (SharedWorker / Service Worker + Background Sync). (T31-T35)
+- [~] **Phase 2 implementation** — Phase 2a shipped (SharedWorker in-memory queue, ADR-0029). Phase 2b (IndexedDB persistence) proposed in ADR-0030. Q1 ANSWERED (ADR-0027: Queue-Only). Q2 answered: writes do NOT need to survive closed tabs for Phase 2a; ADR-0030 proposes IndexedDB for Phase 2b when that requirement is needed.
 - [x] **Idempotency store wired into admin-demo** — ackMiddleware now rejects duplicate X-Command-Id mutations with 409. Ghost system killed. (2026-06-28)
 - [x] **CheckAndRecord atomicity fixed** — Moved from racy free function to IdempotencyStore interface method. Proven by 200-goroutine concurrency test. (2026-06-28)
 - [x] **Idempotency memory leak fixed** — Seen() lazily deletes expired entries. (2026-06-28)
