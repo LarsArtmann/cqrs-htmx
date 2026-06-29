@@ -72,6 +72,7 @@ cqrs-htmx/
 ├── ratelimit_middleware.go # RateLimiterMiddleware, per-key token bucket, min-heap LRU eviction
 ├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, RecommendedCSP/HSTS
 ├── recovery.go       # RecoveryMiddleware (package-level), App.RecoverHandler() — panic recovery
+├── server_timing.go  # ServerTiming collector + ServerTimingMiddleware/When — W3C Server-Timing API (opt-in, debug-gated)
 ├── usermgmt/         # User management submodule (EVENT-SOURCED CQRS, RBAC, sessions, password auth)
 │   ├── go.mod        # Independent Go module
 │   ├── id.go         # UserID (alias of id.UserID), ActorID struct, TenantID, BotID
@@ -274,6 +275,18 @@ cqrs-htmx/
 
 - **Package-level RecoveryMiddleware**: Uses `DefaultErrorHandler` for panics
 - **App.RecoverHandler()**: Uses the App's configured error handler (renamed from RecoveryMiddleware to avoid naming collision)
+
+### Server Timing API (Server-Timing header) — 2026-06-29
+
+- **W3C Server-Timing** (`server_timing.go`): opt-in middleware that emits the `Server-Timing` response header (e.g. `total;desc="Total request";dur=12, db;dur=8`). Spec: https://w3c.github.io/server-timing/
+- **The header-before-body constraint**: like all HTTP headers, `Server-Timing` must be set before `WriteHeader`/`Write`. The library's `AfterDispatchHook` cannot set headers (no `ResponseWriter`, response already committed). So `ServerTimingMiddleware` wraps the `ResponseWriter` (`serverTimingWriter`) and injects the header at the **first** `WriteHeader`/`Write` — the same wrapping pattern `StatusRecorder` uses (`logging.go:129`)
+- **`ServerTiming` collector**: thread-safe, stored in context via `WithServerTiming`/`ServerTimingFromContext` (mirrors `WithRequestID`). Nil-safe helpers `RecordServerTiming(ctx,...)` and `MeasureServerTiming(ctx, name)` so handlers never need `if st != nil` checks
+- **Recording**: `defer st.Measure("db")()` OR explicit `stop := MeasureServerTiming(ctx,"db"); ...; stop()`. **TTFB gotcha**: a metric's region must END before the response is committed (Write/WriteHeader) to appear in the header — `defer Measure()()` records at function return, which is AFTER the write for non-streaming handlers, so it misses the header. The `total` metric is captured at flush time (TTFB) by design
+- **Two constructors**: `ServerTimingMiddleware()` (always-on) and `ServerTimingMiddlewareWhen(pred)` — the latter is the "debug mode" gate (e.g. gate behind `?debug=1`, an admin role, or localhost). Nil predicate disables all
+- **Zero-overhead when off**: when `pred` returns false, no `ResponseWriter` wrapping occurs and the disabled collector makes every `Record`/`Measure` a cheap no-op
+- **Interface preservation is critical**: the wrapper delegates `Flusher` (SSE does `w.(flusher)` at `sse_stream.go:63`), `Hijacker` (WebSocket upgrades), and `Pusher` (HTTP/2). Also implements `Unwrap()` for `http.ResponseController`. Losing any of these silently breaks SSE/WS
+- **Spec compliance**: metric names are RFC 7230 tokens (invalid chars → `_`, empty dropped); descriptions are RFC 7230 quoted-strings (escape `"` and `\`, so commas/semicolons are safe); `dur` rendered in ms with shortest round-trip float (sub-ms preserved); zero `dur` omits the param
+- **OPT-IN, never auto-applied** (library principle)
 
 ### Lifecycle & Shutdown (usermgmt)
 
