@@ -18,6 +18,7 @@ func NewRegisterUserCmd(
 ) *RegisterUserCmd {
 	return &RegisterUserCmd{
 		aggregateID: aggID,
+		cmdID:       id.NewCommandID(),
 		email:       email,
 		displayName: displayName,
 		roles:       roles,
@@ -152,6 +153,7 @@ func NewLinkExternalAccountCmd(
 ) *LinkExternalAccountCmd {
 	return &LinkExternalAccountCmd{
 		aggregateID: aggID,
+		cmdID:       id.NewCommandID(),
 		provider:    provider,
 		subject:     subject,
 		email:       email,
@@ -175,6 +177,7 @@ func NewUnlinkExternalAccountCmd(
 ) *UnlinkExternalAccountCmd {
 	return &UnlinkExternalAccountCmd{
 		aggregateID: aggID,
+		cmdID:       id.NewCommandID(),
 		provider:    provider,
 		subject:     subject,
 	}

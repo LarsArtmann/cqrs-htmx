@@ -20,6 +20,7 @@ func NewRegisterBotCmd(
 ) *RegisterBotCmd {
 	return &RegisterBotCmd{
 		aggregateID: aggID,
+		cmdID:       id.NewCommandID(),
 		name:        name,
 		ownerID:     ownerID,
 		tokenHash:   tokenHash,

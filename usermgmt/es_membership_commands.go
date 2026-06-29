@@ -25,6 +25,7 @@ type AddMemberCmd struct {
 func NewAddMemberCmd(actorID ActorID, tenantID TenantID, roles []Role) *AddMemberCmd {
 	return &AddMemberCmd{
 		aggregateID: deriveMembershipID(actorID, tenantID),
+		cmdID:       id.NewCommandID(),
 		actorID:     actorID,
 		tenantID:    tenantID,
 		roles:       roles,
@@ -49,6 +50,7 @@ func NewUpdateMemberRolesCmd(
 ) *UpdateMemberRolesCmd {
 	return &UpdateMemberRolesCmd{
 		aggregateID: deriveMembershipID(actorID, tenantID),
+		cmdID:       id.NewCommandID(),
 		roles:       roles,
 	}
 }
@@ -68,6 +70,7 @@ type RemoveMemberCmd struct {
 func NewRemoveMemberCmd(actorID ActorID, tenantID TenantID) *RemoveMemberCmd {
 	return &RemoveMemberCmd{
 		aggregateID: deriveMembershipID(actorID, tenantID),
+		cmdID:       id.NewCommandID(),
 	}
 }
 
