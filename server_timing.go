@@ -9,8 +9,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // Server-Timing header (W3C Server Timing API).
@@ -33,34 +31,31 @@ const headerServerTiming = "Server-Timing"
 // it in the request context) and access it in handlers with
 // ServerTimingFromContext.
 //
-// When disabled (created with newServerTiming(false)), every method is a
-// cheap no-op and HeaderValue returns "" — so handlers can call Record/Measure
-// unconditionally without per-request branching.
+// All methods are nil-safe: a nil *ServerTiming (the value returned by
+// ServerTimingFromContext when no middleware is active) makes every method a
+// no-op, so handlers can call Record/Measure unconditionally without
+// per-request nil checks.
 type ServerTiming struct {
 	mu      sync.Mutex
 	metrics []serverTimingMetric
-	enabled bool
 }
 
 type serverTimingMetric struct {
 	name string
 	desc string
-	dur  time.Duration // zero duration = omit dur param
-}
-
-// newServerTiming creates a collector. When enabled is false the collector is
-// a no-op: Record/Measure discard their input and HeaderValue returns "".
-func newServerTiming(enabled bool) *ServerTiming {
-	return &ServerTiming{
-		mu:      sync.Mutex{},
-		metrics: nil,
-		enabled: enabled,
-	}
+	dur  time.Duration // zero duration = omit dur parameter
 }
 
 // Enabled reports whether the collector is active.
-func (st *ServerTiming) Enabled() bool {
-	return st != nil && st.enabled
+// Returns false for a nil receiver — the natural "off" state.
+func (st *ServerTiming) Enabled() bool { return st != nil }
+
+// newServerTiming creates an active collector.
+func newServerTiming() *ServerTiming {
+	return &ServerTiming{
+		mu:      sync.Mutex{},
+		metrics: nil,
+	}
 }
 
 // Record adds a named timing metric.
@@ -71,9 +66,10 @@ func (st *ServerTiming) Enabled() bool {
 // automatically, so it may contain commas/semicolons/quotes. A zero dur omits
 // the dur parameter for that metric.
 //
+// Nil-safe: a no-op when st is nil (no middleware active).
 // Safe to call concurrently from any goroutine.
 func (st *ServerTiming) Record(name, desc string, dur time.Duration) {
-	if !st.Enabled() {
+	if st == nil {
 		return
 	}
 	cleaned := sanitizeMetricName(name)
@@ -90,9 +86,13 @@ func (st *ServerTiming) Record(name, desc string, dur time.Duration) {
 //
 //	defer st.Measure("db")()
 //
-// When the collector is disabled, the returned function is a no-op.
+// Nil-safe: returns a no-op function when st is nil.
+//
+// NOTE: the measured region must END before the response is committed
+// (Write/WriteHeader) for the metric to appear in the header. See
+// MeasureServerTiming for details.
 func (st *ServerTiming) Measure(name string) func() {
-	if !st.Enabled() {
+	if st == nil {
 		return func() {}
 	}
 	start := time.Now()
@@ -101,7 +101,7 @@ func (st *ServerTiming) Measure(name string) func() {
 
 // MeasureWithDesc is like Measure but also records a description.
 func (st *ServerTiming) MeasureWithDesc(name, desc string) func() {
-	if !st.Enabled() {
+	if st == nil {
 		return func() {}
 	}
 	start := time.Now()
@@ -109,9 +109,9 @@ func (st *ServerTiming) MeasureWithDesc(name, desc string) func() {
 }
 
 // HeaderValue renders the collected metrics as a Server-Timing header value.
-// Returns "" when the collector is disabled or has no metrics.
+// Returns "" when nil or empty.
 func (st *ServerTiming) HeaderValue() string {
-	if !st.Enabled() {
+	if st == nil {
 		return ""
 	}
 	st.mu.Lock()
@@ -144,7 +144,7 @@ func (st *ServerTiming) HeaderValue() string {
 func (st *ServerTiming) String() string { return st.HeaderValue() }
 
 // formatMillis renders a duration as milliseconds with the shortest
-// round-tripping representation (e.g. 53ms → "53", 0.5ms → "0.5").
+// round-tripping representation (e.g. 53ms -> "53", 0.5ms -> "0.5").
 // The Server-Timing spec expresses dur in milliseconds; fractional values are
 // permitted, so sub-millisecond timings are not lost.
 func formatMillis(d time.Duration) string {
@@ -172,8 +172,7 @@ func escapeQuotedString(s string) string {
 }
 
 // sanitizeMetricName enforces the RFC 7230 "token" rule for a Server-Timing
-// metric name. Invalid bytes are replaced with '_'. If the result is empty or
-// starts with an invalid char, leading underscores are stripped.
+// metric name. Invalid bytes are replaced with '_'. Empty results are dropped.
 func sanitizeMetricName(name string) string {
 	const tchar = "!#$%&'*+-.^_`|~0123456789" +
 		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -186,10 +185,6 @@ func sanitizeMetricName(name string) string {
 		}
 		return '_'
 	}, name)
-	if cleaned == "" {
-		return ""
-	}
-	// A leading '_' from sanitization is acceptable per the token rule.
 	return cleaned
 }
 
@@ -206,32 +201,37 @@ func WithServerTiming(ctx context.Context, st *ServerTiming) context.Context {
 
 // ServerTimingFromContext retrieves the *ServerTiming stored by
 // ServerTimingMiddleware (or WithServerTiming). Returns nil when no
-// Server-Timing collector is present — callers may then skip timing, or use
-// the helpers below which are nil-safe.
+// Server-Timing collector is present — all methods on a nil *ServerTiming are
+// no-ops, so callers can use it directly without nil checks.
 func ServerTimingFromContext(ctx context.Context) *ServerTiming {
 	st, _ := ctx.Value(serverTimingKey{}).(*ServerTiming)
 	return st
 }
 
-// RecordServerTiming is a nil-safe shortcut for ServerTimingFromContext(ctx).
-// Record(name, desc, dur). It is a no-op when no collector is present.
+// RecordServerTiming is a context-aware shortcut for Record. Nil-safe.
 func RecordServerTiming(ctx context.Context, name, desc string, dur time.Duration) {
-	if st := ServerTimingFromContext(ctx); st != nil {
-		st.Record(name, desc, dur)
-	}
+	ServerTimingFromContext(ctx).Record(name, desc, dur)
 }
 
-// MeasureServerTiming is a nil-safe shortcut that mirrors ServerTiming.Measure.
-// Use it with defer:
+// MeasureServerTiming is a context-aware shortcut for Measure. Nil-safe.
 //
-//	defer MeasureServerTiming(r.Context(), "render")()
+// Use it to time a region that completes BEFORE the response is written:
 //
-// It is a no-op when no collector is present.
+//	stop := cqrshtmx.MeasureServerTiming(r.Context(), "db")
+//	result, err := db.Query(ctx)
+//	stop()
+//	renderResult(w, result) // response committed here — header includes db
+//
+// AVOID the defer idiom for non-streaming handlers:
+//
+//	defer cqrshtmx.MeasureServerTiming(r.Context(), "render")()
+//	// ... writes response during this function ...
+//	// ^ defer fires at return — AFTER the write — so "render" misses the header.
+//
+// The defer idiom DOES work for streaming responses (SSE) where the header is
+// set once at connection start and the metric is recorded during the stream.
 func MeasureServerTiming(ctx context.Context, name string) func() {
-	if st := ServerTimingFromContext(ctx); st != nil {
-		return st.Measure(name)
-	}
-	return func() {}
+	return ServerTimingFromContext(ctx).Measure(name)
 }
 
 // ---------------------------------------------------------------------------
@@ -241,7 +241,8 @@ func MeasureServerTiming(ctx context.Context, name string) func() {
 // serverTimingWriter wraps http.ResponseWriter to inject the Server-Timing
 // header at the moment the response is committed (first WriteHeader or Write).
 // It delegates Flush/Hijack/Push so SSE, WebSocket, and HTTP/2 push continue
-// to work transparently through the wrapper.
+// to work transparently through the wrapper — matching the StatusRecorder
+// delegation pattern in logging.go.
 type serverTimingWriter struct {
 	http.ResponseWriter
 	st       *ServerTiming
@@ -286,18 +287,16 @@ func (w *serverTimingWriter) Flush() {
 }
 
 // Hijack delegates to the underlying Hijacker so WebSocket upgrades work
-// through the wrapper. It returns the same values as http.Hijacker.Hijack.
+// through the wrapper. Returns http.ErrNotSupported when unavailable,
+// matching the StatusRecorder pattern (logging.go:230).
 func (w *serverTimingWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	if h, ok := w.ResponseWriter.(http.Hijacker); ok {
-		return h.Hijack() //nolint:wrapcheck // delegate to underlying Hijacker
+	h, ok := w.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, http.ErrNotSupported
 	}
-	return nil, nil, errHijackUnavailable
+	conn, rw, err := h.Hijack()
+	return conn, rw, err //nolint:wrapcheck // delegate to underlying Hijacker
 }
-
-var errHijackUnavailable = event.NewInfrastructure(
-	"cqrshtmx.server_timing.hijack_unavailable",
-	"[cqrs-htmx] underlying ResponseWriter does not implement http.Hijacker",
-)
 
 // Push delegates HTTP/2 server push to the underlying Pusher, if available.
 func (w *serverTimingWriter) Push(target string, opts *http.PushOptions) error {
@@ -315,7 +314,7 @@ func (w *serverTimingWriter) Unwrap() http.ResponseWriter { return w.ResponseWri
 // only called once, at flushHeader time, so the total reflects time-to-first
 // byte (TTFB) — the standard semantics for a Server-Timing total.
 func (st *ServerTiming) prependTotal(name, desc string, dur time.Duration) {
-	if !st.Enabled() {
+	if st == nil {
 		return
 	}
 	st.mu.Lock()
@@ -339,8 +338,9 @@ func (st *ServerTiming) prependTotal(name, desc string, dur time.Duration) {
 //
 //	mux.Use(cqrshtmx.ServerTimingMiddleware())
 //	// …in a handler:
-//	defer cqrshtmx.MeasureServerTiming(r.Context(), "db")()
+//	stop := cqrshtmx.MeasureServerTiming(r.Context(), "db")
 //	db.Query(...)
+//	stop()
 //
 // Server-Timing can leak internal performance details; gate it for
 // debug/admin requests with ServerTimingMiddlewareWhen.
@@ -351,9 +351,10 @@ func ServerTimingMiddleware() func(http.Handler) http.Handler {
 }
 
 // ServerTimingMiddlewareWhen enables Server-Timing only for requests where pred
-// returns true. When pred returns false the request is passed through with no
-// ResponseWriter wrapping and a disabled collector in context — handlers calling
-// Record/Measure incur only a cheap no-op, so no per-handler branching is needed.
+// returns true. When pred returns false (or is nil), the request is passed
+// through with zero overhead: no ResponseWriter wrapping and no collector in
+// context. Handlers calling Record/Measure are natural no-ops (nil-receiver),
+// so no per-handler branching is needed.
 //
 // Use this to gate Server-Timing behind a debug flag, an admin role, or a
 // request query/header check:
@@ -362,21 +363,17 @@ func ServerTimingMiddleware() func(http.Handler) http.Handler {
 //	    return r.URL.Query().Has("debug")
 //	})
 func ServerTimingMiddlewareWhen(pred func(*http.Request) bool) func(http.Handler) http.Handler {
-	if pred == nil {
-		pred = func(*http.Request) bool { return false }
-	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			enabled := pred(r)
-			st := newServerTiming(enabled)
-			ctx := WithServerTiming(r.Context(), st)
-
-			if !enabled {
-				// Zero-overhead passthrough: no writer wrapping.
-				next.ServeHTTP(w, r.WithContext(ctx))
+			if pred == nil || !pred(r) {
+				// Zero-overhead passthrough: no collector in context, no
+				// writer wrapping. nil-receiver methods are no-ops.
+				next.ServeHTTP(w, r)
 				return
 			}
 
+			st := newServerTiming()
+			ctx := WithServerTiming(r.Context(), st)
 			wrapped := &serverTimingWriter{
 				ResponseWriter: w,
 				st:             st,
