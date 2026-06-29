@@ -13,8 +13,9 @@ import (
 
 // SQLiteSetupConfig configures NewSQLiteEventSourcedSetup.
 type SQLiteSetupConfig struct {
-	DSN      string
-	AuditLog *AuditLog
+	DSN             string
+	AuditLog        *AuditLog
+	CheckpointStore event.CheckpointStore
 }
 
 // NewSQLiteEventSourcedSetup creates a complete event-sourced infrastructure
@@ -34,10 +35,14 @@ func NewSQLiteEventSourcedSetup(cfg SQLiteSetupConfig) (*SQLiteEventSourcedSetup
 		return nil, event.WrapTransient(err, "usermgmt.sqlite_setup.create", "create sqlite stack bundle")
 	}
 
-	return newSQLiteSetup(bundle, cfg.AuditLog)
+	return newSQLiteSetup(bundle, cfg.AuditLog, cfg.CheckpointStore)
 }
 
-func newSQLiteSetup(bundle *stack.Bundle, auditLog *AuditLog) (*SQLiteEventSourcedSetup, error) {
+func newSQLiteSetup(
+	bundle *stack.Bundle,
+	auditLog *AuditLog,
+	checkpointStore event.CheckpointStore,
+) (*SQLiteEventSourcedSetup, error) {
 	repos, err := buildStackRepositories(bundle)
 	if err != nil {
 		return nil, err
@@ -57,6 +62,7 @@ func newSQLiteSetup(bundle *stack.Bundle, auditLog *AuditLog) (*SQLiteEventSourc
 
 	if err := StartProjections(
 		bundle.Journal, bundle.Subscriber,
+		checkpointStore,
 		rm, memRm, tenRm, botRm, casbinProj, auditLog,
 	); err != nil {
 		_ = bundle.Close()

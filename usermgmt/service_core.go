@@ -116,6 +116,12 @@ type ServiceConfig struct {
 	// See SecurityHooks for field documentation.
 	SecurityHooks
 
+	// CheckpointStore, when set, enables checkpoint-based projection replay:
+	// on restart, only events since the last checkpoint are replayed instead
+	// of the full journal. Must be backed by persistent storage to survive
+	// restarts. When nil, full journal replay is used.
+	CheckpointStore event.CheckpointStore
+
 	// TokenPepper is the server-side secret used for HMAC-SHA256 bot token hashing.
 	// Required for bot registration and API token authentication. Set this to a
 	// 32+ byte random value that is stored outside the database (e.g., in a
@@ -186,11 +192,12 @@ func journalFromStore(store event.Store) event.Journal {
 
 func NewService(cfg ServiceConfig) (*Service, error) {
 	setup, err := NewEventSourcedSetup(EventSourcedConfig{
-		EventStore:    cfg.EventStore,
-		EventBus:      cfg.EventBus,
-		ReadModelDB:   cfg.ReadModelDB,
-		AuditLog:      cfg.AuditLog,
-		SecurityHooks: cfg.SecurityHooks,
+		EventStore:      cfg.EventStore,
+		EventBus:        cfg.EventBus,
+		ReadModelDB:     cfg.ReadModelDB,
+		AuditLog:        cfg.AuditLog,
+		CheckpointStore: cfg.CheckpointStore,
+		SecurityHooks:   cfg.SecurityHooks,
 	})
 	if err != nil {
 		return nil, err

@@ -12,10 +12,11 @@ import (
 )
 
 type PostgresSetupConfig struct {
-	DSN      string
-	EventDSN string
-	QueryDSN string
-	AuditLog *AuditLog
+	DSN             string
+	EventDSN        string
+	QueryDSN        string
+	AuditLog        *AuditLog
+	CheckpointStore event.CheckpointStore
 }
 
 func NewPostgresEventSourcedSetup(cfg PostgresSetupConfig) (*PostgresEventSourcedSetup, error) {
@@ -30,10 +31,14 @@ func NewPostgresEventSourcedSetup(cfg PostgresSetupConfig) (*PostgresEventSource
 	if err != nil {
 		return nil, event.WrapTransient(err, "usermgmt.postgres_setup.create", "create postgres stack bundle")
 	}
-	return newPostgresSetup(bundle, cfg.AuditLog)
+	return newPostgresSetup(bundle, cfg.AuditLog, cfg.CheckpointStore)
 }
 
-func newPostgresSetup(bundle *stack.Bundle, auditLog *AuditLog) (*PostgresEventSourcedSetup, error) {
+func newPostgresSetup(
+	bundle *stack.Bundle,
+	auditLog *AuditLog,
+	checkpointStore event.CheckpointStore,
+) (*PostgresEventSourcedSetup, error) {
 	repos, err := buildStackRepositories(bundle)
 	if err != nil {
 		return nil, err
@@ -54,6 +59,7 @@ func newPostgresSetup(bundle *stack.Bundle, auditLog *AuditLog) (*PostgresEventS
 
 	if err := StartProjections(
 		bundle.Journal, bundle.Subscriber,
+		checkpointStore,
 		rm, memRm, tenRm, botRm, casbinProj, auditLog,
 	); err != nil {
 		_ = bundle.Close()

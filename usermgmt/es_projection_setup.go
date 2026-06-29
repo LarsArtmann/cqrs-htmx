@@ -19,11 +19,17 @@ import (
 // read-your-writes consistency: after a command completes, the read model
 // already reflects the change — no timing-based sleeps.
 //
+// Checkpoint: when cpStore is non-nil AND the journal implements
+// event.SeekableJournal, replay resumes from the last checkpoint instead of
+// reading the full journal. This avoids re-processing the entire event
+// history on every restart. When cpStore is nil, full journal replay is used.
+//
 // Dedup: event IDs processed during replay are tracked and skipped in the
 // live handler to prevent double-processing at the replay-to-live boundary.
 func StartProjections(
 	journal event.Journal,
 	bus event.Subscriber,
+	cpStore event.CheckpointStore,
 	readModel projection.Projection,
 	membershipReadModel projection.Projection,
 	tenantReadModel projection.Projection,
@@ -35,7 +41,7 @@ func StartProjections(
 		readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog,
 	)
 
-	seenIDs, err := replayProjections(journal, projections)
+	seenIDs, err := replayProjections(journal, cpStore, projections)
 	if err != nil {
 		return err
 	}
@@ -77,20 +83,22 @@ func collectProjections(
 	return projections
 }
 
-// replayProjections reads all events from the journal and dispatches each to
+// replayProjections reads events from the journal and dispatches each to
 // every projection that handles its event type. Returns a set of seen event
 // IDs for live-handler dedup.
+//
+// When cpStore is non-nil AND the journal is seekable, replay resumes from
+// the stored checkpoint (ReadFrom). Otherwise, full journal replay (ReadAll).
 func replayProjections(
 	journal event.Journal,
+	cpStore event.CheckpointStore,
 	projections []projection.Projection,
 ) (map[id.EventID]struct{}, error) {
 	replayCtx := event.WithProcessingMode(context.Background(), event.ModeReplay)
 
-	events, err := journal.ReadAll(context.Background())
+	events, cpName, err := loadReplayEvents(context.Background(), journal, cpStore)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err,
-			"usermgmt.projection.replay_failed",
-			"read events from journal")
+		return nil, err
 	}
 
 	seenIDs := make(map[id.EventID]struct{}, len(events))
@@ -108,9 +116,68 @@ func replayProjections(
 					"replay event in projection "+proj.Name())
 			}
 		}
+
+		// Save checkpoint after each event so restarts resume from here.
+		if cpStore != nil && cpName != "" {
+			if saveErr := cpStore.Save(context.Background(), cpName, event.Checkpoint{
+				EventID:     evt.ID(),
+				ProcessedAt: evt.OccurredAt(),
+			}); saveErr != nil {
+				slog.Warn("usermgmt: save checkpoint during replay",
+					"event_id", evt.ID().String(), "error", saveErr)
+			}
+		}
 	}
 
 	return seenIDs, nil
+}
+
+// loadReplayEvents loads events from the journal for replay. When a
+// checkpoint store is provided AND the journal is seekable, it resumes
+// from the stored checkpoint. Otherwise it reads the full journal.
+// Returns the events and the checkpoint name (empty if not using checkpoints).
+func loadReplayEvents(
+	ctx context.Context,
+	journal event.Journal,
+	cpStore event.CheckpointStore,
+) ([]event.Event, string, error) {
+	if cpStore == nil {
+		events, err := journal.ReadAll(ctx)
+		if err != nil {
+			return nil, "", event.WrapInfrastructure(err,
+				"usermgmt.projection.replay_failed",
+				"read events from journal")
+		}
+		return events, "", nil
+	}
+
+	seekable, ok := journal.(event.SeekableJournal)
+	if !ok {
+		events, err := journal.ReadAll(ctx)
+		if err != nil {
+			return nil, "", event.WrapInfrastructure(err,
+				"usermgmt.projection.replay_failed",
+				"read events from journal")
+		}
+		return events, "", nil
+	}
+
+	const cpName = "usermgmt:start_projections"
+	cp, err := cpStore.Load(ctx, cpName)
+	if err != nil {
+		return nil, "", event.WrapInfrastructure(err,
+			"usermgmt.projection.checkpoint_load_failed",
+			"load checkpoint for replay")
+	}
+
+	events, err := seekable.ReadFrom(ctx, cp.EventID, 0)
+	if err != nil {
+		return nil, "", event.WrapInfrastructure(err,
+			"usermgmt.projection.replay_failed",
+			"read events from journal via ReadFrom")
+	}
+
+	return events, cpName, nil
 }
 
 // buildLiveHandler creates an event.Handler that routes live events to all

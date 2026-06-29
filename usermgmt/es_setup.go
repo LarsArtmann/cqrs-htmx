@@ -63,6 +63,12 @@ type EventSourcedConfig struct {
 	// all user-related events for compliance and security monitoring.
 	AuditLog *AuditLog
 
+	// CheckpointStore, when set, enables checkpoint-based replay: on restart,
+	// only events since the last checkpoint are replayed instead of the full
+	// journal. The store must be backed by persistent storage (e.g. SQL) to
+	// survive process restarts. When nil, full journal replay is used.
+	CheckpointStore event.CheckpointStore
+
 	// SecurityHooks configures opt-in event signing and encryption.
 	SecurityHooks
 }
@@ -222,6 +228,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	if err := StartProjections(
 		journal,
 		bus,
+		cfg.CheckpointStore,
 		userProj,
 		membershipProj,
 		tenantProj,
