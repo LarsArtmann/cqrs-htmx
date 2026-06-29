@@ -92,13 +92,14 @@
 
 ### Middleware & Observability
 
-| Feature            | Status                | Notes                                                                                                                                                                   |
-| ------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Middleware Chain   | 🟢 `FULLY_FUNCTIONAL` | `Chain(mw1, mw2, ...)` composes left-to-right.                                                                                                                          |
-| Context Enrichment | 🟢 `FULLY_FUNCTIONAL` | `ContextEnrichmentMiddleware` extracts User ID, Correlation ID, Request ID from headers. Sets `X-Request-ID` response header.                                           |
-| Request Logging    | 🟢 `FULLY_FUNCTIONAL` | `RequestLogging(formatter, writer)`. `DefaultLogFormatter` and `JSONLogFormatter`. `RequestLoggingSlog(logger)` for slog. Captures method, path, status, duration, IDs. |
-| Lifecycle Hooks    | 🟢 `FULLY_FUNCTIONAL` | `BeforeDispatchHook(ctx, r)` / `AfterDispatchHook(ctx, r, err)` on Config.                                                                                              |
-| Timeout            | 🟢 `FULLY_FUNCTIONAL` | `Config.Timeout` wraps dispatch with `context.WithTimeout`. Dispatch-only, not decode/auth.                                                                             |
+| Feature            | Status                | Notes                                                                                                                                                                                                               |
+| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Middleware Chain   | 🟢 `FULLY_FUNCTIONAL` | `Chain(mw1, mw2, ...)` composes left-to-right.                                                                                                                                                                      |
+| Context Enrichment | 🟢 `FULLY_FUNCTIONAL` | `ContextEnrichmentMiddleware` extracts User ID, Correlation ID, Request ID from headers. Sets `X-Request-ID` response header.                                                                                       |
+| Request Logging    | 🟢 `FULLY_FUNCTIONAL` | `RequestLogging(formatter, writer)`. `DefaultLogFormatter` and `JSONLogFormatter`. `RequestLoggingSlog(logger)` for slog. Captures method, path, status, duration, IDs.                                             |
+| Lifecycle Hooks    | 🟢 `FULLY_FUNCTIONAL` | `BeforeDispatchHook(ctx, r)` / `AfterDispatchHook(ctx, r, err)` on Config.                                                                                                                                          |
+| Timeout            | 🟢 `FULLY_FUNCTIONAL` | `Config.Timeout` wraps dispatch with `context.WithTimeout`. Dispatch-only, not decode/auth.                                                                                                                         |
+| Server-Timing      | 🟢 `FULLY_FUNCTIONAL` | W3C Server-Timing header (`server_timing.go`). `ServerTimingMiddleware()`, `ServerTimingMiddlewareWhen(pred)`, `Config.ServerTiming`. Nil-safe `MeasureServerTiming`/`RecordServerTiming`. Disabled=3.6ns/0-allocs. |
 
 ### Convenience
 
