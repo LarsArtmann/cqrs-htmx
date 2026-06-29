@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-29 | **Coverage:** 94.1% root, 79.5% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v3.3.0 (go-cqrs-lite v3.4.0)
+**Updated:** 2026-06-29 | **Coverage:** 94.2% root, 79.3% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v3.3.0 (go-cqrs-lite v3.4.0)
 
 ## Status Legend
 
@@ -146,12 +146,33 @@ _Phase 0 + Phase 1 server-side code DONE. See [execution plan](docs/planning/202
 - [x] **CI umbrella verified** — `nix run .#test` + `nix run .#lint` + `nix run .#errorfamily` all green. All 4 modules pass with -race. (2026-06-28)
 - [x] **go.yaml.in/yaml/v3 investigated** — Confirmed as official Canonical Ltd successor to `gopkg.in/yaml.v3` (same codebase, new import path). NOT a typo-squat. No action needed. (2026-06-28)
 - [x] **Phase 2a — Offline command queue** (ADR-0029) — SharedWorker in-memory queue shipped. `adminui/assets/sync-worker.js` queues command IDs when network is down; tells tabs to retry on reconnect. Reactive detection via `htmx:sendError`. IndexedDB banned; OPFS deferred.
-- [ ] **Phase 2b — Persistent offline queue** (ADR-0030) — IndexedDB persistence for writes that survive closed tabs. Proposed, not yet implemented.
 - [x] **Q1 ANSWERED** (ADR-0027: Queue-Only) — decide() stays on the server. The library provides queue/sync/ACK protocol; pre-validation is a consumer concern.
 - [x] **Q2 ANSWERED** — writes do NOT need to survive closed tabs for Phase 2a. ADR-0030 proposes IndexedDB for Phase 2b when that requirement is needed.
 - [x] **Idempotency store wired into admin-demo** — ackMiddleware now rejects duplicate X-Command-Id mutations with 409. Ghost system killed. (2026-06-28)
-- [x] **CheckAndRecord atomicity fixed** — Moved from racy free function to IdempotencyStore interface method. Proven by 200-goroutine concurrency test. (2026-06-28)
-- [x] **Idempotency memory leak fixed** — Seen() lazily deletes expired entries. (2026-06-28)
+
+### Post-v3.3.0 Quality & Adoption Blitz (2026-06-29)
+
+_Pareto-prioritized work from planning docs, status reports, and 40-item audit._
+
+- [x] **Rewrite CONTRIBUTING.md (root)** — Removed deleted catalog module, fixed module count 5→8, removed password auth references, updated test framework (standard testing + scenario/v3 BDD, not Ginkgo), synced file tree, added templ codegen instructions
+- [x] **Rewrite usermgmt/CONTRIBUTING.md** — Real module conventions: GOWORK=off setup, event-sourced CQRS architecture, fold/decide pattern, error-family enforcement
+- [x] **Pin templ CLI in flake.nix devShell** — Added `pkgs.templ` (v0.3.1020, matching go.mod) to eliminate codegen oscillation between CLI versions
+- [x] **Add `nix run .#gen` app** — One-command templ codegen + gofmt normalization
+- [x] **Add `nix run .#check-codegen` app** — CI codegen drift guard: regenerates \_templ.go + diffs against committed versions
+- [x] **Fix ROADMAP typo** — "v3.30" → "v3.3.0"
+- [x] **Update ADR-0015 status** — All 6 "Planned" rows marked Done (Session, Impersonation, Tenant, Bot, upcasters, Roles removal all shipped)
+- [x] **Add responsewriter.go to AGENTS.md file tree** — delegatingWriter for Flush/Hijack/Push/Unwrap delegation
+- [x] **Bump flake.nix package version** — 3.1.0 → 3.3.0
+- [x] **Write OTel seam wiring guide** — `docs/observability-wiring.md` with BeforeDispatch/AfterDispatch hook examples for tracing
+- [x] **Write Prometheus /metrics wiring guide** — Counter + histogram examples in same doc
+- [x] **Write v3→v3.3 incremental migration guide** — `docs/MIGRATION-v3-incremental.md` documenting checkpoint replay, BasicCommand, Server-Timing (all opt-in)
+- [x] **scenario/v3 BDD for all 4 aggregates** — Tenant (8 tests), Bot (6 tests), Membership (6 tests) added; completes scenario/v3 adoption
+- [x] **Raise usermgmt coverage gate** — 75% → 78% (actual: 79.3%)
+- [x] **Server-Timing fuzz tests** — Adversarial metric names/descs/durations + middleware fuzz + nil-receiver test
+- [x] **Fix CRLF injection in Server-Timing** — escapeQuotedString now strips CR/LF (was only escaping " and \). Found by fuzz test. Security: prevents HTTP header splitting via crafted descriptions
+- [x] **Sync FEATURES.md** — Removed catalog column, updated ClientIP to FULLY_FUNCTIONAL, synced coverage/test counts
+- [x] **Sync ROADMAP.md** — Marked scenario BDD, OTel guide, Prometheus guide as Done
+- [ ] **Phase 2b — Persistent offline queue** (ADR-0030) — IndexedDB persistence for writes that survive closed tabs. Proposed, not yet implemented.
 
 ---
 

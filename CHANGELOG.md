@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Observability wiring guide** (`docs/observability-wiring.md`): Complete OTel tracing + Prometheus `/metrics` + Server-Timing wiring recipes using `BeforeDispatchHook`/`AfterDispatchHook`. References go-cqrs-lite upstream `otel/v3` + `middleware/v3` + `prometheus/v3` modules.
+- **v3→v3.3 incremental migration guide** (`docs/MIGRATION-v3-incremental.md`): Documents checkpoint replay, BasicCommand embedding, Server-Timing, SQL read models, stack presets — all opt-in, backward compatible.
+- **scenario/v3 BDD for Tenant, Bot, Membership** (3 new test files, 20 tests): Completes scenario/v3 BDD adoption for all 4 usermgmt aggregates. Tenant: 8 tests (create/suspend/reactivate/delete happy + error paths). Bot: 6 tests (register/delete happy + error paths). Membership: 6 tests (add/update-roles/remove happy + error paths).
+- **Server-Timing fuzz tests** (`server_timing_fuzz_test.go`): Adversarial metric names/descs/durations, middleware fuzz, nil-receiver no-op verification. Found CRLF injection bug (see Fixed).
+- **CI codegen drift guard** (`nix run .#check-codegen`): Verifies adminui `_templ.go` files match `.templ` sources by regenerating + diffing. Prevents silent codegen drift.
+- **Templ CLI in devShell** (`flake.nix`): Pins `pkgs.templ` v0.3.1020 (matches go.mod) to eliminate codegen oscillation between CLI versions.
+- **`nix run .#gen` app**: One-command templ codegen + gofmt normalization for adminui.
 - **Server-Timing API** (`server_timing.go`): W3C Server Timing response header support for debug-mode performance profiling. Emits `Server-Timing: total;desc="Total request";dur=12, db;dur=8` headers visible in browser DevTools and curl. Three entry points: (1) `ServerTimingMiddleware()` — standalone always-on middleware; (2) `ServerTimingMiddlewareWhen(pred)` — predicate-gated (e.g. `?debug=1`, admin role); (3) `Config.ServerTiming` — 1-line integration into `App.Command()`/`App.Query()` handlers. Thread-safe `*ServerTiming` collector uses nil-receiver pattern (disabled=nil=natural no-op). Helpers `MeasureServerTiming(ctx, name)` and `RecordServerTiming(ctx, name, desc, dur)` are nil-safe. Interface preservation: wrapper delegates `Flusher`/`Hijacker`/`Pusher`/`Unwrap` so SSE/WS/HTTP2 work transparently. Benchmark: disabled=3.6ns/0-allocs, enabled Measure=138ns/1-alloc.
 - **Checkpoint-based projection replay** (`usermgmt/es_projection_setup.go`): `StartProjections` gains optional `event.CheckpointStore` parameter. When non-nil AND journal implements `SeekableJournal`, replay uses `ReadFrom(checkpoint.EventID, 0)` instead of `ReadAll()` — avoids full journal replay on every restart. Checkpoint saved after each replayed event. Graceful fallback: nil store or non-seekable journal → full replay (backward compatible). `EventSourcedConfig`, `ServiceConfig`, `SQLiteSetupConfig`, `PostgresSetupConfig` all gain `CheckpointStore` field.
 - **ADR-0032**: BasicCommand embedding decision — documents the structural fix for the zero-cmdID bug class and the rationale for `mustCommand` panic-on-construction-failure.
@@ -17,10 +24,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **scenario/v3 BDD on ChangeEmail** (`es_scenario_test.go`): Second decider scenario test demonstrating the BDD DSL adoption beyond RegisterUser.
 - **Authz doc comments**: `RemoveAllRolesForUser` and `RemoveAllRolesInDomain` now document why the `subject` parameter is intentionally `string` (Casbin subjects are polymorphic: user IDs, bot IDs, prefixed actors).
 
+### Fixed
+
+- **CRLF injection in Server-Timing `escapeQuotedString`**: CR and LF characters in metric descriptions are now replaced with spaces. Previously only `"` and `\` were escaped, leaving raw newlines that could enable HTTP header splitting via crafted descriptions. Found by `FuzzServerTimingHeaderValue`.
+
 ### Changed
 
+- **CONTRIBUTING.md rewritten (root + usermgmt)**: Removed deleted catalog module references, fixed module count (5→8), updated test framework documentation (standard testing + scenario/v3 BDD, not Ginkgo), removed password auth references, synced file tree, added error-family enforcement, added templ codegen instructions, added Nix-first workflow.
+- **usermgmt coverage gate raised**: 75% → 78% (actual: 79.3%). Locks in coverage gains.
 - **Command constructors embed `command.BasicCommand`**: All 20 usermgmt command structs now embed `*command.BasicCommand`, which promotes `Type()`, `AggregateID()`, `ID()` methods automatically. This structurally eliminates the zero-cmdID bug class (7 constructors previously returned zero command IDs, silently breaking idempotency dedup and Watermill message UUIDs). The `mustCommand` helper panics on construction failure — the only error cases (empty command type, zero aggregate ID) are programming bugs. See ADR-0032.
-- **ROADMAP updated**: v3.3.0 added to Shipped table. v3.4.0 upstream adoption table reflects checkpoint replay as interim fix, scenario/v3 BDD as partially done.
+- **ADR-0015 status table updated**: All 6 remaining "Planned" items (Session struct, Impersonation, Tenant, Bot, upcasters, Roles removal) marked Done with version references.
+- **flake.nix package version bumped**: 3.1.0 → 3.3.0.
+- **FEATURES.md synced**: Removed catalog column (module merged upstream), updated ClientIP to FULLY_FUNCTIONAL, synced coverage/test counts.
+- **ROADMAP.md synced**: Marked scenario/v3 BDD, OTel seam guide, Prometheus seam guide as Done.
+- **ROADMAP typo fixed**: "v3.30" → "v3.3.0".
 - **TODO_LIST triaged**: All `[~]` (partially done) items resolved — marked `[x]` (BrandNamer wired, TenantState.IsValid added, Phase 2a shipped) or `[-]` (blocked: ActorID split brain, Email type, WebAuthn \*http.Request, snapshot integration).
 - **Status reports archived**: 7 reports older than 2 weeks (pre-June-15) moved to `docs/status/archive/`.
 
