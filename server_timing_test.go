@@ -10,6 +10,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
 )
 
 func TestServerTiming_DisabledIsNoOp(t *testing.T) {
@@ -540,3 +542,65 @@ func TestServerTimingMiddleware_BeforeStatusRecorder(t *testing.T) {
 }
 
 // dur parsing for the elapsed-time test uses strconv.ParseFloat inline.
+
+// ---------------------------------------------------------------------------
+// App integration (Config.ServerTiming)
+// ---------------------------------------------------------------------------
+
+func TestApp_ServerTiming_WrapsWhenEnabled(t *testing.T) {
+	t.Parallel()
+	disp := command.NewDispatcher()
+	_ = disp.Register("Test", func(context.Context, command.Command) error { return nil })
+	app := MustNew(Config{
+		Commands:     disp,
+		ServerTiming: func(*http.Request) bool { return true },
+	})
+	rec := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	w, r2 := app.applyServerTiming(rec, r)
+
+	if _, ok := w.(*serverTimingWriter); !ok {
+		t.Fatal("ResponseWriter should be wrapped when predicate is true")
+	}
+	if st := ServerTimingFromContext(r2.Context()); st == nil {
+		t.Fatal("collector should be in context when enabled")
+	}
+}
+
+func TestApp_ServerTiming_NoWrapWhenDisabled(t *testing.T) {
+	t.Parallel()
+	disp := command.NewDispatcher()
+	_ = disp.Register("Test", func(context.Context, command.Command) error { return nil })
+	app := MustNew(Config{Commands: disp}) // no ServerTiming predicate
+
+	rec := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	w, r2 := app.applyServerTiming(rec, r)
+
+	if w != http.ResponseWriter(rec) {
+		t.Fatal("ResponseWriter should not be wrapped when Config.ServerTiming is nil")
+	}
+	if r2 != r {
+		t.Fatal("request should not be modified when disabled")
+	}
+}
+
+func TestApp_ServerTiming_NoWrapWhenPredicateReturnsFalse(t *testing.T) {
+	t.Parallel()
+	disp := command.NewDispatcher()
+	_ = disp.Register("Test", func(context.Context, command.Command) error { return nil })
+	app := MustNew(Config{
+		Commands:     disp,
+		ServerTiming: func(*http.Request) bool { return false },
+	})
+	rec := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	w, _ := app.applyServerTiming(rec, r)
+
+	if w != http.ResponseWriter(rec) {
+		t.Fatal("ResponseWriter should not be wrapped when predicate returns false")
+	}
+}

@@ -29,6 +29,7 @@ type App struct {
 
 	beforeDispatch BeforeDispatchHook
 	afterDispatch  AfterDispatchHook
+	serverTiming   func(*http.Request) bool
 }
 
 // Config configures an App. Commands or Queries must be non-nil.
@@ -60,6 +61,20 @@ type Config struct {
 	// When set, request bodies larger than this will be rejected with
 	// 413 Request Entity Too Large.
 	MaxBodySize int64
+
+	// ServerTiming, when set, enables the W3C Server-Timing response header for
+	// requests where the predicate returns true. This wraps every App.Command()
+	// and App.Query() handler — no separate middleware needed. Nil (default)
+	// means disabled (zero overhead). Use ServerTimingMiddleware() for routes
+	// outside the App.
+	//
+	//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+	//	    // ...
+	//	    ServerTiming: func(r *http.Request) bool {
+	//	        return r.URL.Query().Has("debug") // or: isAdmin, isLocalhost, etc.
+	//	    },
+	//	})
+	ServerTiming func(*http.Request) bool
 
 	// IncludeRequestIDInErrors makes the default error handler include the
 	// request ID in error responses when one is present in the request context.
@@ -124,6 +139,7 @@ func New(cfg Config) (*App, error) {
 		serviceName:     cfg.ServiceName,
 		beforeDispatch:  cfg.BeforeDispatch,
 		afterDispatch:   cfg.AfterDispatch,
+		serverTiming:    cfg.ServerTiming,
 	}, nil
 }
 
@@ -191,6 +207,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 			return
 		}
 
+		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
 		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		a.handleCommandDispatch(w, r, cmdType, cfg)
@@ -222,6 +239,7 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 			return
 		}
 
+		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
 		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		a.handleQueryDispatch(w, r, qryType, cfg)
@@ -232,6 +250,27 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 // with user identity. Apply this once to your router/mux.
 func (a *App) Middleware() func(http.Handler) http.Handler {
 	return ContextEnrichmentMiddleware(a.userIDExtractor)
+}
+
+// applyServerTiming wraps the ResponseWriter and injects a *ServerTiming
+// collector into the request context when Config.ServerTiming is set and the
+// predicate returns true for this request. When disabled (nil predicate or
+// predicate returns false), returns the original writer and request unchanged —
+// zero overhead.
+func (a *App) applyServerTiming(w http.ResponseWriter, r *http.Request) (http.ResponseWriter, *http.Request) {
+	if a.serverTiming == nil || !a.serverTiming(r) {
+		return w, r
+	}
+	st := newServerTiming()
+	ctx := WithServerTiming(r.Context(), st)
+	wrapped := &serverTimingWriter{
+		ResponseWriter: w,
+		st:             st,
+		start:          time.Now(),
+		injected:       false,
+		wrote:          false,
+	}
+	return wrapped, r.WithContext(ctx)
 }
 
 // enrichUserID extracts the user ID if not already present in context.
