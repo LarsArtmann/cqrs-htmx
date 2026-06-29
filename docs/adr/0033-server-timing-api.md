@@ -1,4 +1,4 @@
-# ADR-0032: Server-Timing API
+# ADR-0033: Server-Timing API
 
 **Date:** 2026-06-29
 **Status:** Accepted

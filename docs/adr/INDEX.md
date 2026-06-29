@@ -35,4 +35,5 @@
 | [0029](0029-sharedworker-phase2a.md)              | SharedWorker for Phase 2a Offline Command Sync                                  | Accepted                                                         |
 | [0030](0030-phase2-persistence-strategy.md)       | Phase 2 Persistence Strategy — SharedWorker with IndexedDB                      | Proposed                                                         |
 | [0031](0031-projection-lifecycle-decision.md)     | Projection Lifecycle — StartProjections vs projectionhost vs CatchUpSubscriber  | Proposed                                                         |
-| [0032](0032-server-timing-api.md)                 | Server-Timing API                                                               | Accepted                                                         |
+| [0032](0032-basic-command-embedding.md)           | Basic Command Embedding                                                         | Accepted                                                         |
+| [0033](0033-server-timing-api.md)                 | Server-Timing API                                                               | Accepted                                                         |
