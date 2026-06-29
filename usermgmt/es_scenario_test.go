@@ -30,8 +30,33 @@ func TestScenario_RegisterUser_New(t *testing.T) {
 		Then(eventUserRegistered)
 }
 
-// NOTE: Error-path scenario testing requires either upstream support in
-// go-error-family (an Is method that matches by Family) or a ThenErrorFamily
-// method in scenario/v3. The current scenario.ThenError uses errors.Is,
-// which doesn't work with go-error-family's code-based identity.
-// Filed as a finding for future scenario/v3 adoption.
+// TestScenario_RegisterUser_AlreadyExists demonstrates the ThenError path.
+// go-error-family's *Error implements Is() matching by code+family, so we
+// pass an event.NewConflict with the same code as the decider produces.
+func TestScenario_RegisterUser_AlreadyExists(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+	cmd := NewRegisterUserCmd(aggID, "user@test.com", "Test User", nil)
+
+	existing, err := event.NewEvent(
+		eventUserRegistered, aggID, aggregateTypeUser, 1,
+		mustMarshalPayload(t, UserRegisteredPayload{
+			SchemaVersion: currentSchemaVersion,
+			Email:         "user@test.com",
+			DisplayName:   "Old Name",
+		}),
+	)
+	if err != nil {
+		t.Fatalf("create existing event: %v", err)
+	}
+
+	decide := func(state UserState, _ *RegisterUserCmd) ([]event.Event, error) {
+		inner := decideRegisterUser(cmd.AggregateID(), cmd.email, cmd.displayName, cmd.roles)
+		return inner(state, 1)
+	}
+
+	scenario.Given[*RegisterUserCmd, UserState](t, foldUser, UserState{}, existing).
+		When(cmd, decide).
+		ThenError(event.NewConflict("usermgmt.user_already_exists", ""))
+}
