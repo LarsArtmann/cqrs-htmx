@@ -5,10 +5,8 @@ package adminui
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import (
-	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
-)
+import "github.com/a-h/templ"
+import templruntime "github.com/a-h/templ/runtime"
 
 // membersCard renders the members table with add/remove/edit-role controls.
 // Shared by the tenant detail page (super-admin) and the members page

@@ -116,6 +116,8 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.3.0 h1:xPxlK2SDNyMFlYUP
 github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.3.0/go.mod h1:0j8HALUHr2mg5l7WaxUK1PjT+6epyWHl6RQocIcemlI=
 github.com/larsartmann/go-cqrs-lite/storage/v3 v3.3.0 h1:y2qzpjoyL6IpnIBuXtpL0IHnyY4JXdzBPkS/rtap5uE=
 github.com/larsartmann/go-cqrs-lite/storage/v3 v3.3.0/go.mod h1:FYRIfVkWiQK5BuVFtNFNNPMzPjvmh2Gaxo2zHD0XgFk=
+github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.3.1 h1:vysPKgtOBeOfLXnPA5fvlJGdHJWW9tTrWdPAReBoOgk=
+github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.3.1/go.mod h1:Hu97q+ZFZm6uVFX0USEdCm2OaCVk8sWV68U0i3Ng5D4=
 github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.3.0 h1:BpE3wfecg9vcmo+DQnPTQNSX4+vwhxG9Lw/w4GGy2xk=
 github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.3.0/go.mod h1:J5rKIAdspqSsQy4ax8ex7LFp8WNfdYWppf814U6Hzs8=
 github.com/larsartmann/go-error-family v0.5.1 h1:rYDNU0sv+6ri0xel6MswIeDT2dRh3q+RSc5uWnAwecg=
