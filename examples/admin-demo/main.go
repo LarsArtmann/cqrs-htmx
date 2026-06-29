@@ -104,8 +104,10 @@ func main() {
 
 	fmt.Printf("admin-demo\nOpen http://localhost%s/  (auto-signs in as %s)\n", addr, adminEmail)
 	srv := &http.Server{ //nolint:exhaustruct // demo server
-		Addr:              addr,
-		Handler:           logging(mux),
+		Addr: addr,
+		Handler: cqrshtmx.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
+			return r.URL.Query().Has("debug")
+		})(logging(mux)),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	if err := srv.ListenAndServe(); err != nil {
