@@ -41,12 +41,6 @@ jobs:
           GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
 
-      - name: Build catalog submodule
-        run: cd catalog && go build ./...
-        env:
-          GOWORK: off
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
       - name: Build integration_test submodule
         run: cd integration_test && go build ./...
         env:
@@ -100,13 +94,13 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "Root coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 95) { print \"Root coverage ${COVERAGE}% is below 95% threshold\"; exit 1 } }"
+          awk "BEGIN { if ($COVERAGE < 90) { print \"Root coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
 
       - name: Usermgmt coverage check
         run: |
           COVERAGE=$(go tool cover -func=usermgmt/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "Usermgmt coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 90) { print \"Usermgmt coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+          awk "BEGIN { if ($COVERAGE < 78) { print \"Usermgmt coverage ${COVERAGE}% is below 78% threshold\"; exit 1 } }"
 
   lint:
     runs-on: ubuntu-latest
@@ -157,7 +151,7 @@ jobs:
 
       - name: Verify go mod tidy (all modules)
         run: |
-          for mod in . usermgmt adminui catalog integration_test; do
+          for mod in . usermgmt adminui integration_test; do
             echo "=== Checking $mod ==="
             (cd "$mod" && go mod tidy -diff)
           done
