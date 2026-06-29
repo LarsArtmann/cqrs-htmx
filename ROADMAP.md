@@ -4,7 +4,7 @@
 > For short-term work, see [TODO_LIST.md](TODO_LIST.md).
 > For what exists today, see [FEATURES.md](FEATURES.md).
 
-**Updated:** 2026-06-29 | **Version:** v3.3.0 (unreleased: Server-Timing, checkpoint replay)
+**Updated:** 2026-06-29 | **Version:** v3.3.0 (shipped: Server-Timing, checkpoint replay, BasicCommand embedding)
 
 ## Current State
 
@@ -14,33 +14,34 @@
 - **ErrorFamily:** 0 violations (no stdlib error constructors)
 - **Tests:** 574 usermgmt + 124 root + 35 adminui + integration, race-safe
 - **Dependencies:** go-cqrs-lite v3.4.0 (most modules), go-error-family v0.5.1, go-branded-id v0.3.1, justinas/nosurf, go-webauthn v0.17.4, pquerna/otp, coreos/go-oidc, golang.org/x/oauth2
-- **Architecture:** Fully event-sourced usermgmt (12 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation)
+- **Architecture:** Fully event-sourced usermgmt (12 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay)
 - **Modules:** 8 Go modules in go.work (root, usermgmt, adminui, integration_test, 4 examples)
 
 ---
 
-## Shipped (v1.0.0 → v3.1.0)
+## Shipped (v1.0.0 → v3.3.0)
 
 Major milestones delivered. Maintained here for historical context.
 
-| Version | Key Deliverables                                                                                                                                                                                                          |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| v1.0.0  | Initial release: App builder, command/query dispatch, handler options, HTMX middleware, error handling, Casbin authorization, branded UserID, session management                                                          |
-| v1.5.0  | CSRF (nosurf), rate limiting (token-bucket + heap eviction), security headers, recovery middleware, request logging (text + JSON + slog), lifecycle hooks                                                                 |
-| v2.0.0  | go-cqrs-lite v2 migration, 42-file import path bump, pre-release fixes (nil-enforcer bypass, query nil panic, Login error classification, UpdateRoles ordering)                                                           |
-| v2.1.0  | SSE + WebSocket real-time: Broadcaster fan-out, SSE reconnection (SSEEventStore + ReplayEvents), CQRS dispatch bridges (SSE + WS), typed WS message parser, WS OOB HTML, WS encoder, embedded HTMX v2.0.9 JS              |
-| v2.2.0  | SQL Event Store (Postgres/SQLite/MySQL), SQL Session Store, pagination (DecodePagination + RenderPaginatedJSON[T]), typed dispatch adoption                                                                               |
-| v2.3.0  | go-cqrs-lite v2.3.0: TypedHandler, deadline propagation, empty type validation, per-module go-cqrs-lite tags                                                                                                              |
-| v2.4.0  | TOTP MFA (pquerna/otp), email verification, user import/export (JSON/CSV), audit log, per-endpoint rate limiting, account lockout                                                                                         |
-| v2.5.0  | Event signing + encryption opt-in seams (ADR-0011), OAuth2/OIDC integration (ADR-0014), event schema versioning + upcasters (ADR-0013), catalog sub-package (ADR-0008)                                                    |
-| v2.6.0  | Identity model redesign (ADR-0015): Tenant, Bot, Membership, Impersonation, ActorID. go-cqrs-lite v2.6.0. SQL event store delegation to upstream. Roles→memberships migration.                                            |
-| v3.0.0  | go-cqrs-lite v3.0.0 migration (ADR-0016): manual projection replay, watermill EventBus, storage/memory split, Decider.Fold→Apply. Module path bump /v2→/v3. God object split (es_decide.go → 5 files). Dead code removal. |
-| v3.1.0  | go-cqrs-lite v3.1.0: SQL-backed persistent read models (4 aggregates), one-call SQLite/Postgres stack presets, `OptimizeSQLiteDB`, graceful shutdown (`Service.Close`/`GracefulClose`), CI coverage gate, 697 tests.      |
-| v3.2.0  | catalog/ module merged upstream into go-cqrs-lite/catalog/v3 (v3.2.0). ADR number collision fix, migration checklist (AGENTS.md #22-26), doc-honesty sweep, 51 stale status reports archived.                             |
+| Version | Key Deliverables                                                                                                                                                                                                                                           |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1.0.0  | Initial release: App builder, command/query dispatch, handler options, HTMX middleware, error handling, Casbin authorization, branded UserID, session management                                                                                           |
+| v1.5.0  | CSRF (nosurf), rate limiting (token-bucket + heap eviction), security headers, recovery middleware, request logging (text + JSON + slog), lifecycle hooks                                                                                                  |
+| v2.0.0  | go-cqrs-lite v2 migration, 42-file import path bump, pre-release fixes (nil-enforcer bypass, query nil panic, Login error classification, UpdateRoles ordering)                                                                                            |
+| v2.1.0  | SSE + WebSocket real-time: Broadcaster fan-out, SSE reconnection (SSEEventStore + ReplayEvents), CQRS dispatch bridges (SSE + WS), typed WS message parser, WS OOB HTML, WS encoder, embedded HTMX v2.0.9 JS                                               |
+| v2.2.0  | SQL Event Store (Postgres/SQLite/MySQL), SQL Session Store, pagination (DecodePagination + RenderPaginatedJSON[T]), typed dispatch adoption                                                                                                                |
+| v2.3.0  | go-cqrs-lite v2.3.0: TypedHandler, deadline propagation, empty type validation, per-module go-cqrs-lite tags                                                                                                                                               |
+| v2.4.0  | TOTP MFA (pquerna/otp), email verification, user import/export (JSON/CSV), audit log, per-endpoint rate limiting, account lockout                                                                                                                          |
+| v2.5.0  | Event signing + encryption opt-in seams (ADR-0011), OAuth2/OIDC integration (ADR-0014), event schema versioning + upcasters (ADR-0013), catalog sub-package (ADR-0008)                                                                                     |
+| v2.6.0  | Identity model redesign (ADR-0015): Tenant, Bot, Membership, Impersonation, ActorID. go-cqrs-lite v2.6.0. SQL event store delegation to upstream. Roles→memberships migration.                                                                             |
+| v3.0.0  | go-cqrs-lite v3.0.0 migration (ADR-0016): manual projection replay, watermill EventBus, storage/memory split, Decider.Fold→Apply. Module path bump /v2→/v3. God object split (es_decide.go → 5 files). Dead code removal.                                  |
+| v3.1.0  | go-cqrs-lite v3.1.0: SQL-backed persistent read models (4 aggregates), one-call SQLite/Postgres stack presets, `OptimizeSQLiteDB`, graceful shutdown (`Service.Close`/`GracefulClose`), CI coverage gate, 697 tests.                                       |
+| v3.2.0  | catalog/ module merged upstream into go-cqrs-lite/catalog/v3 (v3.2.0). ADR number collision fix, migration checklist (AGENTS.md #22-26), doc-honesty sweep, 51 stale status reports archived.                                                              |
+| v3.3.0  | go-cqrs-lite v3.4.0 upgrade. BasicCommand embedding (ADR-0032 — structurally eliminates zero-cmdID bug). Checkpoint-based projection replay (ADR-0031 Accepted). Server-Timing API (W3C). Offline command queue Phase 2a (ADR-0029). 8 modules in go.work. |
 
 ---
 
-## v3.2.0 — Stabilization & Documentation (Current)
+## v3.2.0 — Stabilization & Documentation (Completed)
 
 _Focus: Close the gap between what shipped and what's documented. Improve test coverage for identity model._
 
@@ -58,7 +59,7 @@ _Focus: Close the gap between what shipped and what's documented. Improve test c
 | Test | Fuzz tests for projection dedup + identity model deciders        | Medium   | Done   |
 | Lint | Enable revive:exported linter + fix violations                   | Medium   | Done   |
 | Code | Remove deprecated ClientIP() wrapper                             | Low      | Open   |
-| Code | Verify and wire BrandNamer for root module marker types          | Medium   | Open   |
+| Code | Verify and wire BrandNamer for root module marker types          | Medium   | Done   |
 
 ---
 
