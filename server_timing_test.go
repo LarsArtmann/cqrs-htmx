@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 func TestServerTiming_DisabledIsNoOp(t *testing.T) {
@@ -658,5 +659,67 @@ func TestApp_ServerTiming_NoWrapWhenPredicateReturnsFalse(t *testing.T) {
 
 	if w != http.ResponseWriter(rec) {
 		t.Fatal("ResponseWriter should not be wrapped when predicate returns false")
+	}
+}
+
+// TestApp_ServerTiming_EndToEndDispatch verifies that Config.ServerTiming
+// produces the header in a REAL App.Command() dispatch flow — not just the
+// applyServerTiming helper in isolation. This is the integration test proving
+// the feature works end-to-end through decode → dispatch → response.
+func TestApp_ServerTiming_EndToEndDispatch(t *testing.T) {
+	t.Parallel()
+
+	disp := command.NewDispatcher()
+	_ = disp.Register("Ping", func(ctx context.Context, _ command.Command) error {
+		// Record a sub-metric from inside the handler — BEFORE the response
+		// is committed (applyCommandResponse happens after dispatch returns).
+		stop := MeasureServerTiming(ctx, "handler")
+		stop()
+		return nil
+	})
+
+	app := MustNew(Config{
+		Commands:     disp,
+		ServerTiming: func(r *http.Request) bool { return true },
+	})
+
+	handler := app.Command("Ping", DecodeJSON(func(_ struct{}) (command.Command, error) {
+		return command.New("Ping", id.NewAggregateID())
+	}))
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{}`)))
+
+	hv := rec.Header().Get(headerServerTiming)
+	if hv == "" {
+		t.Fatal("Server-Timing header missing on end-to-end dispatch")
+	}
+	if !strings.Contains(hv, "total;") {
+		t.Errorf("missing total metric in %q", hv)
+	}
+	if !strings.Contains(hv, "handler;") {
+		t.Errorf("missing handler metric in %q", hv)
+	}
+}
+
+// TestApp_ServerTiming_EndToEndDisabled verifies that Config.ServerTiming=nil
+// produces NO header in a real dispatch flow — zero overhead.
+func TestApp_ServerTiming_EndToEndDisabled(t *testing.T) {
+	t.Parallel()
+	disp := command.NewDispatcher()
+	_ = disp.Register("Ping", func(ctx context.Context, _ command.Command) error {
+		stop := MeasureServerTiming(ctx, "handler") // nil-safe no-op
+		stop()
+		return nil
+	})
+
+	app := MustNew(Config{Commands: disp}) // no ServerTiming
+
+	handler := app.Command("Ping")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/", nil))
+
+	if hv := rec.Header().Get(headerServerTiming); hv != "" {
+		t.Fatalf("Server-Timing should be absent when Config.ServerTiming=nil, got %q", hv)
 	}
 }
