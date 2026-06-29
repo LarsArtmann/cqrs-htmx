@@ -213,27 +213,9 @@ For `JournalSSEStore` replay to work, your events need ULID IDs the journal can 
 
 Like all HTTP headers, `Server-Timing` is committed at first `WriteHeader`/`Write`. `MeasureServerTiming(ctx, "db")` with `defer` records at function return — which is AFTER the write for non-streaming handlers, so it misses the header. For a metric you want in the header, end its region before the write.
 
-## 9. Testing
+## 9. Testing & build tooling (contributor concerns)
 
-### No `time.After` + `select` for timeouts
-
-Use `<-ctx.Done()` blocking. The `time.After` pattern is a known flaky-test anti-pattern in this codebase.
-
-### BDD types use `bdd` prefix
-
-`bddCreateUserCmd`, etc. Match the convention when adding tests.
-
-### Benchmarks/examples have relaxed lint rules
-
-`.golangci.yml` relaxes `intrange`, `noctx`, `nilnil` for benchmark/example test files only. Don't expect the same leniency in production code.
-
-### `GONOSUMCHECK` for private deps
-
-```bash
-GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
-```
-
-Or use the nix apps which set this for you.
+The testing conventions (`bdd` type prefix, no `time.After`/`select`), the nix-based build commands (`nix run .#test`/`.#lint`/`.#coverage`), the `errorfamily` and coverage CI gates, and the LSP-vs-CLI discrepancy are all documented in the project's **AGENTS.md** under "Test Commands" and "Key Gotchas." They are contributor concerns, not consumer concerns — consult AGENTS.md directly when working inside this repo.
 
 ## 10. adminui
 
@@ -253,20 +235,6 @@ Your session middleware must put it there. `usermgmt.NewSessionMiddleware` alrea
 
 `*_templ.go` is committed. Consumers import the generated files directly — they never run `templ generate`. Only contributors editing `.templ` run `templ generate` (CLI v0.3.x) in `adminui/`.
 
-## 11. Build / tooling
+### The panel serves htmx.js internally
 
-### Use `nix`, not Makefile or justfile
-
-Per project convention: `nix run .#test`, `nix run .#build`, `nix run .#lint`, `nix run .#coverage`, `nix fmt`, `nix flake check`. Never create new justfiles. The `flake.nix` is the source of truth for build automation.
-
-### LSP vs CLI discrepancy
-
-After `.golangci.yml` changes, the LSP may show stale warnings. The CLI (`golangci-lint run`) is authoritative.
-
-### `errorfamily` gate
-
-`nix run .#errorfamily` runs `branching-flow errorfamily` on root + usermgmt. Must report 0. Run it if you add any error-returning code.
-
-### Coverage gate
-
-`nix run .#coverage-gate` fails if coverage drops below thresholds (root 90%, usermgmt 75%).
+On Path C the panel registers its own htmx.js route (`adminui/assets.go`). **Do NOT** also register `cqrshtmx.HTMXScriptHandler()` yourself — that creates a duplicate route. This is the Path A/B exception: only self-host htmx.js when you're NOT using adminui.

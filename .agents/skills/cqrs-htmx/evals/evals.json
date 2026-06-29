@@ -1,0 +1,43 @@
+{
+  "skill_name": "cqrs-htmx",
+  "evals": [
+    {
+      "id": 1,
+      "name": "add-passkey-login",
+      "prompt": "I have a Go web app using net/http and I want to add passwordless passkey login for my users. No passwords, just WebAuthn/FIDO2. What's the simplest way to set this up end to end — service, routes, middleware, and what do I need for the frontend ceremony?",
+      "expected_output": "Walks through NewService with WebAuthnConfig (RPID/RPDisplayName/RPOrigins), NewAuthHandler + RegisterRoutes for the webauthn begin/finish endpoints, NewSessionMiddleware wrapping the mux, and notes the two-step JSON ceremony. Cites the usermgmt reference.",
+      "assertions": [
+        "Mentions usermgmt.NewService with a WebAuthnConfig (RPID, RPDisplayName, RPOrigins)",
+        "Shows usermgmt.NewAuthHandler(svc) and .RegisterRoutes(mux)",
+        "Includes usermgmt.NewSessionMiddleware in the middleware chain, OUTSIDE CSRF",
+        "Uses the /v3 module suffix on import paths",
+        "Does NOT suggest a password column or bcrypt"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "sse-live-updates",
+      "prompt": "I want my HTMX page to update live whenever a command succeeds on the server. Like, user A creates an item and everyone watching the list sees it appear instantly. How do I do server-sent events with this?",
+      "expected_output": "Shows cqrshtmx.NewBroadcaster, wiring AfterDispatch via BroadcastOnSuccess/BroadcastOnSuccessFunc, a GET SSE handler using NewSSEStream with the subscribe/send/close loop, and notes Unsubscribe closes the channel.",
+      "assertions": [
+        "Constructs cqrshtmx.NewBroadcaster()",
+        "Wires Config.AfterDispatch to broadcaster.BroadcastOnSuccess or BroadcastOnSuccessFunc",
+        "Shows a GET handler using cqrshtmx.NewSSEStream with the Subscribe/Send/Context().Done() loop",
+        "Mentions that broadcaster.Unsubscribe closes the channel (or uses defer Unsubscribe pattern)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "admin-panel-mount",
+      "prompt": "ok so I've got the usermgmt Service working with users and roles. my product manager wants an admin dashboard where support can search users, suspend tenants, and view an audit log. is there something prebuilt I can just mount behind my session middleware, or do I have to build the whole UI?",
+      "expected_output": "Points to adminui.New(adminui.Config{Service: svc, ...}), Mount or Handler(), wraps with sessionMW outside CSRF outside panel.Middleware(). Mentions Mode (SuperAdmin/TenantAdmin), AccentColor, LogoutURL, SSEURL.",
+      "assertions": [
+        "Imports github.com/larsartmann/cqrs-htmx/adminui/v3",
+        "Shows adminui.New(adminui.Config{Service: svc})",
+        "Uses panel.Mount(mux, \"/admin/\") or panel.Handler() with StripPrefix",
+        "Wraps with session middleware OUTSIDE CSRF and the panel's Middleware() (recovery + security headers)",
+        "Mentions that adminui serves htmx.js internally (Path C exception — does NOT tell user to register HTMXScriptHandler themselves)"
+      ]
+    }
+  ]
+}
