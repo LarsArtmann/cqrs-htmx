@@ -6,19 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-06-29
+
 ### Added
 
-- **Idempotency store** (`IdempotencyStore` interface + `MemoryIdempotencyStore`): Prevents duplicate command execution on client retry. `CheckAndRecord` interface method is truly atomic (single lock for check+record). `ErrDuplicateCommand` → HTTP 409 Conflict. TTL-based expiration with background sweep goroutine + lazy expiry in `Seen()`. See ADR-0026.
-- **admin-demo idempotency wiring**: The admin-demo showcase now rejects duplicate mutations (same `X-Command-Id`) with HTTP 409 before they reach the panel handler. Proves the feature end-to-end.
-- **ADR-0027**: Definitive decision that `decide()` stays on the server (Queue-Only client). The library provides the queue/sync/ACK protocol; pre-validation is a consumer concern. Unblocks all Phase 2 work.
+- **Regression test for command IDs** (`es_command_id_test.go`): Table-driven test asserting all 20 command constructors produce a non-zero `ID()`. Prevents recurrence of the zero-cmdID bug.
+- **Offline command queue — Phase 2a** (ADR-0029): `adminui/assets/sync-worker.js` — a SharedWorker (~80 lines vanilla JS) that queues command IDs when the network is down and tells tabs to retry on reconnect. The worker is a coordinator, not a proxy: it does NOT send HTTP requests (HTMX does), does NOT own SSE (per-tab EventSource), does NOT persist to disk (in-memory). Reactive detection via `htmx:sendError`. Served at `GET /-/sync-worker.js` when `Config.SSEURL` is set. IndexedDB banned; OPFS deferred to Phase 2b. admin.js gains `initSyncWorker()`, `enqueueCommand()`, `retryQueuedCommand()`, and an `htmx:sendError` handler that queues instead of rejecting. CSS adds `[data-sync-queued]` (dimmer, slower pulse) and `.sync-bar[data-sync-status="offline"]` (amber).
 - **Production SSEEventStore** (`JournalSSEStore`): Backed by `event.SeekableJournal` for efficient cursor-based replay. Falls back to `ReadAll` + in-memory filter when the journal doesn't support `ReadFrom`. `WithMaxReplay(n)` limits first-connection replay volume (default 1000). Consumer-provided `EventToSSEMapper` function converts domain events to SSE events.
 - **ACK protocol** (command confirmation): `CommandAck` struct with `{commandId, status, error}` JSON. `BroadcastOnAck()` / `BroadcastOnAckFunc()` on `Broadcaster` (SSE) and `BroadcastOnAckWS()` / `BroadcastOnAckWSFunc()` on `WSBroadcaster` (WS parity). Opt-in via `X-Command-Id` header.
 - **Integration tests**: 6 end-to-end tests prove `JournalSSEStore` + `Broadcaster` + ACK protocol work together in real HTTP handlers (replay, confirmed/rejected ACK, reconnect + live ACK, opt-in guard, concurrent race).
-- **ADRs**: 0023 (command-sync — sync commands not events), 0024 (honest UI — never lie about pending state), 0026 (idempotency store), 0027 (decide stays on server).
-- **Offline command queue — Phase 2a** (ADR-0029): `adminui/assets/sync-worker.js` — a SharedWorker (~80 lines vanilla JS) that queues command IDs when the network is down and tells tabs to retry on reconnect. The worker is a coordinator, not a proxy: it does NOT send HTTP requests (HTMX does), does NOT own SSE (per-tab EventSource), does NOT persist to disk (in-memory). Reactive detection via `htmx:sendError`. Served at `GET /-/sync-worker.js` when `Config.SSEURL` is set. IndexedDB banned; OPFS deferred to Phase 2b. admin.js gains `initSyncWorker()`, `enqueueCommand()`, `retryQueuedCommand()`, and an `htmx:sendError` handler that queues instead of rejecting. CSS adds `[data-sync-queued]` (dimmer, slower pulse) and `.sync-bar[data-sync-status="offline"]` (amber).
+- **ADRs**: 0023 (command-sync — sync commands not events), 0024 (honest UI — never lie about pending state), 0026 (idempotency store), 0027 (decide stays on server), 0029 (SharedWorker Phase 2a).
+- **Idempotency store** (`IdempotencyStore` interface + `MemoryIdempotencyStore`): Prevents duplicate command execution on client retry. `CheckAndRecord` interface method is truly atomic (single lock for check+record). `ErrDuplicateCommand` → HTTP 409 Conflict. TTL-based expiration with background sweep goroutine + lazy expiry in `Seen()`. See ADR-0026.
+- **admin-demo idempotency wiring**: The admin-demo showcase now rejects duplicate mutations (same `X-Command-Id`) with HTTP 409 before they reach the panel handler. Proves the feature end-to-end.
+- **ADR-0027**: Definitive decision that `decide()` stays on the server (Queue-Only client). The library provides the queue/sync/ACK protocol; pre-validation is a consumer concern. Unblocks all Phase 2 work.
 
 ### Changed
 
+- **go-cqrs-lite upgraded to v3.4.0** across all 8 modules: command, event, idempotency, query, listing, projection, snapshot, stack, storage → v3.4.0; decider/id/otel/watermill/codec/dispatcher at v3.3.0/v3.3.1 (latest tags). v3.4.0 adds managed projection host, durable scheduling, scenario-testing DSL.
+- **SSE delegation lint cleared**: `sse_event.go` vars converted to proper wrapper functions (`gochecknoglobals`), wrapcheck annotated for pure delegation. All modules now report 0 lint issues.
 - **Form decoder upgraded** (`decoder.go`): Replaced allocation-heavy JSON round-trip (`url.Values → map[string]any → JSON → struct`) with `go-playground/form/v4` (zero transitive deps, `SetTagName("json")` for backward compat). Form keys normalized to lowercase for case-insensitive field matching.
 - **Pagination unified**: Both root `DecodePagination` and usermgmt `credential_http.go` now delegate to `query.NewPagination` from go-cqrs-lite. **BREAKING**: Requesting a page beyond the last page now returns an empty page (standard REST) instead of silently clamping to the last page. The response includes `total_pages` so clients can detect the valid range.
 - **go.mod alignment**: All 8 modules aligned to Go 1.26.4.
@@ -27,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **Command ID minting bug** (CRITICAL): 7 of 20 usermgmt command constructors (`RegisterUserCmd`, `LinkExternalAccountCmd`, `UnlinkExternalAccountCmd`, `AddMemberCmd`, `UpdateMemberRolesCmd`, `RemoveMemberCmd`, `RegisterBotCmd`) returned a zero-value `cmdID`, silently breaking idempotency dedup and Watermill message UUIDs (which derive from `cmd.ID()`). All constructors now call `id.NewCommandID()`. Regression test added.
 - **Idempotency `CheckAndRecord` atomicity**: The original free function called `Seen()` then `Record()` as two separate interface calls — a TOCTOU race. Fixed by moving `CheckAndRecord` into the `IdempotencyStore` interface; `MemoryIdempotencyStore` now does check+record under a single write lock. Proven by a 200-goroutine concurrency test (exactly 1 winner).
 - **Idempotency memory leak**: `Seen()` now lazily deletes expired entries, preventing unbounded map growth when the sweep goroutine is disabled (`sweepInterval=0`).
 

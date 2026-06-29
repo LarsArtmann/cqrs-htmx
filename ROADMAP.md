@@ -4,18 +4,18 @@
 > For short-term work, see [TODO_LIST.md](TODO_LIST.md).
 > For what exists today, see [FEATURES.md](FEATURES.md).
 
-**Updated:** 2026-06-28 | **Version:** v3.2.0
+**Updated:** 2026-06-29 | **Version:** v3.3.0
 
 ## Current State
 
-- **Version:** v3.2.0 (all 3 publishable modules at `/v3`)
-- **Coverage:** 95.4% root, 80.1% usermgmt
+- **Version:** v3.3.0 (all 3 publishable modules at `/v3`)
+- **Coverage:** 94.1% root, 79.5% usermgmt
 - **Lint:** 0 issues (all modules)
 - **ErrorFamily:** 0 violations (no stdlib error constructors)
-- **Tests:** 697 usermgmt + ~430 root + ~15 catalog + ~10 integration, race-safe
-- **Dependencies:** go-cqrs-lite v3.1.0, go-error-family v0.5.1, go-branded-id v0.3.1, justinas/nosurf, go-webauthn v0.17.4, pquerna/otp, coreos/go-oidc, golang.org/x/oauth2
-- **Architecture:** Fully event-sourced usermgmt (12 events, 11 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation)
-- **Modules:** 6 Go modules in go.work (root, usermgmt, adminui, integration_test, 3 examples)
+- **Tests:** 574 usermgmt + 124 root + 35 adminui + integration, race-safe
+- **Dependencies:** go-cqrs-lite v3.4.0 (most modules), go-error-family v0.5.1, go-branded-id v0.3.1, justinas/nosurf, go-webauthn v0.17.4, pquerna/otp, coreos/go-oidc, golang.org/x/oauth2
+- **Architecture:** Fully event-sourced usermgmt (12 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation)
+- **Modules:** 8 Go modules in go.work (root, usermgmt, adminui, integration_test, 4 examples)
 
 ---
 
