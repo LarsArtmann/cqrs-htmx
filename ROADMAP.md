@@ -4,7 +4,7 @@
 > For short-term work, see [TODO_LIST.md](TODO_LIST.md).
 > For what exists today, see [FEATURES.md](FEATURES.md).
 
-**Updated:** 2026-06-29 | **Version:** v3.3.0
+**Updated:** 2026-06-29 | **Version:** v3.3.0 (unreleased: Server-Timing, checkpoint replay)
 
 ## Current State
 
@@ -66,27 +66,31 @@ _Focus: Close the gap between what shipped and what's documented. Improve test c
 
 _Focus: Production-grade observability for CQRS dispatch pipelines._
 
-| Area          | Item                                                          | Priority | Status  |
-| ------------- | ------------------------------------------------------------- | -------- | ------- |
-| Observability | Wire OpenTelemetry via go-cqrs-lite v3 otel module            | High     | Planned |
-| Observability | Prometheus metrics middleware (dispatch latency, error rates) | Medium   | Planned |
-| CI            | Coverage gate in CI (fail on regression below threshold)      | Medium   | Done    |
+| Area          | Item                                                                          | Priority | Status  |
+| ------------- | ----------------------------------------------------------------------------- | -------- | ------- |
+| Observability | Server-Timing API (W3C header, debug-gated, nil-receiver)                     | High     | Done    |
+| Observability | OTel seam: document `go-cqrs-lite/otel/v3` + `middleware/v3` wiring guide     | Medium   | Planned |
+| Observability | Prometheus seam: document `go-cqrs-lite/prometheus/v3` `/metrics` integration | Low      | Planned |
+| CI            | Coverage gate in CI (fail on regression below threshold)                      | Medium   | Done    |
+
+> **Note:** OpenTelemetry and Prometheus are already available via go-cqrs-lite upstream
+> (`otel/v3`, `middleware/v3`, `prometheus/v3`). cqrs-htmx doesn't need to re-implement
+> them — it needs a wiring guide showing consumers how to bolt them onto the App.
 
 ---
 
-## v3.4.0 — Persistence & Scale
+## v3.4.0 — Upstream Adoption & Scale
 
-_Focus: Production storage backends beyond in-memory and SQL._
+_Focus: Adopting go-cqrs-lite v3.4.0 capabilities to reduce hand-rolled code._
 
-| Area  | Item                                                        | Priority | Status  |
-| ----- | ----------------------------------------------------------- | -------- | ------- |
-| Store | Redis session store for distributed deployments             | Medium   | Planned |
-| Store | Redis OAuth2 state store for multi-instance                 | Low      | Planned |
-| Store | PostgreSQL session store preset (reduced boilerplate)       | Low      | Planned |
-| Store | BadgerDB embedded store alternative                         | Low      | Planned |
-| Perf  | Streaming replay via SeekableJournal.ReadFrom               | Medium   | Planned |
-| Perf  | Profile and optimize hot paths (dispatch, decode)           | Low      | Planned |
-| Perf  | Benchmark projection replay with large stores (10K+ events) | Low      | Planned |
+| Area | Item                                                               | Priority | Status  |
+| ---- | ------------------------------------------------------------------ | -------- | ------- |
+| ES   | Adopt `projectionhost/v3` — replace hand-rolled `StartProjections` | High     | Planned |
+| ES   | Adopt `CatchUpSubscriber` — ordered durable projections            | Medium   | Planned |
+| Test | Adopt `scenario/v3` BDD DSL for usermgmt decider tests             | Medium   | Planned |
+| Perf | Adopt `snapshot/v3` for aggregates with 100+ events                | Medium   | Planned |
+| Perf | Profile and optimize hot paths (dispatch, decode)                  | Low      | Planned |
+| Perf | Benchmark projection replay with large stores (10K+ events)        | Low      | Planned |
 
 ---
 
@@ -94,13 +98,11 @@ _Focus: Production storage backends beyond in-memory and SQL._
 
 _Focus: Leveraging go-cqrs-lite v3's advanced capabilities._
 
-| Area    | Item                                                         | Priority | Status                                                     |
-| ------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------------- |
-| ES      | stack.Materialize for persistent read models                 | Low      | Done (ADR-0022: generic adapter, per-read-model decisions) |
-| ES      | CatchUpSubscriber as alternative to manual replay            | Low      | Planned                                                    |
-| Schema  | Add schema/v3 validator for event payloads at registration   | Medium   | Planned                                                    |
-| Test    | Integration tests against real PostgreSQL                    | Medium   | Planned                                                    |
-| Migrate | Database migration tooling (goose, golang-migrate, or gnorm) | Medium   | Planned                                                    |
+| Area   | Item                                              | Priority | Status                                                     |
+| ------ | ------------------------------------------------- | -------- | ---------------------------------------------------------- |
+| ES     | stack.Materialize for persistent read models      | Low      | Done (ADR-0022: generic adapter, per-read-model decisions) |
+| ES     | Adopt `kv.Cache` decorator for read-model caching | Low      | Planned                                                    |
+| Schema | Adopt `schema/v3` upcasters for event evolution   | Medium   | Planned                                                    |
 
 ---
 
