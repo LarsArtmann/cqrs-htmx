@@ -430,7 +430,7 @@
 
             coverage-gate = {
               type = "app";
-              meta.description = "Run tests and fail if coverage drops below thresholds (root 90%, usermgmt 75%)";
+              meta.description = "Run tests and fail if coverage drops below thresholds (root 90%, usermgmt 78%)";
               program = pkgs.writeShellApplication {
                 name = "coverage-gate";
                 runtimeInputs = [
@@ -452,7 +452,7 @@
                     fi
                   }
                   check_cov . 90
-                  check_cov usermgmt 75
+                  check_cov usermgmt 78
                   if [ "$fail" -eq 1 ]; then
                     echo "Coverage gate FAILED"
                     exit 1
