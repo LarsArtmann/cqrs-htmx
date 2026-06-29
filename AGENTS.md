@@ -38,6 +38,7 @@ cqrs-htmx/
 ├── options_json.go   # JSON response HandlerOption helpers
 ├── options_validate.go # ValidateCommand/ValidateQuery HandlerOptions
 ├── response.go       # HTMX response builder (fluent API) + notification methods
+├── responsewriter.go # delegatingWriter — embeds http.ResponseWriter, delegates Flush/Hijack/Push/Unwrap
 ├── authz.go          # Enforcer interface, Authorize, Enforce, AuthorizeMiddleware
 ├── context.go        # UserID/CorrelationID/RequestID types, Parse*/MustParse*, context helpers
 ├── errors.go         # Error → HTTP status mapping, sentinels, LoginRedirect (go-error-family)
