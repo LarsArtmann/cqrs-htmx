@@ -81,3 +81,94 @@ func TestCommandIDsAreUnique(t *testing.T) {
 		t.Error("two command instances should have different IDs for dedup")
 	}
 }
+
+// TestAllCommandsProduceDifferentIDs constructs every command constructor twice
+// (two batches) and verifies all 40 IDs are mutually unique. This catches a
+// regression where ULID minting could collide or where a constructor
+// accidentally hardcodes a fixed ID.
+func TestAllCommandsProduceDifferentIDs(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+	userID := NewUserID("01JXTESTUSERID00000000")
+	actorID := ActorIDFromUser(userID)
+	tenantID := NewTenantID("01JXTESTTENANTID00000000")
+
+	// buildAll returns one instance of every command constructor.
+	buildAll := func() []command.Command {
+		return []command.Command{
+			NewRegisterUserCmd(aggID, "u@t.com", "T", []Role{"admin"}),
+			NewChangeEmailCmd(aggID, "n@t.com"),
+			NewChangeDisplayNameCmd(aggID, "N"),
+			NewDeleteUserCmd(aggID, "r"),
+			NewAddCredentialCmd(aggID, WebAuthnCredential{}),
+			NewRemoveCredentialCmd(aggID, []byte("c")),
+			NewVerifyEmailCmd(aggID),
+			NewEnableTOTPCmd(aggID, []byte("s")),
+			NewDisableTOTPCmd(aggID),
+			NewLinkExternalAccountCmd(aggID, "g", "s", "u@t.com", "T"),
+			NewUnlinkExternalAccountCmd(aggID, "g", "s"),
+			NewAddMemberCmd(actorID, tenantID, []Role{"m"}),
+			NewUpdateMemberRolesCmd(actorID, tenantID, []Role{"a"}),
+			NewRemoveMemberCmd(actorID, tenantID),
+			NewCreateTenantCmd(aggID, "acme", "Acme"),
+			NewSuspendTenantCmd(aggID, "violation"),
+			NewReactivateTenantCmd(aggID),
+			NewDeleteTenantCmd(aggID, "closing"),
+			NewRegisterBotCmd(aggID, "Bot", userID, []byte("h"), []string{"r"}),
+			NewDeleteBotCmd(aggID, "decommissioned"),
+		}
+	}
+
+	batch1 := buildAll()
+	batch2 := buildAll()
+
+	seen := make(map[id.CommandID]struct{}, len(batch1)+len(batch2))
+	for _, cmd := range append(batch1, batch2...) {
+		cid := cmd.ID()
+		if cid.IsZero() {
+			t.Fatal("found zero command ID — constructor bug")
+		}
+		if _, dup := seen[cid]; dup {
+			t.Fatalf("duplicate command ID %s — ULIDs must be unique", cid)
+		}
+		seen[cid] = struct{}{}
+	}
+
+	if len(seen) != len(batch1)+len(batch2) {
+		t.Fatalf("expected %d unique IDs, got %d", len(batch1)+len(batch2), len(seen))
+	}
+}
+
+// TestMustCommand_PanicsOnZeroAggregateID verifies that mustCommand panics
+// when given a zero-value aggregate ID. This is a programming bug — the
+// constructor should never be called without a valid aggregate ID — so a
+// panic is the correct behavior (fail-fast, not silent zero cmdID).
+func TestMustCommand_PanicsOnZeroAggregateID(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("mustCommand should panic when aggregate ID is zero")
+		}
+	}()
+
+	_ = mustCommand(cmdRegisterUser, id.AggregateID{})
+}
+
+// TestMustCommand_PanicsOnEmptyCommandType verifies that mustCommand panics
+// when given an empty command type. Like the zero aggregate ID, this is a
+// programming bug that should fail immediately, not produce a zero cmdID.
+func TestMustCommand_PanicsOnEmptyCommandType(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("mustCommand should panic when command type is empty")
+		}
+	}()
+
+	_ = mustCommand("", id.NewAggregateID())
+}
