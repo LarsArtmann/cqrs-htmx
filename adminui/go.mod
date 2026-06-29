@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.3.0
 	github.com/larsartmann/cqrs-htmx/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.4.0
-	github.com/larsartmann/templ-components v0.5.0
+	github.com/larsartmann/templ-components v0.6.0
 )
 
 require (
