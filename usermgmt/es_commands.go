@@ -1,5 +1,13 @@
 package usermgmt
 
+// All usermgmt command structs embed *command.BasicCommand, which promotes
+// Type(), AggregateID(), and ID() methods automatically. This structurally
+// eliminates the class of bugs where a constructor forgets to mint a command
+// ID (which would silently break idempotency dedup and Watermill message
+// UUIDs). The mustCommand helper panics on construction failure — the only
+// error cases (empty command type, zero aggregate ID) are programming bugs.
+// See ADR-0032 for the full rationale.
+
 import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"

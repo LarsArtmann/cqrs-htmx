@@ -10,10 +10,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Server-Timing API** (`server_timing.go`): W3C Server Timing response header support for debug-mode performance profiling. Emits `Server-Timing: total;desc="Total request";dur=12, db;dur=8` headers visible in browser DevTools and curl. Three entry points: (1) `ServerTimingMiddleware()` — standalone always-on middleware; (2) `ServerTimingMiddlewareWhen(pred)` — predicate-gated (e.g. `?debug=1`, admin role); (3) `Config.ServerTiming` — 1-line integration into `App.Command()`/`App.Query()` handlers. Thread-safe `*ServerTiming` collector uses nil-receiver pattern (disabled=nil=natural no-op). Helpers `MeasureServerTiming(ctx, name)` and `RecordServerTiming(ctx, name, desc, dur)` are nil-safe. Interface preservation: wrapper delegates `Flusher`/`Hijacker`/`Pusher`/`Unwrap` so SSE/WS/HTTP2 work transparently. Benchmark: disabled=3.6ns/0-allocs, enabled Measure=138ns/1-alloc.
 - **Checkpoint-based projection replay** (`usermgmt/es_projection_setup.go`): `StartProjections` gains optional `event.CheckpointStore` parameter. When non-nil AND journal implements `SeekableJournal`, replay uses `ReadFrom(checkpoint.EventID, 0)` instead of `ReadAll()` — avoids full journal replay on every restart. Checkpoint saved after each replayed event. Graceful fallback: nil store or non-seekable journal → full replay (backward compatible). `EventSourcedConfig`, `ServiceConfig`, `SQLiteSetupConfig`, `PostgresSetupConfig` all gain `CheckpointStore` field.
+- **ADR-0032**: BasicCommand embedding decision — documents the structural fix for the zero-cmdID bug class and the rationale for `mustCommand` panic-on-construction-failure.
+- **ADR-0031 status update**: PROPOSED → Accepted. Checkpoint-based replay shipped in StartProjections; CatchUpSubscriber migration deferred.
+- **Command ID regression tests** (`es_command_id_test.go`): `TestAllCommandsProduceDifferentIDs` — constructs every command twice (40 total), asserts all IDs are mutually unique. `TestMustCommand_PanicsOnZeroAggregateID` and `TestMustCommand_PanicsOnEmptyCommandType` — verify fail-fast behavior on programming bugs.
+- **CheckpointStore usage example** (`es_checkpoint_test.go`): Demonstrates the opt-in checkpoint round-trip (fresh store → save → reload → resume from checkpoint).
+- **scenario/v3 BDD on ChangeEmail** (`es_scenario_test.go`): Second decider scenario test demonstrating the BDD DSL adoption beyond RegisterUser.
+- **Authz doc comments**: `RemoveAllRolesForUser` and `RemoveAllRolesInDomain` now document why the `subject` parameter is intentionally `string` (Casbin subjects are polymorphic: user IDs, bot IDs, prefixed actors).
 
 ### Changed
 
-- **Command constructors embed `command.BasicCommand`**: All 20 usermgmt command structs now embed `command.BasicCommand`, gaining `.ID()` (returns `id.CommandID`) and `.CommandType()` methods. Eliminates manual ID tracking and enables typed command registration.
+- **Command constructors embed `command.BasicCommand`**: All 20 usermgmt command structs now embed `*command.BasicCommand`, which promotes `Type()`, `AggregateID()`, `ID()` methods automatically. This structurally eliminates the zero-cmdID bug class (7 constructors previously returned zero command IDs, silently breaking idempotency dedup and Watermill message UUIDs). The `mustCommand` helper panics on construction failure — the only error cases (empty command type, zero aggregate ID) are programming bugs. See ADR-0032.
+- **ROADMAP updated**: v3.3.0 added to Shipped table. v3.4.0 upstream adoption table reflects checkpoint replay as interim fix, scenario/v3 BDD as partially done.
+- **TODO_LIST triaged**: All `[~]` (partially done) items resolved — marked `[x]` (BrandNamer wired, TenantState.IsValid added, Phase 2a shipped) or `[-]` (blocked: ActorID split brain, Email type, WebAuthn \*http.Request, snapshot integration).
+- **Status reports archived**: 7 reports older than 2 weeks (pre-June-15) moved to `docs/status/archive/`.
 
 ## [3.3.0] - 2026-06-29
 
