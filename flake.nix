@@ -130,6 +130,27 @@
               };
             };
 
+            test-flake = {
+              type = "app";
+              meta.description = "Run all Go tests 3x with race detector to detect flaky tests";
+              program = pkgs.writeShellApplication {
+                name = "run-tests-flake";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  echo "==> Root module (3 iterations)"
+                  go test ./... -count=3 -race
+                  echo "==> adminui submodule (3 iterations)"
+                  (cd adminui && go test ./... -count=3 -race)
+                  echo "==> usermgmt submodule (3 iterations)"
+                  (cd usermgmt && go test ./... -count=3 -race)
+                  echo "==> integration_test submodule (3 iterations)"
+                  (cd integration_test && go test ./... -count=3 -race)
+                '';
+              };
+            };
+
             test-fuzz = {
               type = "app";
               meta.description = "Run all Go fuzz tests across all modules (FUZZTIME env var, default 30s)";
