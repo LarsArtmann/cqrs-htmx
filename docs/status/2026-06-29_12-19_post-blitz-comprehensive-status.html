@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Status Report — cqrs-htmx Post-Blitz (2026-06-29)</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before {
+        background: var(--warning);
+      }
+      .stat-bad::before {
+        background: var(--problem);
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Status Report</span>
+      <span>2026-06-29 12:19 CEST</span>
+      <span>HEAD: fdcd23c</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#tldr">TL;DR</a>
+          <a href="#done">a) Fully Done</a>
+          <a href="#partial">b) Partially Done</a>
+          <a href="#notstarted">c) Not Started</a>
+          <a href="#fucked">d) Totally Fucked Up</a>
+          <a href="#improve">e) What to Improve</a>
+          <a href="#top25">f) Top 25 Next</a>
+          <a href="#question">g) Open Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Comprehensive Status</div>
+          <h1>Post-Blitz Health Check &mdash; cqrs-htmx v3.3.0</h1>
+          <p class="hero-subtitle">
+            Honest assessment after executing a 17-task Pareto-prioritized quality &amp; adoption
+            blitz. Seven dimensions: fully done, partially done, not started, totally fucked up,
+            improvements, top-25 next tasks, and the one question I can't answer.
+          </p>
+        </div>
+
+        <h2 id="tldr"><span class="num">00</span>TL;DR &mdash; Health Check</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">8</div>
+            <div class="stat-label">Modules Built</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">876</div>
+            <div class="stat-label">Tests Passing</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Lint Issues</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">ErrorFamily Violations</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">94.2%</div>
+            <div class="stat-label">Root Coverage</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">79.3%</div>
+            <div class="stat-label">usermgmt Coverage</div>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Commits This Session</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">17</div>
+            <div class="stat-label">Pareto Tasks Done</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Security Bug Fixed</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Regressions</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Overall Verdict</h4>
+          <p>
+            The project is in <strong>excellent, production-ready shape</strong>. The Pareto blitz
+            closed the highest-leverage gaps: CONTRIBUTING.md was actively misleading (now
+            rewritten), the templ codegen oscillation is resolved (CLI pinned + drift CI guard
+            added), observability guides are written, scenario/v3 BDD covers all 4 aggregates, and a
+            CRLF injection vulnerability was found and fixed via fuzz testing. All quality gates
+            green. Zero regressions.
+          </p>
+        </div>
+
+        <h2 id="done"><span class="num">a</span>FULLY DONE</h2>
+
+        <h3>Completed This Session (6 commits, 17 tasks)</h3>
+        <div class="card card-solution">
+          <h4>Contributor trust signals fixed</h4>
+          <p>
+            Root <code>CONTRIBUTING.md</code> fully rewritten: removed deleted catalog module, fixed
+            module count (5&rarr;8), removed password auth references, corrected test framework
+            (standard testing + scenario/v3 BDD), synced file tree, added Nix-first workflow.
+            <code>usermgmt/CONTRIBUTING.md</code> rewritten with real module conventions
+            (GOWORK=off, fold/decide pattern, error-family enforcement).
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>Templ codegen oscillation resolved</h4>
+          <p>
+            Pinned <code>pkgs.templ</code> v0.3.1020 in flake.nix devShell (matches go.mod). Added
+            <code>nix run .#gen</code> for one-command codegen + gofmt. Added
+            <code>nix run .#check-codegen</code> CI guard that regenerates and diffs against
+            committed versions.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>Observability wiring guides written</h4>
+          <p>
+            <code>docs/observability-wiring.md</code>: OTel tracing via BeforeDispatch/AfterDispatch
+            hooks, Prometheus /metrics with counter + histogram examples, built-in Server-Timing
+            reference, go-cqrs-lite upstream module table (otel/v3, middleware/v3, prometheus/v3).
+            <code>docs/MIGRATION-v3-incremental.md</code>: consumer guide for checkpoint replay,
+            BasicCommand, Server-Timing (all opt-in, backward compatible).
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>scenario/v3 BDD completed for all 4 aggregates</h4>
+          <p>
+            20 new tests across 3 files: Tenant (8 tests: create/suspend/reactivate/delete happy +
+            error paths), Bot (6 tests: register/delete happy + error paths), Membership (6 tests:
+            add/update-roles/remove happy + error paths). Combined with existing User scenarios, all
+            4 usermgmt aggregates now have BDD coverage.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>CRLF injection found and fixed</h4>
+          <p>
+            <code>server_timing.go:escapeQuotedString</code> was only escaping <code>"</code> and
+            <code>\</code>, leaving raw CR/LF in metric descriptions. This enabled HTTP header
+            splitting via crafted description strings. Fixed: CR/LF now replaced with spaces.
+            <strong>Found by the new fuzz test</strong>
+            (<code>FuzzServerTimingHeaderValue</code>) &mdash; the test paid for itself on its first
+            run.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>Doc sync sweep</h4>
+          <p>
+            ROADMAP.md: scenario BDD, OTel guide, Prometheus guide marked Done; "v3.30" typo fixed.
+            FEATURES.md: catalog column removed, ClientIP updated to FULLY_FUNCTIONAL, metrics
+            synced. ADR-0015: all 6 "Planned" rows marked Done. flake.nix: package version
+            3.1.0&rarr;3.3.0. AGENTS.md: responsewriter.go added to file tree.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>Coverage gate raised</h4>
+          <p>usermgmt coverage gate bumped from 75% to 78% (actual: 79.3%). Locks in real gains.</p>
+        </div>
+
+        <h3>Foundational (already solid)</h3>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>8 Go modules in go.work</strong>
+              <span
+                >Root, usermgmt, adminui, integration_test, 4 examples. All buildable, 4
+                tested.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>33 ADRs (31 Accepted, 1 Proposed, 1 Blocked)</strong>
+              <span>Every major decision documented. ADR-0033 (Server-Timing) most recent.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Passwordless event-sourced usermgmt</strong>
+              <span
+                >12 events, 20 commands, 4 aggregates (User/Tenant/Bot/Membership). WebAuthn,
+                OAuth2/OIDC, TOTP MFA.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>All quality gates green</strong>
+              <span
+                >build, test (-race), lint (0 issues), errorfamily (0 violations), flake check, fmt
+                (0 changed).</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <h2 id="partial"><span class="num">b</span>PARTIALLY DONE</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Done</th>
+              <th>Missing</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Offline-first sync</strong></td>
+              <td>
+                Phase 2a (in-memory SharedWorker) shipped. ACK protocol, idempotency store, honest
+                UI CSS/JS.
+              </td>
+              <td>
+                Phase 2b (IndexedDB persistence) Proposed (ADR-0030), not yet Accepted or
+                implemented.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Admin UI templ codegen</strong></td>
+              <td>
+                All <code>_templ.go</code> committed. CLI pinned in devShell. CI drift guard added.
+              </td>
+              <td>
+                Local non-Nix templ CLI (v0.3.1036) still regenerates different import style. Nix
+                users are clean.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Server-Timing admin-demo</strong></td>
+              <td>Middleware wired with <code>?debug=1</code> gate in admin-demo.</td>
+              <td>Could use more example metrics + a dashboard panel showing timing data.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="notstarted"><span class="num">c</span>NOT STARTED</h2>
+        <div class="card">
+          <h4>projectionhost/v3 adoption</h4>
+          <p>
+            Replace hand-rolled <code>StartProjections</code> (~100 LOC) with go-cqrs-lite's managed
+            projection host. Checkpoint replay (shipped v3.3.0) is the interim fix. ROADMAP v3.4.0,
+            High priority. <strong>Risk: HIGH</strong> &mdash; needs isolation + full regression
+            testing before merge.
+          </p>
+        </div>
+        <div class="card">
+          <h4>CatchUpSubscriber adoption</h4>
+          <p>
+            Ordered durable projections. Deferred per ADR-0031 &mdash; needs a sync-wait wrapper
+            that doesn't exist yet.
+          </p>
+        </div>
+        <div class="card">
+          <h4>snapshot/v3 integration</h4>
+          <p>
+            For aggregates with 100+ events. No production user currently hits this limit. ROADMAP
+            v3.4.0, Medium.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Phase 2b IndexedDB persistent offline queue</h4>
+          <p>
+            ADR-0030 Proposed. Acceptance criteria defined. Needs ADR Accepted before implementation
+            begins.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Performance profiling &amp; 10K benchmarks</h4>
+          <p>
+            Profile dispatch/decode hot paths. Benchmark projection replay with large stores.
+            ROADMAP v3.4.0, Low.
+          </p>
+        </div>
+        <div class="card">
+          <h4>v4.0.0 advanced ES</h4>
+          <p>
+            <code>kv.Cache</code> decorator, <code>schema/v3</code> upcasters for event evolution.
+            Future major work.
+          </p>
+        </div>
+
+        <h2 id="fucked"><span class="num">d</span>TOTALLY FUCKED UP</h2>
+        <div class="card card-solution">
+          <h4>Honest answer: Nothing is genuinely broken.</h4>
+          <p>
+            The CRLF injection that existed in <code>escapeQuotedString</code> was found and fixed
+            this session &mdash; that was the closest thing to "wrong" and it's now closed. The
+            project is in its healthiest state ever. All gates green, zero regressions, security fix
+            shipped.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>
+            Residual annoyance (not broken): adminui *_templ.go churn for non-Nix contributors
+          </h4>
+          <p>
+            The templ CLI version mismatch (local v0.3.1036 vs pinned v0.3.1020) means contributors
+            not using
+            <code>nix develop</code> will see 6-7 <code>_templ.go</code> files as dirty after every
+            <code>templ generate</code>. The fix for Nix users is in place (pinned CLI + gofmt
+            normalization). Non-Nix contributors need to either install the matching CLI version or
+            accept the churn. The <code>nix run .#check-codegen</code>
+            CI guard will catch drift if it reaches the repo.
+          </p>
+        </div>
+
+        <h2 id="improve"><span class="num">e</span>WHAT WE SHOULD IMPROVE</h2>
+        <div class="card card-solution">
+          <h4>1. Attempt projectionhost/v3 adoption (carefully)</h4>
+          <p>
+            Biggest code reduction available &mdash; replaces ~100 LOC of hand-rolled projection
+            management with upstream's managed host (crash-restart, DLQ, backoff). Must be done in
+            isolation with full regression testing. If ANY test fails, revert and document the
+            migration gap.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>2. Server-Timing admin-demo polish</h4>
+          <p>
+            Add more example metrics (db, render, total) to admin-demo handlers. Consider a metrics
+            panel in the dashboard that visualizes Server-Timing data. Showcases the v3.3.0 feature.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>3. Integration test: real SQLite WAL + projections</h4>
+          <p>
+            End-to-end test that exercises SQLite WAL mode + projection replay. Validates the
+            production deployment path.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>4. Profile hot paths</h4>
+          <p>
+            pprof dispatch + decode paths. Establish baseline benchmarks. Optimize only if
+            bottlenecks found.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>5. Phase 2b IndexedDB (after ADR-0030 Accepted)</h4>
+          <p>
+            Persistent offline queue for writes that survive closed tabs. Design is Proposed; needs
+            maintainer decision to Accept before implementation.
+          </p>
+        </div>
+
+        <h2 id="top25"><span class="num">f</span>Top 25 Things to Get Done Next</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Priority</th>
+              <th>Effort</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Adopt <code>projectionhost/v3</code> &mdash; replace StartProjections</td>
+              <td><span class="badge badge-critical">High</span></td>
+              <td><span class="badge">L</span></td>
+              <td>Risk: HIGH. Isolate + full regression test. Revert if any failure.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Adopt <code>snapshot/v3</code> for aggregates 100+ events</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge">L</span></td>
+              <td>Risk: HIGH. Same protocol: isolate + regress or revert.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Phase 2b: IndexedDB persistent offline queue (ADR-0030)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge">XL</span></td>
+              <td>Needs ADR Accepted first. 5 acceptance criteria defined.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Profile dispatch + decode hot paths (pprof)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">M</span></td>
+              <td>Establish baseline. Optimize only if bottlenecks found.</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Benchmark projection replay with 10K+ events</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">M</span></td>
+              <td>Validates checkpoint replay at scale.</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Adopt <code>CatchUpSubscriber</code> (ordered durable projections)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge">L</span></td>
+              <td>Needs sync-wait wrapper. ADR-0031 deferred.</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Integration test: real SQLite WAL + projections end-to-end</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge">M</span></td>
+              <td>Validates production deployment path.</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Server-Timing admin-demo: more example metrics</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">S</span></td>
+              <td>Add db, render, total metrics to handlers.</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>Admin UI: Server-Timing metrics panel in dashboard</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">M</span></td>
+              <td>Visualize timing data. Showcases v3.3.0 feature.</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>Resolve ActorID split-brain (root string vs usermgmt struct)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge">XL</span></td>
+              <td>Needs shared identity module. Deferred to major version.</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>Make <code>Email</code> a branded domain type</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">XL</span></td>
+              <td>Blocked by event serialization. Needs upcaster. Major version.</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>Extract <code>*http.Request</code> from WebAuthn service</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">XL</span></td>
+              <td>Blocked by upstream go-webauthn API.</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>usermgmt god-package decomposition (ADR-0019)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">XL</span></td>
+              <td>Needs architectural redesign. 152 files, 60 methods on *Service.</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td>Adopt <code>schema/v3</code> upcasters for event evolution</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge">L</span></td>
+              <td>v4.0.0. Enables Email branded type migration.</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><code>kv.Cache</code> decorator for read-model caching</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">M</span></td>
+              <td>v4.0.0.</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td>Accept ADR-0030 (Phase 2b persistence strategy)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge">S</span></td>
+              <td>Decision needed before implementation can start.</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td>Expand fuzz tests for projection dedup + identity deciders</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">M</span></td>
+              <td>Some exist. Expand adversarial coverage.</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td>Expand property-based tests for all folds</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">M</span></td>
+              <td>foldUser, foldTenant, foldBot, foldMembership have some. Expand.</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td>Adopt <code>deriver/v3</code> for reactive commands</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">M</span></td>
+              <td>Event&rarr;command derivation. Not yet evaluated.</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td>Evaluate <code>transport/http/v3</code> SSEBroker</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">M</span></td>
+              <td>Possible replacement for hand-rolled SSE Broadcaster.</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td>Admin-demo: add OTel + Prometheus showcase</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">S</span></td>
+              <td>Demonstrates the new wiring guides end-to-end.</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td>Document nil-receiver pattern convention in AGENTS.md</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">S</span></td>
+              <td>Server-Timing uses it. Should be a documented pattern.</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td>Document delegatingWriter pattern in AGENTS.md</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">S</span></td>
+              <td>Flush/Hijack/Push/Unwrap delegation for ResponseWriter wrappers.</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td>Add <code>test-flake</code> to CI pipeline</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">S</span></td>
+              <td>The <code>.#test-flake</code> app exists but isn't in CI.</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td>Consider <code>nix run .#coverage-html</code> app</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge">S</span></td>
+              <td>Generate HTML coverage report for browsing.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="question"><span class="num">g</span>The One Question I Can't Answer Myself</h2>
+        <div class="card card-warning">
+          <h4>Should ADR-0030 (Phase 2b IndexedDB) be Accepted or Rejected?</h4>
+          <p>
+            ADR-0030 proposes IndexedDB persistence for the offline command queue so writes survive
+            closed tabs. It's currently <strong>Proposed</strong> &mdash; the only Proposed ADR in
+            the repo. The design is sound (SharedWorker + IndexedDB, reactive detection, ACK-driven
+            cleanup), but:
+          </p>
+          <ul style="margin-left: 1.5rem; margin-bottom: 1rem">
+            <li>
+              <strong>Is there a real consumer demand for this?</strong> No production user has
+              requested write survival across closed tabs.
+            </li>
+            <li>
+              <strong>Does IndexedDB add unacceptable complexity?</strong> It's ~200 LOC of JS in a
+              SharedWorker, plus lifecycle management.
+            </li>
+            <li>
+              <strong>Should we wait for OPFS instead?</strong> ADR-0029 explicitly deferred OPFS to
+              Phase 2b. OPFS may be simpler than IndexedDB for this use case.
+            </li>
+            <li><strong>If not now, when?</strong> Or should the ADR be Rejected as YAGNI?</li>
+          </ul>
+          <p>
+            This is a product decision, not a technical one. The library provides the ACK protocol
+            and queue infrastructure; IndexedDB persistence is a consumer concern that the library
+            <em>could</em> ship as an optional module. I cannot determine from the codebase whether
+            the maintainer wants to own this or leave it to consumers.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Decision needed:</strong> Accept ADR-0030 (implement IndexedDB), defer (leave
+            Proposed), or Reject (leave to consumers).
+          </div>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-29 12:19 CEST &middot; HEAD: fdcd23c &middot; All claims verified via
+          nix run .#build/.#test/.#lint/.#errorfamily/nix flake check
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
