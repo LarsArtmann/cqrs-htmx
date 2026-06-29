@@ -273,3 +273,36 @@ func ExampleConfig_BeforeDispatch() {
 }
 
 type startKey struct{}
+
+// ExampleServerTimingMiddleware demonstrates the W3C Server-Timing API: gate
+// timing behind a debug query param, record sub-metrics from handlers, and
+// let the middleware auto-inject the total metric at response commit time.
+//
+// The emitted header looks like:
+//
+//	Server-Timing: total;desc="Total request";dur=1, db;dur=0
+func ExampleServerTimingMiddleware() {
+	// Gate Server-Timing behind ?debug=1 — disabled requests pay zero overhead.
+	handler := cqrshtmx.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
+		return r.URL.Query().Has("debug")
+	})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Time a region that completes BEFORE the response is written.
+		stop := cqrshtmx.MeasureServerTiming(r.Context(), "db")
+		time.Sleep(time.Millisecond)
+		stop()
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	// Request WITH debug → header present.
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/?debug=1", nil))
+	hasHeader := rec.Header().Get("Server-Timing") != ""
+
+	// Request WITHOUT debug → no header, zero overhead.
+	rec2 := httptest.NewRecorder()
+	handler.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/", nil))
+	noHeader := rec2.Header().Get("Server-Timing") == ""
+
+	fmt.Println(hasHeader, noHeader)
+	// Output: true true
+}
