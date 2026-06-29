@@ -198,3 +198,60 @@ The default `watermill.EventBus` (GoChannel, `BlockPublishUntilSubscriberAck: tr
 - `cqrshtmx.UserID` = ULID-backed (`go-cqrs-lite/id`).
 - They are **not interconvertible by assignment**. Bridge with `.Get()` (raw value), never `.String()` (which is brand-prefixed and meant for debug).
 - When wiring usermgmt session context into root `App` handlers, convert explicitly via `cqrshtmx.ParseUserID(...)` on the raw value.
+
+## Import / export users
+
+Bulk-load or dump users via the `Service`. Routes are mounted by `RegisterRoutes` (`/auth/import/*`, `/auth/export/*`); authorizer defaults to `RequireAdminRole` (override via `HandlerConfig.ImportExportAuthorizer`).
+
+```go
+// Import (JSON or CSV) — returns counts of created/skipped/failed:
+res, err := svc.ImportUsersFromJSON(ctx, r.Body)
+res, err := svc.ImportUsersFromCSV(ctx, r.Body)
+
+// Export:
+err := svc.ExportUsersToJSON(ctx, w)
+err := svc.ExportUsersToCSV(ctx, w)
+```
+
+`ImportUser` is the per-row input struct (with `.Validate()`); `UserDataFormat` constants are `UserDataFormatJSON` / `UserDataFormatCSV`. Per-endpoint rate limiting via `HandlerConfig.ImportRateLimit`.
+
+## Account lockout (brute-force protection)
+
+Opt-in. Defaults: 5 attempts, 15-minute lockout. State is **in-memory only** (lost on restart) — use a distributed store in production.
+
+```go
+lockout := usermgmt.NewAccountLockout()                              // defaults
+lockout := usermgmt.NewAccountLockout(usermgmt.LockoutConfig{
+    MaxAttempts: 10, Duration: 30 * time.Minute,
+})
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{Lockout: lockout})
+```
+
+Call `lockout.EvictStale()` periodically (or rely on the service's background eviction) to prune expired entries.
+
+## Server-Timing header (debug profiling)
+
+Opt-in W3C `Server-Timing` response header for latency debugging. Three entry points (see AGENTS.md §"Server Timing API" for internals):
+
+```go
+// 1. Always-on middleware:
+http.ListenAndServe(addr, cqrshtmx.ServerTimingMiddleware()(mux))
+
+// 2. Debug-gated (recommended) — only emit when ?debug=1 or admin:
+http.ListenAndServe(addr, cqrshtmx.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
+    return r.URL.Query().Get("debug") == "1"
+})(mux))
+
+// 3. One-line on App-managed routes (no separate middleware):
+app := cqrshtmx.MustNew(cqrshtmx.Config{
+    Commands:     cmdDisp,
+    ServerTiming: func(r *http.Request) bool { return r.URL.Query().Get("debug") == "1" },
+})
+
+// Record a span inside a handler:
+stop := cqrshtmx.MeasureServerTiming(r.Context(), "db")
+// ... db query ...
+stop()  // end BEFORE WriteHeader/Write or it misses the header
+```
+
+**TTFB gotcha:** a metric's region must end before the response is committed — `defer stop()` records at function return (after the write), missing the header. Zero overhead when off (nil-receiver pattern: 4.3 ns/op, 0 allocs).

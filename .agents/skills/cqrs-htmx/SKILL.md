@@ -1,6 +1,7 @@
 ---
 name: cqrs-htmx
 description: Build Go web apps with the cqrs-htmx library — CQRS command/query HTTP handlers, HTMX responses, event-sourced user management (WebAuthn/OAuth2/TOTP), and a ready-made admin UI. Use this skill whenever integrating, wiring, mounting, or extending cqrs-htmx, go-cqrs-lite with HTMX, the usermgmt or adminui submodules, or building CQRS/HTMX/SSE/WebSocket/auth features on top of this library — even when the user does not name the library explicitly (e.g. "add a command endpoint", "wire up passkey login", "add an admin panel", "serve HTMX", "broadcast over SSE", "set up CQRS dispatch").
+user-invocable: true
 ---
 
 # Using cqrs-htmx superbly
@@ -256,7 +257,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 4. **Middleware trio order is `CSRF → HTMX → enrichment`.** Put your session middleware _outside_ (before) CSRF. Getting this wrong causes silent CSRF gaps or missing HTMX context.
 5. **No stdlib error constructors.** Inside these modules `errors.New`/`fmt.Errorf`/`errors.Join` are banned (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v3`. When you only build a _message string_ (not an error object), `fmt.Sprintf` is fine.
 6. **App.Command("") panics.** Empty command/query type strings are rejected at registration — use real `command.Type("...")`/`query.Type("...")` values.
-7. **Serve htmx.js yourself.** There is no auto-mount; register `cqrshtmx.HTMXScriptHandler()` on your mux and reference it in your layout, or the browser has no HTMX.
+7. **Serve htmx.js yourself on Path A/B.** Register `cqrshtmx.HTMXScriptHandler()` on your mux and reference it in your layout. **Exception:** on Path C (adminui) the panel serves htmx.js internally (`adminui/assets.go`) — do NOT register it yourself or you'll create a duplicate route.
 
 ## Where to look
 
