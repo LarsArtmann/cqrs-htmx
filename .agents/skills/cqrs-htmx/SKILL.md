@@ -10,6 +10,8 @@ cqrs-htmx is a **Go library** (not an app) that wires [go-cqrs-lite](https://git
 
 It is framework-agnostic: it works with `net/http`, Chi, Gin, etc. and never picks your router for you.
 
+> **Related skill:** the [`go-cqrs-lite`](https://github.com/LarsArtmann/go-cqrs-lite) skill covers the underlying CQRS/ES building blocks in depth — deciders, event stores, projections, read models, snapshots, schema evolution, signing, encryption. Consult it when a question is about the CQRS core rather than the HTTP/HTMX layer.
+
 ## The three modules
 
 An app typically composes some subset of these. They are **independent Go modules** with `/v3` suffixes.
