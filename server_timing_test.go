@@ -14,7 +14,7 @@ import (
 
 func TestServerTiming_DisabledIsNoOp(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(false)
+	var st *ServerTiming // nil = disabled (nil-receiver pattern)
 
 	if st.Enabled() {
 		t.Fatal("disabled collector should report Enabled()=false")
@@ -42,7 +42,7 @@ func TestServerTiming_DisabledIsNoOp(t *testing.T) {
 
 func TestServerTiming_HeaderValue_FullMetric(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 	st.Record("db", "Database", 53*time.Millisecond)
 
 	got := st.HeaderValue()
@@ -54,7 +54,7 @@ func TestServerTiming_HeaderValue_FullMetric(t *testing.T) {
 
 func TestServerTiming_HeaderValue_NameOnly(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 	st.Record("cache", "", 0) // no desc, zero dur → name only
 
 	if got, want := st.HeaderValue(), "cache"; got != want {
@@ -64,7 +64,7 @@ func TestServerTiming_HeaderValue_NameOnly(t *testing.T) {
 
 func TestServerTiming_HeaderValue_MultipleMetricsCommaJoined(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 	st.Record("db", "", 53*time.Millisecond)
 	st.Record("render", "", 7*time.Millisecond)
 
@@ -79,7 +79,7 @@ func TestServerTiming_HeaderValue_MultipleMetricsCommaJoined(t *testing.T) {
 
 func TestServerTiming_HeaderValue_NoMetrics(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 	if got := st.HeaderValue(); got != "" {
 		t.Fatalf("empty collector HeaderValue = %q, want empty", got)
 	}
@@ -87,7 +87,7 @@ func TestServerTiming_HeaderValue_NoMetrics(t *testing.T) {
 
 func TestServerTiming_MeasureRecordsElapsed(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 
 	stop := st.Measure("db")
 	time.Sleep(15 * time.Millisecond)
@@ -111,7 +111,7 @@ func TestServerTiming_MeasureRecordsElapsed(t *testing.T) {
 
 func TestServerTiming_MeasureWithDesc(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 	stop := st.MeasureWithDesc("db", "Database query")
 	stop()
 	hv := st.HeaderValue()
@@ -130,7 +130,7 @@ func TestServerTiming_NameSanitization(t *testing.T) {
 		"a b c":     "a_b_c",
 	}
 	for input, want := range cases {
-		st := newServerTiming(true)
+		st := newServerTiming()
 		st.Record(input, "", time.Millisecond)
 		hv := st.HeaderValue()
 		if want == "" {
@@ -147,7 +147,7 @@ func TestServerTiming_NameSanitization(t *testing.T) {
 
 func TestServerTiming_DescriptionEscaping(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 	st.Record("x", `he said "hi", then; left \n`, time.Millisecond)
 
 	hv := st.HeaderValue()
@@ -158,7 +158,7 @@ func TestServerTiming_DescriptionEscaping(t *testing.T) {
 
 func TestServerTiming_ConcurrentRecord(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 	const n = 100
 	var wg sync.WaitGroup
 	wg.Add(n)
@@ -185,7 +185,7 @@ func TestServerTiming_ConcurrentRecord(t *testing.T) {
 
 func TestServerTiming_PrependTotalAtFront(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 	st.Record("db", "", 5*time.Millisecond)
 	st.prependTotal("total", "Total request", 20*time.Millisecond)
 
@@ -251,7 +251,7 @@ func TestServerTimingContext_NilSafe(t *testing.T) {
 
 func TestServerTimingContext_RoundTrip(t *testing.T) {
 	t.Parallel()
-	st := newServerTiming(true)
+	st := newServerTiming()
 	ctx := WithServerTiming(context.Background(), st)
 
 	if got := ServerTimingFromContext(ctx); got != st {
