@@ -111,6 +111,12 @@ func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
 
 // RemoveAllRolesForUser removes all group policies (role assignments) for the
 // given subject across all domains. Used when a user is deleted.
+//
+// The subject parameter is a raw string, not UserID, because Casbin subjects
+// are polymorphic: they can be user IDs, bot IDs, or prefixed actor IDs
+// ("user:01JX...", "bot:01JX..."). Typed wrappers would limit this method to
+// one actor kind. The string form is whatever Casbin stored as the subject
+// when the group policy was added.
 func (a *Authz) RemoveAllRolesForUser(subject string) error {
 	if a.enforcer == nil {
 		return ErrEnforcerNotInitialized
@@ -137,6 +143,11 @@ func (a *Authz) RemoveAllRolesForUser(subject string) error {
 // RemoveAllRolesInDomain removes all group policies (role assignments) for the
 // given subject within a specific domain. Used when a member's roles change
 // or a member is removed from a tenant.
+//
+// The subject parameter is a raw string for the same reason as
+// RemoveAllRolesForUser: Casbin subjects are polymorphic (users, bots,
+// prefixed actors). The domain is typed as TenantID because all domains in
+// this system are tenant-scoped.
 func (a *Authz) RemoveAllRolesInDomain(subject string, domain TenantID) error {
 	if a.enforcer == nil {
 		return ErrEnforcerNotInitialized

@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-06-28 | **Version:** v3.2.0 (go-cqrs-lite v3.2.0) | **Source:** All .go files analyzed
+**Updated:** 2026-06-29 | **Version:** v3.3.0 (go-cqrs-lite v3.4.0) | **Source:** All .go files analyzed
 
 ## Status legend
 
@@ -138,13 +138,14 @@
 
 ### User Aggregate (Event-Sourced)
 
-| Feature            | Status                | Notes                                                                                                                                                                             |
-| ------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Event-Sourced User | 🟢 `FULLY_FUNCTIONAL` | 12 events, 11 commands, Decider pattern via go-cqrs-lite v3. Pure decide functions + foldUser. No CRUD UserStore. Read-your-writes via watermill EventBus (synchronous delivery). |
-| User Read Model    | 🟢 `FULLY_FUNCTIONAL` | `UserReadModel` projection: `FindByID`, `FindByEmail`, `FindByExternalAccount`, `FindByUserID`, `Count`, `AllUsers`. Email index + external account index.                        |
-| Branded UserID     | 🟢 `FULLY_FUNCTIONAL` | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.Get()` for cross-module conversion. `NewUserID(s)` constructor.                                                     |
-| Email Value Type   | 🟢 `FULLY_FUNCTIONAL` | `type Email string` with `ParseEmail`/`MustParseEmail` (RFC 5322 validation). Used in ExportUser.                                                                                 |
-| Schema Versioning  | 🟢 `FULLY_FUNCTIONAL` | Events carry `schema_version`. `UpcasterRegistry` for v1→v2 migration. `SetUpcasterRegistry()` on EventSourcedSetup. ADR-0013.                                                    |
+| Feature            | Status                | Notes                                                                                                                                                                                                                                      |
+| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Event-Sourced User | 🟢 `FULLY_FUNCTIONAL` | 12 events, 11 commands, Decider pattern via go-cqrs-lite v3. All 20 commands embed `*command.BasicCommand` (ADR-0032 — structurally eliminates zero-cmdID bug). Read-your-writes via watermill EventBus.                                   |
+| Checkpoint Replay  | 🟢 `FULLY_FUNCTIONAL` | `EventSourcedConfig.CheckpointStore` enables checkpoint-based projection replay: restarts resume from last checkpoint via `SeekableJournal.ReadFrom` instead of full `ReadAll`. Opt-in (nil = full replay, backward compat). See ADR-0031. |
+| User Read Model    | 🟢 `FULLY_FUNCTIONAL` | `UserReadModel` projection: `FindByID`, `FindByEmail`, `FindByExternalAccount`, `FindByUserID`, `Count`, `AllUsers`. Email index + external account index.                                                                                 |
+| Branded UserID     | 🟢 `FULLY_FUNCTIONAL` | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.Get()` for cross-module conversion. `NewUserID(s)` constructor.                                                                                                              |
+| Email Value Type   | 🟢 `FULLY_FUNCTIONAL` | `type Email string` with `ParseEmail`/`MustParseEmail` (RFC 5322 validation). Used in ExportUser.                                                                                                                                          |
+| Schema Versioning  | 🟢 `FULLY_FUNCTIONAL` | Events carry `schema_version`. `UpcasterRegistry` for v1→v2 migration. `SetUpcasterRegistry()` on EventSourcedSetup. ADR-0013.                                                                                                             |
 
 ### Authentication
 
