@@ -60,3 +60,34 @@ func TestScenario_RegisterUser_AlreadyExists(t *testing.T) {
 		When(cmd, decide).
 		ThenError(event.NewConflict("usermgmt.user_already_exists", ""))
 }
+
+// TestScenario_ChangeEmail_HappyPath demonstrates the scenario/v3 DSL on a
+// second decider. Given an existing registered user, changing email should
+// emit exactly one EmailChanged event.
+func TestScenario_ChangeEmail_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+	cmd := NewChangeEmailCmd(aggID, "new@test.com")
+
+	registered, err := event.NewEvent(
+		eventUserRegistered, aggID, aggregateTypeUser, 1,
+		mustMarshalPayload(t, UserRegisteredPayload{
+			SchemaVersion: currentSchemaVersion,
+			Email:         "old@test.com",
+			DisplayName:   "Test User",
+		}),
+	)
+	if err != nil {
+		t.Fatalf("create registration event: %v", err)
+	}
+
+	decide := func(state UserState, _ *ChangeEmailCmd) ([]event.Event, error) {
+		inner := decideChangeEmail(cmd.AggregateID(), cmd.email)
+		return inner(state, 1)
+	}
+
+	scenario.Given[*ChangeEmailCmd, UserState](t, foldUser, UserState{}, registered).
+		When(cmd, decide).
+		Then(eventEmailChanged)
+}

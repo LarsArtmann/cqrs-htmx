@@ -1,7 +1,7 @@
 # ADR 0031: Projection Lifecycle — StartProjections vs projectionhost vs CatchUpSubscriber
 
-**Status:** PROPOSED — 2026-06-29
-**Related:** [ADR 0016](0016-go-cqrs-lite-v3-migration.md) (projection rewrite), [go-cqrs-lite projectionhost/v3](https://github.com/LarsArtmann/go-cqrs-lite), [go-cqrs-lite watermill/v3 CatchUpSubscriber](https://github.com/LarsArtmann/go-cqrs-lite)
+**Status:** Accepted — 2026-06-29 (updated: checkpoint-based replay shipped in StartProjections; CatchUpSubscriber migration deferred)
+**Related:** [ADR 0016](0016-go-cqrs-lite-v3-migration.md) (projection rewrite), [ADR 0032](0032-basic-command-embedding.md) (command embedding), [go-cqrs-lite projectionhost/v3](https://github.com/LarsArtmann/go-cqrs-lite), [go-cqrs-lite watermill/v3 CatchUpSubscriber](https://github.com/LarsArtmann/go-cqrs-lite)
 
 ## Context
 
@@ -31,23 +31,22 @@ go-cqrs-lite v3.4.0 ships two alternatives that could replace this code:
 
 ## Decision
 
-**DEFERRED — no change in v3.3.0.**
+**Checkpoint-based replay shipped in v3.3.0. CatchUpSubscriber migration deferred to a future release.**
 
-The current synchronous `StartProjections` is deliberately simple and provides a critical guarantee: read-your-writes consistency during startup. Both upstream alternatives run replay **asynchronously** in goroutines:
+`StartProjections` now accepts an optional `event.CheckpointStore`. When provided AND the journal implements `event.SeekableJournal`, replay resumes from the last checkpoint via `ReadFrom(afterEventID, 0)` instead of `ReadAll()`. This eliminates the O(n) full-journal replay on every restart — the primary performance concern that motivated this ADR.
 
-- **projectionhost.Host.Start(ctx)** launches per-projection workers in goroutines. Replay happens in the background. A command dispatched immediately after `NewService()` may not see its own write.
-- **CatchUpSubscriber.Subscribe(ctx, topic)** also runs replay in a goroutine. Same gap.
+The synchronous replay model is preserved: read-your-writes consistency during startup is maintained because replay completes before `StartProjections` returns. The checkpoint is saved after each replayed event, so restarts resume from the exact position.
 
 ### The Core Tradeoff
 
-| Feature                        | StartProjections (current)     | projectionhost   | CatchUpSubscriber |
-| ------------------------------ | ------------------------------ | ---------------- | ----------------- |
-| Read-your-writes on startup    | **Yes** (synchronous)          | No (async)       | No (async)        |
-| Checkpoint persistence         | No (full replay every restart) | **Yes**          | **Yes**           |
-| Crash auto-restart             | No                             | **Yes**          | No                |
-| Dead-letter queue              | No                             | **Yes**          | No                |
-| Code complexity                | 155 LOC (hand-rolled)          | ~0 LOC (library) | ~10 LOC (library) |
-| Full journal replay on restart | **Yes** (O(n) every boot)      | No (O(delta))    | No (O(delta))     |
+| Feature                        | StartProjections (current)          | projectionhost   | CatchUpSubscriber |
+| ------------------------------ | ----------------------------------- | ---------------- | ----------------- |
+| Read-your-writes on startup    | **Yes** (synchronous)               | No (async)       | No (async)        |
+| Checkpoint persistence         | **Yes** (when cpStore provided)     | **Yes**          | **Yes**           |
+| Crash auto-restart             | No                                  | **Yes**          | No                |
+| Dead-letter queue              | No                                  | **Yes**          | No                |
+| Code complexity                | 155 LOC (hand-rolled)               | ~0 LOC (library) | ~10 LOC (library) |
+| Full journal replay on restart | Only when cpStore is nil (backward) | No (O(delta))    | No (O(delta))     |
 
 ### Recommendation (for future release)
 
@@ -63,6 +62,6 @@ The read-your-writes-during-startup gap can be solved with a **sync-wait wrapper
 
 ## Consequences
 
-- **v3.3.0**: No change. StartProjections remains the implementation.
-- **v3.4.0 (target)**: Adopt CatchUpSubscriber with a sync-wait wrapper. Eliminates 155 LOC of hand-rolled replay. Gains checkpoint persistence (faster restarts). Read-your-writes preserved via wrapper.
-- **Future**: If a production deployment hits projection failure storms, upgrade to projectionhost for DLQ + crash restart.
+- **v3.3.0 (shipped):** Checkpoint-based replay is available via `EventSourcedConfig.CheckpointStore`. When nil, full journal replay is used (backward compatible). When set, replay resumes from the last checkpoint. Checkpoint saved after each replayed event.
+- **Future (deferred):** Migrate from hand-rolled `StartProjections` to `watermill.CatchUpSubscriber` to eliminate the 155 LOC of replay logic entirely. Requires a sync-wait wrapper to preserve read-your-writes during startup. Blocked on evaluating whether CatchUpSubscriber's async replay model can be safely wrapped.
+- **Long-term:** If a production deployment hits projection failure storms, upgrade to `projectionhost.Host` for DLQ + crash auto-restart.
