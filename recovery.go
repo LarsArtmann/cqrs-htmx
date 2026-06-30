@@ -27,11 +27,8 @@ func shouldRePanic(rec any) bool {
 const panicCode = "panic"
 
 func isPanicError(err error) bool {
-	var e *event.Error
-	if errors.As(err, &e) {
-		return e.Code() == panicCode
-	}
-	return false
+	e, ok := errors.AsType[*event.Error](err)
+	return ok && e.Code() == panicCode
 }
 
 func writePanicResponse(

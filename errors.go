@@ -109,14 +109,18 @@ func isAuthError(err error) bool {
 // separate sentinels with the same codes for module independence) are
 // recognized by code rather than sentinel identity.
 func authStatusFromErrorCode(err error) (int, bool) {
-	var coder interface{ Code() string }
-	if errors.As(err, &coder) {
-		switch coder.Code() {
-		case "unauthorized":
-			return http.StatusUnauthorized, true
-		case "forbidden":
-			return http.StatusForbidden, true
-		}
+	coder, ok := errors.AsType[interface {
+		error
+		Code() string
+	}](err)
+	if !ok {
+		return 0, false
+	}
+	switch coder.Code() {
+	case "unauthorized":
+		return http.StatusUnauthorized, true
+	case "forbidden":
+		return http.StatusForbidden, true
 	}
 	return 0, false
 }
