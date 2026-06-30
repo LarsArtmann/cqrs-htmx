@@ -44,12 +44,13 @@ var (
 
 // MapError translates a CQRS error into an appropriate HTTP status code.
 //
-// The family→status mapping delegates to Family.HTTPStatus() from
-// go-error-family (the upstream canonical source, adopted in v0.5.0).
-// Explicit overrides for auth and HTTP-semantic errors take precedence
-// over the family default.
+// Resolution order (first match wins):
+//  1. HTTPStatusCarrier — an error that explicitly declares its status
+//     (via WithHTTPStatus or by implementing the interface). Highest authority.
+//  2. Explicit overrides for auth/HTTP-semantic sentinels and the panic code.
+//  3. The error family via Family.HTTPStatus() from go-error-family (upstream).
 //
-// Mapping (via upstream):
+// Mapping (via upstream, step 3):
 //   - Rejection family  → 400 Bad Request
 //   - Conflict family   → 409 Conflict
 //   - Transient family  → 503 Service Unavailable
@@ -57,10 +58,15 @@ var (
 //   - Infrastructure    → 503 Service Unavailable
 //   - nil or unknown    → 500 Internal Server Error
 //
-// See ADR-0017 for the reconciliation rationale.
+// See ADR-0017 for the reconciliation rationale and ADR-0034 for the
+// HTTPStatusCarrier extension.
 func MapError(err error) int {
 	if err == nil {
 		return http.StatusInternalServerError
+	}
+
+	if status, ok := carrierStatus(err); ok {
+		return status
 	}
 
 	if status := explicitErrorStatus(err); status != 0 {
