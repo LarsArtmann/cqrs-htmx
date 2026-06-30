@@ -35,8 +35,8 @@ func TestErrorStatus(t *testing.T) {
 
 func TestErrorStatus_Default(t *testing.T) {
 	got := errorStatus(errors.New("some unknown error"))
-	if got != http.StatusInternalServerError {
-		t.Errorf("expected 500 for unknown error, got %d", got)
+	if got != http.StatusServiceUnavailable {
+		t.Errorf("expected 503 for unknown error (Transient fail-open), got %d", got)
 	}
 }
 

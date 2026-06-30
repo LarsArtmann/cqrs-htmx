@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -312,44 +311,10 @@ func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{errorKey: message})
 }
 
+// errorStatus derives the HTTP status for an error. Each usermgmt sentinel
+// carries its own status (via cqrshtmx.WithHTTPStatus) where it differs from
+// the error-family default, so this delegates entirely to cqrshtmx.MapError —
+// no parallel switch to keep in sync with the root module.
 func errorStatus(err error) int {
-	switch {
-	case errors.Is(err, ErrInvalidCredentials),
-		errors.Is(err, ErrUnauthorized),
-		errors.Is(err, ErrSessionExpired),
-		errors.Is(err, ErrSessionDataNotFound),
-		errors.Is(err, ErrWebAuthnNotConfigured):
-		return http.StatusUnauthorized
-	case errors.Is(err, ErrEmailExists),
-		errors.Is(err, ErrEmailAlreadyVerified),
-		errors.Is(err, ErrTOTPAlreadyEnabled),
-		errors.Is(err, ErrExternalAccountAlreadyLinked):
-		return http.StatusConflict
-	case errors.Is(err, ErrValidation),
-		errors.Is(err, ErrTOTPNotEnabled),
-		errors.Is(err, ErrTOTPSetupExpired),
-		errors.Is(err, ErrInvalidVerificationToken):
-		return http.StatusBadRequest
-	case errors.Is(err, ErrAccountLocked):
-		return http.StatusTooManyRequests
-	case errors.Is(err, ErrForbidden):
-		return http.StatusForbidden
-	case errors.Is(err, ErrInvalidTOTPCode):
-		return http.StatusUnauthorized
-	case errors.Is(err, ErrTOTPNotConfigured),
-		errors.Is(err, ErrEmailVerificationNotConfigured),
-		errors.Is(err, ErrOAuthNotConfigured):
-		return http.StatusServiceUnavailable
-	case errors.Is(err, ErrUserNotFound),
-		errors.Is(err, ErrSessionNotFound),
-		errors.Is(err, ErrUserIDExists),
-		errors.Is(err, ErrNoCredentials),
-		errors.Is(err, ErrOAuthProviderNotFound):
-		return http.StatusNotFound
-	case errors.Is(err, ErrOAuthInvalidState),
-		errors.Is(err, ErrOAuthTokenExchange):
-		return http.StatusBadRequest
-	default:
-		return http.StatusInternalServerError
-	}
+	return cqrshtmx.MapError(err)
 }
