@@ -187,20 +187,54 @@ func DefaultErrorHandlerWithRedirect(
 	err error,
 	loginRedirect string,
 ) {
-	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, status int) {
-		w.Header().Set("Content-Type", ContentTypePlain)
-		w.WriteHeader(status)
-		_, _ = io.WriteString(w, err.Error()) //nolint:gosec // text/plain prevents HTML rendering
-	})
+	handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, false, false))
 }
 
-// formatErrorWithRequestID returns the error message, prefixed with the request ID
-// when one is present in the request context.
-func formatErrorWithRequestID(r *http.Request, err error) string {
-	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
-		return "[request_id: " + rid.String() + "] " + err.Error()
+// plainBodyWriter builds a text/plain response body writer that redacts 5xx
+// detail unless includeInternal is set, optionally prefixing the request ID.
+func plainBodyWriter(r *http.Request, includeInternal, includeRequestID bool) func(http.ResponseWriter, error, int) {
+	return func(w http.ResponseWriter, err error, status int) {
+		w.Header().Set("Content-Type", ContentTypePlain)
+		w.WriteHeader(status)
+		detail := SafeDetail(err, status, includeInternal)
+		if includeRequestID {
+			detail = prefixRequestID(r, detail)
+		}
+		_, _ = io.WriteString(w, detail) //nolint:gosec // text/plain prevents HTML rendering
 	}
-	return err.Error()
+}
+
+// SafeDetail returns the error text that is safe to expose for an HTTP
+// response of the given status.
+//
+// Client errors (status < 500 — Rejection, Conflict, NotFound, Unauthorized,
+// Forbidden, TooManyRequests, …) describe the caller's input, so the raw error
+// message is returned: it helps the user correct their request and leaks no
+// sensitive internals.
+//
+// Server faults (status >= 500 — Corruption, Infrastructure, Transient) may
+// leak internal wiring, infrastructure addresses, or data-integrity detail.
+// Unless includeInternal is true (a development or trusted-network opt-in, wired
+// via [Config.IncludeInternalDetails]), they are replaced by the error family's
+// generic, public-safe default message so attackers cannot probe internals
+// through error text. The full detail is still logged server-side by the
+// dispatch path (see [App.handleErr]).
+func SafeDetail(err error, status int, includeInternal bool) string {
+	if err == nil {
+		return ""
+	}
+	if status < 500 || includeInternal {
+		return err.Error()
+	}
+	return event.Classify(err).DefaultMessage()
+}
+
+// prefixRequestID prefixes detail with the request ID when one is in context.
+func prefixRequestID(r *http.Request, detail string) string {
+	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+		return "[request_id: " + rid.String() + "] " + detail
+	}
+	return detail
 }
 
 // DefaultErrorHandlerWithRequestID is like DefaultErrorHandler but prefixes the
@@ -217,11 +251,7 @@ func DefaultErrorHandlerWithRedirectAndRequestID(
 	err error,
 	loginRedirect string,
 ) {
-	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, status int) {
-		w.Header().Set("Content-Type", ContentTypePlain)
-		w.WriteHeader(status)
-		_, _ = io.WriteString(w, formatErrorWithRequestID(r, err)) //nolint:gosec // text/plain prevents HTML rendering
-	})
+	handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, false, true))
 }
 
 // JSONErrorHandler writes errors as JSON responses.
@@ -240,12 +270,18 @@ func JSONErrorHandlerWithRedirect(
 	err error,
 	loginRedirect string,
 ) {
-	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, status int) {
+	handleErrorCore(w, r, err, loginRedirect, jsonBodyWriter(r, false))
+}
+
+// jsonBodyWriter builds an application/json response body writer that redacts
+// 5xx detail unless includeInternal is set.
+func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWriter, error, int) {
+	return func(w http.ResponseWriter, err error, status int) {
 		w.Header().Set("Content-Type", ContentTypeJSON)
 		w.WriteHeader(status)
 
 		response := map[string]any{
-			JSONKeyError:  err.Error(),
+			JSONKeyError:  SafeDetail(err, status, includeInternal),
 			JSONKeyStatus: status,
 		}
 		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
@@ -254,5 +290,5 @@ func JSONErrorHandlerWithRedirect(
 
 		encoder := json.NewEncoder(w)
 		_ = encoder.Encode(response)
-	})
+	}
 }

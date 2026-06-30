@@ -82,6 +82,15 @@ type Config struct {
 	// Only applies when ErrorHandler is not set (uses the default handler).
 	IncludeRequestIDInErrors bool
 
+	// IncludeInternalDetails keeps the raw error message in 5xx responses.
+	// By default the App's error handler redacts server-fault detail
+	// (Corruption/Infrastructure/Transient) to the error family's generic
+	// public-safe message, so internal wiring and infrastructure addresses are
+	// not leaked to clients. The full detail is always logged server-side.
+	// Set to true for local development or trusted internal networks.
+	// Only applies when ErrorHandler is not set (uses the default handler).
+	IncludeInternalDetails bool
+
 	// ServiceName identifies the service emitting events. It is included
 	// in event metadata (event.WithSource) by App.EventOptions and propagates
 	// to downstream event consumers. Must be a valid event source identifier
@@ -116,14 +125,10 @@ func New(cfg Config) (*App, error) {
 
 	eh := cfg.ErrorHandler
 	if eh == nil {
-		if cfg.IncludeRequestIDInErrors {
-			eh = func(w http.ResponseWriter, r *http.Request, err error) {
-				DefaultErrorHandlerWithRedirectAndRequestID(w, r, err, loginRedirect)
-			}
-		} else {
-			eh = func(w http.ResponseWriter, r *http.Request, err error) {
-				DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
-			}
+		includeInternal := cfg.IncludeInternalDetails
+		includeRequestID := cfg.IncludeRequestIDInErrors
+		eh = func(w http.ResponseWriter, r *http.Request, err error) {
+			handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, includeInternal, includeRequestID))
 		}
 	}
 
