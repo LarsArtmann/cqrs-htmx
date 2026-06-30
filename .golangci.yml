@@ -134,6 +134,7 @@ linters:
           - nilnil
           - goconst
           - funlen
+          - paralleltest
       - path: _test\.go
         text: unused
         linters:
