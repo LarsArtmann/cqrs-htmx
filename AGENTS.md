@@ -41,7 +41,8 @@ cqrs-htmx/
 ├── responsewriter.go # delegatingWriter — embeds http.ResponseWriter, delegates Flush/Hijack/Push/Unwrap
 ├── authz.go          # Enforcer interface, Authorize, Enforce, AuthorizeMiddleware
 ├── context.go        # UserID/CorrelationID/RequestID types, Parse*/MustParse*, context helpers
-├── errors.go         # Error → HTTP status mapping, sentinels, LoginRedirect (go-error-family)
+├── errors.go         # Error → HTTP status mapping, sentinels, LoginRedirect (go-error-family), SafeDetail, ProblemDetailsErrorHandler
+├── errors_status.go  # HTTPStatusCarrier interface + WithHTTPStatus wrapper (ADR-0034)
 ├── htmx.go           # HTMXRequest struct, accessors, context storage, RenderPartial
 ├── htmx_embed.go     # Embedded HTMX v2.0.9 minified JS (go:embed), htmxVersion const
 ├── htmx_serve.go     # HTMXScriptHandler, HTMXScriptHandlerWith (custom JS), HTMXCDNScriptTag, HTMXScriptTag
@@ -228,7 +229,12 @@ cqrs-htmx/
   - **Infrastructure (503)** — non-retryable system/bug: marshal failures (`marshalPayload`), event construction, nil dependencies, command registration, `aggIDFromUser`, crypto/rand
 - **Dispatch wrapping preserves family**: never force a family on a dispatch error (it may carry a domain Rejection/Conflict). Use `event.Wrapf(err, event.Classify(err), code, msg)` — wraps with the inner error's own family (root `handler.go`/`ws_dispatch.go`, usermgmt service/totp/webauthn/email_verification dispatch sites)
 - **Preserve sentinel identity where tested**: `errors.Is(err, ErrValidation)` is relied upon (`service_register_test.go`, `http.go:349`) — wrap `ErrValidation` as the cause (`event.WrapRejection(ErrValidation, ...)`) in `ParseEmail`/`ImportUser.Validate`
-- **Error → HTTP mapping**: `MapError` classifies errors into families (Rejection, NotFound, Conflict, etc.) → HTTP status
+- **Error → HTTP mapping**: `MapError` resolves status in 3 layers: (1) `HTTPStatusCarrier` interface (via `WithHTTPStatus(err, status)`) — highest authority, (2) explicit sentinel overrides (auth/HTTP-semantic/panic), (3) `Family.HTTPStatus()` from go-error-family. See ADR-0034
+- **HTTPStatusCarrier**: Rejection-family errors can pin a non-default status (401/403/404/429) via `cqrshtmx.WithHTTPStatus(event.NewRejection(...), http.StatusNotFound)`. The wrapper preserves the cause's family + sentinel identity (errors.Is traverses). usermgmt sentinels use this pattern; `errorStatus()` is a one-liner delegating to `MapError`
+- **5xx detail redaction**: `SafeDetail(err, status, includeInternal)` replaces 5xx error text with the family's public-safe default message. 4xx detail (raw error) is preserved. `Config.IncludeInternalDetails` opts back in for dev. `StructuredError.Detail` is also redacted for SSE/WS
+- **StructuredError metadata**: Exposes `Message`, `Why`, `Fix` (RFC 7807 extensions from `Family.DefaultMessage/Why/Fix`). Same JSON shape across HTTP/SSE/WS
+- **ProblemDetailsErrorHandler**: Emits `StructuredError` as `application/problem+json` — unified RFC 7807 shape across all transports. Opt in via `Config.ErrorHandler`
+- **Exported auth codes**: `CodeUnauthorized`/`CodeForbidden` — compile-time-safe shared between root and usermgmt
 - **HTMX-aware errors**: All error handlers check for HTMX requests; auth errors use HX-Redirect
 - **Request ID in errors**: `Config.IncludeRequestIDInErrors` auto-selects request-ID-aware error handlers
 - **text/plain default**: `DefaultErrorHandlerWithRedirect` uses text/plain (no HTML escaping needed)
