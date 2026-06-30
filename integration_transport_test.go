@@ -7,6 +7,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -20,7 +21,9 @@ var _ = Describe("Transport Parity Integration", func() {
 			defer broadcaster.Unsubscribe(ch)
 
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", erroringCommandHandler("email already exists"))
+			_ = disp.Register("CreateUser", erroringCommandHandlerWith(
+				event.NewConflict("email_taken", "email already exists"),
+			))
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:      disp,
 				AfterDispatch: broadcaster.BroadcastOnError("commandError"),
@@ -109,7 +112,10 @@ var _ = Describe("Transport Parity Integration", func() {
 			defer wsBroadcaster.Unsubscribe(ch)
 
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", erroringCommandHandler("rate limited"))
+			rateLimited := cqrshtmx.WithHTTPStatus(
+				event.NewRejection("rate_limited", "rate limited"), http.StatusTooManyRequests,
+			)
+			_ = disp.Register("CreateUser", erroringCommandHandlerWith(rateLimited))
 			app, err := cqrshtmx.New(cqrshtmx.Config{
 				Commands:      disp,
 				AfterDispatch: wsBroadcaster.BroadcastOnErrorWS(),
