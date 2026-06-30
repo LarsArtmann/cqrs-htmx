@@ -11,9 +11,10 @@ import (
 
 // Content type constants for consistent HTTP response headers.
 const (
-	ContentTypePlain = "text/plain; charset=utf-8"
-	ContentTypeHTML  = "text/html; charset=utf-8"
-	ContentTypeJSON  = "application/json; charset=utf-8"
+	ContentTypePlain   = "text/plain; charset=utf-8"
+	ContentTypeHTML    = "text/html; charset=utf-8"
+	ContentTypeJSON    = "application/json; charset=utf-8"
+	ContentTypeProblem = "application/problem+json; charset=utf-8"
 )
 
 // JSON map key constants for consistent error/status response shapes.
