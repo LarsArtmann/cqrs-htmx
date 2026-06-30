@@ -293,3 +293,39 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 		_ = encoder.Encode(response)
 	}
 }
+
+// ProblemDetailsErrorHandler writes errors as RFC 7807 problem details
+// (application/problem+json), using StructuredError — the same shape emitted
+// for SSE and WebSocket error broadcasts. This unifies the error contract
+// across HTTP, SSE, and WS transports: a client sees the same JSON shape
+// regardless of how the error arrives.
+//
+// 5xx detail is redacted to the family's public-safe message by default.
+// Use Config.IncludeInternalDetails to override for dev/trusted environments.
+//
+// Set via Config.ErrorHandler:
+//
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    ErrorHandler: cqrshtmx.ProblemDetailsErrorHandler,
+//	    ...
+//	})
+func ProblemDetailsErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
+	ProblemDetailsErrorHandlerWithRedirect(w, r, err, defaultLoginRedirect)
+}
+
+// ProblemDetailsErrorHandlerWithRedirect is like ProblemDetailsErrorHandler
+// with a custom login redirect path for HTMX auth errors.
+func ProblemDetailsErrorHandlerWithRedirect(
+	w http.ResponseWriter,
+	r *http.Request,
+	err error,
+	loginRedirect string,
+) {
+	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, _ int) {
+		w.Header().Set("Content-Type", ContentTypeProblem)
+		status := MapError(err)
+		w.WriteHeader(status)
+		payload := NewStructuredError(err, r)
+		_ = json.NewEncoder(w).Encode(payload)
+	})
+}
