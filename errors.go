@@ -11,14 +11,24 @@ import (
 
 const defaultLoginRedirect = "/login"
 
+// Cross-module auth error codes. Both root and the usermgmt submodule define
+// their own sentinel errors but share these codes so MapError can recognise
+// auth errors across module boundaries by code (root cannot import usermgmt).
+// Exported so callers constructing classified errors can reference the exact
+// codes instead of duplicating string literals.
+const (
+	CodeUnauthorized = "unauthorized"
+	CodeForbidden    = "forbidden"
+)
+
 // Sentinel errors for HTTP→CQRS integration.
 //
 // Each sentinel is natively classified via its go-error-family family (re-exported
 // through go-cqrs-lite/event/v3), so MapError derives the HTTP status directly —
 // no runtime RegisterClassification is needed.
 var (
-	ErrUnauthorized     = event.NewRejection("unauthorized", "unauthorized: authentication required")
-	ErrForbidden        = event.NewRejection("forbidden", "forbidden: insufficient permissions")
+	ErrUnauthorized     = event.NewRejection(CodeUnauthorized, "unauthorized: authentication required")
+	ErrForbidden        = event.NewRejection(CodeForbidden, "forbidden: insufficient permissions")
 	ErrDecodeFailed     = event.NewRejection("decode_failed", "failed to decode request body")
 	ErrDispatchFailed   = event.NewTransient("dispatch_failed", "command/query dispatch failed")
 	ErrEnforcerNil      = event.NewInfrastructure("enforcer_nil", "casbin enforcer is required for authorization")
@@ -117,9 +127,9 @@ func authStatusFromErrorCode(err error) (int, bool) {
 		return 0, false
 	}
 	switch coder.Code() {
-	case "unauthorized":
+	case CodeUnauthorized:
 		return http.StatusUnauthorized, true
-	case "forbidden":
+	case CodeForbidden:
 		return http.StatusForbidden, true
 	}
 	return 0, false
