@@ -37,3 +37,4 @@
 | [0031](0031-projection-lifecycle-decision.md)     | Projection Lifecycle — StartProjections vs projectionhost vs CatchUpSubscriber  | Accepted (checkpoint replay shipped; CatchUpSubscriber deferred) |
 | [0032](0032-basic-command-embedding.md)           | Embed `command.BasicCommand` in all usermgmt commands                           | Accepted                                                         |
 | [0033](0033-server-timing-api.md)                 | Server-Timing API                                                               | Accepted                                                         |
+| [0034](0034-http-status-carrier.md)               | HTTPStatusCarrier — Errors That Pin Their HTTP Status                           | Accepted                                                         |

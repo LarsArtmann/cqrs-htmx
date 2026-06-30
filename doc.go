@@ -57,13 +57,23 @@
 // # Error Mapping
 //
 // CQRS error families automatically map to HTTP status codes. Auth errors use
-// HX-Redirect for HTMX requests:
+// HX-Redirect for HTMX requests. 5xx detail is redacted by default:
 //
 //	Rejection      → 400 Bad Request
 //	Conflict       → 409 Conflict
 //	Corruption     → 500 Internal Server Error
 //	Transient      → 503 Service Unavailable
 //	Infrastructure → 503 Service Unavailable
+//
+// To override the family default, wrap an error with WithHTTPStatus:
+//
+//	err := cqrshtmx.WithHTTPStatus(sentinel, http.StatusNotFound)
+//
+// For unified RFC 7807 error responses across HTTP/SSE/WS, use:
+//
+//	app, _ := cqrshtmx.New(cqrshtmx.Config{
+//	    ErrorHandler: cqrshtmx.ProblemDetailsErrorHandler,
+//	})
 //
 // # SSE Streaming
 //
