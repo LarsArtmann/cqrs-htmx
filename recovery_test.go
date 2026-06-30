@@ -33,7 +33,10 @@ var _ = Describe("Recovery Middleware", func() {
 			handler.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusInternalServerError))
-			Expect(w.Body.String()).To(ContainSubstring("something went terribly wrong"))
+			// Panic detail is redacted by default (5xx → family default message)
+			// so internal stack/message does not leak to the client.
+			Expect(w.Body.String()).NotTo(ContainSubstring("something went terribly wrong"))
+			Expect(w.Body.String()).To(ContainSubstring("currently unavailable"))
 		})
 
 		It("allows normal requests through", func() {
@@ -77,7 +80,9 @@ var _ = Describe("Recovery Middleware", func() {
 			handler.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusInternalServerError))
-			Expect(w.Body.String()).To(ContainSubstring("app panic"))
+			// Panic detail is redacted by default (5xx → family default message).
+			Expect(w.Body.String()).NotTo(ContainSubstring("app panic"))
+			Expect(w.Body.String()).To(ContainSubstring("currently unavailable"))
 		})
 
 		It("uses custom error handler when configured", func() {
