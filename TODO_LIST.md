@@ -173,6 +173,7 @@ _Pareto-prioritized work from planning docs, status reports, and 40-item audit._
 - [x] **Sync FEATURES.md** — Removed catalog column, updated ClientIP to FULLY_FUNCTIONAL, synced coverage/test counts
 - [x] **Sync ROADMAP.md** — Marked scenario BDD, OTel guide, Prometheus guide as Done
 - [ ] **Phase 2b — Persistent offline queue** (ADR-0030) — IndexedDB persistence for writes that survive closed tabs. Proposed, not yet implemented.
+- [ ] **usermgmt god-package sub-package extraction** (v4) — 84 prod files / ~11K LOC in one flat `package usermgmt`. `Service` struct directly holds `*webauthn.WebAuthn` + `oauth2Providers`, forcing go-webauthn, oauth2, oidc, jose, otp, sqlite as transitive deps on ALL consumers. Fix: extract `usermgmt/webauthn`, `usermgmt/oauth2`, `usermgmt/totp`, `usermgmt/sql` sub-packages with interface-based registration (PasskeyProvider, OAuthProvider, TOTPVerifier). Breaking API change — defer to v4. See `docs/modularization/2026-07-01_PROPOSAL.html`.
 
 ---
 
