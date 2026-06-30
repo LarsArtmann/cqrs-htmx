@@ -72,7 +72,9 @@ func (a *App) handleCommandDispatch(
 
 	cmd, err := cfg.commandDecoder(r)
 	if err != nil {
-		a.handleErr(w, r, ctx, cfg, err)
+		wrappedErr := event.Wrapf(err, event.Classify(err),
+			"cqrshtmx.decode.command_failed", "decode command %s", cmdType)
+		a.handleErr(w, r, ctx, cfg, wrappedErr)
 		return
 	}
 
@@ -176,7 +178,7 @@ func (a *App) handleQueryDispatch(
 
 	qry, err := cfg.queryDecoder(r)
 	if err != nil {
-		wrappedErr := event.Wrapf(err, event.Rejection,
+		wrappedErr := event.Wrapf(err, event.Classify(err),
 			"cqrshtmx.decode.query_failed", "decode query %s", qryType)
 		a.handleErr(w, r, ctx, cfg, wrappedErr)
 		return
