@@ -1,6 +1,6 @@
 # Modularization Proposal: cqrs-htmx
 
-> **Status:** Complete — all tasks executed and verified
+> **Status:** Superseded by 2026-07-01 Unix-style review — see `2026-07-01_PROPOSAL.html`
 > **Date:** 2026-05-27
 > **Supersedes:** PROPOSAL.md (2026-05-22), PROPOSAL.md (2026-05-14), go-modularize-assessment.md (2026-05-19)
 

@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/admin-demo
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v3 v3.0.0
+	github.com/larsartmann/cqrs-htmx/adminui/v3 v3.3.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.3.0
 	github.com/larsartmann/cqrs-htmx/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.4.0
@@ -49,7 +49,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.4.0 // indirect
