@@ -56,7 +56,8 @@ var (
 //   - Transient family  → 503 Service Unavailable
 //   - Corruption family → 500 Internal Server Error
 //   - Infrastructure    → 503 Service Unavailable
-//   - nil or unknown    → 500 Internal Server Error
+//   - nil               → 500 Internal Server Error
+//   - unknown (untyped)  → 503 Service Unavailable (Transient fail-open)
 //
 // See ADR-0017 for the reconciliation rationale and ADR-0034 for the
 // HTTPStatusCarrier extension.

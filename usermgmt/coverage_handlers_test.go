@@ -91,8 +91,8 @@ func TestHandlers_Logout_StoreError(t *testing.T) {
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 
-	if w.Code != http.StatusInternalServerError {
-		t.Errorf("expected 500 for store error, got %d", w.Code)
+	if w.Code != http.StatusServiceUnavailable {
+		t.Errorf("expected 503 for store error, got %d", w.Code)
 	}
 }
 
