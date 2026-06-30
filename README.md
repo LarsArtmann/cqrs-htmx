@@ -557,9 +557,9 @@ CQRS error families automatically map to HTTP status codes:
 | -------------- | ------------------------- |
 | Rejection      | 400 Bad Request           |
 | Conflict       | 409 Conflict              |
-| Corruption     | 422 Unprocessable Entity  |
+| Corruption     | 500 Internal Server Error |
 | Transient      | 503 Service Unavailable   |
-| Infrastructure | 500 Internal Server Error |
+| Infrastructure | 503 Service Unavailable   |
 
 Auth errors map specially:
 

@@ -224,8 +224,8 @@ cqrs-htmx/
   - **Rejection (400)** — caller/user input invalid: parse failures, validation (`ParseEmail`, `ImportUser.Validate`), bad config (`OAuth2ProviderConfig.Validate`, unsupported SQL dialect), missing/invalid IDs
   - **Conflict (409)** — state conflict: duplicate user/email/credential/external-account
   - **Transient (503)** — retryable system/external: DB I/O (`SQLSessionStore`/`SQLEventStore` ops), OAuth2 provider calls (discovery/exchange/userinfo), SSE/WS stream writes
-  - **Corruption (422)** — stored data damage: projection payload unmarshal (`unmarshalPayload` → `event.WrapCorruption`), upcaster failures
-  - **Infrastructure (500)** — non-retryable system/bug: marshal failures (`marshalPayload`), event construction, nil dependencies, command registration, `aggIDFromUser`, crypto/rand
+  - **Corruption (500)** — stored data damage: projection payload unmarshal (`unmarshalPayload` → `event.WrapCorruption`), upcaster failures
+  - **Infrastructure (503)** — non-retryable system/bug: marshal failures (`marshalPayload`), event construction, nil dependencies, command registration, `aggIDFromUser`, crypto/rand
 - **Dispatch wrapping preserves family**: never force a family on a dispatch error (it may carry a domain Rejection/Conflict). Use `event.Wrapf(err, event.Classify(err), code, msg)` — wraps with the inner error's own family (root `handler.go`/`ws_dispatch.go`, usermgmt service/totp/webauthn/email_verification dispatch sites)
 - **Preserve sentinel identity where tested**: `errors.Is(err, ErrValidation)` is relied upon (`service_register_test.go`, `http.go:349`) — wrap `ErrValidation` as the cause (`event.WrapRejection(ErrValidation, ...)`) in `ParseEmail`/`ImportUser.Validate`
 - **Error → HTTP mapping**: `MapError` classifies errors into families (Rejection, NotFound, Conflict, etc.) → HTTP status
