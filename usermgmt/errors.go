@@ -1,6 +1,9 @@
 package usermgmt
 
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
+import (
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+)
 
 var (
 	// ErrUserNotFound is returned when a user cannot be located by ID.
@@ -35,10 +38,10 @@ var (
 	ErrSessionExpired = event.NewRejection("usermgmt.session_expired", "session expired")
 	// ErrForbidden is returned when an authorization check denies access.
 	// Uses the same code as root cqrshtmx.ErrForbidden for cross-module compatibility.
-	ErrForbidden = event.NewRejection("forbidden", "access denied")
+	ErrForbidden = event.NewRejection(cqrshtmx.CodeForbidden, "access denied")
 	// ErrUnauthorized is returned when authentication is required but missing or invalid.
 	// Uses the same code as root cqrshtmx.ErrUnauthorized for cross-module compatibility.
-	ErrUnauthorized = event.NewRejection("unauthorized", "authentication required")
+	ErrUnauthorized = event.NewRejection(cqrshtmx.CodeUnauthorized, "authentication required")
 	// ErrValidation is returned when input validation fails (e.g. invalid email).
 	ErrValidation = event.NewRejection("usermgmt.validation", "validation failed")
 	// ErrAccountLocked is returned when login is rejected because the account exceeded the
