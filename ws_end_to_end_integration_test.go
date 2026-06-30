@@ -10,6 +10,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -84,7 +85,9 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 			}
 
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", erroringCommandHandler("database unavailable"))
+			_ = disp.Register("CreateUser", erroringCommandHandlerWith(
+				event.NewTransient("db_unavailable", "database unavailable"),
+			))
 			app := cqrshtmx.MustNew(cqrshtmx.Config{
 				Commands:      disp,
 				AfterDispatch: wsBroadcaster.BroadcastOnErrorWS(),
@@ -100,8 +103,11 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 
 				var payload cqrshtmx.StructuredError
 				Expect(json.Unmarshal([]byte(msg), &payload)).To(Succeed())
-				Expect(payload.Detail).To(ContainSubstring("database unavailable"))
-				Expect(payload.Status).To(BeNumerically(">=", 400))
+				// 5xx detail is redacted to the family's public-safe message; the
+				// original cause stays on the StructuredError for server-side use.
+				Expect(payload.Detail).To(ContainSubstring("temporary error"))
+				Expect(payload.Detail).NotTo(ContainSubstring("database unavailable"))
+				Expect(payload.Status).To(Equal(http.StatusServiceUnavailable))
 			}
 		})
 

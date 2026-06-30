@@ -39,8 +39,26 @@ type StructuredError struct {
 	Status int `json:"status"`
 
 	// Detail is a specific, human-readable explanation of this
-	// particular occurrence of the error. Typically the error message.
+	// particular occurrence of the error. For client errors (status < 500)
+	// this is the raw error message, which describes the caller's input.
+	// For server faults (status >= 500) it is redacted to the error family's
+	// generic public-safe message so internal detail is not leaked to
+	// SSE/WS/HTTP clients. The original error is preserved in cause for
+	// server-side logging.
 	Detail string `json:"detail"`
+
+	// Message is the error family's generic, public-safe guidance for this
+	// class of problem (RFC 7807 extension). Always safe to show; derived from
+	// go-error-family's Family.DefaultMessage.
+	Message string `json:"message,omitempty"`
+
+	// Why explains, in public-safe terms, what happened for this family
+	// (RFC 7807 extension). Derived from Family.DefaultWhy.
+	Why string `json:"why,omitempty"`
+
+	// Fix suggests a public-safe remediation for this family
+	// (RFC 7807 extension). Derived from Family.DefaultFix.
+	Fix string `json:"fix,omitempty"`
 
 	// Instance is a token identifying this specific occurrence.
 	// Usually the request ID or correlation ID for tracing.
@@ -87,7 +105,10 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 		Type:     familyType(family),
 		Title:    statusTitle(status),
 		Status:   status,
-		Detail:   err.Error(),
+		Detail:   SafeDetail(err, status, false),
+		Message:  family.DefaultMessage(),
+		Why:      family.DefaultWhy(),
+		Fix:      family.DefaultFix(),
 		Instance: instance,
 		cause:    err,
 	}

@@ -30,9 +30,14 @@ var _ = Describe("StructuredError", func() {
 			se := cqrshtmx.NewStructuredError(err, nil)
 
 			Expect(se.Status).To(Equal(http.StatusServiceUnavailable))
-			Expect(se.Detail).To(Equal("something broke"))
+			// 5xx detail is redacted to the family's public-safe default message.
+			Expect(se.Detail).To(Equal("A temporary error occurred. Please try again in a few moments."))
+			Expect(se.Detail).NotTo(ContainSubstring("something broke"))
 			Expect(se.Title).To(Equal("Service Unavailable"))
 			Expect(se.Type).To(Equal("transient"))
+			// Family metadata (RFC 7807 extensions) is exposed.
+			Expect(se.Message).To(Equal(se.Detail))
+			Expect(se.Fix).NotTo(BeEmpty())
 		})
 
 		It("extracts request ID from the request context", func() {
@@ -87,7 +92,7 @@ var _ = Describe("StructuredError", func() {
 
 	Describe("JSON", func() {
 		It("serializes to valid JSON with all fields", func() {
-			se := cqrshtmx.StructuredError{
+			se := cqrshtmx.StructuredError{ //nolint:exhaustruct // fixture: tests specific JSON fields
 				Type:     "rejection",
 				Title:    "Bad Request",
 				Status:   400,
@@ -107,7 +112,7 @@ var _ = Describe("StructuredError", func() {
 		})
 
 		It("omits empty instance field", func() {
-			se := cqrshtmx.StructuredError{
+			se := cqrshtmx.StructuredError{ //nolint:exhaustruct // fixture: tests instance omitempty
 				Type:     "rejection",
 				Title:    "Bad Request",
 				Status:   400,
@@ -124,7 +129,7 @@ var _ = Describe("StructuredError", func() {
 
 	Describe("JSON round-trip", func() {
 		It("marshals and unmarshals correctly", func() {
-			original := cqrshtmx.StructuredError{
+			original := cqrshtmx.StructuredError{ //nolint:exhaustruct // fixture: round-trip
 				Type:     "conflict",
 				Title:    "Conflict",
 				Status:   409,
