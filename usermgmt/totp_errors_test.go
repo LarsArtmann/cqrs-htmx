@@ -20,8 +20,8 @@ func TestTOTP_Enable_AlreadyEnabled(t *testing.T) {
 	ctx := context.Background()
 	reg := registerTestUser(t, svc, "totp-ae", "totpae@test.com")
 
-	setup, _ := svc.EnableTOTP(ctx, reg.User.ID)
-	_ = svc.VerifyTOTPSetup(ctx, reg.User.ID, currentTOTPCode(t, decodeSecret(t, setup.Secret)))
+	_, _ = svc.EnableTOTP(ctx, reg.User.ID)
+	_ = svc.VerifyTOTPSetup(ctx, reg.User.ID, testTOTPValidCode)
 
 	if _, err := svc.EnableTOTP(ctx, reg.User.ID); err == nil {
 		t.Fatal("expected error when TOTP already enabled")
@@ -29,7 +29,7 @@ func TestTOTP_Enable_AlreadyEnabled(t *testing.T) {
 }
 
 func TestTOTP_Enable_DefaultIssuer(t *testing.T) {
-	svc, err := NewService(ServiceConfig{TOTPConfig: &TOTPConfig{Window: 1}}) // empty Issuer
+	svc, err := NewService(ServiceConfig{TOTP: newTestTOTPProvider("")}) // empty Issuer
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -110,8 +110,8 @@ func TestTOTP_Disable_InvalidCode(t *testing.T) {
 	ctx := context.Background()
 	reg := registerTestUser(t, svc, "totp-dic", "totpdic@test.com")
 
-	setup, _ := svc.EnableTOTP(ctx, reg.User.ID)
-	_ = svc.VerifyTOTPSetup(ctx, reg.User.ID, currentTOTPCode(t, decodeSecret(t, setup.Secret)))
+	_, _ = svc.EnableTOTP(ctx, reg.User.ID)
+	_ = svc.VerifyTOTPSetup(ctx, reg.User.ID, testTOTPValidCode)
 
 	if err := svc.DisableTOTP(ctx, reg.User.ID, "000000"); err == nil {
 		t.Fatal("expected error for invalid disable code")

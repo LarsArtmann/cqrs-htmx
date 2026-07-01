@@ -2,15 +2,12 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/base32"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/pquerna/otp/totp"
 )
 
 func setupAuthenticatedHandler(t *testing.T, cfg ServiceConfig) (*Service, http.Handler, string) {
@@ -106,7 +103,7 @@ func TestHandlers_VerifyEmail_InvalidToken(t *testing.T) {
 
 func TestHandlers_TOTPSetup(t *testing.T) {
 	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+		TOTP: newTestTOTPProvider("Test"),
 	})
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/setup", token, "")
 	assertStatusCode(t, w, http.StatusOK)
@@ -119,7 +116,7 @@ func TestHandlers_TOTPSetup(t *testing.T) {
 
 func TestHandlers_TOTPSetup_Unauthenticated(t *testing.T) {
 	_, h, _ := setupAuthenticatedHandler(t, ServiceConfig{
-		TOTPConfig: &TOTPConfig{},
+		TOTP: newTestTOTPProvider(""),
 	})
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/setup", "", "")
 	assertStatusCode(t, w, http.StatusUnauthorized)
@@ -129,15 +126,15 @@ func TestHandlers_TOTPSetup_Unauthenticated(t *testing.T) {
 // Returns the current valid TOTP code for subsequent verification calls.
 func enableTOTPForUser(t *testing.T, svc *Service) string {
 	t.Helper()
-	setup, err := svc.EnableTOTP(context.Background(), NewUserID("authu1"))
+	_, err := svc.EnableTOTP(context.Background(), NewUserID("authu1"))
 	if err != nil {
 		t.Fatalf("EnableTOTP: %v", err)
 	}
-	code := currentTOTPCode(t, decodeSecret(t, setup.Secret))
+	code := testTOTPValidCode
 	if err := svc.VerifyTOTPSetup(context.Background(), NewUserID("authu1"), code); err != nil {
 		t.Fatalf("VerifyTOTPSetup: %v", err)
 	}
-	return currentTOTPCode(t, decodeSecret(t, setup.Secret))
+	return testTOTPValidCode
 }
 
 func TestHandlers_TOTPCodeVerifyAndDisable(t *testing.T) {
@@ -151,7 +148,7 @@ func TestHandlers_TOTPCodeVerifyAndDisable(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			svc, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-				TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+				TOTP: newTestTOTPProvider("Test"),
 			})
 			code := enableTOTPForUser(t, svc)
 			w := authenticatedRequest(t, h, http.MethodPost, tc.path, token,
@@ -330,7 +327,7 @@ func TestHandlers_ImportRateLimit(t *testing.T) {
 
 func TestHandlers_TOTPRateLimit(t *testing.T) {
 	svc, err := NewService(ServiceConfig{
-		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+		TOTP: newTestTOTPProvider("Test"),
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
@@ -400,21 +397,13 @@ func TestHandlers_VerificationRateLimit(t *testing.T) {
 
 func TestHandlers_TOTPVerify_InvalidCode(t *testing.T) {
 	svc, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+		TOTP: newTestTOTPProvider("Test"),
 	})
 	_ = enableTOTPForUser(t, svc)
 
-	// Generate a code from a far-past time — guaranteed not to match the window.
-	user, _ := svc.readModel.FindByUserID(NewUserID("authu1"))
-	farPastTime := time.Now().Add(-100 * TOTPTimeStep)
-	b32Secret := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(user.TOTPSecret)
-	invalidCode, err := totp.GenerateCode(b32Secret, farPastTime)
-	if err != nil {
-		t.Fatalf("generate invalid code: %v", err)
-	}
-
+	// Any code != testTOTPValidCode is rejected by the stub provider.
 	w := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/verify", token,
-		`{"code":"`+invalidCode+`"}`)
+		`{"code":"999999"}`)
 	assertStatusCode(t, w, http.StatusUnauthorized)
 }
 
@@ -431,7 +420,7 @@ func TestHandlers_TOTPNotEnabled(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			_, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-				TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+				TOTP: newTestTOTPProvider("Test"),
 			})
 			w := authenticatedRequest(t, h, http.MethodPost, tc.path, token, tc.body)
 			assertStatusCode(t, w, tc.status)
