@@ -35,18 +35,11 @@ require (
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/scenario/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.5.0
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
