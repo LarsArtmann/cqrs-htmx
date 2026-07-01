@@ -85,6 +85,7 @@ ehthumbs.db
 ## Go
 go.work
 go.work.sum
+/v4
 
 ## Nix
 result-*
