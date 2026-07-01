@@ -2,6 +2,12 @@
 
 ## Status
 
+REJECTED — 2026-07-01
+
+**Phase 2b will never ship.** IndexedDB persistence for the SharedWorker queue is a fundamentally inconsistent API surface: it introduces a client-side persistence concern that doesn't belong in a server-side Go library. The Queue-Only design (ADR-0027) is correct — the server owns decide(). Extending client-side durability beyond the SharedWorker's in-memory lifetime adds complexity with no clean abstraction boundary for consumers.
+
+## Original Proposal (retained for historical context)
+
 PROPOSED — 2026-06-29
 
 ## Context
