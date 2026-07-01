@@ -9,6 +9,7 @@ use (
 	./examples/datastar-demo
 	./integration_test
 	./usermgmt
+	./usermgmt/totp
 )
 
 replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ./.vendor-local/eventtest

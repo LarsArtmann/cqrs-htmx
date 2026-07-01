@@ -2,20 +2,13 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/base32"
 	"testing"
-	"time"
-
-	"github.com/pquerna/otp/totp"
 )
 
 func newTestServiceWithTOTP(t *testing.T) *Service {
 	t.Helper()
 	svc, err := NewService(ServiceConfig{
-		TOTPConfig: &TOTPConfig{
-			Issuer: "TestApp",
-			Window: 1,
-		},
+		TOTP: newTestTOTPProvider("TestApp"),
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
@@ -42,7 +35,7 @@ func TestTOTP_EnableAndVerify(t *testing.T) {
 	}
 
 	// Step 2: Verify with current code
-	code := currentTOTPCode(t, decodeSecret(t, setup.Secret))
+	code := testTOTPValidCode
 	if err := svc.VerifyTOTPSetup(ctx, reg.User.ID, code); err != nil {
 		t.Fatalf("VerifyTOTPSetup: %v", err)
 	}
@@ -57,7 +50,7 @@ func TestTOTP_EnableAndVerify(t *testing.T) {
 	}
 
 	// Step 4: Verify a valid code
-	code2 := currentTOTPCode(t, user.TOTPSecret)
+	code2 := testTOTPValidCode
 	if err := svc.VerifyTOTP(ctx, reg.User.ID, code2); err != nil {
 		t.Errorf("VerifyTOTP: %v", err)
 	}
@@ -68,8 +61,8 @@ func TestTOTP_VerifyInvalidCode(t *testing.T) {
 	ctx := context.Background()
 	reg := registerTestUser(t, svc, "totp2", "totp2@test.com")
 
-	setup, _ := svc.EnableTOTP(ctx, reg.User.ID)
-	code := currentTOTPCode(t, decodeSecret(t, setup.Secret))
+	_, _ = svc.EnableTOTP(ctx, reg.User.ID)
+	code := testTOTPValidCode
 	_ = svc.VerifyTOTPSetup(ctx, reg.User.ID, code)
 
 	_ = svc.VerifyTOTP(ctx, reg.User.ID, "000000")
@@ -83,8 +76,8 @@ func TestTOTP_Disable(t *testing.T) {
 	ctx := context.Background()
 	reg := registerTestUser(t, svc, "totp3", "totp3@test.com")
 
-	setup, _ := svc.EnableTOTP(ctx, reg.User.ID)
-	code := currentTOTPCode(t, decodeSecret(t, setup.Secret))
+	_, _ = svc.EnableTOTP(ctx, reg.User.ID)
+	code := testTOTPValidCode
 	_ = svc.VerifyTOTPSetup(ctx, reg.User.ID, code)
 
 	if err := svc.DisableTOTP(ctx, reg.User.ID, code); err != nil {
@@ -144,23 +137,4 @@ func TestTOTP_QRCodeURI(t *testing.T) {
 	if setup.QRCodeURI[:23] != "otpauth://totp/TestApp:" {
 		t.Errorf("QR URI prefix = %q", setup.QRCodeURI[:23])
 	}
-}
-
-func decodeSecret(t *testing.T, b32 string) []byte {
-	t.Helper()
-	secret, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(b32)
-	if err != nil {
-		t.Fatalf("decode base32 secret: %v", err)
-	}
-	return secret
-}
-
-func currentTOTPCode(t *testing.T, secret []byte) string {
-	t.Helper()
-	b32Secret := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(secret)
-	code, err := totp.GenerateCode(b32Secret, time.Now())
-	if err != nil {
-		t.Fatalf("generate TOTP code: %v", err)
-	}
-	return code
 }

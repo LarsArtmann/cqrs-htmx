@@ -47,7 +47,7 @@ type Service struct {
 	stopVerificationEviction func()
 	verificationTTL          time.Duration
 	sendVerificationEmail    SendVerificationEmailFunc
-	totpConfig               *TOTPConfig
+	totp                     TOTPProvider
 	pendingTOTP              PendingTOTPStore
 	stopPendingTOTPEviction  func()
 	oauth2Providers          map[string]*oauth2Provider
@@ -83,8 +83,13 @@ type ServiceConfig struct {
 	// EmailVerification, if provided, enables the email verification flow.
 	// When nil, SendVerificationEmail and VerifyEmail return ErrEmailVerificationNotConfigured.
 	EmailVerification *EmailVerificationConfig
-	// TOTPConfig, if provided, enables TOTP multi-factor authentication.
-	TOTPConfig *TOTPConfig
+	// TOTP, if provided, enables TOTP multi-factor authentication.
+	// Import usermgmt/totp to obtain a *Provider:
+	//
+	// 	svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+	// 		TOTP: totp.New(totp.Config{Issuer: "MyApp"}),
+	// 	})
+	TOTP TOTPProvider
 	// WebAuthnSessionStore, if provided, replaces the default in-memory WebAuthn
 	// challenge store. Use this for multi-instance deployments (e.g., Redis).
 	// Ignored when WebAuthnConfig is nil.
@@ -95,7 +100,7 @@ type ServiceConfig struct {
 	VerificationTokenStore VerificationTokenStore
 	// PendingTOTPStore, if provided, replaces the default in-memory pending TOTP
 	// secret store. Use this for multi-instance deployments.
-	// Ignored when TOTPConfig is nil.
+	// Ignored when TOTP is nil.
 	PendingTOTPStore PendingTOTPStore
 
 	// OAuth2Config, if provided, enables OAuth2/OIDC login with external
@@ -297,8 +302,8 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.sendVerificationEmail = cfg.EmailVerification.SendEmail
 	}
 
-	svc.totpConfig = cfg.TOTPConfig
-	if cfg.TOTPConfig != nil {
+	svc.totp = cfg.TOTP
+	if cfg.TOTP != nil {
 		tStore := cfg.PendingTOTPStore
 		if tStore == nil {
 			mem := newPendingTOTPStore()

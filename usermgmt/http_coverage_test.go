@@ -77,7 +77,7 @@ func TestHandlers_ImportCSV(t *testing.T) {
 func totpHandlerSetup(t *testing.T) (http.Handler, string) {
 	t.Helper()
 	_, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+		TOTP: newTestTOTPProvider("Test"),
 	})
 	return h, token
 }
@@ -122,7 +122,7 @@ func TestHandlers_EmailVerify_InvalidToken(t *testing.T) {
 
 func TestHandlers_TOTPSetup_AlreadyEnabled(t *testing.T) {
 	svc, h, token := setupAuthenticatedHandler(t, ServiceConfig{
-		TOTPConfig: &TOTPConfig{Issuer: "Test", Window: 1},
+		TOTP: newTestTOTPProvider("Test"),
 	})
 	// First setup succeeds.
 	w1 := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/setup", token, "")
@@ -130,8 +130,8 @@ func TestHandlers_TOTPSetup_AlreadyEnabled(t *testing.T) {
 
 	// Enable TOTP fully (setup + verify) so a second setup returns an error.
 	user, _ := svc.readModel.FindByUserID(NewUserID("authu1"))
-	setup, _ := svc.EnableTOTP(context.Background(), user.ID)
-	_ = svc.VerifyTOTPSetup(context.Background(), user.ID, currentTOTPCode(t, decodeSecret(t, setup.Secret)))
+	_, _ = svc.EnableTOTP(context.Background(), user.ID)
+	_ = svc.VerifyTOTPSetup(context.Background(), user.ID, testTOTPValidCode)
 
 	// Second setup now hits the EnableTOTP error path (already enabled → 409 Conflict).
 	w2 := authenticatedRequest(t, h, http.MethodPost, "/auth/totp/setup", token, "")

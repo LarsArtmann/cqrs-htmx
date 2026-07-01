@@ -65,7 +65,7 @@ func TestPendingTOTPStore_EvictExpired(t *testing.T) {
 func TestService_StopTerminatesEvictionGoroutines(t *testing.T) {
 	svc, err := NewService(ServiceConfig{
 		EmailVerification: &EmailVerificationConfig{},
-		TOTPConfig:        &TOTPConfig{},
+		TOTP:              newTestTOTPProvider(""),
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)

@@ -25,7 +25,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.5.0
 	github.com/oklog/ulid/v2 v2.1.1
-	github.com/pquerna/otp v1.5.0
 	golang.org/x/oauth2 v0.36.0
 	modernc.org/sqlite v1.53.0
 	pgregory.net/rapid v1.3.0
@@ -53,7 +52,6 @@ require (
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
-	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect

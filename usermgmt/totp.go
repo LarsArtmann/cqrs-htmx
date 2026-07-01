@@ -2,39 +2,18 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/base32"
 	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 )
 
 // totpTransient logs an auth failure and returns a transient error wrapping
-// the underlying cause. Used by EnableTOTP when the totp library or base32
-// decoder returns an error that is not the caller's fault.
+// the underlying cause. Used by EnableTOTP when the TOTP provider returns
+// an error that is not the caller's fault.
 func (s *Service) totpTransient(evt string, userID UserID, reason, msg string, err error) error {
 	s.logAuth(evt, userID, "reason", reason)
 	return event.NewTransient("internal", msg).WithCause(err)
-}
-
-// TOTPTimeStep is the standard TOTP time step (30 seconds, per RFC 6238).
-const (
-	TOTPTimeStep = 30 * time.Second
-	// TOTPDigits is the number of digits in the TOTP code (6, per RFC 6238).
-	TOTPDigits = 6
-	// TOTPSecretLength is the length of the TOTP secret in bytes (20, per RFC 6238).
-	TOTPSecretLength = 20
-)
-
-// TOTPConfig configures the TOTP multi-factor authentication flow.
-type TOTPConfig struct {
-	// Issuer is the name shown in the authenticator app (e.g., "My App").
-	Issuer string
-	// Window is the number of time steps to accept before and after the
-	// current time. Default is 1 (allows ±30 seconds clock drift).
-	Window int
 }
 
 // TOTPSetupResponse is returned when enabling TOTP for a user.
@@ -49,7 +28,7 @@ type TOTPSetupResponse struct {
 // setup information (secret + QR code URI). The secret is NOT yet active
 // until VerifyTOTPSetup is called with a valid code from the authenticator app.
 func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResponse, error) {
-	if s.totpConfig == nil {
+	if s.totp == nil {
 		return nil, ErrTOTPNotConfigured
 	}
 	user, ok := s.readModel.FindByUserID(userID)
@@ -61,39 +40,24 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 		s.logAuth("totp_setup_failed", userID, "reason", "already_enabled")
 		return nil, ErrTOTPAlreadyEnabled
 	}
-	issuer := s.totpConfig.Issuer
-	if issuer == "" {
-		issuer = "cqrs-htmx"
-	}
-	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      issuer,
-		AccountName: user.Email,
-		Algorithm:   otp.AlgorithmSHA1, // RFC 6238 default
-		Digits:      otp.DigitsSix,
-		Period:      30,
-	})
+	rawSecret, base32Secret, otpauthURI, err := s.totp.GenerateSecret(user.Email)
 	if err != nil {
 		return nil, s.totpTransient("totp_setup_failed", userID, "secret_generation_error",
 			"generate totp key", err)
-	}
-	rawSecret, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(key.Secret())
-	if err != nil {
-		return nil, s.totpTransient("totp_setup_failed", userID, "secret_decode_error",
-			"decode totp secret", err)
 	}
 	// Store the pending secret temporarily
 	s.pendingTOTP.Save(userID.Get().String(), rawSecret, 5*time.Minute)
 	s.logAuth("totp_setup_initiated", userID)
 	return &TOTPSetupResponse{
-		Secret:    key.Secret(),
-		QRCodeURI: key.URL(),
+		Secret:    base32Secret,
+		QRCodeURI: otpauthURI,
 	}, nil
 }
 
 // VerifyTOTPSetup confirms the TOTP setup by verifying a code from the
 // user's authenticator app. On success, dispatches the TOTPEnabled event.
 func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code string) error {
-	if s.totpConfig == nil {
+	if s.totp == nil {
 		return ErrTOTPNotConfigured
 	}
 	secret, ok := s.pendingTOTP.Consume(userID.Get().String())
@@ -101,7 +65,7 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "setup_expired")
 		return ErrTOTPSetupExpired
 	}
-	if !validateTOTP(secret, code, s.totpConfig.Window) {
+	if !s.totp.ValidateCode(secret, code) {
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "invalid_code")
 		return ErrInvalidTOTPCode
 	}
@@ -150,7 +114,7 @@ func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) e
 }
 
 func (s *Service) requireValidTOTP(userID UserID, code, failEvent string) error {
-	if s.totpConfig == nil {
+	if s.totp == nil {
 		return ErrTOTPNotConfigured
 	}
 	user, ok := s.readModel.FindByUserID(userID)
@@ -162,24 +126,11 @@ func (s *Service) requireValidTOTP(userID UserID, code, failEvent string) error 
 		s.logAuth(failEvent, userID, "reason", "totp_not_enabled")
 		return ErrTOTPNotEnabled
 	}
-	if !validateTOTP(user.TOTPSecret, code, s.totpConfig.Window) {
+	if !s.totp.ValidateCode(user.TOTPSecret, code) {
 		s.logAuth(failEvent, userID, "reason", "invalid_code")
 		return ErrInvalidTOTPCode
 	}
 	return nil
-}
-
-// --- TOTP validation (using pquerna/otp library) ---
-
-func validateTOTP(secret []byte, code string, window int) bool {
-	b32Secret := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(secret)
-	valid, err := totp.ValidateCustom(code, b32Secret, time.Now(), totp.ValidateOpts{
-		Skew:      uint(window),
-		Period:    30,
-		Digits:    otp.DigitsSix,
-		Algorithm: otp.AlgorithmSHA1,
-	})
-	return err == nil && valid
 }
 
 // pendingTOTPSecret is a temporary secret stored between EnableTOTP and VerifyTOTPSetup.
