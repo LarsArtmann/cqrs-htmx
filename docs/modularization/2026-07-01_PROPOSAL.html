@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Unix-Style Modularization Review — cqrs-htmx</title>
+    <title>Unix-Style Modularization Review — cqrs-htmx (v2)</title>
     <style>
       :root {
         --color-graphite: #0e0e10;
@@ -14,6 +14,7 @@
         --color-blue: #6eb5ff;
         --color-yellow: #f4d35e;
         --color-amber: #ffb347;
+        --color-green: #5eead4;
         --color-hairline: rgba(244, 244, 240, 0.12);
         --color-hairline-strong: rgba(244, 244, 240, 0.25);
         --surface: var(--color-graphite);
@@ -28,10 +29,7 @@
         --problem: var(--color-red);
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
-        --rose: var(--problem);
-        --emerald: var(--solution);
-        --coral: var(--problem);
-        --teal: var(--solution);
+        --good: var(--color-green);
         --radius: 0px;
         --font-heading:
           ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -88,7 +86,7 @@
       }
       .sidebar {
         display: none;
-        width: 220px;
+        width: 240px;
         flex-shrink: 0;
       }
       .sidebar nav {
@@ -242,7 +240,7 @@
         margin-top: 0.2rem;
       }
       .stat-good .stat-value {
-        color: var(--solution);
+        color: var(--good);
       }
       .stat-bad .stat-value {
         color: var(--problem);
@@ -265,6 +263,9 @@
       .card-warning {
         border-left: 3px solid var(--warning);
       }
+      .card-insight {
+        border-left: 3px solid var(--good);
+      }
       .card h4 {
         margin-bottom: 0.5rem;
       }
@@ -284,7 +285,7 @@
         border-left: 3px solid var(--warning);
       }
       .issue-nice {
-        border-left: 3px solid var(--solution);
+        border-left: 3px solid var(--good);
       }
       .severity {
         display: inline-block;
@@ -304,8 +305,8 @@
         color: var(--warning);
       }
       .severity-nice {
-        background: color-mix(in srgb, var(--solution) 20%, transparent);
-        color: var(--solution);
+        background: color-mix(in srgb, var(--good) 20%, transparent);
+        color: var(--good);
       }
       .where {
         font-family: var(--font-mono);
@@ -323,6 +324,9 @@
       }
       .callout-warning {
         border-left: 3px solid var(--warning);
+      }
+      .callout-insight {
+        border-left: 3px solid var(--good);
       }
       .badge {
         display: inline-block;
@@ -346,7 +350,7 @@
         border: 1px solid var(--border);
       }
       .badge-good {
-        background: var(--solution);
+        background: var(--good);
         color: var(--surface);
       }
       table {
@@ -428,7 +432,7 @@
         border: 1px solid var(--border);
       }
       .dep-tree .ok {
-        color: var(--solution);
+        color: var(--good);
       }
       .dep-tree .unwanted {
         color: var(--problem);
@@ -436,6 +440,9 @@
       .dep-tree .root {
         color: var(--accent);
         font-weight: 700;
+      }
+      .dep-tree .layer {
+        color: var(--solution);
       }
       .strengths {
         margin: 1rem 0;
@@ -448,7 +455,7 @@
         align-items: start;
       }
       .strength .check {
-        color: var(--solution);
+        color: var(--good);
         font-weight: 800;
         font-size: 1.2rem;
       }
@@ -495,6 +502,31 @@
         gap: 1rem;
         margin: 1rem 0;
       }
+      .layer-box {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 0.8rem 1rem;
+        margin: 0.5rem 0;
+      }
+      .layer-box .layer-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        color: var(--accent);
+        font-size: 0.8rem;
+      }
+      .layer-box .layer-modules {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-top: 0.2rem;
+      }
+      blockquote {
+        border-left: 3px solid var(--accent);
+        padding: 0.5rem 1rem;
+        margin: 1rem 0;
+        color: var(--text-muted);
+        font-style: italic;
+      }
       @media (min-width: 1024px) {
         .sidebar {
           display: block;
@@ -521,9 +553,9 @@
   </head>
   <body>
     <div class="top-bar">
-      <span>Go Modularization Review</span>
+      <span>Go Modularization Review v2</span>
       <span>2026-07-01</span>
-      <span>Direction-Neutral &middot; Unix-Style</span>
+      <span>go-cqrs-lite Layer Model &middot; Unix Philosophy</span>
     </div>
 
     <div class="layout">
@@ -531,12 +563,14 @@
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
+          <a href="#layers">go-cqrs-lite Layers</a>
+          <a href="#ecosystem">Ecosystem DAG</a>
           <a href="#state">Current State</a>
           <a href="#root">Root Module</a>
-          <a href="#usermgmt">usermgmt</a>
+          <a href="#usermgmt">usermgmt Debt</a>
           <a href="#unix">Unix Pipe Test</a>
+          <a href="#enforcement">CI Enforcement</a>
           <a href="#proposal">Proposed Changes</a>
-          <a href="#dag">DAG &amp; Risks</a>
           <a href="#plan">Execution Plan</a>
           <a href="#reflection">Reflection</a>
         </nav>
@@ -544,26 +578,32 @@
 
       <main class="main">
         <div class="hero">
-          <div class="hero-badge">Unix-Style Decomposition Review</div>
+          <div class="hero-badge">Unix-Style Decomposition Review v2</div>
           <h1>cqrs-htmx Module Boundary Analysis</h1>
           <p class="hero-subtitle">
-            Direction-neutral re-modularization assessment of an 8-module Go library repo. Focus:
-            decomposition depth, the Unix pipe test, and transitive dependency bloat. Verifies
-            whether each module does one thing well and composes like a Unix pipe.
+            Direction-neutral re-modularization assessment viewed through the lens of
+            <strong>go-cqrs-lite's 54-module CI-enforced layering</strong>. The upstream library
+            demonstrates the Unix philosophy in practice — mechanism separated from policy,
+            dependency budgets per module, layer violations failing CI. This review asks: does
+            cqrs-htmx compose with that model, or fight it?
           </p>
         </div>
 
         <nav class="toc">
           <ul>
             <li><a href="#summary">00 — Summary &amp; Verdict</a></li>
-            <li><a href="#state">01 — Current State Analysis (8 modules)</a></li>
-            <li><a href="#root">02 — Root Module Deep-Dive (cyclic core)</a></li>
-            <li><a href="#usermgmt">03 — usermgmt God-Package Analysis</a></li>
-            <li><a href="#unix">04 — The Unix Pipe Test</a></li>
-            <li><a href="#proposal">05 — Proposed Changes</a></li>
-            <li><a href="#dag">06 — DAG Verification &amp; Risk Assessment</a></li>
-            <li><a href="#plan">07 — Execution Plan</a></li>
-            <li><a href="#reflection">08 — Final Reflection</a></li>
+            <li>
+              <a href="#layers">01 — The go-cqrs-lite Layer Reference (54 modules, 8 layers)</a>
+            </li>
+            <li><a href="#ecosystem">02 — Three-Repo Ecosystem DAG</a></li>
+            <li><a href="#state">03 — Current State Analysis (8 modules)</a></li>
+            <li><a href="#root">04 — Root Module: Keep As-Is</a></li>
+            <li><a href="#usermgmt">05 — usermgmt: Layer Violation Analysis</a></li>
+            <li><a href="#unix">06 — The Unix Pipe Test</a></li>
+            <li><a href="#enforcement">07 — Missing CI Enforcement</a></li>
+            <li><a href="#proposal">08 — Proposed Changes</a></li>
+            <li><a href="#plan">09 — Execution Plan</a></li>
+            <li><a href="#reflection">10 — Final Reflection</a></li>
           </ul>
         </nav>
 
@@ -572,16 +612,16 @@
 
         <div class="stat-grid">
           <div class="stat-card stat-good">
-            <div class="stat-value">6</div>
+            <div class="stat-value">7</div>
             <div class="stat-label">Healthy Modules</div>
           </div>
-          <div class="stat-card stat-warn">
-            <div class="stat-value">1</div>
-            <div class="stat-label">God-Package (usermgmt)</div>
-          </div>
           <div class="stat-card stat-bad">
-            <div class="stat-value">5</div>
-            <div class="stat-label">Forced Transitive Deps</div>
+            <div class="stat-value">1</div>
+            <div class="stat-label">Layer Violation (usermgmt)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">0</div>
+            <div class="stat-label">CI Layer Checks</div>
           </div>
           <div class="stat-card">
             <div class="stat-value">8</div>
@@ -592,48 +632,271 @@
         <div class="card card-solution">
           <h4>Root Module (cqrs-htmx/v3): KEEP AS-IS</h4>
           <p>
-            46 production files in one flat package. The
-            <strong>errors &harr; response &harr; csrf</strong>
-            3-node cycle is confirmed and blocks extraction. The flat package is a deliberate
-            consumer-UX choice — splitting would force multi-import for zero decoupling gain. The
-            prior proposal (2026-05-27) conclusion still holds despite 19&rarr;46 file growth: the
-            new files are optionally-used features (SSE, WebSocket, rate limiting), not new
-            concerns.
+            46 production files, one flat package. The
+            <strong>errors &harr; response &harr; csrf</strong> 3-node cycle is confirmed and blocks
+            extraction. Consumer UX contract: one import, everything available. Matches the Unix
+            principle of <em>"one tool that does one thing well"</em> — this module's one thing is
+            "HTMX-aware CQRS HTTP integration."
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>usermgmt (usermgmt/v3): LAYER VIOLATION — NOT JUST A GOD-PACKAGE</h4>
+          <p>
+            go-cqrs-lite separates domain (L1-L3), infrastructure (L4-L5), and composition presets
+            (L6) into
+            <strong>54 independently versioned modules with CI-enforced layering</strong>. usermgmt
+            bundles the equivalent of <strong>all 6 layers in one package</strong>: domain types,
+            decider logic, SQL stores, auth implementations, stack presets, and HTTP handlers. The
+            <code>Service</code> struct holds <code>*webauthn.WebAuthn</code> and
+            <code>oauth2Providers</code> directly, forcing 5 heavy auth deps on every consumer. The
+            ECOSYSTEM_BOUNDARIES doc says usermgmt should "depend only on go-cqrs-lite" —
+            <strong>that contract is broken</strong>.
           </p>
         </div>
 
         <div class="card card-warning">
-          <h4>usermgmt (usermgmt/v3): GOD-PACKAGE DEBT IDENTIFIED</h4>
+          <h4>Missing CI Enforcement: The Real Gap</h4>
           <p>
-            84 production files, ~11,000 LOC in one flat package. The <code>Service</code> struct
-            directly holds <code>*webauthn.WebAuthn</code> and <code>oauth2Providers</code>, forcing
-            <strong>go-webauthn, golang.org/x/oauth2, coreos/go-oidc, go-jose, pquerna/otp</strong>
-            as transitive deps on <em>every</em> consumer — even those who only want basic user+role
-            management. This is the only module that <strong>fails the Unix pipe test</strong>.
+            go-cqrs-lite has 5 CI scripts: <code>check-module-layers.sh</code>,
+            <code>check-module-isolation.sh</code>, <code>check-replace-directives.sh</code>,
+            <code>check-version-drift.sh</code>, <code>check-arch.sh</code>. Plus per-module
+            <strong>dependency budgets</strong> (e.g. <code>id: 3 deps</code>,
+            <code>projection: 2 deps</code>, <code>stack: 13 deps</code>). cqrs-htmx has
+            <strong>zero</strong> of these. Without enforcement, layer violations accumulate
+            silently.
+            <strong>This is the highest-leverage improvement available.</strong>
           </p>
         </div>
 
-        <div class="card">
-          <h4>Other 6 Modules: CLEAN</h4>
+        <!-- ==================== GO-CQRS-LITE LAYERS ==================== -->
+        <h2 id="layers"><span class="num">01</span>The go-cqrs-lite Layer Reference</h2>
+
+        <p>
+          go-cqrs-lite is the <strong>authoritative reference</strong> for Unix-style module
+          decomposition in this ecosystem. It has 54 Go modules organized into 8 CI-enforced layers.
+          Every module does one thing well. Every module composes like a Unix pipe. The layering is
+          <strong>authoritative</strong> — defined in
+          <code>scripts/check-module-layers.sh</code> and enforced in CI.
+        </p>
+
+        <h3>The 8-Layer Model (CI-Enforced)</h3>
+
+        <div class="layer-box">
+          <div class="layer-num">Layer 0 — Leaf primitives (zero go-cqrs-lite deps)</div>
+          <div class="layer-modules">id/ &middot; dispatcher/ &middot; codec/ &middot; kv/</div>
+        </div>
+        <div class="layer-box">
+          <div class="layer-num">Layer 1 — Domain types &amp; interfaces</div>
+          <div class="layer-modules">
+            event/ &middot; command/ &middot; query/ &middot; scheduling/
+          </div>
+        </div>
+        <div class="layer-box">
+          <div class="layer-num">Layer 2 — Domain services</div>
+          <div class="layer-modules">
+            schema/ &middot; snapshot/ &middot; projection/ &middot; idempotency/ &middot; deriver/
+          </div>
+        </div>
+        <div class="layer-box">
+          <div class="layer-num">Layer 3 — Aggregate orchestration</div>
+          <div class="layer-modules">
+            decider/ &middot; graph/ &middot; scenario/ &middot; projectionhost/
+          </div>
+        </div>
+        <div class="layer-box">
+          <div class="layer-num">Layer 4 — Infrastructure primitives</div>
+          <div class="layer-modules">
+            storage/memory/ &middot; signing/ &middot; encryption/ &middot; otel/
+          </div>
+        </div>
+        <div class="layer-box">
+          <div class="layer-num">Layer 5 — Adapters &amp; implementations</div>
+          <div class="layer-modules">
+            storage/ &middot; watermill/ &middot; middleware/ &middot; listing/ &middot;
+            transport/http/ &middot; transport/grpc/ &middot; prometheus/ &middot; storage/pebble/
+            &middot; storage/turso/
+          </div>
+        </div>
+        <div class="layer-box">
+          <div class="layer-num">Layer 6 — Composition presets (bundler layer)</div>
+          <div class="layer-modules">
+            stack/ &middot; stack/memory/ &middot; stack/sqlite/ &middot; stack/postgres/ &middot;
+            stack/pebble/ &middot; stack/turso/
+          </div>
+        </div>
+        <div class="layer-box">
+          <div class="layer-num">Layer 7 — Top-level integration</div>
+          <div class="layer-modules">catalog/ &middot; integration/ &middot; stack/bench/</div>
+        </div>
+
+        <div class="card card-insight">
+          <h4>The Unix Principle Embodied</h4>
           <p>
-            adminui, integration_test, and all 4 examples have correct boundaries, correct replace
-            directives, and pass <code>GOWORK=off</code> builds. No changes needed.
+            Each go-cqrs-lite module is a <strong>pipe</strong>. <code>event/</code> defines what an
+            event IS. <code>storage/</code> defines how events are STORED.
+            <code>stack/sqlite/</code> wires them together. A consumer picks modules from each layer
+            and composes them in <code>main.go</code> — exactly like piping
+            <code>grep | sort | uniq</code>. No module reaches across layers. No module bundles
+            unrelated concerns.
+          </p>
+        </div>
+
+        <h3>Dependency Budgets (CI-Enforced)</h3>
+        <p>
+          Every module has a <strong>maximum production dependency budget</strong>. New deps require
+          explicit review. This is the mechanism that prevents god-modules from forming.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Layer</th>
+              <th>Budget</th>
+              <th>Unix Lesson</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>dispatcher/</code></td>
+              <td>0</td>
+              <td>0 deps</td>
+              <td>Pure interface — nothing else needed</td>
+            </tr>
+            <tr>
+              <td><code>id/</code></td>
+              <td>0</td>
+              <td>3 deps</td>
+              <td>Identifiers are a leaf concern</td>
+            </tr>
+            <tr>
+              <td><code>projection/</code></td>
+              <td>2</td>
+              <td>2 deps</td>
+              <td>Replay logic needs only event + id</td>
+            </tr>
+            <tr>
+              <td><code>decider/</code></td>
+              <td>3</td>
+              <td>10 deps</td>
+              <td>Orchestration is allowed broader reach</td>
+            </tr>
+            <tr>
+              <td><code>stack/</code></td>
+              <td>6</td>
+              <td>13 deps</td>
+              <td>Composition presets bundle by design</td>
+            </tr>
+            <tr>
+              <td><code>integration/</code></td>
+              <td>7</td>
+              <td>21 deps</td>
+              <td>Test suites are allowed the most</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="card card-problem">
+          <h4>usermgmt has NO budget — and it shows</h4>
+          <p>
+            usermgmt has <strong>~30 direct/indirect production dependencies</strong>. If it had a
+            budget (which it should), it would be flagged immediately. For comparison:
+            go-cqrs-lite's <code>decider/</code> (L3, the orchestration layer) has a budget of
+            <strong>10</strong>. usermgmt — which is conceptually at the same layer — has
+            <strong>3&times; that</strong>.
+          </p>
+        </div>
+
+        <!-- ==================== ECOSYSTEM DAG ==================== -->
+        <h2 id="ecosystem"><span class="num">02</span>Three-Repo Ecosystem DAG</h2>
+
+        <p>
+          <code>docs/ECOSYSTEM_BOUNDARIES.md</code> in go-cqrs-lite defines the authoritative
+          three-repo layering. This is the contract all three repos must follow.
+        </p>
+
+        <div class="dep-tree">
+          <span class="layer">go-branded-id / go-error-family</span> (foundation: public, zero deps
+          on ecosystem) │ └── <span class="root">go-cqrs-lite</span> (54 modules, L0-L7, CI-enforced
+          layering) │ ├── <span class="ok">cqrs-htmx</span> (HTTP + HTMX + usermgmt) │ └──
+          <span class="ok">apps</span> (admin-demo, basic, etc.) │ └──
+          <span class="ok">go-localsync</span> (sync SDK) └──
+          <span class="ok">github-local-sync</span> (consumer app)
+        </div>
+
+        <h3>The Boundary Contract (from ECOSYSTEM_BOUNDARIES.md)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Repo</th>
+              <th>Role</th>
+              <th>Should depend on</th>
+              <th>Should NOT contain</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>go-cqrs-lite</strong></td>
+              <td>Foundation library</td>
+              <td>go-branded-id, go-error-family</td>
+              <td>HTTP handlers, HTML, auth flows, user management</td>
+            </tr>
+            <tr>
+              <td><strong>cqrs-htmx root</strong></td>
+              <td>Web integration</td>
+              <td>go-cqrs-lite</td>
+              <td>Event store implementations, auth domain logic</td>
+            </tr>
+            <tr>
+              <td><strong>cqrs-htmx/usermgmt</strong></td>
+              <td>IAM platform</td>
+              <td><strong>"only go-cqrs-lite"</strong></td>
+              <td>HTTP dispatch wiring, HTMX formatting, SSE/WS, CSRF</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Contract Violation</span>
+          <h3>usermgmt was supposed to depend "only on go-cqrs-lite"</h3>
+          <div class="where">ECOSYSTEM_BOUNDARIES.md line 106-108</div>
+          <p>
+            The boundary doc states:
+            <em
+              >"usermgmt has zero imports from the cqrs-htmx root module. It depends only on
+              go-cqrs-lite."</em
+            >
+            This was true when written (2026-06-22). It is <strong>no longer true</strong>:
+          </p>
+          <ol>
+            <li>
+              <strong>usermgmt &rarr; root</strong> (added 2026-06-28 for RateLimiter) — breaks the
+              zero-import contract
+            </li>
+            <li>
+              <strong>usermgmt &rarr; casbin, webauthn, oauth2, oidc, jose, otp, sqlite</strong> —
+              the "only go-cqrs-lite" contract is broken by 7 heavy external deps
+            </li>
+          </ol>
+          <p>
+            The RateLimiter import is documented and accepted (one-way dependency, clean seam). But
+            the auth dep bloat is a genuine contract violation: usermgmt was designed to be a domain
+            module, not an infrastructure bundler.
           </p>
         </div>
 
         <!-- ==================== CURRENT STATE ==================== -->
-        <h2 id="state"><span class="num">01</span>Current State Analysis</h2>
+        <h2 id="state"><span class="num">03</span>Current State Analysis</h2>
 
         <h3>Module Landscape</h3>
         <table>
           <thead>
             <tr>
               <th>Module</th>
-              <th>Path</th>
               <th>Prod Files</th>
               <th>~LOC</th>
+              <th>Conceptual Layer</th>
               <th>Internal Deps</th>
-              <th>Replace</th>
               <th>GOWORK=off</th>
               <th>State</th>
             </tr>
@@ -641,461 +904,353 @@
           <tbody>
             <tr>
               <td><strong>Root</strong></td>
-              <td><code>./</code></td>
               <td>46</td>
               <td>~7,000</td>
+              <td>App (HTTP integration)</td>
               <td>0</td>
-              <td>None</td>
               <td><span class="badge badge-good">PASS</span></td>
               <td><span class="badge badge-good">Clean</span></td>
             </tr>
             <tr>
               <td><strong>usermgmt</strong></td>
-              <td><code>./usermgmt</code></td>
               <td>84</td>
               <td>~11,000</td>
+              <td><span class="badge badge-critical">L1-L6 mixed</span></td>
               <td>root</td>
-              <td>1 (&rarr; root)</td>
               <td><span class="badge badge-good">PASS</span></td>
-              <td><span class="badge badge-medium">God-Pkg</span></td>
+              <td><span class="badge badge-critical">Layer violation</span></td>
             </tr>
             <tr>
               <td><strong>adminui</strong></td>
-              <td><code>./adminui</code></td>
               <td>21</td>
               <td>~3,500</td>
+              <td>App (UI)</td>
               <td>root + usermgmt</td>
-              <td>2</td>
               <td><span class="badge badge-good">PASS</span></td>
               <td><span class="badge badge-good">Clean</span></td>
             </tr>
             <tr>
               <td><strong>integration_test</strong></td>
-              <td><code>./integration_test</code></td>
               <td>0 (test)</td>
               <td>~1,200</td>
+              <td>L7 (integration)</td>
               <td>root + usermgmt</td>
-              <td>2</td>
               <td><span class="badge badge-good">PASS</span></td>
               <td><span class="badge badge-good">Clean</span></td>
             </tr>
             <tr>
-              <td><strong>basic</strong></td>
-              <td><code>./examples/basic</code></td>
-              <td>1</td>
-              <td>~150</td>
-              <td>root</td>
-              <td>1</td>
+              <td><strong>4 examples</strong></td>
+              <td>1-7</td>
+              <td>~1,250</td>
+              <td>Apps</td>
+              <td>varies</td>
               <td><span class="badge badge-good">PASS</span></td>
-              <td><span class="badge badge-good">Clean</span></td>
-            </tr>
-            <tr>
-              <td><strong>admin-demo</strong></td>
-              <td><code>./examples/admin-demo</code></td>
-              <td>1</td>
-              <td>~200</td>
-              <td>root + usermgmt + adminui</td>
-              <td>3</td>
-              <td><span class="badge badge-good">PASS</span></td>
-              <td><span class="badge badge-good">Clean</span></td>
-            </tr>
-            <tr>
-              <td><strong>catalog-demo</strong></td>
-              <td><code>./examples/catalog-demo</code></td>
-              <td>1</td>
-              <td>~100</td>
-              <td>0 (standalone)</td>
-              <td>0</td>
-              <td>N/A</td>
-              <td><span class="badge badge-good">Clean</span></td>
-            </tr>
-            <tr>
-              <td><strong>datastar-demo</strong></td>
-              <td><code>./examples/datastar-demo</code></td>
-              <td>7</td>
-              <td>~800</td>
-              <td>0 (standalone)</td>
-              <td>0</td>
-              <td>N/A</td>
               <td><span class="badge badge-good">Clean</span></td>
             </tr>
           </tbody>
         </table>
 
-        <h3>Classification: Workspace Mode (Healthy)</h3>
-        <p>
-          The project is in clean workspace mode. <code>go.work</code> lists all 8 modules.
-          <code>go work sync</code> produces no changes. All modules build standalone with
-          <code>GOWORK=off</code>. No absolute paths in replace directives. The DAG is acyclic.
-        </p>
-
-        <h3>Dependency DAG (Current)</h3>
-        <div class="dep-tree">
-          <span class="root">cqrs-htmx/v3</span> (root, 46 files) ├──
-          <span class="ok">usermgmt/v3</span> (84 files, imports root for RateLimiter) │ ├──
-          <span class="ok">adminui/v3</span> (21 files, imports root + usermgmt) │ │ └──
-          <span class="ok">admin-demo</span> (imports root + usermgmt + adminui) │ └──
-          <span class="ok">integration_test</span> (imports root + usermgmt) ├──
-          <span class="ok">basic</span> (imports root only) ├──
-          <span class="ok">catalog-demo</span> (standalone — no internal deps) └──
-          <span class="ok">datastar-demo</span> (standalone — no internal deps)
+        <h3>Workspace Hygiene</h3>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>go.work synced, no drift</strong
+              ><span><code>go work sync</code> produces no changes</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Dual strategy in place</strong
+              ><span
+                >Both go.work (dev) + replace directives (CI/GOWORK=off) — matches go-cqrs-lite
+                pattern</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>All GOWORK=off builds pass</strong
+              ><span>Every module builds standalone — no workspace masking</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>No absolute paths in replace</strong
+              ><span>All replace directives use relative paths</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>DAG is acyclic</strong
+              ><span>root &rarr; usermgmt &rarr; adminui &rarr; admin-demo — no cycles</span>
+            </div>
+          </div>
         </div>
 
-        <p>
-          <strong>DAG is acyclic.</strong> Dependencies flow strictly downward: root &rarr; usermgmt
-          &rarr; adminui &rarr; admin-demo. No upward or circular dependencies. The root &rarr;
-          usermgmt one-way dependency (for RateLimiter) is clean and documented.
-        </p>
-
         <!-- ==================== ROOT MODULE ==================== -->
-        <h2 id="root"><span class="num">02</span>Root Module Deep-Dive</h2>
+        <h2 id="root"><span class="num">04</span>Root Module: Keep As-Is</h2>
 
-        <h3>46 Files in One Flat Package</h3>
         <p>
-          The root module grew from 19 files (2026-05-27) to 46 files today. The growth is driven by
-          new feature clusters: SSE (7 files), WebSocket (5 files), rate limiting (2 files), server
-          timing (1 file), idempotency (1 file), structured errors (1 file). These are all
-          <em>optionally-used</em> features — a consumer using just <code>App.Command()</code> never
-          touches SSE/WS/ratelimit code paths.
+          46 production files in one flat <code>package cqrshtmx</code>. The prior proposal
+          (2026-05-27) concluded "don't split" when there were 19 files. File count has since grown
+          2.4&times; — but the analysis still holds. Here's why, through the Unix philosophy lens:
         </p>
 
-        <h3>Concern Clusters</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Cluster</th>
-              <th>Files</th>
-              <th>~LOC</th>
-              <th>Depends On</th>
-              <th>Extractable?</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>HTMX</td>
-              <td>3</td>
-              <td>265</td>
-              <td>&empty; (leaf)</td>
-              <td><span class="badge badge-medium">Too small</span></td>
-            </tr>
-            <tr>
-              <td>Rate Limiting</td>
-              <td>2</td>
-              <td>361</td>
-              <td>&empty; (leaf)</td>
-              <td><span class="badge badge-medium">Too small</span></td>
-            </tr>
-            <tr>
-              <td>Server Timing</td>
-              <td>1</td>
-              <td>360</td>
-              <td>middleware</td>
-              <td><span class="badge badge-medium">Too small</span></td>
-            </tr>
-            <tr>
-              <td>CSRF</td>
-              <td>5</td>
-              <td>666</td>
-              <td>errors, core</td>
-              <td><span class="badge badge-critical">Cyclic</span></td>
-            </tr>
-            <tr>
-              <td>SSE</td>
-              <td>7</td>
-              <td>830</td>
-              <td>core, errors, ws</td>
-              <td><span class="badge badge-critical">Cyclic</span></td>
-            </tr>
-            <tr>
-              <td>WebSocket</td>
-              <td>5</td>
-              <td>717</td>
-              <td>core, errors, htmx</td>
-              <td><span class="badge badge-critical">Cyclic</span></td>
-            </tr>
-            <tr>
-              <td>Errors</td>
-              <td>4</td>
-              <td>675</td>
-              <td>htmx, core, csrf</td>
-              <td><span class="badge badge-critical">Cyclic</span></td>
-            </tr>
-            <tr>
-              <td>Core (handler/app/options/response)</td>
-              <td>9</td>
-              <td>~1,800</td>
-              <td>ALL</td>
-              <td><span class="badge badge-critical">Hub</span></td>
-            </tr>
-            <tr>
-              <td>Middleware/context</td>
-              <td>4</td>
-              <td>598</td>
-              <td>htmx, authz</td>
-              <td><span class="badge badge-critical">Cyclic</span></td>
-            </tr>
-            <tr>
-              <td>Security/authz</td>
-              <td>2</td>
-              <td>270</td>
-              <td>core, errors, ctx</td>
-              <td><span class="badge badge-critical">Cyclic</span></td>
-            </tr>
-            <tr>
-              <td>Util</td>
-              <td>2</td>
-              <td>60</td>
-              <td>core</td>
-              <td><span class="badge badge-medium">Too small</span></td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="card card-solution">
+          <h4>Unix Principle: "Do one thing well"</h4>
+          <p>
+            The root module's one thing:
+            <strong
+              >"HTMX-aware CQRS HTTP handler integration with auth, CSRF, and real-time."</strong
+            >
+            The 46 files are all facets of this single concern. SSE, WebSocket, rate limiting,
+            server timing — these aren't separate domains; they're transport mechanisms for the same
+            CQRS-over-HTTP integration.
+          </p>
+        </div>
 
         <div class="card card-problem">
-          <h4>The Confirmed Cycle: errors &harr; response &harr; csrf</h4>
-          <p>Three edges form an inseparable triangle:</p>
+          <h4>The Cycle That Blocks Extraction</h4>
+          <p>
+            Three edges form an inseparable triangle that prevents any cluster from being extracted:
+          </p>
           <ol>
             <li>
-              <strong>errors.go &rarr; response.go</strong>: uses <code>ContentTypePlain</code>,
-              <code>ContentTypeJSON</code>, <code>ContentTypeProblem</code>,
-              <code>JSONKeyError</code>, <code>JSONKeyStatus</code>
+              <strong>errors.go &rarr; response.go</strong>:
+              <code>ContentTypePlain/JSON/Problem</code>, <code>JSONKeyError/Status</code>
             </li>
             <li>
-              <strong>response.go &rarr; csrf_config.go</strong>: uses
+              <strong>response.go &rarr; csrf_config.go</strong>:
               <code>defaultCSRFHeaderName</code> (line 174)
             </li>
             <li>
-              <strong>csrf_config.go &rarr; errors.go</strong>: uses <code>ErrForbidden</code> (line
-              38), <code>ErrCSRFConfig</code>, <code>ErrorHandler</code> type
+              <strong>csrf_config.go &rarr; errors.go</strong>: <code>ErrForbidden</code> (line 38),
+              <code>ErrCSRFConfig</code>, <code>ErrorHandler</code>
             </li>
           </ol>
           <p>
-            Additionally: <strong>Core &harr; Errors</strong> bidirectional (sentinels flow both
-            ways), <strong>Core &harr; SSE</strong> bidirectional (notification types in
-            response.go, HandlerOption in notify.go). Six of eleven clusters participate in cycles.
-            Extraction of any single cluster is impossible without first breaking the cycle through
-            refactoring.
+            Additionally: Core &harr; Errors bidirectional. Core &harr; SSE bidirectional. Six of
+            eleven clusters participate in cycles.
+            <strong>The flat package IS the correct boundary.</strong>
           </p>
         </div>
 
         <div class="card card-solution">
-          <h4>Verdict: KEEP ROOT AS-IS</h4>
+          <h4>Consumer UX is a feature, not a bug</h4>
           <p>
-            <strong>Three reasons:</strong>
+            The library is called "cqrs-htmx." Consumers expect
+            <code>import cqrshtmx "..."</code> and get everything. Sub-package imports
+            (<code>cqrshtmx/sse</code>, <code>cqrshtmx/ratelimit</code>) would be hostile UX with
+            zero composability payoff: no consumer uses SSE <em>without</em> the CQRS handler. The
+            leaf clusters (rate limiting: 2 files, 361 LOC; HTMX serving: 3 files, 265 LOC) are too
+            small for separate modules.
           </p>
-          <ol>
-            <li>
-              <strong>The cycle blocks it.</strong> Breaking the errors/response/csrf triangle
-              requires moving ContentType constants, CSRF header names, and sentinel errors to
-              neutral locations. The refactoring cost exceeds the benefit for a library where these
-              concerns are genuinely co-dependent.
-            </li>
-            <li>
-              <strong>Consumer UX is a feature.</strong> The library is called "cqrs-htmx."
-              Consumers expect <code>import cqrshtmx "..."</code> and get everything. Sub-package
-              imports (<code>cqrshtmx/ratelimit</code>, <code>cqrshtmx/sse</code>) would be hostile
-              UX.
-            </li>
-            <li>
-              <strong>Leaf clusters are too small.</strong> Rate limiting (2 files, 361 LOC) and
-              HTMX serving (3 files, 265 LOC) don't justify separate modules. No composability
-              payoff: no consumer uses rate limiting <em>without</em> the CQRS handler.
-            </li>
-          </ol>
         </div>
 
         <!-- ==================== USERMGMT ==================== -->
-        <h2 id="usermgmt"><span class="num">03</span>usermgmt God-Package Analysis</h2>
+        <h2 id="usermgmt"><span class="num">05</span>usermgmt: Layer Violation Analysis</h2>
 
         <p>
-          usermgmt went from 9 files (2026-05-27) to 84 files today — nearly 10&times; growth. The
-          prior proposal didn't analyze usermgmt deeply because it was small. It now has ~11,000 LOC
-          in a single flat <code>package usermgmt</code> with zero <code>internal/</code>
-          directories.
+          usermgmt grew from 9 files (2026-05-27) to 84 files today — ~11,000 LOC in one flat
+          <code>package usermgmt</code> with zero <code>internal/</code> directories. Through the
+          go-cqrs-lite layer model, we can now see <strong>exactly what's wrong</strong>: it bundles
+          6 conceptual layers into one package.
         </p>
 
-        <h3>16 Concern Clusters in One Package</h3>
+        <h3>Mapping usermgmt Files to go-cqrs-lite Layers</h3>
         <table>
           <thead>
             <tr>
-              <th>Cluster</th>
+              <th>usermgmt Cluster</th>
               <th>Files</th>
               <th>~LOC</th>
-              <th>Heavy Deps Isolated?</th>
+              <th>go-cqrs-lite Equivalent Layer</th>
+              <th>Should Be Separate?</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>ES User aggregate (domain)</td>
-              <td>13</td>
-              <td>1,687</td>
-              <td><span class="badge badge-good">Pure domain</span></td>
-            </tr>
-            <tr>
-              <td>ES Bot/Membership/Tenant aggregates</td>
-              <td>18</td>
-              <td>1,515</td>
-              <td><span class="badge badge-good">Pure domain</span></td>
-            </tr>
-            <tr>
-              <td>ES wiring/projections</td>
-              <td>4</td>
-              <td>795</td>
-              <td><span class="badge badge-medium">Composition root</span></td>
-            </tr>
-            <tr>
-              <td>SQL persistence</td>
-              <td>5</td>
-              <td>913</td>
-              <td><span class="badge badge-high">database/sql, modernc/sqlite</span></td>
-            </tr>
-            <tr>
-              <td>DB stack presets</td>
-              <td>2</td>
-              <td>308</td>
-              <td><span class="badge badge-high">pgx, sqlite</span></td>
-            </tr>
-            <tr>
-              <td>Service layer</td>
-              <td>9</td>
-              <td>1,386</td>
-              <td><span class="badge badge-critical">God struct</span></td>
-            </tr>
-            <tr>
-              <td>Authorization (Casbin)</td>
-              <td>3</td>
-              <td>572</td>
-              <td><span class="badge badge-high">casbin/v3</span></td>
-            </tr>
-            <tr>
-              <td>WebAuthn</td>
-              <td>4</td>
-              <td>470</td>
-              <td><span class="badge badge-high">go-webauthn</span></td>
-            </tr>
-            <tr>
-              <td>OAuth2/OIDC</td>
-              <td>2</td>
-              <td>437</td>
-              <td><span class="badge badge-high">oauth2, go-oidc, go-jose</span></td>
-            </tr>
-            <tr>
-              <td>TOTP</td>
-              <td>2</td>
-              <td>538</td>
-              <td><span class="badge badge-high">pquerna/otp</span></td>
-            </tr>
-            <tr>
-              <td>HTTP/middleware/credential</td>
-              <td>5</td>
-              <td>715</td>
-              <td><span class="badge badge-medium">net/http</span></td>
+              <td>ES domain (4 aggregates)</td>
+              <td>31</td>
+              <td>3,202</td>
+              <td><strong>L1-L3</strong> (event/command/decider)</td>
+              <td><span class="badge badge-good">Core stays</span></td>
             </tr>
             <tr>
               <td>Domain value types</td>
               <td>10</td>
               <td>857</td>
-              <td><span class="badge badge-good">Leaf</span></td>
+              <td>L0-L1 (id, types)</td>
+              <td><span class="badge badge-good">Core stays</span></td>
+            </tr>
+            <tr>
+              <td>Service layer</td>
+              <td>9</td>
+              <td>1,386</td>
+              <td>L3 (orchestration)</td>
+              <td><span class="badge badge-good">Core stays</span></td>
+            </tr>
+            <tr>
+              <td>HTTP/middleware</td>
+              <td>5</td>
+              <td>715</td>
+              <td>L5 (transport)</td>
+              <td><span class="badge badge-medium">Debatable</span></td>
+            </tr>
+            <tr>
+              <td>WebAuthn</td>
+              <td>4</td>
+              <td>470</td>
+              <td>L4-L5 (infrastructure)</td>
+              <td><span class="badge badge-critical">Isolate dep</span></td>
+            </tr>
+            <tr>
+              <td>OAuth2/OIDC</td>
+              <td>2</td>
+              <td>437</td>
+              <td>L4-L5 (infrastructure)</td>
+              <td><span class="badge badge-critical">Isolate dep</span></td>
+            </tr>
+            <tr>
+              <td>TOTP</td>
+              <td>2</td>
+              <td>538</td>
+              <td>L4-L5 (infrastructure)</td>
+              <td><span class="badge badge-critical">Isolate dep</span></td>
+            </tr>
+            <tr>
+              <td>SQL persistence</td>
+              <td>5</td>
+              <td>913</td>
+              <td>L5-L6 (storage/stack)</td>
+              <td><span class="badge badge-critical">Isolate dep</span></td>
+            </tr>
+            <tr>
+              <td>DB stack presets</td>
+              <td>2</td>
+              <td>308</td>
+              <td><strong>L6</strong> (stack/*)</td>
+              <td><span class="badge badge-critical">Isolate dep</span></td>
+            </tr>
+            <tr>
+              <td>Casbin (authz)</td>
+              <td>3</td>
+              <td>572</td>
+              <td>L4 (infrastructure)</td>
+              <td><span class="badge badge-medium">Debatable</span></td>
+            </tr>
+            <tr>
+              <td>ES wiring/projections</td>
+              <td>4</td>
+              <td>795</td>
+              <td>L3-L4 (composition)</td>
+              <td><span class="badge badge-good">Core stays</span></td>
             </tr>
             <tr>
               <td>Misc/security utils</td>
               <td>4</td>
               <td>578</td>
-              <td><span class="badge badge-good">Stdlib only</span></td>
+              <td>L0-L2 (utilities)</td>
+              <td><span class="badge badge-good">Core stays</span></td>
             </tr>
           </tbody>
         </table>
 
+        <div class="card card-problem">
+          <h4>The Layer Violation</h4>
+          <p>
+            go-cqrs-lite would <strong>never</strong> put <code>storage/</code> (L5),
+            <code>stack/sqlite/</code> (L6), and <code>decider/</code> (L3) in the same module. It
+            would never put <code>signing/</code> (L4) and <code>event/</code> (L1) in the same
+            module. Yet usermgmt does exactly this: domain logic, SQL persistence, stack presets,
+            and auth implementations are all in one <code>package usermgmt</code>.
+          </p>
+          <p>
+            If usermgmt had go-cqrs-lite's CI layer enforcement, it would
+            <strong>fail immediately</strong>. The "module" is doing 6 things, not 1.
+          </p>
+        </div>
+
         <div class="issue issue-critical">
-          <span class="severity severity-critical">Critical Finding</span>
-          <h3>Transitive Dependency Bloat</h3>
+          <span class="severity severity-critical">Critical</span>
+          <h3>Transitive Dependency Bloat (FM#2)</h3>
           <div class="where">usermgmt/service_core.go:44-72 (Service struct)</div>
           <p>
-            The <code>Service</code> struct directly holds
-            <code>webauthn *webauthn.WebAuthn</code> and
-            <code>oauth2Providers map[string]*oauth2Provider</code>. This means
-            <strong>every consumer of usermgmt</strong> transitively pulls in:
+            The <code>Service</code> struct directly holds concrete types from 5 heavy libraries:
           </p>
           <ul>
             <li>
-              <code>github.com/go-webauthn/webauthn</code> (+ go-webauthn/x, go-tpm, cbor, msgp)
+              <code>webauthn *webauthn.WebAuthn</code> &rarr; go-webauthn + go-tpm + cbor + msgp
             </li>
-            <li><code>golang.org/x/oauth2</code></li>
-            <li><code>github.com/coreos/go-oidc/v3</code> (+ go-jose, golang-jwt)</li>
-            <li><code>github.com/pquerna/otp</code> (+ boombuler/barcode)</li>
             <li>
-              <code>modernc.org/sqlite</code> (+ libc, mathutil, memory — ~15 MB of CGO-free SQLite)
+              <code>oauth2Providers map[string]*oauth2Provider</code> &rarr; oauth2 + go-oidc +
+              go-jose
             </li>
+            <li><code>totpConfig *TOTPConfig</code> &rarr; pquerna/otp + barcode</li>
+            <li>SQL stores &rarr; modernc/sqlite + libc + mathutil (~15 MB)</li>
+            <li>Casbin &rarr; casbin/v3 + govaluate</li>
           </ul>
           <p>
-            A consumer who wants <strong>only</strong> user registration + role management +
-            sessions gets all five heavy dependency trees whether they use those features or not.
-            This is Go module failure mode <strong>FM#2: Transitive dep bloat</strong>.
+            A consumer who wants <strong>only</strong> user registration + roles + sessions gets all
+            5 dep trees. In go-cqrs-lite, a consumer who wants only <code>decider/</code> imports
+            <code>decider/</code> and gets exactly 10 deps — no SQLite, no signing, no encryption
+            unless they opt in.
           </p>
-          <div class="callout callout-warning">
-            <strong>Root cause:</strong> The Service struct is a God object (30+ fields, 9
-            service_*.go files are methods on it). Auth implementations are wired directly as
-            concrete types, not interfaces.
-          </div>
         </div>
 
         <div class="issue issue-important">
-          <span class="severity severity-important">Important Finding</span>
-          <h3>Pure Domain Layer is Trapped Inside</h3>
+          <span class="severity severity-important">Important</span>
+          <h3>Pure Domain Layer Trapped Inside</h3>
           <div class="where">usermgmt/es_*.go (31 files, ~3,200 LOC)</div>
           <p>
-            The event-sourcing domain layer (4 aggregates: User, Bot, Membership, Tenant) has
-            <strong>zero infrastructure dependencies</strong>. The <code>foldUser()</code>,
-            <code>foldMembership()</code>, <code>foldTenant()</code>,
-            <code>foldBot()</code> functions and all <code>decide*()</code> functions are pure
-            domain logic depending only on go-cqrs-lite and domain value types.
+            The event-sourcing domain layer (fold/decide for 4 aggregates) has
+            <strong>zero infrastructure deps</strong>. It depends only on go-cqrs-lite + domain
+            value types. This is exactly what go-cqrs-lite's L1-L3 modules provide. But it's trapped
+            inside the god-package — testing or reusing just the domain logic forces importing
+            WebAuthn, OAuth2, SQLite, and Casbin.
           </p>
           <p>
-            This clean seam is trapped inside the god-package. A consumer who wants to test or reuse
-            just the domain logic must import the entire usermgmt package — dragging in WebAuthn,
-            OAuth2, SQLite, and Casbin.
+            go-cqrs-lite's <code>example/user/</code> demonstrates the right pattern: it's a
+            <strong>main package</strong> (an application) that <strong>composes</strong> 14
+            go-cqrs-lite modules. It doesn't bundle them — it wires them in <code>main.go</code>.
+            usermgmt should evolve toward this composition model.
           </p>
         </div>
 
-        <div class="card card-solution">
-          <h4>The Clean Seams (if refactoring is pursued)</h4>
-          <ol>
-            <li>
-              <strong>WebAuthn</strong> (4 files): <code>go-webauthn</code> import localized to
-              <code>webauthn_adapter.go</code> + <code>webauthn_service.go</code>. Clean isolation
-              boundary.
-            </li>
-            <li>
-              <strong>OAuth2</strong> (2 files): <code>oauth2</code>/<code>go-oidc</code> confined
-              to <code>oauth2.go</code>. Provider discovery/exchange is self-contained.
-            </li>
-            <li>
-              <strong>TOTP</strong> (2 files): <code>pquerna/otp</code> in
-              <code>totp.go</code> only. <code>TOTPConfig</code> is a plain struct (Issuer, Window)
-              with no otp-lib types.
-            </li>
-            <li>
-              <strong>SQL persistence</strong> (5 files): <code>database/sql</code> +
-              <code>modernc/sqlite</code> behind <code>sql_*.go</code>. Session store is completely
-              independent of event store.
-            </li>
-          </ol>
-          <p>
-            Each of these could become a sub-package that isolates its heavy dep. Consumers who
-            don't import the sub-package don't pull the dep.
-          </p>
+        <h3>What go-cqrs-lite's example/user Teaches Us</h3>
+        <div class="grid-2">
+          <div class="card card-problem">
+            <h4>usermgmt today (anti-pattern)</h4>
+            <p>
+              <strong>84 files, 1 package.</strong><br />
+              Domain types + SQL + WebAuthn + OAuth2 + TOTP + HTTP + Casbin all in
+              <code>package usermgmt</code>. <code>Service</code> struct is a composition root that
+              also owns domain logic. Consumer gets everything whether they want it or not.
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>example/user pattern (target)</h4>
+            <p>
+              <strong>14 files, main package.</strong><br />
+              Domain types in separate files. Infrastructure wired in <code>main.go</code>. Consumer
+              picks <code>decider/</code> + <code>storage/sqlite/</code> +
+              <code>watermill/</code> and composes. No bundling. No forced deps.
+            </p>
+          </div>
         </div>
 
         <!-- ==================== UNIX PIPE TEST ==================== -->
-        <h2 id="unix"><span class="num">04</span>The Unix Pipe Test</h2>
+        <h2 id="unix"><span class="num">06</span>The Unix Pipe Test</h2>
 
-        <p>
-          The Unix philosophy test for modules:
-          <em
-            >"Does each module do one thing well? Can consumers compose it with other modules like
-            Unix pipes — importing only what they need?"</em
-          >
-        </p>
+        <blockquote>
+          "Does each module do one thing well? Can consumers compose it with other modules like Unix
+          pipes — importing only what they need?"
+        </blockquote>
 
         <table>
           <thead>
@@ -1110,148 +1265,241 @@
             <tr>
               <td><strong>Root</strong></td>
               <td>HTMX-aware CQRS HTTP integration</td>
-              <td>
-                Consumers compose with their own commands/queries. All features in one import is the
-                UX contract.
-              </td>
+              <td>Consumers compose with own commands/queries</td>
               <td><span class="badge badge-good">PASS</span></td>
             </tr>
             <tr>
               <td><strong>usermgmt</strong></td>
-              <td>User management &mdash; but bundles 5 auth strategies + SQL + Casbin</td>
-              <td>
-                Consumer wanting just user+roles is forced to import go-webauthn, oauth2, oidc,
-                jose, otp, sqlite
-              </td>
+              <td>5+ things: domain + SQL + WebAuthn + OAuth2 + TOTP + HTTP</td>
+              <td>Consumer wanting just user+roles gets 5 forced dep trees</td>
               <td><span class="badge badge-critical">FAIL</span></td>
             </tr>
             <tr>
               <td><strong>adminui</strong></td>
               <td>Admin dashboard UI</td>
-              <td>Consumers mount behind their own session middleware. Clean leaf.</td>
+              <td>Mount behind session middleware. Clean leaf.</td>
               <td><span class="badge badge-good">PASS</span></td>
             </tr>
             <tr>
               <td><strong>integration_test</strong></td>
               <td>Cross-module bridge tests</td>
-              <td>Test-only leaf. Correct boundary.</td>
+              <td>Test-only leaf</td>
               <td><span class="badge badge-good">PASS</span></td>
             </tr>
             <tr>
               <td><strong>4 examples</strong></td>
               <td>Runnable demos</td>
-              <td>Each standalone or minimal deps. Correct.</td>
+              <td>Each standalone or minimal deps</td>
               <td><span class="badge badge-good">PASS</span></td>
             </tr>
           </tbody>
         </table>
 
-        <div class="card card-problem">
-          <h4>usermgmt Fails the Pipe Test — But With Caveats</h4>
+        <div class="card card-insight">
+          <h4>The Fix Is Not Splitting Modules — It's Sub-Package Isolation</h4>
           <p>
-            The failure is real but nuanced. WebAuthn, OAuth2, and TOTP are not separate domains —
-            they're <em>authentication strategies</em> for the same domain (user management). The
-            question is decomposition <strong>depth</strong>, not domain count:
+            WebAuthn, OAuth2, and TOTP are <strong>not separate domains</strong> — they're
+            authentication strategies for the same domain (user management). The decomposition error
+            is <strong>depth</strong>, not domain count:
           </p>
           <ul>
             <li><strong>Right depth:</strong> One module for user management (domain cohesion)</li>
             <li>
-              <strong>Wrong depth:</strong> Bundling all auth implementations in the core package,
-              forcing their deps on all consumers
+              <strong>Wrong depth:</strong> Bundling all auth implementations as concrete types in
+              the core package
             </li>
           </ul>
           <p>
-            The fix is <strong>sub-package isolation within the same module</strong> — not splitting
-            usermgmt into separate modules. This preserves domain cohesion while eliminating dep
-            bloat.
+            The fix mirrors go-cqrs-lite's pattern: <code>storage/memory/</code>,
+            <code>storage/pebble/</code>, <code>storage/turso/</code> are
+            <strong>sub-modules</strong> that each isolate their heavy dep. Consumers import only
+            the storage backend they need. usermgmt should do the same with auth backends.
           </p>
         </div>
 
-        <!-- ==================== PROPOSED CHANGES ==================== -->
-        <h2 id="proposal"><span class="num">05</span>Proposed Changes</h2>
+        <!-- ==================== CI ENFORCEMENT ==================== -->
+        <h2 id="enforcement"><span class="num">07</span>Missing CI Enforcement</h2>
 
-        <h3>Module-Level: No Splits, No Mergers</h3>
+        <p>
+          This is the <strong>highest-leverage improvement available</strong>. go-cqrs-lite has 5 CI
+          scripts that prevent exactly the kind of degradation usermgmt experienced. cqrs-htmx has
+          zero. Without enforcement, layer violations accumulate silently — exactly what happened as
+          usermgmt grew from 9 to 84 files.
+        </p>
+
+        <h3>What go-cqrs-lite Enforces (That We Don't)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>CI Script</th>
+              <th>What It Catches</th>
+              <th>go-cqrs-lite</th>
+              <th>cqrs-htmx</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>check-module-layers.sh</code></td>
+              <td>Module depends on higher layer</td>
+              <td><span class="badge badge-good">YES</span></td>
+              <td><span class="badge badge-critical">NO</span></td>
+            </tr>
+            <tr>
+              <td>Dependency budgets</td>
+              <td>Module exceeds max production deps</td>
+              <td><span class="badge badge-good">YES</span></td>
+              <td><span class="badge badge-critical">NO</span></td>
+            </tr>
+            <tr>
+              <td><code>check-module-isolation.sh</code></td>
+              <td>Module fails GOWORK=off build</td>
+              <td><span class="badge badge-good">YES</span></td>
+              <td><span class="badge badge-critical">NO</span></td>
+            </tr>
+            <tr>
+              <td><code>check-version-drift.sh</code></td>
+              <td>Siblings at different versions</td>
+              <td><span class="badge badge-good">YES</span></td>
+              <td><span class="badge badge-critical">NO</span></td>
+            </tr>
+            <tr>
+              <td><code>check-replace-directives.sh</code></td>
+              <td>Absolute paths, missing replaces</td>
+              <td><span class="badge badge-good">YES</span></td>
+              <td><span class="badge badge-critical">NO</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-insight">
+          <strong>Key insight:</strong> go-cqrs-lite didn't prevent god-modules by being smarter —
+          it prevented them by adding a CI script that <em>fails the build</em> when a module
+          exceeds its dependency budget or depends on a higher layer. The mechanism is a shell
+          script, not good intentions.
+        </div>
+
+        <h3>Proposed Layer Assignment for cqrs-htmx</h3>
+        <p>If we adopted go-cqrs-lite's layer model:</p>
         <table>
           <thead>
             <tr>
               <th>Module</th>
-              <th>Action</th>
+              <th>Layer</th>
+              <th>Proposed Dep Budget</th>
               <th>Rationale</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Root (cqrs-htmx/v3)</td>
-              <td><strong>Keep</strong></td>
-              <td>Cyclic core, library UX contract, leaf clusters too small</td>
+              <td><strong>Root</strong></td>
+              <td>App</td>
+              <td>15</td>
+              <td>HTTP integration — broad reach is correct</td>
             </tr>
             <tr>
-              <td>usermgmt/v3</td>
-              <td><strong>Keep (with sub-package debt plan)</strong></td>
-              <td>Domain cohesion is correct; dep isolation needs sub-packages (future)</td>
+              <td><strong>usermgmt</strong></td>
+              <td>L3-L5</td>
+              <td><span class="badge badge-critical">Should be 12, currently ~30</span></td>
+              <td>Domain + service layer; auth deps should be isolated</td>
             </tr>
             <tr>
-              <td>adminui/v3</td>
-              <td><strong>Keep</strong></td>
-              <td>Clean leaf, correct boundary</td>
+              <td><strong>adminui</strong></td>
+              <td>App</td>
+              <td>10</td>
+              <td>UI module — leaf, composes root+usermgmt</td>
             </tr>
             <tr>
-              <td>integration_test</td>
-              <td><strong>Keep</strong></td>
-              <td>Correct test-only leaf</td>
-            </tr>
-            <tr>
-              <td>4 examples</td>
-              <td><strong>Keep</strong></td>
-              <td>All correct</td>
+              <td><strong>integration_test</strong></td>
+              <td>L7</td>
+              <td>20</td>
+              <td>Test suite — allowed the most</td>
             </tr>
           </tbody>
         </table>
 
-        <h3>Immediate Hygiene Fixes (Safe, Non-Breaking)</h3>
+        <!-- ==================== PROPOSED CHANGES ==================== -->
+        <h2 id="proposal"><span class="num">08</span>Proposed Changes</h2>
 
-        <div class="card card-warning">
-          <h4>v0.0.0 Version Normalization</h4>
-          <p>
-            Internal module references use real versions (<code>v3.3.0</code>, <code>v3.0.0</code>)
-            instead of <code>v0.0.0</code>. Since <code>replace</code> directives make the version
-            irrelevant for resolution, <code>v0.0.0</code> eliminates pseudo-version churn (e.g.,
-            <code>v0.0.0-20240115120000-abcdef123456</code>) that pollutes every
-            <code>go mod tidy</code> and PR diff.
-          </p>
-          <p>
-            <strong>Affected modules:</strong> usermgmt, adminui, integration_test, admin-demo,
-            basic
-          </p>
-        </div>
+        <h3>Tier 1 — Immediate: CI Enforcement + Hygiene (Safe, Non-Breaking)</h3>
 
-        <h3>Future: usermgmt Sub-Package Extraction (Debt Plan)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Breaking?</th>
+              <th>Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Add layer/isolation/budget CI scripts</strong></td>
+              <td>No</td>
+              <td>Prevents future god-package formation</td>
+            </tr>
+            <tr>
+              <td><strong>Fix admin-demo/adminui version (v3.0.0 &rarr; v3.3.0)</strong></td>
+              <td>No</td>
+              <td>Version consistency</td>
+            </tr>
+            <tr>
+              <td><strong>Normalize internal versions to v0.0.0</strong></td>
+              <td>No</td>
+              <td>Eliminates pseudo-version churn</td>
+            </tr>
+            <tr>
+              <td><strong>Update ECOSYSTEM_BOUNDARIES.md</strong></td>
+              <td>No</td>
+              <td>Document the usermgmt&rarr;root dep + auth dep reality</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Tier 2 — Future (v4): usermgmt Sub-Package Extraction</h3>
 
         <div class="callout callout-warning">
-          <strong>Not executed in this review.</strong> This is a major architectural refactoring
-          with breaking API changes to a published v3 library. Documented as a plan for future work.
+          <strong>Deferred to v4 major version.</strong> Breaking API changes to the
+          <code>Service</code> struct. The CI scripts from Tier 1 will prevent the problem from
+          getting worse in the meantime.
         </div>
 
-        <p>The proposed target structure (future, not now):</p>
-        <div class="dep-tree">
-          usermgmt/ <span class="ok"># ONE module — domain cohesion preserved</span> ├── *.go
-          <span class="ok"># core: domain types, ES domain, service, HTTP</span> ├──
-          <span class="ok">webauthn/</span>
-          <span class="ok"># sub-package: go-webauthn isolated here</span> ├──
-          <span class="ok">oauth2/</span>
-          <span class="ok"># sub-package: oauth2/oidc/go-jose isolated</span> ├──
-          <span class="ok">totp/</span>
-          <span class="ok"># sub-package: pquerna/otp isolated</span> └──
-          <span class="ok">sql/</span>
-          <span class="ok"># sub-package: database/sql + modernc/sqlite isolated</span>
+        <p>The target structure, modeled on go-cqrs-lite's own pattern:</p>
+
+        <div class="compare-header">
+          <div>go-cqrs-lite pattern (reference)</div>
+          <div>usermgmt target (future)</div>
+        </div>
+        <div class="compare-row">
+          <div>
+            <div class="dep-tree">
+              storage/ <span class="ok"># L5: SQL adapter</span> ├── go.mod
+              <span class="ok"># database/sql, kv, otel</span> storage/memory/
+              <span class="ok"># L4: in-memory</span> ├── go.mod
+              <span class="ok"># zero heavy deps</span> storage/pebble/
+              <span class="ok"># L5: PebbleDB</span> ├── go.mod
+              <span class="ok"># pebble only</span> stack/sqlite/
+              <span class="ok"># L6: composition</span> ├── go.mod
+              <span class="ok"># stack + storage + sqlite</span>
+            </div>
+          </div>
+          <div>
+            <div class="dep-tree">
+              usermgmt/ <span class="ok"># ONE module, domain core</span> ├── *.go
+              <span class="ok"># ES domain, Service, types</span> ├── webauthn/
+              <span class="ok"># sub-pkg: go-webauthn isolated</span> │ └── (PasskeyProvider impl)
+              ├── oauth2/ <span class="ok"># sub-pkg: oauth2/oidc/jose isolated</span> │ └──
+              (OAuthProvider impl) ├── totp/
+              <span class="ok"># sub-pkg: pquerna/otp isolated</span> │ └── (TOTPVerifier impl) └──
+              sql/ <span class="ok"># sub-pkg: database/sql + sqlite</span>
+              └── (SQL read/session stores)
+            </div>
+          </div>
         </div>
 
         <p>
-          This requires the <code>Service</code> struct to use <strong>interfaces</strong> for auth
-          concerns instead of concrete types. The WebAuthn/OAuth2/TOTP implementations would
-          register as plugins implementing those interfaces. Consumers who don't import the
-          sub-packages don't get the deps. This is the Unix pipe model applied within a single
-          module.
+          The <code>Service</code> struct would use <strong>interfaces</strong> (PasskeyProvider,
+          OAuthProvider, TOTPVerifier) instead of concrete types. Consumers who don't import the
+          sub-packages don't get the deps. This is the Unix pipe model: mechanism (interfaces) in
+          core, policy (implementations) in sub-packages.
         </p>
 
         <div class="compare-header">
@@ -1262,9 +1510,9 @@
           <div>
             <pre><code><span class="tok-comment">// service_core.go — forces ALL deps</span>
 <span class="tok-keyword">type</span> <span class="tok-func">Service</span> <span class="tok-keyword">struct</span> {
-    webauthn *<span class="tok-type">webauthn.WebAuthn</span>     <span class="tok-comment">// go-webauthn</span>
-    oauth2   <span class="tok-type">map</span>[<span class="tok-type">string</span>]*<span class="tok-type">oauth2Provider</span> <span class="tok-comment">// oauth2+oidc</span>
-    totp     *<span class="tok-type">TOTPConfig</span>             <span class="tok-comment">// pquerna/otp</span>
+    webauthn *<span class="tok-type">webauthn.WebAuthn</span>
+    oauth2   <span class="tok-type">map</span>[<span class="tok-type">string</span>]*<span class="tok-type">oauth2Provider</span>
+    totp     *<span class="tok-type">TOTPConfig</span>
 }</code></pre>
           </div>
           <div>
@@ -1277,64 +1525,21 @@
           </div>
         </div>
 
-        <!-- ==================== DAG & RISKS ==================== -->
-        <h2 id="dag"><span class="num">06</span>DAG Verification &amp; Risk Assessment</h2>
-
-        <h3>DAG Verification (Current — No Changes Proposed)</h3>
-        <p>
-          The current module DAG is acyclic. No changes to module boundaries are proposed in this
-          review. The v0.0.0 normalization is a go.mod text change — it does not affect the DAG.
-        </p>
-
-        <h3>Risk Assessment</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Risk</th>
-              <th>Severity</th>
-              <th>Mitigation</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>v0.0.0 normalization breaks <code>go mod tidy</code></td>
-              <td><span class="badge badge-low">Low</span></td>
-              <td>
-                Replace directives override version; <code>v0.0.0</code> is the standard pattern
-              </td>
-            </tr>
-            <tr>
-              <td>usermgmt god-package grows further</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>Document as debt; plan sub-package extraction before v4</td>
-            </tr>
-            <tr>
-              <td>Root module exceeds cognitive load</td>
-              <td><span class="badge badge-low">Low</span></td>
-              <td>46 files is large but cohesive; well-prefixed symbols mitigate</td>
-            </tr>
-            <tr>
-              <td>Sub-package extraction breaks consumers</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>Defer to major version bump (v4); provide compat shims</td>
-            </tr>
-          </tbody>
-        </table>
-
         <!-- ==================== EXECUTION PLAN ==================== -->
-        <h2 id="plan"><span class="num">07</span>Execution Plan</h2>
+        <h2 id="plan"><span class="num">09</span>Execution Plan</h2>
 
-        <h3>Tier 1 — Immediate Hygiene (Safe, Non-Breaking)</h3>
+        <h3>Tier 1 — Immediate Actions</h3>
 
         <div class="migration-step">
           <div class="migration-num">1</div>
           <div class="migration-content">
-            <h4>Normalize internal version refs to v0.0.0</h4>
+            <h4>Add CI layer/isolation/budget check scripts</h4>
             <p>
-              Change <code>v3.3.0</code> / <code>v3.0.0</code> &rarr; <code>v0.0.0</code> for all
-              <code>github.com/larsartmann/cqrs-htmx/*</code> require entries across usermgmt,
-              adminui, integration_test, admin-demo, basic. Run <code>go mod tidy</code> per module.
-              Verify <code>GOWORK=off go build ./...</code> passes in each.
+              Port go-cqrs-lite's <code>check-module-isolation.sh</code> and
+              <code>check-version-drift.sh</code> to cqrs-htmx. Add a simplified
+              <code>check-module-layers.sh</code> for our 4-layer model (root &rarr; usermgmt &rarr;
+              adminui &rarr; examples). Add <code>nix run .#check-modules</code> app. Define
+              dependency budgets: root 15, usermgmt 12 (flagged), adminui 10, integration_test 20.
             </p>
           </div>
         </div>
@@ -1342,10 +1547,11 @@
         <div class="migration-step">
           <div class="migration-num">2</div>
           <div class="migration-content">
-            <h4>Verify workspace integrity</h4>
+            <h4>Fix version inconsistency + normalize to v0.0.0</h4>
             <p>
-              Run <code>go work sync</code>, verify <code>git diff --exit-code</code> is clean. Run
-              <code>nix run .#test</code> to confirm all modules pass with race detector.
+              admin-demo/adminui <code>v3.0.0</code> &rarr; <code>v3.3.0</code>. Normalize all
+              internal <code>larsartmann/cqrs-htmx/*</code> refs to <code>v0.0.0</code>. Run
+              <code>go mod tidy</code> per module. Verify GOWORK=off builds pass.
             </p>
           </div>
         </div>
@@ -1353,44 +1559,36 @@
         <div class="migration-step">
           <div class="migration-num">3</div>
           <div class="migration-content">
-            <h4>Update documentation</h4>
+            <h4>Update ECOSYSTEM_BOUNDARIES.md</h4>
             <p>
-              Update <code>docs/modularization/PROPOSAL.md</code> with this review's findings. Add
-              the usermgmt god-package debt to <code>TODO_LIST.md</code>. Update
-              <code>AGENTS.md</code> with the v0.0.0 normalization note.
+              Document that usermgmt&rarr;root dependency exists (RateLimiter, since 2026-06-28).
+              Document the auth dep bloat as known debt. Update the boundary contract to reflect
+              reality.
             </p>
           </div>
-        </div>
-
-        <h3>Tier 2 — Future: usermgmt Sub-Package Extraction</h3>
-
-        <div class="callout callout-warning">
-          <strong>Deferred to v4 major version.</strong> This involves breaking API changes to the
-          <code>Service</code> struct and should not be done in a minor release.
         </div>
 
         <div class="migration-step">
           <div class="migration-num">4</div>
           <div class="migration-content">
-            <h4>Extract <code>usermgmt/totp</code> sub-package (easiest)</h4>
+            <h4>Update project docs</h4>
             <p>
-              Move <code>totp.go</code> &rarr; <code>totp/totp.go</code>. Define
-              <code>TOTPVerifier</code> interface in core. <code>TOTPConfig</code> stays in core
-              (plain struct). This isolates <code>pquerna/otp</code>. Estimated: 2 files moved, 1
-              interface added.
+              AGENTS.md (file count 40&rarr;46, layer debt note). TODO_LIST.md (v4 sub-package
+              extraction item). PROPOSAL.md (superseded). Add this HTML to docs/modularization/.
             </p>
           </div>
         </div>
 
+        <h3>Tier 2 — Future (v4 Breaking Changes)</h3>
+
         <div class="migration-step">
           <div class="migration-num">5</div>
           <div class="migration-content">
-            <h4>Extract <code>usermgmt/webauthn</code> sub-package</h4>
+            <h4>Extract <code>usermgmt/totp</code> sub-package (easiest first)</h4>
             <p>
-              Move <code>webauthn_*.go</code> &rarr; <code>webauthn/</code>. Define
-              <code>PasskeyProvider</code> interface in core. Service holds interface, not
-              <code>*webauthn.WebAuthn</code>. Isolates go-webauthn + transitive deps. Estimated: 4
-              files moved, interface extraction, Service struct change.
+              Move <code>totp.go</code> &rarr; <code>totp/totp.go</code>. Define
+              <code>TOTPVerifier</code> interface in core. <code>TOTPConfig</code> stays (plain
+              struct). Isolates <code>pquerna/otp</code>.
             </p>
           </div>
         </div>
@@ -1398,10 +1596,11 @@
         <div class="migration-step">
           <div class="migration-num">6</div>
           <div class="migration-content">
-            <h4>Extract <code>usermgmt/oauth2</code> sub-package</h4>
+            <h4>Extract <code>usermgmt/webauthn</code> sub-package</h4>
             <p>
-              Move <code>oauth2*.go</code> &rarr; <code>oauth2/</code>. Define
-              <code>OAuthProvider</code> interface in core. Isolates oauth2 + oidc + jose.
+              Move <code>webauthn_*.go</code> &rarr; <code>webauthn/</code>. Define
+              <code>PasskeyProvider</code> interface. Service holds interface, not
+              <code>*webauthn.WebAuthn</code>.
             </p>
           </div>
         </div>
@@ -1409,68 +1608,83 @@
         <div class="migration-step">
           <div class="migration-num">7</div>
           <div class="migration-content">
+            <h4>Extract <code>usermgmt/oauth2</code> sub-package</h4>
+            <p>
+              Move <code>oauth2*.go</code> &rarr; <code>oauth2/</code>. Define
+              <code>OAuthProvider</code> interface. Isolates oauth2 + oidc + jose.
+            </p>
+          </div>
+        </div>
+
+        <div class="migration-step">
+          <div class="migration-num">8</div>
+          <div class="migration-content">
             <h4>Extract <code>usermgmt/sql</code> sub-package</h4>
             <p>
               Move <code>sql_*.go</code> &rarr; <code>sql/</code>. Isolates database/sql +
-              modernc/sqlite. Read model interfaces stay in core.
+              modernc/sqlite. Read model interfaces stay in core. Pattern mirrors go-cqrs-lite's
+              <code>storage/</code> module.
             </p>
           </div>
         </div>
 
         <!-- ==================== REFLECTION ==================== -->
-        <h2 id="reflection"><span class="num">08</span>Final Reflection</h2>
+        <h2 id="reflection"><span class="num">10</span>Final Reflection</h2>
 
         <div class="strengths">
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>7 of 8 modules have correct boundaries</strong>
-              <span
-                >The DAG is acyclic, replace directives are correct, GOWORK=off builds pass
-                everywhere.</span
+              <strong>7 of 8 modules have correct boundaries</strong
+              ><span
+                >DAG acyclic, replace directives correct, GOWORK=off builds pass everywhere</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Root module's flat package is justified</strong>
-              <span
-                >The cyclic core + library UX contract make it the right choice. Prior analysis
-                holds.</span
-              >
+              <strong>Root flat package is architecturally justified</strong
+              ><span>Cyclic core + library UX contract + Unix "one thing well" principle</span>
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Workspace hygiene is excellent</strong>
-              <span
-                >go.work synced, no absolute paths, dual strategy (replace + go.work) in
-                place.</span
-              >
+              <strong>Workspace hygiene matches go-cqrs-lite patterns</strong
+              ><span>Dual strategy (go.work + replace), no absolute paths, synced workspace</span>
             </div>
           </div>
         </div>
 
         <h3>Honest Assessment</h3>
         <p>
-          This is a well-modularized library repo with <strong>one identified debt</strong>: the
-          usermgmt god-package. The debt is real (transitive dep bloat violates the Unix principle
-          of "consumers import what they need") but the fix is a major refactoring that should be
-          deferred to a v4 breaking-change release. The immediate v0.0.0 normalization is the only
-          safe, high-value action available now.
+          The v1 review (earlier today) identified the usermgmt god-package as "dep bloat." The v2
+          review, informed by go-cqrs-lite's layer model, reframes it more precisely:
+          <strong>usermgmt is a layer violation</strong>. It bundles L1-L6 concepts in one package,
+          something go-cqrs-lite would never allow. The ECOSYSTEM_BOUNDARIES contract ("depend only
+          on go-cqrs-lite") is broken by 7 heavy external deps.
         </p>
 
         <p>
-          The review confirms the prior proposal's core conclusion (don't split root) while
-          identifying that usermgmt has outgrown its original 9-file structure and now needs a debt
-          plan for sub-package extraction.
+          The <strong>real gap</strong> isn't the god-package itself — it's the
+          <strong>missing CI enforcement</strong>
+          that allowed it to form. go-cqrs-lite prevents this degradation with shell scripts that
+          fail the build. Adding equivalent scripts to cqrs-htmx is the highest-leverage
+          improvement: it prevents future layer violations and creates a forcing function for the v4
+          sub-package extraction.
+        </p>
+
+        <p>
+          The root module's flat package is confirmed correct by the Unix principle: it does one
+          thing well (HTMX-aware CQRS HTTP integration), and the errors&rarr;response&rarr;csrf
+          cycle makes it structurally indivisible. Consumer UX (one import) is the right contract
+          for a library at this layer.
         </p>
 
         <footer class="footer">
-          Generated 2026-07-01 &middot; Direction-neutral Unix-style decomposition review &middot;
-          All claims verified against source code
+          Generated 2026-07-01 (v2) &middot; Reviewed against go-cqrs-lite 54-module layer model
+          &middot; ECOSYSTEM_BOUNDARIES.md contract &middot; All claims verified against source code
         </footer>
       </main>
     </div>
