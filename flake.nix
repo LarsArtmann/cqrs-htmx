@@ -428,6 +428,24 @@
               };
             };
 
+            check-modules = {
+              type = "app";
+              meta.description = "Run all module architecture checks (isolation, dep budgets, version drift, replace directives)";
+              program = pkgs.writeShellApplication {
+                name = "check-modules";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                  bash scripts/check-module-isolation.sh
+                  bash scripts/check-dep-budgets.sh
+                  bash scripts/check-version-drift.sh
+                  bash scripts/check-replace-directives.sh
+                  echo ""
+                  echo "✓ All module architecture checks passed"
+                '';
+              };
+            };
+
             check-codegen = {
               type = "app";
               meta.description = "Verify adminui _templ.go files match .templ sources (no codegen drift)";
