@@ -177,7 +177,9 @@ _Pareto-prioritized work from planning docs, status reports, and 40-item audit._
 - [ ] **Root module sub-package extraction** — REJECTED for v3: sub-package extraction within same go.mod adds 30+ re-export wrappers with ZERO consumer benefit (same go.mod = same dep tree). Only separate Go modules reduce deps — that's v4. See `docs/planning/2026-07-01_18-27_sollbruchstellen-execution.md` for the Versclimmbesserung analysis
 - [x] **constants.go** — DONE. Shared constants extracted from response.go. Cycle debunked.
 - [x] **CI module architecture enforcement** — DONE. 4 scripts: check-module-isolation, check-dep-budgets, check-version-drift, check-replace-directives. Wired as `nix run .#check-modules`.
-- [x] **Auth strategy interfaces** — DONE. TOTPVerifier, WebAuthnProvider, OAuth2Provider in `usermgmt/auth_interfaces.go`. v4 prep, non-breaking.
+- [x] **Auth strategy interfaces** — DONE. TOTPVerifier, WebAuthnProvider, OAuth2Provider in `usermgmt/auth_interfaces.go`. Compile-time assertion `var _ TOTPVerifier = (*Service)(nil)` proves Service already satisfies TOTP contract. v4 prep, non-breaking.
+- [x] **Version drift fixed** — DONE. All go-cqrs-lite sibling modules now pinned to consistent versions across root, usermgmt, adminui, integration_test, and all examples. Version drift CI script passes in strict mode.
+- [x] **CI module-architecture job** — DONE. Added `module-architecture` job to `.github/workflows/ci.yml` running all 4 architecture scripts. Version drift runs in advisory mode (warn, don't block).
 
 ---
 

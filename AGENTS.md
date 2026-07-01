@@ -9,21 +9,21 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 ## Quick Reference
 
-| Item        | Value                                                                                                 |
-| ----------- | ----------------------------------------------------------------------------------------------------- |
-| Language    | Go 1.26.3                                                                                             |
-| Module      | github.com/larsartmann/cqrs-htmx/v3                                                                   |
-| Test        | `nix run .#test` or `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race`            |
-| Build       | `nix run .#build` or `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`                         |
-| Lint        | `nix run .#lint` or `golangci-lint run`                                                               |
-| Coverage    | `nix run .#coverage`                                                                                  |
-| Fmt         | `nix fmt`                                                                                             |
-| Flake       | `nix flake check` (formatting + devShells + apps)                                                     |
-| Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200) |
-| ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                         |
-| CheckMods   | `nix run .#check-modules` (isolation + dep budgets + version drift + replace directives)              |
-| DevShell    | `nix develop` (go, gopls, golangci-lint)                                                              |
-| Coverage    | 95.4% root, 80.1% usermgmt (~747 usermgmt + ~135 root tests)                                          |
+| Item        | Value                                                                                                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language    | Go 1.26.3                                                                                                                                                  |
+| Module      | github.com/larsartmann/cqrs-htmx/v3                                                                                                                        |
+| Test        | `nix run .#test` or `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race`                                                                 |
+| Build       | `nix run .#build` or `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`                                                                              |
+| Lint        | `nix run .#lint` or `golangci-lint run`                                                                                                                    |
+| Coverage    | `nix run .#coverage`                                                                                                                                       |
+| Fmt         | `nix fmt`                                                                                                                                                  |
+| Flake       | `nix flake check` (formatting + devShells + apps)                                                                                                          |
+| Diagrams    | `nix run .#render-diagrams` (renders all `docs/**/*.d2` → SVG; dark canvas auto-detected → theme 200)                                                      |
+| ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                                                                              |
+| CheckMods   | `nix run .#check-modules` (isolation + dep budgets + version drift + replace directives — also in `.github/workflows/ci.yml` as `module-architecture` job) |
+| DevShell    | `nix develop` (go, gopls, golangci-lint)                                                                                                                   |
+| Coverage    | 95.4% root, 80.1% usermgmt (~747 usermgmt + ~135 root tests)                                                                                               |
 
 ## Architecture
 

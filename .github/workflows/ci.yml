@@ -159,6 +159,29 @@ jobs:
           GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+  module-architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Module isolation check (GOWORK=off build+vet)
+        run: bash scripts/check-module-isolation.sh
+        env:
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Dependency budget check
+        run: bash scripts/check-dep-budgets.sh
+
+      - name: Version drift check (advisory)
+        run: bash scripts/check-version-drift.sh || true
+
+      - name: Replace directive check
+        run: bash scripts/check-replace-directives.sh
+
   security:
     runs-on: ubuntu-latest
     steps:

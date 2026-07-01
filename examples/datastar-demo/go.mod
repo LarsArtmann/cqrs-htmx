@@ -27,8 +27,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.3.1 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

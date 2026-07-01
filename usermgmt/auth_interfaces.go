@@ -79,3 +79,10 @@ type OAuth2Provider interface {
 	// Returns the external account info for user matching/creation.
 	FinishLogin(ctx context.Context, provider, code, state string) (*ExternalAccount, error)
 }
+
+// Compile-time assertion: Service already satisfies TOTPVerifier today.
+// This proves the interface is implementable and locks the contract.
+// WebAuthnProvider and OAuth2Provider are v4 target shapes — the current
+// Service methods use *http.Request and protocol-specific response types
+// that will be replaced by json.RawMessage/[]byte in v4 sub-packages.
+var _ TOTPVerifier = (*Service)(nil)

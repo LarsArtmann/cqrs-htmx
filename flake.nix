@@ -438,7 +438,7 @@
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-module-isolation.sh
                   bash scripts/check-dep-budgets.sh
-                  bash scripts/check-version-drift.sh
+                  bash scripts/check-version-drift.sh --strict
                   bash scripts/check-replace-directives.sh
                   echo ""
                   echo "✓ All module architecture checks passed"
