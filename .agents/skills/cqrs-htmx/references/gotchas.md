@@ -10,9 +10,9 @@ Go modules at v2+ require the major-version suffix in the import path. Forgettin
 
 ```go
 // RIGHT
-cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
-"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
-"github.com/larsartmann/cqrs-htmx/adminui/v3"
+cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+"github.com/larsartmann/cqrs-htmx/adminui/v4"
 "github.com/larsartmann/go-cqrs-lite/command/v3"
 
 // WRONG (won't resolve, or resolves to an ancient v1)

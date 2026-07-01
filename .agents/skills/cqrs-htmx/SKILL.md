@@ -18,9 +18,9 @@ An app typically composes some subset of these. They are **independent Go module
 
 | Module       | Import path                                              | Provides                                                                                                                                                                   |
 | ------------ | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **root**     | `github.com/larsartmann/cqrs-htmx/v3` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (CSRF/HTMX/recovery/security/rate-limit), context IDs, error→HTTP mapping, SSE + WebSocket, embedded HTMX JS               |
-| **usermgmt** | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`           | Event-sourced `Service` (register/login/logout/me), WebAuthn passkeys, OAuth2/OIDC, TOTP, roles/tenants/bots, authz via Casbin, session middleware, SQL + in-memory stores |
-| **adminui**  | `github.com/larsartmann/cqrs-htmx/adminui/v3`            | One-call admin dashboard (templ + HTMX). Depends on root + usermgmt                                                                                                        |
+| **root**     | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (CSRF/HTMX/recovery/security/rate-limit), context IDs, error→HTTP mapping, SSE + WebSocket, embedded HTMX JS               |
+| **usermgmt** | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`           | Event-sourced `Service` (register/login/logout/me), WebAuthn passkeys, OAuth2/OIDC, TOTP, roles/tenants/bots, authz via Casbin, session middleware, SQL + in-memory stores |
+| **adminui**  | `github.com/larsartmann/cqrs-htmx/adminui/v4`            | One-call admin dashboard (templ + HTMX). Depends on root + usermgmt                                                                                                        |
 
 The core CQRS building blocks come from **go-cqrs-lite**, imported per-package:
 
@@ -65,7 +65,7 @@ package main
 import (
 	"net/http"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
@@ -126,10 +126,10 @@ package main
 import (
 	"net/http"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 func main() {
@@ -172,7 +172,7 @@ Read `references/usermgmt.md` for: the full setup matrix (in-memory / SQLite / P
 One call builds a templ + HTMX dashboard for managing users, tenants, members, and the audit log.
 
 ```go
-import "github.com/larsartmann/cqrs-htmx/adminui/v3"
+import "github.com/larsartmann/cqrs-htmx/adminui/v4"
 
 panel, err := adminui.New(adminui.Config{
 	Service:     svc,             // *usermgmt.Service — required
@@ -253,7 +253,7 @@ WebSockets mirror this: `NewWSBroadcaster()`, `WSOOBHTML(...)`, `ParseWSMessageI
 
 These are the highest-frequency mistakes. Read `references/gotchas.md` for the full list.
 
-1. **Module suffixes are mandatory.** v3+ Go modules require the `/v3` suffix: `github.com/larsartmann/cqrs-htmx/v3`, `.../usermgmt/v3`, `.../adminui/v3`. Forgetting the suffix gives confusing "module not found" or wrong-version errors.
+1. **Module suffixes are mandatory.** v3+ Go modules require the `/v3` suffix: `github.com/larsartmann/cqrs-htmx/v4`, `.../usermgmt/v3`, `.../adminui/v3`. Forgetting the suffix gives confusing "module not found" or wrong-version errors.
 2. **Two different UserID types.** Root `cqrshtmx.UserID` is ULID-backed (via `go-cqrs-lite/id`); usermgmt `usermgmt.UserID` is string-backed (`go-branded-id`). They are **not** assignable to each other. Bridge with `.Get()` (raw value), never `.String()` (brand-prefixed). When wiring session context into root handlers, convert explicitly.
 3. **Validation comes AFTER the decoder** in the `HandlerOption` list. The validator reads the decoded value off the context — reversing the order silently skips validation.
 4. **Middleware trio order is `CSRF → HTMX → enrichment`.** Put your session middleware _outside_ (before) CSRF. Getting this wrong causes silent CSRF gaps or missing HTMX context.

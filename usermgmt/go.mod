@@ -1,15 +1,15 @@
-module github.com/larsartmann/cqrs-htmx/usermgmt/v3
+module github.com/larsartmann/cqrs-htmx/usermgmt/v4
 
 go 1.26.4
 
-replace github.com/larsartmann/cqrs-htmx/v3 => ../
+replace github.com/larsartmann/cqrs-htmx/v4 => ../
 
 require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/coreos/go-oidc/v3 v3.19.0
 	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/go-webauthn/webauthn v0.17.4
-	github.com/larsartmann/cqrs-htmx/v3 v3.3.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.0.0
 	github.com/larsartmann/go-branded-id v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.5.0
@@ -72,7 +72,6 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.3.0 // indirect

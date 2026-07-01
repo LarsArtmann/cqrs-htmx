@@ -12,7 +12,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | Item        | Value                                                                                                                                                      |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language    | Go 1.26.3                                                                                                                                                  |
-| Module      | github.com/larsartmann/cqrs-htmx/v3                                                                                                                        |
+| Module      | github.com/larsartmann/cqrs-htmx/v4                                                                                                                        |
 | Test        | `nix run .#test` or `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race`                                                                 |
 | Build       | `nix run .#build` or `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`                                                                              |
 | Lint        | `nix run .#lint` or `golangci-lint run`                                                                                                                    |
@@ -177,9 +177,9 @@ cqrs-htmx/
 
 | Module           | go.mod                                              | Tests | Notes                                                     |
 | ---------------- | --------------------------------------------------- | ----- | --------------------------------------------------------- |
-| Root             | `github.com/larsartmann/cqrs-htmx/v3`               | Yes   | Core library                                              |
-| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v3`      | Yes   | Independent submodule; imports root for RateLimiter       |
-| adminui          | `github.com/larsartmann/cqrs-htmx/adminui/v3`       | Yes   | Admin Dashboard UI (templ+HTMX), depends on root+usermgmt |
+| Root             | `github.com/larsartmann/cqrs-htmx/v4`               | Yes   | Core library                                              |
+| usermgmt         | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`      | Yes   | Independent submodule; imports root for RateLimiter       |
+| adminui          | `github.com/larsartmann/cqrs-htmx/adminui/v4`       | Yes   | Admin Dashboard UI (templ+HTMX), depends on root+usermgmt |
 | integration_test | `github.com/larsartmann/cqrs-htmx/integration_test` | Yes   | Tests cross-module bridges                                |
 | datastar-demo    | `examples/datastar-demo/`                           | No    | Standalone example (main package)                         |
 | catalog-demo     | `examples/catalog-demo/`                            | No    | Catalog doc-server example (main package)                 |

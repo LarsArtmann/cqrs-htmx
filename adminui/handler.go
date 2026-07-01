@@ -3,8 +3,8 @@ package adminui
 import (
 	"net/http"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // Handler is a mounted admin panel. Build it with [New] and register it on a

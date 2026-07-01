@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // TestCrossModuleErrUnauthorized verifies that ErrUnauthorized sentinels from

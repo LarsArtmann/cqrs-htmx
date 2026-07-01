@@ -51,15 +51,15 @@ All tests in all modules must pass with zero errors before submitting.
 
 ## Architecture
 
-This is a **library/SDK**, not an application. There is no `main` package. Consumers import `github.com/larsartmann/cqrs-htmx/v3` into their projects.
+This is a **library/SDK**, not an application. There is no `main` package. Consumers import `github.com/larsartmann/cqrs-htmx/v4` into their projects.
 
 The project uses a **multi-module Go workspace** with 8 modules:
 
 | Module           | Path                        | Go Module                                      | Tests |
 | ---------------- | --------------------------- | ---------------------------------------------- | ----- |
-| Root             | `./`                        | `github.com/larsartmann/cqrs-htmx/v3`          | Yes   |
-| Usermgmt         | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt/v3` | Yes   |
-| Admin UI         | `./adminui/`                | `github.com/larsartmann/cqrs-htmx/adminui/v3`  | Yes   |
+| Root             | `./`                        | `github.com/larsartmann/cqrs-htmx/v4`          | Yes   |
+| Usermgmt         | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt/v4` | Yes   |
+| Admin UI         | `./adminui/`                | `github.com/larsartmann/cqrs-htmx/adminui/v4`  | Yes   |
 | Integration Test | `./integration_test/`       | separate test module                           | Yes   |
 | Basic Example    | `./examples/basic/`         | example app                                    | No    |
 | Datastar Demo    | `./examples/datastar-demo/` | example app (Datastar SSE)                     | No    |

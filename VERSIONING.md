@@ -15,13 +15,13 @@ module suffix convention described in the [Go module wiki](https://go.dev/wiki/M
 
 Each major version lives at a distinct import path:
 
-- **v3**: `github.com/larsartmann/cqrs-htmx/v3` (current)
+- **v3**: `github.com/larsartmann/cqrs-htmx/v4` (current)
 - **v4**: `github.com/larsartmann/cqrs-htmx/v4` (future)
 
 Sub-modules follow the same pattern:
 
-- `github.com/larsartmann/cqrs-htmx/usermgmt/v3`
-- `github.com/larsartmann/cqrs-htmx/adminui/v3`
+- `github.com/larsartmann/cqrs-htmx/usermgmt/v4`
+- `github.com/larsartmann/cqrs-htmx/adminui/v4`
 
 API documentation generation now lives in `go-cqrs-lite/catalog/v3` (the `simple` and `docserver` sub-packages), not in cqrs-htmx.
 

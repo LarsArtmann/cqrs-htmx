@@ -4,7 +4,7 @@ The user management submodule — a passwordless, event-sourced CQRS user manage
 
 ## Module-Specific Setup
 
-This is a **separate Go module** (`github.com/larsartmann/cqrs-htmx/usermgmt/v3`). It has its own `go.mod` and must be tested/built with `GOWORK=off`:
+This is a **separate Go module** (`github.com/larsartmann/cqrs-htmx/usermgmt/v4`). It has its own `go.mod` and must be tested/built with `GOWORK=off`:
 
 ```bash
 cd usermgmt

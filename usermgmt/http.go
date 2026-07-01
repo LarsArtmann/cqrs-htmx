@@ -9,7 +9,7 @@ import (
 	"slices"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // AuthorizerFunc checks whether a user is authorized for a specific operation.

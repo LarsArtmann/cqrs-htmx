@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // verificationVerifyRequest is the body for POST /auth/email/verify.

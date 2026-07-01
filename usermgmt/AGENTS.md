@@ -1,6 +1,6 @@
 # usermgmt Submodule
 
-> Independent Go module: `github.com/larsartmann/cqrs-htmx/usermgmt/v3`
+> Independent Go module: `github.com/larsartmann/cqrs-htmx/usermgmt/v4`
 > Zero imports from root module. Cross-module bridging happens in `integration_test/` only.
 
 ## Quick Reference
@@ -30,7 +30,7 @@ Event-sourced CQRS using go-cqrs-lite Decider pattern. All state changes are eve
 
 1. **GOWORK=off required** — usermgmt has its own `go.mod`. Workspace mode (`go.work`) won't work for per-module commands.
 2. **Cannot import root module** — `github.com/larsartmann/cqrs-htmx` is NOT a dependency. Rate limiting, SSE, etc. are reimplemented locally.
-3. **Module path has /v2** — `github.com/larsartmann/cqrs-htmx/usermgmt/v3`.
+3. **Module path has /v2** — `github.com/larsartmann/cqrs-htmx/usermgmt/v4`.
 
 ### Event Sourcing
 
