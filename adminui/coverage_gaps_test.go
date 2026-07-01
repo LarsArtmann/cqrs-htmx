@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // newTenantAdminPanel creates a tenant-scoped admin panel for testing

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {

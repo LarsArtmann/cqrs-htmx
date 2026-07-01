@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/basic
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/v3 v3.3.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0
@@ -20,14 +20,11 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.3.0 // indirect
@@ -43,10 +40,9 @@ require (
 	go.opentelemetry.io/otel/sdk v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
-	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/larsartmann/cqrs-htmx/v3 => ../..
+replace github.com/larsartmann/cqrs-htmx/v4 => ../..

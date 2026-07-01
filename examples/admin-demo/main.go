@@ -16,9 +16,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/larsartmann/cqrs-htmx/adminui/v3"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	"github.com/larsartmann/cqrs-htmx/adminui/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 

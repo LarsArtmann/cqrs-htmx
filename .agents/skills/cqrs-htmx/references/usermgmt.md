@@ -1,6 +1,6 @@
 # usermgmt reference
 
-Import: `"github.com/larsartmann/cqrs-htmx/usermgmt/v3"`. This submodule provides event-sourced user management: register/login/logout, WebAuthn passkeys, OAuth2/OIDC, TOTP, roles/tenants/bots, and Casbin authorization.
+Import: `"github.com/larsartmann/cqrs-htmx/usermgmt/v4"`. This submodule provides event-sourced user management: register/login/logout, WebAuthn passkeys, OAuth2/OIDC, TOTP, roles/tenants/bots, and Casbin authorization.
 
 **Authentication is passwordless.** There is no password column. Login is via WebAuthn (passkeys) or OAuth2/OIDC. TOTP is an optional second factor.
 

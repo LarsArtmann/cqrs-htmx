@@ -3,7 +3,7 @@ package adminui
 import (
 	"net/http"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // auditIndex renders the audit log. In tenant-admin mode the log is global

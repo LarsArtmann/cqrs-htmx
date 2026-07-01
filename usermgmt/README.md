@@ -8,7 +8,7 @@ RBAC authorization via Casbin, and opt-in event signing/encryption.
 ## Installation
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/usermgmt/v3
+go get github.com/larsartmann/cqrs-htmx/usermgmt/v4
 ```
 
 ## Event Signing & Encryption (Opt-in)

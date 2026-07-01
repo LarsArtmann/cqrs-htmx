@@ -19,7 +19,7 @@
 > delivers it AND confirm it works. If you're unsure, it's `PARTIALLY_FUNCTIONAL`
 > at best — never round up.
 
-## Root Module (`github.com/larsartmann/cqrs-htmx/v3`)
+## Root Module (`github.com/larsartmann/cqrs-htmx/v4`)
 
 ### Core
 
@@ -134,7 +134,7 @@
 
 ---
 
-## usermgmt Submodule (`github.com/larsartmann/cqrs-htmx/usermgmt/v3`)
+## usermgmt Submodule (`github.com/larsartmann/cqrs-htmx/usermgmt/v4`)
 
 ### User Aggregate (Event-Sourced)
 

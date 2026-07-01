@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	command "github.com/larsartmann/go-cqrs-lite/command/v3"
 )
 

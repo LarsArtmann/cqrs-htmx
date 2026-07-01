@@ -1,7 +1,7 @@
 package adminui
 
 import (
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // Mode controls the scope of the admin panel.

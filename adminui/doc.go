@@ -1,5 +1,5 @@
 // Package adminui provides a ready-made, good-looking Admin Dashboard for
-// applications built on [github.com/larsartmann/cqrs-htmx/usermgmt/v3].
+// applications built on [github.com/larsartmann/cqrs-htmx/usermgmt/v4].
 //
 // It renders a complete HTMX-driven management UI — dashboard, users, tenants,
 // tenant members, and an audit log — backed by a [*usermgmt.Service].

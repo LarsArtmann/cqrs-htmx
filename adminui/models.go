@@ -1,7 +1,7 @@
 package adminui
 
 import (
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // navItem is a single sidebar entry. Icon is a key resolved by the svgIcon

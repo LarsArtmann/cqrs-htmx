@@ -1,6 +1,6 @@
 # cqrs-htmx
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v3.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v4.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.26+](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://go.dev/)
