@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.5.0] - 2026-07-01
+
+### Added
+
+#### Error Model Overhaul
+
+- **HTTPStatusCarrier interface** (`errors_status.go`): Errors can now pin a specific HTTP status via `WithHTTPStatus(err, status)`. The wrapper preserves the cause's error family + sentinel identity (`errors.Is` traverses). Replaces the old `errorStatus()` split brain in usermgmt — usermgmt sentinels now use `withStatus()` which delegates to `WithHTTPStatus`. See ADR-0034.
+- **ProblemDetailsErrorHandler**: Emits `StructuredError` as `application/problem+json` — unified RFC 7807 shape across all transports (HTTP, SSE, WS). Opt in via `Config.ErrorHandler`.
+- **StructuredError enrichment**: Now exposes `Message`, `Why`, `Fix` fields (RFC 7807 extensions from `Family.DefaultMessage/Why/Fix`). Same JSON shape across HTTP/SSE/WS.
+- **5xx detail redaction**: `SafeDetail(err, status, includeInternal)` replaces 5xx error text with the family's public-safe default message. 4xx detail (raw error) is preserved. `Config.IncludeInternalDetails` opts back in for dev. `StructuredError.Detail` is also redacted for SSE/WS.
+- **Exported auth error codes**: `CodeUnauthorized`/`CodeForbidden` — compile-time-safe shared between root and usermgmt.
+
+#### Architecture Enforcement
+
+- **CI module architecture scripts** (4 scripts): `check-module-isolation.sh` (GOWORK=off build+vet per module), `check-dep-budgets.sh` (per-module max production deps), `check-version-drift.sh` (sibling version consistency), `check-replace-directives.sh` (no absolute paths). Wired as `nix run .#check-modules` and as a `module-architecture` CI job in `.github/workflows/ci.yml`.
+- **Auth strategy interfaces** (`usermgmt/auth_interfaces.go`): `TOTPVerifier`, `WebAuthnProvider`, `OAuth2Provider` interfaces. Non-breaking, additive. Compile-time assertion `var _ TOTPVerifier = (*Service)(nil)` proves Service already satisfies the TOTP contract. Prepares the v4 extraction seam.
+
+### Changed
+
+- **go-cqrs-lite upgraded to v3.5.0**: All modules updated. v3.5.0 ships CBOR codec support, stricter encoding validation, storage package restructure into view/relational/ subdirs (with backward-compatible aliases), and lint cleanup across 10 modules.
+- **Generic `errors.AsType`**: Replaced manual error chain type assertions with the generic helper from go-error-family.
+- **Command decode error wrapping**: Decode failures now wrapped with context and family parity (`event.Wrapf` with `event.Classify(err)`).
+
+### Fixed
+
+- **usermgmt `errorStatus` split brain eliminated**: The old `errorStatus()` function in usermgmt was a separate mapping path from root's `MapError`. Now unified through `HTTPStatusCarrier` — one resolution path across modules.
+- **Root module go.sum gap**: Missing `storage/memory/v3` and `snapshot/v3` entries caused `GOWORK=off go vet` to fail. Fixed via targeted `go get` + `go mod tidy`.
+- **Root dep budget regression**: v3.5.0 upgrade promoted 7 indirect deps to direct (23 vs budget 18). Fixed via `go mod tidy -e` — properly demoted back to 16 direct deps.
+- **Version drift eliminated**: All go-cqrs-lite sibling modules (snapshot, schema, storage/memory, listing, scenario) now pinned to consistent versions across root, usermgmt, adminui, integration_test, and all examples.
+- **wrapcheck lint in usermgmt**: `forbidden()` now routes through `withStatus()` like all its siblings; `withStatus` marked as wrapping boundary.
+
+### Rejected
+
+- **ADR-0030 (Phase 2b IndexedDB)**: Marked REJECTED. Client-side persistence for the SharedWorker queue is a fundamentally inconsistent API surface that doesn't belong in a server-side Go library.
+
 ## [Unreleased]
 
 ### Added

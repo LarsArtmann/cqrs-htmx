@@ -109,7 +109,7 @@ var (
 // withStatus wraps a Rejection-classified error carrying an explicit HTTP status.
 // Used when the correct status differs from the Rejection default (400).
 func withStatus(code, msg string, status int) error {
-	return cqrshtmx.WithHTTPStatus(event.NewRejection(code, msg), status)
+	return cqrshtmx.WithHTTPStatus(event.NewRejection(code, msg), status) //nolint:wrapcheck // wrapping boundary
 }
 
 // Semantic helpers for the common non-default statuses, keeping the sentinel
@@ -119,7 +119,7 @@ func unauthorized(code, msg string) error {
 }
 
 func forbidden() error {
-	return cqrshtmx.WithHTTPStatus(event.NewRejection(cqrshtmx.CodeForbidden, "access denied"), http.StatusForbidden)
+	return withStatus(cqrshtmx.CodeForbidden, "access denied", http.StatusForbidden)
 }
 
 func notFound(code, msg string) error {

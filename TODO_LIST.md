@@ -1,10 +1,9 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-06-29 | **Coverage:** 94.2% root, 79.3% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v3.3.0 (go-cqrs-lite v3.4.0)
+**Updated:** 2026-07-01 | **Coverage:** 94.2% root, 79.4% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v3.5.0 (go-cqrs-lite v3.5.0)
 
 ## Status Legend
 
-- [ ] OPEN
 - [x] DONE
 - [~] PARTIALLY DONE
 - [-] NOT APPLICABLE / BLOCKED
