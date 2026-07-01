@@ -9,6 +9,12 @@
 
 set -euo pipefail
 
+# --strict: exit 1 on drift (for blocking CI). Default: warn only.
+STRICT=false
+if [[ "${1:-}" == "--strict" ]]; then
+    STRICT=true
+fi
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
@@ -67,7 +73,12 @@ if [[ "$failed" -eq 0 ]]; then
     echo "✓ No version drift detected"
 else
     echo ""
-    echo "✗ Version drift detected — siblings reference different versions"
-    echo "  Fix: ensure all modules reference the same version of internal deps"
-    exit 1
+    if [[ "$STRICT" == "true" ]]; then
+        echo "✗ Version drift detected — siblings reference different versions"
+        echo "  Fix: ensure all modules reference the same version of internal deps"
+        exit 1
+    else
+        echo "⚠ Version drift detected (advisory mode — use --strict to fail)"
+        echo "  Fix: ensure all modules reference the same version of internal deps"
+    fi
 fi

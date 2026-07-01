@@ -27,7 +27,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.3.1 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.3.0 // indirect
