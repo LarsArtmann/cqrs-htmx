@@ -1,0 +1,97 @@
+direction: down
+
+# usermgmt: Current Cluster Graph
+# 84 production files → 6 concern layers
+
+usermgmt_current: {
+  style.fill: "#0d1118"
+
+  domain: {
+    label: "DOMAIN LAYER (pure fold/decide)\n20 files, ~2,100 lines\nZERO I/O deps"
+    style.fill: "#0d1f1a"
+    style.stroke: "#5eead4"
+
+    user_domain: {
+      label: "User aggregate\nevents commands state constants\ndecide guards profile credentials security\nupcaster"
+      style.fill: "#0d1f1a"
+    }
+
+    membership_domain: {
+      label: "Membership aggregate\nevents commands state decide dispatch"
+      style.fill: "#0d1f1a"
+    }
+
+    tenant_domain: {
+      label: "Tenant aggregate\nevents commands state decide dispatch"
+      style.fill: "#0d1f1a"
+    }
+
+    bot_domain: {
+      label: "Bot aggregate\nevents commands state decide dispatch"
+      style.fill: "#0d1f1a"
+    }
+  }
+
+  readmodel: {
+    label: "PROJECTION / READ MODEL\n7 files, ~1,100 lines"
+    style.fill: "#1f1610"
+    style.stroke: "#ffb347"
+
+    inmem_rm: {
+      label: "In-memory read models\nUserReadModel MembershipReadModel\nTenantReadModel BotReadModel\nCasbinProjection"
+      style.fill: "#1f1610"
+    }
+  }
+
+  auth: {
+    label: "AUTH IMPLEMENTATIONS (heavy external deps)\n5 files, ~840 lines"
+    style.fill: "#2a1515"
+    style.stroke: "#ff6b6b"
+
+    totp_impl: {
+      label: "TOTP (pquerna/otp)\ntotp.go(244)"
+      style.fill: "#2a1515"
+    }
+
+    webauthn_impl: {
+      label: "WebAuthn (go-webauthn)\nadapter(92) session(73) service(204)"
+      style.fill: "#2a1515"
+    }
+
+    oauth2_impl: {
+      label: "OAuth2/OIDC (oauth2+oidc+jose)\noauth2.go(332)"
+      style.fill: "#2a1515"
+    }
+  }
+
+  sql_infra: {
+    label: "SQL INFRASTRUCTURE (storage/v3 sqlite pgx)\n9 files, ~1,500 lines"
+    style.fill: "#2a1515"
+    style.stroke: "#ff6b6b"
+
+    sql_files: {
+      label: "sql_readmodel.go(126) sql_readmodel_extra.go(256)\nsql_session_store.go(424) sql_event_store.go(84)\nsql_view_marshal.go(23)\nsqlite_setup.go(167) postgres_setup.go(141)\nstack_repositories.go(86)"
+      style.fill: "#2a1515"
+    }
+  }
+
+  service: {
+    label: "SERVICE LAYER (God struct holds everything)\nservice_core.go(425) + 6 service_*.go\nstore.go store_interfaces.go\nemail_verification.go lockout.go\ncrypto.go audit_log.go eviction.go\nrandom.go email.go credential.go\nexternal_account.go import_export.go\nes_migration.go es_materialize_adapter.go\nes_setup.go es_projection_setup.go"
+    style.fill: "#2a1515"
+    style.stroke: "#ff6b6b"
+    style.stroke-width: 2
+  }
+
+  http_layer: {
+    label: "HTTP + DISPATCH WIRING\nhttp.go(320) es_dispatch.go(206)\noauth2_http.go(105) webauthn_http.go(101)\nverification_totp_http.go(294)\ncredential_http.go(132)\napi_token_middleware.go(74)\nmiddleware.go(132)"
+    style.fill: "#1f1610"
+    style.stroke: "#ffb347"
+  }
+
+  domain -> readmodel: "events feed projections"
+  readmodel -> service: "Service queries read models"
+  auth -> service: "Service holds webauthn oauth2 totp directly"
+  sql_infra -> service: "NewService creates SQL read models"
+  service -> http_layer: "HTTP handlers call Service"
+  domain -> service: "fold/decide used by repository"
+}

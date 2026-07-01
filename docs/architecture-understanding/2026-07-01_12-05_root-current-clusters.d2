@@ -1,0 +1,98 @@
+direction: down
+
+# Root Module: Current Cluster Graph
+# 46 production files → concern clusters
+
+root_current: {
+  style.fill: "#0d1118"
+
+  core: {
+    label: "CORE HANDLER PIPELINE (30 files, 5,800+ lines)"
+    style.fill: "#2a1515"
+    style.stroke: "#ff6b6b"
+
+    app_handler: {
+      label: "App + Handler + Options\napp.go(375) handler.go(204)\noptions_types.go(97) options_*.go(395)"
+      style.fill: "#1f1010"
+    }
+
+    errors_response: {
+      label: "Errors + Response\nerrors.go(331) response.go(359)\nerrors_status.go(74) structured_error.go(165)"
+      style.fill: "#1f1010"
+    }
+
+    csrf: {
+      label: "CSRF\nconfig.go(248) middleware.go(218)\nhandler.go(76) context.go(50) helpers.go(74)"
+      style.fill: "#1f1010"
+    }
+
+    context_authz: {
+      label: "Context + Authz + Middleware\ncontext.go(252) authz.go(138)\nmiddleware.go(87) logging.go(211)"
+      style.fill: "#1f1010"
+    }
+
+    misc_core: {
+      label: "Misc\ndecoder.go(122) httputil.go(30)\nnotify.go(90) recovery.go(105)\nresponsewriter.go(48)\nidempotency.go(30) doc.go(173)"
+      style.fill: "#1f1010"
+    }
+
+    app_handler -> errors_response: "handleErr, MapError,\nSafeDetail, ContentType"
+    errors_response -> csrf: "ErrForbidden, ContentTypePlain"
+    csrf -> errors_response: "ContentTypePlain (thin)"
+    context_authz -> app_handler: "UserID CorrelationID\nActorID"
+  }
+
+  sse: {
+    label: "SSE TRANSPORT\n5 files, 574 lines\n0 logic deps to core"
+    style.fill: "#0d1f1a"
+    style.stroke: "#5eead4"
+  }
+
+  ws: {
+    label: "WEBSOCKET TRANSPORT\n4 files, 607 lines\n0 logic deps to core"
+    style.fill: "#0d1f1a"
+    style.stroke: "#5eead4"
+  }
+
+  ratelimit: {
+    label: "RATE LIMITING\n2 files, 361 lines\n0 deps to core"
+    style.fill: "#1f1d0d"
+    style.stroke: "#f4d35e"
+  }
+
+  server_timing: {
+    label: "SERVER TIMING\n1 file, 360 lines\n0 deps to core"
+    style.fill: "#1f1d0d"
+    style.stroke: "#f4d35e"
+  }
+
+  security: {
+    label: "SECURITY HEADERS\n1 file, 132 lines\n0 deps to core"
+    style.fill: "#1f1d0d"
+    style.stroke: "#f4d35e"
+  }
+
+  fanout: {
+    label: "FANOUT GENERIC\n1 file, 110 lines\n0 deps to core"
+    style.fill: "#1f1d0d"
+    style.stroke: "#f4d35e"
+  }
+
+  htmx_serve: {
+    label: "HTMX JS SERVING\n2 files, 79 lines\n0 deps to core"
+    style.fill: "#1f1d0d"
+    style.stroke: "#f4d35e"
+  }
+
+  ack: {
+    label: "ACK PROTOCOL\nack.go(156)"
+    style.fill: "#1f1610"
+    style.stroke: "#ffb347"
+  }
+
+  sse -> core.app_handler: "AfterDispatchHook (type only)" {style.stroke-dash: 3; style.stroke: "#5eead4"}
+  ws -> core.app_handler: "App.DispatchWS (type only)" {style.stroke-dash: 3; style.stroke: "#5eead4"}
+  ack -> sse: "Broadcaster SSEEvent"
+  ack -> ws: "WSBroadcaster"
+  ack -> core.app_handler: "AfterDispatchHook"
+}

@@ -5,8 +5,10 @@ package adminui
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import "github.com/a-h/templ"
-import templruntime "github.com/a-h/templ/runtime"
+import (
+	"github.com/a-h/templ"
+	templruntime "github.com/a-h/templ/runtime"
+)
 
 func Layout(p pageData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -145,7 +147,7 @@ func Layout(p pageData) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, item := range p.Nav {
-			var templ_7745c5c3_Var9 = []any{"flex items-center gap-2.5 rounded-md px-2.5 py-2 font-medium no-underline hover:text-gray-100 hover:bg-white/[0.07]", templ.KV("text-white", item.Active)}
+			templ_7745c5c3_Var9 := []any{"flex items-center gap-2.5 rounded-md px-2.5 py-2 font-medium no-underline hover:text-gray-100 hover:bg-white/[0.07]", templ.KV("text-white", item.Active)}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

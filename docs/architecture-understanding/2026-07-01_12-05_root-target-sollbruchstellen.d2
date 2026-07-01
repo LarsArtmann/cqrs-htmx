@@ -1,0 +1,78 @@
+direction: down
+
+# Root Module: TARGET Architecture — Sollbruchstellen
+
+root_target: {
+  style.fill: "#0d1118"
+
+  core: {
+    label: "CORE (package cqrshtmx)\nHandler pipeline + errors + response + CSRF + context\n~30 files — genuinely coupled"
+    style.fill: "#2a1515"
+    style.stroke: "#ff6b6b"
+  }
+
+  constants: {
+    label: "constants.go\n5 string constants moved here\nbreaks the alleged cycle"
+    style.fill: "#0d1f1a"
+    style.stroke: "#5eead4"
+  }
+
+  constants -> core: "shared constants"
+
+  sse: {
+    label: "cqrshtmx/sse\nSSEEvent, SSEStream, Broadcaster\nJournalSSEStore, SSEEventStore\n5 files sub-package"
+    style.fill: "#0d2a22"
+    style.stroke: "#5eead4"
+    style.stroke-width: 2
+  }
+
+  ws: {
+    label: "cqrshtmx/ws\nWSMessage, ParseWSMessage\nWSBroadcaster, WS dispatch\n4 files sub-package"
+    style.fill: "#0d2a22"
+    style.stroke: "#5eead4"
+    style.stroke-width: 2
+  }
+
+  ratelimit: {
+    label: "cqrshtmx/ratelimit\nRateLimiter, RateLimitConfig\n2 files sub-package"
+    style.fill: "#2a2510"
+    style.stroke: "#f4d35e"
+    style.stroke-width: 2
+  }
+
+  servertiming: {
+    label: "cqrshtmx/servertiming\nServerTiming, ServerTimingMiddleware\n1 file (360 lines) sub-package"
+    style.fill: "#2a2510"
+    style.stroke: "#f4d35e"
+    style.stroke-width: 2
+  }
+
+  security_sub: {
+    label: "cqrshtmx/security\nSecurityHeadersMiddleware\n1 file sub-package"
+    style.fill: "#2a2510"
+    style.stroke: "#f4d35e"
+    style.stroke-width: 2
+  }
+
+  htmxjs: {
+    label: "cqrshtmx/htmxjs\nHTMXScriptHandler, embedded JS\n2 files sub-package"
+    style.fill: "#2a2510"
+    style.stroke: "#f4d35e"
+    style.stroke-width: 2
+  }
+
+  sse -> core: "AfterDispatchHook\nStructuredError (thin)" {style.stroke-dash: 3}
+  ws -> core: "AfterDispatchHook (thin)" {style.stroke-dash: 3}
+  ratelimit -> core: "zero refs" {style.stroke-dash: 3; style.stroke: "#5eead4"}
+  servertiming -> core: "zero refs" {style.stroke-dash: 3; style.stroke: "#5eead4"}
+  security_sub -> core: "zero refs" {style.stroke-dash: 3; style.stroke: "#5eead4"}
+  htmxjs -> core: "zero refs" {style.stroke-dash: 3; style.stroke: "#5eead4"}
+}
+
+legend_box: {
+  style.fill: "#0d1118"
+  legend_title: {label: "LEGEND"; style.font-size: 12}
+  green_node: {label: "CLEAN CUT 0 logic deps"; style.fill: "#0d2a22"; style.stroke: "#5eead4"}
+  yellow_node: {label: "CLEAN CUT 0 logic deps"; style.fill: "#2a2510"; style.stroke: "#f4d35e"}
+  red_node: {label: "GENUINELY COUPLED keep together"; style.fill: "#2a1515"; style.stroke: "#ff6b6b"}
+}

@@ -1,0 +1,68 @@
+direction: down
+
+# usermgmt: TARGET Architecture — Sollbruchstellen
+
+usermgmt_target: {
+  style.fill: "#0d1118"
+
+  domain: {
+    label: "usermgmt/domain (or usermgmt/es)\nPure domain: events commands state decide\n20 files ZERO external deps\nOnly go-cqrs-lite event command decider"
+    style.fill: "#0d2a22"
+    style.stroke: "#5eead4"
+    style.stroke-width: 2
+  }
+
+  core_service: {
+    label: "usermgmt (core Service)\nService struct slimmed:\n  webauthn to WebAuthnProvider interface\n  oauth2 to OAuth2Provider interface\n  totpConfig to TOTPVerifier interface\nService core + register + login + misc\nstore.go email.go credential.go user.go\nid.go authz_roles.go lockout.go crypto.go"
+    style.fill: "#2a1515"
+    style.stroke: "#ff6b6b"
+  }
+
+  auth_totp: {
+    label: "usermgmt/totp\nTOTPConfig EnableTOTP VerifyTOTP\nImplements TOTPVerifier\nDep: pquerna/otp"
+    style.fill: "#0d2a22"
+    style.stroke: "#5eead4"
+    style.stroke-width: 2
+  }
+
+  auth_webauthn: {
+    label: "usermgmt/webauthn\nAdapter Session Service Handlers\nImplements WebAuthnProvider\nDep: go-webauthn"
+    style.fill: "#0d2a22"
+    style.stroke: "#5eead4"
+    style.stroke-width: 2
+  }
+
+  auth_oauth2: {
+    label: "usermgmt/oauth2\nProvider config PKCE state store\nImplements OAuth2Provider\nDep: oauth2 oidc jose"
+    style.fill: "#0d2a22"
+    style.stroke: "#5eead4"
+    style.stroke-width: 2
+  }
+
+  sql_infra: {
+    label: "usermgmt/sql (or usermgmt/storage)\nSQL read models session store event store\nSQLite Postgres setup presets\nDeps: storage/v3 modernc/sqlite pgx"
+    style.fill: "#2a2510"
+    style.stroke: "#f4d35e"
+    style.stroke-width: 2
+  }
+
+  http_handlers: {
+    label: "usermgmt/http\nAll HTTP handlers + middleware\nOptionally imports auth sub-packages"
+    style.fill: "#2a2510"
+    style.stroke: "#f4d35e"
+    style.stroke-width: 2
+  }
+
+  domain -> core_service: "fold/decide/types"
+  auth_totp -> core_service: "TOTPVerifier interface" {style.stroke-dash: 3; style.stroke: "#5eead4"}
+  auth_webauthn -> core_service: "WebAuthnProvider interface" {style.stroke-dash: 3; style.stroke: "#5eead4"}
+  auth_oauth2 -> core_service: "OAuth2Provider interface" {style.stroke-dash: 3; style.stroke: "#5eead4"}
+  sql_infra -> core_service: "storage interfaces" {style.stroke-dash: 3; style.stroke: "#f4d35e"}
+  core_service -> http_handlers: "Service methods"
+}
+
+consumer: {
+  label: "CONSUMER (Unix pipe test)\n\nimport usermgmt        core user management\nimport usermgmt/totp    add TOTP MFA (pulls pquerna/otp)\nimport usermgmt/webauthn  add passkeys (pulls go-webauthn)\nimport usermgmt/oauth2   add OAuth2 (pulls oauth2+oidc)\nimport usermgmt/sql      add persistence (pulls sqlite/pgx)\n\nConsumer who wants passkeys only:\n  usermgmt + usermgmt/webauthn\n  ZERO deps on totp oauth2 sql"
+  style.fill: "#0d2a22"
+  style.stroke: "#5eead4"
+}
