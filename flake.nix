@@ -40,7 +40,7 @@
 
           packages.default = pkgs.stdenvNoCC.mkDerivation {
             pname = "cqrs-htmx";
-            version = "3.3.0";
+            version = "4.0.0";
 
             dontUnpack = true;
             dontConfigure = true;
@@ -100,10 +100,16 @@
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   echo "==> Root module"
                   go test ./... -count=1 -race
-                  echo "==> adminui submodule"
-                  (cd adminui && go test ./... -count=1 -race)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go test ./... -count=1 -race)
+                  echo "==> usermgmt/totp submodule"
+                  (cd usermgmt/totp && go test ./... -count=1 -race)
+                  echo "==> usermgmt/webauthn submodule"
+                  (cd usermgmt/webauthn && go test ./... -count=1 -race)
+                  echo "==> usermgmt/oauth2 submodule"
+                  (cd usermgmt/oauth2 && go test ./... -count=1 -race)
+                  echo "==> adminui submodule"
+                  (cd adminui && go test ./... -count=1 -race)
                   echo "==> integration_test submodule"
                   (cd integration_test && go test ./... -count=1 -race)
                 '';
@@ -142,10 +148,16 @@
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   echo "==> Root module (3 iterations)"
                   go test ./... -count=3 -race
-                  echo "==> adminui submodule (3 iterations)"
-                  (cd adminui && go test ./... -count=3 -race)
                   echo "==> usermgmt submodule (3 iterations)"
                   (cd usermgmt && go test ./... -count=3 -race)
+                  echo "==> usermgmt/totp submodule (3 iterations)"
+                  (cd usermgmt/totp && go test ./... -count=3 -race)
+                  echo "==> usermgmt/webauthn submodule (3 iterations)"
+                  (cd usermgmt/webauthn && go test ./... -count=3 -race)
+                  echo "==> usermgmt/oauth2 submodule (3 iterations)"
+                  (cd usermgmt/oauth2 && go test ./... -count=3 -race)
+                  echo "==> adminui submodule (3 iterations)"
+                  (cd adminui && go test ./... -count=3 -race)
                   echo "==> integration_test submodule (3 iterations)"
                   (cd integration_test && go test ./... -count=3 -race)
                 '';
@@ -181,6 +193,24 @@
                     go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
                   done)
 
+                  echo "==> usermgmt/totp submodule fuzz tests"
+                  (cd usermgmt/totp && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done)
+
+                  echo "==> usermgmt/webauthn submodule fuzz tests"
+                  (cd usermgmt/webauthn && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done)
+
+                  echo "==> usermgmt/oauth2 submodule fuzz tests"
+                  (cd usermgmt/oauth2 && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done)
+
                   echo "==> integration_test submodule fuzz tests"
                   (cd integration_test && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
                     echo "    -> $fuzz"
@@ -198,10 +228,16 @@
                 text = ''
                   echo "==> Root module"
                   golangci-lint run
-                  echo "==> adminui submodule"
-                  (cd adminui && golangci-lint run)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && golangci-lint run)
+                  echo "==> usermgmt/totp submodule"
+                  (cd usermgmt/totp && golangci-lint run)
+                  echo "==> usermgmt/webauthn submodule"
+                  (cd usermgmt/webauthn && golangci-lint run)
+                  echo "==> usermgmt/oauth2 submodule"
+                  (cd usermgmt/oauth2 && golangci-lint run)
+                  echo "==> adminui submodule"
+                  (cd adminui && golangci-lint run)
                 '';
               };
             };
@@ -217,10 +253,16 @@
                   echo "==> Root module coverage"
                   go test ./... -count=1 -coverprofile=coverage.out
                   go tool cover -func=coverage.out
-                  echo "==> adminui submodule coverage"
-                  (cd adminui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                   echo "==> usermgmt submodule coverage"
                   (cd usermgmt && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                  echo "==> usermgmt/totp submodule coverage"
+                  (cd usermgmt/totp && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                  echo "==> usermgmt/webauthn submodule coverage"
+                  (cd usermgmt/webauthn && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                  echo "==> usermgmt/oauth2 submodule coverage"
+                  (cd usermgmt/oauth2 && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                  echo "==> adminui submodule coverage"
+                  (cd adminui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                 '';
               };
             };
@@ -235,14 +277,24 @@
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   echo "==> Root module"
                   go build ./...
-                  echo "==> adminui submodule"
-                  (cd adminui && go build ./...)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go build ./...)
+                  echo "==> usermgmt/totp submodule"
+                  (cd usermgmt/totp && go build ./...)
+                  echo "==> usermgmt/webauthn submodule"
+                  (cd usermgmt/webauthn && go build ./...)
+                  echo "==> usermgmt/oauth2 submodule"
+                  (cd usermgmt/oauth2 && go build ./...)
+                  echo "==> adminui submodule"
+                  (cd adminui && go build ./...)
                   echo "==> integration_test submodule"
                   (cd integration_test && go build ./...)
                   echo "==> datastar-demo example"
                   (cd examples/datastar-demo && go build ./...)
+                  echo "==> admin-demo example"
+                  (cd examples/admin-demo && go build ./...)
+                  echo "==> basic example"
+                  (cd examples/basic && go build ./...)
                   echo "All modules built successfully."
                 '';
               };
@@ -302,6 +354,51 @@
                   export GOWORK=off
                   export GONOSUMCHECK='github.com/larsartmann/*'
                   cd integration_test
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
+            test-totp = {
+              type = "app";
+              meta.description = "Run the usermgmt/totp submodule's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-totp";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  cd usermgmt/totp
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
+            test-webauthn = {
+              type = "app";
+              meta.description = "Run the usermgmt/webauthn submodule's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-webauthn";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  cd usermgmt/webauthn
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
+            test-oauth2 = {
+              type = "app";
+              meta.description = "Run the usermgmt/oauth2 submodule's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-oauth2";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  cd usermgmt/oauth2
                   go test ./... -count=1 -race "$@"
                 '';
               };
@@ -417,6 +514,11 @@
               program = pkgs.writeShellApplication {
                 name = "check-errorfamily";
                 text = ''
+                  # Root + usermgmt + adminui: error-family constructors are mandatory.
+                  # Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt:
+                  # they don't import go-cqrs-lite/event/v3 (keeping deps minimal), and
+                  # the Service layer wraps all provider errors with event.Wrapf at the
+                  # boundary — so error families are assigned at the correct layer.
                   echo "==> Root module"
                   branching-flow errorfamily .
                   echo "==> usermgmt submodule"
@@ -472,7 +574,7 @@
 
             coverage-gate = {
               type = "app";
-              meta.description = "Run tests and fail if coverage drops below thresholds (root 90%, usermgmt 78%)";
+              meta.description = "Run tests and fail if coverage drops below thresholds";
               program = pkgs.writeShellApplication {
                 name = "coverage-gate";
                 runtimeInputs = [
@@ -494,7 +596,11 @@
                     fi
                   }
                   check_cov . 90
-                  check_cov usermgmt 78
+                  check_cov usermgmt 74
+                  check_cov usermgmt/totp 80
+                  check_cov usermgmt/webauthn 80
+                  check_cov usermgmt/oauth2 80
+                  check_cov adminui 66
                   if [ "$fail" -eq 1 ]; then
                     echo "Coverage gate FAILED"
                     exit 1

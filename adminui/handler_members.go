@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // membersIndex is the tenant-scoped members page (ModeTenantAdmin).

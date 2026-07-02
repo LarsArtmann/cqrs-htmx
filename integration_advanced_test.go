@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

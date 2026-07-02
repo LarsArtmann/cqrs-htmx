@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, v4]
   pull_request:
-    branches: [master]
+    branches: [master, v4]
 
 permissions:
   contents: read
@@ -35,6 +35,24 @@ jobs:
           GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Build usermgmt/totp submodule
+        run: cd usermgmt/totp && go build ./...
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Build usermgmt/webauthn submodule
+        run: cd usermgmt/webauthn && go build ./...
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Build usermgmt/oauth2 submodule
+        run: cd usermgmt/oauth2 && go build ./...
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Build adminui submodule
         run: cd adminui && go build ./...
         env:
@@ -54,6 +72,12 @@ jobs:
 
       - name: Build admin-demo example
         run: cd examples/admin-demo && go build ./...
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Build basic example
+        run: cd examples/basic && go build ./...
         env:
           GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
@@ -80,6 +104,30 @@ jobs:
 
       - name: Test usermgmt submodule
         run: cd usermgmt && go test ./... -count=1 -race -coverprofile=coverage.out
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Test usermgmt/totp submodule
+        run: cd usermgmt/totp && go test ./... -count=1 -race
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Test usermgmt/webauthn submodule
+        run: cd usermgmt/webauthn && go test ./... -count=1 -race
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Test usermgmt/oauth2 submodule
+        run: cd usermgmt/oauth2 && go test ./... -count=1 -race
+        env:
+          GOWORK: off
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Test adminui submodule
+        run: cd adminui && go test ./... -count=1 -race
         env:
           GOWORK: off
           GONOSUMCHECK: "github.com/larsartmann/*"
@@ -151,7 +199,7 @@ jobs:
 
       - name: Verify go mod tidy (all modules)
         run: |
-          for mod in . usermgmt adminui integration_test; do
+          for mod in . usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui integration_test examples/basic examples/admin-demo; do
             echo "=== Checking $mod ==="
             (cd "$mod" && go mod tidy -diff)
           done

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // postForm issues an HTMX POST with form values and returns the recorder.

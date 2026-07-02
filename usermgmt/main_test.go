@@ -73,17 +73,13 @@ func newTestServiceWithAuthz(t *testing.T) *Service {
 	})
 }
 
-func localTestWebAuthnConfig() *WebAuthnConfig {
-	return &WebAuthnConfig{
-		RPID:          "localhost",
-		RPDisplayName: "Test",
-		RPOrigins:     []string{"https://localhost"},
-	}
+func localTestWebAuthnProvider() WebAuthnProvider {
+	return testWebAuthnProvider{}
 }
 
-func newWebAuthnTestServiceWithConfig(t *testing.T, cfg *WebAuthnConfig) *Service {
+func newWebAuthnTestServiceWithConfig(t *testing.T) *Service {
 	t.Helper()
-	svc := newTestServiceWithConfig(t, ServiceConfig{WebAuthnConfig: cfg})
+	svc := newTestServiceWithConfig(t, ServiceConfig{WebAuthn: testWebAuthnProvider{}})
 	t.Cleanup(svc.Stop)
 	return svc
 }

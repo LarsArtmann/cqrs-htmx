@@ -19,8 +19,8 @@ management, tenant members, and an audit log.
 import (
     "net/http"
 
-    "github.com/larsartmann/cqrs-htmx/adminui/v3"
-    "github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+    "github.com/larsartmann/cqrs-htmx/adminui/v4"
+    "github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 func main() {

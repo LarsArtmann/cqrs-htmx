@@ -115,6 +115,26 @@ func TestNewService_CustomSessionTTL(t *testing.T) {
 	}
 }
 
+func TestNewService_CustomWebAuthnSessionTTL(t *testing.T) {
+	svc, err := NewService(ServiceConfig{
+		WebAuthn:           &testWebAuthnProvider{},
+		WebAuthnSessionTTL: 10 * time.Minute,
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	if svc.webauthnSessions == nil {
+		t.Fatal("expected webauthnSessions to be initialized")
+	}
+	mem, ok := svc.webauthnSessions.(*webauthnSessionStore)
+	if !ok {
+		t.Fatalf("expected *webauthnSessionStore, got %T", svc.webauthnSessions)
+	}
+	if mem.ttl != 10*time.Minute {
+		t.Errorf("expected 10m TTL, got %v", mem.ttl)
+	}
+}
+
 func TestNewService_NilAuthz(t *testing.T) {
 	svc, err := NewService(ServiceConfig{})
 	if err != nil {

@@ -3,8 +3,11 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.3.0
-	github.com/larsartmann/cqrs-htmx/v3 v3.3.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v3 v3.5.0
@@ -54,8 +57,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/scenario/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.5.0 // indirect
@@ -103,6 +104,9 @@ require (
 )
 
 replace (
-	github.com/larsartmann/cqrs-htmx/usermgmt/v3 => ../usermgmt
-	github.com/larsartmann/cqrs-htmx/v3 => ../
+	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 => ../usermgmt/oauth2
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 => ../usermgmt/totp
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
+	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 => ../usermgmt/webauthn
+	github.com/larsartmann/cqrs-htmx/v4 => ../
 )

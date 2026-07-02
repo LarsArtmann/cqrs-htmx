@@ -1,6 +1,6 @@
 # cqrs-htmx
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v3.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v4.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.26+](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://go.dev/)
@@ -30,7 +30,7 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 - **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge, `BroadcastOnAckWS` for command confirmation
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v3.1.0
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified) with ETag/caching. Opt-in, zero CDN dependency
-- **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers
+- **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers. Auth strategies (WebAuthn/Passkeys, TOTP MFA, OAuth2/OIDC) are **optional sub-modules** — import only what you need, zero auth deps in core
 
 ## Why
 
@@ -59,6 +59,15 @@ For the user management submodule:
 go get github.com/larsartmann/cqrs-htmx/usermgmt
 ```
 
+Auth strategies (WebAuthn, TOTP, OAuth2) are now **optional sub-modules** in v4 — import only what you need:
+
+```bash
+go get github.com/larsartmann/cqrs-htmx/usermgmt/webauthn  # Passkeys
+# go get github.com/larsartmann/cqrs-htmx/usermgmt/totp     # TOTP MFA
+# go get github.com/larsartmann/cqrs-htmx/usermgmt/oauth2   # OAuth2/OIDC
+```
+
+> **Upgrading from v3?** See the [v3→v4 Migration Guide](docs/migrations/v3-to-v4.md).
 > **Upgrading from v2?** See the [v2→v3 Migration Guide](docs/migration/v2-to-v3.md).
 
 ## Quick Start
@@ -806,7 +815,9 @@ An independent submodule with **passwordless** authentication (WebAuthn/Passkeys
 go get github.com/larsartmann/cqrs-htmx/usermgmt
 ```
 
-### Setup
+### Setup (v4 Provider Injection)
+
+In v4, auth strategies are injected as providers. Import only the sub-modules you need:
 
 ```go
 import (
@@ -814,24 +825,28 @@ import (
     "time"
 
     "github.com/larsartmann/cqrs-htmx/usermgmt"
+    "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn" // optional: passkeys
 )
 
-// Create service with WebAuthn configuration
+// Create a WebAuthn provider
+wa, err := webauthn.New(webauthn.Config{
+    RPID:          "example.com",
+    RPDisplayName: "My App",
+    RPOrigins:     []string{"https://example.com"},
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+// Create service with provider injected
 svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-    WebAuthnConfig: &usermgmt.WebAuthnConfig{
-        RPID:          "example.com",
-        RPDisplayName: "My App",
-        RPOrigins:     []string{"https://example.com"},
-    },
+    WebAuthn: wa, // inject the provider — nil if not needed
     SessionTTL: 24 * time.Hour,
     Logger:     slog.Default(),
     Lockout:    usermgmt.NewAccountLockout(usermgmt.LockoutConfig{
         MaxAttempts: 5,
         Duration:    15 * time.Minute,
     }),
-    EventHandler: func(userID usermgmt.UserID, evt any) {
-        slog.Info("user event", "user_id", userID, "event", evt)
-    },
 })
 defer svc.Stop()
 
@@ -1085,20 +1100,27 @@ cqrs-htmx/
 │   ├── service_misc.go     # GetUser, UpdateRoles, ChangeEmail, etc.
 │   ├── credential.go       # WebAuthnCredential type
 │   ├── credential_http.go  # Credential listing/removal HTTP handlers
-│   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin
+│   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin (provider-based)
 │   ├── webauthn_http.go    # HTTP handlers for WebAuthn ceremony endpoints
 │   ├── webauthn_adapter.go # Adapts domain User → webauthn.User interface
-│   ├── webauthn_session.go # WebAuthnConfig + in-memory challenge store
+│   ├── webauthn_session.go # WebAuthnSessionTTL + in-memory challenge store
 │   ├── user.go             # Immutable User read model
 │   ├── store.go            # SessionStore interface + InMemorySessionStore
 │   ├── events.go           # EventHandler callback + notification event structs
 │   ├── http.go             # AuthHandler (register, logout, me, webauthn endpoints)
 │   ├── middleware.go       # NewSessionMiddleware, user context helpers
 │   ├── lockout.go          # AccountLockout (configurable attempts + duration)
-│   └── errors.go           # Sentinel errors
+│   ├── errors.go           # Sentinel errors
+│   ├── totp/               # TOTP MFA sub-module (pquerna/otp)
+│   ├── webauthn/           # WebAuthn sub-module (go-webauthn)
+│   └── oauth2/             # OAuth2/OIDC sub-module (golang.org/x/oauth2 + coreos/go-oidc)
+├── adminui/             # Admin Dashboard UI (templ + HTMX, independent Go module)
 ├── integration_test/   # Cross-module integration tests (independent Go module)
 └── examples/
-    └── datastar-demo/  # Standalone datastar + go-cqrs-lite SSE example
+    ├── basic/           # Minimal cqrs-htmx consumer example
+    ├── datastar-demo/   # Standalone datastar + go-cqrs-lite SSE example
+    ├── catalog-demo/    # Catalog doc-server example
+    └── admin-demo/      # Runnable admin panel showcase
 ```
 
 ## Optional Sub-Packages
@@ -1130,14 +1152,23 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Dependency             | Purpose                                    |
 | ---------------------- | ------------------------------------------ |
-| go-cqrs-lite v3.1.0    | CQRS command/query dispatch, pagination    |
+| go-cqrs-lite v3.5.0    | CQRS command/query dispatch, pagination    |
 | casbin/casbin/v3       | Authorization                              |
 | go-error-family v0.5.1 | Error classification                       |
 | justinas/nosurf        | CSRF protection                            |
 | larsartmann/httputil   | ClientIP extraction                        |
 | golang.org/x/time      | Token-bucket rate limiting                 |
 | go-branded-id          | Branded types (usermgmt)                   |
-| go-webauthn v0.17.4    | WebAuthn/Passkey authentication (usermgmt) |
+| go-playground/form/v4  | Form decoding                              |
+
+**Optional sub-module dependencies** (only import the auth strategies you need):
+
+| Sub-module             | Dependency            | Purpose                              |
+| ---------------------- | --------------------- | ------------------------------------ |
+| usermgmt/totp/v4       | pquerna/otp v1.5.0    | TOTP MFA (RFC 6238)                  |
+| usermgmt/webauthn/v4   | go-webauthn v0.17.4   | WebAuthn/Passkey authentication      |
+| usermgmt/oauth2/v4     | golang.org/x/oauth2   | OAuth2 authorization code + PKCE     |
+| usermgmt/oauth2/v4     | coreos/go-oidc/v3     | OIDC discovery + ID token verification |
 
 ## Contributing
 

@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -39,7 +38,7 @@ type Service struct {
 	lockout                  LockoutStore
 	bus                      event.Bus
 	store                    event.Store
-	webauthn                 *webauthn.WebAuthn
+	webauthn                 WebAuthnProvider
 	webauthnSessions         WebAuthnSessionStore
 	stopWebAuthnEviction     func()
 	auditLog                 *AuditLog
@@ -47,10 +46,10 @@ type Service struct {
 	stopVerificationEviction func()
 	verificationTTL          time.Duration
 	sendVerificationEmail    SendVerificationEmailFunc
-	totpConfig               *TOTPConfig
+	totp                     TOTPProvider
 	pendingTOTP              PendingTOTPStore
 	stopPendingTOTPEviction  func()
-	oauth2Providers          map[string]*oauth2Provider
+	oauth2                   OAuth2Provider
 	oauth2States             OAuth2StateStore
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration
@@ -75,32 +74,46 @@ type ServiceConfig struct {
 	// Lockout, if provided, enables account lockout after repeated login failures.
 	// Defaults to none. Implement [LockoutStore] for distributed lockout.
 	Lockout LockoutStore
-	// WebAuthnConfig configures passwordless authentication. Required for login.
-	WebAuthnConfig *WebAuthnConfig
+	// WebAuthn, if provided, enables passwordless passkey authentication.
+	// Import usermgmt/webauthn to obtain a *Provider:
+	//
+	// 	wa, _ := webauthn.New(webauthn.Config{RPID: "localhost", RPDisplayName: "MyApp"})
+	// 	svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{WebAuthn: wa})
+	WebAuthn WebAuthnProvider
 	// AuditLog, if provided, is registered as a projection to record all
 	// user-related events for compliance and security monitoring.
 	AuditLog *AuditLog
 	// EmailVerification, if provided, enables the email verification flow.
 	// When nil, SendVerificationEmail and VerifyEmail return ErrEmailVerificationNotConfigured.
 	EmailVerification *EmailVerificationConfig
-	// TOTPConfig, if provided, enables TOTP multi-factor authentication.
-	TOTPConfig *TOTPConfig
+	// TOTP, if provided, enables TOTP multi-factor authentication.
+	// Import usermgmt/totp to obtain a *Provider:
+	//
+	// 	svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+	// 		TOTP: totp.New(totp.Config{Issuer: "MyApp"}),
+	// 	})
+	TOTP TOTPProvider
 	// WebAuthnSessionStore, if provided, replaces the default in-memory WebAuthn
 	// challenge store. Use this for multi-instance deployments (e.g., Redis).
 	// Ignored when WebAuthnConfig is nil.
 	WebAuthnSessionStore WebAuthnSessionStore
+	// WebAuthnSessionTTL is the time-to-live for in-flight WebAuthn challenge
+	// sessions. Defaults to 5 minutes. Ignored when WebAuthn is nil or when
+	// WebAuthnSessionStore is provided (the custom store manages its own TTL).
+	WebAuthnSessionTTL time.Duration
 	// VerificationTokenStore, if provided, replaces the default in-memory email
 	// verification token store. Use this for multi-instance deployments.
 	// Ignored when EmailVerification is nil.
 	VerificationTokenStore VerificationTokenStore
 	// PendingTOTPStore, if provided, replaces the default in-memory pending TOTP
 	// secret store. Use this for multi-instance deployments.
-	// Ignored when TOTPConfig is nil.
+	// Ignored when TOTP is nil.
 	PendingTOTPStore PendingTOTPStore
 
-	// OAuth2Config, if provided, enables OAuth2/OIDC login with external
-	// identity providers (Google, GitHub, etc.).
-	OAuth2Config *OAuth2Config
+	// OAuth2, if provided, enables OAuth2/OIDC login with external identity
+	// providers (Google, GitHub, etc.). Import usermgmt/oauth2 to obtain a
+	// *Provider.
+	OAuth2 OAuth2Provider
 	// OAuth2StateStore, if provided, replaces the default in-memory state
 	// token store. Use this for multi-instance deployments (e.g., Redis).
 	// Ignored when OAuth2Config is nil.
@@ -262,20 +275,11 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		auditLog:            cfg.AuditLog,
 	}
 
-	if cfg.WebAuthnConfig != nil {
-		//nolint:exhaustruct // only required fields set; others use go-webauthn defaults
-		wa, err := webauthn.New(&webauthn.Config{
-			RPID:          cfg.WebAuthnConfig.RPID,
-			RPDisplayName: cfg.WebAuthnConfig.RPDisplayName,
-			RPOrigins:     cfg.WebAuthnConfig.RPOrigins,
-		})
-		if err != nil {
-			return nil, event.NewTransient("internal", "create webauthn instance").WithCause(err)
-		}
-		svc.webauthn = wa
+	if cfg.WebAuthn != nil {
+		svc.webauthn = cfg.WebAuthn
 		sessionStore := cfg.WebAuthnSessionStore
 		if sessionStore == nil {
-			mem := newWebAuthnSessionStore()
+			mem := newWebAuthnSessionStore(cfg.WebAuthnSessionTTL)
 			sessionStore = mem
 			svc.stopWebAuthnEviction = mem.startEviction()
 		}
@@ -297,8 +301,8 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.sendVerificationEmail = cfg.EmailVerification.SendEmail
 	}
 
-	svc.totpConfig = cfg.TOTPConfig
-	if cfg.TOTPConfig != nil {
+	svc.totp = cfg.TOTP
+	if cfg.TOTP != nil {
 		tStore := cfg.PendingTOTPStore
 		if tStore == nil {
 			mem := newPendingTOTPStore()
@@ -308,14 +312,15 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.pendingTOTP = tStore
 	}
 
-	if cfg.OAuth2Config != nil && len(cfg.OAuth2Config.Providers) > 0 {
+	if cfg.OAuth2 != nil {
 		stateStore := cfg.OAuth2StateStore
 		if stateStore == nil {
 			stateStore = newOAuth2StateStore()
 		}
-		if err := svc.initOAuth2(cfg.OAuth2Config, stateStore); err != nil {
-			return nil, err
-		}
+		svc.oauth2 = cfg.OAuth2
+		svc.oauth2States = stateStore
+		svc.oauth2StateTTL = defaultOAuthStateTTL
+		svc.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
 	}
 
 	svc.tokenPepper = cfg.TokenPepper
@@ -387,25 +392,6 @@ func (s *Service) closeInfra() error {
 		if err := c.Close(); err != nil {
 			return event.WrapTransient(err, "usermgmt.service.close_store", "close event store")
 		}
-	}
-	return nil
-}
-
-// initOAuth2 initializes the OAuth2 providers, state store, and background eviction.
-func (s *Service) initOAuth2(cfg *OAuth2Config, stateStore OAuth2StateStore) error {
-	s.oauth2Providers = make(map[string]*oauth2Provider, len(cfg.Providers))
-	s.oauth2States = stateStore
-	s.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
-	s.oauth2StateTTL = cfg.StateTTL
-	if s.oauth2StateTTL == 0 {
-		s.oauth2StateTTL = defaultOAuthStateTTL
-	}
-	for name, provCfg := range cfg.Providers {
-		prov, err := initOAuth2Provider(context.Background(), name, provCfg)
-		if err != nil {
-			return event.NewTransient("internal", "init oauth2 provider "+name).WithCause(err)
-		}
-		s.oauth2Providers[name] = prov
 	}
 	return nil
 }

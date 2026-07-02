@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-06-29 | **Version:** v3.3.0 (go-cqrs-lite v3.4.0) | **Source:** All .go files analyzed
+**Updated:** 2026-07-02 | **Version:** v4.0.0 (go-cqrs-lite v3.5.0) | **Source:** All .go files analyzed
 
 ## Status legend
 
@@ -19,7 +19,7 @@
 > delivers it AND confirm it works. If you're unsure, it's `PARTIALLY_FUNCTIONAL`
 > at best — never round up.
 
-## Root Module (`github.com/larsartmann/cqrs-htmx/v3`)
+## Root Module (`github.com/larsartmann/cqrs-htmx/v4`)
 
 ### Core
 
@@ -134,7 +134,7 @@
 
 ---
 
-## usermgmt Submodule (`github.com/larsartmann/cqrs-htmx/usermgmt/v3`)
+## usermgmt Submodule (`github.com/larsartmann/cqrs-htmx/usermgmt/v4`)
 
 ### User Aggregate (Event-Sourced)
 
@@ -151,7 +151,7 @@
 
 | Feature               | Status                | Notes                                                                                                                                                                                                      |
 | --------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| WebAuthn Passwordless | 🟢 `FULLY_FUNCTIONAL` | go-webauthn v0.17.4. `BeginRegistration`/`FinishRegistration`/`BeginLogin`/`FinishLogin`. In-memory challenge store with proactive eviction.                                                               |
+| WebAuthn Passwordless | 🟢 `FULLY_FUNCTIONAL` | **v4: optional sub-module** `usermgmt/webauthn/v4`. Inject `webauthn.New(...)` as `ServiceConfig.WebAuthn`. `BeginRegistration`/`FinishRegistration`/`BeginLogin`/`FinishLogin`. In-memory challenge store with proactive eviction. 20 provider tests (W3C spec vectors). |
 | Account Lockout       | 🟢 `FULLY_FUNCTIONAL` | Wired into BeginLogin (check) and FinishLogin (record/reset). Configurable max attempts + duration. `ErrAccountLocked` → 429. `EvictStale()` for cleanup.                                                  |
 | Session Management    | 🟢 `FULLY_FUNCTIONAL` | `SessionStore` interface + `InMemorySessionStore` + `SQLSessionStore`. TTL-based expiry. `DeleteByUserID` for user deletion revocation. `Session` struct with `SessionOrigin` (DirectLogin/Impersonation). |
 | Session Rotation      | 🟢 `FULLY_FUNCTIONAL` | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                                                                                   |
@@ -171,7 +171,7 @@
 
 | Feature               | Status                | Notes                                                                                                                                                                                             |
 | --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| OAuth2/OIDC Login     | 🟢 `FULLY_FUNCTIONAL` | Dual-mode: OIDC discovery (IssuerURL set) or pure OAuth2 (explicit endpoints). PKCE S256 on every flow. `BeginOAuthLogin`/`FinishOAuthLogin`/`UnlinkExternalAccount`. 3 HTTP endpoints.           |
+| OAuth2/OIDC Login     | 🟢 `FULLY_FUNCTIONAL` | **v4: optional sub-module** `usermgmt/oauth2/v4`. Inject `oauth2.New(...)` as `ServiceConfig.OAuth2`. Dual-mode: OIDC discovery (IssuerURL set) or pure OAuth2 (explicit endpoints). PKCE S256. 18 provider tests (real JWT signing). |
 | Subject-First Match   | 🟢 `FULLY_FUNCTIONAL` | `matchOrCreateUser` checks FindByExternalAccount FIRST (stable ID), then email. Recognizes returning users even when provider email changed. Global provider+subject uniqueness enforced.         |
 | External Account Link | 🟢 `FULLY_FUNCTIONAL` | 2 events (Linked/Unlinked), 2 commands. Email-based linking for new providers. Auto-trust provider emails when `email_verified: true`. Last-auth-method guard prevents account lockout on unlink. |
 
@@ -194,7 +194,7 @@
 | Feature            | Status                | Notes                                                                                                                                                                                                 |
 | ------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Email Verification | 🟢 `FULLY_FUNCTIONAL` | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback (`SendVerificationEmailFunc`). Email change resets verification. Single-use tokens with TTL (10 min). `EvictExpired()`. |
-| TOTP MFA           | 🟢 `FULLY_FUNCTIONAL` | pquerna/otp/totp v1.5.0 (RFC 6238). Two-phase setup: `EnableTOTP` → `VerifyTOTPSetup`. `VerifyTOTP` for login. `DisableTOTP` requires valid code (prevents MFA stripping). Event-sourced secret.      |
+| TOTP MFA           | 🟢 `FULLY_FUNCTIONAL` | **v4: optional sub-module** `usermgmt/totp/v4`. Inject `totp.New(...)` as `ServiceConfig.TOTP`. pquerna/otp/totp v1.5.0 (RFC 6238). Two-phase setup: `EnableTOTP` → `VerifyTOTPSetup`. `DisableTOTP` requires valid code. 3 provider tests (88.2% coverage). |
 
 ### Import/Export
 

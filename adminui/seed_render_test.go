@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // TestPanel_RendersSeededData boots a full panel over a real in-memory service

@@ -2,11 +2,11 @@ package usermgmt
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"golang.org/x/oauth2"
 )
 
 // BeginOAuthLoginResponse contains the redirect URL for the OAuth2 authorization flow.
@@ -15,21 +15,27 @@ type BeginOAuthLoginResponse struct {
 }
 
 // BeginOAuthLogin starts the OAuth2 login flow for the given provider.
-// It generates a CSRF state token and PKCE verifier, stores them, and returns
-// the provider's authorization URL. The browser should be redirected to this URL.
-func (s *Service) BeginOAuthLogin(_ context.Context, provider string) (*BeginOAuthLoginResponse, error) {
-	prov, err := s.getOAuth2Provider(provider)
-	if err != nil {
-		return nil, err
+// It generates a CSRF state token, calls the provider to build the authorization
+// URL (with PKCE), stores the state, and returns the redirect URL.
+func (s *Service) BeginOAuthLogin(ctx context.Context, provider string) (*BeginOAuthLoginResponse, error) {
+	if s.oauth2 == nil {
+		return nil, ErrOAuthNotConfigured
 	}
 
-	pkceVerifier := oauth2.GenerateVerifier()
-	state, err := s.oauth2States.Save(provider, pkceVerifier, s.oauth2StateTTL)
+	state, err := generateOAuth2State()
 	if err != nil {
 		return nil, event.NewTransient("internal", "generate oauth2 state").WithCause(err)
 	}
 
-	redirectURL := prov.authCodeURL(state, pkceVerifier)
+	redirectURL, pkceVerifier, err := s.oauth2.BeginLogin(ctx, provider, state)
+	if err != nil {
+		return nil, event.NewTransient("internal", "oauth2 begin login").WithCause(err)
+	}
+
+	if err := s.oauth2States.Save(state, provider, pkceVerifier, s.oauth2StateTTL); err != nil {
+		return nil, event.NewTransient("internal", "save oauth2 state").WithCause(err)
+	}
+
 	s.logAuth("oauth_login_begin", UserID{}, "provider", provider)
 	return &BeginOAuthLoginResponse{RedirectURL: redirectURL}, nil
 }
@@ -38,7 +44,7 @@ func (s *Service) BeginOAuthLogin(_ context.Context, provider string) (*BeginOAu
 type FinishOAuthLoginResponse = AuthResult
 
 // FinishOAuthLogin completes the OAuth2 login flow. It validates the state token,
-// exchanges the authorization code for tokens, extracts user info, and either:
+// calls the provider to exchange the code and extract user info, and either:
 //   - Links the external account to an existing user (matched by email), or
 //   - Auto-registers a new user if no matching email is found.
 //
@@ -48,9 +54,8 @@ func (s *Service) FinishOAuthLogin(
 	ctx context.Context,
 	provider, code, state string,
 ) (*FinishOAuthLoginResponse, error) {
-	prov, err := s.getOAuth2Provider(provider)
-	if err != nil {
-		return nil, err
+	if s.oauth2 == nil {
+		return nil, ErrOAuthNotConfigured
 	}
 
 	storedProvider, pkceVerifier, err := s.oauth2States.Consume(state)
@@ -63,20 +68,25 @@ func (s *Service) FinishOAuthLogin(
 		return nil, ErrOAuthInvalidState
 	}
 
-	userInfo, err := prov.exchangeAndExtractUser(ctx, code, pkceVerifier)
+	userInfoJSON, err := s.oauth2.FinishLogin(ctx, provider, code, pkceVerifier)
 	if err != nil {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "token_exchange")
-		return nil, event.WrapRejection(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token")
+		return nil, event.WrapTransient(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token")
 	}
 
-	if userInfo.Email == "" {
+	var info OAuth2UserInfo
+	if err := json.Unmarshal(userInfoJSON, &info); err != nil {
+		return nil, event.NewInfrastructure("usermgmt.oauth.userinfo_unmarshal", "unmarshal user info").WithCause(err)
+	}
+
+	if info.Email == "" {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "no_email")
 		return nil, event.NewRejection("usermgmt.oauth_no_email",
 			"OAuth2 provider did not return an email address")
 	}
-	userInfo.Email = strings.ToLower(strings.TrimSpace(userInfo.Email))
+	info.Email = strings.ToLower(strings.TrimSpace(info.Email))
 
-	user, created, err := s.matchOrCreateUser(ctx, provider, userInfo)
+	user, created, err := s.matchOrCreateUser(ctx, provider, info)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +99,7 @@ func (s *Service) FinishOAuthLogin(
 	}
 
 	if created {
-		s.logAuth("oauth_register", user.ID, "provider", provider, "email", userInfo.Email)
+		s.logAuth("oauth_register", user.ID, "provider", provider, "email", info.Email)
 	} else {
 		s.logAuth("oauth_login", user.ID, "provider", provider)
 	}
@@ -100,19 +110,13 @@ func (s *Service) FinishOAuthLogin(
 // matchOrCreateUser finds an existing user by provider+subject (stable ID),
 // or by email, or auto-registers a new user if neither is found.
 // Returns the user and true if a new user was created.
-//
-// Lookup order:
-//  1. By provider+subject — recognizes returning users even if their email changed
-//  2. By email — links new provider to existing user with matching email
-//  3. Auto-register — creates a new user if no match found
 func (s *Service) matchOrCreateUser(
 	ctx context.Context,
 	provider string,
-	info oauth2UserInfo,
+	info OAuth2UserInfo,
 ) (*User, bool, error) {
 	// 1. Try to find by provider+subject (stable identifier)
 	if existing, ok := s.readModel.FindByExternalAccount(provider, info.Subject); ok {
-		// Already linked — idempotent re-login
 		return existing, false, nil
 	}
 
@@ -121,7 +125,6 @@ func (s *Service) matchOrCreateUser(
 		if err := s.linkExternalAccount(ctx, user.ID, provider, info); err != nil {
 			return nil, false, err
 		}
-		// Re-read to get the updated ExternalAccounts
 		user, _ = s.readModel.FindByUserID(user.ID)
 		return user, false, nil
 	}
@@ -139,7 +142,6 @@ func (s *Service) matchOrCreateUser(
 		return nil, false, s.classifyDispatchError(err, userID)
 	}
 
-	// Read model is updated synchronously (watermill.EventBus blocks until handlers complete)
 	user, ok := s.readModel.FindByID(aggID)
 	if !ok {
 		return nil, false, withUserIDContext(
@@ -147,33 +149,28 @@ func (s *Service) matchOrCreateUser(
 		)
 	}
 
-	// Link the external account to the newly created user
 	if err := s.linkExternalAccount(ctx, user.ID, provider, info); err != nil {
 		return nil, false, err
 	}
 
-	// Re-read to get the updated ExternalAccounts
 	user, _ = s.readModel.FindByID(aggID)
 	return user, true, nil
 }
 
 // linkExternalAccount dispatches LinkExternalAccount if not already linked,
 // and marks the email as verified if the provider confirmed it.
-// Enforces global uniqueness: rejects if the provider+subject is linked to a different user.
 func (s *Service) linkExternalAccount(
 	ctx context.Context,
 	userID UserID,
 	provider string,
-	info oauth2UserInfo,
+	info OAuth2UserInfo,
 ) error {
-	// Check if already linked to THIS user (idempotent — re-login shouldn't fail)
 	for _, ea := range s.readUserExternalAccounts(userID) {
 		if ea.Provider == provider && ea.Subject == info.Subject {
-			return nil // already linked
+			return nil
 		}
 	}
 
-	// Check if linked to a DIFFERENT user (global uniqueness enforcement)
 	if s.isExternalAccountLinkedToOther(provider, info.Subject, userID) {
 		return ErrExternalAccountAlreadyLinked
 	}
@@ -194,15 +191,11 @@ func (s *Service) linkExternalAccount(
 	return nil
 }
 
-// isExternalAccountLinkedToOther checks if the provider+subject is linked to
-// a user OTHER than the given userID. Used for global uniqueness enforcement.
 func (s *Service) isExternalAccountLinkedToOther(provider, subject string, userID UserID) bool {
 	existing, ok := s.readModel.FindByExternalAccount(provider, subject)
 	return ok && existing.ID.Get() != userID.Get()
 }
 
-// markEmailVerifiedIfMatch dispatches VerifyEmailCmd if the provider-reported
-// email matches the user's current email and isn't already verified.
 func (s *Service) markEmailVerifiedIfMatch(ctx context.Context, aggID id.AggregateID, userID UserID, email string) {
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok || user.EmailVerified || !strings.EqualFold(user.Email, email) {
@@ -248,25 +241,6 @@ func (s *Service) UnlinkExternalAccount(ctx context.Context, userID UserID, prov
 	return nil
 }
 
-func (s *Service) getOAuth2Provider(provider string) (*oauth2Provider, error) {
-	if s.oauth2Providers == nil {
-		return nil, ErrOAuthNotConfigured
-	}
-	prov, ok := s.oauth2Providers[provider]
-	if !ok {
-		return nil, event.Wrapf(
-			ErrOAuthProviderNotFound,
-			event.Rejection,
-			"usermgmt.oauth.provider_not_found",
-			"%s",
-			provider,
-		)
-	}
-	return prov, nil
-}
-
-// readUserExternalAccounts returns the user's external accounts from the read model.
-// Helper to avoid nil-slice issues when checking for existing links.
 func (s *Service) readUserExternalAccounts(userID UserID) []ExternalAccount {
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {

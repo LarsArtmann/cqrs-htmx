@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3/simple"
