@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.0.1] - 2026-07-02
+
+### Added
+
+- **Configurable TOTP pending-secret TTL** (`ServiceConfig.TOTPPendingSecretTTL`): Was hardcoded to 5 minutes, now configurable. Defaults to 5 minutes when ≤ 0. Mirrors the `WebAuthnSessionTTL` pattern.
+- **Configurable WebAuthn session TTL** (`ServiceConfig.WebAuthnSessionTTL`): Was hardcoded to 5 minutes, now configurable. Already shipped in v4.0.0 but missing from the v4.0.0 changelog.
+- **TOTP cross-module integration test** (`integration_test/totp_integration_test.go`): Full Service.EnableTOTP → totp.Provider.GenerateSecret → VerifyTOTPSetup → VerifyTOTP chain through the provider boundary. Includes nil-provider guards.
+- **OAuth2 cross-module integration test** (`integration_test/oauth2_integration_test.go`): Full Service.BeginOAuthLogin → oauth2.Provider.BeginLogin (PKCE + redirect URL) flow. Includes unknown-provider and nil-provider guards.
+- **JSON serialization boundary benchmarks** (`usermgmt/webauthn_benchmark_test.go`): `BenchmarkMarshalWebAuthnUser` (2 creds: 1.2µs, 4 allocs) and `BenchmarkMarshalWebAuthnUser_NoCreds` (0 creds: 400ns, 3 allocs). Confirms negligible overhead for ceremony paths.
+- **Coverage tests for parse helpers** (`usermgmt/coverage_parse_helpers_test.go`): `ParseUserID`, `MustParseUserID`, `ParseActorID` round-trip, `ParseActorID` no-prefix fallback, `MustParseEmail` panic.
+- **Pre-generated RSA key fixture** for OAuth2 OIDC tests: `sync.Once` cache eliminates ~50ms RSA key generation per test invocation. Shared across all `fakeOIDCServer` tests.
+- **Fuzz tests on JSON boundary** (`usermgmt/webauthn_fuzz_test.go`, `usermgmt/webauthn/provider_fuzz_test.go`): `FuzzMarshalWebAuthnUser`, `FuzzParseUser`, `FuzzParseSession` — crash-tested with 400K+ iterations.
+
+### Changed
+
+- **OAuth2 lint config**: Added `gochecknoglobals` exclusion for test files (RSA key fixture uses package-level `sync.Once` pattern).
+- **CONTRIBUTING.md**: Updated module table from 8 to 11 modules. Added auth sub-module structural typing explanation and dependency direction.
+- **DOMAIN_LANGUAGE.md**: Added `TOTPProvider`, `WebAuthnProvider`, `OAuth2Provider`, `WebAuthnSessionTTL` terms.
+- **ADR-0035**: Updated JSON serialization section with benchmark data (400ns–1.2µs) and fuzz/integration test references.
+
+### Fixed
+
+- **Stale doc references**: AGENTS.md coverage stat (95.4%/80.1% → 94.3%/74.5%), README.md go-cqrs-lite version (v3.1.0 → v3.5.0), README.md file tree (WebAuthnConfig → WebAuthnSessionTTL, added totp/webauthn/oauth2 dirs), TODO_LIST.md coverage stat and deferred items.
+- **Migration guide**: Removed stale "pending" references in dependency impact table.
+
 ## [v4.0.0] - 2026-07-02
 
 ### Breaking Changes — Auth Strategy Extraction (Sollbruchstellen)
