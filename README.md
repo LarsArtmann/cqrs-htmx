@@ -1150,25 +1150,25 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Dependencies
 
-| Dependency             | Purpose                                    |
-| ---------------------- | ------------------------------------------ |
-| go-cqrs-lite v3.5.0    | CQRS command/query dispatch, pagination    |
-| casbin/casbin/v3       | Authorization                              |
-| go-error-family v0.5.1 | Error classification                       |
-| justinas/nosurf        | CSRF protection                            |
-| larsartmann/httputil   | ClientIP extraction                        |
-| golang.org/x/time      | Token-bucket rate limiting                 |
-| go-branded-id          | Branded types (usermgmt)                   |
-| go-playground/form/v4  | Form decoding                              |
+| Dependency             | Purpose                                 |
+| ---------------------- | --------------------------------------- |
+| go-cqrs-lite v3.5.0    | CQRS command/query dispatch, pagination |
+| casbin/casbin/v3       | Authorization                           |
+| go-error-family v0.5.1 | Error classification                    |
+| justinas/nosurf        | CSRF protection                         |
+| larsartmann/httputil   | ClientIP extraction                     |
+| golang.org/x/time      | Token-bucket rate limiting              |
+| go-branded-id          | Branded types (usermgmt)                |
+| go-playground/form/v4  | Form decoding                           |
 
 **Optional sub-module dependencies** (only import the auth strategies you need):
 
-| Sub-module             | Dependency            | Purpose                              |
-| ---------------------- | --------------------- | ------------------------------------ |
-| usermgmt/totp/v4       | pquerna/otp v1.5.0    | TOTP MFA (RFC 6238)                  |
-| usermgmt/webauthn/v4   | go-webauthn v0.17.4   | WebAuthn/Passkey authentication      |
-| usermgmt/oauth2/v4     | golang.org/x/oauth2   | OAuth2 authorization code + PKCE     |
-| usermgmt/oauth2/v4     | coreos/go-oidc/v3     | OIDC discovery + ID token verification |
+| Sub-module           | Dependency          | Purpose                                |
+| -------------------- | ------------------- | -------------------------------------- |
+| usermgmt/totp/v4     | pquerna/otp v1.5.0  | TOTP MFA (RFC 6238)                    |
+| usermgmt/webauthn/v4 | go-webauthn v0.17.4 | WebAuthn/Passkey authentication        |
+| usermgmt/oauth2/v4   | golang.org/x/oauth2 | OAuth2 authorization code + PKCE       |
+| usermgmt/oauth2/v4   | coreos/go-oidc/v3   | OIDC discovery + ID token verification |
 
 ## Contributing
 

@@ -149,12 +149,12 @@
 
 ### Authentication
 
-| Feature               | Status                | Notes                                                                                                                                                                                                      |
-| --------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Feature               | Status                | Notes                                                                                                                                                                                                                                                                     |
+| --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | WebAuthn Passwordless | 🟢 `FULLY_FUNCTIONAL` | **v4: optional sub-module** `usermgmt/webauthn/v4`. Inject `webauthn.New(...)` as `ServiceConfig.WebAuthn`. `BeginRegistration`/`FinishRegistration`/`BeginLogin`/`FinishLogin`. In-memory challenge store with proactive eviction. 20 provider tests (W3C spec vectors). |
-| Account Lockout       | 🟢 `FULLY_FUNCTIONAL` | Wired into BeginLogin (check) and FinishLogin (record/reset). Configurable max attempts + duration. `ErrAccountLocked` → 429. `EvictStale()` for cleanup.                                                  |
-| Session Management    | 🟢 `FULLY_FUNCTIONAL` | `SessionStore` interface + `InMemorySessionStore` + `SQLSessionStore`. TTL-based expiry. `DeleteByUserID` for user deletion revocation. `Session` struct with `SessionOrigin` (DirectLogin/Impersonation). |
-| Session Rotation      | 🟢 `FULLY_FUNCTIONAL` | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                                                                                   |
+| Account Lockout       | 🟢 `FULLY_FUNCTIONAL` | Wired into BeginLogin (check) and FinishLogin (record/reset). Configurable max attempts + duration. `ErrAccountLocked` → 429. `EvictStale()` for cleanup.                                                                                                                 |
+| Session Management    | 🟢 `FULLY_FUNCTIONAL` | `SessionStore` interface + `InMemorySessionStore` + `SQLSessionStore`. TTL-based expiry. `DeleteByUserID` for user deletion revocation. `Session` struct with `SessionOrigin` (DirectLogin/Impersonation).                                                                |
+| Session Rotation      | 🟢 `FULLY_FUNCTIONAL` | `UpdateRoles` deletes all user sessions after privilege change, forcing re-authentication. Non-blocking.                                                                                                                                                                  |
 
 ### Identity Model (ADR-0015)
 
@@ -169,11 +169,11 @@
 
 ### OAuth2/OIDC (ADR-0014)
 
-| Feature               | Status                | Notes                                                                                                                                                                                             |
-| --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Feature               | Status                | Notes                                                                                                                                                                                                                                 |
+| --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | OAuth2/OIDC Login     | 🟢 `FULLY_FUNCTIONAL` | **v4: optional sub-module** `usermgmt/oauth2/v4`. Inject `oauth2.New(...)` as `ServiceConfig.OAuth2`. Dual-mode: OIDC discovery (IssuerURL set) or pure OAuth2 (explicit endpoints). PKCE S256. 18 provider tests (real JWT signing). |
-| Subject-First Match   | 🟢 `FULLY_FUNCTIONAL` | `matchOrCreateUser` checks FindByExternalAccount FIRST (stable ID), then email. Recognizes returning users even when provider email changed. Global provider+subject uniqueness enforced.         |
-| External Account Link | 🟢 `FULLY_FUNCTIONAL` | 2 events (Linked/Unlinked), 2 commands. Email-based linking for new providers. Auto-trust provider emails when `email_verified: true`. Last-auth-method guard prevents account lockout on unlink. |
+| Subject-First Match   | 🟢 `FULLY_FUNCTIONAL` | `matchOrCreateUser` checks FindByExternalAccount FIRST (stable ID), then email. Recognizes returning users even when provider email changed. Global provider+subject uniqueness enforced.                                             |
+| External Account Link | 🟢 `FULLY_FUNCTIONAL` | 2 events (Linked/Unlinked), 2 commands. Email-based linking for new providers. Auto-trust provider emails when `email_verified: true`. Last-auth-method guard prevents account lockout on unlink.                                     |
 
 ### RBAC Authorization
 
@@ -191,9 +191,9 @@
 
 ### Verification & MFA
 
-| Feature            | Status                | Notes                                                                                                                                                                                                 |
-| ------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Email Verification | 🟢 `FULLY_FUNCTIONAL` | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback (`SendVerificationEmailFunc`). Email change resets verification. Single-use tokens with TTL (10 min). `EvictExpired()`. |
+| Feature            | Status                | Notes                                                                                                                                                                                                                                                        |
+| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Email Verification | 🟢 `FULLY_FUNCTIONAL` | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback (`SendVerificationEmailFunc`). Email change resets verification. Single-use tokens with TTL (10 min). `EvictExpired()`.                                                        |
 | TOTP MFA           | 🟢 `FULLY_FUNCTIONAL` | **v4: optional sub-module** `usermgmt/totp/v4`. Inject `totp.New(...)` as `ServiceConfig.TOTP`. pquerna/otp/totp v1.5.0 (RFC 6238). Two-phase setup: `EnableTOTP` → `VerifyTOTPSetup`. `DisableTOTP` requires valid code. 3 provider tests (88.2% coverage). |
 
 ### Import/Export

@@ -184,7 +184,7 @@ _Pareto-prioritized work from planning docs, status reports, and 40-item audit._
 
 _- [x] **Pseudo-version fix** — Fixed `v0.0.0-...` → `v4.0.0-...` in all 5 go.mod files. GOWORK=off builds were broken since the v4 module path bump. CI and nix pipelines were affected._
 _- [x] **CI/build coverage** — All 3 new sub-modules added to check-module-isolation, check-dep-budgets, flake.nix build/test/coverage/fuzz, CI workflow build/test/mod-tidy. adminui tests added to CI (were completely missing). CI now triggers on v4 branch._
-_- [x] **v4.0.0 auth strategy extraction** — 3 independent Go modules (totp, webauthn, oauth2). 38 provider tests. Compile-time interface assertions in integration\_test._
+_- [x] **v4.0.0 auth strategy extraction** — 3 independent Go modules (totp, webauthn, oauth2). 38 provider tests. Compile-time interface assertions in integration_test._
 
 ### Deferred
 

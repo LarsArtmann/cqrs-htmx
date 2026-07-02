@@ -99,29 +99,29 @@ _Focus: Adopting go-cqrs-lite v3.4.0 capabilities to reduce hand-rolled code._
 
 _Focus: Module isolation for auth strategies. Consumers import only what they need._
 
-| Area       | Item                                                                                          | Priority | Status |
-| ---------- | --------------------------------------------------------------------------------------------- | -------- | ------ |
-| Extraction | TOTP behind TOTPProvider interface → `usermgmt/totp/v4` module                               | Critical | Done   |
-| Extraction | WebAuthn behind WebAuthnProvider interface → `usermgmt/webauthn/v4` module                    | Critical | Done   |
-| Extraction | OAuth2/OIDC behind OAuth2Provider interface → `usermgmt/oauth2/v4` module                     | Critical | Done   |
-| Testing    | W3C spec ceremony tests for WebAuthn provider                                                 | High     | Done   |
-| Testing    | Real JWT signing tests for OAuth2/OIDC provider                                               | High     | Done   |
-| Testing    | Compile-time interface assertions in integration_test                                         | High     | Done   |
-| Docs       | ADR-0035 (auth strategy extraction decision)                                                  | Medium   | Done   |
-| Docs       | Migration guide v3→v4                                                                         | High     | Done   |
+| Area       | Item                                                                       | Priority | Status |
+| ---------- | -------------------------------------------------------------------------- | -------- | ------ |
+| Extraction | TOTP behind TOTPProvider interface → `usermgmt/totp/v4` module             | Critical | Done   |
+| Extraction | WebAuthn behind WebAuthnProvider interface → `usermgmt/webauthn/v4` module | Critical | Done   |
+| Extraction | OAuth2/OIDC behind OAuth2Provider interface → `usermgmt/oauth2/v4` module  | Critical | Done   |
+| Testing    | W3C spec ceremony tests for WebAuthn provider                              | High     | Done   |
+| Testing    | Real JWT signing tests for OAuth2/OIDC provider                            | High     | Done   |
+| Testing    | Compile-time interface assertions in integration_test                      | High     | Done   |
+| Docs       | ADR-0035 (auth strategy extraction decision)                               | Medium   | Done   |
+| Docs       | Migration guide v3→v4                                                      | High     | Done   |
 
 ## v4.1.0 — God-Package Split (Next Initiative)
 
 _Focus: The 84-file usermgmt god-package. Clean seams identified but extraction deferred._
 
-| Area          | Item                                                                | Priority | Status   |
-| ------------- | ------------------------------------------------------------------- | -------- | -------- |
-| Architecture  | Extract domain layer (20 pure fold/decide files, zero I/O)          | High     | Planned  |
-| Architecture  | Extract SQL infrastructure (9 files)                                | Medium   | Planned  |
-| Architecture  | Split Service struct into focused services                         | Medium   | Planned  |
-| Testing       | Cross-module integration test through Service layer                | Medium   | Planned  |
-| Feature       | Configurable WebAuthn session TTL                                   | Low      | Planned  |
-| Testing       | Fuzz tests on JSON serialization boundary                           | Medium   | Planned  |
+| Area         | Item                                                       | Priority | Status  |
+| ------------ | ---------------------------------------------------------- | -------- | ------- |
+| Architecture | Extract domain layer (20 pure fold/decide files, zero I/O) | High     | Planned |
+| Architecture | Extract SQL infrastructure (9 files)                       | Medium   | Planned |
+| Architecture | Split Service struct into focused services                 | Medium   | Planned |
+| Testing      | Cross-module integration test through Service layer        | Medium   | Planned |
+| Feature      | Configurable WebAuthn session TTL                          | Low      | Planned |
+| Testing      | Fuzz tests on JSON serialization boundary                  | Medium   | Planned |
 
 ---
 
