@@ -10,10 +10,14 @@ import (
 type testWebAuthnProvider struct{}
 
 // testWebAuthnOptions is the canned ceremony options returned by the stub.
-var testWebAuthnOptions = []byte(`{"publicKey":{"challenge":"dGVzdA==","rpId":"localhost","user":{"id":"dGVzdA==","name":"test@test.com","displayName":"Test"}}}`)
+var testWebAuthnOptions = []byte(
+	`{"publicKey":{"challenge":"dGVzdA==","rpId":"localhost","user":{"id":"dGVzdA==","name":"test@test.com","displayName":"Test"}}}`,
+)
 
 // testWebAuthnCredential is the canned credential returned by FinishRegistration.
-var testWebAuthnCredential = []byte(`{"id":"dGVzdA==","public_key":"dGVzdA==","attestation_type":"none","sign_count":0}`)
+var testWebAuthnCredential = []byte(
+	`{"id":"dGVzdA==","public_key":"dGVzdA==","attestation_type":"none","sign_count":0}`,
+)
 
 // testWebAuthnSession is the canned opaque session data.
 var testWebAuthnSession = []byte(`{"challenge":"dGVzdA==","user_id":"dGVzdA==","expires":"2099-01-01T00:00:00Z"}`)

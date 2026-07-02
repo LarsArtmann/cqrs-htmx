@@ -13,5 +13,7 @@ func (testOAuth2Provider) BeginLogin(_ context.Context, provider, state string) 
 }
 
 func (testOAuth2Provider) FinishLogin(_ context.Context, provider, code, pkceVerifier string) ([]byte, error) {
-	return []byte(`{"subject":"test-subject-` + provider + `","email":"oauth@test.com","email_verified":true,"display_name":"Test User"}`), nil
+	return []byte(
+		`{"subject":"test-subject-` + provider + `","email":"oauth@test.com","email_verified":true,"display_name":"Test User"}`,
+	), nil
 }

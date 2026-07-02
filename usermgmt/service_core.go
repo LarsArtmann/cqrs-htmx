@@ -49,7 +49,7 @@ type Service struct {
 	totp                     TOTPProvider
 	pendingTOTP              PendingTOTPStore
 	stopPendingTOTPEviction  func()
-	oauth2                    OAuth2Provider
+	oauth2                   OAuth2Provider
 	oauth2States             OAuth2StateStore
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration

@@ -10,6 +10,7 @@ package oauth2
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -39,17 +40,19 @@ type ProviderConfig struct {
 // Validate returns an error if the configuration is incomplete or inconsistent.
 func (c ProviderConfig) Validate() error {
 	if c.ClientID == "" {
-		return fmt.Errorf("oauth2 provider: ClientID is required")
+		return errors.New("oauth2 provider: ClientID is required")
 	}
 	if c.ClientSecret == "" {
-		return fmt.Errorf("oauth2 provider: ClientSecret is required")
+		return errors.New("oauth2 provider: ClientSecret is required")
 	}
 	if c.RedirectURL == "" {
-		return fmt.Errorf("oauth2 provider: RedirectURL is required")
+		return errors.New("oauth2 provider: RedirectURL is required")
 	}
 	if c.IssuerURL == "" {
 		if c.AuthURL == "" || c.TokenURL == "" || c.UserInfoURL == "" {
-			return fmt.Errorf("oauth2 provider: when IssuerURL is empty, AuthURL, TokenURL, and UserInfoURL are required")
+			return errors.New(
+				"oauth2 provider: when IssuerURL is empty, AuthURL, TokenURL, and UserInfoURL are required",
+			)
 		}
 	}
 	return nil
@@ -106,7 +109,7 @@ func initProvider(ctx context.Context, name string, cfg ProviderConfig) (*initia
 
 	scopes := cfg.Scopes
 	if len(scopes) == 0 {
-		scopes = []string{oidc.ScopeOpenID, "email", "profile"} //nolint:goconst // OAuth scope name
+		scopes = []string{oidc.ScopeOpenID, "email", "profile"}
 	}
 
 	p := &initializedProvider{ //nolint:exhaustruct // fields set conditionally below
@@ -206,7 +209,7 @@ func (p *initializedProvider) extractFromIDToken(
 ) (userInfo, error) {
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return userInfo{}, fmt.Errorf("oauth2: id_token missing from token response")
+		return userInfo{}, errors.New("oauth2: id_token missing from token response")
 	}
 	idToken, err := p.verifier.Verify(ctx, rawIDToken)
 	if err != nil {

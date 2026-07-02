@@ -217,7 +217,7 @@ func TestCasbinProjection_EventTypes_IncludesCredentials(t *testing.T) {
 func newLockoutTestService(t *testing.T, cfg LockoutConfig) *Service {
 	t.Helper()
 	svc, err := NewService(ServiceConfig{
-		Lockout:        NewAccountLockout(cfg),
+		Lockout:  NewAccountLockout(cfg),
 		WebAuthn: testWebAuthnProvider{},
 	})
 	if err != nil {
