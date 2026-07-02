@@ -97,6 +97,10 @@ type ServiceConfig struct {
 	// challenge store. Use this for multi-instance deployments (e.g., Redis).
 	// Ignored when WebAuthnConfig is nil.
 	WebAuthnSessionStore WebAuthnSessionStore
+	// WebAuthnSessionTTL is the time-to-live for in-flight WebAuthn challenge
+	// sessions. Defaults to 5 minutes. Ignored when WebAuthn is nil or when
+	// WebAuthnSessionStore is provided (the custom store manages its own TTL).
+	WebAuthnSessionTTL time.Duration
 	// VerificationTokenStore, if provided, replaces the default in-memory email
 	// verification token store. Use this for multi-instance deployments.
 	// Ignored when EmailVerification is nil.
@@ -275,7 +279,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.webauthn = cfg.WebAuthn
 		sessionStore := cfg.WebAuthnSessionStore
 		if sessionStore == nil {
-			mem := newWebAuthnSessionStore()
+			mem := newWebAuthnSessionStore(cfg.WebAuthnSessionTTL)
 			sessionStore = mem
 			svc.stopWebAuthnEviction = mem.startEviction()
 		}

@@ -28,10 +28,13 @@ type webauthnSessionStore struct {
 	ttl      time.Duration
 }
 
-func newWebAuthnSessionStore() *webauthnSessionStore {
+func newWebAuthnSessionStore(ttl time.Duration) *webauthnSessionStore {
+	if ttl <= 0 {
+		ttl = webauthnSessionTTL
+	}
 	return &webauthnSessionStore{ //nolint:exhaustruct // mu zero-value is correct (sync.Mutex)
 		sessions: make(map[string]webauthnSessionEntry),
-		ttl:      webauthnSessionTTL,
+		ttl:      ttl,
 	}
 }
 
