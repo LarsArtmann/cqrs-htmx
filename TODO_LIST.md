@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-07-01 | **Coverage:** 94.2% root, 79.4% usermgmt | **Lint:** 0 issues (all modules) | **Version:** v3.5.0 (go-cqrs-lite v3.5.0)
+**Updated:** 2026-07-02 | **Coverage:** 94.3% root, 80.1% usermgmt, 87.5% webauthn, 92.3% oauth2, 88.2% totp | **Lint:** 0 issues (root + usermgmt + adminui) | **Version:** v4.0.0 (go-cqrs-lite v3.5.0)
 
 ## Status Legend
 
@@ -172,17 +172,28 @@ _Pareto-prioritized work from planning docs, status reports, and 40-item audit._
 - [x] **Sync FEATURES.md** — Removed catalog column, updated ClientIP to FULLY_FUNCTIONAL, synced coverage/test counts
 - [x] **Sync ROADMAP.md** — Marked scenario BDD, OTel guide, Prometheus guide as Done
 - [ ] **Phase 2b — Persistent offline queue** (ADR-0030) — IndexedDB persistence for writes that survive closed tabs. Proposed, not yet implemented.
-- [ ] **usermgmt v4 auth strategy extraction** — Auth interfaces designed in `auth_interfaces.go` (TOTPVerifier, WebAuthnProvider, OAuth2Provider). Actual extraction requires changing public `ServiceConfig` fields from concrete to interface types — v4-breaking. Removes go-webauthn, oauth2, oidc, jose, pquerna/otp from consumer deps. See `docs/modularization/2026-07-01_SOLLBRUCHSTELLEN.html` and `docs/planning/2026-07-01_18-27_sollbruchstellen-execution.md`
-- [ ] **Root module sub-package extraction** — REJECTED for v3: sub-package extraction within same go.mod adds 30+ re-export wrappers with ZERO consumer benefit (same go.mod = same dep tree). Only separate Go modules reduce deps — that's v4. See `docs/planning/2026-07-01_18-27_sollbruchstellen-execution.md` for the Versclimmbesserung analysis
+- [x] **v4 auth strategy extraction** — DONE. TOTP, WebAuthn, OAuth2 extracted behind interfaces into independent Go modules (`usermgmt/totp/v4`, `usermgmt/webauthn/v4`, `usermgmt/oauth2/v4`). Consumers import only the auth strategies they need. go-webauthn, oauth2, oidc, jose, pquerna/otp removed from core usermgmt deps. 38 provider tests added (W3C vectors + real JWT signing). See ADR-0035.
+- [x] **Root module sub-package extraction** — EVALUATED AND REJECTED for v4. Sub-package extraction within same go.mod adds wrappers complexity with ZERO consumer benefit. Separate Go modules (the v4 auth strategy approach) is the correct pattern.
 - [x] **constants.go** — DONE. Shared constants extracted from response.go. Cycle debunked.
 - [x] **CI module architecture enforcement** — DONE. 4 scripts: check-module-isolation, check-dep-budgets, check-version-drift, check-replace-directives. Wired as `nix run .#check-modules`.
 - [x] **Auth strategy interfaces** — DONE. TOTPVerifier, WebAuthnProvider, OAuth2Provider in `usermgmt/auth_interfaces.go`. Compile-time assertion `var _ TOTPVerifier = (*Service)(nil)` proves Service already satisfies TOTP contract. v4 prep, non-breaking.
 - [x] **Version drift fixed** — DONE. All go-cqrs-lite sibling modules now pinned to consistent versions across root, usermgmt, adminui, integration_test, and all examples. Version drift CI script passes in strict mode.
 - [x] **CI module-architecture job** — DONE. Added `module-architecture` job to `.github/workflows/ci.yml` running all 4 architecture scripts. Version drift runs in advisory mode (warn, don't block).
 
----
+### v4.0.0 Release (2026-07-02)
 
-## Completed (2026-05-07 → 2026-06-14)
+_- [x] **Pseudo-version fix** — Fixed `v0.0.0-...` → `v4.0.0-...` in all 5 go.mod files. GOWORK=off builds were broken since the v4 module path bump. CI and nix pipelines were affected._
+_- [x] **CI/build coverage** — All 3 new sub-modules added to check-module-isolation, check-dep-budgets, flake.nix build/test/coverage/fuzz, CI workflow build/test/mod-tidy. adminui tests added to CI (were completely missing). CI now triggers on v4 branch._
+_- [x] **v4.0.0 auth strategy extraction** — 3 independent Go modules (totp, webauthn, oauth2). 38 provider tests. Compile-time interface assertions in integration\_test._
+
+### Deferred
+
+_- [ ] **Root usermgmt god-package split** — 84-file god-package. Clean seams identified (domain layer, SQL infra). High effort (8h+), deferred to post-v4._
+_- [ ] **Cross-module integration test through Service layer** — Provider tests exercise provider directly; no runtime ceremony through Service.BeginRegistration → Provider → Service.FinishRegistration._
+_- [ ] **Make WebAuthn session TTL configurable** — Currently hardcoded to 5 minutes._
+_- [ ] **Fuzz tests on JSON boundary** — parseUser/parseSession/marshalWebAuthnUser are the new attack surface._
+
+---
 
 _170 items completed. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://github.com/larsartmann/cqrs-htmx/commits/master) for full history._
 
