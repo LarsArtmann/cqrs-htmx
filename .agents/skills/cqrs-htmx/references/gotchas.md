@@ -4,7 +4,7 @@ The most frequent and painful mistakes consumers make. Each has a concrete fix.
 
 ## 1. Module & versioning
 
-### `/v3` suffix is mandatory
+### `/v4` suffix is mandatory
 
 Go modules at v2+ require the major-version suffix in the import path. Forgetting it gives confusing "module not found" or silent wrong-version errors.
 
@@ -25,11 +25,11 @@ cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 
 ### `GOWORK=off` for submodules
 
-`go.work` covers root + adminui + usermgmt + integration_test + examples. When building/testing a submodule in isolation, set `GOWORK=off` so it uses its own `go.mod`. The `flake.nix` per-module apps do this for you (`nix run .#test-usermgmt`, etc.).
+`go.work` covers root + adminui + usermgmt + 3 auth sub-modules + integration_test + examples. When building/testing a submodule in isolation, set `GOWORK=off` so it uses its own `go.mod`. The `flake.nix` per-module apps do this for you (`nix run .#test-usermgmt`, `nix run .#test-webauthn`, etc.).
 
 ### `go.work` doesn't affect `go get` / `go mod tidy`
 
-If a consumer imports your library, they only see published tags. Make sure tags exist: `usermgmt/v3.x.y`, `adminui/v3.x.y` (not just `v3.x.y` at root).
+If a consumer imports your library, they only see published tags. Make sure tags exist: `usermgmt/v4.x.y`, `adminui/v4.x.y`, `usermgmt/totp/v4.x.y`, etc. (not just `v4.x.y` at root).
 
 ## 2. Type system
 

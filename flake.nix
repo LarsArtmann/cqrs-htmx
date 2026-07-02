@@ -508,6 +508,11 @@
               program = pkgs.writeShellApplication {
                 name = "check-errorfamily";
                 text = ''
+                  # Root + usermgmt + adminui: error-family constructors are mandatory.
+                  # Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt:
+                  # they don't import go-cqrs-lite/event/v3 (keeping deps minimal), and
+                  # the Service layer wraps all provider errors with event.Wrapf at the
+                  # boundary — so error families are assigned at the correct layer.
                   echo "==> Root module"
                   branching-flow errorfamily .
                   echo "==> usermgmt submodule"

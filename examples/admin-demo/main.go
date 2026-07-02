@@ -30,8 +30,8 @@ import (
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
@@ -47,7 +47,11 @@ func main() {
 	ctx := context.Background()
 
 	// 1. Event-sourced user management, in-memory, with an audit log projection.
-	//    v4: TOTP strategy injected as an optional sub-module. Import only what you need.
+	//    v4: TOTP strategy injected as an optional sub-module — demonstrates the
+	//    import + injection pattern. In a real app you'd also mount the auth
+	//    routes (NewAuthHandler(svc).RegisterRoutes(mux)) so the TOTP endpoints
+	//    (/auth/totp/setup, /auth/totp/verify, etc.) are reachable. This demo
+	//    uses a dev-login shortcut for simplicity.
 	totpProvider := totp.New(totp.Config{Issuer: "cqrs-htmx Demo"})
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{ //nolint:exhaustruct // demo uses in-memory defaults
 		AuditLog: usermgmt.NewAuditLog(),
