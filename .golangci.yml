@@ -85,6 +85,7 @@ linters:
       exclude:
         - os/exec.Cmd
         - github\.com/larsartmann/cqrs-htmx/v4\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig)$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.(User|UserState|UserReadModel|UserView|EnforcerConfig|HandlerConfig|ActorID|AccountLockout|InMemorySessionStore|WebAuthnCredential)$
         - .+\.testCreateUserCmd$
         - .+\.bddCreateUserCmd$
         - .+\.fakeSpan$
@@ -122,6 +123,9 @@ linters:
         linters:
           - revive
       - path: app_test\.go$
+        linters:
+          - gochecknoglobals
+      - path: webauthn_stub_test\.go$
         linters:
           - gochecknoglobals
       - path: _test\.go

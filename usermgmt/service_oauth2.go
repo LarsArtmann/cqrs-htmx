@@ -17,7 +17,7 @@ type BeginOAuthLoginResponse struct {
 // BeginOAuthLogin starts the OAuth2 login flow for the given provider.
 // It generates a CSRF state token, calls the provider to build the authorization
 // URL (with PKCE), stores the state, and returns the redirect URL.
-func (s *Service) BeginOAuthLogin(_ context.Context, provider string) (*BeginOAuthLoginResponse, error) {
+func (s *Service) BeginOAuthLogin(ctx context.Context, provider string) (*BeginOAuthLoginResponse, error) {
 	if s.oauth2 == nil {
 		return nil, ErrOAuthNotConfigured
 	}
@@ -27,7 +27,7 @@ func (s *Service) BeginOAuthLogin(_ context.Context, provider string) (*BeginOAu
 		return nil, event.NewTransient("internal", "generate oauth2 state").WithCause(err)
 	}
 
-	redirectURL, pkceVerifier, err := s.oauth2.BeginLogin(context.Background(), provider, state)
+	redirectURL, pkceVerifier, err := s.oauth2.BeginLogin(ctx, provider, state)
 	if err != nil {
 		return nil, event.NewTransient("internal", "oauth2 begin login").WithCause(err)
 	}

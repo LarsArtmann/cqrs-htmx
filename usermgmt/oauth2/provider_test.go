@@ -218,7 +218,7 @@ func TestProvider_BeginLogin_PKCE(t *testing.T) {
 
 // --- Pure OAuth2 flow tests ---
 
-func newFakeOAuth2Server(t *testing.T, userInfo map[string]any) (*httptest.Server, ProviderConfig) {
+func newFakeOAuth2Server(t *testing.T, userInfo map[string]any) ProviderConfig {
 	t.Helper()
 	mux := http.NewServeMux()
 
@@ -257,11 +257,11 @@ func newFakeOAuth2Server(t *testing.T, userInfo map[string]any) (*httptest.Serve
 		TokenURL:     server.URL + "/token",
 		UserInfoURL:  server.URL + "/userinfo",
 	}
-	return server, cfg
+	return cfg
 }
 
 func TestProvider_FinishLogin_PureOAuth2(t *testing.T) {
-	_, provCfg := newFakeOAuth2Server(t, map[string]any{
+	provCfg := newFakeOAuth2Server(t, map[string]any{
 		"id":             "12345",
 		"email":          "user@example.com",
 		"name":           "Test User",
@@ -307,7 +307,7 @@ func TestProvider_FinishLogin_PureOAuth2(t *testing.T) {
 func TestProvider_FinishLogin_PureOAuth2_GitHubLoginFallback(t *testing.T) {
 	// GitHub uses "login" as display name when "name" is empty,
 	// and "id" as subject when "sub" is empty.
-	_, provCfg := newFakeOAuth2Server(t, map[string]any{
+	provCfg := newFakeOAuth2Server(t, map[string]any{
 		"id":    "67890",
 		"email": "ghuser@example.com",
 		"login": "ghuser",
@@ -338,7 +338,7 @@ func TestProvider_FinishLogin_PureOAuth2_GitHubLoginFallback(t *testing.T) {
 }
 
 func TestProvider_FinishLogin_PureOAuth2_InvalidCode(t *testing.T) {
-	_, provCfg := newFakeOAuth2Server(t, map[string]any{"id": "1"})
+	provCfg := newFakeOAuth2Server(t, map[string]any{"id": "1"})
 
 	p, err := New(context.Background(), Config{
 		Providers: map[string]ProviderConfig{"github": provCfg},

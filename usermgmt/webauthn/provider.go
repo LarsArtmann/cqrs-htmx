@@ -187,7 +187,7 @@ func (p *Provider) BeginRegistration(_ context.Context, userJSON []byte) (option
 // body is the raw attestation response from the authenticator.
 // sessionData is the opaque session returned by BeginRegistration.
 // Returns the new credential data as JSON.
-func (p *Provider) FinishRegistration(_ context.Context, userJSON, body, sessionData []byte) ([]byte, error) {
+func (p *Provider) FinishRegistration(ctx context.Context, userJSON, body, sessionData []byte) ([]byte, error) {
 	user, err := parseUser(userJSON)
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func (p *Provider) FinishRegistration(_ context.Context, userJSON, body, session
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/", bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("webauthn: create request: %w", err)
 	}
@@ -246,7 +246,7 @@ func (p *Provider) BeginLogin(_ context.Context, userJSON []byte) (options, sess
 // FinishLogin completes the authentication ceremony.
 // body is the raw assertion response from the authenticator.
 // sessionData is the opaque session returned by BeginLogin.
-func (p *Provider) FinishLogin(_ context.Context, userJSON, body, sessionData []byte) error {
+func (p *Provider) FinishLogin(ctx context.Context, userJSON, body, sessionData []byte) error {
 	user, err := parseUser(userJSON)
 	if err != nil {
 		return err
@@ -257,7 +257,7 @@ func (p *Provider) FinishLogin(_ context.Context, userJSON, body, sessionData []
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/", bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("webauthn: create request: %w", err)
 	}
