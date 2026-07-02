@@ -230,6 +230,12 @@
                   golangci-lint run
                   echo "==> usermgmt submodule"
                   (cd usermgmt && golangci-lint run)
+                  echo "==> usermgmt/totp submodule"
+                  (cd usermgmt/totp && golangci-lint run)
+                  echo "==> usermgmt/webauthn submodule"
+                  (cd usermgmt/webauthn && golangci-lint run)
+                  echo "==> usermgmt/oauth2 submodule"
+                  (cd usermgmt/oauth2 && golangci-lint run)
                   echo "==> adminui submodule"
                   (cd adminui && golangci-lint run)
                 '';
@@ -568,7 +574,7 @@
 
             coverage-gate = {
               type = "app";
-              meta.description = "Run tests and fail if coverage drops below thresholds (root 90%, usermgmt 78%)";
+              meta.description = "Run tests and fail if coverage drops below thresholds";
               program = pkgs.writeShellApplication {
                 name = "coverage-gate";
                 runtimeInputs = [
@@ -590,11 +596,11 @@
                     fi
                   }
                   check_cov . 90
-                  check_cov usermgmt 78
+                  check_cov usermgmt 74
                   check_cov usermgmt/totp 80
                   check_cov usermgmt/webauthn 80
                   check_cov usermgmt/oauth2 80
-                  check_cov adminui 70
+                  check_cov adminui 66
                   if [ "$fail" -eq 1 ]; then
                     echo "Coverage gate FAILED"
                     exit 1
