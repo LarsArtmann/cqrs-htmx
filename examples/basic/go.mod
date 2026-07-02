@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/basic
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.0.0
+	github.com/larsartmann/cqrs-htmx/v4 v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0

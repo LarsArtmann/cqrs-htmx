@@ -26,7 +26,7 @@ func (testWebAuthnProvider) BeginRegistration(_ context.Context, _ []byte) ([]by
 	return testWebAuthnOptions, testWebAuthnSession, nil
 }
 
-func (testWebAuthnProvider) FinishRegistration(_ context.Context, _ []byte, _ []byte, _ []byte) ([]byte, error) {
+func (testWebAuthnProvider) FinishRegistration(_ context.Context, _, _, _ []byte) ([]byte, error) {
 	return testWebAuthnCredential, nil
 }
 
@@ -34,6 +34,6 @@ func (testWebAuthnProvider) BeginLogin(_ context.Context, _ []byte) ([]byte, []b
 	return testWebAuthnOptions, testWebAuthnSession, nil
 }
 
-func (testWebAuthnProvider) FinishLogin(_ context.Context, _ []byte, _ []byte, _ []byte) error {
+func (testWebAuthnProvider) FinishLogin(_ context.Context, _, _, _ []byte) error {
 	return nil
 }

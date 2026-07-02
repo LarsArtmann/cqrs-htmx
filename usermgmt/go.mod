@@ -6,7 +6,7 @@ replace github.com/larsartmann/cqrs-htmx/v4 => ../
 
 require (
 	github.com/casbin/casbin/v3 v3.10.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.0.0
+	github.com/larsartmann/cqrs-htmx/v4 v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-branded-id v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.5.0
