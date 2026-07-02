@@ -126,9 +126,13 @@ See `docs/migrations/v3-to-v4.md` for complete before/after examples.
 
 - **JSON serialization boundary overhead**: core marshals user data, provider
   unmarshals, runs ceremony, marshals result, core unmarshals. For ceremonies
-  (not hot paths), this is negligible (~µs of JSON work per ceremony).
+  (not hot paths), this is negligible — benchmarked at **~400ns** (0 creds)
+  to **~1.2µs** (2 creds), 3-4 allocs per call. See
+  `usermgmt/webauthn_benchmark_test.go`.
 - **New untested code path**: the marshal/unmarshal boundary is new code.
-  Mitigated by provider tests (W3C vectors, mock OIDC provider).
+  Mitigated by provider tests (W3C vectors, mock OIDC provider), fuzz tests
+  (`FuzzMarshalWebAuthnUser`, `FuzzParseUser`, `FuzzParseSession`), and
+  cross-module integration tests in `integration_test/`.
 - **Consumer must wire providers**: one extra import + constructor call per
   strategy. The migration guide documents the pattern.
 - **OAuth2StateStore signature change**: the most disruptive API change.

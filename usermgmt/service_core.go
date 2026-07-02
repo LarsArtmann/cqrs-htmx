@@ -48,6 +48,7 @@ type Service struct {
 	sendVerificationEmail    SendVerificationEmailFunc
 	totp                     TOTPProvider
 	pendingTOTP              PendingTOTPStore
+	totpPendingTTL           time.Duration
 	stopPendingTOTPEviction  func()
 	oauth2                   OAuth2Provider
 	oauth2States             OAuth2StateStore
@@ -109,6 +110,10 @@ type ServiceConfig struct {
 	// secret store. Use this for multi-instance deployments.
 	// Ignored when TOTP is nil.
 	PendingTOTPStore PendingTOTPStore
+	// TOTPPendingSecretTTL is the time-to-live for in-flight TOTP setup
+	// secrets (between EnableTOTP and VerifyTOTPSetup). Defaults to 5 minutes.
+	// Ignored when TOTP is nil or when PendingTOTPStore is provided.
+	TOTPPendingSecretTTL time.Duration
 
 	// OAuth2, if provided, enables OAuth2/OIDC login with external identity
 	// providers (Google, GitHub, etc.). Import usermgmt/oauth2 to obtain a
@@ -310,6 +315,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 			svc.stopPendingTOTPEviction = mem.startEviction()
 		}
 		svc.pendingTOTP = tStore
+		svc.totpPendingTTL = cfg.TOTPPendingSecretTTL
 	}
 
 	if cfg.OAuth2 != nil {

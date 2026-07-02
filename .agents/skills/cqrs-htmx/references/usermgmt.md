@@ -37,10 +37,12 @@ type ServiceConfig struct {
 
 	WebAuthn              WebAuthnProvider        // inject webauthn.New(Config{...}) — nil = no passkey auth
 	WebAuthnSessionStore   WebAuthnSessionStore    // nil → in-memory (use Redis for multi-instance)
+	WebAuthnSessionTTL     time.Duration           // 0 → 5 min TTL for challenge sessions
 	EmailVerification      *EmailVerificationConfig
 	VerificationTokenStore VerificationTokenStore
 	TOTP                   TOTPProvider            // inject totp.New(Config{...}) — nil = no TOTP MFA
 	PendingTOTPStore       PendingTOTPStore
+	TOTPPendingSecretTTL   time.Duration           // 0 → 5 min TTL for pending TOTP secrets
 	OAuth2                 OAuth2Provider          // inject oauth2.New(ctx, Config{...}) — nil = no OAuth2
 	OAuth2StateStore       OAuth2StateStore        // nil → in-memory (use Redis for multi-instance)
 
