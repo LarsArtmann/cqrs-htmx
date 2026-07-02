@@ -55,19 +55,19 @@ This is a **library/SDK**, not an application. There is no `main` package. Consu
 
 The project uses a **multi-module Go workspace** with 11 modules:
 
-| Module           | Path                        | Go Module                                      | Tests |
-| ---------------- | --------------------------- | ---------------------------------------------- | ----- |
-| Root             | `./`                        | `github.com/larsartmann/cqrs-htmx/v4`          | Yes   |
-| Usermgmt         | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt/v4` | Yes   |
-| Usermgmt/TOTP    | `./usermgmt/totp/`          | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4` | Yes |
-| Usermgmt/WebAuthn | `./usermgmt/webauthn/`     | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4` | Yes |
-| Usermgmt/OAuth2  | `./usermgmt/oauth2/`        | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4` | Yes |
-| Admin UI         | `./adminui/`                | `github.com/larsartmann/cqrs-htmx/adminui/v4`  | Yes   |
-| Integration Test | `./integration_test/`       | separate test module                           | Yes   |
-| Basic Example    | `./examples/basic/`         | example app                                    | No    |
-| Datastar Demo    | `./examples/datastar-demo/` | example app (Datastar SSE)                     | No    |
-| Catalog Demo     | `./examples/catalog-demo/`  | example app (go-cqrs-lite catalog)             | No    |
-| Admin Demo       | `./examples/admin-demo/`    | runnable admin panel showcase                  | No    |
+| Module            | Path                        | Go Module                                               | Tests |
+| ----------------- | --------------------------- | ------------------------------------------------------- | ----- |
+| Root              | `./`                        | `github.com/larsartmann/cqrs-htmx/v4`                   | Yes   |
+| Usermgmt          | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`          | Yes   |
+| Usermgmt/TOTP     | `./usermgmt/totp/`          | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`     | Yes   |
+| Usermgmt/WebAuthn | `./usermgmt/webauthn/`      | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4` | Yes   |
+| Usermgmt/OAuth2   | `./usermgmt/oauth2/`        | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`   | Yes   |
+| Admin UI          | `./adminui/`                | `github.com/larsartmann/cqrs-htmx/adminui/v4`           | Yes   |
+| Integration Test  | `./integration_test/`       | separate test module                                    | Yes   |
+| Basic Example     | `./examples/basic/`         | example app                                             | No    |
+| Datastar Demo     | `./examples/datastar-demo/` | example app (Datastar SSE)                              | No    |
+| Catalog Demo      | `./examples/catalog-demo/`  | example app (go-cqrs-lite catalog)                      | No    |
+| Admin Demo        | `./examples/admin-demo/`    | runnable admin panel showcase                           | No    |
 
 **Auth sub-modules** (totp, webauthn, oauth2) use **structural typing** — they implement core interfaces via primitive types (`[]byte`, `string`) without importing core `usermgmt`. This keeps auth dependencies (pquerna/otp, go-webauthn, oauth2/oidc) out of core. Each has its own `.golangci.yml`.
 

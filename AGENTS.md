@@ -23,7 +23,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                                                                              |
 | CheckMods   | `nix run .#check-modules` (isolation + dep budgets + version drift + replace directives — also in `.github/workflows/ci.yml` as `module-architecture` job) |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                                                                                   |
-| Coverage    | 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui (~886 tests)                    |
+| Coverage    | 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui (~886 tests)                                                           |
 
 ## Architecture
 

@@ -171,12 +171,12 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 
 ## Dependency Impact
 
-| Dependency  | v3 (core usermgmt) | v4 (core usermgmt) | v4 (sub-module only) |
-| ----------- | ------------------ | ------------------ | -------------------- |
-| pquerna/otp | ✅ direct          | ❌ removed         | ✅ `usermgmt/totp`   |
-| go-webauthn | ✅ direct          | ❌ removed         | ✅ `usermgmt/webauthn` |
-| oauth2      | ✅ direct          | ❌ removed         | ✅ `usermgmt/oauth2` |
-| go-oidc     | ✅ direct          | ❌ removed         | ✅ `usermgmt/oauth2` |
+| Dependency  | v3 (core usermgmt) | v4 (core usermgmt) | v4 (sub-module only)              |
+| ----------- | ------------------ | ------------------ | --------------------------------- |
+| pquerna/otp | ✅ direct          | ❌ removed         | ✅ `usermgmt/totp`                |
+| go-webauthn | ✅ direct          | ❌ removed         | ✅ `usermgmt/webauthn`            |
+| oauth2      | ✅ direct          | ❌ removed         | ✅ `usermgmt/oauth2`              |
+| go-oidc     | ✅ direct          | ❌ removed         | ✅ `usermgmt/oauth2`              |
 | go-jose     | transitive         | ❌ removed         | ✅ `usermgmt/oauth2` (transitive) |
 
 Core `usermgmt` has **ZERO** auth-strategy dependencies. Consumers import only the auth strategies they need.
