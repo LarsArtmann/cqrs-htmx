@@ -16,11 +16,14 @@ It is framework-agnostic: it works with `net/http`, Chi, Gin, etc. and never pic
 
 An app typically composes some subset of these. They are **independent Go modules** with `/v3` suffixes.
 
-| Module       | Import path                                              | Provides                                                                                                                                                                   |
-| ------------ | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **root**     | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (CSRF/HTMX/recovery/security/rate-limit), context IDs, error→HTTP mapping, SSE + WebSocket, embedded HTMX JS               |
-| **usermgmt** | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`           | Event-sourced `Service` (register/login/logout/me), WebAuthn passkeys, OAuth2/OIDC, TOTP, roles/tenants/bots, authz via Casbin, session middleware, SQL + in-memory stores |
-| **adminui**  | `github.com/larsartmann/cqrs-htmx/adminui/v4`            | One-call admin dashboard (templ + HTMX). Depends on root + usermgmt                                                                                                        |
+| Module                | Import path                                              | Provides                                                                                                                                                                                                                           |
+| --------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **root**              | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (CSRF/HTMX/recovery/security/rate-limit), context IDs, error→HTTP mapping, SSE + WebSocket, embedded HTMX JS                                                                       |
+| **usermgmt**          | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`           | Event-sourced `Service` (register/login/logout/me), roles/tenants/bots, authz via Casbin, session middleware, SQL + in-memory stores. Auth strategies (WebAuthn/OAuth2/TOTP) are optional sub-modules — import only what you need. |
+| **usermgmt/totp**     | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`      | TOTP MFA (pquerna/otp). Inject `totp.New(...)` as `ServiceConfig.TOTP`.                                                                                                                                                            |
+| **usermgmt/webauthn** | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4`  | WebAuthn passkeys (go-webauthn). Inject `webauthn.New(...)` as `ServiceConfig.WebAuthn`.                                                                                                                                           |
+| **usermgmt/oauth2**   | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`    | OAuth2/OIDC login (oauth2+oidc). Inject `oauth2.New(...)` as `ServiceConfig.OAuth2`.                                                                                                                                               |
+| **adminui**           | `github.com/larsartmann/cqrs-htmx/adminui/v4`            | One-call admin dashboard (templ + HTMX). Depends on root + usermgmt                                                                                                                                                                |
 
 The core CQRS building blocks come from **go-cqrs-lite**, imported per-package:
 
@@ -135,7 +138,7 @@ import (
 func main() {
 	// 1. Build the user-management service. Zero-config = in-memory everything.
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		// WebAuthnConfig: &usermgmt.WebAuthnConfig{RPID: "localhost", RPDisplayName: "MyApp"}, // required for passkey login
+		// WebAuthn: passkeyProvider, // import usermgmt/webauthn, inject as ServiceConfig.WebAuthn
 		// AuditLog:       usermgmt.NewAuditLog(),
 	})
 	if err != nil {
