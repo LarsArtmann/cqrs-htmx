@@ -3,9 +3,9 @@ module github.com/larsartmann/cqrs-htmx/examples/admin-demo
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.0.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.0.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.0.0
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/v4 v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0
 )
 
