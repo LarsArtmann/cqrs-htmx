@@ -8,15 +8,16 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-
-	"github.com/go-webauthn/webauthn/webauthn"
 )
 
-// webauthnSessionWithExpiry creates a SessionData with an expiry offset from now.
-// Positive offset = future expiry; negative offset = already expired.
-func webauthnSessionWithExpiry(offset time.Duration) *webauthn.SessionData {
-	return &webauthn.SessionData{
-		Expires: time.Now().Add(offset),
+// expireSessionEntry manually sets a session entry's expiry to the past.
+// Used by eviction tests to simulate expired sessions without waiting.
+func expireSessionEntry(store *webauthnSessionStore, key string) {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+	if e, ok := store.sessions[key]; ok {
+		e.expiresAt = time.Now().Add(-time.Hour)
+		store.sessions[key] = e
 	}
 }
 
@@ -137,8 +138,9 @@ func TestHandler_DeleteCredential_InvalidEncoding(t *testing.T) {
 
 func TestWebAuthnSessionStore_EvictExpired(t *testing.T) {
 	store := newWebAuthnSessionStore()
-	store.Save("future", webauthnSessionWithExpiry(time.Hour))
-	store.Save("expired", webauthnSessionWithExpiry(-time.Hour))
+	store.Save("future", []byte("future-data"))
+	store.Save("expired", []byte("expired-data"))
+	expireSessionEntry(store, "expired")
 
 	evicted := store.EvictExpired()
 	if evicted != 1 {
@@ -152,7 +154,7 @@ func TestWebAuthnSessionStore_EvictExpired(t *testing.T) {
 
 func TestWebAuthnSessionStore_EvictExpired_KeepsUnexpired(t *testing.T) {
 	store := newWebAuthnSessionStore()
-	store.Save("future", webauthnSessionWithExpiry(time.Hour))
+	store.Save("future", []byte("future-data"))
 
 	evicted := store.EvictExpired()
 	if evicted != 0 {
@@ -165,7 +167,7 @@ func TestWebAuthnSessionStore_EvictExpired_KeepsUnexpired(t *testing.T) {
 }
 
 func TestService_Stop_StopsWebAuthnEviction(t *testing.T) {
-	svc := newWebAuthnTestServiceWithConfig(t, localTestWebAuthnConfig())
+	svc := newWebAuthnTestServiceWithConfig(t)
 	svc.Stop()
 	svc.Stop() // double-stop should be safe
 }
@@ -216,7 +218,7 @@ func newLockoutTestService(t *testing.T, cfg LockoutConfig) *Service {
 	t.Helper()
 	svc, err := NewService(ServiceConfig{
 		Lockout:        NewAccountLockout(cfg),
-		WebAuthnConfig: localTestWebAuthnConfig(),
+		WebAuthn: testWebAuthnProvider{},
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
