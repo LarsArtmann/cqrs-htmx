@@ -2,20 +2,67 @@ package usermgmt
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 
-	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
+// webAuthnUserData is the JSON shape the WebAuthnProvider expects for userJSON.
+type webAuthnUserData struct {
+	ID          string             `json:"id"`
+	Email       string             `json:"email"`
+	DisplayName string             `json:"display_name"`
+	Credentials []webAuthnUserCred `json:"credentials"`
+}
+
+type webAuthnUserCred struct {
+	ID              []byte   `json:"id"`
+	PublicKey       []byte   `json:"public_key"`
+	AttestationType string   `json:"attestation_type"`
+	Transports      []string `json:"transports,omitempty"`
+	AAGUID          []byte   `json:"aaguid,omitempty"`
+	SignCount       uint32   `json:"sign_count"`
+	BackupEligible  bool     `json:"backup_eligible"`
+	BackupState     bool     `json:"backup_state"`
+}
+
+// marshalWebAuthnUser serializes a domain User to the JSON shape expected by
+// the WebAuthnProvider.
+func marshalWebAuthnUser(user *User) ([]byte, error) {
+	creds := make([]webAuthnUserCred, len(user.Credentials))
+	for i, c := range user.Credentials {
+		creds[i] = webAuthnUserCred{
+			ID:              c.ID,
+			PublicKey:       c.PublicKey,
+			AttestationType: c.AttestationType,
+			Transports:      c.Transports,
+			AAGUID:          c.AAGUID,
+			SignCount:       c.SignCount,
+			BackupEligible:  c.BackupEligible,
+			BackupState:     c.BackupState,
+		}
+	}
+	return json.Marshal(webAuthnUserData{
+		ID:          user.ID.Get().String(),
+		Email:       user.Email,
+		DisplayName: user.DisplayName,
+		Credentials: creds,
+	})
+}
+
+// maxWebAuthnBodySize limits the authenticator response body to prevent abuse.
+const maxWebAuthnBodySize = 1 << 20 // 1 MB
+
 // BeginRegistrationResponse contains the credential creation options to send to the client.
 type BeginRegistrationResponse struct {
-	Options    *protocol.CredentialCreation `json:"options"`
-	SessionKey string                       `json:"session_key"`
+	Options    json.RawMessage `json:"options"`
+	SessionKey string          `json:"session_key"`
 }
 
 // BeginRegistration starts the WebAuthn credential registration ceremony.
-// The returned CredentialCreation must be sent to the client, which uses the browser
+// The returned options must be sent to the client, which uses the browser
 // WebAuthn API to create a credential. The session is stored server-side keyed by sessionKey.
 func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginRegistrationResponse, error) {
 	if s.webauthn == nil {
@@ -28,8 +75,12 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 		return nil, event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "begin registration")
 	}
 
-	waUser := &webauthnUser{user: user}
-	creation, session, err := s.webauthn.BeginRegistration(waUser)
+	userJSON, err := marshalWebAuthnUser(user)
+	if err != nil {
+		return nil, event.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
+	}
+
+	options, sessionData, err := s.webauthn.BeginRegistration(ctx, userJSON)
 	if err != nil {
 		s.logger.Warn("usermgmt: begin registration ceremony failed",
 			"user_id", userID, "error", err)
@@ -37,11 +88,11 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 	}
 
 	sessionKey := userID.Get().String()
-	s.webauthnSessions.Save(sessionKey, session)
+	s.webauthnSessions.Save(sessionKey, sessionData)
 	s.logger.Info("usermgmt: registration ceremony begun", "user_id", userID)
 
 	return &BeginRegistrationResponse{
-		Options:    creation,
+		Options:    options,
 		SessionKey: sessionKey,
 	}, nil
 }
@@ -61,19 +112,24 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	}
 
 	sessionKey := userID.Get().String()
-	session, err := s.webauthnSessions.Get(sessionKey)
+	sessionData, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish registration failed – session not found",
 			"user_id", userID, "error", err)
 		return err //nolint:wrapcheck // domain sentinel error
 	}
 
-	waUser := &webauthnUser{user: user}
-	credential, err := s.webauthn.FinishRegistration(
-		waUser,
-		*session,
-		r,
-	)
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxWebAuthnBodySize))
+	if err != nil {
+		return event.NewRejection("usermgmt.webauthn.body_read", "read attestation body").WithCause(err)
+	}
+
+	userJSON, err := marshalWebAuthnUser(user)
+	if err != nil {
+		return event.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
+	}
+
+	credJSON, err := s.webauthn.FinishRegistration(ctx, userJSON, body, sessionData)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish registration ceremony failed",
 			"user_id", userID, "error", err)
@@ -83,12 +139,17 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 
 	s.webauthnSessions.Delete(sessionKey)
 
-	domainCred := fromWebAuthnCredential(credential, credentialName)
+	var cred credentialCore
+	if err := json.Unmarshal(credJSON, &cred); err != nil {
+		return event.NewInfrastructure("usermgmt.webauthn.unmarshal_credential", "unmarshal credential").WithCause(err)
+	}
+	cred.Name = credentialName
+
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
 		return event.WrapInfrastructure(err, "usermgmt.webauthn.userid_conversion_failed", "convert userID")
 	}
-	if err := s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, domainCred)); err != nil {
+	if err := s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, WebAuthnCredential{credentialCore: cred})); err != nil {
 		return event.Wrapf(err, event.Classify(err),
 			"usermgmt.webauthn.dispatch_failed", "finish registration dispatch")
 	}
@@ -99,15 +160,15 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 
 // BeginLoginResponse contains the assertion options to send to the client.
 type BeginLoginResponse struct {
-	Options    *protocol.CredentialAssertion `json:"options"`
-	SessionKey string                        `json:"session_key"`
+	Options    json.RawMessage `json:"options"`
+	SessionKey string          `json:"session_key"`
 }
 
 // BeginLogin starts the WebAuthn login ceremony.
-// The user is looked up by email. The returned CredentialAssertion must be sent to
+// The user is looked up by email. The returned options must be sent to
 // the client, which uses the browser WebAuthn API to assert a credential.
 // If account lockout is configured and the account is locked, ErrAccountLocked is returned.
-func (s *Service) BeginLogin(_ context.Context, email string) (*BeginLoginResponse, error) {
+func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResponse, error) {
 	if s.webauthn == nil {
 		return nil, ErrWebAuthnNotConfigured
 	}
@@ -128,19 +189,23 @@ func (s *Service) BeginLogin(_ context.Context, email string) (*BeginLoginRespon
 		return nil, ErrNoCredentials
 	}
 
-	waUser := &webauthnUser{user: user}
-	assertion, session, err := s.webauthn.BeginLogin(waUser)
+	userJSON, err := marshalWebAuthnUser(user)
+	if err != nil {
+		return nil, event.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
+	}
+
+	options, sessionData, err := s.webauthn.BeginLogin(ctx, userJSON)
 	if err != nil {
 		s.logger.Warn("usermgmt: begin login ceremony failed", "email", email, "error", err)
 		return nil, event.NewTransient("internal", "begin webauthn login").WithCause(err)
 	}
 
 	sessionKey := user.ID.Get().String()
-	s.webauthnSessions.Save(sessionKey, session)
+	s.webauthnSessions.Save(sessionKey, sessionData)
 	s.logger.Debug("usermgmt: login ceremony begun", "email", email)
 
 	return &BeginLoginResponse{
-		Options:    assertion,
+		Options:    options,
 		SessionKey: sessionKey,
 	}, nil
 }
@@ -163,20 +228,24 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	}
 
 	sessionKey := userID.Get().String()
-	session, err := s.webauthnSessions.Get(sessionKey)
+	sessionData, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish login failed – session not found",
 			"user_id", userID, "error", err)
 		return nil, err //nolint:wrapcheck // domain sentinel error
 	}
 
-	waUser := &webauthnUser{user: user}
-	_, err = s.webauthn.FinishLogin(
-		waUser,
-		*session,
-		r,
-	)
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxWebAuthnBodySize))
 	if err != nil {
+		return nil, event.NewRejection("usermgmt.webauthn.body_read", "read assertion body").WithCause(err)
+	}
+
+	userJSON, err := marshalWebAuthnUser(user)
+	if err != nil {
+		return nil, event.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
+	}
+
+	if err := s.webauthn.FinishLogin(ctx, userJSON, body, sessionData); err != nil {
 		if s.lockout != nil {
 			s.lockout.RecordFailure(user.Email)
 		}

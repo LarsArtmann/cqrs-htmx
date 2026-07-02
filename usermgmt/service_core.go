@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -39,7 +38,7 @@ type Service struct {
 	lockout                  LockoutStore
 	bus                      event.Bus
 	store                    event.Store
-	webauthn                 *webauthn.WebAuthn
+	webauthn                 WebAuthnProvider
 	webauthnSessions         WebAuthnSessionStore
 	stopWebAuthnEviction     func()
 	auditLog                 *AuditLog
@@ -75,8 +74,12 @@ type ServiceConfig struct {
 	// Lockout, if provided, enables account lockout after repeated login failures.
 	// Defaults to none. Implement [LockoutStore] for distributed lockout.
 	Lockout LockoutStore
-	// WebAuthnConfig configures passwordless authentication. Required for login.
-	WebAuthnConfig *WebAuthnConfig
+	// WebAuthn, if provided, enables passwordless passkey authentication.
+	// Import usermgmt/webauthn to obtain a *Provider:
+	//
+	// 	wa, _ := webauthn.New(webauthn.Config{RPID: "localhost", RPDisplayName: "MyApp"})
+	// 	svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{WebAuthn: wa})
+	WebAuthn WebAuthnProvider
 	// AuditLog, if provided, is registered as a projection to record all
 	// user-related events for compliance and security monitoring.
 	AuditLog *AuditLog
@@ -267,17 +270,8 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		auditLog:            cfg.AuditLog,
 	}
 
-	if cfg.WebAuthnConfig != nil {
-		//nolint:exhaustruct // only required fields set; others use go-webauthn defaults
-		wa, err := webauthn.New(&webauthn.Config{
-			RPID:          cfg.WebAuthnConfig.RPID,
-			RPDisplayName: cfg.WebAuthnConfig.RPDisplayName,
-			RPOrigins:     cfg.WebAuthnConfig.RPOrigins,
-		})
-		if err != nil {
-			return nil, event.NewTransient("internal", "create webauthn instance").WithCause(err)
-		}
-		svc.webauthn = wa
+	if cfg.WebAuthn != nil {
+		svc.webauthn = cfg.WebAuthn
 		sessionStore := cfg.WebAuthnSessionStore
 		if sessionStore == nil {
 			mem := newWebAuthnSessionStore()

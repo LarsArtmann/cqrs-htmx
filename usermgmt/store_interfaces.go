@@ -2,16 +2,16 @@ package usermgmt
 
 import (
 	"time"
-
-	"github.com/go-webauthn/webauthn/webauthn"
 )
 
-// WebAuthnSessionStore manages WebAuthn challenge session data.
+// WebAuthnSessionStore manages WebAuthn challenge session data as opaque bytes.
+// The provider serializes *webauthn.SessionData to []byte; the store is
+// transport-agnostic and does not import go-webauthn.
 // The default in-memory implementation is suitable for single-process deployments.
 // Implement this interface with Redis or SQL for multi-instance deployments.
 type WebAuthnSessionStore interface {
-	Save(key string, data *webauthn.SessionData)
-	Get(key string) (*webauthn.SessionData, error)
+	Save(key string, data []byte)
+	Get(key string) ([]byte, error)
 	Delete(key string)
 }
 
