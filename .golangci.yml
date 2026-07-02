@@ -84,7 +84,7 @@ linters:
     exhaustruct:
       exclude:
         - os/exec.Cmd
-        - github\.com/larsartmann/cqrs-htmx/v3\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig)$
+        - github\.com/larsartmann/cqrs-htmx/v4\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig)$
         - .+\.testCreateUserCmd$
         - .+\.bddCreateUserCmd$
         - .+\.fakeSpan$
