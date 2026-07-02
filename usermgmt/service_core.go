@@ -49,7 +49,7 @@ type Service struct {
 	totp                     TOTPProvider
 	pendingTOTP              PendingTOTPStore
 	stopPendingTOTPEviction  func()
-	oauth2Providers          map[string]*oauth2Provider
+	oauth2                    OAuth2Provider
 	oauth2States             OAuth2StateStore
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration
@@ -106,9 +106,10 @@ type ServiceConfig struct {
 	// Ignored when TOTP is nil.
 	PendingTOTPStore PendingTOTPStore
 
-	// OAuth2Config, if provided, enables OAuth2/OIDC login with external
-	// identity providers (Google, GitHub, etc.).
-	OAuth2Config *OAuth2Config
+	// OAuth2, if provided, enables OAuth2/OIDC login with external identity
+	// providers (Google, GitHub, etc.). Import usermgmt/oauth2 to obtain a
+	// *Provider.
+	OAuth2 OAuth2Provider
 	// OAuth2StateStore, if provided, replaces the default in-memory state
 	// token store. Use this for multi-instance deployments (e.g., Redis).
 	// Ignored when OAuth2Config is nil.
@@ -307,14 +308,15 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.pendingTOTP = tStore
 	}
 
-	if cfg.OAuth2Config != nil && len(cfg.OAuth2Config.Providers) > 0 {
+	if cfg.OAuth2 != nil {
 		stateStore := cfg.OAuth2StateStore
 		if stateStore == nil {
 			stateStore = newOAuth2StateStore()
 		}
-		if err := svc.initOAuth2(cfg.OAuth2Config, stateStore); err != nil {
-			return nil, err
-		}
+		svc.oauth2 = cfg.OAuth2
+		svc.oauth2States = stateStore
+		svc.oauth2StateTTL = defaultOAuthStateTTL
+		svc.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
 	}
 
 	svc.tokenPepper = cfg.TokenPepper
@@ -386,25 +388,6 @@ func (s *Service) closeInfra() error {
 		if err := c.Close(); err != nil {
 			return event.WrapTransient(err, "usermgmt.service.close_store", "close event store")
 		}
-	}
-	return nil
-}
-
-// initOAuth2 initializes the OAuth2 providers, state store, and background eviction.
-func (s *Service) initOAuth2(cfg *OAuth2Config, stateStore OAuth2StateStore) error {
-	s.oauth2Providers = make(map[string]*oauth2Provider, len(cfg.Providers))
-	s.oauth2States = stateStore
-	s.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
-	s.oauth2StateTTL = cfg.StateTTL
-	if s.oauth2StateTTL == 0 {
-		s.oauth2StateTTL = defaultOAuthStateTTL
-	}
-	for name, provCfg := range cfg.Providers {
-		prov, err := initOAuth2Provider(context.Background(), name, provCfg)
-		if err != nil {
-			return event.NewTransient("internal", "init oauth2 provider "+name).WithCause(err)
-		}
-		s.oauth2Providers[name] = prov
 	}
 	return nil
 }
