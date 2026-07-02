@@ -1100,20 +1100,27 @@ cqrs-htmx/
 │   ├── service_misc.go     # GetUser, UpdateRoles, ChangeEmail, etc.
 │   ├── credential.go       # WebAuthnCredential type
 │   ├── credential_http.go  # Credential listing/removal HTTP handlers
-│   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin
+│   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin (provider-based)
 │   ├── webauthn_http.go    # HTTP handlers for WebAuthn ceremony endpoints
 │   ├── webauthn_adapter.go # Adapts domain User → webauthn.User interface
-│   ├── webauthn_session.go # WebAuthnConfig + in-memory challenge store
+│   ├── webauthn_session.go # WebAuthnSessionTTL + in-memory challenge store
 │   ├── user.go             # Immutable User read model
 │   ├── store.go            # SessionStore interface + InMemorySessionStore
 │   ├── events.go           # EventHandler callback + notification event structs
 │   ├── http.go             # AuthHandler (register, logout, me, webauthn endpoints)
 │   ├── middleware.go       # NewSessionMiddleware, user context helpers
 │   ├── lockout.go          # AccountLockout (configurable attempts + duration)
-│   └── errors.go           # Sentinel errors
+│   ├── errors.go           # Sentinel errors
+│   ├── totp/               # TOTP MFA sub-module (pquerna/otp)
+│   ├── webauthn/           # WebAuthn sub-module (go-webauthn)
+│   └── oauth2/             # OAuth2/OIDC sub-module (golang.org/x/oauth2 + coreos/go-oidc)
+├── adminui/             # Admin Dashboard UI (templ + HTMX, independent Go module)
 ├── integration_test/   # Cross-module integration tests (independent Go module)
 └── examples/
-    └── datastar-demo/  # Standalone datastar + go-cqrs-lite SSE example
+    ├── basic/           # Minimal cqrs-htmx consumer example
+    ├── datastar-demo/   # Standalone datastar + go-cqrs-lite SSE example
+    ├── catalog-demo/    # Catalog doc-server example
+    └── admin-demo/      # Runnable admin panel showcase
 ```
 
 ## Optional Sub-Packages
@@ -1145,14 +1152,23 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Dependency             | Purpose                                    |
 | ---------------------- | ------------------------------------------ |
-| go-cqrs-lite v3.1.0    | CQRS command/query dispatch, pagination    |
+| go-cqrs-lite v3.5.0    | CQRS command/query dispatch, pagination    |
 | casbin/casbin/v3       | Authorization                              |
 | go-error-family v0.5.1 | Error classification                       |
 | justinas/nosurf        | CSRF protection                            |
 | larsartmann/httputil   | ClientIP extraction                        |
 | golang.org/x/time      | Token-bucket rate limiting                 |
 | go-branded-id          | Branded types (usermgmt)                   |
-| go-webauthn v0.17.4    | WebAuthn/Passkey authentication (usermgmt) |
+| go-playground/form/v4  | Form decoding                              |
+
+**Optional sub-module dependencies** (only import the auth strategies you need):
+
+| Sub-module             | Dependency            | Purpose                              |
+| ---------------------- | --------------------- | ------------------------------------ |
+| usermgmt/totp/v4       | pquerna/otp v1.5.0    | TOTP MFA (RFC 6238)                  |
+| usermgmt/webauthn/v4   | go-webauthn v0.17.4   | WebAuthn/Passkey authentication      |
+| usermgmt/oauth2/v4     | golang.org/x/oauth2   | OAuth2 authorization code + PKCE     |
+| usermgmt/oauth2/v4     | coreos/go-oidc/v3     | OIDC discovery + ID token verification |
 
 ## Contributing
 
