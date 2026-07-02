@@ -35,13 +35,13 @@ type ServiceConfig struct {
 	Logger      *slog.Logger        // nil → slog.Default()
 	Lockout     LockoutStore        // nil → no lockout
 
-	WebAuthnConfig         *WebAuthnConfig         // REQUIRED for passkey login
+	WebAuthn              WebAuthnProvider        // inject webauthn.New(Config{...}) — nil = no passkey auth
 	WebAuthnSessionStore   WebAuthnSessionStore    // nil → in-memory (use Redis for multi-instance)
 	EmailVerification      *EmailVerificationConfig
 	VerificationTokenStore VerificationTokenStore
-	TOTPConfig             *TOTPConfig
+	TOTP                   TOTPProvider            // inject totp.New(Config{...}) — nil = no TOTP MFA
 	PendingTOTPStore       PendingTOTPStore
-	OAuth2Config           *OAuth2Config
+	OAuth2                 OAuth2Provider          // inject oauth2.New(ctx, Config{...}) — nil = no OAuth2
 	OAuth2StateStore       OAuth2StateStore        // nil → in-memory (use Redis for multi-instance)
 
 	AuditLog        *AuditLog
@@ -95,28 +95,43 @@ Reads the cookie, validates the token, and injects the authenticated `*usermgmt.
 
 ### WebAuthn (passkeys) — primary login
 
+**v4 injection pattern** (import the sub-module only if you need passkeys):
+
 ```go
-usermgmt.WebAuthnConfig{
+import "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4"
+
+waProvider, err := webauthn.New(webauthn.Config{
 	RPID:          "example.com",        // domain (no scheme/port)
 	RPDisplayName: "My App",
 	RPOrigins:     []string{"https://example.com"},
-}
+})
+
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+	WebAuthn: waProvider,  // inject the provider
+})
 ```
 
-Pass to `ServiceConfig.WebAuthnConfig`. The HTTP ceremony endpoints are mounted by `RegisterRoutes`. Registration and login are two-step (begin → finish) JSON POST flows. On localhost use `RPID: "localhost"`, `RPOrigins: []string{"http://localhost:8080"}`.
+The HTTP ceremony endpoints are mounted by `RegisterRoutes`. Registration and login are two-step (begin → finish) JSON POST flows. On localhost use `RPID: "localhost"`, `RPOrigins: []string{"http://localhost:8080"}`.
 
 ### OAuth2 / OIDC (Google, GitHub, etc.)
 
+**v4 injection pattern** (import the sub-module only if you need OAuth2):
+
 ```go
-usermgmt.OAuth2Config{
-	Providers: map[string]usermgmt.OAuth2ProviderConfig{
+import "github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
+
+oaProvider, err := oauth2.New(ctx, oauth2.Config{
+	Providers: map[string]oauth2.ProviderConfig{
 		"google": {ClientID, ClientSecret, RedirectURL,
 			IssuerURL: "https://accounts.google.com"},   // OIDC discovery
 		"github": {ClientID, ClientSecret, RedirectURL,
 			AuthURL: "...", TokenURL: "...", UserInfoURL: "..."},  // pure OAuth2
 	},
-	StateTTL: 10 * time.Minute,
-}
+})
+
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+	OAuth2: oaProvider,  // inject the provider
+})
 ```
 
 - `IssuerURL` set → OIDC discovery + ID-token verification.
@@ -128,8 +143,16 @@ usermgmt.OAuth2Config{
 
 ### TOTP (optional second factor)
 
+**v4 injection pattern** (import the sub-module only if you need TOTP):
+
 ```go
-usermgmt.TOTPConfig{Issuer: "My App", Window: 1}  // Window=1 → ±30s drift
+import "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
+
+totpProvider := totp.New(totp.Config{Issuer: "My App", Window: 1})  // Window=1 → ±30s drift
+
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+	TOTP: totpProvider,  // inject the provider
+})
 ```
 
 EnableTOTP returns a secret + QR URL; VerifyTOTP checks a code; DisableTOTP requires a valid code (prevents MFA stripping). Routes mounted via `RegisterRoutes`.
