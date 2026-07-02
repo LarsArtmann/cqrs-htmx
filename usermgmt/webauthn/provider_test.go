@@ -358,7 +358,9 @@ func TestProvider_FinishLogin_WrongChallenge(t *testing.T) {
 	}
 
 	var cred credentialData
-	json.Unmarshal(credJSON, &cred)
+	if err := json.Unmarshal(credJSON, &cred); err != nil {
+		t.Fatalf("unmarshal credential: %v", err)
+	}
 	loginUserJSON := testUserJSON(t, cred)
 
 	_, loginSession, err := p.BeginLogin(ctx, loginUserJSON)

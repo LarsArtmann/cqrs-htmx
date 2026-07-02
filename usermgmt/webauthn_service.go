@@ -44,12 +44,16 @@ func marshalWebAuthnUser(user *User) ([]byte, error) {
 			BackupState:     c.BackupState,
 		}
 	}
-	return json.Marshal(webAuthnUserData{
+	data, err := json.Marshal(webAuthnUserData{
 		ID:          user.ID.Get().String(),
 		Email:       user.Email,
 		DisplayName: user.DisplayName,
 		Credentials: creds,
 	})
+	if err != nil {
+		return nil, event.NewInfrastructure("internal", "marshal webauthn user data").WithCause(err)
+	}
+	return data, nil
 }
 
 // maxWebAuthnBodySize limits the authenticator response body to prevent abuse.
