@@ -4,18 +4,18 @@
 > For short-term work, see [TODO_LIST.md](TODO_LIST.md).
 > For what exists today, see [FEATURES.md](FEATURES.md).
 
-**Updated:** 2026-06-29 | **Version:** v3.3.0 (shipped: Server-Timing, checkpoint replay, BasicCommand embedding)
+**Updated:** 2026-07-02 | **Version:** v4.0.0 (shipped: auth strategy extraction, modular auth sub-modules)
 
 ## Current State
 
-- **Version:** v3.3.0 (all 3 publishable modules at `/v3`)
-- **Coverage:** 94.1% root, 79.5% usermgmt
-- **Lint:** 0 issues (all modules)
-- **ErrorFamily:** 0 violations (no stdlib error constructors)
-- **Tests:** 574 usermgmt + 124 root + 35 adminui + integration, race-safe
-- **Dependencies:** go-cqrs-lite v3.4.0 (most modules), go-error-family v0.5.1, go-branded-id v0.3.1, justinas/nosurf, go-webauthn v0.17.4, pquerna/otp, coreos/go-oidc, golang.org/x/oauth2
-- **Architecture:** Fully event-sourced usermgmt (12 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay)
-- **Modules:** 8 Go modules in go.work (root, usermgmt, adminui, integration_test, 4 examples)
+- **Version:** v4.0.0 (11 modules: root + usermgmt + 3 auth sub-modules + adminui + integration_test + 4 examples)
+- **Coverage:** 94.3% root, 80.1% usermgmt, 87.5% webauthn, 92.3% oauth2, 88.2% totp
+- **Lint:** 0 issues (root + usermgmt + adminui)
+- **ErrorFamily:** 0 violations (root + usermgmt + adminui; sub-modules intentionally exempt)
+- **Tests:** 1,055+ total (root 198, usermgmt 764, totp 3, webauthn 20, oauth2 18, adminui 35, integration 17), race-safe
+- **Dependencies:** go-cqrs-lite v3.5.0, go-error-family v0.5.1, go-branded-id v0.3.1. Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are now in optional sub-modules — core usermgmt has ZERO auth deps
+- **Architecture:** Fully event-sourced usermgmt (12 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay). Auth strategies extracted behind interfaces (ADR-0035).
+- **Modules:** 11 Go modules in go.work (root, usermgmt, usermgmt/totp, usermgmt/webauthn, usermgmt/oauth2, adminui, integration_test, 4 examples)
 
 ---
 
@@ -95,15 +95,33 @@ _Focus: Adopting go-cqrs-lite v3.4.0 capabilities to reduce hand-rolled code._
 
 ---
 
-## v4.0.0 — Advanced Event Sourcing
+## v4.0.0 — Auth Strategy Extraction (Shipped)
 
-_Focus: Leveraging go-cqrs-lite v3's advanced capabilities._
+_Focus: Module isolation for auth strategies. Consumers import only what they need._
 
-| Area   | Item                                              | Priority | Status                                                     |
-| ------ | ------------------------------------------------- | -------- | ---------------------------------------------------------- |
-| ES     | stack.Materialize for persistent read models      | Low      | Done (ADR-0022: generic adapter, per-read-model decisions) |
-| ES     | Adopt `kv.Cache` decorator for read-model caching | Low      | Planned                                                    |
-| Schema | Adopt `schema/v3` upcasters for event evolution   | Medium   | Planned                                                    |
+| Area       | Item                                                                                          | Priority | Status |
+| ---------- | --------------------------------------------------------------------------------------------- | -------- | ------ |
+| Extraction | TOTP behind TOTPProvider interface → `usermgmt/totp/v4` module                               | Critical | Done   |
+| Extraction | WebAuthn behind WebAuthnProvider interface → `usermgmt/webauthn/v4` module                    | Critical | Done   |
+| Extraction | OAuth2/OIDC behind OAuth2Provider interface → `usermgmt/oauth2/v4` module                     | Critical | Done   |
+| Testing    | W3C spec ceremony tests for WebAuthn provider                                                 | High     | Done   |
+| Testing    | Real JWT signing tests for OAuth2/OIDC provider                                               | High     | Done   |
+| Testing    | Compile-time interface assertions in integration_test                                         | High     | Done   |
+| Docs       | ADR-0035 (auth strategy extraction decision)                                                  | Medium   | Done   |
+| Docs       | Migration guide v3→v4                                                                         | High     | Done   |
+
+## v4.1.0 — God-Package Split (Next Initiative)
+
+_Focus: The 84-file usermgmt god-package. Clean seams identified but extraction deferred._
+
+| Area          | Item                                                                | Priority | Status   |
+| ------------- | ------------------------------------------------------------------- | -------- | -------- |
+| Architecture  | Extract domain layer (20 pure fold/decide files, zero I/O)          | High     | Planned  |
+| Architecture  | Extract SQL infrastructure (9 files)                                | Medium   | Planned  |
+| Architecture  | Split Service struct into focused services                         | Medium   | Planned  |
+| Testing       | Cross-module integration test through Service layer                | Medium   | Planned  |
+| Feature       | Configurable WebAuthn session TTL                                   | Low      | Planned  |
+| Testing       | Fuzz tests on JSON serialization boundary                           | Medium   | Planned  |
 
 ---
 
