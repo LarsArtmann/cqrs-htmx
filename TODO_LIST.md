@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-07-02 | **Coverage:** 94.3% root, 80.1% usermgmt, 87.5% webauthn, 92.3% oauth2, 88.2% totp | **Lint:** 0 issues (root + usermgmt + adminui) | **Version:** v4.0.0 (go-cqrs-lite v3.5.0)
+**Updated:** 2026-07-02 | **Coverage:** 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui | **Lint:** 0 issues (6 production modules) | **Version:** v4.0.0 (go-cqrs-lite v3.5.0)
 
 ## Status Legend
 
@@ -188,10 +188,10 @@ _- [x] **v4.0.0 auth strategy extraction** — 3 independent Go modules (totp, w
 
 ### Deferred
 
-_- [ ] **Root usermgmt god-package split** — 84-file god-package. Clean seams identified (domain layer, SQL infra). High effort (8h+), deferred to post-v4._
-_- [ ] **Cross-module integration test through Service layer** — Provider tests exercise provider directly; no runtime ceremony through Service.BeginRegistration → Provider → Service.FinishRegistration._
-_- [ ] **Make WebAuthn session TTL configurable** — Currently hardcoded to 5 minutes._
-_- [ ] **Fuzz tests on JSON boundary** — parseUser/parseSession/marshalWebAuthnUser are the new attack surface._
+_- [ ] **Root usermgmt god-package split** — 87-file god-package. Clean seams identified (domain layer, SQL infra). High effort (8h+), deferred to post-v4._
+_- [x] **Cross-module integration test through Service layer** — DONE. `integration_test/webauthn_integration_test.go` — full Service → JSON → webauthn.Provider → go-webauthn chain._
+_- [x] **Make WebAuthn session TTL configurable** — DONE. `ServiceConfig.WebAuthnSessionTTL` added. Was hardcoded 5min, now configurable (defaults to 5min when ≤0)._
+_- [x] **Fuzz tests on JSON boundary** — DONE. `marshalWebAuthnUser`, `parseUser`, `parseSession` all fuzz-tested._
 
 ---
 
