@@ -1,16 +1,8 @@
 package usermgmt
 
 import (
-	"context"
-	"encoding/json"
-	"io"
-	"net/http"
 	"sync"
 	"time"
-
-	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"golang.org/x/oauth2"
 )
 
 // defaultOAuthStateTTL is the default lifetime of an OAuth2 state token.
@@ -19,250 +11,14 @@ const defaultOAuthStateTTL = 10 * time.Minute
 // oauthStateEvictionInterval is how often expired OAuth state tokens are cleaned up.
 const oauthStateEvictionInterval = 5 * time.Minute
 
-// OAuth2ProviderConfig configures a single OAuth2/OIDC identity provider.
-//
-// For OIDC providers (Google, Microsoft, etc.), set IssuerURL — the provider's
-// discovery endpoint will be queried at startup to fill in endpoints automatically.
-//
-// For pure OAuth2 providers (GitHub without OIDC), set AuthURL, TokenURL, and
-// UserInfoURL explicitly.
-type OAuth2ProviderConfig struct {
-	// ClientID is the OAuth2 client ID registered with the provider.
-	ClientID string
-	// ClientSecret is the OAuth2 client secret.
-	ClientSecret string
-	// RedirectURL is the callback URL (e.g., "https://myapp.com/auth/oauth/google/callback").
-	RedirectURL string
-	// Scopes are the OAuth2 scopes to request. Defaults to ["openid", "email", "profile"].
-	// Ignored if empty.
-	Scopes []string
-	// IssuerURL is the OIDC discovery URL (e.g., "https://accounts.google.com").
-	// When set, OIDC discovery is used: endpoints are auto-discovered and ID tokens
-	// are verified. When empty, AuthURL/TokenURL/UserInfoURL must be set.
-	IssuerURL string
-	// AuthURL is the authorization endpoint. Required when IssuerURL is empty.
-	AuthURL string
-	// TokenURL is the token endpoint. Required when IssuerURL is empty.
-	TokenURL string
-	// UserInfoURL is the userinfo endpoint for fetching user details when no
-	// ID token is available (pure OAuth2 providers). Required when IssuerURL is empty.
-	UserInfoURL string
-}
-
-// Validate returns an error if the configuration is incomplete or inconsistent.
-func (c OAuth2ProviderConfig) Validate() error {
-	if c.ClientID == "" {
-		return event.NewRejection("usermgmt.oauth2.client_id_required", "oauth2 provider: ClientID is required")
-	}
-	if c.ClientSecret == "" {
-		return event.NewRejection("usermgmt.oauth2.client_secret_required", "oauth2 provider: ClientSecret is required")
-	}
-	if c.RedirectURL == "" {
-		return event.NewRejection("usermgmt.oauth2.redirect_url_required", "oauth2 provider: RedirectURL is required")
-	}
-	if c.IssuerURL == "" {
-		if c.AuthURL == "" || c.TokenURL == "" || c.UserInfoURL == "" {
-			return event.NewRejection("usermgmt.oauth2.endpoints_required",
-				"oauth2 provider: when IssuerURL is empty, AuthURL, TokenURL, and UserInfoURL are required")
-		}
-	}
-	return nil
-}
-
-// OAuth2Config configures multi-provider OAuth2/OIDC authentication.
-type OAuth2Config struct {
-	// Providers maps provider names ("google", "github", etc.) to their configs.
-	Providers map[string]OAuth2ProviderConfig
-	// StateTTL is the lifetime of CSRF state tokens. Defaults to 10 minutes.
-	StateTTL time.Duration
-}
-
-// oauth2Provider is an initialized provider with discovered endpoints.
-type oauth2Provider struct {
-	name         string
-	config       *oauth2.Config
-	oidcProvider *oidc.Provider        // nil for non-OIDC providers
-	verifier     *oidc.IDTokenVerifier // nil for non-OIDC providers
-	userInfoURL  string                // non-empty for non-OIDC providers
-}
-
-// oauth2UserInfo holds the normalized user information extracted from either
-// an OIDC ID token or a UserInfo endpoint response.
-type oauth2UserInfo struct {
-	Subject       string
-	Email         string
-	EmailVerified bool
-	DisplayName   string
-}
-
-// initOAuth2Provider discovers OIDC endpoints (or uses explicit OAuth2 endpoints)
-// and returns an initialized provider.
-func initOAuth2Provider(ctx context.Context, name string, cfg OAuth2ProviderConfig) (*oauth2Provider, error) {
-	if err := cfg.Validate(); err != nil {
-		return nil, event.Wrapf(err, event.Rejection, "usermgmt.oauth2.init_failed", "init oauth2 provider %q", name)
-	}
-
-	scopes := cfg.Scopes
-	if len(scopes) == 0 {
-		scopes = []string{oidc.ScopeOpenID, "email", "profile"} //nolint:goconst // OAuth scope name
-	}
-
-	p := &oauth2Provider{ //nolint:exhaustruct // fields set conditionally below
-		name: name,
-		config: &oauth2.Config{ //nolint:exhaustruct // Endpoint set below
-			ClientID:     cfg.ClientID,
-			ClientSecret: cfg.ClientSecret,
-			RedirectURL:  cfg.RedirectURL,
-			Scopes:       scopes,
-		},
-	}
-
-	if cfg.IssuerURL != "" {
-		oidcProv, err := oidc.NewProvider(ctx, cfg.IssuerURL)
-		if err != nil {
-			return nil, event.Wrapf(
-				err,
-				event.Transient,
-				"usermgmt.oauth2.discovery_failed",
-				"discover oidc provider %q",
-				name,
-			)
-		}
-		p.oidcProvider = oidcProv
-		p.verifier = oidcProv.Verifier(
-			&oidc.Config{ClientID: cfg.ClientID}, //nolint:exhaustruct // only ClientID needed
-		)
-		p.config.Endpoint = oidcProv.Endpoint()
-	} else {
-		p.config.Endpoint = oauth2.Endpoint{ //nolint:exhaustruct // only AuthURL+TokenURL needed
-			AuthURL:  cfg.AuthURL,
-			TokenURL: cfg.TokenURL,
-		}
-		p.userInfoURL = cfg.UserInfoURL
-	}
-
-	return p, nil
-}
-
-// authCodeURL builds the authorization redirect URL with state and PKCE.
-func (p *oauth2Provider) authCodeURL(state, pkceVerifier string) string {
-	return p.config.AuthCodeURL(
-		state,
-		oauth2.S256ChallengeOption(pkceVerifier),
-	)
-}
-
-// exchangeAndExtractUser exchanges the authorization code for tokens, then
-// extracts user information from either the OIDC ID token or the UserInfo endpoint.
-func (p *oauth2Provider) exchangeAndExtractUser(
-	ctx context.Context, code, pkceVerifier string,
-) (oauth2UserInfo, error) {
-	token, err := p.config.Exchange(
-		ctx, code, oauth2.VerifierOption(pkceVerifier),
-	)
-	if err != nil {
-		return oauth2UserInfo{}, event.WrapTransient(err, "usermgmt.oauth2.exchange_failed", "exchange oauth2 code")
-	}
-
-	if p.oidcProvider != nil {
-		return p.extractFromIDToken(ctx, token)
-	}
-	return p.fetchUserInfo(ctx, token)
-}
-
-func (p *oauth2Provider) extractFromIDToken(
-	ctx context.Context, token *oauth2.Token,
-) (oauth2UserInfo, error) {
-	rawIDToken, ok := token.Extra("id_token").(string)
-	if !ok {
-		return oauth2UserInfo{}, event.NewTransient(
-			"usermgmt.oauth2.id_token_missing",
-			"id_token missing from oauth2 token response",
-		)
-	}
-	idToken, err := p.verifier.Verify(ctx, rawIDToken)
-	if err != nil {
-		return oauth2UserInfo{}, event.WrapTransient(err, "usermgmt.oauth2.verify_failed", "verify id_token")
-	}
-	var claims struct {
-		Sub           string `json:"sub"`
-		Email         string `json:"email"`
-		EmailVerified bool   `json:"email_verified"`
-		Name          string `json:"name"`
-	}
-	if err := idToken.Claims(&claims); err != nil {
-		return oauth2UserInfo{}, event.WrapTransient(err, "usermgmt.oauth2.claims_failed", "extract id_token claims")
-	}
-	return oauth2UserInfo{
-		Subject:       claims.Sub,
-		Email:         claims.Email,
-		EmailVerified: claims.EmailVerified,
-		DisplayName:   claims.Name,
-	}, nil
-}
-
-func (p *oauth2Provider) fetchUserInfo(ctx context.Context, token *oauth2.Token) (oauth2UserInfo, error) {
-	client := p.config.Client(ctx, token)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.userInfoURL, nil)
-	if err != nil {
-		return oauth2UserInfo{}, event.WrapTransient(
-			err,
-			"usermgmt.oauth2.userinfo_request_failed",
-			"create userinfo request",
-		)
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return oauth2UserInfo{}, event.WrapTransient(err, "usermgmt.oauth2.userinfo_fetch_failed", "fetch userinfo")
-	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return oauth2UserInfo{}, event.Newf(event.Transient, "usermgmt.oauth2.userinfo_status",
-			"userinfo returned %d: %s", resp.StatusCode, string(body))
-	}
-	// GitHub uses "id" as subject and "login" as display name
-	var raw struct {
-		ID            json.Number `json:"id"`
-		Sub           string      `json:"sub"`
-		Email         string      `json:"email"`
-		Name          string      `json:"name"`
-		Login         string      `json:"login"`
-		EmailVerified bool        `json:"email_verified"`
-	}
-	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&raw); err != nil {
-		return oauth2UserInfo{}, event.WrapTransient(
-			err,
-			"usermgmt.oauth2.userinfo_decode_failed",
-			"decode userinfo response",
-		)
-	}
-	subject := raw.Sub
-	if subject == "" {
-		subject = raw.ID.String()
-	}
-	name := raw.Name
-	if name == "" {
-		name = raw.Login
-	}
-	return oauth2UserInfo{
-		Subject:       subject,
-		Email:         raw.Email,
-		EmailVerified: raw.EmailVerified,
-		DisplayName:   name,
-	}, nil
-}
-
-// --- oauth2StateStore (mirrors verificationTokenStore) ---
-
 // OAuth2StateStore is the persistence interface for OAuth2 CSRF state tokens.
 // Implementations must ensure state tokens are single-use and expire after the
 // configured TTL. The default in-memory implementation is suitable for
 // single-instance deployments; use Redis or a shared store for multi-instance.
 type OAuth2StateStore interface {
-	// Save generates a random state token, stores it with the provider name and
-	// PKCE verifier, and returns the state token.
-	Save(provider, pkceVerifier string, ttl time.Duration) (state string, err error)
+	// Save stores a pre-generated state token with the provider name and
+	// PKCE verifier. The state token is generated by the caller.
+	Save(state, provider, pkceVerifier string, ttl time.Duration) error
 	// Consume validates and deletes the state token (one-time use).
 	// Returns the stored provider name and PKCE verifier.
 	Consume(state string) (provider, pkceVerifier string, err error)
@@ -287,13 +43,9 @@ func newOAuth2StateStore() *oauth2StateStore {
 	}
 }
 
-// Save generates a random state token, stores it with the provider name and
-// PKCE verifier, and returns the state token.
-func (s *oauth2StateStore) Save(provider, pkceVerifier string, ttl time.Duration) (string, error) {
-	state, err := generateOAuth2State()
-	if err != nil {
-		return "", err
-	}
+// Save stores a pre-generated state token with the provider name and
+// PKCE verifier.
+func (s *oauth2StateStore) Save(state, provider, pkceVerifier string, ttl time.Duration) error {
 	s.mu.Lock()
 	s.states[state] = oauth2StateEntry{
 		provider:     provider,
@@ -301,7 +53,7 @@ func (s *oauth2StateStore) Save(provider, pkceVerifier string, ttl time.Duration
 		expiresAt:    time.Now().Add(ttl),
 	}
 	s.mu.Unlock()
-	return state, nil
+	return nil
 }
 
 // Consume validates and deletes the state token (one-time use).

@@ -3,7 +3,7 @@ package cqrshtmx_test
 import (
 	"testing"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 

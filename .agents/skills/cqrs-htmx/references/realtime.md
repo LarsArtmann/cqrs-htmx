@@ -1,6 +1,6 @@
 # Realtime reference (SSE + WebSocket)
 
-Import: `cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"`. Realtime is **building blocks, not a server** — you own the HTTP/WS handler, the library gives you the stream, fan-out, and the CQRS bridge.
+Import: `cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"`. Realtime is **building blocks, not a server** — you own the HTTP/WS handler, the library gives you the stream, fan-out, and the CQRS bridge.
 
 There is **no WebSocket library dependency** — the library provides protocol helpers only. You choose your WS library (e.g. `nhooyr.io/websocket`, `gorilla/websocket`) and do the upgrade yourself.
 

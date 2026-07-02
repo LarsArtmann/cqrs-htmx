@@ -7,11 +7,7 @@
 // # Quick Start
 //
 //	svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
-//	    WebAuthnConfig: &usermgmt.WebAuthnConfig{
-//	        RPID:          "example.com",
-//	        RPDisplayName: "My App",
-//	        RPOrigins:     []string{"https://example.com"},
-//	    },
+//	    WebAuthn: waProvider, // *usermgmt/webauthn.Provider
 //	})
 //
 // # Registration Flow

@@ -7,6 +7,19 @@
 // This is a demo only — it uses in-memory storage and a dev-only login
 // shortcut. Real applications back the panel with a persistent event store and
 // authenticate via WebAuthn or OAuth2.
+//
+// v4 auth strategy injection: The TOTP provider is injected below, demonstrating
+// the v4 sub-module pattern. Consumers import only the auth strategies they need:
+//
+//	import totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
+//	import webauthn "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4"
+//	import oauth2 "github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
+//
+//	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+//	    TOTP:     totp.New(totp.DefaultConfig()),
+//	    WebAuthn: webauthn.New(webauthn.Config{ RPID: "myapp.com", ... }),
+//	    OAuth2:   oauth2.New(oauth2.Config{ Providers: map[string]oauth2.ProviderConfig{...} }),
+//	})
 package main
 
 import (
@@ -16,9 +29,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/larsartmann/cqrs-htmx/adminui/v3"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v3"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	"github.com/larsartmann/cqrs-htmx/adminui/v4"
+	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -33,8 +47,15 @@ func main() {
 	ctx := context.Background()
 
 	// 1. Event-sourced user management, in-memory, with an audit log projection.
+	//    v4: TOTP strategy injected as an optional sub-module — demonstrates the
+	//    import + injection pattern. In a real app you'd also mount the auth
+	//    routes (NewAuthHandler(svc).RegisterRoutes(mux)) so the TOTP endpoints
+	//    (/auth/totp/setup, /auth/totp/verify, etc.) are reachable. This demo
+	//    uses a dev-login shortcut for simplicity.
+	totpProvider := totp.New(totp.Config{Issuer: "cqrs-htmx Demo"})
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{ //nolint:exhaustruct // demo uses in-memory defaults
 		AuditLog: usermgmt.NewAuditLog(),
+		TOTP:     totpProvider,
 	})
 	if err != nil {
 		log.Fatalf("NewService: %v", err)

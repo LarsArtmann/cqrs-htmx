@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 //go:embed assets/admin-tw.css assets/admin.js assets/sync-worker.js

@@ -1,11 +1,11 @@
-module github.com/larsartmann/cqrs-htmx/adminui/v3
+module github.com/larsartmann/cqrs-htmx/adminui/v4
 
 go 1.26.4
 
 require (
 	github.com/a-h/templ v0.3.1020
-	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.3.0
-	github.com/larsartmann/cqrs-htmx/v3 v3.3.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0
 	github.com/larsartmann/templ-components v0.6.0
 )
@@ -49,7 +49,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.5.0 // indirect
@@ -96,6 +95,6 @@ require (
 )
 
 replace (
-	github.com/larsartmann/cqrs-htmx/usermgmt/v3 => ../usermgmt
-	github.com/larsartmann/cqrs-htmx/v3 => ../
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
+	github.com/larsartmann/cqrs-htmx/v4 => ../
 )

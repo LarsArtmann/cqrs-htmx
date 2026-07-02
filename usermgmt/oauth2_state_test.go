@@ -9,15 +9,12 @@ import (
 
 func TestOAuth2StateStore_SaveAndConsume(t *testing.T) {
 	store := newOAuth2StateStore()
-	state, err := store.Save("google", "pkce-abc", 5*time.Minute)
+	err := store.Save("state-abc", "google", "pkce-abc", 5*time.Minute)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
-	if state == "" {
-		t.Fatal("expected non-empty state")
-	}
 
-	provider, pkce, err := store.Consume(state)
+	provider, pkce, err := store.Consume("state-abc")
 	if err != nil {
 		t.Fatalf("Consume: %v", err)
 	}
@@ -36,9 +33,9 @@ func TestOAuth2StateStore_Consume_NotFound(t *testing.T) {
 
 func TestOAuth2StateStore_Consume_Expired(t *testing.T) {
 	store := newOAuth2StateStore()
-	state, _ := store.Save("google", "pkce-123", 1*time.Millisecond)
+	_ = store.Save("state-exp", "google", "pkce-123", 1*time.Millisecond)
 	time.Sleep(2 * time.Millisecond)
-	_, _, err := store.Consume(state)
+	_, _, err := store.Consume("state-exp")
 	if err == nil {
 		t.Fatal("expected error for expired state")
 	}
@@ -46,10 +43,10 @@ func TestOAuth2StateStore_Consume_Expired(t *testing.T) {
 
 func TestOAuth2StateStore_Consume_OneTimeUse(t *testing.T) {
 	store := newOAuth2StateStore()
-	state, _ := store.Save("google", "pkce-123", 5*time.Minute)
-	_, _, _ = store.Consume(state)
+	_ = store.Save("state-otu", "google", "pkce-123", 5*time.Minute)
+	_, _, _ = store.Consume("state-otu")
 	// Second consume should fail
-	_, _, err := store.Consume(state)
+	_, _, err := store.Consume("state-otu")
 	if err == nil {
 		t.Fatal("expected error for double consume")
 	}
@@ -57,8 +54,8 @@ func TestOAuth2StateStore_Consume_OneTimeUse(t *testing.T) {
 
 func TestOAuth2StateStore_EvictExpired(t *testing.T) {
 	store := newOAuth2StateStore()
-	store.Save("google", "a", 1*time.Millisecond) //nolint:errcheck
-	store.Save("github", "b", 5*time.Minute)      //nolint:errcheck
+	store.Save("state-a", "google", "a", 1*time.Millisecond) //nolint:errcheck
+	store.Save("state-b", "github", "b", 5*time.Minute)      //nolint:errcheck
 	time.Sleep(2 * time.Millisecond)
 	evicted := store.EvictExpired()
 	if evicted != 1 {
@@ -88,10 +85,8 @@ func consumeAllRemaining(s *oauth2StateStore) string {
 // simultaneously with a stolen state token.
 func TestOAuth2StateStore_Consume_ConcurrentOneTimeUse(t *testing.T) {
 	store := newOAuth2StateStore()
-	state, err := store.Save("google", "pkce-race", 5*time.Minute)
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
+	_ = store.Save("state-race", "google", "pkce-race", 5*time.Minute)
+	state := "state-race"
 
 	const numGoroutines = 50
 	var successCount atomic.Int64

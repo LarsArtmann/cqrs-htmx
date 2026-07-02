@@ -3,9 +3,10 @@ module github.com/larsartmann/cqrs-htmx/examples/admin-demo
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v3 v3.3.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v3 v3.3.0
-	github.com/larsartmann/cqrs-htmx/v3 v3.3.0
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0
 )
 
@@ -38,12 +39,10 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/encryption/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.5.0 // indirect
@@ -51,9 +50,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/scenario/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/signing/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.5.0 // indirect
@@ -101,7 +97,8 @@ require (
 )
 
 replace (
-	github.com/larsartmann/cqrs-htmx/adminui/v3 => ../../adminui
-	github.com/larsartmann/cqrs-htmx/usermgmt/v3 => ../../usermgmt
-	github.com/larsartmann/cqrs-htmx/v3 => ../..
+	github.com/larsartmann/cqrs-htmx/adminui/v4 => ../../adminui
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 => ../../usermgmt/totp
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../../usermgmt
+	github.com/larsartmann/cqrs-htmx/v4 => ../..
 )

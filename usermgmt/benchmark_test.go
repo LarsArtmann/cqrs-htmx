@@ -96,11 +96,7 @@ func BenchmarkReadModel_Handle(b *testing.B) {
 func newBenchWebAuthnService(tb testing.TB) *Service {
 	tb.Helper()
 	svc, err := NewService(ServiceConfig{
-		WebAuthnConfig: &WebAuthnConfig{
-			RPID:          "localhost",
-			RPDisplayName: "Bench",
-			RPOrigins:     []string{"http://localhost:8080"},
-		},
+		WebAuthn: testWebAuthnProvider{},
 	})
 	if err != nil {
 		tb.Fatalf("NewService: %v", err)
