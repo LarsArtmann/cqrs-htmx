@@ -49,8 +49,12 @@ Every term below should mean the **same thing** to everyone who reads it.
 | TenantID          | A branded string uniquely identifying a tenant                                             | Identity model                |
 | Tombstone         | A soft-delete marker event signaling an aggregate is logically deleted                     | Event sourcing                |
 | TOTP              | Time-based One-Time Password (RFC 6238) — a 6-digit second-factor code                     | Multi-factor auth             |
+| TOTPProvider      | Interface for TOTP secret generation + code validation; implemented by usermgmt/totp/v4   | Auth strategy (ADR 0035)     |
 | UserID            | A branded ULID type uniquely identifying a user                                            | usermgmt module               |
 | WebAuthn          | W3C standard for passwordless authentication using passkeys/FIDO2                          | Authentication                |
+| WebAuthnProvider  | Interface for WebAuthn ceremony delegation via []byte JSON; implemented by usermgmt/webauthn/v4 | Auth strategy (ADR 0035) |
+| WebAuthnSessionTTL | Configurable TTL for WebAuthn challenge sessions (ServiceConfig.WebAuthnSessionTTL)       | Authentication                |
+| OAuth2Provider    | Interface for OAuth2/OIDC login flow (PKCE + token exchange); implemented by usermgmt/oauth2/v4 | Auth strategy (ADR 0035)  |
 
 ## Entities
 

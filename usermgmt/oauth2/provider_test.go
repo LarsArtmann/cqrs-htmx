@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -356,6 +357,43 @@ func TestProvider_FinishLogin_PureOAuth2_InvalidCode(t *testing.T) {
 
 // --- OIDC flow tests ---
 
+// Pre-generated RSA key + signer to avoid the ~50ms key generation cost
+// per test invocation. Generated once, reused across all fakeOIDCServer tests.
+var (
+	cachedSignerOnce sync.Once
+	cachedSigner     jose.Signer
+	cachedJWKS       jose.JSONWebKeySet
+)
+
+func initCachedSigner() {
+	cachedSignerOnce.Do(func() {
+		privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		if err != nil {
+			panic("oauth2 test: generate RSA key: " + err.Error())
+		}
+
+		keyID := "test-key"
+		opts := &jose.SignerOptions{}
+		opts = opts.WithHeader("kid", keyID)
+		signer, err := jose.NewSigner(
+			jose.SigningKey{Algorithm: jose.RS256, Key: privKey},
+			opts,
+		)
+		if err != nil {
+			panic("oauth2 test: create signer: " + err.Error())
+		}
+
+		jwk := jose.JSONWebKey{
+			Key:       privKey.Public(),
+			KeyID:     keyID,
+			Algorithm: string(jose.RS256),
+		}
+
+		cachedSigner = signer
+		cachedJWKS = jose.JSONWebKeySet{Keys: []jose.JSONWebKey{jwk}}
+	})
+}
+
 type fakeOIDCServer struct {
 	server *httptest.Server
 	signer jose.Signer
@@ -365,31 +403,10 @@ type fakeOIDCServer struct {
 
 func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 	t.Helper()
-	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		t.Fatalf("generate RSA key: %v", err)
-	}
-
-	keyID := "test-key"
-	opts := &jose.SignerOptions{}
-	opts = opts.WithHeader("kid", keyID)
-	signer, err := jose.NewSigner(
-		jose.SigningKey{Algorithm: jose.RS256, Key: privKey},
-		opts,
-	)
-	if err != nil {
-		t.Fatalf("create signer: %v", err)
-	}
-
-	jwk := jose.JSONWebKey{
-		Key:       privKey.Public(),
-		KeyID:     keyID,
-		Algorithm: string(jose.RS256),
-	}
-	jwks := jose.JSONWebKeySet{Keys: []jose.JSONWebKey{jwk}}
+	initCachedSigner()
 
 	prov := &fakeOIDCServer{
-		signer: signer,
+		signer: cachedSigner,
 		claims: map[string]any{
 			"sub":            "oidc-sub-123",
 			"email":          "oidcuser@example.com",
@@ -418,7 +435,7 @@ func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 
 	mux.HandleFunc("GET /jwks", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(jwks)
+		json.NewEncoder(w).Encode(cachedJWKS)
 	})
 
 	mux.HandleFunc("POST /token", func(w http.ResponseWriter, r *http.Request) {
