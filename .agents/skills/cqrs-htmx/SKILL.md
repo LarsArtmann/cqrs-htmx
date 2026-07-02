@@ -12,9 +12,9 @@ It is framework-agnostic: it works with `net/http`, Chi, Gin, etc. and never pic
 
 > **Related skill:** the [`go-cqrs-lite`](https://github.com/LarsArtmann/go-cqrs-lite) skill covers the underlying CQRS/ES building blocks in depth — deciders, event stores, projections, read models, snapshots, schema evolution, signing, encryption. Consult it when a question is about the CQRS core rather than the HTTP/HTMX layer.
 
-## The three modules
+## The modules
 
-An app typically composes some subset of these. They are **independent Go modules** with `/v3` suffixes.
+An app typically composes some subset of these. They are **independent Go modules** with `/v4` suffixes.
 
 | Module                | Import path                                              | Provides                                                                                                                                                                                                                           |
 | --------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -256,11 +256,11 @@ WebSockets mirror this: `NewWSBroadcaster()`, `WSOOBHTML(...)`, `ParseWSMessageI
 
 These are the highest-frequency mistakes. Read `references/gotchas.md` for the full list.
 
-1. **Module suffixes are mandatory.** v3+ Go modules require the `/v3` suffix: `github.com/larsartmann/cqrs-htmx/v4`, `.../usermgmt/v3`, `.../adminui/v3`. Forgetting the suffix gives confusing "module not found" or wrong-version errors.
+1. **Module suffixes are mandatory.** v2+ Go modules require the major-version suffix: `github.com/larsartmann/cqrs-htmx/v4`, `.../usermgmt/v4`, `.../adminui/v4`. Forgetting the suffix gives confusing "module not found" or wrong-version errors.
 2. **Two different UserID types.** Root `cqrshtmx.UserID` is ULID-backed (via `go-cqrs-lite/id`); usermgmt `usermgmt.UserID` is string-backed (`go-branded-id`). They are **not** assignable to each other. Bridge with `.Get()` (raw value), never `.String()` (brand-prefixed). When wiring session context into root handlers, convert explicitly.
 3. **Validation comes AFTER the decoder** in the `HandlerOption` list. The validator reads the decoded value off the context — reversing the order silently skips validation.
 4. **Middleware trio order is `CSRF → HTMX → enrichment`.** Put your session middleware _outside_ (before) CSRF. Getting this wrong causes silent CSRF gaps or missing HTMX context.
-5. **No stdlib error constructors.** Inside these modules `errors.New`/`fmt.Errorf`/`errors.Join` are banned (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v3`. When you only build a _message string_ (not an error object), `fmt.Sprintf` is fine.
+5. **No stdlib error constructors** (root + usermgmt + adminui). `errors.New`/`fmt.Errorf`/`errors.Join` are banned in these modules (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v3`. Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt — their errors are wrapped at the Service boundary. When you only build a _message string_ (not an error object), `fmt.Sprintf` is fine.
 6. **App.Command("") panics.** Empty command/query type strings are rejected at registration — use real `command.Type("...")`/`query.Type("...")` values.
 7. **Serve htmx.js yourself on Path A/B.** Register `cqrshtmx.HTMXScriptHandler()` on your mux and reference it in your layout. **Exception:** on Path C (adminui) the panel serves htmx.js internally (`adminui/assets.go`) — do NOT register it yourself or you'll create a duplicate route.
 
