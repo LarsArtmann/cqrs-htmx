@@ -23,7 +23,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                                                                              |
 | CheckMods   | `nix run .#check-modules` (isolation + dep budgets + version drift + replace directives — also in `.github/workflows/ci.yml` as `module-architecture` job) |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                                                                                   |
-| Coverage    | 95.4% root, 80.1% usermgmt (~747 usermgmt + ~135 root tests)                                                                                               |
+| Coverage    | 95.4% root, 80.1% usermgmt; auth sub-modules: totp 3 tests, webauthn 18 tests, oauth2 18 tests                                                             |
 
 ## Architecture
 
@@ -130,15 +130,15 @@ cqrs-htmx/
 │   ├── email.go          # Email value type with ParseEmail/MustParseEmail
 │   ├── email_verification.go # Verification token store, SendVerificationEmail, VerifyEmail
 │   ├── external_account.go # ExternalAccount value type (OAuth2 provider account linked to User)
-│   ├── oauth2.go          # OAuth2/OIDC: provider config, PKCE, state store, token exchange, OIDC discovery, OAuth2StateStore interface
-│   ├── service_oauth2.go  # Service.BeginOAuthLogin, FinishOAuthLogin, UnlinkExternalAccount, matchOrCreateUser (subject-first matching)
+│   ├── oauth2.go          # OAuth2StateStore interface + in-memory state store (ceremony code moved to oauth2 module)
+│   ├── service_oauth2.go  # Service.BeginOAuthLogin, FinishOAuthLogin, UnlinkExternalAccount — delegates to OAuth2Provider interface
 │   ├── oauth2_http.go     # HTTP handlers for OAuth2 begin/callback/unlink endpoints
 │   ├── import_export.go  # ImportUsersFromJSON/CSV, ExportUsersToJSON/CSV, ImportUser.Validate
-│   ├── totp.go           # TOTP MFA via pquerna/otp/totp (EnableTOTP, VerifyTOTP, DisableTOTP)
+│   ├── totp.go           # TOTP MFA setup/verification — delegates to TOTPProvider interface (pquerna/otp moved to totp module)
 │   ├── verification_totp_http.go # HTTP handlers for verification, TOTP, import/export endpoints
-│   ├── webauthn_adapter.go # Adapts domain User → webauthn.User interface
-│   ├── webauthn_session.go # WebAuthnConfig + in-memory challenge store
-│   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin
+│   ├── store_interfaces.go # WebAuthnSessionStore ([]byte-based) + VerificationTokenStore interfaces
+│   ├── webauthn_session.go # In-memory WebAuthnSessionStore with TTL eviction (5 min default, []byte-based)
+│   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin — delegates to WebAuthnProvider interface
 │   ├── webauthn_http.go   # HTTP handlers for WebAuthn ceremony endpoints
 │   ├── user.go       # User/Session types (immutable read model — no mutation methods)
 │   ├── store.go      # SessionStore interface + InMemorySessionStore only
@@ -152,6 +152,18 @@ cqrs-htmx/
 │   ├── audit_log.go       # AuditLog — append-only audit event recorder
 │   ├── eviction.go        # startPeriodicEviction — shared TTL sweep goroutine for ephemeral stores
 │   ├── random.go          # randomBase64URLString — shared CSPRNG token generation (32 bytes)
+├── usermgmt/totp/     # TOTP MFA strategy (INDEPENDENT MODULE — pquerna/otp)
+│   ├── go.mod          # Independent Go module — depends only on pquerna/otp
+│   ├── provider.go     # Provider: GenerateSecret, ValidateCode (implements TOTPProvider via structural typing)
+│   └── provider_test.go # 3 tests: generate, validate, default config
+├── usermgmt/webauthn/ # WebAuthn passkey strategy (INDEPENDENT MODULE — go-webauthn)
+│   ├── go.mod          # Independent Go module — depends only on go-webauthn
+│   ├── provider.go     # Provider: BeginRegistration/FinishRegistration/BeginLogin/FinishLogin ([]byte JSON boundary, structural typing)
+│   └── provider_test.go # 18 tests: W3C spec vectors ceremony, credential conversion, error cases
+├── usermgmt/oauth2/   # OAuth2/OIDC strategy (INDEPENDENT MODULE — oauth2 + oidc)
+│   ├── go.mod          # Independent Go module — depends on oauth2 + oidc (+ go-jose transitive)
+│   ├── provider.go     # Provider: BeginLogin/FinishLogin (PKCE + OIDC discovery, structural typing)
+│   └── provider_test.go # 18 tests: config validation, PKCE, pure OAuth2 + OIDC flows with mock servers
 ├── adminui/             # Ready-made Admin Dashboard UI (7th Go module, templ + HTMX)
 │   ├── go.mod          # Independent Go module — depends on root + usermgmt + a-h/templ
 │   ├── config.go       # Config, Mode (SuperAdmin/TenantAdmin), defaults
@@ -180,8 +192,8 @@ cqrs-htmx/
 | Root              | `github.com/larsartmann/cqrs-htmx/v4`                   | Yes   | Core library                                                  |
 | usermgmt          | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`          | Yes   | Core user management; auth strategies via interfaces          |
 | usermgmt/totp     | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`     | Yes   | TOTP MFA (pquerna/otp) — implements TOTPProvider              |
-| usermgmt/webauthn | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4` | No    | WebAuthn passkeys (go-webauthn) — implements WebAuthnProvider |
-| usermgmt/oauth2   | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`   | No    | OAuth2/OIDC (oauth2+oidc) — implements OAuth2Provider         |
+| usermgmt/webauthn | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4` | Yes   | WebAuthn passkeys (go-webauthn) — implements WebAuthnProvider |
+| usermgmt/oauth2   | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`   | Yes   | OAuth2/OIDC (oauth2+oidc) — implements OAuth2Provider         |
 | adminui           | `github.com/larsartmann/cqrs-htmx/adminui/v4`           | Yes   | Admin Dashboard UI (templ+HTMX), depends on root+usermgmt     |
 | integration_test  | `github.com/larsartmann/cqrs-htmx/integration_test`     | Yes   | Tests cross-module bridges                                    |
 | datastar-demo     | `examples/datastar-demo/`                               | No    | Standalone example (main package)                             |
@@ -222,7 +234,7 @@ cqrs-htmx/
 - **usermgmt god-package with 3 deep Sollbruchstellen** (2026-07-01 v3 review): 84 prod files / ~11K LOC in one flat `package usermgmt`. `Service` struct directly holds `*webauthn.WebAuthn` + `oauth2Providers`, forcing go-webauthn, oauth2, oidc, jose, otp, sqlite as transitive deps on ALL consumers. Unix pipe test FAILS today. Three clean seams identified: (1) Domain layer (20 pure fold/decide files, zero I/O — v3-safe), (2) Auth strategies (TOTP/WebAuthn/OAuth2 behind interfaces — v4-breaking), (3) SQL infrastructure (9 files — v3-safe). See `docs/modularization/2026-07-01_SOLLBRUCHSTELLEN.html` for the Sollbruchstellen analysis
 - **Root → usermgmt: zero imports** (clean boundary). **usermgmt → root: YES** (RateLimiter). usermgmt imports `cqrs-htmx/v3` for `RateLimiter` (rate limiting unification). This is a one-way dependency — root never imports usermgmt. Cross-module bridging tests happen in `integration_test/`
 - **CI module architecture enforcement** (2026-07-01): 4 shell scripts in `scripts/` enforce module discipline (adapted from go-cqrs-lite): `check-module-isolation.sh` (GOWORK=off build+vet per module), `check-dep-budgets.sh` (per-module max production deps: root=18, usermgmt=28, adminui=7), `check-version-drift.sh` (detects siblings at different versions — currently flags snapshot/schema/storage-memory drift), `check-replace-directives.sh` (no absolute paths). Wire: `nix run .#check-modules`
-- **Auth strategy interfaces** (2026-07-01 v4 prep): `usermgmt/auth_interfaces.go` defines `TOTPVerifier`, `WebAuthnProvider`, `OAuth2Provider` interfaces — the v4 seam contracts. WebAuthn/OAuth2 interfaces use `json.RawMessage`/`[]byte` for ceremony payloads to avoid importing go-webauthn in core. Interfaces are purely additive (non-breaking). Actual extraction (moving implementations behind interfaces) is v4-breaking because `ServiceConfig.TOTPConfig`, `ServiceConfig.WebAuthnConfig`, and `ServiceConfig.OAuth2Providers` are public fields
+- **Auth strategy extraction COMPLETE (v4, 2026-07-02)**: TOTP, WebAuthn, and OAuth2 are now independent Go modules (`usermgmt/totp/v4`, `usermgmt/webauthn/v4`, `usermgmt/oauth2/v4`). Core `usermgmt` has **zero** auth-related dependencies. Interfaces in `auth_interfaces.go` use only primitive types (`[]byte`, `string`) so implementations don't import core. Providers satisfy interfaces via **structural typing** — compile-time assertions in `integration_test/auth_interface_assert_test.go`. Consumers inject only the strategies they need: `ServiceConfig.WebAuthn` (was `WebAuthnConfig`), `ServiceConfig.TOTP` (was `TOTPConfig`), `ServiceConfig.OAuth2` (was `OAuth2Providers`). JSON serialization boundary between core and providers. `WebAuthnSessionStore` uses `[]byte` (was `*webauthn.SessionData`). See ADR-0035 and `docs/migrations/v3-to-v4.md`. Tests: 3 totp + 18 webauthn (W3C vectors) + 18 oauth2 (mock OIDC/OAuth2) + 3 integration assertions
 - **constants.go** (2026-07-01): Shared constants (`ContentTypePlain/JSON/HTML/Problem`, `JSONKeyError/Status`) extracted from `response.go` to `constants.go`. Breaks the alleged errors↔response↔csrf "cycle" — which was caused by 5 string constants, not structural coupling
 
 ### Error Handling

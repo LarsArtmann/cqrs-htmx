@@ -167,9 +167,9 @@ The upstream store borrows the handle — you must close the DB yourself. Same f
 
 Call `usermgmt.OptimizeSQLiteDB(ctx, db)` **before** `NewSQLSessionStore` / `NewSQLEventStore`. It enables WAL + `synchronous=NORMAL` + busy_timeout. No-op on Postgres/MySQL. Opt-in.
 
-### WebAuthnConfig is REQUIRED for passkey login
+### WebAuthn provider must be injected for passkey login
 
-Passkeys are the default auth method. If you don't set `WebAuthnConfig`, login endpoints can't function. For localhost: `RPID: "localhost"`, `RPOrigins: []string{"http://localhost:8080"}`.
+In v4, passkey auth requires importing `usermgmt/webauthn/v4` and injecting a `*webauthn.Provider` as `ServiceConfig.WebAuthn` (was `WebAuthnConfig` in v3). If nil, login endpoints can't function. For localhost: `RPID: "localhost"`, `RPOrigins: []string{"http://localhost:8080"}`. Same pattern applies to TOTP (`ServiceConfig.TOTP`) and OAuth2 (`ServiceConfig.OAuth2`) — see `docs/migrations/v3-to-v4.md`.
 
 ### `TokenPepper` is REQUIRED for bots
 

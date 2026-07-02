@@ -38,3 +38,4 @@
 | [0032](0032-basic-command-embedding.md)           | Embed `command.BasicCommand` in all usermgmt commands                           | Accepted                                                         |
 | [0033](0033-server-timing-api.md)                 | Server-Timing API                                                               | Accepted                                                         |
 | [0034](0034-http-status-carrier.md)               | HTTPStatusCarrier — Errors That Pin Their HTTP Status                           | Accepted                                                         |
+| [0035](0035-auth-strategy-extraction.md)          | Auth Strategy Extraction — TOTP, WebAuthn, OAuth2 as Independent Modules        | Accepted                                                         |
