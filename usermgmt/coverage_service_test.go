@@ -117,7 +117,7 @@ func TestNewService_CustomSessionTTL(t *testing.T) {
 
 func TestNewService_CustomWebAuthnSessionTTL(t *testing.T) {
 	svc, err := NewService(ServiceConfig{
-		WebAuthn:          &testWebAuthnProvider{},
+		WebAuthn:           &testWebAuthnProvider{},
 		WebAuthnSessionTTL: 10 * time.Minute,
 	})
 	if err != nil {
