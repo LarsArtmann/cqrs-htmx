@@ -15,6 +15,9 @@ cd "$REPO_ROOT"
 MODULES=(
     "."
     "usermgmt"
+    "usermgmt/totp"
+    "usermgmt/webauthn"
+    "usermgmt/oauth2"
     "adminui"
     "integration_test"
 )
