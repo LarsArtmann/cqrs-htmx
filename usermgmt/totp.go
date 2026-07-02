@@ -46,7 +46,11 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 			"generate totp key", err)
 	}
 	// Store the pending secret temporarily
-	s.pendingTOTP.Save(userID.Get().String(), rawSecret, 5*time.Minute)
+	ttl := s.totpPendingTTL
+	if ttl <= 0 {
+		ttl = 5 * time.Minute
+	}
+	s.pendingTOTP.Save(userID.Get().String(), rawSecret, ttl)
 	s.logAuth("totp_setup_initiated", userID)
 	return &TOTPSetupResponse{
 		Secret:    base32Secret,
