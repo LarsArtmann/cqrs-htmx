@@ -149,7 +149,10 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	if err != nil {
 		return event.WrapInfrastructure(err, "usermgmt.webauthn.userid_conversion_failed", "convert userID")
 	}
-	if err := s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, WebAuthnCredential{credentialCore: cred})); err != nil {
+	if err := s.dispatcher.Dispatch(
+		ctx,
+		NewAddCredentialCmd(aggID, WebAuthnCredential{credentialCore: cred}),
+	); err != nil {
 		return event.Wrapf(err, event.Classify(err),
 			"usermgmt.webauthn.dispatch_failed", "finish registration dispatch")
 	}
