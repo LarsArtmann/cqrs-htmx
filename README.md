@@ -30,7 +30,7 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 - **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge, `BroadcastOnAckWS` for command confirmation
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v3.1.0
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified) with ETag/caching. Opt-in, zero CDN dependency
-- **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers
+- **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers. Auth strategies (WebAuthn/Passkeys, TOTP MFA, OAuth2/OIDC) are **optional sub-modules** — import only what you need, zero auth deps in core
 
 ## Why
 
@@ -59,6 +59,15 @@ For the user management submodule:
 go get github.com/larsartmann/cqrs-htmx/usermgmt
 ```
 
+Auth strategies (WebAuthn, TOTP, OAuth2) are now **optional sub-modules** in v4 — import only what you need:
+
+```bash
+go get github.com/larsartmann/cqrs-htmx/usermgmt/webauthn  # Passkeys
+# go get github.com/larsartmann/cqrs-htmx/usermgmt/totp     # TOTP MFA
+# go get github.com/larsartmann/cqrs-htmx/usermgmt/oauth2   # OAuth2/OIDC
+```
+
+> **Upgrading from v3?** See the [v3→v4 Migration Guide](docs/migrations/v3-to-v4.md).
 > **Upgrading from v2?** See the [v2→v3 Migration Guide](docs/migration/v2-to-v3.md).
 
 ## Quick Start
@@ -806,7 +815,9 @@ An independent submodule with **passwordless** authentication (WebAuthn/Passkeys
 go get github.com/larsartmann/cqrs-htmx/usermgmt
 ```
 
-### Setup
+### Setup (v4 Provider Injection)
+
+In v4, auth strategies are injected as providers. Import only the sub-modules you need:
 
 ```go
 import (
@@ -814,24 +825,28 @@ import (
     "time"
 
     "github.com/larsartmann/cqrs-htmx/usermgmt"
+    "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn" // optional: passkeys
 )
 
-// Create service with WebAuthn configuration
+// Create a WebAuthn provider
+wa, err := webauthn.New(webauthn.Config{
+    RPID:          "example.com",
+    RPDisplayName: "My App",
+    RPOrigins:     []string{"https://example.com"},
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+// Create service with provider injected
 svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-    WebAuthnConfig: &usermgmt.WebAuthnConfig{
-        RPID:          "example.com",
-        RPDisplayName: "My App",
-        RPOrigins:     []string{"https://example.com"},
-    },
+    WebAuthn: wa, // inject the provider — nil if not needed
     SessionTTL: 24 * time.Hour,
     Logger:     slog.Default(),
     Lockout:    usermgmt.NewAccountLockout(usermgmt.LockoutConfig{
         MaxAttempts: 5,
         Duration:    15 * time.Minute,
     }),
-    EventHandler: func(userID usermgmt.UserID, evt any) {
-        slog.Info("user event", "user_id", userID, "event", evt)
-    },
 })
 defer svc.Stop()
 
