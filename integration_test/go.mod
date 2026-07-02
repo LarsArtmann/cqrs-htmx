@@ -3,11 +3,11 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/cqrs-htmx/v4 v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v3 v3.5.0
