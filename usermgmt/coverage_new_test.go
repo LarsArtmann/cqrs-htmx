@@ -137,7 +137,7 @@ func TestHandler_DeleteCredential_InvalidEncoding(t *testing.T) {
 // --- WebAuthn session eviction tests ---
 
 func TestWebAuthnSessionStore_EvictExpired(t *testing.T) {
-	store := newWebAuthnSessionStore()
+	store := newWebAuthnSessionStore(0)
 	store.Save("future", []byte("future-data"))
 	store.Save("expired", []byte("expired-data"))
 	expireSessionEntry(store, "expired")
@@ -153,7 +153,7 @@ func TestWebAuthnSessionStore_EvictExpired(t *testing.T) {
 }
 
 func TestWebAuthnSessionStore_EvictExpired_KeepsUnexpired(t *testing.T) {
-	store := newWebAuthnSessionStore()
+	store := newWebAuthnSessionStore(0)
 	store.Save("future", []byte("future-data"))
 
 	evicted := store.EvictExpired()

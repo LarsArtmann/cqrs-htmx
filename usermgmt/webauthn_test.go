@@ -120,7 +120,7 @@ func TestWebAuthn_BeginLogin_Success(t *testing.T) {
 }
 
 func TestWebAuthnSessionStore_CRUD(t *testing.T) {
-	store := newWebAuthnSessionStore()
+	store := newWebAuthnSessionStore(0)
 
 	_, err := store.Get("nonexistent")
 	if err == nil {
