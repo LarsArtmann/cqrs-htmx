@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.0.0] - 2026-07-02
+
+### Breaking Changes — Auth Strategy Extraction (Sollbruchstellen)
+
+All three auth strategies (TOTP, WebAuthn, OAuth2) extracted behind primitive-type interfaces as independent Go modules. Consumers import only the auth strategies they need — zero transitive dependencies on pquerna/otp, go-webauthn, golang.org/x/oauth2, coreos/go-oidc, or go-jose unless they explicitly opt in.
+
+#### New Modules
+
+- **`usermgmt/totp/v4`** — TOTP MFA (pquerna/otp). Implements `TOTPProvider`.
+- **`usermgmt/webauthn/v4`** — WebAuthn passkeys (go-webauthn). Implements `WebAuthnProvider`.
+- **`usermgmt/oauth2/v4`** — OAuth2/OIDC (golang.org/x/oauth2 + coreos/go-oidc). Implements `OAuth2Provider`.
+
+#### TOTP Changes
+
+- `ServiceConfig.TOTPConfig *TOTPConfig` → `TOTP TOTPProvider`
+- `TOTPConfig`, `TOTPTimeStep`, `TOTPDigits`, `TOTPSecretLength` removed from core
+- New `TOTPProvider` interface: `GenerateSecret(string) ([]byte, string, string, error)`, `ValidateCode([]byte, string) bool`
+- `TOTPVerifier` interface removed (was a ghost — never wired)
+
+#### WebAuthn Changes
+
+- `ServiceConfig.WebAuthnConfig *WebAuthnConfig` → `WebAuthn WebAuthnProvider`
+- `WebAuthnConfig` type removed from core (now `webauthn.Config` in the webauthn module)
+- `webauthn_adapter.go` moved to webauthn module
+- `WebAuthnSessionStore` interface changed: `*webauthn.SessionData` → `[]byte`
+- `BeginRegistrationResponse.Options` / `BeginLoginResponse.Options` changed to `json.RawMessage`
+- In-memory session store uses TTL-based eviction (5 min default)
+- Virtual authenticator test removed from core (needs go-webauthn)
+
+#### OAuth2 Changes
+
+- `ServiceConfig.OAuth2Config *OAuth2Config` → `OAuth2 OAuth2Provider`
+- `OAuth2Config`, `OAuth2ProviderConfig` removed from core (now `oauth2.Config`, `oauth2.ProviderConfig`)
+- New `OAuth2Provider` interface: `BeginLogin(ctx, provider, state) (redirectURL, pkceVerifier, error)`, `FinishLogin(ctx, provider, code, pkceVerifier) (userInfoJSON, error)`
+- `OAuth2UserInfo` exported in core (Service deserializes provider's JSON return)
+- `OAuth2StateStore.Save` signature changed: `Save(state, provider, pkceVerifier, ttl) error`
+- OIDC discovery moved from Service.initOAuth2 to `oauth2.New()`
+- `initOAuth2` and `getOAuth2Provider` methods removed from Service
+
+#### Module Paths
+
+- All import paths changed `/v3` → `/v4` across all modules
+
+See `docs/migrations/v3-to-v4.md` for detailed before/after examples.
+
 ## [3.5.0] - 2026-07-01
 
 ### Added
