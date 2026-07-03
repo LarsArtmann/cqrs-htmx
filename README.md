@@ -29,7 +29,7 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 - **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `JournalSSEStore` (production durable replay via `event.SeekableJournal`), CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive, **ACK protocol** (`BroadcastOnAck` — opt-in command confirmation via `X-Command-Id` header)
 - **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge, `BroadcastOnAckWS` for command confirmation
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v3.1.0
-- **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified) with ETag/caching. Opt-in, zero CDN dependency
+- **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.10 (minified) with ETag/caching. Opt-in, zero CDN dependency. Embedded HTMX extensions (SSE/WS/idiomorph) also available via `HTMXExtensionHandler`/`HTMXExtensionsHandler`
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers. Auth strategies (WebAuthn/Passkeys, TOTP MFA, OAuth2/OIDC) are **optional sub-modules** — import only what you need, zero auth deps in core
 
 ## Why
@@ -481,7 +481,7 @@ Client-side:
 
 ## Embedded HTMX JavaScript
 
-Embed HTMX v2.0.9 (minified, ~49KB) directly in your binary — no CDN dependency:
+Embed HTMX v2.0.10 (minified, ~51KB) directly in your binary — no CDN dependency:
 
 ```go
 // Serve embedded HTMX JS
@@ -492,10 +492,31 @@ cqrshtmx.HTMXScriptTag("/static/htmx.js")
 // => <script src="/static/htmx.js"></script>
 
 // Check version
-cqrshtmx.HTMXVersion() // "2.0.9"
+cqrshtmx.HTMXVersion() // "2.0.10"
 ```
 
 `HTMXScriptHandler` sets `Content-Type: text/javascript`, long-lived `Cache-Control` (1 year, immutable), and `ETag` with `If-None-Match` support for 304 responses.
+
+### Embedded HTMX Extensions
+
+The library also embeds the 3 HTMX extensions that pair with its server-side building blocks:
+
+| Extension | Version | Server-side counterpart |
+|-----------|---------|------------------------|
+| `HTMXExtSSE` | htmx-ext-sse 2.2.4 | `SSEStream`, `Broadcaster`, `JournalSSEStore` |
+| `HTMXExtWS` | htmx-ext-ws 2.0.4 | `WSMessage`, `WSBroadcaster`, `DispatchWSCommand` |
+| `HTMXExtIdiomorph` | idiomorph 0.7.4 | Morph-swap for SSE partial updates |
+
+```go
+// Serve individual extension
+mux.Handle("/ext/sse.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
+
+// Or serve all three as a single bundle (one HTTP request)
+mux.Handle("/ext/bundle.js",
+    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtWS, cqrshtmx.HTMXExtIdiomorph))
+```
+
+Same caching headers (ETag, Cache-Control 1yr immutable, 304). Load after htmx core in your layout.
 
 ## templ Integration
 
@@ -1058,8 +1079,9 @@ cqrs-htmx/
 ├── context.go          # UserID, CorrelationID, RequestID — strongly-typed context helpers
 ├── errors.go           # CQRS error → HTTP status mapping, sentinels, error handlers
 ├── htmx.go             # HTMXRequest struct, accessors, swap strategies
-├── htmx_embed.go       # Embedded HTMX v2.0.9 JS (minified)
-├── htmx_serve.go       # HTMXScriptHandler, HTMXScriptTag, HTMXVersion
+├── htmx_embed.go       # Embedded HTMX v2.0.10 JS (minified)
+├── htmx_serve.go       # HTMXScriptHandler, HTMXScriptTag, HTMXVersion, serveJS helper
+├── htmx_extensions.go  # Embedded HTMX extensions (SSE/WS/idiomorph), HTMXExtensionHandler, HTMXExtensionsHandler
 ├── notify.go           # Notification HandlerOptions, NotifyWithEvent builder
 ├── middleware.go        # ContextEnrichmentMiddleware, HTMXMiddleware, Chain
 ├── csrf_config.go      # CSRFConfig, defaults, Validate()

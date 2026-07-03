@@ -8,7 +8,7 @@ A minimal onboarding example showing the core cqrs-htmx library usage.
 - **Command handler** — POST with JSON decode via mapper function
 - **Query handler** — GET with JSON result rendering
 - **SSE live updates** — Broadcaster fan-out on command success
-- **Embedded HTMX** — Self-hosted HTMX v2.0.9 JS
+- **Embedded HTMX** — Self-hosted HTMX v2.0.10 JS
 
 ## Run
 

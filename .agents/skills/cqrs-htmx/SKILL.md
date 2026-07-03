@@ -217,13 +217,41 @@ mux.Handle("POST /widgets", app.Command("CreateWidget",
 
 ## Serving htmx.js
 
-The root module **embeds htmx 2.0.9** (~49KB). Serve it yourself (no CDN needed):
+The root module **embeds htmx 2.0.10** (~51KB). Serve it yourself (no CDN needed):
 
 ```go
 mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
 ```
 
-Add to your HTML with `cqrshtmx.HTMXScriptTag("/htmx.js")` (templ-safe) or `cqrshtmx.HTMXCDNScriptTag("")` if you prefer a CDN. `cqrshtmx.HTMXVersion()` returns `"2.0.9"` for cache-busting query strings.
+Add to your HTML with `cqrshtmx.HTMXScriptTag("/htmx.js")` (templ-safe) or `cqrshtmx.HTMXCDNScriptTag("")` if you prefer a CDN. `cqrshtmx.HTMXVersion()` returns `"2.0.10"` for cache-busting query strings.
+
+### Embedded HTMX extensions
+
+The root module also embeds the 3 extensions that pair with cqrs-htmx's server-side building blocks:
+
+| Extension | Version | Pairs with |
+|-----------|---------|------------|
+| `HTMXExtSSE` ("sse") | 2.2.4 | `SSEStream`, `Broadcaster`, `JournalSSEStore` |
+| `HTMXExtWS` ("ws") | 2.0.4 | `WSMessage`, `WSBroadcaster`, `DispatchWSCommand` |
+| `HTMXExtIdiomorph` ("idiomorph") | 0.7.4 | SSE partial updates (morph swap) |
+
+Serve individually or as a single-request bundle:
+
+```go
+// Individual
+mux.Handle("GET /ext/sse.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
+
+// Bundle (one HTTP request for all three)
+mux.Handle("GET /ext/bundle.js",
+    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtWS, cqrshtmx.HTMXExtIdiomorph))
+```
+
+Both set `Content-Type`, `ETag`, and `Cache-Control: 1yr immutable` with 304 support — same caching as `HTMXScriptHandler`. Add `<script>` tags in your layout **after** htmx core:
+
+```html
+<script src="/htmx.js"></script>
+<script src="/ext/bundle.js"></script>
+```
 
 ## Realtime (SSE / WebSocket) — on any path
 
@@ -262,7 +290,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 4. **Middleware trio order is `CSRF → HTMX → enrichment`.** Put your session middleware _outside_ (before) CSRF. Getting this wrong causes silent CSRF gaps or missing HTMX context.
 5. **No stdlib error constructors** (root + usermgmt + adminui). `errors.New`/`fmt.Errorf`/`errors.Join` are banned in these modules (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v3`. Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt — their errors are wrapped at the Service boundary. When you only build a _message string_ (not an error object), `fmt.Sprintf` is fine.
 6. **App.Command("") panics.** Empty command/query type strings are rejected at registration — use real `command.Type("...")`/`query.Type("...")` values.
-7. **Serve htmx.js yourself on Path A/B.** Register `cqrshtmx.HTMXScriptHandler()` on your mux and reference it in your layout. **Exception:** on Path C (adminui) the panel serves htmx.js internally (`adminui/assets.go`) — do NOT register it yourself or you'll create a duplicate route.
+7. **Serve htmx.js yourself on Path A/B.** Register `cqrshtmx.HTMXScriptHandler()` on your mux and reference it in your layout. HTMX extensions (SSE/WS/idiomorph) are also embedded — use `cqrshtmx.HTMXExtensionHandler(name)` or `cqrshtmx.HTMXExtensionsHandler(names...)` for a bundle. **Exception:** on Path C (adminui) the panel serves htmx.js internally (`adminui/assets.go`) — do NOT register it yourself or you'll create a duplicate route.
 
 ## Where to look
 

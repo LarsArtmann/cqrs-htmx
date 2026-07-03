@@ -58,7 +58,7 @@
 | HTMX Response Builder | 🟢 `FULLY_FUNCTIONAL` | Fluent `Response`: `PushURL`, `ReplaceURL`, `Redirect`, `Refresh`, `Reswap`, `Retarget`, `Reselect`, `Trigger*`, `Notify*`, `Status`, `Header`, `ContentType`, `JSON`, `Body`. HTMX-aware redirect.       |
 | Notifications         | 🟢 `FULLY_FUNCTIONAL` | `NotifySuccess/Error/Warning/Info` as HandlerOptions and Response methods. `NotifyWithEvent` builder.                                                                                                     |
 | Swap Strategies       | 🟢 `FULLY_FUNCTIONAL` | All 8 HTMX swap strategies as typed constants.                                                                                                                                                            |
-| Embedded HTMX JS      | 🟢 `FULLY_FUNCTIONAL` | `HTMXScriptHandler()` serves embedded HTMX v2.0.9 (minified, ~49KB) with ETag/caching. `HTMXVersion()`, `HTMXScriptTag(path)`, `HTMXCDNScriptTag(version)`, `HTMXScriptHandlerWith(js, version)`. Opt-in. |
+| Embedded HTMX JS + Extensions | 🟢 `FULLY_FUNCTIONAL` | `HTMXScriptHandler()` serves embedded HTMX v2.0.10 (minified, ~51KB). `HTMXExtensionHandler(name)` / `HTMXExtensionsHandler(names...)` serve embedded SSE (2.2.4), WS (2.0.4), idiomorph (0.7.4). All with ETag/caching/304. `HTMXVersion()`, `HTMXScriptTag(path)`, `HTMXCDNScriptTag(version)`, `HTMXScriptHandlerWith(js, version)`. Opt-in. |
 
 ### Auth & Security
 
