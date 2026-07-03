@@ -45,8 +45,9 @@ cqrs-htmx/
 ├── errors.go         # Error → HTTP status mapping, sentinels, LoginRedirect (go-error-family), SafeDetail, ProblemDetailsErrorHandler
 ├── errors_status.go  # HTTPStatusCarrier interface + WithHTTPStatus wrapper (ADR-0034)
 ├── htmx.go           # HTMXRequest struct, accessors, context storage, RenderPartial
-├── htmx_embed.go     # Embedded HTMX v2.0.9 minified JS (go:embed), htmxVersion const
-├── htmx_serve.go     # HTMXScriptHandler, HTMXScriptHandlerWith (custom JS), HTMXCDNScriptTag, HTMXScriptTag
+├── htmx_embed.go     # Embedded HTMX v2.0.10 minified JS (go:embed), htmxVersion const
+├── htmx_serve.go     # HTMXScriptHandler, HTMXScriptHandlerWith (custom JS), HTMXCDNScriptTag, HTMXScriptTag, serveJS helper
+├── htmx_extensions.go # Embedded HTMX extensions (sse/ws/idiomorph), HTMXExtensionHandler, HTMXExtensionsHandler (bundle)
 ├── notify.go         # Notification HandlerOptions + NotifyWithEvent builder
 ├── middleware.go      # HTTP middleware (HTMXMiddleware, ContextEnrichmentMiddleware, Chain)
 ├── csrf_config.go     # CSRFConfig (cookie/header/field names, TrustedProxies, SameSite, Secure)
@@ -326,13 +327,23 @@ cqrs-htmx/
 
 ### Embedded HTMX JS
 
-- **HTMX v2.0.9 minified**: Embedded via `//go:embed htmx.min.js` in `htmx_embed.go` (~49KB). No CDN dependency — consumers serve it from their Go binary
+- **HTMX v2.0.10 minified**: Embedded via `//go:embed htmx.min.js` in `htmx_embed.go` (~51KB). No CDN dependency — consumers serve it from their Go binary
 - **HTMXScriptHandler()**: Returns `http.Handler` with correct Content-Type, ETag, Cache-Control (1 year, immutable). Supports GET/HEAD, returns 405 for others. 304 Not Modified via If-None-Match
 - **HTMXScriptHandlerWith(js, version)**: Serves custom JS (e.g., htmx 4.0 beta, custom build). ETag derived from version string. `HTMXScriptHandler()` delegates to this
 - **HTMXCDNScriptTag(version)**: Returns `<script src="unpkg.com/htmx.org@VERSION">`. Empty version uses embedded version. For consumers who prefer CDN over self-hosting
-- **HTMXVersion()**: Returns `"2.0.9"` — useful for cache-busting query params
+- **HTMXVersion()**: Returns `"2.0.10"` — useful for cache-busting query params
 - **HTMXScriptTag(path)**: Returns `<script src="path"></script>` — convenience for templ/templates
 - **Pluggable**: Consumers can self-host embedded version, self-host custom version, or use CDN. Not wired into any middleware or handler by default
+
+### Embedded HTMX Extensions
+
+- **3 extensions embedded** in `extensions/` dir, served via `htmx_extensions.go`: SSE (htmx-ext-sse 2.2.4), WS (htmx-ext-ws 2.0.4), idiomorph (0.7.4). These are the extensions with direct server-side counterparts in cqrs-htmx (SSEStream/Broadcaster/WSMessage/WSBroadcaster) or commonly paired with them (idiomorph morph-swap for SSE partial updates — PR #3870 version bug fixed by pinning ≥ 2.2.4)
+- **HTMXExtensionHandler(name)**: Serves a single embedded extension by name. Constants: `HTMXExtSSE` ("sse"), `HTMXExtWS` ("ws"), `HTMXExtIdiomorph` ("idiomorph"). Panics on unknown name. Same caching headers as HTMXScriptHandler (ETag, Cache-Control 1yr immutable, 304 support)
+- **HTMXExtensionsHandler(names...)**: Serves a concatenated bundle — one HTTP request instead of N. Extensions prefixed with version comments. Composite ETag includes all names+versions
+- **HTMXExtensionVersion(name)**: Returns version string (e.g. `HTMXExtensionVersion(HTMXExtSSE)` → `"2.2.4"`). Empty string for unknown
+- **HTMXExtensionNames()**: Returns all available extension names sorted alphabetically
+- **Usage**: `mux.Handle("GET /ext/sse.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))` or `mux.Handle("GET /ext/bundle.js", cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtWS, cqrshtmx.HTMXExtIdiomorph))`
+- **Not auto-wired**: Consumer registers routes and adds `<script>` tags in their layout. Extensions require htmx core to be loaded first
 
 ### SSE (Server-Sent Events)
 

@@ -124,7 +124,7 @@ _Bugs found and fixed by code-quality-scan + full-code-review + architecture-rev
 - [x] **Adopt PaginatedResult[T]** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` implemented using `query.Pagination`/`query.PaginatedResult[T]` from go-cqrs-lite v2.2.0.
 - [x] **Upgrade to go-cqrs-lite v2.2.0** — All 4 modules upgraded to v2.2.0. Adopted `PaginatedResult[T]` and `query.Pagination` from upstream. Added `DecodePagination` and `RenderPaginatedJSON[T]`.
 - [x] **Reactive event streams** — SSE Broadcaster, SSEStream, SSEEventStore, ReplayEvents, CQRS bridge (BroadcastOnSuccess/BroadcastOnSuccessFunc). WebSocket message parser (ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML).
-- [x] **Embedded HTMX JS** — HTMXScriptHandler serves embedded HTMX v2.0.9 (minified, ~49KB) with ETag/caching. HTMXScriptTag, HTMXVersion helpers.
+- [x] **Embedded HTMX JS** — HTMXScriptHandler serves embedded HTMX v2.0.10 (minified, ~51KB) with ETag/caching. HTMXScriptTag, HTMXVersion helpers. Embedded HTMX extensions (SSE/WS/idiomorph) via HTMXExtensionHandler/HTMXExtensionsHandler.
 
 ### Offline-First Command Sync (2026-06-28)
 
