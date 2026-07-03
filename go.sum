@@ -79,6 +79,8 @@ github.com/larsartmann/go-error-family v0.5.1 h1:rYDNU0sv+6ri0xel6MswIeDT2dRh3q+
 github.com/larsartmann/go-error-family v0.5.1/go.mod h1:JbSRM+qePUMzqr2L28oEeIf7QjWUnwAnUHpUfqp/flg=
 github.com/larsartmann/httputil v0.3.0 h1:/j1PUI2K79mkZZ6QtRD92hfLK0ij0d+kkXacAgBoXlc=
 github.com/larsartmann/httputil v0.3.0/go.mod h1:+zSz4Ru4W61NzDhN91eyZaJD5xR3cEwav55Z4899ROg=
+github.com/larsartmann/httputil v0.4.0 h1:e07wGqA9Aoo2seZfHLs8i3XNxwrZOMBkRXSpMrnTf08=
+github.com/larsartmann/httputil v0.4.0/go.mod h1:ZXzHFWyxP4EAVTPFVyRZNNbeWYjNskkmOGWj7tz0kEc=
 github.com/maruel/natural v1.1.1 h1:Hja7XhhmvEFhcByqDoHz9QZbkWey+COd9xWfCfn1ioo=
 github.com/maruel/natural v1.1.1/go.mod h1:v+Rfd79xlw1AgVBjbO0BEQmptqb5HvL/k9GRHB7ZKEg=
 github.com/maypok86/otter/v2 v2.3.0 h1:8H8AVVFUSzJwIegKwv1uF5aGitTY+AIrtktg7OcLs8w=

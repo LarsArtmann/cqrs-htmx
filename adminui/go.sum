@@ -130,6 +130,8 @@ github.com/larsartmann/go-error-family v0.5.1 h1:rYDNU0sv+6ri0xel6MswIeDT2dRh3q+
 github.com/larsartmann/go-error-family v0.5.1/go.mod h1:JbSRM+qePUMzqr2L28oEeIf7QjWUnwAnUHpUfqp/flg=
 github.com/larsartmann/httputil v0.3.0 h1:/j1PUI2K79mkZZ6QtRD92hfLK0ij0d+kkXacAgBoXlc=
 github.com/larsartmann/httputil v0.3.0/go.mod h1:+zSz4Ru4W61NzDhN91eyZaJD5xR3cEwav55Z4899ROg=
+github.com/larsartmann/httputil v0.4.0 h1:e07wGqA9Aoo2seZfHLs8i3XNxwrZOMBkRXSpMrnTf08=
+github.com/larsartmann/httputil v0.4.0/go.mod h1:ZXzHFWyxP4EAVTPFVyRZNNbeWYjNskkmOGWj7tz0kEc=
 github.com/larsartmann/templ-components v0.6.0 h1:yyIInGTi5VEaL50S1tkkCmgBESPGqrD6HaKT1XyhGcA=
 github.com/larsartmann/templ-components v0.6.0/go.mod h1:k/qpgE+6EzXh+s8K72W5k+lS38UnlDarx12fcv878nE=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
