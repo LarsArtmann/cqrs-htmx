@@ -233,11 +233,16 @@ Requesting a page beyond the last returns an empty page (standard REST, no silen
 ```go
 cqrshtmx.WriteJSON(w, status, v)
 cqrshtmx.KeyExtractorFromClientIP()     // proxy-aware rate-limit key extractor (uses httputil.ClientIP)
-cqrshtmx.HTMXScriptHandler()            // embedded htmx 2.0.9 (GET/HEAD, ETag, 1y cache)
+cqrshtmx.HTMXScriptHandler()            // embedded htmx 2.0.10 (GET/HEAD, ETag, 1y cache)
 cqrshtmx.HTMXScriptHandlerWith(js, ver) // serve a custom build
 cqrshtmx.HTMXScriptTag(path)            // <script src="path"></script> for templates
 cqrshtmx.HTMXCDNScriptTag(version)      // CDN script tag; "" = embedded version
-cqrshtmx.HTMXVersion()                  // "2.0.9"
+cqrshtmx.HTMXVersion()                  // "2.0.10"
+cqrshtmx.HTMXExtensionHandler(name)     // serve embedded extension (sse/ws/idiomorph)
+cqrshtmx.HTMXExtensionsHandler(names…)  // serve concatenated bundle of extensions
+cqrshtmx.HTMXExtensionCDNScriptTag(name) // CDN <script> tag for one extension
+cqrshtmx.HTMXExtensionVersion(name)     // "2.2.4" (sse), "2.0.4" (ws), "0.7.4" (idiomorph)
+cqrshtmx.HTMXExtensionNames()           // ["idiomorph", "sse", "ws"]
 cqrshtmx.KeyExtractorFromRemoteAddr()   // default rate-limit key extractor
 cqrshtmx.RecommendedCSP / RecommendedHSTS // suggested header values (never auto-applied)
 ```
