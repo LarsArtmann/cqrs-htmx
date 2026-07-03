@@ -93,7 +93,7 @@ func ExampleApp_HealthHandler() {
 
 func ExampleHTMXVersion() {
 	fmt.Println(cqrshtmx.HTMXVersion())
-	// Output: 2.0.9
+	// Output: 2.0.10
 }
 
 func ExampleBroadcaster_BroadcastOnSuccessFunc() {

@@ -6,7 +6,7 @@ import (
 )
 
 // HTMXScriptHandler returns an http.Handler that serves the embedded HTMX
-// JavaScript (v2.0.9, minified) with appropriate Content-Type and long-lived
+// JavaScript (v2.0.10, minified) with appropriate Content-Type and long-lived
 // cache headers. Mount it at any path, e.g.:
 //
 //	mux.Handle("/static/htmx.js", cqrshtmx.HTMXScriptHandler())
@@ -25,7 +25,12 @@ func HTMXScriptHandler() http.Handler {
 //	mux.Handle("/static/htmx.js",
 //	    cqrshtmx.HTMXScriptHandlerWith(customJS, "4.0.0-beta4"))
 func HTMXScriptHandlerWith(js []byte, version string) http.Handler {
-	etag := fmt.Sprintf(`"htmx-%s"`, version)
+	return serveJS(js, fmt.Sprintf(`"htmx-%s"`, version))
+}
+
+// serveJS is the shared handler for serving JavaScript with long-lived caching.
+// Used by HTMXScriptHandlerWith, HTMXExtensionHandler, and HTMXExtensionsHandler.
+func serveJS(js []byte, etag string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -57,7 +62,7 @@ const HTMXCDNBaseURL = "https://unpkg.com/htmx.org"
 // HTMXCDNScriptTag returns an HTML <script> tag that loads HTMX from the unpkg
 // CDN. Pass an empty version string to use the embedded library version.
 //
-//	cqrshtmx.HTMXCDNScriptTag("")       // uses embedded version (2.0.9)
+//	cqrshtmx.HTMXCDNScriptTag("")       // uses embedded version (2.0.10)
 //	cqrshtmx.HTMXCDNScriptTag("4.0.0")  // loads htmx 4.0.0
 func HTMXCDNScriptTag(version string) string {
 	if version == "" {
