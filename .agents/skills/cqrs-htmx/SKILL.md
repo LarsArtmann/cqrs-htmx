@@ -253,6 +253,8 @@ Both set `Content-Type`, `ETag`, and `Cache-Control: 1yr immutable` with 304 sup
 <script src="/ext/bundle.js"></script>
 ```
 
+Other helpers: `cqrshtmx.HTMXExtensionCDNScriptTag(name)` generates a CDN `<script>` tag (uses embedded version), `cqrshtmx.HTMXExtensionVersion(name)` returns the version string, `cqrshtmx.HTMXExtensionNames()` lists all available extensions.
+
 ## Realtime (SSE / WebSocket) — on any path
 
 Realtime is **building blocks, not a server**: you own the HTTP handler, the library gives you the stream + fan-out.
