@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.5.0
-	github.com/larsartmann/httputil v0.3.0
+	github.com/larsartmann/httputil v0.4.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
