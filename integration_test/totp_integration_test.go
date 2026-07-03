@@ -5,10 +5,9 @@ import (
 	"testing"
 	"time"
 
-	otptotp "github.com/pquerna/otp/totp"
-
 	usermgmttotp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	otptotp "github.com/pquerna/otp/totp"
 )
 
 // TestService_TOTP_EnableAndVerify_Integration verifies the full

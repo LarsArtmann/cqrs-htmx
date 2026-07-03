@@ -89,6 +89,6 @@ func ExampleHTMXScriptHandlerWith() {
 func ExampleHTMXCDNScriptTag() {
 	fmt.Println(cqrshtmx.HTMXCDNScriptTag(""))
 	fmt.Println(cqrshtmx.HTMXCDNScriptTag("4.0.0"))
-	// Output: <script src="https://unpkg.com/htmx.org@2.0.9"></script>
+	// Output: <script src="https://unpkg.com/htmx.org@2.0.10"></script>
 	// <script src="https://unpkg.com/htmx.org@4.0.0"></script>
 }
