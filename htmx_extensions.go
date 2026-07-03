@@ -45,6 +45,8 @@ type htmxExtension struct {
 }
 
 // htmxExtensions is the registry of all embedded HTMX extensions.
+//
+//nolint:gochecknoglobals // embedded assets + their metadata; immutable after init.
 var htmxExtensions = map[string]htmxExtension{
 	HTMXExtSSE:       {js: extSSEJS, version: "2.2.4"},
 	HTMXExtWS:        {js: extWSJS, version: "2.0.4"},
@@ -95,7 +97,7 @@ func HTMXExtensionsHandler(names ...string) http.Handler {
 	}
 
 	var buf bytes.Buffer
-	var etagParts []string
+	etagParts := make([]string, 0, len(names))
 	for _, name := range names {
 		ext, ok := htmxExtensions[name]
 		if !ok {
@@ -143,6 +145,8 @@ func HTMXExtensionNames() []string {
 }
 
 // htmxExtensionCDNURLs maps extension names to their unpkg CDN paths.
+//
+//nolint:gochecknoglobals // immutable lookup table.
 var htmxExtensionCDNURLs = map[string]string{
 	HTMXExtSSE:       "https://unpkg.com/htmx-ext-sse@%s/dist/sse.min.js",
 	HTMXExtWS:        "https://unpkg.com/htmx-ext-ws@%s/dist/ws.min.js",
