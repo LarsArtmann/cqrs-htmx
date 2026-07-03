@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **Embedded HTMX extensions** (`htmx_extensions.go`): SSE (htmx-ext-sse 2.2.4), WS (htmx-ext-ws 2.0.4), and idiomorph (0.7.4) JS files embedded via `go:embed`. These are the three extensions with direct server-side counterparts in the library (SSEStream/Broadcaster, WSMessage/WSBroadcaster, morph-swap for SSE partials).
+  - `HTMXExtensionHandler(name)`: Serve a single embedded extension. Constants: `HTMXExtSSE`, `HTMXExtWS`, `HTMXExtIdiomorph`.
+  - `HTMXExtensionsHandler(names...)`: Serve a concatenated bundle (one HTTP request instead of N).
+  - `HTMXExtensionVersion(name)`, `HTMXExtensionNames()`: Introspection helpers.
+  - `HTMXExtensionCDNScriptTag(name)`: CDN `<script>` tag fallback for consumers who prefer CDN.
+  - Same caching as `HTMXScriptHandler` (ETag, Cache-Control 1yr immutable, 304 Not Modified).
+
+### Changed
+
+- **HTMX core bumped 2.0.9 → 2.0.10**: Updated embedded `htmx.min.js` and all version references.
+- **serveJS helper extracted**: `HTMXScriptHandlerWith` now delegates to shared `serveJS(js, etag)` function, eliminating duplication with extension handlers.
+
 ## [v4.0.1] - 2026-07-02
 
 ### Added
