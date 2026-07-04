@@ -37,7 +37,9 @@ templ Layout(p pageData) {
 								class={ "flex items-center gap-2.5 rounded-md px-2.5 py-2 font-medium no-underline hover:text-gray-100 hover:bg-white/[0.07]", templ.KV("text-white", item.Active) }
 								style={ templ.SafeCSS("background:" + navBg(item.Active)) }
 							>
-								<span class="h-[18px] w-[18px] shrink-0 opacity-90">@icon(item.Icon)</span>
+								<span class="h-[18px] w-[18px] shrink-0 opacity-90">
+									@icon(item.Icon)
+								</span>
 								{ item.Label }
 							</a>
 						}
@@ -52,7 +54,9 @@ templ Layout(p pageData) {
 						<button
 							class="admin-toggle hidden max-md:block"
 							aria-label="Menu"
-						>@icon("menu")</button>
+						>
+							@icon("menu")
+						</button>
 						<div class="text-[17px]">{ p.Title }</div>
 						<div class="flex-1"></div>
 						if p.SSEURL != "" {
@@ -70,7 +74,10 @@ templ Layout(p pageData) {
 								<a
 									class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900"
 									href={ p.LogoutURL }
-								>@icon("arrow-right-on-rectangle") Sign out</a>
+								>
+									@icon("arrow-right-on-rectangle")
+									Sign out
+								</a>
 							}
 						}
 					</header>

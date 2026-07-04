@@ -501,11 +501,11 @@ cqrshtmx.HTMXVersion() // "2.0.10"
 
 The library also embeds the 3 HTMX extensions that pair with its server-side building blocks:
 
-| Extension | Version | Server-side counterpart |
-|-----------|---------|------------------------|
-| `HTMXExtSSE` | htmx-ext-sse 2.2.4 | `SSEStream`, `Broadcaster`, `JournalSSEStore` |
-| `HTMXExtWS` | htmx-ext-ws 2.0.4 | `WSMessage`, `WSBroadcaster`, `DispatchWSCommand` |
-| `HTMXExtIdiomorph` | idiomorph 0.7.4 | Morph-swap for SSE partial updates |
+| Extension          | Version            | Server-side counterpart                           |
+| ------------------ | ------------------ | ------------------------------------------------- |
+| `HTMXExtSSE`       | htmx-ext-sse 2.2.4 | `SSEStream`, `Broadcaster`, `JournalSSEStore`     |
+| `HTMXExtWS`        | htmx-ext-ws 2.0.4  | `WSMessage`, `WSBroadcaster`, `DispatchWSCommand` |
+| `HTMXExtIdiomorph` | idiomorph 0.7.4    | Morph-swap for SSE partial updates                |
 
 ```go
 // Serve individual extension
