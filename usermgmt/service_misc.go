@@ -23,7 +23,7 @@ func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail strin
 	}
 	err = s.dispatcher.Dispatch(ctx, NewChangeEmailCmd(aggID, newEmail))
 	if err != nil {
-		return s.classifyDispatchError(err, userID)
+		return s.classifyDispatchError(err, userID, "new_email", newEmail)
 	}
 	return nil
 }
@@ -36,7 +36,7 @@ func (s *Service) ChangeDisplayName(ctx context.Context, userID UserID, newName 
 	}
 	err = s.dispatcher.Dispatch(ctx, NewChangeDisplayNameCmd(aggID, newName))
 	if err != nil {
-		return s.classifyDispatchError(err, userID)
+		return s.classifyDispatchError(err, userID, "new_name", newName)
 	}
 	return nil
 }
@@ -49,7 +49,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) 
 	}
 	err = s.dispatcher.Dispatch(ctx, NewDeleteUserCmd(aggID, reason))
 	if err != nil {
-		return s.classifyDispatchError(err, userID)
+		return s.classifyDispatchError(err, userID, "reason", reason)
 	}
 	s.revokeSessionsBestEffort(ctx, userID, "failed to revoke sessions on delete")
 	return nil
