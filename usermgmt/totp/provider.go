@@ -58,12 +58,14 @@ func (p *Provider) GenerateSecret(accountName string) (rawSecret []byte, base32S
 		Period:      30,
 	})
 	if genErr != nil {
-		return nil, "", "", errorfamily.WrapInfrastructure(genErr, "totp.generate_key", "generate key")
+		return nil, "", "", errorfamily.WrapInfrastructure(genErr, "totp.generate_key", "generate key").
+			WithContext("account", accountName)
 	}
 
 	raw, decErr := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(key.Secret())
 	if decErr != nil {
-		return nil, "", "", errorfamily.WrapCorruption(decErr, "totp.decode_secret", "decode secret")
+		return nil, "", "", errorfamily.WrapCorruption(decErr, "totp.decode_secret", "decode secret").
+			WithContext("account", accountName)
 	}
 
 	return raw, key.Secret(), key.URL(), nil
