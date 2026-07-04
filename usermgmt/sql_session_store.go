@@ -47,7 +47,8 @@ func placeholderFor(dialect string) (placeholderFunc, error) {
 		return func(i int) string { return "?" }, nil
 	default:
 		return nil, event.Newf(event.Rejection, "usermgmt.sql_session.unsupported_dialect",
-			"unsupported dialect %q: use postgres, pgx, sqlite, sqlite3, or mysql", dialect)
+			"unsupported dialect %q: use postgres, pgx, sqlite, sqlite3, or mysql", dialect).
+			WithContext("dialect", dialect)
 	}
 }
 
@@ -138,7 +139,7 @@ func (s *SQLSessionStore) migrateSessions(ctx context.Context, dialect string) e
 			"usermgmt.sql_session.unsupported_dialect",
 			"unsupported dialect %q",
 			dialect,
-		)
+		).WithContext("dialect", dialect)
 	}
 	_, err := s.db.ExecContext(ctx, ddl)
 	if err != nil {
@@ -335,7 +336,8 @@ func (s *SQLSessionStore) Find(ctx context.Context, token string) (*Session, err
 		return nil, ErrSessionNotFound
 	}
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_session.find_failed", "find session")
+		return nil, event.WrapTransient(err, "usermgmt.sql_session.find_failed", "find session").
+			WithContext("token", token)
 	}
 
 	origin, err := unmarshalSessionOrigin(originType.String, originData.String)

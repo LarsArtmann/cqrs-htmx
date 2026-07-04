@@ -74,7 +74,8 @@ func dialectToUpstream(dialect string) (sqlpkg.Dialect, error) {
 		return sqlpkg.SQLiteDialect{}, nil
 	default:
 		return nil, event.Newf(event.Rejection, "usermgmt.sql_event_store.unsupported_dialect",
-			"unsupported event store dialect %q: use postgres, pgx, sqlite, or sqlite3", dialect)
+			"unsupported event store dialect %q: use postgres, pgx, sqlite, or sqlite3", dialect).
+			WithContext("dialect", dialect)
 	}
 }
 

@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 
@@ -102,20 +103,33 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	return &RegisterResponse{User: user, Session: session}, nil
 }
 
-func (s *Service) classifyDispatchError(err error, userID UserID) error {
+func (s *Service) classifyDispatchError(err error, userID UserID, kv ...string) error {
+	var classified *event.Error
 	switch event.Classify(err) {
 	case event.Conflict:
-		return withUserIDContext(
+		classified = withUserIDContext(
 			event.NewRejection("usermgmt.user_id_exists", "user ID already exists").
 				WithCause(ErrUserIDExists), userID,
 		)
 	case event.Rejection:
-		return err
+		if len(kv) == 0 {
+			return err
+		}
+		var ee *event.Error
+		if errors.As(err, &ee) {
+			classified = withUserIDContext(ee, userID)
+		} else {
+			return err
+		}
 	default:
-		return withUserIDContext(
+		classified = withUserIDContext(
 			event.NewTransient("internal", "dispatch command").WithCause(err), userID,
 		)
 	}
+	for i := 0; i+1 < len(kv); i += 2 {
+		classified = classified.WithContext(kv[i], kv[i+1])
+	}
+	return classified
 }
 
 func (s *Service) logAuth(event string, userID UserID, attrs ...any) {

@@ -182,7 +182,7 @@ func (s *Service) linkExternalAccount(
 	if err := s.dispatcher.Dispatch(ctx, NewLinkExternalAccountCmd(
 		aggID, provider, info.Subject, info.Email, info.DisplayName,
 	)); err != nil {
-		return s.classifyDispatchError(err, userID)
+		return s.classifyDispatchError(err, userID, "subject", info.Subject)
 	}
 
 	if info.EmailVerified {
@@ -234,7 +234,7 @@ func (s *Service) UnlinkExternalAccount(ctx context.Context, userID UserID, prov
 	if err := s.dispatcher.Dispatch(ctx, NewUnlinkExternalAccountCmd(
 		aggID, provider, subject,
 	)); err != nil {
-		return s.classifyDispatchError(err, userID)
+		return s.classifyDispatchError(err, userID, "subject", subject)
 	}
 
 	s.logAuth("oauth_unlink", userID, "provider", provider)
