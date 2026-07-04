@@ -10,7 +10,10 @@ templ tenantsContent(d tenantsListData) {
 	<div class="mb-5 flex flex-wrap items-center gap-3">
 		<h1 class="text-xl font-semibold">Tenants</h1>
 		<div class="flex-1"></div>
-		<a class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1.5 text-sm font-semibold text-white no-underline hover:bg-blue-500" href={ d.BasePath + "/tenants/new" }>@icon("plus") New tenant</a>
+		<a class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1.5 text-sm font-semibold text-white no-underline hover:bg-blue-500" href={ d.BasePath + "/tenants/new" }>
+			@icon("plus")
+			New tenant
+		</a>
 	</div>
 	<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
 		@tenantsTable(d)
@@ -97,7 +100,9 @@ templ tenantDetailPage(p pageData, d tenantDetailData) {
 		</div>
 		<h1 class="mb-1 text-xl font-semibold">{ d.Tenant.DisplayName }</h1>
 		<div class="mb-5 font-mono text-xs text-gray-400">{ d.Tenant.Name }</div>
-		<div class="mb-4">@membersCard(d)</div>
+		<div class="mb-4">
+			@membersCard(d)
+		</div>
 		<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
 			<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px] text-red-600">Danger zone</span></div>
 			<div class="flex flex-wrap gap-2.5 p-[18px]">
@@ -106,7 +111,10 @@ templ tenantDetailPage(p pageData, d tenantDetailData) {
 				} else {
 					<button class="rounded-md border border-gray-300 px-2.5 py-1.5 text-sm font-medium hover:bg-gray-50" hx-post={ d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend" } hx-confirm="Suspend this tenant?">Suspend</button>
 				}
-				<button class="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-red-500" hx-post={ d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete" } data-confirm="Delete this tenant and remove all memberships? This cannot be undone.">@icon("trash") Delete</button>
+				<button class="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-red-500" hx-post={ d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete" } data-confirm="Delete this tenant and remove all memberships? This cannot be undone.">
+					@icon("trash")
+					Delete
+				</button>
 			</div>
 		</div>
 	}

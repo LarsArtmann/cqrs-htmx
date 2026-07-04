@@ -229,11 +229,11 @@ Add to your HTML with `cqrshtmx.HTMXScriptTag("/htmx.js")` (templ-safe) or `cqrs
 
 The root module also embeds the 3 extensions that pair with cqrs-htmx's server-side building blocks:
 
-| Extension | Version | Pairs with |
-|-----------|---------|------------|
-| `HTMXExtSSE` ("sse") | 2.2.4 | `SSEStream`, `Broadcaster`, `JournalSSEStore` |
-| `HTMXExtWS` ("ws") | 2.0.4 | `WSMessage`, `WSBroadcaster`, `DispatchWSCommand` |
-| `HTMXExtIdiomorph` ("idiomorph") | 0.7.4 | SSE partial updates (morph swap) |
+| Extension                        | Version | Pairs with                                        |
+| -------------------------------- | ------- | ------------------------------------------------- |
+| `HTMXExtSSE` ("sse")             | 2.2.4   | `SSEStream`, `Broadcaster`, `JournalSSEStore`     |
+| `HTMXExtWS` ("ws")               | 2.0.4   | `WSMessage`, `WSBroadcaster`, `DispatchWSCommand` |
+| `HTMXExtIdiomorph` ("idiomorph") | 0.7.4   | SSE partial updates (morph swap)                  |
 
 Serve individually or as a single-request bundle:
 

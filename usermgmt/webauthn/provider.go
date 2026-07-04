@@ -11,11 +11,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Config configures the WebAuthn Relying Party for passwordless auth.
@@ -39,7 +39,7 @@ func New(cfg Config) (*Provider, error) {
 		RPOrigins:     cfg.RPOrigins,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("webauthn: create instance: %w", err)
+		return nil, errorfamily.WrapRejection(err, "webauthn.create_instance", "create instance")
 	}
 	return &Provider{wa: wa}, nil
 }
@@ -167,17 +167,17 @@ func (p *Provider) BeginRegistration(_ context.Context, userJSON []byte) (option
 
 	creation, session, err := p.wa.BeginRegistration(&webauthnUser{data: user})
 	if err != nil {
-		return nil, nil, fmt.Errorf("webauthn: begin registration: %w", err)
+		return nil, nil, errorfamily.WrapTransient(err, "webauthn.begin_registration", "begin registration")
 	}
 
 	optionsJSON, err := json.Marshal(creation)
 	if err != nil {
-		return nil, nil, fmt.Errorf("webauthn: marshal options: %w", err)
+		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_options", "marshal options")
 	}
 
 	sessionJSON, err := json.Marshal(session)
 	if err != nil {
-		return nil, nil, fmt.Errorf("webauthn: marshal session: %w", err)
+		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_session", "marshal session")
 	}
 
 	return optionsJSON, sessionJSON, nil
@@ -200,17 +200,17 @@ func (p *Provider) FinishRegistration(ctx context.Context, userJSON, body, sessi
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/", bytes.NewReader(body))
 	if err != nil {
-		return nil, fmt.Errorf("webauthn: create request: %w", err)
+		return nil, errorfamily.WrapInfrastructure(err, "webauthn.create_request", "create request")
 	}
 
 	credential, err := p.wa.FinishRegistration(&webauthnUser{data: user}, session, req)
 	if err != nil {
-		return nil, fmt.Errorf("webauthn: finish registration: %w", err)
+		return nil, errorfamily.WrapRejection(err, "webauthn.finish_registration", "finish registration")
 	}
 
 	credJSON, err := json.Marshal(fromWebAuthnCredential(credential))
 	if err != nil {
-		return nil, fmt.Errorf("webauthn: marshal credential: %w", err)
+		return nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_credential", "marshal credential")
 	}
 
 	return credJSON, nil
@@ -227,17 +227,17 @@ func (p *Provider) BeginLogin(_ context.Context, userJSON []byte) (options, sess
 
 	assertion, session, err := p.wa.BeginLogin(&webauthnUser{data: user})
 	if err != nil {
-		return nil, nil, fmt.Errorf("webauthn: begin login: %w", err)
+		return nil, nil, errorfamily.WrapTransient(err, "webauthn.begin_login", "begin login")
 	}
 
 	optionsJSON, err := json.Marshal(assertion)
 	if err != nil {
-		return nil, nil, fmt.Errorf("webauthn: marshal options: %w", err)
+		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_options", "marshal options")
 	}
 
 	sessionJSON, err := json.Marshal(session)
 	if err != nil {
-		return nil, nil, fmt.Errorf("webauthn: marshal session: %w", err)
+		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_session", "marshal session")
 	}
 
 	return optionsJSON, sessionJSON, nil
@@ -259,12 +259,12 @@ func (p *Provider) FinishLogin(ctx context.Context, userJSON, body, sessionData 
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/", bytes.NewReader(body))
 	if err != nil {
-		return fmt.Errorf("webauthn: create request: %w", err)
+		return errorfamily.WrapInfrastructure(err, "webauthn.create_request", "create request")
 	}
 
 	_, err = p.wa.FinishLogin(&webauthnUser{data: user}, session, req)
 	if err != nil {
-		return fmt.Errorf("webauthn: finish login: %w", err)
+		return errorfamily.WrapRejection(err, "webauthn.finish_login", "finish login")
 	}
 
 	return nil
@@ -275,7 +275,7 @@ func (p *Provider) FinishLogin(ctx context.Context, userJSON, body, sessionData 
 func parseUser(userJSON []byte) (userData, error) {
 	var user userData
 	if err := json.Unmarshal(userJSON, &user); err != nil {
-		return userData{}, fmt.Errorf("webauthn: unmarshal user data: %w", err)
+		return userData{}, errorfamily.WrapCorruption(err, "webauthn.unmarshal_user", "unmarshal user data")
 	}
 	return user, nil
 }
@@ -283,7 +283,11 @@ func parseUser(userJSON []byte) (userData, error) {
 func parseSession(sessionData []byte) (webauthn.SessionData, error) {
 	var session webauthn.SessionData
 	if err := json.Unmarshal(sessionData, &session); err != nil {
-		return webauthn.SessionData{}, fmt.Errorf("webauthn: unmarshal session data: %w", err)
+		return webauthn.SessionData{}, errorfamily.WrapCorruption(
+			err,
+			"webauthn.unmarshal_session",
+			"unmarshal session data",
+		)
 	}
 	return session, nil
 }

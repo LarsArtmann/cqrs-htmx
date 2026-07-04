@@ -22,13 +22,17 @@ templ usersContent(d usersListData) {
 			hx-trigger="submit, keyup changed delay:350ms from:find input[name=q]"
 			hx-push-url="true"
 		>
-			<span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">@icon("search")</span>
+			<span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+				@icon("search")
+			</span>
 			<input class="w-full rounded-md border border-gray-300 py-1.5 pl-9 pr-3 text-sm" type="search" name="q" value={ d.Search } placeholder="Search users…" autocomplete="off"/>
 		</form>
 		<div class="flex-1"></div>
 	</div>
 	<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
-		<div id="users-table">@usersTable(d)</div>
+		<div id="users-table">
+			@usersTable(d)
+		</div>
 	</div>
 }
 
@@ -181,7 +185,8 @@ templ userDetailPage(p pageData, d userDetailData) {
 					hx-confirm={ "Delete user " + d.User.Email + "?" }
 					data-confirm={ "Delete user " + d.User.Email + "? This cannot be undone." }
 				>
-					@icon("trash") Delete user
+					@icon("trash")
+					Delete user
 				</button>
 			</div>
 		</div>

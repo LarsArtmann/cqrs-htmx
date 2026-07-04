@@ -8,9 +8,9 @@ package totp
 
 import (
 	"encoding/base32"
-	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 )
@@ -58,12 +58,12 @@ func (p *Provider) GenerateSecret(accountName string) (rawSecret []byte, base32S
 		Period:      30,
 	})
 	if genErr != nil {
-		return nil, "", "", fmt.Errorf("totp: generate key: %w", genErr)
+		return nil, "", "", errorfamily.WrapInfrastructure(genErr, "totp.generate_key", "generate key")
 	}
 
 	raw, decErr := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(key.Secret())
 	if decErr != nil {
-		return nil, "", "", fmt.Errorf("totp: decode secret: %w", decErr)
+		return nil, "", "", errorfamily.WrapCorruption(decErr, "totp.decode_secret", "decode secret")
 	}
 
 	return raw, key.Secret(), key.URL(), nil

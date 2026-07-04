@@ -10,12 +10,11 @@ package oauth2
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"golang.org/x/oauth2"
 )
 
@@ -40,17 +39,18 @@ type ProviderConfig struct {
 // Validate returns an error if the configuration is incomplete or inconsistent.
 func (c ProviderConfig) Validate() error {
 	if c.ClientID == "" {
-		return errors.New("oauth2 provider: ClientID is required")
+		return errorfamily.NewRejection("oauth2.client_id_required", "oauth2 provider: ClientID is required")
 	}
 	if c.ClientSecret == "" {
-		return errors.New("oauth2 provider: ClientSecret is required")
+		return errorfamily.NewRejection("oauth2.client_secret_required", "oauth2 provider: ClientSecret is required")
 	}
 	if c.RedirectURL == "" {
-		return errors.New("oauth2 provider: RedirectURL is required")
+		return errorfamily.NewRejection("oauth2.redirect_url_required", "oauth2 provider: RedirectURL is required")
 	}
 	if c.IssuerURL == "" {
 		if c.AuthURL == "" || c.TokenURL == "" || c.UserInfoURL == "" {
-			return errors.New(
+			return errorfamily.NewRejection(
+				"oauth2.endpoints_required",
 				"oauth2 provider: when IssuerURL is empty, AuthURL, TokenURL, and UserInfoURL are required",
 			)
 		}
@@ -95,7 +95,13 @@ func New(ctx context.Context, cfg Config) (*Provider, error) {
 	for name, provCfg := range cfg.Providers {
 		prov, err := initProvider(ctx, name, provCfg)
 		if err != nil {
-			return nil, fmt.Errorf("oauth2: init provider %q: %w", name, err)
+			return nil, errorfamily.Wrapf(
+				err,
+				errorfamily.Classify(err),
+				"oauth2.init_provider",
+				"init provider %q",
+				name,
+			)
 		}
 		providers[name] = prov
 	}
@@ -125,7 +131,13 @@ func initProvider(ctx context.Context, name string, cfg ProviderConfig) (*initia
 	if cfg.IssuerURL != "" {
 		oidcProv, err := oidc.NewProvider(ctx, cfg.IssuerURL)
 		if err != nil {
-			return nil, fmt.Errorf("oauth2: discover oidc provider %q: %w", name, err)
+			return nil, errorfamily.Wrapf(
+				err,
+				errorfamily.Transient,
+				"oauth2.oidc_discovery",
+				"discover oidc provider %q",
+				name,
+			)
 		}
 		p.oidcProvider = oidcProv
 		p.verifier = oidcProv.Verifier(
@@ -146,7 +158,7 @@ func initProvider(ctx context.Context, name string, cfg ProviderConfig) (*initia
 func (p *Provider) get(name string) (*initializedProvider, error) {
 	prov, ok := p.providers[name]
 	if !ok {
-		return nil, fmt.Errorf("oauth2: provider %q not found", name)
+		return nil, errorfamily.Newf(errorfamily.Rejection, "oauth2.provider_not_found", "provider %q not found", name)
 	}
 	return prov, nil
 }
@@ -183,7 +195,7 @@ func (p *Provider) FinishLogin(ctx context.Context, providerName, code, pkceVeri
 
 	data, err := json.Marshal(info)
 	if err != nil {
-		return nil, fmt.Errorf("oauth2: marshal user info: %w", err)
+		return nil, errorfamily.WrapInfrastructure(err, "oauth2.marshal_userinfo", "marshal user info")
 	}
 	return data, nil
 }
@@ -195,7 +207,7 @@ func (p *initializedProvider) exchangeAndExtractUser(
 		ctx, code, oauth2.VerifierOption(pkceVerifier),
 	)
 	if err != nil {
-		return userInfo{}, fmt.Errorf("oauth2: exchange code: %w", err)
+		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.token_exchange", "exchange code")
 	}
 
 	if p.oidcProvider != nil {
@@ -209,11 +221,11 @@ func (p *initializedProvider) extractFromIDToken(
 ) (userInfo, error) {
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return userInfo{}, errors.New("oauth2: id_token missing from token response")
+		return userInfo{}, errorfamily.NewTransient("oauth2.id_token_missing", "id_token missing from token response")
 	}
 	idToken, err := p.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
-		return userInfo{}, fmt.Errorf("oauth2: verify id_token: %w", err)
+		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.verify_id_token", "verify id_token")
 	}
 	var claims struct {
 		Sub           string `json:"sub"`
@@ -222,7 +234,7 @@ func (p *initializedProvider) extractFromIDToken(
 		Name          string `json:"name"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
-		return userInfo{}, fmt.Errorf("oauth2: extract id_token claims: %w", err)
+		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.extract_claims", "extract id_token claims")
 	}
 	return userInfo{
 		Subject:       claims.Sub,
@@ -236,16 +248,26 @@ func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.T
 	client := p.config.Client(ctx, token)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.userInfoURL, nil)
 	if err != nil {
-		return userInfo{}, fmt.Errorf("oauth2: create userinfo request: %w", err)
+		return userInfo{}, errorfamily.WrapInfrastructure(
+			err,
+			"oauth2.userinfo_request_create",
+			"create userinfo request",
+		)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return userInfo{}, fmt.Errorf("oauth2: fetch userinfo: %w", err)
+		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.fetch_userinfo", "fetch userinfo")
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return userInfo{}, fmt.Errorf("oauth2: userinfo returned %d: %s", resp.StatusCode, string(body))
+		return userInfo{}, errorfamily.Newf(
+			errorfamily.Transient,
+			"oauth2.userinfo_failed",
+			"userinfo returned %d: %s",
+			resp.StatusCode,
+			string(body),
+		)
 	}
 	// GitHub uses "id" as subject and "login" as display name
 	var raw struct {
@@ -257,7 +279,7 @@ func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.T
 		EmailVerified bool        `json:"email_verified"`
 	}
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&raw); err != nil {
-		return userInfo{}, fmt.Errorf("oauth2: decode userinfo response: %w", err)
+		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.decode_userinfo", "decode userinfo response")
 	}
 	subject := raw.Sub
 	if subject == "" {
