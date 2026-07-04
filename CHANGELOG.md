@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.1.1] - 2026-07-04
+
+### Changed
+
+- **httputil v0.3.0 → v0.4.0**: Transitive dependency bump across all modules. The root module consumes only `httputil.ClientIP` (in `KeyExtractorFromClientIP`); v0.4.0 adds middleware, an `httpspec` subpackage, and infrastructure types — none on cqrs-htmx's consumed surface. No API or behavior change.
+- **templ-components v0.6.0 → v0.6.1**: Patch bump of the `adminui` direct dependency (also picked up by `examples/admin-demo`).
+- **flake.lock**: nixpkgs revision refresh (no package version changes).
+
 ## [v4.1.0] - 2026-07-04
 
 ### Added
