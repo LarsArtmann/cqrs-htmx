@@ -169,7 +169,9 @@ func (p *Provider) get(name string) (*initializedProvider, error) {
 func (p *Provider) BeginLogin(_ context.Context, providerName, state string) (string, string, error) {
 	prov, err := p.get(providerName)
 	if err != nil {
-		return "", "", err
+		return "", "", errorfamily.WrapRejection(err, "oauth2.begin_login", "begin login").
+			WithContext("provider", providerName).
+			WithContext("state", state)
 	}
 
 	pkceVerifier := oauth2.GenerateVerifier()
@@ -185,17 +187,25 @@ func (p *Provider) BeginLogin(_ context.Context, providerName, state string) (st
 func (p *Provider) FinishLogin(ctx context.Context, providerName, code, pkceVerifier string) ([]byte, error) {
 	prov, err := p.get(providerName)
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapRejection(err, "oauth2.finish_login", "finish login").
+			WithContext("provider", providerName).
+			WithContext("code", code).
+			WithContext("pkce_verifier", pkceVerifier)
 	}
 
 	info, err := prov.exchangeAndExtractUser(ctx, code, pkceVerifier)
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "oauth2.finish_login", "finish login").
+			WithContext("provider", providerName).
+			WithContext("pkce_verifier", pkceVerifier)
 	}
 
 	data, err := json.Marshal(info)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "oauth2.marshal_userinfo", "marshal user info")
+		return nil, errorfamily.WrapInfrastructure(err, "oauth2.marshal_userinfo", "marshal user info").
+			WithContext("provider", providerName).
+			WithContext("code", code).
+			WithContext("pkce_verifier", pkceVerifier)
 	}
 	return data, nil
 }
@@ -207,7 +217,9 @@ func (p *initializedProvider) exchangeAndExtractUser(
 		ctx, code, oauth2.VerifierOption(pkceVerifier),
 	)
 	if err != nil {
-		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.token_exchange", "exchange code")
+		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.token_exchange", "exchange code").
+			WithContext("code", code).
+			WithContext("pkce_verifier", pkceVerifier)
 	}
 
 	if p.oidcProvider != nil {
