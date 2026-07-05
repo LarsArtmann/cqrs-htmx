@@ -83,6 +83,13 @@ func (a *App) handleCommandDispatch(
 		return
 	}
 
+	if cfg.requestGuard != nil {
+		if guardErr := cfg.requestGuard(r, cmd); guardErr != nil {
+			a.handleErr(w, r, ctx, cfg, guardErr)
+			return
+		}
+	}
+
 	ctx, cancel := a.timeoutCtx(ctx, cfg)
 	defer cancel()
 
@@ -187,6 +194,13 @@ func (a *App) handleQueryDispatch(
 	if qry == nil {
 		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
 		return
+	}
+
+	if cfg.requestGuard != nil {
+		if guardErr := cfg.requestGuard(r, qry); guardErr != nil {
+			a.handleErr(w, r, ctx, cfg, guardErr)
+			return
+		}
 	}
 
 	ctx, cancel := a.timeoutCtx(ctx, cfg)

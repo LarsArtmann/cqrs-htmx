@@ -22,21 +22,33 @@ const (
 	// Allows scripts from self (required for HTMX) and styles from self.
 	// Use: SecurityHeadersConfig{ContentSecurityPolicy: RecommendedCSP}
 	RecommendedCSP = "default-src 'self'; script-src 'self'; style-src 'self'"
+
+	// SecurityHeaderSkip is the sentinel value for suppressing a default
+	// security header. Set any of ContentTypeOptions, FrameOptions, or
+	// ReferrerPolicy to this value to omit that header entirely:
+	//
+	//	cqrshtmx.SecurityHeadersConfig{
+	//	    ContentTypeOptions: cqrshtmx.SecurityHeaderSkip, // do not set X-Content-Type-Options
+	//	    ContentSecurityPolicy: cqrshtmx.RecommendedCSP,
+	//	}
+	SecurityHeaderSkip = "-"
 )
 
 // SecurityHeadersConfig configures which security headers to set.
-// All fields are optional; zero values use secure defaults.
+// The three "withDefault" fields (ContentTypeOptions, FrameOptions, ReferrerPolicy)
+// fall back to secure defaults when empty. Set any of them to SecurityHeaderSkip
+// ("-" sentinel) to suppress that header entirely. All fields are optional.
 type SecurityHeadersConfig struct {
 	// ContentTypeOptions sets X-Content-Type-Options.
-	// Default: "nosniff"
+	// Default: "nosniff". Set to SecurityHeaderSkip to omit.
 	ContentTypeOptions string
 
 	// FrameOptions sets X-Frame-Options.
-	// Default: "DENY"
+	// Default: "DENY". Set to SecurityHeaderSkip to omit.
 	FrameOptions string
 
 	// ReferrerPolicy sets Referrer-Policy.
-	// Default: "strict-origin-when-cross-origin"
+	// Default: "strict-origin-when-cross-origin". Set to SecurityHeaderSkip to omit.
 	ReferrerPolicy string
 
 	// ContentSecurityPolicy sets Content-Security-Policy.
@@ -56,6 +68,9 @@ type SecurityHeadersConfig struct {
 }
 
 func withDefault(val, def string) string {
+	if val == SecurityHeaderSkip {
+		return "" // sentinel: suppress this header entirely
+	}
 	if val != "" {
 		return val
 	}
@@ -106,9 +121,15 @@ func SecurityHeadersMiddlewareWithConfig(
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set(headerContentTypeOptions, cfg.contentTypeOptions())
-			w.Header().Set(headerFrameOptions, cfg.frameOptions())
-			w.Header().Set(headerReferrerPolicy, cfg.referrerPolicy())
+			if v := cfg.contentTypeOptions(); v != "" {
+				w.Header().Set(headerContentTypeOptions, v)
+			}
+			if v := cfg.frameOptions(); v != "" {
+				w.Header().Set(headerFrameOptions, v)
+			}
+			if v := cfg.referrerPolicy(); v != "" {
+				w.Header().Set(headerReferrerPolicy, v)
+			}
 
 			if cfg.ContentSecurityPolicy != "" {
 				w.Header().Set(headerCSP, cfg.ContentSecurityPolicy)

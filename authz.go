@@ -36,6 +36,38 @@ func RequireAuth() HandlerOption {
 	}
 }
 
+// RequestGuardFunc is a custom authorization guard that runs after decode but
+// before dispatch. It receives the request and the decoded command/query.
+// Return an error to abort dispatch (the error is passed to the error handler).
+// Return nil to proceed.
+//
+// Unlike Authorize (which requires Casbin), RequestGuard supports any auth model:
+// cookie-based ownership checks, JWT claims, API keys, etc.
+type RequestGuardFunc func(r *http.Request, cmdOrQuery any) error
+
+// RequestGuard returns a HandlerOption that runs a custom authorization guard
+// after the body is decoded but before dispatch. The guard receives the decoded
+// command or query (as `any` — type-assert in your function).
+//
+// Use this for auth models that don't fit the Casbin Enforcer pattern (e.g.,
+// "does this player own this game?"):
+//
+//	app.Command("DeleteGame",
+//	    cqrshtmx.DecodeJSONWithRequest(decodeGameCmd),
+//	    cqrshtmx.RequestGuard(func(r *http.Request, cmd any) error {
+//	        gc := cmd.(*deleteGameCmd)
+//	        if !ownsGame(extractPlayerID(r), gc.GameID) {
+//	            return ErrForbidden
+//	        }
+//	        return nil
+//	    }),
+//	)
+func RequestGuard(guard RequestGuardFunc) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.requestGuard = guard
+	}
+}
+
 // Enforce checks authorization policy for the given subject, resource, and action.
 // Returns ErrForbidden if the policy denies the request.
 // Returns ErrEnforcerNil if the enforcer is nil.

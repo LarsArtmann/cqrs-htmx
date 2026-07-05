@@ -66,10 +66,56 @@ b := cqrshtmx.NewBroadcaster()
 b.Subscribe()             // → chan SSEEvent (buffered, 64 capacity)
 b.Unsubscribe(ch)         // O(1) via channel pointer identity; closes the channel
 b.Broadcast(evt)          // non-blocking; slow consumers have events dropped
-b.SubscriberCount() int
+b.SubscriberCount() int   // current subscriber count (useful for metrics)
+b.Close()                 // graceful shutdown: closes all channels, blocks new subscriptions
 ```
 
-Thread-safe. Non-blocking broadcast means a slow client won't block the publisher — events are dropped if the channel is full. Subscribe/Unsubscribe are safe for concurrent use. **Unsubscribe closes the channel** — callers must not send on it.
+Thread-safe. Non-blocking broadcast means a slow client won't block the publisher — events are dropped if the channel is full. Subscribe/Unsubscribe are safe for concurrent use. **Unsubscribe closes the channel** — callers must not send on it. **Close** closes all subscriber channels at once; after Close, Subscribe returns an already-closed channel. Call Close on server shutdown for graceful SSE drain.
+
+### Standard event names
+
+```go
+cqrshtmx.SSEEventConnected   // "connected"
+cqrshtmx.SSEEventHeartbeat   // "heartbeat"
+```
+
+### Event filtering (consumer concern)
+
+The library intentionally provides no filtering primitives — filtering is domain-specific. The recommended pattern:
+
+```go
+// 1. Parse filter from query params
+type sseFilter struct {
+    EventType string
+    ChannelID string
+}
+func parseSSEFilter(r *http.Request) sseFilter { /* parse ?event_type= etc. */ }
+
+// 2. Apply filter during both replay and live phases
+func (f sseFilter) matches(evt cqrshtmx.SSEEvent) bool {
+    if f.EventType != "" && evt.Event != f.EventType { return false }
+    // ... domain-specific matching
+    return true
+}
+
+mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
+    filter := parseSSEFilter(r)
+    stream := cqrshtmx.NewSSEStream(w, r)
+    defer stream.Close()
+    // Replay filtered:
+    cqrshtmx.ReplayEvents(stream, sseStore, lastID) // filter in your mapper
+    // Live filtered:
+    ch := broadcaster.Subscribe()
+    defer broadcaster.Unsubscribe(ch)
+    for {
+        select {
+        case <-stream.Context().Done(): return
+        case evt, ok := <-ch:
+            if !ok || !filter.matches(evt) || stream.Send(evt) != nil { return }
+        }
+    }
+})
+```
 
 ### Hook factories (bridge CQRS → SSE)
 

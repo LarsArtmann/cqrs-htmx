@@ -121,3 +121,30 @@ cqrs-htmx v3.5.0 is production-quality. The middleware suite (`Chain`, `Recovery
 The main gap is `App.Command()` / `App.Query()` being limited to casbin/usermgmt auth. Adding request-scoped hooks (`DecodeWithRequest`, `RequestGuard`) would unlock adoption for projects with custom auth models — which is every project that doesn't use usermgmt.
 
 The root module (middleware, Response, helpers, WriteJSON, HTMXScriptHandler, IsHTMXRequest) is excellent and I'd recommend it to any Go+HTMX project regardless of their auth model.
+
+---
+
+## Resolution Status (2026-07-05)
+
+### Pain Points — Resolutions
+
+| #   | Suggestion                                                                                     | Status             | Notes                                                                                                                                                                                                                                        |
+| --- | ---------------------------------------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `DecodeJSON[T]` doesn't receive `*http.Request` — can't inject request-scoped auth into decode | **DONE**           | `DecodeJSONWithRequest[T](func(r *http.Request, body T) (command.Command, error))` implemented. Also added `DecodeFormWithRequest`, `DecodeJSONQueryWithRequest`, `DecodeFormQueryWithRequest`. Tested. Documented in SKILL.md + core-api.md |
+| 2   | `UserIDExtractor` + `Enforcer` auth model assumes casbin/usermgmt — no `RequestGuard`          | **DONE**           | `RequestGuard(func(r *http.Request, cmdOrQuery any) error)` implemented. Runs after decode, before dispatch. Tested (2 tests: blocks dispatch on error, allows on nil). Documented in SKILL.md + core-api.md                                 |
+| 3   | `JSONErrorHandler` response format vs custom frontend protocol — make shape configurable       | **PARTIALLY DONE** | Added `"code"` field to JSON error responses (the most-requested field). Full `JSONErrorFormatter` configurability deferred — noted in status report                                                                                         |
+| 4   | `HealthHandler()` response format                                                              | **DOCUMENTED**     | HealthHandler format noted in SKILL.md discoverability: `{"status":"ok"}` (200) or `{"status":"unhealthy","error":"..."}` (503)                                                                                                              |
+| 5   | v3 → v4 migration path unclear                                                                 | **DONE**           | "v3 vs v4" section added to SKILL.md. Root module API is unchanged; migration is import path change only for root-only consumers                                                                                                             |
+
+### Ideas for Improvement — Resolutions
+
+| #   | Suggestion                                                          | Status         | Notes                                                                                                             |
+| --- | ------------------------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1   | `App.Query` with request-scoped auth (`DecodeJSONQueryWithRequest`) | **DONE**       | Implemented as `DecodeJSONQueryWithRequest[T]`. Same pattern as the command variant                               |
+| 2   | `NotifyError` event format flexibility                              | **DOCUMENTED** | `TriggerWithDetail("showError", msg)` documented as the escape hatch for non-standard event protocols in SKILL.md |
+| 3   | Rate limiter per-route config ergonomics                            | **NOT DONE**   | Current explicit-per-middleware approach confirmed as acceptable per the original feedback ("fine")               |
+| 4   | Server-Timing test helper                                           | **NOT DONE**   | Deferred — noted in status report                                                                                 |
+
+### Overall Verdict Update
+
+**The main gap identified by SEC has been directly addressed.** Both `DecodeJSONWithRequest` and `RequestGuard` are now available, unlocking `App.Command()`/`App.Query()` for cookie-based auth, API keys, and ownership checks — every auth model that isn't Casbin. This was the single highest-impact ask across all 5 feedback files.

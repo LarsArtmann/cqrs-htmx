@@ -20,4 +20,5 @@ const (
 const (
 	JSONKeyError  = "error"
 	JSONKeyStatus = "status"
+	JSONKeyCode   = "code"
 )

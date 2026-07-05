@@ -31,6 +31,25 @@ func RenderTempl(component TemplComponent) HandlerOption {
 	}
 }
 
+// RenderHTML renders a static HTML string as the query response.
+// The HTML is written with Content-Type text/html; charset=utf-8.
+// For dynamic HTML based on the query result, use Render with a custom function.
+//
+// Usage:
+//
+//	app.Query("GetSnippet", cqrshtmx.DecodeJSONQuery(...),
+//	    cqrshtmx.RenderHTML("<div>Hello, HTMX!</div>"),
+//	)
+func RenderHTML(html string) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.render = func(w http.ResponseWriter, _ *http.Request, _ any) error {
+			w.Header().Set("Content-Type", ContentTypeHTML)
+			_, _ = w.Write([]byte(html))
+			return nil
+		}
+	}
+}
+
 // RenderTemplResult creates a templ.Component from the query result and renders it.
 // The mapper function converts the query result into a TemplComponent.
 //

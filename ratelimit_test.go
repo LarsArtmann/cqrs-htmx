@@ -246,5 +246,23 @@ var _ = Describe("Rate Limiting", func() {
 
 			Expect(allowed).To(Equal(3))
 		})
+
+		It("DefaultRateLimiterConfig returns sensible defaults", func() {
+			cfg := cqrshtmx.DefaultRateLimiterConfig()
+			Expect(cfg.Limit).To(Equal(uint(cqrshtmx.DefaultRateLimit)))
+			Expect(cfg.Window).To(Equal(cqrshtmx.DefaultRateWindow))
+			Expect(cfg.TTL).To(Equal(cqrshtmx.DefaultRateTTL))
+			Expect(cfg.KeyExtractor).NotTo(BeNil())
+		})
+
+		It("DefaultRateLimiterConfig allows overrides", func() {
+			cfg := cqrshtmx.DefaultRateLimiterConfig()
+			cfg.Limit = 600
+			middleware := cqrshtmx.RateLimiterMiddleware(cfg)
+			handler := middleware(okHandler())
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+			Expect(w.Code).To(Equal(http.StatusOK))
+		})
 	})
 })
