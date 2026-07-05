@@ -159,7 +159,7 @@ func main() {
 	// GET /api/items/paginated — paginated query handler
 	mux.Handle("GET /api/items/paginated", app.Query(
 		"ListItemsPaginated",
-		cqrshtmx.DecodeFormQuery(func(r *http.Request) (query.Query, error) {
+		cqrshtmx.DecodeFormQueryWithRequest(func(r *http.Request, _ struct{}) (query.Query, error) {
 			return &listItemsPaginatedQuery{pagination: cqrshtmx.DecodePagination(r)}, nil
 		}),
 		cqrshtmx.RenderPaginatedJSON[item](),

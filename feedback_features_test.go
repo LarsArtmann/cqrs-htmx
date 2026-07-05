@@ -245,7 +245,7 @@ var _ = Describe("Empty-body GET decode (the SKILL.md GET query bug)", func() {
 	It("DecodeJSONQuery succeeds on GET with no body (zero-value T)", func() {
 		disp := query.NewDispatcher()
 		_ = disp.Register("GetPage", func(_ context.Context, _ query.Query) (any, error) {
-			return nil, nil
+			return map[string]any{"ok": true}, nil
 		})
 		app := mustNewApp(cqrshtmx.Config{Queries: disp})
 
@@ -253,12 +253,13 @@ var _ = Describe("Empty-body GET decode (the SKILL.md GET query bug)", func() {
 			cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 				return &getPageQuery{}, nil
 			}),
-			cqrshtmx.RenderJSON[any](),
+			cqrshtmx.RenderJSON[map[string]any](),
 		)
 
 		// GET request with no body — must NOT return 400
 		r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 		w := serve(handler, r)
 		Expect(w.Code).To(Equal(http.StatusOK))
+		Expect(w.Body.String()).To(ContainSubstring("ok"))
 	})
 })
