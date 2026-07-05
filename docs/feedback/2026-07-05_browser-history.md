@@ -114,3 +114,21 @@ This **failed** because nosurf's masking means the header must contain a freshly
 ## Summary
 
 cqrs-htmx v3.3.0 is a **solid middleware + auth library** that works well with both stdlib mux and Huma. The main pain is **documentation**: the SKILL.md describes v4 without clarifying v3 availability, and CSRF testing patterns are undocumented. The App.Command/Query builder is a different paradigm that doesn't compose with existing router frameworks — documenting this explicitly would prevent wasted evaluation effort.
+
+---
+
+## Resolution Status (2026-07-05)
+
+### Pain Points — Resolutions
+
+| #   | Suggestion                                                               | Status       | Notes                                                                                                                                                                                                        |
+| --- | ------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | SKILL.md documents v4 but we use v3 — add "v3 vs v4" section             | **DONE**     | "v3 vs v4" section added to SKILL.md. All features documented in the skill are confirmed available since v3.3.0+. Root module API is unchanged between v3 and v4                                             |
+| 2a  | Provide test helper `CSRFTestToken(ts.URL) string`                       | **DONE**     | `cqrshtmx.CSRFTestToken(mw)` implemented in `csrf_testing.go`. Handles nosurf token masking automatically                                                                                                    |
+| 2b  | Document the nosurf masking behavior in CSRFConfig docs                  | **DONE**     | nosurf masking documented in gotchas.md with full explanation + CSRFTestToken usage pattern                                                                                                                  |
+| 2c  | Add `CSRFConfig.Testing bool` flag                                       | **NOT DONE** | Chose the test helper approach instead — cleaner than a config flag that bypasses security                                                                                                                   |
+| 3a  | Document that App.Command/Query is for greenfield or stdlib-mux projects | **DONE**     | SKILL.md now has "SSR / HTMX apps" section documenting when to use the pipeline vs manual handlers                                                                                                           |
+| 3b  | Add "Using cqrs-htmx with Huma" recipe                                   | **NOT DONE** | Deferred — cross-framework recipe belongs in examples/. Noted in status report                                                                                                                               |
+| 3c  | Consider Huma adapter `cqrshtmx.HumaCommand(...)`                        | **NOT DONE** | Deferred — design decision needs consumer validation                                                                                                                                                         |
+| 4   | Document `CSRFResponseHeaderMiddleware`                                  | **DONE**     | Added to SKILL.md discoverability section: "The middleware trio is: CSRFMiddleware (validates) + CSRFResponseHeaderMiddleware (exposes token) + ContextEnrichmentMiddleware/app.Middleware() (sets context)" |
+| 5   | RateLimiterConfig.KeyExtractor error handling                            | **NOT DONE** | Minor — noted as "not a real problem" in the original feedback                                                                                                                                               |

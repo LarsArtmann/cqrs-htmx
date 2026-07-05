@@ -53,15 +53,26 @@ type Config struct {
 ```go
 cqrshtmx.Authorize(resource, action)   // requires auth + Enforcer allows (resource, action)
 cqrshtmx.RequireAuth()                  // requires an authenticated user, no authz check
+cqrshtmx.RequestGuard(func(r *http.Request, cmdOrQuery any) error)  // custom auth (runs after decode, before dispatch)
 ```
+
+`RequestGuard` supports any auth model that doesn't fit Casbin: cookie-based ownership checks,
+API key validation, JWT claims. The guard receives the decoded command/query (type-assert in your function).
+Return an error to abort dispatch (passed to the error handler); return nil to proceed.
 
 ### Decoders (generic — body/params → command or query)
 
 ```go
 cqrshtmx.DecodeJSON[T](func(T) (command.Command, error))         // JSON body
 cqrshtmx.DecodeForm[T](func(T) (command.Command, error))         // application/x-www-form-urlencoded
-cqrshtmx.DecodeJSONQuery[T](func(T) (query.Query, error))
-cqrshtmx.DecodeFormQuery[T](func(*http.Request) (query.Query, error))  // read query params with r
+cqrshtmx.DecodeJSONQuery[T](func(T) (query.Query, error))        // JSON body → query
+cqrshtmx.DecodeFormQuery[T](func(T) (query.Query, error))        // form data → query
+
+// *http.Request-aware variants (for cookie/header access in the mapper):
+cqrshtmx.DecodeJSONWithRequest[T](func(r *http.Request, body T) (command.Command, error))
+cqrshtmx.DecodeFormWithRequest[T](func(r *http.Request, body T) (command.Command, error))
+cqrshtmx.DecodeJSONQueryWithRequest[T](func(r *http.Request, body T) (query.Query, error))
+cqrshtmx.DecodeFormQueryWithRequest[T](func(r *http.Request, body T) (query.Query, error))
 ```
 
 ### Validation (must follow the decoder)
@@ -80,6 +91,7 @@ cqrshtmx.RenderTemplResult[T](func(T) cqrshtmx.TemplComponent) // map query resu
 cqrshtmx.RenderJSON[T]()                               // JSON 200
 cqrshtmx.RenderJSONStatus[T](status)                   // JSON with explicit status
 cqrshtmx.RenderPaginatedJSON[T]()                      // query.PaginatedResult[T] → JSON
+cqrshtmx.RenderHTML(htmlString)                         // static HTML response (text/html)
 cqrshtmx.Redirect(url)                                 // HTMX-aware (HX-Redirect for HTMX reqs)
 cqrshtmx.PushURL(url)                                  // HTMX address-bar update
 cqrshtmx.Trigger(event) / cqrshtmx.TriggerWithDetail(event, detail)  // HX-Trigger
@@ -202,6 +214,8 @@ Error handlers to set on `Config.ErrorHandler`:
 - `DefaultErrorHandlerWithRequestID`, `DefaultErrorHandlerWithRedirectAndRequestID`,
 - `JSONErrorHandler`, `JSONErrorHandlerWithRedirect`.
 
+`JSONErrorHandler` writes `{"error": "...", "status": NNN}` (plus `"code"` and `"request_id"` when available). The `"code"` field carries the machine-readable error code from the innermost errorfamily error (e.g., `"battle.exists"`), enabling programmatic error handling on the client.
+
 ### Error family rule (critical)
 
 Inside these modules, **`errors.New` / `fmt.Errorf` (as error) / `errors.Join` are banned** in non-test code (enforced by `branching-flow errorfamily`). Use the constructors re-exported via `go-cqrs-lite/event/v3`:
@@ -244,5 +258,9 @@ cqrshtmx.HTMXExtensionCDNScriptTag(name) // CDN <script> tag for one extension
 cqrshtmx.HTMXExtensionVersion(name)     // "2.2.4" (sse), "2.0.4" (ws), "0.7.4" (idiomorph)
 cqrshtmx.HTMXExtensionNames()           // ["idiomorph", "sse", "ws"]
 cqrshtmx.KeyExtractorFromRemoteAddr()   // default rate-limit key extractor
+cqrshtmx.DefaultRateLimiterConfig()     // sensible defaults: 100/min per-IP, burst=limit, 10min TTL
+cqrshtmx.SecurityHeaderSkip             // sentinel "-" to suppress a default security header
 cqrshtmx.RecommendedCSP / RecommendedHSTS // suggested header values (never auto-applied)
+cqrshtmx.SSEEventConnected / SSEEventHeartbeat // standard SSE event name constants
+cqrshtmx.CSRFTestToken(mw)              // test helper: extracts a valid CSRF token from middleware chain
 ```

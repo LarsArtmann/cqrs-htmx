@@ -95,4 +95,32 @@ var _ = Describe("Security Headers Middleware", func() {
 		Expect(w.Header().Get("Content-Type")).To(Equal("application/json"))
 		Expect(w.Header().Get("X-Content-Type-Options")).To(Equal("nosniff"))
 	})
+
+	DescribeTable("SecurityHeaderSkip suppresses default headers",
+		func(field string) {
+			cfg := cqrshtmx.SecurityHeadersConfig{}
+			switch field {
+			case "ContentTypeOptions":
+				cfg.ContentTypeOptions = cqrshtmx.SecurityHeaderSkip
+			case "FrameOptions":
+				cfg.FrameOptions = cqrshtmx.SecurityHeaderSkip
+			case "ReferrerPolicy":
+				cfg.ReferrerPolicy = cqrshtmx.SecurityHeaderSkip
+			}
+			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
+			handler := middleware(okHandler())
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+
+			headerMap := map[string]string{
+				"ContentTypeOptions": "X-Content-Type-Options",
+				"FrameOptions":       "X-Frame-Options",
+				"ReferrerPolicy":     "Referrer-Policy",
+			}
+			Expect(w.Header().Get(headerMap[field])).To(BeEmpty())
+		},
+		Entry("ContentTypeOptions suppressed", "ContentTypeOptions"),
+		Entry("FrameOptions suppressed", "FrameOptions"),
+		Entry("ReferrerPolicy suppressed", "ReferrerPolicy"),
+	)
 })

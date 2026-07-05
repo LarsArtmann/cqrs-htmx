@@ -10,6 +10,18 @@ import (
 // These aliases preserve backward compatibility with existing cqrs-htmx consumers.
 // New code should import the upstream module directly.
 
+// Common SSE event names. Consumers are free to use custom event names —
+// these constants just reduce magic strings for the most common patterns.
+const (
+	// SSEEventConnected is the conventional event name for the initial
+	// connection-acknowledgement event sent when an SSE stream opens.
+	SSEEventConnected = "connected"
+	// SSEEventHeartbeat is the conventional event name for heartbeat/ping
+	// events. Note: stream.Heartbeat() sends comment-frame pings (not named
+	// events); this constant is for consumers who prefer named heartbeats.
+	SSEEventHeartbeat = "heartbeat"
+)
+
 // SSEEventID is a branded identifier for SSE event identifiers.
 type SSEEventID = http.SSEEventID
 

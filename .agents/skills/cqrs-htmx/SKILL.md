@@ -39,11 +39,13 @@ The core CQRS building blocks come from **go-cqrs-lite**, imported per-package:
 Match the user's need to a path. Most real apps end up on path B or C.
 
 ```
-Does the app need user accounts / authentication?
-├─ NO  →  PATH A: root App only (CQRS + HTMX endpoints)
-└─ YES →  Does the user want a ready-made admin dashboard?
-          ├─ NO  →  PATH B: root App + usermgmt Service + AuthHandler
-          └─ YES →  PATH C: usermgmt Service + adminui panel (+ root App for custom endpoints)
+Do you need CQRS dispatch (command/query endpoints)?
+├─ NO  →  PATH 0: Building blocks only (middleware, SSE, errors, HTMX — no App)
+└─ YES →  Does the app need user accounts / authentication?
+          ├─ NO  →  PATH A: root App only (CQRS + HTMX endpoints)
+          └─ YES →  Does the user want a ready-made admin dashboard?
+                    ├─ NO  →  PATH B: root App + usermgmt Service + AuthHandler
+                    └─ YES →  PATH C: usermgmt Service + adminui panel (+ root App for custom endpoints)
 
 Does the app need realtime updates (SSE or WebSocket)?
 └─ Use the root Broadcaster / SSEStream / WSBroadcaster on ANY path. See references/realtime.md.
@@ -54,9 +56,54 @@ Does the app need persistence (survive restarts)?
    See references/usermgmt.md.
 ```
 
-- **Path A** needs only the root module.
+- **Path 0** needs only the root module — middleware, SSE building blocks, error mapping, embedded htmx.js. No `App`, no `usermgmt`, no `adminui`. Many consumers (DiscordSync, Overview) use this path.
+- **Path A** needs only the root module (adds the `App` command/query dispatch pipeline).
 - **Path B/C** need usermgmt (+ adminui for C). adminui also pulls in root (it reuses `cqrshtmx.HTMXScriptHandler`).
 - For deeper detail on each path, read the matching `references/*.md`.
+
+### v3 vs v4: which version should I use?
+
+The skill targets **v4**. If you're on v3, the migration depends on what you use:
+
+- **Root module only (no auth)?** v3→v4 is trivial: change import paths `/v3` → `/v4`, run `go mod tidy`. The root module API (SSE, middleware, errors, HTMX, `App.Command/Query`) is **unchanged** between v3 and v4.
+- **Using usermgmt auth strategies (TOTP/WebAuthn/OAuth2)?** v4 moved these to separate modules behind interfaces. See `docs/migrations/v3-to-v4.md`.
+
+All features documented in this skill (middleware chain, SSE, CSRF, security headers, error mapping, `HTMXScriptHandler`, `App.Command/Query`) have been available since v3.3.0+.
+
+## Path 0 — Building blocks only (no App)
+
+Many consumers use cqrs-htmx purely for its middleware, SSE building blocks, and error mapping — without the `App` command/query pipeline. This is a valid and common integration path for apps that have their own dispatch layer (Huma, custom handlers, etc.).
+
+```go
+mux := http.NewServeMux()
+mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+
+broadcaster := cqrshtmx.NewBroadcaster()
+mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
+    stream := cqrshtmx.NewSSEStream(w, r)
+    defer stream.Close()
+    ch := broadcaster.Subscribe()
+    defer broadcaster.Unsubscribe(ch)
+    stream.Send(cqrshtmx.SSEEvent{Event: cqrshtmx.SSEEventConnected, Data: "ok"})
+    for {
+        select {
+        case <-stream.Context().Done():
+            return
+        case evt, ok := <-ch:
+            if !ok || stream.Send(evt) != nil { return }
+        }
+    }
+})
+
+http.ListenAndServe(":8080", cqrshtmx.Chain(
+    cqrshtmx.RecoveryMiddleware,
+    cqrshtmx.SecurityHeadersMiddleware,
+    cqrshtmx.RateLimiterMiddleware(cqrshtmx.DefaultRateLimiterConfig()),
+    cqrshtmx.RequestLoggingSlog(logger),
+)(mux))
+```
+
+What you get without `App`: `Chain`, `RecoveryMiddleware`, `SecurityHeadersMiddleware` (+`SecurityHeaderSkip`), `RateLimiterMiddleware` (+`DefaultRateLimiterConfig`), `RequestLoggingSlog`, `CSRFMiddleware`, `HTMXScriptHandler`/`HTMXExtensionHandler`, `NewSSEStream`/`Broadcaster`/`JournalSSEStore`, `MapError`/`JSONErrorHandler`, `ServerTimingMiddleware`/`MeasureServerTiming`, `WriteJSON`, `IsHTMXRequest`/`RenderPartial`.
 
 ## Path A — CQRS + HTMX endpoints (root only)
 
@@ -213,6 +260,51 @@ mux.Handle("POST /widgets", app.Command("CreateWidget",
 
 **Why order matters:** `ValidateCommand`/`ValidateQuery` read the decoded command/query off the context, so the decoder must run first. Put authz first (fail fast before touching the body), then decode, then validate, then render/side-effects. See `references/core-api.md` for the full `HandlerOption` catalogue.
 
+### SSR / HTMX apps (form decoding + HTML rendering)
+
+The pipeline supports server-rendered apps, not just JSON APIs. Use `DecodeForm` for form data, `RenderTempl`/`RenderHTML` for HTML output:
+
+```go
+// Form POST → command → redirect (classic SSR pattern)
+mux.Handle("POST /items", app.Command("CreateItem",
+    cqrshtmx.DecodeForm(func(req createItemForm) (command.Command, error) {
+        return &createItemCmd{Name: req.Name}, nil
+    }),
+    cqrshtmx.PushURL("/items"),
+    cqrshtmx.NotifySuccess("Item created"),
+))
+
+// Query → templ component (SSR page rendering)
+mux.Handle("GET /dashboard", app.Query("GetDashboard",
+    cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) { return &dashboardQuery{}, nil }),
+    cqrshtmx.RenderTemplResult(func(data dashboardData) cqrshtmx.TemplComponent {
+        return dashboardPage(data)
+    }),
+))
+```
+
+### Custom auth (cookie-based, API keys, ownership checks)
+
+The `App` pipeline defaults to Casbin-based auth (`Authorize`). For custom auth models (cookie-based player IDs, API keys, ownership checks), use `DecodeJSONWithRequest` + `RequestGuard`:
+
+```go
+mux.Handle("POST /games/{id}/delete", app.Command("DeleteGame",
+    cqrshtmx.DecodeJSONWithRequest(func(r *http.Request, body deleteGameReq) (command.Command, error) {
+        playerID := extractPlayerIDFromCookie(r) // read cookies in the mapper
+        return &deleteGameCmd{PlayerID: playerID, GameID: body.GameID}, nil
+    }),
+    cqrshtmx.RequestGuard(func(r *http.Request, cmd any) error {
+        gc := cmd.(*deleteGameCmd)
+        if !ownsGame(extractPlayerID(r), gc.GameID) {
+            return cqrshtmx.ErrForbidden
+        }
+        return nil
+    }),
+))
+```
+
+`RequestGuard` runs **after decode, before dispatch** — so it has access to the decoded command/query for ownership checks.
+
 **Middleware order** (outer → inner): recovery & security headers first; then your **session** middleware; then **CSRF**; then **HTMX**; then `app.Middleware()` (context enrichment); then the handler. The non-negotiable part is the cqrs-htmx trio `CSRF → HTMX → enrichment`, because enrichment depends on the HTMX context and CSRF must wrap the mutations.
 
 ## Serving htmx.js
@@ -224,6 +316,8 @@ mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
 ```
 
 Add to your HTML with `cqrshtmx.HTMXScriptTag("/htmx.js")` (templ-safe) or `cqrshtmx.HTMXCDNScriptTag("")` if you prefer a CDN. `cqrshtmx.HTMXVersion()` returns `"2.0.10"` for cache-busting query strings.
+
+> **templ-components note:** `templ-components`'s `layout.Base` may generate CDN `<script>` tags for htmx. If you self-host via `HTMXScriptHandler`, either override `PageProps.HTMXCDN` or remove the CDN tag — don't load htmx twice.
 
 ### Embedded HTMX extensions
 
@@ -282,6 +376,14 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 
 WebSockets mirror this: `NewWSBroadcaster()`, `WSOOBHTML(...)`, `ParseWSMessageInto[T]`, and `app.DispatchWSCommand(...)` to bridge WS → CQRS. Read `references/realtime.md` for the ACK protocol, idempotency store, reconnection/replay, and heartbeat.
 
+**SSE channel lifecycle:**
+
+- `Subscribe()` returns a buffered channel (64 capacity). `Unsubscribe(ch)` closes the channel — never send on it afterward.
+- `Broadcaster.Close()` closes all subscriber channels and prevents new subscriptions. Call it on server shutdown for graceful SSE drain.
+- `Broadcaster.SubscriberCount()` returns the current subscriber count (useful for metrics).
+- Broadcasts are non-blocking — slow consumers silently drop events. Pair with idempotency + ACK for guaranteed delivery.
+- Standard event names: `cqrshtmx.SSEEventConnected` (`"connected"`), `cqrshtmx.SSEEventHeartbeat` (`"heartbeat"`).
+
 ## Top gotchas (the ones that bite)
 
 These are the highest-frequency mistakes. Read `references/gotchas.md` for the full list.
@@ -293,6 +395,17 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 5. **No stdlib error constructors** (root + usermgmt + adminui). `errors.New`/`fmt.Errorf`/`errors.Join` are banned in these modules (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v3`. Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt — their errors are wrapped at the Service boundary. When you only build a _message string_ (not an error object), `fmt.Sprintf` is fine.
 6. **App.Command("") panics.** Empty command/query type strings are rejected at registration — use real `command.Type("...")`/`query.Type("...")` values.
 7. **Serve htmx.js yourself on Path A/B.** Register `cqrshtmx.HTMXScriptHandler()` on your mux and reference it in your layout. HTMX extensions (SSE/WS/idiomorph) are also embedded — use `cqrshtmx.HTMXExtensionHandler(name)` or `cqrshtmx.HTMXExtensionsHandler(names...)` for a bundle. **Exception:** on Path C (adminui) the panel serves htmx.js internally (`adminui/assets.go`) — do NOT register it yourself or you'll create a duplicate route.
+
+### Discoverability notes (APIs that are easy to miss)
+
+- **`CSRFResponseHeaderMiddleware`** — sets the CSRF token in a response header (`X-CSRF-Token`) so HTMX can pick it up via `hx-headers`. The middleware trio is: `CSRFMiddleware` (validates) + `CSRFResponseHeaderMiddleware` (exposes token) + `ContextEnrichmentMiddleware`/`app.Middleware()` (sets context). If you use CSRF with HTMX, you need all three.
+- **`CSRFTestToken(mw)`** — test helper that extracts a valid CSRF token through your middleware chain. nosurf uses token masking (the cookie value is NOT the valid header token); this helper handles the dance.
+- **`ContextEnrichmentMiddleware(nil)`** — nil extractor = auto-generate ULID request IDs. This is the zero-config path; `app.Middleware()` wraps this.
+- **`IsHTMXRequest(r)` vs `RenderPartial(r)`** — `IsHTMXRequest` checks `HX-Request: true` (any HTMX request). `RenderPartial` additionally excludes `HX-History-Restore-Request` (only "real" HTMX navigations that should render a partial).
+- **`NewSSEEventID("")`** — empty string auto-generates a ULID. This is the conventional way to mint event IDs.
+- **`HealthHandler()`** — returns `{"status":"ok"}` (200) or `{"status":"unhealthy","error":"..."}` (503).
+- **`SecurityHeaderSkip`** (`"-"`) — set on `ContentTypeOptions`/`FrameOptions`/`ReferrerPolicy` to suppress that default header entirely (empty string = use the default).
+- **`cqrshtmx.Chain` vs `httputil.Chain`** — `cqrshtmx.Chain` is the standard middleware composition helper for this library. If you also import `go-httputil`, its `Chain` has the same signature; pick one and use it consistently.
 
 ## Where to look
 

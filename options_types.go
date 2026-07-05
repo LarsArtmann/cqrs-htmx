@@ -67,6 +67,7 @@ type handlerConfig struct {
 	successStatus  int
 	requireMethod  string
 	onError        func(*http.Request, error)
+	requestGuard   RequestGuardFunc
 }
 
 // hasNoExplicitBody returns true if the handler has no render function and
@@ -92,6 +93,26 @@ func decodeAndSet[T, R any](
 			return decodeRequest(r, func(r *http.Request) (T, error) {
 				return bodyDec(r, cfg.maxBodySize)
 			}, mapper)
+		})
+	}
+}
+
+// decodeAndSetWithRequest is the *http.Request-aware variant of decodeAndSet.
+// The mapper receives both the request and the decoded body, enabling request-scoped
+// data (cookies, headers, path values) in the command/query mapping step.
+func decodeAndSetWithRequest[T, R any](
+	bodyDec func(*http.Request, int64) (T, error),
+	mapper func(r *http.Request, body T) (R, error),
+	setter func(*handlerConfig, func(*http.Request) (R, error)),
+) HandlerOption {
+	return func(cfg *handlerConfig) {
+		setter(cfg, func(r *http.Request) (R, error) {
+			decoded, err := bodyDec(r, cfg.maxBodySize)
+			if err != nil {
+				var zero R
+				return zero, err
+			}
+			return mapper(r, decoded)
 		})
 	}
 }

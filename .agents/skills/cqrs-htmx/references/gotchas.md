@@ -153,6 +153,27 @@ If you use custom `HeaderName`/`FieldName` in `CSRFConfig`, the library translat
 
 When both `Config.MaxBodySize` and per-handler `WithMaxBodySize` are zero, `DefaultMaxBodySize` (10 MB) applies. Set one of them to enforce a different limit.
 
+### nosurf token masking (testing CSRF-protected endpoints)
+
+nosurf uses **token masking**: the cookie value is NOT the same as the valid header token. A masked token is derived from the cookie per-request. You can't just echo the cookie value as the CSRF header — it will fail validation.
+
+For tests, use the `CSRFTestToken` helper:
+
+```go
+mw := cqrshtmx.Chain(
+    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{Secure: false, SameSite: http.SameSiteLaxMode}),
+    cqrshtmx.CSRFResponseHeaderMiddleware,
+)
+
+// Get a valid token for your POST:
+token := cqrshtmx.CSRFTestToken(mw)
+
+// Use it:
+req := httptest.NewRequest("POST", "/", strings.NewReader(`{}`))
+req.Header.Set("X-CSRF-Token", token)
+// Also attach the CSRF cookie from a prior GET (standard httptest pattern)
+```
+
 ## 7. usermgmt specifics
 
 ### `SQLEventStore.Close()` does NOT close the `*sql.DB`
@@ -196,6 +217,10 @@ A new OAuth2 provider with a matching email **links to the existing user** (not 
 ### `Broadcaster.Unsubscribe` closes the channel
 
 Never send on a channel after Unsubscribe. The read-loop pattern (`defer broadcaster.Unsubscribe(ch)`) is safe because the read loop exits when the channel closes.
+
+### `Broadcaster.Close()` for graceful shutdown
+
+Call `broadcaster.Close()` on server shutdown to close all subscriber channels at once. Without it, connected SSE clients get a connection reset on abrupt shutdown. After Close, Subscribe returns an already-closed channel and Broadcast is a no-op.
 
 ### Broadcasts are non-blocking
 

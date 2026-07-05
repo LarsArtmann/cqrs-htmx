@@ -32,17 +32,17 @@ cqrs-htmx/
 ├── app.go            # App builder, Config, Command(), Query(), enrichUserID()
 ├── doc.go            # Package documentation
 ├── handler.go        # handleCommandDispatch(), handleQueryDispatch()
-├── options_types.go  # handlerConfig struct, authMode enum (authNone/authRequired/authAuthorized)
-├── options_decode.go # DecodeJSON/DecodeForm/DecodeQuery HandlerOption factories
-├── options_render.go # Render/RenderTempl/RenderJSON/RenderPaginatedJSON HandlerOptions
+├── options_types.go  # handlerConfig struct, authMode enum, decodeAndSet/decodeAndSetWithRequest helpers
+├── options_decode.go # DecodeJSON/DecodeForm/DecodeJSONQuery/DecodeFormQuery + *WithRequest variants (request-aware mappers)
+├── options_render.go # Render/RenderTempl/RenderTemplResult/RenderHTML/RenderJSON/RenderPaginatedJSON HandlerOptions
 ├── options_htmx.go   # HTMX-specific HandlerOptions (Redirect/PushURL/Retarget)
 ├── options_json.go   # JSON response HandlerOption helpers
 ├── options_validate.go # ValidateCommand/ValidateQuery HandlerOptions
 ├── response.go       # HTMX response builder (fluent API) + notification methods
 ├── responsewriter.go # delegatingWriter — embeds http.ResponseWriter, delegates Flush/Hijack/Push/Unwrap
-├── authz.go          # Enforcer interface, Authorize, Enforce, AuthorizeMiddleware
+├── authz.go          # Enforcer interface, Authorize, RequireAuth, RequestGuard, Enforce, AuthorizeMiddleware
 ├── context.go        # UserID/CorrelationID/RequestID types, Parse*/MustParse*, context helpers
-├── errors.go         # Error → HTTP status mapping, sentinels, LoginRedirect (go-error-family), SafeDetail, ProblemDetailsErrorHandler
+├── errors.go         # Error → HTTP status mapping, sentinels, LoginRedirect (go-error-family), SafeDetail, errorCode, ProblemDetailsErrorHandler
 ├── errors_status.go  # HTTPStatusCarrier interface + WithHTTPStatus wrapper (ADR-0034)
 ├── htmx.go           # HTMXRequest struct, accessors, context storage, RenderPartial
 ├── htmx_embed.go     # Embedded HTMX v2.0.10 minified JS (go:embed), htmxVersion const
@@ -55,10 +55,11 @@ cqrs-htmx/
 ├── csrf_middleware.go # CSRFMiddleware (justinas/nosurf integration, origin checks)
 ├── csrf_handler.go   # CSRFProtect (per-handler CSRF HandlerOption)
 ├── csrf_helpers.go   # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
+├── csrf_testing.go   # CSRFTestToken — exported test helper for nosurf token masking dance
 ├── decoder.go        # Body reading, form/JSON decoding (go-playground/form/v4), MaxBodySize enforcement
 ├── httputil.go       # WriteJSON, ClientIP (delegates to larsartmann/httputil)
 ├── logging.go        # RequestLogging, RequestLoggingSlog, formatters
-├── sse_event.go      # SSEEvent struct, WriteSSEEvent, SSEEventID branded type + ParseSSEEventID
+├── sse_event.go      # SSEEvent struct, WriteSSEEvent, SSEEventID branded type + ParseSSEEventID + SSEEventConnected/Heartbeat constants
 ├── sse_stream.go     # SSEStream (Send/SendHTML/Heartbeat/OnDisconnect/Close), NewSSEStream
 ├── sse_store.go      # SSEEventStore interface, ReplayEvents, LastEventIDFromRequest
 ├── event_store_sse.go # JournalSSEStore — PRODUCTION SSEEventStore backed by event.SeekableJournal
@@ -70,11 +71,11 @@ cqrs-htmx/
 ├── ws_encoder.go     # WriteWSMessage, WriteWSMessageInto[T] — outbound WS message encoder
 ├── sse_broadcaster.go # SSE Broadcaster (embeds fanOut[SSEEvent]), BroadcastOnSuccess/OnError/Func hooks
 ├── ws_broadcaster.go # WSBroadcaster (embeds fanOut[string]), BroadcastOnSuccessWS/OnErrorWS/Func hooks
-├── fanout.go         # fanOut[T] — generic transport-agnostic fan-out hub (shared by SSE + WS)
+├── fanout.go         # fanOut[T] — generic transport-agnostic fan-out hub (shared by SSE + WS) + Close() graceful shutdown
 ├── ws_dispatch.go    # DispatchWSCommand/DispatchWSQuery — WS→CQRS bridge, DecodeWSJSON[T]/DecodeWSJSONQuery[T]
-├── ratelimit_config.go   # RateLimitConfig (Requests, Window, KeyExtractor, MaxKeys, TTL)
+├── ratelimit_config.go   # RateLimitConfig + DefaultRateLimiterConfig() constructor
 ├── ratelimit_middleware.go # RateLimiterMiddleware, per-key token bucket, min-heap LRU eviction
-├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, RecommendedCSP/HSTS
+├── security.go       # SecurityHeadersMiddleware, SecurityHeadersConfig, SecurityHeaderSkip sentinel, RecommendedCSP/HSTS
 ├── recovery.go       # RecoveryMiddleware (package-level), App.RecoverHandler() — panic recovery
 ├── server_timing.go  # ServerTiming collector + ServerTimingMiddleware/When — W3C Server-Timing API (opt-in, debug-gated)
 ├── usermgmt/         # User management submodule (EVENT-SOURCED CQRS, RBAC, sessions, password auth)

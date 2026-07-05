@@ -44,6 +44,23 @@ func KeyExtractorFromClientIP() KeyExtractor {
 	return httputil.ClientIP
 }
 
+// DefaultRateLimiterConfig returns a RateLimiterConfig with sensible production
+// defaults: 100 requests per minute per client IP, burst equal to the limit,
+// 10-minute TTL for idle entries. Consumers override individual fields as needed:
+//
+//	cfg := cqrshtmx.DefaultRateLimiterConfig()
+//	cfg.Limit = 600 // override only what you need
+//	mw := cqrshtmx.RateLimiterMiddleware(cfg)
+func DefaultRateLimiterConfig() RateLimiterConfig {
+	return RateLimiterConfig{
+		Limit:        DefaultRateLimit,
+		Window:       DefaultRateWindow,
+		Burst:        0, // buildRateLimiter defaults to Limit when zero
+		KeyExtractor: KeyExtractorFromClientIP(),
+		TTL:          DefaultRateTTL,
+	}
+}
+
 // RateLimiterConfig configures the token-bucket rate limiter per key.
 type RateLimiterConfig struct {
 	// Limit is the maximum number of requests per Window.

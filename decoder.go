@@ -18,11 +18,16 @@ const DefaultMaxBodySize int64 = 10 << 20
 
 // decodeJSONBody decodes JSON from request body into type T.
 // If maxBodySize > 0, bodies larger than maxBodySize are rejected with ErrRequestTooLarge.
+// An empty body (e.g. GET request with no body) is treated as a zero-value T, not an error.
 func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
 	body, readErr := readBody(r, maxBodySize)
 	if readErr != nil {
 		return out, event.Wrapf(readErr, event.Rejection,
 			"cqrshtmx.decode.json.read_failed", "maxBodySize=%d", maxBodySize)
+	}
+
+	if len(body) == 0 {
+		return out, nil // empty body = zero-value T (GET requests, no body)
 	}
 
 	if decodeErr := json.Unmarshal(body, &out); decodeErr != nil {

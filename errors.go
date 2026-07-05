@@ -142,6 +142,27 @@ func authStatusFromErrorCode(err error) (int, bool) {
 	return 0, false
 }
 
+// errorCode extracts the machine-readable error code from the innermost
+// errorfamily error in the cause chain. Returns "" if no error carries a code.
+// We walk the full chain to find the deepest (domain-specific) code, not the
+// outermost wrapper (which is typically an infrastructure wrapping code like
+// "cqrshtmx.dispatch.command_failed").
+func errorCode(err error) string {
+	var deepestCode string
+	current := err
+	for current != nil {
+		coder, ok := errors.AsType[interface {
+			error
+			Code() string
+		}](current)
+		if ok {
+			deepestCode = coder.Code()
+		}
+		current = errors.Unwrap(current)
+	}
+	return deepestCode
+}
+
 // writeHTMXAuthRedirect sets HX-Redirect header and writes 303 See Other.
 // Returns true if the redirect was written, false if the request is not HTMX or the error is not auth-related.
 func writeHTMXAuthRedirect(
@@ -284,6 +305,9 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 		response := map[string]any{
 			JSONKeyError:  SafeDetail(err, status, includeInternal),
 			JSONKeyStatus: status,
+		}
+		if code := errorCode(err); code != "" {
+			response[JSONKeyCode] = code
 		}
 		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
 			response["request_id"] = rid.String()

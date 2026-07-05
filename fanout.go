@@ -33,9 +33,15 @@ func newFanOut[T any]() *fanOut[T] {
 // when the buffer is full.
 //
 // Call Unsubscribe when the client disconnects to prevent memory leaks.
+// After Close, Subscribe returns a closed channel (no-op).
 func (f *fanOut[T]) Subscribe() <-chan T {
 	ch := make(chan T, 64)
 	f.mu.Lock()
+	if f.subscribers == nil {
+		f.mu.Unlock()
+		close(ch) // already closed — return a closed channel
+		return ch
+	}
 	f.subscribers[channelPtr(ch)] = ch
 	f.mu.Unlock()
 	return ch
@@ -78,6 +84,26 @@ func (f *fanOut[T]) SubscriberCount() int {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return len(f.subscribers)
+}
+
+// Close shuts down the fan-out hub: it closes all subscriber channels and
+// marks the hub as closed so that future Subscribe calls return a closed
+// channel (no-op). Broadcasts after Close are silently dropped.
+//
+// This is the graceful-shutdown primitive for SSE/WS broadcasters. Call it
+// when your server is shutting down so connected clients receive a channel-close
+// signal and their read loops exit cleanly:
+//
+//	broadcaster := cqrshtmx.NewBroadcaster()
+//	defer broadcaster.Close() // or call in your shutdown handler
+func (f *fanOut[T]) Close() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	for key, ch := range f.subscribers {
+		delete(f.subscribers, key)
+		close(ch)
+	}
+	f.subscribers = nil // marks as closed
 }
 
 // broadcastOnSuccessHook builds an AfterDispatchHook that broadcasts the result
