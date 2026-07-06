@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // BotState is the aggregate state for a Bot (machine actor), reconstructed
@@ -41,7 +42,7 @@ func foldBot(state BotState, evt event.Event) (BotState, error) {
 		next.Deleted = true
 
 	default:
-		return state, event.NewRejection(
+		return state, errorfamily.NewRejection(
 			"usermgmt.bot.unknown_event",
 			"foldBot received unknown event type: "+string(evt.Type()),
 		)

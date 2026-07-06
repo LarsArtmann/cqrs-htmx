@@ -10,7 +10,7 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -221,7 +221,7 @@ var _ = Describe("WSBroadcaster", func() {
 
 			hook := b.BroadcastOnErrorWS()
 			req := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
-			hook(context.Background(), req, event.NewRejection("validation_failed", "validation failed"))
+			hook(context.Background(), req, errorfamily.NewRejection("validation_failed", "validation failed"))
 
 			var msg string
 			Eventually(ch).Should(Receive(&msg))

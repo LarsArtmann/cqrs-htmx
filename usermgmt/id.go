@@ -8,6 +8,7 @@ import (
 	brandid "github.com/larsartmann/go-branded-id"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -42,7 +43,7 @@ func NewUserID(s string) UserID {
 func ParseUserID(s string) (UserID, error) {
 	uid, err := id.ParseUserID(s)
 	if err != nil {
-		return uid, event.Wrapf(err, event.Rejection, "usermgmt.userid.invalid", "invalid user id %q", s)
+		return uid, errorfamily.Wrapf(err, event.Rejection, "usermgmt.userid.invalid", "invalid user id %q", s)
 	}
 	return uid, nil
 }

@@ -2,13 +2,14 @@ package usermgmt
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // wrapCasbinError wraps an underlying casbin error with operation context.
 // Centralizes the transient classification and "casbin_error" sentinel used
 // across all casbin operations.
 func wrapCasbinError(err error, op string, args ...any) error {
-	return event.Wrapf(err, event.Transient, "casbin_error", op, args...)
+	return errorfamily.Wrapf(err, event.Transient, "casbin_error", op, args...)
 }
 
 // wrapPolicyError wraps an error from a Policy operation with the standard
@@ -68,7 +69,7 @@ func (a *Authz) AddPolicy(p Policy) error {
 	}
 	_, err := a.enforcer.AddPolicy(policyArgs(p)...)
 	if err != nil {
-		return event.WrapTransient(err, "casbin_error", "add policy")
+		return errorfamily.WrapTransient(err, "casbin_error", "add policy")
 	}
 	return nil
 }
@@ -80,7 +81,7 @@ func (a *Authz) RemovePolicy(p Policy) error {
 	}
 	_, err := a.enforcer.RemovePolicy(policyArgs(p)...)
 	if err != nil {
-		return event.WrapTransient(err, "casbin_error", "remove policy")
+		return errorfamily.WrapTransient(err, "casbin_error", "remove policy")
 	}
 	return nil
 }
@@ -123,7 +124,7 @@ func (a *Authz) RemoveAllRolesForUser(subject string) error {
 	}
 	domains, err := a.enforcer.GetDomainsForUser(subject)
 	if err != nil {
-		return event.NewTransient("casbin_error",
+		return errorfamily.NewTransient("casbin_error",
 			"get domains for user "+subject).WithCause(err)
 	}
 	for _, domain := range domains {
@@ -172,7 +173,7 @@ func (a *Authz) Policies() ([][]string, error) {
 	}
 	p, err := a.enforcer.GetPolicy()
 	if err != nil {
-		return nil, event.WrapTransient(err, "casbin_error", "get policies")
+		return nil, errorfamily.WrapTransient(err, "casbin_error", "get policies")
 	}
 	return p, nil
 }
@@ -184,7 +185,7 @@ func (a *Authz) GroupPolicies() ([][]string, error) {
 	}
 	g, err := a.enforcer.GetGroupingPolicy()
 	if err != nil {
-		return nil, event.WrapTransient(err, "casbin_error", "get group policies")
+		return nil, errorfamily.WrapTransient(err, "casbin_error", "get group policies")
 	}
 	return g, nil
 }

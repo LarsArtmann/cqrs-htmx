@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // RenderJSON renders query results as JSON with 200 OK and
@@ -39,7 +39,7 @@ func renderJSONWithStatus[T any](status int) HandlerOption {
 		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
 			typed, ok := result.(T)
 			if !ok {
-				return event.NewRejection("unexpected_result_type",
+				return errorfamily.NewRejection("unexpected_result_type",
 					fmt.Sprintf("unexpected result type %T", result)).WithCause(ErrDecodeFailed)
 			}
 
@@ -111,7 +111,7 @@ func RenderPaginatedJSON[T any]() HandlerOption {
 		cfg.render = func(w http.ResponseWriter, _ *http.Request, result any) error {
 			typed, ok := result.(query.PaginatedResult[T])
 			if !ok {
-				return event.NewRejection("unexpected_result_type",
+				return errorfamily.NewRejection("unexpected_result_type",
 					fmt.Sprintf("expected PaginatedResult[%T], got %T", *new(T), result)).WithCause(ErrDecodeFailed)
 			}
 

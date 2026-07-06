@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/scenario/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Bot scenario/v3 BDD tests. Exercises RegisterBot and DeleteBot decide functions.
@@ -61,7 +62,7 @@ func TestScenario_RegisterBot_AlreadyExists(t *testing.T) {
 
 	scenario.Given[*RegisterBotCmd, BotState](t, foldBot, BotState{}, existing).
 		When(cmd, decide).
-		ThenError(event.NewConflict("usermgmt.bot.already_exists", ""))
+		ThenError(errorfamily.NewConflict("usermgmt.bot.already_exists", ""))
 }
 
 func TestScenario_RegisterBot_NameRequired(t *testing.T) {
@@ -81,7 +82,7 @@ func TestScenario_RegisterBot_NameRequired(t *testing.T) {
 
 	scenario.Given[*RegisterBotCmd, BotState](t, foldBot, BotState{}).
 		When(cmd, decide).
-		ThenError(event.NewRejection("usermgmt.bot.name_required", ""))
+		ThenError(errorfamily.NewRejection("usermgmt.bot.name_required", ""))
 }
 
 func TestScenario_RegisterBot_OwnerRequired(t *testing.T) {
@@ -100,7 +101,7 @@ func TestScenario_RegisterBot_OwnerRequired(t *testing.T) {
 
 	scenario.Given[*RegisterBotCmd, BotState](t, foldBot, BotState{}).
 		When(cmd, decide).
-		ThenError(event.NewRejection("usermgmt.bot.owner_required", ""))
+		ThenError(errorfamily.NewRejection("usermgmt.bot.owner_required", ""))
 }
 
 func TestScenario_DeleteBot_HappyPath(t *testing.T) {
@@ -148,5 +149,5 @@ func TestScenario_DeleteBot_NotFound(t *testing.T) {
 
 	scenario.Given[*DeleteBotCmd, BotState](t, foldBot, BotState{}).
 		When(cmd, decide).
-		ThenError(event.NewRejection("usermgmt.bot_delete.not_found", ""))
+		ThenError(errorfamily.NewRejection("usermgmt.bot_delete.not_found", ""))
 }

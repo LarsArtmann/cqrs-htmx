@@ -4,6 +4,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TenantDecider returns the Decider for the Tenant aggregate.
@@ -20,13 +21,13 @@ func decideCreateTenant(
 ) func(TenantState, event.Version) ([]event.Event, error) {
 	return func(state TenantState, version event.Version) ([]event.Event, error) {
 		if state.Name != "" {
-			return nil, event.NewConflict(
+			return nil, errorfamily.NewConflict(
 				"usermgmt.tenant.already_exists",
 				"tenant with this ID already exists",
 			)
 		}
 		if name == "" {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.tenant.name_required",
 				"tenant name is required",
 			)
@@ -37,7 +38,7 @@ func decideCreateTenant(
 			DisplayName:   displayName,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.tenant.marshal_failed",
 				"marshal TenantCreated payload",
@@ -48,7 +49,7 @@ func decideCreateTenant(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.tenant.event_failed",
 				"create TenantCreated event",
@@ -64,7 +65,7 @@ func decideSuspendTenant(
 ) func(TenantState, event.Version) ([]event.Event, error) {
 	return func(state TenantState, version event.Version) ([]event.Event, error) {
 		if !state.Exists() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.tenant_suspend.not_found",
 				"tenant does not exist",
 			)
@@ -77,7 +78,7 @@ func decideSuspendTenant(
 			Reason:        reason,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.tenant_suspend.marshal_failed",
 				"marshal TenantSuspended payload",
@@ -88,7 +89,7 @@ func decideSuspendTenant(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.tenant_suspend.event_failed",
 				"create TenantSuspended event",
@@ -103,7 +104,7 @@ func decideReactivateTenant(
 ) func(TenantState, event.Version) ([]event.Event, error) {
 	return func(state TenantState, version event.Version) ([]event.Event, error) {
 		if !state.Exists() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.tenant_reactivate.not_found",
 				"tenant does not exist",
 			)
@@ -115,7 +116,7 @@ func decideReactivateTenant(
 			SchemaVersion: currentSchemaVersion,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.tenant_reactivate.marshal_failed",
 				"marshal TenantReactivated payload",
@@ -126,7 +127,7 @@ func decideReactivateTenant(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.tenant_reactivate.event_failed",
 				"create TenantReactivated event",
@@ -143,13 +144,13 @@ func decideDeleteTenant(
 ) func(TenantState, event.Version) ([]event.Event, error) {
 	return func(state TenantState, version event.Version) ([]event.Event, error) {
 		if !state.Exists() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.tenant_delete.not_found",
 				"tenant does not exist",
 			)
 		}
 		if state.Deleted {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.tenant_delete.already_deleted",
 				"tenant is already deleted",
 			)
@@ -159,7 +160,7 @@ func decideDeleteTenant(
 			Reason:        reason,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.tenant_delete.marshal_failed",
 				"marshal TenantDeleted payload",
@@ -170,7 +171,7 @@ func decideDeleteTenant(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.tenant_delete.event_failed",
 				"create TenantDeleted event",
@@ -178,7 +179,7 @@ func decideDeleteTenant(
 		}
 		marked, markErr := event.MarkTombstone(evt)
 		if markErr != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				markErr,
 				"usermgmt.tenant_delete.tombstone_failed",
 				"mark tenant tombstone",

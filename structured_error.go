@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // StructuredError is a transport-agnostic error payload following the
@@ -94,7 +95,7 @@ func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredErr
 // context.Context.
 func newStructuredErrorFromContext(err error, ctx context.Context) StructuredError {
 	status := MapError(err)
-	family := event.Classify(err)
+	family := errorfamily.Classify(err)
 	instance := ""
 	if ctx != nil {
 		if rid := RequestIDFromContext(ctx); !rid.IsZero() {

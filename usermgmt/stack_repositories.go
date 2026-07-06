@@ -4,6 +4,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // aggregateRepositories groups the four decider repositories that every
@@ -24,22 +25,22 @@ func buildStackRepositories(bundle *stack.Bundle) (*aggregateRepositories, error
 	user, err := stack.Repository(bundle, UserDecider())
 	if err != nil {
 		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create user repository")
+		return nil, errorfamily.WrapTransient(err, "internal", "create user repository")
 	}
 	membership, err := stack.Repository(bundle, MembershipDecider())
 	if err != nil {
 		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create membership repository")
+		return nil, errorfamily.WrapTransient(err, "internal", "create membership repository")
 	}
 	tenant, err := stack.Repository(bundle, TenantDecider())
 	if err != nil {
 		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create tenant repository")
+		return nil, errorfamily.WrapTransient(err, "internal", "create tenant repository")
 	}
 	bot, err := stack.Repository(bundle, BotDecider())
 	if err != nil {
 		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "create bot repository")
+		return nil, errorfamily.WrapTransient(err, "internal", "create bot repository")
 	}
 	return &aggregateRepositories{
 		User:       user,
@@ -60,22 +61,22 @@ func buildDeciderRepositories(
 	user, err := decider.NewRepository(store, bus, UserDecider())
 	if err != nil {
 		closeOnErr()
-		return nil, event.NewTransient("internal", "create decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "create decider repository").WithCause(err)
 	}
 	membership, err := decider.NewRepository(store, bus, MembershipDecider())
 	if err != nil {
 		closeOnErr()
-		return nil, event.NewTransient("internal", "create membership decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "create membership decider repository").WithCause(err)
 	}
 	tenant, err := decider.NewRepository(store, bus, TenantDecider())
 	if err != nil {
 		closeOnErr()
-		return nil, event.NewTransient("internal", "create tenant decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "create tenant decider repository").WithCause(err)
 	}
 	bot, err := decider.NewRepository(store, bus, BotDecider())
 	if err != nil {
 		closeOnErr()
-		return nil, event.NewTransient("internal", "create bot decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "create bot decider repository").WithCause(err)
 	}
 	return &aggregateRepositories{
 		User:       user,

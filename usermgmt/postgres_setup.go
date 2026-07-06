@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	stackpostgres "github.com/larsartmann/go-cqrs-lite/stack/postgres/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type PostgresSetupConfig struct {
@@ -29,7 +30,7 @@ func NewPostgresEventSourcedSetup(cfg PostgresSetupConfig) (*PostgresEventSource
 	}
 	bundle, err := stackpostgres.New(cfg.DSN, opts...)
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.postgres_setup.create", "create postgres stack bundle")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.postgres_setup.create", "create postgres stack bundle")
 	}
 	return newPostgresSetup(bundle, cfg.AuditLog, cfg.CheckpointStore)
 }
@@ -63,7 +64,7 @@ func newPostgresSetup(
 		rm, memRm, tenRm, botRm, casbinProj, auditLog,
 	); err != nil {
 		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "start projections")
+		return nil, errorfamily.WrapTransient(err, "internal", "start projections")
 	}
 
 	return &PostgresEventSourcedSetup{
@@ -89,19 +90,19 @@ func createPostgresReadModels(db *sql.DB) (
 	}
 	userRm, err := NewSQLUserReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, event.WrapTransient(err, "internal", "create sql user read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create sql user read model")
 	}
 	memRm, err := NewSQLMembershipReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, event.WrapTransient(err, "internal", "create sql membership read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create sql membership read model")
 	}
 	tenRm, err := NewSQLTenantReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, event.WrapTransient(err, "internal", "create sql tenant read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create sql tenant read model")
 	}
 	botRm, err := NewSQLBotReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, event.WrapTransient(err, "internal", "create sql bot read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create sql bot read model")
 	}
 	return userRm, memRm, tenRm, botRm, nil
 }
@@ -123,7 +124,7 @@ type PostgresEventSourcedSetup struct {
 func (s *PostgresEventSourcedSetup) Close() error {
 	if s.Bundle != nil {
 		if err := s.Bundle.Close(); err != nil {
-			return event.WrapTransient(err, "usermgmt.postgres_setup.close", "close postgres bundle")
+			return errorfamily.WrapTransient(err, "usermgmt.postgres_setup.close", "close postgres bundle")
 		}
 	}
 	return nil
@@ -132,7 +133,11 @@ func (s *PostgresEventSourcedSetup) Close() error {
 func (s *PostgresEventSourcedSetup) GracefulClose(ctx context.Context) error {
 	if s.Bundle != nil {
 		if err := s.Bundle.GracefulClose(ctx); err != nil {
-			return event.WrapTransient(err, "usermgmt.postgres_setup.graceful_close", "graceful close postgres bundle")
+			return errorfamily.WrapTransient(
+				err,
+				"usermgmt.postgres_setup.graceful_close",
+				"graceful close postgres bundle",
+			)
 		}
 	}
 	return nil

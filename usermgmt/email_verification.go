@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // VerificationTokenTTL is the default lifetime of an email verification token.
@@ -106,7 +106,7 @@ func (s *Service) SendVerificationEmail(ctx context.Context, userID UserID) (tok
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logAuth("verification_email_failed", userID, "reason", "user_not_found")
-		return "", event.WrapRejection(
+		return "", errorfamily.WrapRejection(
 			ErrUserNotFound,
 			"usermgmt.verification.user_not_found",
 			"send verification email",
@@ -121,13 +121,13 @@ func (s *Service) SendVerificationEmail(ctx context.Context, userID UserID) (tok
 	token, err = s.verificationTokens.Save(userID, user.Email, ttl)
 	if err != nil {
 		s.logAuth("verification_email_failed", userID, "reason", "token_generation_error")
-		return "", event.NewTransient("internal", "generate verification token").WithCause(err)
+		return "", errorfamily.NewTransient("internal", "generate verification token").WithCause(err)
 	}
 
 	if s.sendVerificationEmail != nil {
 		if err := s.sendVerificationEmail(ctx, user.Email, token); err != nil {
 			s.logAuth("verification_email_failed", userID, "reason", "send_callback_error")
-			return "", event.NewTransient("internal", "send verification email").WithCause(err)
+			return "", errorfamily.NewTransient("internal", "send verification email").WithCause(err)
 		}
 	}
 	s.logAuth("verification_email_sent", userID, "email", user.Email)
@@ -148,11 +148,11 @@ func (s *Service) VerifyEmail(ctx context.Context, token string) error {
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
 		s.logAuth("email_verify_failed", userID, "reason", "invalid_user_id")
-		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewVerifyEmailCmd(aggID)); err != nil {
 		s.logAuth("email_verify_failed", userID, "reason", "dispatch_error")
-		return event.Wrapf(err, event.Classify(err),
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"usermgmt.verification.dispatch_failed", "verify email dispatch")
 	}
 	s.logAuth(statusVerified, userID)

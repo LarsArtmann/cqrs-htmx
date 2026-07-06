@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // BeginOAuthLoginResponse contains the redirect URL for the OAuth2 authorization flow.
@@ -24,16 +24,16 @@ func (s *Service) BeginOAuthLogin(ctx context.Context, provider string) (*BeginO
 
 	state, err := generateOAuth2State()
 	if err != nil {
-		return nil, event.NewTransient("internal", "generate oauth2 state").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "generate oauth2 state").WithCause(err)
 	}
 
 	redirectURL, pkceVerifier, err := s.oauth2.BeginLogin(ctx, provider, state)
 	if err != nil {
-		return nil, event.NewTransient("internal", "oauth2 begin login").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "oauth2 begin login").WithCause(err)
 	}
 
 	if err := s.oauth2States.Save(state, provider, pkceVerifier, s.oauth2StateTTL); err != nil {
-		return nil, event.NewTransient("internal", "save oauth2 state").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "save oauth2 state").WithCause(err)
 	}
 
 	s.logAuth("oauth_login_begin", UserID{}, "provider", provider)
@@ -61,7 +61,7 @@ func (s *Service) FinishOAuthLogin(
 	storedProvider, pkceVerifier, err := s.oauth2States.Consume(state)
 	if err != nil {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "invalid_state")
-		return nil, event.WrapRejection(err, "usermgmt.oauth.state_consume_failed", "consume oauth2 state")
+		return nil, errorfamily.WrapRejection(err, "usermgmt.oauth.state_consume_failed", "consume oauth2 state")
 	}
 	if storedProvider != provider {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "provider_mismatch")
@@ -71,17 +71,18 @@ func (s *Service) FinishOAuthLogin(
 	userInfoJSON, err := s.oauth2.FinishLogin(ctx, provider, code, pkceVerifier)
 	if err != nil {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "token_exchange")
-		return nil, event.WrapTransient(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token")
 	}
 
 	var info OAuth2UserInfo
 	if err := json.Unmarshal(userInfoJSON, &info); err != nil {
-		return nil, event.NewInfrastructure("usermgmt.oauth.userinfo_unmarshal", "unmarshal user info").WithCause(err)
+		return nil, errorfamily.NewInfrastructure("usermgmt.oauth.userinfo_unmarshal", "unmarshal user info").
+			WithCause(err)
 	}
 
 	if info.Email == "" {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "no_email")
-		return nil, event.NewRejection("usermgmt.oauth_no_email",
+		return nil, errorfamily.NewRejection("usermgmt.oauth_no_email",
 			"OAuth2 provider did not return an email address")
 	}
 	info.Email = strings.ToLower(strings.TrimSpace(info.Email))
@@ -94,7 +95,7 @@ func (s *Service) FinishOAuthLogin(
 	session, err := s.createSession(ctx, user.ID)
 	if err != nil {
 		return nil, withUserIDContext(
-			event.NewTransient("internal", "create oauth2 session").WithCause(err), user.ID,
+			errorfamily.NewTransient("internal", "create oauth2 session").WithCause(err), user.ID,
 		)
 	}
 
@@ -145,7 +146,7 @@ func (s *Service) matchOrCreateUser(
 	user, ok := s.readModel.FindByID(aggID)
 	if !ok {
 		return nil, false, withUserIDContext(
-			event.NewTransient("internal", "oauth2 user not in read model after register"), userID,
+			errorfamily.NewTransient("internal", "oauth2 user not in read model after register"), userID,
 		)
 	}
 
@@ -177,7 +178,11 @@ func (s *Service) linkExternalAccount(
 
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID for link")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"usermgmt.service.userid_conversion_failed",
+			"convert userID for link",
+		)
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewLinkExternalAccountCmd(
 		aggID, provider, info.Subject, info.Email, info.DisplayName,
@@ -212,7 +217,7 @@ func (s *Service) markEmailVerifiedIfMatch(ctx context.Context, aggID id.Aggrega
 func (s *Service) UnlinkExternalAccount(ctx context.Context, userID UserID, provider string) error {
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
-		return event.WrapRejection(ErrUserNotFound, "usermgmt.service.user_not_found", "unlink external account")
+		return errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.service.user_not_found", "unlink external account")
 	}
 
 	var subject string
@@ -228,7 +233,11 @@ func (s *Service) UnlinkExternalAccount(ctx context.Context, userID UserID, prov
 
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID for unlink")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"usermgmt.service.userid_conversion_failed",
+			"convert userID for unlink",
+		)
 	}
 
 	if err := s.dispatcher.Dispatch(ctx, NewUnlinkExternalAccountCmd(

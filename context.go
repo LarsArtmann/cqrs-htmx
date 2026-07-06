@@ -7,6 +7,7 @@ import (
 	brandid "github.com/larsartmann/go-branded-id"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // UserID is a strongly-typed identifier for users, preventing accidental mixing
@@ -22,7 +23,7 @@ func NewUserID() UserID {
 func parseID[T any](s string, parse func(string) (T, error), label string) (T, error) {
 	v, err := parse(s)
 	if err != nil {
-		return v, event.Wrapf(err, event.Rejection, "cqrshtmx.context.id_parse_failed", "parse %s", label)
+		return v, errorfamily.Wrapf(err, event.Rejection, "cqrshtmx.context.id_parse_failed", "parse %s", label)
 	}
 	return v, nil
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type RegisterUserCmd struct {
@@ -166,7 +167,7 @@ func NewUnlinkExternalAccountCmd(
 func mustCommand(cmdType command.Type, aggID id.AggregateID) *command.BasicCommand {
 	base, err := command.New(cmdType, aggID)
 	if err != nil {
-		panic(event.Wrapf(
+		panic(errorfamily.Wrapf(
 			err, event.Infrastructure,
 			"usermgmt.command.create_failed",
 			"create %s command", cmdType,

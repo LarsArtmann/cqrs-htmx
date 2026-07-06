@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MaterializeProjection wraps a [stack.Materialize] as an [projection.Projection],
@@ -96,7 +97,7 @@ func (m *MaterializeProjection[V, K]) Handle(ctx context.Context, evt event.Even
 	msg := cqrswatermill.EventToMessage(evt)
 	msg.SetContext(ctx)
 	if err := m.handler(msg); err != nil {
-		return event.Wrapf(err, event.Classify(err),
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"usermgmt.materialize_projection.handle",
 			"handle event %s in materialize projection", evt.Type())
 	}

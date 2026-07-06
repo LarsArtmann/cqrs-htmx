@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TenantState is the aggregate state for a Tenant, reconstructed by folding events.
@@ -78,7 +79,7 @@ func foldTenant(state TenantState, evt event.Event) (TenantState, error) {
 		next.DeleteReason = p.Reason
 
 	default:
-		return state, event.NewRejection(
+		return state, errorfamily.NewRejection(
 			"usermgmt.tenant.unknown_event",
 			"foldTenant received unknown event type: "+string(evt.Type()),
 		)

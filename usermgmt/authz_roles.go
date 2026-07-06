@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // RolesForUser returns the directly assigned roles for a user in the given domain.
@@ -11,7 +12,7 @@ func (a *Authz) RolesForUser(userID UserID, domain TenantID) ([]Role, error) {
 	}
 	roles, err := a.enforcer.GetRolesForUser(userID.Get().String(), domain.Get())
 	if err != nil {
-		return nil, event.WrapTransient(err, "casbin_error", "domain="+domain.Get())
+		return nil, errorfamily.WrapTransient(err, "casbin_error", "domain="+domain.Get())
 	}
 	return convertRoles(roles), nil
 }
@@ -23,7 +24,7 @@ func (a *Authz) ImplicitRolesForUser(userID UserID, domain TenantID) ([]Role, er
 	}
 	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get().String(), domain.Get())
 	if err != nil {
-		return nil, event.WrapTransient(err, "casbin_error", "domain="+domain.Get())
+		return nil, errorfamily.WrapTransient(err, "casbin_error", "domain="+domain.Get())
 	}
 	return convertRoles(roles), nil
 }
@@ -36,7 +37,7 @@ func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain TenantID) ([][]
 	}
 	p, err := a.enforcer.GetImplicitPermissionsForUser(userID.Get().String(), domain.Get())
 	if err != nil {
-		return nil, event.WrapTransient(
+		return nil, errorfamily.WrapTransient(
 			err, "casbin_error",
 			"implicit permissions domain="+domain.Get(),
 		)
@@ -51,7 +52,7 @@ func (a *Authz) DomainsForUser(userID UserID) ([]TenantID, error) {
 	}
 	d, err := a.enforcer.GetDomainsForUser(userID.Get().String())
 	if err != nil {
-		return nil, event.WrapTransient(err, "casbin_error", "domains for user")
+		return nil, errorfamily.WrapTransient(err, "casbin_error", "domains for user")
 	}
 	filtered := make([]TenantID, 0, len(d))
 	for _, dom := range d {
@@ -69,7 +70,7 @@ func (a *Authz) UsersForRole(role Role, domain TenantID) ([]string, error) {
 	}
 	u, err := a.enforcer.GetUsersForRole(string(role), domain.Get())
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err, event.Transient, "casbin_error",
 			"users for role %s domain=%s", role, domain.Get(),
 		)

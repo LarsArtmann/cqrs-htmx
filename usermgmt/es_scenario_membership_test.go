@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/scenario/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Membership scenario/v3 BDD tests. Exercises AddMember, UpdateMemberRoles,
@@ -56,7 +57,7 @@ func TestScenario_AddMember_AlreadyExists(t *testing.T) {
 
 	scenario.Given[*AddMemberCmd, MembershipState](t, foldMembership, MembershipState{}, existing).
 		When(cmd, decide).
-		ThenError(event.NewConflict("usermgmt.membership.already_exists", ""))
+		ThenError(errorfamily.NewConflict("usermgmt.membership.already_exists", ""))
 }
 
 func TestScenario_AddMember_ActorRequired(t *testing.T) {
@@ -72,7 +73,7 @@ func TestScenario_AddMember_ActorRequired(t *testing.T) {
 
 	scenario.Given[*AddMemberCmd, MembershipState](t, foldMembership, MembershipState{}).
 		When(cmd, decide).
-		ThenError(event.NewRejection("usermgmt.membership.actor_required", ""))
+		ThenError(errorfamily.NewRejection("usermgmt.membership.actor_required", ""))
 }
 
 func TestScenario_UpdateMemberRoles_HappyPath(t *testing.T) {
@@ -151,5 +152,5 @@ func TestScenario_RemoveMember_NotFound(t *testing.T) {
 
 	scenario.Given[*RemoveMemberCmd, MembershipState](t, foldMembership, MembershipState{}).
 		When(cmd, decide).
-		ThenError(event.NewRejection("usermgmt.membership_remove.not_found", ""))
+		ThenError(errorfamily.NewRejection("usermgmt.membership_remove.not_found", ""))
 }

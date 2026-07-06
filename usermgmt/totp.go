@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // totpTransient logs an auth failure and returns a transient error wrapping
@@ -13,7 +13,7 @@ import (
 // an error that is not the caller's fault.
 func (s *Service) totpTransient(evt string, userID UserID, reason, msg string, err error) error {
 	s.logAuth(evt, userID, "reason", reason)
-	return event.NewTransient("internal", msg).WithCause(err)
+	return errorfamily.NewTransient("internal", msg).WithCause(err)
 }
 
 // TOTPSetupResponse is returned when enabling TOTP for a user.
@@ -34,7 +34,7 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logAuth("totp_setup_failed", userID, "reason", "user_not_found")
-		return nil, event.WrapRejection(ErrUserNotFound, "usermgmt.totp.user_not_found", "enable totp")
+		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.totp.user_not_found", "enable totp")
 	}
 	if user.TOTPEnabled {
 		s.logAuth("totp_setup_failed", userID, "reason", "already_enabled")
@@ -76,11 +76,11 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "invalid_user_id")
-		return event.WrapInfrastructure(err, "usermgmt.totp.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.totp.userid_conversion_failed", "convert userID")
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewEnableTOTPCmd(aggID, secret)); err != nil {
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "dispatch_error")
-		return event.Wrapf(err, event.Classify(err),
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"usermgmt.totp.dispatch_failed", "enable totp dispatch")
 	}
 	s.logAuth(statusTOTPEnabled, userID)
@@ -106,11 +106,11 @@ func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) e
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
 		s.logAuth("totp_disable_failed", userID, "reason", "invalid_user_id")
-		return event.WrapInfrastructure(err, "usermgmt.totp.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.totp.userid_conversion_failed", "convert userID")
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewDisableTOTPCmd(aggID)); err != nil {
 		s.logAuth("totp_disable_failed", userID, "reason", "dispatch_error")
-		return event.Wrapf(err, event.Classify(err),
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"usermgmt.totp.dispatch_failed", "disable totp dispatch")
 	}
 	s.logAuth(statusTOTPDisabled, userID)
@@ -124,7 +124,7 @@ func (s *Service) requireValidTOTP(userID UserID, code, failEvent string) error 
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logAuth(failEvent, userID, "reason", "user_not_found")
-		return event.WrapRejection(ErrUserNotFound, "usermgmt.totp.user_not_found", "totp")
+		return errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.totp.user_not_found", "totp")
 	}
 	if !user.TOTPEnabled || len(user.TOTPSecret) == 0 {
 		s.logAuth(failEvent, userID, "reason", "totp_not_enabled")

@@ -10,8 +10,8 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -92,7 +92,7 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 
 	Describe("MapError conflict family", func() {
 		It("returns 409 for conflict family errors", func() {
-			err := fmt.Errorf("wrap: %w", event.NewConflict("test.conflict", "conflict occurred"))
+			err := fmt.Errorf("wrap: %w", errorfamily.NewConflict("test.conflict", "conflict occurred"))
 			status := cqrshtmx.MapError(err)
 			Expect(status).To(Equal(http.StatusConflict))
 		})
@@ -100,7 +100,7 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 
 	Describe("MapError transient family", func() {
 		It("returns 503 for transient family errors", func() {
-			err := fmt.Errorf("wrap: %w", event.NewTransient("test.transient", "temporary failure"))
+			err := fmt.Errorf("wrap: %w", errorfamily.NewTransient("test.transient", "temporary failure"))
 			status := cqrshtmx.MapError(err)
 			Expect(status).To(Equal(http.StatusServiceUnavailable))
 		})

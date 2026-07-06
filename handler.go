@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // dispatchContext runs the beforeDispatch hook and pre-dispatch checks.
@@ -72,7 +73,7 @@ func (a *App) handleCommandDispatch(
 
 	cmd, err := cfg.commandDecoder(r)
 	if err != nil {
-		wrappedErr := event.Wrapf(err, event.Rejection,
+		wrappedErr := errorfamily.Wrapf(err, event.Rejection,
 			"cqrshtmx.decode.command_failed", "decode command %s", cmdType)
 		a.handleErr(w, r, ctx, cfg, wrappedErr)
 		return
@@ -94,7 +95,7 @@ func (a *App) handleCommandDispatch(
 	defer cancel()
 
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		a.handleErr(w, r, ctx, cfg, event.Wrapf(err, event.Classify(err),
+		a.handleErr(w, r, ctx, cfg, errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"cqrshtmx.dispatch.command_failed", "dispatch command %s", cmdType))
 		return
 	}
@@ -109,7 +110,7 @@ func (a *App) executePreDispatchChecks(
 	cfg *handlerConfig,
 ) error {
 	if cfg.requireMethod != "" && r.Method != cfg.requireMethod {
-		a.errorHandler(w, r, event.Wrapf(ErrMethodNotAllowed, event.Rejection,
+		a.errorHandler(w, r, errorfamily.Wrapf(ErrMethodNotAllowed, event.Rejection,
 			"cqrshtmx.handler.method_not_allowed", "got %s, want %s", r.Method, cfg.requireMethod))
 		return ErrMethodNotAllowed
 	}
@@ -185,7 +186,7 @@ func (a *App) handleQueryDispatch(
 
 	qry, err := cfg.queryDecoder(r)
 	if err != nil {
-		wrappedErr := event.Wrapf(err, event.Rejection,
+		wrappedErr := errorfamily.Wrapf(err, event.Rejection,
 			"cqrshtmx.decode.query_failed", "decode query %s", qryType)
 		a.handleErr(w, r, ctx, cfg, wrappedErr)
 		return
@@ -208,7 +209,7 @@ func (a *App) handleQueryDispatch(
 
 	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
-		a.handleErr(w, r, ctx, cfg, event.Wrapf(err, event.Classify(err),
+		a.handleErr(w, r, ctx, cfg, errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"cqrshtmx.dispatch.query_failed", "dispatch query %s", qryType))
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // UserState is the aggregate state for the User, reconstructed by folding events.
@@ -30,11 +31,11 @@ func (s UserState) Exists() bool {
 func unmarshalPayload[T any](evt event.Event) (T, error) {
 	raw, err := applyUpcasters(evt.Type(), evt.Payload())
 	if err != nil {
-		return *new(T), event.WrapCorruption(err, "usermgmt.payload.upcast_failed", "upcast payload")
+		return *new(T), errorfamily.WrapCorruption(err, "usermgmt.payload.upcast_failed", "upcast payload")
 	}
 	var target T
 	if err := json.Unmarshal(raw, &target); err != nil {
-		return target, event.WrapCorruption(err,
+		return target, errorfamily.WrapCorruption(err,
 			"usermgmt.payload_decode_failed",
 			"decode payload for event "+string(evt.Type()))
 	}
@@ -164,7 +165,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		next.ExternalAccounts = filtered
 
 	default:
-		return state, event.NewRejection(
+		return state, errorfamily.NewRejection(
 			"usermgmt.user.unknown_event",
 			"foldUser received unknown event type: "+string(evt.Type()),
 		)

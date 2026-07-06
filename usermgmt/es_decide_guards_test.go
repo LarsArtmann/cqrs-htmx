@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // existingState is a valid, non-deleted user state used as the base for guard tests.
@@ -239,7 +240,7 @@ func TestDecideGuardErrorsAreRejections(t *testing.T) {
 			if err == nil {
 				t.Fatal("expected error")
 			}
-			if event.Classify(err) != event.Rejection {
+			if errorfamily.Classify(err) != event.Rejection {
 				t.Errorf("not-found: expected Rejection, got %v", err)
 			}
 		})
@@ -248,7 +249,7 @@ func TestDecideGuardErrorsAreRejections(t *testing.T) {
 			if err == nil {
 				t.Fatal("expected error")
 			}
-			if event.Classify(err) != event.Rejection {
+			if errorfamily.Classify(err) != event.Rejection {
 				t.Errorf("deleted: expected Rejection, got %v", err)
 			}
 		})

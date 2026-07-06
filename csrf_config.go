@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/justinas/nosurf"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -35,7 +35,7 @@ func ForbiddenErrorHandler(w http.ResponseWriter, _ *http.Request, _ error) {
 
 // ErrCSRFInvalid is returned when a CSRF token is missing, malformed, or does not match.
 // Uses justinas/nosurf under the hood for token generation and validation.
-var ErrCSRFInvalid = event.NewRejection("csrf_invalid", "invalid or missing CSRF token").WithCause(ErrForbidden)
+var ErrCSRFInvalid = errorfamily.NewRejection("csrf_invalid", "invalid or missing CSRF token").WithCause(ErrForbidden)
 
 // CSRFConfig configures CSRF protection.
 //
@@ -154,13 +154,13 @@ func (c *CSRFConfig) path() string {
 // Call this in production startup code to fail fast on misconfiguration.
 func (c *CSRFConfig) Validate() error {
 	if c.SameSite == http.SameSiteNoneMode && !c.Secure {
-		return event.NewInfrastructure("csrf_samesite_insecure", "SameSite=None requires Secure=true").
+		return errorfamily.NewInfrastructure("csrf_samesite_insecure", "SameSite=None requires Secure=true").
 			WithCause(ErrCSRFConfig)
 	}
 
 	for _, origin := range c.TrustedOrigins {
 		if origin == "" || origin == "*" {
-			return event.NewInfrastructure("csrf_unsafe_origin",
+			return errorfamily.NewInfrastructure("csrf_unsafe_origin",
 				fmt.Sprintf("TrustedOrigins contains unsafe entry %q — use specific domain names only",
 					origin)).WithCause(ErrCSRFConfig)
 		}
@@ -176,13 +176,13 @@ func (c *CSRFConfig) Validate() error {
 	c.TrustedProxiesCIDR = nil
 	for _, p := range c.TrustedProxies {
 		if p == "" {
-			return event.NewInfrastructure("csrf_unsafe_proxy",
+			return errorfamily.NewInfrastructure("csrf_unsafe_proxy",
 				"TrustedProxies contains empty entry").WithCause(ErrCSRFConfig)
 		}
 		if strings.Contains(p, "/") {
 			_, ipnet, err := net.ParseCIDR(p)
 			if err != nil {
-				return event.NewInfrastructure("csrf_invalid_cidr",
+				return errorfamily.NewInfrastructure("csrf_invalid_cidr",
 					fmt.Sprintf("TrustedProxies contains invalid CIDR %q: %v", p, err)).
 					WithCause(ErrCSRFConfig)
 			}

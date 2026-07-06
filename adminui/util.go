@@ -7,17 +7,17 @@ import (
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // errConfig returns a Rejection-family error for invalid configuration.
 // (The repo bans stdlib error constructors; go-error-family is the standard.)
 func errConfig(msg string) error {
-	return event.NewRejection("adminui.config", msg)
+	return errorfamily.NewRejection("adminui.config", msg)
 }
 
 // errForbidden is the Rejection returned when a user lacks panel access.
-var errForbidden = event.NewRejection("adminui.forbidden", "access denied")
+var errForbidden = errorfamily.NewRejection("adminui.forbidden", "access denied")
 
 // relTime renders a coarse relative timestamp like "just now", "3m ago",
 // "2h ago", or a date for older entries.

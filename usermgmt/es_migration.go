@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MigrateRolesToMemberships converts legacy UserRegistered and RolesUpdated
@@ -33,7 +34,7 @@ func MigrateRolesToMemberships(
 ) error {
 	for _, evt := range events {
 		if err := migrateEvent(ctx, evt, dispatcher); err != nil {
-			return event.Wrapf(
+			return errorfamily.Wrapf(
 				err, event.Infrastructure,
 				"usermgmt.migration.event_failed",
 				"migrate event %s for aggregate %s",
@@ -85,5 +86,5 @@ func migrateEvent(ctx context.Context, evt event.Event, dispatcher *command.Disp
 }
 
 func isConflict(err error) bool {
-	return event.Classify(err) == event.Conflict
+	return errorfamily.Classify(err) == event.Conflict
 }

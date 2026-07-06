@@ -8,9 +8,9 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -193,7 +193,7 @@ var _ = Describe("Feedback-driven features", func() {
 		It("includes the code field for classified errors", func() {
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return event.NewConflict("battle.exists", "battle already exists")
+				return errorfamily.NewConflict("battle.exists", "battle already exists")
 			})
 			app := mustNewApp(cqrshtmx.Config{
 				Commands:     disp,

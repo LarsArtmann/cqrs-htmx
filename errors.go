@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const defaultLoginRedirect = "/login"
@@ -27,19 +27,19 @@ const (
 // through go-cqrs-lite/event/v3), so MapError derives the HTTP status directly —
 // no runtime RegisterClassification is needed.
 var (
-	ErrUnauthorized     = event.NewRejection(CodeUnauthorized, "unauthorized: authentication required")
-	ErrForbidden        = event.NewRejection(CodeForbidden, "forbidden: insufficient permissions")
-	ErrDecodeFailed     = event.NewRejection("decode_failed", "failed to decode request body")
-	ErrDispatchFailed   = event.NewTransient("dispatch_failed", "command/query dispatch failed")
-	ErrEnforcerNil      = event.NewInfrastructure("enforcer_nil", "casbin enforcer is required for authorization")
-	ErrValidationFailed = event.NewRejection("validation_failed", "request validation failed")
-	ErrCSRFConfig       = event.NewInfrastructure("csrf_config", "invalid CSRF configuration")
-	ErrRequestTooLarge  = event.NewRejection("request_too_large", "request body exceeds maximum size")
-	ErrMethodNotAllowed = event.NewRejection("method_not_allowed", "HTTP method not allowed")
+	ErrUnauthorized     = errorfamily.NewRejection(CodeUnauthorized, "unauthorized: authentication required")
+	ErrForbidden        = errorfamily.NewRejection(CodeForbidden, "forbidden: insufficient permissions")
+	ErrDecodeFailed     = errorfamily.NewRejection("decode_failed", "failed to decode request body")
+	ErrDispatchFailed   = errorfamily.NewTransient("dispatch_failed", "command/query dispatch failed")
+	ErrEnforcerNil      = errorfamily.NewInfrastructure("enforcer_nil", "casbin enforcer is required for authorization")
+	ErrValidationFailed = errorfamily.NewRejection("validation_failed", "request validation failed")
+	ErrCSRFConfig       = errorfamily.NewInfrastructure("csrf_config", "invalid CSRF configuration")
+	ErrRequestTooLarge  = errorfamily.NewRejection("request_too_large", "request body exceeds maximum size")
+	ErrMethodNotAllowed = errorfamily.NewRejection("method_not_allowed", "HTTP method not allowed")
 
-	errCommandsNil    = event.NewInfrastructure("commands_nil", "command dispatcher is required")
-	errQueriesNil     = event.NewInfrastructure("queries_nil", "query dispatcher is required")
-	errDecoderMissing = event.NewInfrastructure("decoder_missing", "request decoder is required")
+	errCommandsNil    = errorfamily.NewInfrastructure("commands_nil", "command dispatcher is required")
+	errQueriesNil     = errorfamily.NewInfrastructure("queries_nil", "query dispatcher is required")
+	errDecoderMissing = errorfamily.NewInfrastructure("decoder_missing", "request decoder is required")
 )
 
 // MapError translates a CQRS error into an appropriate HTTP status code.
@@ -74,7 +74,7 @@ func MapError(err error) int {
 		return status
 	}
 
-	return event.Classify(err).HTTPStatus()
+	return errorfamily.Classify(err).HTTPStatus()
 }
 
 func explicitErrorStatus(err error) int {
@@ -248,7 +248,7 @@ func SafeDetail(err error, status int, includeInternal bool) string {
 	if status < 500 || includeInternal {
 		return err.Error()
 	}
-	return event.Classify(err).DefaultMessage()
+	return errorfamily.Classify(err).DefaultMessage()
 }
 
 // prefixRequestID prefixes detail with the request ID when one is in context.

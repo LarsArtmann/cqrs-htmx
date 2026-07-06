@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Each sentinel is a classified event.Error (Rejection/Conflict family) wrapped
@@ -44,7 +44,7 @@ var (
 	ErrUnauthorized = unauthorized(cqrshtmx.CodeUnauthorized, "authentication required")
 	// ErrValidation is returned when input validation fails (e.g. invalid email).
 	// Rejection family default (400) is correct — no status override needed.
-	ErrValidation = event.NewRejection("usermgmt.validation", "validation failed")
+	ErrValidation = errorfamily.NewRejection("usermgmt.validation", "validation failed")
 	// ErrAccountLocked is returned when login is rejected because the account exceeded the
 	// maximum allowed failed attempts.
 	ErrAccountLocked = withStatus(
@@ -64,7 +64,7 @@ var (
 	)
 	// ErrInvalidVerificationToken is returned when a verification token is
 	// invalid, already used, or expired. Rejection family default (400) is correct.
-	ErrInvalidVerificationToken = event.NewRejection(
+	ErrInvalidVerificationToken = errorfamily.NewRejection(
 		"usermgmt.invalid_verification_token",
 		"verification token is invalid or expired",
 	)
@@ -78,29 +78,35 @@ var (
 	ErrTOTPAlreadyEnabled = conflict("usermgmt.totp_already_enabled", "TOTP is already enabled for this user")
 	// ErrTOTPNotEnabled is returned when TOTP verification is requested for a user without TOTP.
 	// Rejection family default (400) is correct.
-	ErrTOTPNotEnabled = event.NewRejection("usermgmt.totp_not_enabled", "TOTP is not enabled for this user")
+	ErrTOTPNotEnabled = errorfamily.NewRejection("usermgmt.totp_not_enabled", "TOTP is not enabled for this user")
 	// ErrInvalidTOTPCode is returned when the provided TOTP code is invalid.
 	ErrInvalidTOTPCode = unauthorized("usermgmt.invalid_totp_code", "invalid TOTP code")
 	// ErrTOTPSetupExpired is returned when the pending TOTP setup has expired.
 	// Rejection family default (400) is correct.
-	ErrTOTPSetupExpired = event.NewRejection("usermgmt.totp_setup_expired", "TOTP setup has expired, please try again")
+	ErrTOTPSetupExpired = errorfamily.NewRejection(
+		"usermgmt.totp_setup_expired",
+		"TOTP setup has expired, please try again",
+	)
 	// ErrOAuthNotConfigured is returned when OAuth2 is used without being configured.
 	ErrOAuthNotConfigured = serviceUnavailable("usermgmt.oauth_not_configured", "OAuth2 is not configured")
 	// ErrOAuthProviderNotFound is returned when the requested provider is not configured.
 	ErrOAuthProviderNotFound = notFound("usermgmt.oauth_provider_not_found", "OAuth2 provider not found")
 	// ErrOAuthInvalidState is returned when the state token is invalid, expired, or missing.
 	// Rejection family default (400) is correct.
-	ErrOAuthInvalidState = event.NewRejection(
+	ErrOAuthInvalidState = errorfamily.NewRejection(
 		"usermgmt.oauth_invalid_state",
 		"OAuth2 state token is invalid or expired",
 	)
 	// ErrOAuthTokenExchange is returned when exchanging the authorization code for a token fails.
 	// Rejection family default (400) is correct.
-	ErrOAuthTokenExchange = event.NewRejection("usermgmt.oauth_token_exchange_failed", "OAuth2 token exchange failed")
+	ErrOAuthTokenExchange = errorfamily.NewRejection(
+		"usermgmt.oauth_token_exchange_failed",
+		"OAuth2 token exchange failed",
+	)
 	// ErrExternalAccountAlreadyLinked is returned when an external account
 	// (provider+subject pair) is already linked to a different user.
 	// Conflict family default (409) is correct — no status override needed.
-	ErrExternalAccountAlreadyLinked = event.NewConflict(
+	ErrExternalAccountAlreadyLinked = errorfamily.NewConflict(
 		"usermgmt.external_account_linked_to_other",
 		"external account is already linked to another user",
 	)
@@ -109,7 +115,7 @@ var (
 // withStatus wraps a Rejection-classified error carrying an explicit HTTP status.
 // Used when the correct status differs from the Rejection default (400).
 func withStatus(code, msg string, status int) error {
-	return cqrshtmx.WithHTTPStatus(event.NewRejection(code, msg), status) //nolint:wrapcheck // wrapping boundary
+	return cqrshtmx.WithHTTPStatus(errorfamily.NewRejection(code, msg), status) //nolint:wrapcheck // wrapping boundary
 }
 
 // Semantic helpers for the common non-default statuses, keeping the sentinel

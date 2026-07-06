@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // App wires CQRS dispatchers, Casbin authorization, and HTMX response handling
@@ -112,7 +113,7 @@ type AfterDispatchHook func(ctx context.Context, r *http.Request, err error)
 // Returns an error if both Commands and Queries are nil.
 func New(cfg Config) (*App, error) {
 	if cfg.Commands == nil && cfg.Queries == nil {
-		return nil, event.NewInfrastructure(
+		return nil, errorfamily.NewInfrastructure(
 			"config_invalid",
 			"[cqrs-htmx] at least one of Commands or Queries must be non-nil",
 		)

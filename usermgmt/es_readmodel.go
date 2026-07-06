@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // UserReadModel is the projection-side store for users.
@@ -50,7 +51,11 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventUserRegistered:
 		p, err := unmarshalPayload[UserRegisteredPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode UserRegistered in read model")
+			return errorfamily.WrapCorruption(
+				err,
+				"usermgmt.readmodel.decode_failed",
+				"decode UserRegistered in read model",
+			)
 		}
 		m.users[aggID] = &User{
 			ID:          NewUserID(aggID.String()),
@@ -66,13 +71,21 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 		// payload to detect corruption, but no longer store roles on User.
 		_, err := unmarshalPayload[RolesUpdatedPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode RolesUpdated in read model")
+			return errorfamily.WrapCorruption(
+				err,
+				"usermgmt.readmodel.decode_failed",
+				"decode RolesUpdated in read model",
+			)
 		}
 
 	case eventEmailChanged:
 		p, err := unmarshalPayload[EmailChangedPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode EmailChanged in read model")
+			return errorfamily.WrapCorruption(
+				err,
+				"usermgmt.readmodel.decode_failed",
+				"decode EmailChanged in read model",
+			)
 		}
 		if u, ok := m.users[aggID]; ok {
 			delete(m.emails, u.Email)
@@ -85,7 +98,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventDisplayNameChanged:
 		p, err := unmarshalPayload[DisplayNameChangedPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(
+			return errorfamily.WrapCorruption(
 				err,
 				"usermgmt.readmodel.decode_failed",
 				"decode DisplayNameChanged in read model",
@@ -99,7 +112,11 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventCredentialAdded:
 		p, err := unmarshalPayload[CredentialAddedPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode CredentialAdded in read model")
+			return errorfamily.WrapCorruption(
+				err,
+				"usermgmt.readmodel.decode_failed",
+				"decode CredentialAdded in read model",
+			)
 		}
 		if u, ok := m.users[aggID]; ok {
 			u.Credentials = append(u.Credentials, newCredentialFromPayload(p, evt.OccurredAt()))
@@ -109,7 +126,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventCredentialRemoved:
 		p, err := unmarshalPayload[CredentialRemovedPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(
+			return errorfamily.WrapCorruption(
 				err,
 				"usermgmt.readmodel.decode_failed",
 				"decode CredentialRemoved in read model",
@@ -144,7 +161,11 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventTOTPEnabled:
 		p, err := unmarshalPayload[TOTPEnabledPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(err, "usermgmt.readmodel.decode_failed", "decode TOTPEnabled in read model")
+			return errorfamily.WrapCorruption(
+				err,
+				"usermgmt.readmodel.decode_failed",
+				"decode TOTPEnabled in read model",
+			)
 		}
 		if u, ok := m.users[aggID]; ok {
 			u.TOTPEnabled = true
@@ -162,7 +183,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventExternalAccountLinked:
 		p, err := unmarshalPayload[ExternalAccountLinkedPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(
+			return errorfamily.WrapCorruption(
 				err,
 				"usermgmt.readmodel.decode_failed",
 				"decode ExternalAccountLinked in read model",
@@ -185,7 +206,7 @@ func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventExternalAccountUnlinked:
 		p, err := unmarshalPayload[ExternalAccountUnlinkedPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(
+			return errorfamily.WrapCorruption(
 				err,
 				"usermgmt.readmodel.decode_failed",
 				"decode ExternalAccountUnlinked in read model",
@@ -282,7 +303,7 @@ var _ projection.Projection = (*UserReadModel)(nil)
 func aggIDFromBranded(raw, sentinel string) (id.AggregateID, error) {
 	aggID, err := id.ParseAggregateID(raw)
 	if err != nil {
-		return id.AggregateID{}, event.Wrapf(
+		return id.AggregateID{}, errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			sentinel,

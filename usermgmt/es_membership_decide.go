@@ -4,6 +4,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MembershipDecider returns the Decider for the Membership aggregate.
@@ -23,19 +24,19 @@ func decideAddMember(
 ) func(MembershipState, event.Version) ([]event.Event, error) {
 	return func(state MembershipState, version event.Version) ([]event.Event, error) {
 		if state.Exists() {
-			return nil, event.NewConflict(
+			return nil, errorfamily.NewConflict(
 				"usermgmt.membership.already_exists",
 				"membership already exists for this actor+tenant pair",
 			)
 		}
 		if actorID.IsZero() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.membership.actor_required",
 				"actor ID is required",
 			)
 		}
 		if tenantID.IsZero() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.membership.tenant_required",
 				"tenant ID is required",
 			)
@@ -50,7 +51,7 @@ func decideAddMember(
 			Roles:         rolesCopy,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.membership.marshal_failed",
 				"marshal MemberAdded payload",
@@ -61,7 +62,7 @@ func decideAddMember(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.membership.event_failed",
 				"create MemberAdded event",
@@ -77,7 +78,7 @@ func decideUpdateMemberRoles(
 ) func(MembershipState, event.Version) ([]event.Event, error) {
 	return func(state MembershipState, version event.Version) ([]event.Event, error) {
 		if !state.Exists() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.membership_roles.not_found",
 				"membership does not exist",
 			)
@@ -92,7 +93,7 @@ func decideUpdateMemberRoles(
 			Roles:         rolesCopy,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.membership_roles.marshal_failed",
 				"marshal MemberRolesChanged payload",
@@ -103,7 +104,7 @@ func decideUpdateMemberRoles(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.membership_roles.event_failed",
 				"create MemberRolesChanged event",
@@ -118,7 +119,7 @@ func decideRemoveMember(
 ) func(MembershipState, event.Version) ([]event.Event, error) {
 	return func(state MembershipState, version event.Version) ([]event.Event, error) {
 		if !state.Exists() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.membership_remove.not_found",
 				"membership does not exist",
 			)
@@ -129,7 +130,7 @@ func decideRemoveMember(
 			TenantID:      state.TenantID.Get(),
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.membership_remove.marshal_failed",
 				"marshal MemberRemoved payload",
@@ -140,7 +141,7 @@ func decideRemoveMember(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.membership_remove.event_failed",
 				"create MemberRemoved event",

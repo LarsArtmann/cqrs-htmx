@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func TestDecideRegisterUser_Success(t *testing.T) {
@@ -28,7 +29,7 @@ func TestDecideRegisterUser_AlreadyExists(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected error, got %d events", len(events))
 	}
-	if event.Classify(err) != event.Conflict {
+	if errorfamily.Classify(err) != event.Conflict {
 		t.Errorf("expected Conflict, got %v", err)
 	}
 }
@@ -39,7 +40,7 @@ func TestDecideRegisterUser_EmptyEmail(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected error, got %d events", len(events))
 	}
-	if event.Classify(err) != event.Rejection {
+	if errorfamily.Classify(err) != event.Rejection {
 		t.Errorf("expected Rejection, got %v", err)
 	}
 }
@@ -135,7 +136,7 @@ func TestDecideAddCredential_Duplicate(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected error, got %d events", len(events))
 	}
-	if event.Classify(err) != event.Conflict {
+	if errorfamily.Classify(err) != event.Conflict {
 		t.Errorf("expected Conflict, got %v", err)
 	}
 }

@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func decideEnableTOTP(
@@ -14,7 +15,7 @@ func decideEnableTOTP(
 			return nil, err
 		}
 		if state.Deleted {
-			return nil, event.NewRejection("usermgmt.enable_totp.deleted",
+			return nil, errorfamily.NewRejection("usermgmt.enable_totp.deleted",
 				"cannot enable TOTP for deleted user")
 		}
 		if state.TOTPEnabled {
@@ -25,7 +26,7 @@ func decideEnableTOTP(
 			Secret:        secret,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.enable_totp.marshal_failed",
 				"marshal TOTPEnabled payload",
@@ -36,7 +37,11 @@ func decideEnableTOTP(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(err, "usermgmt.enable_totp.event_failed", "create TOTPEnabled event")
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.enable_totp.event_failed",
+				"create TOTPEnabled event",
+			)
 		}
 		return []event.Event{evt}, nil
 	}
@@ -50,7 +55,7 @@ func decideDisableTOTP(
 			return nil, err
 		}
 		if state.Deleted {
-			return nil, event.NewRejection("usermgmt.disable_totp.deleted",
+			return nil, errorfamily.NewRejection("usermgmt.disable_totp.deleted",
 				"cannot disable TOTP for deleted user")
 		}
 		if !state.TOTPEnabled {
@@ -60,7 +65,7 @@ func decideDisableTOTP(
 			SchemaVersion: currentSchemaVersion,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.disable_totp.marshal_failed",
 				"marshal TOTPDisabled payload",
@@ -71,7 +76,11 @@ func decideDisableTOTP(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(err, "usermgmt.disable_totp.event_failed", "create TOTPDisabled event")
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.disable_totp.event_failed",
+				"create TOTPDisabled event",
+			)
 		}
 		return []event.Event{evt}, nil
 	}

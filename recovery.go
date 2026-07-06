@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // shouldRePanic reports whether a recovered value is http.ErrAbortHandler,
@@ -45,7 +46,7 @@ func writePanicResponse(
 		slog.String("stack", string(debug.Stack())),
 	)
 
-	handler(w, r, event.Newf(event.Infrastructure, panicCode, "panic: %v", rec))
+	handler(w, r, errorfamily.Newf(event.Infrastructure, panicCode, "panic: %v", rec))
 }
 
 // RecoveryMiddleware returns HTTP middleware that recovers from panics in

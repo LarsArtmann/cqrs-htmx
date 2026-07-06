@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func validateDispatch[T any](
@@ -33,7 +33,7 @@ func validateDispatch[T any](
 
 			if valErr := validator(val); valErr != nil {
 				var zero T
-				return zero, event.WrapRejection(valErr, "cqrshtmx.validate.failed", "request validation failed")
+				return zero, errorfamily.WrapRejection(valErr, "cqrshtmx.validate.failed", "request validation failed")
 			}
 
 			return val, nil

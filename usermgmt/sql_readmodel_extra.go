@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const sqlColName = "name"
@@ -36,7 +37,7 @@ func membershipViewMapper() storage.ViewMapper[MembershipView] {
 func NewSQLiteMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 	store, err := storage.NewSQLiteViewStore[MembershipView, id.AggregateID](db, membershipViewMapper())
 	if err != nil {
-		return nil, event.WrapTransient(
+		return nil, errorfamily.WrapTransient(
 			err,
 			"usermgmt.sql_readmodel.membership_create",
 			"create sqlite membership view store",
@@ -48,7 +49,7 @@ func NewSQLiteMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 func NewSQLMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 	store, err := storage.NewSQLViewStore[MembershipView, id.AggregateID](db, membershipViewMapper())
 	if err != nil {
-		return nil, event.WrapTransient(
+		return nil, errorfamily.WrapTransient(
 			err,
 			"usermgmt.sql_readmodel.membership_create",
 			"create sql membership view store",
@@ -64,7 +65,7 @@ func (m *SQLMembershipReadModel) Handle(ctx context.Context, evt event.Event) er
 	aggID := evt.AggregateID()
 	if evt.Type() == eventMemberRemoved {
 		if err := m.store.Delete(ctx, aggID); err != nil {
-			return event.WrapTransient(err, "usermgmt.sql_readmodel.membership_delete", "delete membership view")
+			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.membership_delete", "delete membership view")
 		}
 		return nil
 	}
@@ -78,7 +79,7 @@ func (m *SQLMembershipReadModel) Handle(ctx context.Context, evt event.Event) er
 	}
 	view := MembershipView{ActorID: mem.ActorID.String(), TenantID: mem.TenantID.Get(), Data: data}
 	if err := m.store.Set(ctx, aggID, &view); err != nil {
-		return event.WrapTransient(err, "usermgmt.sql_readmodel.membership_upsert", "upsert membership view")
+		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.membership_upsert", "upsert membership view")
 	}
 	return nil
 }
@@ -88,7 +89,11 @@ func (m *SQLMembershipReadModel) FindByActorSQL(ctx context.Context, actorID str
 		Conditions: []kv.Condition{{Column: "actor_id", Op: kv.OpEq, Value: actorID}},
 	})
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.membership_query", "query membership by actor")
+		return nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.sql_readmodel.membership_query",
+			"query membership by actor",
+		)
 	}
 	return views, nil
 }
@@ -120,7 +125,11 @@ func tenantViewMapper() storage.ViewMapper[TenantView] {
 func NewSQLiteTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
 	store, err := storage.NewSQLiteViewStore[TenantView, TenantID](db, tenantViewMapper())
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.tenant_create", "create sqlite tenant view store")
+		return nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.sql_readmodel.tenant_create",
+			"create sqlite tenant view store",
+		)
 	}
 	return &SQLTenantReadModel{TenantReadModel: NewTenantReadModel(), store: store, querier: store}, nil
 }
@@ -128,7 +137,11 @@ func NewSQLiteTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
 func NewSQLTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
 	store, err := storage.NewSQLViewStore[TenantView, TenantID](db, tenantViewMapper())
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.tenant_create", "create sql tenant view store")
+		return nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.sql_readmodel.tenant_create",
+			"create sql tenant view store",
+		)
 	}
 	return &SQLTenantReadModel{TenantReadModel: NewTenantReadModel(), store: store, querier: store}, nil
 }
@@ -141,7 +154,7 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 	tid := NewTenantID(aggID.String())
 	if evt.Type() == eventTenantDeleted {
 		if err := m.store.Delete(ctx, tid); err != nil {
-			return event.WrapTransient(err, "usermgmt.sql_readmodel.tenant_delete", "delete tenant view")
+			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.tenant_delete", "delete tenant view")
 		}
 		return nil
 	}
@@ -158,7 +171,7 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 		Suspended: tenant.Suspended, Deleted: tenant.Deleted, Data: data,
 	}
 	if err := m.store.Set(ctx, tid, &view); err != nil {
-		return event.WrapTransient(err, "usermgmt.sql_readmodel.tenant_upsert", "upsert tenant view")
+		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.tenant_upsert", "upsert tenant view")
 	}
 	return nil
 }
@@ -168,7 +181,7 @@ func (m *SQLTenantReadModel) FindByNameSQL(ctx context.Context, name string) ([]
 		Conditions: []kv.Condition{{Column: sqlColName, Op: kv.OpEq, Value: name}},
 	})
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.tenant_query", "query tenant by name")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.tenant_query", "query tenant by name")
 	}
 	return views, nil
 }
@@ -200,7 +213,7 @@ func botViewMapper() storage.ViewMapper[BotView] {
 func NewSQLiteBotReadModel(db *sql.DB) (*SQLBotReadModel, error) {
 	store, err := storage.NewSQLiteViewStore[BotView, BotID](db, botViewMapper())
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.bot_create", "create sqlite bot view store")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.bot_create", "create sqlite bot view store")
 	}
 	return &SQLBotReadModel{BotReadModel: NewBotReadModel(), store: store, querier: store}, nil
 }
@@ -208,7 +221,7 @@ func NewSQLiteBotReadModel(db *sql.DB) (*SQLBotReadModel, error) {
 func NewSQLBotReadModel(db *sql.DB) (*SQLBotReadModel, error) {
 	store, err := storage.NewSQLViewStore[BotView, BotID](db, botViewMapper())
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.bot_create", "create sql bot view store")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.bot_create", "create sql bot view store")
 	}
 	return &SQLBotReadModel{BotReadModel: NewBotReadModel(), store: store, querier: store}, nil
 }
@@ -221,7 +234,7 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 	bid := NewBotID(aggID.String())
 	if evt.Type() == eventBotDeleted {
 		if err := m.store.Delete(ctx, bid); err != nil {
-			return event.WrapTransient(err, "usermgmt.sql_readmodel.bot_delete", "delete bot view")
+			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.bot_delete", "delete bot view")
 		}
 		return nil
 	}
@@ -238,7 +251,7 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 		TokenHash: string(bot.TokenHash), Deleted: bot.Deleted, Data: data,
 	}
 	if err := m.store.Set(ctx, bid, &view); err != nil {
-		return event.WrapTransient(err, "usermgmt.sql_readmodel.bot_upsert", "upsert bot view")
+		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.bot_upsert", "upsert bot view")
 	}
 	return nil
 }
@@ -248,7 +261,7 @@ func (m *SQLBotReadModel) FindByNameSQL(ctx context.Context, name string) ([]*Bo
 		Conditions: []kv.Condition{{Column: sqlColName, Op: kv.OpEq, Value: name}},
 	})
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.bot_query", "query bot by name")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.bot_query", "query bot by name")
 	}
 	return views, nil
 }

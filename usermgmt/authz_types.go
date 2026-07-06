@@ -4,6 +4,7 @@ import (
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Action represents an authorization action verb (e.g. "read", "execute").
@@ -137,12 +138,12 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 
 	m, err := model.NewModelFromString(modelStr)
 	if err != nil {
-		return nil, event.WrapTransient(err, "casbin_error", "parse casbin model")
+		return nil, errorfamily.WrapTransient(err, "casbin_error", "parse casbin model")
 	}
 
 	e, err := casbin.NewEnforcer(m)
 	if err != nil {
-		return nil, event.WrapTransient(err, "casbin_error", "create enforcer")
+		return nil, errorfamily.WrapTransient(err, "casbin_error", "create enforcer")
 	}
 
 	for _, p := range config.Policies {
@@ -159,7 +160,7 @@ func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
 
 	for _, h := range defaultRoleHierarchy() {
 		if _, err := e.AddNamedGroupingPolicy("g2", string(h.From), string(h.To)); err != nil {
-			return nil, event.Wrapf(
+			return nil, errorfamily.Wrapf(
 				err, event.Transient, "casbin_error",
 				"seed role hierarchy g2(%s, %s)", h.From, h.To,
 			)
@@ -177,7 +178,7 @@ func (a *Authz) Enforce(sub, dom, obj string, act Action) (bool, error) {
 	}
 	ok, err := a.enforcer.Enforce(sub, dom, obj, string(act))
 	if err != nil {
-		return false, event.Wrapf(
+		return false, errorfamily.Wrapf(
 			err, event.Transient, "casbin_error",
 			"enforce %s/%s/%s/%s", sub, dom, obj, act,
 		)
@@ -192,7 +193,7 @@ func (a *Authz) EnforceAny(rvals ...any) (bool, error) {
 	}
 	ok, err := a.enforcer.Enforce(rvals...)
 	if err != nil {
-		return false, event.WrapTransient(err, "casbin_error", "enforce any")
+		return false, errorfamily.WrapTransient(err, "casbin_error", "enforce any")
 	}
 	return ok, nil
 }
@@ -220,7 +221,7 @@ func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, err
 	}
 	allowed, matched, err := a.enforcer.EnforceEx(sub, dom, obj, string(act))
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err, event.Transient, "casbin_error",
 			"sub=%s dom=%s obj=%s", sub, dom, obj,
 		)
@@ -239,13 +240,13 @@ func (a *Authz) EnforceEx(sub, dom, obj string, act Action) (*EnforceResult, err
 func (a *Authz) Authorize(sub, dom, obj string, act Action) error {
 	ok, err := a.Enforce(sub, dom, obj, act)
 	if err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err, event.Transient, "casbin_error",
 			"authorize %s/%s/%s/%s", sub, dom, obj, act,
 		)
 	}
 	if !ok {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			ErrForbidden, event.Rejection, "forbidden",
 			"%s cannot %s %s in domain %s", sub, act, obj, dom,
 		)

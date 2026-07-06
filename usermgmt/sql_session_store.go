@@ -12,6 +12,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SQLSessionStore implements SessionStore using a SQL database.
@@ -46,7 +47,7 @@ func placeholderFor(dialect string) (placeholderFunc, error) {
 	case dialectSQLite, dialectSQLite3, dialectMySQL:
 		return func(i int) string { return "?" }, nil
 	default:
-		return nil, event.Newf(event.Rejection, "usermgmt.sql_session.unsupported_dialect",
+		return nil, errorfamily.Newf(event.Rejection, "usermgmt.sql_session.unsupported_dialect",
 			"unsupported dialect %q: use postgres, pgx, sqlite, sqlite3, or mysql", dialect).
 			WithContext("dialect", dialect)
 	}
@@ -66,10 +67,10 @@ func placeholderFor(dialect string) (placeholderFunc, error) {
 // For Postgres or MySQL this function is a no-op.
 func OptimizeSQLiteDB(ctx context.Context, db *sql.DB) error {
 	if err := storage.SQLiteEnableWAL(ctx, db); err != nil {
-		return event.WrapTransient(err, "usermgmt.sqlite.enable_wal", "enable SQLite WAL")
+		return errorfamily.WrapTransient(err, "usermgmt.sqlite.enable_wal", "enable SQLite WAL")
 	}
 	if err := storage.SQLiteApplyOptimizations(ctx, db); err != nil {
-		return event.WrapTransient(err, "usermgmt.sqlite.apply_optimizations", "apply SQLite optimizations")
+		return errorfamily.WrapTransient(err, "usermgmt.sqlite.apply_optimizations", "apply SQLite optimizations")
 	}
 	return nil
 }
@@ -86,10 +87,14 @@ func NewSQLSessionStore(ctx context.Context, db *sql.DB, dialect string) (*SQLSe
 	}
 	s := &SQLSessionStore{db: db, placeholder: pf}
 	if err := s.migrateSessions(ctx, dialect); err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_session.migrate_failed", "migrate sql session store")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_session.migrate_failed", "migrate sql session store")
 	}
 	if err := s.migrateOriginColumns(ctx, dialect); err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_session.migrate_failed", "migrate session origin columns")
+		return nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.sql_session.migrate_failed",
+			"migrate session origin columns",
+		)
 	}
 	return s, nil
 }
@@ -134,7 +139,7 @@ func (s *SQLSessionStore) migrateSessions(ctx context.Context, dialect string) e
 			INDEX idx_user_sessions_expires (expires_at)
 		);`
 	default:
-		return event.Newf(
+		return errorfamily.Newf(
 			event.Rejection,
 			"usermgmt.sql_session.unsupported_dialect",
 			"unsupported dialect %q",
@@ -143,7 +148,7 @@ func (s *SQLSessionStore) migrateSessions(ctx context.Context, dialect string) e
 	}
 	_, err := s.db.ExecContext(ctx, ddl)
 	if err != nil {
-		return event.WrapTransient(err, "usermgmt.sql_session.exec_ddl_failed", "exec ddl")
+		return errorfamily.WrapTransient(err, "usermgmt.sql_session.exec_ddl_failed", "exec ddl")
 	}
 	return nil
 }
@@ -179,7 +184,7 @@ func (s *SQLSessionStore) migrateOriginColumns(ctx context.Context, dialect stri
 			if !postgres && isDuplicateColumnErr(err) {
 				continue
 			}
-			return event.WrapTransient(err, "usermgmt.sql_session.add_origin_column_failed",
+			return errorfamily.WrapTransient(err, "usermgmt.sql_session.add_origin_column_failed",
 				"add column "+col)
 		}
 	}
@@ -209,7 +214,7 @@ func marshalSessionOrigin(origin SessionOrigin) (originType, data string, err er
 	case DirectLogin:
 		b, mErr := json.Marshal(directLoginRow{AuthenticatedAs: o.AuthenticatedAs.PrefixedString()})
 		if mErr != nil {
-			return "", "", event.Wrapf(mErr, event.Infrastructure,
+			return "", "", errorfamily.Wrapf(mErr, event.Infrastructure,
 				"usermgmt.sql_session.marshal_origin_failed", "marshal direct-login origin")
 		}
 		return originTypeDirect, string(b), nil
@@ -220,12 +225,12 @@ func marshalSessionOrigin(origin SessionOrigin) (originType, data string, err er
 			At:     o.At,
 		})
 		if mErr != nil {
-			return "", "", event.Wrapf(mErr, event.Infrastructure,
+			return "", "", errorfamily.Wrapf(mErr, event.Infrastructure,
 				"usermgmt.sql_session.marshal_origin_failed", "marshal impersonation origin")
 		}
 		return originTypeImpersonation, string(b), nil
 	default:
-		return "", "", event.NewRejection("usermgmt.sql_session.unknown_origin_type",
+		return "", "", errorfamily.NewRejection("usermgmt.sql_session.unknown_origin_type",
 			fmt.Sprintf("unsupported session origin type %T", origin))
 	}
 }
@@ -239,7 +244,7 @@ func unmarshalSessionOrigin(originType, data string) (SessionOrigin, error) {
 		var row directLoginRow
 		if data != "" && data != "null" {
 			if err := json.Unmarshal([]byte(data), &row); err != nil {
-				return nil, event.Wrapf(err, event.Rejection,
+				return nil, errorfamily.Wrapf(err, event.Rejection,
 					"usermgmt.sql_session.unmarshal_origin_failed", "unmarshal direct-login origin")
 			}
 		}
@@ -247,7 +252,7 @@ func unmarshalSessionOrigin(originType, data string) (SessionOrigin, error) {
 	case originTypeImpersonation:
 		var row impersonationRow
 		if err := json.Unmarshal([]byte(data), &row); err != nil {
-			return nil, event.Wrapf(err, event.Rejection,
+			return nil, errorfamily.Wrapf(err, event.Rejection,
 				"usermgmt.sql_session.unmarshal_origin_failed", "unmarshal impersonation origin")
 		}
 		return Impersonation{
@@ -256,7 +261,7 @@ func unmarshalSessionOrigin(originType, data string) (SessionOrigin, error) {
 			At:     row.At,
 		}, nil
 	default:
-		return nil, event.NewRejection("usermgmt.sql_session.unknown_origin_type",
+		return nil, errorfamily.NewRejection("usermgmt.sql_session.unknown_origin_type",
 			fmt.Sprintf("unknown session origin type %q", originType))
 	}
 }
@@ -284,7 +289,7 @@ func parseActorIDPrefixed(s string) ActorID {
 // Close closes the underlying database connection.
 func (s *SQLSessionStore) Close() error {
 	if err := s.db.Close(); err != nil {
-		return event.WrapTransient(err, "usermgmt.sql_session.close_failed", "close sql session store db")
+		return errorfamily.WrapTransient(err, "usermgmt.sql_session.close_failed", "close sql session store db")
 	}
 	return nil
 }
@@ -310,7 +315,7 @@ func (s *SQLSessionStore) Create(ctx context.Context, session *Session) error {
 		session.Token, session.UserID.Get().String(), session.CreatedAt, session.ExpiresAt, originType, originData,
 	)
 	if err != nil {
-		return event.WrapTransient(err, "usermgmt.sql_session.insert_failed", "insert session")
+		return errorfamily.WrapTransient(err, "usermgmt.sql_session.insert_failed", "insert session")
 	}
 	return nil
 }
@@ -336,7 +341,7 @@ func (s *SQLSessionStore) Find(ctx context.Context, token string) (*Session, err
 		return nil, ErrSessionNotFound
 	}
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_session.find_failed", "find session").
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_session.find_failed", "find session").
 			WithContext("token", token)
 	}
 
@@ -365,7 +370,7 @@ func (s *SQLSessionStore) Delete(ctx context.Context, token string) error {
 		token,
 	)
 	if err != nil {
-		return event.WrapTransient(err, "usermgmt.sql_session.delete_failed", "delete session")
+		return errorfamily.WrapTransient(err, "usermgmt.sql_session.delete_failed", "delete session")
 	}
 	return nil
 }
@@ -379,7 +384,7 @@ func (s *SQLSessionStore) DeleteByUserID(ctx context.Context, userID UserID) err
 		userID.Get().String(),
 	)
 	if err != nil {
-		return event.WrapTransient(err, "usermgmt.sql_session.delete_by_user_failed", "delete sessions by user")
+		return errorfamily.WrapTransient(err, "usermgmt.sql_session.delete_by_user_failed", "delete sessions by user")
 	}
 	return nil
 }
@@ -394,11 +399,11 @@ func (s *SQLSessionStore) EvictExpired(ctx context.Context) (int64, error) {
 		time.Now().UTC(),
 	)
 	if err != nil {
-		return 0, event.WrapTransient(err, "usermgmt.sql_session.evict_failed", "evict expired sessions")
+		return 0, errorfamily.WrapTransient(err, "usermgmt.sql_session.evict_failed", "evict expired sessions")
 	}
 	n, err := res.RowsAffected()
 	if err != nil {
-		return 0, event.WrapTransient(err, "usermgmt.sql_session.rows_affected_failed", "rows affected")
+		return 0, errorfamily.WrapTransient(err, "usermgmt.sql_session.rows_affected_failed", "rows affected")
 	}
 	return n, nil
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // WriteJSON encodes v as JSON and writes it to w with the given HTTP status code
@@ -15,7 +16,7 @@ import (
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(v); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"cqrshtmx.http.json_encode_failed",

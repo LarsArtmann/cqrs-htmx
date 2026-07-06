@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // RegisterBotRequest holds the parameters for registering a new bot.
@@ -32,28 +33,28 @@ type TokenPepper = []byte
 // The raw token is returned in the result and NEVER persisted or shown again.
 func (s *Service) RegisterBot(ctx context.Context, req RegisterBotRequest) (*RegisterBotResult, error) {
 	if s.tokenPepper == nil {
-		return nil, event.NewRejection(
+		return nil, errorfamily.NewRejection(
 			"usermgmt.bot.pepper_not_configured",
 			"token pepper must be configured before registering bots (ServiceConfig.TokenPepper)",
 		)
 	}
 	if req.ID.IsZero() {
-		return nil, event.NewRejection("usermgmt.bot.id_required", "bot ID is required")
+		return nil, errorfamily.NewRejection("usermgmt.bot.id_required", "bot ID is required")
 	}
 	if req.Name == "" {
-		return nil, event.NewRejection("usermgmt.bot.name_required", "bot name is required")
+		return nil, errorfamily.NewRejection("usermgmt.bot.name_required", "bot name is required")
 	}
 
 	token, err := GenerateToken()
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "usermgmt.bot.token_generation_failed", "generate API token")
+		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.bot.token_generation_failed", "generate API token")
 	}
 
 	tokenHash := HashToken(token, s.tokenPepper)
 
 	aggID, err := aggIDFromBot(req.ID)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "usermgmt.bot.id_conversion_failed", "convert bot ID")
+		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.bot.id_conversion_failed", "convert bot ID")
 	}
 
 	err = s.dispatcher.Dispatch(ctx, NewRegisterBotCmd(
@@ -65,7 +66,7 @@ func (s *Service) RegisterBot(ctx context.Context, req RegisterBotRequest) (*Reg
 
 	bot, ok := s.botReadModel.FindByID(aggID)
 	if !ok {
-		return nil, event.NewTransient("internal", "bot not in read model after register")
+		return nil, errorfamily.NewTransient("internal", "bot not in read model after register")
 	}
 	return &RegisterBotResult{Bot: bot, Token: token}, nil
 }
@@ -74,7 +75,7 @@ func (s *Service) RegisterBot(ctx context.Context, req RegisterBotRequest) (*Reg
 func (s *Service) DeleteBot(ctx context.Context, botID BotID, reason string) error {
 	aggID, err := aggIDFromBot(botID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.bot.id_conversion_failed", "convert bot ID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.bot.id_conversion_failed", "convert bot ID")
 	}
 	return s.dispatcher.Dispatch( //nolint:wrapcheck // decider returns typed domain errors
 		ctx,
@@ -86,11 +87,11 @@ func (s *Service) DeleteBot(ctx context.Context, botID BotID, reason string) err
 func (s *Service) GetBot(_ context.Context, id BotID) (*Bot, error) {
 	aggID, err := aggIDFromBot(id)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "usermgmt.bot.id_conversion_failed", "convert bot ID")
+		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.bot.id_conversion_failed", "convert bot ID")
 	}
 	bot, ok := s.botReadModel.FindByID(aggID)
 	if !ok {
-		return nil, event.NewRejection("usermgmt.bot.not_found", "bot not found")
+		return nil, errorfamily.NewRejection("usermgmt.bot.not_found", "bot not found")
 	}
 	return bot, nil
 }
@@ -108,7 +109,7 @@ func (s *Service) ResolveBotByToken(token string) (*Bot, bool) {
 func aggIDFromBot(botID BotID) (id.AggregateID, error) {
 	aggID, err := id.ParseAggregateID(botID.Get())
 	if err != nil {
-		return id.AggregateID{}, event.Wrapf(
+		return id.AggregateID{}, errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.invalid_bot_id",

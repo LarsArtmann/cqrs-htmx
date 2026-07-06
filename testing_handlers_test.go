@@ -9,8 +9,8 @@ import (
 	"github.com/casbin/casbin/v3/model"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/gomega"
 )
 
@@ -37,7 +37,7 @@ func registerGetUserEmail(disp *query.Dispatcher) {
 
 func rejectionHandler(code, message string) func(context.Context, command.Command) error {
 	return func(_ context.Context, _ command.Command) error {
-		return event.NewRejection(code, message)
+		return errorfamily.NewRejection(code, message)
 	}
 }
 

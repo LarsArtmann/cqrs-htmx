@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func decideLinkExternalAccount(
@@ -14,16 +15,16 @@ func decideLinkExternalAccount(
 			return nil, err
 		}
 		if state.Deleted {
-			return nil, event.NewRejection("usermgmt.link_external_account.deleted",
+			return nil, errorfamily.NewRejection("usermgmt.link_external_account.deleted",
 				"cannot link external account to deleted user")
 		}
 		if provider == "" || subject == "" {
-			return nil, event.NewRejection("usermgmt.link_external_account.invalid",
+			return nil, errorfamily.NewRejection("usermgmt.link_external_account.invalid",
 				"provider and subject are required")
 		}
 		for _, ea := range state.ExternalAccounts {
 			if ea.Provider == provider && ea.Subject == subject {
-				return nil, event.NewConflict("usermgmt.external_account_already_linked",
+				return nil, errorfamily.NewConflict("usermgmt.external_account_already_linked",
 					"external account already linked to this user")
 			}
 		}
@@ -37,7 +38,7 @@ func decideLinkExternalAccount(
 			},
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.link_external_account.marshal_failed",
 				"marshal ExternalAccountLinked payload",
@@ -48,7 +49,7 @@ func decideLinkExternalAccount(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.link_external_account.event_failed",
 				"create ExternalAccountLinked event",
@@ -67,7 +68,7 @@ func decideUnlinkExternalAccount(
 			return nil, err
 		}
 		if state.Deleted {
-			return nil, event.NewRejection("usermgmt.unlink_external_account.deleted",
+			return nil, errorfamily.NewRejection("usermgmt.unlink_external_account.deleted",
 				"cannot unlink external account from deleted user")
 		}
 		found := false
@@ -78,13 +79,13 @@ func decideUnlinkExternalAccount(
 			}
 		}
 		if !found {
-			return nil, event.NewRejection("usermgmt.external_account_not_found",
+			return nil, errorfamily.NewRejection("usermgmt.external_account_not_found",
 				"external account not linked to this user")
 		}
 		// Last-auth-method guard: reject if removing this would leave the user
 		// with zero WebAuthn credentials and zero other external accounts.
 		if len(state.Credentials) == 0 && len(state.ExternalAccounts) <= 1 {
-			return nil, event.NewRejection("usermgmt.unlink_external_account.last_auth_method",
+			return nil, errorfamily.NewRejection("usermgmt.unlink_external_account.last_auth_method",
 				"cannot remove the last authentication method")
 		}
 		payload, err := marshalPayload(ExternalAccountUnlinkedPayload{
@@ -93,7 +94,7 @@ func decideUnlinkExternalAccount(
 			Subject:       subject,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.unlink_external_account.marshal_failed",
 				"marshal ExternalAccountUnlinked payload",
@@ -104,7 +105,7 @@ func decideUnlinkExternalAccount(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.unlink_external_account.event_failed",
 				"create ExternalAccountUnlinked event",

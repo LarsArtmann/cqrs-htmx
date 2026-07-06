@@ -10,6 +10,7 @@ import (
 
 	form "github.com/go-playground/form/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // DefaultMaxBodySize is the default maximum request body size (10 MB).
@@ -22,7 +23,7 @@ const DefaultMaxBodySize int64 = 10 << 20
 func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
 	body, readErr := readBody(r, maxBodySize)
 	if readErr != nil {
-		return out, event.Wrapf(readErr, event.Rejection,
+		return out, errorfamily.Wrapf(readErr, event.Rejection,
 			"cqrshtmx.decode.json.read_failed", "maxBodySize=%d", maxBodySize)
 	}
 
@@ -31,7 +32,7 @@ func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error
 	}
 
 	if decodeErr := json.Unmarshal(body, &out); decodeErr != nil {
-		return out, event.Wrapf(decodeErr, event.Rejection,
+		return out, errorfamily.Wrapf(decodeErr, event.Rejection,
 			"cqrshtmx.decode.json.unmarshal_failed", "maxBodySize=%d: decode JSON", maxBodySize)
 	}
 
@@ -49,11 +50,11 @@ func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
 	closeErr := r.Body.Close()
 
 	if err != nil {
-		return nil, event.Wrapf(err, event.Rejection,
+		return nil, errorfamily.Wrapf(err, event.Rejection,
 			"cqrshtmx.decode.body.read_failed", "read body (maxBodySize=%d)", maxBodySize)
 	}
 	if closeErr != nil {
-		return nil, event.Wrapf(closeErr, event.Rejection,
+		return nil, errorfamily.Wrapf(closeErr, event.Rejection,
 			"cqrshtmx.decode.body.close_failed", "close body (maxBodySize=%d)", maxBodySize)
 	}
 
@@ -84,7 +85,7 @@ func decodeRequest[T, R any](
 func decodeFormBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
 	body, readErr := readBody(r, maxBodySize)
 	if readErr != nil {
-		return out, event.Wrapf(readErr, event.Rejection,
+		return out, errorfamily.Wrapf(readErr, event.Rejection,
 			"cqrshtmx.decode.form.read_failed", "maxBodySize=%d", maxBodySize)
 	}
 
@@ -92,12 +93,12 @@ func decodeFormBody[T any](r *http.Request, maxBodySize int64) (out T, err error
 	r.Body = io.NopCloser(bytes.NewReader(body))
 
 	if parseErr := r.ParseForm(); parseErr != nil {
-		return out, event.Wrapf(parseErr, event.Rejection,
+		return out, errorfamily.Wrapf(parseErr, event.Rejection,
 			"cqrshtmx.decode.form.parse_failed", "maxBodySize=%d: parse form", maxBodySize)
 	}
 
 	if decodeErr := decodeFormValues(r.PostForm, &out); decodeErr != nil {
-		return out, event.Wrapf(decodeErr, event.Rejection,
+		return out, errorfamily.Wrapf(decodeErr, event.Rejection,
 			"cqrshtmx.decode.form.values_failed", "maxBodySize=%d: decode form values", maxBodySize)
 	}
 
@@ -120,7 +121,7 @@ func decodeFormValues(form url.Values, target any) error {
 		normalized[strings.ToLower(k)] = v
 	}
 	if err := newFormDecoder().Decode(target, normalized); err != nil {
-		return event.Wrapf(err, event.Rejection,
+		return errorfamily.Wrapf(err, event.Rejection,
 			"cqrshtmx.decode.form.decode_failed", "decode form values for target=%T", target)
 	}
 	return nil
