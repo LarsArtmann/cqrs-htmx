@@ -8,13 +8,14 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/encryption/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/signing/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.5.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v3 v3.7.0
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.7.0
+	github.com/larsartmann/go-cqrs-lite/encryption/v3 v3.7.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.0
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.7.0
+	github.com/larsartmann/go-cqrs-lite/signing/v3 v3.7.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.7.0
+	github.com/pquerna/otp v1.5.0
 )
 
 require (
@@ -48,24 +49,26 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/postgres/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.7.0 // indirect
 	github.com/larsartmann/go-error-family v0.6.1 // indirect
-	github.com/larsartmann/httputil v0.4.0 // indirect
+	github.com/larsartmann/httputil v0.5.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -75,7 +78,6 @@ require (
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/pquerna/otp v1.5.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
@@ -94,10 +96,10 @@ require (
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/text v0.39.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.73.5 // indirect
+	modernc.org/libc v1.74.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.53.0 // indirect
@@ -110,3 +112,5 @@ replace (
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 => ../usermgmt/webauthn
 	github.com/larsartmann/cqrs-htmx/v4 => ../
 )
+
+replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../.vendor-local/eventtest
