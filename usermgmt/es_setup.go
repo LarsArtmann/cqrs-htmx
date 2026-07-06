@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SecurityHooks configures opt-in event signing and encryption for the
@@ -113,12 +114,12 @@ func closeBus(bus event.Bus) {
 func (s *EventSourcedSetup) Close() error {
 	if c, ok := s.Bus.(io.Closer); ok {
 		if err := c.Close(); err != nil {
-			return event.WrapTransient(err, "usermgmt.es_setup.close_bus", "close event bus")
+			return errorfamily.WrapTransient(err, "usermgmt.es_setup.close_bus", "close event bus")
 		}
 	}
 	if c, ok := s.Store.(io.Closer); ok {
 		if err := c.Close(); err != nil {
-			return event.WrapTransient(err, "usermgmt.es_setup.close_store", "close event store")
+			return errorfamily.WrapTransient(err, "usermgmt.es_setup.close_store", "close event store")
 		}
 	}
 	return nil
@@ -183,7 +184,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		sqlUserRM, err := NewSQLiteUserReadModel(cfg.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
-			return nil, event.WrapTransient(err, "internal", "create SQL user read model")
+			return nil, errorfamily.WrapTransient(err, "internal", "create SQL user read model")
 		}
 		readModel = sqlUserRM.UserReadModel
 		userProj = sqlUserRM
@@ -191,7 +192,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		sqlMembershipRM, err := NewSQLiteMembershipReadModel(cfg.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
-			return nil, event.WrapTransient(err, "internal", "create SQL membership read model")
+			return nil, errorfamily.WrapTransient(err, "internal", "create SQL membership read model")
 		}
 		membershipReadModel = sqlMembershipRM.MembershipReadModel
 		membershipProj = sqlMembershipRM
@@ -199,7 +200,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		sqlTenantRM, err := NewSQLiteTenantReadModel(cfg.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
-			return nil, event.WrapTransient(err, "internal", "create SQL tenant read model")
+			return nil, errorfamily.WrapTransient(err, "internal", "create SQL tenant read model")
 		}
 		tenantReadModel = sqlTenantRM.TenantReadModel
 		tenantProj = sqlTenantRM
@@ -207,7 +208,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		sqlBotRM, err := NewSQLiteBotReadModel(cfg.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
-			return nil, event.WrapTransient(err, "internal", "create SQL bot read model")
+			return nil, errorfamily.WrapTransient(err, "internal", "create SQL bot read model")
 		}
 		botReadModel = sqlBotRM.BotReadModel
 		botProj = sqlBotRM
@@ -216,12 +217,12 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	authz, err := NewAuthz()
 	if err != nil {
 		closeBus(bus)
-		return nil, event.NewTransient("internal", "create authz").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "create authz").WithCause(err)
 	}
 	casbinProjection, err := NewCasbinProjection(authz)
 	if err != nil {
 		closeBus(bus)
-		return nil, event.NewTransient("internal", "create casbin projection").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "create casbin projection").WithCause(err)
 	}
 
 	journal := journalFromStore(store)
@@ -237,7 +238,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		cfg.AuditLog,
 	); err != nil {
 		closeBus(bus)
-		return nil, event.NewTransient("internal", "start projections").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "start projections").WithCause(err)
 	}
 
 	return &EventSourcedSetup{

@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // GenerateToken generates a 256-bit random API token encoded as base64url.
@@ -15,7 +15,7 @@ import (
 func GenerateToken() (string, error) {
 	raw := make([]byte, 32) // 256 bits
 	if _, err := rand.Read(raw); err != nil {
-		return "", event.WrapInfrastructure(err, "usermgmt.crypto.rand_failed", "generate API token")
+		return "", errorfamily.WrapInfrastructure(err, "usermgmt.crypto.rand_failed", "generate API token")
 	}
 	return base64.RawURLEncoding.EncodeToString(raw), nil
 }

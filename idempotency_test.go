@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func TestMemoryIdempotencyStore_SeenReturnsFalseForNewID(t *testing.T) {
@@ -91,8 +92,8 @@ func TestCheckAndRecord_AllowsNewID(t *testing.T) {
 
 func TestErrDuplicateCommand_HasConflictFamily(t *testing.T) {
 	t.Parallel()
-	if event.Classify(ErrDuplicateCommand) != event.Conflict {
-		t.Fatalf("expected Conflict family, got %v", event.Classify(ErrDuplicateCommand))
+	if errorfamily.Classify(ErrDuplicateCommand) != event.Conflict {
+		t.Fatalf("expected Conflict family, got %v", errorfamily.Classify(ErrDuplicateCommand))
 	}
 }
 

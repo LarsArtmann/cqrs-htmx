@@ -3,7 +3,7 @@ package usermgmt
 import (
 	"encoding/json"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type UserRegisteredPayload struct {
@@ -75,7 +75,7 @@ type ExternalAccountUnlinkedPayload struct {
 func marshalPayload(v any) ([]byte, error) {
 	b, err := json.Marshal(v)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "usermgmt.payload.marshal_failed", "marshal payload")
+		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.payload.marshal_failed", "marshal payload")
 	}
 	return b, nil
 }

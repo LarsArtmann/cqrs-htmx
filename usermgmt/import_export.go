@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ImportUser represents a single user to import.
@@ -29,7 +30,7 @@ func (u *ImportUser) Validate() error {
 	}
 	u.Email = email.String()
 	if len(u.DisplayName) > maxDisplayNameLength {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			ErrValidation,
 			event.Rejection,
 			"usermgmt.import.display_name_too_long",
@@ -73,7 +74,7 @@ const (
 func (s *Service) ImportUsersFromJSON(ctx context.Context, r io.Reader) (*ImportResult, error) {
 	var users []ImportUser
 	if err := json.NewDecoder(r).Decode(&users); err != nil {
-		return nil, event.WrapRejection(err, "usermgmt.import.json_decode_failed", "decode import JSON")
+		return nil, errorfamily.WrapRejection(err, "usermgmt.import.json_decode_failed", "decode import JSON")
 	}
 	return s.importUsers(ctx, users)
 }
@@ -86,7 +87,7 @@ func (s *Service) ImportUsersFromCSV(ctx context.Context, r io.Reader) (*ImportR
 
 	rows, err := reader.ReadAll()
 	if err != nil {
-		return nil, event.WrapRejection(err, "usermgmt.import.csv_read_failed", "read CSV")
+		return nil, errorfamily.WrapRejection(err, "usermgmt.import.csv_read_failed", "read CSV")
 	}
 	if len(rows) == 0 {
 		return &ImportResult{ //nolint:exhaustruct // zero-value is intentional for empty import
@@ -157,7 +158,7 @@ func (s *Service) ExportUsersToJSON(_ context.Context, w io.Writer) error {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(users); err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.export.json_encode_failed", "encode export JSON")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.export.json_encode_failed", "encode export JSON")
 	}
 	return nil
 }
@@ -186,7 +187,7 @@ func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 		csvColumnEmailVerified,
 		csvColumnTOTPEnabled,
 	}); err != nil {
-		return event.WrapTransient(err, "usermgmt.export.csv_header_failed", "write CSV header")
+		return errorfamily.WrapTransient(err, "usermgmt.export.csv_header_failed", "write CSV header")
 	}
 	for _, u := range users {
 		if err := cw.Write([]string{
@@ -196,7 +197,7 @@ func (s *Service) ExportUsersToCSV(_ context.Context, w io.Writer) error {
 			strconv.FormatBool(u.EmailVerified),
 			strconv.FormatBool(u.TOTPEnabled),
 		}); err != nil {
-			return event.WrapTransient(err, "usermgmt.export.csv_row_failed", "write CSV row")
+			return errorfamily.WrapTransient(err, "usermgmt.export.csv_row_failed", "write CSV row")
 		}
 	}
 	return nil

@@ -9,8 +9,8 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -24,22 +24,22 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 			},
 			Entry(
 				"Conflict to 409",
-				event.NewConflict("test.conflict", "conflict occurred"),
+				errorfamily.NewConflict("test.conflict", "conflict occurred"),
 				http.StatusConflict,
 			),
 			Entry(
 				"Corruption to 500",
-				event.NewCorruption("test.corruption", "corrupted data"),
+				errorfamily.NewCorruption("test.corruption", "corrupted data"),
 				http.StatusInternalServerError,
 			),
 			Entry(
 				"Infrastructure to 503",
-				event.NewInfrastructure("test.infra", "infrastructure failure"),
+				errorfamily.NewInfrastructure("test.infra", "infrastructure failure"),
 				http.StatusServiceUnavailable,
 			),
 			Entry(
 				"Transient to 503",
-				event.NewTransient("test.transient", "transient error"),
+				errorfamily.NewTransient("test.transient", "transient error"),
 				http.StatusServiceUnavailable,
 			),
 		)
@@ -103,7 +103,7 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 	Describe("Command dispatch error", func() {
 		It("maps handler errors through error handler", func() {
 			app := newCommandAppWithHandler(func(_ context.Context, _ command.Command) error {
-				return event.NewRejection("user.exists", "user already exists")
+				return errorfamily.NewRejection("user.exists", "user already exists")
 			})
 			w := serve(app.Command("CreateUser", decodeCreateUserJSON()),
 				newPostRequest("/users", `{}`))
@@ -114,7 +114,7 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 	Describe("Query dispatch error", func() {
 		It("maps query handler errors through error handler", func() {
 			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
-				return nil, event.NewRejection("user.not_found", "user not found")
+				return nil, errorfamily.NewRejection("user.not_found", "user not found")
 			})
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query("GetUser", decodeGetUserJSONQuery()), r)

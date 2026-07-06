@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -23,11 +25,11 @@ func NewCreateTodo(title string) (*CreateTodoCmd, error) {
 func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
 	aggID, err := id.ParseAggregateID(todoID)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
+		return nil, errorfamily.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
 	}
 	core, err := command.New("ToggleTodo", aggID)
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"todo.command_failed",
@@ -41,11 +43,11 @@ func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
 func NewDeleteTodo(todoID string) (*DeleteTodoCmd, error) {
 	aggID, err := id.ParseAggregateID(todoID)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
+		return nil, errorfamily.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
 	}
 	core, err := command.New("DeleteTodo", aggID)
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"todo.command_failed",
@@ -59,11 +61,11 @@ func NewDeleteTodo(todoID string) (*DeleteTodoCmd, error) {
 func NewUpdateTodo(todoID, title string) (*UpdateTodoCmd, error) {
 	aggID, err := id.ParseAggregateID(todoID)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
+		return nil, errorfamily.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
 	}
 	core, err := command.New("UpdateTodo", aggID)
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"todo.command_failed",

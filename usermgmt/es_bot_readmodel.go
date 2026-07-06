@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Bot is the read-model representation of a bot (machine actor).
@@ -50,7 +51,7 @@ func (m *BotReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventBotRegistered:
 		p, err := unmarshalPayload[BotRegisteredPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(
+			return errorfamily.WrapCorruption(
 				err, "usermgmt.bot_readmodel.decode_failed",
 				"decode BotRegistered in read model",
 			)
@@ -75,7 +76,7 @@ func (m *BotReadModel) Handle(_ context.Context, evt event.Event) error {
 		}
 
 	default:
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"usermgmt.bot_readmodel.unknown_event",
 			"bot read model received unknown event type: "+string(evt.Type()),
 		)

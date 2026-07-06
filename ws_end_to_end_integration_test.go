@@ -10,8 +10,8 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -86,7 +86,7 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", erroringCommandHandlerWith(
-				event.NewTransient("db_unavailable", "database unavailable"),
+				errorfamily.NewTransient("db_unavailable", "database unavailable"),
 			))
 			app := cqrshtmx.MustNew(cqrshtmx.Config{
 				Commands:      disp,

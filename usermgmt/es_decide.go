@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // requireExists returns a "user does not exist" rejection if the user has not
@@ -11,7 +12,7 @@ import (
 // e.g. domain="update_roles" → "usermgmt.update_roles.not_found".
 func requireExists(state UserState, domain string) error {
 	if !state.Exists() {
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"usermgmt."+domain+".not_found",
 			"user does not exist",
 		)
@@ -26,11 +27,11 @@ func decideRegisterUser(
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
 		if state.Exists() {
-			return nil, event.NewConflict("usermgmt.user_already_exists",
+			return nil, errorfamily.NewConflict("usermgmt.user_already_exists",
 				"user with this ID already exists")
 		}
 		if email == "" {
-			return nil, event.NewRejection("usermgmt.register.email_required",
+			return nil, errorfamily.NewRejection("usermgmt.register.email_required",
 				"email is required")
 		}
 		rolesCopy := make([]Role, len(roles))
@@ -42,7 +43,7 @@ func decideRegisterUser(
 			Roles:         rolesCopy,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.register.marshal_failed",
 				"marshal UserRegistered payload",
@@ -53,7 +54,11 @@ func decideRegisterUser(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(err, "usermgmt.register.event_failed", "create UserRegistered event")
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.register.event_failed",
+				"create UserRegistered event",
+			)
 		}
 		return []event.Event{evt}, nil
 	}
@@ -68,7 +73,7 @@ func decideDeleteUser(
 			return nil, err
 		}
 		if state.Deleted {
-			return nil, event.NewRejection("usermgmt.delete_user.already_deleted",
+			return nil, errorfamily.NewRejection("usermgmt.delete_user.already_deleted",
 				"user is already deleted")
 		}
 		payload, err := marshalPayload(UserDeletedPayload{
@@ -76,7 +81,7 @@ func decideDeleteUser(
 			Reason:        reason,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.delete_user.marshal_failed",
 				"marshal UserDeleted payload",
@@ -87,11 +92,19 @@ func decideDeleteUser(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(err, "usermgmt.delete_user.event_failed", "create UserDeleted event")
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.delete_user.event_failed",
+				"create UserDeleted event",
+			)
 		}
 		marked, markErr := event.MarkTombstone(evt)
 		if markErr != nil {
-			return nil, event.WrapInfrastructure(markErr, "usermgmt.delete_user.tombstone_failed", "mark tombstone")
+			return nil, errorfamily.WrapInfrastructure(
+				markErr,
+				"usermgmt.delete_user.tombstone_failed",
+				"mark tombstone",
+			)
 		}
 		return []event.Event{marked}, nil
 	}

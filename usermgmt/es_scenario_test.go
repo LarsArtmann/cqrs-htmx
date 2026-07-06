@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/scenario/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TestScenario_RegisterUser_New demonstrates the scenario/v3 BDD DSL
@@ -32,7 +33,7 @@ func TestScenario_RegisterUser_New(t *testing.T) {
 
 // TestScenario_RegisterUser_AlreadyExists demonstrates the ThenError path.
 // go-error-family's *Error implements Is() matching by code+family, so we
-// pass an event.NewConflict with the same code as the decider produces.
+// pass an errorfamily.NewConflict with the same code as the decider produces.
 func TestScenario_RegisterUser_AlreadyExists(t *testing.T) {
 	t.Parallel()
 
@@ -58,7 +59,7 @@ func TestScenario_RegisterUser_AlreadyExists(t *testing.T) {
 
 	scenario.Given[*RegisterUserCmd, UserState](t, foldUser, UserState{}, existing).
 		When(cmd, decide).
-		ThenError(event.NewConflict("usermgmt.user_already_exists", ""))
+		ThenError(errorfamily.NewConflict("usermgmt.user_already_exists", ""))
 }
 
 // TestScenario_ChangeEmail_HappyPath demonstrates the scenario/v3 DSL on a

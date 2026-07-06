@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // addSchemaVersionV1 is the v0→v1 UserRegistered upcaster used in tests: it
@@ -97,7 +97,7 @@ func TestUpcasterRegistry_MultiStepChain(t *testing.T) {
 func TestUpcasterRegistry_UpcasterError(t *testing.T) {
 	r := NewUpcasterRegistry()
 	r.Register(eventUserRegistered, 0, func([]byte) ([]byte, error) {
-		return nil, event.NewCorruption("test", "simulated failure")
+		return nil, errorfamily.NewCorruption("test", "simulated failure")
 	})
 
 	_, err := r.Upcast(eventUserRegistered, []byte(`{"schema_version":0}`))

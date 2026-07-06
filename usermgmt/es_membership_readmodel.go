@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MembershipReadModel is the projection-side store for memberships.
@@ -44,7 +45,7 @@ func (m *MembershipReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventMemberRolesChanged:
 		p, err := unmarshalPayload[MemberRolesChangedPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(
+			return errorfamily.WrapCorruption(
 				err,
 				"usermgmt.membership_readmodel.decode_failed",
 				"decode MemberRolesChanged in read model",
@@ -62,7 +63,7 @@ func (m *MembershipReadModel) Handle(_ context.Context, evt event.Event) error {
 		m.removeMembership(aggID)
 
 	default:
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"usermgmt.membership_readmodel.unknown_event",
 			"membership read model received unknown event type: "+string(evt.Type()),
 		)
@@ -74,7 +75,7 @@ func (m *MembershipReadModel) Handle(_ context.Context, evt event.Event) error {
 func (m *MembershipReadModel) applyMemberAdded(aggID id.AggregateID, evt event.Event) error {
 	p, err := unmarshalPayload[MemberAddedPayload](evt)
 	if err != nil {
-		return event.WrapCorruption(
+		return errorfamily.WrapCorruption(
 			err,
 			"usermgmt.membership_readmodel.decode_failed",
 			"decode MemberAdded in read model",
@@ -84,7 +85,7 @@ func (m *MembershipReadModel) applyMemberAdded(aggID id.AggregateID, evt event.E
 	copy(roles, p.Roles)
 	kind, err := actorKindFromString(p.ActorKind)
 	if err != nil {
-		return event.WrapCorruption(
+		return errorfamily.WrapCorruption(
 			err,
 			"usermgmt.membership_readmodel.unknown_actor_kind",
 			"decode actor kind in MemberAdded",

@@ -11,7 +11,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -34,7 +34,7 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 	Describe("MapError unknown family", func() {
 		It("returns 503 for Infrastructure errors", func() {
 			Expect(cqrshtmx.MapError(
-				event.NewInfrastructure("test.infra", "infra failure"),
+				errorfamily.NewInfrastructure("test.infra", "infra failure"),
 			)).To(Equal(http.StatusServiceUnavailable))
 		})
 	})

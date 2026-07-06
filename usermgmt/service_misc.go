@@ -4,13 +4,20 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // GetUser retrieves a user by ID from the read model.
 func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 	user, ok := s.readModel.FindByUserID(id)
 	if !ok {
-		return nil, event.Wrapf(ErrUserNotFound, event.Rejection, "usermgmt.service.user_not_found", "get user %q", id)
+		return nil, errorfamily.Wrapf(
+			ErrUserNotFound,
+			event.Rejection,
+			"usermgmt.service.user_not_found",
+			"get user %q",
+			id,
+		)
 	}
 	return user, nil
 }
@@ -19,7 +26,7 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail string) error {
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
 	}
 	err = s.dispatcher.Dispatch(ctx, NewChangeEmailCmd(aggID, newEmail))
 	if err != nil {
@@ -32,7 +39,7 @@ func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail strin
 func (s *Service) ChangeDisplayName(ctx context.Context, userID UserID, newName string) error {
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
 	}
 	err = s.dispatcher.Dispatch(ctx, NewChangeDisplayNameCmd(aggID, newName))
 	if err != nil {
@@ -45,7 +52,7 @@ func (s *Service) ChangeDisplayName(ctx context.Context, userID UserID, newName 
 func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) error {
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
 	}
 	err = s.dispatcher.Dispatch(ctx, NewDeleteUserCmd(aggID, reason))
 	if err != nil {
@@ -59,7 +66,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) 
 func (s *Service) AddCredential(ctx context.Context, userID UserID, cred WebAuthnCredential) error {
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
 	}
 	err = s.dispatcher.Dispatch(ctx, NewAddCredentialCmd(aggID, cred))
 	if err != nil {
@@ -73,7 +80,7 @@ func (s *Service) AddCredential(ctx context.Context, userID UserID, cred WebAuth
 func (s *Service) RemoveCredential(ctx context.Context, userID UserID, credentialID []byte) error {
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
 	}
 	err = s.dispatcher.Dispatch(ctx, NewRemoveCredentialCmd(aggID, credentialID))
 	if err != nil {

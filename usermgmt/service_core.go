@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -158,7 +159,7 @@ func wrapEventStore(wrapper func(event.Store) (event.Store, error), store event.
 
 	wrapped, err := wrapper(store)
 	if err != nil {
-		return nil, event.NewTransient("internal", "wrap event store").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "wrap event store").WithCause(err)
 	}
 
 	if wrapped != nil {
@@ -175,13 +176,13 @@ func wrapEventStore(wrapper func(event.Store) (event.Store, error), store event.
 func applyBusMiddleware(publishMW []event.PublishMiddleware, handlerMW []event.Middleware, bus event.Bus) error {
 	if len(publishMW) > 0 {
 		if err := bus.UsePublish(publishMW...); err != nil {
-			return event.NewTransient("internal", "apply publish middleware").WithCause(err)
+			return errorfamily.NewTransient("internal", "apply publish middleware").WithCause(err)
 		}
 	}
 
 	if len(handlerMW) > 0 {
 		if err := bus.Use(handlerMW...); err != nil {
-			return event.NewTransient("internal", "apply handler middleware").WithCause(err)
+			return errorfamily.NewTransient("internal", "apply handler middleware").WithCause(err)
 		}
 	}
 
@@ -228,7 +229,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		authz = cfg.Authz
 		casbinProjection, err = NewCasbinProjection(authz)
 		if err != nil {
-			return nil, event.NewTransient("internal", "create casbin projection").WithCause(err)
+			return nil, errorfamily.NewTransient("internal", "create casbin projection").WithCause(err)
 		}
 	}
 
@@ -246,16 +247,16 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 
 	dispatcher := command.NewDispatcher()
 	if err := RegisterCommands(dispatcher, setup.Repository); err != nil {
-		return nil, event.NewTransient("internal", "register commands").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "register commands").WithCause(err)
 	}
 	if err := RegisterMembershipCommands(dispatcher, setup.MembershipRepository); err != nil {
-		return nil, event.NewTransient("internal", "register membership commands").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "register membership commands").WithCause(err)
 	}
 	if err := RegisterTenantCommands(dispatcher, setup.TenantRepository); err != nil {
-		return nil, event.NewTransient("internal", "register tenant commands").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "register tenant commands").WithCause(err)
 	}
 	if err := RegisterBotCommands(dispatcher, setup.BotRepository); err != nil {
-		return nil, event.NewTransient("internal", "register bot commands").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "register bot commands").WithCause(err)
 	}
 
 	//nolint:exhaustruct // fields set conditionally below
@@ -381,7 +382,11 @@ func (s *Service) GracefulClose(ctx context.Context) error {
 		return err
 	}
 	if err := ctx.Err(); err != nil {
-		return event.WrapTransient(err, "usermgmt.service.graceful_close", "context cancelled during graceful close")
+		return errorfamily.WrapTransient(
+			err,
+			"usermgmt.service.graceful_close",
+			"context cancelled during graceful close",
+		)
 	}
 	return nil
 }
@@ -391,12 +396,12 @@ func (s *Service) GracefulClose(ctx context.Context) error {
 func (s *Service) closeInfra() error {
 	if c, ok := s.bus.(interface{ Close() error }); ok {
 		if err := c.Close(); err != nil {
-			return event.WrapTransient(err, "usermgmt.service.close_bus", "close event bus")
+			return errorfamily.WrapTransient(err, "usermgmt.service.close_bus", "close event bus")
 		}
 	}
 	if c, ok := s.store.(interface{ Close() error }); ok {
 		if err := c.Close(); err != nil {
-			return event.WrapTransient(err, "usermgmt.service.close_store", "close event store")
+			return errorfamily.WrapTransient(err, "usermgmt.service.close_store", "close event store")
 		}
 	}
 	return nil

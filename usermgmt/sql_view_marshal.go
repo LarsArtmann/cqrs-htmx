@@ -3,7 +3,7 @@ package usermgmt
 import (
 	"encoding/json"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // marshalViewJSON marshals an aggregate entity to JSON for inclusion in a SQL
@@ -17,7 +17,7 @@ import (
 func marshalViewJSON[T any](entity T, errCode, msg string) (string, error) {
 	data, err := json.Marshal(entity)
 	if err != nil {
-		return "", event.WrapInfrastructure(err, errCode, msg)
+		return "", errorfamily.WrapInfrastructure(err, errCode, msg)
 	}
 	return string(data), nil
 }

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func BenchmarkMapError(b *testing.B) {
@@ -19,19 +19,19 @@ func BenchmarkMapError(b *testing.B) {
 		}
 	})
 	b.Run("Rejection", func(b *testing.B) {
-		err := event.NewRejection("test.rejection", "rejected")
+		err := errorfamily.NewRejection("test.rejection", "rejected")
 		for range b.N {
 			cqrshtmx.MapError(err)
 		}
 	})
 	b.Run("Conflict", func(b *testing.B) {
-		err := event.NewConflict("test.conflict", "conflict")
+		err := errorfamily.NewConflict("test.conflict", "conflict")
 		for range b.N {
 			cqrshtmx.MapError(err)
 		}
 	})
 	b.Run("Transient", func(b *testing.B) {
-		err := event.NewTransient("test.transient", "transient")
+		err := errorfamily.NewTransient("test.transient", "transient")
 		for range b.N {
 			cqrshtmx.MapError(err)
 		}

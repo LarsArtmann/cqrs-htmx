@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // makeMaterializeTenantEvent builds a tenant event for adapter tests.
@@ -44,7 +45,7 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 		OnCreate: func(_ context.Context, evt event.Event) (*Tenant, error) {
 			p, err := unmarshalPayload[TenantCreatedPayload](evt)
 			if err != nil {
-				return nil, event.WrapCorruption(err,
+				return nil, errorfamily.WrapCorruption(err,
 					"test.decode_create", "decode TenantCreated")
 			}
 			return &Tenant{

@@ -4,6 +4,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // BotDecider returns the Decider for the Bot aggregate.
@@ -23,25 +24,25 @@ func decideRegisterBot(
 ) func(BotState, event.Version) ([]event.Event, error) {
 	return func(state BotState, version event.Version) ([]event.Event, error) {
 		if state.Name != "" {
-			return nil, event.NewConflict(
+			return nil, errorfamily.NewConflict(
 				"usermgmt.bot.already_exists",
 				"bot with this ID already exists",
 			)
 		}
 		if name == "" {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.bot.name_required",
 				"bot name is required",
 			)
 		}
 		if ownerID.IsZero() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.bot.owner_required",
 				"bot owner ID is required",
 			)
 		}
 		if len(tokenHash) == 0 {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.bot.token_hash_required",
 				"bot token hash is required",
 			)
@@ -56,7 +57,7 @@ func decideRegisterBot(
 			Scopes:        scopesCopy,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.bot.marshal_failed",
 				"marshal BotRegistered payload",
@@ -67,7 +68,7 @@ func decideRegisterBot(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.bot.event_failed",
 				"create BotRegistered event",
@@ -84,13 +85,13 @@ func decideDeleteBot(
 ) func(BotState, event.Version) ([]event.Event, error) {
 	return func(state BotState, version event.Version) ([]event.Event, error) {
 		if !state.Exists() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.bot_delete.not_found",
 				"bot does not exist",
 			)
 		}
 		if state.Deleted {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"usermgmt.bot_delete.already_deleted",
 				"bot is already deleted",
 			)
@@ -100,7 +101,7 @@ func decideDeleteBot(
 			Reason:        reason,
 		})
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.bot_delete.marshal_failed",
 				"marshal BotDeleted payload",
@@ -111,7 +112,7 @@ func decideDeleteBot(
 			payload,
 		)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"usermgmt.bot_delete.event_failed",
 				"create BotDeleted event",
@@ -119,7 +120,7 @@ func decideDeleteBot(
 		}
 		marked, markErr := event.MarkTombstone(evt)
 		if markErr != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				markErr,
 				"usermgmt.bot_delete.tombstone_failed",
 				"mark bot tombstone",

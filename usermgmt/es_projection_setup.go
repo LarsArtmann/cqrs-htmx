@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // StartProjections replays historical events from the journal into all
@@ -48,7 +49,7 @@ func StartProjections(
 
 	liveHandler := buildLiveHandler(projections, seenIDs)
 	if err := bus.SubscribeAll(liveHandler); err != nil {
-		return event.WrapInfrastructure(err,
+		return errorfamily.WrapInfrastructure(err,
 			"usermgmt.projection.subscribe_failed",
 			"subscribe to live events")
 	}
@@ -111,7 +112,7 @@ func replayProjections(
 			}
 
 			if err := proj.Handle(replayCtx, evt); err != nil {
-				return nil, event.WrapInfrastructure(err,
+				return nil, errorfamily.WrapInfrastructure(err,
 					"usermgmt.projection.replay_failed",
 					"replay event in projection "+proj.Name())
 			}
@@ -144,7 +145,7 @@ func loadReplayEvents(
 	if cpStore == nil {
 		events, err := journal.ReadAll(ctx)
 		if err != nil {
-			return nil, "", event.WrapInfrastructure(err,
+			return nil, "", errorfamily.WrapInfrastructure(err,
 				"usermgmt.projection.replay_failed",
 				"read events from journal")
 		}
@@ -155,7 +156,7 @@ func loadReplayEvents(
 	if !ok {
 		events, err := journal.ReadAll(ctx)
 		if err != nil {
-			return nil, "", event.WrapInfrastructure(err,
+			return nil, "", errorfamily.WrapInfrastructure(err,
 				"usermgmt.projection.replay_failed",
 				"read events from journal")
 		}
@@ -165,14 +166,14 @@ func loadReplayEvents(
 	const cpName = "usermgmt:start_projections"
 	cp, err := cpStore.Load(ctx, cpName)
 	if err != nil {
-		return nil, "", event.WrapInfrastructure(err,
+		return nil, "", errorfamily.WrapInfrastructure(err,
 			"usermgmt.projection.checkpoint_load_failed",
 			"load checkpoint for replay")
 	}
 
 	events, err := seekable.ReadFrom(ctx, cp.EventID, 0)
 	if err != nil {
-		return nil, "", event.WrapInfrastructure(err,
+		return nil, "", errorfamily.WrapInfrastructure(err,
 			"usermgmt.projection.replay_failed",
 			"read events from journal via ReadFrom")
 	}

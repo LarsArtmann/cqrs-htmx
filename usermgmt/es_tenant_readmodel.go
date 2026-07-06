@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Tenant is the read-model representation of a tenant.
@@ -45,7 +46,7 @@ func (m *TenantReadModel) Handle(_ context.Context, evt event.Event) error {
 	case eventTenantCreated:
 		p, err := unmarshalPayload[TenantCreatedPayload](evt)
 		if err != nil {
-			return event.WrapCorruption(
+			return errorfamily.WrapCorruption(
 				err, "usermgmt.tenant_readmodel.decode_failed",
 				"decode TenantCreated in read model",
 			)
@@ -72,7 +73,7 @@ func (m *TenantReadModel) Handle(_ context.Context, evt event.Event) error {
 		delete(m.tenants, aggID)
 
 	default:
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"usermgmt.tenant_readmodel.unknown_event",
 			"tenant read model received unknown event type: "+string(evt.Type()),
 		)

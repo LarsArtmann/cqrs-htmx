@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // WSMessage represents an incoming HTMX WebSocket message.
@@ -52,7 +53,7 @@ type WSMessage struct {
 func ParseWSMessage(data []byte) (*WSMessage, error) {
 	var raw map[string]any
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, event.Wrapf(err, event.Rejection, "cqrshtmx.ws.parse_failed", "parse ws message")
+		return nil, errorfamily.Wrapf(err, event.Rejection, "cqrshtmx.ws.parse_failed", "parse ws message")
 	}
 
 	msg := &WSMessage{
@@ -156,7 +157,7 @@ func ParseWSMessageInto[T any](data []byte) (msg T, headers map[string]string, e
 	// Decode body fields directly into T. The HEADERS key is ignored by
 	// json.Unmarshal if T has no matching field (the common case).
 	if unmarshalErr := json.Unmarshal(data, &msg); unmarshalErr != nil {
-		return msg, nil, event.Wrapf(
+		return msg, nil, errorfamily.Wrapf(
 			unmarshalErr,
 			event.Rejection,
 			"cqrshtmx.ws.parse_into_failed",

@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -57,7 +57,7 @@ var _ = Describe("StructuredError", func() {
 		})
 
 		It("maps Conflict family to 409", func() {
-			err := event.NewConflict("email_taken", "email already registered")
+			err := errorfamily.NewConflict("email_taken", "email already registered")
 			se := cqrshtmx.NewStructuredError(err, nil)
 
 			Expect(se.Status).To(Equal(http.StatusConflict))

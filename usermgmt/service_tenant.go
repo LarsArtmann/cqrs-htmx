@@ -3,8 +3,8 @@ package usermgmt
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // CreateTenantRequest holds the parameters for creating a new tenant.
@@ -17,15 +17,15 @@ type CreateTenantRequest struct {
 // CreateTenant creates a new tenant and dispatches the TenantCreated event.
 func (s *Service) CreateTenant(ctx context.Context, req CreateTenantRequest) (*Tenant, error) {
 	if req.ID.IsZero() {
-		return nil, event.NewRejection("usermgmt.tenant.id_required", "tenant ID is required")
+		return nil, errorfamily.NewRejection("usermgmt.tenant.id_required", "tenant ID is required")
 	}
 	if req.Name == "" {
-		return nil, event.NewRejection("usermgmt.tenant.name_required", "tenant name is required")
+		return nil, errorfamily.NewRejection("usermgmt.tenant.name_required", "tenant name is required")
 	}
 
 	aggID, err := aggIDFromTenant(req.ID)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
+		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
 	}
 
 	err = s.dispatcher.Dispatch(ctx, NewCreateTenantCmd(
@@ -37,7 +37,7 @@ func (s *Service) CreateTenant(ctx context.Context, req CreateTenantRequest) (*T
 
 	tenant, ok := s.tenantReadModel.FindByID(aggID)
 	if !ok {
-		return nil, event.NewTransient("internal", "tenant not in read model after create")
+		return nil, errorfamily.NewTransient("internal", "tenant not in read model after create")
 	}
 	return tenant, nil
 }
@@ -46,7 +46,7 @@ func (s *Service) CreateTenant(ctx context.Context, req CreateTenantRequest) (*T
 func (s *Service) SuspendTenant(ctx context.Context, tenantID TenantID, reason string) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
 	}
 	return s.dispatcher.Dispatch( //nolint:wrapcheck // decider returns typed domain errors
 		ctx,
@@ -58,7 +58,7 @@ func (s *Service) SuspendTenant(ctx context.Context, tenantID TenantID, reason s
 func (s *Service) ReactivateTenant(ctx context.Context, tenantID TenantID) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
 	}
 	return s.dispatcher.Dispatch( //nolint:wrapcheck // decider returns typed domain errors
 		ctx,
@@ -72,7 +72,7 @@ func (s *Service) ReactivateTenant(ctx context.Context, tenantID TenantID) error
 func (s *Service) DeleteTenant(ctx context.Context, tenantID TenantID, reason string) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
 	}
 	if err := s.dispatcher.Dispatch(
 		ctx,
@@ -106,11 +106,11 @@ func (s *Service) revokeMembershipsForTenantBestEffort(ctx context.Context, tena
 func (s *Service) GetTenant(_ context.Context, id TenantID) (*Tenant, error) {
 	aggID, err := aggIDFromTenant(id)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
+		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
 	}
 	tenant, ok := s.tenantReadModel.FindByID(aggID)
 	if !ok {
-		return nil, event.NewRejection("usermgmt.tenant.not_found", "tenant not found")
+		return nil, errorfamily.NewRejection("usermgmt.tenant.not_found", "tenant not found")
 	}
 	return tenant, nil
 }

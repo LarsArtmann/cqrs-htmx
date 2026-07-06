@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	stacksqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SQLiteSetupConfig configures NewSQLiteEventSourcedSetup.
@@ -32,7 +33,7 @@ func NewSQLiteEventSourcedSetup(cfg SQLiteSetupConfig) (*SQLiteEventSourcedSetup
 		stacksqlite.WithForeignKeys(),
 	)
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sqlite_setup.create", "create sqlite stack bundle")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.create", "create sqlite stack bundle")
 	}
 
 	return newSQLiteSetup(bundle, cfg.AuditLog, cfg.CheckpointStore)
@@ -66,7 +67,7 @@ func newSQLiteSetup(
 		rm, memRm, tenRm, botRm, casbinProj, auditLog,
 	); err != nil {
 		_ = bundle.Close()
-		return nil, event.WrapTransient(err, "internal", "start projections")
+		return nil, errorfamily.WrapTransient(err, "internal", "start projections")
 	}
 
 	return &SQLiteEventSourcedSetup{
@@ -97,19 +98,19 @@ func createSQLReadModels(bundle *stack.Bundle) (
 	}
 	userRm, err := NewSQLiteUserReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, event.WrapTransient(err, "internal", "create sql user read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create sql user read model")
 	}
 	memRm, err := NewSQLiteMembershipReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, event.WrapTransient(err, "internal", "create sql membership read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create sql membership read model")
 	}
 	tenRm, err := NewSQLiteTenantReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, event.WrapTransient(err, "internal", "create sql tenant read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create sql tenant read model")
 	}
 	botRm, err := NewSQLiteBotReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, event.WrapTransient(err, "internal", "create sql bot read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create sql bot read model")
 	}
 	return userRm, memRm, tenRm, botRm, nil
 }
@@ -117,11 +118,11 @@ func createSQLReadModels(bundle *stack.Bundle) (
 func createAuthzAndCasbin() (*CasbinProjection, error) {
 	authz, err := NewAuthz()
 	if err != nil {
-		return nil, event.WrapTransient(err, "internal", "create authz")
+		return nil, errorfamily.WrapTransient(err, "internal", "create authz")
 	}
 	casbinProj, err := NewCasbinProjection(authz)
 	if err != nil {
-		return nil, event.WrapTransient(err, "internal", "create casbin projection")
+		return nil, errorfamily.WrapTransient(err, "internal", "create casbin projection")
 	}
 	return casbinProj, nil
 }
@@ -149,7 +150,7 @@ type SQLiteEventSourcedSetup struct {
 func (s *SQLiteEventSourcedSetup) Close() error {
 	if s.Bundle != nil {
 		if err := s.Bundle.Close(); err != nil {
-			return event.WrapTransient(err, "usermgmt.sqlite_setup.close", "close sqlite bundle")
+			return errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.close", "close sqlite bundle")
 		}
 	}
 	return nil
@@ -158,7 +159,11 @@ func (s *SQLiteEventSourcedSetup) Close() error {
 func (s *SQLiteEventSourcedSetup) GracefulClose(ctx context.Context) error {
 	if s.Bundle != nil {
 		if err := s.Bundle.GracefulClose(ctx); err != nil {
-			return event.WrapTransient(err, "usermgmt.sqlite_setup.graceful_close", "graceful close sqlite bundle")
+			return errorfamily.WrapTransient(
+				err,
+				"usermgmt.sqlite_setup.graceful_close",
+				"graceful close sqlite bundle",
+			)
 		}
 	}
 	return nil

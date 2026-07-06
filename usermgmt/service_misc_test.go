@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func TestNewService_Defaults(t *testing.T) {
@@ -88,7 +88,7 @@ func TestUser_Clone_Nil(t *testing.T) {
 
 func TestWithUserIDContext(t *testing.T) {
 	t.Run("annotates event.Error with user_id context", func(t *testing.T) {
-		original := event.NewTransient("test code", "test message")
+		original := errorfamily.NewTransient("test code", "test message")
 		uid := NewUserID("user-42")
 		got := withUserIDContext(original, uid)
 
@@ -110,7 +110,7 @@ func TestWithUserIDContext(t *testing.T) {
 	})
 
 	t.Run("returns error unchanged for zero user ID", func(t *testing.T) {
-		original := event.NewTransient("code", "msg")
+		original := errorfamily.NewTransient("code", "msg")
 		got := withUserIDContext(original, UserID{})
 		if got != original {
 			t.Errorf("expected unchanged error pointer")

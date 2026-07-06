@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -92,7 +92,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 
 			hook := b.BroadcastOnError("commandError")
 			req := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
-			hook(context.Background(), req, event.NewRejection("validation_failed", "validation failed"))
+			hook(context.Background(), req, errorfamily.NewRejection("validation_failed", "validation failed"))
 
 			var event cqrshtmx.SSEEvent
 			Eventually(ch).Should(Receive(&event))

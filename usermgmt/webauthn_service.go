@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // webAuthnUserData is the JSON shape the WebAuthnProvider expects for userJSON.
@@ -51,7 +51,7 @@ func marshalWebAuthnUser(user *User) ([]byte, error) {
 		Credentials: creds,
 	})
 	if err != nil {
-		return nil, event.NewInfrastructure("internal", "marshal webauthn user data").WithCause(err)
+		return nil, errorfamily.NewInfrastructure("internal", "marshal webauthn user data").WithCause(err)
 	}
 	return data, nil
 }
@@ -76,19 +76,19 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logger.Debug("usermgmt: begin registration failed – user not found", "user_id", userID)
-		return nil, event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "begin registration")
+		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "begin registration")
 	}
 
 	userJSON, err := marshalWebAuthnUser(user)
 	if err != nil {
-		return nil, event.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
+		return nil, errorfamily.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
 	}
 
 	options, sessionData, err := s.webauthn.BeginRegistration(ctx, userJSON)
 	if err != nil {
 		s.logger.Warn("usermgmt: begin registration ceremony failed",
 			"user_id", userID, "error", err)
-		return nil, event.NewTransient("internal", "begin webauthn registration").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "begin webauthn registration").WithCause(err)
 	}
 
 	sessionKey := userID.Get().String()
@@ -112,7 +112,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logger.Debug("usermgmt: finish registration failed – user not found", "user_id", userID)
-		return event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish registration")
+		return errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish registration")
 	}
 
 	sessionKey := userID.Get().String()
@@ -125,19 +125,19 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 
 	body, err := io.ReadAll(io.LimitReader(r.Body, maxWebAuthnBodySize))
 	if err != nil {
-		return event.NewRejection("usermgmt.webauthn.body_read", "read attestation body").WithCause(err)
+		return errorfamily.NewRejection("usermgmt.webauthn.body_read", "read attestation body").WithCause(err)
 	}
 
 	userJSON, err := marshalWebAuthnUser(user)
 	if err != nil {
-		return event.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
+		return errorfamily.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
 	}
 
 	credJSON, err := s.webauthn.FinishRegistration(ctx, userJSON, body, sessionData)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish registration ceremony failed",
 			"user_id", userID, "error", err)
-		return event.NewRejection("usermgmt.webauthn.registration_failed",
+		return errorfamily.NewRejection("usermgmt.webauthn.registration_failed",
 			"credential registration failed").WithCause(err)
 	}
 
@@ -145,19 +145,20 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 
 	var cred credentialCore
 	if err := json.Unmarshal(credJSON, &cred); err != nil {
-		return event.NewInfrastructure("usermgmt.webauthn.unmarshal_credential", "unmarshal credential").WithCause(err)
+		return errorfamily.NewInfrastructure("usermgmt.webauthn.unmarshal_credential", "unmarshal credential").
+			WithCause(err)
 	}
 	cred.Name = credentialName
 
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return event.WrapInfrastructure(err, "usermgmt.webauthn.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.webauthn.userid_conversion_failed", "convert userID")
 	}
 	if err := s.dispatcher.Dispatch(
 		ctx,
 		NewAddCredentialCmd(aggID, WebAuthnCredential{credentialCore: cred}),
 	); err != nil {
-		return event.Wrapf(err, event.Classify(err),
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"usermgmt.webauthn.dispatch_failed", "finish registration dispatch")
 	}
 	s.logger.Info("usermgmt: credential registered",
@@ -188,7 +189,7 @@ func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResp
 	user, ok := s.readModel.FindByEmail(email)
 	if !ok {
 		s.logger.Debug("usermgmt: login failed – user not found", "email", email)
-		return nil, event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "begin login")
+		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "begin login")
 	}
 
 	if len(user.Credentials) == 0 {
@@ -198,13 +199,13 @@ func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResp
 
 	userJSON, err := marshalWebAuthnUser(user)
 	if err != nil {
-		return nil, event.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
+		return nil, errorfamily.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
 	}
 
 	options, sessionData, err := s.webauthn.BeginLogin(ctx, userJSON)
 	if err != nil {
 		s.logger.Warn("usermgmt: begin login ceremony failed", "email", email, "error", err)
-		return nil, event.NewTransient("internal", "begin webauthn login").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "begin webauthn login").WithCause(err)
 	}
 
 	sessionKey := user.ID.Get().String()
@@ -231,7 +232,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logger.Debug("usermgmt: finish login failed – user not found", "user_id", userID)
-		return nil, event.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish login")
+		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish login")
 	}
 
 	sessionKey := userID.Get().String()
@@ -244,12 +245,12 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 
 	body, err := io.ReadAll(io.LimitReader(r.Body, maxWebAuthnBodySize))
 	if err != nil {
-		return nil, event.NewRejection("usermgmt.webauthn.body_read", "read assertion body").WithCause(err)
+		return nil, errorfamily.NewRejection("usermgmt.webauthn.body_read", "read assertion body").WithCause(err)
 	}
 
 	userJSON, err := marshalWebAuthnUser(user)
 	if err != nil {
-		return nil, event.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
+		return nil, errorfamily.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
 	}
 
 	if err := s.webauthn.FinishLogin(ctx, userJSON, body, sessionData); err != nil {
@@ -258,7 +259,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		}
 		s.logger.Warn("usermgmt: finish login ceremony failed",
 			"user_id", userID, "email", user.Email, "error", err)
-		return nil, event.NewRejection("usermgmt.webauthn.login_failed",
+		return nil, errorfamily.NewRejection("usermgmt.webauthn.login_failed",
 			"credential login failed").WithCause(err)
 	}
 
@@ -271,7 +272,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	sess, err := s.createSession(ctx, user.ID)
 	if err != nil {
 		return nil, withUserIDContext(
-			event.NewTransient("internal", "create session").WithCause(err), user.ID,
+			errorfamily.NewTransient("internal", "create session").WithCause(err), user.ID,
 		)
 	}
 

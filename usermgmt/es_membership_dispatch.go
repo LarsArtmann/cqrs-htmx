@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // RegisterMembershipCommands wires all membership aggregate commands to the dispatcher.
@@ -23,7 +24,7 @@ func RegisterMembershipCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err, event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
 			"register %s", cmdAddMember,
@@ -39,7 +40,7 @@ func RegisterMembershipCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err, event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
 			"register %s", cmdUpdateMemberRoles,
@@ -55,7 +56,7 @@ func RegisterMembershipCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err, event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
 			"register %s", cmdRemoveMember,

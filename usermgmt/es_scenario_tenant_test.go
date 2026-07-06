@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/scenario/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Tenant scenario/v3 BDD tests. Exercises the four Tenant decide functions
@@ -52,7 +53,7 @@ func TestScenario_CreateTenant_AlreadyExists(t *testing.T) {
 
 	scenario.Given[*CreateTenantCmd, TenantState](t, foldTenant, TenantState{}, existing).
 		When(cmd, decide).
-		ThenError(event.NewConflict("usermgmt.tenant.already_exists", ""))
+		ThenError(errorfamily.NewConflict("usermgmt.tenant.already_exists", ""))
 }
 
 func TestScenario_CreateTenant_NameRequired(t *testing.T) {
@@ -68,7 +69,7 @@ func TestScenario_CreateTenant_NameRequired(t *testing.T) {
 
 	scenario.Given[*CreateTenantCmd, TenantState](t, foldTenant, TenantState{}).
 		When(cmd, decide).
-		ThenError(event.NewRejection("usermgmt.tenant.name_required", ""))
+		ThenError(errorfamily.NewRejection("usermgmt.tenant.name_required", ""))
 }
 
 func TestScenario_SuspendTenant_HappyPath(t *testing.T) {
@@ -112,7 +113,7 @@ func TestScenario_SuspendTenant_NotFound(t *testing.T) {
 
 	scenario.Given[*SuspendTenantCmd, TenantState](t, foldTenant, TenantState{}).
 		When(cmd, decide).
-		ThenError(event.NewRejection("usermgmt.tenant_suspend.not_found", ""))
+		ThenError(errorfamily.NewRejection("usermgmt.tenant_suspend.not_found", ""))
 }
 
 func TestScenario_ReactivateTenant_HappyPath(t *testing.T) {
@@ -194,5 +195,5 @@ func TestScenario_DeleteTenant_NotFound(t *testing.T) {
 
 	scenario.Given[*DeleteTenantCmd, TenantState](t, foldTenant, TenantState{}).
 		When(cmd, decide).
-		ThenError(event.NewRejection("usermgmt.tenant_delete.not_found", ""))
+		ThenError(errorfamily.NewRejection("usermgmt.tenant_delete.not_found", ""))
 }

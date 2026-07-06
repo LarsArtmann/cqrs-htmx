@@ -3,13 +3,13 @@ package usermgmt
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Logout deletes the session associated with the given token.
 func (s *Service) Logout(ctx context.Context, token string) error {
 	if err := s.sessions.Delete(ctx, token); err != nil {
-		return event.NewTransient("internal", "logout").WithCause(err)
+		return errorfamily.NewTransient("internal", "logout").WithCause(err)
 	}
 	return nil
 }

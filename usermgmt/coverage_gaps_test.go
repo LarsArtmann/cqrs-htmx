@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func TestAggIDFromUser_InvalidID(t *testing.T) {
@@ -24,7 +25,7 @@ func TestAggIDFromUser_EmptyID(t *testing.T) {
 
 func TestClassifyDispatchError_Transient(t *testing.T) {
 	svc := newTestService(t)
-	transient := event.NewTransient("test", "some transient error")
+	transient := errorfamily.NewTransient("test", "some transient error")
 	result := svc.classifyDispatchError(transient, NewUserID("u1"))
 	if result == nil {
 		t.Fatal("expected non-nil error")
@@ -35,7 +36,7 @@ func TestClassifyDispatchError_Transient(t *testing.T) {
 }
 
 func isTransient(err error) bool {
-	return event.IsRetryable(err)
+	return errorfamily.IsRetryable(err)
 }
 
 func TestDecideChangeDisplayName_NoOp(t *testing.T) {

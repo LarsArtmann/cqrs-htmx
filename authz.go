@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Enforcer checks authorization policy. *casbin.Enforcer satisfies this interface.
@@ -73,20 +73,20 @@ func RequestGuard(guard RequestGuardFunc) HandlerOption {
 // Returns ErrEnforcerNil if the enforcer is nil.
 func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	if enforcer == nil {
-		return event.NewInfrastructure("enforcer_nil",
+		return errorfamily.NewInfrastructure("enforcer_nil",
 			fmt.Sprintf("enforcer is nil for subject=%s resource=%s action=%s",
 				subject, resource, action)).WithCause(ErrEnforcerNil)
 	}
 
 	ok, err := enforcer.Enforce(subject, resource, action)
 	if err != nil {
-		return event.NewTransient("enforce_failed",
+		return errorfamily.NewTransient("enforce_failed",
 			fmt.Sprintf("casbin enforce failed for subject=%s resource=%s action=%s",
 				subject, resource, action)).WithCause(err)
 	}
 
 	if !ok {
-		return event.NewRejection("forbidden",
+		return errorfamily.NewRejection("forbidden",
 			fmt.Sprintf("subject=%s resource=%s action=%s", subject, resource, action)).
 			WithCause(ErrForbidden)
 	}
@@ -102,7 +102,7 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 	userID := UserIDFromContext(r.Context())
 	if userID.IsZero() {
 		if cfg.authMode == authAuthorized {
-			return event.NewRejection("unauthorized",
+			return errorfamily.NewRejection("unauthorized",
 				fmt.Sprintf("%s/%s", cfg.resource, cfg.action)).WithCause(ErrUnauthorized)
 		}
 		return ErrUnauthorized
@@ -116,7 +116,7 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 }
 
 func handleUnauthorized(w http.ResponseWriter, r *http.Request, resource, action, redirect string) {
-	authErr := event.NewRejection("unauthorized",
+	authErr := errorfamily.NewRejection("unauthorized",
 		fmt.Sprintf("%s/%s", resource, action)).WithCause(ErrUnauthorized)
 	DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
 }

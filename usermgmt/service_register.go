@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type RegisterRequest struct {
@@ -19,7 +20,7 @@ func formatValidationErrors(errs []string) error {
 	if len(errs) == 0 {
 		return nil
 	}
-	return event.NewRejection("validation", strings.Join(errs, "; ")).WithCause(ErrValidation)
+	return errorfamily.NewRejection("validation", strings.Join(errs, "; ")).WithCause(ErrValidation)
 }
 
 func withUserIDContext(err *event.Error, userID UserID) *event.Error {
@@ -70,14 +71,14 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 
 	if _, exists := s.readModel.FindByEmail(req.Email); exists {
 		return nil, withUserIDContext(
-			event.NewRejection("usermgmt.email_exists", "email already registered").
+			errorfamily.NewRejection("usermgmt.email_exists", "email already registered").
 				WithCause(ErrEmailExists), req.ID,
 		)
 	}
 
 	aggID, err := aggIDFromUser(req.ID)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
+		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
 	}
 	err = s.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
 		aggID, req.Email, req.DisplayName, []Role{RoleViewer, RoleUser},
@@ -89,14 +90,14 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	user, ok := s.readModel.FindByID(aggID)
 	if !ok {
 		return nil, withUserIDContext(
-			event.NewTransient("internal", "user not in read model after register"), req.ID,
+			errorfamily.NewTransient("internal", "user not in read model after register"), req.ID,
 		)
 	}
 
 	session, err := s.createSession(ctx, req.ID)
 	if err != nil {
 		return nil, withUserIDContext(
-			event.NewTransient("internal", "create session").WithCause(err), req.ID,
+			errorfamily.NewTransient("internal", "create session").WithCause(err), req.ID,
 		)
 	}
 
@@ -105,10 +106,10 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 
 func (s *Service) classifyDispatchError(err error, userID UserID, kv ...string) error {
 	var classified *event.Error
-	switch event.Classify(err) {
+	switch errorfamily.Classify(err) {
 	case event.Conflict:
 		classified = withUserIDContext(
-			event.NewRejection("usermgmt.user_id_exists", "user ID already exists").
+			errorfamily.NewRejection("usermgmt.user_id_exists", "user ID already exists").
 				WithCause(ErrUserIDExists), userID,
 		)
 	case event.Rejection:
@@ -123,7 +124,7 @@ func (s *Service) classifyDispatchError(err error, userID UserID, kv ...string) 
 		}
 	default:
 		classified = withUserIDContext(
-			event.NewTransient("internal", "dispatch command").WithCause(err), userID,
+			errorfamily.NewTransient("internal", "dispatch command").WithCause(err), userID,
 		)
 	}
 	for i := 0; i+1 < len(kv); i += 2 {
@@ -149,10 +150,10 @@ func (s *Service) revokeSessionsBestEffort(ctx context.Context, userID UserID, f
 func (s *Service) createSession(ctx context.Context, userID UserID) (*Session, error) {
 	session, err := NewSession(userID, s.sessionTTL)
 	if err != nil {
-		return nil, event.NewTransient("internal", "create session").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "create session").WithCause(err)
 	}
 	if err := s.sessions.Create(ctx, session); err != nil {
-		return nil, event.NewTransient("internal", "store session").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "store session").WithCause(err)
 	}
 	return session, nil
 }

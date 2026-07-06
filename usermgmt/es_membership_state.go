@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MembershipState is the aggregate state for a Membership (actor+tenant pair),
@@ -64,7 +65,7 @@ func foldMembership(state MembershipState, evt event.Event) (MembershipState, er
 		next.Removed = true
 
 	default:
-		return state, event.NewRejection(
+		return state, errorfamily.NewRejection(
 			"usermgmt.membership.unknown_event",
 			"foldMembership received unknown event type: "+string(evt.Type()),
 		)
@@ -80,7 +81,7 @@ func actorKindFromString(s string) (ActorKind, error) {
 	case actorKindBotStr:
 		return ActorBot, nil
 	default:
-		return ActorUser, event.NewRejection(
+		return ActorUser, errorfamily.NewRejection(
 			"usermgmt.membership.unknown_actor_kind",
 			"unknown actor kind: "+s,
 		)

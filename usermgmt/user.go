@@ -7,7 +7,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -81,7 +81,7 @@ func (u *User) MarshalJSON() ([]byte, error) {
 		CredentialCount: len(u.Credentials),
 	})
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "usermgmt.user.marshal_failed", "marshal user")
+		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.user.marshal_failed", "marshal user")
 	}
 	return data, nil
 }
@@ -118,7 +118,7 @@ func NewImpersonationSession(
 func newSession(actorID ActorID, origin SessionOrigin, ttl time.Duration) (*Session, error) {
 	token, err := generateToken()
 	if err != nil {
-		return nil, event.NewTransient("token_gen_failed",
+		return nil, errorfamily.NewTransient("token_gen_failed",
 			fmt.Sprintf("generate token for actor %q", actorID.PrefixedString())).WithCause(err)
 	}
 	now := time.Now().UTC()

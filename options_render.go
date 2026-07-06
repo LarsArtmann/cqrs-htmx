@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Render sets a custom render function for query results.
@@ -65,7 +65,7 @@ func RenderTemplResult[T any](mapper func(T) TemplComponent) HandlerOption {
 		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
 			typed, ok := result.(T)
 			if !ok {
-				return event.NewRejection("unexpected_result_type",
+				return errorfamily.NewRejection("unexpected_result_type",
 					fmt.Sprintf("unexpected result type %T", result)).WithCause(ErrDecodeFailed)
 			}
 

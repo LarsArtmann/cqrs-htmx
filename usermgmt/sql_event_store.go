@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SQLEventStore persists user domain events in a SQL database with optimistic
@@ -55,11 +56,11 @@ func NewSQLEventStore(ctx context.Context, db *sql.DB, dialect string) (*SQLEven
 	}
 	store, err := storage.NewSQLEventStoreWithDialect(db, d)
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_event_store.create_failed", "create sql event store")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_event_store.create_failed", "create sql event store")
 	}
 	// Upstream does not auto-migrate — apply the event schema ourselves.
 	if _, err := db.ExecContext(ctx, d.EventSchema()); err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_event_store.migrate_failed", "migrate sql event store")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_event_store.migrate_failed", "migrate sql event store")
 	}
 	return store, nil
 }
@@ -73,7 +74,7 @@ func dialectToUpstream(dialect string) (sqlpkg.Dialect, error) {
 	case dialectSQLite, dialectSQLite3:
 		return sqlpkg.SQLiteDialect{}, nil
 	default:
-		return nil, event.Newf(event.Rejection, "usermgmt.sql_event_store.unsupported_dialect",
+		return nil, errorfamily.Newf(event.Rejection, "usermgmt.sql_event_store.unsupported_dialect",
 			"unsupported event store dialect %q: use postgres, pgx, sqlite, or sqlite3", dialect).
 			WithContext("dialect", dialect)
 	}

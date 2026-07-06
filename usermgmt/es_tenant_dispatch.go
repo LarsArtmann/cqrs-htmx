@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // RegisterTenantCommands wires all tenant aggregate commands to the dispatcher.
@@ -24,7 +25,7 @@ func RegisterTenantCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err, event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
 			"register %s", cmdCreateTenant,
@@ -40,7 +41,7 @@ func RegisterTenantCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err, event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
 			"register %s", cmdSuspendTenant,
@@ -56,7 +57,7 @@ func RegisterTenantCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err, event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
 			"register %s", cmdReactivateTenant,
@@ -72,7 +73,7 @@ func RegisterTenantCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err, event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
 			"register %s", cmdDeleteTenant,

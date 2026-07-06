@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // WSCommandDecoder decodes raw WebSocket message bytes into a command.
@@ -57,7 +58,7 @@ func makeWSDecoder[T, C any](errPrefix string, mapper func(T) (C, error)) func([
 	return func(data []byte) (C, error) {
 		var t T
 		if err := json.Unmarshal(data, &t); err != nil {
-			return zero[C](), event.Wrapf(err, event.Rejection, "cqrshtmx.ws.decode_failed", "%s", errPrefix)
+			return zero[C](), errorfamily.Wrapf(err, event.Rejection, "cqrshtmx.ws.decode_failed", "%s", errPrefix)
 		}
 		return mapper(t)
 	}
@@ -217,7 +218,7 @@ func decodeWSMessage[T any](
 	var zero T
 	v, err := decoder(data)
 	if err != nil {
-		wrapped := event.Wrapf(err, event.Rejection, code, msgFormat, msgArgs...)
+		wrapped := errorfamily.Wrapf(err, event.Rejection, code, msgFormat, msgArgs...)
 		a.afterDispatchHook(ctx, r, wrapped)
 		return zero, wrapped
 	}
@@ -251,7 +252,7 @@ func (a *App) wrapWSDispatchErr(
 	ctx context.Context, r *http.Request, err error,
 	code, msgFormat string, msgArgs ...any,
 ) error {
-	wrapped := event.Wrapf(err, event.Classify(err), code, msgFormat, msgArgs...)
+	wrapped := errorfamily.Wrapf(err, errorfamily.Classify(err), code, msgFormat, msgArgs...)
 	a.afterDispatchHook(ctx, r, wrapped)
 	return wrapped
 }

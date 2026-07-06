@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	"github.com/starfederation/datastar-go/datastar"
 )
@@ -128,11 +129,11 @@ func handleUpdateTodo(cqrs *CQRS) http.HandlerFunc {
 			return
 		}
 		if s.ID == "" {
-			dispatchErrorNotification(w, r, event.NewRejection("todo.id_required", "id is required"))
+			dispatchErrorNotification(w, r, errorfamily.NewRejection("todo.id_required", "id is required"))
 			return
 		}
 		if s.Title == "" {
-			dispatchErrorNotification(w, r, event.NewRejection("todo.title_required", "title is required"))
+			dispatchErrorNotification(w, r, errorfamily.NewRejection("todo.title_required", "title is required"))
 			return
 		}
 

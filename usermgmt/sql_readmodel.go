@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type UserView struct {
@@ -40,7 +41,7 @@ func userViewMapper() storage.ViewMapper[UserView] {
 func NewSQLiteUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
 	store, err := storage.NewSQLiteViewStore[UserView, UserID](db, userViewMapper())
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.create", "create sqlite user view store")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.create", "create sqlite user view store")
 	}
 	return newSQLUserReadModel(store), nil
 }
@@ -48,7 +49,7 @@ func NewSQLiteUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
 func NewSQLUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
 	store, err := storage.NewSQLViewStore[UserView, UserID](db, userViewMapper())
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.create", "create sql user view store")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.create", "create sql user view store")
 	}
 	return newSQLUserReadModel(store), nil
 }
@@ -69,7 +70,7 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 	if evt.Type() == eventUserDeleted {
 		userID := NewUserID(aggID.String())
 		if err := m.store.Delete(ctx, userID); err != nil {
-			return event.WrapTransient(err, "usermgmt.sql_readmodel.delete", "delete user view")
+			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.delete", "delete user view")
 		}
 		return nil
 	}
@@ -90,7 +91,7 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 	}
 	userID := NewUserID(aggID.String())
 	if err := m.store.Set(ctx, userID, &view); err != nil {
-		return event.WrapTransient(err, "usermgmt.sql_readmodel.upsert", "upsert user view")
+		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.upsert", "upsert user view")
 	}
 	return nil
 }
@@ -98,7 +99,7 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 func (m *SQLUserReadModel) FindByIDSQL(ctx context.Context, userID UserID) (*UserView, error) {
 	view, err := m.store.Get(ctx, userID)
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.get", "get user view by id")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.get", "get user view by id")
 	}
 	return view, nil
 }
@@ -108,7 +109,7 @@ func (m *SQLUserReadModel) FindByEmailSQL(ctx context.Context, email string) ([]
 		Conditions: []kv.Condition{{Column: csvColumnEmail, Op: kv.OpEq, Value: email}},
 	})
 	if err != nil {
-		return nil, event.WrapTransient(err, "usermgmt.sql_readmodel.query_email", "query user view by email")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.query_email", "query user view by email")
 	}
 	return views, nil
 }
@@ -118,7 +119,7 @@ func (m *SQLUserReadModel) CountSQL(ctx context.Context) (int64, error) {
 		Conditions: []kv.Condition{{Column: "tombstoned", Op: kv.OpEq, Value: false}},
 	})
 	if err != nil {
-		return 0, event.WrapTransient(err, "usermgmt.sql_readmodel.count", "count users")
+		return 0, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.count", "count users")
 	}
 	return count, nil
 }

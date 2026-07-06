@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Email is a validated, normalized email address.
@@ -18,14 +19,14 @@ type Email string
 func ParseEmail(raw string) (Email, error) {
 	s := strings.ToLower(strings.TrimSpace(raw))
 	if s == "" {
-		return "", event.WrapRejection(ErrValidation, "usermgmt.email.required", "email is required")
+		return "", errorfamily.WrapRejection(ErrValidation, "usermgmt.email.required", "email is required")
 	}
 	addr, err := mail.ParseAddress(s)
 	if err != nil {
-		return "", event.Wrapf(ErrValidation, event.Rejection, "usermgmt.email.invalid", "invalid email %q", s)
+		return "", errorfamily.Wrapf(ErrValidation, event.Rejection, "usermgmt.email.invalid", "invalid email %q", s)
 	}
 	if len(addr.Address) > maxEmailLength {
-		return "", event.Wrapf(
+		return "", errorfamily.Wrapf(
 			ErrValidation,
 			event.Rejection,
 			"usermgmt.email.too_long",

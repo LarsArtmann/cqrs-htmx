@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Upcaster transforms raw event payload bytes from schema version N to version N+1.
@@ -83,7 +84,7 @@ func (r *UpcasterRegistry) Upcast(eventType event.Type, raw []byte) ([]byte, err
 		}
 		upcasted, err := fn(current)
 		if err != nil {
-			return nil, event.Wrapf(err, event.Corruption, "usermgmt.upcast.failed",
+			return nil, errorfamily.Wrapf(err, event.Corruption, "usermgmt.upcast.failed",
 				"upcast %s v%d→v%d", eventType, version, version+1)
 		}
 		current = upcasted

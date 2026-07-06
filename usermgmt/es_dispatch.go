@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // RegisterCommands wires all user aggregate commands to the dispatcher.
@@ -23,7 +24,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
@@ -41,7 +42,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
@@ -59,7 +60,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
@@ -77,7 +78,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(err, event.Infrastructure, "usermgmt.dispatch.register_failed", "register %s", cmdDeleteUser)
+		return errorfamily.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdDeleteUser,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -89,7 +96,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
@@ -107,7 +114,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
@@ -125,7 +132,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
@@ -143,7 +150,13 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(err, event.Infrastructure, "usermgmt.dispatch.register_failed", "register %s", cmdEnableTOTP)
+		return errorfamily.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdEnableTOTP,
+		)
 	}
 
 	if err := command.RegisterTyped(
@@ -155,7 +168,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
@@ -175,7 +188,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
@@ -193,7 +206,7 @@ func RegisterCommands(
 			)
 		},
 	); err != nil {
-		return event.Wrapf(
+		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.dispatch.register_failed",

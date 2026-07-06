@@ -11,6 +11,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func TestWithHTTPStatus_OverridesFamilyDefault(t *testing.T) {
@@ -36,13 +37,13 @@ func TestWithHTTPStatus_NilReturnsNil(t *testing.T) {
 
 func TestWithHTTPStatus_PreservesFamily(t *testing.T) {
 	wrapped := cqrshtmx.WithHTTPStatus(cqrshtmx.ErrValidationFailed, http.StatusNotFound)
-	if event.Classify(wrapped) != event.Rejection {
+	if errorfamily.Classify(wrapped) != event.Rejection {
 		t.Error("WithHTTPStatus must preserve the wrapped error's family")
 	}
 }
 
 func TestSafeDetail_RedactsServerFaults(t *testing.T) {
-	err := event.NewTransient("db.down", "connection refused at 10.0.0.5:5432")
+	err := errorfamily.NewTransient("db.down", "connection refused at 10.0.0.5:5432")
 	detail := cqrshtmx.SafeDetail(err, http.StatusServiceUnavailable, false)
 	if detail == "connection refused at 10.0.0.5:5432" {
 		t.Error("SafeDetail must redact 5xx internal detail")
@@ -53,7 +54,7 @@ func TestSafeDetail_RedactsServerFaults(t *testing.T) {
 }
 
 func TestSafeDetail_PreservesClientErrors(t *testing.T) {
-	err := event.NewRejection("bad_input", "email is required")
+	err := errorfamily.NewRejection("bad_input", "email is required")
 	detail := cqrshtmx.SafeDetail(err, http.StatusBadRequest, false)
 	if !strings.Contains(detail, "email is required") {
 		t.Errorf("SafeDetail must preserve 4xx detail, got %q", detail)
@@ -61,7 +62,7 @@ func TestSafeDetail_PreservesClientErrors(t *testing.T) {
 }
 
 func TestSafeDetail_IncludeInternalOverridesRedaction(t *testing.T) {
-	err := event.NewTransient("db.down", "connection refused")
+	err := errorfamily.NewTransient("db.down", "connection refused")
 	detail := cqrshtmx.SafeDetail(err, http.StatusServiceUnavailable, true)
 	if !strings.Contains(detail, "connection refused") {
 		t.Errorf("SafeDetail with includeInternal must show raw detail, got %q", detail)
@@ -113,7 +114,7 @@ func TestProblemDetailsErrorHandler_ShapeAndContentType(t *testing.T) {
 }
 
 func TestProblemDetailsErrorHandler_RedactsServerFaults(t *testing.T) {
-	err := event.NewTransient("db.down", "secret internal detail")
+	err := errorfamily.NewTransient("db.down", "secret internal detail")
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	cqrshtmx.ProblemDetailsErrorHandler(w, r, err)

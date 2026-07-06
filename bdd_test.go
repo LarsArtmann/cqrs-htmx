@@ -11,9 +11,9 @@ import (
 	"github.com/casbin/casbin/v3"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -196,12 +196,12 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			},
 			Entry(
 				"conflict to 409",
-				event.NewConflict("user.duplicate", "duplicate"),
+				errorfamily.NewConflict("user.duplicate", "duplicate"),
 				http.StatusConflict,
 			),
 			Entry(
 				"transient to 503",
-				event.NewTransient("db.timeout", "timeout"),
+				errorfamily.NewTransient("db.timeout", "timeout"),
 				http.StatusServiceUnavailable,
 			),
 		)
