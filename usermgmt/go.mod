@@ -63,7 +63,7 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-error-family v0.5.1 // indirect
+	github.com/larsartmann/go-error-family v0.6.0 // indirect
 	github.com/larsartmann/httputil v0.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect

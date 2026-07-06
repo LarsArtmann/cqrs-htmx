@@ -1,0 +1,11 @@
+github.com/fxamacker/cbor/v2 v2.9.2/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
+github.com/larsartmann/go-branded-id v0.3.1/go.mod h1:fiv3t1PyNCITnE/8KtymGCUz7tQRuQxF+8oqNdFmA/Y=
+github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0/go.mod h1:utx7cQNt76Yuueau3KnzArk77Nj5vSlji9UbvrkiZbU=
+github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0/go.mod h1:+DlnFHLeFw0B3AtGwI5NXXJvxCvcL8iXiWrp91U+TXs=
+github.com/larsartmann/go-cqrs-lite/id/v3 v3.5.0/go.mod h1:P8Zex58oUtIlyJVKje9TbAsb2HM0DylgR+46TPU35uQ=
+github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0/go.mod h1:opRaeUrUpU8D+rJsUa+WZdXWGc20WYSpS2wCC1lC3hY=
+github.com/larsartmann/go-error-family v0.6.0 h1:u2g99qcNHPPjNCujPH+4IhFJe4s3Zimjh/VrT8sUP2Q=
+github.com/larsartmann/go-error-family v0.6.0/go.mod h1:Lrz/C2Sj2XkHQ1jv0RZoSJhH0huebawofSp17qiaFoQ=
+github.com/oklog/ulid/v2 v2.1.1/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
+github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
+github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=

@@ -136,6 +136,9 @@ github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.5.0 h1:jO+3wzZh2pLbRgue1C6Wi
 github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.5.0/go.mod h1:foONz/0gS4lMI57l3nE8YIttQMMmHUF8tjblFJ0iNpU=
 github.com/larsartmann/go-error-family v0.5.1 h1:rYDNU0sv+6ri0xel6MswIeDT2dRh3q+RSc5uWnAwecg=
 github.com/larsartmann/go-error-family v0.5.1/go.mod h1:JbSRM+qePUMzqr2L28oEeIf7QjWUnwAnUHpUfqp/flg=
+github.com/larsartmann/go-error-family v0.6.0 h1:u2g99qcNHPPjNCujPH+4IhFJe4s3Zimjh/VrT8sUP2Q=
+github.com/larsartmann/go-error-family v0.6.0/go.mod h1:Lrz/C2Sj2XkHQ1jv0RZoSJhH0huebawofSp17qiaFoQ=
+github.com/larsartmann/go-error-family v0.6.1/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
 github.com/larsartmann/httputil v0.3.0 h1:/j1PUI2K79mkZZ6QtRD92hfLK0ij0d+kkXacAgBoXlc=
 github.com/larsartmann/httputil v0.3.0/go.mod h1:+zSz4Ru4W61NzDhN91eyZaJD5xR3cEwav55Z4899ROg=
 github.com/larsartmann/httputil v0.4.0 h1:e07wGqA9Aoo2seZfHLs8i3XNxwrZOMBkRXSpMrnTf08=
