@@ -64,7 +64,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-error-family v0.5.1 // indirect
+	github.com/larsartmann/go-error-family v0.6.1 // indirect
 	github.com/larsartmann/httputil v0.4.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
