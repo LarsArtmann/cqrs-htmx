@@ -4,9 +4,9 @@ go 1.26.4
 
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.5.0
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.7.0
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.0
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.7.0
 )
 
 require (
@@ -19,15 +19,16 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.5.0 // indirect
-	github.com/larsartmann/go-error-family v0.6.0 // indirect
-	github.com/larsartmann/httputil v0.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-error-family v0.6.1 // indirect
+	github.com/larsartmann/httputil v0.5.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -46,3 +47,5 @@ require (
 )
 
 replace github.com/larsartmann/cqrs-htmx/v4 => ../..
+
+replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../.vendor-local/eventtest
