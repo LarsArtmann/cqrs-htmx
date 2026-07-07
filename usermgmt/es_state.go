@@ -2,8 +2,8 @@ package usermgmt
 
 import (
 	"bytes"
-	"encoding/json"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -28,13 +28,28 @@ func (s UserState) Exists() bool {
 	return s.Email != ""
 }
 
+// unmarshalPayload decodes an event's payload into a typed value using the
+// codec that matches the event's declared encoding (JSON or CBOR). This makes
+// the library transparently compatible with consumers who set
+// event.DefaultCodec = codec.CBORCodec{} for more compact storage.
+//
+// Upcasters run first: they may transform legacy payload shapes before decoding.
+// The codec is resolved per-event via codec.ForEncoding(evt.Encoding()), so
+// mixed JSON+CBOR event streams decode correctly.
 func unmarshalPayload[T any](evt event.Event) (T, error) {
 	raw, err := applyUpcasters(evt.Type(), evt.Payload())
 	if err != nil {
 		return *new(T), errorfamily.WrapCorruption(err, "usermgmt.payload.upcast_failed", "upcast payload")
 	}
+	c, err := codec.ForEncoding(evt.Encoding())
+	if err != nil {
+		return *new(T), errorfamily.WrapCorruption(err,
+			"usermgmt.payload_decode_failed",
+			"resolve codec for encoding "+string(evt.Encoding())+
+				" (event "+string(evt.Type())+")")
+	}
 	var target T
-	if err := json.Unmarshal(raw, &target); err != nil {
+	if err := c.Decode(raw, &target); err != nil {
 		return target, errorfamily.WrapCorruption(err,
 			"usermgmt.payload_decode_failed",
 			"decode payload for event "+string(evt.Type()))

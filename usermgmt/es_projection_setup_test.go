@@ -6,6 +6,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
@@ -85,11 +86,10 @@ func TestBuildLiveHandler_DedupSkipsReplayedEvents(t *testing.T) {
 	}
 
 	replayedEvt := makeTestEvent("UserRegistered")
-	seenIDs := map[id.EventID]struct{}{
-		replayedEvt.ID(): {},
-	}
+	replayIDs := dedup.NewRing(dedup.DefaultCapacity)
+	replayIDs.Add(replayedEvt.ID().String())
 
-	handler := buildLiveHandler([]projection.Projection{proj}, seenIDs)
+	handler := buildLiveHandler([]projection.Projection{proj}, replayIDs)
 
 	// The replayed event should be skipped (dedup)
 	if err := handler(context.Background(), replayedEvt); err != nil {
@@ -117,7 +117,7 @@ func TestBuildLiveHandler_DispatchesToMatchingProjectionsOnly(t *testing.T) {
 
 	handler := buildLiveHandler(
 		[]projection.Projection{userProj, tenantProj},
-		map[id.EventID]struct{}{},
+		dedup.NewRing(dedup.DefaultCapacity),
 	)
 
 	evt := makeTestEvent("UserRegistered")
@@ -148,7 +148,7 @@ func TestBuildLiveHandler_ContinuesOnProjectionError(t *testing.T) {
 
 	handler := buildLiveHandler(
 		[]projection.Projection{failingProj, healthyProj},
-		map[id.EventID]struct{}{},
+		dedup.NewRing(dedup.DefaultCapacity),
 	)
 
 	evt := makeTestEvent("UserRegistered")
