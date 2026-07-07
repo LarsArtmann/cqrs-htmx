@@ -204,7 +204,7 @@ func (a *App) wsCallContext(r *http.Request) context.Context {
 // DispatchWSCommand and DispatchWSQuery. On any failure the AfterDispatch hook
 // fires and the returned error is non-nil (so the caller can `return err`).
 //
-// code and msgFormat are forwarded to event.Wrapf so the caller can produce a
+// code and msgFormat are forwarded to errorfamily.Wrapf so the caller can produce a
 // domain-specific error code (e.g. cqrshtmx.ws.decode_command_failed).
 func decodeWSMessage[T any](
 	a *App,
