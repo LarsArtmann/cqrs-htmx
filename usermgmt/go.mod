@@ -10,6 +10,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.7.0
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.7.0
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.7.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.0
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.7.0
@@ -31,7 +32,7 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.0
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.7.0
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.7.0 // indirect
@@ -62,7 +63,6 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.7.0 // indirect
