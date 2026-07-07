@@ -167,7 +167,7 @@ func (s *FakeStore) ReadFrom(
 
 	all, err := s.ReadAll(ctx)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "eventtest.read_from",
+		return nil, errorfamily.Wrapf(err, event.Infrastructure, "eventtest.read_from",
 			"read all for ReadFrom (limit=%d, after=%s)", limit, afterEventID)
 	}
 

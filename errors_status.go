@@ -19,7 +19,7 @@ import (
 // authoritative source of an error's HTTP status.
 //
 // errors.Is and errors.As traverse through the cause via [Unwrap], so wrapping
-// a sentinel preserves identity, and event.Classify still derives the family
+// a sentinel preserves identity, and errorfamily.Classify still derives the family
 // from the wrapped error.
 type HTTPStatusCarrier interface {
 	error
@@ -39,7 +39,7 @@ func (e *httpStatusError) HTTPStatus() int { return e.status }
 // WithHTTPStatus wraps err so [MapError] returns status instead of the
 // family-derived default. Returns nil when err is nil.
 //
-// The wrapper preserves the cause's error family (event.Classify traverses
+// The wrapper preserves the cause's error family (errorfamily.Classify traverses
 // the chain) and its sentinel identity (errors.Is traverses the chain), so
 // existing classification and matching keep working.
 //
