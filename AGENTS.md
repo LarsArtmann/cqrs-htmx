@@ -490,7 +490,7 @@ cqrs-htmx/
 11. **nosurf custom headers**: Must use `translateCSRFHeaders` to map consumer header/field names to nosurf defaults
 12. **HX-Redirect sanitization**: `Response.Redirect()` sanitizes URLs for both HTMX and non-HTMX requests
 13. **HandlerConfig.Secure uses \*bool**: `Secure` is `*bool` in usermgmt — nil defaults to true. Use `new(bool)` (false) or a local variable (true) to explicitly set. The zero-value `HandlerConfig{}` is safe
-14. **Max password length 128**: Enforced in `RegisterRequest.Validate()` and `Service.ChangePassword()`. Prevents bcrypt CPU abuse
+14. **Registration is email-only**: `RegisterRequest` has no password field. Authentication is exclusively via WebAuthn passkeys — no bcrypt, no password hashing
 15. **CSRF TrustedProxies**: `setPlaintextHTTPOrigin` only auto-sets `Sec-Fetch-Site: same-origin` for plain HTTP requests when the remote is loopback OR in `CSRFConfig.TrustedProxies` (single IP or CIDR). Empty config logs a warning but allows it (back-compat). Set `TrustedProxies` in production to prevent CSRF bypass via origin-header stripping.
 16. **Rate limiter RLock scope**: `perKeyLimiter.limiter()` must read `entry.lastUsed` **while holding RLock** — the field is written under the write lock during refresh. Reading it after `RUnlock` causes a data race under concurrent load (fixed 2026-06-14; was ~20% race-detector failure rate).
 
