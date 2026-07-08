@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-07-02 | **Coverage:** 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui | **Lint:** 0 issues (6 production modules) | **Version:** v4.0.0 (go-cqrs-lite v3.5.0)
+**Updated:** 2026-07-08 | **Coverage:** 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui | **Lint:** 0 issues (6 production modules) | **Version:** v4.2.1 (go-cqrs-lite v3.7.4)
 
 ## Status Legend
 
@@ -118,7 +118,7 @@ _Bugs found and fixed by code-quality-scan + full-code-review + architecture-rev
 ### Future Enhancements (Not Started)
 
 - [x] **Upgrade to go-cqrs-lite v2.0.0** — All 4 modules migrated to v2 import paths (`/v2` suffix). CatalogEntries removed (dead upstream code). go-error-family v0.3.0. Replace directives removed (v2.0.0 tags published).
-- [x] **SQL store backend for usermgmt** — Pattern documented in `usermgmt/docs/SQL_STORES.md` (Postgres schema + adapter skeleton). Library principle: no SQL driver dep in `usermgmt` core; consumer implements `UserStore`/`SessionStore` (matches Casbin/CQRS pattern). ADR 0003 numeric-ID strategy (BIGSERIAL + public_id TEXT UNIQUE) recorded.
+- [x] **SQL store backend for usermgmt** — Pattern documented in `usermgmt/docs/SQL_STORES.md` (Postgres schema + adapter skeleton). Library principle: no SQL driver dep in `usermgmt` core; consumer implements `SessionStore` (UserStore was later replaced by `UserReadModel` projection in v4.0.0). ADR 0003 numeric-ID strategy (BIGSERIAL + public_id TEXT UNIQUE) recorded.
 - [x] **OpenTelemetry integration** — `example_otel_test.go` documents the hook-based pattern (OtelBeforeDispatch/OtelAfterDispatch). Library principle: no OTel SDK dep in `cqrs-htmx`; consumers pass hooks into `Config`. Tests show wiring with a fakeTracer; real `otel.Tracer("cqrs-htmx")` swap-in commented in code.
 - [x] **Adopt v2 typed dispatch** — `command.RegisterTyped[T]` and `query.RegisterTyped[T]`/`query.DispatchTyped[T]` used in `datastar-demo/domain_cqrs.go` (4 commands + 2 queries), `integration_test/typed_query_test.go` (3 cross-module tests), and root `example_app_test.go` (`ExampleApp_Query_typedRegister`, `ExampleApp_Query_typedDispatch`, `ExampleRegisterTyped`, `ExampleApp_Command`).
 - [x] **Adopt PaginatedResult[T]** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` implemented using `query.Pagination`/`query.PaginatedResult[T]` from go-cqrs-lite v2.2.0.
