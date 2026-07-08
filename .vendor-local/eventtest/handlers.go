@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func AppendEventsHandler(events *[]event.Event) event.Handler {
