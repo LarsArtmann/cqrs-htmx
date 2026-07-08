@@ -43,14 +43,14 @@ Every term below should mean the **same thing** to everyone who reads it.
 | Service            | The application service orchestrating commands, queries, and session management                 | usermgmt module               |
 | Session            | An ephemeral authentication artifact (token + expiry) created after login                       | Authentication                |
 | SessionOrigin      | The cause of a session: DirectLogin, Impersonation, or OAuth2                                   | Authentication                |
-| SQLEventStore      | Persistent `event.Store` for PostgreSQL, SQLite, and MySQL with optimistic concurrency          | Persistence                   |
+| SQLEventStore      | Persistent `event.Store` for PostgreSQL and SQLite with optimistic concurrency                  | Persistence                   |
 | Templ              | Go HTML templating engine with type-safe compile-checked templates                              | Frontend                      |
 | Tenant             | An organizational boundary for multi-tenancy — contains members with roles                      | Identity model (ADR 0015)     |
 | TenantID           | A branded string uniquely identifying a tenant                                                  | Identity model                |
 | Tombstone          | A soft-delete marker event signaling an aggregate is logically deleted                          | Event sourcing                |
 | TOTP               | Time-based One-Time Password (RFC 6238) — a 6-digit second-factor code                          | Multi-factor auth             |
 | TOTPProvider       | Interface for TOTP secret generation + code validation; implemented by usermgmt/totp/v4         | Auth strategy (ADR 0035)      |
-| UserID             | A branded ULID type uniquely identifying a user                                                 | usermgmt module               |
+| UserID             | A branded string type uniquely identifying a user                                               | usermgmt module               |
 | WebAuthn           | W3C standard for passwordless authentication using passkeys/FIDO2                               | Authentication                |
 | WebAuthnProvider   | Interface for WebAuthn ceremony delegation via []byte JSON; implemented by usermgmt/webauthn/v4 | Auth strategy (ADR 0035)      |
 | WebAuthnSessionTTL | Configurable TTL for WebAuthn challenge sessions (ServiceConfig.WebAuthnSessionTTL)             | Authentication                |

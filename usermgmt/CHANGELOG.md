@@ -84,7 +84,7 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{}) // defaults to in-memory event store + bus
 ```
 
-Service method signatures (`Register`, `Login`, `ChangePassword`, `UpdateRoles`, `GetUser`, `Authenticate`) are unchanged.
+Service method signatures for surviving methods (`Register`, `UpdateRoles`, `GetUser`, `Authenticate`) are unchanged. The following methods were **removed**: `Login`, `ChangePassword` — replaced by WebAuthn ceremonies (`BeginRegistration`/`FinishRegistration`/`BeginLogin`/`FinishLogin`).
 
 ## [2.0.0] - 2026-05-27
 
