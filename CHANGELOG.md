@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.2.1] - 2026-07-08
+
+### Fixed
+
+- **go.work replace+use conflict**: Moved `eventtest` from go.work `replace` directive to `use` block. Having a module in both `use` and `replace` caused a Go workspace error (`workspace module is replaced at all versions`) that broke BuildFlow test-race, go-fix, and govalid-generate steps. Per-module go.mod `replace` directives retain GOWORK=off compatibility.
+- **go-cqrs-lite version drift**: Aligned all go-cqrs-lite modules to their latest available tags. Several modules (decider, projection, stack, storage, watermill, listing, scheduling, scenario, stack/sqlite, stack/postgres, catalog, encryption, signing) were pinned at v3.7.0 while others were at v3.7.4. The `.vendor-local/eventtest` copy was also updated to v3.7.4 with `go-error-family` constructors replacing removed `event.*` error helpers.
+
+## [v4.2.0] - 2026-07-07
+
+### Added
+
+- **RequestGuard** (`authz.go`): New `RequestGuardFunc(http.Request, any) error` custom auth guard that runs after decode but before dispatch. Enables auth models that don't fit the Casbin Enforcer pattern — cookie-based player IDs, ownership checks, API key validation — without needing middleware wrappers. The guard receives the decoded command/query so it can inspect fields directly.
+- **Request-aware decoders** (`options_decode.go`): Four new `*WithRequest` variants (`DecodeJSONWithRequest`, `DecodeFormWithRequest`, `DecodeJSONQueryWithRequest`, `DecodeFormQueryWithRequest`) that pass the `*http.Request` to the mapper function, so consumers can extract cookies, headers, or path values during the mapping step.
+- **SSE channel lifecycle** (`sse_stream.go`): `OnDisconnect(fn)` callback registration for cleanup when clients disconnect.
+- **SSE event constants** (`sse_event.go`): `SSEEventConnected` and `SSEEventHeartbeat` named constants for the ACK/heartbeat protocol.
+- **go-error-family adoption** (all modules): Migrated from transitive dependency to direct import across root, usermgmt, and all auth strategy modules. Enriched error contexts with domain-specific identifiers (user IDs, provider names, credential IDs) for better debugging.
+
+### Changed
+
+- **go-error-family v0.5.1 → v0.6.1**: Upgraded from transitive (via go-cqrs-lite event/v3) to direct dependency. `ErrDispatchFailed` now natively classified; old `sync.Once` + `RegisterClassification` machinery removed.
+- **go-cqrs-lite v3.5.0 → v3.7.4**: Adopted `dedup.Ring` (O(1) bounded memory for replay→live dedup), CBOR codec support (`codec.ForEncoding` for per-event codec resolution), and all v3.7.x improvements.
+- **usermgmt projection dedup**: Replaced unbounded `map[id.EventID]struct{}` with `dedup.Ring` (1024 entries, ~90KB fixed) in `es_projection_setup.go`. Memory is now O(1) regardless of journal size.
+- **usermgmt payload decoding**: `unmarshalPayload` now resolves codec per-event via `codec.ForEncoding(evt.Encoding())` instead of hardcoded `json.Unmarshal`. Consumers who set `event.DefaultCodec = codec.CBORCodec{}` get transparent CBOR support.
+
+### Fixed
+
+- **GET decoder bug**: Fixed in `options_decode.go` — query parameter decoding was not correctly handling all edge cases (discovered during SKILL.md rewrite).
+
 ## [v4.1.1] - 2026-07-04
 
 ### Changed
