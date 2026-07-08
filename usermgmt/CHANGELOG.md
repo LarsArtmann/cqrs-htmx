@@ -4,7 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased] — BREAKING
+## [v4.2.0] - 2026-07-08
+
+### Added
+
+- **dedup.Ring O(1) memory** (`es_projection_setup.go`): Replaced unbounded `map[id.EventID]struct{}` with `dedup.Ring` (1024 entries, ~90KB fixed) for replay→live dedup. Memory is now O(1) regardless of journal size — a 1M-event journal no longer loads 1M IDs permanently into memory.
+- **CBOR codec support** (`es_readmodel.go`): `unmarshalPayload` now resolves codec per-event via `codec.ForEncoding(evt.Encoding())` instead of hardcoded `json.Unmarshal`. Consumers who set `event.DefaultCodec = codec.CBORCodec{}` get transparent CBOR support. Mixed JSON+CBOR event streams decode correctly.
+
+### Changed
+
+- **go-error-family direct import**: Migrated from transitive dependency (via go-cqrs-lite event/v3) to direct import. All error constructors now use `errorfamily.New*`/`Wrap*` directly. Error contexts enriched with domain-specific identifiers (user IDs, provider names, credential IDs).
+- **go-cqrs-lite v3.5.0 → v3.7.4**: Aligned all go-cqrs-lite modules (decider, projection, stack, storage, watermill, listing, scheduling, scenario, stack/sqlite, stack/postgres). Adopted dedup.Ring and codec.ForEncoding from v3.7.0+.
+
+### Fixed
+
+- **go-cqrs-lite version drift**: Several modules were pinned at v3.7.0 while others were at v3.7.4. All now aligned to latest available tags.
+
+## [v4.1.1] - 2026-07-04
+
+### Changed
+
+- **httputil v0.3.0 → v0.4.0**: Transitive dependency bump. No API or behavior change for usermgmt consumers.
+
+## [v4.0.1] - 2026-07-02
+
+### Added
+
+- **Configurable TOTP pending-secret TTL** (`ServiceConfig.TOTPPendingSecretTTL`): Was hardcoded to 5 minutes, now configurable. Defaults to 5 minutes when ≤ 0.
+- **Configurable WebAuthn session TTL** (`ServiceConfig.WebAuthnSessionTTL`): Was hardcoded to 5 minutes, now configurable.
+- **Coverage tests** for parse helpers (`ParseUserID`, `MustParseUserID`, `ParseActorID`, `MustParseEmail`).
+- **Fuzz tests** on JSON serialization boundary (`FuzzMarshalWebAuthnUser`, `FuzzParseUser`, `FuzzParseSession`).
+
+## [v4.0.0] - 2026-07-02
 
 ### Changed — Passwordless Event-Sourced CQRS
 
