@@ -68,7 +68,7 @@ go get github.com/larsartmann/cqrs-htmx/usermgmt/webauthn  # Passkeys
 ```
 
 > **Upgrading from v3?** See the [v3→v4 Migration Guide](docs/migrations/v3-to-v4.md).
-> **Upgrading from v2?** See the [v2→v3 Migration Guide](docs/migration/v2-to-v3.md).
+> **Upgrading from v2?** See the [v2→v3 Migration Guide](docs/migrations/v2-to-v3.md).
 
 ## Quick Start
 
@@ -1149,7 +1149,7 @@ cqrs-htmx/
 
 ### API Documentation Generation
 
-API documentation (OpenAPI, AsyncAPI, D2 diagrams, EventCatalog) is now provided by **go-cqrs-lite/catalog v3.2.0** directly:
+API documentation (OpenAPI, AsyncAPI, D2 diagrams, EventCatalog) is now provided by **go-cqrs-lite/catalog v3.7.1** directly:
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/catalog/v3

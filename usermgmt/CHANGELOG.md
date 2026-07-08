@@ -42,8 +42,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **BREAKING**: ALL password code removed. No bcrypt, no PasswordHash, no ChangePassword, no validatePassword, no LoginRequest/LoginResponse, no Service.Login, no Service.ChangePassword.
 - **BREAKING**: `User` struct no longer has `PasswordHash` field. Replaced by `Credentials []WebAuthnCredential`.
 - **BREAKING**: `RegisterRequest` no longer has `Password` field. Registration is email-only.
-- **BREAKING**: `ServiceConfig.BcryptCost` field removed. Use `ServiceConfig.WebAuthnConfig` instead.
-- **BREAKING**: `golang.org/x/crypto` dependency removed. Replaced by `go-webauthn/webauthn v0.17.4`.
+- **BREAKING**: `ServiceConfig.BcryptCost` field removed. Use `ServiceConfig.WebAuthn` (the `WebAuthnProvider` interface) instead.
+- **BREAKING**: `golang.org/x/crypto` dependency removed. WebAuthn deps moved to the optional `usermgmt/webauthn` sub-module.
 - **BREAKING**: User aggregate is now fully event-sourced using go-cqrs-lite's Decider pattern.
 - **BREAKING**: `UserStore` interface and `InMemoryUserStore` REMOVED — replaced by `UserReadModel` projection.
 - **BREAKING**: `ServiceConfig.UserStore` field removed. Use `ServiceConfig.EventStore` and `ServiceConfig.EventBus` instead.
@@ -51,7 +51,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added WebAuthn/Passkey authentication via go-webauthn v0.17.4
 - Added 7 event types: `UserRegistered`, `RolesUpdated`, `EmailChanged`, `DisplayNameChanged`, `UserDeleted`, `CredentialAdded`, `CredentialRemoved`
 - Added 7 command types: `RegisterUser`, `UpdateRoles`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`, `AddCredential`, `RemoveCredential`
-- Added `WebAuthnCredential` type, `WebAuthnConfig` for Relying Party configuration
+- Added `WebAuthnCredential` type, `WebAuthnProvider` interface for ceremony delegation
 - Added `Service.BeginRegistration` / `FinishRegistration` / `BeginLogin` / `FinishLogin`
 - Added HTTP endpoints: `POST /auth/webauthn/{register,login}/{begin,finish}`
 - Added `Service.AddCredential`, `Service.RemoveCredential`, `Service.ChangeEmail`, `Service.ChangeDisplayName`, `Service.DeleteUser`
@@ -63,8 +63,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added comprehensive `doc.go` with usage examples
 - `Service.Register` now pre-checks email uniqueness via read model before dispatching
 - `Service.DeleteUser` revokes all user sessions for security
-- Password hashing happens in Service layer (commands carry bcrypt hashes, not plaintext)
-- Read-your-writes consistency via `MemoryBus` synchronous delivery
+- Read-your-writes consistency via `watermill.EventBus` with `BlockPublishUntilSubscriberAck: true`
 - Old `EventHandler` callback preserved for backward compatibility (bridged from bus events)
 - See `docs/adr/0006-event-sourced-user-aggregate.md` for full decision record
 
