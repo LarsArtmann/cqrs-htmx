@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/starfederation/datastar-go/datastar"
 )
 

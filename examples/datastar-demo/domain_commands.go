@@ -4,11 +4,10 @@ import (
 	"context"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // --- Command Constructors ---

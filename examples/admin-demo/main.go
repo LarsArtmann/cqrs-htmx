@@ -29,12 +29,11 @@ import (
 	"net/http"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
