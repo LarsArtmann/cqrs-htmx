@@ -2,9 +2,11 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"io"
 	"net/http"
+
+	"encoding/json/jsontext"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -61,8 +63,8 @@ const maxWebAuthnBodySize = 1 << 20 // 1 MB
 
 // BeginRegistrationResponse contains the credential creation options to send to the client.
 type BeginRegistrationResponse struct {
-	Options    json.RawMessage `json:"options"`
-	SessionKey string          `json:"session_key"`
+	Options    jsontext.Value `json:"options"`
+	SessionKey string         `json:"session_key"`
 }
 
 // BeginRegistration starts the WebAuthn credential registration ceremony.
@@ -168,8 +170,8 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 
 // BeginLoginResponse contains the assertion options to send to the client.
 type BeginLoginResponse struct {
-	Options    json.RawMessage `json:"options"`
-	SessionKey string          `json:"session_key"`
+	Options    jsontext.Value `json:"options"`
+	SessionKey string         `json:"session_key"`
 }
 
 // BeginLogin starts the WebAuthn login ceremony.

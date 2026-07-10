@@ -2,7 +2,7 @@ package usermgmt
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"net/http"
@@ -309,7 +309,7 @@ func (h *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(v); err != nil {
+	if err := json.MarshalWrite(&buf, v); err != nil {
 		http.Error(w, "json encode error", http.StatusInternalServerError)
 		return
 	}

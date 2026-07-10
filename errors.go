@@ -1,7 +1,7 @@
 package cqrshtmx
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"io"
 	"net/http"
@@ -313,7 +313,7 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 			response["request_id"] = rid.String()
 		}
 
-		_ = json.NewEncoder(w).Encode(response)
+		_ = json.MarshalWrite(w, response)
 	}
 }
 
