@@ -2,7 +2,7 @@ package usermgmt
 
 import (
 	"crypto/subtle"
-	"encoding/json/v2"
+	"encoding/json"
 	"fmt"
 	"slices"
 	"time"

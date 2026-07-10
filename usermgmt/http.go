@@ -2,7 +2,7 @@ package usermgmt
 
 import (
 	"bytes"
-	"encoding/json/v2"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -223,7 +223,16 @@ func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	var regReq RegisterRequest
-	if err := json.UnmarshalRead(io.LimitReader(r.Body, maxAuthBodySize), &regReq); err != nil {
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxAuthBodySize))
+	if err != nil {
+		writeError(
+			w,
+			http.StatusBadRequest,
+			fmt.Sprintf("%s: read register request: %s", ErrValidation, err),
+		)
+		return
+	}
+	if err := json.Unmarshal(body, &regReq); err != nil {
 		writeError(
 			w,
 			http.StatusBadRequest,
@@ -300,7 +309,7 @@ func (h *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	var buf bytes.Buffer
-	if err := json.MarshalWrite(&buf, v); err != nil {
+	if err := json.NewEncoder(&buf).Encode(v); err != nil {
 		http.Error(w, "json encode error", http.StatusInternalServerError)
 		return
 	}
@@ -309,6 +318,13 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	_, _ = w.Write(buf.Bytes())
 }
 
+// writeError writes a simple error response with a caller-specified status and
+// message. Use this for non-dispatch errors where the status is already known
+// (rate limits, auth checks, provider failures) and there is no classified
+// errorfamily error to extract a code from. For dispatch errors (errors that
+// flow through the CQRS pipeline and carry an errorfamily family/code), use
+// writeDispatchError instead — it derives the HTTP status from the error's
+// family and includes the machine-readable code and request ID.
 func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{errorKey: message})
 }

@@ -2,7 +2,7 @@ package cqrshtmx
 
 import (
 	"bytes"
-	"encoding/json/v2"
+	"encoding/json"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -15,7 +15,7 @@ import (
 // a success status code.
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	var buf bytes.Buffer
-	if err := json.MarshalWrite(&buf, v); err != nil {
+	if err := json.NewEncoder(&buf).Encode(v); err != nil {
 		return errorfamily.Wrapf(
 			err,
 			event.Infrastructure,

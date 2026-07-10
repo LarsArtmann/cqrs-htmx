@@ -1,7 +1,7 @@
 package cqrshtmx
 
 import (
-	"encoding/json/v2"
+	"encoding/json"
 	"io"
 	"maps"
 

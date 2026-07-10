@@ -2,9 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"time"
-
-	"encoding/json/jsontext"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
@@ -42,7 +41,7 @@ type DomainEvent struct {
 	AggregateID string
 	Type        string
 	User        string
-	Payload     jsontext.Value
+	Payload     json.RawMessage
 	OccurredAt  time.Time
 }
 

@@ -9,7 +9,7 @@ package oauth2
 
 import (
 	"context"
-	"encoding/json/v2"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -290,7 +290,11 @@ func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.T
 		Login         string      `json:"login"`
 		EmailVerified bool        `json:"email_verified"`
 	}
-	if err := json.UnmarshalRead(io.LimitReader(resp.Body, 1<<20), &raw); err != nil {
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.read_userinfo", "read userinfo response")
+	}
+	if err := json.Unmarshal(respBody, &raw); err != nil {
 		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.decode_userinfo", "decode userinfo response")
 	}
 	subject := raw.Sub

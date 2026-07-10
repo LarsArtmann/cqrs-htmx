@@ -107,3 +107,51 @@ func (b *Broadcaster) BroadcastOnError(eventName string) AfterDispatchHook {
 func (b *Broadcaster) BroadcastOnErrorFunc(errFunc func(r *http.Request, err error) SSEEvent) AfterDispatchHook {
 	return b.broadcastOnErrorHook(errFunc)
 }
+
+// OnSubscribe registers a callback fired after each successful Subscribe.
+// Use it for connection metrics, logging, or triggering initial state sends.
+// Pass nil to clear a previously registered callback.
+//
+//	broadcaster := cqrshtmx.NewBroadcaster()
+//	broadcaster.OnSubscribe(func() { log.Printf("SSE client connected, total: %d", broadcaster.SubscriberCount()) })
+func (b *Broadcaster) OnSubscribe(fn func()) {
+	b.setOnSubscribe(fn)
+}
+
+// OnUnsubscribe registers a callback fired after each successful Unsubscribe.
+// Use it for disconnection metrics or cleanup logging.
+// Pass nil to clear a previously registered callback.
+func (b *Broadcaster) OnUnsubscribe(fn func()) {
+	b.setOnUnsubscribe(fn)
+}
+
+// ServeSSE is a high-level helper that handles the full SSE connection lifecycle:
+// creates a stream, subscribes, sends a "connected" event, pumps events until
+// the client disconnects, then unsubscribes and closes the stream.
+//
+// This eliminates the boilerplate that every SSE endpoint handler needs:
+//
+//	mux.HandleFunc("GET /events", broadcaster.ServeSSE)
+//
+// For custom logic (reconnection replay, filtering, heartbeats), write the
+// handler manually using NewSSEStream + Subscribe/Unsubscribe instead.
+func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
+	stream := NewSSEStream(w, r)
+	defer stream.Close()
+
+	ch := b.Subscribe()
+	defer b.Unsubscribe(ch)
+
+	_ = stream.Send(SSEEvent{Event: SSEEventConnected, Data: "connected"})
+
+	for {
+		select {
+		case <-stream.Context().Done():
+			return
+		case evt, ok := <-ch:
+			if !ok || stream.Send(evt) != nil {
+				return
+			}
+		}
+	}
+}

@@ -85,3 +85,15 @@ func (b *WSBroadcaster) BroadcastOnErrorWS() AfterDispatchHook {
 func (b *WSBroadcaster) BroadcastOnErrorWSFunc(errFunc func(r *http.Request, err error) string) AfterDispatchHook {
 	return b.broadcastOnErrorHook(errFunc)
 }
+
+// OnSubscribe registers a callback fired after each successful Subscribe.
+// Pass nil to clear a previously registered callback.
+func (b *WSBroadcaster) OnSubscribe(fn func()) {
+	b.setOnSubscribe(fn)
+}
+
+// OnUnsubscribe registers a callback fired after each successful Unsubscribe.
+// Pass nil to clear a previously registered callback.
+func (b *WSBroadcaster) OnUnsubscribe(fn func()) {
+	b.setOnUnsubscribe(fn)
+}

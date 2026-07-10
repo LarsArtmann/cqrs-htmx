@@ -2,7 +2,7 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/json/v2"
+	"encoding/json"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v3"

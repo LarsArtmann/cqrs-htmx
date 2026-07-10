@@ -1,7 +1,7 @@
 package usermgmt
 
 import (
-	"encoding/json/v2"
+	"encoding/json"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
