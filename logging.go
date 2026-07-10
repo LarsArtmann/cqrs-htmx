@@ -2,7 +2,7 @@ package cqrshtmx
 
 import (
 	"bytes"
-	"encoding/json/v2"
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -84,9 +84,11 @@ func JSONLogFormatter(r *http.Request, status int, duration time.Duration) strin
 	buf.Reset()
 	defer jsonLogBufferPool.Put(buf)
 
-	if err := json.MarshalWrite(buf, entry); err != nil {
+	data, err := json.Marshal(entry)
+	if err != nil {
 		return `{"error":"json marshal failed"}`
 	}
+	buf.Write(data)
 
 	b := buf.Bytes()
 	if len(b) > 0 && b[len(b)-1] == '\n' {
@@ -132,6 +134,12 @@ type ErrorRecorder struct {
 	dispatchErr error
 }
 
+// NewErrorRecorder returns an ErrorRecorder ready for use by middleware that
+// only needs dispatch-error context without HTTP status recording.
+func NewErrorRecorder() *ErrorRecorder {
+	return &ErrorRecorder{} //nolint:exhaustruct // zero values are correct
+}
+
 // SetDispatchError captures the dispatch error so that logging middleware
 // (RequestLoggingSlog) can include error context in the request log.
 func (r *ErrorRecorder) SetDispatchError(err error) { r.dispatchErr = err }
@@ -155,7 +163,7 @@ type StatusRecorder struct {
 func NewStatusRecorder(w http.ResponseWriter) *StatusRecorder {
 	return &StatusRecorder{
 		delegatingWriter: delegatingWriter{ResponseWriter: w},
-		ErrorRecorder:    ErrorRecorder{dispatchErr: nil},
+		ErrorRecorder:    ErrorRecorder{}, //nolint:exhaustruct // zero values are correct
 		status:           0,
 		wrote:            false,
 	}

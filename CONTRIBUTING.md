@@ -208,3 +208,61 @@ The `golangci_lint_ls` LSP may show stale warnings that `golangci-lint run` (CLI
 - [ ] No hardcoded HTMX header strings — use constants
 - [ ] `AGENTS.md` updated if adding new features, gotchas, or conventions
 - [ ] `*_templ.go` regenerated and committed if `*.templ` files changed
+
+## Release Process
+
+### Versioning
+
+This repo uses **multi-module tagging**: each module gets its own semver tag.
+
+| Module            | Tag prefix                 | Example tag                |
+| ----------------- | -------------------------- | -------------------------- |
+| Root              | `v4.X.Y` (no prefix)       | `v4.2.2`                   |
+| usermgmt          | `usermgmt/v4.X.Y`          | `usermgmt/v4.2.2`          |
+| usermgmt/totp     | `usermgmt/totp/v4.X.Y`     | `usermgmt/totp/v4.2.2`     |
+| usermgmt/webauthn | `usermgmt/webauthn/v4.X.Y` | `usermgmt/webauthn/v4.2.2` |
+| usermgmt/oauth2   | `usermgmt/oauth2/v4.X.Y`   | `usermgmt/oauth2/v4.2.2`   |
+| adminui           | `adminui/v4.X.Y`           | `adminui/v4.2.2`           |
+
+All modules are versioned in lockstep — a release bumps all tags.
+
+### Pre-release checklist
+
+1. **Update CHANGELOG.md**: Move `[Unreleased]` items to the new version section.
+2. **Update AGENTS.md**: Verify coverage numbers, lint status, dependency versions.
+3. **Run full verification suite**:
+   ```bash
+   nix run .#test          # all modules with -race
+   nix run .#build         # all modules build
+   nix run .#lint          # 0 issues
+   nix run .#errorfamily   # 0 stdlib error constructors
+   nix run .#check-modules # module isolation + dep budgets
+   nix run .#coverage-gate # above thresholds
+   nix fmt                 # 0 files changed
+   nix flake check         # all checks pass
+   ```
+4. **Verify no uncommitted changes**: `git status` should be clean.
+
+### Tagging
+
+Tag all modules atomically from a clean working tree:
+
+```bash
+git tag v4.X.Y
+git tag usermgmt/v4.X.Y
+git tag usermgmt/totp/v4.X.Y
+git tag usermgmt/webauthn/v4.X.Y
+git tag usermgmt/oauth2/v4.X.Y
+git tag adminui/v4.X.Y
+```
+
+### Publishing
+
+1. Push all tags: `git push origin --tags`
+2. Create a GitHub Release for each tag (or automate via `.github/workflows/release.yml`).
+3. Verify `go get github.com/larsartmann/cqrs-htmx/v4@v4.X.Y` resolves from the Go proxy.
+4. Check that pkg.go.dev picks up the new version (may take a few minutes).
+
+### go-auto-upgrade exclusions
+
+The project bans `encoding/json/v2` (experimental, broke the build on 2026-07-09). Ensure go-auto-upgrade is configured to skip this migration. The depguard linter enforces this at CI level.

@@ -201,3 +201,96 @@ func TestConfig_DefaultRedactsInternalDetails(t *testing.T) {
 		t.Errorf("default: expected redacted body, got %q", w.Body.String())
 	}
 }
+
+func TestErrorCode_ReturnsDeepestCodeThroughWrapChain(t *testing.T) {
+	// Build a 3-level deep error chain:
+	// inner (domain-specific code) → middle (dispatch wrapper) → outer (another wrapper)
+	inner := errorfamily.NewRejection("usermgmt.email_exists", "email already registered")
+	middle := errorfamily.Wrapf(
+		inner, errorfamily.Classify(inner),
+		"cqrshtmx.dispatch.command_failed", "dispatch command RegisterUser",
+	)
+	outer := errorfamily.Wrapf(
+		middle, errorfamily.Classify(middle),
+		"cqrshtmx.http.request_failed", "request failed",
+	)
+
+	tests := []struct {
+		name     string
+		err      error
+		wantCode string
+	}{
+		{"single error", inner, "usermgmt.email_exists"},
+		{"two-level chain", middle, "usermgmt.email_exists"},
+		{"three-level chain", outer, "usermgmt.email_exists"},
+		{"plain error", errors.New("no code"), ""},
+		{"nil error", nil, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := cqrshtmx.ErrorCode(tt.err)
+			if got != tt.wantCode {
+				t.Errorf("ErrorCode() = %q, want %q", got, tt.wantCode)
+			}
+		})
+	}
+}
+
+func TestErrorCode_PrefersDeepestOverOutermost(t *testing.T) {
+	// The outermost error has code "outer.code", the innermost has "inner.deep".
+	// ErrorCode must return the deepest code, not the first one found.
+	inner := errorfamily.NewConflict("inner.deep", "domain conflict")
+	outer := errorfamily.Wrapf(inner, errorfamily.Conflict, "outer.code", "wrapped outer")
+
+	got := cqrshtmx.ErrorCode(outer)
+	if got != "inner.deep" {
+		t.Errorf("ErrorCode() = %q, want %q (deepest code, not outermost)", got, "inner.deep")
+	}
+}
+
+func TestErrorCode_WithTransientFamily(t *testing.T) {
+	inner := errorfamily.NewTransient("db.connection_failed", "db down")
+	outer := errorfamily.Wrapf(inner, errorfamily.Transient, "cqrshtmx.dispatch.command_failed", "dispatch failed")
+
+	got := cqrshtmx.ErrorCode(outer)
+	if got != "db.connection_failed" {
+		t.Errorf("ErrorCode() = %q, want %q", got, "db.connection_failed")
+	}
+}
+
+func TestErrorRecorder_Standalone(t *testing.T) {
+	rec := cqrshtmx.NewErrorRecorder()
+
+	// Initially nil
+	if rec.DispatchError() != nil {
+		t.Error("DispatchError() should be nil on a fresh recorder")
+	}
+
+	// Set an error
+	testErr := errorfamily.NewRejection("test.error", "something went wrong")
+	rec.SetDispatchError(testErr)
+
+	if !errors.Is(rec.DispatchError(), testErr) {
+		t.Error("DispatchError() should return the set error")
+	}
+}
+
+func TestStatusRecorder_EMBEDSErrorRecorder(t *testing.T) {
+	w := httptest.NewRecorder()
+	rec := cqrshtmx.NewStatusRecorder(w)
+
+	// ErrorRecorder methods are promoted via embedding
+	testErr := errorfamily.NewRejection("test.embedded", "embedded test")
+	rec.SetDispatchError(testErr)
+
+	if !errors.Is(rec.DispatchError(), testErr) {
+		t.Error("StatusRecorder should promote ErrorRecorder methods via embedding")
+	}
+
+	// StatusRecorder still records status
+	rec.WriteHeader(http.StatusTeapot)
+	if rec.Status() != http.StatusTeapot {
+		t.Errorf("Status() = %d, want %d", rec.Status(), http.StatusTeapot)
+	}
+}

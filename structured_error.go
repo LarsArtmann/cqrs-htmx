@@ -2,7 +2,7 @@ package cqrshtmx
 
 import (
 	"context"
-	"encoding/json/v2"
+	"encoding/json"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"

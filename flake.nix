@@ -609,6 +609,29 @@
                 '';
               };
             };
+
+            release-checklist = {
+              type = "app";
+              meta.description = "Pre-release verification: CHANGELOG, versions, builds, git status";
+              program = pkgs.writeShellApplication {
+                name = "release-checklist";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  bash scripts/release-checklist.sh
+                '';
+              };
+            };
+
+            check-docs-freshness = {
+              type = "app";
+              meta.description = "Scan .md files for stale version strings against go.mod";
+              program = pkgs.writeShellApplication {
+                name = "check-docs-freshness";
+                text = ''
+                  bash scripts/check-docs-freshness.sh
+                '';
+              };
+            };
           };
 
         };

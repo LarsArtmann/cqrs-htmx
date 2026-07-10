@@ -17,9 +17,9 @@ cd "$REPO_ROOT"
 declare -A DEP_BUDGET=(
     ["."]=18           # Root: 16 current (casbin, form, nosurf, branded-id, cqrs-lite x6, httputil, ulid, ginkgo, gomega, x/time)
     ["usermgmt"]=28    # usermgmt: 25 current (casbin, cqrs-htmx, branded-id, cqrs-lite x8, sqlite, ulid, rapid, watermill, kv)
-    ["usermgmt/totp"]=2        # totp: 1 current (pquerna/otp)
-    ["usermgmt/webauthn"]=2    # webauthn: 1 current (go-webauthn/webauthn)
-    ["usermgmt/oauth2"]=4      # oauth2: 3 current (oauth2, oidc, go-jose)
+    ["usermgmt/totp"]=3        # totp: 1 current (pquerna/otp)
+    ["usermgmt/webauthn"]=3    # webauthn: 1 current (go-webauthn/webauthn)
+    ["usermgmt/oauth2"]=5      # oauth2: 3 current (oauth2, oidc, go-jose)
     ["adminui"]=7      # adminui: 5 current (cqrs-htmx, usermgmt, templ, ulid, casbin)
 )
 

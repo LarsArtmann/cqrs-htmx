@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json/v2"
+	"encoding/json"
 	"sync"
 	"time"
 )

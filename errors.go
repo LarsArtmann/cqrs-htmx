@@ -1,8 +1,7 @@
 package cqrshtmx
 
 import (
-	"encoding/json/jsontext"
-	"encoding/json/v2"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -314,8 +313,7 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 			response["request_id"] = rid.String()
 		}
 
-		encoder := jsontext.NewEncoder(w)
-		_ = json.MarshalEncode(encoder, response)
+		_ = json.NewEncoder(w).Encode(response)
 	}
 }
 
@@ -351,6 +349,7 @@ func ProblemDetailsErrorHandlerWithRedirect(
 		status := MapError(err)
 		w.WriteHeader(status)
 		payload := NewStructuredError(err, r)
-		_ = json.MarshalWrite(w, payload)
+		data, _ := json.Marshal(payload)
+		_, _ = w.Write(data)
 	})
 }

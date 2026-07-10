@@ -10,7 +10,7 @@ package webauthn
 import (
 	"bytes"
 	"context"
-	"encoding/json/v2"
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-webauthn/webauthn/protocol"

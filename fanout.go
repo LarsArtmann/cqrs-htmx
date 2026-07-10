@@ -16,15 +16,19 @@ import (
 // SubscriberCount via method promotion. Transport-specific hook constructors
 // (BroadcastOnSuccess, BroadcastOnSuccessWS, etc.) live on the outer types.
 type fanOut[T any] struct {
-	mu          sync.RWMutex
-	subscribers map[uintptr]chan T
+	mu            sync.RWMutex
+	subscribers   map[uintptr]chan T
+	onSubscribe   func()
+	onUnsubscribe func()
 }
 
 // newFanOut creates a fan-out hub with no subscribers.
 func newFanOut[T any]() *fanOut[T] {
 	return &fanOut[T]{
-		mu:          sync.RWMutex{},
-		subscribers: make(map[uintptr]chan T),
+		mu:            sync.RWMutex{},
+		subscribers:   make(map[uintptr]chan T),
+		onSubscribe:   nil,
+		onUnsubscribe: nil,
 	}
 }
 
@@ -43,7 +47,11 @@ func (f *fanOut[T]) Subscribe() <-chan T {
 		return ch
 	}
 	f.subscribers[channelPtr(ch)] = ch
+	onSub := f.onSubscribe
 	f.mu.Unlock()
+	if onSub != nil {
+		onSub()
+	}
 	return ch
 }
 
@@ -51,12 +59,16 @@ func (f *fanOut[T]) Subscribe() <-chan T {
 // Call this when a client disconnects to prevent memory leaks.
 func (f *fanOut[T]) Unsubscribe(ch <-chan T) {
 	f.mu.Lock()
-	defer f.mu.Unlock()
-
 	key := channelPtr(ch)
-	if sender, ok := f.subscribers[key]; ok {
+	sender, ok := f.subscribers[key]
+	if ok {
 		delete(f.subscribers, key)
 		close(sender)
+	}
+	onUnsub := f.onUnsubscribe
+	f.mu.Unlock()
+	if ok && onUnsub != nil {
+		onUnsub()
 	}
 }
 
@@ -128,6 +140,22 @@ func (f *fanOut[T]) broadcastOnErrorHook(mapper func(r *http.Request, err error)
 		}
 		f.Broadcast(mapper(r, err))
 	}
+}
+
+// setOnSubscribe sets a callback fired after each successful Subscribe.
+// Used by Broadcaster.OnSubscribe and WSBroadcaster.OnSubscribe.
+func (f *fanOut[T]) setOnSubscribe(fn func()) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.onSubscribe = fn
+}
+
+// setOnUnsubscribe sets a callback fired after each successful Unsubscribe.
+// Used by Broadcaster.OnUnsubscribe and WSBroadcaster.OnUnsubscribe.
+func (f *fanOut[T]) setOnUnsubscribe(fn func()) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.onUnsubscribe = fn
 }
 
 // channelPtr returns the pointer identity of a channel, regardless of direction.

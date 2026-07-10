@@ -124,6 +124,10 @@ type ServiceConfig struct {
 	// token store. Use this for multi-instance deployments (e.g., Redis).
 	// Ignored when OAuth2Config is nil.
 	OAuth2StateStore OAuth2StateStore
+	// OAuth2StateTTL is the time-to-live for OAuth2 state tokens used in the
+	// PKCE flow. Defaults to 10 minutes. Ignored when OAuth2 is nil or when
+	// OAuth2StateStore is provided (the custom store manages its own TTL).
+	OAuth2StateTTL time.Duration
 
 	// ReadModelDB, when set, creates SQL-backed read models (User, Membership,
 	// Tenant, Bot) that persist across restarts. Use [OptimizeSQLiteDB] to tune
@@ -326,7 +330,10 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		}
 		svc.oauth2 = cfg.OAuth2
 		svc.oauth2States = stateStore
-		svc.oauth2StateTTL = defaultOAuthStateTTL
+		svc.oauth2StateTTL = cfg.OAuth2StateTTL
+		if svc.oauth2StateTTL == 0 {
+			svc.oauth2StateTTL = defaultOAuthStateTTL
+		}
 		svc.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
 	}
 

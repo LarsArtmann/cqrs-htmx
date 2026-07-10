@@ -1,8 +1,7 @@
 package cqrshtmx
 
 import (
-	"encoding/json/jsontext"
-	"encoding/json/v2"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -79,7 +78,7 @@ func ParseWSMessage(data []byte) (*WSMessage, error) {
 	return msg, nil
 }
 
-func parseWSHeaders(raw jsontext.Value) map[string]string {
+func parseWSHeaders(raw json.RawMessage) map[string]string {
 	var headersMap map[string]string
 	if json.Unmarshal(raw, &headersMap) == nil {
 		return headersMap
@@ -170,7 +169,7 @@ func ParseWSMessageInto[T any](data []byte) (msg T, headers map[string]string, e
 	// This avoids the marshal→unmarshal round-trip of the previous approach.
 	headers = make(map[string]string)
 	var wrapper struct {
-		HEADERS jsontext.Value `json:"HEADERS"`
+		HEADERS json.RawMessage `json:"HEADERS"`
 	}
 	if json.Unmarshal(data, &wrapper) == nil && len(wrapper.HEADERS) > 0 {
 		headers = parseWSHeaders(wrapper.HEADERS)
