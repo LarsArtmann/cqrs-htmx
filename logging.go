@@ -2,7 +2,7 @@ package cqrshtmx
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -84,7 +84,7 @@ func JSONLogFormatter(r *http.Request, status int, duration time.Duration) strin
 	buf.Reset()
 	defer jsonLogBufferPool.Put(buf)
 
-	if err := json.NewEncoder(buf).Encode(entry); err != nil {
+	if err := json.MarshalWrite(buf, entry); err != nil {
 		return `{"error":"json marshal failed"}`
 	}
 
@@ -125,14 +125,29 @@ func RequestLogging(
 	}
 }
 
+// ErrorRecorder captures the dispatch error for logging middleware.
+// It is a separate concern from status recording — embedded by StatusRecorder
+// but usable standalone by middleware that only needs error context.
+type ErrorRecorder struct {
+	dispatchErr error
+}
+
+// SetDispatchError captures the dispatch error so that logging middleware
+// (RequestLoggingSlog) can include error context in the request log.
+func (r *ErrorRecorder) SetDispatchError(err error) { r.dispatchErr = err }
+
+// DispatchError returns the captured dispatch error, or nil if none was set.
+func (r *ErrorRecorder) DispatchError() error { return r.dispatchErr }
+
 // StatusRecorder wraps http.ResponseWriter to capture the HTTP status code.
 // It embeds delegatingWriter so Flush/Hijack/Push/Unwrap are promoted
 // automatically — preserving SSE, WebSocket, and HTTP/2 capabilities.
+// ErrorRecorder is embedded to capture dispatch errors for logging.
 type StatusRecorder struct {
 	delegatingWriter
-	status      int
-	wrote       bool
-	dispatchErr error // captured by handleErr for logging middleware
+	ErrorRecorder
+	status int
+	wrote  bool
 }
 
 // NewStatusRecorder wraps w to capture the status code. The initial status is
@@ -140,9 +155,9 @@ type StatusRecorder struct {
 func NewStatusRecorder(w http.ResponseWriter) *StatusRecorder {
 	return &StatusRecorder{
 		delegatingWriter: delegatingWriter{ResponseWriter: w},
+		ErrorRecorder:    ErrorRecorder{dispatchErr: nil},
 		status:           0,
 		wrote:            false,
-		dispatchErr:      nil,
 	}
 }
 
@@ -152,10 +167,6 @@ func (r *StatusRecorder) Status() int { return r.status }
 
 // WroteHeader reports whether WriteHeader has been called.
 func (r *StatusRecorder) WroteHeader() bool { return r.wrote }
-
-// setDispatchError captures the dispatch error so that logging middleware
-// (RequestLoggingSlog) can include error context in the request log.
-func (r *StatusRecorder) setDispatchError(err error) { r.dispatchErr = err }
 
 // WriteHeader records the status code and delegates to the underlying ResponseWriter.
 func (r *StatusRecorder) WriteHeader(code int) {
@@ -204,8 +215,8 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 				attrs = append(attrs, slog.String(logFieldRequestID, rid.String()))
 			}
 
-			if rw.dispatchErr != nil {
-				attrs = appendDispatchErrorAttrs(attrs, rw.dispatchErr)
+			if err := rw.DispatchError(); err != nil {
+				attrs = appendDispatchErrorAttrs(attrs, err)
 			}
 
 			logger.LogAttrs(r.Context(), slog.LevelInfo, "http request", attrs...)
@@ -225,15 +236,16 @@ func (r *StatusRecorder) Write(p []byte) (int, error) {
 }
 
 // dispatchErrorRecorder is implemented by ResponseWriters that capture
-// the dispatch error for logging middleware. StatusRecorder implements it.
+// the dispatch error for logging middleware. ErrorRecorder (embedded by
+// StatusRecorder) implements it.
 type dispatchErrorRecorder interface {
-	setDispatchError(err error)
+	SetDispatchError(err error)
 }
 
 // appendDispatchErrorAttrs extracts the error code, family, and context
 // key-values from a classified error and appends them as slog attributes.
 func appendDispatchErrorAttrs(attrs []slog.Attr, err error) []slog.Attr {
-	if code := errorCode(err); code != "" {
+	if code := ErrorCode(err); code != "" {
 		attrs = append(attrs, slog.String("error_code", code))
 	}
 	if family := errorfamily.Classify(err); family.IsValid() {

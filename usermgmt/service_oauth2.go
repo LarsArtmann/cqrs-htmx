@@ -2,7 +2,7 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -29,7 +29,8 @@ func (s *Service) BeginOAuthLogin(ctx context.Context, provider string) (*BeginO
 
 	redirectURL, pkceVerifier, err := s.oauth2.BeginLogin(ctx, provider, state)
 	if err != nil {
-		return nil, errorfamily.NewTransient("internal", "oauth2 begin login").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "oauth2 begin login").
+			WithCause(err).WithContext("provider", provider)
 	}
 
 	if err := s.oauth2States.Save(state, provider, pkceVerifier, s.oauth2StateTTL); err != nil {
@@ -71,7 +72,8 @@ func (s *Service) FinishOAuthLogin(
 	userInfoJSON, err := s.oauth2.FinishLogin(ctx, provider, code, pkceVerifier)
 	if err != nil {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "token_exchange")
-		return nil, errorfamily.WrapTransient(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token").
+			WithContext("provider", provider)
 	}
 
 	var info OAuth2UserInfo

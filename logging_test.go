@@ -233,76 +233,50 @@ var _ = Describe("Request Logging", func() {
 			Expect(logged).To(ContainSubstring(`"status":200`))
 		})
 
-		It("includes error code, family, and context on dispatch failure", func() {
-			middleware, buf := newSlogCapture()
+		dispatchErrorLogEntry := func(err error, asserts ...string) TableEntry {
+			return Entry(nil, err, asserts)
+		}
 
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return errorfamily.NewRejection("test.bad_input", "bad input").
-					WithContext("user_id", "01JX123")
-			})
-			app := mustNewApp(cqrshtmx.Config{Commands: disp})
+		DescribeTable("includes error context on dispatch failure across all families",
+			func(err error, asserts []string) {
+				middleware, buf := newSlogCapture()
 
-			handler := middleware(app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
-				}),
-			))
+				disp := command.NewDispatcher()
+				_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+					return err
+				})
+				app := mustNewApp(cqrshtmx.Config{Commands: disp})
 
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, newPostJSONRequest(`{}`))
+				handler := middleware(app.Command("CreateUser",
+					cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
+						return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					}),
+				))
 
-			logged := buf.String()
-			Expect(logged).To(ContainSubstring(`"error_code"`))
-			Expect(logged).To(ContainSubstring(`"error_family":"rejection"`))
-			Expect(logged).To(ContainSubstring(`"error_ctx_user_id":"01JX123"`))
-		})
+				w := httptest.NewRecorder()
+				handler.ServeHTTP(w, newPostJSONRequest(`{}`))
 
-		It("logs transient family on transient dispatch failure", func() {
-			middleware, buf := newSlogCapture()
-
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return errorfamily.NewTransient("test.db_down", "database temporarily unavailable")
-			})
-			app := mustNewApp(cqrshtmx.Config{Commands: disp})
-
-			handler := middleware(app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
-				}),
-			))
-
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, newPostJSONRequest(`{}`))
-
-			logged := buf.String()
-			Expect(logged).To(ContainSubstring(`"error_family":"transient"`))
-			Expect(logged).To(ContainSubstring(`"error_code"`))
-		})
-
-		It("logs conflict family on conflict dispatch failure", func() {
-			middleware, buf := newSlogCapture()
-
-			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return errorfamily.NewConflict("test.email_taken", "email already registered")
-			})
-			app := mustNewApp(cqrshtmx.Config{Commands: disp})
-
-			handler := middleware(app.Command("CreateUser",
-				cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
-				}),
-			))
-
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, newPostJSONRequest(`{}`))
-
-			logged := buf.String()
-			Expect(logged).To(ContainSubstring(`"error_family":"conflict"`))
-			Expect(logged).To(ContainSubstring(`"error_code"`))
-		})
+				logged := buf.String()
+				for _, substr := range asserts {
+					Expect(logged).To(ContainSubstring(substr))
+				}
+			},
+			dispatchErrorLogEntry(
+				errorfamily.NewRejection("test.bad_input", "bad input").
+					WithContext("user_id", "01JX123"),
+				`"error_code"`, `"error_family":"rejection"`, `"error_ctx_user_id":"01JX123"`,
+			),
+			dispatchErrorLogEntry(
+				errorfamily.NewTransient("test.db_down", "database temporarily unavailable").
+					WithContext("db_host", "db-1.prod"),
+				`"error_family":"transient"`, `"error_code"`, `"error_ctx_db_host":"db-1.prod"`,
+			),
+			dispatchErrorLogEntry(
+				errorfamily.NewConflict("test.email_taken", "email already registered").
+					WithContext("email", "dup@example.com"),
+				`"error_family":"conflict"`, `"error_code"`, `"error_ctx_email":"dup@example.com"`,
+			),
+		)
 	})
 
 	Describe("statusRecorder", func() {

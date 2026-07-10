@@ -3,11 +3,13 @@ package usermgmt
 import (
 	"context"
 	"encoding/csv"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"strconv"
 	"strings"
+
+	"encoding/json/jsontext"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -73,7 +75,7 @@ const (
 // Returns a summary of imported/skipped counts and any per-user errors.
 func (s *Service) ImportUsersFromJSON(ctx context.Context, r io.Reader) (*ImportResult, error) {
 	var users []ImportUser
-	if err := json.NewDecoder(r).Decode(&users); err != nil {
+	if err := json.UnmarshalRead(r, &users); err != nil {
 		return nil, errorfamily.WrapRejection(err, "usermgmt.import.json_decode_failed", "decode import JSON")
 	}
 	return s.importUsers(ctx, users)
@@ -155,9 +157,9 @@ func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportR
 // ExportUsersToJSON writes all users as a JSON array to the writer.
 func (s *Service) ExportUsersToJSON(_ context.Context, w io.Writer) error {
 	users := s.exportAllUsers()
-	enc := json.NewEncoder(w)
+	enc := jsontext.NewEncoder(w)
 	enc.SetIndent("", "  ")
-	if err := enc.Encode(users); err != nil {
+	if err := json.MarshalEncode(enc, users); err != nil {
 		return errorfamily.WrapInfrastructure(err, "usermgmt.export.json_encode_failed", "encode export JSON")
 	}
 	return nil

@@ -1,9 +1,11 @@
 package adminui
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"log/slog"
 	"net/http"
+
+	"encoding/json/jsontext"
 
 	"github.com/a-h/templ"
 )
@@ -41,7 +43,7 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 		return // unreachable: marshaling a static struct never fails
 	}
 	// Preserve any existing trigger events (other HX-Trigger entries).
-	triggers := map[string]json.RawMessage{}
+	triggers := map[string]jsontext.Value{}
 	if h := w.Header().Get("HX-Trigger"); h != "" {
 		_ = json.Unmarshal([]byte(h), &triggers) // best-effort merge
 	}

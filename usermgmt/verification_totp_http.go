@@ -2,7 +2,7 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"net/http"
@@ -78,7 +78,7 @@ func (h *AuthHandler) withTimeout(r *http.Request) (context.Context, context.Can
 // maxAuthBodySize and returning a 400 Bad Request with ErrValidation
 // on failure. Returns true on success; the handler should return on false.
 func (h *AuthHandler) decodeAuthJSON(w http.ResponseWriter, r *http.Request, target any) bool {
-	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(target); err != nil {
+	if err := json.UnmarshalRead(io.LimitReader(r.Body, maxAuthBodySize), target); err != nil {
 		writeError(w, http.StatusBadRequest,
 			fmt.Sprintf("%s: invalid request body: %s", ErrValidation, err))
 		return false
