@@ -1,6 +1,10 @@
 package adminui
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/larsartmann/templ-components/display"
+)
 
 templ usersPage(p pageData, d usersListData) {
 	@Layout(p) {
@@ -73,7 +77,9 @@ templ usersTable(d usersListData) {
 									}
 								</div>
 							</td>
-							<td class="px-4 py-2 text-gray-500">{ relTime(u.CreatedAt) }</td>
+							<td class="px-4 py-2 text-gray-500">
+								@display.RelativeTime(display.RelativeTimeProps{Time: u.CreatedAt})
+							</td>
 							<td class="px-4 py-2 text-right">
 								<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users/" + u.ID.Get().String() }>View</a>
 							</td>

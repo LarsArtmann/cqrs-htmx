@@ -9,6 +9,7 @@ package oauth2
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"io"
 	"net/http"
@@ -283,12 +284,12 @@ func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.T
 	}
 	// GitHub uses "id" as subject and "login" as display name
 	var raw struct {
-		ID            json.Number `json:"id"`
-		Sub           string      `json:"sub"`
-		Email         string      `json:"email"`
-		Name          string      `json:"name"`
-		Login         string      `json:"login"`
-		EmailVerified bool        `json:"email_verified"`
+		ID            jsontext.Value `json:"id"`
+		Sub           string         `json:"sub"`
+		Email         string         `json:"email"`
+		Name          string         `json:"name"`
+		Login         string         `json:"login"`
+		EmailVerified bool           `json:"email_verified"`
 	}
 	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
