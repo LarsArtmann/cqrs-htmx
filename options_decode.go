@@ -16,11 +16,17 @@ func setQueryDecoder(cfg *handlerConfig, dec func(*http.Request) (query.Query, e
 }
 
 // DecodeJSON decodes a JSON request body into a command using the mapper.
+// An empty body (e.g. a POST with no body, or Content-Length: 0) is treated as
+// a zero-value T, not an error. This means GET-style queries or no-body POSTs
+// work without sending "{}".
 func DecodeJSON[T any](mapper func(T) (command.Command, error)) HandlerOption {
 	return decodeAndSet(decodeJSONBody[T], mapper, setCommandDecoder)
 }
 
 // DecodeJSONQuery decodes a JSON request body into a query.
+// An empty body (e.g. a GET request with no body) is treated as a zero-value T,
+// not an error. This is useful for queries that take no parameters or rely
+// entirely on context (path values, headers, query params).
 func DecodeJSONQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
 	return decodeAndSet(decodeJSONBody[T], mapper, setQueryDecoder)
 }

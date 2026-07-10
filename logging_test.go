@@ -2,11 +2,15 @@ package cqrshtmx_test
 
 import (
 	"bytes"
+	"context"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -227,6 +231,77 @@ var _ = Describe("Request Logging", func() {
 
 			logged := buf.String()
 			Expect(logged).To(ContainSubstring(`"status":200`))
+		})
+
+		It("includes error code, family, and context on dispatch failure", func() {
+			middleware, buf := newSlogCapture()
+
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+				return errorfamily.NewRejection("test.bad_input", "bad input").
+					WithContext("user_id", "01JX123")
+			})
+			app := mustNewApp(cqrshtmx.Config{Commands: disp})
+
+			handler := middleware(app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+				}),
+			))
+
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, newPostJSONRequest(`{}`))
+
+			logged := buf.String()
+			Expect(logged).To(ContainSubstring(`"error_code"`))
+			Expect(logged).To(ContainSubstring(`"error_family":"rejection"`))
+			Expect(logged).To(ContainSubstring(`"error_ctx_user_id":"01JX123"`))
+		})
+
+		It("logs transient family on transient dispatch failure", func() {
+			middleware, buf := newSlogCapture()
+
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+				return errorfamily.NewTransient("test.db_down", "database temporarily unavailable")
+			})
+			app := mustNewApp(cqrshtmx.Config{Commands: disp})
+
+			handler := middleware(app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+				}),
+			))
+
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, newPostJSONRequest(`{}`))
+
+			logged := buf.String()
+			Expect(logged).To(ContainSubstring(`"error_family":"transient"`))
+			Expect(logged).To(ContainSubstring(`"error_code"`))
+		})
+
+		It("logs conflict family on conflict dispatch failure", func() {
+			middleware, buf := newSlogCapture()
+
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+				return errorfamily.NewConflict("test.email_taken", "email already registered")
+			})
+			app := mustNewApp(cqrshtmx.Config{Commands: disp})
+
+			handler := middleware(app.Command("CreateUser",
+				cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+				}),
+			))
+
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, newPostJSONRequest(`{}`))
+
+			logged := buf.String()
+			Expect(logged).To(ContainSubstring(`"error_family":"conflict"`))
+			Expect(logged).To(ContainSubstring(`"error_code"`))
 		})
 	})
 

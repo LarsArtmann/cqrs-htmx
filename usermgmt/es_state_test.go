@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -177,5 +178,121 @@ func TestFoldUser_UnknownEvent(t *testing.T) {
 	}
 	if state.Email != "u@example.com" {
 		t.Errorf("state changed on unknown event")
+	}
+}
+
+func makeCBOREvent(t *testing.T, eventType event.Type, version event.Version, payload any) event.Event {
+	t.Helper()
+	payloadBytes, err := codec.CBORCodec{}.Encode(payload)
+	if err != nil {
+		t.Fatalf("CBOR encode payload for %s: %v", eventType, err)
+	}
+	evt, err := event.NewEvent(
+		eventType,
+		testAggID,
+		aggregateTypeUser,
+		version,
+		payloadBytes,
+		event.WithEncoding(codec.EncodingCBOR),
+	)
+	if err != nil {
+		t.Fatalf("makeCBOREvent %s: %v", eventType, err)
+	}
+	return evt
+}
+
+func TestUnmarshalPayload_CBOR_RoundTrip(t *testing.T) {
+	original := UserRegisteredPayload{
+		Email:       "cbor@example.com",
+		DisplayName: "CBOR User",
+		Roles:       []Role{RoleUser, RoleAdmin},
+	}
+	evt := makeCBOREvent(t, eventUserRegistered, 1, original)
+
+	if evt.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("encoding = %q, want %q", evt.Encoding(), codec.EncodingCBOR)
+	}
+
+	got, err := unmarshalPayload[UserRegisteredPayload](evt)
+	if err != nil {
+		t.Fatalf("unmarshalPayload CBOR: %v", err)
+	}
+	if got.Email != original.Email {
+		t.Errorf("Email = %q, want %q", got.Email, original.Email)
+	}
+	if got.DisplayName != original.DisplayName {
+		t.Errorf("DisplayName = %q, want %q", got.DisplayName, original.DisplayName)
+	}
+	if len(got.Roles) != 2 || got.Roles[0] != RoleUser || got.Roles[1] != RoleAdmin {
+		t.Errorf("Roles = %v, want [user admin]", got.Roles)
+	}
+}
+
+func TestUnmarshalPayload_JSON_RoundTrip(t *testing.T) {
+	original := EmailChangedPayload{Email: "json@example.com"}
+	evt := makeEvent(t, eventEmailChanged, 1, original)
+
+	if evt.Encoding() != codec.EncodingJSON {
+		t.Fatalf("encoding = %q, want %q", evt.Encoding(), codec.EncodingJSON)
+	}
+
+	got, err := unmarshalPayload[EmailChangedPayload](evt)
+	if err != nil {
+		t.Fatalf("unmarshalPayload JSON: %v", err)
+	}
+	if got.Email != original.Email {
+		t.Errorf("Email = %q, want %q", got.Email, original.Email)
+	}
+}
+
+func TestFoldUser_CBOR_EncodedEvents(t *testing.T) {
+	events := []event.Event{
+		makeCBOREvent(t, eventUserRegistered, 1, UserRegisteredPayload{
+			Email:       "cbor-user@example.com",
+			DisplayName: "CBOR Fold User",
+			Roles:       []Role{RoleViewer},
+		}),
+		makeCBOREvent(t, eventEmailChanged, 2, EmailChangedPayload{Email: "updated-cbor@example.com"}),
+		makeCBOREvent(t, eventDisplayNameChanged, 3, DisplayNameChangedPayload{DisplayName: "Updated CBOR"}),
+	}
+	state := UserState{}
+	var err error
+	for _, evt := range events {
+		state, err = foldUser(state, evt)
+		if err != nil {
+			t.Fatalf("foldUser at event %s: %v", evt.Type(), err)
+		}
+	}
+	if state.Email != "updated-cbor@example.com" {
+		t.Errorf("Email = %q, want %q", state.Email, "updated-cbor@example.com")
+	}
+	if state.DisplayName != "Updated CBOR" {
+		t.Errorf("DisplayName = %q, want %q", state.DisplayName, "Updated CBOR")
+	}
+}
+
+func TestFoldUser_MixedEncodingStream(t *testing.T) {
+	events := []event.Event{
+		makeEvent(t, eventUserRegistered, 1, UserRegisteredPayload{
+			Email:       "mixed@example.com",
+			DisplayName: "Mixed Encoding",
+			Roles:       []Role{RoleUser},
+		}),
+		makeCBOREvent(t, eventEmailChanged, 2, EmailChangedPayload{Email: "mixed-updated@example.com"}),
+		makeEvent(t, eventDisplayNameChanged, 3, DisplayNameChangedPayload{DisplayName: "Mixed Updated"}),
+	}
+	state := UserState{}
+	var err error
+	for _, evt := range events {
+		state, err = foldUser(state, evt)
+		if err != nil {
+			t.Fatalf("foldUser at event %s (encoding=%s): %v", evt.Type(), evt.Encoding(), err)
+		}
+	}
+	if state.Email != "mixed-updated@example.com" {
+		t.Errorf("Email = %q, want %q", state.Email, "mixed-updated@example.com")
+	}
+	if state.DisplayName != "Mixed Updated" {
+		t.Errorf("DisplayName = %q, want %q", state.DisplayName, "Mixed Updated")
 	}
 }

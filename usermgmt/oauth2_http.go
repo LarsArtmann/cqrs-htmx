@@ -31,7 +31,7 @@ func (h *AuthHandler) handleOAuth2Begin(w http.ResponseWriter, r *http.Request) 
 
 	resp, err := h.service.BeginOAuthLogin(ctx, provider)
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, resp)
@@ -86,7 +86,7 @@ func (h *AuthHandler) handleOAuth2Unlink(w http.ResponseWriter, r *http.Request)
 	defer cancel()
 
 	if err := h.service.UnlinkExternalAccount(ctx, user.ID, provider); err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusUnlinked})

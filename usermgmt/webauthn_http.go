@@ -42,7 +42,7 @@ func (h *AuthHandler) handleWebAuthnBeginRegistration(w http.ResponseWriter, r *
 
 	resp, err := h.service.BeginRegistration(r.Context(), NewUserID(req.UserID))
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, resp)
@@ -57,7 +57,7 @@ func (h *AuthHandler) handleWebAuthnFinishRegistration(w http.ResponseWriter, r 
 
 	err := h.service.FinishRegistration(r.Context(), userID, r, credentialName)
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusRegistered})
@@ -78,7 +78,7 @@ func (h *AuthHandler) handleWebAuthnBeginLogin(w http.ResponseWriter, r *http.Re
 
 	resp, err := h.service.BeginLogin(r.Context(), req.Email)
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, resp)
@@ -92,7 +92,7 @@ func (h *AuthHandler) handleWebAuthnFinishLogin(w http.ResponseWriter, r *http.R
 
 	resp, err := h.service.FinishLogin(r.Context(), userID, r)
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 

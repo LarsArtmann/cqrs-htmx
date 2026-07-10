@@ -18,17 +18,17 @@
 - [ ] **Verify `go get github.com/larsartmann/cqrs-htmx/v4@v4.2.1`** resolves from Go proxy — post-push verification never done
 - [ ] **Check if pkg.go.dev** picked up v4.2.1 (Go documentation proxy)
 - [ ] **Configure `go-auto-upgrade` to skip `encoding/json` → `encoding/json/v2` migration** — broke the build on 2026-07-09 (26 files migrated to experimental stdlib packages). Will recur on every buildflow run unless excluded.
-- [ ] **Add CI lint rule rejecting `encoding/json/v2` + `encoding/json/jsontext` imports** — defense in depth against the buildflow trap
+- [ ] **Add CI lint rule rejecting `encoding/json/v2` + `encoding/json/jsontext` imports** — ~~defense in depth against the buildflow trap~~ **DONE**: depguard rule added to `.golangci.yml` (rejects both packages with descriptive error)
 
 ### P1 — Code Quality & Test Gaps
 
-- [ ] **Write CBOR round-trip test for `unmarshalPayload`** — `es_state.go:44` uses `codec.ForEncoding(evt.Encoding())` but zero tests exercise the CBOR path. All existing tests create events with the default JSON codec.
-- [ ] **Add tests for `DecodeFormWithRequest`, `DecodeJSONQueryWithRequest`, `DecodeFormQueryWithRequest`** — only `DecodeJSONWithRequest` is tested. The other 3 share a helper so they probably work, but "probably" isn't tested. (`options_decode.go:54`)
-- [ ] **Fix `CSRFTestToken` to return `(token, cookie)`** — currently returns only the masked token string (`csrf_testing.go:26`). In a real cross-request scenario (GET → POST), the consumer needs both the token AND the cookie. Half-baked for actual test usage.
-- [ ] **Add `Code` field to `StructuredError` + `ProblemDetailsErrorHandler`** — `JSONErrorHandler` includes a `"code"` field (`constants.go:23`, `errors.go:309`), but `StructuredError` has no `Code` field (`structured_error.go:28`). Split brain introduced when the code field was added to JSON but not RFC 7807.
-- [ ] **Fix exhaustive lint in `service_register.go:109`** — `switch errorfamily.Classify(err)` covers Conflict/Rejection/default. Pre-existing lint finding. Add explicit cases for Transient/Corruption/Infrastructure or `//nolint:exhaustive` with justification.
+- [x] **Write CBOR round-trip test for `unmarshalPayload`** — 4 tests added: CBOR round-trip, JSON round-trip, CBOR-encoded event fold, mixed JSON+CBOR stream fold (`es_state_test.go`)
+- [x] **Add tests for `DecodeFormWithRequest`, `DecodeJSONQueryWithRequest`, `DecodeFormQueryWithRequest`** — 3 Ginkgo specs added covering form decoding + request access + query dispatch (`feedback_features_test.go`)
+- [x] **Fix `CSRFTestToken` to return `(token, cookie)`** — returns `(string, *http.Cookie)` now. GET→POST round-trip test added verifying token+cookie pass CSRF validation.
+- [x] **Add `Code` field to `StructuredError` + `ProblemDetailsErrorHandler`** — `Code` field added to StructuredError, populated via `errorCode(err)` in `newStructuredErrorFromContext`. ProblemDetailsErrorHandler now emits `code` via StructuredError JSON. Split brain with JSONErrorHandler resolved.
+- [x] **Fix exhaustive lint in `service_register.go:109`** — explicit `case event.Transient, event.Corruption, event.Infrastructure:` added (same body as default). LSP diagnostic resolved.
 - [ ] **Refactor `es_readmodel.go:Handle`** — 160-line 12-case switch. Has `//nolint:gocognit,gocyclo` suppression. Consider extracting a per-event-type dispatch table or handler map.
-- [ ] **Document empty-body behavior in `DecodeJSONQuery` godoc** — `decoder.go` short-circuits empty bodies to zero-value T (fixed runtime bug 2026-07-05), but the godoc doesn't mention this.
+- [x] **Document empty-body behavior in `DecodeJSONQuery` godoc** — godoc updated for `DecodeJSON` and `DecodeJSONQuery` documenting zero-value T on empty body.
 
 ### P1 — Documentation & Process
 
@@ -49,8 +49,8 @@
 ### P2 — Features (Consumer-Requested)
 
 - [ ] **Add `OnSubscribe`/`OnUnsubscribe` hooks to `fanOut`/`Broadcaster`** — DiscordSync asked for connection metrics. `fanout.go` has Subscribe/Unsubscribe/Broadcast/SubscriberCount/Close but no lifecycle hooks.
-- [ ] **Add `writeDispatchError(w, r, err)` helper** — 15+ `writeError(w, errorStatus(err), err.Error())` sites in usermgmt HTTP handlers. Should consolidate into one context-preserving function.
-- [ ] **Wire `ErrorContext()` into `RequestLoggingSlog`** — `logging.go:167` extracts User/Correlation/Request IDs but not `ErrorContext()` from classified errors. Context only visible if consumer explicitly reads it.
+- [x] **Add `writeDispatchError(w, r, err)` helper** — consolidates 15 `writeError(w, errorStatus(err), err.Error())` call sites. Now includes error code in response body when available. `codeKey = "code"` constant added.
+- [x] **Wire `ErrorContext()` into `RequestLoggingSlog`** — `StatusRecorder` captures dispatch error via `setDispatchError`. `handleErr` calls `captureDispatchError` (traverses Unwrap chain). `RequestLoggingSlog` now logs `error_code`, `error_family`, and `error_ctx_*` attributes from classified errors.
 - [ ] **Consider `broadcaster.ServeSSE()` high-level helper** — 2 consumers (Overview, DiscordSync) wrote ~30 lines of identical SSE handler boilerplate. Design decision: does it cross the "building blocks, not a server" line?
 - [ ] **Fix 2 remaining high-severity context losses** in `service_oauth2.go` — `providerName`/`state` flow through Service wrapping but aren't attached to the error.
 

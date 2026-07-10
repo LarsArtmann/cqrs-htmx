@@ -95,7 +95,7 @@ func (h *AuthHandler) handleSendVerificationEmail(w http.ResponseWriter, r *http
 
 	token, err := h.service.SendVerificationEmail(ctx, user.ID)
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"token": token})
@@ -113,7 +113,7 @@ func (h *AuthHandler) handleVerifyEmail(w http.ResponseWriter, r *http.Request) 
 	defer cancel()
 
 	if err := h.service.VerifyEmail(ctx, req.Token); err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusVerified})
@@ -128,7 +128,7 @@ func (h *AuthHandler) handleTOTPSetup(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.service.EnableTOTP(ctx, user.ID)
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, resp)
@@ -164,7 +164,7 @@ func (h *AuthHandler) handleTOTPCode(
 	}
 
 	if err := verify(ctx, user.ID, req.Code); err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{statusKey: status})
@@ -193,7 +193,7 @@ func (h *AuthHandler) importExportContext(
 		return nil, nil, false
 	}
 	if err := h.importExportAuthorizer(user); err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return nil, nil, false
 	}
 	ctx, cancel := h.withTimeout(r)
@@ -264,7 +264,7 @@ func (h *AuthHandler) handleImportUsers(w http.ResponseWriter, r *http.Request) 
 		result, err = h.service.ImportUsersFromJSON(ctx, io.LimitReader(r.Body, maxAuthBodySize))
 	}
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)

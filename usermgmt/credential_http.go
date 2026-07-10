@@ -125,7 +125,7 @@ func (h *AuthHandler) handleDeleteCredential(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := h.service.RemoveCredential(r.Context(), user.ID, credID); err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusRemoved})

@@ -65,6 +65,12 @@ type StructuredError struct {
 	// Usually the request ID or correlation ID for tracing.
 	Instance string `json:"instance,omitempty"`
 
+	// Code is the error family's machine-readable error code (RFC 7807 extension).
+	// Matches the "code" field emitted by JSONErrorHandler, so clients get the
+	// same code regardless of whether the response is application/json or
+	// application/problem+json. Empty when the error has no Code() method.
+	Code string `json:"code,omitempty"`
+
 	cause error `json:"-"`
 }
 
@@ -111,6 +117,7 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 		Why:      family.DefaultWhy(),
 		Fix:      family.DefaultFix(),
 		Instance: instance,
+		Code:     errorCode(err),
 		cause:    err,
 	}
 }

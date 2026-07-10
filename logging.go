@@ -3,10 +3,14 @@ package cqrshtmx
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -126,8 +130,9 @@ func RequestLogging(
 // automatically — preserving SSE, WebSocket, and HTTP/2 capabilities.
 type StatusRecorder struct {
 	delegatingWriter
-	status int
-	wrote  bool
+	status      int
+	wrote       bool
+	dispatchErr error // captured by handleErr for logging middleware
 }
 
 // NewStatusRecorder wraps w to capture the status code. The initial status is
@@ -137,6 +142,7 @@ func NewStatusRecorder(w http.ResponseWriter) *StatusRecorder {
 		delegatingWriter: delegatingWriter{ResponseWriter: w},
 		status:           0,
 		wrote:            false,
+		dispatchErr:      nil,
 	}
 }
 
@@ -146,6 +152,10 @@ func (r *StatusRecorder) Status() int { return r.status }
 
 // WroteHeader reports whether WriteHeader has been called.
 func (r *StatusRecorder) WroteHeader() bool { return r.wrote }
+
+// setDispatchError captures the dispatch error so that logging middleware
+// (RequestLoggingSlog) can include error context in the request log.
+func (r *StatusRecorder) setDispatchError(err error) { r.dispatchErr = err }
 
 // WriteHeader records the status code and delegates to the underlying ResponseWriter.
 func (r *StatusRecorder) WriteHeader(code int) {
@@ -194,6 +204,10 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 				attrs = append(attrs, slog.String(logFieldRequestID, rid.String()))
 			}
 
+			if rw.dispatchErr != nil {
+				attrs = appendDispatchErrorAttrs(attrs, rw.dispatchErr)
+			}
+
 			logger.LogAttrs(r.Context(), slog.LevelInfo, "http request", attrs...)
 		})
 	}
@@ -208,4 +222,37 @@ func (r *StatusRecorder) Write(p []byte) (int, error) {
 	}
 
 	return r.ResponseWriter.Write(p) //nolint:wrapcheck // delegate to underlying ResponseWriter
+}
+
+// dispatchErrorRecorder is implemented by ResponseWriters that capture
+// the dispatch error for logging middleware. StatusRecorder implements it.
+type dispatchErrorRecorder interface {
+	setDispatchError(err error)
+}
+
+// appendDispatchErrorAttrs extracts the error code, family, and context
+// key-values from a classified error and appends them as slog attributes.
+func appendDispatchErrorAttrs(attrs []slog.Attr, err error) []slog.Attr {
+	if code := errorCode(err); code != "" {
+		attrs = append(attrs, slog.String("error_code", code))
+	}
+	if family := errorfamily.Classify(err); family.IsValid() {
+		attrs = append(attrs, slog.String("error_family", family.String()))
+	}
+	// Traverse the full error chain — context may be on inner errors
+	// that were wrapped by dispatch error handling.
+	current := err
+	for current != nil {
+		var ee *event.Error
+		if errors.As(current, &ee) && ee != nil {
+			for k, v := range ee.ErrorContext() {
+				attrs = append(attrs, slog.String("error_ctx_"+k, v))
+			}
+			// Move past this event.Error to find deeper ones.
+			current = errors.Unwrap(ee)
+			continue
+		}
+		current = errors.Unwrap(current)
+	}
+	return attrs
 }

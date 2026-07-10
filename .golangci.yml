@@ -21,6 +21,7 @@ linters:
     - copyloopvar
     - cyclop
     - dupl
+    - depguard
     - durationcheck
     - errcheck
     - errchkjson
@@ -96,6 +97,14 @@ linters:
         - .+\.JournalSSEStore$
         - .+\.sseReadResult$
         - .+\.lockedRecorder$
+    depguard:
+      rules:
+        all:
+          deny:
+            - pkg: encoding/json/v2
+              desc: "encoding/json/v2 is experimental (Go 1.26); use encoding/json. Broke the build on 2026-07-09 via go-auto-upgrade."
+            - pkg: encoding/json/jsontext
+              desc: "encoding/json/jsontext is experimental (Go 1.26); use encoding/json. Broke the build on 2026-07-09 via go-auto-upgrade."
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true

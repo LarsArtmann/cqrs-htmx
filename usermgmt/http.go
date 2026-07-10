@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // AuthorizerFunc checks whether a user is authorized for a specific operation.
@@ -136,6 +138,8 @@ const (
 	contentTypeJSON   = "application/json; charset=utf-8"
 	statusKey         = "status"
 	errorKey          = "error"
+	codeKey           = "code"
+	requestIDKey      = "request_id"
 
 	statusLoggedOut         = "logged_out"
 	statusRegistered        = "registered"
@@ -231,7 +235,7 @@ func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, err := h.service.Register(ctx, regReq)
 	if err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 	h.setSessionCookie(w, resp.Session.Token)
@@ -249,7 +253,7 @@ func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	if err := h.service.Logout(ctx, token); err != nil {
-		writeError(w, errorStatus(err), err.Error())
+		writeDispatchError(w, r, err)
 		return
 	}
 
@@ -317,4 +321,23 @@ func writeError(w http.ResponseWriter, status int, message string) {
 // no parallel switch to keep in sync with the root module.
 func errorStatus(err error) int {
 	return cqrshtmx.MapError(err)
+}
+
+// writeDispatchError writes an error response with the HTTP status derived from
+// the error's family (via errorStatus) and includes the error's machine-readable
+// code and request ID when available. Consolidates the
+// writeDispatchError(w, r, err) pattern across all usermgmt HTTP handlers.
+func writeDispatchError(w http.ResponseWriter, r *http.Request, err error) {
+	status := errorStatus(err)
+	body := map[string]string{errorKey: err.Error()}
+	var ee *event.Error
+	if errors.As(err, &ee) && ee.Code() != "" {
+		body[codeKey] = ee.Code()
+	}
+	if r != nil {
+		if rid := cqrshtmx.RequestIDFromContext(r.Context()); !rid.IsZero() {
+			body[requestIDKey] = rid.String()
+		}
+	}
+	writeJSON(w, status, body)
 }
