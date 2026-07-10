@@ -140,6 +140,35 @@ func TestProblemDetailsErrorHandler_AuthRedirectForHTMX(t *testing.T) {
 	}
 }
 
+func TestProblemDetailsErrorHandler_IncludesCodeField(t *testing.T) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	cqrshtmx.ProblemDetailsErrorHandler(w, r, cqrshtmx.ErrValidationFailed)
+
+	var decoded map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &decoded); err != nil {
+		t.Fatalf("body must be valid JSON: %v", err)
+	}
+	if decoded["code"] != "validation_failed" {
+		t.Errorf("code field: got %v, want %q", decoded["code"], "validation_failed")
+	}
+}
+
+func TestProblemDetailsErrorHandler_OmitsCodeWhenAbsent(t *testing.T) {
+	err := errors.New("plain unclassified error")
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	cqrshtmx.ProblemDetailsErrorHandler(w, r, err)
+
+	var decoded map[string]any
+	if e := json.Unmarshal(w.Body.Bytes(), &decoded); e != nil {
+		t.Fatalf("body must be valid JSON: %v", e)
+	}
+	if _, hasCode := decoded["code"]; hasCode {
+		t.Error("code field should be omitted for errors without a Code() method")
+	}
+}
+
 func TestConfig_IncludeInternalDetails(t *testing.T) {
 	disp := command.NewDispatcher()
 	_ = disp.Register("CreateUser", erroringCommandHandler("db down"))

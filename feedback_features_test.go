@@ -105,6 +105,103 @@ var _ = Describe("Feedback-driven features", func() {
 		})
 	})
 
+	Describe("DecodeFormWithRequest", func() {
+		It("gives the mapper access to the *http.Request and decodes form fields", func() {
+			disp := command.NewDispatcher()
+			var capturedHeader string
+			var capturedEmail string
+			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
+				return nil
+			})
+			app := mustNewApp(cqrshtmx.Config{Commands: disp})
+
+			handler := app.Command(
+				"CreateUser",
+				cqrshtmx.DecodeFormWithRequest(
+					func(r *http.Request, body testCreateUserRequest) (command.Command, error) {
+						capturedHeader = r.Header.Get("X-Custom-Auth")
+						capturedEmail = body.Email
+						return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					},
+				),
+			)
+
+			r := newPostRequest(
+				"/users",
+				"email=form@example.com&name=FormUser",
+				withHeader("Content-Type", "application/x-www-form-urlencoded"),
+			)
+			r.Header.Set("X-Custom-Auth", "form-auth-456")
+			w := serve(handler, r)
+
+			Expect(w.Code).To(Equal(http.StatusNoContent))
+			Expect(capturedHeader).To(Equal("form-auth-456"))
+			Expect(capturedEmail).To(Equal("form@example.com"))
+		})
+	})
+
+	Describe("DecodeJSONQueryWithRequest", func() {
+		It("gives the query mapper access to the *http.Request", func() {
+			disp := query.NewDispatcher()
+			var capturedPathValue string
+			_ = disp.Register("GetPage", func(_ context.Context, _ query.Query) (any, error) {
+				return map[string]string{"page": "hello"}, nil
+			})
+			app := mustNewApp(cqrshtmx.Config{Queries: disp})
+
+			handler := app.Query("GetPage",
+				cqrshtmx.DecodeJSONQueryWithRequest(func(r *http.Request, _ struct{}) (query.Query, error) {
+					capturedPathValue = r.PathValue("section")
+					return &getPageQuery{}, nil
+				}),
+				cqrshtmx.RenderJSON[map[string]string](),
+			)
+
+			r := newPostJSONRequest(`{}`)
+			r.SetPathValue("section", "dashboard")
+			w := serve(handler, r)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(capturedPathValue).To(Equal("dashboard"))
+		})
+	})
+
+	Describe("DecodeFormQueryWithRequest", func() {
+		It("decodes form fields and gives the query mapper access to the *http.Request", func() {
+			disp := query.NewDispatcher()
+			var capturedEmail string
+			var capturedCookie string
+			_ = disp.Register("GetPage", func(_ context.Context, _ query.Query) (any, error) {
+				return map[string]string{"page": "hello"}, nil
+			})
+			app := mustNewApp(cqrshtmx.Config{Queries: disp})
+
+			handler := app.Query(
+				"GetPage",
+				cqrshtmx.DecodeFormQueryWithRequest(
+					func(r *http.Request, body testCreateUserRequest) (query.Query, error) {
+						capturedEmail = body.Email
+						capturedCookie = r.Header.Get("X-Custom-Auth")
+						return &getPageQuery{}, nil
+					},
+				),
+				cqrshtmx.RenderJSON[map[string]string](),
+			)
+
+			r := newPostRequest(
+				"/users",
+				"email=query@example.com&name=QueryUser",
+				withHeader("Content-Type", "application/x-www-form-urlencoded"),
+			)
+			r.Header.Set("X-Custom-Auth", "query-cookie-789")
+			w := serve(handler, r)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(capturedEmail).To(Equal("query@example.com"))
+			Expect(capturedCookie).To(Equal("query-cookie-789"))
+		})
+	})
+
 	Describe("RequestGuard", func() {
 		It("runs the guard after decode and blocks dispatch on error", func() {
 			disp := command.NewDispatcher()
@@ -217,7 +314,7 @@ var _ = Describe("Feedback-driven features", func() {
 	})
 
 	Describe("CSRFTestToken", func() {
-		It("extracts a valid CSRF token from the middleware chain", func() {
+		It("extracts a valid CSRF token and cookie from the middleware chain", func() {
 			mw := cqrshtmx.Chain(
 				cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 					Secure:   false,
@@ -226,8 +323,34 @@ var _ = Describe("Feedback-driven features", func() {
 				cqrshtmx.CSRFResponseHeaderMiddleware,
 			)
 
-			token := cqrshtmx.CSRFTestToken(mw)
+			token, cookie := cqrshtmx.CSRFTestToken(mw)
 			Expect(token).NotTo(BeEmpty())
+			Expect(cookie).NotTo(BeNil())
+			Expect(cookie.Name).To(Equal("csrf_token"))
+		})
+
+		It("passes a realistic GET-to-POST round-trip with token and cookie", func() {
+			mw := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+				Secure:   false,
+				SameSite: http.SameSiteLaxMode,
+			})
+
+			token, cookie := cqrshtmx.CSRFTestToken(mw)
+			Expect(token).NotTo(BeEmpty())
+			Expect(cookie).NotTo(BeNil())
+
+			postHandler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req.RemoteAddr = "127.0.0.1:1234"
+			req.Header.Set("X-CSRF-Token", token)
+			req.AddCookie(cookie)
+			w := httptest.NewRecorder()
+			postHandler.ServeHTTP(w, req)
+
+			Expect(w.Code).To(Equal(http.StatusOK), "POST with token+cookie should pass CSRF")
 		})
 	})
 })

@@ -65,6 +65,22 @@ var _ = Describe("StructuredError", func() {
 			Expect(se.Title).To(Equal("Conflict"))
 		})
 
+		It("populates Code from the error's Code() method", func() {
+			err := cqrshtmx.ErrValidationFailed
+			se := cqrshtmx.NewStructuredError(err, nil)
+
+			Expect(se.Code).To(Equal("validation_failed"))
+		})
+
+		It("includes code in JSON output", func() {
+			err := cqrshtmx.ErrValidationFailed
+			se := cqrshtmx.NewStructuredError(err, nil)
+
+			var decoded map[string]any
+			Expect(json.Unmarshal([]byte(se.JSON()), &decoded)).To(Succeed())
+			Expect(decoded["code"]).To(Equal("validation_failed"))
+		})
+
 		It("maps Transient family to 503", func() {
 			err := cqrshtmx.ErrDispatchFailed
 			se := cqrshtmx.NewStructuredError(err, nil)

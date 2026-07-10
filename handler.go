@@ -42,6 +42,7 @@ func (a *App) handleErr(
 	cfg *handlerConfig,
 	err error,
 ) {
+	captureDispatchError(w, err)
 	slog.WarnContext(
 		ctx, "cqrs-htmx: dispatch error",
 		slog.String("method", r.Method),
@@ -216,4 +217,23 @@ func (a *App) handleQueryDispatch(
 
 	a.applyQueryResponse(w, r.WithContext(ctx), cfg, result)
 	a.afterDispatchHook(ctx, r, nil)
+}
+
+// captureDispatchError stores the dispatch error on the ResponseWriter chain
+// so that logging middleware (RequestLoggingSlog) can include error context
+// (code, family, context key-values) in the request log. Traverses the
+// Unwrap chain to find a dispatchErrorRecorder (typically StatusRecorder).
+func captureDispatchError(w http.ResponseWriter, err error) {
+	for current := w; current != nil; {
+		if rec, ok := current.(dispatchErrorRecorder); ok {
+			rec.setDispatchError(err)
+			return
+		}
+		type unwrapper interface{ Unwrap() http.ResponseWriter }
+		u, ok := current.(unwrapper)
+		if !ok {
+			return
+		}
+		current = u.Unwrap()
+	}
 }

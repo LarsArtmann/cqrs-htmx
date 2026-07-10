@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-10 | **Version:** v4.2.1 (go-cqrs-lite v3.7.4) | **Source:** All .go files analyzed
+**Updated:** 2026-07-10 | **Version:** v4.2.1+unreleased (go-cqrs-lite v3.7.4) | **Source:** All .go files analyzed
 
 ## Status legend
 
@@ -63,13 +63,13 @@
 
 ### Auth & Security
 
-| Feature              | Status                | Notes                                                                                                                                                                                                                                                                            |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Casbin Authorization | 🟢 `FULLY_FUNCTIONAL` | `Authorize(resource, action)`, `RequireAuth()`, `Enforce()`, `AuthorizeMiddleware`. `Enforcer` interface enables mocks. `RequestGuard(func(r, cmd) error)` for custom per-handler auth. v4.2.0.                                                                                  |
-| CSRF Protection      | 🟢 `FULLY_FUNCTIONAL` | `CSRFMiddleware` using justinas/nosurf. `CSRFProtect` per-handler. `CSRFTestToken(mw)` test helper handles nosurf masking. Template helpers: `CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`, `CSRFTokenFormField`. Custom header/field translation. TrustedProxies for origin bypass. |
-| Security Headers     | 🟢 `FULLY_FUNCTIONAL` | `SecurityHeadersMiddleware` with configurable CSP, HSTS, X-Frame-Options, etc. `RecommendedCSP`/`RecommendedHSTS` constants. `SecurityHeadersMiddlewareWithConfig` for custom config. `SecurityHeaderSkip` sentinel (`"-"`) suppresses default headers. v4.2.0.                  |
-| Rate Limiting        | 🟢 `FULLY_FUNCTIONAL` | `RateLimiterMiddleware` with token-bucket per key. Min-heap O(log n) eviction. `MaxKeys` cap. `Retry-After` header. `ActiveKeys()` monitoring. `KeyExtractorFromRemoteAddr` / `KeyExtractorFromClientIP`. `DefaultRateLimiterConfig()` constructor. v4.2.0.                      |
-| Panic Recovery       | 🟢 `FULLY_FUNCTIONAL` | `RecoveryMiddleware` recovers panics, logs stack trace, writes 500. `App.RecoverHandler()` uses App's ErrorHandler. Re-raises `http.ErrAbortHandler`.                                                                                                                            |
+| Feature              | Status                | Notes                                                                                                                                                                                                                                                                                                                        |
+| -------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Casbin Authorization | 🟢 `FULLY_FUNCTIONAL` | `Authorize(resource, action)`, `RequireAuth()`, `Enforce()`, `AuthorizeMiddleware`. `Enforcer` interface enables mocks. `RequestGuard(func(r, cmd) error)` for custom per-handler auth. v4.2.0.                                                                                                                              |
+| CSRF Protection      | 🟢 `FULLY_FUNCTIONAL` | `CSRFMiddleware` using justinas/nosurf. `CSRFProtect` per-handler. `CSRFTestToken(mw)` test helper returns `(token, *http.Cookie)` for full nosurf masking round-trip. Template helpers: `CSRFTokenHTMLMeta`, `CSRFTokenHXHeaders`, `CSRFTokenFormField`. Custom header/field translation. TrustedProxies for origin bypass. |
+| Security Headers     | 🟢 `FULLY_FUNCTIONAL` | `SecurityHeadersMiddleware` with configurable CSP, HSTS, X-Frame-Options, etc. `RecommendedCSP`/`RecommendedHSTS` constants. `SecurityHeadersMiddlewareWithConfig` for custom config. `SecurityHeaderSkip` sentinel (`"-"`) suppresses default headers. v4.2.0.                                                              |
+| Rate Limiting        | 🟢 `FULLY_FUNCTIONAL` | `RateLimiterMiddleware` with token-bucket per key. Min-heap O(log n) eviction. `MaxKeys` cap. `Retry-After` header. `ActiveKeys()` monitoring. `KeyExtractorFromRemoteAddr` / `KeyExtractorFromClientIP`. `DefaultRateLimiterConfig()` constructor. v4.2.0.                                                                  |
+| Panic Recovery       | 🟢 `FULLY_FUNCTIONAL` | `RecoveryMiddleware` recovers panics, logs stack trace, writes 500. `App.RecoverHandler()` uses App's ErrorHandler. Re-raises `http.ErrAbortHandler`.                                                                                                                                                                        |
 
 ### Context & Identity
 

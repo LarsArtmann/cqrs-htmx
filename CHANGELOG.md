@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Breaking
+
+- **`CSRFTestToken` signature changed** (`csrf_testing.go`): Was `func(CSRFMiddleware) string`, now `func(CSRFMiddleware) (string, *http.Cookie)`. The old API only returned the masked token but not the CSRF cookie, making it impossible to construct a valid POST request in tests (nosurf requires both token in form/header AND cookie). Tests calling `CSRFTestToken(mw)` must update to unpack the tuple: `token, cookie := CSRFTestToken(mw)`.
+
+### Added
+
+- **`Code` field on `StructuredError`** (`structured_error.go`): Populated via `errorCode(err)`, matching the `"code"` field emitted by `JSONErrorHandler`. Clients now get the same machine-readable error code regardless of whether the response is `application/json` or `application/problem+json`. Empty when the error has no `Code()` method.
+- **Error context logging** (`logging.go`): `RequestLoggingSlog` now includes `error_code`, `error_family`, and `error_ctx_*` attributes when a dispatch error occurs. Traverses the full error chain to extract context from wrapped errors.
+- **`writeDispatchError` helper** (`usermgmt/http.go`): Consolidates the `writeDispatchError(w, r, err)` pattern across all usermgmt HTTP handlers. Includes the error's `code` and the request ID in the JSON response body when available. Replaces 15 `writeError(w, errorStatus(err), err.Error())` call sites.
+- **Depguard lint rule** (root + `usermgmt/.golangci.yml`): Rejects `encoding/json/v2` and `encoding/json/jsontext` imports with descriptive error messages referencing the 2026-07-09 build break via go-auto-upgrade.
+- **CBOR codec tests** (`usermgmt/es_state_test.go`): 4 new tests verifying `codec.ForEncoding` round-trip, fold-user with CBOR-encoded events, and mixed JSON+CBOR event stream folding.
+- **Request-aware decoder tests** (root `feedback_features_test.go`): 3 new BDD tests for `DecodeFormWithRequest`, `DecodeJSONQueryWithRequest`, `DecodeFormQueryWithRequest`.
+- **ProblemDetailsErrorHandler Code field tests** (`errors_model_test.go`): Verifies `code` field is included for classified errors and omitted for plain errors.
+- **writeDispatchError unit tests** (`usermgmt/http_dispatch_error_test.go`): 4 tests covering code field, request ID inclusion, conflict status derivation, and nil-request handling.
+
+### Changed
+
+- **`writeDispatchError` wires request ID** (`usermgmt/http.go`): Changed `_ *http.Request` to `r *http.Request`, extracting the request ID from context and including it as `request_id` in the JSON error response body. The `requestIDKey` constant was added alongside `codeKey`.
+
+### Fixed
+
+- **Exhaustive lint in `usermgmt/service_register.go`**: Added explicit `case event.Transient, event.Corruption, event.Infrastructure:` to the `classifyDispatchError` switch (same body as `default`). Eliminates the exhaustive linter warning.
+- **Split brain: `ProblemDetailsErrorHandler` vs `JSONErrorHandler`**: `ProblemDetailsErrorHandler` (which uses `StructuredError`) was missing the `code` field that `JSONErrorHandler` emitted. Now both paths emit the same `code`.
+
+### Documented
+
+- **Empty-body behavior in `DecodeJSON`/`DecodeJSONQuery` godoc**: Documented that an empty body on GET requests produces a zero-value `T` (not an error).
+
 ## [v4.2.1] - 2026-07-08
 
 ### Fixed
