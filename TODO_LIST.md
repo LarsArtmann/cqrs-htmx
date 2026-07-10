@@ -1,220 +1,150 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-07-08 | **Coverage:** 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui | **Lint:** 0 issues (6 production modules) | **Version:** v4.2.1 (go-cqrs-lite v3.7.4)
+**Updated:** 2026-07-10 | **Coverage:** 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui (~886 tests) | **Lint:** 0 issues (6 production modules) | **Version:** v4.2.1 (go-cqrs-lite v3.7.4)
 
 ## Status Legend
 
-- [x] DONE
-- [~] PARTIALLY DONE
-- [-] NOT APPLICABLE / BLOCKED
+- [ ] OPEN — actionable, not yet started
+- [~] PARTIALLY DONE — started but incomplete
+- [x] DONE — completed and verified
 
 ---
 
 ## Open Items
 
-### Passwordless Event-Sourced Migration (2026-06-16)
+### P0 — Release & Infrastructure
 
-- [x] **Wire AccountLockout into BeginLogin/FinishLogin** — Lockout checked on begin; failures recorded on finish; reset on success.
-- [x] **Add credential management HTTP endpoints** — GET /auth/credentials + DELETE /auth/credentials/{id}.
-- [x] **WebAuthn session proactive eviction** — Background goroutine with Service.Stop() cleanup.
-- [x] **CasbinProjection subscribes to credential events** — Ordering guarantee without policy changes.
-- [x] **Eliminate production panics** — marshalPayload and aggIDFromUser return errors.
-- [x] **RegisterCommands returns error** — No more silently ignored registration failures.
-- [x] **Log bus.Subscribe failures** — Event bridge errors logged at warn level.
-- [x] **Log projection runner errors** — Background projection errors logged at error level.
-- [x] **Refactor WebAuthn HTTP body parsing** — Query params instead of fragile double body read.
-- [x] **Fix goroutine leak in tests** — t.Cleanup(svc.Stop) for all WebAuthn test services.
-- [x] **Remove stale password references** — All test helpers updated for passwordless API.
-- [x] **Fix lint warnings** — gosec G101, perfsprint, wrapcheck, exhaustruct, gci all clean.
-- [x] **Fill DOMAIN_LANGUAGE.md** — All domain terms defined.
-- [x] **Update README.md architecture** — Correct file names, remove stale references.
-- [x] **Update CHANGELOG.md** — Comprehensive Unreleased entries.
+- [ ] **Create GitHub Releases** for 6 tags (`v4.2.1`, `usermgmt/v4.2.0`, `adminui/v4.2.0`, `totp/v4.0.2`, `webauthn/v4.0.2`, `oauth2/v4.0.2`) — only `v4.0.0` and `v2.0.0` have releases today. Tags are pushed but consumers see no release notes.
+- [ ] **Verify `go get github.com/larsartmann/cqrs-htmx/v4@v4.2.1`** resolves from Go proxy — post-push verification never done
+- [ ] **Check if pkg.go.dev** picked up v4.2.1 (Go documentation proxy)
+- [ ] **Configure `go-auto-upgrade` to skip `encoding/json` → `encoding/json/v2` migration** — broke the build on 2026-07-09 (26 files migrated to experimental stdlib packages). Will recur on every buildflow run unless excluded.
+- [ ] **Add CI lint rule rejecting `encoding/json/v2` + `encoding/json/jsontext` imports** — defense in depth against the buildflow trap
 
-### Verification, TOTP & Import/Export Hardening (2026-06-17)
+### P1 — Code Quality & Test Gaps
 
-- [x] **Admin authorization on import/export** — ImportExportAuthorizer defaults to RequireAdminRole. Non-admin users get 403.
-- [x] **Per-IP rate limiting on all sensitive endpoints** — HandlerConfig.ImportRateLimit, TOTPRateLimit, VerificationRateLimit. checkRateLimit helper eliminates boilerplate.
-- [x] **withTimeout helper** — Extracts duplicated context-timeout boilerplate from 8+ handlers.
-- [x] **ImportUser.Validate()** — Email format/length validation, display-name length check. Wired into JSON and CSV paths.
-- [x] **Negative-path handler tests** — Invalid TOTP code, setup without pending secret, TOTP disable when not enabled, import invalid email, import empty array, import duplicate email, verify already-verified.
-- [x] **pquerna/otp/totp library** — Replaced hand-rolled RFC 6238 implementation with audited library.
-- [x] **Require TOTP code to disable** — DisableTOTP now takes a code parameter. Prevents MFA stripping via session hijack.
-- [x] **Email value type** — ParseEmail/MustParseEmail with RFC 5322 validation. Used in ExportUser.
-- [x] **Rename ExportFormat → UserDataFormat** — Honest naming for dual import/export use.
+- [ ] **Write CBOR round-trip test for `unmarshalPayload`** — `es_state.go:44` uses `codec.ForEncoding(evt.Encoding())` but zero tests exercise the CBOR path. All existing tests create events with the default JSON codec.
+- [ ] **Add tests for `DecodeFormWithRequest`, `DecodeJSONQueryWithRequest`, `DecodeFormQueryWithRequest`** — only `DecodeJSONWithRequest` is tested. The other 3 share a helper so they probably work, but "probably" isn't tested. (`options_decode.go:54`)
+- [ ] **Fix `CSRFTestToken` to return `(token, cookie)`** — currently returns only the masked token string (`csrf_testing.go:26`). In a real cross-request scenario (GET → POST), the consumer needs both the token AND the cookie. Half-baked for actual test usage.
+- [ ] **Add `Code` field to `StructuredError` + `ProblemDetailsErrorHandler`** — `JSONErrorHandler` includes a `"code"` field (`constants.go:23`, `errors.go:309`), but `StructuredError` has no `Code` field (`structured_error.go:28`). Split brain introduced when the code field was added to JSON but not RFC 7807.
+- [ ] **Fix exhaustive lint in `service_register.go:109`** — `switch errorfamily.Classify(err)` covers Conflict/Rejection/default. Pre-existing lint finding. Add explicit cases for Transient/Corruption/Infrastructure or `//nolint:exhaustive` with justification.
+- [ ] **Refactor `es_readmodel.go:Handle`** — 160-line 12-case switch. Has `//nolint:gocognit,gocyclo` suppression. Consider extracting a per-event-type dispatch table or handler map.
+- [ ] **Document empty-body behavior in `DecodeJSONQuery` godoc** — `decoder.go` short-circuits empty bodies to zero-value T (fixed runtime bug 2026-07-05), but the godoc doesn't mention this.
 
-### Catalog Sub-Package (2026-06-17)
+### P1 — Documentation & Process
 
-- [x] **catalog/ merged into go-cqrs-lite** — The `catalog/` Go module was merged upstream into `go-cqrs-lite/catalog/v3` (v3.2.0). The single-service Builder facade lives at `catalog/v3/simple`, and the standalone HTTP handlers (D2, Health, GenerateEventCatalog) live at `catalog/v3/docserver`. The `OpenAPIHandler`/`AsyncAPIHandler` were replaced by the richer upstream `docserver.DocsServer`. The `catalog/` directory in cqrs-htmx is deleted.
-- [x] **Builder API** — `New(title, version)`, `Command[T](b, id)`, `Query[T](b, id)`, `Event[T](b, id, dir)` using standalone generic functions (Go doesn't allow generic methods).
-- [x] **HTTP handlers** — `OpenAPIHandler`, `AsyncAPIHandler`, `D2Handler`, `GenerateEventCatalog` (file generation, not HTTP), `HealthCheckHandler`.
-- [x] **YAML output** — `WithFormat(FormatYAML)` for all JSON handlers.
-- [x] **Schema reflection** — Auto-derives JSON Schema from struct tags (json, doc, format, enum, default).
-- [x] **Catalog validation** — `Build()` panics on invalid catalogs. `BuildValid()` returns violations.
-- [x] **ADR 0008** — Documents catalog sub-package decision (separate module, no root dep, generic functions).
-- [x] **ADR 0009** — Documents go-cqrs-lite module selection rationale (8 used, 13 skipped, each with reason).
-- [x] **Middleware integration doc** — Documents how go-cqrs-lite dispatch middleware composes with cqrs-htmx HTTP middleware.
+- [ ] **Write pre-release verification script** (`nix run .#release-checklist`) — validates CHANGELOG updated, GitHub release body drafted, README version refs current, migration guide accurate before tagging
+- [ ] **Add release process documentation to CONTRIBUTING.md** — tag naming, CHANGELOG update order, GitHub release creation steps
+- [ ] **Write `nix run .#check-docs-freshness` app** — scans all `.md` files for version strings that don't match `go.mod`. Prevents `v3.1.0` → `v3.7.4` class of stale-reference bugs
+- [ ] **Research go-cqrs-lite v3.6.0 + v3.7.0 release notes** — repo returned 404 when tried. Features discovered by reading module source; there may be missed capabilities
+- [ ] **Research httputil v0.5.0 changes** — upgraded from v0.4.0 but changelog not reviewed. Only use `httputil.ClientIP`
+- [ ] **Research templ-components v0.9.0→v0.10.0 changes** — bumped in adminui/admin-demo. Check for breaking changes
 
-### Future Work
+### P2 — Architecture
 
-- [x] **SQL event store** — Postgres/SQLite/MySQL event persistence for production use (SQLEventStore added)
-- [x] **OAuth2/OIDC integration** — Social login as alternative to WebAuthn (ADR-0014, 2026-06-18)
-- [x] **Event schema versioning** — Version field on events for future migrations (ADR-0013, upcaster registry)
-- [x] **go-cqrs-lite v3.0.0 migration** — All 7 modules migrated from v2.6.0 to v3.0.0 (ADR-0016, 2026-06-22)
-- [x] **Identity model redesign** — Actor, Tenant, Membership, Bot, Impersonation (ADR-0015, 2026-06-21)
-- [x] **CSRF protection on WebAuthn endpoints** — Documented wiring recipe in `integration_test/csrf_webauthn_test.go` (CSRFMiddleware composes with SessionMiddleware via Chain)
-- [x] **Rate limiting on WebAuthn endpoints** — `HandlerConfig.WebAuthnRateLimit` wired into all 4 WebAuthn handlers, matching the existing per-endpoint rate-limit pattern
-- [x] **Property-based testing for foldUser** — 8 rapid-based property tests verify fold invariants
-- [x] **Integration test: full WebAuthn flow** — End-to-end via virtual authenticator (W3C test vectors)
+- [ ] **God-package split: domain layer extraction** — 20 pure fold/decide files in usermgmt (zero I/O) → `usermgmt/domain/`. #1 architectural debt. Clean seams identified in Sollbruchstellen analysis. v4.1 target.
+- [ ] **Root module: extract SSE/WS/ratelimit into optional sub-packages** — 16 of 46 root files have zero logic coupling to core. Only useful as separate Go modules (same go.mod = same dep tree).
+- [ ] **Consider shared types module** (`usermgmt/types/`) — for WebAuthnUserData, OAuth2UserInfo. Eliminates JSON serialization boundary design smell.
+- [ ] **Raise strategy module dep budgets** — totp 2→3, webauthn 2→3, oauth2 4→5. All at capacity (0 slots). Any future feature requiring a new dep forces a budget increase.
 
-### Security & Correctness (Pre-v2.2.0)
+### P2 — Features (Consumer-Requested)
 
-- [x] **Fix rate limiter unbounded heap growth** — Fixed: limiterEntry now stores heapRef back-pointer. Refresh uses heap.Fix for in-place updates instead of pushing duplicate entries. No more ghost entries.
-- [x] **Fix CSRF proxy bypass** — Added `CSRFConfig.TrustedProxies` (single IP or CIDR) and refactored `setPlaintextHTTPOrigin` into `shouldBypassPlaintextOrigin`/`isTrustedProxy` helpers. The plaintext-HTTP origin bypass is now restricted to loopback OR configured trusted proxies; empty config logs a warning but allows it (back-compat). Cyclop complexity reduced from 16 → ≤8. 6 new tests cover loopback, single-IP, CIDR, and untrusted-remote rejection.
-- [x] **Fix Response.Status() fluent chain** — Fixed: Status() stores code in Response.statusCode. Apply() writes it at the end. Fluent chains like Status(201).Redirect("/x").Apply() now work.
-- [x] **Add tests for nil-enforcer + query nil check** — Tests already existed in coverage_test.go (verified). Added ErrEnforcerNotInitialized sentinel to all Authz methods for defensive nil-checking.
-- [x] **Add Login error classification tests** — TestService_Login_StoreError added. Verifies store errors return transient, not ErrInvalidCredentials.
-- [x] **Add UpdateRoles rollback tests** — TestService_UpdateRoles_AuthzFailurePreservesUser added. Verifies user roles remain unchanged when Casbin Apply fails. Also fixed UpdateRoles ordering (Casbin before user save).
-- [x] **Fix rate limiter data race** — Fixed: `perKeyLimiter.limiter()` read `entry.lastUsed` after releasing RLock while a concurrent goroutine wrote it under the write lock. Moved the freshness check inside the RLock-held region. Verified with 10/10 clean race-detector runs (was ~20% failure rate).
-- [x] **Fix doc comment split brains** — Consolidated orphaned/truncated doc comments for `CSRFMiddleware` (split across csrf_middleware.go/csrf_context.go), `RateLimiter` struct (copy-paste leftover), `Apply` method (split across authz_types.go/authz_policies.go), `Broadcaster` type (orphaned in sse_store.go). Moved `splitSSELines` to sse_event.go next to its sole caller.
-- [x] **Fix incomplete TestUserRegisteredEvent_JSON** — Test was named `_JSON` but never marshaled to JSON; only checked email field. Now actually tests JSON serialization output.
-- [x] **Fix orphaned RenderJSON/SSE doc swaps** — RenderJSON doc orphaned in options_htmx.go, SSEStream doc orphaned in sse_event.go, SSEEventStore doc orphaned in sse_stream.go. All moved to their actual declarations. Added SSEEvent type doc.
-- [x] **Remove redundant map copy in ParseWSMessageInto** — After `delete(raw, "HEADERS")`, the code copied raw into a new bodyMap via maps.Copy before marshaling. Redundant — marshal raw directly.
-- [x] **SSEStream.Context() returns context.Context** — Changed from anonymous `interface{ Done() <-chan struct{} }` to `context.Context`. Consumers expect full context from a method named Context().
-- [x] **Add missing exported godoc comments** — Render, NotificationLevel.String(), LoginRequest, RegisterRequest, GetUser.
+- [ ] **Add `OnSubscribe`/`OnUnsubscribe` hooks to `fanOut`/`Broadcaster`** — DiscordSync asked for connection metrics. `fanout.go` has Subscribe/Unsubscribe/Broadcast/SubscriberCount/Close but no lifecycle hooks.
+- [ ] **Add `writeDispatchError(w, r, err)` helper** — 15+ `writeError(w, errorStatus(err), err.Error())` sites in usermgmt HTTP handlers. Should consolidate into one context-preserving function.
+- [ ] **Wire `ErrorContext()` into `RequestLoggingSlog`** — `logging.go:167` extracts User/Correlation/Request IDs but not `ErrorContext()` from classified errors. Context only visible if consumer explicitly reads it.
+- [ ] **Consider `broadcaster.ServeSSE()` high-level helper** — 2 consumers (Overview, DiscordSync) wrote ~30 lines of identical SSE handler boilerplate. Design decision: does it cross the "building blocks, not a server" line?
+- [ ] **Fix 2 remaining high-severity context losses** in `service_oauth2.go` — `providerName`/`state` flow through Service wrapping but aren't attached to the error.
 
-### Upstream-Blocked
+### P2 — Testing
 
-- [x] **BrandNamer for root module marker types** — DONE: `actorBrand`, `tenantBrand`, `botBrand` all implement `BrandNamer.Name()` (verified). `.String()` returns brand-prefixed form for debug; `.Get()` for raw value.
-- [x] **Remove local replace directives** — go-cqrs-lite v2.0.0 tags are published upstream. All go-cqrs-lite replace directives removed from all 4 go.mod files. Only `integration_test` retains cqrs-htmx local replaces (library not yet published).
+- [ ] **OAuth2 FinishLogin integration test** — only BeginLogin tested cross-module. FinishLogin needs mock token exchange endpoint.
+- [ ] **usermgmt HTTP handler coverage** — oauth2_http.go, credential_http.go edge cases, Postgres setup all at 0% coverage. Need httptest.Server fixtures.
+- [ ] **adminui coverage improvement** — 66.8%, only `seed_render_test.go` as end-to-end test. Target 70%+.
 
-### Comprehensive Review Session (2026-06-25)
+### P3 — Technical Debt & Future
 
-_Bugs found and fixed by code-quality-scan + full-code-review + architecture-review + data-model-review skills._
-
-- [x] **Fix SSEStream.OnDisconnect data race** — `OnDisconnect()` appended to slice without mutex; `Close()` iterated without mutex. Fixed: both now acquire `s.mu`. Close snapshots under lock, iterates outside.
-- [x] **Fix StartCleanupSweeper double-close panic** — `close(done)` in stop function panicked on second call. Fixed: wrapped in `sync.Once.Do()`.
-- [x] **Fix 3 lint issues** — exhaustruct on sse_stream.go (add `mu: sync.Mutex{}`), gochecknoglobals on sql_session_store.go (replace `var zeroActorID` with inline `ActorID{}`), forcetypeassert on session_store_contract_test.go (use ok-pattern).
-- [x] **Fix 3 stale AGENTS.md claims** — "19 files" → "40 files", "15 event + 15 command constants" → "21 event + 20 command constants", "7 events/7 commands" → "12 events/11 commands" with updated lists.
-
-### Type Safety Improvements (from data-model-review)
-
-- [-] **Type ActorID/ImpersonatorID in context** (CRITICAL) — **BLOCKED**: Root module defines `type ActorID string` while usermgmt defines `type ActorID struct{ kind ActorKind; raw string }`. They're intentionally different: root needs a simple context value (prefixed string like "user:01JX..."), usermgmt needs kind/raw separation for domain logic. Making root depend on usermgmt would reverse the dependency direction. The real fix requires extracting a shared identity module that both can import — a significant architectural change deferred to a future major version. See ADR-0021 (Design Spike).
-- [x] **Make foldUser return error on unknown events** (HIGH) — `es_state.go:166` now returns `event.NewRejection` for unknown types. Other folds (Membership, Tenant, Bot) also correctly return errors.
-- [x] **Use UserID for BotState.OwnerID** (HIGH) — `es_bot_state.go:11`, `service_bot.go:15` now use `UserID`. Other call sites updated.
-- [x] **Use TenantID in Authz domain parameters** (HIGH) — All domain parameters now use `TenantID` across RolesForUser, ImplicitRolesForUser, ImplicitPermissionsForUser, DomainsForUser (returns `[]TenantID`), UsersForRole, RolesForActor, ImplicitRolesForActor, RemoveAllRolesInDomain. `RemoveAllRolesForUser(subject string)` and `RemoveAllRolesInDomain(subject string, ...)` use raw `string` for subject — intentional: Casbin subjects can be various ID types (users, bots, prefixed actors), not just UserID.
-- [x] **Unexport or validate NewActorID** (HIGH) — `id.go:120` now panics on invalid ActorKind; type-safe constructors `ActorIDFromUser`/`ActorIDFromBot` provided for safe construction.
-- [-] **Use Email branded type in domain models** (MEDIUM) — **BLOCKED BY EVENT SERIALIZATION**: The `Email` branded type exists but 10+ structs (UserState, UserRegisteredPayload, ExternalAccount, etc.) use raw `string`. Changing them to `Email` would break JSON event serialization (existing events in event stores have `"email": "user@example.com"` as a JSON string — changing the Go type requires custom UnmarshalJSON or a migration). Defer to next major version with an upcaster.
-- [x] **Fix duplicate sentinel errors across packages** (MEDIUM) — **BY DESIGN, NOT A BUG**: Root and usermgmt define separate `ErrUnauthorized` sentinels with the same code `"unauthorized"` because usermgmt can't import root (module independence). Cross-module matching uses `authStatusFromErrorCode()` which compares by `.Code()` string, not sentinel identity. This is the correct pattern for independent Go modules that need to share error semantics without sharing dependencies.
-- [x] **Prevent impossible TenantState** (MEDIUM) — `es_tenant_state.go` event handlers now clear `Suspended` on delete (struct-level invariant). `TenantState.IsValid()` method added to enforce struct-level invariants: a deleted tenant is never suspended; SuspendReason only set when Suspended; DeleteReason only set when Deleted.
-- [x] **Validate actorKindFromString** (MEDIUM) — `es_membership_state.go:76` now returns `event.NewRejection` for unknown strings instead of defaulting to ActorUser.
-
-### Architecture Improvements (from architecture-review)
-
-- [-] **Extract \*http.Request from WebAuthn service** (HIGH) — **BLOCKED BY UPSTREAM API**: The `go-webauthn/webauthn` library's `FinishRegistration()` and `FinishLogin()` methods take `*http.Request` directly to parse the attestation/assertion response from the request body. Can't pass pre-parsed bytes because the library API doesn't accept them. Fixing requires either (1) an upstream PR to go-webauthn, or (2) wrapping `*http.Request` reconstruction (defeats the purpose). The HTTP leak is inherent to the webauthn library's design.
-- [x] **Add interfaces for ephemeral stores** (HIGH) — **DONE**: All 6 stores have interfaces: `SessionStore` (store.go:10), `WebAuthnSessionStore` (store_interfaces.go:12), `VerificationTokenStore` (store_interfaces.go:21), `LockoutStore` (store_interfaces.go:29), `PendingTOTPStore` (store_interfaces.go:38), `OAuth2StateStore` (oauth2.go:262). In-memory implementations exist alongside SQL alternatives. Multi-instance deployment is possible by implementing these interfaces.
-- [-] **Consider snapshot integration** (MEDIUM) — **EVALUATED, DEFERRED**: The `go-cqrs-lite/snapshot/v3` package is available. Current replay loads all events on startup (checkpoint-based replay shipped in v3.3.0 mitigates this for restarts). Snapshot integration would add complexity (snapshot store, snapshot frequency, snapshot invalidation on upcasters) for benefit only at very high event volumes (>10K events per aggregate). Defer until a production deployment hits performance limits.
-- [x] **LastEventIDFromRequest should delegate** (LOW) — Already correct: `SSEStream.LastEventID()` delegates to `LastEventIDFromRequest(s.r)`. No duplication.
-
-### Future Enhancements (Not Started)
-
-- [x] **Upgrade to go-cqrs-lite v2.0.0** — All 4 modules migrated to v2 import paths (`/v2` suffix). CatalogEntries removed (dead upstream code). go-error-family v0.3.0. Replace directives removed (v2.0.0 tags published).
-- [x] **SQL store backend for usermgmt** — Pattern documented in `usermgmt/docs/SQL_STORES.md` (Postgres schema + adapter skeleton). Library principle: no SQL driver dep in `usermgmt` core; consumer implements `SessionStore` (UserStore was later replaced by `UserReadModel` projection in v4.0.0). ADR 0003 numeric-ID strategy (BIGSERIAL + public_id TEXT UNIQUE) recorded.
-- [x] **OpenTelemetry integration** — `example_otel_test.go` documents the hook-based pattern (OtelBeforeDispatch/OtelAfterDispatch). Library principle: no OTel SDK dep in `cqrs-htmx`; consumers pass hooks into `Config`. Tests show wiring with a fakeTracer; real `otel.Tracer("cqrs-htmx")` swap-in commented in code.
-- [x] **Adopt v2 typed dispatch** — `command.RegisterTyped[T]` and `query.RegisterTyped[T]`/`query.DispatchTyped[T]` used in `datastar-demo/domain_cqrs.go` (4 commands + 2 queries), `integration_test/typed_query_test.go` (3 cross-module tests), and root `example_app_test.go` (`ExampleApp_Query_typedRegister`, `ExampleApp_Query_typedDispatch`, `ExampleRegisterTyped`, `ExampleApp_Command`).
-- [x] **Adopt PaginatedResult[T]** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` implemented using `query.Pagination`/`query.PaginatedResult[T]` from go-cqrs-lite v2.2.0.
-- [x] **Upgrade to go-cqrs-lite v2.2.0** — All 4 modules upgraded to v2.2.0. Adopted `PaginatedResult[T]` and `query.Pagination` from upstream. Added `DecodePagination` and `RenderPaginatedJSON[T]`.
-- [x] **Reactive event streams** — SSE Broadcaster, SSEStream, SSEEventStore, ReplayEvents, CQRS bridge (BroadcastOnSuccess/BroadcastOnSuccessFunc). WebSocket message parser (ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML).
-- [x] **Embedded HTMX JS** — HTMXScriptHandler serves embedded HTMX v2.0.10 (minified, ~51KB) with ETag/caching. HTMXScriptTag, HTMXVersion helpers. Embedded HTMX extensions (SSE/WS/idiomorph) via HTMXExtensionHandler/HTMXExtensionsHandler.
-
-### Offline-First Command Sync (2026-06-28)
-
-_Phase 0 + Phase 1 server-side code DONE. See [execution plan](docs/planning/2026-06-28_10-14_offline-first-command-sync-execution.html) and [ADRs 0023/0024](docs/adr/)._
-
-- [x] **Production SSEEventStore** (`JournalSSEStore`) — Backed by `event.SeekableJournal` for cursor-based replay. `WithMaxReplay(n)` limits first-connection volume. `EventToSSEMapper` consumer-provided function. Falls back to `ReadAll` for non-seekable journals.
-- [x] **ACK protocol** — `CommandAck` struct, `BroadcastOnAck`/`BroadcastOnAckFunc` (SSE), `BroadcastOnAckWS`/`BroadcastOnAckWSFunc` (WS). Opt-in via `X-Command-Id` header.
-- [x] **Integration tests** — 6 end-to-end tests prove SSEEventStore + Broadcaster + ACK protocol work together in real HTTP handlers.
-- [x] **ADRs** — 0023 (command-sync: sync commands not events), 0024 (honest UI: never lie about pending state).
-- [x] **Honest UI CSS** — `data-sync-state` attribute, `.sync-pending`/`.sync-confirmed`/`.sync-rejected` classes, global sync indicator. (T08-T14)
-- [x] **Honest UI JS** — SSE EventSource manager, `sync:ack` listener, `handleSyncAck` DOM flip, optimistic render on `htmx:beforeRequest`, never-silent rollback. (T15-T21)
-- [x] **Honest UI templ + admin-demo** — Layout indicator, `data-sync-state` on rows, demo wiring. (T22-T30)
-- [x] **Idempotency store** — `IdempotencyStore` interface + `MemoryIdempotencyStore` with TTL sweep. `CheckAndRecord` helper for atomic check-and-record. `ErrDuplicateCommand` → HTTP 409. ADR-0026. (2026-06-28)
-- [x] **Form decoder upgrade** — Replaced JSON round-trip with `go-playground/form/v4` (zero transitive deps, `json` tag mode for backward compat). (2026-06-28)
-- [x] **Pagination unification** — Both root `DecodePagination` and usermgmt `parseUintQueryParam` now delegate to `query.NewPagination`. Same defaults. Standard REST behavior (no silent page clamping). (2026-06-28)
-- [x] **Go.mod version alignment** — All modules aligned to Go 1.26.4 + cqrs-htmx v3.2.0. ETag bumped to `adminui-v3.2.0`. (2026-06-28)
-- [x] **Stdlib modernization** — `slices.Contains`, `min()`, `slices.IndexFunc` replace manual loops. goconst warnings fixed. `context.TODO()` → `context.Background()`. (2026-06-28)
-- [x] **CI umbrella verified** — `nix run .#test` + `nix run .#lint` + `nix run .#errorfamily` all green. All 4 modules pass with -race. (2026-06-28)
-- [x] **go.yaml.in/yaml/v3 investigated** — Confirmed as official Canonical Ltd successor to `gopkg.in/yaml.v3` (same codebase, new import path). NOT a typo-squat. No action needed. (2026-06-28)
-- [x] **Phase 2a — Offline command queue** (ADR-0029) — SharedWorker in-memory queue shipped. `adminui/assets/sync-worker.js` queues command IDs when network is down; tells tabs to retry on reconnect. Reactive detection via `htmx:sendError`. IndexedDB banned; OPFS deferred.
-- [x] **Q1 ANSWERED** (ADR-0027: Queue-Only) — decide() stays on the server. The library provides queue/sync/ACK protocol; pre-validation is a consumer concern.
-- [x] **Q2 ANSWERED** — writes do NOT need to survive closed tabs for Phase 2a. ADR-0030 proposes IndexedDB for Phase 2b when that requirement is needed.
-- [x] **Idempotency store wired into admin-demo** — ackMiddleware now rejects duplicate X-Command-Id mutations with 409. Ghost system killed. (2026-06-28)
-
-### Post-v3.3.0 Quality & Adoption Blitz (2026-06-29)
-
-_Pareto-prioritized work from planning docs, status reports, and 40-item audit._
-
-- [x] **Rewrite CONTRIBUTING.md (root)** — Removed deleted catalog module, fixed module count 5→8, removed password auth references, updated test framework (standard testing + scenario/v3 BDD, not Ginkgo), synced file tree, added templ codegen instructions
-- [x] **Rewrite usermgmt/CONTRIBUTING.md** — Real module conventions: GOWORK=off setup, event-sourced CQRS architecture, fold/decide pattern, error-family enforcement
-- [x] **Pin templ CLI in flake.nix devShell** — Added `pkgs.templ` (v0.3.1020, matching go.mod) to eliminate codegen oscillation between CLI versions
-- [x] **Add `nix run .#gen` app** — One-command templ codegen + gofmt normalization
-- [x] **Add `nix run .#check-codegen` app** — CI codegen drift guard: regenerates \_templ.go + diffs against committed versions
-- [x] **Fix ROADMAP typo** — "v3.30" → "v3.3.0"
-- [x] **Update ADR-0015 status** — All 6 "Planned" rows marked Done (Session, Impersonation, Tenant, Bot, upcasters, Roles removal all shipped)
-- [x] **Add responsewriter.go to AGENTS.md file tree** — delegatingWriter for Flush/Hijack/Push/Unwrap delegation
-- [x] **Bump flake.nix package version** — 3.1.0 → 3.3.0
-- [x] **Write OTel seam wiring guide** — `docs/observability-wiring.md` with BeforeDispatch/AfterDispatch hook examples for tracing
-- [x] **Write Prometheus /metrics wiring guide** — Counter + histogram examples in same doc
-- [x] **Write v3→v3.3 incremental migration guide** — `docs/MIGRATION-v3-incremental.md` documenting checkpoint replay, BasicCommand, Server-Timing (all opt-in)
-- [x] **scenario/v3 BDD for all 4 aggregates** — Tenant (8 tests), Bot (6 tests), Membership (6 tests) added; completes scenario/v3 adoption
-- [x] **Raise usermgmt coverage gate** — 75% → 78% (actual: 79.3%)
-- [x] **Server-Timing fuzz tests** — Adversarial metric names/descs/durations + middleware fuzz + nil-receiver test
-- [x] **Fix CRLF injection in Server-Timing** — escapeQuotedString now strips CR/LF (was only escaping " and \). Found by fuzz test. Security: prevents HTTP header splitting via crafted descriptions
-- [x] **Sync FEATURES.md** — Removed catalog column, updated ClientIP to FULLY_FUNCTIONAL, synced coverage/test counts
-- [x] **Sync ROADMAP.md** — Marked scenario BDD, OTel guide, Prometheus guide as Done
-- [ ] **Phase 2b — Persistent offline queue** (ADR-0030) — IndexedDB persistence for writes that survive closed tabs. Proposed, not yet implemented.
-- [x] **v4 auth strategy extraction** — DONE. TOTP, WebAuthn, OAuth2 extracted behind interfaces into independent Go modules (`usermgmt/totp/v4`, `usermgmt/webauthn/v4`, `usermgmt/oauth2/v4`). Consumers import only the auth strategies they need. go-webauthn, oauth2, oidc, jose, pquerna/otp removed from core usermgmt deps. 38 provider tests added (W3C vectors + real JWT signing). See ADR-0035.
-- [x] **Root module sub-package extraction** — EVALUATED AND REJECTED for v4. Sub-package extraction within same go.mod adds wrappers complexity with ZERO consumer benefit. Separate Go modules (the v4 auth strategy approach) is the correct pattern.
-- [x] **constants.go** — DONE. Shared constants extracted from response.go. Cycle debunked.
-- [x] **CI module architecture enforcement** — DONE. 4 scripts: check-module-isolation, check-dep-budgets, check-version-drift, check-replace-directives. Wired as `nix run .#check-modules`.
-- [x] **Auth strategy interfaces** — DONE. TOTPVerifier, WebAuthnProvider, OAuth2Provider in `usermgmt/auth_interfaces.go`. Compile-time assertion `var _ TOTPVerifier = (*Service)(nil)` proves Service already satisfies TOTP contract. v4 prep, non-breaking.
-- [x] **Version drift fixed** — DONE. All go-cqrs-lite sibling modules now pinned to consistent versions across root, usermgmt, adminui, integration_test, and all examples. Version drift CI script passes in strict mode.
-- [x] **CI module-architecture job** — DONE. Added `module-architecture` job to `.github/workflows/ci.yml` running all 4 architecture scripts. Version drift runs in advisory mode (warn, don't block).
-
-### v4.0.0 Release (2026-07-02)
-
-_- [x] **Pseudo-version fix** — Fixed `v0.0.0-...` → `v4.0.0-...` in all 5 go.mod files. GOWORK=off builds were broken since the v4 module path bump. CI and nix pipelines were affected._
-_- [x] **CI/build coverage** — All 3 new sub-modules added to check-module-isolation, check-dep-budgets, flake.nix build/test/coverage/fuzz, CI workflow build/test/mod-tidy. adminui tests added to CI (were completely missing). CI now triggers on v4 branch._
-_- [x] **v4.0.0 auth strategy extraction** — 3 independent Go modules (totp, webauthn, oauth2). 38 provider tests. Compile-time interface assertions in integration_test._
-
-### Deferred
-
-_- [ ] **Root usermgmt god-package split** — 87-file god-package. Clean seams identified (domain layer, SQL infra). High effort (8h+), deferred to post-v4._
-_- [x] **Cross-module integration test through Service layer** — DONE. `integration_test/webauthn_integration_test.go` — full Service → JSON → webauthn.Provider → go-webauthn chain._
-_- [x] **Make WebAuthn session TTL configurable** — DONE. `ServiceConfig.WebAuthnSessionTTL` added. Was hardcoded 5min, now configurable (defaults to 5min when ≤0)._
-_- [x] **Fuzz tests on JSON boundary** — DONE. `marshalWebAuthnUser`, `parseUser`, `parseSession` all fuzz-tested._
+- [ ] **Phase 2b — Persistent offline queue** (OPFS persistence per ADR-0030) — SharedWorker queue is in-memory only. Writes don't survive closed tabs.
+- [ ] **Snapshot integration** for high-event-volume aggregates (>10K events/aggregate)
+- [ ] **TypedRepository adoption** to eliminate command type assertions across all deciders
+- [ ] **Redis adapters** for SessionStore/OAuth2StateStore/IdempotencyStore (multi-instance deployments)
+- [ ] **MySQL support** for event store (currently Postgres + SQLite only)
+- [ ] **Property-based tests** for event fold functions (rapid/Hypothesis-style)
+- [ ] **Load testing benchmarks** for SSE broadcaster under high fan-out
+- [ ] **OpenAPI spec generation** for HTTP endpoints
+- [ ] **Consumer-facing v3→v4 codemod** — automated migration tool
+- [ ] **Evaluate encoding/json/v2 adoption** (v4.1+ target when Go stabilizes the package)
+- [ ] **Document provider implementation guide** — how to write custom TOTPProvider/WebAuthnProvider/OAuth2Provider
+- [ ] **Admin UI: TOTP management views** (enable/disable, show QR code)
+- [ ] **Admin UI: OAuth2 link/unlink views**
+- [ ] **Configurable TTLs** — lockout TTL, OAuth2 state TTL, verification token TTL (same pattern as WebAuthnSessionTTL, TOTPPendingSecretTTL)
+- [ ] **Benchmark dedup.Ring vs old map** for typical journal sizes (100, 1K, 10K, 100K events)
+- [ ] **Add integration test** that imports the published version (not local replace)
+- [ ] **Contract tests** between root module and usermgmt (RateLimiter boundary)
+- [ ] **Standardize import grouping** across the codebase (some files separate go-error-family/go-cqrs-lite imports, others group them)
+- [ ] **Automate GitHub Release creation via CI on tag push** (`.github/workflows/release.yml`)
 
 ---
 
-_170 items completed. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://github.com/larsartmann/cqrs-htmx/commits/master) for full history._
+## Completed
 
-### Highlights by Session
+### v4.2.1 (2026-07-08 → 2026-07-09)
 
-| Session     | Key Accomplishments                                                                                                                                                                                                                                                                                                 |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-05-07  | Initial lint zero (103→0), test coverage 93.5%                                                                                                                                                                                                                                                                      |
-| 2026-05-16  | v1.0.0 release: lifecycle hooks, validation, timeout, benchmarks                                                                                                                                                                                                                                                    |
-| 2026-05-19  | CSRF protection (gorilla/csrf), error context, deduplication                                                                                                                                                                                                                                                        |
-| 2026-05-20  | Branded UserID migration, SessionMaxAge fix, usermgmt 85%→95.6%                                                                                                                                                                                                                                                     |
-| 2026-05-21  | CatalogEntries exposure, CI fix, lint elimination, error wrapping                                                                                                                                                                                                                                                   |
-| 2026-05-22  | Integration tests, O(log n) eviction, HTTP timeout, fuzz tests                                                                                                                                                                                                                                                      |
-| 2026-05-23  | Mock stores, coverage 88.6%→91%, go-cqrs-lite v1.5.0 upgrade                                                                                                                                                                                                                                                        |
-| 2026-05-24  | Perf optimizations (7 alloc reductions), security hardening                                                                                                                                                                                                                                                         |
-| 2026-05-25+ | gorilla/csrf→nosurf, cockroachdb/errors→go-error-family, httputil delegation                                                                                                                                                                                                                                        |
-| 2026-05-27  | RecoveryMiddleware, RenderJSON, request ID in errors, benchmarks                                                                                                                                                                                                                                                    |
-| 2026-05-27b | 10 bug fixes: GetUser 404, rate limiter TTL, CSRF JSON, store copies, authz ordering, WriteJSON buffer, password DRY, rollback logging, SessionMiddleware logging                                                                                                                                                   |
-| 2026-05-27c | HandlerConfig.Secure \*bool, CSRFConfig.Validate(), Response.JSON 500, correlation ID logging, RecoverHandler rename, go-cqrs-lite v1.6.0, dispatch logging, usermgmt writeJSON buffer, tests                                                                                                                       |
-| 2026-05-28  | Domain model enrichment: SetRoles, ChangePassword, SetEmail, SetDisplayName, IsPasswordSet, touch(). Domain events: 4 event types with optional EventHandler. Fuzz + benchmarks. CRUD eliminated.                                                                                                                   |
-| 2026-06-02  | v2.0.0 migration (42 files). Pre-release fixes: nil-enforcer bypass, query nil panic, Login error classification, UpdateRoles ordering, store clone, query param logging removed, defaultLoginRedirect const.                                                                                                       |
-| 2026-06-08  | SSE/WebSocket polish: SSEEventStore interface, ReplayEvents, LastEventIDFromRequest. WebSocket: ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML. PaginatedResult[T] adoption. v2.2.0.                                                                                                                              |
-| 2026-06-12  | v2.3.0 adoption: TypedHandler, deadline propagation, empty type validation, per-module go-cqrs-lite tags.                                                                                                                                                                                                           |
-| 2026-06-14  | **TODO sweep**: CSRF proxy bypass (TrustedProxies, cyclop refactor, 6 tests), SQL stores pattern doc, OTel hook example, typed dispatch examples. Lint 67→0 across all 3 modules (exhaustruct /v2 regex, nilnil/goconst/noctx, sse_reconnect_integration_test noctx, integration_test unconvert/wrapcheck/goconst). |
+- [x] **encoding/json/v2 revert** — 26 source files reverted from experimental `encoding/json/v2` + `jsontext` after buildflow auto-migration broke the build
+- [x] **Post-release doc cleanup** — 16 doc fixes: stale version refs, removed API references (MemoryBus, WebAuthnConfig), migration directory consolidation, CHANGELOGs created for all 6 modules, README/CONTRIBUTING/DOMAIN_LANGUAGE audited
+- [x] **Dependency upgrade** — all go-cqrs-lite modules bumped to v3.7.4. go-error-family unified to v0.6.1. httputil v0.5.0. templ-components v0.10.0
+- [x] **go.work conflict fix** — removed `replace` for eventtest from go.work (can't be in both `use` AND `replace`)
+- [x] **Releases tagged + pushed** — v4.2.1, usermgmt/v4.2.0, adminui/v4.2.0, totp/v4.0.2, webauthn/v4.0.2, oauth2/v4.0.2
+
+### v4.2.0 (2026-07-04 → 2026-07-07)
+
+- [x] **go-cqrs-lite v3.7.0 feature adoption** — `dedup.Ring` (O(1) memory vs unbounded map), `codec.ForEncoding` (CBOR compatibility)
+- [x] **go-error-family direct dep** in auth strategy modules (32 violations → 0, was indirect via event/v3)
+- [x] **Error context enrichment** — `.WithContext()` chaining in OAuth2/TOTP/SQL stores. `classifyDispatchError` gains variadic `kv ...string`.
+- [x] **Consumer feedback implementation** (9 new APIs): `DefaultRateLimiterConfig()`, `SSEEventConnected`/`SSEEventHeartbeat`, `SecurityHeaderSkip`, `RenderHTML`, `DecodeJSONWithRequest`, `RequestGuard`, `Broadcaster.Close()`/`fanOut.Close()`, JSON error `"code"` field, `CSRFTestToken`
+- [x] **SKILL.md 10/10 rewrite** — cheat sheet, fixed GET query example (was crashing), SSE lifecycle, auth sentinel→HTTP status mapping
+- [x] **GET decoder bug fix** — `decodeJSONBody` now returns zero-value T on empty body instead of `json.Unmarshal` error
+
+### v4.0.0 → v4.1.1 (2026-07-02)
+
+- [x] **Auth strategy extraction** — TOTP, WebAuthn, OAuth2 extracted behind primitive-type interfaces as independent Go modules. Core usermgmt has ZERO auth deps. 38 provider tests (W3C spec vectors + real JWT signing). ADR-0035.
+- [x] **Module path bump /v3 → /v4** — all 130+ files across 11 modules
+- [x] **Migration guide** (`docs/migrations/v3-to-v4.md`) — 4 sections with before/after examples
+- [x] **Pseudo-version fix** — `v0.0.0-...` → `v4.0.0-...` in 5 go.mod files (GOWORK=off builds were broken)
+- [x] **CI/build coverage** — all 3 sub-modules in isolation/budget/lint/test/coverage/fuzz
+- [x] **Configurable WebAuthnSessionTTL** — `ServiceConfig.WebAuthnSessionTTL` (was hardcoded 5min)
+- [x] **Fuzz tests on JSON boundary** — `marshalWebAuthnUser`, `parseUser`, `parseSession`
+- [x] **WebAuthn cross-module integration test** — Service → JSON → Provider → go-webauthn chain
+- [x] **Compile-time interface assertions** — `integration_test/auth_interface_assert_test.go`
+
+### v3.5.0 (2026-07-01 → 2026-07-02)
+
+- [x] **Error model overhaul** — HTTPStatusCarrier (`WithHTTPStatus`), ProblemDetailsErrorHandler (RFC 7807), StructuredError enrichment, 5xx detail redaction (`SafeDetail`)
+- [x] **Architecture enforcement** — 4 CI scripts (module-isolation, dep-budgets, version-drift, replace-directives), wired as `nix run .#check-modules`
+- [x] **Sollbruchstellen analysis** — cycle debunked (5 string constants, not structural), 7 root module extraction candidates identified, 3 usermgmt seams mapped, 4 D2 diagrams
+- [x] **constants.go** — shared constants extracted from response.go
+- [x] **Auth strategy interfaces** — TOTPVerifier, WebAuthnProvider, OAuth2Provider in `auth_interfaces.go`
+- [x] **Version drift elimination** — all go-cqrs-lite siblings pinned to consistent versions
+
+### Earlier (v1.0.0 → v3.3.0)
+
+- [x] App builder, command/query dispatch, handler options, HTMX middleware, Casbin authorization
+- [x] CSRF (nosurf), rate limiting, security headers, recovery, request logging (text/JSON/slog)
+- [x] SSE + WebSocket real-time: Broadcaster, reconnection, CQRS dispatch bridges, typed WS parser
+- [x] Embedded HTMX v2.0.10 JS + extensions (SSE/WS/idiomorph)
+- [x] Event-sourced usermgmt: 12 events, 11 commands, Decider pattern, WebAuthn passwordless
+- [x] Identity model: Tenant, Bot, Membership, Impersonation, ActorID (ADR-0015)
+- [x] SQL stores: event store, session store, read models (Postgres + SQLite)
+- [x] Stack presets: one-call SQLite/Postgres setup
+- [x] Event signing + encryption (opt-in seams, ADR-0011)
+- [x] OAuth2/OIDC integration (ADR-0014)
+- [x] Email verification, TOTP MFA, user import/export, audit log
+- [x] Offline-first Phase 2a: SharedWorker in-memory command queue (ADR-0029)
+- [x] ACK protocol + idempotency store (ADRs 0023/0024/0026)
+- [x] Server-Timing API (W3C, ADR-0033)
+- [x] Checkpoint-based projection replay (ADR-0031)
+- [x] BasicCommand embedding (ADR-0032 — eliminates zero-cmdID bug)
+- [x] Admin UI module (templ + HTMX, ready-made dashboard)
+- [x] go-cqrs-lite v3 migration (ADR-0016)
+
+---
+
+_~175 items completed across all sessions. See [CHANGELOG.md](CHANGELOG.md) and [git log](https://github.com/larsartmann/cqrs-htmx/commits/master) for full history._
