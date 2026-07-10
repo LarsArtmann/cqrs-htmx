@@ -1,7 +1,8 @@
 package cqrshtmx
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"io"
 	"net/http"
@@ -142,12 +143,12 @@ func authStatusFromErrorCode(err error) (int, bool) {
 	return 0, false
 }
 
-// errorCode extracts the machine-readable error code from the innermost
+// ErrorCode extracts the machine-readable error code from the innermost
 // errorfamily error in the cause chain. Returns "" if no error carries a code.
 // We walk the full chain to find the deepest (domain-specific) code, not the
 // outermost wrapper (which is typically an infrastructure wrapping code like
 // "cqrshtmx.dispatch.command_failed").
-func errorCode(err error) string {
+func ErrorCode(err error) string {
 	var deepestCode string
 	current := err
 	for current != nil {
@@ -306,15 +307,15 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 			JSONKeyError:  SafeDetail(err, status, includeInternal),
 			JSONKeyStatus: status,
 		}
-		if code := errorCode(err); code != "" {
+		if code := ErrorCode(err); code != "" {
 			response[JSONKeyCode] = code
 		}
 		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
 			response["request_id"] = rid.String()
 		}
 
-		encoder := json.NewEncoder(w)
-		_ = encoder.Encode(response)
+		encoder := jsontext.NewEncoder(w)
+		_ = json.MarshalEncode(encoder, response)
 	}
 }
 
@@ -350,6 +351,6 @@ func ProblemDetailsErrorHandlerWithRedirect(
 		status := MapError(err)
 		w.WriteHeader(status)
 		payload := NewStructuredError(err, r)
-		_ = json.NewEncoder(w).Encode(payload)
+		_ = json.MarshalWrite(w, payload)
 	})
 }

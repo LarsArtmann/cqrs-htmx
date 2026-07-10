@@ -24,11 +24,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - **`writeDispatchError` wires request ID** (`usermgmt/http.go`): Changed `_ *http.Request` to `r *http.Request`, extracting the request ID from context and including it as `request_id` in the JSON error response body. The `requestIDKey` constant was added alongside `codeKey`.
+- **`ErrorCode` exported** (`errors.go`): The internal `errorCode` function is now exported as `ErrorCode`. `writeDispatchError` in usermgmt now uses `cqrshtmx.ErrorCode(err)` instead of `errors.As`, matching root's deepest-code traversal pattern. This ensures the domain-specific code (e.g. `"usermgmt.email_exists"`) is surfaced, not the infrastructure wrapper code.
+- **`ErrorRecorder` extracted from `StatusRecorder`** (`logging.go`): The dispatch-error capture concern is now a separate `ErrorRecorder` struct, embedded by `StatusRecorder` via composition. `SetDispatchError` and `DispatchError()` are exported. Fixes the SRP violation where `StatusRecorder` had two responsibilities.
+- **OAuth2 error context** (`usermgmt/service_oauth2.go`): `BeginOAuthLogin` and `FinishOAuthLogin` now attach `provider` context to Transient errors, enabling better debugging of provider-specific failures.
+- **`errors.AsType` adoption** (`usermgmt/service_register.go`): Replaced `errors.As(err, &ee)` with `errors.AsType[*event.Error](err)` per gopls recommendation.
+- **`UserReadModel.Handle` refactored** (`usermgmt/es_readmodel.go`): Extracted the 12-case switch into a dispatch table (`handlers` map) with per-event handler methods and a shared `decodePayload[T]` generic helper. Eliminates the `maintidx` lint warning (complexity 38). The last remaining lint issue in the entire codebase is now resolved.
+- **coreos/go-oidc/v3 v3.19.0 → v3.20.0**: Bumped to latest released version in the `usermgmt/oauth2` module.
 
 ### Fixed
 
 - **Exhaustive lint in `usermgmt/service_register.go`**: Added explicit `case event.Transient, event.Corruption, event.Infrastructure:` to the `classifyDispatchError` switch (same body as `default`). Eliminates the exhaustive linter warning.
 - **Split brain: `ProblemDetailsErrorHandler` vs `JSONErrorHandler`**: `ProblemDetailsErrorHandler` (which uses `StructuredError`) was missing the `code` field that `JSONErrorHandler` emitted. Now both paths emit the same `code`.
+- **Last remaining lint issue resolved**: `usermgmt/es_readmodel.go:Handle` `maintidx` warning (complexity 38) is eliminated. **All modules now report 0 lint issues.**
 
 ### Documented
 

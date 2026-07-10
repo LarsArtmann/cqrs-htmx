@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-error-family v0.6.1
-	github.com/larsartmann/templ-components v0.10.0
+	github.com/larsartmann/templ-components v0.13.0
 )
 
 require (

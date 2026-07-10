@@ -226,7 +226,7 @@ func (a *App) handleQueryDispatch(
 func captureDispatchError(w http.ResponseWriter, err error) {
 	for current := w; current != nil; {
 		if rec, ok := current.(dispatchErrorRecorder); ok {
-			rec.setDispatchError(err)
+			rec.SetDispatchError(err)
 			return
 		}
 		type unwrapper interface{ Unwrap() http.ResponseWriter }

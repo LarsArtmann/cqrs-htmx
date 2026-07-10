@@ -2,8 +2,7 @@ package usermgmt
 
 import (
 	"bytes"
-	"encoding/json"
-	"errors"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // AuthorizerFunc checks whether a user is authorized for a specific operation.
@@ -225,7 +223,7 @@ func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	var regReq RegisterRequest
-	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodySize)).Decode(&regReq); err != nil {
+	if err := json.UnmarshalRead(io.LimitReader(r.Body, maxAuthBodySize), &regReq); err != nil {
 		writeError(
 			w,
 			http.StatusBadRequest,
@@ -302,7 +300,7 @@ func (h *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(v); err != nil {
+	if err := json.MarshalWrite(&buf, v); err != nil {
 		http.Error(w, "json encode error", http.StatusInternalServerError)
 		return
 	}
@@ -330,9 +328,8 @@ func errorStatus(err error) int {
 func writeDispatchError(w http.ResponseWriter, r *http.Request, err error) {
 	status := errorStatus(err)
 	body := map[string]string{errorKey: err.Error()}
-	var ee *event.Error
-	if errors.As(err, &ee) && ee.Code() != "" {
-		body[codeKey] = ee.Code()
+	if code := cqrshtmx.ErrorCode(err); code != "" {
+		body[codeKey] = code
 	}
 	if r != nil {
 		if rid := cqrshtmx.RequestIDFromContext(r.Context()); !rid.IsZero() {

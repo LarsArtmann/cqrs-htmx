@@ -2,7 +2,7 @@ package cqrshtmx
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -117,7 +117,7 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 		Why:      family.DefaultWhy(),
 		Fix:      family.DefaultFix(),
 		Instance: instance,
-		Code:     errorCode(err),
+		Code:     ErrorCode(err),
 		cause:    err,
 	}
 }

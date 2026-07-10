@@ -1,7 +1,7 @@
 package cqrshtmx
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"html"
 	"net/http"
 )

@@ -116,12 +116,11 @@ func (s *Service) classifyDispatchError(err error, userID UserID, kv ...string) 
 		if len(kv) == 0 {
 			return err
 		}
-		var ee *event.Error
-		if errors.As(err, &ee) {
-			classified = withUserIDContext(ee, userID)
-		} else {
+		ee, ok := errors.AsType[*event.Error](err)
+		if !ok {
 			return err
 		}
+		classified = withUserIDContext(ee, userID)
 	case event.Transient, event.Corruption, event.Infrastructure:
 		classified = withUserIDContext(
 			errorfamily.NewTransient("internal", "dispatch command").WithCause(err), userID,

@@ -23,7 +23,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                                                                              |
 | CheckMods   | `nix run .#check-modules` (isolation + dep budgets + version drift + replace directives — also in `.github/workflows/ci.yml` as `module-architecture` job) |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                                                                                   |
-| Coverage    | 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui (~886 tests)                                                           |
+| Coverage    | 94.2% root, 75.1% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui (~886 tests)                                                           |
 
 ## Architecture
 
@@ -216,7 +216,7 @@ cqrs-htmx/
 | go-webauthn v0.17.4          | WebAuthn/Passkey passwordless authentication                                                                        | usermgmt/webauthn            |
 | pquerna/otp v1.5.0           | TOTP (RFC 6238) multi-factor authentication                                                                         | usermgmt/totp                |
 | golang.org/x/oauth2 v0.36.0  | OAuth2 authorization code flow with PKCE                                                                            | usermgmt/oauth2              |
-| coreos/go-oidc/v3 v3.19.0    | OIDC provider discovery + ID token verification                                                                     | usermgmt/oauth2              |
+| coreos/go-oidc/v3 v3.20.0    | OIDC provider discovery + ID token verification                                                                     | usermgmt/oauth2              |
 | go-jose/go-jose/v4 v4.1.4    | JWT/JWS signing (transitive from go-oidc)                                                                           | usermgmt/oauth2 (transitive) |
 | golang.org/x/time            | Rate limiting                                                                                                       | Root                         |
 | go-playground/form/v4 v4.3.0 | Form decoding (url.Values → struct, zero transitive deps, json tag mode for backward compat)                        | Root                         |
@@ -472,7 +472,7 @@ cqrs-htmx/
 3. **go-cqrs-lite v3.7.4**: Per-module tags (`command/v3.7.4`, `event/v3.7.4`, etc.) published. All modules aligned to latest available tags — most at v3.7.4; `scenario/v3`, `stack/sqlite/v3`, `stack/postgres/v3`, and `catalog/v3` at v3.7.1 (their latest). v3.7.0 added new modules `dedup/v3` and `scheduling/v3`. **PUBLISHING BUG**: go-cqrs-lite v3.7.x go.mod files reference internal sibling modules with zero pseudo-versions (`v3.0.0-00010101000000-000000000000`) due to local replace directives not being resolved at publish time. Consumers must explicitly `go get` ALL transitive go-cqrs-lite modules at v3.7.4 to override the zero versions. v3.6.0 and v3.5.0: CBOR codec support (`codec.CBORCodec`, `event.DefaultCodec`, `event.DecodePayloadAuto`), stricter encoding validation, storage package restructure (`view/`, `relational/` subdirs with backward-compatible aliases), lint cleanup. v3.4.0 added managed projection host (`projectionhost`), durable scheduling, scenario-testing DSL. v3.3.0 added `command.Command.ID()` (embed `command.BasicCommand`), `event.Projection` moved to `projection/`, SQL dead-letter store
 4. **Removed APIs in v2.3.0+**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`
 5. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
-6. **LSP vs CLI discrepancy**: LSP may show stale warnings after golangci.yml changes; CLI (`golangci-lint run`) is authoritative. Root module reports 0 issues. usermgmt has 2 pre-existing findings: exhaustive switch in `service_register.go:109` (missing Transient/Corruption/Infrastructure cases — has `default` that handles them) and maintidx in `es_readmodel.go:Handle` (complexity 38)
+6. **LSP vs CLI discrepancy**: LSP may show stale warnings after golangci.yml changes; CLI (`golangci-lint run`) is authoritative. **All modules report 0 issues** (root + usermgmt + adminui). The last remaining lint issue (`maintidx` on `es_readmodel.go:Handle`) was resolved by extracting the 12-case switch into a dispatch table with per-event handler methods
 7. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
 
 ### Type System
