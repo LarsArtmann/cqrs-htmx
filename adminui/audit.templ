@@ -1,11 +1,15 @@
 package adminui
 
+import "github.com/larsartmann/templ-components/display"
+
 templ auditPage(p pageData, d auditData) {
 	@Layout(p) {
 		<div class="mb-5 flex flex-wrap items-center gap-3">
 			<h1 class="text-xl font-semibold">Audit log</h1>
 		</div>
-		<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
+		@display.Card(display.CardProps{
+			Padding: display.CardPaddingNone,
+		}) {
 			if len(d.Entries) == 0 {
 				@empty("audit", "No audit events", "User and tenant changes will be recorded here.")
 			} else {
@@ -24,13 +28,15 @@ templ auditPage(p pageData, d auditData) {
 										}
 									</td>
 									<td class="px-4 py-2 font-mono text-xs">{ e.AggregateID.String() }</td>
-									<td class="px-4 py-2 text-gray-500">{ relTime(e.OccurredAt) }</td>
+									<td class="px-4 py-2 text-gray-500">
+										@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
+									</td>
 								</tr>
 							}
 						</tbody>
 					</table>
 				</div>
 			}
-		</div>
+		}
 	}
 }

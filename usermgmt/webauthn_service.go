@@ -2,11 +2,10 @@ package usermgmt
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"io"
 	"net/http"
-
-	"encoding/json/jsontext"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )

@@ -1,5 +1,10 @@
 package adminui
 
+import (
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/utils"
+)
+
 templ dashboardPage(p pageData, d dashboardData) {
 	@Layout(p) {
 		@dashboardContent(d)
@@ -7,15 +12,19 @@ templ dashboardPage(p pageData, d dashboardData) {
 }
 
 templ dashboardContent(d dashboardData) {
-	<div class="mb-5 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]">
+	@display.Grid(display.GridProps{
+		BaseProps: utils.BaseProps{Class: "[grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]"},
+		Cols:      display.GridCols3,
+		Gap:       display.GridGapMD,
+	}) {
 		for _, s := range d.Stats {
 			@statCardView(s)
 		}
-	</div>
-	<div class="rounded-[10px] border border-gray-200 bg-white shadow-sm" style="background:var(--surface)">
-		<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]">
-			<span class="text-[15px]">Recent activity</span>
-		</div>
+	}
+	@display.Card(display.CardProps{
+		Title:   "Recent activity",
+		Padding: display.CardPaddingNone,
+	}) {
 		if len(d.Recent) == 0 {
 			@empty("audit", "No activity yet", "User and tenant events will appear here.")
 		} else {
@@ -35,12 +44,14 @@ templ dashboardContent(d dashboardData) {
 										<span class="font-mono text-xs">{ e.AggregateID.String() }</span>
 									}
 								</td>
-								<td class="px-4 py-2 text-gray-500">{ relTime(e.OccurredAt) }</td>
+								<td class="px-4 py-2 text-gray-500">
+									@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
+								</td>
 							</tr>
 						}
 					</tbody>
 				</table>
 			</div>
 		}
-	</div>
+	}
 }

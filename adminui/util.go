@@ -2,12 +2,11 @@ package adminui
 
 import (
 	"slices"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // errConfig returns a Rejection-family error for invalid configuration.
@@ -19,40 +18,38 @@ func errConfig(msg string) error {
 // errForbidden is the Rejection returned when a user lacks panel access.
 var errForbidden = errorfamily.NewRejection("adminui.forbidden", "access denied")
 
-// relTime renders a coarse relative timestamp like "just now", "3m ago",
-// "2h ago", or a date for older entries.
-func relTime(t time.Time) string {
-	if t.IsZero() {
-		return "—"
-	}
-	d := time.Since(t)
-	switch {
-	case d < time.Minute:
-		return "just now"
-	case d < time.Hour:
-		return strconv.Itoa(int(d.Minutes())) + "m ago"
-	case d < 24*time.Hour:
-		return strconv.Itoa(int(d.Hours())) + "h ago"
-	case d < 30*24*time.Hour:
-		return strconv.Itoa(int(d.Hours()/24)) + "d ago"
+// roleBadgeType maps a role string to a templ-components BadgeType.
+func roleBadgeType(role string) display.BadgeType {
+	switch role {
+	case "super_admin":
+		return display.BadgePrimary
+	case "admin":
+		return display.BadgeInfo
+	case "owner":
+		return display.BadgeSuccess
+	case "viewer":
+		return display.BadgeWarning
 	default:
-		return t.UTC().Format("Jan 2, 2006")
+		return display.BadgeNeutral
 	}
 }
 
-// roleBadgeKind maps a role string to a badge color class.
-func roleBadgeKind(role string) string {
-	switch role {
-	case "super_admin":
-		return "accent"
-	case "admin":
-		return "blue"
-	case "owner":
-		return "green"
-	case "viewer":
-		return "amber"
+// badgeKindToType maps adminui's internal badge kind strings to
+// templ-components BadgeType values.
+func badgeKindToType(kind string) display.BadgeType {
+	switch kind {
+	case "green":
+		return display.BadgeSuccess
+	case "blue":
+		return display.BadgeInfo
+	case "amber":
+		return display.BadgeWarning
+	case "red":
+		return display.BadgeError
+	case "accent":
+		return display.BadgePrimary
 	default:
-		return ""
+		return display.BadgeNeutral
 	}
 }
 
@@ -98,24 +95,6 @@ func selectedAttr(current []usermgmt.Role, role usermgmt.Role) string {
 		return "selected"
 	}
 	return ""
-}
-
-// badgeColor maps a badge kind string to a CSS color value.
-//
-//nolint:gochecknoglobals // Package-level lookup table for badge colors
-var badgeColors = map[string]string{
-	"accent": "var(--accent)",
-	"blue":   "var(--info)",
-	"green":  "var(--ok)",
-	"red":    "var(--err)",
-	"amber":  "var(--warn)",
-}
-
-func badgeColor(kind string) string {
-	if c, ok := badgeColors[kind]; ok {
-		return c
-	}
-	return "var(--muted, #6b7280)"
 }
 
 // navBg returns the CSS background value for a nav item based on active state.

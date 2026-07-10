@@ -1,11 +1,10 @@
 package adminui
 
 import (
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"log/slog"
 	"net/http"
-
-	"encoding/json/jsontext"
 
 	"github.com/a-h/templ"
 )

@@ -3,13 +3,12 @@ package usermgmt
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"io"
 	"strconv"
 	"strings"
-
-	"encoding/json/jsontext"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -161,8 +160,7 @@ func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportR
 // ExportUsersToJSON writes all users as a JSON array to the writer.
 func (s *Service) ExportUsersToJSON(_ context.Context, w io.Writer) error {
 	users := s.exportAllUsers()
-	enc := jsontext.NewEncoder(w)
-	enc.SetIndent("", "  ")
+	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
 	if err := json.MarshalEncode(enc, users); err != nil {
 		return errorfamily.WrapInfrastructure(err, "usermgmt.export.json_encode_failed", "encode export JSON")
 	}

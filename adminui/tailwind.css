@@ -16,6 +16,12 @@
 /* Scan adminui .templ files for class names */
 @source "../";
 
+/* Scan templ-components library so utility classes from adopted library
+   components are included in the compiled output. The path uses the local
+   Go module cache; adjust if your GOPATH differs. Only needed when
+   recompiling admin-tw.css — the committed CSS includes these classes. */
+@source "/home/lars/go/pkg/mod/github.com/larsartmann/templ-components@v0.13.0";
+
 /* ---------- Theme tokens (light defaults) ---------- */
 :root {
   --accent: #4f46e5;
@@ -88,6 +94,15 @@ body {
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- templ-components CSS bridge ---------- */
+/* Makes templ-components' bg-white resolve to adminui's surface token so
+   display.Card/Table/etc. match the adminui theme in both light and dark
+   mode. Safe because adminui never uses bg-white directly — it uses
+   style="background:var(--surface)" instead. text-white is unaffected. */
+.bg-white {
+  background-color: var(--surface);
 }
 
 /* ---------- HTMX indicator visibility convention ---------- */
