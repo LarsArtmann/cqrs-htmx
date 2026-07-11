@@ -17,10 +17,12 @@
 @source "../";
 
 /* Scan templ-components library so utility classes from adopted library
-   components are included in the compiled output. The path uses the local
-   Go module cache; adjust if your GOPATH differs. Only needed when
-   recompiling admin-tw.css — the committed CSS includes these classes. */
-@source "/home/lars/go/pkg/mod/github.com/larsartmann/templ-components@v0.13.0";
+   components are included in the compiled output. Only needed when
+   recompiling admin-tw.css — the committed CSS includes these classes.
+
+   The nix build-adminui-css app generates a temporary tailwind.css with
+   the correct GOMODCACHE path via: go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components
+   Do NOT add a hardcoded @source path here — it breaks portability. */
 
 /* ---------- Theme tokens (light defaults) ---------- */
 :root {

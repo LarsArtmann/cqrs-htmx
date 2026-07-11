@@ -55,7 +55,7 @@
               homepage = "https://github.com/larsartmann/cqrs-htmx";
               license = licenses.mit;
               mainProgram = "cqrs-htmx";
-              maintainers = [ ];
+              maintainers = [ maintainers.larsartmann ];
               platforms = platforms.unix;
             };
           };
@@ -71,7 +71,7 @@
               ];
 
               GOWORK = "off";
-              GONOSUMCHECK = "github.com/larsartmann/*";
+              GOPRIVATE = "github.com/larsartmann/*";
             };
 
             ci = pkgs.mkShellNoCC {
@@ -81,11 +81,12 @@
               ];
 
               GOWORK = "off";
-              GONOSUMCHECK = "github.com/larsartmann/*";
+              GOPRIVATE = "github.com/larsartmann/*";
             };
           };
 
           checks = {
+            build = config.packages.default;
             formatting = config.treefmt.build.check self;
           };
 
@@ -97,7 +98,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   echo "==> Root module"
                   go test ./... -count=1 -race
                   echo "==> usermgmt submodule"
@@ -124,7 +125,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   echo "==> Root module"
                   go test ./... -count=1 -race
                   echo "==> adminui submodule"
@@ -145,7 +146,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   echo "==> Root module (3 iterations)"
                   go test ./... -count=3 -race
                   echo "==> usermgmt submodule (3 iterations)"
@@ -172,7 +173,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   FUZZTIME="''${FUZZTIME:-30s}"
 
                   echo "==> Root module fuzz tests"
@@ -249,7 +250,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   echo "==> Root module coverage"
                   go test ./... -count=1 -coverprofile=coverage.out
                   go tool cover -func=coverage.out
@@ -274,7 +275,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   echo "==> Root module"
                   go build ./...
                   echo "==> usermgmt submodule"
@@ -308,7 +309,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   go test ./... -count=1 -race "$@"
                 '';
               };
@@ -322,7 +323,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   cd usermgmt
                   go test ./... -count=1 -race "$@"
                 '';
@@ -337,7 +338,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   cd adminui
                   go test ./... -count=1 -race "$@"
                 '';
@@ -352,7 +353,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   cd integration_test
                   go test ./... -count=1 -race "$@"
                 '';
@@ -367,7 +368,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   cd usermgmt/totp
                   go test ./... -count=1 -race "$@"
                 '';
@@ -382,7 +383,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   cd usermgmt/webauthn
                   go test ./... -count=1 -race "$@"
                 '';
@@ -397,7 +398,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   cd usermgmt/oauth2
                   go test ./... -count=1 -race "$@"
                 '';
@@ -426,7 +427,7 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   cd examples/admin-demo
                   go build ./... "$@"
                 '';
@@ -438,10 +439,22 @@
               meta.description = "Compile adminui Tailwind v4 CSS (tailwind.css → assets/admin-tw.css)";
               program = pkgs.writeShellApplication {
                 name = "build-adminui-css";
-                runtimeInputs = [ pkgs.tailwindcss_4 ];
+                runtimeInputs = [
+                  pkgs.tailwindcss_4
+                  pkgs.go_1_26
+                ];
                 text = ''
                   cd adminui
-                  tailwindcss -i tailwind.css -o assets/admin-tw.css --minify
+                  # Resolve templ-components module dir at build time so
+                  # Tailwind scans its .templ files for utility classes.
+                  TC_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components 2>/dev/null || true)
+                  TMP_CSS=$(mktemp --suffix=.css)
+                  cp tailwind.css "$TMP_CSS"
+                  if [ -n "$TC_DIR" ]; then
+                    echo "@source \"$TC_DIR\";" >> "$TMP_CSS"
+                  fi
+                  tailwindcss -i "$TMP_CSS" -o assets/admin-tw.css --minify
+                  rm -f "$TMP_CSS"
                   echo "Done: adminui/assets/admin-tw.css"
                 '';
               };
@@ -583,7 +596,7 @@
                 ];
                 text = ''
                   export GOWORK=off
-                  export GONOSUMCHECK='github.com/larsartmann/*'
+                  export GOPRIVATE='github.com/larsartmann/*'
                   fail=0
                   check_cov() {
                     local mod="$1" threshold="$2"

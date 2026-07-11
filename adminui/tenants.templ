@@ -1,5 +1,11 @@
 package adminui
 
+import (
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/utils"
+)
+
 templ tenantsPage(p pageData, d tenantsListData) {
 	@Layout(p) {
 		@tenantsContent(d)
@@ -10,10 +16,14 @@ templ tenantsContent(d tenantsListData) {
 	<div class="mb-5 flex flex-wrap items-center gap-3">
 		<h1 class="text-xl font-semibold">Tenants</h1>
 		<div class="flex-1"></div>
-		<a class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1.5 text-sm font-semibold text-white no-underline hover:bg-blue-500" href={ d.BasePath + "/tenants/new" }>
-			@icon("plus")
-			New tenant
-		</a>
+		@display.Button(display.ButtonProps{
+			Text:      "New tenant",
+			Href:      d.BasePath + "/tenants/new",
+			Variant:   display.ButtonPrimary,
+			Size:      display.ButtonSizeSM,
+			Icon:      icon("plus"),
+			BaseProps: utils.BaseProps{Class: "no-underline"},
+		})
 	</div>
 	<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
 		@tenantsTable(d)
@@ -67,17 +77,24 @@ templ tenantNewPage(p pageData, basePath string) {
 			<div class="p-[18px]">
 				<form hx-post={ basePath + "/tenants" } hx-target="this">
 					<div class="mb-4">
-						<label class="mb-1 block text-sm font-medium text-gray-700" for="name">Name</label>
-						<input class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" id="name" name="name" required placeholder="acme-corp"/>
-						<div class="mt-1 text-xs text-gray-500">A unique, URL-safe identifier.</div>
+						@forms.Input(forms.InputProps{
+							BaseProps:   utils.BaseProps{ID: "name"},
+							Name:        "name",
+							Placeholder: "acme-corp",
+							Required:    true,
+							HelpText:    "A unique, URL-safe identifier.",
+						})
 					</div>
 					<div class="mb-4">
-						<label class="mb-1 block text-sm font-medium text-gray-700" for="display_name">Display name</label>
-						<input class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" id="display_name" name="display_name" placeholder="Acme Corporation"/>
+						@forms.Input(forms.InputProps{
+							BaseProps:   utils.BaseProps{ID: "display_name"},
+							Name:        "display_name",
+							Placeholder: "Acme Corporation",
+						})
 					</div>
 					<div class="flex gap-2.5">
-						<button class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500" type="submit">Create tenant</button>
-						<a class="rounded-md px-3 py-2 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ basePath + "/tenants" }>Cancel</a>
+						@display.Button(display.ButtonProps{Text: "Create tenant", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary})
+						@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/tenants", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: "no-underline"}})
 					</div>
 				</form>
 			</div>
@@ -107,14 +124,36 @@ templ tenantDetailPage(p pageData, d tenantDetailData) {
 			<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px] text-red-600">Danger zone</span></div>
 			<div class="flex flex-wrap gap-2.5 p-[18px]">
 				if d.Tenant.Suspended {
-					<button class="rounded-md bg-blue-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-blue-500" hx-post={ d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate" } hx-confirm="Reactivate this tenant?">Reactivate</button>
+					@display.Button(display.ButtonProps{
+						Text:    "Reactivate",
+						Variant: display.ButtonPrimary,
+						Size:    display.ButtonSizeSM,
+						BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+							"hx-post":    d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
+							"hx-confirm": "Reactivate this tenant?",
+						}},
+					})
 				} else {
-					<button class="rounded-md border border-gray-300 px-2.5 py-1.5 text-sm font-medium hover:bg-gray-50" hx-post={ d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend" } hx-confirm="Suspend this tenant?">Suspend</button>
+					@display.Button(display.ButtonProps{
+						Text:    "Suspend",
+						Variant: display.ButtonSecondary,
+						Size:    display.ButtonSizeSM,
+						BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+							"hx-post":    d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
+							"hx-confirm": "Suspend this tenant?",
+						}},
+					})
 				}
-				<button class="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-red-500" hx-post={ d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete" } data-confirm="Delete this tenant and remove all memberships? This cannot be undone.">
-					@icon("trash")
-					Delete
-				</button>
+				@display.Button(display.ButtonProps{
+					Text:    "Delete",
+					Variant: display.ButtonDanger,
+					Size:    display.ButtonSizeSM,
+					Icon:    icon("trash"),
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"hx-post":      d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
+						"data-confirm": "Delete this tenant and remove all memberships? This cannot be undone.",
+					}},
+				})
 			</div>
 		</div>
 	}
