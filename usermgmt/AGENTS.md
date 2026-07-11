@@ -5,11 +5,11 @@
 
 ## Quick Reference
 
-| Item     | Value                                                                                            |
-| -------- | ------------------------------------------------------------------------------------------------ |
-| Test     | `cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race` |
-| Build    | `cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...`               |
-| Coverage | 83.6%                                                                                            |
+| Item     | Value                                                                                         |
+| -------- | --------------------------------------------------------------------------------------------- |
+| Test     | `cd usermgmt && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race` |
+| Build    | `cd usermgmt && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go build ./...`               |
+| Coverage | 83.6%                                                                                         |
 
 ## Architecture
 

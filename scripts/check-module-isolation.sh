@@ -39,7 +39,7 @@ for mod in "${MODULES[@]}"; do
     echo -n "  $module_name ... "
 
     # Build check
-    if ! (cd "$mod_path" && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./... 2>/dev/null); then
+    if ! (cd "$mod_path" && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go build ./... 2>/dev/null); then
         echo "FAIL (build)"
         echo "    Run: cd $mod && GOWORK=off go build ./..."
         failed=1
@@ -47,7 +47,7 @@ for mod in "${MODULES[@]}"; do
     fi
 
     # Vet check
-    if ! (cd "$mod_path" && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go vet ./... 2>/dev/null); then
+    if ! (cd "$mod_path" && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go vet ./... 2>/dev/null); then
         echo "FAIL (vet)"
         echo "    Run: cd $mod && GOWORK=off go vet ./..."
         failed=1
