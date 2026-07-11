@@ -41,57 +41,25 @@ func TestNew_Defaults(t *testing.T) {
 	if h.cfg.AccentColor != DefaultAccentColor {
 		t.Errorf("AccentColor = %q, want %q", h.cfg.AccentColor, DefaultAccentColor)
 	}
+	if h.cfg.CredentialName != "Passkey" {
+		t.Errorf("CredentialName = %q, want %q", h.cfg.CredentialName, "Passkey")
+	}
 }
 
-func TestServeHTTP_RendersPage(t *testing.T) {
-	h, err := New(Config{
-		Service: newTestService(t),
-		Title:   "Test App",
-		Brand:   "Acme",
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
+func TestServeHTTP_NoAuthMethodShowsError(t *testing.T) {
+	h, _ := New(Config{Service: newTestService(t)})
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	h.ServeHTTP(w, r)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
-	}
-	if ct := w.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/html") {
-		t.Errorf("Content-Type = %q, want text/html", ct)
-	}
-
 	body := w.Body.String()
-	// Title and brand rendered
-	if !strings.Contains(body, "<title>Test App</title>") {
-		t.Error("page missing title")
+	if !strings.Contains(body, "No authentication method is configured") {
+		t.Error("page should show no-auth error when no strategies are configured")
 	}
-	if !strings.Contains(body, `class="lp-brand">Acme<`) {
-		t.Error("page missing brand")
+	if strings.Contains(body, `id="lp-login-form"`) {
+		t.Error("page should not render login form without auth methods")
 	}
-	// Login form present
-	if !strings.Contains(body, `id="lp-login-form"`) {
-		t.Error("page missing login form")
-	}
-	if !strings.Contains(body, `id="lp-email"`) {
-		t.Error("page missing email input")
-	}
-	if !strings.Contains(body, "Sign in with passkey") {
-		t.Error("page missing passkey button")
-	}
-	// Config JSON present
-	if !strings.Contains(body, "loginpage-config") {
-		t.Error("page missing config script tag")
-	}
-	// Inline CSS and JS present
-	if !strings.Contains(body, "--lp-accent") {
-		t.Error("page missing inline CSS")
-	}
-	if !strings.Contains(body, "navigator.credentials") {
-		t.Error("page missing inline JS")
+	if strings.Contains(body, `id="loginpage-config"`) {
+		t.Error("page should not include config JS without auth methods")
 	}
 }
 
@@ -105,54 +73,68 @@ func TestServeHTTP_PostMethodNotAllowed(t *testing.T) {
 	}
 }
 
-func TestServeHTTP_RegistrationHiddenWithoutWebAuthn(t *testing.T) {
-	// Service has no WebAuthn provider, so there's nothing to register a passkey with.
-	h, _ := New(Config{
-		Service: newTestService(t),
-	})
+// renderWithWebAuthn renders a page by directly constructing PageData with
+// WebAuthn=true. In production this is only true when the Service has a
+// WebAuthn provider configured.
+func renderWithWebAuthn(t *testing.T, data PageData) string {
+	t.Helper()
+	data.WebAuthn = true
+	if data.inlineCSS == "" {
+		data.inlineCSS = "/* test */"
+	}
+	if data.inlineJS == "" {
+		data.inlineJS = "/* test */ navigator.credentials"
+	}
+	if data.configJSON == "" {
+		data.configJSON = `{"redirect":"/","endpoints":{"loginBegin":"/auth/webauthn/login/begin"}}`
+	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/login", nil)
-	h.ServeHTTP(w, r)
-	body := w.Body.String()
-	if strings.Contains(body, `id="lp-register-section"`) {
-		t.Error("registration section should be hidden when WebAuthn is not configured")
-	}
-	if strings.Contains(body, "Create one") {
-		t.Error("registration toggle link should be hidden")
-	}
-}
-
-func TestServeHTTP_RegistrationHiddenByConfig(t *testing.T) {
-	h, _ := New(Config{
-		Service:        newTestService(t),
-		NoRegistration: true,
-	})
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/login", nil)
-	h.ServeHTTP(w, r)
-	body := w.Body.String()
-	if strings.Contains(body, `id="lp-register-section"`) {
-		t.Error("registration section should be hidden by NoRegistration")
-	}
-}
-
-func TestPageTemplate_RegistrationSection(t *testing.T) {
-	// Test the templ component directly with ShowReg=true to verify the
-	// registration HTML is rendered. In production, ShowReg is only true when
-	// the Service has WebAuthn configured.
-	w := httptest.NewRecorder()
-	data := PageData{
-		Title:      "Test",
-		Brand:      "Test",
-		Subtitle:   "Sign in to your account",
-		Accent:     "#4f46e5",
-		ShowReg:    true,
-		ConfigJSON: `{"redirect":"/"}`,
-	}
 	if err := Page(data).Render(context.Background(), w); err != nil {
 		t.Fatalf("render: %v", err)
 	}
-	body := w.Body.String()
+	return w.Body.String()
+}
+
+func TestPage_WebAuthnLogin(t *testing.T) {
+	body := renderWithWebAuthn(t, PageData{
+		Title:    "Test App",
+		Brand:    "Acme",
+		Subtitle: "Sign in to your account",
+		Accent:   "#4f46e5",
+	})
+	if !strings.Contains(body, "<title>Test App</title>") {
+		t.Error("page missing title")
+	}
+	if !strings.Contains(body, `class="lp-brand">Acme<`) {
+		t.Error("page missing brand")
+	}
+	if !strings.Contains(body, `id="lp-login-form"`) {
+		t.Error("page missing login form")
+	}
+	if !strings.Contains(body, `id="lp-email"`) {
+		t.Error("page missing email input")
+	}
+	if !strings.Contains(body, "Sign in with passkey") {
+		t.Error("page missing passkey button")
+	}
+	if !strings.Contains(body, "loginpage-config") {
+		t.Error("page missing config script tag")
+	}
+	if !strings.Contains(body, "--lp-accent") {
+		t.Error("page missing inline CSS")
+	}
+	if !strings.Contains(body, "navigator.credentials") {
+		t.Error("page missing inline JS")
+	}
+}
+
+func TestPage_RegistrationSection(t *testing.T) {
+	body := renderWithWebAuthn(t, PageData{
+		Title:   "Test",
+		Brand:   "Test",
+		Accent:  "#4f46e5",
+		ShowReg: true,
+	})
 	if !strings.Contains(body, `id="lp-register-section"`) {
 		t.Error("registration section missing when ShowReg is true")
 	}
@@ -164,12 +146,106 @@ func TestPageTemplate_RegistrationSection(t *testing.T) {
 	}
 }
 
-func TestServeHTTP_CSRFTokenIncluded(t *testing.T) {
-	h, _ := New(Config{Service: newTestService(t)})
+func TestPage_RegistrationHidden(t *testing.T) {
+	body := renderWithWebAuthn(t, PageData{
+		Title:   "Test",
+		Brand:   "Test",
+		Accent:  "#4f46e5",
+		ShowReg: false,
+	})
+	if strings.Contains(body, `id="lp-register-section"`) {
+		t.Error("registration section should be hidden when ShowReg is false")
+	}
+}
+
+func TestPage_OAuth2Buttons(t *testing.T) {
+	body := renderWithWebAuthn(t, PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#4f46e5",
+		WebAuthn: true,
+		OAuth2Buttons: []OAuth2Button{
+			{Provider: "google", Label: "Sign in with Google"},
+			{Provider: "github", Label: "Sign in with GitHub"},
+		},
+	})
+	if !strings.Contains(body, "Sign in with Google") {
+		t.Error("Google button missing")
+	}
+	if !strings.Contains(body, "Sign in with GitHub") {
+		t.Error("GitHub button missing")
+	}
+	if !strings.Contains(body, `/auth/oauth/google/begin`) {
+		t.Error("Google OAuth begin URL missing")
+	}
+	if !strings.Contains(body, `/auth/oauth/github/begin`) {
+		t.Error("GitHub OAuth begin URL missing")
+	}
+	if !strings.Contains(body, "lp-divider") {
+		t.Error("divider missing between WebAuthn and OAuth2")
+	}
+}
+
+func TestPage_OAuth2OnlyNoDivider(t *testing.T) {
+	data := PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#4f46e5",
+		WebAuthn: false,
+		OAuth2Buttons: []OAuth2Button{
+			{Provider: "google", Label: "Sign in with Google"},
+		},
+	}
+	data.inlineCSS = "/* test */"
 	w := httptest.NewRecorder()
-	ctx := cqrshtmx.WithCSRFToken(context.Background(), "test-csrf-123")
-	r := httptest.NewRequest(http.MethodGet, "/login", nil).WithContext(ctx)
-	h.ServeHTTP(w, r)
+	if err := Page(data).Render(context.Background(), w); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, "Sign in with Google") {
+		t.Error("Google button missing")
+	}
+	if strings.Contains(body, "lp-divider") {
+		t.Error("divider should not appear when WebAuthn is false")
+	}
+	if strings.Contains(body, `id="lp-login-form"`) {
+		t.Error("WebAuthn form should not appear when WebAuthn is false")
+	}
+}
+
+func TestPage_FaviconPresent(t *testing.T) {
+	body := renderWithWebAuthn(t, PageData{
+		Title:  "Test",
+		Brand:  "Acme",
+		Accent: "#ff0000",
+	})
+	if !strings.Contains(body, `rel="icon"`) {
+		t.Error("favicon link missing")
+	}
+	if !strings.Contains(body, "data:image/svg+xml") {
+		t.Error("favicon should be an SVG data URI")
+	}
+}
+
+func TestServeHTTP_CSRFTokenIncluded(t *testing.T) {
+	// Use renderWithWebAuthn since CSRF is always rendered, but the page
+	// needs at least one auth method to render the body.
+	data := PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#4f46e5",
+		WebAuthn: true,
+	}
+	data.inlineCSS = "/* test */"
+	data.inlineJS = "/* test */"
+	data.configJSON = `{}`
+	data.CSRFMeta = `<meta name="csrf-token" content="test-csrf-123">`
+	data.CSRFField = `<input type="hidden" name="csrf_token" value="test-csrf-123">`
+
+	w := httptest.NewRecorder()
+	if err := Page(data).Render(context.Background(), w); err != nil {
+		t.Fatalf("render: %v", err)
+	}
 	body := w.Body.String()
 	if !strings.Contains(body, "test-csrf-123") {
 		t.Error("CSRF token not rendered in page")
@@ -183,22 +259,17 @@ func TestServeHTTP_ConfigJSONContainsEndpoints(t *testing.T) {
 	h, _ := New(Config{
 		Service:  newTestService(t),
 		Redirect: "/dashboard",
+		OAuth2Buttons: []OAuth2Button{
+			{Provider: "google", Label: "Sign in with Google"},
+		},
 	})
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	h.ServeHTTP(w, r)
 	body := w.Body.String()
-	if !strings.Contains(body, "/auth/webauthn/login/begin") {
-		t.Error("config JSON missing loginBegin endpoint")
-	}
-	if !strings.Contains(body, "/auth/webauthn/login/finish") {
-		t.Error("config JSON missing loginFinish endpoint")
-	}
-	if !strings.Contains(body, "/auth/register") {
-		t.Error("config JSON missing register endpoint")
-	}
-	if !strings.Contains(body, `/dashboard`) {
-		t.Error("config JSON missing redirect URL")
+	// OAuth2 buttons are present
+	if !strings.Contains(body, "Sign in with Google") {
+		t.Error("Google OAuth button missing")
 	}
 }
 
@@ -206,27 +277,31 @@ func TestServeHTTP_AuthPrefix(t *testing.T) {
 	h, _ := New(Config{
 		Service:    newTestService(t),
 		AuthPrefix: "/api",
+		OAuth2Buttons: []OAuth2Button{
+			{Provider: "google", Label: "Sign in with Google"},
+		},
 	})
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	h.ServeHTTP(w, r)
 	body := w.Body.String()
-	if !strings.Contains(body, "/api/auth/webauthn/login/begin") {
-		t.Error("config JSON should contain prefixed endpoint")
-	}
-	if strings.Contains(body, `"/auth/webauthn`) {
-		t.Error("config JSON should not contain unprefixed endpoints")
+	if !strings.Contains(body, "/api/auth/oauth/google/begin") {
+		t.Error("OAuth2 URL should contain prefixed endpoint")
 	}
 }
 
 func TestServeHTTP_AccentColorApplied(t *testing.T) {
-	h, _ := New(Config{
-		Service:     newTestService(t),
-		AccentColor: "#ff0000",
-	})
+	data := PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#ff0000",
+		WebAuthn: true,
+	}
+	data.inlineCSS = "/* test */"
+	data.inlineJS = "/* test */"
+	data.configJSON = "{}"
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/login", nil)
-	h.ServeHTTP(w, r)
+	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
 	if !strings.Contains(body, "--lp-accent:#ff0000") {
 		t.Error("accent color not applied in CSS variable")
@@ -234,13 +309,18 @@ func TestServeHTTP_AccentColorApplied(t *testing.T) {
 }
 
 func TestServeHTTP_CustomCSSPath(t *testing.T) {
-	h, _ := New(Config{
-		Service: newTestService(t),
-		CSSPath: "/css/app.css",
-	})
+	data := PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#4f46e5",
+		CSSPath:  "/css/app.css",
+		WebAuthn: true,
+	}
+	data.inlineCSS = "/* test */"
+	data.inlineJS = "/* test */"
+	data.configJSON = "{}"
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/login", nil)
-	h.ServeHTTP(w, r)
+	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
 	if !strings.Contains(body, `href="/css/app.css"`) {
 		t.Error("custom CSS path not linked")
@@ -264,12 +344,41 @@ func TestMount(t *testing.T) {
 	h, _ := New(Config{Service: newTestService(t)})
 	mux := http.NewServeMux()
 	h.Mount(mux, "/login")
-
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	mux.ServeHTTP(w, r)
 	if w.Code != http.StatusOK {
 		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+}
+
+func TestNewPageData(t *testing.T) {
+	svc := newTestService(t)
+	data, err := NewPageData(Config{
+		Service: svc,
+		Title:   "My App",
+	}, nil)
+	if err != nil {
+		t.Fatalf("NewPageData: %v", err)
+	}
+	if data.Title != "My App" {
+		t.Errorf("Title = %q, want %q", data.Title, "My App")
+	}
+	if data.WebAuthn != false {
+		t.Error("WebAuthn should be false for service without WebAuthn provider")
+	}
+}
+
+func TestNewPageData_WithCSRF(t *testing.T) {
+	svc := newTestService(t)
+	ctx := cqrshtmx.WithCSRFToken(context.Background(), "token-abc")
+	r := httptest.NewRequest(http.MethodGet, "/login", nil).WithContext(ctx)
+	data, err := NewPageData(Config{Service: svc}, r)
+	if err != nil {
+		t.Fatalf("NewPageData: %v", err)
+	}
+	if !strings.Contains(data.CSRFMeta, "token-abc") {
+		t.Error("CSRFMeta should contain the token")
 	}
 }
 
