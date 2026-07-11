@@ -45,6 +45,33 @@ templ toastHost() {
 	<div class="toast-host"></div>
 }
 
+templ userIDDetail(id string) {
+	<span class="flex items-center gap-2">
+		<span class="font-mono text-xs">{ id }</span>
+		@display.CopyButton(display.CopyButtonProps{Text: id})
+	</span>
+}
+
+templ dangerZoneHeader() {
+	<h3 class="text-base font-semibold text-red-600">Danger zone</h3>
+}
+
+templ verifiedBadge(verified bool) {
+	if verified {
+		@badge("verified", "green")
+	} else {
+		@badge("unverified", "")
+	}
+}
+
+templ totpBadge(enabled bool) {
+	if enabled {
+		@badge("enabled", "blue")
+	} else {
+		@badge("disabled", "")
+	}
+}
+
 // listNote renders a "showing N of M" hint when a list is truncated by the
 // MaxListRows cap. shown is the rendered count; total is the unfiltered match
 // count. Renders nothing when all rows fit.

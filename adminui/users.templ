@@ -41,11 +41,12 @@ templ usersContent(d usersListData) {
 		</form>
 		<div class="flex-1"></div>
 	</div>
-	<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
-		<div id="users-table">
-			@usersTable(d)
-		</div>
-	</div>
+	@display.Card(display.CardProps{
+		Padding:   display.CardPaddingNone,
+		BaseProps: utils.BaseProps{ID: "users-table"},
+	}) {
+		@usersTable(d)
+	}
 }
 
 templ usersTable(d usersListData) {
@@ -115,82 +116,60 @@ templ userDetailPage(p pageData, d userDetailData) {
 				}
 			</div>
 		</div>
-		<div class="mb-5 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]">
-			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
-				<div class="p-[18px]">
-					<div class="text-xs text-gray-400">Credentials</div>
-					<div class="text-2xl font-bold">{ strconv.Itoa(len(d.User.Credentials)) }</div>
-				</div>
-			</div>
-			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
-				<div class="p-[18px]">
-					<div class="text-xs text-gray-400">External accounts</div>
-					<div class="text-2xl font-bold">{ strconv.Itoa(len(d.User.ExternalAccounts)) }</div>
-				</div>
-			</div>
-			<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
-				<div class="p-[18px]">
-					<div class="text-xs text-gray-400">Member since</div>
-					<div class="text-base font-bold">{ d.User.CreatedAt.Format("Jan 2, 2006") }</div>
-				</div>
-			</div>
-		</div>
-		<div class="mb-4 rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
-			<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px]">Details</span></div>
-			<div class="p-[18px]">
-				<dl class="grid gap-2 [grid-template-columns:auto_1fr]">
-					<dt class="text-sm text-gray-500">User ID</dt>
-					<dd class="font-mono text-xs">{ d.User.ID.Get().String() }</dd>
-					<dt class="text-sm text-gray-500">Email</dt>
-					<dd>{ d.User.Email }</dd>
-					<dt class="text-sm text-gray-500">Verified</dt>
-					<dd>
-						if d.User.EmailVerified {
-							@badge("verified", "green")
-						} else {
-							@badge("unverified", "")
-						}
-					</dd>
-					<dt class="text-sm text-gray-500">TOTP MFA</dt>
-					<dd>
-						if d.User.TOTPEnabled {
-							@badge("enabled", "blue")
-						} else {
-							@badge("disabled", "")
-						}
-					</dd>
-				</dl>
-			</div>
-		</div>
-		if len(d.TenantRoles) > 0 {
-			<div class="mb-4 rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)">
-				<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px]">Roles & memberships</span></div>
-				<div class="p-[18px]">
-					<div class="overflow-x-auto">
-						<table class="w-full text-sm">
-							<thead><tr><th class="px-4 py-2 text-left font-semibold text-gray-500">Tenant</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Roles</th></tr></thead>
-							<tbody>
-								for tenant, roles := range d.TenantRoles {
-									<tr class="border-t border-gray-200 hover:bg-gray-50">
-										<td class="px-4 py-2 font-mono text-xs">{ tenant }</td>
-										<td class="px-4 py-2">
-											<div class="flex flex-wrap gap-1">
-												for _, r := range roles {
-													@roleBadge(string(r))
-												}
-											</div>
-										</td>
-									</tr>
-								}
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
+		@display.Grid(display.GridProps{
+			BaseProps:   utils.BaseProps{Class: "mb-5"},
+			Cols:        display.GridColsAutoFit,
+			MinColWidth: "190px",
+			Gap:         display.GridGapMD,
+		}) {
+			@display.StatCard(display.StatCardProps{Label: "Credentials", Value: strconv.Itoa(len(d.User.Credentials))})
+			@display.StatCard(display.StatCardProps{Label: "External accounts", Value: strconv.Itoa(len(d.User.ExternalAccounts))})
+			@display.StatCard(display.StatCardProps{Label: "Member since", Value: d.User.CreatedAt.Format("Jan 2, 2006")})
 		}
-		<div class="rounded-[10px] border border-gray-200 shadow-sm" style="background:var(--surface)" data-sync-target>
-			<div class="flex items-center gap-2.5 border-b border-gray-200 px-[18px] py-[15px]"><span class="text-[15px] text-red-600">Danger zone</span></div>
-			<div class="flex flex-wrap items-center gap-3.5 p-[18px]">
+		@display.Card(display.CardProps{
+			Title:     "Details",
+			BaseProps: utils.BaseProps{Class: "mb-4"},
+		}) {
+			@display.DefinitionList(display.DefinitionListProps{
+				Items: []display.DefinitionItem{
+					{Term: "User ID", DetailComponent: userIDDetail(d.User.ID.Get().String())},
+					{Term: "Email", Detail: d.User.Email},
+					{Term: "Verified", DetailComponent: verifiedBadge(d.User.EmailVerified)},
+					{Term: "TOTP MFA", DetailComponent: totpBadge(d.User.TOTPEnabled)},
+				},
+			})
+		}
+		if len(d.TenantRoles) > 0 {
+			@display.Card(display.CardProps{
+				Title:     "Roles & memberships",
+				BaseProps: utils.BaseProps{Class: "mb-4"},
+			}) {
+				<div class="overflow-x-auto">
+					<table class="w-full text-sm">
+						<thead><tr><th class="px-4 py-2 text-left font-semibold text-gray-500">Tenant</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Roles</th></tr></thead>
+						<tbody>
+							for tenant, roles := range d.TenantRoles {
+								<tr class="border-t border-gray-200 hover:bg-gray-50">
+									<td class="px-4 py-2 font-mono text-xs">{ tenant }</td>
+									<td class="px-4 py-2">
+										<div class="flex flex-wrap gap-1">
+											for _, r := range roles {
+												@roleBadge(string(r))
+											}
+										</div>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		}
+		@display.Card(display.CardProps{
+			Header:    dangerZoneHeader(),
+			BaseProps: utils.BaseProps{Attrs: templ.Attributes{"data-sync-target": ""}},
+		}) {
+			<div class="flex flex-wrap items-center gap-3.5">
 				<div class="text-sm text-gray-500">Deleting a user tombstones the account and revokes all sessions. This cannot be undone.</div>
 				<div class="flex-1"></div>
 				@display.Button(display.ButtonProps{
@@ -205,6 +184,6 @@ templ userDetailPage(p pageData, d userDetailData) {
 					}},
 				})
 			</div>
-		</div>
+		}
 	}
 }

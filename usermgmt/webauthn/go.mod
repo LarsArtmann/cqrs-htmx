@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/go-webauthn/webauthn v0.17.4
-	github.com/larsartmann/go-error-family v0.6.1
+	github.com/larsartmann/go-error-family v0.7.0
 )
 
 require (

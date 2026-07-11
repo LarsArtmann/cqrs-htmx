@@ -8,7 +8,7 @@ require (
 	github.com/go-faster/errors v0.7.1 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect
-	github.com/larsartmann/go-error-family v0.6.1 // indirect
+	github.com/larsartmann/go-error-family v0.7.0 // indirect
 	github.com/onsi/ginkgo/v2 v2.32.0 // indirect
 	github.com/onsi/gomega v1.42.1 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect

@@ -9,4 +9,4 @@ require (
 
 require github.com/go-jose/go-jose/v4 v4.1.4
 
-require github.com/larsartmann/go-error-family v0.6.1
+require github.com/larsartmann/go-error-family v0.7.0
