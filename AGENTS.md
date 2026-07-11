@@ -13,8 +13,8 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language    | Go 1.26.3                                                                                                                                                  |
 | Module      | github.com/larsartmann/cqrs-htmx/v4                                                                                                                        |
-| Test        | `nix run .#test` or `GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race`                                                                 |
-| Build       | `nix run .#build` or `GONOSUMCHECK='github.com/larsartmann/*' go build ./...`                                                                              |
+| Test        | `nix run .#test` or `GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race`                                                                    |
+| Build       | `nix run .#build` or `GOPRIVATE='github.com/larsartmann/*' go build ./...`                                                                                 |
 | Lint        | `nix run .#lint` or `golangci-lint run`                                                                                                                    |
 | Coverage    | `nix run .#coverage`                                                                                                                                       |
 | Fmt         | `nix fmt`                                                                                                                                                  |
@@ -555,40 +555,40 @@ The multi-module `nix run .#test` and `nix run .#build` apps run all four module
 
 ```bash
 # All tests (root)
-GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1
+GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1
 
 # With verbose output
-GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -v
+GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -v
 
 # Race detector
-GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Coverage
-GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -coverprofile=coverage.out
+GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -coverprofile=coverage.out
 ```
 
 ### usermgmt submodule
 
 ```bash
 # All tests
-cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+cd usermgmt && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Build
-cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...
+cd usermgmt && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go build ./...
 ```
 
 ### integration_test module
 
 ```bash
 # All tests
-cd integration_test && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+cd integration_test && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race
 ```
 
 ### adminui module
 
 ```bash
 # All tests (renders the full panel via httptest + seeded data)
-cd adminui && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+cd adminui && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Regenerate templ after editing *.templ (CLI: templ v0.3.x). Commit *_templ.go too.
 cd adminui && templ generate
@@ -605,7 +605,7 @@ cd examples/datastar-demo && GOWORK=off go build ./...
 
 ```bash
 # Build & run the admin panel showcase, then open http://localhost:8097/
-cd examples/admin-demo && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go run .
+cd examples/admin-demo && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go run .
 ```
 
 ### SQL-Backed Read Models (v3.1.0)

@@ -8,8 +8,8 @@ This is a **separate Go module** (`github.com/larsartmann/cqrs-htmx/usermgmt/v4`
 
 ```bash
 cd usermgmt
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go build ./...
-GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+GOWORK=off GOPRIVATE='github.com/larsartmann/*' go build ./...
+GOWORK=off GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race
 GOWORK=off golangci-lint run
 ```
 

@@ -31,17 +31,17 @@ Root module runs in workspace mode (uses `go.work`). Submodules need `GOWORK=off
 
 ```bash
 # Root
-GONOSUMCHECK='github.com/larsartmann/*' go build ./...
-GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+GOPRIVATE='github.com/larsartmann/*' go build ./...
+GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Usermgmt submodule (separate Go module)
-cd usermgmt && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+cd usermgmt && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Admin UI submodule
-cd adminui && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+cd adminui && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Integration tests (separate Go module)
-cd integration_test && GOWORK=off GONOSUMCHECK='github.com/larsartmann/*' go test ./... -count=1 -race
+cd integration_test && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race
 
 # Lint
 golangci-lint run
