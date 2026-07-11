@@ -20,9 +20,10 @@
    components are included in the compiled output. Only needed when
    recompiling admin-tw.css — the committed CSS includes these classes.
 
-   The nix build-adminui-css app generates a temporary tailwind.css with
-   the correct GOMODCACHE path via: go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components
-   Do NOT add a hardcoded @source path here — it breaks portability. */
+   The nix build-adminui-css app copies only *.templ and *_templ.go files
+   from the library to a temp dir (scanning the full module cache causes
+   Tailwind v4 to OOM at ~40 GB). Do NOT add a hardcoded @source path
+   here — it breaks portability. */
 
 /* ---------- Theme tokens (light defaults) ---------- */
 :root {
@@ -108,6 +109,15 @@ body {
    style="background:var(--surface)" instead. text-white is unaffected. */
 .bg-white {
   background-color: var(--surface);
+}
+
+/* Fix double border when display.Table is nested inside display.Card(CardPaddingNone).
+   Table hardcodes border+rounded-lg on its wrapper div; Card has the identical classes.
+   Card always emits overflow-hidden; Table wrapper always emits overflow-x-auto.
+   This selector matches exactly that nesting and suppresses the inner border. */
+.overflow-hidden > .overflow-x-auto {
+  border: 0 !important;
+  border-radius: 0 !important;
 }
 
 /* ---------- HTMX indicator visibility convention ---------- */

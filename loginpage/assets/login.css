@@ -1,0 +1,199 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+:root {
+  --lp-accent: #4f46e5;
+  --lp-bg: #f8fafc;
+  --lp-surface: #ffffff;
+  --lp-text: #1e293b;
+  --lp-muted: #64748b;
+  --lp-border: #e2e8f0;
+  --lp-input-bg: #fff;
+  --lp-input-border: #cbd5e1;
+  --lp-error: #dc2626;
+  --lp-error-bg: #fef2f2;
+  --lp-success: #16a34a;
+  --lp-radius: 14px;
+  --lp-radius-sm: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --lp-bg: #0f172a;
+    --lp-surface: #1e293b;
+    --lp-text: #f1f5f9;
+    --lp-muted: #94a3b8;
+    --lp-border: #334155;
+    --lp-input-bg: #0f172a;
+    --lp-input-border: #475569;
+    --lp-error: #f87171;
+    --lp-error-bg: #450a0a;
+  }
+}
+html {
+  height: 100%;
+}
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: var(--lp-bg);
+  color: var(--lp-text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.lp-container {
+  width: 100%;
+  max-width: 380px;
+}
+.lp-card {
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius);
+  padding: 2rem;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.04);
+}
+.lp-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+.lp-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+.lp-subtitle {
+  color: var(--lp-muted);
+  font-size: 0.875rem;
+}
+.lp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.lp-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--lp-muted);
+  margin-bottom: -0.25rem;
+  display: block;
+}
+.lp-input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.9375rem;
+  background: var(--lp-input-bg);
+  color: var(--lp-text);
+  border: 1px solid var(--lp-input-border);
+  border-radius: var(--lp-radius-sm);
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.lp-input:focus {
+  border-color: var(--lp-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lp-accent) 20%, transparent);
+}
+.lp-input::placeholder {
+  color: var(--lp-muted);
+  opacity: 0.6;
+}
+.lp-btn {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--lp-radius-sm);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.lp-btn-primary {
+  background: var(--lp-accent);
+  color: #fff;
+}
+.lp-btn-primary:hover {
+  background: color-mix(in srgb, var(--lp-accent) 88%, #000);
+}
+.lp-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.lp-btn-loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+.lp-btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: lp-spin 0.6s linear infinite;
+}
+@keyframes lp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.lp-error {
+  background: var(--lp-error-bg);
+  color: var(--lp-error);
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--lp-radius-sm);
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--lp-error) 25%, transparent);
+}
+.lp-toggle {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: var(--lp-muted);
+}
+.lp-toggle a {
+  color: var(--lp-accent);
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+.lp-toggle a:hover {
+  text-decoration: underline;
+}
+.lp-hidden {
+  display: none !important;
+}
+.lp-favicon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  margin: 0 auto 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--lp-accent);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 800;
+}

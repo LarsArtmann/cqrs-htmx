@@ -3,6 +3,7 @@ package adminui
 import (
 	"strconv"
 
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/utils"
@@ -41,63 +42,61 @@ templ usersContent(d usersListData) {
 		</form>
 		<div class="flex-1"></div>
 	</div>
-	@display.Card(display.CardProps{
-		Padding:   display.CardPaddingNone,
-		BaseProps: utils.BaseProps{ID: "users-table"},
-	}) {
-		@usersTable(d)
+	@usersTableContent(d)
+}
+
+templ usersTableContent(d usersListData) {
+	if len(d.Users) == 0 {
+		@display.Card(display.CardProps{Padding: display.CardPaddingNone, BaseProps: utils.BaseProps{ID: "users-table"}}) {
+			@empty("users", "No users found", "Registered users will appear here.")
+		}
+	} else {
+		<div id="users-table">
+			@display.Table(display.TableProps{
+				Headers: []string{"User", "Status", "Created", ""},
+				Hover:   true,
+				Body:    usersRows(d),
+			})
+			@listNote(len(d.Users), d.Total)
+		</div>
 	}
 }
 
-templ usersTable(d usersListData) {
-	if len(d.Users) == 0 {
-		@empty("users", "No users found", "Registered users will appear here.")
-	} else {
-		<div class="overflow-x-auto">
-			<table class="w-full text-sm">
-				<thead>
-					<tr><th class="px-4 py-2 text-left font-semibold text-gray-500">User</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Status</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Created</th><th></th></tr>
-				</thead>
-				<tbody>
-					for _, u := range d.Users {
-						<tr class="border-t border-gray-200 hover:bg-gray-50">
-							<td class="px-4 py-2">
-								<a class="flex no-underline" href={ d.BasePath + "/users/" + u.ID.Get().String() }>
-									<div class="flex items-center gap-2.5">
-										@display.Avatar(display.AvatarProps{Initials: initials(u.Email), Size: display.AvatarSizeSM})
-										<div>
-											<div class="font-medium text-gray-900">{ u.Email }</div>
-											if u.DisplayName != "" {
-												<div class="text-xs text-gray-400">{ u.DisplayName }</div>
-											}
-										</div>
-									</div>
-								</a>
-							</td>
-							<td class="px-4 py-2">
-								<div class="flex flex-wrap gap-1">
-									if u.EmailVerified {
-										@badge("verified", "green")
-									} else {
-										@badge("unverified", "")
-									}
-									if u.TOTPEnabled {
-										@badge("MFA", "blue")
-									}
-								</div>
-							</td>
-							<td class="px-4 py-2 text-gray-500">
-								@display.RelativeTime(display.RelativeTimeProps{Time: u.CreatedAt})
-							</td>
-							<td class="px-4 py-2 text-right">
-								<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users/" + u.ID.Get().String() }>View</a>
-							</td>
-						</tr>
+templ usersRows(d usersListData) {
+	for _, u := range d.Users {
+		<tr>
+			<td class="px-4 py-3">
+				<a class="flex no-underline" href={ d.BasePath + "/users/" + u.ID.Get().String() }>
+					<div class="flex items-center gap-2.5">
+						@display.Avatar(display.AvatarProps{Initials: initials(u.Email), Size: display.AvatarSizeSM})
+						<div>
+							<div class="font-medium text-gray-900">{ u.Email }</div>
+							if u.DisplayName != "" {
+								<div class="text-xs text-gray-400">{ u.DisplayName }</div>
+							}
+						</div>
+					</div>
+				</a>
+			</td>
+			<td class="px-4 py-3">
+				<div class="flex flex-wrap gap-1">
+					if u.EmailVerified {
+						@badge("verified", "green")
+					} else {
+						@badge("unverified", "")
 					}
-				</tbody>
-			</table>
-		</div>
-		@listNote(len(d.Users), d.Total)
+					if u.TOTPEnabled {
+						@badge("MFA", "blue")
+					}
+				</div>
+			</td>
+			<td class="px-4 py-3 text-gray-500">
+				@display.RelativeTime(display.RelativeTimeProps{Time: u.CreatedAt})
+			</td>
+			<td class="px-4 py-3 text-right">
+				<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users/" + u.ID.Get().String() }>View</a>
+			</td>
+		</tr>
 	}
 }
 
@@ -142,27 +141,14 @@ templ userDetailPage(p pageData, d userDetailData) {
 		if len(d.TenantRoles) > 0 {
 			@display.Card(display.CardProps{
 				Title:     "Roles & memberships",
+				Padding:   display.CardPaddingNone,
 				BaseProps: utils.BaseProps{Class: "mb-4"},
 			}) {
-				<div class="overflow-x-auto">
-					<table class="w-full text-sm">
-						<thead><tr><th class="px-4 py-2 text-left font-semibold text-gray-500">Tenant</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Roles</th></tr></thead>
-						<tbody>
-							for tenant, roles := range d.TenantRoles {
-								<tr class="border-t border-gray-200 hover:bg-gray-50">
-									<td class="px-4 py-2 font-mono text-xs">{ tenant }</td>
-									<td class="px-4 py-2">
-										<div class="flex flex-wrap gap-1">
-											for _, r := range roles {
-												@roleBadge(string(r))
-											}
-										</div>
-									</td>
-								</tr>
-							}
-						</tbody>
-					</table>
-				</div>
+				@display.Table(display.TableProps{
+					Headers: []string{"Tenant", "Roles"},
+					Hover:   true,
+					Body:    tenantRolesRows(d.TenantRoles),
+				})
 			}
 		}
 		@display.Card(display.CardProps{
@@ -185,5 +171,20 @@ templ userDetailPage(p pageData, d userDetailData) {
 				})
 			</div>
 		}
+	}
+}
+
+templ tenantRolesRows(tenantRoles map[string][]usermgmt.Role) {
+	for tenant, roles := range tenantRoles {
+		<tr>
+			<td class="px-4 py-3 font-mono text-xs">{ tenant }</td>
+			<td class="px-4 py-3">
+				<div class="flex flex-wrap gap-1">
+					for _, r := range roles {
+						@roleBadge(string(r))
+					}
+				</div>
+			</td>
+		</tr>
 	}
 }

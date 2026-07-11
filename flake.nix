@@ -116,6 +116,8 @@
                   (cd usermgmt/oauth2 && go test ./... -count=1 -race)
                   echo "==> adminui submodule"
                   (cd adminui && go test ./... -count=1 -race)
+                  echo "==> loginpage submodule"
+                  (cd loginpage && go test ./... -count=1 -race)
                   echo "==> integration_test submodule"
                   (cd integration_test && go test ./... -count=1 -race)
                 '';
@@ -135,6 +137,8 @@
                   go test ./... -count=1 -race
                   echo "==> adminui submodule"
                   (cd adminui && go test ./... -count=1 -race)
+                  echo "==> loginpage submodule"
+                  (cd loginpage && go test ./... -count=1 -race)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go test ./... -count=1 -race)
                   echo "==> integration_test submodule"
@@ -244,6 +248,8 @@
                   (cd usermgmt/oauth2 && golangci-lint run)
                   echo "==> adminui submodule"
                   (cd adminui && golangci-lint run)
+                  echo "==> loginpage submodule"
+                  (cd loginpage && golangci-lint run)
                 '';
               };
             };
@@ -269,6 +275,8 @@
                   (cd usermgmt/oauth2 && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                   echo "==> adminui submodule coverage"
                   (cd adminui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                  echo "==> loginpage submodule coverage"
+                  (cd loginpage && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                 '';
               };
             };
@@ -293,6 +301,8 @@
                   (cd usermgmt/oauth2 && go build ./...)
                   echo "==> adminui submodule"
                   (cd adminui && go build ./...)
+                  echo "==> loginpage submodule"
+                  (cd loginpage && go build ./...)
                   echo "==> integration_test submodule"
                   (cd integration_test && go build ./...)
                   echo "==> datastar-demo example"
@@ -345,6 +355,21 @@
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
                   cd adminui
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
+            test-loginpage = {
+              type = "app";
+              meta.description = "Run the loginpage submodule's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-loginpage";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GOPRIVATE='github.com/larsartmann/*'
+                  cd loginpage
                   go test ./... -count=1 -race "$@"
                 '';
               };
@@ -450,16 +475,32 @@
                 ];
                 text = ''
                   cd adminui
-                  # Resolve templ-components module dir at build time so
-                  # Tailwind scans its .templ files for utility classes.
+                  # Resolve templ-components module dir at build time.
                   TC_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components 2>/dev/null || true)
+
                   TMP_CSS=$(mktemp --suffix=.css)
                   cp tailwind.css "$TMP_CSS"
+
                   if [ -n "$TC_DIR" ]; then
-                    echo "@source \"$TC_DIR\";" >> "$TMP_CSS"
+                    # Copy ONLY .templ and _templ.go files to a temp dir.
+                    # Scanning the full module cache makes Tailwind v4 consume
+                    # ~40 GB RAM (it parses every file: tests, golden files,
+                    # docs, Go source). Restricting to generated output keeps
+                    # memory under 1 GB and finishes in seconds.
+                    SCAN_DIR=$(mktemp -d)
+                    for pkg in display errorpage feedback forms htmx icons layout navigation; do
+                      if [ -d "$TC_DIR/$pkg" ]; then
+                        cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                        cp "$TC_DIR/$pkg/"*_templ.go "$SCAN_DIR/" 2>/dev/null || true
+                      fi
+                    done
+                    echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
                   fi
+
                   tailwindcss -i "$TMP_CSS" -o assets/admin-tw.css --minify
+
                   rm -f "$TMP_CSS"
+                  [ -n "''${SCAN_DIR:-}" ] && rm -rf "$SCAN_DIR"
                   echo "Done: adminui/assets/admin-tw.css"
                 '';
               };
@@ -568,7 +609,7 @@
 
             check-codegen = {
               type = "app";
-              meta.description = "Verify adminui _templ.go files match .templ sources (no codegen drift)";
+              meta.description = "Verify adminui + loginpage _templ.go files match .templ sources (no codegen drift)";
               program = pkgs.writeShellApplication {
                 name = "check-codegen";
                 runtimeInputs = [
@@ -576,15 +617,16 @@
                   pkgs.templ
                 ];
                 text = ''
-                  cd adminui
-                  templ generate
-                  gofmt -w *_templ.go
-                  if ! git diff --exit-code -- *_templ.go; then
-                    echo ""
-                    echo "FAIL: Generated _templ.go files differ from committed versions."
-                    echo "Run 'nix run .#gen' to regenerate and commit the result."
-                    exit 1
-                  fi
+                  for mod in adminui loginpage; do
+                    echo "==> $mod"
+                    (cd "$mod" && templ generate && gofmt -w *_templ.go)
+                    if ! git diff --exit-code -- "$mod"/*_templ.go; then
+                      echo ""
+                      echo "FAIL: Generated _templ.go files in $mod differ from committed versions."
+                      echo "Run 'templ generate' in $mod/ and commit the result."
+                      exit 1
+                    fi
+                  done
                   echo "Codegen drift check PASSED"
                 '';
               };
@@ -619,6 +661,7 @@
                   check_cov usermgmt/webauthn 80
                   check_cov usermgmt/oauth2 80
                   check_cov adminui 66
+                  check_cov loginpage 80
                   if [ "$fail" -eq 1 ]; then
                     echo "Coverage gate FAILED"
                     exit 1

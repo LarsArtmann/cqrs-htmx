@@ -9,6 +9,7 @@ use (
 	./examples/catalog-demo
 	./examples/datastar-demo
 	./integration_test
+	./loginpage
 	./usermgmt
 	./usermgmt/oauth2
 	./usermgmt/totp

@@ -59,6 +59,7 @@ export GOPRIVATE='github.com/larsartmann/*'
 GOWORK=off go build ./... 2>/dev/null && echo "OK: root builds" || { echo "FAIL: root build"; FAILED=1; }
 (cd usermgmt && GOWORK=off go build ./... 2>/dev/null) && echo "OK: usermgmt builds" || { echo "FAIL: usermgmt build"; FAILED=1; }
 (cd adminui && GOWORK=off go build ./... 2>/dev/null) && echo "OK: adminui builds" || { echo "FAIL: adminui build"; FAILED=1; }
+(cd loginpage && GOWORK=off go build ./... 2>/dev/null) && echo "OK: loginpage builds" || { echo "FAIL: loginpage build"; FAILED=1; }
 
 # 6. Tags don't already exist for current version
 step "Checking tag freshness"

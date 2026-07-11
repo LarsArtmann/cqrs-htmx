@@ -3,14 +3,13 @@ package usermgmt
 import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 const (
-	aggregateTypeUser       id.AggregateType = "User"
-	aggregateTypeMembership id.AggregateType = "Membership"
-	aggregateTypeTenant     id.AggregateType = "Tenant"
-	aggregateTypeBot        id.AggregateType = "Bot"
+	aggregateTypeUser       event.AggregateType = "User"
+	aggregateTypeMembership event.AggregateType = "Membership"
+	aggregateTypeTenant     event.AggregateType = "Tenant"
+	aggregateTypeBot        event.AggregateType = "Bot"
 
 	eventUserRegistered          event.Type = "UserRegistered"
 	eventRolesUpdated            event.Type = "RolesUpdated" // legacy: no longer emitted, decoded for backward compat

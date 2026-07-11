@@ -14,7 +14,7 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *userm
 	d := usersListData{Users: users, Total: total, Search: q, BasePath: h.cfg.BasePath}
 
 	if r.Header.Get("HX-Request") == "true" {
-		renderPartial(w, r, usersTable(d))
+		renderPartial(w, r, usersTableContent(d))
 		return
 	}
 	p := h.page("Users", "/users", user, r)

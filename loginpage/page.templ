@@ -1,0 +1,82 @@
+package loginpage
+
+templ Page(p PageData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<meta name="color-scheme" content="light dark"/>
+			<meta name="robots" content="noindex"/>
+			<link rel="icon" href={ "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='" + p.Accent + "'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>" + firstRune(p.Brand) + "</text></svg>" }/>
+			if p.CSRFMeta != "" {
+				@templ.Raw(p.CSRFMeta)
+			}
+			<title>{ p.Title }</title>
+			@templ.Raw("<style>:root{--lp-accent:" + p.Accent + ";}" + p.inlineCSS + "</style>")
+			if p.CSSPath != "" {
+				<link rel="stylesheet" href={ p.CSSPath }/>
+			}
+		</head>
+		<body>
+			<main class="lp-container">
+				<div class="lp-card">
+					<div class="lp-header">
+						<div class="lp-favicon">{ firstRune(p.Brand) }</div>
+						<h1 class="lp-brand">{ p.Brand }</h1>
+						<p class="lp-subtitle">{ p.Subtitle }</p>
+					</div>
+					<div id="lp-error" class="lp-error lp-hidden" role="alert"></div>
+					if !p.WebAuthn && len(p.OAuth2Buttons) == 0 {
+						<div class="lp-no-auth">
+							<p>No authentication method is configured.</p>
+							<p class="lp-muted">Set up WebAuthn or OAuth2 in your ServiceConfig to enable login.</p>
+						</div>
+					} else {
+						if p.WebAuthn {
+							<section id="lp-login-section" class="lp-section">
+								<form id="lp-login-form" class="lp-form">
+									<label for="lp-email" class="lp-label">Email</label>
+									<input type="email" id="lp-email" name="email" class="lp-input" placeholder="you@example.com" required autocomplete="email" autofocus=""/>
+									<button type="submit" id="lp-login-btn" class="lp-btn lp-btn-primary">Sign in with passkey</button>
+								</form>
+								if p.ShowReg {
+									<p class="lp-toggle">Don't have an account? <a href="#" id="lp-show-register">Create one</a></p>
+								}
+							</section>
+						}
+						if len(p.OAuth2Buttons) > 0 {
+							if p.WebAuthn {
+								<div class="lp-divider"><span>or</span></div>
+							}
+							<div class="lp-oauth-section">
+								for _, btn := range p.OAuth2Buttons {
+									<a class="lp-btn lp-btn-oauth" href={ p.oauthBeginURL(btn.Provider) }>
+										{ btn.Label }
+									</a>
+								}
+							</div>
+						}
+						if p.ShowReg {
+							<section id="lp-register-section" class="lp-section lp-hidden">
+								<form id="lp-register-form" class="lp-form">
+									<label for="lp-reg-email" class="lp-label">Email</label>
+									<input type="email" id="lp-reg-email" name="email" class="lp-input" placeholder="you@example.com" required autocomplete="email"/>
+									<label for="lp-reg-name" class="lp-label">Display name</label>
+									<input type="text" id="lp-reg-name" name="display_name" class="lp-input" placeholder="Your name"/>
+									<button type="submit" id="lp-register-btn" class="lp-btn lp-btn-primary">Create account</button>
+								</form>
+								<p class="lp-toggle">Already have an account? <a href="#" id="lp-show-login">Sign in</a></p>
+							</section>
+						}
+					}
+				</div>
+			</main>
+			@templ.Raw(p.CSRFField)
+			if p.WebAuthn {
+				@templ.Raw("<script id=\"loginpage-config\" type=\"application/json\">" + p.configJSON + "</script>")
+				@templ.Raw("<script>" + p.inlineJS + "</script>")
+			}
+		</body>
+	</html>
+}
