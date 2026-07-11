@@ -14,6 +14,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"strconv"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -312,8 +313,18 @@ func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.T
 		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.decode_userinfo", "decode userinfo response")
 	}
 	subject := raw.Sub
-	if subject == "" {
-		subject = raw.ID.String()
+	if subject == "" && len(raw.ID) > 0 {
+		// ID may be a JSON string ("12345") or number (12345).
+		// jsontext.Value.String() returns raw JSON including quotes,
+		// so we must properly decode the value.
+		if err := json.Unmarshal(raw.ID, &subject); err != nil {
+			var num int64
+			if err2 := json.Unmarshal(raw.ID, &num); err2 != nil {
+				return userInfo{}, errorfamily.WrapTransient(
+					err2, "oauth2.decode_userinfo_id", "decode userinfo ID field")
+			}
+			subject = strconv.FormatInt(num, 10)
+		}
 	}
 	name := raw.Name
 	if name == "" {

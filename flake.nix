@@ -77,6 +77,7 @@
 
               GOWORK = "off";
               GOPRIVATE = "github.com/larsartmann/*";
+              GOEXPERIMENT = "jsonv2";
             };
 
             ci = pkgs.mkShellNoCC {
@@ -87,6 +88,7 @@
 
               GOWORK = "off";
               GOPRIVATE = "github.com/larsartmann/*";
+              GOEXPERIMENT = "jsonv2";
             };
           };
 
@@ -104,6 +106,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   echo "==> Root module"
                   go test ./... -count=1 -race
                   echo "==> usermgmt submodule"
@@ -133,6 +136,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   echo "==> Root module"
                   go test ./... -count=1 -race
                   echo "==> adminui submodule"
@@ -156,6 +160,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   echo "==> Root module (3 iterations)"
                   go test ./... -count=3 -race
                   echo "==> usermgmt submodule (3 iterations)"
@@ -183,6 +188,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   FUZZTIME="''${FUZZTIME:-30s}"
 
                   echo "==> Root module fuzz tests"
@@ -262,6 +268,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   echo "==> Root module coverage"
                   go test ./... -count=1 -coverprofile=coverage.out
                   go tool cover -func=coverage.out
@@ -289,6 +296,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   echo "==> Root module"
                   go build ./...
                   echo "==> usermgmt submodule"
@@ -325,6 +333,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   go test ./... -count=1 -race "$@"
                 '';
               };
@@ -339,6 +348,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   cd usermgmt
                   go test ./... -count=1 -race "$@"
                 '';
@@ -354,6 +364,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   cd adminui
                   go test ./... -count=1 -race "$@"
                 '';
@@ -369,6 +380,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   cd loginpage
                   go test ./... -count=1 -race "$@"
                 '';
@@ -384,6 +396,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   cd integration_test
                   go test ./... -count=1 -race "$@"
                 '';
@@ -399,6 +412,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   cd usermgmt/totp
                   go test ./... -count=1 -race "$@"
                 '';
@@ -414,6 +428,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   cd usermgmt/webauthn
                   go test ./... -count=1 -race "$@"
                 '';
@@ -429,6 +444,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   cd usermgmt/oauth2
                   go test ./... -count=1 -race "$@"
                 '';
@@ -458,6 +474,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   cd examples/admin-demo
                   go build ./... "$@"
                 '';
@@ -648,6 +665,7 @@
                 text = ''
                   export GOWORK=off
                   export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   fail=0
                   check_cov() {
                     local mod="$1" threshold="$2"

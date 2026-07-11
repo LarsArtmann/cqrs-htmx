@@ -8,7 +8,11 @@ hand-rolled HTML/JS every cqrs-htmx consumer currently writes.
 - Renders a polished login page with WebAuthn (passkey) sign-in
 - Handles the full WebAuthn ceremony client-side (Base64URL helpers,
   `navigator.credentials` prompts, assertion/attestation serialization)
-- Shows OAuth2 sign-in buttons (Google, GitHub, etc.) when configured
+- **Auto-detects OAuth2 providers** — buttons populated from `Service.ConfiguredOAuth2Providers()`
+- **Server-side user ID generation** — registration auto-generates ULID, no client-side ID
+- **Browser WebAuthn detection** — graceful fallback for unsupported browsers
+- **RFC 7807 error parsing** — extracts `title` from Problem Details JSON responses
+- **Accessibility** — `aria-live="polite"` on error regions for screen readers
 - Includes optional registration flow (3-step WebAuthn enrollment)
 - Auto-includes CSRF token (meta tag for JS + hidden form field)
 - Handles all error states with user-friendly messages
@@ -51,13 +55,17 @@ mux.Use(cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}))
 | `CSSPath`        | `string`            | `""`         | Optional consumer stylesheet URL                  |
 | `NoRegistration` | `bool`              | `false`      | Hide the registration section                     |
 | `AuthPrefix`     | `string`            | `""`         | URL prefix for auth API (`/api` → `/api/auth/..`) |
-| `OAuth2Buttons`  | `[]OAuth2Button`    | `nil`        | OAuth2 provider buttons to render                 |
+| `OAuth2Buttons`  | `[]OAuth2Button`    | **auto**     | OAuth2 provider buttons (auto-detected if empty)  |
 | `CredentialName` | `string`            | `"Passkey"`  | Label for newly registered credentials            |
 
 ## OAuth2 buttons
 
-OAuth2 sign-in buttons are full-page redirects (no JavaScript needed). Add them
-via config:
+OAuth2 sign-in buttons are full-page redirects (no JavaScript needed). When
+`OAuth2Buttons` is nil or empty, the page auto-detects configured providers
+via `Service.ConfiguredOAuth2Providers()` and generates buttons with display
+names (e.g., "google" -> "Google", "azure-ad" -> "Azure Ad").
+
+You can also set them explicitly:
 
 ```go
 loginpage.Config{
@@ -109,6 +117,13 @@ overrides.
 - Full dark mode via `prefers-color-scheme: dark`
 - No Tailwind dependency — pure CSS variables
 - The favicon is an inline SVG data-URI with the brand initial
+
+## Browser support
+
+The page detects WebAuthn support at load time. If `navigator.credentials` or
+`PublicKeyCredential` is unavailable (older browsers, insecure contexts), the
+WebAuthn login/registration sections are hidden and a fallback message is shown
+with a link to OAuth2 buttons if configured.
 
 ## What it does NOT do
 

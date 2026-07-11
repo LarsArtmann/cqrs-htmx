@@ -6,6 +6,15 @@
 // navigator.credentials prompts, CSRF token threading, and user-friendly error
 // messages for each WebAuthn failure mode.
 //
+// # Features
+//
+//   - Server-side user ID generation (ULID auto-generated, no client-side ID)
+//   - OAuth2 auto-detection (buttons populated from Service.ConfiguredOAuth2Providers)
+//   - Browser WebAuthn detection (graceful fallback for unsupported browsers)
+//   - RFC 7807 error parsing (extracts title from Problem Details JSON)
+//   - Accessibility (aria-live on error regions for screen readers)
+//   - Zero external asset requests (CSS and JS inlined via go:embed)
+//
 // # Quick start
 //
 //	loginHandler, err := loginpage.New(loginpage.Config{
@@ -19,6 +28,13 @@
 //
 // The consumer must also register the usermgmt auth API endpoints
 // (svc.AuthHandler().RegisterRoutes) and CSRF middleware on the same mux.
+//
+// # OAuth2 auto-detection
+//
+// When [Config.OAuth2Buttons] is empty, the page auto-detects configured OAuth2
+// providers via Service.ConfiguredOAuth2Providers() and generates buttons with
+// display names (e.g., "google" -> "Google"). Set OAuth2Buttons explicitly to
+// override labels or limit which providers are shown.
 //
 // # Self-contained
 //

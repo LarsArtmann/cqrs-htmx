@@ -27,65 +27,76 @@ jobs:
         run: go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Build usermgmt submodule
         run: cd usermgmt && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Build usermgmt/totp submodule
         run: cd usermgmt/totp && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Build usermgmt/webauthn submodule
         run: cd usermgmt/webauthn && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Build usermgmt/oauth2 submodule
         run: cd usermgmt/oauth2 && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Build adminui submodule
         run: cd adminui && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Build integration_test submodule
         run: cd integration_test && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Build datastar-demo example
         run: cd examples/datastar-demo && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
 
       - name: Build admin-demo example
         run: cd examples/admin-demo && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Build basic example
         run: cd examples/basic && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Build catalog-demo example
         run: cd examples/catalog-demo && go build ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
 
   test:
     runs-on: ubuntu-latest
@@ -100,42 +111,49 @@ jobs:
         run: go test ./... -count=1 -race -coverprofile=coverage.out
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Test usermgmt submodule
         run: cd usermgmt && go test ./... -count=1 -race -coverprofile=coverage.out
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Test usermgmt/totp submodule
         run: cd usermgmt/totp && go test ./... -count=1 -race
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Test usermgmt/webauthn submodule
         run: cd usermgmt/webauthn && go test ./... -count=1 -race
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Test usermgmt/oauth2 submodule
         run: cd usermgmt/oauth2 && go test ./... -count=1 -race
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Test adminui submodule
         run: cd adminui && go test ./... -count=1 -race
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Test integration_test submodule
         run: cd integration_test && go test ./... -count=1 -race
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Coverage check
@@ -166,6 +184,7 @@ jobs:
           args: "--timeout=5m"
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (usermgmt)
@@ -176,6 +195,7 @@ jobs:
           args: "--timeout=5m"
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (adminui)
@@ -186,6 +206,7 @@ jobs:
           args: "--timeout=5m"
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
   mod-tidy:
@@ -205,6 +226,7 @@ jobs:
           done
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
   module-architecture:
@@ -245,6 +267,7 @@ jobs:
           args: "-no-fail -fmt sarif -out results.sarif ./..."
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: govulncheck
@@ -253,6 +276,7 @@ jobs:
           govulncheck ./...
         env:
           GOWORK: off
+          GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Upload SARIF
