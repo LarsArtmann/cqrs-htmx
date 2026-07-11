@@ -197,3 +197,42 @@ body {
   font-size: 1.5rem;
   font-weight: 800;
 }
+.lp-oauth-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.lp-btn-oauth {
+  background: var(--lp-surface);
+  color: var(--lp-text);
+  border: 1px solid var(--lp-input-border);
+  text-decoration: none;
+}
+.lp-btn-oauth:hover {
+  background: var(--lp-bg);
+  border-color: var(--lp-accent);
+}
+.lp-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  color: var(--lp-muted);
+  font-size: 0.8125rem;
+}
+.lp-divider::before,
+.lp-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--lp-border);
+}
+.lp-no-auth {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+.lp-muted {
+  color: var(--lp-muted);
+  font-size: 0.8125rem;
+  margin-top: 0.25rem;
+}

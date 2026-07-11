@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
@@ -38,6 +39,18 @@ type PageData struct {
 // oauthBeginURL returns the OAuth2 begin-login URL for the given provider.
 func (p PageData) oauthBeginURL(provider string) string {
 	return p.authPrefix + "/auth/oauth/" + provider + "/begin"
+}
+
+// faviconURI returns an inline SVG data-URI favicon using the brand initial
+// and accent color. Returns templ.SafeURL to bypass templ's URL sanitizer
+// (which rejects data: URIs by default).
+func (p PageData) faviconURI() templ.SafeURL {
+	svg := "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>" +
+		"<rect width='100' height='100' rx='20' fill='" + p.Accent + "'/>" +
+		"<text x='50' y='70' font-size='60' text-anchor='middle' fill='white'" +
+		" font-family='sans-serif' font-weight='bold'>" + firstRune(p.Brand) +
+		"</text></svg>"
+	return templ.SafeURL("data:image/svg+xml," + svg)
 }
 
 // endpointConfig is injected as JSON into the page so the client-side JS knows
