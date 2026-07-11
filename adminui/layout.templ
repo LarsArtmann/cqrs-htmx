@@ -1,5 +1,7 @@
 package adminui
 
+import "github.com/larsartmann/templ-components/display"
+
 templ Layout(p pageData) {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -67,7 +69,7 @@ templ Layout(p pageData) {
 						}
 						if p.User != nil {
 							<div class="flex items-center gap-2 font-medium text-gray-500">
-								<span class="grid h-7 w-7 place-items-center rounded-full text-xs font-semibold text-white" style="background:var(--accent)">{ initials(p.User.Email) }</span>
+								@display.Avatar(display.AvatarProps{Initials: initials(p.User.Email), Size: display.AvatarSizeSM})
 								{ p.User.Email }
 							</div>
 							if p.LogoutURL != "" {

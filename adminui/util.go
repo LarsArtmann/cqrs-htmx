@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/forms"
 )
 
 // errConfig returns a Rejection-family error for invalid configuration.
@@ -88,13 +89,20 @@ func capList[T any](in []T) ([]T, int) {
 	return in[:MaxListRows], total
 }
 
-// selectedAttr returns "selected" when role is in current, empty otherwise.
-// Used by templ to render the selected attribute on <option> elements.
-func selectedAttr(current []usermgmt.Role, role usermgmt.Role) string {
-	if slices.Contains(current, role) {
-		return "selected"
+// roleSelectOptions builds a []forms.SelectOption from assignable roles,
+// marking the member's current roles as selected. Used by the members table
+// role dropdowns.
+func roleSelectOptions(assignable []usermgmt.Role, current []usermgmt.Role) []forms.SelectOption {
+	opts := make([]forms.SelectOption, len(assignable))
+	for i, r := range assignable {
+		opts[i] = forms.SelectOption{
+			Value:    string(r),
+			Label:    string(r),
+			Selected: slices.Contains(current, r),
+			Disabled: false,
+		}
 	}
-	return ""
+	return opts
 }
 
 // navBg returns the CSS background value for a nav item based on active state.
