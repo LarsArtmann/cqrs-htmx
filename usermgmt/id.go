@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"crypto/sha256"
+	"encoding/json/v2"
 	"fmt"
 	"strings"
 
@@ -163,4 +164,19 @@ func ParseActorID(s string) ActorID {
 		return ActorID{kind: ActorUser, raw: after}
 	}
 	return ActorID{kind: ActorUser, raw: s}
+}
+
+// MarshalJSON encodes ActorID as its prefixed string form (e.g. "user:01JX...").
+func (a ActorID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.PrefixedString())
+}
+
+// UnmarshalJSON decodes ActorID from its prefixed string form.
+func (a *ActorID) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	*a = ParseActorID(s)
+	return nil
 }

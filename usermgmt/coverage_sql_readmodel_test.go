@@ -14,7 +14,7 @@ func makeEventFor(
 	eventType event.Type,
 	version event.Version,
 	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	payload any,
 ) event.Event {
 	t.Helper()
