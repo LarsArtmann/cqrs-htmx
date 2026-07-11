@@ -158,7 +158,15 @@ func buildPageData(cfg Config, r *http.Request) PageData {
 	}
 
 	hasWebAuthn := cfg.Service.HasWebAuthn()
-	hasOAuth2 := len(cfg.OAuth2Buttons) > 0
+
+	// Auto-populate OAuth2 buttons from configured providers when not explicitly set.
+	oauth2Buttons := cfg.OAuth2Buttons
+	if len(oauth2Buttons) == 0 {
+		for _, name := range cfg.Service.ConfiguredOAuth2Providers() {
+			oauth2Buttons = append(oauth2Buttons, OAuth2ButtonFromProvider(name))
+		}
+	}
+	hasOAuth2 := len(oauth2Buttons) > 0
 	showReg := !cfg.NoRegistration && hasWebAuthn
 
 	subtitle := "Sign in to your account"
@@ -173,7 +181,7 @@ func buildPageData(cfg Config, r *http.Request) PageData {
 		Accent:        cfg.AccentColor,
 		CSSPath:       cfg.CSSPath,
 		WebAuthn:      hasWebAuthn,
-		OAuth2Buttons: cfg.OAuth2Buttons,
+		OAuth2Buttons: oauth2Buttons,
 		ShowReg:       showReg,
 		authPrefix:    cfg.AuthPrefix,
 		inlineCSS:     loginCSS,

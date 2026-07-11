@@ -39,7 +39,17 @@ func TestHandlers_Register_DuplicateEmail(t *testing.T) {
 	assertStatusCode(t, w, http.StatusConflict)
 }
 
-func TestHandlers_BadRequestBody(t *testing.T) {
+func TestHandlers_Register_AutoGenerateID(t *testing.T) {
+	_, mux := setupMux(t)
+	w := postJSON(t, mux, "/auth/register", `{"email":"autoid@test.com","display_name":"Auto"}`)
+	assertStatusCode(t, w, http.StatusCreated)
+	resp := decodeJSON[RegisterResponse](t, w)
+	if resp.User.ID.IsZero() {
+		t.Error("server should auto-generate a user ID when none is provided")
+	}
+}
+
+func TestHandlers_Register_BadRequestBody(t *testing.T) {
 	_, mux := setupMux(t)
 	w := postJSON(t, mux, "/auth/register", "not json")
 	assertStatusCode(t, w, http.StatusBadRequest)
