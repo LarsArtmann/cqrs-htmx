@@ -19,6 +19,7 @@ MODULES=(
     "usermgmt/webauthn"
     "usermgmt/oauth2"
     "adminui"
+    "loginpage"
     "integration_test"
 )
 

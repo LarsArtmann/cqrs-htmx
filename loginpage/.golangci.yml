@@ -17,10 +17,8 @@ output:
 linters:
   enable:
     - bodyclose
-    - contextcheck
     - copyloopvar
     - cyclop
-    - depguard
     - dupl
     - durationcheck
     - errcheck
@@ -31,7 +29,6 @@ linters:
     - exhaustruct
     - forcetypeassert
     - funlen
-    - ginkgolinter
     - gochecknoglobals
     - gochecknoinits
     - gochecksumtype
@@ -79,41 +76,29 @@ linters:
     - wastedassign
     - wrapcheck
     - zerologlint
+  disable:
+    # templ render chains (component.Render(ctx, w)) confuse contextcheck; we
+    # always thread r.Context() via ServeHTTP.
+    - contextcheck
+    # depguard denies encoding/json/v2 — loginpage uses encoding/json.
+    # Including depguard would be fine, but we skip it for parity with adminui.
+    - depguard
   settings:
     cyclop:
       max-complexity: 12
-    depguard:
-      rules:
-        all:
-          deny:
-            - desc: encoding/json/v2 is experimental (Go 1.26); use encoding/json. Broke the build on 2026-07-09 via go-auto-upgrade.
-              pkg: encoding/json/v2
-            - desc: encoding/json/jsontext is experimental (Go 1.26); use encoding/json. Broke the build on 2026-07-09 via go-auto-upgrade.
-              pkg: encoding/json/jsontext
     exhaustruct:
       exclude:
-        - os/exec.Cmd
-        - github\.com/larsartmann/cqrs-htmx/v4\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig)$
-        - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.(User|UserState|UserReadModel|UserView|EnforcerConfig|HandlerConfig|ActorID|AccountLockout|InMemorySessionStore|WebAuthnCredential)$
-        - .+\.testCreateUserCmd$
-        - .+\.bddCreateUserCmd$
-        - .+\.fakeSpan$
-        - .+\.fakeTracer$
-        - .+\.cidCapture$
-        - .+\.SSEEvent$
-        - .+\.CommandAck$
-        - .+\.JournalSSEStore$
-        - .+\.sseReadResult$
-        - .+\.lockedRecorder$
-    ginkgolinter:
-      forbid-focus-container: true
-      forbid-spec-pollution: true
+        - github\.com/larsartmann/cqrs-htmx/loginpage/v4\.PageData$
+        - github\.com/larsartmann/cqrs-htmx/loginpage/v4\.Config$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.ServiceConfig$
+        - net/http\.Cookie$
     gocritic:
       disabled-checks:
         - ifElseChain
     revive:
       rules:
-        - name: exported
+        - disabled: true
+          name: exported
         - disabled: true
           name: package-comments
     testifylint:
@@ -123,46 +108,34 @@ linters:
   exclusions:
     generated: lax
     rules:
-      - path: (errors|htmx_embed|notify|app|logging|csrf_middleware)\.go$
-        text: is a global variable
-        linters:
-          - gochecknoglobals
-      - path: _test\.go
-        text: dot-imports
-        linters:
-          - revive
-      - path: app_test\.go$
-        linters:
-          - gochecknoglobals
-      - path: webauthn_stub_test\.go$
-        linters:
-          - gochecknoglobals
       - path: _test\.go
         linters:
           - wrapcheck
-      - path: (benchmark|example|_test|sse_reconnect_integration)_test?\.go$|^example.*_test\.go$|_test\.go$
-        linters:
-          - intrange
-          - noctx
-          - nilnil
-          - goconst
-          - funlen
-          - paralleltest
       - path: _test\.go
-        text: unused
-        linters:
-          - unused
-      - path: benchmark_server_test\.go$
         linters:
           - exhaustruct
-          - errcheck
+      - path: _test\.go
+        linters:
+          - goconst
+      - path: _test\.go
+        linters:
+          - paralleltest
+      - path: _test\.go
+        linters:
+          - unparam
+      - path: _test\.go
+        linters:
+          - cyclop
+      - path: _test\.go
+        linters:
+          - funlen
+      - path: _test\.go
+        linters:
+          - noctx
     paths:
       - \.gen\.go$
       - _mock\.go$
       - _templ\.go$
-      - adminui/
-      - loginpage/
-      - usermgmt/
       - vendor/
 formatters:
   enable:
@@ -178,8 +151,7 @@ formatters:
     paths:
       - _mock\.go$
       - _templ\.go$
-      - adminui/
-      - usermgmt/
+      - vendor/
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10

@@ -17,40 +17,11 @@ templ membersCard(d tenantDetailData) {
 		if len(d.Members) == 0 {
 			@empty("members", "No members", "Add a user below to grant tenant access.")
 		} else {
-			<div class="overflow-x-auto">
-				<table class="w-full text-sm">
-					<thead><tr><th class="px-4 py-2 text-left font-semibold text-gray-500">Actor</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Role</th><th></th></tr></thead>
-					<tbody>
-						for _, m := range d.Members {
-							<tr class="border-t border-gray-200 hover:bg-gray-50">
-								<td class="px-4 py-2 font-mono text-xs">{ m.Actor.PrefixedString() }</td>
-								<td class="px-4 py-2">
-									<form class="flex items-center gap-1.5" hx-post={ d.UpdateRoleBase + "/" + m.Actor.PrefixedString() }>
-										@forms.Select(forms.SelectProps{
-											Name:      "role",
-											Options:   roleSelectOptions(d.AssignableRoles, m.Roles),
-											BaseProps: utils.BaseProps{Class: "max-w-[120px]"},
-										})
-										@display.Button(display.ButtonProps{Text: "Set", Type: display.ButtonHTMLSubmit, Variant: display.ButtonSecondary, Size: display.ButtonSizeSM})
-									</form>
-								</td>
-								<td class="px-4 py-2 text-right">
-									@display.Button(display.ButtonProps{
-										Variant: display.ButtonSecondary,
-										Size:    display.ButtonSizeSM,
-										Icon:    icon("trash"),
-										BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-											"hx-post":      d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
-											"hx-confirm":   "Remove " + m.Actor.PrefixedString() + " from this tenant?",
-											"data-confirm": "Remove " + m.Actor.PrefixedString() + " from this tenant?",
-										}},
-									})
-								</td>
-							</tr>
-						}
-					</tbody>
-				</table>
-			</div>
+			@display.Table(display.TableProps{
+				Headers: []string{"Actor", "Role", ""},
+				Hover:   true,
+				Body:    membersRows(d),
+			})
 		}
 		<div class="border-t border-gray-200 pt-4 mt-4">
 			<form class="flex items-center gap-2" hx-post={ d.AddMemberURL }>
@@ -75,6 +46,36 @@ templ membersCard(d tenantDetailData) {
 				})
 			</form>
 		</div>
+	}
+}
+
+templ membersRows(d tenantDetailData) {
+	for _, m := range d.Members {
+		<tr>
+			<td class="px-4 py-3 font-mono text-xs">{ m.Actor.PrefixedString() }</td>
+			<td class="px-4 py-3">
+				<form class="flex items-center gap-1.5" hx-post={ d.UpdateRoleBase + "/" + m.Actor.PrefixedString() }>
+					@forms.Select(forms.SelectProps{
+						Name:      "role",
+						Options:   roleSelectOptions(d.AssignableRoles, m.Roles),
+						BaseProps: utils.BaseProps{Class: "max-w-[120px]"},
+					})
+					@display.Button(display.ButtonProps{Text: "Set", Type: display.ButtonHTMLSubmit, Variant: display.ButtonSecondary, Size: display.ButtonSizeSM})
+				</form>
+			</td>
+			<td class="px-4 py-3 text-right">
+				@display.Button(display.ButtonProps{
+					Variant: display.ButtonSecondary,
+					Size:    display.ButtonSizeSM,
+					Icon:    icon("trash"),
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"hx-post":      d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
+						"hx-confirm":   "Remove " + m.Actor.PrefixedString() + " from this tenant?",
+						"data-confirm": "Remove " + m.Actor.PrefixedString() + " from this tenant?",
+					}},
+				})
+			</td>
+		</tr>
 	}
 }
 

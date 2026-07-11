@@ -18,37 +18,40 @@ templ dashboardContent(d dashboardData) {
 			@statCardView(s)
 		}
 	}
-	@display.Card(display.CardProps{
-		Title:   "Recent activity",
-		Padding: display.CardPaddingNone,
-	}) {
-		if len(d.Recent) == 0 {
+	if len(d.Recent) == 0 {
+		@display.Card(display.CardProps{Title: "Recent activity", Padding: display.CardPaddingNone}) {
 			@empty("audit", "No activity yet", "User and tenant events will appear here.")
-		} else {
-			<div class="overflow-x-auto">
-				<table class="w-full text-sm">
-					<thead>
-						<tr><th class="px-4 py-2 text-left font-semibold text-gray-500">Action</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Who</th><th class="px-4 py-2 text-left font-semibold text-gray-500">When</th></tr>
-					</thead>
-					<tbody>
-						for _, e := range d.Recent {
-							<tr class="border-t border-gray-200 hover:bg-gray-50">
-								<td class="px-4 py-2"><span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white" style="background:var(--accent)">{ e.Action }</span></td>
-								<td class="px-4 py-2">
-									if e.Email != "" {
-										<span class="font-medium">{ e.Email }</span>
-									} else {
-										<span class="font-mono text-xs">{ e.AggregateID.String() }</span>
-									}
-								</td>
-								<td class="px-4 py-2 text-gray-500">
-									@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
-								</td>
-							</tr>
-						}
-					</tbody>
-				</table>
-			</div>
 		}
+	} else {
+		@display.Card(display.CardProps{
+			Title:   "Recent activity",
+			Padding: display.CardPaddingNone,
+		}) {
+			@display.Table(display.TableProps{
+				Headers: []string{"Action", "Who", "When"},
+				Hover:   true,
+				Body:    recentActivityRows(d),
+			})
+		}
+	}
+}
+
+templ recentActivityRows(d dashboardData) {
+	for _, e := range d.Recent {
+		<tr>
+			<td class="px-4 py-3">
+				@badge(e.Action, "accent")
+			</td>
+			<td class="px-4 py-3">
+				if e.Email != "" {
+					<span class="font-medium">{ e.Email }</span>
+				} else {
+					<span class="font-mono text-xs">{ e.AggregateID.String() }</span>
+				}
+			</td>
+			<td class="px-4 py-3 text-gray-500">
+				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
+			</td>
+		</tr>
 	}
 }

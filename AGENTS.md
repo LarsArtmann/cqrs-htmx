@@ -179,6 +179,14 @@ cqrs-htmx/
 │   ├── *_templ.go      # GENERATED templ output — committed so consumers run no codegen
 │   ├── handler_*.go    # per-section HTTP handlers (dashboard/users/tenants/members/audit)
 │   └── assets/         # admin-tw.css (compiled Tailwind + sync-state CSS) + admin.js (toasts, mobile nav, SSE ACK, offline queue) + sync-worker.js (SharedWorker, ADR-0029)
+├── loginpage/             # Ready-made passwordless login page (9th Go module, templ + embedded JS)
+│   ├── go.mod          # Independent Go module — depends on root + usermgmt + a-h/templ
+│   ├── config.go       # Config (Service, Title, Redirect, AccentColor, CSSPath, NoRegistration, AuthPrefix)
+│   ├── handler.go      # Handler, New(), ServeHTTP, Mount() — renders self-contained HTML page
+│   ├── page.templ      # Page(PageData) — full standalone login page templ component (exported for embedding)
+│   ├── page_templ.go   # GENERATED templ output — committed so consumers run no codegen
+│   ├── assets.go       # go:embed login.css + login.js
+│   └── assets/         # login.css (themed CSS with dark mode) + login.js (WebAuthn ceremony: begin/prompt/finish, base64url helpers, error handling)
 ├── integration_test/ # Cross-module integration tests (3rd Go module)
 └── examples/
     ├── basic/         # Minimal cqrs-htmx consumer example (register/list items)
@@ -197,6 +205,7 @@ cqrs-htmx/
 | usermgmt/webauthn | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4` | Yes   | WebAuthn passkeys (go-webauthn) — implements WebAuthnProvider |
 | usermgmt/oauth2   | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`   | Yes   | OAuth2/OIDC (oauth2+oidc) — implements OAuth2Provider         |
 | adminui           | `github.com/larsartmann/cqrs-htmx/adminui/v4`           | Yes   | Admin Dashboard UI (templ+HTMX), depends on root+usermgmt     |
+| loginpage         | `github.com/larsartmann/cqrs-htmx/loginpage/v4`         | Yes   | Passwordless login page (templ+embedded WebAuthn JS)          |
 | integration_test  | `github.com/larsartmann/cqrs-htmx/integration_test`     | Yes   | Tests cross-module bridges                                    |
 | datastar-demo     | `examples/datastar-demo/`                               | No    | Standalone example (main package)                             |
 | catalog-demo      | `examples/catalog-demo/`                                | No    | Catalog doc-server example (main package)                     |
@@ -458,35 +467,52 @@ cqrs-htmx/
 - **Two scopes**: `ModeSuperAdmin` (global: dashboard/users/tenants/audit) and `ModeTenantAdmin` (scoped to `Config.TenantID`: dashboard/members/audit). Route table is built per-mode — tenant-admin mode does NOT register `/users` or `/tenants`, so they 404 (dashboard anchored with `GET /{$}` so it doesn't catch-all).
 - **Auth-agnostic**: Panel reads `*usermgmt.User` from context (consumer's `NewSessionMiddleware`). No user → 401; authorizer fail → 403. Default authorizer is role-based (overridable via `Config.Authorizer`); helpers `RequireAnyRole(service, domain, roles...)` and `RequireAuthenticated()`.
 - **No build step for consumers**: Compiled Tailwind v4 CSS (`assets/admin-tw.css`) + tiny vanilla JS (`assets/admin.js`) embedded via `go:embed`. Light/dark via `prefers-color-scheme`; accent color injected inline from `Config.AccentColor`. CSS recompiled via `nix run .#build-adminui-css` (resolves templ-components source via `go list -m` for Tailwind `@source` scanning).
-- **templ-components adoption (2026-07-10)**: adminui uses `github.com/larsartmann/templ-components` v0.13.0 for 15 UI components. The library shares the Tailwind v4 class language with adminui's CSS-variable theme via a `.bg-white { background-color: var(--surface) }` bridge in `tailwind.css`. When recompiling CSS, the nix build app injects `@source "$GOMODCACHE/templ-components@v0.13.0"` dynamically — never hardcode the path in `tailwind.css` (breaks portability).
+- **templ-components adoption (2026-07-11)**: adminui uses `github.com/larsartmann/templ-components` v0.15.0 for 19 UI components. The library shares the Tailwind v4 class language with adminui's CSS-variable theme via a `.bg-white { background-color: var(--surface) }` bridge in `tailwind.css`. The `@theme` block maps gray-50 through gray-900 to adminui CSS variables so library components (Table, Card, Badge, etc.) render correctly in both light and dark mode. When recompiling CSS, copy only `*.templ`/`*_templ.go` from each library package to a temp dir and use `@source` on that (scanning the full module cache causes OOM).
 
-  | Library component        | Status      | Where                                                                   |
-  | ------------------------ | ----------- | ----------------------------------------------------------------------- |
-  | `icons.IconPathData`     | adopted     | `icons.go` (all icon rendering)                                         |
-  | `display.Avatar`         | adopted     | `layout.templ`, `users.templ`                                           |
-  | `display.Badge`          | adopted     | `components.templ` (badge/roleBadge)                                    |
-  | `display.Button`         | adopted     | `tenants.templ`, `members.templ`, `users.templ`                         |
-  | `display.Card`           | adopted     | `dashboard.templ`, `audit.templ`                                        |
-  | `display.Grid`           | adopted     | `dashboard.templ`                                                       |
-  | `display.StatCard`       | adopted     | `components.templ` (statCardView)                                       |
-  | `display.EmptyState`     | adopted     | `components.templ` (empty)                                              |
-  | `display.RelativeTime`   | adopted     | `users.templ`, `dashboard.templ`, `audit.templ`                         |
-  | `display.ListNote`       | adopted     | `components.templ` (listNote)                                           |
-  | `forms.Input`            | adopted     | `users.templ` (search), `tenants.templ` (form), `members.templ` (email) |
-  | `forms.Select`           | adopted     | `members.templ` (role dropdowns)                                        |
-  | `feedback.Spinner`       | removed     | was dead code, deleted                                                  |
-  | `display.DefinitionList` | not adopted | user detail `<dl>` has mixed badge content, poor fit                    |
+  | Library component        | Status  | Where                                                                                                         |
+  | ------------------------ | ------- | ------------------------------------------------------------------------------------------------------------- |
+  | `icons.IconPathData`     | adopted | `icons.go` (all icon rendering)                                                                               |
+  | `display.Avatar`         | adopted | `layout.templ`, `users.templ`                                                                                 |
+  | `display.Badge`          | adopted | `components.templ` (badge/roleBadge)                                                                          |
+  | `display.Button`         | adopted | `tenants.templ`, `members.templ`, `users.templ`                                                               |
+  | `display.Card`           | adopted | `dashboard.templ`, `audit.templ`, `users.templ`, `tenants.templ`, `members.templ`                             |
+  | `display.Grid`           | adopted | `dashboard.templ`, `users.templ` (GridColsAutoFit + MinColWidth)                                              |
+  | `display.StatCard`       | adopted | `components.templ` (statCardView), `users.templ` (detail metrics)                                             |
+  | `display.EmptyState`     | adopted | `components.templ` (empty)                                                                                    |
+  | `display.RelativeTime`   | adopted | `users.templ`, `dashboard.templ`, `audit.templ`                                                               |
+  | `display.ListNote`       | adopted | `components.templ` (listNote)                                                                                 |
+  | `display.Table`          | adopted | `users.templ`, `dashboard.templ`, `audit.templ`, `tenants.templ`, `members.templ` (Body slot for custom rows) |
+  | `display.DefinitionList` | adopted | `users.templ` (user detail — DetailComponent for badges/CopyButton)                                           |
+  | `display.CopyButton`     | adopted | `components.templ` (userIDDetail — copy user ID to clipboard)                                                 |
+  | `forms.Input`            | adopted | `users.templ` (search), `tenants.templ` (form), `members.templ` (email)                                       |
+  | `forms.Select`           | adopted | `members.templ` (role dropdowns)                                                                              |
+  | `feedback.Spinner`       | removed | was dead code, deleted                                                                                        |
 
 - **HTMX patterns**: Live user search = `GET /users` returns full page, but `HX-Request` returns just the table fragment (`renderPartial`); `hx-select`/`hx-target` swap it; `hx-push-url` syncs URL. Destructive actions use `hx-confirm` + `data-confirm` (JS double-confirm) → POST → `HX-Redirect` (via `redirect()`). Toasts via `HX-Trigger: {"adminui:toast": {...}}` consumed by `admin.js`.
 - **usermgmt additions**: `Service.TenantMembers(ctx, tenantID) []*Membership` (read), plus `Service.AddMember/UpdateMemberRoles/RemoveMember` (write) and `ParseActorID(s) ActorID` (inverse of `ActorID.PrefixedString`, for round-tripping actor identity through member URLs). The panel manages members end-to-end: add by email + role, remove per row — both super-admin (on `/tenants/{id}`) and tenant-admin (on `/members`).
 - **errorfamily**: adminui follows the no-stdlib-error-constructors rule (`errConfig`/`errForbidden` use `event.NewRejection`). HTTP handlers mostly emit message strings (not error objects), so the rule is naturally satisfied.
 - **Tests**: stdlib `testing` + `httptest` (not ginkgo) — pragmatic for a rendering/HTTP-glue module. `seed_render_test.go` is the end-to-end smoke test (seeds users+tenants, asserts they render, exercises search + tenant suspend via HX-Redirect).
 
+### Login Page module (loginpage) — 2026-07-11
+
+- **PURPOSE**: A ready-made, self-contained passwordless login page that eliminates the 200+ lines of hand-rolled HTML/JS every consumer currently writes. Handles WebAuthn (passkey) login and registration ceremonies entirely client-side.
+- **Leaf integration module**: `loginpage` depends on root `cqrs-htmx/v4` (CSRF helpers) + `usermgmt/v4` (Service, HasWebAuthn) + `a-h/templ`. Nothing depends on it.
+- **Option C (both handler + templ component)**: `New(Config)` returns an `*Handler` that serves a full standalone page (Option A). The exported `Page(PageData)` templ component lets consumers embed the login page in their own layout (Option B). This mirrors adminui's approach.
+- **Self-contained**: CSS and JS are inlined via `go:embed` + `@templ.Raw()`. No external asset requests, no build step, no CDN. One HTML response contains everything. Consumers can optionally link additional CSS via `Config.CSSPath`.
+- **Embedded WebAuthn JS** (`assets/login.js`): The JS handles the full ceremony: (1) Base64URL ↔ ArrayBuffer conversion (identical in every consumer), (2) Login flow: POST `/auth/webauthn/login/begin` → `navigator.credentials.get()` → serialize assertion → POST `/auth/webauthn/login/finish` → redirect, (3) Registration flow: POST `/auth/register` (generates `crypto.randomUUID()` for user ID) → POST `/auth/webauthn/register/begin` → `navigator.credentials.create()` → serialize attestation → POST `/auth/webauthn/register/finish` → redirect, (4) Error handling: `NotAllowedError` → "cancelled", `SecurityError` → "domain not authorized", network errors → "could not reach server".
+- **CSRF auto-included**: The handler injects `CSRFTokenHTMLMeta(r)` (meta tag for JS) and `CSRFTokenFormField(r)` (hidden field for progressive enhancement) automatically. The JS reads the token from the meta tag and sends it as `X-CSRF-Token` header on all fetch requests.
+- **Adaptive rendering**: Registration section is shown only when `Service.HasWebAuthn()` is true AND `Config.NoRegistration` is false. When no auth method is configured, the subtitle changes to "No authentication method is configured."
+- **Config**: `{Service (required), Title, Brand, Redirect, AccentColor, CSSPath, NoRegistration, AuthPrefix}`. `AuthPrefix` remaps API endpoint paths (default `/auth/...`, set to `/api` for `/api/auth/...`).
+- **Theming**: CSS variables for accent color (injected from `Config.AccentColor`), full dark mode via `prefers-color-scheme`, no Tailwind dependency. The page shows a branded favicon square (first letter of `Config.Brand`).
+- **templ v0.3.1020 quirk**: `<style>` and `<script>` tag content is treated as raw text — `{ expr }` interpolation does NOT work inside these tags. All dynamic content (CSS variables, config JSON, JS) must be injected via `@templ.Raw("..." + expr + "...")`.
+- **Service.HasWebAuthn/HasOAuth2/HasTOTP**: New exported methods on `usermgmt.Service` (added in `service_auth_methods.go`) — simple nil checks on the provider fields. Used by loginpage to detect which auth methods are configured.
+- **Tests**: stdlib `testing` + `httptest` — 16 tests covering config validation, page rendering, CSRF injection, endpoint URLs, registration visibility, accent color, CSS path, auth prefix, safe redirects, and the templ component.
+
 ## Key Gotchas
 
 ### Module & Build
 
-1. **GOWORK=off required**: `go.work` covers root + adminui + usermgmt + integration_test + examples. `GOWORK=off` needed for CI/commands using per-module go.mod. **Note**: ALL module go.mod files (root, usermgmt, adminui, integration_test, examples) have a `replace` directive for `event/v3/eventtest` → `.vendor-local/eventtest/` (go-cqrs-lite bug — the eventtest tag is misnamed `event/v3/eventtest/v0.1.0` instead of `event/v3/eventtest/v3.x.0`, making it unresolvable via `go mod download`). This is needed for `go mod tidy` under GOWORK=off (go.work's replace is not applied during tidy). The `.vendor-local/eventtest/go.mod` is kept in sync with the latest go-cqrs-lite versions
+1. **GOWORK=off required**: `go.work` covers root + adminui + loginpage + usermgmt + integration_test + examples. `GOWORK=off` needed for CI/commands using per-module go.mod. **Note**: ALL module go.mod files (root, usermgmt, adminui, integration_test, examples) have a `replace` directive for `event/v3/eventtest` → `.vendor-local/eventtest/` (go-cqrs-lite bug — the eventtest tag is misnamed `event/v3/eventtest/v0.1.0` instead of `event/v3/eventtest/v3.x.0`, making it unresolvable via `go mod download`). This is needed for `go mod tidy` under GOWORK=off (go.work's replace is not applied during tidy). The `.vendor-local/eventtest/go.mod` is kept in sync with the latest go-cqrs-lite versions
 2. **Module path casing**: go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite` (not `LarsArtmann`)
 3. **go-cqrs-lite v3.7.4**: Per-module tags (`command/v3.7.4`, `event/v3.7.4`, etc.) published. All modules aligned to latest available tags — most at v3.7.4; `scenario/v3`, `stack/sqlite/v3`, `stack/postgres/v3`, and `catalog/v3` at v3.7.1 (their latest). v3.7.0 added new modules `dedup/v3` and `scheduling/v3`. **PUBLISHING BUG**: go-cqrs-lite v3.7.x go.mod files reference internal sibling modules with zero pseudo-versions (`v3.0.0-00010101000000-000000000000`) due to local replace directives not being resolved at publish time. Consumers must explicitly `go get` ALL transitive go-cqrs-lite modules at v3.7.4 to override the zero versions. v3.6.0 and v3.5.0: CBOR codec support (`codec.CBORCodec`, `event.DefaultCodec`, `event.DecodePayloadAuto`), stricter encoding validation, storage package restructure (`view/`, `relational/` subdirs with backward-compatible aliases), lint cleanup. v3.4.0 added managed projection host (`projectionhost`), durable scheduling, scenario-testing DSL. v3.3.0 added `command.Command.ID()` (embed `command.BasicCommand`), `event.Projection` moved to `projection/`, SQL dead-letter store
 4. **Removed APIs in v2.3.0+**: `query.MustNew`, `command.MustNew`, `id.MustParse[T]` removed — use `query.New()`, `command.New()`, `id.Parse[T]()` with error check instead. Our `MustParseUserID`/`MustParseCorrelationID`/`MustParseRequestID` are local wrappers around `Parse`

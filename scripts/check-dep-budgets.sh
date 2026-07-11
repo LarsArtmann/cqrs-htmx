@@ -21,6 +21,7 @@ declare -A DEP_BUDGET=(
     ["usermgmt/webauthn"]=3    # webauthn: 1 current (go-webauthn/webauthn)
     ["usermgmt/oauth2"]=5      # oauth2: 3 current (oauth2, oidc, go-jose)
     ["adminui"]=7      # adminui: 5 current (cqrs-htmx, usermgmt, templ, ulid, casbin)
+    ["loginpage"]=5    # loginpage: 3 current (cqrs-htmx, usermgmt, templ)
 )
 
 # Modules that don't need budget checks

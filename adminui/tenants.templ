@@ -25,47 +25,42 @@ templ tenantsContent(d tenantsListData) {
 			BaseProps: utils.BaseProps{Class: "no-underline"},
 		})
 	</div>
-	@display.Card(display.CardProps{
-		Padding: display.CardPaddingNone,
-	}) {
-		@tenantsTable(d)
+	if len(d.Tenants) == 0 {
+		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
+			@empty("tenants", "No tenants yet", "Create a tenant to scope roles and memberships.")
+		}
+	} else {
+		@display.Table(display.TableProps{
+			Headers: []string{"Name", "Status", ""},
+			Hover:   true,
+			Body:    tenantsRows(d),
+		})
+		@listNote(len(d.Tenants), d.Total)
 	}
 }
 
-templ tenantsTable(d tenantsListData) {
-	if len(d.Tenants) == 0 {
-		@empty("tenants", "No tenants yet", "Create a tenant to scope roles and memberships.")
-	} else {
-		<div class="overflow-x-auto">
-			<table class="w-full text-sm">
-				<thead><tr><th class="px-4 py-2 text-left font-semibold text-gray-500">Name</th><th class="px-4 py-2 text-left font-semibold text-gray-500">Status</th><th></th></tr></thead>
-				<tbody>
-					for _, t := range d.Tenants {
-						<tr class="border-t border-gray-200 hover:bg-gray-50">
-							<td class="px-4 py-2">
-								<a class="flex flex-col no-underline" href={ d.BasePath + "/tenants/" + t.ID.Get() }>
-									<span class="font-medium text-gray-900">{ t.DisplayName }</span>
-									<span class="font-mono text-xs text-gray-400">{ t.Name }</span>
-								</a>
-							</td>
-							<td class="px-4 py-2">
-								if t.Suspended {
-									@badge("suspended", "amber")
-								} else if t.Deleted {
-									@badge("deleted", "red")
-								} else {
-									@badge("active", "green")
-								}
-							</td>
-							<td class="px-4 py-2 text-right">
-								<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/tenants/" + t.ID.Get() }>Manage</a>
-							</td>
-						</tr>
-					}
-				</tbody>
-			</table>
-		</div>
-		@listNote(len(d.Tenants), d.Total)
+templ tenantsRows(d tenantsListData) {
+	for _, t := range d.Tenants {
+		<tr>
+			<td class="px-4 py-3">
+				<a class="flex flex-col no-underline" href={ d.BasePath + "/tenants/" + t.ID.Get() }>
+					<span class="font-medium text-gray-900">{ t.DisplayName }</span>
+					<span class="font-mono text-xs text-gray-400">{ t.Name }</span>
+				</a>
+			</td>
+			<td class="px-4 py-3">
+				if t.Suspended {
+					@badge("suspended", "amber")
+				} else if t.Deleted {
+					@badge("deleted", "red")
+				} else {
+					@badge("active", "green")
+				}
+			</td>
+			<td class="px-4 py-3 text-right">
+				<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/tenants/" + t.ID.Get() }>Manage</a>
+			</td>
+		</tr>
 	}
 }
 
