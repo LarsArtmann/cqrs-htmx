@@ -454,10 +454,29 @@ cqrs-htmx/
 
 - **PURPOSE**: A ready-made, good-looking Admin Dashboard for usermgmt-backed apps. One-call mount behind session middleware. See `adminui/README.md`.
 - **Leaf integration module**: `adminui` depends on root `cqrs-htmx/v3` (reuses `HTMXScriptHandler` for embedded htmx.js) + `usermgmt/v3` + `a-h/templ`. Nothing depends on it. `examples/admin-demo/` is the runnable showcase.
-- **templ adopted here (first module to use it)**: Markup authored in `.templ`, compiled to committed `_templ.go`. Consumers import the generated files directly — they never run `templ generate`. The templ runtime is a normal transitive dep. `flake.nix` treefmt already had `templ.enable`. After editing `.templ`, contributors run `templ generate` (CLI v0.3.x) in `adminui/`, then commit both `.templ` and `_templ.go`. Module pins `a-h/templ v0.3.1020` (latest published); CLI may be newer.
+- **templ + templ-components**: Markup authored in `.templ`, compiled to committed `_templ.go`. Consumers import the generated files directly — they never run `templ generate`. After editing `.templ`, contributors run `templ generate` (CLI v0.3.x) in `adminui/`, then commit both `.templ` and `_templ.go`. UI components come from `templ-components` v0.13.0 (see adoption table below). `flake.nix` `build-adminui-css` app recompiles Tailwind CSS with dynamic `@source` scanning of the templ-components module cache path.
 - **Two scopes**: `ModeSuperAdmin` (global: dashboard/users/tenants/audit) and `ModeTenantAdmin` (scoped to `Config.TenantID`: dashboard/members/audit). Route table is built per-mode — tenant-admin mode does NOT register `/users` or `/tenants`, so they 404 (dashboard anchored with `GET /{$}` so it doesn't catch-all).
 - **Auth-agnostic**: Panel reads `*usermgmt.User` from context (consumer's `NewSessionMiddleware`). No user → 401; authorizer fail → 403. Default authorizer is role-based (overridable via `Config.Authorizer`); helpers `RequireAnyRole(service, domain, roles...)` and `RequireAuthenticated()`.
-- **No build step for consumers**: Modern CSS design system (`assets/admin.css`) + tiny vanilla JS (`assets/admin.js`) embedded via `go:embed`. Light/dark via `prefers-color-scheme`; accent color injected inline from `Config.AccentColor`. No Tailwind, no JS framework.
+- **No build step for consumers**: Compiled Tailwind v4 CSS (`assets/admin-tw.css`) + tiny vanilla JS (`assets/admin.js`) embedded via `go:embed`. Light/dark via `prefers-color-scheme`; accent color injected inline from `Config.AccentColor`. CSS recompiled via `nix run .#build-adminui-css` (resolves templ-components source via `go list -m` for Tailwind `@source` scanning).
+- **templ-components adoption (2026-07-10)**: adminui uses `github.com/larsartmann/templ-components` v0.13.0 for 15 UI components. The library shares the Tailwind v4 class language with adminui's CSS-variable theme via a `.bg-white { background-color: var(--surface) }` bridge in `tailwind.css`. When recompiling CSS, the nix build app injects `@source "$GOMODCACHE/templ-components@v0.13.0"` dynamically — never hardcode the path in `tailwind.css` (breaks portability).
+
+  | Library component        | Status      | Where                                                                   |
+  | ------------------------ | ----------- | ----------------------------------------------------------------------- |
+  | `icons.IconPathData`     | adopted     | `icons.go` (all icon rendering)                                         |
+  | `display.Avatar`         | adopted     | `layout.templ`, `users.templ`                                           |
+  | `display.Badge`          | adopted     | `components.templ` (badge/roleBadge)                                    |
+  | `display.Button`         | adopted     | `tenants.templ`, `members.templ`, `users.templ`                         |
+  | `display.Card`           | adopted     | `dashboard.templ`, `audit.templ`                                        |
+  | `display.Grid`           | adopted     | `dashboard.templ`                                                       |
+  | `display.StatCard`       | adopted     | `components.templ` (statCardView)                                       |
+  | `display.EmptyState`     | adopted     | `components.templ` (empty)                                              |
+  | `display.RelativeTime`   | adopted     | `users.templ`, `dashboard.templ`, `audit.templ`                         |
+  | `display.ListNote`       | adopted     | `components.templ` (listNote)                                           |
+  | `forms.Input`            | adopted     | `users.templ` (search), `tenants.templ` (form), `members.templ` (email) |
+  | `forms.Select`           | adopted     | `members.templ` (role dropdowns)                                        |
+  | `feedback.Spinner`       | removed     | was dead code, deleted                                                  |
+  | `display.DefinitionList` | not adopted | user detail `<dl>` has mixed badge content, poor fit                    |
+
 - **HTMX patterns**: Live user search = `GET /users` returns full page, but `HX-Request` returns just the table fragment (`renderPartial`); `hx-select`/`hx-target` swap it; `hx-push-url` syncs URL. Destructive actions use `hx-confirm` + `data-confirm` (JS double-confirm) → POST → `HX-Redirect` (via `redirect()`). Toasts via `HX-Trigger: {"adminui:toast": {...}}` consumed by `admin.js`.
 - **usermgmt additions**: `Service.TenantMembers(ctx, tenantID) []*Membership` (read), plus `Service.AddMember/UpdateMemberRoles/RemoveMember` (write) and `ParseActorID(s) ActorID` (inverse of `ActorID.PrefixedString`, for round-tripping actor identity through member URLs). The panel manages members end-to-end: add by email + role, remove per row — both super-admin (on `/tenants/{id}`) and tenant-admin (on `/members`).
 - **errorfamily**: adminui follows the no-stdlib-error-constructors rule (`errConfig`/`errForbidden` use `event.NewRejection`). HTTP handlers mostly emit message strings (not error objects), so the rule is naturally satisfied.
