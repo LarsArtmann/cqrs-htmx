@@ -219,7 +219,7 @@ cqrs-htmx/
 | go-cqrs-lite v3.7.4          | CQRS dispatch, pagination, event sourcing (decider, storage/memory, watermill bus, SQL view stores, typed metadata) | All modules                  |
 | casbin/casbin/v3             | Authorization                                                                                                       | Root, usermgmt               |
 | justinas/nosurf v1.2.0       | CSRF protection                                                                                                     | Root                         |
-| go-error-family v0.6.1       | Error classification                                                                                                | All modules                  |
+| go-error-family v0.7.0       | Error classification                                                                                                | All modules                  |
 | larsartmann/httputil v0.5.0  | ClientIP extraction                                                                                                 | Root                         |
 | go-branded-id v0.3.1         | Branded types (ActorID, UserID, TenantID, BotID, SSEEventID)                                                        | Root, usermgmt               |
 | go-webauthn v0.17.4          | WebAuthn/Passkey passwordless authentication                                                                        | usermgmt/webauthn            |
@@ -250,7 +250,7 @@ cqrs-htmx/
 
 ### Error Handling
 
-- **go-error-family v0.6.1**: Replaced `cockroachdb/errors` for error classification. Now a DIRECT dependency in root + usermgmt + all auth strategy modules (was indirect via event/v3). Re-exported via `go-cqrs-lite/event/v3` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). `ErrDispatchFailed` is natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
+- **go-error-family v0.7.0**: Replaced `cockroachdb/errors` for error classification. Now a DIRECT dependency in root + usermgmt + all auth strategy modules (was indirect via event/v3). Re-exported via `go-cqrs-lite/event/v3` (`event.NewRejection`, `event.WrapTransient`, `event.Classify`, etc.). `ErrDispatchFailed` is natively classified (`event.NewTransient`) — the old `sync.Once` + `RegisterClassification` machinery was removed
 - **NO stdlib error constructors**: `errors.New`, `fmt.Errorf` (as error), and `errors.Join` are banned in non-test code. Enforced by `branching-flow errorfamily .` (must report 0). Use `event.New*/Wrap*/Wrapf/Newf` instead. Exception: `fmt.Sprintf` is fine when building a _message string_ (not an error object), e.g. `http.go`/`verification_totp_http.go` format a 400 response body
 - **Family assignment rules** (maps to HTTP status via `MapError`):
   - **Rejection (400)** — caller/user input invalid: parse failures, validation (`ParseEmail`, `ImportUser.Validate`), bad config (`OAuth2ProviderConfig.Validate`, unsupported SQL dialect), missing/invalid IDs
@@ -463,11 +463,11 @@ cqrs-htmx/
 
 - **PURPOSE**: A ready-made, good-looking Admin Dashboard for usermgmt-backed apps. One-call mount behind session middleware. See `adminui/README.md`.
 - **Leaf integration module**: `adminui` depends on root `cqrs-htmx/v3` (reuses `HTMXScriptHandler` for embedded htmx.js) + `usermgmt/v3` + `a-h/templ`. Nothing depends on it. `examples/admin-demo/` is the runnable showcase.
-- **templ + templ-components**: Markup authored in `.templ`, compiled to committed `_templ.go`. Consumers import the generated files directly — they never run `templ generate`. After editing `.templ`, contributors run `templ generate` (CLI v0.3.x) in `adminui/`, then commit both `.templ` and `_templ.go`. UI components come from `templ-components` v0.13.0 (see adoption table below). `flake.nix` `build-adminui-css` app recompiles Tailwind CSS with dynamic `@source` scanning of the templ-components module cache path.
+- **templ + templ-components**: Markup authored in `.templ`, compiled to committed `_templ.go`. Consumers import the generated files directly — they never run `templ generate`. After editing `.templ`, contributors run `templ generate` (CLI v0.3.x) in `adminui/`, then commit both `.templ` and `_templ.go`. UI components come from `templ-components` v0.15.0 (see adoption table below).
 - **Two scopes**: `ModeSuperAdmin` (global: dashboard/users/tenants/audit) and `ModeTenantAdmin` (scoped to `Config.TenantID`: dashboard/members/audit). Route table is built per-mode — tenant-admin mode does NOT register `/users` or `/tenants`, so they 404 (dashboard anchored with `GET /{$}` so it doesn't catch-all).
 - **Auth-agnostic**: Panel reads `*usermgmt.User` from context (consumer's `NewSessionMiddleware`). No user → 401; authorizer fail → 403. Default authorizer is role-based (overridable via `Config.Authorizer`); helpers `RequireAnyRole(service, domain, roles...)` and `RequireAuthenticated()`.
-- **No build step for consumers**: Compiled Tailwind v4 CSS (`assets/admin-tw.css`) + tiny vanilla JS (`assets/admin.js`) embedded via `go:embed`. Light/dark via `prefers-color-scheme`; accent color injected inline from `Config.AccentColor`. CSS recompiled via `nix run .#build-adminui-css` (resolves templ-components source via `go list -m` for Tailwind `@source` scanning).
-- **templ-components adoption (2026-07-11)**: adminui uses `github.com/larsartmann/templ-components` v0.15.0 for 19 UI components. The library shares the Tailwind v4 class language with adminui's CSS-variable theme via a `.bg-white { background-color: var(--surface) }` bridge in `tailwind.css`. The `@theme` block maps gray-50 through gray-900 to adminui CSS variables so library components (Table, Card, Badge, etc.) render correctly in both light and dark mode. When recompiling CSS, copy only `*.templ`/`*_templ.go` from each library package to a temp dir and use `@source` on that (scanning the full module cache causes OOM).
+- **No build step for consumers**: Compiled Tailwind v4 CSS (`assets/admin-tw.css`) + tiny vanilla JS (`assets/admin.js`) embedded via `go:embed`. Light/dark via `prefers-color-scheme`; accent color injected inline from `Config.AccentColor`. CSS recompiled via `nix run .#build-adminui-css` (copy-first approach: copies only `*.templ` files from templ-components to a temp dir to avoid 55 GB OOM — see CSS build gotcha below).
+- **templ-components adoption (2026-07-11)**: adminui uses `github.com/larsartmann/templ-components` v0.15.0 for 19 UI components. The library shares the Tailwind v4 class language with adminui's CSS-variable theme via a `.bg-white { background-color: var(--surface) }` bridge in `tailwind.css`. The `@theme` block maps gray-50 through gray-900 to adminui CSS variables so library components (Table, Card, Badge, etc.) render correctly in both light and dark mode. A double-border CSS fix targets `.overflow-hidden > .overflow-x-auto` to suppress the inner border when `display.Table` is nested inside `display.Card(CardPaddingNone)`. CSS rebuild via `nix run .#build-adminui-css` or manual direct-binary approach (see gotcha #2 below).
 
   | Library component        | Status  | Where                                                                                                         |
   | ------------------------ | ------- | ------------------------------------------------------------------------------------------------------------- |
@@ -519,6 +519,7 @@ cqrs-htmx/
 5. **golangci-lint v2 format**: `.golangci.yml` uses `version: "2"`. Exclusions under `linters.exclusions.rules`, NOT `issues.exclude-rules`
 6. **LSP vs CLI discrepancy**: LSP may show stale warnings after golangci.yml changes; CLI (`golangci-lint run`) is authoritative. **All modules report 0 issues** (root + usermgmt + adminui). The last remaining lint issue (`maintidx` on `es_readmodel.go:Handle`) was resolved by extracting the 12-case switch into a dispatch table with per-event handler methods
 7. **flake.nix uses flake-parts + treefmt**: Nix formatting via `nix fmt` (treefmt with nixfmt + gofmt). No package builds in nix due to private Go deps — use `nix run .#build`/`nix run .#test` apps instead
+8. **adminui CSS build OOM (55 GB RAM)**: The `nix run .#build-adminui-css` app OOM-kills in the nix sandbox. The root cause was `@source "../"` in `tailwind.css` which made Tailwind v4 scan the entire cqrs-htmx project root (953 files). Fix: (1) removed `@source "../"` from `tailwind.css` — the build script injects explicit `@source` paths instead, (2) the build script copies only `*.templ` files (NOT the 3x-larger `_templ.go` mirrors) from templ-components to a temp dir. To rebuild CSS, use the direct-binary approach in the adminui test commands section below, not the nix app. CSS is 58 KB (was 93 KB with junk classes from irrelevant files)
 
 ### Type System
 
@@ -618,6 +619,16 @@ cd adminui && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go test ./... -cou
 
 # Regenerate templ after editing *.templ (CLI: templ v0.3.x). Commit *_templ.go too.
 cd adminui && templ generate
+
+# Rebuild Tailwind CSS (nix sandbox OOM-kills tailwindcss; run direct binary instead).
+# The build copies only *.templ files from templ-components to a temp dir.
+cd adminui && TC_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components) && \
+  SCAN_DIR=$(mktemp -d) && \
+  for pkg in display errorpage feedback forms htmx icons layout navigation; do cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true; done && \
+  TMP_CSS=$(mktemp --suffix=.css) && cp tailwind.css "$TMP_CSS" && \
+  echo "@source \"$(pwd)\";" >> "$TMP_CSS" && echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS" && \
+  tailwindcss -i "$TMP_CSS" -o assets/admin-tw.css --minify && \
+  rm -rf "$SCAN_DIR" "$TMP_CSS"
 ```
 
 ### datastar-demo example

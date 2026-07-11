@@ -481,17 +481,21 @@
                   TMP_CSS=$(mktemp --suffix=.css)
                   cp tailwind.css "$TMP_CSS"
 
+                  # Add @source for adminui itself (the temp CSS lives in
+                  # /tmp so Tailwind's auto-detection won't find our .templ
+                  # files without this).
+                  ADMINUI_DIR=$(pwd)
+                  echo "@source \"$ADMINUI_DIR\";" >> "$TMP_CSS"
+
                   if [ -n "$TC_DIR" ]; then
-                    # Copy ONLY .templ and _templ.go files to a temp dir.
-                    # Scanning the full module cache makes Tailwind v4 consume
-                    # ~40 GB RAM (it parses every file: tests, golden files,
-                    # docs, Go source). Restricting to generated output keeps
-                    # memory under 1 GB and finishes in seconds.
+                    # Copy ONLY .templ files to a temp dir.
+                    # _templ.go are generated mirrors (same class strings,
+                    # 3x larger). Scanning the full module cache causes
+                    # 55 GB RAM usage — this approach uses <500 MB.
                     SCAN_DIR=$(mktemp -d)
                     for pkg in display errorpage feedback forms htmx icons layout navigation; do
                       if [ -d "$TC_DIR/$pkg" ]; then
                         cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
-                        cp "$TC_DIR/$pkg/"*_templ.go "$SCAN_DIR/" 2>/dev/null || true
                       fi
                     done
                     echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"

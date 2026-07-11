@@ -13,17 +13,14 @@
 
 @import "tailwindcss";
 
-/* Scan adminui .templ files for class names */
-@source "../";
+/* Tailwind v4 auto-scans the CSS file's directory (adminui/) for class
+   names. No @source needed for local files — the 8 .templ files here
+   are picked up automatically.
 
-/* Scan templ-components library so utility classes from adopted library
-   components are included in the compiled output. Only needed when
-   recompiling admin-tw.css — the committed CSS includes these classes.
-
-   The nix build-adminui-css app copies only *.templ and *_templ.go files
-   from the library to a temp dir (scanning the full module cache causes
-   Tailwind v4 to OOM at ~40 GB). Do NOT add a hardcoded @source path
-   here — it breaks portability. */
+   For the templ-components library, the nix build-adminui-css app copies
+   only *.templ files (NOT the larger _templ.go mirrors) from the library
+   to a temp dir and injects an @source for that dir. Do NOT add a
+   hardcoded @source path here — it breaks portability. */
 
 /* ---------- Theme tokens (light defaults) ---------- */
 :root {
