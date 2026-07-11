@@ -125,3 +125,66 @@ func TestPanel_RendersSeededData(t *testing.T) {
 		t.Error("audit log should contain register events")
 	}
 }
+
+// TestPanel_TemplComponentsRenderStructurally verifies that adopted
+// templ-components produce correct HTML structure (not just text content).
+// This catches regressions when library components change their output.
+func TestPanel_TemplComponentsRenderStructurally(t *testing.T) {
+	ctx := context.Background()
+	user := mustUser(t, "admin@example.com")
+	h, svc := newTestPanel(t, user)
+
+	for _, email := range []string{"alice@acme.dev", "bob@acme.dev"} {
+		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
+			ID:    usermgmt.NewUserID("u-" + email),
+			Email: email,
+		}); err != nil {
+			t.Fatalf("register %s: %v", email, err)
+		}
+	}
+	_, err := svc.CreateTenant(ctx, usermgmt.CreateTenantRequest{
+		ID: usermgmt.NewTenantID("acme"), Name: "acme", DisplayName: "Acme Corp",
+	})
+	if err != nil {
+		t.Fatalf("create tenant: %v", err)
+	}
+
+	get := func(path string) string {
+		t.Helper()
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
+		return rec.Body.String()
+	}
+
+	usersHTML := get("/admin/users")
+	tenantDetail := get("/admin/tenants/acme")
+	aliceID := usermgmt.NewUserID("u-alice@acme.dev").Get().String()
+	userDetail := get("/admin/users/" + aliceID)
+
+	// display.Avatar: circular initials element (tailwind-merge reorders classes).
+	if !strings.Contains(usersHTML, "rounded-full") || !strings.Contains(usersHTML, "bg-blue-600") {
+		t.Error("users list: Avatar should render circular initials element")
+	}
+
+	// forms.Select: <select name="role"> present in tenant detail (members card).
+	if !strings.Contains(tenantDetail, `<select`) || !strings.Contains(tenantDetail, `name="role"`) {
+		t.Error("tenant detail: forms.Select should render <select name=role>")
+	}
+
+	// forms.Input: <input type="search"> with name="q" in users list.
+	if !strings.Contains(usersHTML, `type="search"`) || !strings.Contains(usersHTML, `name="q"`) {
+		t.Error("users list: forms.Input should render <input type=search name=q>")
+	}
+
+	// display.Button: danger button text present in user detail.
+	if !strings.Contains(userDetail, "Delete user") {
+		t.Error("user detail: Button should render 'Delete user' text")
+	}
+
+	// display.EmptyState: renders title for no-match search.
+	emptyRec := httptest.NewRecorder()
+	h.ServeHTTP(emptyRec, httptest.NewRequest(http.MethodGet, "/admin/users?q=zzzznomatch", nil))
+	if !strings.Contains(emptyRec.Body.String(), "No users found") {
+		t.Error("users list: EmptyState should render 'No users found' title")
+	}
+}
