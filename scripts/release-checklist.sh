@@ -56,6 +56,7 @@ fi
 # 5. All modules build
 step "Building all modules"
 export GOPRIVATE='github.com/larsartmann/*'
+export GOEXPERIMENT=jsonv2
 GOWORK=off go build ./... 2>/dev/null && echo "OK: root builds" || { echo "FAIL: root build"; FAILED=1; }
 (cd usermgmt && GOWORK=off go build ./... 2>/dev/null) && echo "OK: usermgmt builds" || { echo "FAIL: usermgmt build"; FAILED=1; }
 (cd adminui && GOWORK=off go build ./... 2>/dev/null) && echo "OK: adminui builds" || { echo "FAIL: adminui build"; FAILED=1; }

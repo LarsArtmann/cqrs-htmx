@@ -641,3 +641,81 @@ func TestNew_DefaultScopes(t *testing.T) {
 		}
 	}
 }
+
+// --- Names() tests ---
+
+func TestProvider_Names_Empty(t *testing.T) {
+	p, err := New(context.Background(), Config{})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	names := p.Names()
+	if len(names) != 0 {
+		t.Errorf("expected empty slice, got %v", names)
+	}
+}
+
+func TestProvider_Names_Single(t *testing.T) {
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{
+			"github": {
+				ClientID:     "id",
+				ClientSecret: "secret",
+				RedirectURL:  "http://localhost/callback",
+				AuthURL:      "https://github.com/login/oauth/authorize",
+				TokenURL:     "https://github.com/login/oauth/access_token",
+				UserInfoURL:  "https://api.github.com/user",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	names := p.Names()
+	if len(names) != 1 || names[0] != "github" {
+		t.Errorf("expected [github], got %v", names)
+	}
+}
+
+func TestProvider_Names_Multiple_Sorted(t *testing.T) {
+	oidc := newFakeOIDCServer(t)
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{
+			"google": {
+				ClientID:     "id1",
+				ClientSecret: "secret1",
+				RedirectURL:  "http://localhost/callback",
+				IssuerURL:    oidc.issuer,
+			},
+			"github": {
+				ClientID:     "id2",
+				ClientSecret: "secret2",
+				RedirectURL:  "http://localhost/callback",
+				AuthURL:      "https://github.com/login/oauth/authorize",
+				TokenURL:     "https://github.com/login/oauth/access_token",
+				UserInfoURL:  "https://api.github.com/user",
+			},
+			"azure": {
+				ClientID:     "id3",
+				ClientSecret: "secret3",
+				RedirectURL:  "http://localhost/callback",
+				AuthURL:      "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+				TokenURL:     "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+				UserInfoURL:  "https://graph.microsoft.com/oidc/userinfo",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	names := p.Names()
+	want := []string{"azure", "github", "google"}
+	if len(names) != len(want) {
+		t.Fatalf("expected %d names, got %d: %v", len(want), len(names), names)
+	}
+	for i, w := range want {
+		if names[i] != w {
+			t.Errorf("names[%d] = %q, want %q", i, names[i], w)
+		}
+	}
+}

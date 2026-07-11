@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
@@ -188,8 +187,7 @@ func TestTypedQueryDispatch_ThroughHTTPHandler(t *testing.T) {
 	)
 
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodPost, "/count", strings.NewReader("{}"))
-	r.Header.Set("Content-Type", "application/json")
+	r := httptest.NewRequest(http.MethodGet, "/count", nil)
 	handler.ServeHTTP(w, r)
 
 	if w.Code != http.StatusOK {
