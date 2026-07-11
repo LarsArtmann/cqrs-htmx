@@ -1,12 +1,53 @@
 package loginpage
 
 import (
+	"strings"
+
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // DefaultAccentColor is the indigo used for buttons and highlights when
 // [Config.AccentColor] is empty.
 const DefaultAccentColor = "#4f46e5"
+
+// knownProviderLabels maps common provider names to user-friendly display
+// labels for sign-in buttons. Providers not in this map get a capitalized name.
+//
+//nolint:gochecknoglobals,goconst // static lookup table, provider names are intrinsic strings
+var knownProviderLabels = map[string]string{
+	"google":    "Google",
+	"github":    "GitHub",
+	"microsoft": "Microsoft",
+	"apple":     "Apple",
+	"gitlab":    "GitLab",
+	"facebook":  "Facebook",
+	"amazon":    "Amazon",
+	"linkedin":  "LinkedIn",
+	"twitter":   "Twitter",
+	"discord":   "Discord",
+}
+
+// ProviderDisplayName returns a user-friendly label for an OAuth2 provider.
+// Known providers (google, github, etc.) use a curated label; unknown
+// providers get a title-cased name.
+func ProviderDisplayName(provider string) string {
+	if label, ok := knownProviderLabels[provider]; ok {
+		return label
+	}
+	if provider == "" {
+		return ""
+	}
+	return strings.ToUpper(provider[:1]) + provider[1:]
+}
+
+// OAuth2ButtonFromProvider creates an OAuth2Button with an auto-generated
+// label from the provider name.
+func OAuth2ButtonFromProvider(provider string) OAuth2Button {
+	return OAuth2Button{
+		Provider: provider,
+		Label:    "Sign in with " + ProviderDisplayName(provider),
+	}
+}
 
 // OAuth2Button describes a single OAuth2/OIDC sign-in button rendered on the
 // login page. The [Provider] string matches the {provider} path segment in the

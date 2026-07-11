@@ -55,7 +55,7 @@
     var msg = "Request failed (" + resp.status + ")";
     try {
       var data = await resp.json();
-      msg = data.error || data.detail || data.message || msg;
+      msg = data.error || data.detail || data.title || data.message || msg;
     } catch (_) {}
     var err = new Error(msg);
     err.status = resp.status;
@@ -165,6 +165,19 @@
     }
   }
 
+  function isWebAuthnSupported() {
+    return typeof window.PublicKeyCredential !== "undefined";
+  }
+
+  function showWebAuthnUnsupported() {
+    var form = document.getElementById("lp-login-form");
+    if (form) form.classList.add("lp-hidden");
+    var regLink = document.getElementById("lp-show-register");
+    if (regLink) regLink.classList.add("lp-hidden");
+    var fallback = document.getElementById("lp-no-webauthn");
+    if (fallback) fallback.classList.remove("lp-hidden");
+  }
+
   // ── Login flow ──────────────────────────────────────────────────
   async function doLogin(email) {
     hideError();
@@ -197,21 +210,15 @@
     hideError();
     setLoading("lp-register-btn", true);
     try {
-      // 1. Register user (generates a UUID client-side)
-      var userId =
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : "u-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-
-      await postJSON(config.endpoints.register, {
-        id: userId,
+      // 1. Register user (server auto-generates the ID)
+      var regResp = await postJSON(config.endpoints.register, {
         email: email,
         display_name: displayName,
       });
 
-      // 2. Begin WebAuthn registration
+      // 2. Begin WebAuthn registration (using server-assigned user ID)
       var begin = await postJSON(config.endpoints.registerBegin, {
-        user_id: userId,
+        user_id: regResp.user.id,
       });
 
       // 3. Browser prompt
@@ -223,7 +230,7 @@
       var finishUrl =
         config.endpoints.registerFinish +
         "?user_id=" +
-        encodeURIComponent(userId) +
+        encodeURIComponent(regResp.user.id) +
         "&credential_name=" +
         encodeURIComponent(config.credentialName || "Passkey");
       await postRaw(finishUrl, JSON.stringify(serializeAttestation(cred)));
@@ -239,6 +246,8 @@
 
   // ── Event wiring ────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", function () {
+    if (!isWebAuthnSupported()) showWebAuthnUnsupported();
+
     var loginForm = document.getElementById("lp-login-form");
     if (loginForm) {
       loginForm.addEventListener("submit", function (e) {

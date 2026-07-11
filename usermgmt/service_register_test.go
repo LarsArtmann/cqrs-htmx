@@ -39,10 +39,16 @@ func TestService_Register_Validation(t *testing.T) {
 	svc := newTestService(t)
 	ctx := context.Background()
 
-	_, err := svc.Register(ctx, RegisterRequest{
-		ID: NewUserID(""), Email: "a@b.com",
+	// Empty ID is auto-generated — registration should succeed.
+	resp, err := svc.Register(ctx, RegisterRequest{
+		ID: NewUserID(""), Email: "autoid@test.com",
 	})
-	assertErrorIs(t, err, ErrValidation, "empty ID")
+	if err != nil {
+		t.Fatalf("Register with empty ID should auto-generate: %v", err)
+	}
+	if resp.User.ID.IsZero() {
+		t.Error("expected auto-generated user ID, got zero")
+	}
 
 	_, err = svc.Register(ctx, RegisterRequest{
 		ID: NewUserID("u1"), Email: "invalid",

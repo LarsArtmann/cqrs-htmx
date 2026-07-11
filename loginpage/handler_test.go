@@ -408,3 +408,210 @@ func TestFirstRune(t *testing.T) {
 		t.Errorf("firstRune(Über) = %q, want %q", got, "Ü")
 	}
 }
+
+func TestProviderDisplayName(t *testing.T) {
+	tests := []struct{ in, want string }{
+		{"google", "Google"},
+		{"github", "GitHub"},
+		{"microsoft", "Microsoft"},
+		{"custom", "Custom"},
+		{"", ""},
+	}
+	for _, tt := range tests {
+		if got := ProviderDisplayName(tt.in); got != tt.want {
+			t.Errorf("ProviderDisplayName(%q) = %q, want %q", tt.in, got, tt.want)
+		}
+	}
+}
+
+func TestOAuth2ButtonFromProvider(t *testing.T) {
+	btn := OAuth2ButtonFromProvider("google")
+	if btn.Provider != "google" {
+		t.Errorf("Provider = %q, want %q", btn.Provider, "google")
+	}
+	if btn.Label != "Sign in with Google" {
+		t.Errorf("Label = %q, want %q", btn.Label, "Sign in with Google")
+	}
+}
+
+func TestNewPageData_NilService(t *testing.T) {
+	_, err := NewPageData(Config{}, nil)
+	if err == nil {
+		t.Fatal("expected error for nil Service")
+	}
+}
+
+func TestBuildPageData_AutoPopulateOAuth2(t *testing.T) {
+	svc := newTestService(t)
+	h, _ := New(Config{Service: svc})
+	// Service has no oauth2 provider, so auto-populate should produce no buttons.
+	if len(h.data.OAuth2Buttons) != 0 {
+		t.Errorf("expected no OAuth2 buttons, got %d", len(h.data.OAuth2Buttons))
+	}
+}
+
+func TestRenderPage_SetsContentType(t *testing.T) {
+	h, _ := New(Config{Service: newTestService(t)})
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	h.ServeHTTP(w, r)
+	if ct := w.Header().Get("Content-Type"); ct != "text/html; charset=utf-8" {
+		t.Errorf("Content-Type = %q, want %q", ct, "text/html; charset=utf-8")
+	}
+}
+
+func TestPage_BrowserUnsupportedFallback(t *testing.T) {
+	data := PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#4f46e5",
+		WebAuthn: true,
+	}
+	data.inlineCSS = "/* test */"
+	data.inlineJS = "/* test */"
+	data.configJSON = "{}"
+	w := httptest.NewRecorder()
+	_ = Page(data).Render(context.Background(), w)
+	body := w.Body.String()
+	if !strings.Contains(body, `id="lp-no-webauthn"`) {
+		t.Error("browser-unsupported fallback div missing")
+	}
+	if !strings.Contains(body, "lp-hidden") {
+		t.Error("fallback div should be hidden by default")
+	}
+}
+
+func TestPage_CSSPathLinked(t *testing.T) {
+	data := PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#4f46e5",
+		CSSPath:  "/css/custom.css",
+		WebAuthn: true,
+	}
+	data.inlineCSS = "/* test */"
+	data.inlineJS = "/* test */"
+	data.configJSON = "{}"
+	w := httptest.NewRecorder()
+	_ = Page(data).Render(context.Background(), w)
+	body := w.Body.String()
+	if !strings.Contains(body, `href="/css/custom.css"`) {
+		t.Error("custom CSS path not linked")
+	}
+}
+
+func TestPage_NoAuthState(t *testing.T) {
+	data := PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#4f46e5",
+		WebAuthn: false,
+	}
+	data.inlineCSS = "/* test */"
+	w := httptest.NewRecorder()
+	_ = Page(data).Render(context.Background(), w)
+	body := w.Body.String()
+	if !strings.Contains(body, "No authentication method is configured") {
+		t.Error("no-auth error state missing")
+	}
+}
+
+func TestFaviconURI(t *testing.T) {
+	data := PageData{Brand: "Acme", Accent: "#ff0000"}
+	uri := data.faviconURI()
+	if !strings.Contains(string(uri), "data:image/svg+xml") {
+		t.Error("favicon should be an SVG data URI")
+	}
+	if !strings.Contains(string(uri), "fill='#ff0000'") {
+		t.Error("favicon should use the accent color")
+	}
+	if !strings.Contains(string(uri), ">A<") {
+		t.Error("favicon should use the brand initial")
+	}
+}
+
+func TestOauthBeginURL(t *testing.T) {
+	data := PageData{authPrefix: "/api"}
+	url := data.oauthBeginURL("google")
+	if url != "/api/auth/oauth/google/begin" {
+		t.Errorf("oauthBeginURL = %q, want %q", url, "/api/auth/oauth/google/begin")
+	}
+}
+
+func TestServeHTTP_HeadMethod(t *testing.T) {
+	h, _ := New(Config{Service: newTestService(t)})
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodHead, "/login", nil)
+	h.ServeHTTP(w, r)
+	if w.Code != http.StatusOK {
+		t.Errorf("HEAD should return 200, got %d", w.Code)
+	}
+}
+
+func TestServeHTTP_NoRegistration(t *testing.T) {
+	h, _ := New(Config{
+		Service:        newTestService(t),
+		NoRegistration: true,
+	})
+	data := h.data
+	data.WebAuthn = true
+	data.ShowReg = false
+	data.inlineCSS = "/* test */"
+	data.inlineJS = "/* test */"
+	data.configJSON = "{}"
+	w := httptest.NewRecorder()
+	_ = Page(data).Render(context.Background(), w)
+	if strings.Contains(w.Body.String(), "Create one") {
+		t.Error("registration toggle should be hidden when NoRegistration is true")
+	}
+}
+
+func TestPage_AllAuthMethods(t *testing.T) {
+	body := renderWithWebAuthn(t, PageData{
+		Title:   "Test",
+		Brand:   "Test",
+		Accent:  "#4f46e5",
+		ShowReg: true,
+		OAuth2Buttons: []OAuth2Button{
+			{Provider: "google", Label: "Sign in with Google"},
+		},
+	})
+	if !strings.Contains(body, "lp-divider") {
+		t.Error("divider missing when both WebAuthn and OAuth2 present")
+	}
+	if !strings.Contains(body, "Create one") {
+		t.Error("registration toggle missing")
+	}
+	if !strings.Contains(body, "Sign in with Google") {
+		t.Error("OAuth2 button missing")
+	}
+	if !strings.Contains(body, "Sign in with passkey") {
+		t.Error("passkey button missing")
+	}
+}
+
+func TestFaviconURI_EmptyBrand(t *testing.T) {
+	data := PageData{Brand: "", Accent: "#000"}
+	uri := data.faviconURI()
+	if !strings.Contains(string(uri), ">?<") {
+		t.Error("empty brand should show '?' as favicon initial")
+	}
+}
+
+func TestRenderPage_RenderError(t *testing.T) {
+	data := PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#4f46e5",
+		WebAuthn: true,
+	}
+	data.inlineCSS = "/* test */"
+	data.inlineJS = "/* test */"
+	data.configJSON = "{}"
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
+	renderPage(w, r, data)
+	// Should not panic, even if render fails due to cancelled context.
+}

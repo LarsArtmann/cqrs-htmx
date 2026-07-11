@@ -13,6 +13,7 @@ import (
 	"encoding/json/v2"
 	"io"
 	"net/http"
+	"sort"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -162,6 +163,18 @@ func (p *Provider) get(name string) (*initializedProvider, error) {
 		return nil, errorfamily.Newf(errorfamily.Rejection, "oauth2.provider_not_found", "provider %q not found", name)
 	}
 	return prov, nil
+}
+
+// Names returns the sorted names of all configured providers.
+// Used by consumers to auto-discover which OAuth2/OIDC providers are available
+// (e.g. to auto-populate sign-in buttons).
+func (p *Provider) Names() []string {
+	names := make([]string, 0, len(p.providers))
+	for name := range p.providers {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
 }
 
 // BeginLogin generates PKCE and builds the authorization URL for the given provider.

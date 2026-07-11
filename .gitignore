@@ -53,6 +53,7 @@ examples/admin-demo/admin-demo
 # running the templ code generator.
 *_templ.go
 !adminui/*_templ.go
+!loginpage/*_templ.go
 
 # >>> buildflow-managed (.gitignore) >>>
 # Auto-managed by buildflow. Edit outside these markers; this block is regenerated on `buildflow --fix`.

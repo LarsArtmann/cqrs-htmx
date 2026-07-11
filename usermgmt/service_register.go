@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -33,9 +34,7 @@ func withUserIDContext(err *event.Error, userID UserID) *event.Error {
 func (r *RegisterRequest) Validate() error {
 	var errs []string
 	r.DisplayName = strings.TrimSpace(r.DisplayName)
-	if r.ID.IsZero() {
-		errs = append(errs, "id is required")
-	}
+	// ID is optional — when empty, the server auto-generates a ULID in Register().
 	email, err := ParseEmail(r.Email)
 	if err != nil {
 		errs = append(errs, "invalid email")
@@ -65,6 +64,9 @@ type AuthResult struct {
 type RegisterResponse = AuthResult
 
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
+	if req.ID.IsZero() {
+		req.ID = id.NewUserID()
+	}
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
