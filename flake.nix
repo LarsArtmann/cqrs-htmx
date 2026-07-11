@@ -55,7 +55,12 @@
               homepage = "https://github.com/larsartmann/cqrs-htmx";
               license = licenses.mit;
               mainProgram = "cqrs-htmx";
-              maintainers = [ maintainers.larsartmann ];
+              maintainers = [
+                {
+                  name = "Lars Artmann";
+                  github = "LarsArtmann";
+                }
+              ];
               platforms = platforms.unix;
             };
           };
