@@ -8,10 +8,7 @@ package adminui
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import (
-	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
-)
+import "github.com/larsartmann/templ-components/display"
 
 func dashboardPage(p pageData, d dashboardData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -102,9 +99,9 @@ func dashboardContent(d dashboardData) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = display.Grid(display.GridProps{
-			BaseProps: utils.BaseProps{Class: "[grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]"},
-			Cols:      display.GridCols3,
-			Gap:       display.GridGapMD,
+			Cols:        display.GridColsAutoFit,
+			MinColWidth: "190px",
+			Gap:         display.GridGapMD,
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -139,7 +136,7 @@ func dashboardContent(d dashboardData) templ.Component {
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(e.Action)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/dashboard.templ`, Line: 39, Col: 156}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/dashboard.templ`, Line: 36, Col: 156}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -157,7 +154,7 @@ func dashboardContent(d dashboardData) templ.Component {
 						var templ_7745c5c3_Var7 string
 						templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(e.Email)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/dashboard.templ`, Line: 42, Col: 45}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/dashboard.templ`, Line: 39, Col: 45}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 						if templ_7745c5c3_Err != nil {
@@ -175,7 +172,7 @@ func dashboardContent(d dashboardData) templ.Component {
 						var templ_7745c5c3_Var8 string
 						templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(e.AggregateID.String())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/dashboard.templ`, Line: 44, Col: 66}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/dashboard.templ`, Line: 41, Col: 66}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 						if templ_7745c5c3_Err != nil {

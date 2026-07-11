@@ -79,8 +79,8 @@ github.com/larsartmann/go-cqrs-lite/testutil/v3 v3.7.4 h1:CA1qM3wj/+S4Fx4VTsCWGb
 github.com/larsartmann/go-cqrs-lite/testutil/v3 v3.7.4/go.mod h1:0B4O6dL/fCnpFIMwWNvv9hvv9QNirs4y4Rt6gerXfQI=
 github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.7.4 h1:Qz61AEWOJ7LTeuvxHInyTBUMW5HeCinUJtXikDP5ay0=
 github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.7.4/go.mod h1:h38mCYR9ZBrSJ1YmJqOdHZdsLW1OpJRUurPKLBh8voY=
-github.com/larsartmann/go-error-family v0.6.1 h1:GLfo9UaMER3PkniYLNIHs6ay0I67gE91VFEifw1Goo8=
-github.com/larsartmann/go-error-family v0.6.1/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
+github.com/larsartmann/go-error-family v0.7.0 h1:D3fMZbx0gjVjtWOyIfevlUKWMWE65NnHFwtpBP3l9bw=
+github.com/larsartmann/go-error-family v0.7.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
 github.com/larsartmann/httputil v0.5.0 h1:ARo/PLrZSqQH7CDyMQmWRNZq6h18uRjG9YnFy928T0c=
 github.com/larsartmann/httputil v0.5.0/go.mod h1:do35f2Dt4vcF6MmTibmw+/XgI0eL2qjXl7+r8LKgBmo=
 github.com/maruel/natural v1.1.1 h1:Hja7XhhmvEFhcByqDoHz9QZbkWey+COd9xWfCfn1ioo=

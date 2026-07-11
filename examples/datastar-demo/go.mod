@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.4
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.4
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.7.4
-	github.com/larsartmann/go-error-family v0.6.1
+	github.com/larsartmann/go-error-family v0.7.0
 	github.com/starfederation/datastar-go v1.2.2
 )
 
