@@ -14,15 +14,15 @@ go get github.com/larsartmann/cqrs-htmx/usermgmt/v4
 ## Event Signing & Encryption (Opt-in)
 
 Signing and encryption are **zero-dependency by default** — consumers who don't
-need crypto pull nothing extra. To enable, import `go-cqrs-lite/signing/v3` and/or
-`go-cqrs-lite/encryption/v3` and wire them via `ServiceConfig`:
+need crypto pull nothing extra. To enable, import `go-cqrs-lite/signing/v4` and/or
+`go-cqrs-lite/encryption/v4` and wire them via `ServiceConfig`:
 
 ### Encryption-at-rest + bus-level signing (recommended)
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/encryption/v3"
-    "github.com/larsartmann/go-cqrs-lite/signing/v3"
+    "github.com/larsartmann/go-cqrs-lite/encryption/v4"
+    "github.com/larsartmann/go-cqrs-lite/signing/v4"
 )
 
 signer, _ := signing.NewHMAC(signingKey)       // 32+ bytes
