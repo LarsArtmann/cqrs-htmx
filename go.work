@@ -2,7 +2,6 @@ go 1.26.4
 
 use (
 	.
-	./.vendor-local/eventtest
 	./adminui
 	./examples/admin-demo
 	./examples/basic

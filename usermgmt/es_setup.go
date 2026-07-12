@@ -99,7 +99,7 @@ func UserDecider() decider.Decider[UserState] {
 	}
 }
 
-// closeBus closes the bus if it implements io.Closer. In go-cqrs-lite v3, core
+// closeBus closes the bus if it implements io.Closer. In go-cqrs-lite v4, core
 // interfaces no longer embed io.Closer, but concrete implementations
 // (e.g. *watermill.EventBus) retain their Close method.
 func closeBus(bus event.Bus) {

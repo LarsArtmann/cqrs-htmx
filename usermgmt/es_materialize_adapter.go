@@ -16,7 +16,7 @@ import (
 // bridging go-cqrs-lite's declarative read-model builder with our manual
 // projection dispatch ([StartProjections]).
 //
-// In go-cqrs-lite v3.1.0, [stack.Materialize] only exposes HandlerFunc for
+// In go-cqrs-lite v4, [stack.Materialize] only exposes HandlerFunc for
 // Watermill router integration — it does not implement [projection.Projection]
 // directly. This adapter fills that gap by:
 //

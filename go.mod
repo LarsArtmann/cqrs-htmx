@@ -38,13 +38,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -67,5 +64,3 @@ require (
 	golang.org/x/tools v0.48.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ./.vendor-local/eventtest

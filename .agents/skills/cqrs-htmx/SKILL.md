@@ -49,10 +49,10 @@ An app typically composes some subset of these. They are **independent Go module
 The core CQRS building blocks come from **go-cqrs-lite**, imported per-package:
 
 ```go
-"github.com/larsartmann/go-cqrs-lite/command/v3"
-"github.com/larsartmann/go-cqrs-lite/query/v3"
-"github.com/larsartmann/go-cqrs-lite/event/v3"
-"github.com/larsartmann/go-cqrs-lite/id/v3"
+"github.com/larsartmann/go-cqrs-lite/command/v4"
+"github.com/larsartmann/go-cqrs-lite/query/v4"
+"github.com/larsartmann/go-cqrs-lite/event/v4"
+"github.com/larsartmann/go-cqrs-lite/id/v4"
 ```
 
 ### v3 vs v4: which version should I use?
@@ -399,7 +399,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 2. **Two different UserID types.** Root `cqrshtmx.UserID` is ULID-backed (via `go-cqrs-lite/id`); usermgmt `usermgmt.UserID` is string-backed (`go-branded-id`). They are **not** assignable to each other. Bridge with `.Get()` (raw value), never `.String()` (brand-prefixed).
 3. **Validation comes AFTER the decoder** in the `HandlerOption` list. The validator reads the decoded value off the context -- reversing the order silently skips validation (logs a `slog.Warn`).
 4. **Middleware trio order is `CSRF -> HTMX -> enrichment`.** Put your session middleware _outside_ (before) CSRF.
-5. **No stdlib error constructors** (root + usermgmt + adminui). `errors.New`/`fmt.Errorf`/`errors.Join` are banned (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v3`.
+5. **No stdlib error constructors** (root + usermgmt + adminui). `errors.New`/`fmt.Errorf`/`errors.Join` are banned (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v4`.
 6. **App.Command("") panics.** Empty command/query type strings are rejected at registration.
 7. **Serve htmx.js yourself on Path A/B.** Register `cqrshtmx.HTMXScriptHandler()` on your mux. **Exception:** on Path C (adminui) the panel serves htmx.js internally -- do NOT register it yourself.
 8. **Register your command/query handlers BEFORE building endpoints.** `cmdDisp.Register("CreateItem", handler)` must happen before `app.Command("CreateItem", ...)`.
