@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // renderPage writes a full templ component (a page) as HTML.
@@ -62,7 +63,7 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 // (e.g. a tenant id taken from the URL).
 func redirect(w http.ResponseWriter, r *http.Request, path string) {
 	path = safeRedirectPath(path)
-	if r.Header.Get("HX-Request") == "true" {
+	if cqrshtmx.IsHTMXRequest(r) {
 		w.Header().Set("HX-Redirect", path)
 		w.WriteHeader(http.StatusOK)
 		return

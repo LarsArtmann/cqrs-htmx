@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Partial rendering helpers** (`partial.go`, `options_render.go`): Five new functions that eliminate the boilerplate `if HX-Request { renderPartial } else { renderFull }` branching repeated in every HTMX handler:
+  - `RenderPartialOrFull[T](partial, full)` — Generic `HandlerOption` for `App.Query` that takes two typed mapper functions and auto-selects based on `RenderPartial(r)`. Sets `Content-Type: text/html`.
+  - `RenderPartialOrFullFunc(partial, full)` — Non-generic `HandlerOption` for non-templ renderers (html/template, raw strings, JSON). Delegates to `RenderIf`.
+  - `RenderIf(check, match, noMatch)` — Composable predicate-based render selector. Use for custom predicates beyond partial-vs-full (e.g. `HTMXTarget(r) == "#avatar"`).
+  - `RenderTemplComponent(w, r, partial, full)` — Standalone helper for non-CQRS routes that don't go through `App.Query`. Sets `Content-Type: text/html`.
+  - `OOBHTML(id, html, swapStrategy...)` — General OOB swap wrapper extracted from `WSOOBHTML`. Works for both HTTP and WebSocket responses. `WSOOBHTML` is now a 1-line alias.
+- **adminui refactored** (`handler_users.go`, `render.go`): Replaced raw `r.Header.Get("HX-Request")` checks with `cqrshtmx.RenderPartial(r)` and `cqrshtmx.IsHTMXRequest(r)`, using the library's own typed accessors.
+- **Benchmarks** (`benchmark_htmx_test.go`): Added `BenchmarkRenderPartial`, `BenchmarkRenderTemplComponent`, `BenchmarkOOBHTML` measuring the overhead of the new helpers.
+
+### Changed
+
+- **`WSOOBHTML` is now a delegate** (`ws.go`): `WSOOBHTML(id, html, swap...)` delegates to `OOBHTML(id, html, swap...)`. Removed `fmt` and `strings` imports from `ws.go`. Fully backward compatible — same output, same signature.
+
 ## [v4.3.0] - 2026-07-12
 
 ### Changed
