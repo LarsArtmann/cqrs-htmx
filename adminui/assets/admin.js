@@ -44,10 +44,7 @@
       }, 220);
     }, 3200);
   }
-  document.body.addEventListener("htmx:afterSettle", function (e) {
-    var triggers = e.detail && e.detail.requestConfig && e.detail.requestConfig.headers;
-    // HTMX triggers are also dispatched as custom events; listen for ours.
-  });
+  // HTMX triggers are dispatched as custom events; listen for adminui:toast below.
   document.addEventListener("adminui:toast", function (e) {
     var d = e.detail || {};
     toast(d.message || "", d.kind);
