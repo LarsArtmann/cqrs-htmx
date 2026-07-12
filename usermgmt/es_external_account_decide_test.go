@@ -3,7 +3,7 @@ package usermgmt
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // --- decideLinkExternalAccount guards (Task 14) ---

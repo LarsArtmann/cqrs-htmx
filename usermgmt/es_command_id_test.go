@@ -3,8 +3,8 @@ package usermgmt
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // TestAllCommandsHaveNonZeroID is a regression test for a bug where 7 of 21

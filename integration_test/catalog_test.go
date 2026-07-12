@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/simple"
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 type catalogUserCmd struct {

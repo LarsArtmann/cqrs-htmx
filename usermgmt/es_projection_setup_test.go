@@ -6,10 +6,10 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
 
 // stubProjection is a minimal projection.Projection for testing the projection

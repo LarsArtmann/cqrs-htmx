@@ -3,7 +3,7 @@ package cqrshtmx
 import (
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 )
 
 // Delegated to go-cqrs-lite/idempotency/v3 (tagged v3.3.0).

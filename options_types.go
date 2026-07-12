@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 // CommandDecoder decodes an HTTP request into a command.Command.

@@ -4,9 +4,9 @@ go 1.26.4
 
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.7.4
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.4
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0
 )
 
 require (
@@ -20,13 +20,15 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.7.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-error-family v0.7.0 // indirect
 	github.com/larsartmann/httputil v0.5.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -48,4 +50,4 @@ require (
 
 replace github.com/larsartmann/cqrs-htmx/v4 => ../..
 
-replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../.vendor-local/eventtest
+replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ../../.vendor-local/eventtest
