@@ -160,5 +160,5 @@ Considered but rejected:
 
 - [ADR-0026](0026-command-idempotency-store.md) — The idempotency store that
   relies on `cmd.ID()` for dedup.
-- [go-cqrs-lite command/v3](https://github.com/LarsArtmann/go-cqrs-lite) —
+- [go-cqrs-lite command/v4](https://github.com/LarsArtmann/go-cqrs-lite) —
   `BasicCommand` struct and `command.New` constructor.

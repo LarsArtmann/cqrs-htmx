@@ -106,3 +106,73 @@ func PushURL(url string) HandlerOption {
 		cfg.pushURL = url
 	}
 }
+
+// RenderIf selects between two render functions based on a request predicate.
+// When check returns true, match is used; otherwise noMatch is used.
+//
+// This is the composable primitive behind [RenderPartialOrFullFunc]. Use it
+// directly when you need a custom predicate beyond partial-vs-full-page:
+//
+//	app.Query("GetProfile", decoder,
+//	    cqrshtmx.RenderIf(
+//	        func(r *http.Request) bool { return cqrshtmx.HTMXTarget(r) == "#avatar" },
+//	        avatarPartial,
+//	        fullProfile,
+//	    ),
+//	)
+func RenderIf(check func(*http.Request) bool, match, noMatch RenderFunc) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+			if check(r) {
+				return match(w, r, result)
+			}
+			return noMatch(w, r, result)
+		}
+	}
+}
+
+// RenderPartialOrFullFunc selects between two render functions based on whether
+// the request is an HTMX partial request ([RenderPartial]). When the request
+// comes from HTMX (and is not a history restore), partial is used; otherwise
+// full is used.
+//
+// This is the non-generic version for consumers who use html/template, raw
+// string building, or any non-templ rendering. For templ users, prefer
+// [RenderPartialOrFull].
+func RenderPartialOrFullFunc(partial, full RenderFunc) HandlerOption {
+	return RenderIf(RenderPartial, partial, full)
+}
+
+// RenderPartialOrFull renders a partial templ fragment for HTMX requests and a
+// full-page templ component for regular requests, eliminating the manual
+// if-[RenderPartial] branching that every HTMX handler otherwise needs.
+//
+// Both mappers receive the same typed query result. The partial mapper should
+// return just the fragment that changed (e.g. a table body); the full mapper
+// should return the complete page with that fragment embedded.
+//
+// Usage:
+//
+//	app.Query("ListUsers", decoder,
+//	    cqrshtmx.RenderPartialOrFull(
+//	        func(users []*User) cqrshtmx.TemplComponent { return userListPartial(users) },
+//	        func(users []*User) cqrshtmx.TemplComponent { return usersPage(users) },
+//	    ),
+//	)
+func RenderPartialOrFull[T any](partial, full func(T) TemplComponent) HandlerOption {
+	return func(cfg *handlerConfig) {
+		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+			typed, ok := result.(T)
+			if !ok {
+				return errorfamily.NewRejection("unexpected_result_type",
+					fmt.Sprintf("unexpected result type %T", result)).WithCause(ErrDecodeFailed)
+			}
+
+			w.Header().Set("Content-Type", ContentTypeHTML)
+			if RenderPartial(r) {
+				return partial(typed).Render(r.Context(), w)
+			}
+			return full(typed).Render(r.Context(), w)
+		}
+	}
+}

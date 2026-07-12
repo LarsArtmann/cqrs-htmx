@@ -49,7 +49,7 @@ Compile the Go `decide()` functions to WASM and run them in the browser. The cli
 
 **Cons:**
 
-- **TinyGo limitations**: Missing `reflect` support (needed by many Go libraries), limited `net/http`, smaller standard library. Our domain code depends on `event/v3` which uses reflection for event payload marshaling.
+- **TinyGo limitations**: Missing `reflect` support (needed by many Go libraries), limited `net/http`, smaller standard library. Our domain code depends on `event/v4` which uses reflection for event payload marshaling.
 - **Standard compiler WASM**: Large binary (10-20MB for non-trivial Go programs), slow startup (~100ms+), `syscall/js` overhead. Requires running `wasm_exec.js` shim.
 - **Maintenance burden**: Two runtimes (Go server + WASM client) must stay in sync. Every domain change requires recompiling WASM.
 - **Security surface**: Domain logic exposed in client-side WASM (reverse-engineerable).

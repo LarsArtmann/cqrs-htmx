@@ -92,3 +92,10 @@ func ExampleHTMXCDNScriptTag() {
 	// Output: <script src="https://unpkg.com/htmx.org@2.0.10"></script>
 	// <script src="https://unpkg.com/htmx.org@4.0.0"></script>
 }
+
+func ExampleOOBHTML() {
+	fmt.Println(cqrshtmx.OOBHTML("counter", "<span>3</span>"))
+	fmt.Println(cqrshtmx.OOBHTML("list", "<li>item</li>", cqrshtmx.SwapBeforeEnd))
+	// Output: <div id="counter" hx-swap-oob="true"><span>3</span></div>
+	// <div id="list" hx-swap-oob="beforeend"><li>item</li></div>
+}

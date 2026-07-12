@@ -47,8 +47,7 @@ func TestPanel_AuthorizerAllowsUser(t *testing.T) {
 
 	authz2 := RequireAnyRole(svc, "*", usermgmt.RoleSuperAdmin)
 	if err := authz2(user); err == nil {
-		// user has no roles in casbin, so this should be denied
-		// but the test is about whether the function runs without panic
+		t.Error("RequireAnyRole should deny user with no matching roles")
 	}
 }
 
