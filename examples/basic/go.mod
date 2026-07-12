@@ -19,7 +19,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0 // indirect
@@ -49,5 +48,3 @@ require (
 )
 
 replace github.com/larsartmann/cqrs-htmx/v4 => ../..
-
-replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ../../.vendor-local/eventtest

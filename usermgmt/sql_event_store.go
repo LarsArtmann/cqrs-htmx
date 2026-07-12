@@ -11,7 +11,7 @@ import (
 )
 
 // SQLEventStore persists user domain events in a SQL database with optimistic
-// concurrency. It delegates entirely to go-cqrs-lite/storage/v3's
+// concurrency. It delegates entirely to go-cqrs-lite/storage/v4's
 // SQLEventStore, which provides schema versioning, payload encoding tracking,
 // OpenTelemetry tracing, and SeekableJournal/BackwardsSource support.
 //

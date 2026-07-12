@@ -6,7 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 )
 
-// Delegated to go-cqrs-lite/idempotency/v3 (tagged v3.3.0).
+// Delegated to go-cqrs-lite/idempotency/v4.
 // These aliases preserve backward compatibility with existing cqrs-htmx consumers.
 // New code should import the upstream module directly.
 

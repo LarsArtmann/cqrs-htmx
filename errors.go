@@ -24,7 +24,7 @@ const (
 // Sentinel errors for HTTP→CQRS integration.
 //
 // Each sentinel is natively classified via its go-error-family family (re-exported
-// through go-cqrs-lite/event/v3), so MapError derives the HTTP status directly —
+// through go-cqrs-lite/event/v4), so MapError derives the HTTP status directly —
 // no runtime RegisterClassification is needed.
 var (
 	ErrUnauthorized     = errorfamily.NewRejection(CodeUnauthorized, "unauthorized: authentication required")

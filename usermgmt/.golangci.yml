@@ -106,8 +106,8 @@ linters:
         - github\.com/pquerna/otp/totp\.ValidateOpts$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.\w+View$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.SQL\w+ReadModel$
-        - github\.com/larsartmann/go-cqrs-lite/kv/v3\.ViewQuery$
-        - github\.com/larsartmann/go-cqrs-lite/kv/v3\.Condition$
+        - github\.com/larsartmann/go-cqrs-lite/kv/v4\.ViewQuery$
+        - github\.com/larsartmann/go-cqrs-lite/kv/v4\.Condition$
     gocritic:
       disabled-checks:
         - ifElseChain

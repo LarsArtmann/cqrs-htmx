@@ -39,7 +39,7 @@ type placeholderFunc func(i int) string
 
 // placeholderFor maps a dialect string to its placeholder function.
 // Used only by SQLSessionStore — the event store delegates to
-// go-cqrs-lite/storage/v3's Dialect abstraction.
+// go-cqrs-lite/storage/v4's Dialect abstraction.
 func placeholderFor(dialect string) (placeholderFunc, error) {
 	switch dialect {
 	case dialectPostgres, dialectPgx:

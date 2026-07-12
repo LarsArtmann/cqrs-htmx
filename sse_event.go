@@ -6,7 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 )
 
-// Delegated to go-cqrs-lite/transport/http/v3 (tagged v3.3.1).
+// Delegated to go-cqrs-lite/transport/http/v4.
 // These aliases preserve backward compatibility with existing cqrs-htmx consumers.
 // New code should import the upstream module directly.
 

@@ -63,12 +63,9 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.0 // indirect
 	github.com/larsartmann/httputil v0.5.0 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
@@ -90,5 +87,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ../.vendor-local/eventtest

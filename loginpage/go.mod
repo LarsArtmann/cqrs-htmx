@@ -29,7 +29,6 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.0 // indirect
@@ -88,5 +87,3 @@ replace (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
 	github.com/larsartmann/cqrs-htmx/v4 => ../
 )
-
-replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ../.vendor-local/eventtest
