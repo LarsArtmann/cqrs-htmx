@@ -11,11 +11,11 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 
 | Item        | Value                                                                                                                                                      |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Language    | Go 1.26.3                                                                                                                                                  |
+| Language    | Go 1.26.4 (requires `GOEXPERIMENT=jsonv2` — uses `encoding/json/v2` across all modules)                                                                    |
 | Module      | github.com/larsartmann/cqrs-htmx/v4                                                                                                                        |
-| Test        | `nix run .#test` or `GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race`                                                                    |
-| Build       | `nix run .#build` or `GOPRIVATE='github.com/larsartmann/*' go build ./...`                                                                                 |
-| Lint        | `nix run .#lint` or `golangci-lint run`                                                                                                                    |
+| Test        | `nix run .#test` or `GOEXPERIMENT=jsonv2 GOPRIVATE='github.com/larsartmann/*' go test ./... -count=1 -race`                                                |
+| Build       | `nix run .#build` or `GOEXPERIMENT=jsonv2 GOPRIVATE='github.com/larsartmann/*' go build ./...`                                                             |
+| Lint        | `nix run .#lint` or `GOEXPERIMENT=jsonv2 golangci-lint run`                                                                                                |
 | Coverage    | `nix run .#coverage`                                                                                                                                       |
 | Fmt         | `nix fmt`                                                                                                                                                  |
 | Flake       | `nix flake check` (formatting + devShells + apps)                                                                                                          |
