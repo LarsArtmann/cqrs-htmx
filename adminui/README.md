@@ -112,5 +112,5 @@ adminui/
 └── *_test.go               # render + handler tests
 ```
 
-The panel is a leaf module: it depends on `cqrs-htmx/v3` (root) and
-`cqrs-htmx/usermgmt/v3`, and nothing depends on it.
+The panel is a leaf module: it depends on `cqrs-htmx/v4` (root) and
+`cqrs-htmx/usermgmt/v4`, and nothing depends on it.
