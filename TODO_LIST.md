@@ -17,8 +17,8 @@
 - [ ] **Create GitHub Releases** for 6 tags (`v4.2.1`, `usermgmt/v4.2.0`, `adminui/v4.2.0`, `totp/v4.0.2`, `webauthn/v4.0.2`, `oauth2/v4.0.2`) — only `v4.0.0` and `v2.0.0` have releases today. Tags are pushed but consumers see no release notes.
 - [ ] **Verify `go get github.com/larsartmann/cqrs-htmx/v4@v4.2.1`** resolves from Go proxy — post-push verification never done
 - [ ] **Check if pkg.go.dev** picked up v4.2.1 (Go documentation proxy)
-- [ ] **Configure `go-auto-upgrade` to skip `encoding/json` → `encoding/json/v2` migration** — broke the build on 2026-07-09 (26 files migrated to experimental stdlib packages). Will recur on every buildflow run unless excluded.
-- [ ] **Add depguard lint rule rejecting `encoding/json/v2` + `encoding/json/jsontext` imports** — depguard is NOT yet in `.golangci.yml` enable list despite earlier claim. Need to add `depguard` to linters + configure deny rules for both packages.
+- [x] **Configure `go-auto-upgrade` to skip `encoding/json` → `encoding/json/v2` migration** — RESOLVED: `.buildflow.yml` has `auto_fix: false` which prevents auto-migration. The project intentionally uses `encoding/json/v2` across all modules with `GOEXPERIMENT=jsonv2`.
+- [x] **Add depguard lint rule rejecting `encoding/json/v2` + `encoding/json/jsontext` imports** — RESOLVED: the project intentionally uses `encoding/json/v2` across 28 files with `GOEXPERIMENT=jsonv2` (build fails without it). The TODO was based on a false premise. Depguard ban is incorrect for this codebase.
 
 ### P1 — Code Quality & Test Gaps
 
@@ -48,16 +48,16 @@
 
 ### P2 — Features (Consumer-Requested)
 
-- [ ] **Add `OnSubscribe`/`OnUnsubscribe` hooks to `fanOut`/`Broadcaster`** — DiscordSync asked for connection metrics. `fanout.go` has Subscribe/Unsubscribe/Broadcast/SubscriberCount/Close but no lifecycle hooks.
+- [x] **Add `OnSubscribe`/`OnUnsubscribe` hooks to `fanOut`/`Broadcaster`** — ALREADY IMPLEMENTED: `fanOut` has `onSubscribe`/`onUnsubscribe` fields wired into Subscribe/Unsubscribe. Both `Broadcaster.OnSubscribe`/`OnUnsubscribe` and `WSBroadcaster.OnSubscribe`/`OnUnsubscribe` expose them publicly. Added 4 tests (subscribe, unsubscribe, unknown channel no-op, concurrent race with atomic counters).
 - [x] **Add `writeDispatchError(w, r, err)` helper** — consolidates 15 `writeError(w, errorStatus(err), err.Error())` call sites. Now includes error code in response body when available. `codeKey = "code"` constant added.
 - [x] **Wire `ErrorContext()` into `RequestLoggingSlog`** — `StatusRecorder` captures dispatch error via `setDispatchError`. `handleErr` calls `captureDispatchError` (traverses Unwrap chain). `RequestLoggingSlog` now logs `error_code`, `error_family`, and `error_ctx_*` attributes from classified errors.
 - [ ] **Consider `broadcaster.ServeSSE()` high-level helper** — 2 consumers (Overview, DiscordSync) wrote ~30 lines of identical SSE handler boilerplate. Design decision: does it cross the "building blocks, not a server" line?
-- [ ] **Fix 2 remaining high-severity context losses** in `service_oauth2.go` — `providerName`/`state` flow through Service wrapping but aren't attached to the error.
+- [x] **Fix 2 remaining high-severity context losses** in `service_oauth2.go` — FIXED: added `.WithContext("provider", provider)` to 5 error wrapping sites: state save, state consume, provider mismatch, userinfo unmarshal, no-email rejection.
 
 ### P2 — Testing
 
-- [ ] **OAuth2 FinishLogin integration test** — only BeginLogin tested cross-module. FinishLogin needs mock token exchange endpoint.
-- [ ] **usermgmt HTTP handler coverage** — oauth2_http.go, credential_http.go edge cases, Postgres setup all at 0% coverage. Need httptest.Server fixtures.
+- [x] **OAuth2 FinishLogin integration test** — 3 tests added: full end-to-end FinishLogin with mock token exchange server (user creation + session), invalid state rejection, provider mismatch rejection. Tests the complete cross-module flow: Service → OAuth2StateStore → Provider → mock HTTP server → matchOrCreateUser → session.
+- [x] **usermgmt HTTP handler coverage** — oauth2_http.go: 9 tests added (begin success, callback missing code/state, invalid state, success flow, error redirect, success redirect, unlink unauth/not-linked/success). credential_http.go already fully tested. **Fixed production bug**: `oauth2Error` passed `nil` to `http.Redirect` which panics in Go 1.26 — added `r *http.Request` parameter.
 - [ ] **adminui coverage improvement** — 66.8%, only `seed_render_test.go` as end-to-end test. Target 70%+.
 
 ### P3 — Technical Debt & Future
@@ -75,10 +75,10 @@
 - [ ] **Document provider implementation guide** — how to write custom TOTPProvider/WebAuthnProvider/OAuth2Provider
 - [ ] **Admin UI: TOTP management views** (enable/disable, show QR code)
 - [ ] **Admin UI: OAuth2 link/unlink views**
-- [ ] **Configurable TTLs** — lockout TTL, OAuth2 state TTL, verification token TTL (same pattern as WebAuthnSessionTTL, TOTPPendingSecretTTL)
+- [x] **Configurable TTLs** — lockout TTL, OAuth2 state TTL, verification token TTL (same pattern as WebAuthnSessionTTL, TOTPPendingSecretTTL) — ALL TTLs already configurable: OAuth2StateTTL (ServiceConfig), LockoutConfig.Duration, EmailVerificationConfig.TokenTTL, SessionTTL, WebAuthnSessionTTL, TOTPPendingSecretTTL. Fixed one blemish: TOTPPendingSecretTTL now applies default at init time (was inline fallback at use site).
 - [ ] **Benchmark dedup.Ring vs old map** for typical journal sizes (100, 1K, 10K, 100K events)
 - [ ] **Add integration test** that imports the published version (not local replace)
-- [ ] **Contract tests** between root module and usermgmt (RateLimiter boundary)
+- [x] **Contract tests** between root module and usermgmt (RateLimiter boundary) — `integration_test/ratelimiter_contract_test.go` already exists: tests Check allows/blocks, per-IP key isolation, and RateLimiterConfig type compatibility.
 - [ ] **Standardize import grouping** across the codebase (some files separate go-error-family/go-cqrs-lite imports, others group them)
 - [ ] **Automate GitHub Release creation via CI on tag push** (`.github/workflows/release.yml`)
 

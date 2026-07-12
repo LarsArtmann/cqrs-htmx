@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"sync"
+	"sync/atomic"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	. "github.com/onsi/ginkgo/v2"
@@ -169,6 +170,70 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 				evt := <-ch
 				Expect(evt.Data).To(Equal(string(rune('0' + i))))
 			}
+		})
+
+		It("fires OnSubscribe hook on subscribe", func() {
+			b := cqrshtmx.NewBroadcaster()
+			count := 0
+			b.OnSubscribe(func() { count++ })
+
+			ch := b.Subscribe()
+			defer b.Unsubscribe(ch)
+
+			Expect(count).To(Equal(1))
+
+			ch2 := b.Subscribe()
+			defer b.Unsubscribe(ch2)
+
+			Expect(count).To(Equal(2))
+		})
+
+		It("fires OnUnsubscribe hook on unsubscribe", func() {
+			b := cqrshtmx.NewBroadcaster()
+			count := 0
+			b.OnUnsubscribe(func() { count++ })
+
+			ch := b.Subscribe()
+			b.Unsubscribe(ch)
+
+			Expect(count).To(Equal(1))
+		})
+
+		It("does not fire OnUnsubscribe for unknown channel", func() {
+			b := cqrshtmx.NewBroadcaster()
+			count := 0
+			b.OnUnsubscribe(func() { count++ })
+
+			unknown := make(chan cqrshtmx.SSEEvent)
+			b.Unsubscribe(unknown)
+
+			Expect(count).To(Equal(0))
+		})
+
+		It("fires hooks under concurrent subscribe/unsubscribe race", func() {
+			b := cqrshtmx.NewBroadcaster()
+
+			var subCount, unsubCount atomic.Int64
+			b.OnSubscribe(func() { subCount.Add(1) })
+			b.OnUnsubscribe(func() { unsubCount.Add(1) })
+
+			var wg sync.WaitGroup
+			const goroutines = 20
+			const cycles = 100
+
+			for range goroutines {
+				wg.Go(func() {
+					for range cycles {
+						ch := b.Subscribe()
+						b.Unsubscribe(ch)
+					}
+				})
+			}
+
+			wg.Wait()
+
+			Expect(subCount.Load()).To(Equal(int64(goroutines * cycles)))
+			Expect(unsubCount.Load()).To(Equal(int64(goroutines * cycles)))
 		})
 	})
 
