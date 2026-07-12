@@ -18,7 +18,7 @@
 - [ ] **Verify `go get github.com/larsartmann/cqrs-htmx/v4@v4.2.1`** resolves from Go proxy — post-push verification never done
 - [ ] **Check if pkg.go.dev** picked up v4.2.1 (Go documentation proxy)
 - [ ] **Configure `go-auto-upgrade` to skip `encoding/json` → `encoding/json/v2` migration** — broke the build on 2026-07-09 (26 files migrated to experimental stdlib packages). Will recur on every buildflow run unless excluded.
-- [ ] **Add CI lint rule rejecting `encoding/json/v2` + `encoding/json/jsontext` imports** — ~~defense in depth against the buildflow trap~~ **DONE**: depguard rule added to `.golangci.yml` (rejects both packages with descriptive error)
+- [ ] **Add depguard lint rule rejecting `encoding/json/v2` + `encoding/json/jsontext` imports** — depguard is NOT yet in `.golangci.yml` enable list despite earlier claim. Need to add `depguard` to linters + configure deny rules for both packages.
 
 ### P1 — Code Quality & Test Gaps
 
@@ -27,7 +27,7 @@
 - [x] **Fix `CSRFTestToken` to return `(token, cookie)`** — returns `(string, *http.Cookie)` now. GET→POST round-trip test added verifying token+cookie pass CSRF validation.
 - [x] **Add `Code` field to `StructuredError` + `ProblemDetailsErrorHandler`** — `Code` field added to StructuredError, populated via `errorCode(err)` in `newStructuredErrorFromContext`. ProblemDetailsErrorHandler now emits `code` via StructuredError JSON. Split brain with JSONErrorHandler resolved.
 - [x] **Fix exhaustive lint in `service_register.go:109`** — explicit `case event.Transient, event.Corruption, event.Infrastructure:` added (same body as default). LSP diagnostic resolved.
-- [ ] **Refactor `es_readmodel.go:Handle`** — 160-line 12-case switch. Has `//nolint:gocognit,gocyclo` suppression. Consider extracting a per-event-type dispatch table or handler map.
+- [x] **Refactor `es_readmodel.go:Handle`** — DONE: extracted dispatch table (`handlers map[event.Type]userEventHandler`) with per-event handler methods. `maintidx` lint warning eliminated. All modules report 0 lint issues.
 - [x] **Document empty-body behavior in `DecodeJSONQuery` godoc** — godoc updated for `DecodeJSON` and `DecodeJSONQuery` documenting zero-value T on empty body.
 
 ### P1 — Documentation & Process
