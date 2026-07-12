@@ -20,8 +20,10 @@ import (
 // calls ValidateCode with those bytes. If the JSON/primitive-type
 // contract drifts between core usermgmt and the totp sub-module,
 // this test fails.
-func TestService_TOTP_EnableAndVerify_Integration(t *testing.T) {
-	t.Parallel()
+// setupTOTPUser creates a service with TOTP, registers a user, and enables TOTP.
+// Returns the service, user ID, and the TOTP setup (secret + QR code).
+func setupTOTPUser(t *testing.T) (*usermgmt.Service, usermgmt.UserID, *usermgmt.TOTPSetupResponse) {
+	t.Helper()
 
 	provider := usermgmttotp.New(usermgmttotp.Config{
 		Issuer: "Integration Test",
@@ -50,7 +52,6 @@ func TestService_TOTP_EnableAndVerify_Integration(t *testing.T) {
 		t.Fatalf("Register: %v", err)
 	}
 
-	// Step 1: Enable TOTP — generates secret via provider
 	setup, err := svc.EnableTOTP(context.Background(), uid)
 	if err != nil {
 		t.Fatalf("EnableTOTP: %v", err)
@@ -62,19 +63,27 @@ func TestService_TOTP_EnableAndVerify_Integration(t *testing.T) {
 		t.Fatal("expected non-empty QR code URI from EnableTOTP")
 	}
 
-	// Step 2: Generate a valid TOTP code from the base32 secret
+	return svc, uid, setup
+}
+
+func TestService_TOTP_EnableAndVerify_Integration(t *testing.T) {
+	t.Parallel()
+
+	svc, uid, setup := setupTOTPUser(t)
+
+	// Step 1: Generate a valid TOTP code from the base32 secret
 	code, err := otptotp.GenerateCode(setup.Secret, time.Now())
 	if err != nil {
 		t.Fatalf("totp.GenerateCode: %v", err)
 	}
 
-	// Step 3: Verify setup — dispatches TOTPEnabled event
+	// Step 2: Verify setup — dispatches TOTPEnabled event
 	err = svc.VerifyTOTPSetup(context.Background(), uid, code)
 	if err != nil {
 		t.Fatalf("VerifyTOTPSetup: %v", err)
 	}
 
-	// Step 4: Verify a second code (new time step) against active TOTP
+	// Step 3: Verify a second code (new time step) against active TOTP
 	code2, err := otptotp.GenerateCode(setup.Secret, time.Now())
 	if err != nil {
 		t.Fatalf("totp.GenerateCode (2nd): %v", err)
@@ -84,7 +93,7 @@ func TestService_TOTP_EnableAndVerify_Integration(t *testing.T) {
 		t.Fatalf("VerifyTOTP: %v", err)
 	}
 
-	// Step 5: Invalid code should fail
+	// Step 4: Invalid code should fail
 	err = svc.VerifyTOTP(context.Background(), uid, "000000")
 	if err == nil {
 		t.Error("expected error for invalid TOTP code")

@@ -18,6 +18,7 @@ const (
 	testClientSecret = "test-client-secret"
 	testRedirectURL  = "http://localhost:8080/callback"
 	testGitHub       = "github"
+	testUserEmail    = "test@example.com"
 )
 
 // githubProviderConfig returns a ProviderConfig pointing at the given server URL.
@@ -103,9 +104,9 @@ func TestService_OAuth2_UnknownProvider(t *testing.T) {
 	t.Parallel()
 
 	svc := newOAuth2Service(t, map[string]usermgmtoauth2.ProviderConfig{
-		"google": {
-			ClientID:     "test-id",
-			ClientSecret: "test-secret",
+		"google": { //nolint:gosec // test fixture
+			ClientID:     testClientID,
+			ClientSecret: testClientSecret,
 			RedirectURL:  testRedirectURL,
 			AuthURL:      "https://accounts.google.com/o/oauth2/auth",
 			TokenURL:     "https://oauth2.googleapis.com/token",
@@ -178,7 +179,7 @@ func TestService_OAuth2_FinishLogin_Integration(t *testing.T) {
 	const testEmail = "integration-test@example.com"
 	serverURL, cleanup := newMockOAuth2Server(t, map[string]any{
 		"id":             "github-sub-42",
-		"email":          testEmail,
+		"email":          testEmail, //nolint:goconst // mock JSON key
 		"name":           "Integration Test User",
 		"email_verified": true,
 	})
@@ -213,7 +214,7 @@ func TestService_OAuth2_FinishLogin_RejectsInvalidState(t *testing.T) {
 	t.Parallel()
 
 	serverURL, cleanup := newMockOAuth2Server(t, map[string]any{
-		"id": "1", "email": "test@example.com",
+		"id": "1", "email": testUserEmail,
 	})
 	defer cleanup()
 
@@ -236,7 +237,7 @@ func TestService_OAuth2_FinishLogin_RejectsProviderMismatch(t *testing.T) {
 	t.Parallel()
 
 	serverURL, cleanup := newMockOAuth2Server(t, map[string]any{
-		"id": "1", "email": "test@example.com",
+		"id": "1", "email": testUserEmail,
 	})
 	defer cleanup()
 
