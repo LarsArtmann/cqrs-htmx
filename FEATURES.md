@@ -85,10 +85,10 @@
 
 | Feature               | Status                    | Notes                                                                                                                                                                                                                                                                                                 |
 | --------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Error Classification  | 🟢 `FULLY_FUNCTIONAL`     | go-error-family (v0.6.1) — now a DIRECT dependency in all modules (was indirect via event/v3). 5 families: Rejection(400), Conflict(409), Transient(503), Corruption(500), Infrastructure(503). `MapError` resolves status in 3 layers: HTTPStatusCarrier → sentinel overrides → Family.HTTPStatus(). |
+| Error Classification  | 🟢 `FULLY_FUNCTIONAL`     | go-error-family (v0.7.0) — now a DIRECT dependency in all modules (was indirect via event/v3). 5 families: Rejection(400), Conflict(409), Transient(503), Corruption(500), Infrastructure(503). `MapError` resolves status in 3 layers: HTTPStatusCarrier → sentinel overrides → Family.HTTPStatus(). |
 | Default Error Handler | 🟢 `FULLY_FUNCTIONAL`     | Plain text. HTMX auth → HX-Redirect. Per-App `LoginRedirect`. `text/plain` prevents XSS. `SafeDetail(err, status, includeInternal)` redacts 5xx detail.                                                                                                                                               |
 | JSON Error Handler    | 🟢 `FULLY_FUNCTIONAL`     | `JSONErrorHandlerWithRedirect` writes `{error, status, code}`. `code` field walks cause chain for deepest domain error code. Includes `request_id` when available. v4.2.0.                                                                                                                            |
-| Problem Details       | 🟡 `PARTIALLY_FUNCTIONAL` | `ProblemDetailsErrorHandler` emits RFC 7807 `application/problem+json`. `StructuredError` has Message/Why/Fix metadata. **Gap**: No `Code` field — JSON handler includes `code`, problem+json does not. Split brain.                                                                                  |
+| Problem Details       | 🟢 `FULLY_FUNCTIONAL`     | `ProblemDetailsErrorHandler` emits RFC 7807 `application/problem+json`. `StructuredError` has Message/Why/Fix metadata + `Code` field. Code field populated via `errorCode(err)` — consistent with `JSONErrorHandler`. v4.2.0+unreleased.                                                             |
 | Request ID in Errors  | 🟢 `FULLY_FUNCTIONAL`     | `Config.IncludeRequestIDInErrors` auto-selects request-ID-aware handler. Plain-text prefix: `[request_id: RID]`.                                                                                                                                                                                      |
 | StructuredError       | 🟢 `FULLY_FUNCTIONAL`     | RFC 7807-shaped transport-agnostic error payload. `NewStructuredError(err, r)` maps via MapError + request ID. Used by SSE/WS error broadcasting.                                                                                                                                                     |
 | Error Context         | 🟡 `PARTIALLY_FUNCTIONAL` | `.WithContext(key, val)` chaining enriches errors with domain context (provider, state, dialect, etc.). **Gap**: context not wired into `RequestLoggingSlog` or HTTP responses. Only visible via `ErrorContext()` on the error object. v4.2.0.                                                        |
@@ -254,6 +254,39 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ---
 
+## adminui Module (`github.com/larsartmann/cqrs-htmx/adminui/v4`)
+
+> Ready-made Admin Dashboard UI for usermgmt-backed apps. templ + HTMX + Tailwind v4.
+
+| Feature             | Status                    | Notes                                                                                                                                                                                       |
+| ------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard           | 🟢 `FULLY_FUNCTIONAL`     | Stats cards (total users, tenants, audit events). Activity feed. System health. Two scopes: `ModeSuperAdmin` (global) and `ModeTenantAdmin` (tenant-scoped).                                |
+| User Management     | 🟢 `FULLY_FUNCTIONAL`     | Searchable user list (live HTMX search), user detail view, role management, delete user. `hx-confirm` + JS double-confirm on destructive actions.                                           |
+| Tenant Management   | 🟢 `FULLY_FUNCTIONAL`     | Create/suspend/reactivate/delete tenants. Member management (add by email + role, remove per row). Super-admin only.                                                                        |
+| Audit Log           | 🟢 `FULLY_FUNCTIONAL`     | Append-only audit event viewer with pagination.                                                                                                                                             |
+| Auth Integration    | 🟢 `FULLY_FUNCTIONAL`     | Reads `*usermgmt.User` from context (consumer's `NewSessionMiddleware`). No user → 401; authorizer fail → 403. Role-based default authorizer (overridable via `Config.Authorizer`).         |
+| Templ Components    | 🟢 `FULLY_FUNCTIONAL`     | 19 UI components from `templ-components` v0.16.0 (Table, Card, Badge, Button, Avatar, StatCard, Grid, etc.). Compiled Tailwind v4 CSS embedded via `go:embed`. No build step for consumers. |
+| Toast Notifications | 🟢 `FULLY_FUNCTIONAL`     | `HX-Trigger: {"adminui:toast": {...}}` consumed by `admin.js`. Success/error feedback on all mutations.                                                                                     |
+| Offline Sync        | 🟡 `PARTIALLY_FUNCTIONAL` | SharedWorker (`sync-worker.js`) queues command IDs when offline. Phase 2a (in-memory only). OPFS persistence deferred (ADR-0029).                                                           |
+
+---
+
+## loginpage Module (`github.com/larsartmann/cqrs-htmx/loginpage/v4`)
+
+> Ready-made passwordless login page. Eliminates 200+ lines of hand-rolled HTML/JS.
+
+| Feature            | Status                | Notes                                                                                                                                                           |
+| ------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WebAuthn Login     | 🟢 `FULLY_FUNCTIONAL` | Full passkey ceremony client-side: begin/prompt/finish. Base64URL helpers. Browser detection with fallback message. RFC 7807 error extraction.                  |
+| Registration       | 🟢 `FULLY_FUNCTIONAL` | Email-only registration. Server auto-generates user ID. Auto-hidden when `Config.NoRegistration` or no WebAuthn configured.                                     |
+| CSRF Auto-Included | 🟢 `FULLY_FUNCTIONAL` | Injects `CSRFTokenHTMLMeta(r)` + `CSRFTokenFormField(r)` automatically. JS reads token from meta tag, sends as `X-CSRF-Token` header.                           |
+| OAuth2 Buttons     | 🟢 `FULLY_FUNCTIONAL` | Auto-populated from `Service.ConfiguredOAuth2Providers()`. `ProviderDisplayName()` maps common providers to labels. Manual override via `Config.OAuth2Buttons`. |
+| Theming            | 🟢 `FULLY_FUNCTIONAL` | CSS variables for accent color, full dark mode via `prefers-color-scheme`. No Tailwind dependency. Self-contained (CSS+JS inlined via `go:embed`).              |
+| Templ Export       | 🟢 `FULLY_FUNCTIONAL` | `Page(PageData)` templ component exported for embedding in consumer layouts. `New(Config)` returns standalone `*Handler`. Option C (both handler + component).  |
+| Adaptive Rendering | 🟢 `FULLY_FUNCTIONAL` | Registration section shown only when WebAuthn configured + registration enabled. Adaptive subtitle when no auth method configured. Accessibility: `aria-live`.  |
+
+---
+
 ## Not Planned
 
 | Feature                      | Reason                                                                                      |
@@ -267,10 +300,10 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Metrics
 
-| Metric        | Root  | usermgmt | totp  | webauthn | oauth2 | adminui | integration_test |
-| ------------- | ----- | -------- | ----- | -------- | ------ | ------- | ---------------- |
-| Coverage      | 94.3% | 74.5%    | 88.2% | 87.5%    | 92.3%  | 66.8%   | —                |
-| Tests passing | ~250  | ~580     | 3     | 18       | 18     | 35      | ~20              |
-| Lint issues   | 0     | 0        | 0     | 0        | 0      | 0       | 0                |
-| ErrorFamily   | 0     | 0        | 0     | 0        | 0      | 0       | 0                |
-| Go modules    | 1     | 1        | 1     | 1        | 1      | 1       | 1                |
+| Metric        | Root  | usermgmt | totp  | webauthn | oauth2 | adminui | loginpage | integration_test |
+| ------------- | ----- | -------- | ----- | -------- | ------ | ------- | --------- | ---------------- |
+| Coverage      | 94.2% | 75.1%    | 88.2% | 87.5%    | 92.3%  | 66.8%   | 80.1%     | —                |
+| Tests passing | ~250  | ~580     | 3     | 18       | 18     | 35      | 30+       | ~20              |
+| Lint issues   | 0     | 0        | 0     | 0        | 0      | 0       | 0         | 0                |
+| ErrorFamily   | 0     | 0        | 0     | 0        | 0      | 0       | 0         | 0                |
+| Go modules    | 1     | 1        | 1     | 1        | 1      | 1       | 1         | 1                |

@@ -4,18 +4,17 @@
 > For short-term work, see [TODO_LIST.md](TODO_LIST.md).
 > For what exists today, see [FEATURES.md](FEATURES.md).
 
-**Updated:** 2026-07-02 | **Version:** v4.0.0 (shipped: auth strategy extraction, modular auth sub-modules)
+**Updated:** 2026-07-12 | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.0)
 
 ## Current State
 
-- **Version:** v4.0.0 (11 modules: root + usermgmt + 3 auth sub-modules + adminui + integration_test + 4 examples)
-- **Coverage:** 94.3% root, 80.1% usermgmt, 87.5% webauthn, 92.3% oauth2, 88.2% totp
-- **Lint:** 0 issues (root + usermgmt + adminui)
-- **ErrorFamily:** 0 violations (root + usermgmt + adminui; sub-modules intentionally exempt)
-- **Tests:** 1,055+ total (root 198, usermgmt 764, totp 3, webauthn 20, oauth2 18, adminui 35, integration 17), race-safe
-- **Dependencies:** go-cqrs-lite v3.5.0, go-error-family v0.5.1, go-branded-id v0.3.1. Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are now in optional sub-modules — core usermgmt has ZERO auth deps
-- **Architecture:** Fully event-sourced usermgmt (12 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay). Auth strategies extracted behind interfaces (ADR-0035).
-- **Modules:** 11 Go modules in go.work (root, usermgmt, usermgmt/totp, usermgmt/webauthn, usermgmt/oauth2, adminui, integration_test, 4 examples)
+- **Version:** v4.2.1+unreleased (12 modules: root + usermgmt + 3 auth sub-modules + adminui + loginpage + integration_test + 4 examples)
+- **Coverage:** 94.2% root, 75.1% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui, 80.1% loginpage (~920 tests), race-safe
+- **Lint:** 0 issues across all linted modules
+- **ErrorFamily:** 0 violations across all modules (sub-modules adopted go-error-family directly in v4.2.0)
+- **Dependencies:** go-cqrs-lite v4.0.0, go-error-family v0.7.0, go-branded-id v0.3.1, httputil v0.5.0, templ-components v0.16.0. Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are in optional sub-modules — core usermgmt has ZERO auth deps
+- **Architecture:** Fully event-sourced usermgmt (12 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay). Auth strategies extracted behind interfaces (ADR-0035). loginpage module (passwordless login UI). adminui module (templ+HTMX dashboard).
+- **Modules:** 12 Go modules in go.work (root, usermgmt, usermgmt/totp, usermgmt/webauthn, usermgmt/oauth2, adminui, loginpage, integration_test, 4 examples)
 
 ---
 
@@ -95,6 +94,60 @@ _Focus: Adopting go-cqrs-lite v3.4.0 capabilities to reduce hand-rolled code._
 
 ---
 
+## v4.1.0 — Embedded HTMX Extensions (Shipped)
+
+_Focus: Zero-CDN-dependency HTMX setup with embedded extensions._
+
+| Area | Item                                                               | Priority | Status |
+| ---- | ------------------------------------------------------------------ | -------- | ------ |
+| UX   | Embedded HTMX extensions (SSE, WS, idiomorph) via `go:embed`       | High     | Done   |
+| UX   | `HTMXExtensionHandler(name)` + `HTMXExtensionsHandler(bundle)` API | High     | Done   |
+| UX   | HTMX core bumped 2.0.9 → 2.0.10                                    | Medium   | Done   |
+
+## v4.2.0 — Consumer Feedback + Error Quality (Shipped)
+
+_Focus: APIs requested by 3 real consumers (Overview, DiscordSync, SwettySwipper). Error family adoption across all modules._
+
+| Area  | Item                                                                             | Priority | Status |
+| ----- | -------------------------------------------------------------------------------- | -------- | ------ |
+| API   | `RequestGuard` custom auth guard                                                 | High     | Done   |
+| API   | Request-aware decoders (`*WithRequest` variants)                                 | High     | Done   |
+| API   | `DefaultRateLimiterConfig()` constructor                                         | Medium   | Done   |
+| API   | `SecurityHeaderSkip` sentinel                                                    | Medium   | Done   |
+| API   | `RenderHTML(html)` HandlerOption                                                 | Medium   | Done   |
+| API   | `SSEEventConnected`/`SSEEventHeartbeat` constants                                | Low      | Done   |
+| API   | `Broadcaster.Close()` + `fanOut.Close()` graceful shutdown                       | Medium   | Done   |
+| API   | JSON error `"code"` field + `StructuredError.Code`                               | High     | Done   |
+| API   | `CSRFTestToken(mw)` test helper (returns token + cookie)                         | Medium   | Done   |
+| Error | go-error-family direct dep in ALL modules (32 violations → 0)                    | Critical | Done   |
+| Error | Error context enrichment (`.WithContext()` chaining)                             | High     | Done   |
+| Perf  | `dedup.Ring` (O(1) memory projection dedup) + `codec.ForEncoding` (CBOR support) | Medium   | Done   |
+
+## v4.2.1 — Release Hygiene (Shipped)
+
+_Focus: Version drift alignment, go.work fix, CHANGELOGs for all modules._
+
+| Area  | Item                                                | Priority | Status |
+| ----- | --------------------------------------------------- | -------- | ------ |
+| Infra | go.work replace+use conflict fix                    | Critical | Done   |
+| Infra | go-cqrs-lite version drift alignment (all → v3.7.4) | High     | Done   |
+| Docs  | CHANGELOGs created for all 6 modules                | High     | Done   |
+
+## Unreleased — go-cqrs-lite v4 Migration
+
+_Focus: Migrate from go-cqrs-lite v3 to v4. Eliminate vendored eventtest._
+
+| Area  | Item                                                                    | Priority | Status |
+| ----- | ----------------------------------------------------------------------- | -------- | ------ |
+| Deps  | go-cqrs-lite v3.7.4 → v4.0.0 (import paths `/v3` → `/v4`)               | Critical | Done   |
+| Deps  | go-error-family v0.6.1 → v0.7.0                                         | High     | Done   |
+| Deps  | templ-components v0.15.0 → v0.16.0                                      | Medium   | Done   |
+| Infra | `.vendor-local/eventtest` eliminated                                    | High     | Done   |
+| API   | `ErrorCode` exported, `ErrorRecorder` extracted from `StatusRecorder`   | Medium   | Done   |
+| API   | `writeDispatchError` consolidates 15 error-writing sites in usermgmt    | Medium   | Done   |
+| Refac | `UserReadModel.Handle` dispatch table (eliminates last lint issue)      | Medium   | Done   |
+| Test  | CBOR round-trip tests, request-aware decoder tests, CSRFTestToken tests | High     | Done   |
+
 ## v4.0.0 — Auth Strategy Extraction (Shipped)
 
 _Focus: Module isolation for auth strategies. Consumers import only what they need._
@@ -110,9 +163,9 @@ _Focus: Module isolation for auth strategies. Consumers import only what they ne
 | Docs       | ADR-0035 (auth strategy extraction decision)                               | Medium   | Done   |
 | Docs       | Migration guide v3→v4                                                      | High     | Done   |
 
-## v4.1.0 — God-Package Split (Next Initiative)
+## v4.1.0 — God-Package Split (Deferred)
 
-_Focus: The 84-file usermgmt god-package. Clean seams identified but extraction deferred._
+_Focus: The 84-file usermgmt god-package. Clean seams identified but extraction deferred — sub-package extraction within the same Go module provides zero consumer benefit (same dep tree). Only separate Go modules reduce transitive deps._
 
 | Area         | Item                                                       | Priority | Status  |
 | ------------ | ---------------------------------------------------------- | -------- | ------- |
@@ -120,8 +173,8 @@ _Focus: The 84-file usermgmt god-package. Clean seams identified but extraction 
 | Architecture | Extract SQL infrastructure (9 files)                       | Medium   | Planned |
 | Architecture | Split Service struct into focused services                 | Medium   | Planned |
 | Testing      | Cross-module integration test through Service layer        | Medium   | Planned |
-| Feature      | Configurable WebAuthn session TTL                          | Low      | Planned |
-| Testing      | Fuzz tests on JSON serialization boundary                  | Medium   | Planned |
+| Feature      | Configurable WebAuthn session TTL                          | Low      | Done    |
+| Testing      | Fuzz tests on JSON serialization boundary                  | Medium   | Done    |
 
 ---
 

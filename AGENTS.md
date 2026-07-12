@@ -463,11 +463,11 @@ cqrs-htmx/
 
 - **PURPOSE**: A ready-made, good-looking Admin Dashboard for usermgmt-backed apps. One-call mount behind session middleware. See `adminui/README.md`.
 - **Leaf integration module**: `adminui` depends on root `cqrs-htmx/v4` (reuses `HTMXScriptHandler` for embedded htmx.js) + `usermgmt/v4` + `a-h/templ`. Nothing depends on it. `examples/admin-demo/` is the runnable showcase.
-- **templ + templ-components**: Markup authored in `.templ`, compiled to committed `_templ.go`. Consumers import the generated files directly — they never run `templ generate`. After editing `.templ`, contributors run `templ generate` (CLI v0.3.x) in `adminui/`, then commit both `.templ` and `_templ.go`. UI components come from `templ-components` v0.15.0 (see adoption table below).
+- **templ + templ-components**: Markup authored in `.templ`, compiled to committed `_templ.go`. Consumers import the generated files directly — they never run `templ generate`. After editing `.templ`, contributors run `templ generate` (CLI v0.3.x) in `adminui/`, then commit both `.templ` and `_templ.go`. UI components come from `templ-components` v0.16.0 (see adoption table below).
 - **Two scopes**: `ModeSuperAdmin` (global: dashboard/users/tenants/audit) and `ModeTenantAdmin` (scoped to `Config.TenantID`: dashboard/members/audit). Route table is built per-mode — tenant-admin mode does NOT register `/users` or `/tenants`, so they 404 (dashboard anchored with `GET /{$}` so it doesn't catch-all).
 - **Auth-agnostic**: Panel reads `*usermgmt.User` from context (consumer's `NewSessionMiddleware`). No user → 401; authorizer fail → 403. Default authorizer is role-based (overridable via `Config.Authorizer`); helpers `RequireAnyRole(service, domain, roles...)` and `RequireAuthenticated()`.
 - **No build step for consumers**: Compiled Tailwind v4 CSS (`assets/admin-tw.css`) + tiny vanilla JS (`assets/admin.js`) embedded via `go:embed`. Light/dark via `prefers-color-scheme`; accent color injected inline from `Config.AccentColor`. CSS recompiled via `nix run .#build-adminui-css` (copy-first approach: copies only `*.templ` files from templ-components to a temp dir to avoid 55 GB OOM — see CSS build gotcha below).
-- **templ-components adoption (2026-07-11)**: adminui uses `github.com/larsartmann/templ-components` v0.15.0 for 19 UI components. The library shares the Tailwind v4 class language with adminui's CSS-variable theme via a `.bg-white { background-color: var(--surface) }` bridge in `tailwind.css`. The `@theme` block maps gray-50 through gray-900 to adminui CSS variables so library components (Table, Card, Badge, etc.) render correctly in both light and dark mode. A double-border CSS fix targets `.overflow-hidden > .overflow-x-auto` to suppress the inner border when `display.Table` is nested inside `display.Card(CardPaddingNone)`. CSS rebuild via `nix run .#build-adminui-css` or manual direct-binary approach (see gotcha #2 below).
+- **templ-components adoption (2026-07-11)**: adminui uses `github.com/larsartmann/templ-components` v0.16.0 for 19 UI components. The library shares the Tailwind v4 class language with adminui's CSS-variable theme via a `.bg-white { background-color: var(--surface) }` bridge in `tailwind.css`. The `@theme` block maps gray-50 through gray-900 to adminui CSS variables so library components (Table, Card, Badge, etc.) render correctly in both light and dark mode. A double-border CSS fix targets `.overflow-hidden > .overflow-x-auto` to suppress the inner border when `display.Table` is nested inside `display.Card(CardPaddingNone)`. CSS rebuild via `nix run .#build-adminui-css` or manual direct-binary approach (see gotcha #2 below).
 
   | Library component        | Status  | Where                                                                                                         |
   | ------------------------ | ------- | ------------------------------------------------------------------------------------------------------------- |
@@ -545,7 +545,7 @@ cqrs-htmx/
 
 ### Error Handling
 
-15. **No stdlib error constructors**: `errors.New`/`fmt.Errorf`/`errors.Join` are banned in non-test code — `branching-flow errorfamily .` enforces 0 violations. Use `event.New*/Wrap*/Wrapf/Newf` (re-exported via `event/v3`). For dispatch errors that must preserve the inner domain family, use `event.Wrapf(err, event.Classify(err), code, msg)` — never force a family. `fmt.Sprintf` is allowed only for message strings, not error objects
+15. **No stdlib error constructors**: `errors.New`/`fmt.Errorf`/`errors.Join` are banned in non-test code — `branching-flow errorfamily .` enforces 0 violations. Use `event.New*/Wrap*/Wrapf/Newf` (re-exported via `event/v4`). For dispatch errors that must preserve the inner domain family, use `event.Wrapf(err, event.Classify(err), code, msg)` — never force a family. `fmt.Sprintf` is allowed only for message strings, not error objects
 16. **Middleware logs invalid IDs**: Correlation ID parse failures logged at debug level. Request ID parse failures silently generate a new ID
 17. **DefaultMaxBodySize**: 10 MB when both `Config.MaxBodySize` and per-handler `WithMaxBodySize` are zero
 
@@ -673,9 +673,9 @@ cd examples/admin-demo && GOWORK=off GOPRIVATE='github.com/larsartmann/*' go run
   - **`scheduling` NOT applicable**: usermgmt has no deadline/scheduling use cases. Session expiry uses TTL eviction goroutines. The scheduling package is available for consumers who need "cancel after N minutes" timers.
   - **`stack.NewMaterialize` NOT adopted**: Current `MaterializeProjection` adapter wraps a pre-existing `*stack.Materialize` (constructed by the caller), which doesn't always have a Bundle. `stack.NewMaterialize` requires a Bundle — different construction path.
   - **`stack.TypedRepository` NOT adopted**: Current deciders use `command.Command` interface. TypedRepository would bind command type at compile time but requires refactoring all deciders — future task.
-- **`stack/v3` + `stack/sqlite/v3` + `stack/postgres/v3`**: New dependencies in usermgmt. Added `pgx/v5` transitively.
+- **`stack/v4` + `stack/sqlite/v4` + `stack/postgres/v4`**: New dependencies in usermgmt. Added `pgx/v5` transitively.
 
 ### CI Gates
 
-- **`nix run .#errorfamily`**: Runs `branching-flow errorfamily` on root + usermgmt. Verifies zero stdlib error constructors.
+- **`nix run .#errorfamily`**: Runs `branching-flow errorfamily` on root + usermgmt + adminui. Verifies zero stdlib error constructors. Auth sub-modules (totp/webauthn/oauth2) adopted go-error-family directly in v4.2.0 but are not in the CI gate (they import go-error-family, not go-cqrs-lite/event).
 - **`nix run .#coverage-gate`**: Tests all modules and fails if coverage drops below thresholds (root 90%, usermgmt 75%).

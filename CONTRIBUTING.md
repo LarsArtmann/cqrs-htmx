@@ -53,7 +53,7 @@ All tests in all modules must pass with zero errors before submitting.
 
 This is a **library/SDK**, not an application. There is no `main` package. Consumers import `github.com/larsartmann/cqrs-htmx/v4` into their projects.
 
-The project uses a **multi-module Go workspace** with 11 modules:
+The project uses a **multi-module Go workspace** with 12 modules:
 
 | Module            | Path                        | Go Module                                               | Tests |
 | ----------------- | --------------------------- | ------------------------------------------------------- | ----- |
@@ -63,6 +63,7 @@ The project uses a **multi-module Go workspace** with 11 modules:
 | Usermgmt/WebAuthn | `./usermgmt/webauthn/`      | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4` | Yes   |
 | Usermgmt/OAuth2   | `./usermgmt/oauth2/`        | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`   | Yes   |
 | Admin UI          | `./adminui/`                | `github.com/larsartmann/cqrs-htmx/adminui/v4`           | Yes   |
+| Login Page        | `./loginpage/`              | `github.com/larsartmann/cqrs-htmx/loginpage/v4`         | Yes   |
 | Integration Test  | `./integration_test/`       | separate test module                                    | Yes   |
 | Basic Example     | `./examples/basic/`         | example app                                             | No    |
 | Datastar Demo     | `./examples/datastar-demo/` | example app (Datastar SSE)                              | No    |

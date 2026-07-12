@@ -1176,7 +1176,7 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | ---------------------- | --------------------------------------- |
 | go-cqrs-lite v4.0.0    | CQRS command/query dispatch, pagination |
 | casbin/casbin/v3       | Authorization                           |
-| go-error-family v0.6.1 | Error classification                    |
+| go-error-family v0.7.0 | Error classification                    |
 | justinas/nosurf        | CSRF protection                         |
 | larsartmann/httputil   | ClientIP extraction                     |
 | golang.org/x/time      | Token-bucket rate limiting              |

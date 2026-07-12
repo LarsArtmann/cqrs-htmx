@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-07-12 | **Coverage:** 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui (~886 tests) | **Lint:** 0 issues (6 production modules) | **Version:** v4.2.1 (go-cqrs-lite v4.0.0)
+**Updated:** 2026-07-12 | **Coverage:** 94.2% root, 75.1% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui, 80.1% loginpage (~920 tests) | **Lint:** 0 issues (all modules) | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.0)
 
 ## Status Legend
 
@@ -35,9 +35,9 @@
 - [ ] **Write pre-release verification script** (`nix run .#release-checklist`) — validates CHANGELOG updated, GitHub release body drafted, README version refs current, migration guide accurate before tagging
 - [ ] **Add release process documentation to CONTRIBUTING.md** — tag naming, CHANGELOG update order, GitHub release creation steps
 - [ ] **Write `nix run .#check-docs-freshness` app** — scans all `.md` files for version strings that don't match `go.mod`. Prevents `v3.1.0` → `v3.7.4` class of stale-reference bugs
-- [ ] **Research go-cqrs-lite v3.6.0 + v3.7.0 release notes** — repo returned 404 when tried. Features discovered by reading module source; there may be missed capabilities
+- [ ] **Research go-cqrs-lite v4.0.0 release notes** — features discovered by reading module source (dedup.Ring, codec.ForEncoding, projectionhost, scheduling, testutil); there may be missed capabilities
 - [ ] **Research httputil v0.5.0 changes** — upgraded from v0.4.0 but changelog not reviewed. Only use `httputil.ClientIP`
-- [ ] **Research templ-components v0.9.0→v0.10.0 changes** — bumped in adminui/admin-demo. Check for breaking changes
+- [ ] **Research templ-components v0.15.0→v0.16.0 changes** — bumped in adminui/admin-demo. Check for new components or breaking changes
 
 ### P2 — Architecture
 
