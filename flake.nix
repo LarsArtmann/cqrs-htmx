@@ -622,8 +622,22 @@
                   bash scripts/check-dep-budgets.sh
                   bash scripts/check-version-drift.sh --strict
                   bash scripts/check-replace-directives.sh
+                  bash scripts/check-docs-freshness.sh
                   echo ""
                   echo "✓ All module architecture checks passed"
+                '';
+              };
+            };
+
+            check-docs-freshness = {
+              type = "app";
+              meta.description = "Scan .md files for version strings that don't match go.mod";
+              program = pkgs.writeShellApplication {
+                name = "check-docs-freshness";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                  bash scripts/check-docs-freshness.sh
                 '';
               };
             };
@@ -701,17 +715,6 @@
                 runtimeInputs = [ pkgs.go_1_26 ];
                 text = ''
                   bash scripts/release-checklist.sh
-                '';
-              };
-            };
-
-            check-docs-freshness = {
-              type = "app";
-              meta.description = "Scan .md files for stale version strings against go.mod";
-              program = pkgs.writeShellApplication {
-                name = "check-docs-freshness";
-                text = ''
-                  bash scripts/check-docs-freshness.sh
                 '';
               };
             };

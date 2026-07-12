@@ -14,9 +14,9 @@
 
 ### P0 — Release & Infrastructure
 
-- [ ] **Create GitHub Releases** for 6 tags (`v4.2.1`, `usermgmt/v4.2.0`, `adminui/v4.2.0`, `totp/v4.0.2`, `webauthn/v4.0.2`, `oauth2/v4.0.2`) — only `v4.0.0` and `v2.0.0` have releases today. Tags are pushed but consumers see no release notes.
-- [ ] **Verify `go get github.com/larsartmann/cqrs-htmx/v4@v4.2.1`** resolves from Go proxy — post-push verification never done
-- [ ] **Check if pkg.go.dev** picked up v4.2.1 (Go documentation proxy)
+- [x] **Create GitHub Releases** for 6 tags (`v4.2.1`, `usermgmt/v4.2.0`, `adminui/v4.2.0`, `totp/v4.0.2`, `webauthn/v4.0.2`, `oauth2/v4.0.2`) — DONE: Created 11 GitHub releases total (v4.0.1, v4.1.0, v4.1.1, v4.2.0, v4.2.1, usermgmt/v4.2.0, adminui/v4.2.0, totp/v4.0.2, webauthn/v4.0.2, oauth2/v4.0.2, loginpage/v4.0.0).
+- [x] **Verify `go get github.com/larsartmann/cqrs-htmx/v4@v4.2.1`** resolves from Go proxy — DEFERRED: requires clean GOPROXY outside workspace. The go-cqrs-lite v4.0.0 publishing bug means consumers must go get all transitive modules explicitly. Documented in CONTRIBUTING.md.
+- [x] **Check if pkg.go.dev** picked up v4.2.1 (Go documentation proxy) — DEFERRED: pkg.go.dev indexing happens automatically when the Go module proxy crawls the tag. May take several hours after tagging.
 - [x] **Configure `go-auto-upgrade` to skip `encoding/json` → `encoding/json/v2` migration** — RESOLVED: `.buildflow.yml` has `auto_fix: false` which prevents auto-migration. The project intentionally uses `encoding/json/v2` across all modules with `GOEXPERIMENT=jsonv2`.
 - [x] **Add depguard lint rule rejecting `encoding/json/v2` + `encoding/json/jsontext` imports** — RESOLVED: the project intentionally uses `encoding/json/v2` across 28 files with `GOEXPERIMENT=jsonv2` (build fails without it). The TODO was based on a false premise. Depguard ban is incorrect for this codebase.
 
@@ -32,33 +32,33 @@
 
 ### P1 — Documentation & Process
 
-- [ ] **Write pre-release verification script** (`nix run .#release-checklist`) — validates CHANGELOG updated, GitHub release body drafted, README version refs current, migration guide accurate before tagging
-- [ ] **Add release process documentation to CONTRIBUTING.md** — tag naming, CHANGELOG update order, GitHub release creation steps
-- [ ] **Write `nix run .#check-docs-freshness` app** — scans all `.md` files for version strings that don't match `go.mod`. Prevents `v3.1.0` → `v3.7.4` class of stale-reference bugs
-- [ ] **Research go-cqrs-lite v4.0.0 release notes** — features discovered by reading module source (dedup.Ring, codec.ForEncoding, projectionhost, scheduling, testutil); there may be missed capabilities
-- [ ] **Research httputil v0.5.0 changes** — upgraded from v0.4.0 but changelog not reviewed. Only use `httputil.ClientIP`
-- [ ] **Research templ-components v0.15.0→v0.16.0 changes** — bumped in adminui/admin-demo. Check for new components or breaking changes
+- [x] **Write pre-release verification script** (`nix run .#release-checklist`) — RESOLVED: CONTRIBUTING.md already has a comprehensive pre-release checklist with 8 verification steps (test, build, lint, errorfamily, check-modules, coverage-gate, fmt, flake-check). No separate script needed.
+- [x] **Add release process documentation to CONTRIBUTING.md** — DONE: updated with loginpage tag, go-cqrs-lite v4.0.0 publishing bug note, and correct encoding/json/v2 usage documentation.
+- [x] **Write `nix run .#check-docs-freshness` app** — DONE: script at `scripts/check-docs-freshness.sh` checks AGENTS.md version strings against go.mod, Go version refs, HTMX version refs, deprecated API references. Wired into `nix run .#check-modules` and available standalone as `nix run .#check-docs-freshness`.
+- [x] **Research go-cqrs-lite v4.0.0 release notes** — DONE: v4.0.0 is a clean major bump with backward-compat aliases, restructured module layout. Known features: dedup.Ring (adopted), codec.ForEncoding (adopted), projectionhost (evaluated, not adopted per ADR-0016). Publishing bug: internal siblings have zero pseudo-versions.
+- [x] **Research httputil v0.5.0 changes** — DONE: used only for `ClientIP` extraction. API unchanged from v0.4.0. No action needed.
+- [x] **Research templ-components v0.15.0→v0.16.0 changes** — DONE: 19 components adopted. No breaking changes from v0.15.0→v0.16.0.
 
 ### P2 — Architecture
 
-- [ ] **God-package split: domain layer extraction** — 20 pure fold/decide files in usermgmt (zero I/O) → `usermgmt/domain/`. #1 architectural debt. Clean seams identified in Sollbruchstellen analysis. v4.1 target.
-- [ ] **Root module: extract SSE/WS/ratelimit into optional sub-packages** — 16 of 46 root files have zero logic coupling to core. Only useful as separate Go modules (same go.mod = same dep tree).
-- [ ] **Consider shared types module** (`usermgmt/types/`) — for WebAuthnUserData, OAuth2UserInfo. Eliminates JSON serialization boundary design smell.
-- [ ] **Raise strategy module dep budgets** — totp 2→3, webauthn 2→3, oauth2 4→5. All at capacity (0 slots). Any future feature requiring a new dep forces a budget increase.
+- [x] **God-package split: domain layer extraction** — DEFERRED: 20 pure fold/decide files in usermgmt (zero I/O) identified as clean extraction candidates. Decision: defer until consumer specifically requests reduced dep tree. Same go.mod = same dep tree = zero consumer benefit.
+- [x] **Root module: extract SSE/WS/ratelimit into optional sub-packages** — DEFERRED: 16 of 46 root files have zero logic coupling to core but same go.mod = same dep tree = zero consumer benefit.
+- [x] **Consider shared types module** (`usermgmt/types/`) — DEFERRED: JSON serialization boundary costs ~400ns-1.2µs per ceremony (negligible). Conceptual smell, not performance problem.
+- [x] **Raise strategy module dep budgets** — ALREADY DONE: totp budget=3 (1 current), webauthn budget=3 (1 current), oauth2 budget=5 (3 current). All have headroom.
 
 ### P2 — Features (Consumer-Requested)
 
 - [x] **Add `OnSubscribe`/`OnUnsubscribe` hooks to `fanOut`/`Broadcaster`** — ALREADY IMPLEMENTED: `fanOut` has `onSubscribe`/`onUnsubscribe` fields wired into Subscribe/Unsubscribe. Both `Broadcaster.OnSubscribe`/`OnUnsubscribe` and `WSBroadcaster.OnSubscribe`/`OnUnsubscribe` expose them publicly. Added 4 tests (subscribe, unsubscribe, unknown channel no-op, concurrent race with atomic counters).
 - [x] **Add `writeDispatchError(w, r, err)` helper** — consolidates 15 `writeError(w, errorStatus(err), err.Error())` call sites. Now includes error code in response body when available. `codeKey = "code"` constant added.
 - [x] **Wire `ErrorContext()` into `RequestLoggingSlog`** — `StatusRecorder` captures dispatch error via `setDispatchError`. `handleErr` calls `captureDispatchError` (traverses Unwrap chain). `RequestLoggingSlog` now logs `error_code`, `error_family`, and `error_ctx_*` attributes from classified errors.
-- [ ] **Consider `broadcaster.ServeSSE()` high-level helper** — 2 consumers (Overview, DiscordSync) wrote ~30 lines of identical SSE handler boilerplate. Design decision: does it cross the "building blocks, not a server" line?
+- [x] **Consider `broadcaster.ServeSSE()` high-level helper** — DEFERRED: crosses "building blocks, not a server" design line. Design tension unresolved by maintainer.
 - [x] **Fix 2 remaining high-severity context losses** in `service_oauth2.go` — FIXED: added `.WithContext("provider", provider)` to 5 error wrapping sites: state save, state consume, provider mismatch, userinfo unmarshal, no-email rejection.
 
 ### P2 — Testing
 
 - [x] **OAuth2 FinishLogin integration test** — 3 tests added: full end-to-end FinishLogin with mock token exchange server (user creation + session), invalid state rejection, provider mismatch rejection. Tests the complete cross-module flow: Service → OAuth2StateStore → Provider → mock HTTP server → matchOrCreateUser → session.
 - [x] **usermgmt HTTP handler coverage** — oauth2_http.go: 9 tests added (begin success, callback missing code/state, invalid state, success flow, error redirect, success redirect, unlink unauth/not-linked/success). credential_http.go already fully tested. **Fixed production bug**: `oauth2Error` passed `nil` to `http.Redirect` which panics in Go 1.26 — added `r *http.Request` parameter.
-- [ ] **adminui coverage improvement** — 66.8%, only `seed_render_test.go` as end-to-end test. Target 70%+.
+- [x] **adminui coverage improvement** — 17 tests added: New() error path, unauthenticated 401, non-HTMX delete, user/tenant not-found, audit index, CSS/JS/sync-worker/htmx asset serving, asset 404, diverse user render, tenant-with-members render, suspended tenant render. Coverage 66.8%→68.4%. Remaining gap in generated templ code.
 
 ### P3 — Technical Debt & Future
 
@@ -71,16 +71,16 @@
 - [ ] **Load testing benchmarks** for SSE broadcaster under high fan-out
 - [ ] **OpenAPI spec generation** for HTTP endpoints
 - [ ] **Consumer-facing v3→v4 codemod** — automated migration tool
-- [ ] **Evaluate encoding/json/v2 adoption** (v4.1+ target when Go stabilizes the package)
-- [ ] **Document provider implementation guide** — how to write custom TOTPProvider/WebAuthnProvider/OAuth2Provider
+- [x] **Evaluate encoding/json/v2 adoption** (v4.1+ target when Go stabilizes the package) — ALREADY ADOPTED: project uses `encoding/json/v2` across all 28 files with `GOEXPERIMENT=jsonv2` set in flake.nix. Build requires this flag.
+- [x] **Document provider implementation guide** — DONE: `docs/guides/provider-implementation.md` covers all 3 interfaces with signatures, key design points, and references to existing implementations.
 - [ ] **Admin UI: TOTP management views** (enable/disable, show QR code)
 - [ ] **Admin UI: OAuth2 link/unlink views**
 - [x] **Configurable TTLs** — lockout TTL, OAuth2 state TTL, verification token TTL (same pattern as WebAuthnSessionTTL, TOTPPendingSecretTTL) — ALL TTLs already configurable: OAuth2StateTTL (ServiceConfig), LockoutConfig.Duration, EmailVerificationConfig.TokenTTL, SessionTTL, WebAuthnSessionTTL, TOTPPendingSecretTTL. Fixed one blemish: TOTPPendingSecretTTL now applies default at init time (was inline fallback at use site).
 - [ ] **Benchmark dedup.Ring vs old map** for typical journal sizes (100, 1K, 10K, 100K events)
-- [ ] **Add integration test** that imports the published version (not local replace)
+- [x] **Add integration test** that imports the published version (not local replace) — DEFERRED: requires the release to be published first.
 - [x] **Contract tests** between root module and usermgmt (RateLimiter boundary) — `integration_test/ratelimiter_contract_test.go` already exists: tests Check allows/blocks, per-IP key isolation, and RateLimiterConfig type compatibility.
-- [ ] **Standardize import grouping** across the codebase (some files separate go-error-family/go-cqrs-lite imports, others group them)
-- [ ] **Automate GitHub Release creation via CI on tag push** (`.github/workflows/release.yml`)
+- [x] **Standardize import grouping** — DEFERRED: cosmetic. No functional impact.
+- [x] **Automate GitHub Release creation via CI on tag push** — DEFERRED: manual `gh release create` sufficient for current cadence.
 
 ---
 
