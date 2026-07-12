@@ -28,7 +28,7 @@
     for (var i = 0; i < ports.length; i++) {
       try {
         ports[i].postMessage(msg);
-      } catch (e) {
+      } catch {
         // Port closed — will be cleaned up on next flush
       }
     }
@@ -63,7 +63,7 @@
       var item = queue.shift();
       try {
         item.port.postMessage({ type: "retry", commandId: item.commandId });
-      } catch (e) {
+      } catch {
         // Port closed — command is lost (acceptable: Queue-Only)
       }
     }

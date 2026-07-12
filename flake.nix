@@ -238,10 +238,14 @@
 
             lint = {
               type = "app";
+              meta.description = "Run golangci-lint across all modules";
               program = pkgs.writeShellApplication {
                 name = "run-lint";
                 runtimeInputs = [ pkgs.golangci-lint ];
                 text = ''
+                  export GOWORK=off
+                  export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
                   echo "==> Root module"
                   golangci-lint run
                   echo "==> usermgmt submodule"
@@ -256,6 +260,8 @@
                   (cd adminui && golangci-lint run)
                   echo "==> loginpage submodule"
                   (cd loginpage && golangci-lint run)
+                  echo "==> integration_test submodule"
+                  (cd integration_test && golangci-lint run)
                 '';
               };
             };
