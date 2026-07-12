@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **go-cqrs-lite v3.7.4 → v4.0.0**: All modules now depend on go-cqrs-lite v4. Import paths change from `go-cqrs-lite/*/v3` to `go-cqrs-lite/*/v4`. The v4 API is backward-compatible (compatibility aliases for `event.AggregateType`, `event.AggregateRef`, etc.). Consumers must update import paths and run `go get` for all transitive go-cqrs-lite modules at v4.0.0 (publishing bug workaround). See `docs/migrations/v3-to-v4.md` for details.
+- **`.vendor-local/eventtest` eliminated**: The vendored eventtest module is removed entirely. All `replace` directives for `eventtest` removed from go.mod files. Use `go mod tidy -e` for the root module under `GOWORK=off` (upstream publishing bug — non-fatal).
+
 ### Breaking
 
 - **`CSRFTestToken` signature changed** (`csrf_testing.go`): Was `func(CSRFMiddleware) string`, now `func(CSRFMiddleware) (string, *http.Cookie)`. The old API only returned the masked token but not the CSRF cookie, making it impossible to construct a valid POST request in tests (nosurf requires both token in form/header AND cookie). Tests calling `CSRFTestToken(mw)` must update to unpack the tuple: `token, cookie := CSRFTestToken(mw)`.
