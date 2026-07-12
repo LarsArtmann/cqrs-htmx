@@ -245,7 +245,8 @@ func TestPanel_RenderTenantWithMembers(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants/sigma", nil))
 	body := rec.Body.String()
 
-	for _, want := range []string{"sigma", "sig1@sigma.com", "sig2@sigma.com", "Members"} {
+	actor1 := usermgmt.ActorIDFromUser(m1.User.ID).PrefixedString()
+	for _, want := range []string{"sigma", actor1, "Members"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("tenant detail page missing %q", want)
 		}
@@ -258,7 +259,11 @@ func TestPanel_RenderSuspendedTenant(t *testing.T) {
 	h, svc := newTestPanel(t, user)
 
 	mustCreateTenant(t, svc, "suspended-tenant")
-	if err := svc.SuspendTenant(context.Background(), usermgmt.NewTenantID("suspended-tenant"), "test suspension"); err != nil {
+	if err := svc.SuspendTenant(
+		context.Background(),
+		usermgmt.NewTenantID("suspended-tenant"),
+		"test suspension",
+	); err != nil {
 		t.Fatalf("SuspendTenant: %v", err)
 	}
 

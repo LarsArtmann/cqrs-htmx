@@ -224,6 +224,7 @@ This repo uses **multi-module tagging**: each module gets its own semver tag.
 | usermgmt/webauthn | `usermgmt/webauthn/v4.X.Y` | `usermgmt/webauthn/v4.2.2` |
 | usermgmt/oauth2   | `usermgmt/oauth2/v4.X.Y`   | `usermgmt/oauth2/v4.2.2`   |
 | adminui           | `adminui/v4.X.Y`           | `adminui/v4.2.2`           |
+| loginpage         | `loginpage/v4.X.Y`         | `loginpage/v4.2.2`         |
 
 All modules are versioned in lockstep — a release bumps all tags.
 
@@ -255,6 +256,7 @@ git tag usermgmt/totp/v4.X.Y
 git tag usermgmt/webauthn/v4.X.Y
 git tag usermgmt/oauth2/v4.X.Y
 git tag adminui/v4.X.Y
+git tag loginpage/v4.X.Y
 ```
 
 ### Publishing
@@ -264,6 +266,15 @@ git tag adminui/v4.X.Y
 3. Verify `go get github.com/larsartmann/cqrs-htmx/v4@v4.X.Y` resolves from the Go proxy.
 4. Check that pkg.go.dev picks up the new version (may take a few minutes).
 
-### go-auto-upgrade exclusions
+### go-cqrs-lite v4.0.0 publishing bug
 
-The project bans `encoding/json/v2` (experimental, broke the build on 2026-07-09). Ensure go-auto-upgrade is configured to skip this migration. The depguard linter enforces this at CI level.
+Due to a publishing bug in `go-cqrs-lite` v4.0.0, consumers must `go get` all transitive go-cqrs-lite modules manually after upgrading. The go.mod files reference internal siblings with zero pseudo-versions (`v4.0.0-00010101000000-000000000000`). Consumers should run:
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/command/v4@v4.0.0
+# ... for all needed modules
+```
+
+### encoding/json/v2 usage
+
+This project intentionally uses `encoding/json/v2` via `GOEXPERIMENT=jsonv2` (set in `flake.nix`). The build requires this flag. The `go-auto-upgrade` tool's auto-migration from `encoding/json` to `encoding/json/v2` is NOT needed since the project already uses v2 — `.buildflow.yml` has `auto_fix: false` to prevent unintended migrations.
