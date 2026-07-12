@@ -79,7 +79,7 @@ The project uses a **multi-module Go workspace** with 11 modules:
 
 **BANNED in non-test code:** `errors.New`, `fmt.Errorf` (as error), `errors.Join`. Enforced by `nix run .#errorfamily` (`branching-flow errorfamily .` — must report 0).
 
-Use `go-error-family` constructors re-exported via `go-cqrs-lite/event/v3`:
+Use `go-error-family` constructors re-exported via `go-cqrs-lite/event/v4`:
 
 ```go
 // Rejections (400) — invalid user input, parse failures
