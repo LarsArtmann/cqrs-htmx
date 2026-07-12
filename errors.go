@@ -350,6 +350,6 @@ func ProblemDetailsErrorHandlerWithRedirect(
 		w.WriteHeader(status)
 		payload := NewStructuredError(err, r)
 		data, _ := json.Marshal(payload)
-		_, _ = w.Write(data)
+		_, _ = w.Write(data) //nolint:gosec // G705: json.Marshal escapes HTML by default
 	})
 }

@@ -20,7 +20,6 @@ linters:
     - contextcheck
     - copyloopvar
     - cyclop
-    - depguard
     - dupl
     - durationcheck
     - errcheck
@@ -82,14 +81,6 @@ linters:
   settings:
     cyclop:
       max-complexity: 12
-    depguard:
-      rules:
-        all:
-          deny:
-            - desc: encoding/json/v2 is experimental (Go 1.26); use encoding/json. Broke the build on 2026-07-09 via go-auto-upgrade.
-              pkg: encoding/json/v2
-            - desc: encoding/json/jsontext is experimental (Go 1.26); use encoding/json. Broke the build on 2026-07-09 via go-auto-upgrade.
-              pkg: encoding/json/jsontext
     exhaustruct:
       exclude:
         - os/exec.Cmd

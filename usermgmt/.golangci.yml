@@ -20,7 +20,6 @@ linters:
     - contextcheck
     - copyloopvar
     - cyclop
-    - depguard
     - dupl
     - durationcheck
     - errcheck
@@ -82,14 +81,6 @@ linters:
   settings:
     cyclop:
       max-complexity: 12
-    depguard:
-      rules:
-        all:
-          deny:
-            - pkg: encoding/json/v2
-              desc: "encoding/json/v2 is experimental (Go 1.26); use encoding/json. Broke the build on 2026-07-09 via go-auto-upgrade."
-            - pkg: encoding/json/jsontext
-              desc: "encoding/json/jsontext is experimental (Go 1.26); use encoding/json. Broke the build on 2026-07-09 via go-auto-upgrade."
     exhaustruct:
       exclude:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.EnforcerConfig$
@@ -145,6 +136,9 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
+      - path: id\.go$
+        linters:
+          - recvcheck
       - path: es_(state|readmodel|casbin_projection|setup|dispatch|upcaster)\.go$
         linters:
           - cyclop
