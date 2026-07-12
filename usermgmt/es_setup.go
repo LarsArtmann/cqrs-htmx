@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/decider/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/projection/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
-	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 

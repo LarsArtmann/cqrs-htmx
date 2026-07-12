@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/decider/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/projection/v3"
-	stackpostgres "github.com/larsartmann/go-cqrs-lite/stack/postgres/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+	stackpostgres "github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 

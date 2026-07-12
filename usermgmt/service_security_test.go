@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 // recordingStore embeds *memory.MemoryStore, overriding Save to count writes.

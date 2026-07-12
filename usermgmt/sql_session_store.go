@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 

@@ -3,9 +3,9 @@ package usermgmt
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 var testAggID = id.NewAggregateID() //nolint:gochecknoglobals // test fixture

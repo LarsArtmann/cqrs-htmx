@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 // credentialSummary is a sanitized view of a WebAuthnCredential for API responses.

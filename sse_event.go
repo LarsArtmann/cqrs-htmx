@@ -3,7 +3,7 @@ package cqrshtmx
 import (
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/transport/http/v3"
+	"github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 )
 
 // Delegated to go-cqrs-lite/transport/http/v3 (tagged v3.3.1).

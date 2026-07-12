@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	command "github.com/larsartmann/go-cqrs-lite/command/v3"
+	command "github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
 // This file demonstrates the recommended pattern for integrating OpenTelemetry

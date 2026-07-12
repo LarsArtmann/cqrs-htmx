@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // BenchmarkDedupRing_vs_Map compares the bounded Ring buffer (O(1) memory)

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
 // BenchmarkBroadcasterBroadcastStress validates the snapshot-based Broadcast

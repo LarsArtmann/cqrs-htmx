@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-	"github.com/larsartmann/go-cqrs-lite/encryption/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/signing/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/encryption/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/signing/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 // 32-byte keys — HMAC minimum is 32 bytes, AES-256-GCM requires exactly 32.

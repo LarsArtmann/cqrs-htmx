@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/projection/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
