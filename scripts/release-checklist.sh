@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # release-checklist.sh — Pre-release verification suite
-# Validates CHANGELOG, version refs, go.mod consistency, and runs the full CI suite.
+# Validates the full CONTRIBUTING.md pre-release checklist automatically.
 # Usage: nix run .#release-checklist
 # Exit: 0 = ready to tag, 1 = issues found
 
@@ -11,65 +11,108 @@ cd "$REPO_ROOT"
 
 FAILED=0
 step() { echo ""; echo "=== $1 ==="; }
-check() { if [ $? -ne 0 ]; then FAILED=1; fi; }
+pass() { echo "  ✓ $1"; }
+fail() { echo "  ✗ $1"; FAILED=1; }
 
-# 1. CHANGELOG has [Unreleased] or version section
-step "Checking CHANGELOG.md"
-if ! grep -qE '## \[Unreleased\]|## \[v4\.' CHANGELOG.md; then
-    echo "WARN: No [Unreleased] or [v4.X.Y] section in CHANGELOG.md"
+# 1. CHANGELOG has a version section (not just [Unreleased])
+step "CHANGELOG.md"
+if grep -qE '## \[v4\.[0-9]+\.[0-9]+\]' CHANGELOG.md; then
+    pass "Version section found in CHANGELOG.md"
+else
+    fail "No [v4.X.Y] section in CHANGELOG.md — move [Unreleased] items"
 fi
-echo "OK"
 
-# 2. go.mod versions match AGENTS.md dependency table
-step "Checking AGENTS.md version consistency"
-GO_CQRS_VERSION=$(grep 'go-cqrs-lite' go.mod | head -1 | grep -oP 'v\d+\.\d+\.\d+')
-AGENTS_VERSION=$(grep 'go-cqrs-lite v' AGENTS.md | head -1 | grep -oP 'v\d+\.\d+\.\d+')
+# 2. go.mod versions match AGENTS.md
+step "Version consistency"
+GO_CQRS_VERSION=$(grep 'go-cqrs-lite' go.mod | head -1 | grep -oP 'v\d+\.\d+\.\d+' || echo "")
+AGENTS_VERSION=$(grep 'go-cqrs-lite v' AGENTS.md | head -1 | grep -oP 'v\d+\.\d+\.\d+' || echo "")
 if [ -n "$GO_CQRS_VERSION" ] && [ -n "$AGENTS_VERSION" ]; then
-    if [ "$GO_CQRS_VERSION" != "$AGENTS_VERSION" ]; then
-        echo "MISMATCH: go.mod has go-cqrs-lite $GO_CQRS_VERSION, AGENTS.md has $AGENTS_VERSION"
-        FAILED=1
+    if [ "$GO_CQRS_VERSION" = "$AGENTS_VERSION" ]; then
+        pass "go-cqrs-lite $GO_CQRS_VERSION matches between go.mod and AGENTS.md"
     else
-        echo "OK: go-cqrs-lite $GO_CQRS_VERSION matches"
+        fail "go.mod has $GO_CQRS_VERSION, AGENTS.md has $AGENTS_VERSION"
     fi
-else
-    echo "SKIP: Could not extract versions"
 fi
 
-# 3. No encoding/json/v2 imports (banned by depguard)
-step "Checking for banned json/v2 imports"
-if grep -r '"encoding/json/v2"' --include="*.go" . 2>/dev/null; then
-    echo "FAIL: encoding/json/v2 imports found (banned by depguard)"
-    FAILED=1
+# 3. Git working tree clean
+step "Git status"
+if git diff --quiet && git diff --cached --quiet; then
+    pass "Working tree clean"
 else
-    echo "OK: No json/v2 imports"
-fi
-
-# 4. Git working tree status
-step "Checking git status"
-if ! git diff --quiet || ! git diff --cached --quiet; then
-    echo "WARN: Uncommitted changes exist. Commit or stash before tagging."
+    fail "Uncommitted changes — commit or stash before tagging"
     git status --short
-else
-    echo "OK: Working tree clean"
 fi
 
-# 5. All modules build
-step "Building all modules"
-export GOPRIVATE='github.com/larsartmann/*'
-export GOEXPERIMENT=jsonv2
-GOWORK=off go build ./... 2>/dev/null && echo "OK: root builds" || { echo "FAIL: root build"; FAILED=1; }
-(cd usermgmt && GOWORK=off go build ./... 2>/dev/null) && echo "OK: usermgmt builds" || { echo "FAIL: usermgmt build"; FAILED=1; }
-(cd adminui && GOWORK=off go build ./... 2>/dev/null) && echo "OK: adminui builds" || { echo "FAIL: adminui build"; FAILED=1; }
-(cd loginpage && GOWORK=off go build ./... 2>/dev/null) && echo "OK: loginpage builds" || { echo "FAIL: loginpage build"; FAILED=1; }
+# 4. Run full verification suite (matching CONTRIBUTING.md pre-release checklist)
+step "Tests (nix run .#test)"
+if nix run .#test 2>&1 | tail -5; then
+    pass "All module tests pass"
+else
+    fail "Tests failed"
+fi
 
-# 6. Tags don't already exist for current version
-step "Checking tag freshness"
+step "Build (nix run .#build)"
+if nix run .#build 2>&1 | tail -5; then
+    pass "All modules build"
+else
+    fail "Build failed"
+fi
+
+step "Lint (nix run .#lint)"
+if nix run .#lint 2>&1 | tail -5; then
+    pass "Lint clean (0 issues all modules)"
+else
+    fail "Lint issues found"
+fi
+
+step "ErrorFamily (nix run .#errorfamily)"
+if nix run .#errorfamily 2>&1 | tail -5; then
+    pass "Zero stdlib error constructors"
+else
+    fail "ErrorFamily violations"
+fi
+
+step "Module checks (nix run .#check-modules)"
+if nix run .#check-modules 2>&1 | tail -5; then
+    pass "Module isolation + dep budgets OK"
+else
+    fail "Module architecture issues"
+fi
+
+step "Coverage gate (nix run .#coverage-gate)"
+if nix run .#coverage-gate 2>&1 | tail -5; then
+    pass "Coverage above thresholds"
+else
+    fail "Coverage below thresholds"
+fi
+
+step "Formatting (nix fmt)"
+nix fmt 2>&1 || true
+if git diff --quiet; then
+    pass "Formatting stable"
+else
+    fail "nix fmt changed files — re-commit"
+    git status --short
+fi
+
+step "Flake check (nix flake check)"
+if nix flake check 2>&1 | tail -5; then
+    pass "Flake checks pass"
+else
+    fail "Flake check failed"
+fi
+
+# 5. Tag freshness
+step "Tag status"
 LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
-echo "Latest tag: $LATEST_TAG"
+echo "  Latest tag: $LATEST_TAG"
+HEAD_SHORT=$(git rev-parse --short HEAD)
+echo "  HEAD: $HEAD_SHORT"
 
 echo ""
 if [ "$FAILED" -eq 0 ]; then
     echo "✓ Release checklist PASSED — ready to tag"
+    echo "  Next: tag all modules and push (see CONTRIBUTING.md Tagging section)"
 else
     echo "✗ Release checklist FAILED — fix issues above"
     exit 1

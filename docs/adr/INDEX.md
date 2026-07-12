@@ -39,3 +39,4 @@
 | [0033](0033-server-timing-api.md)                 | Server-Timing API                                                               | Accepted                                                         |
 | [0034](0034-http-status-carrier.md)               | HTTPStatusCarrier — Errors That Pin Their HTTP Status                           | Accepted                                                         |
 | [0035](0035-auth-strategy-extraction.md)          | Auth Strategy Extraction — TOTP, WebAuthn, OAuth2 as Independent Modules        | Accepted                                                         |
+| [0036](0036-encoding-json-v2.md)                  | encoding/json/v2 via GOEXPERIMENT=jsonv2                                        | Accepted                                                         |
