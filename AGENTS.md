@@ -23,7 +23,7 @@ A Go library that makes it very easy to use go-cqrs-lite with HTMX, templ, and C
 | ErrorFamily | `branching-flow errorfamily .` (must report 0 — no stdlib error constructors)                                                                              |
 | CheckMods   | `nix run .#check-modules` (isolation + dep budgets + version drift + replace directives — also in `.github/workflows/ci.yml` as `module-architecture` job) |
 | DevShell    | `nix develop` (go, gopls, golangci-lint)                                                                                                                   |
-| Coverage    | 93.6% root, 79.7% usermgmt, 88.2% totp, 87.5% webauthn, 88.3% oauth2, 68.4% adminui, 80.1% loginpage (~920 tests)                                          |
+| Coverage    | 93.6% root, 79.7% usermgmt, 88.2% totp, 87.5% webauthn, 88.3% oauth2, 69.0% adminui, 80.1% loginpage (~920 tests)                                          |
 
 ## Architecture
 
@@ -34,7 +34,8 @@ cqrs-htmx/
 ├── handler.go        # handleCommandDispatch(), handleQueryDispatch()
 ├── options_types.go  # handlerConfig struct, authMode enum, decodeAndSet/decodeAndSetWithRequest helpers
 ├── options_decode.go # DecodeJSON/DecodeForm/DecodeJSONQuery/DecodeFormQuery + *WithRequest variants (request-aware mappers)
-├── options_render.go # Render/RenderTempl/RenderTemplResult/RenderHTML/RenderJSON/RenderPaginatedJSON HandlerOptions
+├── options_render.go # Render/RenderTempl/RenderTemplResult/RenderHTML/RenderJSON/RenderPaginatedJSON HandlerOptions + RenderPartialOrFull/RenderPartialOrFullFunc/RenderIf (partial-vs-full-page rendering, ADR-0036)
+├── partial.go        # RenderTemplComponent (standalone non-CQRS helper) + OOBHTML (general OOB swap wrapper)
 ├── options_htmx.go   # HTMX-specific HandlerOptions (Redirect/PushURL/Retarget)
 ├── options_json.go   # JSON response HandlerOption helpers
 ├── options_validate.go # ValidateCommand/ValidateQuery HandlerOptions
@@ -67,7 +68,7 @@ cqrs-htmx/
 ├── ack.go            # CommandAck + BroadcastOnAck — ACK protocol for honest UI sync-state
 ├── idempotency.go   # Thin backward-compatible aliases over go-cqrs-lite/idempotency/v4 (Store, MemoryStore, ErrDuplicate)
 ├── structured_error.go # StructuredError (RFC 7807), NewStructuredError, NewStructuredErrorWithContext, JSON()
-├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML
+├── ws.go             # WebSocket protocol helpers: WSMessage, ParseWSMessage, ParseWSMessageInto[T], WSOOBHTML (delegates to OOBHTML)
 ├── ws_encoder.go     # WriteWSMessage, WriteWSMessageInto[T] — outbound WS message encoder
 ├── sse_broadcaster.go # SSE Broadcaster (embeds fanOut[SSEEvent]), BroadcastOnSuccess/OnError/Func hooks
 ├── ws_broadcaster.go # WSBroadcaster (embeds fanOut[string]), BroadcastOnSuccessWS/OnErrorWS/Func hooks
@@ -247,6 +248,7 @@ cqrs-htmx/
 - **CI module architecture enforcement** (2026-07-01): 4 shell scripts in `scripts/` enforce module discipline (adapted from go-cqrs-lite): `check-module-isolation.sh` (GOWORK=off build+vet per module), `check-dep-budgets.sh` (per-module max production deps: root=18, usermgmt=28, adminui=7), `check-version-drift.sh` (detects siblings at different versions — currently clean after v4.0.0 alignment), `check-replace-directives.sh` (no absolute paths). Wire: `nix run .#check-modules`
 - **Auth strategy extraction COMPLETE (v4, 2026-07-02)**: TOTP, WebAuthn, and OAuth2 are now independent Go modules (`usermgmt/totp/v4`, `usermgmt/webauthn/v4`, `usermgmt/oauth2/v4`). Core `usermgmt` has **zero** auth-related dependencies. Interfaces in `auth_interfaces.go` use only primitive types (`[]byte`, `string`) so implementations don't import core. Providers satisfy interfaces via **structural typing** — compile-time assertions in `integration_test/auth_interface_assert_test.go`. Consumers inject only the strategies they need: `ServiceConfig.WebAuthn` (was `WebAuthnConfig`), `ServiceConfig.TOTP` (was `TOTPConfig`), `ServiceConfig.OAuth2` (was `OAuth2Providers`). JSON serialization boundary between core and providers. `WebAuthnSessionStore` uses `[]byte` (was `*webauthn.SessionData`). See ADR-0035 and `docs/migrations/v3-to-v4.md`. Tests: 3 totp + 18 webauthn (W3C vectors) + 18 oauth2 (mock OIDC/OAuth2) + 3 integration assertions
 - **constants.go** (2026-07-01): Shared constants (`ContentTypePlain/JSON/HTML/Problem`, `JSONKeyError/Status`) extracted from `response.go` to `constants.go`. Breaks the alleged errors↔response↔csrf "cycle" — which was caused by 5 string constants, not structural coupling
+- **Partial rendering helpers** (2026-07-12, ADR-0037): Five functions (`RenderPartialOrFull[T]`, `RenderPartialOrFullFunc`, `RenderIf`, `RenderTemplComponent`, `OOBHTML`) eliminate the `if HX-Request { partial } else { full }` boilerplate. Layered design: `RenderIf` is the composable primitive; `RenderPartialOrFullFunc` delegates to it; `RenderPartialOrFull[T]` adds typed mappers. HTML-specific helpers set `Content-Type: text/html`; generic helpers don't (user's `RenderFunc` owns it). `WSOOBHTML` is now a 1-line delegate to `OOBHTML` (backward compatible). adminui's raw `r.Header.Get("HX-Request")` checks refactored to `cqrshtmx.RenderPartial(r)`/`IsHTMXRequest(r)`. See ADR-0037 for design rationale
 
 ### Error Handling
 

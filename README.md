@@ -302,6 +302,65 @@ cqrshtmx.HTMXPrompt(r)       // string
 cqrshtmx.HTMXCurrentURL(r)   // string
 ```
 
+## Partial Rendering (HTMX)
+
+Every HTMX handler needs the same branching: render a fragment for HTMX requests, a full page for regular navigation. These helpers eliminate that boilerplate.
+
+### For CQRS Query Handlers (templ)
+
+```go
+app.Query("ListUsers", decoder,
+    cqrshtmx.RenderPartialOrFull(
+        func(users []*User) cqrshtmx.TemplComponent { return userListPartial(users) },
+        func(users []*User) cqrshtmx.TemplComponent { return usersPage(users) },
+    ),
+)
+```
+
+History-restore requests (`HX-History-Restore-Request`) automatically render the full page.
+
+### For CQRS Query Handlers (non-templ)
+
+```go
+app.Query("ListUsers", decoder,
+    cqrshtmx.RenderPartialOrFullFunc(
+        func(w http.ResponseWriter, _ *http.Request, result any) error { /* partial HTML */ },
+        func(w http.ResponseWriter, _ *http.Request, result any) error { /* full page */ },
+    ),
+)
+```
+
+### For Non-CQRS Routes
+
+```go
+mux.HandleFunc("GET /items", func(w http.ResponseWriter, r *http.Request) {
+    items := loadItems()
+    _ = cqrshtmx.RenderTemplComponent(w, r, itemsPartial(items), itemsPage(items))
+})
+```
+
+### Custom Predicates
+
+```go
+app.Query("GetProfile", decoder,
+    cqrshtmx.RenderIf(
+        func(r *http.Request) bool { return cqrshtmx.HTMXTarget(r) == "#avatar" },
+        avatarPartial,
+        fullProfile,
+    ),
+)
+```
+
+### Out-of-Band Swaps
+
+```go
+html := cqrshtmx.OOBHTML("notifications", "<div>1 new</div>")
+// <div id="notifications" hx-swap-oob="true"><div>1 new</div></div>
+
+html := cqrshtmx.OOBHTML("list", "<li>item</li>", cqrshtmx.SwapBeforeEnd)
+// <div id="list" hx-swap-oob="beforeend"><li>item</li></div>
+```
+
 ## HTMX Response Builder
 
 Build HTMX-aware responses with fluent chaining:

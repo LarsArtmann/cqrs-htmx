@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
@@ -13,7 +14,7 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *userm
 	users, total := capList(matched)
 	d := usersListData{Users: users, Total: total, Search: q, BasePath: h.cfg.BasePath}
 
-	if r.Header.Get("HX-Request") == "true" {
+	if cqrshtmx.RenderPartial(r) {
 		renderPartial(w, r, usersTableContent(d))
 		return
 	}

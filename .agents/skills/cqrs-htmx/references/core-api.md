@@ -92,6 +92,9 @@ cqrshtmx.RenderJSON[T]()                               // JSON 200
 cqrshtmx.RenderJSONStatus[T](status)                   // JSON with explicit status
 cqrshtmx.RenderPaginatedJSON[T]()                      // query.PaginatedResult[T] → JSON
 cqrshtmx.RenderHTML(htmlString)                         // static HTML response (text/html)
+cqrshtmx.RenderPartialOrFull[T](partial, full)          // HTMX partial vs full page (templ, generic typed)
+cqrshtmx.RenderPartialOrFullFunc(partial, full)          // HTMX partial vs full page (non-generic RenderFunc)
+cqrshtmx.RenderIf(check, match, noMatch)                 // custom predicate render selector
 cqrshtmx.Redirect(url)                                 // HTMX-aware (HX-Redirect for HTMX reqs)
 cqrshtmx.PushURL(url)                                  // HTMX address-bar update
 cqrshtmx.Trigger(event) / cqrshtmx.TriggerWithDetail(event, detail)  // HX-Trigger
@@ -246,6 +249,8 @@ Requesting a page beyond the last returns an empty page (standard REST, no silen
 
 ```go
 cqrshtmx.WriteJSON(w, status, v)
+cqrshtmx.RenderTemplComponent(w, r, partial, full) // standalone partial-vs-full (non-CQRS routes)
+cqrshtmx.OOBHTML(id, html, swapStrategy...)        // wrap HTML with hx-swap-oob (HTTP + WS)
 cqrshtmx.KeyExtractorFromClientIP()     // proxy-aware rate-limit key extractor (uses httputil.ClientIP)
 cqrshtmx.HTMXScriptHandler()            // embedded htmx 2.0.10 (GET/HEAD, ETag, 1y cache)
 cqrshtmx.HTMXScriptHandlerWith(js, ver) // serve a custom build

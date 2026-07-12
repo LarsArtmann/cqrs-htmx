@@ -1,6 +1,9 @@
 package cqrshtmx_test
 
 import (
+	"context"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,6 +12,13 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
+
+// errTemplComponent is a TemplComponent that always fails to render.
+type errTemplComponent struct{}
+
+func (errTemplComponent) Render(_ context.Context, _ io.Writer) error {
+	return errors.New("disk full")
+}
 
 var _ = Describe("Partial Rendering", func() {
 	Describe("RenderPartialOrFull", func() {
@@ -72,6 +82,24 @@ var _ = Describe("Partial Rendering", func() {
 
 		It("returns an error for mismatched result type", func() {
 			app := newQueryAppWithResult(constantQueryHandler(42))
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
+			w := serve(app.Query(
+				"GetUser",
+				decodeGetUserJSONQuery(),
+				cqrshtmx.RenderPartialOrFull(
+					func(result string) cqrshtmx.TemplComponent {
+						return &bddTemplComponent{html: result}
+					},
+					func(result string) cqrshtmx.TemplComponent {
+						return &bddTemplComponent{html: result}
+					},
+				),
+			), r)
+			Expect(w.code()).NotTo(Equal(http.StatusOK))
+		})
+
+		It("returns an error for nil result", func() {
+			app := newQueryAppWithResult(constantQueryHandler(nil))
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
 			w := serve(app.Query(
 				"GetUser",
@@ -203,6 +231,17 @@ var _ = Describe("Partial Rendering", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(w.Body.String()).To(Equal("<table><tr><td>full</td></tr></table>"))
 		})
+
+		It("returns the error when Render fails", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/items", nil)
+			r.Header.Set("HX-Request", "true")
+			err := cqrshtmx.RenderTemplComponent(w, r,
+				errTemplComponent{},
+				&bddTemplComponent{html: "full"},
+			)
+			Expect(err).To(MatchError("disk full"))
+		})
 	})
 
 	Describe("OOBHTML", func() {
@@ -220,6 +259,16 @@ var _ = Describe("Partial Rendering", func() {
 			html := `<div id="x" hx-swap-oob="true">already tagged</div>`
 			result := cqrshtmx.OOBHTML("x", html)
 			Expect(result).To(Equal(html))
+		})
+
+		It("wraps HTML with an empty id", func() {
+			result := cqrshtmx.OOBHTML("", "<span>x</span>")
+			Expect(result).To(Equal(`<div id="" hx-swap-oob="true"><span>x</span></div>`))
+		})
+
+		It("wraps empty HTML", func() {
+			result := cqrshtmx.OOBHTML("slot", "")
+			Expect(result).To(Equal(`<div id="slot" hx-swap-oob="true"></div>`))
 		})
 	})
 

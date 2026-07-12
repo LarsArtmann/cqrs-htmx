@@ -192,6 +192,35 @@ mux.Handle("POST /items", app.Command("CreateItem",
 
 For HTML rendering: `cqrshtmx.RenderTempl(component)` (templ), `cqrshtmx.RenderTemplResult[T](mapper)` (result -> templ), or `cqrshtmx.RenderHTML("<div>...</div>")` (static HTML).
 
+**Partial-vs-full rendering (HTMX)** — eliminates `if HX-Request { partial } else { full }` boilerplate:
+
+```go
+// Generic typed version for templ — auto-selects based on RenderPartial(r)
+app.Query("ListUsers", decoder,
+    cqrshtmx.RenderPartialOrFull(
+        func(users []*User) cqrshtmx.TemplComponent { return userListPartial(users) },
+        func(users []*User) cqrshtmx.TemplComponent { return usersPage(users) },
+    ),
+)
+
+// Non-generic for non-templ renderers (html/template, raw strings)
+app.Query("ListUsers", decoder,
+    cqrshtmx.RenderPartialOrFullFunc(partialRenderFunc, fullRenderFunc),
+)
+
+// Standalone for non-CQRS routes (net/http handlers)
+func(w http.ResponseWriter, r *http.Request) {
+    _ = cqrshtmx.RenderTemplComponent(w, r, itemsPartial(data), itemsPage(data))
+}
+
+// Custom predicate (not just partial-vs-full)
+cqrshtmx.RenderIf(func(r *http.Request) bool { return cqrshtmx.HTMXTarget(r) == "#avatar" }, avatarRender, fullRender)
+```
+
+All use `cqrshtmx.RenderPartial(r)` internally (history-restore requests render full page). HTML-specific helpers set `Content-Type: text/html`; generic `RenderIf`/`RenderPartialOrFullFunc` do not (see ADR-0037).
+
+**OOB swap wrapping:** `cqrshtmx.OOBHTML(id, html, swapStrategy...)` wraps HTML with `hx-swap-oob` attributes. `WSOOBHTML` delegates to it.
+
 ### Custom auth (cookie-based, API keys, ownership checks)
 
 The `App` pipeline defaults to Casbin-based auth (`Authorize`). For custom auth models, use `DecodeJSONWithRequest` + `RequestGuard`:
