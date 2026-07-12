@@ -20,24 +20,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`Code` field on `StructuredError`** (`structured_error.go`): Populated via `errorCode(err)`, matching the `"code"` field emitted by `JSONErrorHandler`. Clients now get the same machine-readable error code regardless of whether the response is `application/json` or `application/problem+json`. Empty when the error has no `Code()` method.
 - **Error context logging** (`logging.go`): `RequestLoggingSlog` now includes `error_code`, `error_family`, and `error_ctx_*` attributes when a dispatch error occurs. Traverses the full error chain to extract context from wrapped errors.
 - **`writeDispatchError` helper** (`usermgmt/http.go`): Consolidates the `writeDispatchError(w, r, err)` pattern across all usermgmt HTTP handlers. Includes the error's `code` and the request ID in the JSON response body when available. Replaces 15 `writeError(w, errorStatus(err), err.Error())` call sites.
-- **Depguard lint rule** (root + `usermgmt/.golangci.yml`): Rejects `encoding/json/v2` and `encoding/json/jsontext` imports with descriptive error messages referencing the 2026-07-09 build break via go-auto-upgrade.
 - **CBOR codec tests** (`usermgmt/es_state_test.go`): 4 new tests verifying `codec.ForEncoding` round-trip, fold-user with CBOR-encoded events, and mixed JSON+CBOR event stream folding.
 - **Request-aware decoder tests** (root `feedback_features_test.go`): 3 new BDD tests for `DecodeFormWithRequest`, `DecodeJSONQueryWithRequest`, `DecodeFormQueryWithRequest`.
 - **ProblemDetailsErrorHandler Code field tests** (`errors_model_test.go`): Verifies `code` field is included for classified errors and omitted for plain errors.
 - **writeDispatchError unit tests** (`usermgmt/http_dispatch_error_test.go`): 4 tests covering code field, request ID inclusion, conflict status derivation, and nil-request handling.
+- **OAuth2 HTTP handler tests** (`usermgmt/oauth2_http_test.go`): 9 tests covering all OAuth2 HTTP handlers: begin success, callback missing code/state, callback invalid state, callback success flow, callback error redirect, callback success redirect, unlink unauthenticated, unlink not-linked, unlink success.
+- **adminui coverage gap tests** (`adminui/coverage_gaps2_test.go`): 17 tests covering New() validation, auth checks, not-found paths, asset serving (CSS/JS/sync-worker/htmx), diverse user/tenant rendering.
+- **SSE broadcaster lifecycle tests** (`sse_broadcaster_test.go`): 4 tests for OnSubscribe/OnUnsubscribe hooks: fire verification, no-op for unknown channels, concurrent race test (20 goroutines x 100 cycles).
+- **OAuth2 integration tests** (`integration_test/oauth2_integration_test.go`): 3 integration tests for full end-to-end OAuth2 finish login with mock token exchange server, invalid state rejection, provider mismatch rejection.
 
 ### Changed
 
 - **`writeDispatchError` wires request ID** (`usermgmt/http.go`): Changed `_ *http.Request` to `r *http.Request`, extracting the request ID from context and including it as `request_id` in the JSON error response body. The `requestIDKey` constant was added alongside `codeKey`.
 - **`ErrorCode` exported** (`errors.go`): The internal `errorCode` function is now exported as `ErrorCode`. `writeDispatchError` in usermgmt now uses `cqrshtmx.ErrorCode(err)` instead of `errors.As`, matching root's deepest-code traversal pattern. This ensures the domain-specific code (e.g. `"usermgmt.email_exists"`) is surfaced, not the infrastructure wrapper code.
 - **`ErrorRecorder` extracted from `StatusRecorder`** (`logging.go`): The dispatch-error capture concern is now a separate `ErrorRecorder` struct, embedded by `StatusRecorder` via composition. `SetDispatchError` and `DispatchError()` are exported. Fixes the SRP violation where `StatusRecorder` had two responsibilities.
-- **OAuth2 error context** (`usermgmt/service_oauth2.go`): `BeginOAuthLogin` and `FinishOAuthLogin` now attach `provider` context to Transient errors, enabling better debugging of provider-specific failures.
+- **OAuth2 error context** (`usermgmt/service_oauth2.go`): `BeginOAuthLogin` and `FinishOAuthLogin` now attach `provider` context to all error wrapping sites (5 call sites: state save/consume errors, provider mismatch rejection, userinfo unmarshal, missing-email rejection), enabling better debugging of provider-specific failures.
 - **`errors.AsType` adoption** (`usermgmt/service_register.go`): Replaced `errors.As(err, &ee)` with `errors.AsType[*event.Error](err)` per gopls recommendation.
 - **`UserReadModel.Handle` refactored** (`usermgmt/es_readmodel.go`): Extracted the 12-case switch into a dispatch table (`handlers` map) with per-event handler methods and a shared `decodePayload[T]` generic helper. Eliminates the `maintidx` lint warning (complexity 38). The last remaining lint issue in the entire codebase is now resolved.
 - **coreos/go-oidc/v3 v3.19.0 → v3.20.0**: Bumped to latest released version in the `usermgmt/oauth2` module.
 
 ### Fixed
 
+- **OAuth2 HTTP handler nil panic** (`usermgmt/oauth2_http.go`): `oauth2Error()` method signature changed from `(w, status, message)` to `(w, r, status, message)`. The old code passed `nil` as the `*http.Request` to `http.Redirect()`, which panics in Go 1.26. All 3 call sites in `handleOAuth2Callback` updated.
+- **TOTPPendingSecretTTL default** (`usermgmt/totp.go`, `usermgmt/service_core.go`): Extracted `defaultTOTPPendingTTL = 5 * time.Minute` as a named constant. The default is now set at `NewService` init time instead of as an inline fallback at the use site, making the configuration consistent with other TTL fields.
 - **Exhaustive lint in `usermgmt/service_register.go`**: Added explicit `case event.Transient, event.Corruption, event.Infrastructure:` to the `classifyDispatchError` switch (same body as `default`). Eliminates the exhaustive linter warning.
 - **Split brain: `ProblemDetailsErrorHandler` vs `JSONErrorHandler`**: `ProblemDetailsErrorHandler` (which uses `StructuredError`) was missing the `code` field that `JSONErrorHandler` emitted. Now both paths emit the same `code`.
 - **Last remaining lint issue resolved**: `usermgmt/es_readmodel.go:Handle` `maintidx` warning (complexity 38) is eliminated. **All modules now report 0 lint issues.**

@@ -6,10 +6,10 @@
 
 `go-cqrs-lite` ships two companion security modules:
 
-- **`signing/v2`** — HMAC-SHA256 and Ed25519 event signatures via
+- **`signing/v4`** — HMAC-SHA256 and Ed25519 event signatures via
   `SignMiddleware` (publish-side) and `VerifyMiddleware` / `RequireSignatureMiddleware`
   (handle-side).
-- **`encryption/v2`** — AES-256-GCM and XChaCha20-Poly1305 authenticated
+- **`encryption/v4`** — AES-256-GCM and XChaCha20-Poly1305 authenticated
   encryption via `EncryptMiddleware` / `DecryptMiddleware` (bus-level) and
   `NewEncryptedStore` (store-level transparent encryption-at-rest).
 
@@ -36,7 +36,7 @@ points in `NewService`'s setup sequence:
 ### Why dependency-free seams (not hard imports)
 
 1. **True opt-in** — consumers who don't need crypto pull zero new dependencies.
-   `signing/v2` is stdlib-only, but `encryption/v2` brings `golang.org/x/crypto`.
+   `signing/v4` is stdlib-only, but `encryption/v4` brings `golang.org/x/crypto`.
    Keeping the seam generic means the cost is paid only by those who opt in.
 2. **Consistent with existing patterns** — cqrs-htmx already duck-types
    `casbin.Enforcer` via the local `Enforcer` interface and `templ.Component` via
@@ -106,7 +106,7 @@ the plaintext _before_ encrypting; for decrypt+verify, decrypt _before_ verifyin
 
 **Negative:**
 
-- Consumers must import `signing/v2` / `encryption/v2` themselves and construct
+- Consumers must import `signing/v4` / `encryption/v4` themselves and construct
   the primitives. This is intentional (opt-in) but slightly more boilerplate
   than a "batteries" API that accepted raw keys.
 - Store-level signing is not directly available (the signing module provides bus
@@ -123,7 +123,7 @@ wire their own bus/store and apply signing/encryption directly via go-cqrs-lite.
   applied, ordered correctly, and that projections survive (including the
   lower-level NewEventSourcedSetup path).
 - 4 integration tests in `integration_test/signing_encryption_test.go` exercise
-  the real `signing/v2` + `encryption/v2` modules end-to-end: encryption-at-rest
+  the real `signing/v4` + `encryption/v4` modules end-to-end: encryption-at-rest
   (ciphertext verified in raw store), decrypt-on-load (second Service
   reconstructs state), bus-level sign+encrypt, Casbin projection survival,
   and Ed25519 asymmetric signing.

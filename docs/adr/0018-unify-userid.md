@@ -9,7 +9,7 @@
 `cqrs-htmx` had two incompatible types named `UserID`:
 
 - **Root module:** `cqrshtmx.UserID = id.UserID = Of[UserMarker]` — backed by
-  `ulid.ULID` (binary), from `go-cqrs-lite/id/v3`.
+  `ulid.ULID` (binary), from `go-cqrs-lite/id/v4`.
 - **usermgmt submodule:** `usermgmt.UserID = brandid.ID[userBrand, string]` —
   backed by `string`, from `go-branded-id`.
 
@@ -17,7 +17,7 @@ ADR-0002 originally justified the split for "independence" — usermgmt was
 designed as a standalone submodule without go-cqrs-lite dependencies.
 
 **That rationale is now moot.** `usermgmt/go.mod` already depends on
-`go-cqrs-lite/id/v3 v3.0.0` (added for `id.AggregateID` in the event sourcing
+`go-cqrs-lite/id/v4 v4.0.0` (added for `id.AggregateID` in the event sourcing
 read model). The "independence" that ADR-0002 protected no longer exists.
 
 The split forced manual `.String()` → `NewUserID()` conversion at every

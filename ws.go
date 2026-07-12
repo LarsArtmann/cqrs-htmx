@@ -3,8 +3,6 @@ package cqrshtmx
 import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
-	"fmt"
-	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -109,8 +107,8 @@ func (m *WSMessage) StringBody(key string) string {
 }
 
 // WSOOBHTML wraps an HTML fragment with HTMX out-of-band swap attributes.
-// The HTMX WebSocket extension parses received messages as HTML and uses
-// OOB swap logic to update elements by ID.
+// It is an alias for [OOBHTML] — the general helper works for both HTTP and
+// WebSocket. New code should prefer [OOBHTML].
 //
 // By default, elements are replaced using innerHTML. Pass a SwapStrategy
 // to use a different swap method:
@@ -118,23 +116,7 @@ func (m *WSMessage) StringBody(key string) string {
 //	html := cqrshtmx.WSOOBHTML("notifications", "<div>new item</div>",
 //	    cqrshtmx.SwapBeforeEnd)
 func WSOOBHTML(id, html string, swapStrategy ...SwapStrategy) string {
-	swap := "true"
-	if len(swapStrategy) > 0 && swapStrategy[0] != "" {
-		swap = string(swapStrategy[0])
-	}
-
-	// If the HTML already contains an element with the target ID and
-	// hx-swap-oob, return it as-is — the consumer knows best.
-	if strings.Contains(html, "hx-swap-oob") {
-		return html
-	}
-
-	// Wrap the HTML in a div with OOB swap attributes.
-	// HTMX will find the element with matching ID and swap it.
-	return fmt.Sprintf(
-		`<div id="%s" hx-swap-oob="%s">%s</div>`,
-		id, swap, html,
-	)
+	return OOBHTML(id, html, swapStrategy...)
 }
 
 // ParseWSMessageInto parses an incoming HTMX WebSocket JSON message into a

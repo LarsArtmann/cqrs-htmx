@@ -8,10 +8,10 @@
 
 The codebase has two incompatible types named `ActorID`:
 
-- **Root module** (`cqrs-htmx/v3`): `type ActorID string` — a simple prefixed
+- **Root module** (`cqrs-htmx/v4`): `type ActorID string` — a simple prefixed
   string (e.g. `"user:01JX..."`, `"bot:ci-deploy"`) stored in request context.
   Defined in `context.go:149`.
-- **usermgmt module** (`cqrs-htmx/v3/usermgmt`): `type ActorID struct{ kind
+- **usermgmt module** (`cqrs-htmx/v4/usermgmt`): `type ActorID struct{ kind
 ActorKind; raw string }` — a kind-discriminated union with domain methods
   (`Kind()`, `String()`, `PrefixedString()`, `IsZero()`, `ParseActorID()`).
   Defined in `usermgmt/id.go:60`.
@@ -31,7 +31,7 @@ Root cannot import usermgmt (module boundary). The current bridge:
 
 ### Option A: Extract a shared `identity/` module
 
-Create `github.com/larsartmann/cqrs-htmx/identity/v3` containing `ActorID`,
+Create `github.com/larsartmann/cqrs-htmx/identity/v4` containing `ActorID`,
 `ActorKind`, constructors, and `ParseActorID`. Both root and usermgmt import it.
 
 **Pros:** Single source of truth, compile-time safety across modules.
@@ -46,9 +46,9 @@ Define `ActorID` as `id.ID[ActorBrand, string]` in a shared location.
 **Cons:** Loses the kind-discriminated union semantics that usermgmt needs.
 ActorID is inherently a sum type (user | bot), not a simple branded string.
 
-### Option C: Move ActorID upstream into `go-cqrs-lite/id/v3`
+### Option C: Move ActorID upstream into `go-cqrs-lite/id/v4`
 
-Both modules already depend on `go-cqrs-lite/id/v3` (for UserID, CorrelationID,
+Both modules already depend on `go-cqrs-lite/id/v4` (for UserID, CorrelationID,
 RequestID). Add ActorID there.
 
 **Pros:** Natural home, both modules already depend on it.

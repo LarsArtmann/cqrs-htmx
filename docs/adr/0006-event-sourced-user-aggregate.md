@@ -3,6 +3,18 @@
 **Date:** 2026-06-15
 **Status:** Accepted
 
+> **Update 2026-06-16 (Passwordless migration):** All password code was removed.
+> The `ChangePassword` command, `PasswordChanged` event, and bcrypt hashing are gone.
+> Authentication is exclusively via WebAuthn (passkeys). The aggregate now has
+> **12 events** and **11 commands** (see `es_constants.go`). Credential-related
+> events (`CredentialAdded`, `CredentialRemoved`, `EmailVerified`, `TOTPEnabled`,
+> `TOTPDisabled`, `ExternalAccountLinked`, `ExternalAccountUnlinked`) were added.
+> The original 6-event/6-command design below is preserved for historical context.
+>
+> **Update 2026-06-22 (v3 migration):** `memory.MemoryBus` was replaced by
+> `watermill.EventBus` (GoChannel backend) — see ADR-0016. Module paths moved
+> from `event/v2` to `event/v4`.
+
 ## Context
 
 The `usermgmt` module stored users via `InMemoryUserStore` — a CRUD `map[UserID]*User` with
@@ -19,7 +31,7 @@ fire-and-forget domain events. Problems:
 
 `go-cqrs-lite` provides full first-class event sourcing support: `Decider[State]`,
 `Repository[State]`, `event.Store` with optimistic concurrency, projections with checkpointing,
-and snapshots. The `usermgmt` module already depends on `event/v2` for error types.
+and snapshots. The `usermgmt` module already depends on `event/v4` for error types.
 
 ## Decision
 

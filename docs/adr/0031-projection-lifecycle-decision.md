@@ -1,7 +1,7 @@
 # ADR 0031: Projection Lifecycle — StartProjections vs projectionhost vs CatchUpSubscriber
 
 **Status:** Accepted — 2026-06-29 (updated: checkpoint-based replay shipped in StartProjections; CatchUpSubscriber migration deferred)
-**Related:** [ADR 0016](0016-go-cqrs-lite-v3-migration.md) (projection rewrite), [ADR 0032](0032-basic-command-embedding.md) (command embedding), [go-cqrs-lite projectionhost/v3](https://github.com/LarsArtmann/go-cqrs-lite), [go-cqrs-lite watermill/v3 CatchUpSubscriber](https://github.com/LarsArtmann/go-cqrs-lite)
+**Related:** [ADR 0016](0016-go-cqrs-lite-v3-migration.md) (projection rewrite), [ADR 0032](0032-basic-command-embedding.md) (command embedding), [go-cqrs-lite projectionhost/v4](https://github.com/LarsArtmann/go-cqrs-lite), [go-cqrs-lite watermill/v4 CatchUpSubscriber](https://github.com/LarsArtmann/go-cqrs-lite)
 
 ## Context
 
