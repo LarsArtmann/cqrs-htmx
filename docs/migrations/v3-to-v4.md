@@ -167,7 +167,8 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 4. If using OAuth2: add `usermgmt/oauth2/v4` dependency, construct `oauth2.Provider`, inject as `ServiceConfig.OAuth2`
 5. If using a custom `OAuth2StateStore`: update `Save` signature
 6. If using a custom `WebAuthnSessionStore`: update to `[]byte` data type
-7. Run `go mod tidy`
+7. Update go-cqrs-lite imports from `/v3` to `/v4` (see below)
+8. Run `go mod tidy` (use `go mod tidy -e` for the root module — see note below)
 
 ## Dependency Impact
 
@@ -180,3 +181,38 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 | go-jose     | transitive         | ❌ removed         | ✅ `usermgmt/oauth2` (transitive) |
 
 Core `usermgmt` has **ZERO** auth-strategy dependencies. Consumers import only the auth strategies they need.
+
+## go-cqrs-lite v3 → v4
+
+cqrs-htmx v4 also upgrades the underlying go-cqrs-lite from v3.7.4 to v4.0.0.
+
+### Import path changes
+
+```diff
+- "github.com/larsartmann/go-cqrs-lite/command/v3"
++ "github.com/larsartmann/go-cqrs-lite/command/v4"
+
+- "github.com/larsartmann/go-cqrs-lite/event/v3"
++ "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+- "github.com/larsartmann/go-cqrs-lite/id/v3"
++ "github.com/larsartmann/go-cqrs-lite/id/v4"
+
+- "github.com/larsartmann/go-cqrs-lite/query/v3"
++ "github.com/larsartmann/go-cqrs-lite/query/v4"
+```
+
+### What changed in go-cqrs-lite v4
+
+- **Backward-compatible API**: v4 includes compatibility aliases (`event.AggregateType = id.AggregateType`, `event.NewAggregateRef = id.NewAggregateRef`, etc.) so most code compiles without changes beyond import paths
+- **Module restructure**: `metadata` extracted from `event`, `projection` already separate, `id` types consolidated
+- **Publishing bug**: go-cqrs-lite v4.0.0 go.mod files reference internal sibling modules with zero pseudo-versions. Consumers must explicitly `go get` ALL transitive go-cqrs-lite modules at v4.0.0 to override
+
+### The `.vendor-local` cleanup
+
+cqrs-htmx v3 carried a `.vendor-local/eventtest/` directory to work around an upstream publishing bug. In v4 this is eliminated entirely:
+
+- All `replace` directives for `eventtest` removed from go.mod files
+- `.vendor-local/` directory deleted
+- `go.work` no longer references it
+- When running `go mod tidy` under `GOWORK=off` for the root module, use `go mod tidy -e` (error-tolerant) — the upstream `event/v4` go.mod references an unpublished `eventtest` module that causes a non-fatal error during tidy. Build and test are unaffected
