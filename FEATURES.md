@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-10 | **Version:** v4.2.1+unreleased (go-cqrs-lite v3.7.4) | **Source:** All .go files analyzed
+**Updated:** 2026-07-10 | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.0) | **Source:** All .go files analyzed
 
 ## Status legend
 
@@ -110,7 +110,7 @@
 | ---------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | HasCommands/HasQueries | 🟢 `FULLY_FUNCTIONAL` | Report dispatcher availability.                                                                                                                                                               |
 | Request Validation     | 🟢 `FULLY_FUNCTIONAL` | `ValidateCommand(validator)` / `ValidateQuery(validator)` wrap decoders. `ErrValidationFailed` → 400.                                                                                         |
-| Idempotency Store      | 🟢 `FULLY_FUNCTIONAL` | `IdempotencyStore` / `MemoryIdempotencyStore` (thin aliases over go-cqrs-lite/idempotency/v3). `CheckAndRecord` for atomic dedup. `ErrDuplicateCommand` → HTTP 409. ADR-0026. NOT auto-wired. |
+| Idempotency Store      | 🟢 `FULLY_FUNCTIONAL` | `IdempotencyStore` / `MemoryIdempotencyStore` (thin aliases over go-cqrs-lite/idempotency/v4). `CheckAndRecord` for atomic dedup. `ErrDuplicateCommand` → HTTP 409. ADR-0026. NOT auto-wired. |
 | ClientIP (deprecated)  | 🟢 `FULLY_FUNCTIONAL` | Delegates to `httputil.ClientIP`. Use `larsartmann/httputil` directly.                                                                                                                        |
 
 ### Real-Time — SSE
@@ -144,7 +144,7 @@
 
 | Feature            | Status                | Notes                                                                                                                                                                                                                                      |
 | ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Event-Sourced User | 🟢 `FULLY_FUNCTIONAL` | 12 events, 11 commands, Decider pattern via go-cqrs-lite v3. All 20 commands embed `*command.BasicCommand` (ADR-0032 — structurally eliminates zero-cmdID bug). Read-your-writes via watermill EventBus.                                   |
+| Event-Sourced User | 🟢 `FULLY_FUNCTIONAL` | 12 events, 11 commands, Decider pattern via go-cqrs-lite v4. All 20 commands embed `*command.BasicCommand` (ADR-0032 — structurally eliminates zero-cmdID bug). Read-your-writes via watermill EventBus.                                   |
 | Checkpoint Replay  | 🟢 `FULLY_FUNCTIONAL` | `EventSourcedConfig.CheckpointStore` enables checkpoint-based projection replay: restarts resume from last checkpoint via `SeekableJournal.ReadFrom` instead of full `ReadAll`. Opt-in (nil = full replay, backward compat). See ADR-0031. |
 | User Read Model    | 🟢 `FULLY_FUNCTIONAL` | `UserReadModel` projection: `FindByID`, `FindByEmail`, `FindByExternalAccount`, `FindByUserID`, `Count`, `AllUsers`. Email index + external account index.                                                                                 |
 | Branded UserID     | 🟢 `FULLY_FUNCTIONAL` | `UserID = brandid.ID[userBrand, string]` via go-branded-id. `.Get()` for cross-module conversion. `NewUserID(s)` constructor.                                                                                                              |
@@ -211,7 +211,7 @@
 
 | Feature             | Status                | Notes                                                                                                                                                                                                                                  |
 | ------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SQL Event Store     | 🟢 `FULLY_FUNCTIONAL` | `SQLEventStore` — type alias over `storage.SQLEventStore` from go-cqrs-lite v3. Postgres + SQLite. Auto-migrates schema. Upstream provides schema_version, payload_encoding, OTel tracing. ADR-0016.                                   |
+| SQL Event Store     | 🟢 `FULLY_FUNCTIONAL` | `SQLEventStore` — type alias over `storage.SQLEventStore` from go-cqrs-lite v4. Postgres + SQLite. Auto-migrates schema. Upstream provides schema_version, payload_encoding, OTel tracing. ADR-0016.                                   |
 | SQL Session Store   | 🟢 `FULLY_FUNCTIONAL` | `SQLSessionStore` — Postgres, SQLite, MySQL. Auto-migrates schema. `StartCleanupSweeper(ctx, interval)`. Fuzz-tested (`FuzzSQLSessionStore_CreateFindRoundTrip`). Benchmarks. ADR-0012.                                                |
 | SQL Read Models     | 🟢 `FULLY_FUNCTIONAL` | `SQLUserReadModel`, `SQLMembershipReadModel`, `SQLTenantReadModel`, `SQLBotReadModel` — persistent projections surviving restarts. Dual SQLite/Postgres constructors. `FindByIDSQL`/`FindByEmailSQL`/`CountSQL` query methods. v3.1.0. |
 | Stack Presets       | 🟢 `FULLY_FUNCTIONAL` | `NewSQLiteEventSourcedSetup(cfg)` / `NewPostgresEventSourcedSetup(cfg)` — one-call infrastructure (event store + bus + repos + SQL read models + projections). Postgres supports multi-DB split. v3.1.0.                               |
@@ -221,7 +221,7 @@
 
 | Feature                     | Status                | Notes                                                                                                                                                                                                           |
 | --------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Event Signing (Opt-in)      | 🟢 `FULLY_FUNCTIONAL` | `ServiceConfig.PublishMiddleware` / `HandlerMiddleware` for `signing.SignMiddleware` / `VerifyMiddleware`. HMAC-SHA256 + Ed25519. Dependency-free seams — consumer imports `go-cqrs-lite/signing/v3`. ADR-0011. |
+| Event Signing (Opt-in)      | 🟢 `FULLY_FUNCTIONAL` | `ServiceConfig.PublishMiddleware` / `HandlerMiddleware` for `signing.SignMiddleware` / `VerifyMiddleware`. HMAC-SHA256 + Ed25519. Dependency-free seams — consumer imports `go-cqrs-lite/signing/v4`. ADR-0011. |
 | Event Encryption (Opt-in)   | 🟢 `FULLY_FUNCTIONAL` | `ServiceConfig.StoreWrapper` for `encryption.NewEncryptedStore` (at-rest). `PublishMiddleware`/`HandlerMiddleware` for `EncryptMiddleware`/`DecryptMiddleware` (in-transit). AES-256-GCM + XChaCha20-Poly1305.  |
 | Security Hooks Parity       | 🟢 `FULLY_FUNCTIONAL` | Both `NewService(ServiceConfig)` and `NewEventSourcedSetup(EventSourcedConfig)` support the same `StoreWrapper`, `PublishMiddleware`, and `HandlerMiddleware` hooks. No split brain.                            |
 | Audit Log                   | 🟢 `FULLY_FUNCTIONAL` | Event-sourced audit log projection. Queryable by user (`EntriesFor`), recent N (`Recent`), total count. 11 audit action types. Optional via `ServiceConfig.AuditLog`.                                           |
@@ -232,9 +232,9 @@
 
 ---
 
-## API Documentation (via go-cqrs-lite/catalog/v3)
+## API Documentation (via go-cqrs-lite/catalog/v4)
 
-API documentation generation (OpenAPI, AsyncAPI, D2, EventCatalog) is now provided by **go-cqrs-lite/catalog v3.2.0** directly. Use the `simple` sub-package for the single-service Builder facade and the `docserver` sub-package for HTTP handlers (D2Handler, HealthCheckHandler, GenerateEventCatalog, and the full DocsServer for OpenAPI/AsyncAPI with HTML UIs).
+API documentation generation (OpenAPI, AsyncAPI, D2, EventCatalog) is now provided by **go-cqrs-lite/catalog v4** directly. Use the `simple` sub-package for the single-service Builder facade and the `docserver` sub-package for HTTP handlers (D2Handler, HealthCheckHandler, GenerateEventCatalog, and the full DocsServer for OpenAPI/AsyncAPI with HTML UIs).
 
 See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite/tree/master/catalog) for details. The `examples/catalog-demo/` example demonstrates the integration.
 
@@ -246,7 +246,7 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | UserID Bridge        | 🟢 `FULLY_FUNCTIONAL` | Root `UserID` ↔ usermgmt `UserID` conversion via `Get()`/`ParseUserID`. Context round-trip verified.                                                                                   |
 | Authorization Wiring | 🟢 `FULLY_FUNCTIONAL` | `usermgmt.Authz.AsEnforcer()` plumbed into root `Config.Enforcer`. Full register → authenticate → authorize cycle tested.                                                              |
-| Catalog Generation   | 🟢 `FULLY_FUNCTIONAL` | Uses go-cqrs-lite/catalog/v3 `simple` + `docserver` to produce OpenAPI/AsyncAPI/D2/EventCatalog docs from App and usermgmt-derived types.                                              |
+| Catalog Generation   | 🟢 `FULLY_FUNCTIONAL` | Uses go-cqrs-lite/catalog/v4 `simple` + `docserver` to produce OpenAPI/AsyncAPI/D2/EventCatalog docs from App and usermgmt-derived types.                                              |
 | README Recipe Guard  | 🟢 `FULLY_FUNCTIONAL` | The documented catalog-for-usermgmt recipe compiles and reflects against real event payload types. Guards against breakage.                                                            |
 | Typed Query Dispatch | 🟢 `FULLY_FUNCTIONAL` | Typed queries registered and dispatched across cqrs-htmx and usermgmt, including through HTTP handlers and pagination.                                                                 |
 | CSRF + AuthHandler   | 🟢 `FULLY_FUNCTIONAL` | Root `CSRFMiddleware` composed with `usermgmt.SessionMiddleware` protecting `usermgmt.AuthHandler`.                                                                                    |

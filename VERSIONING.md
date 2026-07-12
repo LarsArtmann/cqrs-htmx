@@ -30,7 +30,7 @@ Sub-modules follow the same pattern:
 > sub-modules. Core `usermgmt` has zero auth-related dependencies — consumers
 > import only the strategies they need. See `docs/migrations/v3-to-v4.md`.
 
-API documentation generation now lives in `go-cqrs-lite/catalog/v3` (the `simple` and `docserver` sub-packages), not in cqrs-htmx.
+API documentation generation now lives in `go-cqrs-lite/catalog/v4` (the `simple` and `docserver` sub-packages), not in cqrs-htmx.
 
 ## What Counts as Breaking
 

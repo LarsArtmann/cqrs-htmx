@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-07-10 | **Coverage:** 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui (~886 tests) | **Lint:** 0 issues (6 production modules) | **Version:** v4.2.1 (go-cqrs-lite v3.7.4)
+**Updated:** 2026-07-12 | **Coverage:** 94.3% root, 74.5% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui (~886 tests) | **Lint:** 0 issues (6 production modules) | **Version:** v4.2.1 (go-cqrs-lite v4.0.0)
 
 ## Status Legend
 

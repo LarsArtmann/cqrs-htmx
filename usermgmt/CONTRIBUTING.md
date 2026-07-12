@@ -55,7 +55,7 @@ See `es_scenario_test.go` for patterns. Table-driven tests with standard `testin
 
 ## Error Handling
 
-**NO stdlib error constructors** — `errors.New`, `fmt.Errorf`, `errors.Join` are banned. Enforced by `nix run .#errorfamily`. Use `event.New*/Wrap*` from `go-cqrs-lite/event/v3`:
+**NO stdlib error constructors** — `errors.New`, `fmt.Errorf`, `errors.Join` are banned. Enforced by `nix run .#errorfamily`. Use `event.New*/Wrap*` from `go-cqrs-lite/event/v4`:
 
 ```go
 return event.NewRejection("usermgmt.bad_input", "email is required")
