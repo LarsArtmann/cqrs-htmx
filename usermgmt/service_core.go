@@ -321,6 +321,9 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		}
 		svc.pendingTOTP = tStore
 		svc.totpPendingTTL = cfg.TOTPPendingSecretTTL
+		if svc.totpPendingTTL == 0 {
+			svc.totpPendingTTL = defaultTOTPPendingTTL
+		}
 	}
 
 	if cfg.OAuth2 != nil {

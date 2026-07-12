@@ -34,7 +34,8 @@ func (s *Service) BeginOAuthLogin(ctx context.Context, provider string) (*BeginO
 	}
 
 	if err := s.oauth2States.Save(state, provider, pkceVerifier, s.oauth2StateTTL); err != nil {
-		return nil, errorfamily.NewTransient("internal", "save oauth2 state").WithCause(err)
+		return nil, errorfamily.NewTransient("internal", "save oauth2 state").
+			WithCause(err).WithContext("provider", provider)
 	}
 
 	s.logAuth("oauth_login_begin", UserID{}, "provider", provider)
@@ -62,11 +63,13 @@ func (s *Service) FinishOAuthLogin(
 	storedProvider, pkceVerifier, err := s.oauth2States.Consume(state)
 	if err != nil {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "invalid_state")
-		return nil, errorfamily.WrapRejection(err, "usermgmt.oauth.state_consume_failed", "consume oauth2 state")
+		return nil, errorfamily.WrapRejection(err, "usermgmt.oauth.state_consume_failed", "consume oauth2 state").
+			WithContext("provider", provider)
 	}
 	if storedProvider != provider {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "provider_mismatch")
-		return nil, ErrOAuthInvalidState
+		return nil, errorfamily.WrapRejection(ErrOAuthInvalidState, "usermgmt.oauth.provider_mismatch",
+			"oauth2 provider mismatch between state and callback").WithContext("provider", provider)
 	}
 
 	userInfoJSON, err := s.oauth2.FinishLogin(ctx, provider, code, pkceVerifier)
@@ -79,13 +82,13 @@ func (s *Service) FinishOAuthLogin(
 	var info OAuth2UserInfo
 	if err := json.Unmarshal(userInfoJSON, &info); err != nil {
 		return nil, errorfamily.NewInfrastructure("usermgmt.oauth.userinfo_unmarshal", "unmarshal user info").
-			WithCause(err)
+			WithCause(err).WithContext("provider", provider)
 	}
 
 	if info.Email == "" {
 		s.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "no_email")
 		return nil, errorfamily.NewRejection("usermgmt.oauth_no_email",
-			"OAuth2 provider did not return an email address")
+			"OAuth2 provider did not return an email address").WithContext("provider", provider)
 	}
 	info.Email = strings.ToLower(strings.TrimSpace(info.Email))
 

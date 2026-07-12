@@ -8,6 +8,10 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// defaultTOTPPendingTTL is the default time-to-live for pending TOTP secrets
+// (secrets generated during EnableTOTP but not yet verified).
+const defaultTOTPPendingTTL = 5 * time.Minute
+
 // totpTransient logs an auth failure and returns a transient error wrapping
 // the underlying cause. Used by EnableTOTP when the TOTP provider returns
 // an error that is not the caller's fault.
@@ -45,12 +49,7 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 		return nil, s.totpTransient("totp_setup_failed", userID, "secret_generation_error",
 			"generate totp key", err)
 	}
-	// Store the pending secret temporarily
-	ttl := s.totpPendingTTL
-	if ttl <= 0 {
-		ttl = 5 * time.Minute
-	}
-	s.pendingTOTP.Save(userID.Get().String(), rawSecret, ttl)
+	s.pendingTOTP.Save(userID.Get().String(), rawSecret, s.totpPendingTTL)
 	s.logAuth("totp_setup_initiated", userID)
 	return &TOTPSetupResponse{
 		Secret:    base32Secret,

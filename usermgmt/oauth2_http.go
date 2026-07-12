@@ -43,14 +43,14 @@ func (h *AuthHandler) handleOAuth2Callback(w http.ResponseWriter, r *http.Reques
 	}
 	provider := r.PathValue("provider")
 	if provider == "" {
-		h.oauth2Error(w, http.StatusBadRequest, "provider is required")
+		h.oauth2Error(w, r, http.StatusBadRequest, "provider is required")
 		return
 	}
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 	if code == "" || state == "" {
-		h.oauth2Error(w, http.StatusBadRequest, "code and state query parameters are required")
+		h.oauth2Error(w, r, http.StatusBadRequest, "code and state query parameters are required")
 		return
 	}
 
@@ -59,7 +59,7 @@ func (h *AuthHandler) handleOAuth2Callback(w http.ResponseWriter, r *http.Reques
 
 	resp, err := h.service.FinishOAuthLogin(ctx, provider, code, state)
 	if err != nil {
-		h.oauth2Error(w, errorStatus(err), err.Error())
+		h.oauth2Error(w, r, errorStatus(err), err.Error())
 		return
 	}
 
@@ -95,10 +95,10 @@ func (h *AuthHandler) handleOAuth2Unlink(w http.ResponseWriter, r *http.Request)
 // oauth2Error writes an OAuth2 error response. When oauth2ErrorURL is configured,
 // it redirects the browser with the error as a query parameter. Otherwise it
 // returns a JSON error response (for API/HTMX consumers).
-func (h *AuthHandler) oauth2Error(w http.ResponseWriter, status int, message string) {
+func (h *AuthHandler) oauth2Error(w http.ResponseWriter, r *http.Request, status int, message string) {
 	if h.oauth2ErrorURL != "" {
 		redirectURL := h.oauth2ErrorURL + "?error=" + url.QueryEscape(message)
-		http.Redirect(w, nil, redirectURL, http.StatusFound)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
 	writeError(w, status, message)
