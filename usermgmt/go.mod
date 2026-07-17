@@ -7,12 +7,12 @@ replace github.com/larsartmann/cqrs-htmx/v4 => ../
 require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-branded-id v0.3.1
+	github.com/larsartmann/go-branded-id v0.3.2
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.0.0
@@ -20,11 +20,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.1
 	github.com/larsartmann/go-error-family v0.7.0
 	github.com/oklog/ulid/v2 v2.1.1
-	modernc.org/sqlite v1.53.0
+	modernc.org/sqlite v1.54.0
 	pgregory.net/rapid v1.3.0
 )
 
@@ -32,12 +32,12 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
@@ -65,10 +65,10 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.1 // indirect
 	github.com/larsartmann/httputil v0.5.0 // indirect
-	github.com/mattn/go-isatty v0.0.22 // indirect
+	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/x448/float16 v0.8.4 // indirect
