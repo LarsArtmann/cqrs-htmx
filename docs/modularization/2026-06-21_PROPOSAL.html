@@ -1401,8 +1401,7 @@ usermgmt/                          # ONE module, ONE go.mod
     ├── crypto.go                  # Token generation
     ├── random.go                  # randomBase64URLString
     └── eviction.go                # startPeriodicEviction
-</pre
-        >
+</pre>
 
         <div class="diagram-container">
           <?xml version="1.0" encoding="utf-8"?><svg
@@ -2328,8 +2327,7 @@ totp/            ← depends on domain/ only
 usermgmt (root)  ← facade: embeds/composes webauthn, oauth2, totp services
     ↑
 httpapi/         ← depends on usermgmt Service + all sub-packages
-</pre
-        >
+</pre>
         <p>
           <strong>No cycles.</strong> Every arrow points "downward" toward <code>domain/</code>. The
           facade pattern ensures the <code>Service</code> struct can delegate to subsystems without
@@ -3364,8 +3362,7 @@ httpapi/         ← depends on usermgmt Service + all sub-packages
         <pre>
 usermgmt-webauthn/    → go.mod depends on go-webauthn
 usermgmt-oauth2/      → go.mod depends on x/oauth2 + go-oidc
-usermgmt-totp/        → go.mod depends on pquerna/otp</pre
-        >
+usermgmt-totp/        → go.mod depends on pquerna/otp</pre>
         <p>
           This gives true dependency isolation: consumers who don't need WebAuthn don't pull in
           <code>go-webauthn</code>. But this should be driven by real demand, not premature

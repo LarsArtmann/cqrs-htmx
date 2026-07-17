@@ -54,15 +54,16 @@
 - The v1.7.3 code path checks `requestURL.Scheme == "https"` (default) and then validates Referer/Origin headers — our tests use plain HTTP requests with no Origin/Referer headers, so they fail with 403
 
 **Failing specs:**
-| Spec | Expected | Actual |
-|------|----------|--------|
-| `CSRFMiddleware/allows POST with valid CSRF token in header` | 200 | 403 |
-| `CSRFMiddleware/allows POST with valid CSRF token in form field` | 200 | 403 |
-| `CSRFMiddleware/validates PUT, PATCH, and DELETE methods` | 200 | 403 |
-| `CSRFMiddleware/uses custom header name when configured` | 200 | 403 |
-| `HMAC-signed tokens/validates HMAC-signed token correctly` | 200 | 403 |
-| `Integration/CSRF token via HTMX header` | 200 | 403 |
-| `Integration/CSRFProtect with valid token` | 204 | 403 |
+
+| Spec                                                             | Expected | Actual |
+| ---------------------------------------------------------------- | -------- | ------ |
+| `CSRFMiddleware/allows POST with valid CSRF token in header`     | 200      | 403    |
+| `CSRFMiddleware/allows POST with valid CSRF token in form field` | 200      | 403    |
+| `CSRFMiddleware/validates PUT, PATCH, and DELETE methods`        | 200      | 403    |
+| `CSRFMiddleware/uses custom header name when configured`         | 200      | 403    |
+| `HMAC-signed tokens/validates HMAC-signed token correctly`       | 200      | 403    |
+| `Integration/CSRF token via HTMX header`                         | 200      | 403    |
+| `Integration/CSRFProtect with valid token`                       | 204      | 403    |
 
 **Fix Applied (go.mod, go.sum):**
 

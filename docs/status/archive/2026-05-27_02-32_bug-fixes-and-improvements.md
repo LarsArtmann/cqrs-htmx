@@ -35,26 +35,26 @@
 
 ## c) NOT STARTED
 
-| #   | Item                                                                                    | Impact                   | Effort          |
+| # | Item | Impact | Effort |
 | --- | --------------------------------------------------------------------------------------- | ------------------------ | --------------- | -------------- |
-| 1   | **Missing edge case tests** (MaxBodySize 413, timeout 503, concurrent lockout)          | MEDIUM                   | 2 hrs           | Testing        |
-| 2   | **authMode → typed string**                                                             | LOW — debuggability      | LOW — 15 min    |
-| 3   | **usermgmt Register rollback error logging** (currently silently swallowed)             | MEDIUM                   | 30 min          | Error handling |
-| 4   | **decoder.go form decode: document limitation or use gorilla/schema**                   | MEDIUM                   | 1 hr            | Robustness     |
-| 5   | **usermgmt HandlerConfig → functional options**                                         | MEDIUM — API consistency | MEDIUM — 2 hrs  |
-| 6   | **AccountLockout.IsLocked RLock optimization**                                          | LOW — performance        | LOW — 15 min    |
-| 7   | **SessionStore.Find expiration check** (currently returns expired sessions)             | MEDIUM                   | 30 min          | Correctness    |
-| 8   | **Test helper consolidation** (extract shared app construction, dedup assertStatusCode) | MEDIUM                   | 1 hr            | Test quality   |
-| 9   | **coverage_test.go rename** (to behavior-based name)                                    | LOW — 5 min              | LOW — 5 min     |
-| 10  | **User.MarshalJSON explicit allowlist** (currently hides by exclusion)                  | LOW                      | 20 min          | Security       |
-| 11  | **handleMe public DTO** (don't return full User JSON)                                   | MEDIUM — 30 min          | MEDIUM — 30 min |
-| 12  | **HealthHandler deep health check** (verify dispatcher connectivity, not just non-nil)  | LOW                      | 30 min          | Observability  |
-| 13  | **CSRFConfig getters → `cmp.Or`** (simplify trio of identical getters)                  | LOW                      | 10 min          | Code quality   |
-| 14  | **SecurityHeadersConfig getters → `cmp.Or`**                                            | LOW — 10 min             | LOW — 10 min    |
-| 15  | **Response.Apply() double-sanitize fix** (Redirect already sanitizes)                   | LOW                      | 10 min          | Performance    |
-| 16  | **NewService config validation** (reject negative BcryptCost, zero SessionTTL)          | MEDIUM                   | 20 min          | Robustness     |
-| 17  | **DefaultLogFormatter use contextFields()** (like JSONLogFormatter does)                | LOW                      | 10 min          | Consistency    |
-| 18  | **datastar-demo LSP integration** (add to go.work or document stale LSP)                | LOW                      | 10 min          | DX             |
+| 1 | **Missing edge case tests** (MaxBodySize 413, timeout 503, concurrent lockout) | MEDIUM | 2 hrs | Testing |
+| 2 | **authMode → typed string** | LOW — debuggability | LOW — 15 min |
+| 3 | **usermgmt Register rollback error logging** (currently silently swallowed) | MEDIUM | 30 min | Error handling |
+| 4 | **decoder.go form decode: document limitation or use gorilla/schema** | MEDIUM | 1 hr | Robustness |
+| 5 | **usermgmt HandlerConfig → functional options** | MEDIUM — API consistency | MEDIUM — 2 hrs |
+| 6 | **AccountLockout.IsLocked RLock optimization** | LOW — performance | LOW — 15 min |
+| 7 | **SessionStore.Find expiration check** (currently returns expired sessions) | MEDIUM | 30 min | Correctness |
+| 8 | **Test helper consolidation** (extract shared app construction, dedup assertStatusCode) | MEDIUM | 1 hr | Test quality |
+| 9 | **coverage_test.go rename** (to behavior-based name) | LOW — 5 min | LOW — 5 min |
+| 10 | **User.MarshalJSON explicit allowlist** (currently hides by exclusion) | LOW | 20 min | Security |
+| 11 | **handleMe public DTO** (don't return full User JSON) | MEDIUM — 30 min | MEDIUM — 30 min |
+| 12 | **HealthHandler deep health check** (verify dispatcher connectivity, not just non-nil) | LOW | 30 min | Observability |
+| 13 | **CSRFConfig getters → `cmp.Or`** (simplify trio of identical getters) | LOW | 10 min | Code quality |
+| 14 | **SecurityHeadersConfig getters → `cmp.Or`** | LOW — 10 min | LOW — 10 min |
+| 15 | **Response.Apply() double-sanitize fix** (Redirect already sanitizes) | LOW | 10 min | Performance |
+| 16 | **NewService config validation** (reject negative BcryptCost, zero SessionTTL) | MEDIUM | 20 min | Robustness |
+| 17 | **DefaultLogFormatter use contextFields()** (like JSONLogFormatter does) | LOW | 10 min | Consistency |
+| 18 | **datastar-demo LSP integration** (add to go.work or document stale LSP) | LOW | 10 min | DX |
 
 ---
 

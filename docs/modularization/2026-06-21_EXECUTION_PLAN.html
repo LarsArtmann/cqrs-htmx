@@ -376,8 +376,7 @@ type UserID = domain.UserID
 type User = domain.User
 type Session = domain.Session
 type Email = domain.Email
-// ... etc for all moved types</pre
-          >
+// ... etc for all moved types</pre>
           <div class="verify">
             <strong>Verify:</strong> <code>GOWORK=off go build ./...</code> +
             <code>GOWORK=off go test ./... -race -count=1</code> in usermgmt. Zero import path
@@ -457,8 +456,7 @@ usermgmt/eventsource/
 ├── casbin_projection.go
 ├── setup.go       # EventSourcedConfig, StartProjections
 ├── upcaster.go
-└── migration.go</pre
-          >
+└── migration.go</pre>
           <p>
             <strong>Depends on:</strong> <code>domain/</code> + <code>authz/</code> (for
             CasbinProjection).
