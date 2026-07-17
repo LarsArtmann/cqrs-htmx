@@ -23,28 +23,28 @@ The library is in **excellent shape**: 96.2% root coverage, 90.1% usermgmt cover
 
 ## Headline Metrics (verified this session)
 
-| Metric                           | Value              | Source                                  |
+| Metric | Value | Source |
 | -------------------------------- | ------------------ | --------------------------------------- | ------ |
-| **Root coverage**                | **96.2%**          | `go test ./... -cover`                  |
-| **usermgmt coverage**            | **90.1%**          | `go test ./... -cover` (in usermgmt)    |
-| **integration_test coverage**    | n/a (no prod code) | `go test ./... -cover`                  |
-| **datastar-demo coverage**       | not measured       | example, not part of CI                 |
-| **Root lint issues**             | **0**              | `golangci-lint run`                     |
-| **usermgmt lint issues**         | **0**              | `golangci-lint run` (in usermgmt)       |
-| **integration_test lint issues** | **0**              | `golangci-lint run` (in integration)    |
-| **datastar-demo lint issues**    | **60**             | errcheck/exhaustruct/goconst/etc.       |
-| **Test funcs (Go)**              | **199**            | grep `^func Test`                       |
-| **Benchmark funcs**              | **24**             | grep `^func Benchmark`                  |
-| **Example funcs (godoc)**        | **33**             | grep `^func Example`                    |
-| **Ginkgo specs (BDD)**           | **960**            | grep `It(\|Describe\|Context(`          |
-| **Test files**                   | 50 (16/29/5/0)     | root/usermgmt/integration/datastar-demo |
-| **Total Go LOC**                 | **20,646**         | wc -l on \*.go                          |
-| **Go files**                     | 161                | find -name "\*.go"                      |
-| **TODO/FIXME comments in code**  | **0**              | grep -E "TODO                           | FIXME" |
-| **ADRs**                         | 5                  | `docs/adr/0001-0005`                    |
-| **Status reports**               | 20+                | `docs/status/`                          |
-| **TODO_LIST items completed**    | 170 (all but 1)    | TODO_LIST.md                            |
-| **Open TODO items**              | **1** (BLOCKED)    | BrandNamer upstream                     |
+| **Root coverage** | **96.2%** | `go test ./... -cover` |
+| **usermgmt coverage** | **90.1%** | `go test ./... -cover` (in usermgmt) |
+| **integration_test coverage** | n/a (no prod code) | `go test ./... -cover` |
+| **datastar-demo coverage** | not measured | example, not part of CI |
+| **Root lint issues** | **0** | `golangci-lint run` |
+| **usermgmt lint issues** | **0** | `golangci-lint run` (in usermgmt) |
+| **integration_test lint issues** | **0** | `golangci-lint run` (in integration) |
+| **datastar-demo lint issues** | **60** | errcheck/exhaustruct/goconst/etc. |
+| **Test funcs (Go)** | **199** | grep `^func Test` |
+| **Benchmark funcs** | **24** | grep `^func Benchmark` |
+| **Example funcs (godoc)** | **33** | grep `^func Example` |
+| **Ginkgo specs (BDD)** | **960** | grep `It(\|Describe\|Context(` |
+| **Test files** | 50 (16/29/5/0) | root/usermgmt/integration/datastar-demo |
+| **Total Go LOC** | **20,646** | wc -l on \*.go |
+| **Go files** | 161 | find -name "\*.go" |
+| **TODO/FIXME comments in code** | **0** | grep -E "TODO | FIXME" |
+| **ADRs** | 5 | `docs/adr/0001-0005` |
+| **Status reports** | 20+ | `docs/status/` |
+| **TODO_LIST items completed** | 170 (all but 1) | TODO_LIST.md |
+| **Open TODO items** | **1** (BLOCKED) | BrandNamer upstream |
 
 ---
 

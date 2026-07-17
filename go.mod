@@ -6,14 +6,14 @@ require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/justinas/nosurf v1.2.0
-	github.com/larsartmann/go-branded-id v0.3.1
+	github.com/larsartmann/go-branded-id v0.3.2
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.1
 	github.com/larsartmann/go-error-family v0.7.0
 	github.com/larsartmann/httputil v0.5.0
 	github.com/oklog/ulid/v2 v2.1.1
@@ -35,14 +35,14 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -63,4 +63,5 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/tools v0.48.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	pgregory.net/rapid v1.3.0 // indirect
 )
