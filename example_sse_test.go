@@ -46,6 +46,7 @@ func ExampleSSEStream() {
 
 func ExampleBroadcaster() {
 	b := cqrshtmx.NewBroadcaster()
+
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)
 
@@ -58,6 +59,7 @@ func ExampleBroadcaster() {
 
 func ExampleBroadcaster_BroadcastOnError() {
 	b := cqrshtmx.NewBroadcaster()
+
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)
 
@@ -81,6 +83,7 @@ func ExampleStructuredError() {
 
 func ExampleWSBroadcaster() {
 	b := cqrshtmx.NewWSBroadcaster()
+
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)
 

@@ -68,6 +68,7 @@ func NewJournalSSEStore(
 	if journal == nil {
 		panic("cqrshtmx: NewJournalSSEStore: journal must not be nil")
 	}
+
 	if mapper == nil {
 		panic("cqrshtmx: NewJournalSSEStore: mapper must not be nil")
 	}
@@ -120,6 +121,7 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID string
 				ctx, "cqrshtmx.sse.journal_readall_failed",
 				slog.String("error", err.Error()),
 			)
+
 			return nil
 		}
 
@@ -142,6 +144,7 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID string
 			slog.String("lastID", lastID),
 			slog.String("error", err.Error()),
 		)
+
 		return nil
 	}
 
@@ -157,6 +160,7 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID string
 			slog.String("lastID", lastID),
 			slog.String("error", err.Error()),
 		)
+
 		return nil
 	}
 
@@ -173,6 +177,7 @@ func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID string
 			slog.String("lastID", lastID),
 			slog.String("error", err.Error()),
 		)
+
 		return nil
 	}
 
@@ -182,6 +187,7 @@ func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID string
 		if s.maxReplay > 0 && len(events) > s.maxReplay {
 			start = len(events) - s.maxReplay
 		}
+
 		return s.mapEvents(events[start:])
 	}
 

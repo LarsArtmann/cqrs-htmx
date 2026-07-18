@@ -18,6 +18,7 @@ var _ = Describe("Validation HandlerOption", func() {
 	Describe("ValidateCommand", func() {
 		It("allows valid commands through", func() {
 			var dispatched bool
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
@@ -46,9 +47,11 @@ var _ = Describe("Validation HandlerOption", func() {
 
 		It("no-op when decoder is not set", func() {
 			var decoded bool
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				decoded = true
+
 				return nil
 			})
 			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})

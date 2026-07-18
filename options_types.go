@@ -110,8 +110,10 @@ func decodeAndSetWithRequest[T, R any](
 			decoded, err := bodyDec(r, cfg.maxBodySize)
 			if err != nil {
 				var zero R
+
 				return zero, err
 			}
+
 			return mapper(r, decoded)
 		})
 	}

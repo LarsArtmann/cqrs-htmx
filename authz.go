@@ -105,6 +105,7 @@ func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
 			return errorfamily.NewRejection("unauthorized",
 				fmt.Sprintf("%s/%s", cfg.resource, cfg.action)).WithCause(ErrUnauthorized)
 		}
+
 		return ErrUnauthorized
 	}
 
@@ -145,16 +146,20 @@ func AuthorizeMiddleware(
 				uid, err := extractor(r)
 				if err != nil || uid.IsZero() {
 					handleUnauthorized(w, r, resource, action, redirect)
+
 					return
 				}
+
 				subject = uid.String()
 			} else {
 				handleUnauthorized(w, r, resource, action, redirect)
+
 				return
 			}
 
 			if err := Enforce(enforcer, subject, resource, action); err != nil {
 				DefaultErrorHandlerWithRedirect(w, r, err, redirect)
+
 				return
 			}
 

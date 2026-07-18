@@ -53,8 +53,10 @@ func FuzzServerTimingMiddleware(f *testing.F) {
 			st := ServerTimingFromContext(r.Context())
 			if st == nil {
 				t.Error("ServerTiming not in context")
+
 				return
 			}
+
 			st.Record("test", "fuzz metric", time.Microsecond)
 			w.WriteHeader(http.StatusOK)
 		}))
@@ -62,6 +64,7 @@ func FuzzServerTimingMiddleware(f *testing.F) {
 		if method == "" {
 			method = http.MethodGet
 		}
+
 		if path == "" {
 			path = "/"
 		}
@@ -92,6 +95,7 @@ func TestServerTimingNilReceiver(t *testing.T) {
 	// With an actual nil collector
 	var st *ServerTiming
 	st.Record("test", "desc", time.Millisecond)
+
 	_ = st.Measure("test")
 	if val := st.HeaderValue(); val != "" {
 		t.Errorf("nil ServerTiming HeaderValue = %q, want empty", val)

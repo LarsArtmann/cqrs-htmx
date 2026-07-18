@@ -55,6 +55,7 @@ func (s SwapStrategy) Valid() bool {
 		SwapBeforeEnd, SwapAfterEnd, SwapDelete, SwapNone:
 		return true
 	}
+
 	return false
 }
 
@@ -104,6 +105,7 @@ func WithHTMX(ctx context.Context, h *HTMXRequest) context.Context {
 // Returns nil if HTMXMiddleware was not applied.
 func HTMXFromContext(ctx context.Context) *HTMXRequest {
 	h, _ := ctx.Value(htmxKey{}).(*HTMXRequest)
+
 	return h
 }
 
@@ -113,6 +115,7 @@ func htmxBoolField(r *http.Request, extract func(*HTMXRequest) bool, header stri
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return extract(h)
 	}
+
 	return r.Header.Get(header) == HeaderTrue
 }
 
@@ -122,6 +125,7 @@ func htmxStringField(r *http.Request, extract func(*HTMXRequest) string, header 
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return extract(h)
 	}
+
 	return r.Header.Get(header)
 }
 
@@ -152,6 +156,7 @@ func RenderPartial(r *http.Request) bool {
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return h.RenderPartial()
 	}
+
 	return r.Header.Get(headerRequest) == HeaderTrue &&
 		r.Header.Get(headerHistoryRestore) != HeaderTrue
 }

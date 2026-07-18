@@ -21,6 +21,7 @@ func validateDispatch[T any](
 		if original == nil {
 			slog.Warn("cqrs-htmx: "+label+" applied before decoder",
 				slog.String("hint", "apply after DecodeJSON/DecodeForm"))
+
 			return
 		}
 
@@ -28,11 +29,13 @@ func validateDispatch[T any](
 			val, err := original(r)
 			if err != nil {
 				var zero T
+
 				return zero, err
 			}
 
 			if valErr := validator(val); valErr != nil {
 				var zero T
+
 				return zero, errorfamily.WrapRejection(valErr, "cqrshtmx.validate.failed", "request validation failed")
 			}
 

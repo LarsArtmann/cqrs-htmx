@@ -48,6 +48,7 @@ var _ = Describe("Authorization", func() {
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			w := serve(handler, httptest.NewRequest(http.MethodGet, "/", nil))
+
 			Expect(called).To(BeTrue())
 			Expect(w.code()).To(Equal(http.StatusOK))
 		})
@@ -63,6 +64,7 @@ var _ = Describe("Authorization", func() {
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			w := serve(handler, httptest.NewRequest(http.MethodGet, "/", nil))
+
 			Expect(called).To(BeFalse())
 			Expect(w.code()).To(Equal(http.StatusForbidden))
 		})
@@ -72,6 +74,7 @@ var _ = Describe("Authorization", func() {
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			w := serve(handler, httptest.NewRequest(http.MethodGet, "/", nil))
+
 			Expect(called).To(BeFalse())
 			Expect(w.code()).To(Equal(http.StatusUnauthorized))
 		})
@@ -81,11 +84,12 @@ var _ = Describe("Authorization", func() {
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			w := serve(handler, r)
+
 			Expect(called).To(BeFalse())
 			Expect(w.code()).To(Equal(http.StatusSeeOther))
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+			Expect(w.Header().Get("Hx-Redirect")).To(Equal("/login"))
 		})
 
 		It("uses custom login redirect", func() {
@@ -98,10 +102,11 @@ var _ = Describe("Authorization", func() {
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			w := serve(handler, r)
+
 			Expect(called).To(BeFalse())
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
+			Expect(w.Header().Get("Hx-Redirect")).To(Equal("/auth/signin"))
 		})
 
 		It("prefers branded UserID from context over extractor", func() {
@@ -123,6 +128,7 @@ var _ = Describe("Authorization", func() {
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			w := serve(handler, httptest.NewRequest(http.MethodGet, "/", nil))
+
 			Expect(called).To(BeFalse())
 			Expect(w.code()).To(Equal(http.StatusUnauthorized))
 		})
@@ -133,6 +139,7 @@ var _ = Describe("Authorization", func() {
 			called := false
 			handler := middleware(middlewareCaptureHandler(&called))
 			w := serve(handler, httptest.NewRequest(http.MethodGet, "/", nil))
+
 			Expect(called).To(BeFalse())
 			Expect(w.code()).To(Equal(http.StatusUnauthorized))
 		})

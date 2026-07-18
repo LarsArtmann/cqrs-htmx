@@ -22,9 +22,11 @@ var _ = Describe("Lifecycle Hooks", func() {
 	Describe("BeforeDispatch", func() {
 		It("modifies context before command dispatch", func() {
 			var capturedContext context.Context
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
-				capturedContext = ctx
+				capturedContext := ctx
+
 				return nil
 			})
 
@@ -43,9 +45,11 @@ var _ = Describe("Lifecycle Hooks", func() {
 
 		It("modifies context before query dispatch", func() {
 			var capturedContext context.Context
+
 			disp := query.NewDispatcher()
 			_ = disp.Register("GetUser", func(ctx context.Context, _ query.Query) (any, error) {
-				capturedContext = ctx
+				capturedContext := ctx
+
 				return "retrieved", nil
 			})
 
@@ -65,8 +69,11 @@ var _ = Describe("Lifecycle Hooks", func() {
 
 	Describe("AfterDispatch", func() {
 		trackAfterDispatch := func() (called *bool, capturedErr *error, hook func(context.Context, *http.Request, error)) {
-			var c bool
-			var e error
+			var (
+				c bool
+				e error
+			)
+
 			return &c, &e, func(_ context.Context, _ *http.Request, err error) {
 				c = true
 				e = err
@@ -146,7 +153,9 @@ func registerCIDCapture() *cidCapture {
 	c := &cidCapture{disp: command.NewDispatcher()}
 	_ = c.disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
 		c.value = cqrshtmx.CorrelationIDFromContext(ctx)
+
 		return nil
 	})
+
 	return c
 }

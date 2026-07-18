@@ -99,6 +99,7 @@ var _ = Describe("Security Headers Middleware", func() {
 	DescribeTable("SecurityHeaderSkip suppresses default headers",
 		func(field string) {
 			cfg := cqrshtmx.SecurityHeadersConfig{}
+
 			switch field {
 			case "ContentTypeOptions":
 				cfg.ContentTypeOptions = cqrshtmx.SecurityHeaderSkip
@@ -107,6 +108,7 @@ var _ = Describe("Security Headers Middleware", func() {
 			case "ReferrerPolicy":
 				cfg.ReferrerPolicy = cqrshtmx.SecurityHeaderSkip
 			}
+
 			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
 			handler := middleware(okHandler())
 			w := httptest.NewRecorder()

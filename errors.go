@@ -96,6 +96,7 @@ func explicitErrorStatus(err error) int {
 		if status, ok := authStatusFromErrorCode(err); ok {
 			return status
 		}
+
 		return 0
 	}
 }
@@ -117,7 +118,9 @@ func isAuthError(err error) bool {
 		errors.Is(err, ErrCSRFInvalid) {
 		return true
 	}
+
 	_, ok := authStatusFromErrorCode(err)
+
 	return ok
 }
 
@@ -133,12 +136,14 @@ func authStatusFromErrorCode(err error) (int, bool) {
 	if !ok {
 		return 0, false
 	}
+
 	switch coder.Code() {
 	case CodeUnauthorized:
 		return http.StatusUnauthorized, true
 	case CodeForbidden:
 		return http.StatusForbidden, true
 	}
+
 	return 0, false
 }
 
@@ -149,6 +154,7 @@ func authStatusFromErrorCode(err error) (int, bool) {
 // "cqrshtmx.dispatch.command_failed").
 func ErrorCode(err error) string {
 	var deepestCode string
+
 	current := err
 	for current != nil {
 		coder, ok := errors.AsType[interface {
@@ -158,8 +164,10 @@ func ErrorCode(err error) string {
 		if ok {
 			deepestCode = coder.Code()
 		}
+
 		current = errors.Unwrap(current)
 	}
+
 	return deepestCode
 }
 
@@ -174,8 +182,10 @@ func writeHTMXAuthRedirect(
 	if !IsHTMXRequest(r) || !isAuthError(err) {
 		return false
 	}
+
 	w.Header().Set(headerRedirect, loginRedirect)
 	w.WriteHeader(http.StatusSeeOther)
+
 	return true
 }
 
@@ -218,10 +228,12 @@ func plainBodyWriter(r *http.Request, includeInternal, includeRequestID bool) fu
 	return func(w http.ResponseWriter, err error, status int) {
 		w.Header().Set("Content-Type", ContentTypePlain)
 		w.WriteHeader(status)
+
 		detail := SafeDetail(err, status, includeInternal)
 		if includeRequestID {
 			detail = prefixRequestID(r, detail)
 		}
+
 		_, _ = io.WriteString(w, detail) //nolint:gosec // text/plain prevents HTML rendering
 	}
 }
@@ -245,9 +257,11 @@ func SafeDetail(err error, status int, includeInternal bool) string {
 	if err == nil {
 		return ""
 	}
+
 	if status < 500 || includeInternal {
 		return err.Error()
 	}
+
 	return errorfamily.Classify(err).DefaultMessage()
 }
 
@@ -256,6 +270,7 @@ func prefixRequestID(r *http.Request, detail string) string {
 	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
 		return "[request_id: " + rid.String() + "] " + detail
 	}
+
 	return detail
 }
 
@@ -309,6 +324,7 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 		if code := ErrorCode(err); code != "" {
 			response[JSONKeyCode] = code
 		}
+
 		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
 			response["request_id"] = rid.String()
 		}
@@ -346,8 +362,10 @@ func ProblemDetailsErrorHandlerWithRedirect(
 ) {
 	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, _ int) {
 		w.Header().Set("Content-Type", ContentTypeProblem)
+
 		status := MapError(err)
 		w.WriteHeader(status)
+
 		payload := NewStructuredError(err, r)
 		data, _ := json.Marshal(payload)
 		_, _ = w.Write(data) //nolint:gosec // G705: json.Marshal escapes HTML by default

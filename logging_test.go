@@ -17,9 +17,11 @@ import (
 
 func newLoggingCapture(wrapped http.Handler) (http.Handler, *string) {
 	var logged string
+
 	middleware := cqrshtmx.RequestLogging(nil, func(line string) {
 		logged = line
 	})
+
 	return middleware(wrapped), &logged
 }
 
@@ -30,6 +32,7 @@ func newSlogCapture() (func(http.Handler) http.Handler, *bytes.Buffer) {
 		&buf,
 		&slog.HandlerOptions{Level: slog.LevelInfo},
 	))
+
 	return cqrshtmx.RequestLoggingSlog(logger), &buf
 }
 
@@ -43,6 +46,7 @@ func withContextIDs(r *http.Request) *http.Request {
 		cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633"))
 	ctx = cqrshtmx.WithUserID(ctx,
 		cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2"))
+
 	return r.WithContext(ctx)
 }
 
@@ -97,6 +101,7 @@ var _ = Describe("Request Logging", func() {
 
 		It("defaults to 200 status when handler writes body without explicit status", func() {
 			var logged string
+
 			middleware := cqrshtmx.RequestLogging(nil, func(line string) {
 				logged = line
 			})
@@ -119,11 +124,13 @@ var _ = Describe("Request Logging", func() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodDelete, "/users/1", nil)
+
 			Expect(func() { handler.ServeHTTP(w, r) }).NotTo(Panic())
 		})
 
 		It("formats logs as JSON with JSONLogFormatter", func() {
 			var logged string
+
 			middleware := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
 				logged = line
 			})
@@ -145,6 +152,7 @@ var _ = Describe("Request Logging", func() {
 
 		It("includes correlation_id and user_id in JSON logs", func() {
 			var logged string
+
 			middleware := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
 				logged = line
 			})
@@ -282,10 +290,12 @@ var _ = Describe("Request Logging", func() {
 	Describe("statusRecorder", func() {
 		It("delegates Push to underlying http.Pusher", func() {
 			var pushedTarget string
+
 			pusher := &mockPusher{
 				ResponseWriter: httptest.NewRecorder(),
 				pushFunc: func(target string, _ *http.PushOptions) error {
 					pushedTarget = target
+
 					return nil
 				},
 			}
@@ -319,6 +329,7 @@ var _ = Describe("Request Logging", func() {
 
 		It("delegates Flush to underlying http.Flusher", func() {
 			var logged string
+
 			middleware := cqrshtmx.RequestLogging(nil, func(line string) {
 				logged = line
 			})
@@ -327,6 +338,7 @@ var _ = Describe("Request Logging", func() {
 				if flusher, ok := w.(http.Flusher); ok {
 					flusher.Flush()
 				}
+
 				w.WriteHeader(http.StatusOK)
 			})
 

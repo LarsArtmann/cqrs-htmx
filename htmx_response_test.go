@@ -94,7 +94,7 @@ var _ = Describe("HTMX Response Builder", func() {
 
 	Describe("IsHTMX", func() {
 		It("returns true for HTMX requests", func() {
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			Expect(cqrshtmx.NewResponse(w, r).IsHTMX()).To(BeTrue())
 		})
 
@@ -105,9 +105,9 @@ var _ = Describe("HTMX Response Builder", func() {
 
 	Describe("Redirect for HTMX requests", func() {
 		It("sets HX-Redirect header for HTMX requests", func() {
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.NewResponse(w, r).Redirect("/login").Apply()
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+			Expect(w.Header().Get("Hx-Redirect")).To(Equal("/login"))
 		})
 	})
 
@@ -122,7 +122,7 @@ var _ = Describe("HTMX Response Builder", func() {
 	Describe("Trigger", func() {
 		It("appends multiple triggers", func() {
 			cqrshtmx.NewResponse(w, r).Trigger("evt1").Trigger("evt2").Apply()
-			Expect(w.Header().Get("HX-Trigger")).To(Equal("evt1,evt2"))
+			Expect(w.Header().Get("Hx-Trigger")).To(Equal("evt1,evt2"))
 		})
 	})
 
@@ -131,7 +131,7 @@ var _ = Describe("HTMX Response Builder", func() {
 			cqrshtmx.NewResponse(w, r).
 				TriggerWithDetail("userCreated", map[string]string{"id": "123"}).
 				Apply()
-			triggerHeader := w.Header().Get("HX-Trigger")
+			triggerHeader := w.Header().Get("Hx-Trigger")
 			Expect(triggerHeader).To(ContainSubstring("userCreated"))
 			Expect(triggerHeader).To(ContainSubstring("123"))
 		})
@@ -139,7 +139,7 @@ var _ = Describe("HTMX Response Builder", func() {
 
 	Describe("Apply", func() {
 		It("sets Content-Type to text/html for HTMX requests", func() {
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.NewResponse(w, r).Apply()
 			Expect(w.Header().Get("Content-Type")).To(Equal("text/html; charset=utf-8"))
 		})
@@ -152,7 +152,7 @@ var _ = Describe("HTMX Response Builder", func() {
 
 	Describe("Chaining", func() {
 		It("allows fluent method chaining", func() {
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.NewResponse(w, r).
 				Trigger("userCreated").
 				PushURL("/users/1").
@@ -160,10 +160,10 @@ var _ = Describe("HTMX Response Builder", func() {
 				Reswap(cqrshtmx.SwapInnerHTML).
 				Apply()
 
-			Expect(w.Header().Get("HX-Trigger")).To(Equal("userCreated"))
-			Expect(w.Header().Get("HX-Push-Url")).To(Equal("/users/1"))
-			Expect(w.Header().Get("HX-Retarget")).To(Equal("#user-list"))
-			Expect(w.Header().Get("HX-Reswap")).To(Equal("innerHTML"))
+			Expect(w.Header().Get("Hx-Trigger")).To(Equal("userCreated"))
+			Expect(w.Header().Get("Hx-Push-Url")).To(Equal("/users/1"))
+			Expect(w.Header().Get("Hx-Retarget")).To(Equal("#user-list"))
+			Expect(w.Header().Get("Hx-Reswap")).To(Equal("innerHTML"))
 		})
 	})
 })

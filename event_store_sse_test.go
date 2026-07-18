@@ -23,6 +23,7 @@ func testMapper(evt event.Event) SSEEvent {
 
 func TestJournalSSEStore_EventsAfterEmpty(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 	sse := NewJournalSSEStore(store, testMapper)
 
@@ -34,6 +35,7 @@ func TestJournalSSEStore_EventsAfterEmpty(t *testing.T) {
 
 func TestJournalSSEStore_EventsAfterAll(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 	events := seedEventList(t, 5)
 	appendEvents(t, store, events)
@@ -56,6 +58,7 @@ func TestJournalSSEStore_EventsAfterAll(t *testing.T) {
 
 func TestJournalSSEStore_EventsAfterCursor(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 	events := seedEventList(t, 5)
 	appendEvents(t, store, events)
@@ -64,6 +67,7 @@ func TestJournalSSEStore_EventsAfterCursor(t *testing.T) {
 
 	// Replay after event 3 — should get events 4 and 5
 	cursor := events[2].ID().String()
+
 	result := sse.EventsAfter(cursor)
 	if len(result) != 2 {
 		t.Fatalf("expected 2 events after cursor, got %d", len(result))
@@ -76,6 +80,7 @@ func TestJournalSSEStore_EventsAfterCursor(t *testing.T) {
 
 func TestJournalSSEStore_EventsAfterLastEvent(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 	events := seedEventList(t, 3)
 	appendEvents(t, store, events)
@@ -84,6 +89,7 @@ func TestJournalSSEStore_EventsAfterLastEvent(t *testing.T) {
 
 	// Cursor at the last event — should get nothing
 	cursor := events[2].ID().String()
+
 	result := sse.EventsAfter(cursor)
 	if len(result) != 0 {
 		t.Fatalf("expected 0 events after last, got %d", len(result))
@@ -92,6 +98,7 @@ func TestJournalSSEStore_EventsAfterLastEvent(t *testing.T) {
 
 func TestJournalSSEStore_EventsAfterNotFound(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 	events := seedEventList(t, 3)
 	appendEvents(t, store, events)
@@ -108,6 +115,7 @@ func TestJournalSSEStore_EventsAfterNotFound(t *testing.T) {
 
 func TestJournalSSEStore_EventsAfterInvalidCursor(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 	events := seedEventList(t, 3)
 	appendEvents(t, store, events)
@@ -123,6 +131,7 @@ func TestJournalSSEStore_EventsAfterInvalidCursor(t *testing.T) {
 
 func TestJournalSSEStore_MaxReplay(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 	events := seedEventList(t, 10)
 	appendEvents(t, store, events)
@@ -143,6 +152,7 @@ func TestJournalSSEStore_MaxReplay(t *testing.T) {
 
 func TestJournalSSEStore_SeekableUsed(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 	sse := NewJournalSSEStore(store, testMapper)
 
@@ -164,6 +174,7 @@ func TestJournalSSEStore_FullScanFallback(t *testing.T) {
 
 	// Test replay after cursor 3 — should get 4, 5
 	cursor := events[2].ID().String()
+
 	result := sse.EventsAfter(cursor)
 	if len(result) != 2 {
 		t.Fatalf("expected 2 events from full-scan fallback, got %d", len(result))
@@ -176,6 +187,7 @@ func TestJournalSSEStore_FullScanFallback(t *testing.T) {
 
 func TestJournalSSEStore_PanicsOnNil(t *testing.T) {
 	t.Parallel()
+
 	defer func() {
 		if r := recover(); r == nil {
 			t.Fatal("expected panic on nil journal")
@@ -187,6 +199,7 @@ func TestJournalSSEStore_PanicsOnNil(t *testing.T) {
 
 func TestJournalSSEStore_PanicsOnNilMapper(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 
 	defer func() {
@@ -200,6 +213,7 @@ func TestJournalSSEStore_PanicsOnNilMapper(t *testing.T) {
 
 func TestJournalSSEStore_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
+
 	store := memory.NewMemoryStore()
 	events := seedEventList(t, 100)
 	appendEvents(t, store, events)
@@ -211,6 +225,7 @@ func TestJournalSSEStore_ConcurrentAccess(t *testing.T) {
 		wg.Add(1)
 		go func(idx int) {
 			defer wg.Done()
+
 			for range 50 {
 				_ = sse.EventsAfter("")
 				if idx > 0 {
@@ -219,6 +234,7 @@ func TestJournalSSEStore_ConcurrentAccess(t *testing.T) {
 			}
 		}(i)
 	}
+
 	wg.Wait()
 }
 
@@ -226,6 +242,7 @@ func TestJournalSSEStore_ConcurrentAccess(t *testing.T) {
 
 func seedEventList(t *testing.T, count int) []event.Event {
 	t.Helper()
+
 	aggID, err := id.ParseAggregateID(ulid.Make().String())
 	if err != nil {
 		t.Fatalf("parse aggregate ID: %v", err)
@@ -252,6 +269,7 @@ func seedEventList(t *testing.T, count int) []event.Event {
 
 func appendEvents(t *testing.T, store *memory.MemoryStore, events []event.Event) {
 	t.Helper()
+
 	ref := event.AggregateRef{ID: events[0].AggregateID(), Type: "test"}
 	if err := store.AppendBatch(context.Background(), ref, events); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
@@ -267,5 +285,6 @@ type journalOnlyStore struct {
 func (j *journalOnlyStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	result := make([]event.Event, len(j.events))
 	copy(result, j.events)
+
 	return result, nil
 }

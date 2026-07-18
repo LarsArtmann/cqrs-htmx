@@ -43,8 +43,8 @@ var _ = Describe("Integration: CQRS + HTMX + Casbin", func() {
 			)
 			w := serve(handler, r)
 			Expect(w.code()).To(Equal(http.StatusOK))
-			Expect(w.Header().Get("HX-Trigger")).To(Equal("userCreated"))
-			Expect(w.Header().Get("HX-Push-Url")).To(ContainSubstring("/users/"))
+			Expect(w.Header().Get("Hx-Trigger")).To(Equal("userCreated"))
+			Expect(w.Header().Get("Hx-Push-Url")).To(ContainSubstring("/users/"))
 		})
 
 		It("denies viewer from creating user", func() {
@@ -69,7 +69,7 @@ var _ = Describe("Integration: CQRS + HTMX + Casbin", func() {
 			r := newPostRequest("/users", `{}`, withHTMX)
 			w := serve(handler, r)
 			Expect(w.code()).To(Equal(http.StatusSeeOther))
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/login"))
+			Expect(w.Header().Get("Hx-Redirect")).To(Equal("/login"))
 		})
 
 		It("maps CQRS rejection errors to 400", func() {
@@ -99,7 +99,9 @@ var _ = Describe("Integration: CQRS + HTMX + Casbin", func() {
 					{emailKey: "c@d.com", testNameKey: "Carol"},
 				}, nil
 			})
+
 			var err error
+
 			app, err = cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -142,7 +144,7 @@ var _ = Describe("Integration: CQRS + HTMX + Casbin", func() {
 			)
 			r := newPostRequest("/users", `{}`, withHTMX)
 			w := serve(handler, r)
-			trigger := w.Header().Get("HX-Trigger")
+			trigger := w.Header().Get("Hx-Trigger")
 			Expect(trigger).To(ContainSubstring("userCreated"))
 			Expect(trigger).To(ContainSubstring("123"))
 		})
@@ -152,9 +154,12 @@ var _ = Describe("Integration: CQRS + HTMX + Casbin", func() {
 		It("propagates user ID from middleware to handler", func() {
 			want := adminUserID
 			disp := command.NewDispatcher()
+
 			var receivedUserID cqrshtmx.UserID
+
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
 				receivedUserID = cqrshtmx.UserIDFromContext(ctx)
+
 				return nil
 			})
 

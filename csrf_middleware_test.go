@@ -32,6 +32,7 @@ var _ = Describe("CSRF Middleware", func() {
 
 		It("stores the token in context for downstream use", func() {
 			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
+
 			var capturedToken string
 
 			handler := csrfTokenCaptureHandler(middleware, &capturedToken, false)
@@ -79,7 +80,7 @@ var _ = Describe("CSRF Middleware", func() {
 			// POST with wrong token
 			w2 := httptest.NewRecorder()
 			r2 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
-			r2.Header.Set("X-CSRF-Token", "invalid-token")
+			r2.Header.Set("X-Csrf-Token", "invalid-token")
 			r2.Header.Set("Sec-Fetch-Site", "same-origin")
 
 			// Copy cookie to POST request
@@ -112,6 +113,7 @@ var _ = Describe("CSRF Middleware", func() {
 
 			// Context should have a valid masked token
 			var capturedToken string
+
 			handler2 := csrfTokenCaptureHandler(middleware, &capturedToken, false)
 
 			w3 := httptest.NewRecorder()
@@ -124,7 +126,9 @@ var _ = Describe("CSRF Middleware", func() {
 
 		It("validates PUT, PATCH, and DELETE methods", func() {
 			middleware := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
+
 			var token string
+
 			handler := csrfTokenCaptureHandler(middleware, &token, true)
 
 			// First GET to obtain masked token
@@ -137,8 +141,9 @@ var _ = Describe("CSRF Middleware", func() {
 			for _, method := range []string{http.MethodPut, http.MethodPatch, http.MethodDelete} {
 				w2 := httptest.NewRecorder()
 				r2 := httptest.NewRequest(method, "/", strings.NewReader("{}"))
-				r2.Header.Set("X-CSRF-Token", token)
+				r2.Header.Set("X-Csrf-Token", token)
 				r2.Header.Set("Sec-Fetch-Site", "same-origin")
+
 				for _, c := range w1.Result().Cookies() {
 					r2.AddCookie(c)
 				}
@@ -190,6 +195,7 @@ var _ = Describe("CSRF Middleware", func() {
 			middleware := cqrshtmx.CSRFMiddleware(csrfConfigWith(func(cfg *cqrshtmx.CSRFConfig) {
 				cfg.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, _ error) {
 					customCalled = true
+
 					w.WriteHeader(http.StatusTeapot)
 					_, _ = w.Write([]byte("custom csrf error"))
 				}
@@ -261,6 +267,7 @@ var _ = Describe("CSRF Middleware", func() {
 			middleware func(http.Handler) http.Handler, remoteAddr string,
 		) int {
 			var token string
+
 			handler := csrfTokenCaptureHandler(middleware, &token, true)
 
 			w1 := httptest.NewRecorder()
@@ -277,11 +284,12 @@ var _ = Describe("CSRF Middleware", func() {
 			)
 			r2.RemoteAddr = remoteAddr
 			r2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			r2.Header.Set("X-CSRF-Token", token)
+			r2.Header.Set("X-Csrf-Token", token)
 			// Critical: do NOT set Origin, Referer, or Sec-Fetch-Site.
 			for _, c := range w1.Result().Cookies() {
 				r2.AddCookie(c)
 			}
+
 			handler.ServeHTTP(w2, r2)
 
 			return w2.Code
@@ -345,6 +353,7 @@ var _ = Describe("CSRF Middleware", func() {
 			// nosurf accepts via the explicit Sec-Fetch-Site path; TrustedProxies
 			// is irrelevant when the header is already present.
 			var token string
+
 			h := csrfTokenCaptureHandler(mw, &token, true)
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequestWithContext(
@@ -360,13 +369,16 @@ var _ = Describe("CSRF Middleware", func() {
 			)
 			r2.RemoteAddr = attackerRemoteIP
 			r2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			r2.Header.Set("X-CSRF-Token", token)
+			r2.Header.Set("X-Csrf-Token", token)
 			r2.Header.Set("Sec-Fetch-Site", "same-origin")
+
 			for _, c := range w1.Result().Cookies() {
 				r2.AddCookie(c)
 			}
+
 			h.ServeHTTP(w2, r2)
 			Expect(w2.Code).To(Equal(http.StatusOK))
+
 			_ = handler // silence unused
 		})
 

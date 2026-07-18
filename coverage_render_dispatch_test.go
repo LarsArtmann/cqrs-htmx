@@ -50,7 +50,7 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			cqrshtmx.NewResponse(w, r).Location("/other-page").Apply()
-			Expect(w.Header().Get("HX-Location")).To(Equal("/other-page"))
+			Expect(w.Header().Get("Hx-Location")).To(Equal("/other-page"))
 		})
 	})
 
@@ -148,7 +148,8 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 			resp.TriggerWithDetail("evt1", map[string]string{"a": "1"})
 			resp.TriggerWithDetail("evt2", map[string]string{"b": "2"})
 			resp.Apply()
-			trigger := w.Header().Get("HX-Trigger")
+
+			trigger := w.Header().Get("Hx-Trigger")
 			Expect(trigger).To(ContainSubstring("evt1"))
 			Expect(trigger).To(ContainSubstring("evt2"))
 		})
@@ -158,14 +159,14 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 		It("sets HTMX trigger on query success with render", func() {
 			app := newQueryAppWithResult(queryNamedResultHandler("Test"))
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			w := serve(app.Query(
 				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(encodeJSONResult),
 				cqrshtmx.Trigger("dataLoaded"),
 			), r)
-			Expect(w.Header().Get("HX-Trigger")).To(Equal("dataLoaded"))
+			Expect(w.Header().Get("Hx-Trigger")).To(Equal("dataLoaded"))
 		})
 	})
 })

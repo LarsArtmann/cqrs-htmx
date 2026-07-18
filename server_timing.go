@@ -70,10 +70,12 @@ func (st *ServerTiming) Record(name, desc string, dur time.Duration) {
 	if st == nil {
 		return
 	}
+
 	cleaned := sanitizeMetricName(name)
 	if cleaned == "" {
 		return
 	}
+
 	st.mu.Lock()
 	st.metrics = append(st.metrics, serverTimingMetric{name: cleaned, desc: desc, dur: dur})
 	st.mu.Unlock()
@@ -93,7 +95,9 @@ func (st *ServerTiming) Measure(name string) func() {
 	if st == nil {
 		return func() {}
 	}
+
 	start := time.Now()
+
 	return func() { st.Record(name, "", time.Since(start)) }
 }
 
@@ -102,7 +106,9 @@ func (st *ServerTiming) MeasureWithDesc(name, desc string) func() {
 	if st == nil {
 		return func() {}
 	}
+
 	start := time.Now()
+
 	return func() { st.Record(name, desc, time.Since(start)) }
 }
 
@@ -112,29 +118,36 @@ func (st *ServerTiming) HeaderValue() string {
 	if st == nil {
 		return ""
 	}
+
 	st.mu.Lock()
 	metrics := st.metrics
 	st.mu.Unlock()
+
 	if len(metrics) == 0 {
 		return ""
 	}
 
 	var b strings.Builder
+
 	for i, m := range metrics {
 		if i > 0 {
 			b.WriteString(", ")
 		}
+
 		b.WriteString(m.name)
+
 		if m.desc != "" {
 			b.WriteString(`;desc="`)
 			b.WriteString(escapeQuotedString(m.desc))
 			b.WriteByte('"')
 		}
+
 		if m.dur != 0 {
 			b.WriteString(";dur=")
 			b.WriteString(formatMillis(m.dur))
 		}
 	}
+
 	return b.String()
 }
 
@@ -147,6 +160,7 @@ func (st *ServerTiming) String() string { return st.HeaderValue() }
 // permitted, so sub-millisecond timings are not lost.
 func formatMillis(d time.Duration) string {
 	ms := float64(d) / float64(time.Millisecond)
+
 	return strconv.FormatFloat(ms, 'f', -1, 64)
 }
 
@@ -158,8 +172,10 @@ func escapeQuotedString(s string) string {
 	if !strings.ContainsAny(s, `"\`+"\r\n") {
 		return s
 	}
+
 	var b strings.Builder
 	b.Grow(len(s) + 4)
+
 	for i := range s {
 		c := s[i]
 		switch c {
@@ -168,8 +184,10 @@ func escapeQuotedString(s string) string {
 		case '\r', '\n':
 			c = ' '
 		}
+
 		b.WriteByte(c)
 	}
+
 	return b.String()
 }
 
@@ -178,15 +196,19 @@ func escapeQuotedString(s string) string {
 func sanitizeMetricName(name string) string {
 	const tchar = "!#$%&'*+-.^_`|~0123456789" +
 		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 	if name == "" {
 		return ""
 	}
+
 	cleaned := strings.Map(func(r rune) rune {
 		if r < 128 && strings.ContainsRune(tchar, r) {
 			return r
 		}
+
 		return '_'
 	}, name)
+
 	return cleaned
 }
 
@@ -207,6 +229,7 @@ func WithServerTiming(ctx context.Context, st *ServerTiming) context.Context {
 // no-ops, so callers can use it directly without nil checks.
 func ServerTimingFromContext(ctx context.Context) *ServerTiming {
 	st, _ := ctx.Value(serverTimingKey{}).(*ServerTiming)
+
 	return st
 }
 
@@ -247,6 +270,7 @@ func MeasureServerTiming(ctx context.Context, name string) func() {
 // delegation pattern in logging.go.
 type serverTimingWriter struct {
 	delegatingWriter
+
 	st       *ServerTiming
 	start    time.Time
 	injected bool
@@ -264,6 +288,7 @@ func (w *serverTimingWriter) Write(b []byte) (int, error) {
 		w.flushHeader()
 		w.wrote = true
 	}
+
 	return w.delegatingWriter.Write(b) //nolint:wrapcheck // delegate to underlying ResponseWriter
 }
 
@@ -273,8 +298,10 @@ func (w *serverTimingWriter) flushHeader() {
 	if w.injected {
 		return
 	}
+
 	w.injected = true
 	w.st.prependTotal("total", "Total request", time.Since(w.start))
+
 	if h := w.st.HeaderValue(); h != "" {
 		w.delegatingWriter.Header().Set(headerServerTiming, h)
 	}
@@ -290,6 +317,7 @@ func (st *ServerTiming) prependTotal(name, desc string, dur time.Duration) {
 	if st == nil {
 		return
 	}
+
 	st.mu.Lock()
 	st.metrics = append(
 		[]serverTimingMetric{{name: name, desc: desc, dur: dur}},
@@ -342,6 +370,7 @@ func ServerTimingMiddlewareWhen(pred func(*http.Request) bool) func(http.Handler
 				// Zero-overhead passthrough: no collector in context, no
 				// writer wrapping. nil-receiver methods are no-ops.
 				next.ServeHTTP(w, r)
+
 				return
 			}
 

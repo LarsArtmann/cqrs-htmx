@@ -22,6 +22,7 @@ func newTimeoutCommandApp(
 	_ = disp.Register("CreateUser", handler)
 	app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp, Timeout: timeout})
 	Expect(err).NotTo(HaveOccurred())
+
 	return app
 }
 
@@ -33,6 +34,7 @@ func newTimeoutQueryApp(
 	_ = disp.Register("GetUser", handler)
 	app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp, Timeout: timeout})
 	Expect(err).NotTo(HaveOccurred())
+
 	return app
 }
 
@@ -48,10 +50,12 @@ var _ = Describe("Timeout Support", func() {
 
 		It("completes command within timeout", func() {
 			var dispatched bool
+
 			app := newTimeoutCommandApp(trackingCommandHandler(&dispatched), 5*time.Second)
 
 			r := httptest.NewRequest(http.MethodPost, "/fast", strings.NewReader(`{}`))
 			w := serve(app.Command("CreateUser", decodeCreateUserJSON()), r)
+
 			Expect(dispatched).To(BeTrue())
 			Expect(w.code()).To(Equal(http.StatusNoContent))
 		})
@@ -82,6 +86,7 @@ var _ = Describe("Timeout Support", func() {
 	Describe("Timeout edge cases", func() {
 		It("does not apply timeout when zero", func() {
 			var dispatched bool
+
 			app := newTimeoutCommandApp(trackingCommandHandler(&dispatched), 0)
 			serve(app.Command("CreateUser", decodeCreateUserJSON()),
 				newPostRequest("/users", `{}`))
@@ -90,6 +95,7 @@ var _ = Describe("Timeout Support", func() {
 
 		It("does not apply timeout when negative", func() {
 			var dispatched bool
+
 			app := newTimeoutCommandApp(trackingCommandHandler(&dispatched), -1*time.Second)
 			serve(app.Command("CreateUser", decodeCreateUserJSON()),
 				newPostRequest("/users", `{}`))
@@ -98,9 +104,11 @@ var _ = Describe("Timeout Support", func() {
 
 		It("timeout context respects BeforeDispatch modifications", func() {
 			var hasDeadline bool
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
 				_, hasDeadline = ctx.Deadline()
+
 				return nil
 			})
 			app, err := cqrshtmx.New(cqrshtmx.Config{

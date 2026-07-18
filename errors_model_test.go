@@ -16,6 +16,7 @@ import (
 
 func TestWithHTTPStatus_OverridesFamilyDefault(t *testing.T) {
 	wrapped := cqrshtmx.WithHTTPStatus(cqrshtmx.ErrValidationFailed, http.StatusNotFound)
+
 	got := cqrshtmx.MapError(wrapped)
 	if got != http.StatusNotFound {
 		t.Errorf("WithHTTPStatus: got %d, want %d", got, http.StatusNotFound)
@@ -44,10 +45,12 @@ func TestWithHTTPStatus_PreservesFamily(t *testing.T) {
 
 func TestSafeDetail_RedactsServerFaults(t *testing.T) {
 	err := errorfamily.NewTransient("db.down", "connection refused at 10.0.0.5:5432")
+
 	detail := cqrshtmx.SafeDetail(err, http.StatusServiceUnavailable, false)
 	if detail == "connection refused at 10.0.0.5:5432" {
 		t.Error("SafeDetail must redact 5xx internal detail")
 	}
+
 	if detail == "" {
 		t.Error("SafeDetail must provide a replacement message")
 	}
@@ -55,6 +58,7 @@ func TestSafeDetail_RedactsServerFaults(t *testing.T) {
 
 func TestSafeDetail_PreservesClientErrors(t *testing.T) {
 	err := errorfamily.NewRejection("bad_input", "email is required")
+
 	detail := cqrshtmx.SafeDetail(err, http.StatusBadRequest, false)
 	if !strings.Contains(detail, "email is required") {
 		t.Errorf("SafeDetail must preserve 4xx detail, got %q", detail)
@@ -63,6 +67,7 @@ func TestSafeDetail_PreservesClientErrors(t *testing.T) {
 
 func TestSafeDetail_IncludeInternalOverridesRedaction(t *testing.T) {
 	err := errorfamily.NewTransient("db.down", "connection refused")
+
 	detail := cqrshtmx.SafeDetail(err, http.StatusServiceUnavailable, true)
 	if !strings.Contains(detail, "connection refused") {
 		t.Errorf("SafeDetail with includeInternal must show raw detail, got %q", detail)
@@ -74,6 +79,7 @@ func TestStructuredError_MetadataForRejection(t *testing.T) {
 	if se.Message == "" {
 		t.Error("StructuredError.Message must be populated")
 	}
+
 	if se.Fix == "" {
 		t.Error("StructuredError.Fix must be populated for Rejection")
 	}
@@ -84,9 +90,11 @@ func TestStructuredError_MetadataForTransient(t *testing.T) {
 	if se.Message == "" {
 		t.Error("StructuredError.Message must be populated for Transient")
 	}
+
 	if se.Why == "" {
 		t.Error("StructuredError.Why must be populated for Transient")
 	}
+
 	if se.Fix == "" {
 		t.Error("StructuredError.Fix must be populated for Transient")
 	}
@@ -100,6 +108,7 @@ func TestProblemDetailsErrorHandler_ShapeAndContentType(t *testing.T) {
 	if ct := w.Header().Get("Content-Type"); ct != cqrshtmx.ContentTypeProblem {
 		t.Errorf("Content-Type: got %q, want %q", ct, cqrshtmx.ContentTypeProblem)
 	}
+
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("status: got %d, want %d", w.Code, http.StatusBadRequest)
 	}
@@ -108,6 +117,7 @@ func TestProblemDetailsErrorHandler_ShapeAndContentType(t *testing.T) {
 	if err := json.Unmarshal(w.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("body must be valid StructuredError JSON: %v", err)
 	}
+
 	if payload.Type == "" || payload.Title == "" {
 		t.Error("payload Type and Title must be non-empty")
 	}
@@ -120,6 +130,7 @@ func TestProblemDetailsErrorHandler_RedactsServerFaults(t *testing.T) {
 	cqrshtmx.ProblemDetailsErrorHandler(w, r, err)
 
 	var payload cqrshtmx.StructuredError
+
 	_ = json.Unmarshal(w.Body.Bytes(), &payload)
 	if payload.Detail == "secret internal detail" {
 		t.Error("ProblemDetailsErrorHandler must redact 5xx detail")
@@ -129,13 +140,14 @@ func TestProblemDetailsErrorHandler_RedactsServerFaults(t *testing.T) {
 func TestProblemDetailsErrorHandler_AuthRedirectForHTMX(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+	r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 	cqrshtmx.ProblemDetailsErrorHandler(w, r, cqrshtmx.ErrUnauthorized)
 
 	if w.Code != http.StatusSeeOther {
 		t.Errorf("HTMX auth: got %d, want %d", w.Code, http.StatusSeeOther)
 	}
-	if w.Header().Get("HX-Redirect") == "" {
+
+	if w.Header().Get("Hx-Redirect") == "" {
 		t.Error("HTMX auth must set HX-Redirect")
 	}
 }
@@ -149,6 +161,7 @@ func TestProblemDetailsErrorHandler_IncludesCodeField(t *testing.T) {
 	if err := json.Unmarshal(w.Body.Bytes(), &decoded); err != nil {
 		t.Fatalf("body must be valid JSON: %v", err)
 	}
+
 	if decoded["code"] != "validation_failed" {
 		t.Errorf("code field: got %v, want %q", decoded["code"], "validation_failed")
 	}
@@ -164,6 +177,7 @@ func TestProblemDetailsErrorHandler_OmitsCodeWhenAbsent(t *testing.T) {
 	if e := json.Unmarshal(w.Body.Bytes(), &decoded); e != nil {
 		t.Fatalf("body must be valid JSON: %v", e)
 	}
+
 	if _, hasCode := decoded["code"]; hasCode {
 		t.Error("code field should be omitted for errors without a Code() method")
 	}
@@ -172,6 +186,7 @@ func TestProblemDetailsErrorHandler_OmitsCodeWhenAbsent(t *testing.T) {
 func TestConfig_IncludeInternalDetails(t *testing.T) {
 	disp := command.NewDispatcher()
 	_ = disp.Register("CreateUser", erroringCommandHandler("db down"))
+
 	app, err := cqrshtmx.New(cqrshtmx.Config{
 		Commands:               disp,
 		IncludeInternalDetails: true,
@@ -179,6 +194,7 @@ func TestConfig_IncludeInternalDetails(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	w := serve(app.Command("CreateUser", decodeCreateUserJSON()),
 		newPostRequest("/", `{"email":"t@t.com","name":"T"}`))
 	if !strings.Contains(w.Body.String(), "db down") {
@@ -189,12 +205,14 @@ func TestConfig_IncludeInternalDetails(t *testing.T) {
 func TestConfig_DefaultRedactsInternalDetails(t *testing.T) {
 	disp := command.NewDispatcher()
 	_ = disp.Register("CreateUser", erroringCommandHandler("db down"))
+
 	app, err := cqrshtmx.New(cqrshtmx.Config{
 		Commands: disp,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	w := serve(app.Command("CreateUser", decodeCreateUserJSON()),
 		newPostRequest("/", `{"email":"t@t.com","name":"T"}`))
 	if strings.Contains(w.Body.String(), "db down") {
@@ -290,6 +308,7 @@ func TestStatusRecorder_EMBEDSErrorRecorder(t *testing.T) {
 
 	// StatusRecorder still records status
 	rec.WriteHeader(http.StatusTeapot)
+
 	if rec.Status() != http.StatusTeapot {
 		t.Errorf("Status() = %d, want %d", rec.Status(), http.StatusTeapot)
 	}

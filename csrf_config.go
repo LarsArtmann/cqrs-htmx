@@ -118,6 +118,7 @@ func (c *CSRFConfig) cookieName() string {
 	if c.CookieName != "" {
 		return c.CookieName
 	}
+
 	return defaultCSRFCookieName
 }
 
@@ -125,6 +126,7 @@ func (c *CSRFConfig) headerName() string {
 	if c.HeaderName != "" {
 		return c.HeaderName
 	}
+
 	return defaultCSRFHeaderName
 }
 
@@ -132,6 +134,7 @@ func (c *CSRFConfig) fieldName() string {
 	if c.FieldName != "" {
 		return c.FieldName
 	}
+
 	return defaultCSRFFieldName
 }
 
@@ -139,6 +142,7 @@ func (c *CSRFConfig) maxAge() time.Duration {
 	if c.MaxAge > 0 {
 		return c.MaxAge
 	}
+
 	return defaultCSRFMaxAge
 }
 
@@ -146,6 +150,7 @@ func (c *CSRFConfig) path() string {
 	if c.Path != "" {
 		return c.Path
 	}
+
 	return "/"
 }
 
@@ -179,6 +184,7 @@ func (c *CSRFConfig) Validate() error {
 			return errorfamily.NewInfrastructure("csrf_unsafe_proxy",
 				"TrustedProxies contains empty entry").WithCause(ErrCSRFConfig)
 		}
+
 		if strings.Contains(p, "/") {
 			_, ipnet, err := net.ParseCIDR(p)
 			if err != nil {
@@ -186,6 +192,7 @@ func (c *CSRFConfig) Validate() error {
 					fmt.Sprintf("TrustedProxies contains invalid CIDR %q: %v", p, err)).
 					WithCause(ErrCSRFConfig)
 			}
+
 			c.TrustedProxiesCIDR = append(c.TrustedProxiesCIDR, ipnet)
 		}
 	}
@@ -207,6 +214,7 @@ func configureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 	if cfg.Domain != "" {
 		cookie.Domain = cfg.Domain
 	}
+
 	handler.SetBaseCookie(cookie)
 
 	handler.SetIsTLSFunc(func(r *http.Request) bool {
@@ -243,6 +251,7 @@ func configureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 				slog.String("reason", reason.Error()),
 			)
 		}
+
 		failureHandler(w, r, ErrCSRFInvalid)
 	}))
 }

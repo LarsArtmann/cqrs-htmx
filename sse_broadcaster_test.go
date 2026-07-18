@@ -20,6 +20,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 
 		It("adds subscribers via Subscribe", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -45,6 +46,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 		It("broadcasts events to all subscribers", func() {
 			b := cqrshtmx.NewBroadcaster()
 			ch1 := b.Subscribe()
+
 			ch2 := b.Subscribe()
 			defer b.Unsubscribe(ch1)
 			defer b.Unsubscribe(ch2)
@@ -75,6 +77,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 
 		It("drops events for slow subscribers", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -85,6 +88,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 
 			// Should have received 64 (buffer size), lost 1
 			received := 0
+
 			for {
 				select {
 				case <-ch:
@@ -93,6 +97,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 					goto done
 				}
 			}
+
 		done:
 			Expect(received).To(Equal(64))
 		})
@@ -101,14 +106,18 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			b := cqrshtmx.NewBroadcaster()
 
 			var wg sync.WaitGroup
+
 			const goroutines = 10
+
 			channels := make([]<-chan cqrshtmx.SSEEvent, goroutines)
 
 			for i := range goroutines {
 				ch := b.Subscribe()
 				channels[i] = ch
+
 				wg.Go(func() {
 					defer b.Unsubscribe(ch)
+
 					<-ch
 				})
 			}
@@ -129,6 +138,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			b := cqrshtmx.NewBroadcaster()
 
 			stop := make(chan struct{})
+
 			var wg sync.WaitGroup
 
 			// Many concurrent broadcasters maximize the chance of hitting the
@@ -151,6 +161,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 					ch := b.Subscribe()
 					b.Unsubscribe(ch)
 				}
+
 				close(stop)
 			})
 
@@ -159,6 +170,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 
 		It("delivers events in order to a subscriber", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -175,6 +187,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 		It("fires OnSubscribe hook on subscribe", func() {
 			b := cqrshtmx.NewBroadcaster()
 			count := 0
+
 			b.OnSubscribe(func() { count++ })
 
 			ch := b.Subscribe()
@@ -191,6 +204,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 		It("fires OnUnsubscribe hook on unsubscribe", func() {
 			b := cqrshtmx.NewBroadcaster()
 			count := 0
+
 			b.OnUnsubscribe(func() { count++ })
 
 			ch := b.Subscribe()
@@ -202,6 +216,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 		It("does not fire OnUnsubscribe for unknown channel", func() {
 			b := cqrshtmx.NewBroadcaster()
 			count := 0
+
 			b.OnUnsubscribe(func() { count++ })
 
 			unknown := make(chan cqrshtmx.SSEEvent)
@@ -214,12 +229,16 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			b := cqrshtmx.NewBroadcaster()
 
 			var subCount, unsubCount atomic.Int64
+
 			b.OnSubscribe(func() { subCount.Add(1) })
 			b.OnUnsubscribe(func() { unsubCount.Add(1) })
 
 			var wg sync.WaitGroup
-			const goroutines = 20
-			const cycles = 100
+
+			const (
+				goroutines = 20
+				cycles     = 100
+			)
 
 			for range goroutines {
 				wg.Go(func() {
@@ -261,6 +280,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 						if err := stream.Send(evt); err != nil {
 							return
 						}
+
 						return
 					}
 				}

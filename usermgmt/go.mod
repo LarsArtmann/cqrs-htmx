@@ -11,17 +11,17 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.2
 	github.com/larsartmann/go-error-family v0.7.0
 	github.com/oklog/ulid/v2 v2.1.1
 	modernc.org/sqlite v1.54.0
@@ -32,7 +32,7 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.1 // indirect
@@ -83,7 +83,7 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	modernc.org/libc v1.74.1 // indirect
+	modernc.org/libc v1.74.2 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )

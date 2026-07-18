@@ -156,6 +156,7 @@ func MustNew(cfg Config) *App {
 	if err != nil {
 		panic(err)
 	}
+
 	return app
 }
 
@@ -210,6 +211,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
 			a.errorHandler(w, r, errCommandsNil)
+
 			return
 		}
 
@@ -242,6 +244,7 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.queries == nil {
 			a.errorHandler(w, r, errQueriesNil)
+
 			return
 		}
 
@@ -267,6 +270,7 @@ func (a *App) applyServerTiming(w http.ResponseWriter, r *http.Request) (http.Re
 	if a.serverTiming == nil || !a.serverTiming(r) {
 		return w, r
 	}
+
 	st := newServerTiming()
 	ctx := WithServerTiming(r.Context(), st)
 	wrapped := &serverTimingWriter{
@@ -276,6 +280,7 @@ func (a *App) applyServerTiming(w http.ResponseWriter, r *http.Request) (http.Re
 		injected:         false,
 		wrote:            false,
 	}
+
 	return wrapped, r.WithContext(ctx)
 }
 
@@ -296,8 +301,10 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 			"cqrs-htmx: UserIDExtractor returned error",
 			slog.String("error", err.Error()),
 		)
+
 		return r
 	}
+
 	if userID.IsZero() {
 		return r
 	}
@@ -320,12 +327,15 @@ func (a *App) timeoutCtx(
 	if cfg != nil {
 		t = cfg.timeout
 	}
+
 	if t <= 0 {
 		t = a.timeout
 	}
+
 	if t <= 0 {
 		return ctx, noopCancel
 	}
+
 	return context.WithTimeout(ctx, t)
 }
 
@@ -357,6 +367,7 @@ func (a *App) HealthHandler() http.HandlerFunc {
 			w.Header().Set("Content-Type", ContentTypeJSON)
 			w.WriteHeader(http.StatusServiceUnavailable)
 			_, _ = w.Write(unhealthyBody)
+
 			return
 		}
 

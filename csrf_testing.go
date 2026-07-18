@@ -40,9 +40,11 @@ func CSRFTestToken(middleware func(http.Handler) http.Handler) (string, *http.Co
 	handler.ServeHTTP(w, r)
 
 	var cookie *http.Cookie
+
 	for _, c := range w.Result().Cookies() {
 		if c.Name == defaultCSRFCookieName {
 			cookie = c
+
 			break
 		}
 	}
@@ -50,5 +52,6 @@ func CSRFTestToken(middleware func(http.Handler) http.Handler) (string, *http.Co
 	if hdr := w.Header().Get(defaultCSRFHeaderName); hdr != "" {
 		return hdr, cookie
 	}
+
 	return ctxToken, cookie
 }

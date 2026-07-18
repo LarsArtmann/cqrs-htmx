@@ -40,6 +40,7 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, hc *handlerCo
 	}
 
 	var validated bool
+
 	dummy := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		validated = true
 	})
@@ -67,8 +68,10 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, hc *handlerCo
 				w.Header().Add(k, v)
 			}
 		}
+
 		w.WriteHeader(rec.Code)
 		_, _ = w.Write(rec.Body.Bytes())
+
 		return ErrCSRFInvalid
 	}
 

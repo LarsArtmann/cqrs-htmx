@@ -155,21 +155,25 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 	Describe("Empty type validation", func() {
 		It("panics on empty command type", func() {
 			app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
+
 			Expect(func() { app.Command("") }).To(PanicWith(MatchRegexp("command type must not be empty")))
 		})
 
 		It("panics on empty query type", func() {
 			app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: query.NewDispatcher()})
+
 			Expect(func() { app.Query("") }).To(PanicWith(MatchRegexp("query type must not be empty")))
 		})
 
 		It("panics on empty command type even with query-only app", func() {
 			app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: query.NewDispatcher()})
+
 			Expect(func() { app.Command("") }).To(PanicWith(MatchRegexp("command type must not be empty")))
 		})
 
 		It("panics on empty query type even with command-only app", func() {
 			app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
+
 			Expect(func() { app.Query("") }).To(PanicWith(MatchRegexp("query type must not be empty")))
 		})
 	})

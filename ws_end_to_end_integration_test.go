@@ -20,6 +20,7 @@ import (
 // the count. Non-blocking: stops as soon as the channel is empty.
 func drainChannel[T any](ch <-chan T) int {
 	count := 0
+
 	for {
 		select {
 		case <-ch:
@@ -47,6 +48,7 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 			wsBroadcaster := cqrshtmx.NewWSBroadcaster()
 			sub1 := wsBroadcaster.Subscribe()
 			sub2 := wsBroadcaster.Subscribe()
+
 			sub3 := wsBroadcaster.Subscribe()
 			defer wsBroadcaster.Unsubscribe(sub1)
 			defer wsBroadcaster.Unsubscribe(sub2)
@@ -78,6 +80,7 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 
 		It("broadcasts StructuredError to all subscribers on failed command", func() {
 			wsBroadcaster := cqrshtmx.NewWSBroadcaster()
+
 			subs := make([]<-chan string, 5)
 			for i := range subs {
 				subs[i] = wsBroadcaster.Subscribe()
@@ -113,13 +116,16 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 
 		It("handles rapid sequential dispatches without losing broadcasts", func() {
 			wsBroadcaster := cqrshtmx.NewWSBroadcaster()
+
 			sub := wsBroadcaster.Subscribe()
 			defer wsBroadcaster.Unsubscribe(sub)
 
 			var counter atomic.Int64
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				counter.Add(1)
+
 				return nil
 			})
 
@@ -131,6 +137,7 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 
 			// Fire 20 commands in sequence, like a chatty WS client.
 			const iterations = 20
+
 			decoder := wsNoOpCreateUserDecoder()
 			for range iterations {
 				err := app.DispatchWSCommand(nil, "CreateUser", decoder, []byte(`{}`))
@@ -141,10 +148,13 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 
 			// Subscriber must receive all 20 broadcasts (buffered channel capacity is 64).
 			received := 0
+
 			for range iterations {
 				Eventually(sub).Should(Receive())
+
 				received++
 			}
+
 			Expect(received).To(Equal(iterations))
 		})
 
@@ -164,6 +174,7 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 			defer wsBroadcaster.Unsubscribe(early)
 
 			_ = app.DispatchWSCommand(nil, "CreateUser", wsNoOpCreateUserDecoder(), []byte(`{}`))
+
 			Eventually(early).Should(Receive())
 
 			// Subscriber 2 joins AFTER the first dispatch.
@@ -185,6 +196,7 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 	Describe("WS query end-to-end", func() {
 		It("dispatches a query and broadcasts the result as a WS message", func() {
 			wsBroadcaster := cqrshtmx.NewWSBroadcaster()
+
 			sub := wsBroadcaster.Subscribe()
 			defer wsBroadcaster.Unsubscribe(sub)
 
@@ -220,13 +232,16 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 	Describe("Concurrent dispatch from multiple simulated WS clients", func() {
 		It("fans out broadcasts to all subscribers under concurrent load", func() {
 			wsBroadcaster := cqrshtmx.NewWSBroadcaster()
+
 			sub := wsBroadcaster.Subscribe()
 			defer wsBroadcaster.Unsubscribe(sub)
 
 			var dispatchCount atomic.Int64
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				dispatchCount.Add(1)
+
 				return nil
 			})
 
@@ -241,17 +256,21 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 
 			// 10 goroutines × 10 dispatches each = 100 concurrent dispatches.
 			const goroutines, perG = 10, 10
+
 			var wg sync.WaitGroup
 			wg.Add(goroutines)
+
 			for range goroutines {
 				go func() {
 					defer wg.Done()
+
 					decoder := wsNoOpCreateUserDecoder()
 					for range perG {
 						_ = app.DispatchWSCommand(nil, "CreateUser", decoder, []byte(`{}`))
 					}
 				}()
 			}
+
 			wg.Wait()
 
 			Expect(dispatchCount.Load()).To(Equal(int64(goroutines * perG)))
@@ -269,10 +288,12 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 	Describe("WS handler with request context propagation", func() {
 		It("propagates user ID from request context through dispatch to hooks", func() {
 			wsBroadcaster := cqrshtmx.NewWSBroadcaster()
+
 			sub := wsBroadcaster.Subscribe()
 			defer wsBroadcaster.Unsubscribe(sub)
 
 			var capturedUserID string
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", noOpCommandHandler)
 
@@ -284,6 +305,7 @@ var _ = Describe("WebSocket End-to-End Integration", func() {
 						if !uid.IsZero() {
 							capturedUserID = uid.String()
 						}
+
 						wsBroadcaster.Broadcast("ok")
 					}
 				},

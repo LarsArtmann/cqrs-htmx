@@ -25,7 +25,7 @@ var _ = Describe("CSRF Handlers", func() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
-			r.Header.Set("X-CSRF-Token", "valid-token")
+			r.Header.Set("X-Csrf-Token", "valid-token")
 			wrapped.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusOK))
@@ -53,7 +53,7 @@ var _ = Describe("CSRF Handlers", func() {
 			resp := cqrshtmx.NewResponse(w, r)
 			resp.CSRFToken("response-token").Apply()
 
-			Expect(w.Header().Get("X-CSRF-Token")).To(Equal("response-token"))
+			Expect(w.Header().Get("X-Csrf-Token")).To(Equal("response-token"))
 		})
 	})
 
@@ -63,12 +63,15 @@ var _ = Describe("CSRF Handlers", func() {
 			middleware2 := cqrshtmx.CSRFMiddleware(defaultCSRFConfig())
 
 			var token1, token2 string
+
 			handler1 := middleware1(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				token1 = cqrshtmx.CSRFTokenFromContext(r.Context())
+
 				w.WriteHeader(http.StatusOK)
 			}))
 			handler2 := middleware2(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				token2 = cqrshtmx.CSRFTokenFromContext(r.Context())
+
 				w.WriteHeader(http.StatusOK)
 			}))
 

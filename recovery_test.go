@@ -54,6 +54,7 @@ var _ = Describe("Recovery Middleware", func() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
+
 			Expect(func() {
 				handler.ServeHTTP(w, r)
 			}).To(Panic())
@@ -115,6 +116,7 @@ var _ = Describe("Recovery Middleware", func() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
+
 			Expect(func() {
 				handler.ServeHTTP(w, r)
 			}).To(Panic())

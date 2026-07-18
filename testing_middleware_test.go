@@ -23,9 +23,11 @@ func newPostJSONRequest(body string, opts ...func(*http.Request)) *http.Request 
 		context.Background(), http.MethodPost, "/users", strings.NewReader(body),
 	)
 	r.Header.Set("Content-Type", "application/json")
+
 	for _, o := range opts {
 		o(r)
 	}
+
 	return r
 }
 
@@ -36,11 +38,12 @@ func newPostRequest(path, body string, opts ...func(*http.Request)) *http.Reques
 	for _, o := range opts {
 		o(r)
 	}
+
 	return r
 }
 
 func withHTMX(r *http.Request) {
-	r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+	r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 }
 
 func withUserHeader(header string, uid cqrshtmx.UserID) func(*http.Request) {
@@ -54,6 +57,7 @@ func withHeader(key, value string) func(*http.Request) {
 func serve(handler http.Handler, r *http.Request) *testResponse {
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, r)
+
 	return &testResponse{w}
 }
 
@@ -67,15 +71,16 @@ func assertStatusCode(handler http.Handler, r *http.Request, expected int) {
 func assertHTMXErrorRedirect(err error, loginRedirect, expectedRedirect string) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+	r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 	cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
-	ExpectWithOffset(1, w.Header().Get("HX-Redirect")).To(Equal(expectedRedirect))
+	ExpectWithOffset(1, w.Header().Get("Hx-Redirect")).To(Equal(expectedRedirect))
 }
 
 // --- HTTP interface mock helpers ---
 
 type mockPusher struct {
 	http.ResponseWriter
+
 	pushFunc func(target string, opts *http.PushOptions) error
 }
 
@@ -92,6 +97,7 @@ func newPusherRecorder(p *mockPusher) *pusherRecorder {
 
 type pusherRecorder struct {
 	*httptest.ResponseRecorder
+
 	pusher *mockPusher
 }
 

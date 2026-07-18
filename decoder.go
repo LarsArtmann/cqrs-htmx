@@ -53,6 +53,7 @@ func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
 		return nil, errorfamily.Wrapf(err, event.Rejection,
 			"cqrshtmx.decode.body.read_failed", "read body (maxBodySize=%d)", maxBodySize)
 	}
+
 	if closeErr != nil {
 		return nil, errorfamily.Wrapf(closeErr, event.Rejection,
 			"cqrshtmx.decode.body.close_failed", "close body (maxBodySize=%d)", maxBodySize)
@@ -74,6 +75,7 @@ func decodeRequest[T, R any](
 	req, err := decode(r)
 	if err != nil {
 		var zero R
+
 		return zero, err
 	}
 
@@ -110,6 +112,7 @@ func decodeFormBody[T any](r *http.Request, maxBodySize int64) (out T, err error
 func newFormDecoder() *form.Decoder {
 	d := form.NewDecoder()
 	d.SetTagName("json")
+
 	return d
 }
 
@@ -120,9 +123,11 @@ func decodeFormValues(form url.Values, target any) error {
 	for k, v := range form {
 		normalized[strings.ToLower(k)] = v
 	}
+
 	if err := newFormDecoder().Decode(target, normalized); err != nil {
 		return errorfamily.Wrapf(err, event.Rejection,
 			"cqrshtmx.decode.form.decode_failed", "decode form values for target=%T", target)
 	}
+
 	return nil
 }

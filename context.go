@@ -25,6 +25,7 @@ func parseID[T any](s string, parse func(string) (T, error), label string) (T, e
 	if err != nil {
 		return v, errorfamily.Wrapf(err, event.Rejection, "cqrshtmx.context.id_parse_failed", "parse %s", label)
 	}
+
 	return v, nil
 }
 
@@ -40,6 +41,7 @@ func MustParseUserID(s string) UserID {
 	if err != nil {
 		panic(fmt.Sprintf("MustParseUserID: %v", err))
 	}
+
 	return v
 }
 
@@ -64,6 +66,7 @@ func MustParseCorrelationID(s string) CorrelationID {
 	if err != nil {
 		panic(fmt.Sprintf("MustParseCorrelationID: %v", err))
 	}
+
 	return v
 }
 
@@ -107,6 +110,7 @@ func MustParseRequestID(s string) RequestID {
 	if err != nil {
 		panic(fmt.Sprintf("MustParseRequestID: %v", err))
 	}
+
 	return v
 }
 
@@ -119,6 +123,7 @@ func WithRequestID(ctx context.Context, requestID RequestID) context.Context {
 // Returns the zero value of RequestID if no request ID is present.
 func RequestIDFromContext(ctx context.Context) RequestID {
 	v, _ := ctx.Value(requestIDKey{}).(RequestID)
+
 	return v
 }
 
@@ -131,6 +136,7 @@ func WithCorrelationID(ctx context.Context, correlationID CorrelationID) context
 // Returns the zero value of CorrelationID if no correlation ID is present.
 func CorrelationIDFromContext(ctx context.Context) CorrelationID {
 	v, _ := ctx.Value(correlationIDKey{}).(CorrelationID)
+
 	return v
 }
 
@@ -143,6 +149,7 @@ func WithUserID(ctx context.Context, userID UserID) context.Context {
 // Returns the zero value of UserID if no user ID is present.
 func UserIDFromContext(ctx context.Context) UserID {
 	v, _ := ctx.Value(userIDKey{}).(UserID)
+
 	return v
 }
 
@@ -177,6 +184,7 @@ func WithActorID(ctx context.Context, actorID ActorID) context.Context {
 // Returns the zero value (empty string) if no actor ID is present.
 func ActorIDFromContext(ctx context.Context) ActorID {
 	v, _ := ctx.Value(actorIDKey{}).(ActorID)
+
 	return v
 }
 
@@ -191,6 +199,7 @@ func WithImpersonatorID(ctx context.Context, impersonatorID ImpersonatorID) cont
 // Returns the zero value (empty string) if not an impersonation request.
 func ImpersonatorIDFromContext(ctx context.Context) ImpersonatorID {
 	v, _ := ctx.Value(impersonatorIDKey{}).(ImpersonatorID)
+
 	return v
 }
 
@@ -215,6 +224,7 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 	if actorID := ActorIDFromContext(ctx); !actorID.IsZero() {
 		opts = append(opts, event.WithCustom(MetadataKeyActorID, actorID.Get()))
 	}
+
 	if impersonatorID := ImpersonatorIDFromContext(ctx); !impersonatorID.IsZero() {
 		opts = append(opts, event.WithCustom(MetadataKeyImpersonatorID, impersonatorID.Get()))
 	}
@@ -246,8 +256,10 @@ func EventOptionsFromContextWithSource(ctx context.Context, serviceName string) 
 	if serviceName == "" {
 		return opts
 	}
+
 	if src, err := event.ParseSource(serviceName); err == nil {
 		opts = append(opts, event.WithSource(src))
 	}
+
 	return opts
 }

@@ -14,6 +14,7 @@ import (
 
 func BenchmarkResponseJSON(b *testing.B) {
 	data := map[string]string{"s": "ok", "message": "hello world"}
+
 	for b.Loop() {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -31,6 +32,7 @@ func BenchmarkResponseWriteString(b *testing.B) {
 
 func BenchmarkResponseBody(b *testing.B) {
 	body := []byte("hello world")
+
 	for b.Loop() {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -69,7 +71,9 @@ func BenchmarkDecodePagination(b *testing.B) {
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
 			r := httptest.NewRequest(http.MethodGet, bc.url, nil)
+
 			b.ResetTimer()
+
 			for range b.N {
 				_ = cqrshtmx.DecodePagination(r)
 			}
@@ -90,5 +94,6 @@ func newBenchmarkCreateUserCmd() *benchmarkCreateUserCmd {
 	if err != nil {
 		panic(err)
 	}
+
 	return &benchmarkCreateUserCmd{BasicCommand: core}
 }

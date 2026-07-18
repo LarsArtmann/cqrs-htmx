@@ -41,6 +41,7 @@ func (a CommandAck) MarshalJSON() ([]byte, error) {
 		Status    string `json:"status"`
 		Error     string `json:"error,omitempty"`
 	}
+
 	return json.Marshal(wire{ //nolint:wrapcheck // idiomatic MarshalJSON pattern
 		CommandID: a.CommandID,
 		Status:    string(a.Status),
@@ -54,6 +55,7 @@ func (a CommandAck) ackJSON() string {
 	if err != nil {
 		return `{"commandId":"","status":"rejected","error":"ack marshal failed"}`
 	}
+
 	return string(data)
 }
 
@@ -75,6 +77,7 @@ func newAck(commandID string, err error) CommandAck {
 	} else {
 		ack.Status = AckConfirmed
 	}
+
 	return ack
 }
 
@@ -100,6 +103,7 @@ func (b *Broadcaster) BroadcastOnAck() AfterDispatchHook {
 		if cmdID == "" {
 			return
 		}
+
 		b.Broadcast(ackToSSEEvent(newAck(cmdID, err)))
 	}
 }
@@ -116,10 +120,12 @@ func (b *Broadcaster) BroadcastOnAckFunc(
 		if cmdID == "" {
 			return
 		}
+
 		evt := fn(r, err, cmdID)
 		if evt.Data == "" {
 			return
 		}
+
 		b.Broadcast(evt)
 	}
 }
@@ -133,6 +139,7 @@ func (b *WSBroadcaster) BroadcastOnAckWS() AfterDispatchHook {
 		if cmdID == "" {
 			return
 		}
+
 		b.Broadcast(ackToWSMessage(newAck(cmdID, err)))
 	}
 }
@@ -147,10 +154,12 @@ func (b *WSBroadcaster) BroadcastOnAckWSFunc(
 		if cmdID == "" {
 			return
 		}
+
 		msg := fn(r, err, cmdID)
 		if msg == "" {
 			return
 		}
+
 		b.Broadcast(msg)
 	}
 }

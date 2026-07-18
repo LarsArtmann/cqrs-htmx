@@ -14,6 +14,7 @@ import (
 
 func TestMemoryIdempotencyStore_SeenReturnsFalseForNewID(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(0)
 	defer store.Close()
 
@@ -21,6 +22,7 @@ func TestMemoryIdempotencyStore_SeenReturnsFalseForNewID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Seen: %v", err)
 	}
+
 	if seen {
 		t.Fatal("expected new ID to not be seen")
 	}
@@ -28,6 +30,7 @@ func TestMemoryIdempotencyStore_SeenReturnsFalseForNewID(t *testing.T) {
 
 func TestMemoryIdempotencyStore_SeenReturnsTrueAfterRecord(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(0)
 	defer store.Close()
 
@@ -35,10 +38,12 @@ func TestMemoryIdempotencyStore_SeenReturnsTrueAfterRecord(t *testing.T) {
 	if err := store.Record(ctx, "cmd-1", time.Minute); err != nil {
 		t.Fatalf("Record: %v", err)
 	}
+
 	seen, err := store.Seen(ctx, "cmd-1")
 	if err != nil {
 		t.Fatalf("Seen: %v", err)
 	}
+
 	if !seen {
 		t.Fatal("expected recorded ID to be seen")
 	}
@@ -46,6 +51,7 @@ func TestMemoryIdempotencyStore_SeenReturnsTrueAfterRecord(t *testing.T) {
 
 func TestMemoryIdempotencyStore_ExpiredEntriesAreNotSeen(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(0)
 	defer store.Close()
 
@@ -53,6 +59,7 @@ func TestMemoryIdempotencyStore_ExpiredEntriesAreNotSeen(t *testing.T) {
 	if err := store.Record(ctx, "cmd-expired", 1*time.Millisecond); err != nil {
 		t.Fatalf("Record: %v", err)
 	}
+
 	time.Sleep(5 * time.Millisecond)
 
 	seen, _ := store.Seen(ctx, "cmd-expired")
@@ -63,6 +70,7 @@ func TestMemoryIdempotencyStore_ExpiredEntriesAreNotSeen(t *testing.T) {
 
 func TestCheckAndRecord_RejectsDuplicate(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(0)
 	defer store.Close()
 
@@ -70,6 +78,7 @@ func TestCheckAndRecord_RejectsDuplicate(t *testing.T) {
 	if err := store.CheckAndRecord(ctx, "cmd-dup", time.Minute); err != nil {
 		t.Fatalf("first CheckAndRecord: %v", err)
 	}
+
 	err := store.CheckAndRecord(ctx, "cmd-dup", time.Minute)
 	if !errors.Is(err, ErrDuplicateCommand) {
 		t.Fatalf("expected ErrDuplicateCommand, got %v", err)
@@ -78,6 +87,7 @@ func TestCheckAndRecord_RejectsDuplicate(t *testing.T) {
 
 func TestCheckAndRecord_AllowsNewID(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(0)
 	defer store.Close()
 
@@ -85,6 +95,7 @@ func TestCheckAndRecord_AllowsNewID(t *testing.T) {
 	if err := store.CheckAndRecord(ctx, "cmd-new", time.Minute); err != nil {
 		t.Fatalf("CheckAndRecord: %v", err)
 	}
+
 	if err := store.CheckAndRecord(ctx, "cmd-other", time.Minute); err != nil {
 		t.Fatalf("CheckAndRecord for different ID: %v", err)
 	}
@@ -92,6 +103,7 @@ func TestCheckAndRecord_AllowsNewID(t *testing.T) {
 
 func TestErrDuplicateCommand_HasConflictFamily(t *testing.T) {
 	t.Parallel()
+
 	if errorfamily.Classify(ErrDuplicateCommand) != event.Conflict {
 		t.Fatalf("expected Conflict family, got %v", errorfamily.Classify(ErrDuplicateCommand))
 	}
@@ -99,6 +111,7 @@ func TestErrDuplicateCommand_HasConflictFamily(t *testing.T) {
 
 func TestMemoryIdempotencyStore_SweepRemovesExpiredEntries(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(10 * time.Millisecond)
 	defer store.Close()
 
@@ -116,6 +129,7 @@ func TestMemoryIdempotencyStore_SweepRemovesExpiredEntries(t *testing.T) {
 
 func TestMemoryIdempotencyStore_CloseIsIdempotent(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(0)
 	store.Close()
 	store.Close() // must not panic
@@ -123,6 +137,7 @@ func TestMemoryIdempotencyStore_CloseIsIdempotent(t *testing.T) {
 
 func TestMemoryIdempotencyStore_SeenLazyDeletesExpired(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(0) // no sweeper
 	defer store.Close()
 
@@ -144,6 +159,7 @@ func TestMemoryIdempotencyStore_SeenLazyDeletesExpired(t *testing.T) {
 
 func TestMemoryIdempotencyStore_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(0)
 	defer store.Close()
 
@@ -152,6 +168,7 @@ func TestMemoryIdempotencyStore_ConcurrentAccess(t *testing.T) {
 
 	go func() {
 		defer close(done)
+
 		for range 100 {
 			_ = store.CheckAndRecord(ctx, "concurrent-cmd", time.Minute)
 		}
@@ -160,6 +177,7 @@ func TestMemoryIdempotencyStore_ConcurrentAccess(t *testing.T) {
 	for range 100 {
 		_, _ = store.Seen(ctx, "concurrent-cmd")
 	}
+
 	<-done
 }
 
@@ -170,21 +188,30 @@ func TestMemoryIdempotencyStore_ConcurrentAccess(t *testing.T) {
 // (separate Seen + Record calls), multiple goroutines could slip through.
 func TestCheckAndRecord_ConcurrentSameIDExactlyOneSucceeds(t *testing.T) {
 	t.Parallel()
+
 	store := NewMemoryIdempotencyStore(0)
 	defer store.Close()
 
 	const n = 200
+
 	ctx := context.Background()
-	var wg sync.WaitGroup
-	var wins atomic.Int64
-	var dups atomic.Int64
+
+	var (
+		wg   sync.WaitGroup
+		wins atomic.Int64
+		dups atomic.Int64
+	)
+
 	start := make(chan struct{})
 
 	wg.Add(n)
+
 	for range n {
 		go func() {
 			defer wg.Done()
+
 			<-start // release all goroutines at once
+
 			err := store.CheckAndRecord(ctx, "race-cmd", time.Minute)
 			switch {
 			case err == nil:
@@ -196,12 +223,14 @@ func TestCheckAndRecord_ConcurrentSameIDExactlyOneSucceeds(t *testing.T) {
 			}
 		}()
 	}
+
 	close(start)
 	wg.Wait()
 
 	if wins.Load() != 1 {
 		t.Fatalf("expected exactly 1 winner, got %d", wins.Load())
 	}
+
 	if dups.Load() != n-1 {
 		t.Fatalf("expected %d duplicates, got %d", n-1, dups.Load())
 	}

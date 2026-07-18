@@ -150,7 +150,7 @@ func auditRows(d auditData) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(e.Email)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `cqrs-htmx/adminui/audit.templ`, Line: 34, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/audit.templ`, Line: 34, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -173,7 +173,7 @@ func auditRows(d auditData) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(e.AggregateID.String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `cqrs-htmx/adminui/audit.templ`, Line: 39, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/audit.templ`, Line: 39, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {

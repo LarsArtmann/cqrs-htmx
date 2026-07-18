@@ -83,7 +83,9 @@ var _ = Describe("Feedback-driven features", func() {
 	Describe("DecodeJSONWithRequest", func() {
 		It("gives the mapper access to the *http.Request", func() {
 			disp := command.NewDispatcher()
+
 			var capturedHeader string
+
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
@@ -92,6 +94,7 @@ var _ = Describe("Feedback-driven features", func() {
 			handler := app.Command("CreateUser",
 				cqrshtmx.DecodeJSONWithRequest(func(r *http.Request, _ testCreateUserRequest) (command.Command, error) {
 					capturedHeader = r.Header.Get("X-Custom-Auth")
+
 					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
 				}),
 			)
@@ -108,8 +111,12 @@ var _ = Describe("Feedback-driven features", func() {
 	Describe("DecodeFormWithRequest", func() {
 		It("gives the mapper access to the *http.Request and decodes form fields", func() {
 			disp := command.NewDispatcher()
-			var capturedHeader string
-			var capturedEmail string
+
+			var (
+				capturedHeader string
+				capturedEmail  string
+			)
+
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				return nil
 			})
@@ -121,6 +128,7 @@ var _ = Describe("Feedback-driven features", func() {
 					func(r *http.Request, body testCreateUserRequest) (command.Command, error) {
 						capturedHeader = r.Header.Get("X-Custom-Auth")
 						capturedEmail = body.Email
+
 						return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
 					},
 				),
@@ -143,7 +151,9 @@ var _ = Describe("Feedback-driven features", func() {
 	Describe("DecodeJSONQueryWithRequest", func() {
 		It("gives the query mapper access to the *http.Request", func() {
 			disp := query.NewDispatcher()
+
 			var capturedPathValue string
+
 			_ = disp.Register("GetPage", func(_ context.Context, _ query.Query) (any, error) {
 				return map[string]string{"page": "hello"}, nil
 			})
@@ -152,6 +162,7 @@ var _ = Describe("Feedback-driven features", func() {
 			handler := app.Query("GetPage",
 				cqrshtmx.DecodeJSONQueryWithRequest(func(r *http.Request, _ struct{}) (query.Query, error) {
 					capturedPathValue = r.PathValue("section")
+
 					return &getPageQuery{}, nil
 				}),
 				cqrshtmx.RenderJSON[map[string]string](),
@@ -169,8 +180,12 @@ var _ = Describe("Feedback-driven features", func() {
 	Describe("DecodeFormQueryWithRequest", func() {
 		It("decodes form fields and gives the query mapper access to the *http.Request", func() {
 			disp := query.NewDispatcher()
-			var capturedEmail string
-			var capturedCookie string
+
+			var (
+				capturedEmail  string
+				capturedCookie string
+			)
+
 			_ = disp.Register("GetPage", func(_ context.Context, _ query.Query) (any, error) {
 				return map[string]string{"page": "hello"}, nil
 			})
@@ -182,6 +197,7 @@ var _ = Describe("Feedback-driven features", func() {
 					func(r *http.Request, body testCreateUserRequest) (query.Query, error) {
 						capturedEmail = body.Email
 						capturedCookie = r.Header.Get("X-Custom-Auth")
+
 						return &getPageQuery{}, nil
 					},
 				),
@@ -208,6 +224,7 @@ var _ = Describe("Feedback-driven features", func() {
 			dispatchCalled := false
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				dispatchCalled = true
+
 				return nil
 			})
 			app := mustNewApp(cqrshtmx.Config{
@@ -234,6 +251,7 @@ var _ = Describe("Feedback-driven features", func() {
 			dispatchCalled := false
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				dispatchCalled = true
+
 				return nil
 			})
 			app := mustNewApp(cqrshtmx.Config{Commands: disp})
@@ -265,6 +283,7 @@ var _ = Describe("Feedback-driven features", func() {
 			// Both channels should be closed (receive returns zero value, !ok)
 			_, ok1 := <-ch1
 			Expect(ok1).To(BeFalse())
+
 			_, ok2 := <-ch2
 			Expect(ok2).To(BeFalse())
 			Expect(b.SubscriberCount()).To(Equal(0))
@@ -345,8 +364,9 @@ var _ = Describe("Feedback-driven features", func() {
 
 			req := httptest.NewRequest(http.MethodPost, "/", nil)
 			req.RemoteAddr = "127.0.0.1:1234"
-			req.Header.Set("X-CSRF-Token", token)
+			req.Header.Set("X-Csrf-Token", token)
 			req.AddCookie(cookie)
+
 			w := httptest.NewRecorder()
 			postHandler.ServeHTTP(w, req)
 
@@ -361,6 +381,7 @@ func mustNewApp(cfg cqrshtmx.Config) *cqrshtmx.App {
 	if err != nil {
 		panic(err)
 	}
+
 	return app
 }
 

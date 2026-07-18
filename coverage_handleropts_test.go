@@ -56,6 +56,7 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)
 				cqrshtmx.NewResponse(w, r).Redirect(input).Apply()
+
 				if expected {
 					Expect(w.Code).To(Equal(http.StatusSeeOther))
 				} else {
@@ -110,17 +111,17 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 		It("sanitizes redirect for HTMX requests", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.NewResponse(w, r).Redirect("/../../etc/passwd")
-			Expect(w.Header().Get("HX-Redirect")).To(BeEmpty())
+			Expect(w.Header().Get("Hx-Redirect")).To(BeEmpty())
 		})
 
 		It("allows safe redirect for HTMX requests", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			cqrshtmx.NewResponse(w, r).Redirect("/users")
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/users"))
+			Expect(w.Header().Get("Hx-Redirect")).To(Equal("/users"))
 		})
 	})
 
@@ -206,6 +207,7 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 // io.StringWriter, forcing WriteString to fall back to Write.
 type nonStringWriter struct {
 	http.ResponseWriter
+
 	recorder *httptest.ResponseRecorder
 }
 

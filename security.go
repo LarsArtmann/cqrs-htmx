@@ -15,12 +15,12 @@ const (
 	defaultReferrerPolicy     = "strict-origin-when-cross-origin"
 
 	// RecommendedHSTS is a recommended Strict-Transport-Security value for production.
-	// Use: SecurityHeadersConfig{StrictTransportSecurity: RecommendedHSTS}
+	// Use: SecurityHeadersConfig{StrictTransportSecurity: RecommendedHSTS}.
 	RecommendedHSTS = "max-age=31536000; includeSubDomains"
 
 	// RecommendedCSP is a baseline Content-Security-Policy for HTMX applications.
 	// Allows scripts from self (required for HTMX) and styles from self.
-	// Use: SecurityHeadersConfig{ContentSecurityPolicy: RecommendedCSP}
+	// Use: SecurityHeadersConfig{ContentSecurityPolicy: RecommendedCSP}.
 	RecommendedCSP = "default-src 'self'; script-src 'self'; style-src 'self'"
 
 	// SecurityHeaderSkip is the sentinel value for suppressing a default
@@ -71,9 +71,11 @@ func withDefault(val, def string) string {
 	if val == SecurityHeaderSkip {
 		return "" // sentinel: suppress this header entirely
 	}
+
 	if val != "" {
 		return val
 	}
+
 	return def
 }
 
@@ -124,9 +126,11 @@ func SecurityHeadersMiddlewareWithConfig(
 			if v := cfg.contentTypeOptions(); v != "" {
 				w.Header().Set(headerContentTypeOptions, v)
 			}
+
 			if v := cfg.frameOptions(); v != "" {
 				w.Header().Set(headerFrameOptions, v)
 			}
+
 			if v := cfg.referrerPolicy(); v != "" {
 				w.Header().Set(headerReferrerPolicy, v)
 			}

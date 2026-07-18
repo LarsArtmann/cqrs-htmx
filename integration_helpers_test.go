@@ -49,5 +49,6 @@ func newIntegrationApp(
 	}
 	app, err := cqrshtmx.New(cfg)
 	Expect(err).NotTo(HaveOccurred())
+
 	return app, disp
 }

@@ -72,13 +72,13 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 		It("applies HTMX headers on query success", func() {
 			app := newQueryAppWithResult(testResultQueryHandler())
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			w := serve(app.Query(
 				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.Trigger("dataLoaded"),
 			), r)
-			Expect(w.Header().Get("HX-Trigger")).To(Equal("dataLoaded"))
+			Expect(w.Header().Get("Hx-Trigger")).To(Equal("dataLoaded"))
 		})
 	})
 
@@ -102,6 +102,7 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 				w := httptest.NewRecorder()
 				handler(next).ServeHTTP(w, r)
 			}
+
 			Expect(called).To(Equal(5))
 		})
 
@@ -122,6 +123,7 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 				w := httptest.NewRecorder()
 				handler(next).ServeHTTP(w, r)
 			}
+
 			Expect(called).To(Equal(5))
 		})
 	})

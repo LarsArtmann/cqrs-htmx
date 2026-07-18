@@ -83,6 +83,7 @@ func (b *Broadcaster) BroadcastOnSuccessFunc(eventFunc func(r *http.Request) SSE
 func (b *Broadcaster) BroadcastOnError(eventName string) AfterDispatchHook {
 	return b.broadcastOnErrorHook(func(r *http.Request, err error) SSEEvent {
 		payload := NewStructuredError(err, r)
+
 		return SSEEvent{Event: eventName, Data: payload.JSON()}
 	})
 }

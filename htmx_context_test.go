@@ -14,13 +14,13 @@ var _ = Describe("HTMX Request Context", func() {
 	Describe("HTMXMiddleware", func() {
 		It("parses all HTMX headers and stores in context", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			r.Header.Set("HX-Boosted", cqrshtmx.HeaderTrue)
-			r.Header.Set("HX-Target", "main")
-			r.Header.Set("HX-Trigger", "btn")
-			r.Header.Set("HX-Trigger-Name", "action")
-			r.Header.Set("HX-Prompt", "yes")
-			r.Header.Set("HX-Current-URL", "https://example.com/page")
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Boosted", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Target", "main")
+			r.Header.Set("Hx-Trigger", "btn")
+			r.Header.Set("Hx-Trigger-Name", "action")
+			r.Header.Set("Hx-Prompt", "yes")
+			r.Header.Set("Hx-Current-Url", "https://example.com/page")
 
 			called := false
 			handler := cqrshtmx.HTMXMiddleware(
@@ -45,8 +45,8 @@ var _ = Describe("HTMX Request Context", func() {
 
 		It("parses history restore request", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			r.Header.Set("HX-History-Restore-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-History-Restore-Request", cqrshtmx.HeaderTrue)
 
 			handler := cqrshtmx.HTMXMiddleware(
 				http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
@@ -62,14 +62,14 @@ var _ = Describe("HTMX Request Context", func() {
 	Describe("RenderPartial", func() {
 		It("returns true for HTMX request without history restore", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			Expect(cqrshtmx.RenderPartial(r)).To(BeTrue())
 		})
 
 		It("returns false for HTMX request with history restore", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			r.Header.Set("HX-History-Restore-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-History-Restore-Request", cqrshtmx.HeaderTrue)
 			Expect(cqrshtmx.RenderPartial(r)).To(BeFalse())
 		})
 
@@ -80,7 +80,7 @@ var _ = Describe("HTMX Request Context", func() {
 
 		It("uses context when HTMXMiddleware was applied", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 
 			handler := cqrshtmx.HTMXMiddleware(
 				http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
@@ -97,7 +97,7 @@ var _ = Describe("HTMX Request Context", func() {
 	Describe("HTMXTriggerName", func() {
 		It("returns the trigger name", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Trigger-Name", "action-btn")
+			r.Header.Set("Hx-Trigger-Name", "action-btn")
 			Expect(cqrshtmx.HTMXTriggerName(r)).To(Equal("action-btn"))
 		})
 
@@ -110,14 +110,14 @@ var _ = Describe("HTMX Request Context", func() {
 	Describe("accessors use context when available", func() {
 		It("reads from context when middleware was applied", func() {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
-			r.Header.Set("HX-Target", "main")
-			r.Header.Set("HX-Trigger", "btn")
-			r.Header.Set("HX-Boosted", cqrshtmx.HeaderTrue)
-			r.Header.Set("HX-History-Restore-Request", cqrshtmx.HeaderTrue)
-			r.Header.Set("HX-Trigger-Name", "action-btn")
-			r.Header.Set("HX-Prompt", "yes")
-			r.Header.Set("HX-Current-URL", "https://example.com/page")
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Target", "main")
+			r.Header.Set("Hx-Trigger", "btn")
+			r.Header.Set("Hx-Boosted", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-History-Restore-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Trigger-Name", "action-btn")
+			r.Header.Set("Hx-Prompt", "yes")
+			r.Header.Set("Hx-Current-Url", "https://example.com/page")
 
 			handler := cqrshtmx.HTMXMiddleware(
 				http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {

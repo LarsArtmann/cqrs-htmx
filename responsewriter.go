@@ -32,6 +32,7 @@ func (w delegatingWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	if !ok {
 		return nil, nil, http.ErrNotSupported
 	}
+
 	return h.Hijack() //nolint:wrapcheck // delegate to underlying Hijacker
 }
 
@@ -40,6 +41,7 @@ func (w delegatingWriter) Push(target string, opts *http.PushOptions) error {
 	if pusher, ok := w.ResponseWriter.(http.Pusher); ok {
 		return pusher.Push(target, opts) //nolint:wrapcheck // delegate to underlying Pusher
 	}
+
 	return http.ErrNotSupported
 }
 

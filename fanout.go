@@ -40,18 +40,23 @@ func newFanOut[T any]() *fanOut[T] {
 // After Close, Subscribe returns a closed channel (no-op).
 func (f *fanOut[T]) Subscribe() <-chan T {
 	ch := make(chan T, 64)
+
 	f.mu.Lock()
 	if f.subscribers == nil {
 		f.mu.Unlock()
 		close(ch) // already closed — return a closed channel
+
 		return ch
 	}
+
 	f.subscribers[channelPtr(ch)] = ch
 	onSub := f.onSubscribe
 	f.mu.Unlock()
+
 	if onSub != nil {
 		onSub()
 	}
+
 	return ch
 }
 
@@ -60,13 +65,16 @@ func (f *fanOut[T]) Subscribe() <-chan T {
 func (f *fanOut[T]) Unsubscribe(ch <-chan T) {
 	f.mu.Lock()
 	key := channelPtr(ch)
+
 	sender, ok := f.subscribers[key]
 	if ok {
 		delete(f.subscribers, key)
 		close(sender)
 	}
+
 	onUnsub := f.onUnsubscribe
 	f.mu.Unlock()
+
 	if ok && onUnsub != nil {
 		onUnsub()
 	}
@@ -83,6 +91,7 @@ func (f *fanOut[T]) Unsubscribe(ch <-chan T) {
 func (f *fanOut[T]) Broadcast(msg T) {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
+
 	for _, ch := range f.subscribers {
 		select {
 		case ch <- msg:
@@ -95,6 +104,7 @@ func (f *fanOut[T]) Broadcast(msg T) {
 func (f *fanOut[T]) SubscriberCount() int {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
+
 	return len(f.subscribers)
 }
 
@@ -111,10 +121,12 @@ func (f *fanOut[T]) SubscriberCount() int {
 func (f *fanOut[T]) Close() {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+
 	for key, ch := range f.subscribers {
 		delete(f.subscribers, key)
 		close(ch)
 	}
+
 	f.subscribers = nil // marks as closed
 }
 
@@ -126,6 +138,7 @@ func (f *fanOut[T]) broadcastOnSuccessHook(mapper func(r *http.Request) T) After
 		if err != nil {
 			return
 		}
+
 		f.Broadcast(mapper(r))
 	}
 }
@@ -138,6 +151,7 @@ func (f *fanOut[T]) broadcastOnErrorHook(mapper func(r *http.Request, err error)
 		if err == nil {
 			return
 		}
+
 		f.Broadcast(mapper(r, err))
 	}
 }
@@ -147,6 +161,7 @@ func (f *fanOut[T]) broadcastOnErrorHook(mapper func(r *http.Request, err error)
 func (f *fanOut[T]) setOnSubscribe(fn func()) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+
 	f.onSubscribe = fn
 }
 
@@ -155,6 +170,7 @@ func (f *fanOut[T]) setOnSubscribe(fn func()) {
 func (f *fanOut[T]) setOnUnsubscribe(fn func()) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+
 	f.onUnsubscribe = fn
 }
 

@@ -76,6 +76,7 @@ func HTMXExtensionHandler(name string) http.Handler {
 			name, strings.Join(htmxExtensionNames(), ", "),
 		))
 	}
+
 	return serveJS(ext.js, fmt.Sprintf(`"htmx-ext-%s-%s"`, name, ext.version))
 }
 
@@ -97,6 +98,7 @@ func HTMXExtensionsHandler(names ...string) http.Handler {
 	}
 
 	var buf bytes.Buffer
+
 	etagParts := make([]string, 0, len(names))
 	for _, name := range names {
 		ext, ok := htmxExtensions[name]
@@ -106,11 +108,14 @@ func HTMXExtensionsHandler(names ...string) http.Handler {
 				name, strings.Join(htmxExtensionNames(), ", "),
 			))
 		}
+
 		fmt.Fprintf(&buf, "/* htmx-ext-%s %s */\n", name, ext.version)
 		buf.Write(ext.js)
 		buf.WriteByte('\n')
+
 		etagParts = append(etagParts, name+"-"+ext.version)
 	}
+
 	return serveJS(buf.Bytes(), fmt.Sprintf(`"htmx-ext-bundle-%s"`, strings.Join(etagParts, ",")))
 }
 
@@ -123,6 +128,7 @@ func HTMXExtensionVersion(name string) string {
 	if !ok {
 		return ""
 	}
+
 	return ext.version
 }
 
@@ -134,7 +140,9 @@ func htmxExtensionNames() []string {
 	for name := range htmxExtensions {
 		names = append(names, name)
 	}
+
 	sort.Strings(names)
+
 	return names
 }
 
@@ -164,9 +172,11 @@ func HTMXExtensionCDNScriptTag(name string) string {
 	if version == "" {
 		return ""
 	}
+
 	tmpl, ok := htmxExtensionCDNURLs[name]
 	if !ok {
 		return ""
 	}
+
 	return `<script src="` + fmt.Sprintf(tmpl, version) + `"></script>`
 }
