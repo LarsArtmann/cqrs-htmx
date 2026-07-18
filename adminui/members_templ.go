@@ -73,7 +73,7 @@ func membersCard(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(d.AddMemberURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 27, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `cqrs-htmx/adminui/members.templ`, Line: 27, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -156,7 +156,7 @@ func membersRows(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(m.Actor.PrefixedString())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 55, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `cqrs-htmx/adminui/members.templ`, Line: 55, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -169,7 +169,7 @@ func membersRows(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(d.UpdateRoleBase + "/" + m.Actor.PrefixedString())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 57, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `cqrs-htmx/adminui/members.templ`, Line: 57, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 			if templ_7745c5c3_Err != nil {
@@ -270,7 +270,7 @@ func tenantHeader(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(d.Tenant.DisplayName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 98, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `cqrs-htmx/adminui/members.templ`, Line: 98, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -283,7 +283,7 @@ func tenantHeader(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(d.Tenant.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 98, Col: 117}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `cqrs-htmx/adminui/members.templ`, Line: 98, Col: 117}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
