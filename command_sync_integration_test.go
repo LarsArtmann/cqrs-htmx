@@ -32,6 +32,7 @@ func readSSEUntil(ctx context.Context, body io.Reader, patterns ...string) (stri
 	go func() {
 		scanner := bufio.NewScanner(body)
 		scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+
 		var sb strings.Builder
 
 		for scanner.Scan() {
@@ -41,22 +42,28 @@ func readSSEUntil(ctx context.Context, body io.Reader, patterns ...string) (stri
 
 			combined := sb.String()
 			allFound := true
+
 			for _, p := range patterns {
 				if !strings.Contains(combined, p) {
 					allFound = false
+
 					break
 				}
 			}
+
 			if allFound && len(patterns) > 0 {
 				resultCh <- sseReadResult{body: combined, err: nil}
+
 				return
 			}
 		}
 
 		if err := scanner.Err(); err != nil {
 			resultCh <- sseReadResult{body: sb.String(), err: err}
+
 			return
 		}
+
 		resultCh <- sseReadResult{body: sb.String(), err: nil}
 	}()
 
@@ -100,6 +107,7 @@ func newSSEHandler(store *JournalSSEStore, bc *Broadcaster) http.HandlerFunc {
 				if !ok {
 					return
 				}
+
 				if err := stream.Send(evt); err != nil {
 					return
 				}
@@ -112,6 +120,7 @@ func newSSEHandler(store *JournalSSEStore, bc *Broadcaster) http.HandlerFunc {
 func makeAckRequest(cmdID string) *http.Request {
 	req := httptest.NewRequest(http.MethodPost, "/commands", nil)
 	req.Header.Set(CommandIDHeader, cmdID)
+
 	return req
 }
 
@@ -121,23 +130,29 @@ func makeAckRequest(cmdID string) *http.Request {
 // prematurely cut off.
 func dialSSE(t *testing.T, url, lastEventID string) *http.Response {
 	t.Helper()
+
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		t.Fatalf("NewRequest: %v", err)
 	}
+
 	req.Header.Set("Accept", "text/event-stream")
+
 	if lastEventID != "" {
 		req.Header.Set("Last-Event-ID", lastEventID)
 	}
+
 	client := &http.Client{ //nolint:exhaustruct // Timeout intentionally omitted for streaming
 		Transport: &http.Transport{ //nolint:exhaustruct // defaults are fine
 			ResponseHeaderTimeout: 5 * time.Second,
 		},
 	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		t.Fatalf("Do: %v", err)
 	}
+
 	return resp
 }
 
@@ -156,6 +171,7 @@ func TestIntegration_JournalSSEStore_Replay(t *testing.T) {
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := NewSSEStream(w, r)
 		defer stream.Close()
+
 		lastID := LastEventIDFromRequest(r)
 		_, _ = ReplayEvents(stream, sseStore, lastID)
 	})
@@ -165,6 +181,7 @@ func TestIntegration_JournalSSEStore_Replay(t *testing.T) {
 
 	// Replay events after event 2 (should get events 3, 4, 5)
 	cursor := events[1].ID().String()
+
 	resp := dialSSE(t, server.URL+"/events", cursor)
 	defer func() { _ = resp.Body.Close() }()
 
@@ -188,6 +205,7 @@ func TestIntegration_JournalSSEStore_Replay(t *testing.T) {
 	if strings.Contains(body, "id: "+events[0].ID().String()) {
 		t.Errorf("body should not contain event before cursor:\n%s", body)
 	}
+
 	if strings.Contains(body, "id: "+events[1].ID().String()) {
 		t.Errorf("body should not contain cursor event:\n%s", body)
 	}
@@ -220,6 +238,7 @@ func TestIntegration_ACK_ConfirmedOverSSE(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read SSE: %v\nbody:\n%s", err, body)
 	}
+
 	if !strings.Contains(body, "event: sync:ack") {
 		t.Errorf("expected sync:ack event name in body:\n%s", body)
 	}
@@ -276,6 +295,7 @@ func TestIntegration_ReconnectAndLiveACK(t *testing.T) {
 
 	// Connect with Last-Event-ID = event 2 → should replay events 3, 4
 	cursor := events[1].ID().String()
+
 	resp := dialSSE(t, server.URL+"/events", cursor)
 	defer func() { _ = resp.Body.Close() }()
 
@@ -379,11 +399,14 @@ func TestIntegration_ConcurrentReplayAndBroadcast(t *testing.T) {
 
 			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, server.URL+"/events", nil)
 			req.Header.Set("Last-Event-ID", cursor)
+
 			client := &http.Client{} //nolint:exhaustruct // intentional
+
 			resp, err := client.Do(req)
 			if err != nil {
 				return
 			}
+
 			defer func() { _ = resp.Body.Close() }()
 
 			_, _ = io.ReadAll(resp.Body)
@@ -395,6 +418,7 @@ func TestIntegration_ConcurrentReplayAndBroadcast(t *testing.T) {
 		wg.Add(1)
 		go func(idx int) {
 			defer wg.Done()
+
 			hook := bc.BroadcastOnAck()
 			hook(t.Context(), makeAckRequest(fmt.Sprintf("concurrent-%d", idx)), nil)
 		}(i)

@@ -15,7 +15,7 @@ var _ = DescribeTable(
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
 		notify(cqrshtmx.NewResponse(w, r)).Apply()
-		trigger := w.Header().Get("HX-Trigger")
+		trigger := w.Header().Get("Hx-Trigger")
 		Expect(trigger).To(ContainSubstring(level))
 		Expect(trigger).To(ContainSubstring(message))
 	},

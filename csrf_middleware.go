@@ -45,6 +45,7 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 			if token := nosurf.Token(r); token != "" {
 				r = r.WithContext(WithCSRFToken(r.Context(), token))
 			}
+
 			next.ServeHTTP(w, r)
 		})
 
@@ -78,6 +79,7 @@ func warnEmptyTrustedProxies(cfg CSRFConfig) {
 		if !cfg.AllowPlaintextBypass {
 			return
 		}
+
 		if len(cfg.TrustedProxies) == 0 && len(cfg.TrustedProxiesCIDR) == 0 {
 			slog.Warn(
 				"cqrs-htmx: CSRFConfig.AllowPlaintextBypass is enabled with no TrustedProxies — " +
@@ -103,6 +105,7 @@ func setPlaintextHTTPOrigin(r *http.Request, cfg CSRFConfig) {
 	if !shouldBypassPlaintextOrigin(r, cfg) {
 		return
 	}
+
 	r.Header.Set("Sec-Fetch-Site", "same-origin")
 }
 
@@ -113,13 +116,16 @@ func shouldBypassPlaintextOrigin(r *http.Request, cfg CSRFConfig) bool {
 	if r.TLS != nil {
 		return false
 	}
+
 	if hasOriginHeader(r) {
 		return false
 	}
+
 	remoteHost, remoteIP := remoteHostAndIP(r.RemoteAddr)
 	if isLoopback(remoteIP) {
 		return true
 	}
+
 	return isTrustedProxy(remoteHost, remoteIP, r.RemoteAddr, cfg)
 }
 
@@ -138,6 +144,7 @@ func remoteHostAndIP(remoteAddr string) (string, net.IP) {
 	if err != nil {
 		host = remoteAddr
 	}
+
 	return host, net.ParseIP(host)
 }
 
@@ -166,11 +173,13 @@ func isTrustedProxy(remoteHost string, remoteIP net.IP, remoteAddr string, cfg C
 			}
 		}
 	}
+
 	for _, trusted := range cfg.TrustedProxies {
 		if trusted == remoteHost || trusted == remoteAddr {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -181,9 +190,11 @@ func translateCSRFHeaders(r *http.Request, cfg CSRFConfig) {
 	if cfg.headerName() != defaultCSRFHeaderName {
 		if token := r.Header.Get(cfg.headerName()); token != "" {
 			r.Header.Set(defaultCSRFHeaderName, token)
+
 			return
 		}
 	}
+
 	if cfg.fieldName() != defaultCSRFFieldName {
 		if token := r.PostFormValue(cfg.fieldName()); token != "" {
 			r.Header.Set(defaultCSRFHeaderName, token)
@@ -213,6 +224,7 @@ func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {
 		if token := csrfTokenFromRequest(r); token != "" {
 			w.Header().Set(defaultCSRFHeaderName, token)
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }

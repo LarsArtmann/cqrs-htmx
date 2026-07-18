@@ -34,15 +34,20 @@ func serveJS(js []byte, etag string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			w.WriteHeader(http.StatusMethodNotAllowed)
+
 			return
 		}
+
 		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		w.Header().Set("ETag", etag)
+
 		if r.Header.Get("If-None-Match") == etag {
 			w.WriteHeader(http.StatusNotModified)
+
 			return
 		}
+
 		_, _ = w.Write(js)
 	})
 }
@@ -68,5 +73,6 @@ func HTMXCDNScriptTag(version string) string {
 	if version == "" {
 		version = htmxVersion
 	}
+
 	return fmt.Sprintf(`<script src="%s@%s"></script>`, HTMXCDNBaseURL, version)
 }

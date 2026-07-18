@@ -82,6 +82,7 @@ func RequireMethod(method string) HandlerOption {
 func DecodePagination(r *http.Request) query.Pagination {
 	page := parseUintQuery(r, "page")
 	pageSize := parseUintQuery(r, "page_size")
+
 	return query.NewPagination(page, pageSize)
 }
 
@@ -90,10 +91,12 @@ func parseUintQuery(r *http.Request, key string) uint {
 	if v == "" {
 		return 0
 	}
+
 	n, err := strconv.ParseUint(v, 10, 32)
 	if err != nil {
 		return 0
 	}
+
 	return uint(n)
 }
 

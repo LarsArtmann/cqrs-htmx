@@ -24,9 +24,11 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 			status,
 		)
 	}
+
 	buf.WriteByte('\n')
 	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.WriteHeader(status)
 	_, _ = buf.WriteTo(w)
+
 	return nil
 }

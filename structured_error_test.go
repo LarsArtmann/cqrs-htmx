@@ -117,6 +117,7 @@ var _ = Describe("StructuredError", func() {
 			}
 
 			jsonStr := se.JSON()
+
 			var decoded map[string]any
 			Expect(json.Unmarshal([]byte(jsonStr), &decoded)).To(Succeed())
 

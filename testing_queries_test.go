@@ -18,6 +18,7 @@ func newTestListUsersQuery() *testListUsersQuery {
 	if err != nil {
 		panic(err)
 	}
+
 	return &testListUsersQuery{BasicQuery: core}
 }
 
@@ -31,6 +32,7 @@ func newTestGetUserNameQuery() *testGetUserNameQuery {
 	if err != nil {
 		panic(err)
 	}
+
 	return &testGetUserNameQuery{BasicQuery: core}
 }
 

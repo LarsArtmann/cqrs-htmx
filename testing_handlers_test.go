@@ -16,6 +16,7 @@ import (
 
 func encodeJSONResult(w http.ResponseWriter, _ *http.Request, result any) error {
 	w.Header().Set("Content-Type", "application/json")
+
 	return json.NewEncoder(w).Encode(result)
 }
 
@@ -76,6 +77,7 @@ func headerExtractor(header string) cqrshtmx.UserIDExtractor {
 func trackingCommandHandler(dispatched *bool) func(context.Context, command.Command) error {
 	return func(_ context.Context, _ command.Command) error {
 		*dispatched = true
+
 		return nil
 	}
 }
@@ -85,12 +87,14 @@ func trackingCommandHandler(dispatched *bool) func(context.Context, command.Comm
 // that timeouts propagate correctly through the dispatch path.
 func ctxCancelCommandHandler(ctx context.Context, _ command.Command) error {
 	<-ctx.Done()
+
 	return ctx.Err()
 }
 
 // ctxCancelQueryHandler is the query-side counterpart of ctxCancelCommandHandler.
 func ctxCancelQueryHandler(ctx context.Context, _ query.Query) (any, error) {
 	<-ctx.Done()
+
 	return nil, ctx.Err()
 }
 
@@ -134,5 +138,6 @@ func newCommandApp() *cqrshtmx.App {
 	cfg := cqrshtmx.Config{Commands: disp}
 	app, err := cqrshtmx.New(cfg)
 	Expect(err).NotTo(HaveOccurred())
+
 	return app
 }

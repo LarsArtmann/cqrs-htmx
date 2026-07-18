@@ -26,11 +26,15 @@ func BenchmarkBroadcasterBroadcastStress(b *testing.B) {
 					}
 				}()
 			}
+
 			evt := cqrshtmx.SSEEvent{Event: "test", Data: "hello world from broadcaster"}
+
 			b.ResetTimer()
+
 			for b.Loop() {
 				bc.Broadcast(evt)
 			}
+
 			b.StopTimer()
 		})
 	}
@@ -50,8 +54,10 @@ func BenchmarkBroadcasterConcurrentSubscribe(b *testing.B) {
 	}
 
 	ctx := b.Context()
+
 	go func() {
 		evt := cqrshtmx.SSEEvent{Event: "tick", Data: "data"}
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -63,6 +69,7 @@ func BenchmarkBroadcasterConcurrentSubscribe(b *testing.B) {
 	}()
 
 	b.ResetTimer()
+
 	for b.Loop() {
 		ch := bc.Subscribe()
 		bc.Unsubscribe(ch)
@@ -85,12 +92,15 @@ func BenchmarkServerCommandDispatch(b *testing.B) {
 	body := strings.NewReader(`{}`)
 
 	b.ResetTimer()
+
 	for b.Loop() {
 		body.Reset(`{}`)
+
 		resp, err := client.Post(server.URL, "application/json", body)
 		if err != nil {
 			b.Fatal(err)
 		}
+
 		_ = resp.Body.Close()
 	}
 }
@@ -98,17 +108,20 @@ func BenchmarkServerCommandDispatch(b *testing.B) {
 // BenchmarkServerHealthHandler measures the health endpoint over real HTTP.
 func BenchmarkServerHealthHandler(b *testing.B) {
 	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
+
 	server := httptest.NewServer(app.HealthHandler())
 	defer server.Close()
 
 	client := &http.Client{Timeout: 5 * time.Second}
 
 	b.ResetTimer()
+
 	for b.Loop() {
 		resp, err := client.Get(server.URL)
 		if err != nil {
 			b.Fatal(err)
 		}
+
 		_ = resp.Body.Close()
 	}
 }
@@ -127,11 +140,15 @@ func BenchmarkWSBroadcasterBroadcastStress(b *testing.B) {
 					}
 				}()
 			}
+
 			msg := "<div hx-swap-oob='true'>hello world from ws broadcaster</div>"
+
 			b.ResetTimer()
+
 			for b.Loop() {
 				bc.Broadcast(msg)
 			}
+
 			b.StopTimer()
 		})
 	}
@@ -150,8 +167,10 @@ func BenchmarkWSBroadcasterConcurrentSubscribe(b *testing.B) {
 	}
 
 	ctx := b.Context()
+
 	go func() {
 		msg := "<div>tick</div>"
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -163,6 +182,7 @@ func BenchmarkWSBroadcasterConcurrentSubscribe(b *testing.B) {
 	}()
 
 	b.ResetTimer()
+
 	for b.Loop() {
 		ch := bc.Subscribe()
 		bc.Unsubscribe(ch)
@@ -174,7 +194,9 @@ func BenchmarkWSBroadcasterConcurrentSubscribe(b *testing.B) {
 func BenchmarkSSEHeartbeatWrite(b *testing.B) {
 	w := httptest.NewRecorder()
 	frame := []byte(": keepalive\n\n")
+
 	b.ResetTimer()
+
 	for b.Loop() {
 		_, _ = w.Write(frame)
 	}

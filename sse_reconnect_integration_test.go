@@ -17,6 +17,7 @@ import (
 // from the SSEEventStore.
 func TestSSE_RealServer_ReconnectionWithLastEventID(t *testing.T) {
 	t.Parallel()
+
 	store := newReconnectStore()
 	mux := newReconnectMux(store, true)
 
@@ -29,6 +30,7 @@ func TestSSE_RealServer_ReconnectionWithLastEventID(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("expected status 200, got %d", resp.StatusCode)
 	}
+
 	if got := resp.Header.Get("Content-Type"); !strings.HasPrefix(got, "text/event-stream") {
 		t.Errorf("expected text/event-stream content type, got %q", got)
 	}
@@ -56,15 +58,18 @@ func newReconnectMux(store *memoryEventStore, includeReplayOnError bool) *http.S
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := cqrshtmx.NewSSEStream(w, r)
 		defer stream.Close()
+
 		if lastID := cqrshtmx.LastEventIDFromRequest(r); !lastID.IsZero() {
 			if _, err := cqrshtmx.ReplayEvents(stream, store, lastID); err != nil {
 				if includeReplayOnError {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
+
 				return
 			}
 		}
 	})
+
 	return mux
 }
 
@@ -75,9 +80,11 @@ func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
 	if err != nil {
 		t.Fatalf("NewRequest: %v", err)
 	}
+
 	if lastID != "" {
 		req.Header.Set("Last-Event-ID", lastID)
 	}
+
 	req.Header.Set("Accept", "text/event-stream")
 
 	// Per-test client with a short timeout. We intentionally do NOT bind
@@ -85,41 +92,52 @@ func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
 	// cancels the context before the caller reads resp.Body, which causes
 	// intermittent "context canceled" failures under -race with t.Parallel().
 	client := &http.Client{Timeout: 3 * time.Second} //nolint:exhaustruct // Transport/CheckRedirect/Jar use defaults
+
 	resp, err := client.Do(req)
 	if err != nil {
 		t.Fatalf("Do: %v", err)
 	}
+
 	return resp
 }
 
 func readReconnectBody(t *testing.T, resp *http.Response) string {
 	t.Helper()
+
 	scanner := bufio.NewScanner(resp.Body)
+
 	var body strings.Builder
 	for scanner.Scan() {
 		body.WriteString(scanner.Text())
 		body.WriteString("\n")
 	}
+
 	if err := scanner.Err(); err != nil {
 		t.Fatalf("scan body: %v", err)
 	}
+
 	return body.String()
 }
 
 func assertReplayedAfterID2(t *testing.T, out string) {
 	t.Helper()
+
 	if !strings.Contains(out, "id: 3") {
 		t.Errorf("expected replayed id: 3, body:\n%s", out)
 	}
+
 	if !strings.Contains(out, "id: 4") {
 		t.Errorf("expected replayed id: 4, body:\n%s", out)
 	}
+
 	if strings.Contains(out, "id: 1") || strings.Contains(out, "id: 2") {
 		t.Errorf("did not expect ids 1 or 2 to be replayed, body:\n%s", out)
 	}
+
 	if !strings.Contains(out, "data: <li>third</li>") {
 		t.Errorf("expected third event data, body:\n%s", out)
 	}
+
 	if !strings.Contains(out, "data: <li>fourth</li>") {
 		t.Errorf("expected fourth event data, body:\n%s", out)
 	}
@@ -130,6 +148,7 @@ func assertReplayedAfterID2(t *testing.T, out string) {
 // handshake occurs.
 func TestSSE_RealServer_ReconnectionNoLastID(t *testing.T) {
 	t.Parallel()
+
 	store := &memoryEventStore{
 		events: []cqrshtmx.SSEEvent{
 			{Event: "x", Data: "y", ID: cqrshtmx.NewSSEEventID("1")},
@@ -140,6 +159,7 @@ func TestSSE_RealServer_ReconnectionNoLastID(t *testing.T) {
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := cqrshtmx.NewSSEStream(w, r)
 		defer stream.Close()
+
 		if lastID := cqrshtmx.LastEventIDFromRequest(r); !lastID.IsZero() {
 			_, _ = cqrshtmx.ReplayEvents(stream, store, lastID)
 		}

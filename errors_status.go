@@ -50,6 +50,7 @@ func WithHTTPStatus(err error, status int) error {
 	if err == nil {
 		return nil
 	}
+
 	return &httpStatusError{status: status, cause: err}
 }
 
@@ -57,14 +58,16 @@ func WithHTTPStatus(err error, status int) error {
 // Used by [MapError] as the highest-priority status source.
 // Errors carrying an out-of-range status fall back to 500 to stay safe.
 func carrierStatus(err error) (int, bool) {
-	var carrier HTTPStatusCarrier
-	if !errors.As(err, &carrier) {
+	carrier, ok := errors.AsType[HTTPStatusCarrier](err)
+	if !ok {
 		return 0, false
 	}
+
 	status := carrier.HTTPStatus()
 	if validHTTPStatus(status) {
 		return status, true
 	}
+
 	return http.StatusInternalServerError, true
 }
 

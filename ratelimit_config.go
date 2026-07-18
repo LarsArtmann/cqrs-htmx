@@ -145,9 +145,11 @@ func buildRateLimiter(cfg RateLimiterConfig) *RateLimiter {
 	if cfg.Limit == 0 {
 		cfg.Limit = uint(DefaultRateLimit)
 	}
+
 	if cfg.Window <= 0 {
 		cfg.Window = DefaultRateWindow
 	}
+
 	if cfg.Burst == 0 {
 		cfg.Burst = cfg.Limit
 	}

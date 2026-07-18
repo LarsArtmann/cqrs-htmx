@@ -36,12 +36,14 @@ func (resp *Response) IsHTMX() bool {
 // PushURL pushes a new URL into the browser history.
 func (resp *Response) PushURL(url string) *Response {
 	resp.w.Header().Set(headerPushURL, url)
+
 	return resp
 }
 
 // ReplaceURL replaces the current URL in the browser address bar.
 func (resp *Response) ReplaceURL(url string) *Response {
 	resp.w.Header().Set(headerReplaceURL, url)
+
 	return resp
 }
 
@@ -55,40 +57,47 @@ func (resp *Response) Redirect(url string) *Response {
 		if safe {
 			resp.w.Header().Set(headerRedirect, sanitized)
 		}
+
 		return resp
 	}
 
 	resp.redirectURL = url
+
 	return resp
 }
 
 // Refresh triggers a full page refresh on the client.
 func (resp *Response) Refresh() *Response {
 	resp.w.Header().Set(headerRefresh, HeaderTrue)
+
 	return resp
 }
 
 // Location performs a client-side redirect without full page reload.
 func (resp *Response) Location(url string) *Response {
 	resp.w.Header().Set(headerLocation, url)
+
 	return resp
 }
 
 // Reswap changes how the response content is swapped.
 func (resp *Response) Reswap(strategy SwapStrategy) *Response {
 	resp.w.Header().Set(headerReswap, string(strategy))
+
 	return resp
 }
 
 // Retarget changes the target element for the response.
 func (resp *Response) Retarget(selector string) *Response {
 	resp.w.Header().Set(headerRetarget, selector)
+
 	return resp
 }
 
 // Reselect changes the selector for the response content.
 func (resp *Response) Reselect(selector string) *Response {
 	resp.w.Header().Set(headerReselect, selector)
+
 	return resp
 }
 
@@ -96,18 +105,21 @@ func (resp *Response) Reselect(selector string) *Response {
 // Accepts either a simple event name or a JSON object with details.
 func (resp *Response) Trigger(event string) *Response {
 	setTriggerHeader(resp.w, headerTrigger, event)
+
 	return resp
 }
 
 // TriggerAfterSwap fires a client-side event after the swap step.
 func (resp *Response) TriggerAfterSwap(event string) *Response {
 	setTriggerHeader(resp.w, headerTriggerAfterSwap, event)
+
 	return resp
 }
 
 // TriggerAfterSettle fires a client-side event after the settle step.
 func (resp *Response) TriggerAfterSettle(event string) *Response {
 	setTriggerHeader(resp.w, headerTriggerAfterSettle, event)
+
 	return resp
 }
 
@@ -118,6 +130,7 @@ func (resp *Response) TriggerAfterSettle(event string) *Response {
 // overwrites the simple event name set by Trigger. Use one or the other.
 func (resp *Response) TriggerWithDetail(name string, detail any) *Response {
 	setTriggerWithDetail(resp.w, headerTrigger, name, detail)
+
 	return resp
 }
 
@@ -155,6 +168,7 @@ func (resp *Response) triggerNotification(level NotificationLevel, message strin
 //	resp.CSRFToken(token).Apply()
 func (resp *Response) CSRFToken(token string) *Response {
 	resp.w.Header().Set(defaultCSRFHeaderName, token)
+
 	return resp
 }
 
@@ -162,18 +176,21 @@ func (resp *Response) CSRFToken(token string) *Response {
 // subsequent header-setting methods (like Redirect, PushURL) still work.
 func (resp *Response) Status(code int) *Response {
 	resp.statusCode = code
+
 	return resp
 }
 
 // Header sets a custom response header.
 func (resp *Response) Header(key, value string) *Response {
 	resp.w.Header().Set(key, value)
+
 	return resp
 }
 
 // ContentType sets the Content-Type header.
 func (resp *Response) ContentType(ct string) *Response {
 	resp.w.Header().Set("Content-Type", ct)
+
 	return resp
 }
 
@@ -182,6 +199,7 @@ func (resp *Response) ContentType(ct string) *Response {
 func (resp *Response) Body(data []byte) *Response {
 	resp.Apply()
 	_, _ = resp.w.Write(data)
+
 	return resp
 }
 
@@ -190,11 +208,13 @@ func (resp *Response) Body(data []byte) *Response {
 // Uses io.StringWriter when available to avoid []byte(string) allocation.
 func (resp *Response) WriteString(s string) *Response {
 	resp.Apply()
+
 	if sw, ok := resp.w.(io.StringWriter); ok {
 		_, _ = sw.WriteString(s)
 	} else {
 		_, _ = resp.w.Write([]byte(s))
 	}
+
 	return resp
 }
 
@@ -203,12 +223,16 @@ func (resp *Response) WriteString(s string) *Response {
 func (resp *Response) JSON(v any) *Response {
 	resp.ContentType(ContentTypeJSON)
 	resp.Apply()
+
 	encoded, err := json.Marshal(v)
 	if err != nil {
 		http.Error(resp.w, "json marshal error", http.StatusInternalServerError)
+
 		return resp
 	}
+
 	_, _ = resp.w.Write(encoded)
+
 	return resp
 }
 
@@ -222,10 +246,12 @@ func (resp *Response) Apply() bool {
 		if safe {
 			//nolint:gosec // G710: sanitizeRedirectURL validates URL is safe (relative path only)
 			http.Redirect(resp.w, resp.r, redirectURL, http.StatusSeeOther)
+
 			return true
 		}
 		// Unsafe redirect - fall through to render content instead
 		resp.w.WriteHeader(http.StatusBadRequest)
+
 		return true
 	}
 
@@ -271,12 +297,14 @@ func sanitizeRedirectURL(rawURL string) (string, bool) {
 // but "/../../etc/passwd" is rejected.
 func pathEscapesRoot(p string) bool {
 	depth := 0
+
 	for i := 0; i < len(p); {
 		if p[i] != '/' {
 			j := i + 1
 			for j < len(p) && p[j] != '/' {
 				j++
 			}
+
 			seg := p[i:j]
 			switch seg {
 			case "..":
@@ -285,14 +313,17 @@ func pathEscapesRoot(p string) bool {
 			default:
 				depth++
 			}
+
 			if depth < 0 {
 				return true
 			}
+
 			i = j
 		} else {
 			i++
 		}
 	}
+
 	return false
 }
 
@@ -300,6 +331,7 @@ func setTriggerHeader(w http.ResponseWriter, header, event string) {
 	existing := w.Header().Get(header)
 	if existing == "" {
 		w.Header().Set(header, event)
+
 		return
 	}
 
@@ -314,8 +346,10 @@ func setTriggerWithDetail(w http.ResponseWriter, header, name string, detail any
 		detailJSON, err := json.Marshal(detail)
 		if err != nil {
 			w.Header().Set(header, name)
+
 			return
 		}
+
 		var sb strings.Builder
 		sb.Grow(len(name) + len(detailJSON) + 5)
 		sb.WriteString(`{"`)
@@ -324,6 +358,7 @@ func setTriggerWithDetail(w http.ResponseWriter, header, name string, detail any
 		sb.Write(detailJSON)
 		sb.WriteString(`}`)
 		w.Header().Set(header, sb.String())
+
 		return
 	}
 
@@ -331,9 +366,11 @@ func setTriggerWithDetail(w http.ResponseWriter, header, name string, detail any
 	var existingMap map[string]any
 	if json.Unmarshal([]byte(existing), &existingMap) == nil {
 		existingMap[name] = detail
+
 		merged, err := json.Marshal(existingMap)
 		if err == nil {
 			w.Header().Set(header, string(merged))
+
 			return
 		}
 	}

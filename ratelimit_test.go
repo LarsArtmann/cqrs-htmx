@@ -26,12 +26,14 @@ var _ = Describe("Rate Limiting", func() {
 		keyedLimitConfig := func(key string) cqrshtmx.RateLimiterConfig {
 			cfg := baseLimitConfig()
 			cfg.KeyExtractor = func(_ *http.Request) string { return key }
+
 			return cfg
 		}
 
 		assertRateLimit := func(cfg cqrshtmx.RateLimiterConfig, requests int) []int {
 			middleware := cqrshtmx.RateLimiterMiddleware(cfg)
 			handler := middleware(okHandler())
+
 			codes := make([]int, 0, requests)
 			for range requests {
 				w := httptest.NewRecorder()
@@ -39,6 +41,7 @@ var _ = Describe("Rate Limiting", func() {
 				handler.ServeHTTP(w, r)
 				codes = append(codes, w.Code)
 			}
+
 			return codes
 		}
 
@@ -85,8 +88,10 @@ var _ = Describe("Rate Limiting", func() {
 		})
 
 		It("rate-limits per RemoteAddr with KeyExtractorFromRemoteAddr", func() {
-			const ip1 = "192.168.1.1:1234"
-			const ip2 = "192.168.1.2:5678"
+			const (
+				ip1 = "192.168.1.1:1234"
+				ip2 = "192.168.1.2:5678"
+			)
 
 			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
 				Limit:        1,
@@ -123,11 +128,13 @@ var _ = Describe("Rate Limiting", func() {
 			handler := middleware(okHandler())
 
 			codes := make([]int, 2)
+
 			for i := range 2 {
 				w := httptest.NewRecorder()
 				handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
 				codes[i] = w.Code
 			}
+
 			Expect(codes[0]).To(Equal(http.StatusOK))
 			Expect(codes[1]).To(Equal(http.StatusTooManyRequests))
 
@@ -170,7 +177,9 @@ var _ = Describe("Rate Limiting", func() {
 
 		It("calls OnRejected hook for rejected requests", func() {
 			rejectedCalled := false
+
 			var capturedRetryAfter string
+
 			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
 				Limit:        1,
 				Window:       time.Minute,
@@ -224,6 +233,7 @@ var _ = Describe("Rate Limiting", func() {
 		})
 		It("evicts oldest key when MaxKeys is exceeded", func() {
 			var allowed int
+
 			middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
 				Limit:        100,
 				Window:       time.Minute,

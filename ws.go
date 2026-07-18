@@ -69,8 +69,10 @@ func ParseWSMessage(data []byte) (*WSMessage, error) {
 					}
 				}
 			}
+
 			continue
 		}
+
 		msg.Body[key] = value
 	}
 
@@ -82,16 +84,19 @@ func parseWSHeaders(raw jsontext.Value) map[string]string {
 	if json.Unmarshal(raw, &headersMap) == nil {
 		return headersMap
 	}
+
 	var anyHeaders map[string]any
 	if json.Unmarshal(raw, &anyHeaders) != nil {
 		return map[string]string{}
 	}
+
 	result := make(map[string]string, len(anyHeaders))
 	for k, v := range anyHeaders {
 		if s, ok := v.(string); ok {
 			result[k] = s
 		}
 	}
+
 	return result
 }
 
@@ -102,7 +107,9 @@ func (m *WSMessage) StringBody(key string) string {
 	if !ok {
 		return ""
 	}
+
 	s, _ := v.(string)
+
 	return s
 }
 
@@ -151,6 +158,7 @@ func ParseWSMessageInto[T any](data []byte) (msg T, headers map[string]string, e
 	// Extract HEADERS separately using a lightweight wrapper struct.
 	// This avoids the marshal→unmarshal round-trip of the previous approach.
 	headers = make(map[string]string)
+
 	var wrapper struct {
 		HEADERS jsontext.Value `json:"HEADERS"`
 	}

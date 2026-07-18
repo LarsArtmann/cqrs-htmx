@@ -83,6 +83,7 @@ func NewStructuredError(err error, r *http.Request) StructuredError {
 	if err == nil {
 		return StructuredError{} //nolint:exhaustruct // zero-value return
 	}
+
 	return newStructuredErrorFromContext(err, requestContextOrBackground(r))
 }
 
@@ -92,6 +93,7 @@ func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredErr
 	if err == nil {
 		return StructuredError{} //nolint:exhaustruct // zero-value return
 	}
+
 	return newStructuredErrorFromContext(err, ctx)
 }
 
@@ -103,11 +105,13 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 	status := MapError(err)
 	family := errorfamily.Classify(err)
 	instance := ""
+
 	if ctx != nil {
 		if rid := RequestIDFromContext(ctx); !rid.IsZero() {
 			instance = rid.String()
 		}
 	}
+
 	return StructuredError{
 		Type:     familyType(family),
 		Title:    statusTitle(status),
@@ -130,6 +134,7 @@ func requestContextOrBackground(r *http.Request) context.Context {
 	if r == nil {
 		return context.Background()
 	}
+
 	return r.Context()
 }
 
@@ -141,6 +146,7 @@ func (e StructuredError) JSON() string {
 	if err != nil {
 		return `{"type":"about:blank","title":"Internal Server Error","status":500,"detail":"failed to marshal error"}`
 	}
+
 	return string(b)
 }
 
@@ -160,6 +166,7 @@ func familyType(family event.Family) string {
 	if family.IsValid() {
 		return family.String()
 	}
+
 	return "about:blank"
 }
 
@@ -169,5 +176,6 @@ func statusTitle(status int) string {
 	if text := http.StatusText(status); text != "" {
 		return text
 	}
+
 	return "Internal Server Error"
 }

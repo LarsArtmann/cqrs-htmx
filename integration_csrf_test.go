@@ -28,10 +28,12 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 
 			// GET to obtain token
 			var csrfToken string
+
 			tokenHandler := csrfTokenHandler(csrfMW, &csrfToken)
 			w1 := httptest.NewRecorder()
 			tokenHandler.ServeHTTP(w1, httptest.NewRequest(http.MethodGet, "/", nil))
 			cookies := w1.Result().Cookies()
+
 			Expect(csrfToken).NotTo(BeEmpty())
 
 			r := newPostRequest(
@@ -43,9 +45,10 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 			for _, c := range cookies {
 				r.AddCookie(c)
 			}
+
 			w := serve(handler, r)
 			Expect(w.code()).To(Equal(http.StatusOK))
-			Expect(w.Header().Get("HX-Trigger")).To(ContainSubstring("success"))
+			Expect(w.Header().Get("Hx-Trigger")).To(ContainSubstring("success"))
 		})
 
 		It("rejects command dispatch without CSRF token", func() {
@@ -72,6 +75,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 			for _, c := range w1.Result().Cookies() {
 				r.AddCookie(c)
 			}
+
 			w := serve(handler, r)
 			Expect(w.code()).To(Equal(http.StatusForbidden))
 		})
@@ -93,6 +97,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 			for _, c := range w1.Result().Cookies() {
 				r2.AddCookie(c)
 			}
+
 			handler := csrfMW(qryApp.Query(
 				"ListUsers",
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
@@ -124,6 +129,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 					token := cqrshtmx.CSRFTokenFromContext(r.Context())
 					cqrshtmx.NewResponse(w, r).CSRFToken(token).Apply()
 					_, _ = w.Write([]byte("<div>page</div>"))
+
 					return nil
 				}),
 			))
@@ -131,19 +137,21 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/page", nil)
 			r1.Header.Set("Content-Type", "application/json")
-			r1.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r1.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			csrfOKHandler(csrfMW).ServeHTTP(w1, r1)
 
 			r := httptest.NewRequest(http.MethodGet, "/page", strings.NewReader("{}"))
 			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
+
 			for _, c := range w1.Result().Cookies() {
 				r.AddCookie(c)
 			}
+
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, r)
 			Expect(w.Code).To(Equal(http.StatusOK))
-			Expect(w.Header().Get("X-CSRF-Token")).NotTo(BeEmpty())
+			Expect(w.Header().Get("X-Csrf-Token")).NotTo(BeEmpty())
 		})
 	})
 
@@ -162,16 +170,19 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 
 			// GET to obtain token from the same CSRF middleware instance
 			var csrfToken string
+
 			tokenHandler := csrfTokenHandler(csrfMW, &csrfToken)
 			w1 := httptest.NewRecorder()
 			tokenHandler.ServeHTTP(w1, httptest.NewRequest(http.MethodGet, "/", nil))
 			cookies := w1.Result().Cookies()
+
 			Expect(csrfToken).NotTo(BeEmpty())
 
 			r := newPostRequest("/users", testUserJSON, withHeader("X-CSRF-Token", csrfToken))
 			for _, c := range cookies {
 				r.AddCookie(c)
 			}
+
 			w := serve(handler, r)
 			Expect(w.code()).To(Equal(http.StatusNoContent))
 		})
@@ -206,6 +217,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 			for _, c := range w1.Result().Cookies() {
 				r.AddCookie(c)
 			}
+
 			w := serve(handler, r)
 			Expect(w.code()).To(Equal(http.StatusForbidden))
 		})

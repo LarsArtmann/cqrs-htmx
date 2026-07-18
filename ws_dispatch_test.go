@@ -36,9 +36,11 @@ var _ = Describe("WS Dispatch", func() {
 	Describe("DispatchWSCommand", func() {
 		It("dispatches a command from raw WS bytes", func() {
 			var handlerCalled bool
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
 				handlerCalled = true
+
 				return nil
 			})
 
@@ -90,8 +92,11 @@ var _ = Describe("WS Dispatch", func() {
 		})
 
 		It("calls afterDispatch hook with nil error on success", func() {
-			var hookCalled bool
-			var hookErr error
+			var (
+				hookCalled bool
+				hookErr    error
+			)
+
 			app := newCommandAppWithConfig(
 				noOpCommandHandler,
 				cqrshtmx.Config{
@@ -100,13 +105,17 @@ var _ = Describe("WS Dispatch", func() {
 			)
 
 			_ = app.DispatchWSCommand(nil, "CreateUser", wsCreateUserDecoder(), []byte(`{}`))
+
 			Expect(hookCalled).To(BeTrue())
 			Expect(hookErr).NotTo(HaveOccurred())
 		})
 
 		It("calls afterDispatch hook with error on failure", func() {
-			var hookCalled bool
-			var hookErr error
+			var (
+				hookCalled bool
+				hookErr    error
+			)
+
 			app := newCommandAppWithConfig(
 				erroringCommandHandler("fail"),
 				cqrshtmx.Config{
@@ -115,15 +124,18 @@ var _ = Describe("WS Dispatch", func() {
 			)
 
 			_ = app.DispatchWSCommand(nil, "CreateUser", wsCreateUserDecoder(), []byte(`{}`))
+
 			Expect(hookCalled).To(BeTrue())
 			Expect(hookErr).To(HaveOccurred())
 		})
 
 		It("applies beforeDispatch hook when request is provided", func() {
 			var capturedCtx context.Context
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
-				capturedCtx = ctx
+				capturedCtx := ctx
+
 				return nil
 			})
 
@@ -136,11 +148,13 @@ var _ = Describe("WS Dispatch", func() {
 
 			req := httptest.NewRequest(http.MethodPost, "/ws", nil)
 			_ = app.DispatchWSCommand(req, "CreateUser", wsCreateUserDecoder(), []byte(`{}`))
+
 			Expect(capturedCtx.Value(wsTestKey("hook"))).To(Equal("applied"))
 		})
 
 		It("panics on empty command type", func() {
 			app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: command.NewDispatcher()})
+
 			Expect(func() {
 				_ = app.DispatchWSCommand(nil, "", wsCreateUserDecoder(), nil)
 			}).To(Panic())
@@ -192,8 +206,11 @@ var _ = Describe("WS Dispatch", func() {
 		})
 
 		It("calls afterDispatch hook on success", func() {
-			var hookCalled bool
-			var hookErr error
+			var (
+				hookCalled bool
+				hookErr    error
+			)
+
 			app := newQueryAppWithConfig(
 				func(_ context.Context, _ query.Query) (any, error) {
 					return "result", nil
@@ -204,11 +221,13 @@ var _ = Describe("WS Dispatch", func() {
 			)
 
 			_, _ = app.DispatchWSQuery(nil, "GetUser", wsGetUserDecoder(), []byte(`{}`))
+
 			Expect(hookCalled).To(BeTrue())
 		})
 
 		It("panics on empty query type", func() {
 			app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: query.NewDispatcher()})
+
 			Expect(func() {
 				_, _ = app.DispatchWSQuery(nil, "", wsGetUserDecoder(), nil)
 			}).To(Panic())

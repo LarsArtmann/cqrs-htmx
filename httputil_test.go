@@ -47,6 +47,7 @@ var _ = Describe("HTTP Utilities", func() {
 				if headerName != "" {
 					r.Header.Set(headerName, headerValue)
 				}
+
 				r.RemoteAddr = testRemoteAddr
 				Expect(httputil.ClientIP(r)).To(Equal(expectedIP))
 			},

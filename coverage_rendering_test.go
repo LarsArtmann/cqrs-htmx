@@ -158,8 +158,10 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 	Describe("DecodeForm", func() {
 		It("decodes form data into a command", func() {
 			var received string
+
 			app := newCommandAppWithHandler(func(_ context.Context, _ command.Command) error {
 				received = "dispatched"
+
 				return nil
 			})
 			form := url.Values{}
@@ -177,6 +179,7 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 		It("returns error for invalid form data", func() {
 			app, _ := cqrshtmx.New(cqrshtmx.Config{Commands: command.NewDispatcher()})
 			Expect(app).NotTo(BeNil())
+
 			r := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader("%%%invalid"))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			w := serve(app.Command(

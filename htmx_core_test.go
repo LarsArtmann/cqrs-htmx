@@ -17,6 +17,7 @@ var _ = Describe("HTMX Core", func() {
 			if setHeader {
 				r.Header.Set(header, cqrshtmx.HeaderTrue)
 			}
+
 			Expect(accessor(r)).To(Equal(expected))
 		},
 		Entry("IsHTMXRequest true", "HX-Request", true, cqrshtmx.IsHTMXRequest, true),
@@ -39,6 +40,7 @@ var _ = Describe("HTMX Core", func() {
 			if value != "" {
 				r.Header.Set(header, value)
 			}
+
 			Expect(accessor(r)).To(Equal(expected))
 		},
 		Entry("HTMXTarget set", "HX-Target", "user-list", cqrshtmx.HTMXTarget, "user-list"),
@@ -56,7 +58,7 @@ var _ = Describe("HTMX Core", func() {
 
 	It("returns false when HX-Request header is not 'true'", func() {
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		r.Header.Set("HX-Request", "false")
+		r.Header.Set("Hx-Request", "false")
 		Expect(cqrshtmx.IsHTMXRequest(r)).To(BeFalse())
 	})
 })

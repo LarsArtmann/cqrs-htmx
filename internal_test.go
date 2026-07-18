@@ -17,6 +17,7 @@ func okHandler200() http.HandlerFunc {
 
 func TestAuthModeString(t *testing.T) {
 	t.Parallel()
+
 	cases := []struct {
 		mode authMode
 		want string
@@ -35,11 +36,13 @@ func TestAuthModeString(t *testing.T) {
 
 func TestCSRFTokenFromRequestWithNosurfToken(t *testing.T) {
 	t.Parallel()
+
 	handler := nosurf.New(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := csrfTokenFromRequest(r)
 		if token == "" {
 			t.Error("csrfTokenFromRequest returned empty when nosurf token is set")
 		}
+
 		w.WriteHeader(http.StatusOK)
 	}))
 
@@ -50,8 +53,10 @@ func TestCSRFTokenFromRequestWithNosurfToken(t *testing.T) {
 
 func TestCSRFTokenFromRequestFallback(t *testing.T) {
 	t.Parallel()
+
 	ctx := WithCSRFToken(context.Background(), "fallback-token")
 	r := httptest.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
+
 	token := csrfTokenFromRequest(r)
 	if token != "fallback-token" {
 		t.Errorf("csrfTokenFromRequest fallback = %q, want %q", token, "fallback-token")
@@ -60,6 +65,7 @@ func TestCSRFTokenFromRequestFallback(t *testing.T) {
 
 func TestConfigureNosurfHandlerWithDomain(t *testing.T) {
 	t.Parallel()
+
 	handler := nosurf.New(okHandler200())
 	cfg := CSRFConfig{
 		Domain:   "example.com",
@@ -76,6 +82,7 @@ func TestConfigureNosurfHandlerWithDomain(t *testing.T) {
 	if len(cookies) == 0 {
 		t.Fatal("expected a cookie to be set")
 	}
+
 	if cookies[0].Domain != "example.com" {
 		t.Errorf("cookie domain = %q, want %q", cookies[0].Domain, "example.com")
 	}
@@ -83,6 +90,7 @@ func TestConfigureNosurfHandlerWithDomain(t *testing.T) {
 
 func TestConfigureNosurfHandlerWithTrustedOrigins(t *testing.T) {
 	t.Parallel()
+
 	handler := nosurf.New(okHandler200())
 	cfg := CSRFConfig{
 		Secure:         true,
@@ -102,6 +110,7 @@ func TestConfigureNosurfHandlerWithTrustedOrigins(t *testing.T) {
 
 func TestConfigureNosurfHandlerWithErrorHandler(t *testing.T) {
 	t.Parallel()
+
 	customCalled := false
 	handler := nosurf.New(okHandler200())
 	cfg := CSRFConfig{
@@ -124,8 +133,10 @@ func TestConfigureNosurfHandlerWithErrorHandler(t *testing.T) {
 
 func TestEvictionHeapPushNonPtr(t *testing.T) {
 	t.Parallel()
+
 	h := &evictionHeap{}
 	h.Push("not a pointer")
+
 	if h.Len() != 0 {
 		t.Errorf("Push(non-pointer) should be ignored, got len=%d", h.Len())
 	}

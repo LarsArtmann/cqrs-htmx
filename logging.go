@@ -40,6 +40,7 @@ func DefaultLogFormatter(r *http.Request, status int, duration time.Duration) st
 	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
 		extra += " [correlation=" + cid.String() + "]"
 	}
+
 	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
 		extra += " [user=" + uid.String() + "]"
 	}
@@ -70,9 +71,11 @@ func JSONLogFormatter(r *http.Request, status int, duration time.Duration) strin
 	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
 		entry[logFieldCorrelationID] = cid.String()
 	}
+
 	if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
 		entry[logFieldUserID] = uid.String()
 	}
+
 	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
 		entry[logFieldRequestID] = rid.String()
 	}
@@ -81,6 +84,7 @@ func JSONLogFormatter(r *http.Request, status int, duration time.Duration) strin
 	if !ok {
 		buf = new(bytes.Buffer)
 	}
+
 	buf.Reset()
 	defer jsonLogBufferPool.Put(buf)
 
@@ -88,12 +92,14 @@ func JSONLogFormatter(r *http.Request, status int, duration time.Duration) strin
 	if err != nil {
 		return `{"error":"json marshal failed"}`
 	}
+
 	buf.Write(data)
 
 	b := buf.Bytes()
 	if len(b) > 0 && b[len(b)-1] == '\n' {
 		b = b[:len(b)-1]
 	}
+
 	return string(b)
 }
 
@@ -154,6 +160,7 @@ func (r *ErrorRecorder) DispatchError() error { return r.dispatchErr }
 type StatusRecorder struct {
 	delegatingWriter
 	ErrorRecorder
+
 	status int
 	wrote  bool
 }
@@ -182,6 +189,7 @@ func (r *StatusRecorder) WriteHeader(code int) {
 		r.status = code
 		r.wrote = true
 	}
+
 	r.ResponseWriter.WriteHeader(code)
 }
 
@@ -216,9 +224,11 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 			if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
 				attrs = append(attrs, slog.String(logFieldCorrelationID, cid.String()))
 			}
+
 			if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
 				attrs = append(attrs, slog.String(logFieldUserID, uid.String()))
 			}
+
 			if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
 				attrs = append(attrs, slog.String(logFieldRequestID, rid.String()))
 			}
@@ -256,6 +266,7 @@ func appendDispatchErrorAttrs(attrs []slog.Attr, err error) []slog.Attr {
 	if code := ErrorCode(err); code != "" {
 		attrs = append(attrs, slog.String("error_code", code))
 	}
+
 	if family := errorfamily.Classify(err); family.IsValid() {
 		attrs = append(attrs, slog.String("error_family", family.String()))
 	}
@@ -270,9 +281,12 @@ func appendDispatchErrorAttrs(attrs []slog.Attr, err error) []slog.Attr {
 			}
 			// Move past this event.Error to find deeper ones.
 			current = errors.Unwrap(ee)
+
 			continue
 		}
+
 		current = errors.Unwrap(current)
 	}
+
 	return attrs
 }

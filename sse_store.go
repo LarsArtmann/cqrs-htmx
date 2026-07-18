@@ -27,5 +27,6 @@ func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID SSEEventID
 				"replay after %q (sent %d of %d)", lastEventID.Get(), i, len(events))
 		}
 	}
+
 	return len(events), nil
 }

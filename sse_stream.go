@@ -61,6 +61,7 @@ func NewSSEStream(w http.ResponseWriter, r *http.Request) *SSEStream {
 	w.WriteHeader(http.StatusOK)
 
 	fw, _ := w.(flusher)
+
 	return &SSEStream{
 		w:            w,
 		r:            r,
@@ -84,9 +85,11 @@ func (s *SSEStream) Send(event SSEEvent) error {
 	if err := WriteSSEEvent(s.w, event); err != nil {
 		return err
 	}
+
 	if s.fw != nil {
 		s.fw.Flush()
 	}
+
 	return nil
 }
 
@@ -110,9 +113,11 @@ func (s *SSEStream) Close() {
 	if s.fw != nil {
 		s.fw.Flush()
 	}
+
 	callbacks := s.onDisconnect
 	s.onDisconnect = nil
 	s.mu.Unlock()
+
 	for _, fn := range callbacks {
 		fn()
 	}
@@ -146,11 +151,13 @@ func (s *SSEStream) Heartbeat(ctx context.Context, interval time.Duration) {
 			return
 		case <-ticker.C:
 			s.mu.Lock()
+
 			_, err := s.w.Write([]byte(": keepalive\n\n"))
 			if err == nil && s.fw != nil {
 				s.fw.Flush()
 			}
 			s.mu.Unlock()
+
 			if err != nil {
 				return
 			}

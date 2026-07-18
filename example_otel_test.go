@@ -74,6 +74,7 @@ func OtelBeforeDispatch(tr otelTracer) cqrshtmx.BeforeDispatchHook {
 	return func(ctx context.Context, _ *http.Request) context.Context {
 		ctx, span := tr.Start(ctx, "cqrs.dispatch")
 		_ = span
+
 		return ctx
 	}
 }
@@ -111,6 +112,7 @@ type fakeTracer struct{ spans []string }
 func (f *fakeTracer) Start(_ context.Context, name string) (context.Context, otelSpan) {
 	f.spans = append(f.spans, name)
 	span := &fakeSpan{name: name, tr: f}
+
 	return context.WithValue(context.Background(), otelCtxKey{}, otelSpanCtx{span: span}), span
 }
 

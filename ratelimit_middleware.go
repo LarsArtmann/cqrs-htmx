@@ -76,8 +76,10 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	// concurrent refresh.
 	if ok && time.Since(entry.lastUsed) < p.ttl {
 		p.mu.RUnlock()
+
 		return entry.lim
 	}
+
 	p.mu.RUnlock()
 
 	p.mu.Lock()
@@ -91,6 +93,7 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 			entry.heapRef.lastUsed = entry.lastUsed
 			heap.Fix(p.heap, entry.heapRef.index)
 		}
+
 		return entry.lim
 	}
 
@@ -110,17 +113,21 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 func (p *perKeyLimiter) Len() int {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
+
 	return len(p.limiters)
 }
 
 func (p *perKeyLimiter) evictStale() {
 	now := time.Now()
+
 	for p.heap.Len() > 0 {
 		oldest := (*p.heap)[0]
 		if now.Sub(oldest.lastUsed) <= p.ttl {
 			break
 		}
+
 		heap.Pop(p.heap)
+
 		if entry, ok := p.limiters[oldest.key]; ok && entry.lastUsed.Equal(oldest.lastUsed) {
 			delete(p.limiters, oldest.key)
 		}
@@ -131,14 +138,17 @@ func (p *perKeyLimiter) evictOldestIfAtCapacity() {
 	if p.maxKeys == 0 || uint(len(p.limiters)) < p.maxKeys {
 		return
 	}
+
 	for p.heap.Len() > 0 {
 		oldest, ok := heap.Pop(p.heap).(*evictionEntry)
 		if !ok {
 			continue
 		}
+
 		if entry, exists := p.limiters[oldest.key]; exists &&
 			entry.lastUsed.Equal(oldest.lastUsed) {
 			delete(p.limiters, oldest.key)
+
 			return
 		}
 	}
@@ -167,6 +177,7 @@ func (h *evictionHeap) Push(x any) {
 	if !ok {
 		return
 	}
+
 	entry.index = len(*h)
 	*h = append(*h, entry)
 }
@@ -178,5 +189,6 @@ func (h *evictionHeap) Pop() any {
 	old[n-1] = nil
 	item.index = -1
 	*h = old[:n-1]
+
 	return item
 }

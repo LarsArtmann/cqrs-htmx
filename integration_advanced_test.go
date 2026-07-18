@@ -35,13 +35,18 @@ var _ = Describe("Integration: Body Size and Middleware", func() {
 	Describe("Full middleware chain", func() {
 		It("dispatches command through complete middleware stack", func() {
 			disp := command.NewDispatcher()
-			var receivedUserID cqrshtmx.UserID
-			var htmxFromContext *cqrshtmx.HTMXRequest
-			var requestID cqrshtmx.RequestID
+
+			var (
+				receivedUserID  cqrshtmx.UserID
+				htmxFromContext *cqrshtmx.HTMXRequest
+				requestID       cqrshtmx.RequestID
+			)
+
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
 				receivedUserID = cqrshtmx.UserIDFromContext(ctx)
 				htmxFromContext = cqrshtmx.HTMXFromContext(ctx)
 				requestID = cqrshtmx.RequestIDFromContext(ctx)
+
 				return nil
 			})
 			app, err := cqrshtmx.New(cqrshtmx.Config{
@@ -64,10 +69,12 @@ var _ = Describe("Integration: Body Size and Middleware", func() {
 
 			// Acquire CSRF token via the same CSRF middleware instance.
 			var csrfToken string
+
 			tokenHandler := csrfTokenHandler(csrfMW, &csrfToken)
 			w1 := httptest.NewRecorder()
 			tokenHandler.ServeHTTP(w1, httptest.NewRequest(http.MethodGet, "/", nil))
 			cookies := w1.Result().Cookies()
+
 			Expect(csrfToken).NotTo(BeEmpty())
 
 			// POST through the full chain with HTMX and user ID.

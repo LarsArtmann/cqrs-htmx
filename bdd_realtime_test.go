@@ -40,17 +40,21 @@ func newSSEClient(b *cqrshtmx.Broadcaster, stopAfter int) *sseClient {
 		defer close(c.done)
 		defer b.Unsubscribe(ch)
 		defer stream.Close()
+
 		received := 0
+
 		for evt := range ch {
 			if err := stream.Send(evt); err != nil {
 				return
 			}
+
 			received++
 			if received >= stopAfter {
 				return
 			}
 		}
 	}()
+
 	return c
 }
 
@@ -61,6 +65,7 @@ func newSSEClient(b *cqrshtmx.Broadcaster, stopAfter int) *sseClient {
 // the body with a mutex and exposes a locked accessor.
 type lockedRecorder struct {
 	*httptest.ResponseRecorder
+
 	mu  sync.Mutex
 	buf bytes.Buffer
 }
@@ -72,6 +77,7 @@ func newLockedRecorder() *lockedRecorder {
 func (l *lockedRecorder) Write(p []byte) (int, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	return l.buf.Write(p)
 }
 
@@ -81,6 +87,7 @@ func (l *lockedRecorder) Flush() {}
 func (l *lockedRecorder) body() string {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	return l.buf.String()
 }
 
@@ -97,6 +104,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 			It("responds to a connecting browser with the SSE protocol headers", func() {
 				rec := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
 				stream := cqrshtmx.NewSSEStream(rec, r)
 				defer stream.Close()
 
@@ -141,6 +149,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 			It("sends an HTML fragment as a named event the browser can swap on", func() {
 				rec := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
 				stream := cqrshtmx.NewSSEStream(rec, r)
 				defer stream.Close()
 
@@ -161,6 +170,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				rec := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
 				r.Header.Set("Last-Event-ID", "2")
+
 				stream := cqrshtmx.NewSSEStream(rec, r)
 				defer stream.Close()
 
@@ -189,6 +199,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 			It("treats a connection with no Last-Event-ID as a first-time visitor", func() {
 				rec := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
 				stream := cqrshtmx.NewSSEStream(rec, r)
 				defer stream.Close()
 
@@ -199,6 +210,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 			It("records an event id and retry hint so the browser can resume and back off", func() {
 				rec := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
 				stream := cqrshtmx.NewSSEStream(rec, r)
 				defer stream.Close()
 
@@ -223,10 +235,12 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 			rec := newLockedRecorder()
 			ctx, cancel := context.WithCancel(context.Background())
 			r := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events", nil)
+
 			stream := cqrshtmx.NewSSEStream(rec, r)
 			defer stream.Close()
 
 			done := make(chan struct{})
+
 			go func() {
 				stream.Heartbeat(ctx, time.Millisecond)
 				close(done)
@@ -244,6 +258,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 			stream := cqrshtmx.NewSSEStream(httptest.NewRecorder(), r)
 
 			cleanedUp := false
+
 			stream.OnDisconnect(func() { cleanedUp = true })
 
 			Expect(cleanedUp).To(BeFalse())
@@ -332,6 +347,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 					Room    string `json:"room"`
 					Message string `json:"message"`
 				}
+
 				raw := []byte(`{
 					"room": "general",
 					"message": "ping",

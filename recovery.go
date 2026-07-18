@@ -16,6 +16,7 @@ func shouldRePanic(rec any) bool {
 	if err, ok := rec.(error); ok {
 		return errors.Is(err, http.ErrAbortHandler)
 	}
+
 	return false
 }
 
@@ -29,6 +30,7 @@ const panicCode = "panic"
 
 func isPanicError(err error) bool {
 	e, ok := errors.AsType[*event.Error](err)
+
 	return ok && e.Code() == panicCode
 }
 

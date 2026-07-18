@@ -30,6 +30,7 @@ func defaultCSRFConfig() cqrshtmx.CSRFConfig {
 func csrfConfigWith(overrides func(*cqrshtmx.CSRFConfig)) cqrshtmx.CSRFConfig {
 	cfg := defaultCSRFConfig()
 	overrides(&cfg)
+
 	return cfg
 }
 
@@ -45,6 +46,7 @@ func csrfTokenCaptureHandler(
 		if *token == "" || !captureOnce {
 			*token = cqrshtmx.CSRFTokenFromContext(r.Context())
 		}
+
 		w.WriteHeader(http.StatusOK)
 	}))
 }
@@ -56,6 +58,7 @@ func csrfGETThenPOST(
 	headerName, fieldName string,
 ) int {
 	var token string
+
 	handler := csrfTokenCaptureHandler(middleware, &token, true)
 
 	w1 := httptest.NewRecorder()
@@ -70,9 +73,11 @@ func csrfGETThenPOST(
 		strings.NewReader("{}"),
 	)
 	r2.Header.Set("Sec-Fetch-Site", "same-origin")
+
 	if headerName != "" {
 		r2.Header.Set(headerName, token)
 	}
+
 	if fieldName != "" {
 		body := fieldName + "=" + url.QueryEscape(token)
 		r2 = httptest.NewRequestWithContext(
@@ -84,9 +89,11 @@ func csrfGETThenPOST(
 		r2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		r2.Header.Set("Sec-Fetch-Site", "same-origin")
 	}
+
 	for _, c := range w1.Result().Cookies() {
 		r2.AddCookie(c)
 	}
+
 	handler.ServeHTTP(w2, r2)
 
 	return w2.Code

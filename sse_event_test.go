@@ -36,6 +36,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 
 		It("writes an event ID", func() {
 			var buf bytes.Buffer
+
 			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
 				Data: "payload",
 				ID:   cqrshtmx.NewSSEEventID("42"),
@@ -46,6 +47,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 
 		It("writes a retry interval", func() {
 			var buf bytes.Buffer
+
 			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
 				Data:  "payload",
 				Retry: 5000,
@@ -56,6 +58,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 
 		It("writes a complete event with all fields", func() {
 			var buf bytes.Buffer
+
 			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
 				Event: "fullEvent",
 				Data:  "multi\nline\ndata",
@@ -101,7 +104,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		It("handles multiple consecutive newlines", func() {
 			writeAndExpect(cqrshtmx.SSEEvent{
 				Data: "a\n\nb",
-			}, "data: a\ndata: \ndata: b\n\n")
+			}, "data: a\ndata: \nb\n\n")
 		})
 
 		It("handles CRLF-only string", func() {
@@ -213,9 +216,11 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
+
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
+
 				stream.Heartbeat(ctx, 10*time.Millisecond)
 			}()
 
@@ -233,9 +238,11 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
+
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
+
 				stream.Heartbeat(ctx, 10*time.Millisecond)
 			}()
 
@@ -250,6 +257,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			stream := cqrshtmx.NewSSEStream(w, r)
 
 			called := false
+
 			stream.OnDisconnect(func() {
 				called = true
 			})
@@ -265,6 +273,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			stream := cqrshtmx.NewSSEStream(w, r)
 
 			order := []int{}
+
 			stream.OnDisconnect(func() { order = append(order, 1) })
 			stream.OnDisconnect(func() { order = append(order, 2) })
 			stream.OnDisconnect(func() { order = append(order, 3) })

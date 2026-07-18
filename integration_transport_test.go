@@ -17,6 +17,7 @@ var _ = Describe("Transport Parity Integration", func() {
 	Describe("SSE error flow: HTTP dispatch failure → BroadcastOnError → subscriber", func() {
 		It("broadcasts a StructuredError SSE event when an HTTP command fails", func() {
 			broadcaster := cqrshtmx.NewBroadcaster()
+
 			ch := broadcaster.Subscribe()
 			defer broadcaster.Unsubscribe(ch)
 
@@ -45,6 +46,7 @@ var _ = Describe("Transport Parity Integration", func() {
 
 		It("broadcasts both success and error events from the same broadcaster", func() {
 			broadcaster := cqrshtmx.NewBroadcaster()
+
 			ch := broadcaster.Subscribe()
 			defer broadcaster.Unsubscribe(ch)
 
@@ -59,6 +61,7 @@ var _ = Describe("Transport Parity Integration", func() {
 				AfterDispatch: func(_ context.Context, r *http.Request, err error) {
 					if err == nil {
 						successCount++
+
 						broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "ok", Data: "success"})
 					} else {
 						errorCount++
@@ -83,6 +86,7 @@ var _ = Describe("Transport Parity Integration", func() {
 	Describe("WS dispatch round-trip: DispatchWSCommand → hooks → WSBroadcaster", func() {
 		It("broadcasts a WS message on successful command dispatch via hook", func() {
 			wsBroadcaster := cqrshtmx.NewWSBroadcaster()
+
 			ch := wsBroadcaster.Subscribe()
 			defer wsBroadcaster.Unsubscribe(ch)
 
@@ -108,6 +112,7 @@ var _ = Describe("Transport Parity Integration", func() {
 
 		It("broadcasts a WS StructuredError on failed command dispatch", func() {
 			wsBroadcaster := cqrshtmx.NewWSBroadcaster()
+
 			ch := wsBroadcaster.Subscribe()
 			defer wsBroadcaster.Unsubscribe(ch)
 
@@ -167,12 +172,14 @@ var _ = Describe("Transport Parity Integration", func() {
 	Describe("WS message encode/decode round-trip with dispatch", func() {
 		It("parses HTMX WS message, dispatches command, encodes response", func() {
 			var capturedEmail string
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, cmd command.Command) error {
 				typed, ok := cmd.(*testCreateUserCmd)
 				if ok {
 					capturedEmail = typed.email
 				}
+
 				return nil
 			})
 

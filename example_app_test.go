@@ -36,6 +36,7 @@ func ExampleNew() {
 	}
 
 	_ = app
+
 	fmt.Println("app created")
 	// Output: app created
 }
@@ -57,6 +58,7 @@ func ExampleApp_Command() {
 	)
 
 	_ = handler
+
 	fmt.Println("command handler created")
 	// Output: command handler created
 }
@@ -76,6 +78,7 @@ func ExampleApp_Query() {
 	)
 
 	_ = handler
+
 	fmt.Println("query handler created")
 	// Output: query handler created
 }
@@ -98,6 +101,7 @@ func ExampleHTMXVersion() {
 
 func ExampleBroadcaster_BroadcastOnSuccessFunc() {
 	b := cqrshtmx.NewBroadcaster()
+
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)
 
@@ -132,6 +136,7 @@ func ExampleApp_Query_typedRegister() {
 	}
 
 	_ = app
+
 	fmt.Println(len(users))
 	// Output: 2
 }
@@ -153,6 +158,7 @@ func ExampleChain() {
 	})
 
 	type spanKey struct{}
+
 	type span struct {
 		name      string
 		startTime time.Time
@@ -164,6 +170,7 @@ func ExampleChain() {
 		Commands: disp,
 		BeforeDispatch: func(_ context.Context, r *http.Request) context.Context {
 			s := &span{name: r.URL.Path, startTime: time.Now()}
+
 			return context.WithValue(context.Background(), spanKey{}, s)
 		},
 		AfterDispatch: func(ctx context.Context, _ *http.Request, _ error) {
@@ -208,6 +215,7 @@ func ExampleApp_Query_typedDispatch() {
 	}
 
 	_ = app
+
 	fmt.Println(name)
 	// Output: alice
 }
@@ -219,6 +227,7 @@ func ExampleRegisterTyped() {
 		disp, "CreateUser",
 		func(_ context.Context, cmd *testCreateUserCmd) error {
 			fmt.Printf("creating user: %s\n", cmd.email)
+
 			return nil
 		},
 	)
@@ -237,8 +246,10 @@ func ExampleConfig_BeforeDispatch() {
 	// Here we measure dispatch duration with BeforeDispatch + AfterDispatch.
 	disp := command.NewDispatcher()
 
-	var total time.Duration
-	var calls int
+	var (
+		total time.Duration
+		calls int
+	)
 
 	app, _ := cqrshtmx.New(cqrshtmx.Config{
 		Commands: disp,
@@ -251,6 +262,7 @@ func ExampleConfig_BeforeDispatch() {
 				total += time.Since(v)
 				calls++
 			}
+
 			_ = err
 		},
 	})
@@ -288,6 +300,7 @@ func ExampleServerTimingMiddleware() {
 	})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Time a region that completes BEFORE the response is written.
 		stop := cqrshtmx.MeasureServerTiming(r.Context(), "db")
+
 		time.Sleep(time.Millisecond)
 		stop()
 		w.WriteHeader(http.StatusOK)

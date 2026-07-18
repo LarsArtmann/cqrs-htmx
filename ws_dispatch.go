@@ -60,12 +60,14 @@ func makeWSDecoder[T, C any](errPrefix string, mapper func(T) (C, error)) func([
 		if err := json.Unmarshal(data, &t); err != nil {
 			return zero[C](), errorfamily.Wrapf(err, event.Rejection, "cqrshtmx.ws.decode_failed", "%s", errPrefix)
 		}
+
 		return mapper(t)
 	}
 }
 
 func zero[C any]() C {
 	var c C
+
 	return c
 }
 
@@ -126,6 +128,7 @@ func (a *App) DispatchWSCommand(
 	}
 
 	a.afterDispatchHook(ctx, r, nil)
+
 	return nil
 }
 
@@ -178,6 +181,7 @@ func (a *App) DispatchWSQuery(
 	}
 
 	a.afterDispatchHook(ctx, r, nil)
+
 	return result, nil
 }
 
@@ -186,6 +190,7 @@ func wsContext(r *http.Request) context.Context {
 	if r == nil {
 		return context.Background()
 	}
+
 	return r.Context()
 }
 
@@ -197,6 +202,7 @@ func (a *App) wsCallContext(r *http.Request) context.Context {
 	if a.beforeDispatch != nil && r != nil {
 		ctx = a.beforeDispatch(ctx, r)
 	}
+
 	return ctx
 }
 
@@ -216,16 +222,21 @@ func decodeWSMessage[T any](
 	msgArgs ...any,
 ) (T, error) {
 	var zero T
+
 	v, err := decoder(data)
 	if err != nil {
 		wrapped := errorfamily.Wrapf(err, event.Rejection, code, msgFormat, msgArgs...)
 		a.afterDispatchHook(ctx, r, wrapped)
+
 		return zero, wrapped
 	}
+
 	if isWSValueNil(v) {
 		a.afterDispatchHook(ctx, r, errDecoderMissing)
+
 		return zero, errDecoderMissing
 	}
+
 	return v, nil
 }
 
@@ -237,11 +248,13 @@ func isWSValueNil(v any) bool {
 	if v == nil {
 		return true
 	}
+
 	k := reflect.ValueOf(v).Kind()
 	switch k { //nolint:exhaustive // only reference kinds can be nil
 	case reflect.Pointer, reflect.Interface, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func:
 		return reflect.ValueOf(v).IsNil()
 	}
+
 	return false
 }
 
@@ -254,5 +267,6 @@ func (a *App) wrapWSDispatchErr(
 ) error {
 	wrapped := errorfamily.Wrapf(err, errorfamily.Classify(err), code, msgFormat, msgArgs...)
 	a.afterDispatchHook(ctx, r, wrapped)
+
 	return wrapped
 }

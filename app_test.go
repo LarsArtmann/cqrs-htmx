@@ -51,10 +51,11 @@ var _ = Describe("App", func() {
 				LoginRedirect: "/auth/signin",
 			})
 			Expect(err).NotTo(HaveOccurred())
+
 			handler := app.Command("CreateUser", cqrshtmx.Authorize("users", "create"))
 			r := newPostRequest("/users", "", withHTMX)
 			w := serve(handler, r)
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/auth/signin"))
+			Expect(w.Header().Get("Hx-Redirect")).To(Equal("/auth/signin"))
 		})
 
 		It("includes request_id in errors when IncludeRequestIDInErrors is true", func() {
@@ -63,6 +64,7 @@ var _ = Describe("App", func() {
 				IncludeRequestIDInErrors: true,
 			})
 			Expect(err).NotTo(HaveOccurred())
+
 			rid := cqrshtmx.MustParseRequestID("01HK154ANGZHV2ZW0X3SKSNEN2")
 			r := newPostRequest("/users", "")
 			r = r.WithContext(cqrshtmx.WithRequestID(r.Context(), rid))
@@ -80,8 +82,10 @@ var _ = Describe("App", func() {
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
+
 			r := newPostRequest("/users", "")
 			w := serve(app.Command("CreateUser"), r)
+
 			Expect(called).To(BeTrue())
 			Expect(w.Body.String()).To(BeEmpty())
 		})
@@ -125,7 +129,9 @@ var _ = Describe("App", func() {
 			enf := newTestEnforcer()
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", noOpCommandHandler)
+
 			var err error
+
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Commands:        disp,
 				Enforcer:        enf,
@@ -175,7 +181,7 @@ var _ = Describe("App", func() {
 				decodeCreateUserJSON(),
 				cqrshtmx.Trigger("userCreated"),
 			), newPostRequest("/users", testUserJSONBody, withHTMX))
-			Expect(w.Header().Get("HX-Trigger")).To(Equal("userCreated"))
+			Expect(w.Header().Get("Hx-Trigger")).To(Equal("userCreated"))
 		})
 
 		It("sets HX-Push-Url header with PushURL option", func() {
@@ -184,7 +190,7 @@ var _ = Describe("App", func() {
 				decodeCreateUserJSON(),
 				cqrshtmx.PushURL("/users"),
 			), newPostRequest("/users", `{}`, withHTMX))
-			Expect(w.Header().Get("HX-Push-Url")).To(Equal("/users"))
+			Expect(w.Header().Get("Hx-Push-Url")).To(Equal("/users"))
 		})
 
 		It("sets HX-Redirect header with Redirect option for HTMX requests", func() {
@@ -193,7 +199,7 @@ var _ = Describe("App", func() {
 				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
 			), newPostRequest("/users", `{}`, withHTMX))
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/users"))
+			Expect(w.Header().Get("Hx-Redirect")).To(Equal("/users"))
 		})
 	})
 
@@ -229,7 +235,9 @@ var _ = Describe("App", func() {
 			enf := newTestEnforcer()
 			disp := query.NewDispatcher()
 			registerGetUserEmail(disp)
+
 			var err error
+
 			app, err = cqrshtmx.New(cqrshtmx.Config{
 				Queries:         disp,
 				Enforcer:        enf,
@@ -240,7 +248,7 @@ var _ = Describe("App", func() {
 
 		It("allows authorized queries", func() {
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			r.Header.Set("X-User-ID", adminUserID.String())
+			r.Header.Set("X-User-Id", adminUserID.String())
 			w := serve(app.Query(
 				"GetUser",
 				cqrshtmx.Authorize("users", "read"),
@@ -252,7 +260,7 @@ var _ = Describe("App", func() {
 
 		It("denies unauthorized queries", func() {
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			r.Header.Set("X-User-ID", viewerUserID.String())
+			r.Header.Set("X-User-Id", viewerUserID.String())
 			w := serve(app.Query(
 				"GetUser",
 				cqrshtmx.Authorize("users", "admin"),
@@ -276,7 +284,7 @@ var _ = Describe("App", func() {
 
 		It("rejects queries without decoder", func() {
 			r := httptest.NewRequest(http.MethodGet, "/users", nil)
-			r.Header.Set("X-User-ID", adminUserID.String())
+			r.Header.Set("X-User-Id", adminUserID.String())
 			w := serve(app.Query("GetUser", cqrshtmx.Authorize("users", "read")), r)
 			Expect(w.code()).NotTo(Equal(http.StatusOK))
 		})
@@ -293,6 +301,7 @@ var _ = Describe("App", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			var capturedUserID cqrshtmx.UserID
+
 			handler := app.Middleware()(
 				http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 					capturedUserID = cqrshtmx.UserIDFromContext(r.Context())

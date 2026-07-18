@@ -22,7 +22,7 @@ var _ = Describe("CSRF Advanced", func() {
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, r)
 
-			Expect(w.Header().Get("X-CSRF-Token")).To(Equal("response-token"))
+			Expect(w.Header().Get("X-Csrf-Token")).To(Equal("response-token"))
 		})
 
 		It("does not set header when no token is in context", func() {
@@ -33,7 +33,7 @@ var _ = Describe("CSRF Advanced", func() {
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, r)
 
-			Expect(w.Header().Get("X-CSRF-Token")).To(BeEmpty())
+			Expect(w.Header().Get("X-Csrf-Token")).To(BeEmpty())
 		})
 	})
 

@@ -71,6 +71,7 @@ type bddTemplComponent struct {
 
 func (m *bddTemplComponent) Render(_ context.Context, w io.Writer) error {
 	_, err := w.Write([]byte(m.html))
+
 	return err
 }
 

@@ -20,6 +20,7 @@ func WithCSRFToken(ctx context.Context, token string) context.Context {
 // Returns an empty string if no token is present.
 func CSRFTokenFromContext(ctx context.Context) string {
 	token, _ := ctx.Value(csrfKey{}).(string)
+
 	return token
 }
 
@@ -27,6 +28,7 @@ func csrfTokenFromRequest(r *http.Request) string {
 	if token := nosurf.Token(r); token != "" {
 		return token
 	}
+
 	return CSRFTokenFromContext(r.Context())
 }
 

@@ -16,6 +16,7 @@ func BenchmarkServerTiming_DisabledOverhead(b *testing.B) {
 	r := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
 
 	b.ResetTimer()
+
 	for range b.N {
 		stop := MeasureServerTiming(r.Context(), "db")
 		stop()
@@ -28,6 +29,7 @@ func BenchmarkServerTiming_EnabledMeasure(b *testing.B) {
 	st := newServerTiming()
 
 	b.ResetTimer()
+
 	for range b.N {
 		stop := st.Measure("db")
 		stop()
@@ -41,6 +43,7 @@ func BenchmarkServerTiming_EnabledMeasureViaContext(b *testing.B) {
 	ctx := WithServerTiming(context.Background(), st)
 
 	b.ResetTimer()
+
 	for range b.N {
 		stop := MeasureServerTiming(ctx, "db")
 		stop()
@@ -52,6 +55,7 @@ func BenchmarkServerTiming_Record(b *testing.B) {
 	st := newServerTiming()
 
 	b.ResetTimer()
+
 	for range b.N {
 		st.Record("metric", "description", 1234567*time.Nanosecond)
 	}
@@ -68,6 +72,7 @@ func BenchmarkServerTiming_HeaderValue(b *testing.B) {
 	st.Record("render", "", 2000000*time.Nanosecond)
 
 	b.ResetTimer()
+
 	for range b.N {
 		_ = st.HeaderValue()
 	}
@@ -85,6 +90,7 @@ func BenchmarkServerTiming_MiddlewareDisabledPassthrough(b *testing.B) {
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 
 	b.ResetTimer()
+
 	for range b.N {
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, r)

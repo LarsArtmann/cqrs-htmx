@@ -22,10 +22,12 @@ import (
 //	}
 func RenderTemplComponent(w http.ResponseWriter, r *http.Request, partial, full TemplComponent) error {
 	w.Header().Set("Content-Type", ContentTypeHTML)
+
 	c := full
 	if RenderPartial(r) {
 		c = partial
 	}
+
 	return c.Render(r.Context(), w) //nolint:wrapcheck // passthrough, matching RenderTempl pattern
 }
 

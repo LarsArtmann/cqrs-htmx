@@ -45,6 +45,7 @@ func RenderHTML(html string) HandlerOption {
 		cfg.render = func(w http.ResponseWriter, _ *http.Request, _ any) error {
 			w.Header().Set("Content-Type", ContentTypeHTML)
 			_, _ = w.Write([]byte(html))
+
 			return nil
 		}
 	}
@@ -70,6 +71,7 @@ func RenderTemplResult[T any](mapper func(T) TemplComponent) HandlerOption {
 			}
 
 			component := mapper(typed)
+
 			return component.Render(r.Context(), w)
 		}
 	}
@@ -126,6 +128,7 @@ func RenderIf(check func(*http.Request) bool, match, noMatch RenderFunc) Handler
 			if check(r) {
 				return match(w, r, result)
 			}
+
 			return noMatch(w, r, result)
 		}
 	}
@@ -169,9 +172,11 @@ func RenderPartialOrFull[T any](partial, full func(T) TemplComponent) HandlerOpt
 			}
 
 			w.Header().Set("Content-Type", ContentTypeHTML)
+
 			if RenderPartial(r) {
 				return partial(typed).Render(r.Context(), w)
 			}
+
 			return full(typed).Render(r.Context(), w)
 		}
 	}

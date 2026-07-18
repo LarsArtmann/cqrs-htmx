@@ -56,6 +56,7 @@ func FuzzDecodeFormBody(f *testing.F) {
 			"/",
 			strings.NewReader(body),
 		)
+
 		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		defer func() { _ = r.Body.Close() }()
 
@@ -120,26 +121,33 @@ func FuzzEventOptionsFromContext(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, hasDeadline, hasCancel int, uid, cid, rid string) {
 		ctx := context.Background()
+
 		if hasDeadline%2 == 1 {
 			var cancel context.CancelFunc
+
 			ctx, cancel = context.WithDeadline(ctx, time.Unix(0, 0).Add(time.Hour))
 			defer cancel()
 		}
+
 		if hasCancel%2 == 1 {
 			var cancel context.CancelFunc
+
 			ctx, cancel = context.WithCancel(ctx)
 			cancel()
 		}
+
 		if uid != "" {
 			if parsed, err := ParseUserID(uid); err == nil {
 				ctx = WithUserID(ctx, parsed)
 			}
 		}
+
 		if cid != "" {
 			if parsed, err := ParseCorrelationID(cid); err == nil {
 				ctx = WithCorrelationID(ctx, parsed)
 			}
 		}
+
 		if rid != "" {
 			if parsed, err := ParseRequestID(rid); err == nil {
 				ctx = WithRequestID(ctx, parsed)
@@ -168,6 +176,7 @@ func FuzzWriteWSMessage(f *testing.F) {
 		if err := json.Unmarshal([]byte(bodyJSON), &body); err != nil {
 			t.Skip()
 		}
+
 		var headers map[string]string
 		if headersJSON != "" {
 			if err := json.Unmarshal([]byte(headersJSON), &headers); err != nil {
@@ -176,6 +185,7 @@ func FuzzWriteWSMessage(f *testing.F) {
 		}
 
 		msg := WSMessage{Body: body, Headers: headers}
+
 		var buf bytes.Buffer
 		if err := WriteWSMessage(&buf, msg); err != nil {
 			t.Fatalf("WriteWSMessage: %v", err)

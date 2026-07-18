@@ -27,6 +27,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 	Describe("Broadcaster AfterDispatchHook bridge", func() {
 		It("broadcasts event on successful dispatch", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -41,6 +42,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 
 		It("does not broadcast on dispatch error", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -56,6 +58,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 
 		It("broadcasts dynamic event via BroadcastOnSuccessFunc", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -72,6 +75,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 
 		It("does not broadcast dynamic event on dispatch error", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -87,6 +91,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 	Describe("BroadcastOnError", func() {
 		It("broadcasts error event when dispatch fails", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -104,6 +109,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 
 		It("does not broadcast error event when dispatch succeeds", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -117,6 +123,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 	Describe("BroadcastOnErrorFunc", func() {
 		It("builds dynamic error event from request and error", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -138,11 +145,13 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 
 		It("does not fire on success", func() {
 			b := cqrshtmx.NewBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
 			hook := b.BroadcastOnErrorFunc(func(_ *http.Request, _ error) cqrshtmx.SSEEvent {
 				Fail("should not be called on success")
+
 				return cqrshtmx.SSEEvent{}
 			})
 
@@ -162,6 +171,7 @@ func (e *errorWriter) Write(_ []byte) (int, error) {
 // writeAndExpect writes an SSE event to a buffer and asserts the exact output.
 func writeAndExpect(event cqrshtmx.SSEEvent, want string) {
 	var buf bytes.Buffer
+
 	err := cqrshtmx.WriteSSEEvent(&buf, event)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(buf.String()).To(Equal(want))
@@ -170,6 +180,7 @@ func writeAndExpect(event cqrshtmx.SSEEvent, want string) {
 // errorResponseWriter wraps errorWriter as an http.ResponseWriter for SSE stream tests.
 type errorResponseWriter struct {
 	http.ResponseWriter
+
 	writer *errorWriter
 }
 
@@ -187,13 +198,16 @@ func (m *memoryEventStore) EventsAfter(lastID string) []cqrshtmx.SSEEvent {
 	if lastID == "" {
 		return m.events
 	}
+
 	for i, evt := range m.events {
 		if evt.ID == cqrshtmx.NewSSEEventID(lastID) {
 			if i+1 < len(m.events) {
 				return m.events[i+1:]
 			}
+
 			return nil
 		}
 	}
+
 	return nil
 }

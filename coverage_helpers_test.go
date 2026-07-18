@@ -32,9 +32,9 @@ func testNotificationTrigger(opt cqrshtmx.HandlerOption, expectedLevel string) {
 		"/users",
 		strings.NewReader(`{}`),
 	)
-	r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+	r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 	w := serve(app.Command("CreateUser", decodeCreateUserJSON(), opt), r)
-	trigger := w.Header().Get("HX-Trigger")
+	trigger := w.Header().Get("Hx-Trigger")
 	Expect(trigger).To(ContainSubstring(expectedLevel))
 }
 
@@ -43,6 +43,7 @@ func newQueryAppWithResult(handler func(context.Context, query.Query) (any, erro
 	_ = disp.Register("GetUser", handler)
 	app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 	Expect(err).NotTo(HaveOccurred())
+
 	return app
 }
 
@@ -66,6 +67,7 @@ func newQueryAppNamed(name string, handler func(context.Context, query.Query) (a
 	_ = disp.Register(query.Type(name), handler)
 	app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 	Expect(err).NotTo(HaveOccurred())
+
 	return app
 }
 
@@ -77,6 +79,7 @@ func newQueryAppWithConfig(handler func(context.Context, query.Query) (any, erro
 	cfg.Queries = disp
 	app, err := cqrshtmx.New(cfg)
 	Expect(err).NotTo(HaveOccurred())
+
 	return app
 }
 
@@ -85,6 +88,7 @@ func newCommandAppWithHandler(handler func(context.Context, command.Command) err
 	_ = disp.Register("CreateUser", handler)
 	app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 	Expect(err).NotTo(HaveOccurred())
+
 	return app
 }
 
@@ -96,5 +100,6 @@ func newCommandAppWithConfig(handler func(context.Context, command.Command) erro
 	cfg.Commands = disp
 	app, err := cqrshtmx.New(cfg)
 	Expect(err).NotTo(HaveOccurred())
+
 	return app
 }

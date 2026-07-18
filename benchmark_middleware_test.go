@@ -22,6 +22,7 @@ func BenchmarkRequestLogging(b *testing.B) {
 	b.Run("JSONFormatter", func(b *testing.B) {
 		jsonMw := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(_ string) {})
 		jsonHandler := jsonMw(okHandler())
+
 		for range b.N {
 			r := httptest.NewRequest(http.MethodGet, "/users", nil)
 			w := httptest.NewRecorder()
@@ -32,6 +33,7 @@ func BenchmarkRequestLogging(b *testing.B) {
 	b.Run("WithContextIDs", func(b *testing.B) {
 		uid := cqrshtmx.MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2")
 		cid := cqrshtmx.MustParseCorrelationID("01HK1549P84T9XF8R94E960633")
+
 		for range b.N {
 			r := httptest.NewRequest(http.MethodGet, "/users", nil)
 			ctx := cqrshtmx.WithUserID(r.Context(), uid)
@@ -56,31 +58,39 @@ func BenchmarkCSRFMiddleware(b *testing.B) {
 		// Obtain a masked token from context via GET
 		w1 := httptest.NewRecorder()
 		r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+
 		var token string
+
 		captureMw := cqrshtmx.CSRFMiddleware(cfg)
 		captureHandler := captureMw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token = cqrshtmx.CSRFTokenFromContext(r.Context())
+
 			w.WriteHeader(http.StatusOK)
 		}))
 		captureHandler.ServeHTTP(w1, r1)
 
 		// Get the cookie from the capture handler
 		var cookie *http.Cookie
+
 		for _, c := range w1.Result().Cookies() {
 			if c.Name == "csrf_token" {
 				cookie = c
+
 				break
 			}
 		}
 
 		b.ResetTimer()
+
 		for range b.N {
 			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{}"))
-			r.Header.Set("X-CSRF-Token", token)
+			r.Header.Set("X-Csrf-Token", token)
 			r.Header.Set("Sec-Fetch-Site", "same-origin")
+
 			if cookie != nil {
 				r.AddCookie(cookie)
 			}
+
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, r)
 		}
@@ -120,6 +130,7 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 		handler := middleware(okHandler())
 
 		b.ResetTimer()
+
 		for range b.N {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.RemoteAddr = "192.168.1.1:1234"
@@ -141,6 +152,7 @@ func BenchmarkSecurityHeadersMiddleware(b *testing.B) {
 
 func benchGET(b *testing.B, h http.Handler, path string) {
 	b.Helper()
+
 	for b.Loop() {
 		r := httptest.NewRequest(http.MethodGet, path, nil)
 		w := httptest.NewRecorder()
@@ -151,6 +163,7 @@ func benchGET(b *testing.B, h http.Handler, path string) {
 // benchGETWithBody runs a GET-like loop that posts a JSON body to /path.
 func benchGETWithBody(b *testing.B, h http.Handler, path string) {
 	b.Helper()
+
 	for b.Loop() {
 		r := httptest.NewRequest(http.MethodGet, path, strings.NewReader(`{}`))
 		w := httptest.NewRecorder()

@@ -19,6 +19,7 @@ var _ = Describe("WS Encoder", func() {
 	Describe("WriteWSMessage", func() {
 		It("writes body and headers in HTMX format", func() {
 			var buf bytes.Buffer
+
 			msg := cqrshtmx.WSMessage{
 				Headers: map[string]string{"HX-Request": "true"},
 				Body:    map[string]any{"name": "Alice"},
@@ -34,6 +35,7 @@ var _ = Describe("WS Encoder", func() {
 
 		It("handles empty headers", func() {
 			var buf bytes.Buffer
+
 			msg := cqrshtmx.WSMessage{
 				Headers: map[string]string{},
 				Body:    map[string]any{"count": float64(42)},
@@ -55,6 +57,7 @@ var _ = Describe("WS Encoder", func() {
 
 		It("writes typed body with headers", func() {
 			var buf bytes.Buffer
+
 			err := cqrshtmx.WriteWSMessageInto(&buf, chatMsg{
 				Channel: "general",
 				Text:    "hello",
@@ -70,6 +73,7 @@ var _ = Describe("WS Encoder", func() {
 
 		It("round-trips through parse and write", func() {
 			var buf bytes.Buffer
+
 			original := chatMsg{Channel: "dev", Text: "ping"}
 
 			err := cqrshtmx.WriteWSMessageInto(&buf, original, nil)
@@ -86,6 +90,7 @@ var _ = Describe("WSBroadcaster", func() {
 	Describe("Subscribe and Broadcast", func() {
 		It("delivers messages to subscribers", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -97,6 +102,7 @@ var _ = Describe("WSBroadcaster", func() {
 		It("delivers to multiple subscribers", func() {
 			b := cqrshtmx.NewWSBroadcaster()
 			ch1 := b.Subscribe()
+
 			ch2 := b.Subscribe()
 			defer b.Unsubscribe(ch1)
 			defer b.Unsubscribe(ch2)
@@ -136,6 +142,7 @@ var _ = Describe("WSBroadcaster", func() {
 
 		It("drops messages to slow consumers", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -144,6 +151,7 @@ var _ = Describe("WSBroadcaster", func() {
 			}
 
 			count := 0
+
 			draining := true
 			for draining {
 				select {
@@ -153,16 +161,19 @@ var _ = Describe("WSBroadcaster", func() {
 					draining = false
 				}
 			}
+
 			Expect(count).To(BeNumerically("<=", 64))
 		})
 
 		It("supports concurrent subscribe and unsubscribe", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			var wg sync.WaitGroup
 
 			for range 10 {
 				wg.Go(func() {
 					ch := b.Subscribe()
+
 					time.Sleep(time.Millisecond)
 					b.Unsubscribe(ch)
 				})
@@ -176,6 +187,7 @@ var _ = Describe("WSBroadcaster", func() {
 	Describe("BroadcastHTML", func() {
 		It("wraps HTML with OOB swap before broadcasting", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -192,6 +204,7 @@ var _ = Describe("WSBroadcaster", func() {
 	Describe("BroadcastOnSuccessWS", func() {
 		It("broadcasts on dispatch success", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -203,6 +216,7 @@ var _ = Describe("WSBroadcaster", func() {
 
 		It("does not broadcast on error", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -216,6 +230,7 @@ var _ = Describe("WSBroadcaster", func() {
 	Describe("BroadcastOnErrorWS", func() {
 		It("broadcasts structured error on dispatch failure", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -231,6 +246,7 @@ var _ = Describe("WSBroadcaster", func() {
 
 		It("does not broadcast on success", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -244,6 +260,7 @@ var _ = Describe("WSBroadcaster", func() {
 	Describe("BroadcastOnSuccessWSFunc", func() {
 		It("broadcasts dynamic message on dispatch success", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -258,6 +275,7 @@ var _ = Describe("WSBroadcaster", func() {
 
 		It("does not broadcast on error", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -273,6 +291,7 @@ var _ = Describe("WSBroadcaster", func() {
 	Describe("BroadcastOnErrorWSFunc", func() {
 		It("broadcasts dynamic error message on dispatch failure", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
@@ -287,6 +306,7 @@ var _ = Describe("WSBroadcaster", func() {
 
 		It("does not broadcast on success", func() {
 			b := cqrshtmx.NewWSBroadcaster()
+
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 

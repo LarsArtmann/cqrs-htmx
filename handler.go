@@ -27,6 +27,7 @@ func (a *App) dispatchContext(
 
 	if err := a.executePreDispatchChecks(w, r, cfg); err != nil {
 		a.afterDispatchHook(ctx, r, err)
+
 		return ctx, err
 	}
 
@@ -50,9 +51,11 @@ func (a *App) handleErr(
 		slog.String("error", err.Error()),
 	)
 	a.errorHandler(w, r, err)
+
 	if cfg.onError != nil {
 		cfg.onError(r, err)
 	}
+
 	a.afterDispatchHook(ctx, r, err)
 }
 
@@ -69,6 +72,7 @@ func (a *App) handleCommandDispatch(
 
 	if cfg.commandDecoder == nil {
 		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
+
 		return
 	}
 
@@ -77,17 +81,20 @@ func (a *App) handleCommandDispatch(
 		wrappedErr := errorfamily.Wrapf(err, event.Rejection,
 			"cqrshtmx.decode.command_failed", "decode command %s", cmdType)
 		a.handleErr(w, r, ctx, cfg, wrappedErr)
+
 		return
 	}
 
 	if cmd == nil {
 		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
+
 		return
 	}
 
 	if cfg.requestGuard != nil {
 		if guardErr := cfg.requestGuard(r, cmd); guardErr != nil {
 			a.handleErr(w, r, ctx, cfg, guardErr)
+
 			return
 		}
 	}
@@ -98,6 +105,7 @@ func (a *App) handleCommandDispatch(
 	if err = a.commands.Dispatch(ctx, cmd); err != nil {
 		a.handleErr(w, r, ctx, cfg, errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"cqrshtmx.dispatch.command_failed", "dispatch command %s", cmdType))
+
 		return
 	}
 
@@ -113,11 +121,13 @@ func (a *App) executePreDispatchChecks(
 	if cfg.requireMethod != "" && r.Method != cfg.requireMethod {
 		a.errorHandler(w, r, errorfamily.Wrapf(ErrMethodNotAllowed, event.Rejection,
 			"cqrshtmx.handler.method_not_allowed", "got %s, want %s", r.Method, cfg.requireMethod))
+
 		return ErrMethodNotAllowed
 	}
 
 	if err := a.executeAuthorization(r, cfg); err != nil {
 		a.errorHandler(w, r, err)
+
 		return err
 	}
 
@@ -134,10 +144,12 @@ func writeDefaultStatus(w http.ResponseWriter, cfg *handlerConfig) {
 	if !cfg.hasNoExplicitBody() {
 		return
 	}
+
 	status := cfg.successStatus
 	if status == 0 {
 		status = http.StatusNoContent
 	}
+
 	w.WriteHeader(status)
 }
 
@@ -162,6 +174,7 @@ func (a *App) applyQueryResponse(
 	if cfg.render != nil {
 		if err := cfg.render(w, r, result); err != nil {
 			a.handleErr(w, r, r.Context(), cfg, err)
+
 			return
 		}
 	}
@@ -182,6 +195,7 @@ func (a *App) handleQueryDispatch(
 
 	if cfg.queryDecoder == nil {
 		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
+
 		return
 	}
 
@@ -190,17 +204,20 @@ func (a *App) handleQueryDispatch(
 		wrappedErr := errorfamily.Wrapf(err, event.Rejection,
 			"cqrshtmx.decode.query_failed", "decode query %s", qryType)
 		a.handleErr(w, r, ctx, cfg, wrappedErr)
+
 		return
 	}
 
 	if qry == nil {
 		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
+
 		return
 	}
 
 	if cfg.requestGuard != nil {
 		if guardErr := cfg.requestGuard(r, qry); guardErr != nil {
 			a.handleErr(w, r, ctx, cfg, guardErr)
+
 			return
 		}
 	}
@@ -212,6 +229,7 @@ func (a *App) handleQueryDispatch(
 	if err != nil {
 		a.handleErr(w, r, ctx, cfg, errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"cqrshtmx.dispatch.query_failed", "dispatch query %s", qryType))
+
 		return
 	}
 
@@ -227,13 +245,17 @@ func captureDispatchError(w http.ResponseWriter, err error) {
 	for current := w; current != nil; {
 		if rec, ok := current.(dispatchErrorRecorder); ok {
 			rec.SetDispatchError(err)
+
 			return
 		}
+
 		type unwrapper interface{ Unwrap() http.ResponseWriter }
+
 		u, ok := current.(unwrapper)
 		if !ok {
 			return
 		}
+
 		current = u.Unwrap()
 	}
 }

@@ -25,7 +25,7 @@ var _ = Describe("Partial Rendering", func() {
 		It("renders the partial component for HTMX requests", func() {
 			app := newQueryAppWithResult(constantQueryHandler(aliceName))
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("Hx-Request", "true")
 			w := serve(app.Query(
 				"GetUser",
 				decodeGetUserJSONQuery(),
@@ -63,8 +63,8 @@ var _ = Describe("Partial Rendering", func() {
 		It("renders the full component for HTMX history-restore requests", func() {
 			app := newQueryAppWithResult(constantQueryHandler(aliceName))
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			r.Header.Set("HX-Request", "true")
-			r.Header.Set("HX-History-Restore-Request", "true")
+			r.Header.Set("Hx-Request", "true")
+			r.Header.Set("Hx-History-Restore-Request", "true")
 			w := serve(app.Query(
 				"GetUser",
 				decodeGetUserJSONQuery(),
@@ -121,7 +121,7 @@ var _ = Describe("Partial Rendering", func() {
 		It("renders the partial render function for HTMX requests", func() {
 			app := newQueryAppWithResult(constantQueryHandler(aliceName))
 			r := httptest.NewRequest(http.MethodGet, "/page", strings.NewReader(`{}`))
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("Hx-Request", "true")
 			w := serve(app.Query(
 				"GetUser",
 				decodeGetUserJSONQuery(),
@@ -129,11 +129,13 @@ var _ = Describe("Partial Rendering", func() {
 					func(w http.ResponseWriter, _ *http.Request, result any) error {
 						s, _ := result.(string)
 						_, err := w.Write([]byte("<p>" + s + "</p>"))
+
 						return err
 					},
 					func(w http.ResponseWriter, _ *http.Request, result any) error {
 						s, _ := result.(string)
 						_, err := w.Write([]byte("<html>" + s + "</html>"))
+
 						return err
 					},
 				),
@@ -151,11 +153,13 @@ var _ = Describe("Partial Rendering", func() {
 					func(w http.ResponseWriter, _ *http.Request, result any) error {
 						s, _ := result.(string)
 						_, err := w.Write([]byte("<p>" + s + "</p>"))
+
 						return err
 					},
 					func(w http.ResponseWriter, _ *http.Request, result any) error {
 						s, _ := result.(string)
 						_, err := w.Write([]byte("<html>" + s + "</html>"))
+
 						return err
 					},
 				),
@@ -169,7 +173,7 @@ var _ = Describe("Partial Rendering", func() {
 			func(target string, expectedBody string) {
 				app := newQueryAppWithResult(constantQueryHandler(aliceName))
 				r := httptest.NewRequest(http.MethodGet, "/page", strings.NewReader(`{}`))
-				r.Header.Set("HX-Target", target)
+				r.Header.Set("Hx-Target", target)
 				w := serve(app.Query(
 					"GetUser",
 					decodeGetUserJSONQuery(),
@@ -178,11 +182,13 @@ var _ = Describe("Partial Rendering", func() {
 						func(w http.ResponseWriter, _ *http.Request, result any) error {
 							s, _ := result.(string)
 							_, err := w.Write([]byte("<avatar>" + s + "</avatar>"))
+
 							return err
 						},
 						func(w http.ResponseWriter, _ *http.Request, result any) error {
 							s, _ := result.(string)
 							_, err := w.Write([]byte("<full>" + s + "</full>"))
+
 							return err
 						},
 					),
@@ -198,7 +204,7 @@ var _ = Describe("Partial Rendering", func() {
 		It("renders the partial component for HTMX requests", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/items", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("Hx-Request", "true")
 			err := cqrshtmx.RenderTemplComponent(w, r,
 				&bddTemplComponent{html: "<tr><td>partial</td></tr>"},
 				&bddTemplComponent{html: "<table><tr><td>full</td></tr></table>"},
@@ -222,8 +228,8 @@ var _ = Describe("Partial Rendering", func() {
 		It("renders the full component for HTMX history-restore requests", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/items", nil)
-			r.Header.Set("HX-Request", "true")
-			r.Header.Set("HX-History-Restore-Request", "true")
+			r.Header.Set("Hx-Request", "true")
+			r.Header.Set("Hx-History-Restore-Request", "true")
 			err := cqrshtmx.RenderTemplComponent(w, r,
 				&bddTemplComponent{html: "<tr><td>partial</td></tr>"},
 				&bddTemplComponent{html: "<table><tr><td>full</td></tr></table>"},
@@ -235,7 +241,7 @@ var _ = Describe("Partial Rendering", func() {
 		It("returns the error when Render fails", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/items", nil)
-			r.Header.Set("HX-Request", "true")
+			r.Header.Set("Hx-Request", "true")
 			err := cqrshtmx.RenderTemplComponent(w, r,
 				errTemplComponent{},
 				&bddTemplComponent{html: "full"},

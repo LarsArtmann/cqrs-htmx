@@ -11,7 +11,7 @@ import (
 func ExampleNewResponse() {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/items", nil)
-	r.Header.Set("HX-Request", "true")
+	r.Header.Set("Hx-Request", "true")
 
 	cqrshtmx.NewResponse(w, r).
 		Trigger("itemCreated").
@@ -21,10 +21,10 @@ func ExampleNewResponse() {
 		NotifySuccess("Item created").
 		Apply()
 
-	fmt.Println(w.Header().Get("HX-Trigger"))
-	fmt.Println(w.Header().Get("HX-Push-Url"))
-	fmt.Println(w.Header().Get("HX-Retarget"))
-	fmt.Println(w.Header().Get("HX-Reswap"))
+	fmt.Println(w.Header().Get("Hx-Trigger"))
+	fmt.Println(w.Header().Get("Hx-Push-Url"))
+	fmt.Println(w.Header().Get("Hx-Retarget"))
+	fmt.Println(w.Header().Get("Hx-Reswap"))
 	// Output: itemCreated,showMessage
 	// /items/42
 	// #item-list
@@ -57,6 +57,7 @@ func ExampleHTMXMiddleware() {
 			if cqrshtmx.IsHTMXRequest(r) {
 				fmt.Println("HTMX request")
 			}
+
 			if cqrshtmx.RenderPartial(r) {
 				fmt.Println("render partial")
 			}
@@ -65,7 +66,7 @@ func ExampleHTMXMiddleware() {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	r.Header.Set("HX-Request", "true")
+	r.Header.Set("Hx-Request", "true")
 	mux.ServeHTTP(w, r)
 	// Output: HTMX request
 	// render partial

@@ -59,7 +59,9 @@ var _ = Describe("Middleware", func() {
 			"RequestID handling",
 			func(setupRequest func(*http.Request), assertRequestID func(cqrshtmx.RequestID)) {
 				middleware := cqrshtmx.ContextEnrichmentMiddleware(nil)
+
 				var captured cqrshtmx.RequestID
+
 				handler := middleware(
 					http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 						captured = cqrshtmx.RequestIDFromContext(r.Context())
@@ -98,7 +100,9 @@ var _ = Describe("Middleware", func() {
 				return func(next http.Handler) http.Handler {
 					return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						order = append(order, name+"-before")
+
 						next.ServeHTTP(w, r)
+
 						order = append(order, name+"-after")
 					})
 				}

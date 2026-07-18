@@ -25,7 +25,9 @@ var _ = Describe("SSE Reconnection", func() {
 		It("exposes LastEventID on SSEStream", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 			r.Header.Set("Last-Event-ID", "evt-99")
+
 			w := httptest.NewRecorder()
+
 			stream := cqrshtmx.NewSSEStream(w, r)
 			defer stream.Close()
 
@@ -36,6 +38,7 @@ var _ = Describe("SSE Reconnection", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 			r.Header.Set("Last-Event-ID", "2")
+
 			stream := cqrshtmx.NewSSEStream(w, r)
 			defer stream.Close()
 
@@ -64,6 +67,7 @@ var _ = Describe("SSE Reconnection", func() {
 		It("replays zero events when no events after lastID", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
 			stream := cqrshtmx.NewSSEStream(w, r)
 			defer stream.Close()
 
@@ -82,6 +86,7 @@ var _ = Describe("SSE Reconnection", func() {
 			ew := &errorWriter{}
 			w := &errorResponseWriter{ResponseWriter: httptest.NewRecorder(), writer: ew}
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
 			stream := cqrshtmx.NewSSEStream(w, r)
 			defer stream.Close()
 

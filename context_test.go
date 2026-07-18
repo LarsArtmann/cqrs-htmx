@@ -165,6 +165,7 @@ var _ = Describe("Context", func() {
 
 		It("propagates context deadline via event.FromContext", func() {
 			deadline := time.Now().Add(30 * time.Second)
+
 			ctx, cancel := context.WithDeadline(context.Background(), deadline)
 			defer cancel()
 
@@ -237,6 +238,7 @@ var _ = Describe("Context", func() {
 		for _, tc := range cases {
 			It(tc.name, func() {
 				ctx := context.Background()
+
 				if tc.want.length > 0 {
 					userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 					ctx = cqrshtmx.WithUserID(ctx, userID)

@@ -36,13 +36,13 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 				"/users",
 				strings.NewReader(`{}`),
 			)
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			w := serve(app.Command(
 				"CreateUser",
 				decodeCreateUserJSON(),
 				cqrshtmx.NotifyWithEvent("showToast").Success("User created"),
 			), r)
-			trigger := w.Header().Get("HX-Trigger")
+			trigger := w.Header().Get("Hx-Trigger")
 			Expect(trigger).To(ContainSubstring("showToast"))
 			Expect(trigger).To(ContainSubstring("success"))
 		})
@@ -56,7 +56,7 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 				decodeCreateUserJSON(),
 				cqrshtmx.Redirect("/users"),
 			), newPostRequest("/users", `{}`, withHTMX))
-			Expect(w.Header().Get("HX-Redirect")).To(Equal("/users"))
+			Expect(w.Header().Get("Hx-Redirect")).To(Equal("/users"))
 		})
 	})
 
@@ -83,10 +83,10 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			resp := cqrshtmx.NewResponse(w, r)
-			w.Header().Set("HX-Trigger", "not-json")
+			w.Header().Set("Hx-Trigger", "not-json")
 			resp.TriggerWithDetail("newEvent", map[string]string{"x": "1"})
 			resp.Apply()
-			Expect(w.Header().Get("HX-Trigger")).To(ContainSubstring("newEvent"))
+			Expect(w.Header().Get("Hx-Trigger")).To(ContainSubstring("newEvent"))
 		})
 	})
 
@@ -113,6 +113,7 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 
 		It("falls back to app timeout when zero", func() {
 			var dispatched bool
+
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp, Timeout: 5 * time.Second})
@@ -132,6 +133,7 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			cqrshtmx.NewResponse(w, r).Redirect(url).Apply()
+
 			if expectRedirect {
 				Expect(w.Code).To(Equal(http.StatusSeeOther))
 			} else {
@@ -158,8 +160,10 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 	Describe("decodeFormValues multi-value fields", func() {
 		It("decodes form with multi-value fields into slice", func() {
 			var receivedEmail string
+
 			app := newCommandAppWithHandler(func(_ context.Context, _ command.Command) error {
 				receivedEmail = "dispatched"
+
 				return nil
 			})
 			form := url.Values{}
@@ -204,6 +208,7 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 				AfterDispatch: func(_ context.Context, _ *http.Request, _ error) {},
 			})
 			Expect(err).NotTo(HaveOccurred())
+
 			w := serve(app.Command("CreateUser", decodeCreateUserJSON()),
 				newPostRequest("/users", `{}`))
 			Expect(w.code()).To(Equal(http.StatusNoContent))
@@ -214,14 +219,14 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 		It("sets HX-Push-URL on query success", func() {
 			app := newQueryAppWithResult(testResultQueryHandler())
 			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{}`))
-			r.Header.Set("HX-Request", cqrshtmx.HeaderTrue)
+			r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
 			w := serve(app.Query(
 				"GetUser",
 				decodeGetUserJSONQuery(),
 				cqrshtmx.Render(encodeJSONResult),
 				cqrshtmx.PushURL("/users/1"),
 			), r)
-			Expect(w.Header().Get("HX-Push-URL")).To(Equal("/users/1"))
+			Expect(w.Header().Get("Hx-Push-Url")).To(Equal("/users/1"))
 		})
 	})
 })

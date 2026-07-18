@@ -14,6 +14,7 @@ func csrfTokenFormatted(r *http.Request, format func(escaped string) string) str
 	if token == "" {
 		return ""
 	}
+
 	return format(html.EscapeString(token))
 }
 
@@ -49,10 +50,12 @@ func CSRFTokenHXHeaders(r *http.Request) string {
 	if token == "" {
 		return ""
 	}
+
 	jsonVal, err := json.Marshal(map[string]string{"X-CSRF-Token": token})
 	if err != nil {
 		return ""
 	}
+
 	return `hx-headers='` + string(jsonVal) + `'`
 }
 

@@ -72,6 +72,7 @@ func (b *WSBroadcaster) BroadcastOnSuccessWSFunc(msgFunc func(r *http.Request) s
 func (b *WSBroadcaster) BroadcastOnErrorWS() AfterDispatchHook {
 	return b.broadcastOnErrorHook(func(r *http.Request, err error) string {
 		payload := NewStructuredError(err, r)
+
 		return payload.JSON()
 	})
 }

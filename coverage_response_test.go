@@ -158,6 +158,7 @@ var _ = Describe("Root Coverage Gaps - Response Builder", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			var capturedErr error
+
 			handler := app.Command(
 				"CreateUser",
 				decodeCreateUserJSON(),

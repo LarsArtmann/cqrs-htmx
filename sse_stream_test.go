@@ -31,11 +31,13 @@ var _ = Describe("SSE Stream Concurrency", func() {
 
 			go func() {
 				defer wg.Done()
+
 				stream.Heartbeat(ctx, time.Microsecond)
 			}()
 			go func() {
 				defer wg.Done()
 				defer cancel()
+
 				for range 20 {
 					_ = stream.Send(cqrshtmx.SSEEvent{Event: "ping", Data: "x"})
 				}
