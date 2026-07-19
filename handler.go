@@ -59,40 +59,55 @@ func (a *App) handleErr(
 	a.afterDispatchHook(ctx, r, err)
 }
 
-func (a *App) handleCommandDispatch(
+// dispatchRequest runs the shared command/query dispatch pipeline and is the
+// single source of truth for its ordering:
+//
+//	dispatchContext (authz + CSRF + method guard) → decode → nil-check →
+//	requestGuard → timeout → dispatch → respond.
+//
+// kind is "command" or "query" and is interpolated into error tags/messages so
+// the wire output is byte-identical to the pre-extraction handlers.
+// decoderNil gates the unconfigured-decoder branch; decode runs the decoder;
+// dispatch performs the actual CQRS call (returning a result, nil for commands);
+// respond renders the success response. All four are per-kind adapters.
+func (a *App) dispatchRequest(
 	w http.ResponseWriter,
 	r *http.Request,
-	cmdType command.Type,
 	cfg *handlerConfig,
+	typeName, kind string,
+	decoderNil func() bool,
+	decode func(*http.Request) (any, error),
+	dispatch func(ctx context.Context, v any) (any, error),
+	respond func(http.ResponseWriter, *http.Request, *handlerConfig, any),
 ) {
 	ctx, err := a.dispatchContext(w, r, cfg)
 	if err != nil {
 		return
 	}
 
-	if cfg.commandDecoder == nil {
+	if decoderNil() {
 		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
 
 		return
 	}
 
-	cmd, err := cfg.commandDecoder(r)
+	v, err := decode(r)
 	if err != nil {
 		wrappedErr := errorfamily.Wrapf(err, event.Rejection,
-			"cqrshtmx.decode.command_failed", "decode command %s", cmdType)
+			"cqrshtmx.decode."+kind+"_failed", "decode %s %s", kind, typeName)
 		a.handleErr(w, r, ctx, cfg, wrappedErr)
 
 		return
 	}
 
-	if cmd == nil {
+	if v == nil {
 		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
 
 		return
 	}
 
 	if cfg.requestGuard != nil {
-		if guardErr := cfg.requestGuard(r, cmd); guardErr != nil {
+		if guardErr := cfg.requestGuard(r, v); guardErr != nil {
 			a.handleErr(w, r, ctx, cfg, guardErr)
 
 			return
@@ -102,15 +117,36 @@ func (a *App) handleCommandDispatch(
 	ctx, cancel := a.timeoutCtx(ctx, cfg)
 	defer cancel()
 
-	if err = a.commands.Dispatch(ctx, cmd); err != nil {
-		a.handleErr(w, r, ctx, cfg, errorfamily.Wrapf(err, errorfamily.Classify(err),
-			"cqrshtmx.dispatch.command_failed", "dispatch command %s", cmdType))
+	result, dispatchErr := dispatch(ctx, v)
+	if dispatchErr != nil {
+		a.handleErr(w, r, ctx, cfg, errorfamily.Wrapf(dispatchErr, errorfamily.Classify(dispatchErr),
+			"cqrshtmx.dispatch."+kind+"_failed", "dispatch %s %s", kind, typeName))
 
 		return
 	}
 
-	a.applyCommandResponse(w, r.WithContext(ctx), cfg)
+	respond(w, r.WithContext(ctx), cfg, result)
 	a.afterDispatchHook(ctx, r, nil)
+}
+
+func (a *App) handleCommandDispatch(
+	w http.ResponseWriter,
+	r *http.Request,
+	cmdType command.Type,
+	cfg *handlerConfig,
+) {
+	a.dispatchRequest(w, r, cfg, string(cmdType), "command",
+		func() bool { return cfg.commandDecoder == nil },
+		func(r *http.Request) (any, error) { return cfg.commandDecoder(r) },
+		func(ctx context.Context, v any) (any, error) {
+			cmd, _ := v.(command.Command)
+
+			return nil, a.commands.Dispatch(ctx, cmd)
+		},
+		func(w http.ResponseWriter, r *http.Request, cfg *handlerConfig, _ any) {
+			a.applyCommandResponse(w, r, cfg)
+		},
+	)
 }
 
 func (a *App) executePreDispatchChecks(
@@ -188,53 +224,18 @@ func (a *App) handleQueryDispatch(
 	qryType query.Type,
 	cfg *handlerConfig,
 ) {
-	ctx, err := a.dispatchContext(w, r, cfg)
-	if err != nil {
-		return
-	}
+	a.dispatchRequest(w, r, cfg, string(qryType), "query",
+		func() bool { return cfg.queryDecoder == nil },
+		func(r *http.Request) (any, error) { return cfg.queryDecoder(r) },
+		func(ctx context.Context, v any) (any, error) {
+			qry, _ := v.(query.Query)
 
-	if cfg.queryDecoder == nil {
-		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
-
-		return
-	}
-
-	qry, err := cfg.queryDecoder(r)
-	if err != nil {
-		wrappedErr := errorfamily.Wrapf(err, event.Rejection,
-			"cqrshtmx.decode.query_failed", "decode query %s", qryType)
-		a.handleErr(w, r, ctx, cfg, wrappedErr)
-
-		return
-	}
-
-	if qry == nil {
-		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
-
-		return
-	}
-
-	if cfg.requestGuard != nil {
-		if guardErr := cfg.requestGuard(r, qry); guardErr != nil {
-			a.handleErr(w, r, ctx, cfg, guardErr)
-
-			return
-		}
-	}
-
-	ctx, cancel := a.timeoutCtx(ctx, cfg)
-	defer cancel()
-
-	result, err := a.queries.Dispatch(ctx, qry)
-	if err != nil {
-		a.handleErr(w, r, ctx, cfg, errorfamily.Wrapf(err, errorfamily.Classify(err),
-			"cqrshtmx.dispatch.query_failed", "dispatch query %s", qryType))
-
-		return
-	}
-
-	a.applyQueryResponse(w, r.WithContext(ctx), cfg, result)
-	a.afterDispatchHook(ctx, r, nil)
+			return a.queries.Dispatch(ctx, qry)
+		},
+		func(w http.ResponseWriter, r *http.Request, cfg *handlerConfig, result any) {
+			a.applyQueryResponse(w, r, cfg, result)
+		},
+	)
 }
 
 // captureDispatchError stores the dispatch error on the ResponseWriter chain

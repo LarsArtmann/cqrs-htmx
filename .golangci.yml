@@ -134,6 +134,24 @@ linters:
           allow:
             - $gostd
             - $module
+            # Self-import (test files reference the root package by full path;
+            # depguard v2's $module token doesn't match the bare module path).
+            - github.com/larsartmann/cqrs-htmx
+            # go-cqrs-lite family — the CQRS/event-sourcing foundation this library wires to net/http.
+            - github.com/larsartmann/go-cqrs-lite
+            # Sibling LarsArtmann libraries: classified errors and branded (typed) IDs.
+            - github.com/larsartmann/go-error-family
+            - github.com/larsartmann/go-branded-id
+            - github.com/larsartmann/httputil
+            # First-party runtime dependencies of the root module.
+            - github.com/casbin/casbin/v3
+            - github.com/justinas/nosurf
+            - github.com/oklog/ulid
+            - github.com/go-playground/form/v4
+            # BDD test stack (onsi). Test-only but depguard evaluates tests too.
+            - github.com/onsi/ginkgo/v2
+            - github.com/onsi/gomega
+            - golang.org/x
     exhaustruct:
       exclude:
         - os/exec.Cmd
@@ -218,6 +236,7 @@ linters:
           - goconst
           - funlen
           - paralleltest
+          - err113
       - path: _test\.go
         text: unused
         linters:
