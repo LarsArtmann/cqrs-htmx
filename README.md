@@ -5,9 +5,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.26+](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://go.dev/)
 
-A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) with [HTMX](https://htmx.org), [templ](https://templ.guide), and [Casbin](https://casbin.org) authorization.
+Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` in one line per endpoint. HTMX responses, Casbin authorization, CSRF, rate limiting, SSE/WebSocket, and event-sourced user management come built-in — but nothing is forced on you. Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), etc.), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you.
 
-**Framework-agnostic** — works with `net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), or any `http.Handler`-compatible router.
+```go
+mux.Handle("POST /items", app.Command("CreateItem",
+    cqrshtmx.DecodeJSON(mapToCmd),          // decode body → command
+    cqrshtmx.Authorize("items", "create"),  // Casbin check
+    cqrshtmx.WithSuccessStatus(201),        // configure response
+    cqrshtmx.PushURL("/items")))            // HTMX: update address bar
+```
+
+One endpoint, four concerns, in declarative order. The same shape works for queries, form posts, and WebSocket dispatch.
 
 ## Features at a Glance
 
@@ -34,18 +42,20 @@ A Go library that makes it **very easy** to use [go-cqrs-lite](https://github.co
 
 ## Why
 
-Combining CQRS, HTMX, and authorization requires repetitive wiring:
+Every Go backend that combines CQRS + HTMX ends up writing the same glue:
 
-- HTTP requests → CQRS command/query dispatch
-- User identity from auth → event metadata
-- Casbin policy checks before dispatch
-- CQRS errors → HTTP status codes (HTMX-aware)
+- HTTP request → CQRS command/query dispatch
+- User identity from cookie/session → event metadata
+- Casbin policy check before dispatch
+- CQRS error families → HTTP status codes (with HTMX-aware auth redirects)
 - HTMX partial vs full-page rendering
-- HTMX response headers (triggers, redirects, push URL)
+- HTMX response headers (`HX-Trigger`, `HX-Redirect`, `HX-Push-Url`)
 - templ component rendering for query results
 - CSRF protection, rate limiting, security headers
 
-This library handles all of it automatically.
+This library handles all of it. **If your endpoint doesn't need all of it**, you can opt out piece by piece — every layer (auth, CSRF, rate limit, HTMX) is middleware or a `HandlerOption` you choose to apply.
+
+**If you are not using go-cqrs-lite**, this library is not for you — it is the HTMX/HTTP binding for that specific CQRS core, not a generic web framework.
 
 ## Install
 

@@ -1,0 +1,84 @@
+direction: down
+
+# cqrs-htmx current architecture (verified 2026-07-19)
+# All 8 main modules build standalone (GOWORK=off) per scripts/check-module-isolation.sh
+# Key invariant: root → usermgmt is ZERO imports (clean boundary)
+
+external: {
+  label: "External siblings"
+  style.fill: "#1e293b"
+
+  go_cqrs_lite: {label: "go-cqrs-lite\n(command/event/query/id/storage)"}
+  go_error_family: {label: "go-error-family\n(error classification)"}
+  go_branded_id: {label: "go-branded-id\n(typed IDs)"}
+}
+
+root: {
+  label: "root — github.com/larsartmann/cqrs-htmx/v4\n138 .go files"
+  style.fill: "#1e3a5f"
+
+  app_builder: {label: "App builder\n(Command/Query/WS dispatch, lifecycle hooks)"}
+  middleware: {label: "Middleware\n(CSRF, Security, RateLimit, Recovery, ServerTiming)"}
+  realtime: {label: "Realtime\n(Broadcaster, SSE, WS, Idempotency)"}
+  htmx: {label: "HTMX\n(script embed 2.0.10, extensions, Response builder)"}
+  errors: {label: "Errors\n(MapError, errorfamily, StructuredError)"}
+}
+
+usermgmt: {
+  label: "usermgmt — github.com/larsartmann/cqrs-htmx/usermgmt/v4\n185 .go files (55 es_*, 21 service_*)"
+  style.fill: "#3b1e5f"
+
+  service: {label: "Service\n52 methods — god object\n(register/auth/login/oauth2/membership/tenant/bot/...)"; style.fill: "#7f1d1d"}
+  user_agg: {label: "User aggregate\n(es_user_*.go)"}
+  membership_agg: {label: "Membership\n(es_membership_*.go)"}
+  tenant_agg: {label: "Tenant\n(es_tenant_*.go)"}
+  bot_agg: {label: "Bot\n(es_bot_*.go)"}
+  event_store: {label: "EventStore\n(SQLite/Postgres)"; shape: cylinder}
+  read_models: {label: "ReadModels\n(User/Tenant/Membership/Bot)"; shape: cylinder}
+}
+
+auth_strategies: {
+  label: "auth strategies (3 independent modules — structural typing)"
+  style.fill: "#1e5f3a"
+
+  totp: {label: "usermgmt/totp/v4"}
+  webauthn: {label: "usermgmt/webauthn/v4"}
+  oauth2: {label: "usermgmt/oauth2/v4"}
+}
+
+consumers: {
+  label: "consumer modules"
+  style.fill: "#5f3b1e"
+
+  adminui: {label: "adminui/v4\ntempl + HTMX admin dashboard"}
+  loginpage: {label: "loginpage/v4\npasswordless login page"}
+}
+
+integration_test: {label: "integration_test\n(bridge tests)"; style.fill: "#3a3a3a"}
+examples: {label: "examples/*\n(4 runnable demos)"; style.fill: "#3a3a3a"}
+
+external -> root
+external -> usermgmt
+
+root -> adminui: "consumes (App, Middleware,\nHTMX, Errors)"
+root -> loginpage: "consumes"
+usermgmt -> adminui: "consumes (Service)"
+usermgmt -> loginpage: "consumes (Service)"
+
+auth_strategies -> usermgmt: "implements interfaces\n(TOTPProvider, WebAuthnProvider, OAuth2Provider)"
+auth_strategies -> root: "implements Enforcer-compatible"
+
+integration_test -> root: "verifies contracts"
+integration_test -> usermgmt
+integration_test -> adminui
+
+examples -> root
+examples -> usermgmt
+examples -> adminui
+
+# KEY INVARIANT: root → usermgmt is ZERO imports
+root -> usermgmt: {
+  label: "ZERO IMPORTS\n(clean boundary — CI enforced)"
+  style.stroke: "#22c55e"
+  style.stroke-dash: 5
+}

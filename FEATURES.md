@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-10 | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.0) | **Source:** All .go files analyzed
+**Updated:** 2026-07-19 | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.1) | **Source:** All .go files analyzed | **Coverage:** 93.6% root, 79.9% usermgmt
 
 ## Status legend
 

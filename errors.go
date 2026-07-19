@@ -326,7 +326,7 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 		}
 
 		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
-			response["request_id"] = rid.String()
+			response[JSONKeyRequestID] = rid.String()
 		}
 
 		_ = json.MarshalWrite(w, response)

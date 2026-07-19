@@ -195,19 +195,24 @@ func (resp *Response) ContentType(ct string) *Response {
 }
 
 // Body writes the given bytes as the response body.
-// Calls Apply first if not already applied.
+// Calls Apply first; if Apply wrote a redirect/terminal response, Body is a no-op.
 func (resp *Response) Body(data []byte) *Response {
-	resp.Apply()
+	if resp.Apply() {
+		return resp
+	}
+
 	_, _ = resp.w.Write(data)
 
 	return resp
 }
 
 // WriteString writes the given string as the response body.
-// Calls Apply first if not already applied.
+// Calls Apply first; if Apply wrote a redirect/terminal response, WriteString is a no-op.
 // Uses io.StringWriter when available to avoid []byte(string) allocation.
 func (resp *Response) WriteString(s string) *Response {
-	resp.Apply()
+	if resp.Apply() {
+		return resp
+	}
 
 	if sw, ok := resp.w.(io.StringWriter); ok {
 		_, _ = sw.WriteString(s)
@@ -219,10 +224,14 @@ func (resp *Response) WriteString(s string) *Response {
 }
 
 // JSON encodes v as JSON, sets Content-Type, and writes it as the response body.
-// Calls Apply first if not already applied. Writes HTTP 500 on marshal failure.
+// Calls Apply first; if Apply wrote a redirect/terminal response, JSON is a no-op.
+// Writes HTTP 500 on marshal failure.
 func (resp *Response) JSON(v any) *Response {
 	resp.ContentType(ContentTypeJSON)
-	resp.Apply()
+
+	if resp.Apply() {
+		return resp
+	}
 
 	encoded, err := json.Marshal(v)
 	if err != nil {

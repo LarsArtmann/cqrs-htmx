@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Nix Flake Migration Status — cqrs-htmx — 2026-07-19</title>
+    <style>
+      :root {
+        --bg: #0b0d12;
+        --panel: #141821;
+        --panel-2: #1b2030;
+        --border: #262c3a;
+        --text: #e6e9ef;
+        --muted: #8b93a7;
+        --ok: #34d399;
+        --medium: #facc15;
+        --accent: #818cf8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.5 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 32px 24px;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 32px 0 12px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 24px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      .ok {
+        border-left: 3px solid var(--ok);
+      }
+      .gap {
+        border-left: 3px solid var(--medium);
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .b-ok {
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--ok);
+      }
+      .b-med {
+        background: rgba(250, 204, 21, 0.15);
+        color: var(--medium);
+      }
+      code {
+        background: var(--panel-2);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+        color: var(--accent);
+      }
+      pre {
+        background: var(--panel);
+        padding: 12px;
+        border-radius: 6px;
+        overflow: auto;
+        font-size: 12px;
+        border: 1px solid var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+      th,
+      td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        font-size: 12px;
+      }
+      th {
+        background: var(--panel-2);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+      }
+      ul {
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+      li {
+        margin: 4px 0;
+      }
+      .score {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .score b {
+        color: var(--text);
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Nix Flake Migration Status</h1>
+      <p class="sub">
+        cqrs-htmx · 2026-07-19 · Migration type: <em>raw flake.nix → standard stack</em> (95%
+        complete)
+      </p>
+      <p class="score">
+        Migration score: <b>9.5 / 10</b> — Project is on the standard ecosystem stack. One gap
+        (git-hooks.nix) plus minor polish items.
+      </p>
+
+      <h2>Standard stack compliance</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Status</th>
+            <th>Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>flake-parts</code> (not flake-utils)</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td>
+              <code>inputs.flake-parts.url = "github:hercules-ci/flake-parts"</code>; outputs via
+              <code>flake-parts.lib.mkFlake</code>
+            </td>
+          </tr>
+          <tr>
+            <td><code>treefmt-nix</code> with gofmt + templ + nixfmt</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td><code>inputs.treefmt-nix.flakeModule</code>; programs: nixfmt, templ, gofmt</td>
+          </tr>
+          <tr>
+            <td><code>systems</code> input (not hardcoded)</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td>
+              <code>systems.url = "github:nix-systems/default"</code>;
+              <code>systems = import inputs.systems</code>
+            </td>
+          </tr>
+          <tr>
+            <td><code>nixos-unstable</code> channel</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td><code>nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable"</code></td>
+          </tr>
+          <tr>
+            <td><code>mkShellNoCC</code> for devShells</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td>
+              Both <code>devShells.default</code> and <code>devShells.ci</code> use
+              <code>pkgs.mkShellNoCC</code>
+            </td>
+          </tr>
+          <tr>
+            <td>No justfile / Makefile</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td>No justfile or Makefile in repo (verified).</td>
+          </tr>
+          <tr>
+            <td>Standard checks (<code>checks.build</code>, <code>checks.format</code>)</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td>
+              <code>checks.build = config.packages.default</code>,
+              <code>checks.formatting = config.treefmt.build.check self</code>
+            </td>
+          </tr>
+          <tr>
+            <td><code>apps</code> for test/lint/build/coverage</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td>
+              9 apps defined: test, test-race, test-flake, test-fuzz, lint, coverage, build,
+              test-root/usermgmt/adminui/loginpage/integration
+            </td>
+          </tr>
+          <tr>
+            <td><code>git-hooks.nix</code> for pre-commit</td>
+            <td><span class="badge b-med">GAP</span></td>
+            <td>
+              <strong>Missing.</strong> No pre-commit hook integration. Lint/format only runs via
+              explicit <code>nix run .#lint</code> or CI.
+            </td>
+          </tr>
+          <tr>
+            <td><code>GOEXPERIMENT=jsonv2</code> in devShell</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td>Set in both devShells and all apps</td>
+          </tr>
+          <tr>
+            <td><code>nix flake check</code> passes</td>
+            <td><span class="badge b-ok">PASS</span></td>
+            <td>Verified 2026-07-19: "all checks passed"</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>The one gap: git-hooks.nix</h2>
+      <div class="card gap">
+        <p>
+          The project has 187 root lint issues and 9 linters enabled, but nothing runs automatically
+          on commit. A bad commit can land without any local quality gate. CI catches it eventually,
+          but the inner-loop is slow.
+        </p>
+        <p>
+          <strong>Fix:</strong> Add <code>git-hooks.nix</code> input and wire into
+          <code>devShells.default</code>:
+        </p>
+        <pre>
+inputs = {
+  # ... existing inputs ...
+  git-hooks = {
+    url = "github:cachix/git-hooks.nix";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+};
+
+# In perSystem:
+devShells.default = pkgs.mkShellNoCC {
+  packages = [ /* existing */ ];
+  shellHook = config.pre-commit.installationHook;
+};
+
+pre-commit = {
+  check.enable = true;
+  hooks = {
+    treefmt.enable = true;     # runs gofmt + templ + nixfmt
+    golangci-lint = {
+      enable = true;
+      entry = "golangci-lint run";
+      pass_filenames = false;
+    };
+    govet.enable = true;
+  };
+};</pre>
+        <p>
+          This activates quality gates on every <code>nix develop</code> + <code>git commit</code>.
+        </p>
+      </div>
+
+      <h2>Build command mapping (verified)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Command</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Build all</td>
+            <td><code>nix run .#build</code></td>
+            <td><span class="badge b-ok">Works</span></td>
+          </tr>
+          <tr>
+            <td>Test all (race)</td>
+            <td><code>nix run .#test</code></td>
+            <td><span class="badge b-ok">Works</span></td>
+          </tr>
+          <tr>
+            <td>Lint all</td>
+            <td><code>nix run .#lint</code></td>
+            <td><span class="badge b-ok">Works</span></td>
+          </tr>
+          <tr>
+            <td>Coverage</td>
+            <td><code>nix run .#coverage</code></td>
+            <td><span class="badge b-ok">Works</span></td>
+          </tr>
+          <tr>
+            <td>Format</td>
+            <td><code>nix fmt</code></td>
+            <td><span class="badge b-ok">Works</span> (treefmt)</td>
+          </tr>
+          <tr>
+            <td>Flake check</td>
+            <td><code>nix flake check</code></td>
+            <td><span class="badge b-ok">Works</span></td>
+          </tr>
+          <tr>
+            <td>Per-module test</td>
+            <td><code>nix run .#test-root</code> (etc.)</td>
+            <td><span class="badge b-ok">Works</span></td>
+          </tr>
+          <tr>
+            <td>Dev shell</td>
+            <td><code>nix develop</code></td>
+            <td><span class="badge b-ok">Works</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Post-migration checklist</h2>
+      <ul>
+        <li>✓ <code>flake-parts</code> replaces raw <code>eachDefaultSystem</code></li>
+        <li>✓ <code>treefmt-nix</code> replaces manual formatters</li>
+        <li>✓ <code>systems</code> input replaces hardcoded system list</li>
+        <li>✓ <code>mkShellNoCC</code> for faster CI</li>
+        <li>✓ <code>apps</code> replace justfile recipes</li>
+        <li>✓ <code>nix fmt</code> works via treefmt</li>
+        <li>✓ <code>nix flake check</code> passes</li>
+        <li>✗ <code>git-hooks.nix</code> for pre-commit — <strong>only remaining item</strong></li>
+      </ul>
+
+      <p class="sub" style="margin-top: 32px">
+        Generated by nix-flake-migration skill. Project is essentially fully migrated; only
+        git-hooks.nix remains.
+      </p>
+    </div>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-07-12 | **Coverage:** 94.2% root, 75.1% usermgmt, 88.2% totp, 87.5% webauthn, 92.3% oauth2, 66.8% adminui, 80.1% loginpage (~920 tests) | **Lint:** 0 issues (all modules) | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.0)
+**Updated:** 2026-07-19 | **Coverage:** 93.6% root, 79.9% usermgmt (CI gates: root 90%, usermgmt 78%) | **Lint:** 0 issues (usermgmt, totp, webauthn, oauth2, adminui, loginpage, integration_test); root has ~187 issues, mostly config noise (depguard allow-list excludes sibling larsartmann/* modules; canonicalheader flags intentional HX-* HTMX-header casing; err113 in tests) — see `docs/reviews/2026-07-19_05-03_code-quality-scan.html` | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.1)
 
 ## Status Legend
 

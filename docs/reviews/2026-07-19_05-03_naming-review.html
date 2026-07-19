@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Naming Review — cqrs-htmx — 2026-07-19</title>
+    <style>
+      :root {
+        --bg: #0b0d12;
+        --panel: #141821;
+        --panel-2: #1b2030;
+        --border: #262c3a;
+        --text: #e6e9ef;
+        --muted: #8b93a7;
+        --critical: #f43f5e;
+        --high: #fb923c;
+        --medium: #facc15;
+        --low: #38bdf8;
+        --ok: #34d399;
+        --accent: #818cf8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.5 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+      .wrap {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 32px 24px;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 32px 0 12px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+      }
+      h3 {
+        font-size: 14px;
+        margin: 24px 0 8px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 24px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      .problem {
+        border-left: 3px solid var(--critical);
+      }
+      .solution {
+        border-left: 3px solid var(--ok);
+      }
+      .warn {
+        border-left: 3px solid var(--medium);
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .b-crit {
+        background: rgba(244, 63, 94, 0.15);
+        color: var(--critical);
+      }
+      .b-high {
+        background: rgba(251, 146, 60, 0.15);
+        color: var(--high);
+      }
+      .b-med {
+        background: rgba(250, 204, 21, 0.15);
+        color: var(--medium);
+      }
+      .b-low {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--low);
+      }
+      .b-ok {
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--ok);
+      }
+      code {
+        background: var(--panel-2);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+        color: var(--accent);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+      th,
+      td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        font-size: 12px;
+      }
+      th {
+        background: var(--panel-2);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+      }
+      ul {
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+      li {
+        margin: 4px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Naming Review</h1>
+      <p class="sub">
+        cqrs-htmx · 2026-07-19 · Types and functions in root + usermgmt + adminui + loginpage
+      </p>
+      <p>
+        Naming score: <b>8.2 / 10</b> — Strong domain-aligned vocabulary, with the
+        <code>Service</code> god-object as the main naming-architecture issue.
+      </p>
+
+      <h2>What is excellent</h2>
+      <ul>
+        <li>
+          <strong>Domain-accurate aggregate names:</strong> <code>User</code>,
+          <code>Membership</code>, <code>Tenant</code>, <code>Bot</code>, <code>Credential</code>,
+          <code>Session</code> — all real domain nouns, no <code>UserData/Info/Record</code> junk
+          for the core types.
+        </li>
+        <li>
+          <strong>Branded IDs follow the same suffix:</strong> <code>UserID</code>,
+          <code>BotID</code>, <code>TenantID</code>, <code>ActorID</code>,
+          <code>CorrelationID</code>, <code>RequestID</code>, <code>ImpersonatorID</code>.
+          Consistent vocabulary across modules.
+        </li>
+        <li>
+          <strong>Honest verb vocabulary:</strong> <code>Register</code>, <code>Authenticate</code>,
+          <code>Logout</code>, <code>BeginLogin</code>, <code>FinishLogin</code>,
+          <code>SuspendTenant</code>, <code>ReactivateTenant</code>. Names describe the domain
+          action, not the implementation.
+        </li>
+        <li>
+          <strong>Composition helper names match function:</strong> <code>Chain</code>,
+          <code>Authorize</code>, <code>DecodeJSON</code>, <code>RenderTempl</code>,
+          <code>NotifySuccess</code>, <code>PushURL</code>. All say what they do.
+        </li>
+        <li>
+          <strong>No <code>Impl</code> suffix anywhere.</strong> Clean.
+        </li>
+        <li>
+          <strong>No <code>Factory/Builder</code> overuse</strong> — constructors are
+          <code>New*</code>, as Go convention dictates.
+        </li>
+      </ul>
+
+      <h2>Issues found</h2>
+
+      <div class="card problem">
+        <h3 style="margin-top: 0">
+          <span class="badge b-high">High</span> <code>Service</code> — too vague for a type with 52
+          methods
+        </h3>
+        <p>
+          The usermgmt <code>Service</code> type has 52 methods spanning User, Tenant, Membership,
+          Bot, OAuth2, Impersonation, Auth, Credential, and lifecycle domains.
+          <code>Service</code> tells the reader nothing — it's the DDD equivalent of
+          <code>Manager</code>. It earns its generic name because it does <em>everything</em>.
+        </p>
+        <p>
+          This is primarily an architecture problem (see architecture review — god-object), but the
+          naming symptom is:
+          <strong>the name has become a substitute for decomposition.</strong> Decompose into
+          <code>UserService</code>, <code>TenantService</code>, <code>OAuth2Service</code>, etc. and
+          the names naturally sharpen.
+        </p>
+      </div>
+
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> Vague <code>*Data</code> suffix in adminui (9
+          occurrences)
+        </h3>
+        <p>
+          adminui has 9 struct types ending in <code>Data</code>: <code>auditData</code>,
+          <code>dashboardData</code>, <code>pageData</code>, <code>PageData</code>,
+          <code>tenantDetailData</code>, <code>tenantsListData</code>, <code>userDetailData</code>,
+          <code>usersListData</code>, <code>navItem</code>. <code>Data</code> says "I contain stuff"
+          without saying what.
+        </p>
+        <p>
+          <strong>Fix:</strong> Name them after the page/fragment they render:
+          <code>DashboardViewModel</code>, <code>TenantDetailVM</code>, <code>UsersListVM</code>,
+          <code>NavItem</code>. <code>ViewModel</code> is honest — these are templates-bound view
+          models, not domain data.
+        </p>
+      </div>
+
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>AuthHandler</code> — does Handler mean HTTP
+          or auth?
+        </h3>
+        <p>
+          usermgmt's <code>AuthHandler</code> is an HTTP handler that mounts auth routes. But
+          <code>Handler</code> alone is ambiguous (auth handler? event handler? command handler?).
+          The root module uses <code>HandlerOption</code>, <code>HandlerConfig</code>, where Handler
+          = HTTP handler. The vocabulary overlaps.
+        </p>
+        <p>
+          <strong>Fix:</strong> <code>AuthRoutes</code> or <code>AuthEndpoint</code> — clearer that
+          it's an HTTP route registration helper, not a runtime handler.
+        </p>
+      </div>
+
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>OAuth2UserInfo</code> — leaks the transport
+          into the type name
+        </h3>
+        <p>
+          The struct represents the user profile returned by an OAuth2 provider.
+          <code>UserInfo</code> embeds both the OAuth2 protocol context and the OpenID Connect term
+          "UserInfo endpoint". A reader who doesn't know OIDC sees <code>OAuth2UserInfo</code> and
+          wonders what kind of info.
+        </p>
+        <p>
+          <strong>Fix:</strong> <code>OAuth2Profile</code> — the standard term for "claims/data
+          returned about the user".
+        </p>
+      </div>
+
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>sessionOriginInfo</code> — unexported, but
+          still vague
+        </h3>
+        <p>
+          Internal type, but <code>OriginInfo</code> is a <code>Data/Info</code> smell. What does it
+          carry? Looking at usage: it's the metadata about how a session was created (provider, IP,
+          user agent).
+        </p>
+        <p><strong>Fix:</strong> <code>sessionOrigin</code> or <code>sessionProvenance</code>.</p>
+      </div>
+
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>pageData</code> vs <code>PageData</code> —
+          case-only split
+        </h3>
+        <p>
+          loginpage has both <code>pageData</code> (unexported) and
+          <code>PageData</code> (exported). Case-only name collisions for different concepts confuse
+          readers. Two different types are doing similar work.
+        </p>
+        <p>
+          <strong>Fix:</strong> Rename to clarify roles — e.g. <code>LoginPageData</code> (exported)
+          vs <code>pageRenderContext</code> (internal).
+        </p>
+      </div>
+
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-low">Low</span> <code>dummyMaterializeStringer</code> — production
+          code with "dummy" name
+        </h3>
+        <p>
+          Defined in usermgmt non-test code. <code>dummy</code> in production signals "I haven't
+          decided what this is yet." It's a stringer implementation used to satisfy
+          <code>fmt.Stringer</code> for <code>MaterializeProjection</code> testing/demo purposes.
+        </p>
+        <p>
+          <strong>Fix:</strong> If it's a test fixture, move to <code>_test.go</code>. If it's a
+          production utility, rename to <code>staticStringer</code> or <code>fixedStringer</code>.
+        </p>
+      </div>
+
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-low">Low</span> <code>handlerConfig</code> vs
+          <code>HandlerConfig</code> — unexported twin
+        </h3>
+        <p>
+          Root has both <code>handlerConfig</code> (unexported, internal pipeline cfg) and
+          <code>HandlerConfig</code> (exported, in usermgmt — CSRFConfig et al). Different concepts,
+          same base word. Not a bug — but a reader grepping for "handlerConfig" must disambiguate.
+        </p>
+      </div>
+
+      <h2>Split-brain terminology check</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Concept</th>
+            <th>Names used</th>
+            <th>Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>User identity</td>
+            <td>
+              <code>User</code> (domain), <code>UserReadModel</code> (projection),
+              <code>UserView</code> (read API), <code>UserState</code> (fold)
+            </td>
+            <td>
+              <span class="badge b-med">Intentional</span> — 4 different roles, well-documented in
+              ADRs
+            </td>
+          </tr>
+          <tr>
+            <td>Auth strategies</td>
+            <td>
+              <code>WebAuthn</code>, <code>TOTP</code>, <code>OAuth2</code> — consistent casing
+              across modules
+            </td>
+            <td><span class="badge b-ok">Clean</span></td>
+          </tr>
+          <tr>
+            <td>Actor</td>
+            <td>
+              <code>ActorID</code> (root flat branded), <code>ActorID</code> (usermgmt
+              discriminated)
+            </td>
+            <td><span class="badge b-high">Split brain</span> — see data-model review</td>
+          </tr>
+          <tr>
+            <td>Tenant</td>
+            <td>
+              <code>Tenant</code>, <code>TenantID</code>, <code>TenantState</code>,
+              <code>TenantReadModel</code>, <code>TenantView</code>
+            </td>
+            <td><span class="badge b-ok">Consistent</span></td>
+          </tr>
+          <tr>
+            <td>Membership</td>
+            <td>
+              <code>Membership</code>, <code>MembershipReadModel</code>,
+              <code>MembershipState</code>
+            </td>
+            <td><span class="badge b-ok">Consistent</span></td>
+          </tr>
+          <tr>
+            <td>Session</td>
+            <td>
+              <code>Session</code>, <code>SessionStore</code>, <code>InMemorySessionStore</code>,
+              <code>SQLSessionStore</code>
+            </td>
+            <td><span class="badge b-ok">Consistent</span></td>
+          </tr>
+          <tr>
+            <td>Credentials</td>
+            <td>
+              <code>Credential</code>, <code>WebAuthnCredential</code>, <code>credentialCore</code>
+            </td>
+            <td><span class="badge b-ok">Consistent</span></td>
+          </tr>
+          <tr>
+            <td>HTTP handler helpers</td>
+            <td>
+              <code>HandlerOption</code>, <code>HandlerConfig</code>, <code>AuthHandler</code>,
+              <code>HealthHandler</code>, <code>HTMXScriptHandler</code>
+            </td>
+            <td>
+              <span class="badge b-low">Overload</span> — "Handler" overloaded across pipeline
+              option / route registrar / health endpoint
+            </td>
+          </tr>
+          <tr>
+            <td>Error handler</td>
+            <td>
+              <code>ErrorHandler</code> (type), <code>JSONErrorHandler</code>,
+              <code>ProblemDetailsErrorHandler</code>, <code>errCommandsNil</code> (var)
+            </td>
+            <td><span class="badge b-ok">Consistent</span></td>
+          </tr>
+          <tr>
+            <td>Render</td>
+            <td>
+              <code>Render</code>, <code>RenderJSON</code>, <code>RenderTempl</code>,
+              <code>RenderHTML</code>, <code>RenderPartialOrFull</code>
+            </td>
+            <td><span class="badge b-ok">Consistent</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Renaming recommendations (ranked)</h2>
+      <ol>
+        <li>
+          <strong><code>Service</code> → decompose</strong> — As above; the rename falls out of
+          decomposition.
+        </li>
+        <li>
+          <strong>adminui <code>*Data</code> → <code>*ViewModel</code> or <code>*VM</code></strong>
+          — 9 types clarified.
+        </li>
+        <li>
+          <strong><code>AuthHandler</code> → <code>AuthRoutes</code></strong> — removes
+          Handler-overload ambiguity.
+        </li>
+        <li>
+          <strong><code>OAuth2UserInfo</code> → <code>OAuth2Profile</code></strong> — standard OIDC
+          terminology.
+        </li>
+        <li>
+          <strong><code>sessionOriginInfo</code> → <code>sessionOrigin</code></strong> — drop the
+          vague suffix.
+        </li>
+        <li>
+          <strong><code>pageData</code> → <code>pageRenderContext</code></strong> — disambiguate
+          from exported <code>PageData</code>.
+        </li>
+        <li>
+          <strong><code>dummyMaterializeStringer</code></strong> — move to test or rename to
+          <code>staticStringer</code>.
+        </li>
+      </ol>
+
+      <p class="sub" style="margin-top: 32px">
+        Generated by naming-review skill. The codebase is well above average for naming quality; the
+        issues are concentrated in adminui's <code>*Data</code> pattern and the
+        <code>Service</code> god-object, which is architectural rather than purely naming.
+      </p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,99 @@
+direction: down
+
+# cqrs-htmx TARGET architecture (after recommended refactors)
+# Changes from current:
+# 1. usermgmt split into internal/ packages (user/membership/tenant/bot)
+# 2. Service god-object decomposed into focused services
+# 3. Email branded type actually used in User struct
+# 4. Stringly-typed enums (Action/Effect/Role/AckStatus) sealed
+# 5. go.work replaces dropped (once upstream publishes clean v4.0.3+)
+# 6. App.Command/Query de-duplicated via shared dispatchHandler
+
+external: {
+  label: "External siblings"
+  style.fill: "#1e293b"
+
+  go_cqrs_lite: {label: "go-cqrs-lite\n(clean v4.0.3+ published,\nno replace directives needed)"}
+  go_error_family: {label: "go-error-family"}
+  go_branded_id: {label: "go-branded-id"}
+}
+
+root: {
+  label: "root (cqrs-htmx/v4) — polished"
+  style.fill: "#1e3a5f"
+
+  app: {label: "App\n(shared dispatchHandler —\nCommand/Query de-duplicated)"}
+  middleware: {label: "Middleware suite"}
+  realtime: {label: "Realtime (SSE/WS)"}
+  htmx: {label: "HTMX building blocks"}
+  errors: {label: "Errors\n(sealed AckStatus enum,\nerrorfamily classification)"}
+}
+
+usermgmt: {
+  label: "usermgmt (decomposed internal packages)"
+  style.fill: "#3b1e5f"
+
+  service_facade: {
+    label: "Service (facade — embeds focused services)"
+    style.fill: "#1e5f3a"
+  }
+
+  internal: {
+    label: "internal/ packages (compiler-enforced boundaries)"
+    style.fill: "#2a1540"
+
+    i_user: {label: "internal/user\n(User aggregate, UserState,\nEmail-typed fields)"}
+    i_membership: {label: "internal/membership"}
+    i_tenant: {label: "internal/tenant"}
+    i_bot: {label: "internal/bot"}
+    i_authz: {label: "internal/authz\n(sealed Action/Effect/Role enums)"}
+    i_store: {label: "internal/store\n(shared by all aggregates)"}
+  }
+
+  event_store: {label: "EventStore"; shape: cylinder}
+  read_models: {label: "ReadModels"; shape: cylinder}
+}
+
+auth_strategies: {
+  label: "auth strategies (unchanged — already superb)"
+  style.fill: "#1e5f3a"
+
+  totp: {label: "totp/v4"}
+  webauthn: {label: "webauthn/v4"}
+  oauth2: {label: "oauth2/v4"}
+}
+
+consumers: {
+  label: "consumer modules"
+  style.fill: "#5f3b1e"
+
+  adminui: {label: "adminui/v4 (*ViewModel renames)"}
+  loginpage: {label: "loginpage/v4"}
+}
+
+integration_test: {label: "integration_test"; style.fill: "#3a3a3a"}
+examples: {label: "examples/* (datastar-demo resolved)"; style.fill: "#3a3a3a"}
+
+external -> root
+external -> usermgmt
+
+root -> adminui: "consumes"
+root -> loginpage: "consumes"
+usermgmt -> adminui: "consumes"
+usermgmt -> loginpage: "consumes"
+
+auth_strategies -> usermgmt: "structural typing (unchanged)"
+auth_strategies -> root
+
+integration_test -> root
+integration_test -> usermgmt
+integration_test -> adminui
+
+examples -> root
+examples -> usermgmt
+
+root -> usermgmt: {
+  label: "ZERO IMPORTS (still clean)"
+  style.stroke: "#22c55e"
+  style.stroke-dash: 5
+}
