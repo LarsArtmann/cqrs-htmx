@@ -22,6 +22,16 @@ const (
 	AckRejected  AckStatus = "rejected"  // server rejected (validation, auth, etc.)
 )
 
+// Valid reports whether s is one of the declared AckStatus constants. Use this
+// when parsing client-sent acks (e.g. over WebSocket) to reject unknown values.
+func (s AckStatus) Valid() bool {
+	switch s {
+	case AckConfirmed, AckRejected:
+		return true
+	}
+	return false
+}
+
 // CommandAck is the structured acknowledgment payload broadcast over SSE/WS
 // after a command dispatch completes. The JSON shape is designed to be consumed
 // directly by client-side JavaScript:

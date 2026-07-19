@@ -69,6 +69,17 @@ const (
 	UserDataFormatCSV  UserDataFormat = "csv"
 )
 
+// Valid reports whether f is one of the declared UserDataFormat constants.
+// Use this at trust boundaries (e.g. HTTP Accept/Header decode) to reject
+// unknown formats before dispatching the importer.
+func (f UserDataFormat) Valid() bool {
+	switch f {
+	case UserDataFormatJSON, UserDataFormatCSV:
+		return true
+	}
+	return false
+}
+
 // ImportUsersFromJSON reads a JSON array of ImportUser from the reader and
 // registers each user. Users with existing emails are skipped.
 // Returns a summary of imported/skipped counts and any per-user errors.
