@@ -8,6 +8,10 @@ import (
 )
 
 // Action represents an authorization action verb (e.g. "read", "execute").
+//
+// Action is an open string type (any string is assignable) so policies remain
+// Casbin-compatible and JSON-serializable. Use [Action.Valid] at trust
+// boundaries to reject unknown/typo values.
 type Action string
 
 const (
@@ -19,6 +23,16 @@ const (
 	ActionAll Action = "*"
 )
 
+// Valid reports whether a is one of the declared Action constants. Use this at
+// trust boundaries (e.g. HTTP decode) to reject typo or unknown actions.
+func (a Action) Valid() bool {
+	switch a {
+	case ActionExecute, ActionRead, ActionAll:
+		return true
+	}
+	return false
+}
+
 // Effect represents the outcome of a policy rule: allow or deny.
 type Effect string
 
@@ -28,6 +42,15 @@ const (
 	// EffectDeny blocks the action, taking priority over any allow.
 	EffectDeny Effect = "deny"
 )
+
+// Valid reports whether e is one of the declared Effect constants.
+func (e Effect) Valid() bool {
+	switch e {
+	case EffectAllow, EffectDeny:
+		return true
+	}
+	return false
+}
 
 // Role is a named role used in RBAC group policies.
 type Role string
@@ -45,6 +68,17 @@ const (
 	// RoleOwner grants ownership-level permissions within a domain.
 	RoleOwner Role = "owner"
 )
+
+// Valid reports whether r is one of the declared Role constants. Use this at
+// trust boundaries (e.g. role assignment from HTTP input) to reject unknown
+// roles before they reach the enforcer.
+func (r Role) Valid() bool {
+	switch r {
+	case RoleSuperAdmin, RoleAdmin, RoleUser, RoleViewer, RoleOwner:
+		return true
+	}
+	return false
+}
 
 // AssignableRoles returns the roles that can be granted to a member within a
 // tenant — i.e. every role except super_admin, which is global-only. This is

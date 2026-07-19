@@ -108,6 +108,14 @@ type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 // DefaultErrorHandler maps CQRS errors to HTTP status codes and writes
 // a plain text error response. For HTMX requests with auth errors,
 // it redirects via HX-Redirect to the login path instead of returning an error body.
+//
+// Config note: this handler is intentionally config-unaware — it does NOT read
+// Config.IncludeInternalDetails or Config.IncludeRequestIDInErrors, so wiring
+// it as Config.ErrorHandler silently bypasses those knobs (it always writes the
+// safe, redacted message and never the request id). That is acceptable for the
+// default plain-text path, but consumers who want the response body to honor
+// those config flags should use [JSONErrorHandler] (which reads Config) or
+// [ProblemDetailsErrorHandler] instead. See ADR-0017.
 func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	DefaultErrorHandlerWithRedirect(w, r, err, defaultLoginRedirect)
 }
