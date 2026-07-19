@@ -57,7 +57,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.2 // indirect
 	github.com/larsartmann/httputil v0.5.0 // indirect
-	github.com/larsartmann/templ-components v0.17.0 // indirect
+	github.com/larsartmann/templ-components v0.18.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
