@@ -1,66 +1,263 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Architecture Review — cqrs-htmx — 2026-07-19</title>
-<style>
-  :root {
-    --bg: #0b0d12; --panel: #141821; --panel-2: #1b2030; --border: #262c3a;
-    --text: #e6e9ef; --muted: #8b93a7;
-    --critical: #f43f5e; --high: #fb923c; --medium: #facc15; --low: #38bdf8; --ok: #34d399;
-    --accent: #818cf8;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-    font: 14px/1.5 ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace; }
-  .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
-  h1 { font-size: 28px; margin: 0 0 4px; }
-  h2 { font-size: 18px; margin: 32px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-  h3 { font-size: 14px; margin: 24px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-  .sub { color: var(--muted); margin: 0 0 24px; }
-  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
-  .card .n { font-size: 28px; font-weight: 700; }
-  .card .l { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-  .ok .n { color: var(--ok); } .med .n { color: var(--medium); } .low .n { color: var(--low); } .high .n { color: var(--high); } .crit .n { color: var(--critical); }
-  .problem { border-left: 3px solid var(--critical); }
-  .solution { border-left: 3px solid var(--ok); }
-  .warn { border-left: 3px solid var(--medium); }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-  .b-crit { background: rgba(244,63,94,0.15); color: var(--critical); }
-  .b-high { background: rgba(251,146,60,0.15); color: var(--high); }
-  .b-med { background: rgba(250,204,21,0.15); color: var(--medium); }
-  .b-low { background: rgba(56,189,248,0.15); color: var(--low); }
-  .b-ok { background: rgba(52,211,153,0.15); color: var(--ok); }
-  code { background: var(--panel-2); padding: 1px 5px; border-radius: 3px; font-size: 12px; color: var(--accent); }
-  table { width: 100%; border-collapse: collapse; background: var(--panel); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
-  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 12px; }
-  th { background: var(--panel-2); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
-  ul { margin: 8px 0; padding-left: 20px; } li { margin: 4px 0; }
-  .score { font-size: 14px; color: var(--muted); }
-  .score b { color: var(--text); font-size: 20px; }
-  .steps { counter-reset: step; list-style: none; padding: 0; }
-  .steps > li { counter-increment: step; padding: 12px 16px 12px 50px; position: relative; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; }
-  .steps > li::before { content: counter(step); position: absolute; left: 12px; top: 12px; width: 26px; height: 26px; background: var(--accent); color: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>Architecture Review</h1>
-  <p class="sub">cqrs-htmx · 2026-07-19 · Focus: modularity, service-orientation, composability, coupling hotspots</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>Architecture Review — cqrs-htmx — 2026-07-19</title>
+    <style>
+      :root {
+        --bg: #0b0d12;
+        --panel: #141821;
+        --panel-2: #1b2030;
+        --border: #262c3a;
+        --text: #e6e9ef;
+        --muted: #8b93a7;
+        --critical: #f43f5e;
+        --high: #fb923c;
+        --medium: #facc15;
+        --low: #38bdf8;
+        --ok: #34d399;
+        --accent: #818cf8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.5 ui-monospace,
+          "JetBrains Mono",
+          Menlo,
+          Consolas,
+          monospace;
+      }
+      .wrap {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 32px 24px;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 32px 0 12px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+      }
+      h3 {
+        font-size: 14px;
+        margin: 24px 0 8px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 24px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      .card .n {
+        font-size: 28px;
+        font-weight: 700;
+      }
+      .card .l {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+      }
+      .ok .n {
+        color: var(--ok);
+      }
+      .med .n {
+        color: var(--medium);
+      }
+      .low .n {
+        color: var(--low);
+      }
+      .high .n {
+        color: var(--high);
+      }
+      .crit .n {
+        color: var(--critical);
+      }
+      .problem {
+        border-left: 3px solid var(--critical);
+      }
+      .solution {
+        border-left: 3px solid var(--ok);
+      }
+      .warn {
+        border-left: 3px solid var(--medium);
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .b-crit {
+        background: rgba(244, 63, 94, 0.15);
+        color: var(--critical);
+      }
+      .b-high {
+        background: rgba(251, 146, 60, 0.15);
+        color: var(--high);
+      }
+      .b-med {
+        background: rgba(250, 204, 21, 0.15);
+        color: var(--medium);
+      }
+      .b-low {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--low);
+      }
+      .b-ok {
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--ok);
+      }
+      code {
+        background: var(--panel-2);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+        color: var(--accent);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+      th,
+      td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        font-size: 12px;
+      }
+      th {
+        background: var(--panel-2);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+      }
+      ul {
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+      li {
+        margin: 4px 0;
+      }
+      .score {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .score b {
+        color: var(--text);
+        font-size: 20px;
+      }
+      .steps {
+        counter-reset: step;
+        list-style: none;
+        padding: 0;
+      }
+      .steps > li {
+        counter-increment: step;
+        padding: 12px 16px 12px 50px;
+        position: relative;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin-bottom: 8px;
+      }
+      .steps > li::before {
+        content: counter(step);
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        width: 26px;
+        height: 26px;
+        background: var(--accent);
+        color: var(--bg);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Architecture Review</h1>
+      <p class="sub">
+        cqrs-htmx · 2026-07-19 · Focus: modularity, service-orientation, composability, coupling
+        hotspots
+      </p>
 
-  <p class="score">Overall architecture score: <b>8.4 / 10</b> — excellent module isolation, clean CQRS/ES core, with two structural debts (file-prefix sprawl in usermgmt; service.go god-pattern).</p>
+      <p class="score">
+        Overall architecture score: <b>8.4 / 10</b> — excellent module isolation, clean CQRS/ES
+        core, with two structural debts (file-prefix sprawl in usermgmt; service.go god-pattern).
+      </p>
 
-  <div class="grid">
-    <div class="card ok"><div class="n">12</div><div class="l">Go modules</div></div>
-    <div class="card ok"><div class="n">8/8</div><div class="l">Isolated builds</div></div>
-    <div class="card ok"><div class="n">7</div><div class="l">Published submodules</div></div>
-    <div class="card low"><div class="n">323</div><div class="l">.go files (excl tests)</div></div>
-    <div class="card med"><div class="n">55</div><div class="l">usermgmt es_*.go files</div></div>
-  </div>
+      <div class="grid">
+        <div class="card ok">
+          <div class="n">12</div>
+          <div class="l">Go modules</div>
+        </div>
+        <div class="card ok">
+          <div class="n">8/8</div>
+          <div class="l">Isolated builds</div>
+        </div>
+        <div class="card ok">
+          <div class="n">7</div>
+          <div class="l">Published submodules</div>
+        </div>
+        <div class="card low">
+          <div class="n">323</div>
+          <div class="l">.go files (excl tests)</div>
+        </div>
+        <div class="card med">
+          <div class="n">55</div>
+          <div class="l">usermgmt es_*.go files</div>
+        </div>
+      </div>
 
-  <h2>Module dependency graph (actual, verified)</h2>
-  <pre style="background:var(--panel);padding:16px;border-radius:8px;overflow:auto;font-size:12px;">
+      <h2>Module dependency graph (actual, verified)</h2>
+      <pre
+        style="
+          background: var(--panel);
+          padding: 16px;
+          border-radius: 8px;
+          overflow: auto;
+          font-size: 12px;
+        "
+      >
                          ┌─────────────────────┐
                          │ github.com/larsartmann │
                          │   /go-cqrs-lite/*   │  (external sibling)
@@ -95,103 +292,321 @@
     • Nothing depends on adminui or loginpage
   </pre>
 
-  <h2>What is excellent</h2>
-  <div class="card solution">
-    <h3 style="margin-top:0">Clean CQRS/HTTP composition model</h3>
-    <p>The <code>App.Command(type, opts...) → http.HandlerFunc</code> pipeline with ordered <code>HandlerOption</code>s is a textbook example of composability. Consumers compose behavior (auth → decode → validate → dispatch → render) without the library dictating router, persistence, or auth model. <strong>This is the library's killer feature.</strong></p>
-  </div>
-  <div class="card solution">
-    <h3 style="margin-top:0">Auth strategy extraction (v4 achievement)</h3>
-    <p>Moving WebAuthn/TOTP/OAuth2 from a single usermgmt module into 3 independent modules behind structural-typing interfaces is exemplary. Consumers import only the strategy they need; the usermgmt core stays auth-agnostic. <code>scripts/check-module-isolation.sh</code> verifies each builds standalone.</p>
-  </div>
-  <div class="card solution">
-    <h3 style="margin-top:0">Honest module boundaries</h3>
-    <p>12 go.mod files, 8 of which build standalone under <code>GOWORK=off</code>. CI enforces this. Dep budgets are checked (<code>scripts/check-dep-budgets.sh</code>). Replace directives are policed (<code>scripts/check-replace-directives.sh</code>). This is a well-disciplined multi-module workspace.</p>
-  </div>
-  <div class="card solution">
-    <h3 style="margin-top:0">Library principle upheld</h3>
-    <p>No mandatory CSP/HSTS/CSRF — all opt-in. Framework-agnostic (net/http, Chi, Gin). Duck-typed interfaces (<code>Enforcer</code> ← casbin, <code>TemplComponent</code> ← templ). Consumers never fight the library's defaults.</p>
-  </div>
+      <h2>What is excellent</h2>
+      <div class="card solution">
+        <h3 style="margin-top: 0">Clean CQRS/HTTP composition model</h3>
+        <p>
+          The <code>App.Command(type, opts...) → http.HandlerFunc</code> pipeline with ordered
+          <code>HandlerOption</code>s is a textbook example of composability. Consumers compose
+          behavior (auth → decode → validate → dispatch → render) without the library dictating
+          router, persistence, or auth model. <strong>This is the library's killer feature.</strong>
+        </p>
+      </div>
+      <div class="card solution">
+        <h3 style="margin-top: 0">Auth strategy extraction (v4 achievement)</h3>
+        <p>
+          Moving WebAuthn/TOTP/OAuth2 from a single usermgmt module into 3 independent modules
+          behind structural-typing interfaces is exemplary. Consumers import only the strategy they
+          need; the usermgmt core stays auth-agnostic.
+          <code>scripts/check-module-isolation.sh</code> verifies each builds standalone.
+        </p>
+      </div>
+      <div class="card solution">
+        <h3 style="margin-top: 0">Honest module boundaries</h3>
+        <p>
+          12 go.mod files, 8 of which build standalone under <code>GOWORK=off</code>. CI enforces
+          this. Dep budgets are checked (<code>scripts/check-dep-budgets.sh</code>). Replace
+          directives are policed (<code>scripts/check-replace-directives.sh</code>). This is a
+          well-disciplined multi-module workspace.
+        </p>
+      </div>
+      <div class="card solution">
+        <h3 style="margin-top: 0">Library principle upheld</h3>
+        <p>
+          No mandatory CSP/HSTS/CSRF — all opt-in. Framework-agnostic (net/http, Chi, Gin).
+          Duck-typed interfaces (<code>Enforcer</code> ← casbin, <code>TemplComponent</code> ←
+          templ). Consumers never fight the library's defaults.
+        </p>
+      </div>
 
-  <h2>Coupling hotspots &amp; structural debts</h2>
+      <h2>Coupling hotspots &amp; structural debts</h2>
 
-  <div class="card problem">
-    <h3 style="margin-top:0"><span class="badge b-high">High</span> usermgmt file-prefix sprawl — 55 files using <code>es_*</code> prefix</h3>
-    <p>usermgmt has 185 .go files in a single flat directory. 55 use <code>es_</code> prefix, 21 use <code>service_</code> prefix. The aggregate prefix <em>is</em> the module. Within <code>es_</code>, there are clear sub-domains (<code>es_bot_*</code>, <code>es_membership_*</code>, <code>es_tenant_*</code>) but they are not separated into packages.</p>
-    <p><strong>Why it matters:</strong> New contributors cannot answer "where does tenant logic live?" without grepping. Coupling between <code>es_membership_decide.go</code> and <code>es_state.go</code> is invisible from package layout.</p>
-    <p><strong>Fix:</strong> Split <code>usermgmt</code> into internal sub-packages: <code>internal/user</code>, <code>internal/membership</code>, <code>internal/tenant</code>, <code>internal/bot</code>, keeping the public <code>Service</code> type in the root. Preserves go.mod boundary; improves navigability.</p>
-  </div>
+      <div class="card problem">
+        <h3 style="margin-top: 0">
+          <span class="badge b-high">High</span> usermgmt file-prefix sprawl — 55 files using
+          <code>es_*</code> prefix
+        </h3>
+        <p>
+          usermgmt has 185 .go files in a single flat directory. 55 use <code>es_</code> prefix, 21
+          use <code>service_</code> prefix. The aggregate prefix <em>is</em> the module. Within
+          <code>es_</code>, there are clear sub-domains (<code>es_bot_*</code>,
+          <code>es_membership_*</code>, <code>es_tenant_*</code>) but they are not separated into
+          packages.
+        </p>
+        <p>
+          <strong>Why it matters:</strong> New contributors cannot answer "where does tenant logic
+          live?" without grepping. Coupling between <code>es_membership_decide.go</code> and
+          <code>es_state.go</code> is invisible from package layout.
+        </p>
+        <p>
+          <strong>Fix:</strong> Split <code>usermgmt</code> into internal sub-packages:
+          <code>internal/user</code>, <code>internal/membership</code>,
+          <code>internal/tenant</code>, <code>internal/bot</code>, keeping the public
+          <code>Service</code> type in the root. Preserves go.mod boundary; improves navigability.
+        </p>
+      </div>
 
-  <div class="card problem">
-    <h3 style="margin-top:0"><span class="badge b-high">High</span> <code>service_*.go</code> god-service pattern — 21 files, one <code>Service</code> type</h3>
-    <p>21 files named <code>service_*</code> all attach methods to a single <code>*Service</code> type. <code>service_core.go</code> (432 lines) defines it; <code>service_login.go</code>, <code>service_register.go</code>, <code>service_oauth2.go</code>, <code>service_tenant.go</code>, <code>service_membership.go</code>, <code>service_bot.go</code>, <code>service_impersonation.go</code>, <code>service_misc.go</code>, etc. all extend it. <code>Service</code> has become a god object.</p>
-    <p><strong>Why it matters:</strong> Any change to <code>Service</code> fields forces recompile of all 21 files. The type's responsibilities are unbounded. Hard to test in isolation.</p>
-    <p><strong>Fix:</strong> Extract focused services that compose into the top-level <code>Service</code>: <code>UserService</code>, <code>TenantService</code>, <code>MembershipService</code>, <code>BotService</code>, <code>OAuth2Service</code>, <code>SessionService</code>. The facade <code>Service</code> embeds them for backward compat.</p>
-  </div>
+      <div class="card problem">
+        <h3 style="margin-top: 0">
+          <span class="badge b-high">High</span> <code>service_*.go</code> god-service pattern — 21
+          files, one <code>Service</code> type
+        </h3>
+        <p>
+          21 files named <code>service_*</code> all attach methods to a single
+          <code>*Service</code> type. <code>service_core.go</code> (432 lines) defines it;
+          <code>service_login.go</code>, <code>service_register.go</code>,
+          <code>service_oauth2.go</code>, <code>service_tenant.go</code>,
+          <code>service_membership.go</code>, <code>service_bot.go</code>,
+          <code>service_impersonation.go</code>, <code>service_misc.go</code>, etc. all extend it.
+          <code>Service</code> has become a god object.
+        </p>
+        <p>
+          <strong>Why it matters:</strong> Any change to <code>Service</code> fields forces
+          recompile of all 21 files. The type's responsibilities are unbounded. Hard to test in
+          isolation.
+        </p>
+        <p>
+          <strong>Fix:</strong> Extract focused services that compose into the top-level
+          <code>Service</code>: <code>UserService</code>, <code>TenantService</code>,
+          <code>MembershipService</code>, <code>BotService</code>, <code>OAuth2Service</code>,
+          <code>SessionService</code>. The facade <code>Service</code> embeds them for backward
+          compat.
+        </p>
+      </div>
 
-  <div class="card warn">
-    <h3 style="margin-top:0"><span class="badge b-med">Medium</span> App.Command/App.Query duplication (app.go:201-256)</h3>
-    <p>90% identical bodies (build cfg, enrich, dispatch). Already flagged in code-quality scan. Extract a shared <code>dispatchHandler</code> helper parameterized by dispatcher + nil-sentinel.</p>
-  </div>
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> App.Command/App.Query duplication (app.go:201-256)
+        </h3>
+        <p>
+          90% identical bodies (build cfg, enrich, dispatch). Already flagged in code-quality scan.
+          Extract a shared <code>dispatchHandler</code> helper parameterized by dispatcher +
+          nil-sentinel.
+        </p>
+      </div>
 
-  <div class="card warn">
-    <h3 style="margin-top:0"><span class="badge b-med">Medium</span> <code>go.work</code> local replace directives — upstream publishing bug</h3>
-    <p><code>go.work</code> contains <code>replace</code> directives pointing all go-cqrs-lite modules to <code>/home/lars/projects/go-cqrs-lite/*</code>. The comment block (added 2026-07-18) documents that <strong>13 of ~40 go-cqrs-lite submodule tags still use broken zero pseudo-versions</strong> despite the v4.0.1+ releases. The replaces are therefore still required for local development.</p>
-    <p><strong>Why it matters:</strong> Every developer who clones this repo without the sibling checkout hits confusing build failures. CI works because it runs <code>GOWORK=off</code>, but local <code>go test ./...</code> in the workspace requires the sibling repo.</p>
-    <p><strong>Fix (upstream):</strong> Cut a clean consolidated go-cqrs-lite release (v4.0.3+ or v4.1.0) from a tree where every submodule go.mod has been <code>go mod tidy</code>-resolved against real published versions, then drop the replaces. Tracked separately.</p>
-  </div>
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>go.work</code> local replace directives —
+          upstream publishing bug
+        </h3>
+        <p>
+          <code>go.work</code> contains <code>replace</code> directives pointing all go-cqrs-lite
+          modules to <code>/home/lars/projects/go-cqrs-lite/*</code>. The comment block (added
+          2026-07-18) documents that
+          <strong
+            >13 of ~40 go-cqrs-lite submodule tags still use broken zero pseudo-versions</strong
+          >
+          despite the v4.0.1+ releases. The replaces are therefore still required for local
+          development.
+        </p>
+        <p>
+          <strong>Why it matters:</strong> Every developer who clones this repo without the sibling
+          checkout hits confusing build failures. CI works because it runs <code>GOWORK=off</code>,
+          but local <code>go test ./...</code> in the workspace requires the sibling repo.
+        </p>
+        <p>
+          <strong>Fix (upstream):</strong> Cut a clean consolidated go-cqrs-lite release (v4.0.3+ or
+          v4.1.0) from a tree where every submodule go.mod has been
+          <code>go mod tidy</code>-resolved against real published versions, then drop the replaces.
+          Tracked separately.
+        </p>
+      </div>
 
-  <div class="card warn">
-    <h3 style="margin-top:0"><span class="badge b-med">Medium</span> <code>examples/datastar-demo</code> — 5 files, no go.mod hygiene shown</h3>
-    <p>One example uses Datastar instead of HTMX. It is the only example without a README. Mixed messages for a library branded "cqrs-<em>htmx</em>". Either (a) document it as "Datastar works too, here's how" or (b) move to a separate repo to keep brand clear.</p>
-  </div>
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>examples/datastar-demo</code> — 5 files, no
+          go.mod hygiene shown
+        </h3>
+        <p>
+          One example uses Datastar instead of HTMX. It is the only example without a README. Mixed
+          messages for a library branded "cqrs-<em>htmx</em>". Either (a) document it as "Datastar
+          works too, here's how" or (b) move to a separate repo to keep brand clear.
+        </p>
+      </div>
 
-  <div class="card warn">
-    <h3 style="margin-top:0"><span class="badge b-low">Low</span> CI version skew — local golangci-lint v2.12.2 vs CI v2.11</h3>
-    <p>Local runs show 187 root issues; CI passes. The 0.0.x version skew plus the depguard misconfiguration (see code-quality-scan) means lint is not actually gating anything meaningful in root. Submodules are clean.</p>
-  </div>
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-low">Low</span> CI version skew — local golangci-lint v2.12.2 vs CI
+          v2.11
+        </h3>
+        <p>
+          Local runs show 187 root issues; CI passes. The 0.0.x version skew plus the depguard
+          misconfiguration (see code-quality-scan) means lint is not actually gating anything
+          meaningful in root. Submodules are clean.
+        </p>
+      </div>
 
-  <h2>Service-orientation assessment</h2>
-  <table>
-    <thead><tr><th>Dimension</th><th>Score</th><th>Notes</th></tr></thead>
-    <tbody>
-      <tr><td>Bounded contexts</td><td><span class="badge b-ok">Strong</span></td><td>Auth (usermgmt), UI (adminui/loginpage), HTTP glue (root), Strategies (totp/webauthn/oauth2) are clear</td></tr>
-      <tr><td>Independent deployability</td><td><span class="badge b-ok">Strong</span></td><td>Each go.mod is independently version-tagged. Verified by CI mod-tidy check on 9 modules.</td></tr>
-      <tr><td>Interface contracts</td><td><span class="badge b-ok">Strong</span></td><td>Auth strategies via structural typing; <code>Enforcer</code>, <code>TemplComponent</code>, store interfaces — all duck-typed, consumer-side</td></tr>
-      <tr><td>Shared nothing</td><td><span class="badge b-med">Medium</span></td><td>root → usermgmt is zero imports. But usermgmt internally is shared-everything (single package, 185 files)</td></tr>
-      <tr><td>Async/event-driven</td><td><span class="badge b-ok">Strong</span></td><td>Event-sourced by design; SSE/WS broadcasters for realtime fan-out. Not RPC-coupled.</td></tr>
-      <tr><td>Discoverability</td><td><span class="badge b-med">Medium</span></td><td>SKILL.md + references are excellent; the codebase itself (flat usermgmt) is hard to navigate</td></tr>
-    </tbody>
-  </table>
+      <h2>Service-orientation assessment</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Score</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bounded contexts</td>
+            <td><span class="badge b-ok">Strong</span></td>
+            <td>
+              Auth (usermgmt), UI (adminui/loginpage), HTTP glue (root), Strategies
+              (totp/webauthn/oauth2) are clear
+            </td>
+          </tr>
+          <tr>
+            <td>Independent deployability</td>
+            <td><span class="badge b-ok">Strong</span></td>
+            <td>
+              Each go.mod is independently version-tagged. Verified by CI mod-tidy check on 9
+              modules.
+            </td>
+          </tr>
+          <tr>
+            <td>Interface contracts</td>
+            <td><span class="badge b-ok">Strong</span></td>
+            <td>
+              Auth strategies via structural typing; <code>Enforcer</code>,
+              <code>TemplComponent</code>, store interfaces — all duck-typed, consumer-side
+            </td>
+          </tr>
+          <tr>
+            <td>Shared nothing</td>
+            <td><span class="badge b-med">Medium</span></td>
+            <td>
+              root → usermgmt is zero imports. But usermgmt internally is shared-everything (single
+              package, 185 files)
+            </td>
+          </tr>
+          <tr>
+            <td>Async/event-driven</td>
+            <td><span class="badge b-ok">Strong</span></td>
+            <td>
+              Event-sourced by design; SSE/WS broadcasters for realtime fan-out. Not RPC-coupled.
+            </td>
+          </tr>
+          <tr>
+            <td>Discoverability</td>
+            <td><span class="badge b-med">Medium</span></td>
+            <td>
+              SKILL.md + references are excellent; the codebase itself (flat usermgmt) is hard to
+              navigate
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-  <h2>Composability assessment</h2>
-  <table>
-    <thead><tr><th>Composition axis</th><th>How</th><th>Verdict</span></th></tr></thead>
-    <tbody>
-      <tr><td>Router choice</td><td>net/http HandlerFunc — works with stdlib, Chi, Gin, Echo</td><td><span class="badge b-ok">Excellent</span></td></tr>
-      <tr><td>Auth model</td><td>Casbin OR custom <code>RequestGuard</code> OR <code>DecodeJSONWithRequest</code></td><td><span class="badge b-ok">Excellent</span></td></tr>
-      <tr><td>Auth strategy</td><td>WebAuthn, TOTP, OAuth2 — pick zero or more, structural typing</td><td><span class="badge b-ok">Excellent</span></td></tr>
-      <tr><td>Rendering</td><td>JSON, templ, HTML, custom Render fn — all pluggable per endpoint</td><td><span class="badge b-ok">Excellent</span></td></tr>
-      <tr><td>Middleware</td><td><code>Chain(mw1, mw2, ...)</code> + per-handler options</td><td><span class="badge b-ok">Excellent</span></td></tr>
-      <tr><td>Persistence</td><td>In-memory, SQLite, Postgres via <code>*sql.DB</code> injection</td><td><span class="badge b-ok">Strong</span></td></tr>
-      <tr><td>Realtime</td><td>Broadcaster is a building block, not a server — consumer owns handler</td><td><span class="badge b-ok">Excellent</span></td></tr>
-      <tr><td>Error mapping</td><td>5 error families → HTTP status, but only one mapping function</td><td><span class="badge b-med">Good</span></td></tr>
-    </tbody>
-  </table>
+      <h2>Composability assessment</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Composition axis</th>
+            <th>How</th>
+            <th>Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Router choice</td>
+            <td>net/http HandlerFunc — works with stdlib, Chi, Gin, Echo</td>
+            <td><span class="badge b-ok">Excellent</span></td>
+          </tr>
+          <tr>
+            <td>Auth model</td>
+            <td>
+              Casbin OR custom <code>RequestGuard</code> OR <code>DecodeJSONWithRequest</code>
+            </td>
+            <td><span class="badge b-ok">Excellent</span></td>
+          </tr>
+          <tr>
+            <td>Auth strategy</td>
+            <td>WebAuthn, TOTP, OAuth2 — pick zero or more, structural typing</td>
+            <td><span class="badge b-ok">Excellent</span></td>
+          </tr>
+          <tr>
+            <td>Rendering</td>
+            <td>JSON, templ, HTML, custom Render fn — all pluggable per endpoint</td>
+            <td><span class="badge b-ok">Excellent</span></td>
+          </tr>
+          <tr>
+            <td>Middleware</td>
+            <td><code>Chain(mw1, mw2, ...)</code> + per-handler options</td>
+            <td><span class="badge b-ok">Excellent</span></td>
+          </tr>
+          <tr>
+            <td>Persistence</td>
+            <td>In-memory, SQLite, Postgres via <code>*sql.DB</code> injection</td>
+            <td><span class="badge b-ok">Strong</span></td>
+          </tr>
+          <tr>
+            <td>Realtime</td>
+            <td>Broadcaster is a building block, not a server — consumer owns handler</td>
+            <td><span class="badge b-ok">Excellent</span></td>
+          </tr>
+          <tr>
+            <td>Error mapping</td>
+            <td>5 error families → HTTP status, but only one mapping function</td>
+            <td><span class="badge b-med">Good</span></td>
+          </tr>
+        </tbody>
+      </table>
 
-  <h2>Action roadmap</h2>
-  <ol class="steps">
-    <li><strong>Track go-cqrs-lite publish-bug resolution</strong> — 13 of ~40 submodule tags still have broken zero pseudo-versions. Once upstream cuts a clean release, drop go.work replaces. <em>Blocked upstream; not actionable here.</em></li>
-    <li><strong>Fix depguard allow-list</strong> — add <code>github.com/larsartmann/go-*</code> + legit third-party deps to root <code>.golangci.yml</code>. Eliminates 50 false-positive issues. <em>Effort: 30 min.</em></li>
-    <li><strong>Extract <code>App.dispatchHandler</code></strong> — dedup Command/Query bodies in <code>app.go:201-256</code>. <em>Effort: 2 hours.</em></li>
-    <li><strong>Extract magic numbers</strong> — 5 mnd hits (channel buffer 64, days/week 7, etc.) → named constants. <em>Effort: 30 min.</em></li>
-    <li><strong>usermgmt package reorganization (larger)</strong> — split <code>usermgmt</code> into <code>internal/user</code>, <code>internal/membership</code>, <code>internal/tenant</code>, <code>internal/bot</code>. Public API unchanged. <em>Effort: 1-2 days.</em></li>
-    <li><strong>Service decomposition (larger)</strong> — extract <code>UserService</code>, <code>TenantService</code>, etc. that compose into the <code>Service</code> facade. <em>Effort: 2-3 days. Defer unless actively adding features.</em></li>
-    <li><strong>Pin CI golangci-lint version</strong> to match local (v2.12.2) and make root lint actually enforce. <em>Effort: 30 min.</em></li>
-    <li><strong>Decide datastar-demo's fate</strong> — README or remove. <em>Effort: 30 min.</em></li>
-  </ol>
+      <h2>Action roadmap</h2>
+      <ol class="steps">
+        <li>
+          <strong>Track go-cqrs-lite publish-bug resolution</strong> — 13 of ~40 submodule tags
+          still have broken zero pseudo-versions. Once upstream cuts a clean release, drop go.work
+          replaces. <em>Blocked upstream; not actionable here.</em>
+        </li>
+        <li>
+          <strong>Fix depguard allow-list</strong> — add <code>github.com/larsartmann/go-*</code> +
+          legit third-party deps to root <code>.golangci.yml</code>. Eliminates 50 false-positive
+          issues. <em>Effort: 30 min.</em>
+        </li>
+        <li>
+          <strong>Extract <code>App.dispatchHandler</code></strong> — dedup Command/Query bodies in
+          <code>app.go:201-256</code>. <em>Effort: 2 hours.</em>
+        </li>
+        <li>
+          <strong>Extract magic numbers</strong> — 5 mnd hits (channel buffer 64, days/week 7, etc.)
+          → named constants. <em>Effort: 30 min.</em>
+        </li>
+        <li>
+          <strong>usermgmt package reorganization (larger)</strong> — split
+          <code>usermgmt</code> into <code>internal/user</code>, <code>internal/membership</code>,
+          <code>internal/tenant</code>, <code>internal/bot</code>. Public API unchanged.
+          <em>Effort: 1-2 days.</em>
+        </li>
+        <li>
+          <strong>Service decomposition (larger)</strong> — extract <code>UserService</code>,
+          <code>TenantService</code>, etc. that compose into the <code>Service</code> facade.
+          <em>Effort: 2-3 days. Defer unless actively adding features.</em>
+        </li>
+        <li>
+          <strong>Pin CI golangci-lint version</strong> to match local (v2.12.2) and make root lint
+          actually enforce. <em>Effort: 30 min.</em>
+        </li>
+        <li>
+          <strong>Decide datastar-demo's fate</strong> — README or remove. <em>Effort: 30 min.</em>
+        </li>
+      </ol>
 
-  <p class="sub" style="margin-top:32px">Generated by architecture-review skill. The codebase scores highly on every composability axis that matters for a library. The structural debts (usermgmt flat layout, Service god-object) are navigability problems, not correctness problems — safe to defer.</p>
-</div>
-</body>
+      <p class="sub" style="margin-top: 32px">
+        Generated by architecture-review skill. The codebase scores highly on every composability
+        axis that matters for a library. The structural debts (usermgmt flat layout, Service
+        god-object) are navigability problems, not correctness problems — safe to defer.
+      </p>
+    </div>
+  </body>
 </html>
