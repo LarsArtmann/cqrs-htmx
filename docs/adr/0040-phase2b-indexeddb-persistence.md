@@ -47,7 +47,7 @@ Two things changed since ADR-0030:
   drains all persisted commands and broadcasts `retry` with the full envelope to
   every connected tab, enabling cross-tab and cross-session retry.
 - The tab reconstructs the HTMX request via `htmx.ajax(verb, url, {target,
-  values, headers})` when the originating DOM element is gone, so a persisted
+values, headers})` when the originating DOM element is gone, so a persisted
   command is not silently dropped.
 - The worker broadcasts a `pending` count so the UI indicator can show
   "N commands syncing…".

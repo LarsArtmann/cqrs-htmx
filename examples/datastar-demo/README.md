@@ -21,17 +21,17 @@ Open http://localhost:8095 — open a second tab to see live sync via the event 
 
 ## Endpoints
 
-| Method | Path                    | Purpose                                  |
-| ------ | ----------------------- | ---------------------------------------- |
-| GET    | `/`                     | Index page (Datastar + Todo UI)          |
-| POST   | `/api/todos`            | Create a todo (command)                  |
-| POST   | `/api/todos/toggle`     | Toggle done (command)                    |
-| POST   | `/api/todos/delete`     | Delete a todo (command)                  |
-| POST   | `/api/todos/update`     | Update text (command)                    |
-| GET    | `/api/todos`            | List todos (query)                       |
-| GET    | `/api/events`           | SSE stream of domain events (live)       |
-| GET    | `/api/events/replay`    | Replay full event history over SSE       |
-| POST   | `/api/simulate`         | Simulate concurrent mutations (demo)     |
+| Method | Path                 | Purpose                              |
+| ------ | -------------------- | ------------------------------------ |
+| GET    | `/`                  | Index page (Datastar + Todo UI)      |
+| POST   | `/api/todos`         | Create a todo (command)              |
+| POST   | `/api/todos/toggle`  | Toggle done (command)                |
+| POST   | `/api/todos/delete`  | Delete a todo (command)              |
+| POST   | `/api/todos/update`  | Update text (command)                |
+| GET    | `/api/todos`         | List todos (query)                   |
+| GET    | `/api/events`        | SSE stream of domain events (live)   |
+| GET    | `/api/events/replay` | Replay full event history over SSE   |
+| POST   | `/api/simulate`      | Simulate concurrent mutations (demo) |
 
 > Unlike the `basic` example (HTMX) this demo uses vanilla net/http handlers
 > and Datastar fragments, showing that cqrs-htmx's CQRS/event patterns are

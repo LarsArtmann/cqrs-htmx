@@ -18,7 +18,8 @@ go-cqrs-lite v4 ships snapshot support in the `decider` package
 package (`SnapshotStore` interface, `EveryNEvents` and `ReadPressure`
 strategies). The Repository restores the most recent snapshot on Load and
 replays only the events appended since — turning O(n) replay into O(1) restore
-+ O(delta) replay.
+
+- O(delta) replay.
 
 ## Decision
 
@@ -50,13 +51,13 @@ replays only the events appended since — turning O(n) replay into O(1) restore
 
 ## Usage
 
-	strategy, _ := snapshot.EveryNEvents(500)
-	svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
-	    SnapshotConfig: usermgmt.SnapshotConfig{
-	        Store:    usermgmt.NewMemorySnapshotStore(),
-	        Codec:    codec.JSONCodec{},
-	        Strategy: strategy,
-	    },
-	})
+    strategy, _ := snapshot.EveryNEvents(500)
+    svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+        SnapshotConfig: usermgmt.SnapshotConfig{
+            Store:    usermgmt.NewMemorySnapshotStore(),
+            Codec:    codec.JSONCodec{},
+            Strategy: strategy,
+        },
+    })
 
 Addresses TODO_LIST "Snapshot integration for high-event-volume aggregates".

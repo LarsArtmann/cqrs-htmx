@@ -44,8 +44,8 @@ Executing this safely requires:
 2. Splitting the 30-field struct without breaking the `NewService` constructor.
 3. Re-running the full usermgmt + integration_test suites (slowest module).
 4. Coordinating with the other breaking changes (T16 renames, T17 tristate,
-  T23 TOTPSecret, T24 ActorID) so they ship together in a single v5 bump
-  rather than fragmenting the API across multiple minor releases.
+   T23 TOTPSecret, T24 ActorID) so they ship together in a single v5 bump
+   rather than fragmenting the API across multiple minor releases.
 
 Doing it piecemeal in one session on a published v4 library risks subtle
 facade-wiring bugs (wrong receiver, missed delegation) that the test suite may
