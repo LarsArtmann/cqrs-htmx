@@ -26,6 +26,10 @@ type UserID = id.UserID
 // type is always a valid id.UserID.
 //
 // For production code that validates external input, use ParseUserID instead.
+// SECURITY NOTE: the silent-hash fallback is a footgun — two callers passing
+// "alice" get the SAME UserID, and any non-ULID string silently becomes a
+// valid-looking ID. Use [ParseUserID] (strict) or [SyntheticUserID] (explicit
+// hashing) in new code. NewUserID is retained for backward compatibility.
 func NewUserID(s string) UserID {
 	if s == "" {
 		var zero UserID
@@ -34,9 +38,20 @@ func NewUserID(s string) UserID {
 	if uid, err := id.ParseUserID(s); err == nil {
 		return uid
 	}
+	return SyntheticUserID(s)
+}
+
+// SyntheticUserID derives a deterministic UserID from an arbitrary string by
+// SHA-256 hashing it into a ULID. The explicit name signals the hashing
+// behavior — use this only when you intentionally want a stable synthetic ID
+// derived from a non-ULID input (e.g. deriving a test ID from a username).
+// Two calls with the same input return the same UserID. For validated ULID
+// input use [ParseUserID]. NewUserID delegates here for non-ULID strings.
+func SyntheticUserID(s string) UserID {
 	h := sha256.Sum256([]byte(s))
 	var u ulid.ULID
 	copy(u[:], h[:16])
+
 	return brandid.NewID[id.UserMarker](u)
 }
 
