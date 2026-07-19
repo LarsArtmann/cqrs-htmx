@@ -104,7 +104,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		It("handles multiple consecutive newlines", func() {
 			writeAndExpect(cqrshtmx.SSEEvent{
 				Data: "a\n\nb",
-			}, "data: a\ndata: \nb\n\n")
+			}, "data: a\ndata: \ndata: b\n\n")
 		})
 
 		It("handles CRLF-only string", func() {
