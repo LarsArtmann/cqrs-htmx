@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"sync"
 
 	"github.com/justinas/nosurf"
 )
@@ -68,26 +67,23 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	}
 }
 
-// warnEmptyTrustedProxies logs a one-time warning if the CSRF config has no
-// trusted proxies configured. This moves the warning from the per-request hot
-// path (isTrustedProxy) to middleware construction time, preventing log spam
-// on every non-loopback HTTP request.
-var warnTrustedProxiesOnce sync.Once
-
+// warnEmptyTrustedProxies logs a warning if the CSRF config has no trusted
+// proxies configured. Called once at middleware construction time (not per
+// request), so each consumer's config is evaluated independently — a previous
+// global sync.Once here suppressed the warning for any second consumer in the
+// same binary, hiding real misconfigurations.
 func warnEmptyTrustedProxies(cfg CSRFConfig) {
-	warnTrustedProxiesOnce.Do(func() {
-		if !cfg.AllowPlaintextBypass {
-			return
-		}
+	if !cfg.AllowPlaintextBypass {
+		return
+	}
 
-		if len(cfg.TrustedProxies) == 0 && len(cfg.TrustedProxiesCIDR) == 0 {
-			slog.Warn(
-				"cqrs-htmx: CSRFConfig.AllowPlaintextBypass is enabled with no TrustedProxies — " +
-					"ALL non-TLS requests bypass origin validation. Set TrustedProxies or remove " +
-					"AllowPlaintextBypass in production",
-			)
-		}
-	})
+	if len(cfg.TrustedProxies) == 0 && len(cfg.TrustedProxiesCIDR) == 0 {
+		slog.Warn(
+			"cqrs-htmx: CSRFConfig.AllowPlaintextBypass is enabled with no TrustedProxies — " +
+				"ALL non-TLS requests bypass origin validation. Set TrustedProxies or remove " +
+				"AllowPlaintextBypass in production",
+		)
+	}
 }
 
 // setPlaintextHTTPOrigin sets the Sec-Fetch-Site header to "same-origin" for

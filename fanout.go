@@ -7,6 +7,12 @@ import (
 	"sync"
 )
 
+// defaultSubscriberBuffer is the per-subscriber channel capacity. Broadcasts
+// are non-blocking: a subscriber whose buffer is full is dropped (see
+// Broadcaster docs). 64 is large enough to absorb short bursts without dropping
+// under normal fan-out, while bounding memory per subscriber.
+const defaultSubscriberBuffer = 64
+
 // fanOut is the transport-agnostic subscriber hub shared by SSE [Broadcaster]
 // and [WSBroadcaster]. It provides thread-safe fan-out with O(1) unsubscribe
 // via channel pointer identity and non-blocking broadcast (drops to slow
@@ -39,7 +45,7 @@ func newFanOut[T any]() *fanOut[T] {
 // Call Unsubscribe when the client disconnects to prevent memory leaks.
 // After Close, Subscribe returns a closed channel (no-op).
 func (f *fanOut[T]) Subscribe() <-chan T {
-	ch := make(chan T, 64)
+	ch := make(chan T, defaultSubscriberBuffer)
 
 	f.mu.Lock()
 	if f.subscribers == nil {

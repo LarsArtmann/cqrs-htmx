@@ -101,7 +101,10 @@ func (a *App) dispatchRequest(
 	}
 
 	if v == nil {
-		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
+		// The decoder was configured but returned (nil, nil): a server-side
+		// wiring bug, not a transient infrastructure problem. Classify as
+		// Corruption (500) so it is not retried as 503.
+		a.handleErr(w, r, ctx, cfg, errDecoderReturnedNil)
 
 		return
 	}

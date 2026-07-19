@@ -297,8 +297,19 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 
 	userID, err := a.userIDExtractor(r)
 	if err != nil {
-		slog.Warn(
-			"cqrs-htmx: UserIDExtractor returned error",
+		// A failing extractor makes this request anonymous. That is safe ONLY
+		// when the handler gates with Authorize/RequireAuth (anonymous then
+		// fails the gate normally); handlers without a gate will process the
+		// request anonymously by design. Log at Error level — not Warn — so a
+		// broken extractor (the common cause: misconfigured session middleware)
+		// is loud and debuggable instead of silently degrading every request
+		// to anonymous. The library does not force a 401 here because that
+		// would break consumers whose extractors legitimately error for
+		// not-yet-authenticated requests.
+		slog.Error(
+			"cqrs-htmx: UserIDExtractor returned error — request proceeds anonymously",
+			slog.String("method", r.Method),
+			slog.String("path", r.URL.Path),
 			slog.String("error", err.Error()),
 		)
 
