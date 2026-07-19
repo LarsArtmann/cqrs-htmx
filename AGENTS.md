@@ -52,7 +52,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 - **Registration is email-only:** No password field. Auth is exclusively via WebAuthn passkeys.
 - **UserID types are aliased:** Root defines `type UserID = id.UserID` and usermgmt aliases the same type — they interoperate directly, no bridging needed.
 - **Module path casing:** go-cqrs-lite uses lowercase `github.com/larsartmann/go-cqrs-lite`.
-- **go-cqrs-lite v4.0.0 publishing bug:** go.mod files reference internal siblings with zero pseudo-versions. Consumers must explicitly `go get` ALL transitive go-cqrs-lite modules.
+- **go-cqrs-lite v4.0.0 publishing bug:** go.mod files originally referenced internal siblings with zero pseudo-versions. Consumers had to explicitly `go get` ALL transitive go-cqrs-lite modules. Largely resolved as of v4.0.1+ — root now uses command/v4 v4.0.0, event/v4 v4.0.2, id/v4 v4.0.1, query/v4 v4.0.0, transport/http/v4 v4.0.1.
 - **go.work local replaces (temporary):** `go.work` contains `replace` directives pointing all go-cqrs-lite modules to `/home/lars/projects/go-cqrs-lite/*` to work around the v4.0.0 publishing bug. Remove these once upstream publishes v4.0.1+ with corrected requires.
 - **cqrs-lint silent-failure on broken builds (fixed in v0.2.1):** cqrs-lint < v0.2.1 silently reports "No Go files importing go-cqrs-lite found" when the project doesn't compile, instead of surfencing the real error. Always ensure `go build ./...` passes before trusting cqrs-lint output. v0.2.1+ exits non-zero and names the load errors.
 - **GOWORK=off for submodules:** `go.work` covers workspace; use `GOWORK=off` for per-module go.mod commands.

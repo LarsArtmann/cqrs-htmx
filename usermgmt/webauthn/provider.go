@@ -156,6 +156,23 @@ var _ webauthn.User = (*webauthnUser)(nil)
 
 // --- ceremony implementations ---
 
+// marshalCeremonyResponse serializes the (options, session) pair returned by a
+// WebAuthn Begin* call into two JSON blobs with consistent error wrapping.
+// Shared by BeginRegistration and BeginLogin.
+func marshalCeremonyResponse(options, session any) ([]byte, []byte, error) {
+	optionsJSON, err := json.Marshal(options)
+	if err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_options", "marshal options")
+	}
+
+	sessionJSON, err := json.Marshal(session)
+	if err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_session", "marshal session")
+	}
+
+	return optionsJSON, sessionJSON, nil
+}
+
 // BeginRegistration starts the credential registration ceremony.
 // userJSON contains serialized user data (id, email, display_name, credentials).
 // Returns the CredentialCreation options (as JSON) and opaque session data.
@@ -170,17 +187,7 @@ func (p *Provider) BeginRegistration(_ context.Context, userJSON []byte) (option
 		return nil, nil, errorfamily.WrapTransient(err, "webauthn.begin_registration", "begin registration")
 	}
 
-	optionsJSON, err := json.Marshal(creation)
-	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_options", "marshal options")
-	}
-
-	sessionJSON, err := json.Marshal(session)
-	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_session", "marshal session")
-	}
-
-	return optionsJSON, sessionJSON, nil
+	return marshalCeremonyResponse(creation, session)
 }
 
 // FinishRegistration completes the credential registration ceremony.
@@ -230,17 +237,7 @@ func (p *Provider) BeginLogin(_ context.Context, userJSON []byte) (options, sess
 		return nil, nil, errorfamily.WrapTransient(err, "webauthn.begin_login", "begin login")
 	}
 
-	optionsJSON, err := json.Marshal(assertion)
-	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_options", "marshal options")
-	}
-
-	sessionJSON, err := json.Marshal(session)
-	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_session", "marshal session")
-	}
-
-	return optionsJSON, sessionJSON, nil
+	return marshalCeremonyResponse(assertion, session)
 }
 
 // FinishLogin completes the authentication ceremony.

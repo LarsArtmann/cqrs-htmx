@@ -18,7 +18,8 @@ const (
 // Note: usermgmt is a separate Go module and cannot import these — it
 // declares its own local statusKey/errorKey. The wire formats match.
 const (
-	JSONKeyError  = "error"
-	JSONKeyStatus = "status"
-	JSONKeyCode   = "code"
+	JSONKeyError     = "error"
+	JSONKeyStatus    = "status"
+	JSONKeyCode      = "code"
+	JSONKeyRequestID = "request_id"
 )
