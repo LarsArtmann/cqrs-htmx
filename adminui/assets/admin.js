@@ -119,6 +119,7 @@
       sync.pending = Math.max(0, sync.pending - 1);
       sync.confirmed++;
       announce(el, "Change saved");
+      ackCommand(detail.commandId);
     } else if (detail.status === "rejected") {
       setSyncState(el, "rejected");
       sync.pending = Math.max(0, sync.pending - 1);
@@ -126,6 +127,7 @@
       if (detail.error) {
         announce(el, "Failed: " + detail.error, true);
       }
+      ackCommand(detail.commandId);
     }
     updateIndicator();
   }
@@ -209,7 +211,12 @@
         if (!data || !data.type) return;
 
         if (data.type === "retry") {
-          retryQueuedCommand(data.commandId);
+          retryQueuedCommand(data.commandId, data.envelope);
+        } else if (data.type === "pending") {
+          // Persisted-queue depth from the SharedWorker (survives closed tabs).
+          // Surface it in the indicator so users see deferred sync work.
+          sync.queued = Math.max(sync.queued, data.count | 0);
+          updateIndicator();
         }
       };
       syncWorker.port.start();
@@ -218,21 +225,41 @@
     }
   }
 
-  function enqueueCommand(commandId) {
+  function enqueueCommand(commandId, envelope) {
     if (!syncWorker || !commandId) return;
-    syncWorker.port.postMessage({ type: "enqueue", commandId: commandId });
+    syncWorker.port.postMessage({
+      type: "enqueue",
+      commandId: commandId,
+      envelope: envelope || null,
+    });
     sync.queued++;
     updateIndicator();
   }
 
-  function retryQueuedCommand(commandId) {
+  function ackCommand(commandId) {
+    if (!syncWorker || !commandId) return;
+    // Tell the worker the command is settled server-side so it can delete the
+    // persisted copy (ADR-0040) and stop retrying it.
+    syncWorker.port.postMessage({ type: "ack", commandId: commandId });
+  }
+
+  function retryQueuedCommand(commandId, envelope) {
     if (!commandId) return;
-    var el = document.querySelector('[data-command-id="' + commandId + '"]');
+    var selector = '[data-command-id="' + commandId + '"]';
+    var el = document.querySelector(selector);
     if (!el) {
-      // Element gone (user navigated away) — honest: show as failed, not silent
+      // Element gone (user navigated away). If we have a persisted envelope
+      // (ADR-0040 cross-tab/cross-session retry), rebuild the request via the
+      // HTMX JS API into a fresh row so the command is not silently lost.
+      if (envelope && typeof htmx !== "undefined" && htmx.ajax) {
+        rebuildAndRetry(commandId, envelope);
+        return;
+      }
+      // No envelope and no element — honest: show as failed, not silent.
       sync.queued = Math.max(0, sync.queued - 1);
       sync.failed++;
       updateIndicator();
+      ackCommand(commandId);
       return;
     }
     // Clear queued state, transition to pending (re-flight)
@@ -245,6 +272,30 @@
     if (typeof htmx !== "undefined") {
       htmx.trigger(el, "click");
     }
+  }
+
+  // rebuildAndRetry re-issues a persisted command whose originating DOM
+  // element is gone (cross-tab drain after a browser restart). It synthesizes
+  // a row carrying the command id so the result lands somewhere visible and
+  // the normal ACK path can confirm it.
+  function rebuildAndRetry(commandId, envelope) {
+    var host = document.createElement("div");
+    host.setAttribute("data-command-id", commandId);
+    host.setAttribute("data-sync-state", "pending");
+    document.body.appendChild(host);
+    sync.queued = Math.max(0, sync.queued - 1);
+    sync.pending++;
+    updateIndicator();
+    htmx.ajax(
+      envelope.verb || "POST",
+      envelope.url,
+      {
+        target: host,
+        swap: "outerHTML",
+        values: envelope.values || null,
+        headers: envelope.headers || null,
+      }
+    );
   }
 
   // --- Optimistic render: mark pending on htmx:beforeRequest ---
@@ -301,10 +352,23 @@
     var cmdID = syncEl.getAttribute("data-command-id");
     if (!cmdID) return;
 
+    // Capture the request envelope so the SharedWorker can persist it (ADR-0040)
+    // and any tab can rebuild the request on cross-session retry.
+    var cfg = (e.detail && e.detail.requestConfig) || null;
+    var envelope = null;
+    if (cfg) {
+      envelope = {
+        verb: cfg.verb || "",
+        url: cfg.path || "",
+        values: cfg.parameters || null,
+        headers: cfg.headers || null,
+      };
+    }
+
     // Mark as queued (offline) — NOT rejected
     syncEl.setAttribute("data-sync-queued", "");
     sync.pending = Math.max(0, sync.pending - 1);
-    enqueueCommand(cmdID);
+    enqueueCommand(cmdID, envelope);
     announce(syncEl, "Offline — change queued for sync", true);
   });
 
