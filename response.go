@@ -360,7 +360,7 @@ func setTriggerWithDetail(w http.ResponseWriter, header, name string, detail any
 		}
 
 		var sb strings.Builder
-		sb.Grow(len(name) + len(detailJSON) + 5)
+		sb.Grow(len(name) + len(detailJSON) + 5) //nolint:mnd // 5 = `{"` + `":` + `}` JSON overhead
 		sb.WriteString(`{"`)
 		sb.WriteString(name)
 		sb.WriteString(`":`)

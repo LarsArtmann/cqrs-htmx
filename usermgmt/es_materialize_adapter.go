@@ -104,9 +104,11 @@ func (m *MaterializeProjection[V, K]) Handle(ctx context.Context, evt event.Even
 	return nil
 }
 
-// Compile-time assertion.
-var _ projection.Projection = (*MaterializeProjection[any, dummyMaterializeStringer])(nil)
+// Compile-time assertion. staticStringer is a zero-cost Stringer used only
+// to satisfy the K: fmt.Stringer type parameter at compile time; it carries no
+// runtime state and its String() is never called in production.
+var _ projection.Projection = (*MaterializeProjection[any, staticStringer])(nil)
 
-type dummyMaterializeStringer string
+type staticStringer string
 
-func (dummyMaterializeStringer) String() string { return "" }
+func (staticStringer) String() string { return "" }

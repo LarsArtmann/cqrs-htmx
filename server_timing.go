@@ -174,7 +174,7 @@ func escapeQuotedString(s string) string {
 	}
 
 	var b strings.Builder
-	b.Grow(len(s) + 4)
+	b.Grow(len(s) + 4) //nolint:mnd // 4 = delimiter + quote overhead in Server-Timing format
 
 	for i := range s {
 		c := s[i]

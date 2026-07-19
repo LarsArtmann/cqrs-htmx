@@ -125,9 +125,6 @@ func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
 		secure := true
 		cfg.Secure = &secure
 	}
-	if cfg.ImportExportAuthorizer == nil {
-		cfg.ImportExportAuthorizer = nil // set in NewAuthHandler where service is available
-	}
 	return cfg
 }
 

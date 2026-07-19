@@ -62,7 +62,7 @@ var jsonLogBufferPool = sync.Pool{
 // JSONLogFormatter formats an HTTP request log entry as a JSON string.
 // Uses a sync.Pool'd buffer for allocation efficiency across requests.
 func JSONLogFormatter(r *http.Request, status int, duration time.Duration) string {
-	entry := make(map[string]any, 7)
+	entry := make(map[string]any, 7) //nolint:mnd // capacity hint: 7 logged fields
 	entry["method"] = r.Method
 	entry["path"] = r.URL.Path
 	entry["status"] = http.StatusText(status)
@@ -212,7 +212,7 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 
 			duration := time.Since(start)
 
-			attrs := make([]slog.Attr, 0, 7)
+			attrs := make([]slog.Attr, 0, 7) //nolint:mnd // capacity hint: 7 attributes
 			attrs = append(
 				attrs,
 				slog.String("method", r.Method),
