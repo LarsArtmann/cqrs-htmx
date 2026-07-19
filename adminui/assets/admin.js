@@ -286,16 +286,12 @@
     sync.queued = Math.max(0, sync.queued - 1);
     sync.pending++;
     updateIndicator();
-    htmx.ajax(
-      envelope.verb || "POST",
-      envelope.url,
-      {
-        target: host,
-        swap: "outerHTML",
-        values: envelope.values || null,
-        headers: envelope.headers || null,
-      }
-    );
+    htmx.ajax(envelope.verb || "POST", envelope.url, {
+      target: host,
+      swap: "outerHTML",
+      values: envelope.values || null,
+      headers: envelope.headers || null,
+    });
   }
 
   // --- Optimistic render: mark pending on htmx:beforeRequest ---

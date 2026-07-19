@@ -45,6 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **adminui coverage gap tests** (`adminui/coverage_gaps2_test.go`): 17 tests covering New() validation, auth checks, not-found paths, asset serving (CSS/JS/sync-worker/htmx), diverse user/tenant rendering.
 - **SSE broadcaster lifecycle tests** (`sse_broadcaster_test.go`): 4 tests for OnSubscribe/OnUnsubscribe hooks: fire verification, no-op for unknown channels, concurrent race test (20 goroutines x 100 cycles).
 - **OAuth2 integration tests** (`integration_test/oauth2_integration_test.go`): 3 integration tests for full end-to-end OAuth2 finish login with mock token exchange server, invalid state rejection, provider mismatch rejection.
+- **Docs freshness checker** (`scripts/check-docs-freshness.sh`, wired as `nix run .#check-docs-freshness`): Checks AGENTS.md version strings against go.mod, Go version refs, HTMX version refs, and deprecated API references. Integrated into `nix run .#check-modules`.
 
 ### Changed
 
@@ -58,6 +59,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **`encoding/json` v2 migration reverted**: 26 source files reverted from `encoding/json/v2` + `jsontext` back to stdlib `encoding/json` after automated migration broke the build. The project uses `encoding/json/v2` via `GOEXPERIMENT=jsonv2` (a compiler flag, not an import path) — the migration tool confused the two.
 - **OAuth2 HTTP handler nil panic** (`usermgmt/oauth2_http.go`): `oauth2Error()` method signature changed from `(w, status, message)` to `(w, r, status, message)`. The old code passed `nil` as the `*http.Request` to `http.Redirect()`, which panics in Go 1.26. All 3 call sites in `handleOAuth2Callback` updated.
 - **TOTPPendingSecretTTL default** (`usermgmt/totp.go`, `usermgmt/service_core.go`): Extracted `defaultTOTPPendingTTL = 5 * time.Minute` as a named constant. The default is now set at `NewService` init time instead of as an inline fallback at the use site, making the configuration consistent with other TTL fields.
 - **Exhaustive lint in `usermgmt/service_register.go`**: Added explicit `case event.Transient, event.Corruption, event.Infrastructure:` to the `classifyDispatchError` switch (same body as `default`). Eliminates the exhaustive linter warning.
@@ -67,6 +69,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Documented
 
 - **Empty-body behavior in `DecodeJSON`/`DecodeJSONQuery` godoc**: Documented that an empty body on GET requests produces a zero-value `T` (not an error).
+- **Provider implementation guide** (`docs/guides/provider-implementation.md`): Covers all 3 auth provider interfaces (`TOTPProvider`, `WebAuthnProvider`, `OAuth2Provider`) with method signatures, key design points, and references to existing implementations.
+- **Release process documentation** (`CONTRIBUTING.md`): Pre-release checklist (8 verification steps: test, build, lint, errorfamily, check-modules, coverage-gate, fmt, flake-check), loginpage tagging instructions, go-cqrs-lite v4.0.0 publishing bug workaround, and `encoding/json/v2` usage documentation.
 
 ## [v4.2.1] - 2026-07-08
 
