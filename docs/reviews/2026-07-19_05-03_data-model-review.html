@@ -1,146 +1,480 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Data Model Review — cqrs-htmx — 2026-07-19</title>
-<style>
-  :root { --bg:#0b0d12; --panel:#141821; --panel-2:#1b2030; --border:#262c3a; --text:#e6e9ef; --muted:#8b93a7; --critical:#f43f5e; --high:#fb923c; --medium:#facc15; --low:#38bdf8; --ok:#34d399; --accent:#818cf8; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 ui-monospace,Menlo,Consolas,monospace; }
-  .wrap { max-width:1400px; margin:0 auto; padding:32px 24px; }
-  h1 { font-size:28px; margin:0 0 4px; } h2 { font-size:18px; margin:32px 0 12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
-  h3 { font-size:14px; margin:24px 0 8px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
-  .sub { color:var(--muted); margin:0 0 24px; }
-  .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:24px; }
-  .card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:12px; }
-  .card .n { font-size:28px; font-weight:700; }
-  .card .l { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
-  .ok .n { color:var(--ok); } .med .n { color:var(--medium); } .low .n { color:var(--low); } .high .n { color:var(--high); } .crit .n { color:var(--critical); }
-  .problem { border-left:3px solid var(--critical); } .solution { border-left:3px solid var(--ok); } .warn { border-left:3px solid var(--medium); }
-  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-  .b-crit { background:rgba(244,63,94,0.15); color:var(--critical); }
-  .b-high { background:rgba(251,146,60,0.15); color:var(--high); }
-  .b-med { background:rgba(250,204,21,0.15); color:var(--medium); }
-  .b-low { background:rgba(56,189,248,0.15); color:var(--low); }
-  .b-ok { background:rgba(52,211,153,0.15); color:var(--ok); }
-  code { background:var(--panel-2); padding:1px 5px; border-radius:3px; font-size:12px; color:var(--accent); }
-  pre { background:var(--panel); padding:12px; border-radius:6px; overflow:auto; font-size:12px; border:1px solid var(--border); }
-  table { width:100%; border-collapse:collapse; background:var(--panel); border-radius:8px; overflow:hidden; margin-bottom:16px; }
-  th, td { padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); vertical-align:top; font-size:12px; }
-  th { background:var(--panel-2); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
-  ul { margin:8px 0; padding-left:20px; } li { margin:4px 0; }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>Data Model Review</h1>
-  <p class="sub">cqrs-htmx · 2026-07-19 · Focus: domain types in root + usermgmt. Branded types, lifecycle modeling, impossible-state prevention.</p>
-  <p>Model score: <b>7.6 / 10</b> — Strong branded-type discipline for IDs, but several high-impact domain fields are untyped strings/bools that should carry their own types.</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>Data Model Review — cqrs-htmx — 2026-07-19</title>
+    <style>
+      :root {
+        --bg: #0b0d12;
+        --panel: #141821;
+        --panel-2: #1b2030;
+        --border: #262c3a;
+        --text: #e6e9ef;
+        --muted: #8b93a7;
+        --critical: #f43f5e;
+        --high: #fb923c;
+        --medium: #facc15;
+        --low: #38bdf8;
+        --ok: #34d399;
+        --accent: #818cf8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.5 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+      .wrap {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 32px 24px;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 32px 0 12px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+      }
+      h3 {
+        font-size: 14px;
+        margin: 24px 0 8px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 24px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      .card .n {
+        font-size: 28px;
+        font-weight: 700;
+      }
+      .card .l {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+      }
+      .ok .n {
+        color: var(--ok);
+      }
+      .med .n {
+        color: var(--medium);
+      }
+      .low .n {
+        color: var(--low);
+      }
+      .high .n {
+        color: var(--high);
+      }
+      .crit .n {
+        color: var(--critical);
+      }
+      .problem {
+        border-left: 3px solid var(--critical);
+      }
+      .solution {
+        border-left: 3px solid var(--ok);
+      }
+      .warn {
+        border-left: 3px solid var(--medium);
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .b-crit {
+        background: rgba(244, 63, 94, 0.15);
+        color: var(--critical);
+      }
+      .b-high {
+        background: rgba(251, 146, 60, 0.15);
+        color: var(--high);
+      }
+      .b-med {
+        background: rgba(250, 204, 21, 0.15);
+        color: var(--medium);
+      }
+      .b-low {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--low);
+      }
+      .b-ok {
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--ok);
+      }
+      code {
+        background: var(--panel-2);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+        color: var(--accent);
+      }
+      pre {
+        background: var(--panel);
+        padding: 12px;
+        border-radius: 6px;
+        overflow: auto;
+        font-size: 12px;
+        border: 1px solid var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+      th,
+      td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        font-size: 12px;
+      }
+      th {
+        background: var(--panel-2);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+      }
+      ul {
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+      li {
+        margin: 4px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Data Model Review</h1>
+      <p class="sub">
+        cqrs-htmx · 2026-07-19 · Focus: domain types in root + usermgmt. Branded types, lifecycle
+        modeling, impossible-state prevention.
+      </p>
+      <p>
+        Model score: <b>7.6 / 10</b> — Strong branded-type discipline for IDs, but several
+        high-impact domain fields are untyped strings/bools that should carry their own types.
+      </p>
 
-  <div class="grid">
-    <div class="card ok"><div class="n">~120</div><div class="l">Domain types</div></div>
-    <div class="card ok"><div class="n">9</div><div class="l">Branded ID types</div></div>
-    <div class="card ok"><div class="n">3</div><div class="l">Generic types</div></div>
-    <div class="card high"><div class="n">5</div><div class="l">Stringly-typed enums</div></div>
-    <div class="card crit"><div class="n">1</div><div class="l">Branded type unused</div></div>
-  </div>
+      <div class="grid">
+        <div class="card ok">
+          <div class="n">~120</div>
+          <div class="l">Domain types</div>
+        </div>
+        <div class="card ok">
+          <div class="n">9</div>
+          <div class="l">Branded ID types</div>
+        </div>
+        <div class="card ok">
+          <div class="n">3</div>
+          <div class="l">Generic types</div>
+        </div>
+        <div class="card high">
+          <div class="n">5</div>
+          <div class="l">Stringly-typed enums</div>
+        </div>
+        <div class="card crit">
+          <div class="n">1</div>
+          <div class="l">Branded type unused</div>
+        </div>
+      </div>
 
-  <h2>What is excellent</h2>
-  <div class="card solution"><h3 style="margin-top:0">Strong branded-type discipline for identifiers</h3>
-    <p><code>UserID = id.UserID</code>, <code>BotID = brandid.ID[botBrand, string]</code>, <code>TenantID = brandid.ID[tenantBrand, string]</code>, <code>ActorID = brandid.ID[actorBrand, string]</code>, <code>CorrelationID = id.CorrelationID</code>, <code>RequestID</code>, <code>ImpersonatorID = ActorID</code>. The <code>brandid.ID[Brand, Raw]</code> generic pattern makes accidental cross-type substitution a compile error. This is the right way to use Go generics for type safety.</p>
-  </div>
-  <div class="card solution"><h3 style="margin-top:0">Generics used where they earn their keep</h3>
-    <p><code>MaterializeProjection[V any, K fmt.Stringer]</code> — typed projection state. <code>fanOut[T any]</code> — typed event channel. <code>RenderPaginatedJSON[T]()</code>, <code>DecodeJSON[T]()</code> — typed decoder/renderer pipeline. None are gratuitous; each eliminates a real duplicate-type family.</p>
-  </div>
-  <div class="card solution"><h3 style="margin-top:0">Duck-typed interfaces for optional deps</h3>
-    <p><code>Enforcer</code> matches casbin without importing casbin. <code>TemplComponent</code> matches templ's <code>Render</code> without importing templ. <code>HTTPStatusCarrier</code> for errors. This is textbook "accept interfaces, define structs" — and at the package boundary it keeps the dep tree small.</p>
-  </div>
-  <div class="card solution"><h3 style="margin-top:0">authMode closed enum prevents impossible states</h3>
-    <p><code>type authMode int</code> with three unexported constants (<code>authNone</code>, <code>authRequired</code>, <code>authAuthorized</code>). The only way to set the mode is through <code>Authorize(...)</code> / <code>RequireAuth()</code>, which transition <code>none → required → authorized</code> in order. Impossible to skip <code>required</code> and reach <code>authorized</code>. <strong>This is the model the rest of the codebase should aspire to.</strong></p>
-  </div>
+      <h2>What is excellent</h2>
+      <div class="card solution">
+        <h3 style="margin-top: 0">Strong branded-type discipline for identifiers</h3>
+        <p>
+          <code>UserID = id.UserID</code>, <code>BotID = brandid.ID[botBrand, string]</code>,
+          <code>TenantID = brandid.ID[tenantBrand, string]</code>,
+          <code>ActorID = brandid.ID[actorBrand, string]</code>,
+          <code>CorrelationID = id.CorrelationID</code>, <code>RequestID</code>,
+          <code>ImpersonatorID = ActorID</code>. The <code>brandid.ID[Brand, Raw]</code> generic
+          pattern makes accidental cross-type substitution a compile error. This is the right way to
+          use Go generics for type safety.
+        </p>
+      </div>
+      <div class="card solution">
+        <h3 style="margin-top: 0">Generics used where they earn their keep</h3>
+        <p>
+          <code>MaterializeProjection[V any, K fmt.Stringer]</code> — typed projection state.
+          <code>fanOut[T any]</code> — typed event channel. <code>RenderPaginatedJSON[T]()</code>,
+          <code>DecodeJSON[T]()</code> — typed decoder/renderer pipeline. None are gratuitous; each
+          eliminates a real duplicate-type family.
+        </p>
+      </div>
+      <div class="card solution">
+        <h3 style="margin-top: 0">Duck-typed interfaces for optional deps</h3>
+        <p>
+          <code>Enforcer</code> matches casbin without importing casbin.
+          <code>TemplComponent</code> matches templ's <code>Render</code> without importing templ.
+          <code>HTTPStatusCarrier</code> for errors. This is textbook "accept interfaces, define
+          structs" — and at the package boundary it keeps the dep tree small.
+        </p>
+      </div>
+      <div class="card solution">
+        <h3 style="margin-top: 0">authMode closed enum prevents impossible states</h3>
+        <p>
+          <code>type authMode int</code> with three unexported constants (<code>authNone</code>,
+          <code>authRequired</code>, <code>authAuthorized</code>). The only way to set the mode is
+          through <code>Authorize(...)</code> / <code>RequireAuth()</code>, which transition
+          <code>none → required → authorized</code> in order. Impossible to skip
+          <code>required</code> and reach <code>authorized</code>.
+          <strong>This is the model the rest of the codebase should aspire to.</strong>
+        </p>
+      </div>
 
-  <h2>Problems found</h2>
+      <h2>Problems found</h2>
 
-  <div class="card problem">
-    <h3 style="margin-top:0"><span class="badge b-crit">Critical</span> <code>Email</code> branded type exists but is not used in <code>User</code></h3>
-    <p>The codebase defines <code>type Email string</code> with a validating <code>ParseEmail(raw) (Email, error)</code> constructor (lowercases, trims, RFC 5322 check). But <code>User.Email</code> is <code>string</code>, not <code>Email</code>. Same for <code>UserState.Email</code>, <code>ChangeEmailCmd.Email</code>, <code>UserRegisteredPayload.Email</code>, etc.</p>
-    <p><strong>Why it matters:</strong> The entire point of branding <code>Email</code> is lost. Any string can land in <code>User.Email</code> without validation. You have a typed validator that the type system ignores.</p>
-    <p><strong>Fix:</strong></p>
-<pre>// usermgmt/user.go
+      <div class="card problem">
+        <h3 style="margin-top: 0">
+          <span class="badge b-crit">Critical</span> <code>Email</code> branded type exists but is
+          not used in <code>User</code>
+        </h3>
+        <p>
+          The codebase defines <code>type Email string</code> with a validating
+          <code>ParseEmail(raw) (Email, error)</code> constructor (lowercases, trims, RFC 5322
+          check). But <code>User.Email</code> is <code>string</code>, not <code>Email</code>. Same
+          for <code>UserState.Email</code>, <code>ChangeEmailCmd.Email</code>,
+          <code>UserRegisteredPayload.Email</code>, etc.
+        </p>
+        <p>
+          <strong>Why it matters:</strong> The entire point of branding <code>Email</code> is lost.
+          Any string can land in <code>User.Email</code> without validation. You have a typed
+          validator that the type system ignores.
+        </p>
+        <p><strong>Fix:</strong></p>
+        <pre>
+// usermgmt/user.go
 type User struct {
     ID    UserID
     Email Email       // ← was string
     ...
 }</pre>
-    <p>This is a breaking change to JSON consumers (no — JSON tags stay the same, only the Go type changes). Event payloads use <code>encoding/json/v2</code> which marshals <code>Email</code> identically to <code>string</code>. Pure type-safety win, zero serialization impact.</p>
-  </div>
+        <p>
+          This is a breaking change to JSON consumers (no — JSON tags stay the same, only the Go
+          type changes). Event payloads use <code>encoding/json/v2</code> which marshals
+          <code>Email</code> identically to <code>string</code>. Pure type-safety win, zero
+          serialization impact.
+        </p>
+      </div>
 
-  <div class="card problem">
-    <h3 style="margin-top:0"><span class="badge b-high">High</span> <code>User</code> lifecycle encoded as <code>bool</code> — impossible states representable</h3>
-    <p><code>User</code> has <code>EmailVerified bool</code>, <code>TOTPEnabled bool</code>. <code>UserState</code> has <code>Deleted bool</code>, <code>DeleteReason string</code>. A <code>Deleted=true</code> user still has populated <code>Email</code>, <code>Credentials</code>, etc. — nothing in the type system prevents reading credential data from a deleted user.</p>
-    <p><strong>Fix:</strong> Model lifecycle as a closed enum or interface union:</p>
-<pre>type UserLifecycle int
+      <div class="card problem">
+        <h3 style="margin-top: 0">
+          <span class="badge b-high">High</span> <code>User</code> lifecycle encoded as
+          <code>bool</code> — impossible states representable
+        </h3>
+        <p>
+          <code>User</code> has <code>EmailVerified bool</code>, <code>TOTPEnabled bool</code>.
+          <code>UserState</code> has <code>Deleted bool</code>, <code>DeleteReason string</code>. A
+          <code>Deleted=true</code> user still has populated <code>Email</code>,
+          <code>Credentials</code>, etc. — nothing in the type system prevents reading credential
+          data from a deleted user.
+        </p>
+        <p><strong>Fix:</strong> Model lifecycle as a closed enum or interface union:</p>
+        <pre>
+type UserLifecycle int
 const (
     LifecycleActive UserLifecycle = iota
     LifecycleDeleted // UserDeleted carries DeleteReason
 )</pre>
-    <p>Or, more aggressively, two types: <code>ActiveUser</code> and <code>DeletedUser</code>, where read-models choose which to accept. (Likely too invasive — start with the enum.)</p>
-  </div>
+        <p>
+          Or, more aggressively, two types: <code>ActiveUser</code> and <code>DeletedUser</code>,
+          where read-models choose which to accept. (Likely too invasive — start with the enum.)
+        </p>
+      </div>
 
-  <div class="card problem">
-    <h3 style="margin-top:0"><span class="badge b-high">High</span> Five stringly-typed enums should be closed unions</h3>
-    <table>
-      <thead><tr><th>Type</th><th>Currently</th><th>Problem</th><th>Fix</th></tr></thead>
-      <tbody>
-        <tr><td><code>Action</code></td><td><code>string</code></td><td>Any string is an Action — typos like <code>"creat"</code> compile</td><td>Typed constants + <code>Actions()</code> constructor</td></tr>
-        <tr><td><code>Effect</code></td><td><code>string</code></td><td>Casbin allow/deny — same problem</td><td>Sealed: <code>var EffectAllow = Effect("allow")</code> + unexported ctor</td></tr>
-        <tr><td><code>Role</code></td><td><code>string</code></td><td>Role names drift across codebases</td><td>iota-typed or constructor-validated</td></tr>
-        <tr><td><code>UserDataFormat</code></td><td><code>string</code></td><td>Format strings ("json", "cbor") as raw strings</td><td>Typed constants + switch exhaustiveness</td></tr>
-        <tr><td><code>AckStatus</code> (root)</td><td><code>string</code></td><td>4 statuses (ok/duplicate/error/rejected) — any string compiles</td><td>Same pattern</td></tr>
-      </tbody>
-    </table>
-  </div>
+      <div class="card problem">
+        <h3 style="margin-top: 0">
+          <span class="badge b-high">High</span> Five stringly-typed enums should be closed unions
+        </h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Currently</th>
+              <th>Problem</th>
+              <th>Fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Action</code></td>
+              <td><code>string</code></td>
+              <td>Any string is an Action — typos like <code>"creat"</code> compile</td>
+              <td>Typed constants + <code>Actions()</code> constructor</td>
+            </tr>
+            <tr>
+              <td><code>Effect</code></td>
+              <td><code>string</code></td>
+              <td>Casbin allow/deny — same problem</td>
+              <td>Sealed: <code>var EffectAllow = Effect("allow")</code> + unexported ctor</td>
+            </tr>
+            <tr>
+              <td><code>Role</code></td>
+              <td><code>string</code></td>
+              <td>Role names drift across codebases</td>
+              <td>iota-typed or constructor-validated</td>
+            </tr>
+            <tr>
+              <td><code>UserDataFormat</code></td>
+              <td><code>string</code></td>
+              <td>Format strings ("json", "cbor") as raw strings</td>
+              <td>Typed constants + switch exhaustiveness</td>
+            </tr>
+            <tr>
+              <td><code>AckStatus</code> (root)</td>
+              <td><code>string</code></td>
+              <td>4 statuses (ok/duplicate/error/rejected) — any string compiles</td>
+              <td>Same pattern</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-  <div class="card problem">
-    <h3 style="margin-top:0"><span class="badge b-high">High</span> Two different <code>ActorID</code> shapes for the same concept</h3>
-    <p>Root: <code>type ActorID = brandid.ID[actorBrand, string]</code> — a flat branded ID.<br>
-    usermgmt: <code>type ActorID struct { kind ActorKind; raw string }</code> — a kind-discriminated struct (kind ∈ {User, Bot}).</p>
-    <p>These model the <em>same concept</em> (who performed an action) with different shapes. Cross-module code must convert. AGENTS.md documents this, but documenting a model split doesn't fix it.</p>
-    <p><strong>Fix:</strong> Converge on usermgmt's discriminated shape (it carries more info), or push the discrimination into a wrapping type <code>Actor { ID ActorID; Kind ActorKind }</code> with a flat <code>ActorID</code>. Pick one, apply everywhere.</p>
-  </div>
+      <div class="card problem">
+        <h3 style="margin-top: 0">
+          <span class="badge b-high">High</span> Two different <code>ActorID</code> shapes for the
+          same concept
+        </h3>
+        <p>
+          Root: <code>type ActorID = brandid.ID[actorBrand, string]</code> — a flat branded ID.<br />
+          usermgmt: <code>type ActorID struct { kind ActorKind; raw string }</code> — a
+          kind-discriminated struct (kind ∈ {User, Bot}).
+        </p>
+        <p>
+          These model the <em>same concept</em> (who performed an action) with different shapes.
+          Cross-module code must convert. AGENTS.md documents this, but documenting a model split
+          doesn't fix it.
+        </p>
+        <p>
+          <strong>Fix:</strong> Converge on usermgmt's discriminated shape (it carries more info),
+          or push the discrimination into a wrapping type
+          <code>Actor { ID ActorID; Kind ActorKind }</code> with a flat <code>ActorID</code>. Pick
+          one, apply everywhere.
+        </p>
+      </div>
 
-  <div class="card warn">
-    <h3 style="margin-top:0"><span class="badge b-med">Medium</span> <code>User</code> vs <code>UserState</code> vs <code>UserView</code> vs <code>UserReadModel</code> — four parallel shapes</h3>
-    <p>The <code>User</code> domain has 4 struct types that overlap heavily: <code>User</code> (entity), <code>UserState</code> (event-sourced fold state), <code>UserView</code> (read-model), <code>UserReadModel</code> (projection). Fields are duplicated across all four. Adding a field means touching 4 types.</p>
-    <p><strong>Fix:</strong> Define a single <code>UserCore</code> with the shared fields, embed it in the others with their specific additions (timestamps, deleted-state, etc.). Same pattern already used for <code>credentialCore</code>.</p>
-  </div>
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>User</code> vs <code>UserState</code> vs
+          <code>UserView</code> vs <code>UserReadModel</code> — four parallel shapes
+        </h3>
+        <p>
+          The <code>User</code> domain has 4 struct types that overlap heavily:
+          <code>User</code> (entity), <code>UserState</code> (event-sourced fold state),
+          <code>UserView</code> (read-model), <code>UserReadModel</code> (projection). Fields are
+          duplicated across all four. Adding a field means touching 4 types.
+        </p>
+        <p>
+          <strong>Fix:</strong> Define a single <code>UserCore</code> with the shared fields, embed
+          it in the others with their specific additions (timestamps, deleted-state, etc.). Same
+          pattern already used for <code>credentialCore</code>.
+        </p>
+      </div>
 
-  <div class="card warn">
-    <h3 style="margin-top:0"><span class="badge b-med">Medium</span> <code>HandlerConfig.Secure *bool</code> — pointer-as-tristate anti-pattern</h3>
-    <p>Documented as: nil defaults to true, <code>new(bool)</code> for false. This is the classic "pointer to encode optionality" anti-pattern. Consumers must read the godoc to know what nil means.</p>
-    <p><strong>Fix:</strong> <code>type SecureMode int</code> with <code>SecureDefault</code>, <code>SecureTrue</code>, <code>SecureFalse</code>. Or: invert the API to <code>Insecure bool</code> (zero value = secure, the safe default).</p>
-  </div>
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>HandlerConfig.Secure *bool</code> —
+          pointer-as-tristate anti-pattern
+        </h3>
+        <p>
+          Documented as: nil defaults to true, <code>new(bool)</code> for false. This is the classic
+          "pointer to encode optionality" anti-pattern. Consumers must read the godoc to know what
+          nil means.
+        </p>
+        <p>
+          <strong>Fix:</strong> <code>type SecureMode int</code> with <code>SecureDefault</code>,
+          <code>SecureTrue</code>, <code>SecureFalse</code>. Or: invert the API to
+          <code>Insecure bool</code> (zero value = secure, the safe default).
+        </p>
+      </div>
 
-  <div class="card warn">
-    <h3 style="margin-top:0"><span class="badge b-med">Medium</span> <code>TOTPSecret []byte</code> in <code>User</code> — secret material in domain entity</h3>
-    <p>The TOTP secret lives in <code>UserState</code>/<code>User</code> directly. While tagged <code>json:"-"</code> for transport safety, the domain entity still carries cryptographic material. This couples the User aggregate to one specific MFA implementation.</p>
-    <p><strong>Fix:</strong> Move to a separate <code>TOTPState</code> owned by the TOTP strategy module — the same way WebAuthn credentials have their own store. Keeps <code>User</code> auth-strategy-agnostic.</p>
-  </div>
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>TOTPSecret []byte</code> in
+          <code>User</code> — secret material in domain entity
+        </h3>
+        <p>
+          The TOTP secret lives in <code>UserState</code>/<code>User</code> directly. While tagged
+          <code>json:"-"</code> for transport safety, the domain entity still carries cryptographic
+          material. This couples the User aggregate to one specific MFA implementation.
+        </p>
+        <p>
+          <strong>Fix:</strong> Move to a separate <code>TOTPState</code> owned by the TOTP strategy
+          module — the same way WebAuthn credentials have their own store. Keeps
+          <code>User</code> auth-strategy-agnostic.
+        </p>
+      </div>
 
-  <div class="card warn">
-    <h3 style="margin-top:0"><span class="badge b-med">Medium</span> <code>AccountLockout</code> uses <code>map[string]uint</code> keyed by raw string</h3>
-    <p>Keys are user identifiers (email? ID?), but typed as raw <code>string</code>. If the key scheme ever changes (email → UserID), old locks silently become orphans.</p>
-    <p><strong>Fix:</strong> <code>map[UserID]uint</code> or <code>map[Email]uint</code>. Make the key type explicit.</p>
-  </div>
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-med">Medium</span> <code>AccountLockout</code> uses
+          <code>map[string]uint</code> keyed by raw string
+        </h3>
+        <p>
+          Keys are user identifiers (email? ID?), but typed as raw <code>string</code>. If the key
+          scheme ever changes (email → UserID), old locks silently become orphans.
+        </p>
+        <p>
+          <strong>Fix:</strong> <code>map[UserID]uint</code> or <code>map[Email]uint</code>. Make
+          the key type explicit.
+        </p>
+      </div>
 
-  <div class="card warn">
-    <h3 style="margin-top:0"><span class="badge b-low">Low</span> <code>Session</code> struct lacks lifecycle modeling</h3>
-    <p>Sessions have implicit states: active, expired, revoked. The <code>Session</code> type has timestamps but no explicit status. A revoked session is indistinguishable from an active one in the type — only the store knows.</p>
-  </div>
+      <div class="card warn">
+        <h3 style="margin-top: 0">
+          <span class="badge b-low">Low</span> <code>Session</code> struct lacks lifecycle modeling
+        </h3>
+        <p>
+          Sessions have implicit states: active, expired, revoked. The <code>Session</code> type has
+          timestamps but no explicit status. A revoked session is indistinguishable from an active
+          one in the type — only the store knows.
+        </p>
+      </div>
 
-  <h2>Closed-union pattern recommendation (the authMode template)</h2>
-  <p>The <code>authMode</code> pattern in root is exemplary. Apply it to the five stringly-typed enums. Template:</p>
-<pre>// Before
+      <h2>Closed-union pattern recommendation (the authMode template)</h2>
+      <p>
+        The <code>authMode</code> pattern in root is exemplary. Apply it to the five stringly-typed
+        enums. Template:
+      </p>
+      <pre>
+// Before
 type Action string
 
 // After — sealed via unexported ctor
@@ -161,23 +495,46 @@ func (a Action) Valid() bool {
     }
     return false
 }</pre>
-  <p>Or, for full compile-time sealing, use a generic sealed-pattern:</p>
-<pre>// Sealed is a marker type for closed string unions.
+      <p>Or, for full compile-time sealing, use a generic sealed-pattern:</p>
+      <pre>
+// Sealed is a marker type for closed string unions.
 type Sealed[T ~string] struct{ v T }
 
 func (s Sealed[T]) String() string { return string(s.v) }</pre>
 
-  <h2>Prioritized redesign</h2>
-  <ol>
-    <li><strong>Adopt <code>Email</code> branded type in <code>User</code></strong> — highest leverage, zero serialization impact. <em>~1 hour.</em></li>
-    <li><strong>Seal the 5 stringly-typed enums</strong> — eliminates typo class of bugs across authz. <em>~3 hours.</em></li>
-    <li><strong>Extract <code>UserCore</code> shared struct</code></strong> — embed in User/UserState/UserView/UserReadModel. <em>~4 hours.</em></li>
-    <li><strong>Replace <code>*bool</code> on HandlerConfig.Secure</strong> with explicit tristate. <em>~1 hour.</em></li>
-    <li><strong>Decide ActorID shape (one type, not two)</strong> — cross-module consistency. <em>~1 day, breaking change.</em></li>
-    <li><strong>Move TOTPSecret out of User</strong> — strategy-module isolation. <em>~1 day, breaking change.</em></li>
-  </ol>
+      <h2>Prioritized redesign</h2>
+      <ol>
+        <li>
+          <strong>Adopt <code>Email</code> branded type in <code>User</code></strong> — highest
+          leverage, zero serialization impact. <em>~1 hour.</em>
+        </li>
+        <li>
+          <strong>Seal the 5 stringly-typed enums</strong> — eliminates typo class of bugs across
+          authz. <em>~3 hours.</em>
+        </li>
+        <li>
+          <strong>Extract <code>UserCore</code> shared struct</strong> — embed in
+          User/UserState/UserView/UserReadModel. <em>~4 hours.</em>
+        </li>
+        <li>
+          <strong>Replace <code>*bool</code> on HandlerConfig.Secure</strong> with explicit
+          tristate. <em>~1 hour.</em>
+        </li>
+        <li>
+          <strong>Decide ActorID shape (one type, not two)</strong> — cross-module consistency.
+          <em>~1 day, breaking change.</em>
+        </li>
+        <li>
+          <strong>Move TOTPSecret out of User</strong> — strategy-module isolation.
+          <em>~1 day, breaking change.</em>
+        </li>
+      </ol>
 
-  <p class="sub" style="margin-top:32px">Generated by data-model-review skill. The branded-ID discipline is genuinely excellent; the model debt is concentrated in user-facing value types (Email, lifecycle, enums) where string/bool convenience won over type safety.</p>
-</div>
-</body>
+      <p class="sub" style="margin-top: 32px">
+        Generated by data-model-review skill. The branded-ID discipline is genuinely excellent; the
+        model debt is concentrated in user-facing value types (Email, lifecycle, enums) where
+        string/bool convenience won over type safety.
+      </p>
+    </div>
+  </body>
 </html>
