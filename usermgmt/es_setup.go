@@ -72,6 +72,11 @@ type EventSourcedConfig struct {
 
 	// SecurityHooks configures opt-in event signing and encryption.
 	SecurityHooks
+
+	// SnapshotConfig optionally enables aggregate snapshotting for high-event-
+	// volume aggregates. When the Store field is nil (the default), repositories
+	// replay the full event journal on every Load — zero behavior change.
+	SnapshotConfig
 }
 
 // EventSourcedSetup holds the wired infrastructure for the event-sourced user aggregate.
@@ -162,7 +167,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		return nil, err
 	}
 
-	repos, err := buildDeciderRepositories(store, bus, func() { closeBus(bus) })
+	repos, err := buildDeciderRepositories(store, bus, func() { closeBus(bus) }, cfg.SnapshotConfig)
 	if err != nil {
 		return nil, err
 	}

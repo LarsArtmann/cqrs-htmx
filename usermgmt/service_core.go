@@ -145,6 +145,12 @@ type ServiceConfig struct {
 	// restarts. When nil, full journal replay is used.
 	CheckpointStore event.CheckpointStore
 
+	// SnapshotConfig optionally enables aggregate snapshotting for
+	// high-event-volume aggregates (>10K events/aggregate). When the Store
+	// field is nil (the default), repositories replay the full journal on
+	// every Load — zero behavior change. See SnapshotConfig for usage.
+	SnapshotConfig
+
 	// TokenPepper is the server-side secret used for HMAC-SHA256 bot token hashing.
 	// Required for bot registration and API token authentication. Set this to a
 	// 32+ byte random value that is stored outside the database (e.g., in a
@@ -221,6 +227,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		AuditLog:        cfg.AuditLog,
 		CheckpointStore: cfg.CheckpointStore,
 		SecurityHooks:   cfg.SecurityHooks,
+		SnapshotConfig:  cfg.SnapshotConfig,
 	})
 	if err != nil {
 		return nil, err
