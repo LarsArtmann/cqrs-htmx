@@ -3074,3 +3074,18 @@ body {
     opacity: 0.5;
   }
 }
+
+/* Global reduced-motion guard: honor the OS preference for all users, not
+   just components that opt in via Tailwind's motion-reduce: utilities.
+   Overrides Tailwind transition utilities via !important. The sidebar
+   slide-in and any other transitions collapse to (effectively) instant. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

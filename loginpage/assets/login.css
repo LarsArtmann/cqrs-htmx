@@ -236,3 +236,27 @@ body {
   font-size: 0.8125rem;
   margin-top: 0.25rem;
 }
+
+/* Keyboard-only focus indicator: :focus-visible fires for keyboard
+   navigation but not mouse clicks, so mouse users don't see a ring while
+   keyboard users get a clear, accent-colored outline. */
+.lp-input:focus-visible,
+.lp-btn:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--lp-accent);
+  outline-offset: 2px;
+}
+
+/* Respect the OS reduced-motion preference globally: collapse transitions and
+   animations so motion-sensitive users get an effectively static page. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
