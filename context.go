@@ -15,7 +15,20 @@ import (
 type UserID = id.UserID
 
 // NewUserID generates a new random UserID backed by a ULID.
+//
+// Naming note: this module's NewUserID() GENERATES a fresh ULID, whereas
+// usermgmt.NewUserID(string) PARSES or DERIVES a UserID from a string — same
+// name, opposite semantics, both visible when a consumer imports both packages.
+// Prefer [GenerateUserID] here (unambiguous: it generates) and
+// [usermgmt.ParseUserID] / [usermgmt.SyntheticUserID] on the usermgmt side.
 func NewUserID() UserID {
+	return id.NewUserID()
+}
+
+// GenerateUserID generates a new random UserID backed by a ULID. It is the
+// unambiguous name for [NewUserID] (which has a same-named counterpart in the
+// usermgmt module with parse/derive semantics). Prefer GenerateUserID in new code.
+func GenerateUserID() UserID {
 	return id.NewUserID()
 }
 
