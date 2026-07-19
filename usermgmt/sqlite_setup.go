@@ -17,6 +17,10 @@ type SQLiteSetupConfig struct {
 	DSN             string
 	AuditLog        *AuditLog
 	CheckpointStore event.CheckpointStore
+
+	// SnapshotConfig optionally enables aggregate snapshotting. Zero value
+	// (nil Store) leaves repositories in full-replay mode. See SnapshotConfig.
+	SnapshotConfig
 }
 
 // NewSQLiteEventSourcedSetup creates a complete event-sourced infrastructure
@@ -36,15 +40,16 @@ func NewSQLiteEventSourcedSetup(cfg SQLiteSetupConfig) (*SQLiteEventSourcedSetup
 		return nil, errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.create", "create sqlite stack bundle")
 	}
 
-	return newSQLiteSetup(bundle, cfg.AuditLog, cfg.CheckpointStore)
+	return newSQLiteSetup(bundle, cfg.AuditLog, cfg.CheckpointStore, cfg.SnapshotConfig)
 }
 
 func newSQLiteSetup(
 	bundle *stack.Bundle,
 	auditLog *AuditLog,
 	checkpointStore event.CheckpointStore,
+	snap SnapshotConfig,
 ) (*SQLiteEventSourcedSetup, error) {
-	repos, err := buildStackRepositories(bundle)
+	repos, err := buildStackRepositories(bundle, snap)
 	if err != nil {
 		return nil, err
 	}

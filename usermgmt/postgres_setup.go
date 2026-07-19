@@ -18,6 +18,10 @@ type PostgresSetupConfig struct {
 	QueryDSN        string
 	AuditLog        *AuditLog
 	CheckpointStore event.CheckpointStore
+
+	// SnapshotConfig optionally enables aggregate snapshotting. Zero value
+	// (nil Store) leaves repositories in full-replay mode. See SnapshotConfig.
+	SnapshotConfig
 }
 
 func NewPostgresEventSourcedSetup(cfg PostgresSetupConfig) (*PostgresEventSourcedSetup, error) {
@@ -32,15 +36,16 @@ func NewPostgresEventSourcedSetup(cfg PostgresSetupConfig) (*PostgresEventSource
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "usermgmt.postgres_setup.create", "create postgres stack bundle")
 	}
-	return newPostgresSetup(bundle, cfg.AuditLog, cfg.CheckpointStore)
+	return newPostgresSetup(bundle, cfg.AuditLog, cfg.CheckpointStore, cfg.SnapshotConfig)
 }
 
 func newPostgresSetup(
 	bundle *stack.Bundle,
 	auditLog *AuditLog,
 	checkpointStore event.CheckpointStore,
+	snap SnapshotConfig,
 ) (*PostgresEventSourcedSetup, error) {
-	repos, err := buildStackRepositories(bundle)
+	repos, err := buildStackRepositories(bundle, snap)
 	if err != nil {
 		return nil, err
 	}
