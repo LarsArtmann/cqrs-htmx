@@ -4,7 +4,7 @@
 > For short-term work, see [TODO_LIST.md](TODO_LIST.md).
 > For what exists today, see [FEATURES.md](FEATURES.md).
 
-**Updated:** 2026-07-12 | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.0)
+**Updated:** 2026-07-19 | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.0)
 
 ## Current State
 
@@ -186,3 +186,6 @@ These are explicitly out of scope for this library:
 - **ORM integration** — Store interfaces are intentionally simple; consumers provide their own implementations.
 - **Template engine support beyond templ** — The `TemplComponent` duck-typing pattern covers any `Render(ctx, w) error` interface.
 - **Built-in HTTP router** — Framework-agnostic: works with `net/http`, Gin, Chi, etc. — no router dependency.
+- **TOTP management views in adminui** — This library is passwordless-first: WebAuthn passkeys + OAuth2 only. TOTP remains available as an optional sub-module (`usermgmt/totp/v4`) for consumers who genuinely want it, but the admin UI will not ship TOTP enable/disable/QR-code views. We are not building for the old-school TOTP world.
+- **Redis adapters (SessionStore / OAuth2StateStore / IdempotencyStore)** — Multi-instance ephemeral-store adapters belong in go-cqrs-lite (or consumer code), not cqrs-htmx. Low consumer demand, Redis is overrated, and the existing in-memory + SQL stores cover the documented use cases. Re-open upstream if a real consumer needs it.
+- **Consumer-facing v3→v4 codemod** — Automated migration tool. All known consumers are already on v4; the one-time migration is documented in `docs/migrations/v3-to-v4.md`. Building a codemod now would be cost without an audience.
