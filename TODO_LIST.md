@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-07-19 | **Coverage:** 93.6% root, 79.9% usermgmt (CI gates: root 90%, usermgmt 78%) | **Lint:** 0 issues across all submodules (usermgmt, totp, webauthn, oauth2, adminui, loginpage, integration_test). Root has 79 remaining issues, all pre-existing low-severity style nits (varnamelen ×50 on short id names like `eh`/`ch`/`rw`, testpackage ×9 on internal-package tests, plus scattered ireturn/makezero/nonamedreturns/fatcontext/nlreturn/wsl_v5/tagliatelle/errcheck/containedctx/dupword). No depguard, no err113, no mnd, no canonicalheader, no exhaustruct issues remain. | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.1)
+**Updated:** 2026-07-20 | **Coverage:** 93.8% root, 80.2% usermgmt (CI gates: root 90%, usermgmt 74% — see `nix run .#coverage-gate`) | **Lint:** 0 issues across all submodules (usermgmt, totp, webauthn, oauth2, adminui, loginpage, integration_test). Root has 79 remaining issues, all pre-existing low-severity style nits (varnamelen ×50 on short id names like `eh`/`ch`/`rw`, testpackage ×9 on internal-package tests, plus scattered ireturn/makezero/nonamedreturns/fatcontext/nlreturn/wsl_v5/tagliatelle/errcheck/containedctx/dupword). No depguard, no err113, no mnd, no canonicalheader, no exhaustruct issues remain. | **Version:** v4.3.0+unreleased (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions)
 
 ## Status Legend
 
@@ -15,9 +15,6 @@
 
 ### P3 — Technical Debt & Future
 
-- [x] **Phase 2b — Persistent offline queue** (IndexedDB persistence per ADR-0040) — DONE: SharedWorker queue now persists command envelopes to IndexedDB; drains on spawn (cross-tab/cross-session retry via htmx.ajax); deletes on ACK; degrades gracefully to in-memory when IDB unavailable. ADR-0030 reversed (SUPERSEDED by ADR-0040).
-- [x] **Snapshot integration** for high-event-volume aggregates (>10K events/aggregate) — DONE: `SnapshotConfig` (Store/Codec/Strategy) wired through every repository path (NewService, NewEventSourcedSetup, SQLite/Postgres setups). Includes `MemorySnapshotStore` + 4 tests. Zero behavior change when unconfigured.
-- [x] **TypedRepository adoption** to eliminate command type assertions across all deciders — PREMISE INVALID: (1) zero command type assertions exist — `command.RegisterTyped[Cmd]` already gives fully-typed handlers (see `es_dispatch.go`); (2) `TypedDecider` binds ONE command type per repository, incompatible with usermgmt's multi-command aggregates (User has Register/ChangeEmail/AddRole/Suspend/...); (3) the current `repo.Execute(ctx, aggID, aggType, decideFn)` + per-command closure pattern is the correct, already-type-safe design for multi-command aggregates.
 - [ ] **MySQL support** for event store (currently Postgres + SQLite only)
 - [ ] **Property-based tests** for event fold functions (rapid/Hypothesis-style)
 - [ ] **Load testing benchmarks** for SSE broadcaster under high fan-out
