@@ -138,6 +138,7 @@ templ userDetailPage(p pageData, d userDetailData) {
 				},
 			})
 		}
+		@externalAccountsCard(d)
 		if len(d.TenantRoles) > 0 {
 			@display.Card(display.CardProps{
 				Title:     "Roles & memberships",
@@ -184,6 +185,61 @@ templ tenantRolesRows(tenantRoles map[string][]usermgmt.Role) {
 						@roleBadge(string(r))
 					}
 				</div>
+			</td>
+		</tr>
+	}
+}
+
+// externalAccountsCard renders the OAuth2/OIDC link/unlink view for a user.
+// Admins can unlink any linked provider; linking cannot be initiated here
+// because the OAuth2 handshake requires the user to authenticate with the
+// provider themselves (the admin cannot impersonate it). Configured providers
+// are listed so the admin knows what the user CAN link via their own login.
+templ externalAccountsCard(d userDetailData) {
+	@display.Card(display.CardProps{
+		Title:     "External accounts",
+		Padding:   display.CardPaddingNone,
+		BaseProps: utils.BaseProps{Class: "mb-4"},
+	}) {
+		if len(d.User.ExternalAccounts) == 0 {
+			<div class="px-4 py-3 text-sm text-gray-500">No external accounts linked.</div>
+		} else {
+			@display.Table(display.TableProps{
+				Headers: []string{"Provider", "Email", "Linked", ""},
+				Hover:   true,
+				Body:    externalAccountRows(d),
+			})
+		}
+		<div class="flex flex-wrap items-center gap-2 px-4 py-3">
+			<span class="text-xs text-gray-400">Linking is done via the user's own OAuth2 login flow.</span>
+			<div class="flex flex-wrap gap-1">
+				for _, provider := range d.ConfiguredProviders {
+					@display.Badge(display.BadgeProps{Text: provider, Type: display.BadgeNeutral, Pill: true})
+				}
+			</div>
+		</div>
+	}
+}
+
+templ externalAccountRows(d userDetailData) {
+	for _, ea := range d.User.ExternalAccounts {
+		<tr>
+			<td class="px-4 py-3">
+				@display.Badge(display.BadgeProps{Text: ea.Provider, Type: display.BadgeNeutral, Pill: true})
+			</td>
+			<td class="px-4 py-3 text-sm">{ ea.Email }</td>
+			<td class="px-4 py-3 text-sm text-gray-500">{ ea.LinkedAt.Format("Jan 2, 2006") }</td>
+			<td class="px-4 py-3 text-right">
+				@display.Button(display.ButtonProps{
+					Text:    "Unlink",
+					Variant: display.ButtonDanger,
+					Size:    display.ButtonSizeSM,
+					Icon:    icon("trash"),
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"hx-post":    d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
+						"hx-confirm": "Unlink " + ea.Provider + " from " + d.User.Email + "?",
+					}},
+				})
 			</td>
 		</tr>
 	}

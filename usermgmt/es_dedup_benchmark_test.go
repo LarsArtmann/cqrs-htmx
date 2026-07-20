@@ -23,6 +23,7 @@ func makeEventIDs(n int) []id.EventID {
 
 func benchmarkRing(b *testing.B, ids []id.EventID) {
 	b.Helper()
+	b.ReportAllocs()
 	b.ResetTimer()
 	for range b.N {
 		r := dedup.NewRing(dedup.DefaultCapacity)
@@ -34,6 +35,7 @@ func benchmarkRing(b *testing.B, ids []id.EventID) {
 
 func benchmarkMap(b *testing.B, ids []id.EventID) {
 	b.Helper()
+	b.ReportAllocs()
 	b.ResetTimer()
 	for range b.N {
 		m := make(map[id.EventID]struct{}, len(ids))
@@ -44,7 +46,10 @@ func benchmarkMap(b *testing.B, ids []id.EventID) {
 }
 
 func BenchmarkDedupRing_vs_Map(b *testing.B) {
-	sizes := []int{100, 1000, 10000}
+	// 100K is the large-journal tier: the Ring evicts (DefaultCapacity=1024)
+	// while the map grows unbounded — this is exactly the divergence the Ring
+	// exists to prevent. Both ReportAllocs so the GC-pressure difference shows.
+	sizes := []int{100, 1000, 10000, 100000}
 	for _, size := range sizes {
 		ids := makeEventIDs(size)
 		b.Run(fmt.Sprintf("Ring/%d", size), func(b *testing.B) {

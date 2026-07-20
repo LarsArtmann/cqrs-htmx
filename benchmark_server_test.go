@@ -13,68 +13,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
-// BenchmarkBroadcasterBroadcastStress validates the snapshot-based Broadcast
-// optimization by measuring fan-out latency across subscriber counts.
-func BenchmarkBroadcasterBroadcastStress(b *testing.B) {
-	for _, n := range []int{1, 10, 100, 1000} {
-		b.Run("subs_"+strconv.Itoa(n), func(b *testing.B) {
-			bc := cqrshtmx.NewBroadcaster()
-			for range n {
-				ch := bc.Subscribe()
-				go func() {
-					for range ch {
-					}
-				}()
-			}
-
-			evt := cqrshtmx.SSEEvent{Event: "test", Data: "hello world from broadcaster"}
-
-			b.ResetTimer()
-
-			for b.Loop() {
-				bc.Broadcast(evt)
-			}
-
-			b.StopTimer()
-		})
-	}
-}
-
-// BenchmarkBroadcasterConcurrentSubscribe validates that Subscribe/Unsubscribe
-// can proceed concurrently with Broadcast (the T04 optimization).
-func BenchmarkBroadcasterConcurrentSubscribe(b *testing.B) {
-	bc := cqrshtmx.NewBroadcaster()
-
-	for range 100 {
-		ch := bc.Subscribe()
-		go func() {
-			for range ch {
-			}
-		}()
-	}
-
-	ctx := b.Context()
-
-	go func() {
-		evt := cqrshtmx.SSEEvent{Event: "tick", Data: "data"}
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				bc.Broadcast(evt)
-			}
-		}
-	}()
-
-	b.ResetTimer()
-
-	for b.Loop() {
-		ch := bc.Subscribe()
-		bc.Unsubscribe(ch)
-	}
-}
+// NOTE: SSE broadcaster load benchmarks live in sse_broadcaster_bench_test.go
+// (BenchmarkBroadcasterFanOut, BenchmarkBroadcasterBroadcastSaturated,
+// BenchmarkSubscribeUnsubscribe, BenchmarkBroadcasterConcurrentBroadcast,
+// BenchmarkBroadcastNoSubscribers). That file uses leak-safe drain helpers
+// (b.Cleanup waits for drain goroutines) and reports allocs; the earlier
+// versions that lived here leaked goroutines because they never Unsubscribed.
 
 // BenchmarkServerCommandDispatch measures dispatch over a real net/http server
 // instead of httptest.NewRecorder.

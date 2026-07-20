@@ -68,6 +68,7 @@ type handlerConfig struct {
 	requireMethod  string
 	onError        func(*http.Request, error)
 	requestGuard   RequestGuardFunc
+	openapiMeta    *openapi.Operation
 }
 
 // hasNoExplicitBody returns true if the handler has no render function and

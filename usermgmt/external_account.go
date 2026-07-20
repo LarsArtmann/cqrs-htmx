@@ -22,3 +22,20 @@ type ExternalAccount struct {
 	externalAccountCore
 	LinkedAt time.Time `json:"linked_at"`
 }
+
+// NewExternalAccount constructs an ExternalAccount from its field values.
+// Provided because the embedded externalAccountCore is unexported, making a
+// struct literal impossible from outside the package. Use this to build
+// fixtures, read-model seeds, or test data; the live User aggregate is still
+// populated exclusively by folding ExternalAccountLinked events.
+func NewExternalAccount(provider, subject, email, displayName string, linkedAt time.Time) ExternalAccount {
+	return ExternalAccount{
+		externalAccountCore: externalAccountCore{
+			Provider:    provider,
+			Subject:     subject,
+			Email:       email,
+			DisplayName: displayName,
+		},
+		LinkedAt: linkedAt,
+	}
+}
