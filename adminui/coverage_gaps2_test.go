@@ -57,7 +57,7 @@ func TestPanel_NonHTMXDeleteRedirects(t *testing.T) {
 	h, svc := newTestPanel(t, user)
 
 	target, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("u-goner2"), Email: "goner2@example.com",
+		ID: usermgmt.SyntheticUserID("u-goner2"), Email: "goner2@example.com",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -196,7 +196,7 @@ func TestPanel_RenderDiverseUser(t *testing.T) {
 
 	// Register a user with display name
 	target, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:    usermgmt.NewUserID("u-diverse"),
+		ID:    usermgmt.SyntheticUserID("u-diverse"),
 		Email: "diverse@test.com",
 	})
 	if err != nil {

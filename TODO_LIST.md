@@ -1,6 +1,6 @@
 # TODO List — cqrs-htmx
 
-**Updated:** 2026-07-19 | **Coverage:** 93.6% root, 79.9% usermgmt (CI gates: root 90%, usermgmt 78%) | **Lint:** 0 issues (usermgmt, totp, webauthn, oauth2, adminui, loginpage, integration_test); root has ~187 issues, mostly config noise (depguard allow-list excludes sibling larsartmann/* modules; canonicalheader flags intentional HX-* HTMX-header casing; err113 in tests) — see `docs/reviews/2026-07-19_05-03_code-quality-scan.html` | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.1)
+**Updated:** 2026-07-19 | **Coverage:** 93.6% root, 79.9% usermgmt (CI gates: root 90%, usermgmt 78%) | **Lint:** 0 issues across all submodules (usermgmt, totp, webauthn, oauth2, adminui, loginpage, integration_test). Root has 79 remaining issues, all pre-existing low-severity style nits (varnamelen ×50 on short id names like `eh`/`ch`/`rw`, testpackage ×9 on internal-package tests, plus scattered ireturn/makezero/nonamedreturns/fatcontext/nlreturn/wsl_v5/tagliatelle/errcheck/containedctx/dupword). No depguard, no err113, no mnd, no canonicalheader, no exhaustruct issues remain. | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.1)
 
 ## Status Legend
 

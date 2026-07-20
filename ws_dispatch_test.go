@@ -134,7 +134,7 @@ var _ = Describe("WS Dispatch", func() {
 
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
-				capturedCtx = ctx
+				capturedCtx := ctx
 
 				return nil
 			})

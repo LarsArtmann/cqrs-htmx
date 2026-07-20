@@ -40,7 +40,10 @@ var (
 	errCommandsNil        = errorfamily.NewInfrastructure("commands_nil", "command dispatcher is required")
 	errQueriesNil         = errorfamily.NewInfrastructure("queries_nil", "query dispatcher is required")
 	errDecoderMissing     = errorfamily.NewInfrastructure("decoder_missing", "request decoder is required")
-	errDecoderReturnedNil = errorfamily.NewCorruption("decoder_returned_nil", "request decoder returned a nil result without an error — this is a server-side wiring bug")
+	errDecoderReturnedNil = errorfamily.NewCorruption(
+		"decoder_returned_nil",
+		"request decoder returned a nil result without an error — this is a server-side wiring bug",
+	)
 )
 
 // MapError translates a CQRS error into an appropriate HTTP status code.

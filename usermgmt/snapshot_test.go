@@ -2,12 +2,14 @@ package usermgmt
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 func TestMemorySnapshotStore_SaveLoadDelete(t *testing.T) {
@@ -154,4 +156,148 @@ func TestService_SnapshotIntegration(t *testing.T) {
 	if loaded.Email != email {
 		t.Errorf("Email = %q, want %q (snapshot restore corrupted state)", loaded.Email, email)
 	}
+}
+
+// countingSnapshotStore wraps a snapshot.SnapshotStore and counts Load/Save
+// calls so tests can prove the repository consults the snapshot at all.
+type countingSnapshotStore struct {
+	snapshot.SnapshotStore
+
+	mu        sync.Mutex
+	loadCalls int
+	saveCalls int
+}
+
+func (c *countingSnapshotStore) Load(ctx context.Context, ref id.AggregateRef) (*snapshot.Snapshot, error) {
+	c.mu.Lock()
+	c.loadCalls++
+	c.mu.Unlock()
+
+	return c.SnapshotStore.Load(ctx, ref)
+}
+
+func (c *countingSnapshotStore) Save(ctx context.Context, s snapshot.Snapshot) error {
+	c.mu.Lock()
+	c.saveCalls++
+	c.mu.Unlock()
+
+	return c.SnapshotStore.Save(ctx, s)
+}
+
+// countingEventStore wraps an event.Store and counts full-Load vs
+// LoadFromVersion (tail-only) calls. When a snapshot is in use, the decider
+// Repository should call LoadFromVersion for the tail instead of Load for the
+// full journal — that is the measurable proof snapshotting earns its keep.
+type countingEventStore struct {
+	event.Store
+
+	mu               sync.Mutex
+	fullLoads        int
+	loadsFromVersion int
+}
+
+func (c *countingEventStore) Load(ctx context.Context, ref id.AggregateRef) ([]event.Event, error) {
+	c.mu.Lock()
+	c.fullLoads++
+	c.mu.Unlock()
+
+	return c.Store.Load(ctx, ref)
+}
+
+func (c *countingEventStore) LoadFromVersion(
+	ctx context.Context, ref id.AggregateRef, version event.Version,
+) ([]event.Event, error) {
+	c.mu.Lock()
+	c.loadsFromVersion++
+	c.mu.Unlock()
+
+	return c.Store.LoadFromVersion(ctx, ref, version)
+}
+
+func (c *countingEventStore) snapshot() (full, fromVersion int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.fullLoads, c.loadsFromVersion
+}
+
+// TestSnapshot_WritePathConsultsSnapshot proves that wiring SnapshotConfig
+// through NewService makes the decider Repository actually consult the
+// snapshot on the WRITE path (command dispatch). Without this test, the
+// existing TestService_SnapshotIntegration only proves a snapshot is WRITTEN —
+// not that it is ever READ back. A snapshot that is written but never loaded
+// is pure overhead.
+//
+// Proof strategy: wrap both stores with counters, register a user (which
+// writes the first snapshot via EveryNEvents(1)), reset the counters, then
+// issue a second command (ChangeEmail) that must load the aggregate state. We
+// then assert:
+//  1. snapshot.Load was called at least once (the snapshot was CONSULTED), and
+//  2. event.LoadFromVersion was called (the tail-only path was used). If only
+//     event.Load was called, the repository fell back to full replay and the
+//     snapshot is dead weight.
+func TestSnapshot_WritePathConsultsSnapshot(t *testing.T) {
+	t.Parallel()
+
+	snapStore := &countingSnapshotStore{SnapshotStore: NewMemorySnapshotStore()}
+	strategy, err := snapshot.EveryNEvents(1) // snapshot after every persisted event
+	if err != nil {
+		t.Fatalf("EveryNEvents: %v", err)
+	}
+	eventStore := &countingEventStore{Store: memory.NewMemoryStore()}
+
+	svc, err := NewService(ServiceConfig{
+		EventStore: eventStore,
+		SnapshotConfig: SnapshotConfig{
+			Store:    snapStore,
+			Codec:    codec.JSONCodec{},
+			Strategy: strategy,
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	defer svc.Close() //nolint:errcheck // test cleanup
+
+	ctx := context.Background()
+	resp, err := svc.Register(ctx, RegisterRequest{
+		ID:    NewUserID("snap-proof"),
+		Email: "snap-proof@example.com",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	// Reset all counters AFTER register — the proof is about the second write.
+	snapStore.mu.Lock()
+	snapStore.loadCalls = 0
+	snapStore.saveCalls = 0
+	snapStore.mu.Unlock()
+	eventStore.mu.Lock()
+	eventStore.fullLoads = 0
+	eventStore.loadsFromVersion = 0
+	eventStore.mu.Unlock()
+
+	// ChangeEmail MUST load the User aggregate to apply the command. This is
+	// the load the snapshot is supposed to accelerate.
+	if err := svc.ChangeEmail(ctx, resp.User.ID, "after-snap@example.com"); err != nil {
+		t.Fatalf("ChangeEmail: %v", err)
+	}
+
+	snapStore.mu.Lock()
+	snapLoads := snapStore.loadCalls
+	snapStore.mu.Unlock()
+	fullLoads, loadsFromVersion := eventStore.snapshot()
+
+	if snapLoads == 0 {
+		t.Fatal("snapshot.Load was not called during ChangeEmail — " +
+			"snapshot is configured but the write path ignores it (dead weight)")
+	}
+	if loadsFromVersion == 0 {
+		t.Errorf("LoadFromVersion was not called during ChangeEmail — " +
+			"expected tail-only load after snapshot; the repository fell back to full replay. " +
+			"This means the snapshot is not actually accelerating loads.")
+	}
+	t.Logf("during ChangeEmail: snapshot.Load=%d, event.Load=%d (full replay), event.LoadFromVersion=%d (tail)",
+		snapLoads, fullLoads, loadsFromVersion)
 }
