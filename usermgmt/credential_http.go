@@ -70,6 +70,10 @@ func (h *AuthHandler) handleListCredentials(w http.ResponseWriter, r *http.Reque
 
 // parseUintQueryParam extracts a uint from a query parameter, returning 0 on
 // missing or invalid values (query.NewPagination then applies defaults).
+//
+// Intentional structural duplicate of cqrshtmx.parseUintQuery: the usermgmt
+// module has a clean-boundary rule and MUST NOT import the root cqrshtmx
+// package, so the helper is duplicated rather than shared.
 func parseUintQueryParam(r *http.Request, key string) uint {
 	v := r.URL.Query().Get(key)
 	if v == "" {

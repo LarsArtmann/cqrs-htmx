@@ -2,7 +2,6 @@ package cqrshtmx
 
 import (
 	"context"
-	"encoding/json/v2"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -140,14 +139,13 @@ func requestContextOrBackground(r *http.Request) context.Context {
 
 // JSON returns the StructuredError serialized as a JSON string.
 // Convenience method for use in SSEEvent.Data or WS message payloads.
-// Returns empty string if marshaling fails (should not happen for this type).
+// Returns a minimum-valid RFC 7807 document if marshalling fails (should not
+// happen for this type).
 func (e StructuredError) JSON() string {
-	b, err := json.Marshal(e)
-	if err != nil {
-		return `{"type":"about:blank","title":"Internal Server Error","status":500,"detail":"failed to marshal error"}`
-	}
-
-	return string(b)
+	return marshalJSONOrFallback(
+		e,
+		`{"type":"about:blank","title":"Internal Server Error","status":500,"detail":"failed to marshal error"}`,
+	)
 }
 
 // Error implements the error interface. Returns the Detail field.
