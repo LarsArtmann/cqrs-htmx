@@ -19,7 +19,7 @@ func registerTestUser(
 	t.Helper()
 	ctx := context.Background()
 	reg, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:    usermgmt.NewUserID(uid.String()),
+		ID:    usermgmt.MustParseUserID(uid.String()),
 		Email: email,
 	})
 	if err != nil {

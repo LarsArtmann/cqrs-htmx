@@ -99,7 +99,7 @@ func TestTypedQueryDispatch_CrossModule(t *testing.T) {
 		t.Helper()
 		uid := cqrshtmx.NewUserID()
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
-			ID:    usermgmt.NewUserID(uid.String()),
+			ID:    usermgmt.MustParseUserID(uid.String()),
 			Email: email,
 		}); err != nil {
 			t.Fatalf("Register %s: %v", email, err)

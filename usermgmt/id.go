@@ -30,6 +30,11 @@ type UserID = id.UserID
 // "alice" get the SAME UserID, and any non-ULID string silently becomes a
 // valid-looking ID. Use [ParseUserID] (strict) or [SyntheticUserID] (explicit
 // hashing) in new code. NewUserID is retained for backward compatibility.
+//
+// Deprecated: NewUserID silently hashes non-ULID strings, which masks invalid
+// input and produces colliding IDs for unrelated callers. Use [ParseUserID]
+// for strict ULID validation, or [SyntheticUserID] when an explicit, stable
+// hash of arbitrary input is the intent.
 func NewUserID(s string) UserID {
 	if s == "" {
 		var zero UserID

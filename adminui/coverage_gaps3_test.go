@@ -191,7 +191,7 @@ func TestPanel_UserDetailWithRoles(t *testing.T) {
 	// Register a user with a ULID-format ID (required by ParseUserID)
 	detailID := "01HXKYGEG0QH8XJYQKZ3TOTP99"
 	if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:    usermgmt.NewUserID(detailID),
+		ID:    usermgmt.MustParseUserID(detailID),
 		Email: "detail@example.com",
 	}); err != nil {
 		t.Fatalf("register: %v", err)

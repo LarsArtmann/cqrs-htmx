@@ -21,7 +21,7 @@ func TestPanel_RendersSeededData(t *testing.T) {
 	// Seed users.
 	for _, email := range []string{"alice@acme.dev", "bob@acme.dev", "carol@x.dev"} {
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
-			ID:    usermgmt.NewUserID("u-" + email),
+			ID:    usermgmt.SyntheticUserID("u-" + email),
 			Email: email,
 		}); err != nil {
 			t.Fatalf("register %s: %v", email, err)
@@ -65,7 +65,7 @@ func TestPanel_RendersSeededData(t *testing.T) {
 	}
 
 	// User detail page.
-	aliceID := usermgmt.NewUserID("u-alice@acme.dev").Get().String()
+	aliceID := usermgmt.SyntheticUserID("u-alice@acme.dev").Get().String()
 	detail := get("/admin/users/" + aliceID)
 	if !strings.Contains(detail, "alice@acme.dev") {
 		t.Error("user detail missing email")
@@ -136,7 +136,7 @@ func TestPanel_TemplComponentsRenderStructurally(t *testing.T) {
 
 	for _, email := range []string{"alice@acme.dev", "bob@acme.dev"} {
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
-			ID:    usermgmt.NewUserID("u-" + email),
+			ID:    usermgmt.SyntheticUserID("u-" + email),
 			Email: email,
 		}); err != nil {
 			t.Fatalf("register %s: %v", email, err)
@@ -158,7 +158,7 @@ func TestPanel_TemplComponentsRenderStructurally(t *testing.T) {
 
 	usersHTML := get("/admin/users")
 	tenantDetail := get("/admin/tenants/acme")
-	aliceID := usermgmt.NewUserID("u-alice@acme.dev").Get().String()
+	aliceID := usermgmt.SyntheticUserID("u-alice@acme.dev").Get().String()
 	userDetail := get("/admin/users/" + aliceID)
 
 	// display.Avatar: circular initials element (tailwind-merge reorders classes).

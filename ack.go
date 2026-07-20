@@ -29,6 +29,7 @@ func (s AckStatus) Valid() bool {
 	case AckConfirmed, AckRejected:
 		return true
 	}
+
 	return false
 }
 

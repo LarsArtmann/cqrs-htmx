@@ -64,7 +64,7 @@ func TestFlow_UserDelete(t *testing.T) {
 	h, svc := newTestPanel(t, user)
 
 	target, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("u-goner"), Email: "goner@example.com",
+		ID: usermgmt.SyntheticUserID("u-goner"), Email: "goner@example.com",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -92,7 +92,7 @@ func TestFlow_MemberAddAndRemove(t *testing.T) {
 		t.Fatal(err)
 	}
 	member, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("u-member1"), Email: "member1@example.com",
+		ID: usermgmt.SyntheticUserID("u-member1"), Email: "member1@example.com",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -176,7 +176,7 @@ func TestFlow_UpdateMemberRole(t *testing.T) {
 		t.Fatal(err)
 	}
 	member, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("u-role1"), Email: "role1@example.com",
+		ID: usermgmt.SyntheticUserID("u-role1"), Email: "role1@example.com",
 	})
 	if err != nil {
 		t.Fatal(err)

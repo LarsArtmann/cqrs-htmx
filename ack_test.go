@@ -95,6 +95,30 @@ func TestCommandIDFromRequest(t *testing.T) {
 	})
 }
 
+func TestAckStatus_Valid(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		status AckStatus
+		want   bool
+	}{
+		{AckConfirmed, true},
+		{AckRejected, true},
+		{AckStatus("confirmed"), true},
+		{AckStatus("rejected"), true},
+		{AckStatus(""), false},
+		{AckStatus("pending"), false},
+		{AckStatus("CONFIRMED"), false},
+		{AckStatus("ok"), false},
+		{AckStatus("success"), false},
+	}
+	for _, tt := range cases {
+		if got := tt.status.Valid(); got != tt.want {
+			t.Errorf("AckStatus(%q).Valid() = %v, want %v", tt.status, got, tt.want)
+		}
+	}
+}
+
 func TestBroadcastOnAck_Success(t *testing.T) {
 	t.Parallel()
 

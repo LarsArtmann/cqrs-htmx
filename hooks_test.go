@@ -25,7 +25,7 @@ var _ = Describe("Lifecycle Hooks", func() {
 
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
-				capturedContext = ctx
+				capturedContext := ctx
 
 				return nil
 			})
@@ -48,7 +48,7 @@ var _ = Describe("Lifecycle Hooks", func() {
 
 			disp := query.NewDispatcher()
 			_ = disp.Register("GetUser", func(ctx context.Context, _ query.Query) (any, error) {
-				capturedContext = ctx
+				capturedContext := ctx
 
 				return "retrieved", nil
 			})

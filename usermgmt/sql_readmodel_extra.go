@@ -30,6 +30,7 @@ type SQLMembershipReadModel struct {
 
 func membershipViewMapper() storage.ViewMapper[MembershipView] {
 	m := storage.AutoMapper[MembershipView]("memberships_view")
+	//nolint:exhaustruct // Where field not in published storage/v4 v4.0.0.
 	m.Indexes = []storage.IndexSpec{{Name: "idx_memberships_view_actor", Columns: []string{"actor_id"}}}
 	return m
 }
@@ -118,6 +119,7 @@ type SQLTenantReadModel struct {
 
 func tenantViewMapper() storage.ViewMapper[TenantView] {
 	m := storage.AutoMapper[TenantView]("tenants_view")
+	//nolint:exhaustruct // Where field not in published storage/v4 v4.0.0.
 	m.Indexes = []storage.IndexSpec{{Name: "idx_tenants_view_name", Columns: []string{sqlColName}}}
 	return m
 }
@@ -206,6 +208,7 @@ type SQLBotReadModel struct {
 
 func botViewMapper() storage.ViewMapper[BotView] {
 	m := storage.AutoMapper[BotView]("bots_view")
+	//nolint:exhaustruct // Where field not in published storage/v4 v4.0.0.
 	m.Indexes = []storage.IndexSpec{{Name: "idx_bots_view_name", Columns: []string{sqlColName}}}
 	return m
 }

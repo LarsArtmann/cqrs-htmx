@@ -57,7 +57,7 @@ func mustCreateTenant(t *testing.T, svc *usermgmt.Service, id string) *usermgmt.
 func mustRegister(t *testing.T, svc *usermgmt.Service, id, email string) *usermgmt.RegisterResponse {
 	t.Helper()
 	res, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID(id), Email: email,
+		ID: usermgmt.SyntheticUserID(id), Email: email,
 	})
 	if err != nil {
 		t.Fatalf("Register %s: %v", email, err)

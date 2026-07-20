@@ -37,7 +37,7 @@ func encryptedStoreHooks(cipher encryption.EncrypterDecrypter) usermgmt.Security
 // (which takes a root-module cqrshtmx.UserID for cross-module bridge tests).
 func seedTestUser(t *testing.T, svc *usermgmt.Service, name string) (usermgmt.UserID, string) {
 	t.Helper()
-	id := usermgmt.NewUserID(name)
+	id := usermgmt.SyntheticUserID(name)
 	email := name + "@example.com"
 	if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
 		ID: id, Email: email,
@@ -87,7 +87,7 @@ func TestSigningEncryption_StoreEncryptionAndBusSigning(t *testing.T) {
 
 	const email = "alice@example.com"
 	if _, err := svcA.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("alice"), Email: email,
+		ID: usermgmt.SyntheticUserID("alice"), Email: email,
 	}); err != nil {
 		t.Fatalf("Register: %v", err)
 	}

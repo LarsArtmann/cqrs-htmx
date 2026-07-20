@@ -93,7 +93,9 @@ type MemorySnapshotStore struct {
 
 // NewMemorySnapshotStore creates an empty in-memory snapshot store.
 func NewMemorySnapshotStore() *MemorySnapshotStore {
-	return &MemorySnapshotStore{snapshots: make(map[id.AggregateRef]snapshot.Snapshot)} //nolint:exhaustruct // snapshots populated lazily
+	return &MemorySnapshotStore{ //nolint:exhaustruct // mutex zero-value, snapshots populated lazily
+		snapshots: make(map[id.AggregateRef]snapshot.Snapshot),
+	}
 }
 
 // Save stores a snapshot, overwriting any previous snapshot for the same
@@ -141,7 +143,9 @@ func (m *MemorySnapshotStore) Load(_ context.Context, ref id.AggregateRef) (*sna
 // LoadAtVersion returns the snapshot for the aggregate only when its recorded
 // version matches the requested version exactly, otherwise (nil, nil). This
 // supports the decider Repository's versioned reload path.
-func (m *MemorySnapshotStore) LoadAtVersion(_ context.Context, ref id.AggregateRef, version event.Version) (*snapshot.Snapshot, error) {
+func (m *MemorySnapshotStore) LoadAtVersion(
+	_ context.Context, ref id.AggregateRef, version event.Version,
+) (*snapshot.Snapshot, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

@@ -33,7 +33,10 @@ type SQLUserReadModel struct {
 func userViewMapper() storage.ViewMapper[UserView] {
 	m := storage.AutoMapperWithTombstone[UserView]("users_view", "tombstoned")
 	m.Indexes = []storage.IndexSpec{
-		{Name: "idx_users_view_email", Columns: []string{csvColumnEmail}},
+		{ //nolint:exhaustruct // Where field not in published storage/v4 v4.0.0.
+			Name:    "idx_users_view_email",
+			Columns: []string{csvColumnEmail},
+		},
 	}
 	return m
 }

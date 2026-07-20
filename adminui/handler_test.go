@@ -47,7 +47,7 @@ func newTestPanel(t *testing.T, user *usermgmt.User, cfg ...Config) (http.Handle
 
 func mustUser(t *testing.T, email string) *usermgmt.User {
 	t.Helper()
-	return usermgmt.NewUser(usermgmt.NewUserID("01HXTEST"+pad(email)), email, "")
+	return usermgmt.NewUser(usermgmt.SyntheticUserID("01HXTEST"+pad(email)), email, "")
 }
 
 func pad(s string) string {
