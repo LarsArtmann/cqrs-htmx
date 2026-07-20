@@ -212,3 +212,15 @@ func (b *opBuilder) NoContent(status int, description string) *opBuilder {
 
 	return b
 }
+
+// Op returns the built Operation, detached from the path-assembly builder. Use
+// it to pass the operation to cqrshtmx.WithOpenAPI without registering a path:
+//
+//	cqrshtmx.WithOpenAPI(openapi.Post("CreateItem").Summary("...").Op())
+//
+// Callers cannot name the *opBuilder type (it is unexported), but they CAN
+// call this method on the value returned by Get/Post/... and receive the
+// exported Operation.
+func (b *opBuilder) Op() Operation {
+	return *b.op
+}
