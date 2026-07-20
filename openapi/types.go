@@ -52,14 +52,14 @@ type PathItem struct {
 
 // Operation describes a single HTTP operation on a path.
 type Operation struct {
-	Tags        []string           `json:"tags,omitempty"`
-	Summary     string             `json:"summary,omitempty"`
-	Description string             `json:"description,omitempty"`
-	OperationID string             `json:"operationId,omitempty"`
-	Parameters  []Parameter        `json:"parameters,omitempty"`
-	RequestBody *RequestBody       `json:"requestBody,omitempty"`
-	Responses   map[int]*Response  `json:"responses"`
-	Deprecated  omitBool           `json:"deprecated,omitempty"`
+	Tags        []string          `json:"tags,omitempty"`
+	Summary     string            `json:"summary,omitempty"`
+	Description string            `json:"description,omitempty"`
+	OperationID string            `json:"operationId,omitempty"`
+	Parameters  []Parameter       `json:"parameters,omitempty"`
+	RequestBody *RequestBody      `json:"requestBody,omitempty"`
+	Responses   map[int]*Response `json:"responses"`
+	Deprecated  omitBool          `json:"deprecated,omitempty"`
 }
 
 // Parameter is a path, query, header, or cookie parameter.
@@ -73,14 +73,14 @@ type Parameter struct {
 
 // RequestBody describes the expected request body.
 type RequestBody struct {
-	Description string               `json:"description,omitempty"`
-	Required    omitBool             `json:"required,omitempty"`
+	Description string                `json:"description,omitempty"`
+	Required    omitBool              `json:"required,omitempty"`
 	Content     map[string]*MediaType `json:"content"`
 }
 
 // Response describes a single HTTP response by status code.
 type Response struct {
-	Description string               `json:"description"`
+	Description string                `json:"description"`
 	Content     map[string]*MediaType `json:"content,omitempty"`
 }
 

@@ -1,9 +1,9 @@
 package openapi
 
 import (
+	"bytes"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
-	"bytes"
 )
 
 // JSON serializes the spec to indented OpenAPI 3.1 JSON. The output is suitable
