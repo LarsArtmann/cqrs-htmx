@@ -15,7 +15,7 @@ require (
 	github.com/CAFxX/httpcompression v0.0.9 // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
-	github.com/klauspost/compress v1.19.0 // indirect
+	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0 // indirect
