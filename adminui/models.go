@@ -61,9 +61,11 @@ type usersListData struct {
 
 // userDetailData drives a single user's page.
 type userDetailData struct {
-	User        *usermgmt.User
-	BasePath    string
-	TenantRoles map[string][]usermgmt.Role // domain -> roles
+	User                *usermgmt.User
+	BasePath            string
+	TenantRoles         map[string][]usermgmt.Role // domain -> roles
+	ConfiguredProviders []string                   // OAuth2 providers configured on the Service (for the link/unlink card)
+	UnlinkExternalBase  string                     // URL prefix for unlink POSTs: append "/{provider}/unlink"
 }
 
 // tenantsListData drives the tenants index.

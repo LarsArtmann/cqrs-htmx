@@ -65,6 +65,8 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *userm
 	p := h.page(shown.Email, "/users", user, r)
 	renderPage(w, r, userDetailPage(p, userDetailData{
 		User: shown, BasePath: h.cfg.BasePath, TenantRoles: roles,
+		ConfiguredProviders: h.cfg.Service.ConfiguredOAuth2Providers(),
+		UnlinkExternalBase:  h.cfg.BasePath + "/users/" + shown.ID.Get().String() + "/external",
 	}))
 }
 
@@ -85,4 +87,33 @@ func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request, _ *usermgmt
 	}
 	triggerToast(w, "ok", "User deleted")
 	redirect(w, r, h.cfg.BasePath+"/users")
+}
+
+// userUnlinkExternal removes a single OAuth2/OIDC provider link from a user.
+// It calls the Service's public UnlinkExternalAccount, which enforces the
+// last-auth-method guard (rejecting unlink if the user would be left with no
+// WebAuthn credentials and no other external accounts).
+//
+// Linking a provider cannot be initiated from the admin panel: the OAuth2
+// handshake requires the user to authenticate with the provider themselves,
+// which the admin cannot impersonate. The user-detail card documents this and
+// lists the configured providers so the admin knows what the user CAN link.
+func (h *Handler) userUnlinkExternal(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+	target, err := usermgmt.ParseUserID(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "invalid user id", http.StatusBadRequest)
+		return
+	}
+	provider := strings.TrimSpace(r.PathValue("provider"))
+	if provider == "" {
+		http.Error(w, "missing provider", http.StatusBadRequest)
+		return
+	}
+	if err := h.cfg.Service.UnlinkExternalAccount(r.Context(), target, provider); err != nil {
+		triggerToast(w, "err", "Unlink failed: "+err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	triggerToast(w, "ok", provider+" account unlinked")
+	redirect(w, r, h.cfg.BasePath+"/users/"+target.Get().String())
 }

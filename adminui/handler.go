@@ -111,6 +111,7 @@ func (h *Handler) routes() http.Handler {
 		mux.HandleFunc("GET /users", h.guard(h.usersIndex))
 		mux.HandleFunc("GET /users/{id}", h.guard(h.userDetail))
 		mux.HandleFunc("POST /users/{id}/delete", h.guard(h.userDelete))
+		mux.HandleFunc("POST /users/{id}/external/{provider}/unlink", h.guard(h.userUnlinkExternal))
 	}
 
 	// --- Tenants (super admin) ---
