@@ -40,7 +40,6 @@ templ usersContent(d usersListData) {
 				BaseProps:   utils.BaseProps{Class: "pl-9", Attrs: templ.Attributes{"autocomplete": "off"}},
 			})
 		</form>
-		<div class="flex-1"></div>
 	</div>
 	@usersTableContent(d)
 }
@@ -104,7 +103,6 @@ templ userDetailPage(p pageData, d userDetailData) {
 	@Layout(p) {
 		<div class="mb-5 flex flex-wrap items-center gap-3">
 			<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users" }>← Users</a>
-			<div class="flex-1"></div>
 		</div>
 		<div class="mb-5 flex items-center gap-4">
 			@display.Avatar(display.AvatarProps{Initials: initials(d.User.Email), Size: display.AvatarSizeLG, Shape: display.AvatarShapeSquare, BaseProps: utils.BaseProps{Class: "h-[52px] w-[52px] rounded-[14px] text-lg"}})
@@ -156,9 +154,8 @@ templ userDetailPage(p pageData, d userDetailData) {
 			Header:    dangerZoneHeader(),
 			BaseProps: utils.BaseProps{Attrs: templ.Attributes{"data-sync-target": ""}},
 		}) {
-			<div class="flex flex-wrap items-center gap-3.5">
+			<div class="flex flex-wrap items-center justify-between gap-3.5">
 				<div class="text-sm text-gray-500">Deleting a user tombstones the account and revokes all sessions. This cannot be undone.</div>
-				<div class="flex-1"></div>
 				@display.Button(display.ButtonProps{
 					Text:    "Delete user",
 					Variant: display.ButtonDanger,

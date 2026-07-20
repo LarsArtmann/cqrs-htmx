@@ -91,6 +91,12 @@ func Patch(operationID string) *opBuilder { return newOp("patch", operationID) }
 // Delete starts a DELETE operation with the given operationId.
 func Delete(operationID string) *opBuilder { return newOp("delete", operationID) }
 
+// Head starts a HEAD operation with the given operationId.
+func Head(operationID string) *opBuilder { return newOp("head", operationID) }
+
+// Options starts an OPTIONS operation with the given operationId.
+func Options(operationID string) *opBuilder { return newOp("options", operationID) }
+
 func newOp(method, operationID string) *opBuilder {
 	return &opBuilder{
 		method: method,

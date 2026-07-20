@@ -13,9 +13,8 @@ templ tenantsPage(p pageData, d tenantsListData) {
 }
 
 templ tenantsContent(d tenantsListData) {
-	<div class="mb-5 flex flex-wrap items-center gap-3">
+	<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
 		<h1 class="text-xl font-semibold">Tenants</h1>
-		<div class="flex-1"></div>
 		@display.Button(display.ButtonProps{
 			Text:      "New tenant",
 			Href:      d.BasePath + "/tenants/new",
@@ -101,9 +100,8 @@ templ tenantNewPage(p pageData, basePath string) {
 
 templ tenantDetailPage(p pageData, d tenantDetailData) {
 	@Layout(p) {
-		<div class="mb-5 flex flex-wrap items-center gap-3">
+		<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
 			<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/tenants" }>← Tenants</a>
-			<div class="flex-1"></div>
 			if d.Tenant.Suspended {
 				@badge("suspended", "amber")
 			} else if d.Tenant.Deleted {

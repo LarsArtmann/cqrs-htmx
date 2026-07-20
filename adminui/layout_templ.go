@@ -217,7 +217,7 @@ func Layout(p pageData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</nav><div class=\"mt-auto px-1.5 pt-0.5 text-xs opacity-55\">cqrs-htmx admin</div></aside><div class=\"flex min-w-0 flex-col\"><header class=\"sticky top-0 z-[5] flex items-center gap-3.5 border-b border-gray-200 px-6 py-3.5 backdrop-blur\" style=\"background:color-mix(in srgb, var(--surface) 86%, transparent)\"><button class=\"admin-toggle hidden max-md:block\" aria-label=\"Menu\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</nav><div class=\"mt-auto px-1.5 pt-0.5 text-xs opacity-55\">cqrs-htmx admin</div></aside><div class=\"flex min-w-0 flex-col\"><header class=\"sticky top-0 z-[5] flex items-center justify-between gap-3.5 border-b border-gray-200 px-6 py-3.5 backdrop-blur\" style=\"background:color-mix(in srgb, var(--surface) 86%, transparent)\"><div class=\"flex items-center gap-3.5\"><button class=\"admin-toggle hidden max-md:block\" aria-label=\"Menu\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -232,13 +232,13 @@ func Layout(p pageData) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(p.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/layout.templ`, Line: 62, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/layout.templ`, Line: 63, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div><div class=\"flex-1\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div></div><div class=\"flex items-center gap-3.5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -260,7 +260,7 @@ func Layout(p pageData) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(p.User.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/layout.templ`, Line: 73, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/layout.templ`, Line: 75, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -278,7 +278,7 @@ func Layout(p pageData) templ.Component {
 				var templ_7745c5c3_Var16 templ.SafeURL
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinURLErrs(p.LogoutURL)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/layout.templ`, Line: 78, Col: 27}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/layout.templ`, Line: 80, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -298,7 +298,7 @@ func Layout(p pageData) templ.Component {
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</header><main class=\"w-full max-w-[1200px] p-6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></header><main class=\"w-full max-w-[1200px] p-6\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -321,7 +321,7 @@ func Layout(p pageData) templ.Component {
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.BasePath + "/-/admin.js")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/layout.templ`, Line: 95, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/layout.templ`, Line: 98, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 		if templ_7745c5c3_Err != nil {

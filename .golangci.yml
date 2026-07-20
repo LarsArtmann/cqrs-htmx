@@ -156,6 +156,7 @@ linters:
       exclude:
         - os/exec.Cmd
         - github\.com/larsartmann/cqrs-htmx/v4\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig)$
+        - github\.com/larsartmann/cqrs-htmx/v4/openapi\..*$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.(User|UserState|UserReadModel|UserView|EnforcerConfig|HandlerConfig|ActorID|AccountLockout|InMemorySessionStore|WebAuthnCredential)$
         - .+\.testCreateUserCmd$
         - .+\.bddCreateUserCmd$

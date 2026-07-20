@@ -26,6 +26,10 @@ const DefaultAccentColor = "#4f46e5"
 // enhancement — it needs paginated read-model query methods.)
 const MaxListRows = 200
 
+// defaultBasePath is the default URL prefix for the panel when Config.BasePath
+// is empty.
+const defaultBasePath = "/admin"
+
 // Config configures an admin panel. Only [Config.Service] is required; every
 // other field has a sensible default applied by [New].
 type Config struct {
@@ -75,7 +79,7 @@ func (cfg Config) withDefaults() (Config, error) {
 		cfg.Title = "Admin"
 	}
 	if cfg.BasePath == "" {
-		cfg.BasePath = "/admin"
+		cfg.BasePath = defaultBasePath
 	}
 	cfg.BasePath = trimTrailingSlash(cfg.BasePath)
 	if cfg.AccentColor == "" {

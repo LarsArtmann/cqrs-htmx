@@ -11,6 +11,7 @@ import (
 func (s *Spec) JSON() ([]byte, error) {
 	var buf bytes.Buffer
 
+	//nolint:wrapcheck // openapi is dependency-free; the caller (OpenAPISpecHandler) classifies and wraps this as Infrastructure.
 	if err := json.MarshalWrite(&buf, s, jsontext.WithIndent("  ")); err != nil {
 		return nil, err
 	}
