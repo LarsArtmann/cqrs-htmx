@@ -199,14 +199,7 @@ func (a *App) EventOptions(ctx context.Context) []event.Option {
 //  4. Dispatch the command through the command.Dispatcher
 //  5. Apply HTMX response headers (redirect, trigger, push URL)
 func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
-	if cmdType.IsZero() {
-		panic("cqrs-htmx: command type must not be empty")
-	}
-
-	cfg := buildHandlerConfig(opts)
-	if cfg.maxBodySize == 0 {
-		cfg.maxBodySize = a.maxBodySize
-	}
+	cfg := a.buildHandlerConfigChecked(cmdType.IsZero(), "command", opts)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
@@ -232,14 +225,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 //  5. Render the result (via Render option)
 //  6. Apply HTMX response headers
 func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
-	if qryType.IsZero() {
-		panic("cqrs-htmx: query type must not be empty")
-	}
-
-	cfg := buildHandlerConfig(opts)
-	if cfg.maxBodySize == 0 {
-		cfg.maxBodySize = a.maxBodySize
-	}
+	cfg := a.buildHandlerConfigChecked(qryType.IsZero(), "query", opts)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.queries == nil {
@@ -253,6 +239,24 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		a.handleQueryDispatch(w, r, qryType, cfg)
 	})
+}
+
+// buildHandlerConfigChecked is the shared entry-point preamble for App.Command
+// and App.Query: it validates that the caller passed a non-empty command/query
+// type, then resolves the HandlerConfig (falling back to the App's default
+// maxBodySize when the option wasn't set). kind is "command" or "query" and is
+// used only in the panic message.
+func (a *App) buildHandlerConfigChecked(typeIsZero bool, kind string, opts []HandlerOption) *handlerConfig {
+	if typeIsZero {
+		panic("cqrs-htmx: " + kind + " type must not be empty")
+	}
+
+	cfg := buildHandlerConfig(opts)
+	if cfg.maxBodySize == 0 {
+		cfg.maxBodySize = a.maxBodySize
+	}
+
+	return cfg
 }
 
 // Middleware returns an HTTP middleware that enriches the request context

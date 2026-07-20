@@ -62,12 +62,7 @@ func (a CommandAck) MarshalJSON() ([]byte, error) {
 
 // ackJSON serializes to a string for SSEEvent.Data, with a safe fallback.
 func (a CommandAck) ackJSON() string {
-	data, err := json.Marshal(a)
-	if err != nil {
-		return `{"commandId":"","status":"rejected","error":"ack marshal failed"}`
-	}
-
-	return string(data)
+	return marshalJSONOrFallback(a, `{"commandId":"","status":"rejected","error":"ack marshal failed"}`)
 }
 
 // CommandIDFromRequest extracts the client-generated command ID from the

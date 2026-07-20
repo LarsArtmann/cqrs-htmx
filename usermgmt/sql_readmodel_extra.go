@@ -179,13 +179,7 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 }
 
 func (m *SQLTenantReadModel) FindByNameSQL(ctx context.Context, name string) ([]*TenantView, error) {
-	views, err := m.querier.Query(ctx, kv.ViewQuery{
-		Conditions: []kv.Condition{{Column: sqlColName, Op: kv.OpEq, Value: name}},
-	})
-	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.tenant_query", "query tenant by name")
-	}
-	return views, nil
+	return queryViewByName(ctx, m.querier, name, "usermgmt.sql_readmodel.tenant_query", "query tenant by name")
 }
 
 var _ projection.Projection = (*SQLTenantReadModel)(nil)
@@ -260,13 +254,25 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 }
 
 func (m *SQLBotReadModel) FindByNameSQL(ctx context.Context, name string) ([]*BotView, error) {
-	views, err := m.querier.Query(ctx, kv.ViewQuery{
-		Conditions: []kv.Condition{{Column: sqlColName, Op: kv.OpEq, Value: name}},
-	})
-	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.bot_query", "query bot by name")
-	}
-	return views, nil
+	return queryViewByName(ctx, m.querier, name, "usermgmt.sql_readmodel.bot_query", "query bot by name")
 }
 
 var _ projection.Projection = (*SQLBotReadModel)(nil)
+
+// queryViewByName runs a single-column equality lookup against a view store
+// and wraps any store error as a Transient failure with the caller's error
+// code and human-readable message. Shared by the per-aggregate FindByNameSQL
+// methods whose only differences are the view type and the error tags.
+func queryViewByName[T any](
+	ctx context.Context,
+	q kv.ViewQuerier[T],
+	name, errCode, errMsg string,
+) ([]*T, error) {
+	views, err := q.Query(ctx, kv.ViewQuery{
+		Conditions: []kv.Condition{{Column: sqlColName, Op: kv.OpEq, Value: name}},
+	})
+	if err != nil {
+		return nil, errorfamily.WrapTransient(err, errCode, errMsg)
+	}
+	return views, nil
+}

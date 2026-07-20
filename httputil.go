@@ -32,3 +32,18 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 
 	return nil
 }
+
+// marshalJSONOrFallback serialises v as JSON and returns it as a string. If
+// marshalling fails (which should be impossible for the well-formed types that
+// call this), it returns fallback verbatim — letting each caller ship a
+// domain-correct minimum-valid JSON document instead of a generic error.
+// Used by CommandAck.ackJSON and StructuredError.JSON so both transports
+// (SSE/WS ack frames and RFC 7807 problem details) degrade gracefully.
+func marshalJSONOrFallback(v any, fallback string) string {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return fallback
+	}
+
+	return string(b)
+}

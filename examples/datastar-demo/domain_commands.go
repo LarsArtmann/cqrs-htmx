@@ -21,56 +21,49 @@ func NewCreateTodo(title string) (*CreateTodoCmd, error) {
 	return &CreateTodoCmd{BasicCommand: core, Title: title}, nil
 }
 
-func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
+// newTodoCore is the shared backend for the typed todo command constructors:
+// it validates the incoming todo ID, builds the named command, and wraps any
+// failure with the todo aggregate's error tags. Callers wrap the returned
+// core in their specific *<Name>TodoCmd type.
+func newTodoCore(todoID, name string) (*command.BasicCommand, error) {
 	aggID, err := id.ParseAggregateID(todoID)
 	if err != nil {
 		return nil, errorfamily.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
 	}
-	core, err := command.New("ToggleTodo", aggID)
+	core, err := command.New(command.Type(name), aggID)
 	if err != nil {
 		return nil, errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"todo.command_failed",
-			"create ToggleTodo command for todo %q",
+			"create %s command for todo %q",
+			name,
 			todoID,
 		)
+	}
+	return core, nil
+}
+
+func NewToggleTodo(todoID string) (*ToggleTodoCmd, error) {
+	core, err := newTodoCore(todoID, "ToggleTodo")
+	if err != nil {
+		return nil, err
 	}
 	return &ToggleTodoCmd{BasicCommand: core}, nil
 }
 
 func NewDeleteTodo(todoID string) (*DeleteTodoCmd, error) {
-	aggID, err := id.ParseAggregateID(todoID)
+	core, err := newTodoCore(todoID, "DeleteTodo")
 	if err != nil {
-		return nil, errorfamily.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
-	}
-	core, err := command.New("DeleteTodo", aggID)
-	if err != nil {
-		return nil, errorfamily.Wrapf(
-			err,
-			event.Infrastructure,
-			"todo.command_failed",
-			"create DeleteTodo command for todo %q",
-			todoID,
-		)
+		return nil, err
 	}
 	return &DeleteTodoCmd{BasicCommand: core}, nil
 }
 
 func NewUpdateTodo(todoID, title string) (*UpdateTodoCmd, error) {
-	aggID, err := id.ParseAggregateID(todoID)
+	core, err := newTodoCore(todoID, "UpdateTodo")
 	if err != nil {
-		return nil, errorfamily.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
-	}
-	core, err := command.New("UpdateTodo", aggID)
-	if err != nil {
-		return nil, errorfamily.Wrapf(
-			err,
-			event.Infrastructure,
-			"todo.command_failed",
-			"create UpdateTodo command for todo %q",
-			todoID,
-		)
+		return nil, err
 	}
 	return &UpdateTodoCmd{BasicCommand: core, Title: title}, nil
 }
