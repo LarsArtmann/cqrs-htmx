@@ -4,6 +4,15 @@
 **Status:** 3 FULLY DONE, 2 PARTIALLY DONE (one blocked on lint verification), 0 NOT STARTED, several self-inflicted wounds.
 **Timestamp:** 2026-07-20 12:25 (halted mid-task-5 for review)
 
+> **Update 2026-07-20 — RESOLVED.** All 5 TODO items shipped in `f65f210`; the
+> OpenAPI handler wiring followed in `6362d2d`. The OpenAPI root integration
+> was then lint-verified, and a cold-cache data race in `OpenAPISpecHandler`
+> was fixed (eager serialization — the handler is now immutable and
+> concurrency-safe). Canonical gates pass on the current tree:
+> `nix run .#test` (with `-race`, all modules) exit 0; `nix run .#coverage-gate`
+> PASSED (root 94.1%, usermgmt 80.2%). Item-by-item mapping in
+> [Resolution (2026-07-20)](#resolution-2026-07-20) below.
+
 ---
 
 ## a) FULLY DONE (verified: build + test + lint clean)
@@ -207,3 +216,23 @@
 | 5   | OpenAPI spec gen        | 🟡 75% (pkg done; root lint unverified) | 8 (6 new, 2 edited)  | ✅ pkg / ❌ root | ⚠️ unverified | ❌ pending |
 
 **Bottom line:** 3 solid wins, 2 nearly there. The biggest risk is that I halted BEFORE running the canonical `nix run .#lint` / `nix run .#test` gates — the IDE diagnostics are unreliable and I may have left a real lint failure in `options_openapi.go`. Resume there.
+
+---
+
+## Resolution (2026-07-20)
+
+This halt was superseded by later work. The rows below map each load-bearing
+claim in this report to what actually happened.
+
+| Report claim                                                            | Resolution                                                                                                                                                                                                                                                                                                                       |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scorecard: item 5 OpenAPI "🟡 75%, root lint unverified"                | DONE + verified. Every OpenAPI/root file the session touched is lint-clean; `openapi/` coverage is 99.0%.                                                                                                                                                                                                                        |
+| "BLOCKED on lint verification" (§b.5)                                   | Unblocked. Root lint is clean for all OpenAPI/adminui files touched; 75 pre-existing style nits remain in untouched files.                                                                                                                                                                                                       |
+| "`OpenAPISpecHandler` … lazy one-shot serialization" (§b.5)             | CHANGED. Now eager serialization in the constructor with signature `(http.HandlerFunc, error)`; the returned handler is immutable and concurrency-safe. This fixed a real cold-cache data race in the lazy version (`ensureSerialized` mutated shared fields without locks). Regression-guarded by a 100-goroutine `-race` test. |
+| "biggest risk is I halted BEFORE running canonical gates" (bottom line) | RESOLVED. `nix run .#test` (runs `-race` across all 8 modules) exit 0; `nix run .#coverage-gate` PASSED (root 94.1%, usermgmt 80.2%); `nix fmt` clean.                                                                                                                                                                           |
+| CHANGELOG / TODO / FEATURES "pending" (§c)                              | DONE. CHANGELOG entries added (OpenAPI now describes the final eager/concurrency-safe design); the 5 TODO items removed per the no-`[x]` convention; FEATURES/AGENTS updated.                                                                                                                                                    |
+| "`WithOpenAPI` integration test" missing (§c)                           | DONE. Internal test `TestWithOpenAPI_StoresMetadataOnConfig` asserts the op lands on `handlerConfig.openapiMeta`; external `TestOpenAPISpecHandler_ConcurrentRequestsAreSafe` guards the race fix.                                                                                                                               |
+
+**Committed in:** `f65f210` (5 TODO items) and `6362d2d` (OpenAPI handler wiring).
+**Race fix + eager serialization + new tests:** uncommitted on the working tree at the time of this annotation.
+**Still open (not blocking):** the 75 pre-existing root-lint nits and the 3 design questions in the deeper follow-up `docs/status/2026-07-20_14-23_todo-blitz-completion-review.md` §g.

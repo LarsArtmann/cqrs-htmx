@@ -50,38 +50,41 @@ templ Layout(p pageData) {
 				</aside>
 				<div class="flex min-w-0 flex-col">
 					<header
-						class="sticky top-0 z-[5] flex items-center gap-3.5 border-b border-gray-200 px-6 py-3.5 backdrop-blur"
+						class="sticky top-0 z-[5] flex items-center justify-between gap-3.5 border-b border-gray-200 px-6 py-3.5 backdrop-blur"
 						style="background:color-mix(in srgb, var(--surface) 86%, transparent)"
 					>
-						<button
-							class="admin-toggle hidden max-md:block"
-							aria-label="Menu"
-						>
-							@icon("menu")
-						</button>
-						<div class="text-[17px]">{ p.Title }</div>
-						<div class="flex-1"></div>
-						if p.SSEURL != "" {
-							<div class="sync-bar" data-sync-status="idle">
-								<span class="sync-dot"></span>
-								Synced
-							</div>
-						}
-						if p.User != nil {
-							<div class="flex items-center gap-2 font-medium text-gray-500">
-								@display.Avatar(display.AvatarProps{Initials: initials(p.User.Email), Size: display.AvatarSizeSM})
-								{ p.User.Email }
-							</div>
-							if p.LogoutURL != "" {
-								<a
-									class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900"
-									href={ p.LogoutURL }
-								>
-									@icon("arrow-right-on-rectangle")
-									Sign out
-								</a>
+						<div class="flex items-center gap-3.5">
+							<button
+								class="admin-toggle hidden max-md:block"
+								aria-label="Menu"
+							>
+								@icon("menu")
+							</button>
+							<div class="text-[17px]">{ p.Title }</div>
+						</div>
+						<div class="flex items-center gap-3.5">
+							if p.SSEURL != "" {
+								<div class="sync-bar" data-sync-status="idle">
+									<span class="sync-dot"></span>
+									Synced
+								</div>
 							}
-						}
+							if p.User != nil {
+								<div class="flex items-center gap-2 font-medium text-gray-500">
+									@display.Avatar(display.AvatarProps{Initials: initials(p.User.Email), Size: display.AvatarSizeSM})
+									{ p.User.Email }
+								</div>
+								if p.LogoutURL != "" {
+									<a
+										class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900"
+										href={ p.LogoutURL }
+									>
+										@icon("arrow-right-on-rectangle")
+										Sign out
+									</a>
+								}
+							}
+						</div>
 					</header>
 					<main class="w-full max-w-[1200px] p-6">
 						{ children... }

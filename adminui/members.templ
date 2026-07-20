@@ -83,9 +83,8 @@ templ membersRows(d tenantDetailData) {
 // Extracted as a component because templ's parser rejects if/else blocks
 // directly inside @Layout children.
 templ tenantHeader(d tenantDetailData) {
-	<div class="mb-5 flex flex-wrap items-center gap-3">
+	<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
 		<h1 class="text-xl font-semibold">Members</h1>
-		<div class="flex-1"></div>
 		if d.Tenant != nil {
 			if d.Tenant.Suspended {
 				@badge("suspended", "amber")

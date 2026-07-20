@@ -1,7 +1,9 @@
 package cqrshtmx
 
 import (
+	"hash/fnv"
 	"net/http"
+	"strconv"
 
 	"github.com/larsartmann/cqrs-htmx/v4/openapi"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -13,16 +15,15 @@ import (
 // definition so a spec generator or tooling can discover it.
 //
 // Because cqrs-htmx does not own the consumer's router (paths are registered on
-// the consumer's mux), the library cannot auto-assemble a full spec. Build the
-// spec with the openapi package, then serve it:
+// the consumer's mux), the library cannot auto-assemble a full spec from
+// registered handlers. Build the spec explicitly with the openapi package, then
+// serve it:
 //
-//	spec := openapi.New("My API", "1.0.0").
-//		Path("/items",
-//			openapi.Post("CreateItem").
-//				JSONBody(openapi.Object(openapi.PropReq("name", openapi.String()))).
-//				Response(201, "Created"),
-//		)
-//	mux.Handle("GET /openapi.json", cqrshtmx.OpenAPISpecHandler(spec))
+//	handler, err := cqrshtmx.OpenAPISpecHandler(spec)
+//	if err != nil {
+//	    // the spec failed to serialize — a programming error; fail fast at startup
+//	}
+//	mux.Handle("GET /openapi.json", handler)
 //
 //	app.Command("CreateItem",
 //		cqrshtmx.DecodeJSON(...),
@@ -35,33 +36,46 @@ func WithOpenAPI(op openapi.Operation) HandlerOption {
 }
 
 // OpenAPISpecHandler returns an http.HandlerFunc that serves the given spec as
-// indented OpenAPI 3.1 JSON with a long immutable cache header, suitable for
-// mounting at /openapi.json. The spec is serialized once on the first request
-// and cached; subsequent requests return the cached bytes with a 1-year
-// Cache-Control and an ETag derived from the content.
+// indented OpenAPI 3.1 JSON with a 1-year immutable Cache-Control and an ETag
+// derived from the content, suitable for mounting at /openapi.json.
 //
-//	mux.Handle("GET /openapi.json", cqrshtmx.OpenAPISpecHandler(spec))
-func OpenAPISpecHandler(spec *openapi.Spec) http.HandlerFunc {
-	server := &openAPISpecServer{spec: spec, cached: false, etag: "", marshal: nil}
+// The spec is serialized eagerly when this function is called, so any
+// serialization error surfaces once at startup rather than on the first
+// request. The returned handler holds only the immutable serialized bytes and
+// ETag, so it is safe for concurrent use without synchronization.
+//
+//	handler, err := cqrshtmx.OpenAPISpecHandler(spec)
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	mux.Handle("GET /openapi.json", handler)
+func OpenAPISpecHandler(spec *openapi.Spec) (http.HandlerFunc, error) {
+	if spec == nil {
+		return nil, errorfamily.NewInfrastructure("cqrshtmx.openapi.nil-spec", "spec must not be nil")
+	}
 
-	return server.serve
+	data, err := spec.JSON()
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err, "cqrshtmx.openapi.serialize", "serialize OpenAPI spec")
+	}
+
+	server := &openAPISpecServer{
+		etag:    `"` + hashTag(data) + `"`,
+		marshal: data,
+	}
+
+	return server.serve, nil
 }
 
-// openAPISpecServer holds the lazily-serialized spec bytes and ETag.
+// openAPISpecServer holds the eagerly-serialized spec bytes and ETag. Both
+// fields are set once at construction and never mutated, so serve is safe for
+// concurrent use without synchronization.
 type openAPISpecServer struct {
-	spec    *openapi.Spec
-	cached  bool
 	etag    string
 	marshal []byte
 }
 
 func (s *openAPISpecServer) serve(w http.ResponseWriter, r *http.Request) {
-	if err := s.ensureSerialized(); err != nil {
-		http.Error(w, "failed to serialize OpenAPI spec", http.StatusInternalServerError)
-
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	w.Header().Set("ETag", s.etag)
@@ -75,49 +89,14 @@ func (s *openAPISpecServer) serve(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(s.marshal)
 }
 
-func (s *openAPISpecServer) ensureSerialized() error {
-	if s.cached {
-		return nil
-	}
-
-	data, err := s.spec.JSON()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "cqrshtmx.openapi.serialize", "serialize OpenAPI spec")
-	}
-
-	s.marshal = data
-	s.etag = `"` + hashTag(data) + `"`
-	s.cached = true
-
-	return nil
-}
-
-// hashTag derives a short, stable cache tag from the spec bytes via FNV-1a. It
-// is not cryptographically significant — it only needs to change when the
-// content changes (for ETag invalidation).
+// hashTag derives a short, stable cache tag from the spec bytes using the
+// standard library's FNV-1a 64-bit hash. It is not cryptographically
+// significant — it only needs to change when the content changes, so a stale
+// spec is refetched.
 func hashTag(data []byte) string {
-	const fnvOffset uint64 = 14695981039346656037
-	const fnvPrime uint64 = 1099511628211
+	h := fnv.New64a()
 
-	hash := fnvOffset
+	_, _ = h.Write(data)
 
-	for _, b := range data {
-		hash ^= uint64(b)
-		hash *= fnvPrime
-	}
-
-	return uint64ToHex(hash)
-}
-
-func uint64ToHex(n uint64) string {
-	const hexDigits = "0123456789abcdef"
-
-	var buf [16]byte
-
-	for i := 15; i >= 0; i-- {
-		buf[i] = hexDigits[n&0xf]
-		n >>= 4
-	}
-
-	return string(buf[:])
+	return strconv.FormatUint(h.Sum64(), 16)
 }

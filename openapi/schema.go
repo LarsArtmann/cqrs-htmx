@@ -75,17 +75,17 @@ func Array(items *Schema) *Schema { return &Schema{Type: "array", Items: items} 
 // Object returns a schema with type "object" and the given properties.
 // Use Prop to build each property.
 func Object(properties ...Property) *Schema {
-	s := &Schema{Type: "object", Properties: make(map[string]*Schema, len(properties))}
+	schema := &Schema{Type: "object", Properties: make(map[string]*Schema, len(properties))}
 
 	for _, p := range properties {
-		s.Properties[p.Name] = p.Schema
+		schema.Properties[p.Name] = p.Schema
 
 		if p.Required {
-			s.Required = append(s.Required, p.Name)
+			schema.Required = append(schema.Required, p.Name)
 		}
 	}
 
-	return s
+	return schema
 }
 
 // FreeForm returns an object schema that allows any properties (empty object).

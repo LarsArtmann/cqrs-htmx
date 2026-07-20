@@ -2,6 +2,7 @@ package openapi_test
 
 import (
 	"encoding/json/v2"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -126,6 +127,7 @@ func TestSpec_Golden(t *testing.T) {
 	}
 
 	got := string(data)
+
 	const want = `{
   "openapi": "3.1.0",
   "info": {
@@ -182,15 +184,15 @@ func TestSchema_Constructors(t *testing.T) {
 		{"ref", cqrsopenapi.Ref("Foo"), `"$ref":"#/components/schemas/Foo"`},
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			data, err := json.Marshal(tc.schema)
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(tt.schema)
 			if err != nil {
 				t.Fatalf("marshal: %v", err)
 			}
 
-			if !strings.Contains(string(data), tc.want) {
-				t.Errorf("schema %s: %s missing %s", tc.name, data, tc.want)
+			if !strings.Contains(string(data), tt.want) {
+				t.Errorf("schema %s: %s missing %s", tt.name, data, tt.want)
 			}
 		})
 	}
@@ -229,7 +231,112 @@ func TestSpec_NestedObject(t *testing.T) {
 	if !strings.Contains(out, `"properties":{"outer":{"type":"object"`) {
 		t.Errorf("nested outer object missing: %s", out)
 	}
+
 	if !strings.Contains(out, `"inner":{"type":"integer"}`) {
 		t.Errorf("nested inner property missing: %s", out)
+	}
+}
+
+// TestSpec_AllBuildersAndMutators exercises every exported builder function and
+// fluent mutator at least once, then verifies key fragments in the serialized
+// output. This is the primary coverage driver for the openapi package.
+func TestSpec_AllBuildersAndMutators(t *testing.T) {
+	scoreSchema := cqrsopenapi.Number().
+		WithDescription("A score").
+		WithMin(0).
+		WithMax(100).
+		WithEnum(0, 50, 100)
+
+	nameSchema := cqrsopenapi.String().
+		WithMinLength(1).
+		WithMaxLength(255)
+
+	spec := cqrsopenapi.New("Full API", "2.0.0").
+		WithDescription("Complete exercise of the builder surface.").
+		Schema("Score", scoreSchema).
+		Schema("Error", cqrsopenapi.ErrorSchema()).
+		Path("/items/{id}",
+			cqrsopenapi.Get("GetItem").
+				Summary("Get one item").
+				Desc("Retrieve a single item by ID.").
+				Tag("items").
+				Tag("read").
+				PathParam("id", cqrsopenapi.Integer(), "The item ID").
+				QueryParam("filter", cqrsopenapi.String(), "Optional filter").
+				QueryParamReq("tier", cqrsopenapi.String(), "Required tier").
+				HeaderParam("X-Request-ID", cqrsopenapi.String(), "Optional trace ID").
+				Response(http.StatusOK, "OK", cqrsopenapi.JSON(cqrsopenapi.Ref("Score"))).
+				Response(http.StatusNotFound, "Not Found", cqrsopenapi.JSON(cqrsopenapi.ErrorSchema())),
+			cqrsopenapi.Post("CreateItem").
+				Description("Create a new item.").
+				JSONBody(cqrsopenapi.Object(cqrsopenapi.PropReq("name", nameSchema))).
+				Response(http.StatusCreated, "Created"),
+			cqrsopenapi.Put("ReplaceItem").
+				Deprecated().
+				JSONBodyOpt(cqrsopenapi.Object(cqrsopenapi.Prop("note", cqrsopenapi.String()))).
+				Response(http.StatusOK, "Replaced"),
+			cqrsopenapi.Patch("UpdateItem").
+				Response(http.StatusNoContent, "Updated"),
+			cqrsopenapi.Delete("DeleteItem").
+				NoContent(http.StatusNoContent, "Deleted"),
+			cqrsopenapi.Head("ItemExists").
+				Response(http.StatusOK, "Check existence"),
+			cqrsopenapi.Options("Preflight").
+				NoContent(http.StatusNoContent, "CORS preflight"),
+		).
+
+		// Exercise FreeForm and Boolean constructors via a second path.
+		Path("/health",
+			cqrsopenapi.Get("Health").
+				Response(http.StatusOK, "OK", cqrsopenapi.JSON(cqrsopenapi.FreeForm())),
+		)
+
+	// Exercise Op() — detaches the operation from the path builder.
+	detached := cqrsopenapi.Post("Standalone").Summary("standalone op").Op()
+	if detached.OperationID != "Standalone" {
+		t.Errorf("Op().OperationID = %q, want Standalone", detached.OperationID)
+	}
+
+	// Exercise Boolean constructor directly.
+	boolOut, err := json.Marshal(cqrsopenapi.Boolean())
+	if err != nil {
+		t.Fatalf("marshal boolean: %v", err)
+	}
+
+	if !strings.Contains(string(boolOut), `"type":"boolean"`) {
+		t.Errorf("Boolean() output unexpected: %s", boolOut)
+	}
+
+	data, err := spec.JSON()
+	if err != nil {
+		t.Fatalf("spec.JSON(): %v", err)
+	}
+
+	out := string(data)
+
+	checks := map[string]bool{
+		`"description": "Complete exercise of the builder surface."`: true,
+		`"put"`:              true,
+		`"patch"`:            true,
+		`"head"`:             true,
+		`"options"`:          true,
+		`"deprecated": true`: true,
+		`"minimum": 0`:       true,
+		`"maximum": 100`:     true,
+		`"minLength": 1`:     true,
+		`"maxLength": 255`:   true,
+		`"enum"`:             true,
+		`"required": true`:   true,
+		`"X-Request-ID"`:     true,
+		`"Score"`:            true,
+		`"freeForm"`:         false, // FreeForm uses empty AdditionalProperties, not a "freeForm" key
+	}
+
+	for want, shouldExist := range checks {
+		exists := strings.Contains(out, want)
+
+		if exists != shouldExist {
+			t.Errorf("contains(%q) = %v, want %v", want, exists, shouldExist)
+		}
 	}
 }
