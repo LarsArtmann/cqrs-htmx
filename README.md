@@ -36,7 +36,7 @@ One endpoint, four concerns, in declarative order. The same shape works for quer
 - **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
 - **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `JournalSSEStore` (production durable replay via `event.SeekableJournal`), CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive, **ACK protocol** (`BroadcastOnAck` — opt-in command confirmation via `X-Command-Id` header)
 - **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge, `BroadcastOnAckWS` for command confirmation
-- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v4.0.0
+- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v4.0.x
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.10 (minified) with ETag/caching. Opt-in, zero CDN dependency. Embedded HTMX extensions (SSE/WS/idiomorph) also available via `HTMXExtensionHandler`/`HTMXExtensionsHandler`
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers. Auth strategies (WebAuthn/Passkeys, TOTP MFA, OAuth2/OIDC) are **optional sub-modules** — import only what you need, zero auth deps in core
 
@@ -1243,7 +1243,7 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Dependency             | Purpose                                 |
 | ---------------------- | --------------------------------------- |
-| go-cqrs-lite v4.0.0    | CQRS command/query dispatch, pagination |
+| go-cqrs-lite v4.0.x    | CQRS command/query dispatch, pagination |
 | casbin/casbin/v3       | Authorization                           |
 | go-error-family v0.7.0 | Error classification                    |
 | justinas/nosurf        | CSRF protection                         |

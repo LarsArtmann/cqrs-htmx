@@ -16,10 +16,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `OOBHTML(id, html, swapStrategy...)` — General OOB swap wrapper extracted from `WSOOBHTML`. Works for both HTTP and WebSocket responses. `WSOOBHTML` is now a 1-line alias.
 - **adminui refactored** (`handler_users.go`, `render.go`): Replaced raw `r.Header.Get("HX-Request")` checks with `cqrshtmx.RenderPartial(r)` and `cqrshtmx.IsHTMXRequest(r)`, using the library's own typed accessors.
 - **Benchmarks** (`benchmark_htmx_test.go`): Added `BenchmarkRenderPartial`, `BenchmarkRenderTemplComponent`, `BenchmarkOOBHTML` measuring the overhead of the new helpers.
+- **Offline command queue — Phase 2b (IndexedDB persistence, ADR-0040)** (`adminui/assets/sync-worker.js`): The SharedWorker offline queue now persists command envelopes to IndexedDB so queued mutations survive closed tabs and browser restarts. On spawn it drains persisted commands and broadcasts retry to every connected tab (cross-tab/cross-session retry); deletes on ACK; degrades gracefully to in-memory when IndexedDB is unavailable (private browsing / quota). All persistence is confined to optional admin UI JavaScript assets — the Go library has zero new client-side persistence concerns. Reverses ADR-0030 (now SUPERSEDED by ADR-0040).
+- **Opt-in aggregate snapshotting** (`usermgmt/snapshot*.go`, ADR-0041): `SnapshotConfig` (Store/Codec/Strategy) wired through every repository construction path (`NewService`, `NewEventSourcedSetup`, `NewSQLiteEventSourcedSetup`, `NewPostgresEventSourcedSetup`). When configured, the decider Repository restores the latest snapshot on Load and replays only events appended since — accelerating aggregates with >10K events. Zero behavior change when unconfigured (nil Store = full-replay mode). Ships `MemorySnapshotStore` (in-process, deep-copied state bytes) for dev/test.
+- **Enum `Valid()` methods** (`usermgmt`): `Valid()` added to the five open string-enum types (`Action`, `Effect`, `Role`, `UserDataFormat`, `AckStatus`). The types stay open (any string assignable) so they remain Casbin-compatible and JSON-serializable, but consumers can now reject typos / unknown values at trust boundaries (e.g. role assignment from HTTP input, action verbs from policy config, ack status parsed off WebSocket). Non-breaking: existing constants and string conversions unchanged. Also adds `errDecoderReturnedNil` (Corruption/500) to distinguish decoder wiring bugs from Transient/503 dispatcher failures.
+- **`SyntheticUserID` + `GenerateUserID` disambiguation** (`usermgmt`, root): `usermgmt.SyntheticUserID(s)` makes the SHA-256-derive behavior explicit (the old name `NewUserID` silently hashed non-ULID strings — a footgun). `NewUserID` now delegates to it for non-ULID strings and carries a SECURITY NOTE pointing to `ParseUserID` (strict) / `SyntheticUserID` (explicit). `root.GenerateUserID()` is the new unambiguous name for ULID generation (the root `NewUserID()` generates a ULID while `usermgmt.NewUserID(string)` parses/derives — same name, opposite semantics). Non-breaking: all existing signatures preserved.
+- **Keyboard accessibility + reduced-motion guard** (`adminui/assets/admin-tw.css`, `loginpage/assets/login.css`): `:focus-visible` outlines (accent-colored) for inputs, buttons, and links so keyboard users get a clear focus ring while mouse users don't. Global `@media (prefers-reduced-motion: reduce)` guard collapses transitions/animations for motion-sensitive users (previously only Tailwind opt-in `motion-reduce:` utilities honored the OS preference).
 
 ### Changed
 
 - **`WSOOBHTML` is now a delegate** (`ws.go`): `WSOOBHTML(id, html, swap...)` delegates to `OOBHTML(id, html, swap...)`. Removed `fmt` and `strings` imports from `ws.go`. Fully backward compatible — same output, same signature.
+
+### Fixed
+
+- **Silent `UserIDExtractor` failures now logged at Error** (`enrich.go`): A failing extractor (common cause: misconfigured session middleware) is now loud (Error with method + path) instead of silently degrading every request to anonymous. Behavior unchanged — the request still proceeds anonymous; the library does not force a 401 because legitimate extractors error for not-yet-authenticated requests.
+- **CSRF trusted-proxies warning no longer global** (`csrf_middleware.go`): Dropped the package-global `sync.Once` around the warning. It was redundant (already runs at construction) and harmful (a second consumer in the same binary never got warned about ITS config). Each construction is now evaluated independently.
+- **`decode-nil` classified as Corruption (500)** (`handler.go`): A decoder returning `(nil, nil)` is a server-side wiring bug, so it is now Corruption (500), not Infrastructure (503, which implies retryable). The separate `errDecoderMissing` (503) is retained for the unconfigured-decoder case.
+- **Magic numbers extracted** (`fanout.go`, `usermgmt/http.go`): `defaultSubscriberBuffer=64` named; capacity hints (7, 5, 4) `nolint`-annotated with justifications; dead `ImportExportAuthorizer=nil` no-op removed; misleading `dummyMaterializeStringer` renamed to `staticStringer`. `mnd` lint: 5 → 0.
 
 ## [v4.3.0] - 2026-07-12
 
@@ -229,48 +241,10 @@ See `docs/migrations/v3-to-v4.md` for detailed before/after examples.
 
 - **ADR-0030 (Phase 2b IndexedDB)**: Marked REJECTED. Client-side persistence for the SharedWorker queue is a fundamentally inconsistent API surface that doesn't belong in a server-side Go library.
 
-## [Unreleased]
-
-### Added
-
-- **Observability wiring guide** (`docs/observability-wiring.md`): Complete OTel tracing + Prometheus `/metrics` + Server-Timing wiring recipes using `BeforeDispatchHook`/`AfterDispatchHook`. References go-cqrs-lite upstream `otel/v3` + `middleware/v3` + `prometheus/v3` modules.
-- **v3→v3.3 incremental migration guide** (`docs/MIGRATION-v3-incremental.md`): Documents checkpoint replay, BasicCommand embedding, Server-Timing, SQL read models, stack presets — all opt-in, backward compatible.
-- **scenario/v3 BDD for Tenant, Bot, Membership** (3 new test files, 20 tests): Completes scenario/v3 BDD adoption for all 4 usermgmt aggregates. Tenant: 8 tests (create/suspend/reactivate/delete happy + error paths). Bot: 6 tests (register/delete happy + error paths). Membership: 6 tests (add/update-roles/remove happy + error paths).
-- **Server-Timing fuzz tests** (`server_timing_fuzz_test.go`): Adversarial metric names/descs/durations, middleware fuzz, nil-receiver no-op verification. Found CRLF injection bug (see Fixed).
-- **CI codegen drift guard** (`nix run .#check-codegen`): Verifies adminui `_templ.go` files match `.templ` sources by regenerating + diffing. Prevents silent codegen drift.
-- **Templ CLI in devShell** (`flake.nix`): Pins `pkgs.templ` v0.3.1020 (matches go.mod) to eliminate codegen oscillation between CLI versions.
-- **`nix run .#gen` app**: One-command templ codegen + gofmt normalization for adminui.
-- **Server-Timing API** (`server_timing.go`): W3C Server Timing response header support for debug-mode performance profiling. Emits `Server-Timing: total;desc="Total request";dur=12, db;dur=8` headers visible in browser DevTools and curl. Three entry points: (1) `ServerTimingMiddleware()` — standalone always-on middleware; (2) `ServerTimingMiddlewareWhen(pred)` — predicate-gated (e.g. `?debug=1`, admin role); (3) `Config.ServerTiming` — 1-line integration into `App.Command()`/`App.Query()` handlers. Thread-safe `*ServerTiming` collector uses nil-receiver pattern (disabled=nil=natural no-op). Helpers `MeasureServerTiming(ctx, name)` and `RecordServerTiming(ctx, name, desc, dur)` are nil-safe. Interface preservation: wrapper delegates `Flusher`/`Hijacker`/`Pusher`/`Unwrap` so SSE/WS/HTTP2 work transparently. Benchmark: disabled=3.6ns/0-allocs, enabled Measure=138ns/1-alloc.
-- **Checkpoint-based projection replay** (`usermgmt/es_projection_setup.go`): `StartProjections` gains optional `event.CheckpointStore` parameter. When non-nil AND journal implements `SeekableJournal`, replay uses `ReadFrom(checkpoint.EventID, 0)` instead of `ReadAll()` — avoids full journal replay on every restart. Checkpoint saved after each replayed event. Graceful fallback: nil store or non-seekable journal → full replay (backward compatible). `EventSourcedConfig`, `ServiceConfig`, `SQLiteSetupConfig`, `PostgresSetupConfig` all gain `CheckpointStore` field.
-- **ADR-0032**: BasicCommand embedding decision — documents the structural fix for the zero-cmdID bug class and the rationale for `mustCommand` panic-on-construction-failure.
-- **ADR-0031 status update**: PROPOSED → Accepted. Checkpoint-based replay shipped in StartProjections; CatchUpSubscriber migration deferred.
-- **Command ID regression tests** (`es_command_id_test.go`): `TestAllCommandsProduceDifferentIDs` — constructs every command twice (40 total), asserts all IDs are mutually unique. `TestMustCommand_PanicsOnZeroAggregateID` and `TestMustCommand_PanicsOnEmptyCommandType` — verify fail-fast behavior on programming bugs.
-- **CheckpointStore usage example** (`es_checkpoint_test.go`): Demonstrates the opt-in checkpoint round-trip (fresh store → save → reload → resume from checkpoint).
-- **scenario/v3 BDD on ChangeEmail** (`es_scenario_test.go`): Second decider scenario test demonstrating the BDD DSL adoption beyond RegisterUser.
-- **Authz doc comments**: `RemoveAllRolesForUser` and `RemoveAllRolesInDomain` now document why the `subject` parameter is intentionally `string` (Casbin subjects are polymorphic: user IDs, bot IDs, prefixed actors).
-
-### Fixed
-
-- **CRLF injection in Server-Timing `escapeQuotedString`**: CR and LF characters in metric descriptions are now replaced with spaces. Previously only `"` and `\` were escaped, leaving raw newlines that could enable HTTP header splitting via crafted descriptions. Found by `FuzzServerTimingHeaderValue`.
-
-### Changed
-
-- **CONTRIBUTING.md rewritten (root + usermgmt)**: Removed deleted catalog module references, fixed module count (5→8), updated test framework documentation (standard testing + scenario/v3 BDD, not Ginkgo), removed password auth references, synced file tree, added error-family enforcement, added templ codegen instructions, added Nix-first workflow.
-- **usermgmt coverage gate raised**: 75% → 78% (actual: 79.3%). Locks in coverage gains.
-- **Command constructors embed `command.BasicCommand`**: All 20 usermgmt command structs now embed `*command.BasicCommand`, which promotes `Type()`, `AggregateID()`, `ID()` methods automatically. This structurally eliminates the zero-cmdID bug class (7 constructors previously returned zero command IDs, silently breaking idempotency dedup and Watermill message UUIDs). The `mustCommand` helper panics on construction failure — the only error cases (empty command type, zero aggregate ID) are programming bugs. See ADR-0032.
-- **ADR-0015 status table updated**: All 6 remaining "Planned" items (Session struct, Impersonation, Tenant, Bot, upcasters, Roles removal) marked Done with version references.
-- **flake.nix package version bumped**: 3.1.0 → 3.3.0.
-- **FEATURES.md synced**: Removed catalog column (module merged upstream), updated ClientIP to FULLY_FUNCTIONAL, synced coverage/test counts.
-- **ROADMAP.md synced**: Marked scenario/v3 BDD, OTel seam guide, Prometheus seam guide as Done.
-- **ROADMAP typo fixed**: "v3.30" → "v3.3.0".
-- **TODO_LIST triaged**: All `[~]` (partially done) items resolved — marked `[x]` (BrandNamer wired, TenantState.IsValid added, Phase 2a shipped) or `[-]` (blocked: ActorID split brain, Email type, WebAuthn \*http.Request, snapshot integration).
-- **Status reports archived**: 7 reports older than 2 weeks (pre-June-15) moved to `docs/status/archive/`.
-
 ## [3.3.0] - 2026-06-29
 
 ### Added
 
-- **Regression test for command IDs** (`es_command_id_test.go`): Table-driven test asserting all 20 command constructors produce a non-zero `ID()`. Prevents recurrence of the zero-cmdID bug.
 - **Offline command queue — Phase 2a** (ADR-0029): `adminui/assets/sync-worker.js` — a SharedWorker (~80 lines vanilla JS) that queues command IDs when the network is down and tells tabs to retry on reconnect. The worker is a coordinator, not a proxy: it does NOT send HTTP requests (HTMX does), does NOT own SSE (per-tab EventSource), does NOT persist to disk (in-memory). Reactive detection via `htmx:sendError`. Served at `GET /-/sync-worker.js` when `Config.SSEURL` is set. IndexedDB banned; OPFS deferred to Phase 2b. admin.js gains `initSyncWorker()`, `enqueueCommand()`, `retryQueuedCommand()`, and an `htmx:sendError` handler that queues instead of rejecting. CSS adds `[data-sync-queued]` (dimmer, slower pulse) and `.sync-bar[data-sync-status="offline"]` (amber).
 - **Production SSEEventStore** (`JournalSSEStore`): Backed by `event.SeekableJournal` for efficient cursor-based replay. Falls back to `ReadAll` + in-memory filter when the journal doesn't support `ReadFrom`. `WithMaxReplay(n)` limits first-connection replay volume (default 1000). Consumer-provided `EventToSSEMapper` function converts domain events to SSE events.
 - **ACK protocol** (command confirmation): `CommandAck` struct with `{commandId, status, error}` JSON. `BroadcastOnAck()` / `BroadcastOnAckFunc()` on `Broadcaster` (SSE) and `BroadcastOnAckWS()` / `BroadcastOnAckWSFunc()` on `WSBroadcaster` (WS parity). Opt-in via `X-Command-Id` header.
@@ -279,20 +253,46 @@ See `docs/migrations/v3-to-v4.md` for detailed before/after examples.
 - **Idempotency store** (`IdempotencyStore` interface + `MemoryIdempotencyStore`): Prevents duplicate command execution on client retry. `CheckAndRecord` interface method is truly atomic (single lock for check+record). `ErrDuplicateCommand` → HTTP 409 Conflict. TTL-based expiration with background sweep goroutine + lazy expiry in `Seen()`. See ADR-0026.
 - **admin-demo idempotency wiring**: The admin-demo showcase now rejects duplicate mutations (same `X-Command-Id`) with HTTP 409 before they reach the panel handler. Proves the feature end-to-end.
 - **ADR-0027**: Definitive decision that `decide()` stays on the server (Queue-Only client). The library provides the queue/sync/ACK protocol; pre-validation is a consumer concern. Unblocks all Phase 2 work.
+- **Server-Timing API** (`server_timing.go`): W3C Server Timing response header support for debug-mode performance profiling. Emits `Server-Timing: total;desc="Total request";dur=12, db;dur=8` headers visible in browser DevTools and curl. Three entry points: (1) `ServerTimingMiddleware()` — standalone always-on middleware; (2) `ServerTimingMiddlewareWhen(pred)` — predicate-gated (e.g. `?debug=1`, admin role); (3) `Config.ServerTiming` — 1-line integration into `App.Command()`/`App.Query()` handlers. Thread-safe `*ServerTiming` collector uses nil-receiver pattern (disabled=nil=natural no-op). Helpers `MeasureServerTiming(ctx, name)` and `RecordServerTiming(ctx, name, desc, dur)` are nil-safe. Interface preservation: wrapper delegates `Flusher`/`Hijacker`/`Pusher`/`Unwrap` so SSE/WS/HTTP2 work transparently. Benchmark: disabled=3.6ns/0-allocs, enabled Measure=138ns/1-alloc.
+- **Checkpoint-based projection replay** (`usermgmt/es_projection_setup.go`): `StartProjections` gains optional `event.CheckpointStore` parameter. When non-nil AND journal implements `SeekableJournal`, replay uses `ReadFrom(checkpoint.EventID, 0)` instead of `ReadAll()` — avoids full journal replay on every restart. Checkpoint saved after each replayed event. Graceful fallback: nil store or non-seekable journal → full replay (backward compatible). `EventSourcedConfig`, `ServiceConfig`, `SQLiteSetupConfig`, `PostgresSetupConfig` all gain `CheckpointStore` field.
+- **Observability wiring guide** (`docs/observability-wiring.md`): Complete OTel tracing + Prometheus `/metrics` + Server-Timing wiring recipes using `BeforeDispatchHook`/`AfterDispatchHook`. References go-cqrs-lite upstream `otel/v3` + `middleware/v3` + `prometheus/v3` modules.
+- **v3→v3.3 incremental migration guide** (`docs/MIGRATION-v3-incremental.md`): Documents checkpoint replay, BasicCommand embedding, Server-Timing, SQL read models, stack presets — all opt-in, backward compatible.
+- **scenario/v3 BDD for Tenant, Bot, Membership** (3 new test files, 20 tests): Completes scenario/v3 BDD adoption for all 4 usermgmt aggregates. Tenant: 8 tests (create/suspend/reactivate/delete happy + error paths). Bot: 6 tests (register/delete happy + error paths). Membership: 6 tests (add/update-roles/remove happy + error paths).
+- **scenario/v3 BDD on ChangeEmail** (`es_scenario_test.go`): Second decider scenario test demonstrating the BDD DSL adoption beyond RegisterUser.
+- **Command ID regression tests** (`es_command_id_test.go`): `TestAllCommandsProduceDifferentIDs` — constructs every command twice (40 total), asserts all IDs are mutually unique. `TestMustCommand_PanicsOnZeroAggregateID` and `TestMustCommand_PanicsOnEmptyCommandType` — verify fail-fast behavior on programming bugs. Prevents recurrence of the zero-cmdID bug.
+- **CheckpointStore usage example** (`es_checkpoint_test.go`): Demonstrates the opt-in checkpoint round-trip (fresh store → save → reload → resume from checkpoint).
+- **Server-Timing fuzz tests** (`server_timing_fuzz_test.go`): Adversarial metric names/descs/durations, middleware fuzz, nil-receiver no-op verification. Found CRLF injection bug (see Fixed).
+- **CI codegen drift guard** (`nix run .#check-codegen`): Verifies adminui `_templ.go` files match `.templ` sources by regenerating + diffing. Prevents silent codegen drift.
+- **Templ CLI in devShell** (`flake.nix`): Pins `pkgs.templ` v0.3.1020 (matches go.mod) to eliminate codegen oscillation between CLI versions.
+- **`nix run .#gen` app**: One-command templ codegen + gofmt normalization for adminui.
+- **ADR-0032**: BasicCommand embedding decision — documents the structural fix for the zero-cmdID bug class and the rationale for `mustCommand` panic-on-construction-failure.
+- **ADR-0031 status update**: PROPOSED → Accepted. Checkpoint-based replay shipped in StartProjections; CatchUpSubscriber migration deferred.
+- **Authz doc comments**: `RemoveAllRolesForUser` and `RemoveAllRolesInDomain` now document why the `subject` parameter is intentionally `string` (Casbin subjects are polymorphic: user IDs, bot IDs, prefixed actors).
 
 ### Changed
 
-- **go-cqrs-lite upgraded to v3.4.0** across all 8 modules: command, event, idempotency, query, listing, projection, snapshot, stack, storage → v3.4.0; decider/id/otel/watermill/codec/dispatcher at v3.3.0/v3.3.1 (latest tags). v3.4.0 adds managed projection host, durable scheduling, scenario-testing DSL.
-- **SSE delegation lint cleared**: `sse_event.go` vars converted to proper wrapper functions (`gochecknoglobals`), wrapcheck annotated for pure delegation. All modules now report 0 lint issues.
-- **Form decoder upgraded** (`decoder.go`): Replaced allocation-heavy JSON round-trip (`url.Values → map[string]any → JSON → struct`) with `go-playground/form/v4` (zero transitive deps, `SetTagName("json")` for backward compat). Form keys normalized to lowercase for case-insensitive field matching.
-- **Pagination unified**: Both root `DecodePagination` and usermgmt `credential_http.go` now delegate to `query.NewPagination` from go-cqrs-lite. **BREAKING**: Requesting a page beyond the last page now returns an empty page (standard REST) instead of silently clamping to the last page. The response includes `total_pages` so clients can detect the valid range.
-- **go.mod alignment**: All 8 modules aligned to Go 1.26.4.
-- **Stdlib modernization**: `slices.Contains`, `min()`, `slices.IndexFunc` replace 5 manual loops across root/usermgmt/adminui/examples.
 - **ID types branded** (**BREAKING**): `ActorID`, `ImpersonatorID`, `SSEEventID` changed from `type X string` to `brandid.ID[brand, string]` — phantom-typed with `.Get()`, `.IsZero()`, `.Equal()`. `ImpersonatorID = ActorID` (type alias — an impersonator IS an actor). Use `NewActorID("...")` / `NewSSEEventID("...")` constructors instead of casts. `.String()` now returns brand-prefixed form for debug; use `.Get()` for raw value. See ADR-0028.
+- **Pagination unified**: Both root `DecodePagination` and usermgmt `credential_http.go` now delegate to `query.NewPagination` from go-cqrs-lite. **BREAKING**: Requesting a page beyond the last page now returns an empty page (standard REST) instead of silently clamping to the last page. The response includes `total_pages` so clients can detect the valid range.
+- **go-cqrs-lite upgraded to v3.4.0** across all 8 modules: command, event, idempotency, query, listing, projection, snapshot, stack, storage → v3.4.0; decider/id/otel/watermill/codec/dispatcher at v3.3.0/v3.3.1 (latest tags). v3.4.0 adds managed projection host, durable scheduling, scenario-testing DSL.
+- **Command constructors embed `command.BasicCommand`**: All 20 usermgmt command structs now embed `*command.BasicCommand`, which promotes `Type()`, `AggregateID()`, `ID()` methods automatically. This structurally eliminates the zero-cmdID bug class (7 constructors previously returned zero command IDs, silently breaking idempotency dedup and Watermill message UUIDs). The `mustCommand` helper panics on construction failure — the only error cases (empty command type, zero aggregate ID) are programming bugs. See ADR-0032.
+- **Form decoder upgraded** (`decoder.go`): Replaced allocation-heavy JSON round-trip (`url.Values → map[string]any → JSON → struct`) with `go-playground/form/v4` (zero transitive deps, `SetTagName("json")` for backward compat). Form keys normalized to lowercase for case-insensitive field matching.
+- **Stdlib modernization**: `slices.Contains`, `min()`, `slices.IndexFunc` replace 5 manual loops across root/usermgmt/adminui/examples.
+- **go.mod alignment**: All 8 modules aligned to Go 1.26.4.
+- **SSE delegation lint cleared**: `sse_event.go` vars converted to proper wrapper functions (`gochecknoglobals`), wrapcheck annotated for pure delegation. All modules now report 0 lint issues.
+- **CONTRIBUTING.md rewritten (root + usermgmt)**: Removed deleted catalog module references, fixed module count (5→8), updated test framework documentation (standard testing + scenario/v3 BDD, not Ginkgo), removed password auth references, synced file tree, added error-family enforcement, added templ codegen instructions, added Nix-first workflow.
+- **usermgmt coverage gate raised**: 75% → 78% (actual: 79.3%). Locks in coverage gains.
+- **ADR-0015 status table updated**: All 6 remaining "Planned" items (Session struct, Impersonation, Tenant, Bot, upcasters, Roles removal) marked Done with version references.
+- **flake.nix package version bumped**: 3.1.0 → 3.3.0.
+- **FEATURES.md synced**: Removed catalog column (module merged upstream), updated ClientIP to FULLY_FUNCTIONAL, synced coverage/test counts.
+- **ROADMAP.md synced**: Marked scenario/v3 BDD, OTel seam guide, Prometheus seam guide as Done.
+- **ROADMAP typo fixed**: "v3.30" → "v3.3.0".
+- **TODO_LIST triaged**: All `[~]` (partially done) items resolved — marked `[x]` (BrandNamer wired, TenantState.IsValid added, Phase 2a shipped) or `[-]` (blocked: ActorID split brain, Email type, WebAuthn \*http.Request, snapshot integration).
+- **Status reports archived**: 7 reports older than 2 weeks (pre-June-15) moved to `docs/status/archive/`.
 
 ### Fixed
 
 - **Command ID minting bug** (CRITICAL): 7 of 20 usermgmt command constructors (`RegisterUserCmd`, `LinkExternalAccountCmd`, `UnlinkExternalAccountCmd`, `AddMemberCmd`, `UpdateMemberRolesCmd`, `RemoveMemberCmd`, `RegisterBotCmd`) returned a zero-value `cmdID`, silently breaking idempotency dedup and Watermill message UUIDs (which derive from `cmd.ID()`). All constructors now call `id.NewCommandID()`. Regression test added.
+- **CRLF injection in Server-Timing `escapeQuotedString`**: CR and LF characters in metric descriptions are now replaced with spaces. Previously only `"` and `\` were escaped, leaving raw newlines that could enable HTTP header splitting via crafted descriptions. Found by `FuzzServerTimingHeaderValue`.
 - **Idempotency `CheckAndRecord` atomicity**: The original free function called `Seen()` then `Record()` as two separate interface calls — a TOCTOU race. Fixed by moving `CheckAndRecord` into the `IdempotencyStore` interface; `MemoryIdempotencyStore` now does check+record under a single write lock. Proven by a 200-goroutine concurrency test (exactly 1 winner).
 - **Idempotency memory leak**: `Seen()` now lazily deletes expired entries, preventing unbounded map growth when the sweep goroutine is disabled (`sweepInterval=0`).
 

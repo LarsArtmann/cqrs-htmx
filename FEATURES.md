@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-19 | **Version:** v4.2.1+unreleased (go-cqrs-lite v4.0.1) | **Source:** All .go files analyzed | **Coverage:** 93.6% root, 79.9% usermgmt (+~5% from new snapshot/enum tests)
+**Updated:** 2026-07-20 | **Version:** v4.3.0+unreleased (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.8% root, 80.2% usermgmt (recompute via `nix run .#coverage-gate`)
 
 ## Status legend
 
@@ -88,10 +88,10 @@
 | Error Classification  | 🟢 `FULLY_FUNCTIONAL` | go-error-family (v0.7.0) — now a DIRECT dependency in all modules (was indirect via event/v3). 5 families: Rejection(400), Conflict(409), Transient(503), Corruption(500), Infrastructure(503). `MapError` resolves status in 3 layers: HTTPStatusCarrier → sentinel overrides → Family.HTTPStatus(). |
 | Default Error Handler | 🟢 `FULLY_FUNCTIONAL` | Plain text. HTMX auth → HX-Redirect. Per-App `LoginRedirect`. `text/plain` prevents XSS. `SafeDetail(err, status, includeInternal)` redacts 5xx detail.                                                                                                                                               |
 | JSON Error Handler    | 🟢 `FULLY_FUNCTIONAL` | `JSONErrorHandlerWithRedirect` writes `{error, status, code}`. `code` field walks cause chain for deepest domain error code. Includes `request_id` when available. v4.2.0.                                                                                                                            |
-| Problem Details       | 🟢 `FULLY_FUNCTIONAL` | `ProblemDetailsErrorHandler` emits RFC 7807 `application/problem+json`. `StructuredError` has Message/Why/Fix metadata + `Code` field. Code field populated via `errorCode(err)` — consistent with `JSONErrorHandler`. v4.2.0+unreleased.                                                             |
+| Problem Details       | 🟢 `FULLY_FUNCTIONAL` | `ProblemDetailsErrorHandler` emits RFC 7807 `application/problem+json`. `StructuredError` has Message/Why/Fix metadata + `Code` field. Code field populated via `errorCode(err)` — consistent with `JSONErrorHandler`. v4.3.0.                                                                        |
 | Request ID in Errors  | 🟢 `FULLY_FUNCTIONAL` | `Config.IncludeRequestIDInErrors` auto-selects request-ID-aware handler. Plain-text prefix: `[request_id: RID]`.                                                                                                                                                                                      |
 | StructuredError       | 🟢 `FULLY_FUNCTIONAL` | RFC 7807-shaped transport-agnostic error payload. `NewStructuredError(err, r)` maps via MapError + request ID. Used by SSE/WS error broadcasting.                                                                                                                                                     |
-| Error Context         | 🟢 `FULLY_FUNCTIONAL` | `.WithContext(key, val)` chaining enriches errors with domain context (provider, state, dialect, etc.). Wired into `RequestLoggingSlog` (`error_code`, `error_family`, `error_ctx_*` attributes). `StructuredError` exposes context in RFC 7807 extensions. v4.2.0+unreleased.                        |
+| Error Context         | 🟢 `FULLY_FUNCTIONAL` | `.WithContext(key, val)` chaining enriches errors with domain context (provider, state, dialect, etc.). Wired into `RequestLoggingSlog` (`error_code`, `error_family`, `error_ctx_*` attributes). `StructuredError` exposes context in RFC 7807 extensions. v4.2.0.                                   |
 | Enum Validity         | 🟢 `FULLY_FUNCTIONAL` | `Valid()` methods on stringly-typed enums (`AckStatus`, `Action`, `Effect`, `Role`, `UserDataFormat`) reject typo/unknown values at trust boundaries. `errDecoderReturnedNil` (Corruption/500) distinguishes decoder wiring bugs from Transient/503 dispatcher failures. v4.2.x.                      |
 
 ### Middleware & Observability
@@ -197,10 +197,10 @@
 
 ### Verification & MFA
 
-| Feature            | Status                | Notes                                                                                                                                                                                                                                                        |
-| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Email Verification | 🟢 `FULLY_FUNCTIONAL` | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback (`SendVerificationEmailFunc`). Email change resets verification. Single-use tokens with TTL (10 min). `EvictExpired()`.                                                        |
-| TOTP MFA           | 🟢 `FULLY_FUNCTIONAL` | **v4: optional sub-module** `usermgmt/totp/v4`. Inject `totp.New(...)` as `ServiceConfig.TOTP`. pquerna/otp/totp v1.5.0 (RFC 6238). Two-phase setup: `EnableTOTP` → `VerifyTOTPSetup`. `DisableTOTP` requires valid code. 3 provider tests (88.2% coverage). |
+| Feature            | Status                | Notes                                                                                                                                                                                                                                                                                                                                               |
+| ------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Email Verification | 🟢 `FULLY_FUNCTIONAL` | Token-based email confirmation. `EmailVerified` event. Optional SMTP callback (`SendVerificationEmailFunc`). Email change resets verification. Single-use tokens with TTL (10 min). `EvictExpired()`.                                                                                                                                               |
+| TOTP MFA           | 🟢 `FULLY_FUNCTIONAL` | **v4: optional sub-module** `usermgmt/totp/v4`. Inject `totp.New(...)` as `ServiceConfig.TOTP`. pquerna/otp/totp v1.5.0 (RFC 6238). Two-phase setup: `EnableTOTP` → `VerifyTOTPSetup`. `DisableTOTP` requires valid code. 3 provider tests (88.2% coverage). **Not promoted:** admin UI ships no TOTP views — see Not Planned (passwordless-first). |
 
 ### Import/Export
 
@@ -291,12 +291,18 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Not Planned
 
-| Feature                      | Reason                                                                                      |
-| ---------------------------- | ------------------------------------------------------------------------------------------- |
-| WebSocket upgrade logic      | Consumers choose their own WebSocket library (gorilla, coder, etc.). Protocol helpers only. |
-| ORM integration              | Store interfaces are intentionally simple; consumers provide their own implementations.     |
-| Template engine beyond templ | The `TemplComponent` duck-typing pattern covers any `Render(ctx, w) error` interface.       |
-| Built-in HTTP router         | Framework-agnostic: works with `net/http`, Gin, Chi, etc. — no router dependency.           |
+| Feature                         | Reason                                                                                                                                |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| WebSocket upgrade logic         | Consumers choose their own WebSocket library (gorilla, coder, etc.). Protocol helpers only.                                           |
+| ORM integration                 | Store interfaces are intentionally simple; consumers provide their own implementations.                                               |
+| Template engine beyond templ    | The `TemplComponent` duck-typing pattern covers any `Render(ctx, w) error` interface.                                                 |
+| Built-in HTTP router            | Framework-agnostic: works with `net/http`, Gin, Chi, etc. — no router dependency.                                                     |
+| TOTP management views (adminui) | Passwordless-first: WebAuthn passkeys + OAuth2 only. TOTP sub-module stays optional; admin UI will not ship TOTP views.               |
+| Redis adapters                  | Ephemeral-store adapters belong in go-cqrs-lite or consumer code. Low demand; in-memory + SQL stores cover documented use cases.      |
+| v3→v4 codemod                   | All known consumers already on v4. `docs/migrations/v3-to-v4.md` covers the one-time path. No audience for an automated tool.         |
+| Root SSE/WS/ratelimit split     | Same go.mod = same dep tree = zero consumer benefit. Only a separate Go module would reduce transitive deps; not justified by demand. |
+| Shared types module             | Cross-module types boundary adds a JSON round-trip for negligible benefit until dep-tree reduction is actually needed.                |
+| `broadcaster.ServeSSE()` helper | Crosses the "building blocks, not a server" line. Consumers compose `Broadcaster` + `SSEStream` themselves.                           |
 
 ---
 
@@ -304,7 +310,8 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Metric        | Root  | usermgmt | totp  | webauthn | oauth2 | adminui | loginpage | integration_test |
 | ------------- | ----- | -------- | ----- | -------- | ------ | ------- | --------- | ---------------- |
-| Coverage      | 94.2% | 75.1%    | 88.2% | 87.5%    | 92.3%  | 66.8%   | 80.1%     | —                |
+| Coverage      | 93.8% | 80.2%    | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | —                |
+| CI gate       | 90%   | 74%      | 80%   | 80%      | 80%    | 66%     | 80%       | —                |
 | Tests passing | ~250  | ~580     | 3     | 18       | 18     | 35      | 30+       | ~20              |
 | Lint issues   | 0     | 0        | 0     | 0        | 0      | 0       | 0         | 0                |
 | ErrorFamily   | 0     | 0        | 0     | 0        | 0      | 0       | 0         | 0                |
