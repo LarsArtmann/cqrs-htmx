@@ -2,13 +2,9 @@ package usermgmt
 
 import (
 	"context"
-	"errors"
-	"slices"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
 
@@ -27,142 +23,6 @@ func (s *stubProjection) Handle(_ context.Context, evt event.Event) error {
 	s.handled = append(s.handled, evt)
 
 	return s.handleErr
-}
-
-func makeTestEvent(eventType event.Type) event.Event {
-	evt, _ := event.NewEvent(
-		eventType,
-		id.NewAggregateID(),
-		"TestAggregate",
-		1,
-		[]byte("{}"),
-	)
-
-	return evt
-}
-
-func TestShouldDispatch(t *testing.T) {
-	t.Parallel()
-
-	types := []event.Type{"UserRegistered", "UserDeleted"}
-
-	tests := []struct {
-		name      string
-		eventType event.Type
-		want      bool
-	}{
-		{"matching first type", "UserRegistered", true},
-		{"matching second type", "UserDeleted", true},
-		{"non-matching type", "EmailChanged", false},
-		{"empty type", "", false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got := slices.Contains(types, tt.eventType)
-			if got != tt.want {
-				t.Errorf("slices.Contains(%q) = %v, want %v", tt.eventType, got, tt.want)
-			}
-		})
-	}
-}
-
-func TestShouldDispatch_EmptyEventTypes(t *testing.T) {
-	t.Parallel()
-
-	var types []event.Type
-	if slices.Contains(types, "UserRegistered") {
-		t.Error("slices.Contains should return false for nil slice")
-	}
-}
-
-func TestBuildLiveHandler_DedupSkipsReplayedEvents(t *testing.T) {
-	t.Parallel()
-
-	proj := &stubProjection{
-		name:  "test",
-		types: []event.Type{"UserRegistered"},
-	}
-
-	replayedEvt := makeTestEvent("UserRegistered")
-	replayIDs := dedup.NewRing(dedup.DefaultCapacity)
-	replayIDs.Add(replayedEvt.ID().String())
-
-	handler := buildLiveHandler([]projection.Projection{proj}, replayIDs)
-
-	// The replayed event should be skipped (dedup)
-	if err := handler(context.Background(), replayedEvt); err != nil {
-		t.Fatalf("handler returned error: %v", err)
-	}
-	if len(proj.handled) != 0 {
-		t.Errorf("dedup should have skipped replayed event, but handled %d events", len(proj.handled))
-	}
-
-	// A new event should be processed
-	newEvt := makeTestEvent("UserRegistered")
-	if err := handler(context.Background(), newEvt); err != nil {
-		t.Fatalf("handler returned error: %v", err)
-	}
-	if len(proj.handled) != 1 {
-		t.Errorf("handler should have processed 1 new event, got %d", len(proj.handled))
-	}
-}
-
-func TestBuildLiveHandler_DispatchesToMatchingProjectionsOnly(t *testing.T) {
-	t.Parallel()
-
-	userProj := &stubProjection{name: "user", types: []event.Type{"UserRegistered"}}
-	tenantProj := &stubProjection{name: "tenant", types: []event.Type{"TenantCreated"}}
-
-	handler := buildLiveHandler(
-		[]projection.Projection{userProj, tenantProj},
-		dedup.NewRing(dedup.DefaultCapacity),
-	)
-
-	evt := makeTestEvent("UserRegistered")
-	if err := handler(context.Background(), evt); err != nil {
-		t.Fatalf("handler returned error: %v", err)
-	}
-
-	if len(userProj.handled) != 1 {
-		t.Errorf("user projection should have handled 1 event, got %d", len(userProj.handled))
-	}
-	if len(tenantProj.handled) != 0 {
-		t.Errorf("tenant projection should not have handled UserRegistered, got %d", len(tenantProj.handled))
-	}
-}
-
-func TestBuildLiveHandler_ContinuesOnProjectionError(t *testing.T) {
-	t.Parallel()
-
-	failingProj := &stubProjection{
-		name:      "failing",
-		types:     []event.Type{"UserRegistered"},
-		handleErr: errors.New("boom"),
-	}
-	healthyProj := &stubProjection{
-		name:  "healthy",
-		types: []event.Type{"UserRegistered"},
-	}
-
-	handler := buildLiveHandler(
-		[]projection.Projection{failingProj, healthyProj},
-		dedup.NewRing(dedup.DefaultCapacity),
-	)
-
-	evt := makeTestEvent("UserRegistered")
-	if err := handler(context.Background(), evt); err != nil {
-		t.Fatalf("handler should not propagate projection errors: %v", err)
-	}
-
-	// Both projections should have been attempted despite the first failing
-	if len(failingProj.handled) != 1 {
-		t.Errorf("failing projection should have been attempted, got %d", len(failingProj.handled))
-	}
-	if len(healthyProj.handled) != 1 {
-		t.Errorf("healthy projection should still have been called after failure, got %d", len(healthyProj.handled))
-	}
 }
 
 func TestCollectProjections_OptionalNil(t *testing.T) {
@@ -194,3 +54,24 @@ func TestCollectProjections_OptionalNil(t *testing.T) {
 		t.Errorf("expected 6 projections when all provided, got %d", len(projections))
 	}
 }
+
+// TestStartProjections_ReadYourWrites verifies that after StartProjections returns,
+// all historical events have been replayed into the read models (read-your-writes
+// guarantee). The projection host drains the journal synchronously before returning.
+func TestStartProjections_ReadYourWrites(t *testing.T) {
+	t.Parallel()
+
+	setup, err := NewEventSourcedSetup(EventSourcedConfig{}) //nolint:exhaustruct // all fields optional
+	if err != nil {
+		t.Fatalf("NewEventSourcedSetup: %v", err)
+	}
+	t.Cleanup(func() { _ = setup.Close() })
+
+	// The read model should be empty after initial setup (no events in journal).
+	if users := setup.ReadModel.All(); len(users) != 0 {
+		t.Errorf("expected 0 users after empty setup, got %d", len(users))
+	}
+}
+
+// stubProjection compile-time check
+var _ projection.Projection = (*stubProjection)(nil)

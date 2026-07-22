@@ -11,11 +11,10 @@ import (
 
 // TestCheckpointStore_OptInReplay demonstrates the checkpoint-based replay
 // pattern. When a CheckpointStore is provided to EventSourcedConfig,
-// StartProjections resumes from the last checkpoint instead of replaying the
-// full journal on every restart.
+// StartProjections (backed by projectionhost) resumes from each projection's
+// last checkpoint instead of replaying the full journal on every restart.
 //
-// This test verifies the CheckpointStore round-trip that StartProjections
-// relies on internally (see loadReplayEvents in es_projection_setup.go):
+// This test verifies the CheckpointStore round-trip:
 //  1. A fresh store returns a zero checkpoint (full replay).
 //  2. After processing events, the checkpoint is saved.
 //  3. On restart, the stored checkpoint is loaded — replay resumes from there.
@@ -23,10 +22,14 @@ import (
 // In production, use storage.NewSQLCheckpointStore / NewSQLiteCheckpointStore
 // for durable persistence across process restarts. MemoryCheckpointStore is
 // used here for hermetic testing.
+//
+// Note: projectionhost uses per-projection checkpoint keys (the projection's
+// Name()), not a single global key. This test verifies the CheckpointStore
+// contract generically.
 func TestCheckpointStore_OptInReplay(t *testing.T) {
 	t.Parallel()
 
-	const cpName = "usermgmt:start_projections"
+	const cpName = "usermgmt-user-read-model"
 	cpStore := memoryv3.NewMemoryCheckpointStore()
 
 	// First boot: no checkpoint yet → full replay.
@@ -38,7 +41,7 @@ func TestCheckpointStore_OptInReplay(t *testing.T) {
 		t.Fatal("fresh checkpoint store should return zero checkpoint")
 	}
 
-	// Simulate StartProjections processing an event and saving the checkpoint.
+	// Simulate a projection processing an event and saving the checkpoint.
 	evtID := id.NewEventID()
 	if err := cpStore.Save(t.Context(), cpName, event.Checkpoint{
 		EventID:     evtID,
