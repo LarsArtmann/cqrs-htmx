@@ -37,7 +37,7 @@ const assetETag = `adminui-v3.4.0`
 
 // htmxScriptHandler serves the embedded HTMX script (v2.0.10) from the root
 // cqrs-htmx module, so the panel is fully self-contained.
-func htmxScriptHandler() http.Handler  { return cqrshtmx.HTMXScriptHandler() }
+func htmxScriptHandler() http.Handler { return cqrshtmx.HTMXScriptHandler() }
 
 // syncWorkerHandler serves the offline sync SharedWorker from the root module.
 func syncWorkerHandler() http.Handler { return cqrshtmx.SyncWorkerHandler() }
