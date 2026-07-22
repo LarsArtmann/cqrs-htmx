@@ -252,9 +252,19 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			Expect(w.Body.String()).To(ContainSubstring("decode"))
 		})
 
-		It("rejects empty JSON body (nil pointer from zero-value decode)", func() {
+		It("dispatches with nil pointer from empty JSON body", func() {
+			var dispatched bool
+
 			disp := command.NewDispatcher()
-			_ = disp.Register("Echo", noOpCommandHandler)
+			err := command.RegisterTyped(
+				disp, "Echo",
+				func(_ context.Context, cmd *typedEchoCommand) error {
+					dispatched = true
+
+					return nil
+				},
+			)
+			Expect(err).NotTo(HaveOccurred())
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
@@ -271,12 +281,23 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			)
 			handler.ServeHTTP(w, r)
 
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(dispatched).To(BeTrue())
 		})
 
-		It("rejects empty form body (nil pointer from zero-value decode)", func() {
+		It("dispatches with nil pointer from empty form body", func() {
+			var dispatched bool
+
 			disp := command.NewDispatcher()
-			_ = disp.Register("Echo", noOpCommandHandler)
+			err := command.RegisterTyped(
+				disp, "Echo",
+				func(_ context.Context, cmd *typedEchoCommand) error {
+					dispatched = true
+
+					return nil
+				},
+			)
+			Expect(err).NotTo(HaveOccurred())
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
@@ -294,7 +315,8 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			handler.ServeHTTP(w, r)
 
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(dispatched).To(BeTrue())
 		})
 	})
 
@@ -325,11 +347,15 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			Expect(w.Body.String()).To(ContainSubstring("decode"))
 		})
 
-		It("rejects empty JSON body (nil pointer from zero-value decode)", func() {
+		It("dispatches with nil pointer from empty JSON body", func() {
 			disp := query.NewDispatcher()
-			_ = disp.Register("Sum", func(_ context.Context, _ query.Query) (any, error) {
-				return 0, nil
-			})
+			err := query.RegisterTyped(
+				disp, "Sum",
+				func(_ context.Context, q *typedSumQuery) (int, error) {
+					return q.A + q.B, nil
+				},
+			)
+			Expect(err).NotTo(HaveOccurred())
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 			Expect(err).NotTo(HaveOccurred())
@@ -347,7 +373,8 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			)
 			handler.ServeHTTP(w, r)
 
-			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(w.Body.String()).To(ContainSubstring("0"))
 		})
 
 		It("returns 400 when form body has wrong type for int field", func() {
