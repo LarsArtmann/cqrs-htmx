@@ -9,16 +9,16 @@
 
 ## Session Timeline
 
-| Time | Work |
-|------|------|
-| ~09:00 | Reviewed sync-worker.js — found 11 bugs (double-retry race, port leak, null-envelope poison, no eviction, thundering herd, etc.) |
+| Time   | Work                                                                                                                                                                       |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~09:00 | Reviewed sync-worker.js — found 11 bugs (double-retry race, port leak, null-envelope poison, no eviction, thundering herd, etc.)                                           |
 | ~09:12 | Rewrote sync-worker.js to production quality (IDB single source of truth, hello/bye protocol, retry count + TTL eviction, staggered/targeted delivery, in-memory fallback) |
-| ~09:21 | Wrote status report for the hardening session |
-| ~09:23 | User asked "why is this admin-only?" — realized it's an architecture mistake |
-| ~09:23 | Planned extraction, created execution graph |
-| ~09:30 | Executed extraction: root module assets + handlers + tests |
-| ~09:55 | Updated adminui to delegate, regenerated templ, updated docs |
-| ~18:00 | Session resumed for status report |
+| ~09:21 | Wrote status report for the hardening session                                                                                                                              |
+| ~09:23 | User asked "why is this admin-only?" — realized it's an architecture mistake                                                                                               |
+| ~09:23 | Planned extraction, created execution graph                                                                                                                                |
+| ~09:30 | Executed extraction: root module assets + handlers + tests                                                                                                                 |
+| ~09:55 | Updated adminui to delegate, regenerated templ, updated docs                                                                                                               |
+| ~18:00 | Session resumed for status report                                                                                                                                          |
 
 ---
 
@@ -28,35 +28,36 @@
 
 Complete rewrite from 244-line prototype to 320-line production code.
 
-| Bug Fixed | How |
-|---|---|
-| Double-retry race (flush + drainPersisted both fired) | IDB is single source of truth, one unified `flush()` |
-| Port leak (dead ports never removed) | `Map<tabId, port>` + hello/bye protocol + postMessage-failure cleanup |
-| Duplicate port on reconnect | `hello` replaces existing tabId's port |
-| Null-envelope poison commands | Guard on enqueue: reject as `dead` before persisting |
-| No eviction (infinite retry) | `MAX_RETRIES=10` + `RETRY_TTL_MS=24h` → `{type:"dead"}` + delete |
-| Retry count reset on re-enqueue | `store.add` (not `put`) — ConstraintError preserves original |
-| Thundering herd (broadcast to ALL tabs) | Targeted retry: originating tab preferred, round-robin fallback |
-| No stagger on reconnect | 100ms per command, capped 2s |
-| Full table scan for count | `store.count()` instead of `getAll().length` |
-| Concurrent flush double-increment | `flushing` flag + `flushPending` coalescing |
-| No enqueue-while-online retry | `flush()` after persist if `online` is true |
-| In-memory fallback inconsistent | Full `memQueue` Map mirrors IDB API |
-| Silent error swallowing | `console.warn` in all catch blocks |
+| Bug Fixed                                             | How                                                                   |
+| ----------------------------------------------------- | --------------------------------------------------------------------- |
+| Double-retry race (flush + drainPersisted both fired) | IDB is single source of truth, one unified `flush()`                  |
+| Port leak (dead ports never removed)                  | `Map<tabId, port>` + hello/bye protocol + postMessage-failure cleanup |
+| Duplicate port on reconnect                           | `hello` replaces existing tabId's port                                |
+| Null-envelope poison commands                         | Guard on enqueue: reject as `dead` before persisting                  |
+| No eviction (infinite retry)                          | `MAX_RETRIES=10` + `RETRY_TTL_MS=24h` → `{type:"dead"}` + delete      |
+| Retry count reset on re-enqueue                       | `store.add` (not `put`) — ConstraintError preserves original          |
+| Thundering herd (broadcast to ALL tabs)               | Targeted retry: originating tab preferred, round-robin fallback       |
+| No stagger on reconnect                               | 100ms per command, capped 2s                                          |
+| Full table scan for count                             | `store.count()` instead of `getAll().length`                          |
+| Concurrent flush double-increment                     | `flushing` flag + `flushPending` coalescing                           |
+| No enqueue-while-online retry                         | `flush()` after persist if `online` is true                           |
+| In-memory fallback inconsistent                       | Full `memQueue` Map mirrors IDB API                                   |
+| Silent error swallowing                               | `console.warn` in all catch blocks                                    |
 
 ### 2. Root Module Extraction
 
 **New root module files:**
 
-| File | Purpose |
-|---|---|
-| `sync/sync-worker.js` | SharedWorker (copied from hardened version) |
-| `sync/sync-client.js` | Tab-side client (extracted from admin.js lines 63-402) |
-| `sync_embed.go` | `//go:embed` declarations + `syncVersion` const |
-| `sync_serve.go` | `SyncWorkerHandler()`, `SyncClientHandler()`, `SyncWorkerScriptTag()`, `SyncClientScriptTag()`, `SyncVersion()` |
-| `sync_serve_test.go` | 8 tests: serve JS, 304-on-ETag, reject POST, version, script tags |
+| File                  | Purpose                                                                                                         |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `sync/sync-worker.js` | SharedWorker (copied from hardened version)                                                                     |
+| `sync/sync-client.js` | Tab-side client (extracted from admin.js lines 63-402)                                                          |
+| `sync_embed.go`       | `//go:embed` declarations + `syncVersion` const                                                                 |
+| `sync_serve.go`       | `SyncWorkerHandler()`, `SyncClientHandler()`, `SyncWorkerScriptTag()`, `SyncClientScriptTag()`, `SyncVersion()` |
+| `sync_serve_test.go`  | 8 tests: serve JS, 304-on-ETag, reject POST, version, script tags                                               |
 
 **New root module API (follows `HTMXScriptHandler` pattern):**
+
 ```go
 mux.Handle("GET /sync-worker.js", cqrshtmx.SyncWorkerHandler())
 mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
@@ -64,15 +65,15 @@ mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 
 ### 3. adminui Updated to Delegate
 
-| File | Change |
-|---|---|
-| `adminui/assets.go` | Removed `sync-worker.js` from `go:embed`. Added `syncWorkerHandler()` / `syncClientHandler()` delegating to root. Bumped ETag to `adminui-v3.4.0`. |
-| `adminui/handler.go` | Routes `GET /-/sync-worker.js` and `GET /-/sync-client.js` via root handlers |
-| `adminui/assets/admin.js` | Slimmed from ~400 to ~65 lines (CSRF, sidebar, toast, confirm only) |
-| `adminui/assets/sync-worker.js` | **Deleted** (moved to root) |
-| `adminui/layout.templ` | Added conditional `<script src="sync-client.js">` when `SSEURL != ""` |
-| `adminui/layout_templ.go` | Regenerated via `templ generate` |
-| `adminui/coverage_gaps2_test.go` | Added `TestPanel_AssetsServeSyncClient` |
+| File                             | Change                                                                                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `adminui/assets.go`              | Removed `sync-worker.js` from `go:embed`. Added `syncWorkerHandler()` / `syncClientHandler()` delegating to root. Bumped ETag to `adminui-v3.4.0`. |
+| `adminui/handler.go`             | Routes `GET /-/sync-worker.js` and `GET /-/sync-client.js` via root handlers                                                                       |
+| `adminui/assets/admin.js`        | Slimmed from ~400 to ~65 lines (CSRF, sidebar, toast, confirm only)                                                                                |
+| `adminui/assets/sync-worker.js`  | **Deleted** (moved to root)                                                                                                                        |
+| `adminui/layout.templ`           | Added conditional `<script src="sync-client.js">` when `SSEURL != ""`                                                                              |
+| `adminui/layout_templ.go`        | Regenerated via `templ generate`                                                                                                                   |
+| `adminui/coverage_gaps2_test.go` | Added `TestPanel_AssetsServeSyncClient`                                                                                                            |
 
 ### 4. Documentation Updated
 
@@ -94,9 +95,11 @@ mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 ## b) PARTIALLY DONE
 
 ### FEATURES.md
+
 Updated in the hardening phase (retry count, TTL, staggered delivery) but NOT updated for the extraction. The Offline Sync row doesn't mention root module handlers or that any consumer can now use it. It still reads as an adminui-only feature.
 
 ### Recipe doc completeness
+
 Updated Step 3 to show root handler wiring, but the rest of the recipe still has Phase 2a language in places and doesn't fully reflect the "any consumer" architecture.
 
 ---
@@ -116,6 +119,7 @@ Updated Step 3 to show root handler wiring, but the rest of the recipe still has
 ### 1. `SyncWorkerScriptTag()` returns a `<script>` tag for a SharedWorker — THIS IS WRONG
 
 SharedWorkers cannot be loaded via `<script>` tags. They're instantiated programmatically via `new SharedWorker(url)`. The function returns `<script src="/worker.js"></script>` which is useless and misleading. I even added a doc comment saying "Note: the SharedWorker is loaded programmatically... This helper exists for consumers who need to reference the worker URL" — but the function STILL returns a script tag. It should either:
+
 - Not exist at all, OR
 - Return just the URL string (not a script tag)
 

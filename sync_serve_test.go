@@ -142,7 +142,11 @@ func TestSyncClientScriptTag_EdgeCases(t *testing.T) {
 		{"with query params", "/sync-client.js?v=2", `<script src="/sync-client.js?v=2"></script>`},
 		{"with fragment", "/sync-client.js#section", `<script src="/sync-client.js#section"></script>`},
 		{"relative path", "sync-client.js", `<script src="sync-client.js"></script>`},
-		{"full URL", "https://cdn.example.com/sync-client.js", `<script src="https://cdn.example.com/sync-client.js"></script>`},
+		{
+			"full URL",
+			"https://cdn.example.com/sync-client.js",
+			`<script src="https://cdn.example.com/sync-client.js"></script>`,
+		},
 	}
 
 	for _, tt := range tests {

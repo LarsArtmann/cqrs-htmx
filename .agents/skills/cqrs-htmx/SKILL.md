@@ -192,6 +192,61 @@ mux.Handle("POST /items", app.Command("CreateItem",
 
 For HTML rendering: `cqrshtmx.RenderTempl(component)` (templ), `cqrshtmx.RenderTemplResult[T](mapper)` (result -> templ), or `cqrshtmx.RenderHTML("<div>...</div>")` (static HTML).
 
+### Typed endpoints (no mapper, no type assertion)
+
+`CommandTyped[Q]` and `QueryTyped[Q, R]` eliminate the mapper function and manual type assertions. The type `Q` itself implements `command.Command` or `query.Query`, and the decoder populates it directly from the request body:
+
+```go
+// 1. Define a type that implements command.Command directly.
+type greetCmd struct {
+    aggID id.AggregateID
+    cmdID id.CommandID
+    Name  string `json:"name"`
+}
+func (c *greetCmd) Type() command.Type          { return "Greet" }
+func (c *greetCmd) AggregateID() id.AggregateID { return c.aggID }
+func (c *greetCmd) ID() id.CommandID            { return c.cmdID }
+
+// 2. Register with command.RegisterTyped (typed handler, no type assertion).
+_ = command.RegisterTyped(cmdDisp, "Greet",
+    func(_ context.Context, cmd *greetCmd) error {
+        db.add("Hello, " + cmd.Name + "!")
+        return nil
+    })
+
+// 3. Wire the endpoint with CommandTyped + DecodeJSONTyped.
+mux.Handle("POST /api/greet", cqrshtmx.CommandTyped[*greetCmd](
+    app, "Greet",
+    cqrshtmx.DecodeJSONTyped[*greetCmd](),
+    cqrshtmx.WithSuccessStatus(201),
+))
+```
+
+Queries work the same way — the type implements `query.Query` and the handler returns a concrete result type:
+
+```go
+type sumQuery struct {
+    A int `json:"a"`
+    B int `json:"b"`
+}
+func (q *sumQuery) Type() query.Type { return "Sum" }
+
+_ = query.RegisterTyped(qryDisp, "Sum",
+    func(_ context.Context, q *sumQuery) (int, error) {
+        return q.A + q.B, nil
+    })
+
+mux.Handle("POST /api/sum", cqrshtmx.QueryTyped[*sumQuery, int](
+    app, "Sum",
+    cqrshtmx.DecodeJSONQueryTyped[*sumQuery](),
+    cqrshtmx.RenderJSON[int](),
+))
+```
+
+**Available typed decoders:** `DecodeJSONTyped[Q]()` (JSON body), `DecodeFormTyped[Q]()` (form body), `DecodeJSONQueryTyped[Q]()` (JSON query), `DecodeFormQueryTyped[Q]()` (form query).
+
+> **Gotcha:** `CommandTyped`/`QueryTyped` are package-level functions, not methods — Go does not allow generic methods on receiver types.
+
 **Partial-vs-full rendering (HTMX)** — eliminates `if HX-Request { partial } else { full }` boilerplate:
 
 ```go

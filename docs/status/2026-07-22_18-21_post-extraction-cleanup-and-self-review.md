@@ -8,15 +8,15 @@
 
 ## A) FULLY DONE
 
-| # | Task | Files Touched | Verified |
-|---|------|---------------|----------|
-| 1 | **Deleted `SyncWorkerScriptTag()`** from `sync_serve.go` | `sync_serve.go` | Build OK, 0 grep matches, no refs in adminui/examples/docs |
-| 2 | **Fixed all wsl_v5 lint warnings** (9 warnings → 0) + removed `SyncWorkerScriptTag` test | `sync_serve_test.go` (rewritten: 126→133 lines) | 8 tests pass with `-race` |
-| 3 | **Updated FEATURES.md** — added `### Offline Sync` section to Root Module; updated adminui row to "Delegates to root module handlers" | `FEATURES.md` | Both entries verified on disk |
-| 4 | **Wrote ADR-0042** — full ADR for the extraction (context, decision, alternatives, consequences, relationship to ADR-0040) | `docs/adr/0042-offline-sync-extraction-to-root.md` | File exists |
-| 5 | **Backfilled ADR INDEX.md** — added missing entries 0038, 0039, 0040, 0041, 0042 (index was stuck at 0037!) | `docs/adr/INDEX.md` | All 5 entries verified |
-| 6 | **Updated CHANGELOG.md** — file paths in Phase 2b + hardening entries now reference `sync/sync-worker.js` (root module) instead of `adminui/assets/sync-worker.js`; added ADR-0042 reference to extraction entry; updated "confined to admin UI" wording | `CHANGELOG.md` | 3 string replacements verified |
-| 7 | **Full verification** — build, root tests, adminui tests, JS syntax checks, coverage | — | Build OK, tests OK, JS OK, 93.6% coverage |
+| #   | Task                                                                                                                                                                                                                                                     | Files Touched                                      | Verified                                                   |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------- |
+| 1   | **Deleted `SyncWorkerScriptTag()`** from `sync_serve.go`                                                                                                                                                                                                 | `sync_serve.go`                                    | Build OK, 0 grep matches, no refs in adminui/examples/docs |
+| 2   | **Fixed all wsl_v5 lint warnings** (9 warnings → 0) + removed `SyncWorkerScriptTag` test                                                                                                                                                                 | `sync_serve_test.go` (rewritten: 126→133 lines)    | 8 tests pass with `-race`                                  |
+| 3   | **Updated FEATURES.md** — added `### Offline Sync` section to Root Module; updated adminui row to "Delegates to root module handlers"                                                                                                                    | `FEATURES.md`                                      | Both entries verified on disk                              |
+| 4   | **Wrote ADR-0042** — full ADR for the extraction (context, decision, alternatives, consequences, relationship to ADR-0040)                                                                                                                               | `docs/adr/0042-offline-sync-extraction-to-root.md` | File exists                                                |
+| 5   | **Backfilled ADR INDEX.md** — added missing entries 0038, 0039, 0040, 0041, 0042 (index was stuck at 0037!)                                                                                                                                              | `docs/adr/INDEX.md`                                | All 5 entries verified                                     |
+| 6   | **Updated CHANGELOG.md** — file paths in Phase 2b + hardening entries now reference `sync/sync-worker.js` (root module) instead of `adminui/assets/sync-worker.js`; added ADR-0042 reference to extraction entry; updated "confined to admin UI" wording | `CHANGELOG.md`                                     | 3 string replacements verified                             |
+| 7   | **Full verification** — build, root tests, adminui tests, JS syntax checks, coverage                                                                                                                                                                     | —                                                  | Build OK, tests OK, JS OK, 93.6% coverage                  |
 
 ### Verification evidence
 
@@ -42,11 +42,11 @@ Nothing. All planned tasks are fully complete.
 
 ## C) NOT STARTED (from original 3 open questions)
 
-| Question | Decision Made Autonomously | Rationale |
-|----------|---------------------------|-----------|
-| Delete or fix `SyncWorkerScriptTag()`? | **Deleted.** | SharedWorkers load via `new SharedWorker(url)`, not `<script>` tags. The function was misleading. `SyncClientScriptTag()` kept (correct — sync-client.js IS loaded via `<script>`). |
-| Write ADR-0042? | **Written.** | Cross-module-boundary extraction is a significant architectural decision worth recording. |
-| Content-hash sync assets for cache-busting? | **Keep manual version.** | Consistent with `htmxVersion` pattern in `HTMXScriptHandler`. Content-hashing would break the established convention and add complexity. |
+| Question                                    | Decision Made Autonomously | Rationale                                                                                                                                                                           |
+| ------------------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Delete or fix `SyncWorkerScriptTag()`?      | **Deleted.**               | SharedWorkers load via `new SharedWorker(url)`, not `<script>` tags. The function was misleading. `SyncClientScriptTag()` kept (correct — sync-client.js IS loaded via `<script>`). |
+| Write ADR-0042?                             | **Written.**               | Cross-module-boundary extraction is a significant architectural decision worth recording.                                                                                           |
+| Content-hash sync assets for cache-busting? | **Keep manual version.**   | Consistent with `htmxVersion` pattern in `HTMXScriptHandler`. Content-hashing would break the established convention and add complexity.                                            |
 
 ---
 
@@ -55,6 +55,7 @@ Nothing. All planned tasks are fully complete.
 ### D1. Edit tool silently failed to persist — 4 times
 
 The `edit`, `write`, and even `bash` heredoc tools **silently failed to persist changes** to `sync_serve.go` and `sync_serve_test.go` multiple times. The tools reported "success" but the file content on disk didn't change. I only caught this when:
+
 - `go vet` failed with "undefined: cqrshtmx.SyncWorkerScriptTag" (test still referencing deleted function)
 - `grep` found the function still present after I "deleted" it
 

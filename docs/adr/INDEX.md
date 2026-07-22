@@ -41,8 +41,8 @@
 | [0035](0035-auth-strategy-extraction.md)          | Auth Strategy Extraction — TOTP, WebAuthn, OAuth2 as Independent Modules        | Accepted                                                             |
 | [0036](0036-encoding-json-v2.md)                  | encoding/json/v2 via GOEXPERIMENT=jsonv2                                        | Accepted                                                             |
 | [0037](0037-partial-rendering-helpers.md)         | Partial Rendering Helpers — Eliminating HTMX Boilerplate                        | Accepted                                                             |
-| [0038](0038-service-decomposition-proposed.md)       | Decompose usermgmt.Service (Proposed)                                           | Proposed (deferred to v5 major bump)                                 |
-| [0039](0039-actor-id-unification-proposed.md)      | Unify ActorID Shape (Proposed)                                                  | Proposed (deferred to v5 major bump)                                 |
-| [0040](0040-phase2b-indexeddb-persistence.md)      | Phase 2b — IndexedDB Persistence for the Offline Command Queue                  | Accepted (supersedes ADR 0030)                                       |
-| [0041](0041-snapshot-integration.md)               | Aggregate Snapshot Integration                                                  | Accepted                                                             |
-| [0042](0042-offline-sync-extraction-to-root.md)    | Extract Offline Sync from adminui to Root Module                                | Accepted                                                             |
+| [0038](0038-service-decomposition-proposed.md)    | Decompose usermgmt.Service (Proposed)                                           | Proposed (deferred to v5 major bump)                                 |
+| [0039](0039-actor-id-unification-proposed.md)     | Unify ActorID Shape (Proposed)                                                  | Proposed (deferred to v5 major bump)                                 |
+| [0040](0040-phase2b-indexeddb-persistence.md)     | Phase 2b — IndexedDB Persistence for the Offline Command Queue                  | Accepted (supersedes ADR 0030)                                       |
+| [0041](0041-snapshot-integration.md)              | Aggregate Snapshot Integration                                                  | Accepted                                                             |
+| [0042](0042-offline-sync-extraction-to-root.md)   | Extract Offline Sync from adminui to Root Module                                | Accepted                                                             |
