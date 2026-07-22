@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	stackpostgres "github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	sqlopt "github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -25,14 +26,14 @@ type PostgresSetupConfig struct {
 }
 
 func NewPostgresEventSourcedSetup(cfg PostgresSetupConfig) (*PostgresEventSourcedSetup, error) {
-	opts := []stackpostgres.Option{}
+	dsnOpts := []sqlopt.DSNOption{}
 	if cfg.EventDSN != "" {
-		opts = append(opts, stackpostgres.WithEventDB(cfg.EventDSN))
+		dsnOpts = append(dsnOpts, sqlopt.WithEventDB(cfg.EventDSN))
 	}
 	if cfg.QueryDSN != "" {
-		opts = append(opts, stackpostgres.WithQueryDB(cfg.QueryDSN))
+		dsnOpts = append(dsnOpts, sqlopt.WithQueryDB(cfg.QueryDSN))
 	}
-	bundle, err := stackpostgres.New(cfg.DSN, opts...)
+	bundle, err := stackpostgres.New(cfg.DSN, stackpostgres.WithDSN(dsnOpts...))
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "usermgmt.postgres_setup.create", "create postgres stack bundle")
 	}

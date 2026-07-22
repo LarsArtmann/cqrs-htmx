@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	stacksqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	sqlopt "github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -33,8 +34,7 @@ type SQLiteSetupConfig struct {
 func NewSQLiteEventSourcedSetup(cfg SQLiteSetupConfig) (*SQLiteEventSourcedSetup, error) {
 	bundle, err := stacksqlite.New(
 		cfg.DSN,
-		stacksqlite.WithOptimizations(),
-		stacksqlite.WithForeignKeys(),
+		stacksqlite.WithPragmas(sqlopt.WithOptimizations(), sqlopt.WithForeignKeys()),
 	)
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.create", "create sqlite stack bundle")
