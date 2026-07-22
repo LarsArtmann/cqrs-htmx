@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-20 | **Version:** v4.3.0+unreleased (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.8% root, 80.2% usermgmt (recompute via `nix run .#coverage-gate`)
+**Updated:** 2026-07-22 | **Version:** v4.3.0+unreleased (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.8% root, 80.2% usermgmt (recompute via `nix run .#coverage-gate`)
 
 ## Status legend
 
@@ -38,6 +38,7 @@
 | Feature                | Status                | Notes                                                                                                                                                                                                      |
 | ---------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | JSON Decoding          | 🟢 `FULLY_FUNCTIONAL` | `DecodeJSON[T]` / `DecodeJSONQuery[T]` with mapper. Invalid JSON → 400. Empty body on GET → zero-value T (not error).                                                                                      |
+| Typed Decoding         | 🟢 `FULLY_FUNCTIONAL` | `DecodeJSONTyped[Q]` / `DecodeJSONQueryTyped[Q]` / `DecodeFormTyped[Q]` / `DecodeFormQueryTyped[Q]` — decode directly into a typed command/query. `DecodeAndValidateJSON[T]` / `DecodeAndValidateJSONQuery[T]` / `DecodeAndValidateForm[T]` / `DecodeAndValidateFormQuery[T]` — decode + call `T.Validate()` in one step. v4.3.0+. |
 | Form Decoding          | 🟢 `FULLY_FUNCTIONAL` | `DecodeForm[T]` / `DecodeFormQuery[T]` via `go-playground/form/v4` (zero transitive deps). Parse errors → 400.                                                                                             |
 | Request-Aware Decoding | 🟢 `FULLY_FUNCTIONAL` | `DecodeJSONWithRequest[T]`, `DecodeFormWithRequest[T]`, `DecodeJSONQueryWithRequest[T]`, `DecodeFormQueryWithRequest[T]` — mapper receives `*http.Request` for context-aware command construction. v4.2.0. |
 | Pagination             | 🟢 `FULLY_FUNCTIONAL` | `DecodePagination(r)` extracts page/page_size, delegates to `query.NewPagination`.                                                                                                                         |
