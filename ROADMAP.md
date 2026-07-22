@@ -23,12 +23,12 @@
 
 _Focus: Adopting go-cqrs-lite capabilities to reduce hand-rolled code._
 
-| Area | Item                                                               | Priority | Status                                                          |
-| ---- | ------------------------------------------------------------------ | -------- | --------------------------------------------------------------- |
-| ES   | Adopt `projectionhost/v3` — replace hand-rolled `StartProjections` | High     | Planned (checkpoint replay shipped in v3.3.0 as interim fix)    |
-| ES   | Adopt `CatchUpSubscriber` — ordered durable projections            | Medium   | Planned (ADR-0031 Accepted; deferred — needs sync-wait wrapper) |
-| Perf | Profile and optimize hot paths (dispatch, decode)                  | Low      | Planned                                                         |
-| Perf | Benchmark projection replay with large stores (10K+ events)        | Low      | Planned                                                         |
+| Area | Item                                                               | Priority | Status                                                                          |
+| ---- | ------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------- |
+| ES   | Adopt `projectionhost/v4` — replace hand-rolled `StartProjections` | High     | **Done** (projectionhost adopted; DLQ + per-projection checkpoints + crash-restart) |
+| ES   | Adopt `CatchUpSubscriber` — ordered durable projections            | Medium   | **Not Needed** (projectionhost `WithSubscriber` provides same replay→live handoff; CatchUpSubscriber would add message-model adapter overhead — see ADR-0031 Superseded) |
+| Perf | Profile and optimize hot paths (dispatch, decode)                  | Low      | **Done** (benchmarks: dispatch ~1µs, decode ~1-2µs, error mapping ~1-5µs — within bounds) |
+| Perf | Benchmark projection replay with large stores (10K+ events)        | Low      | **Done** (benchmark: 10K events = 30ms, ~3µs/event, linear scaling — see `es_projection_replay_bench_test.go`) |
 
 ---
 
