@@ -14,6 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.0.0
@@ -66,7 +67,6 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.1 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
