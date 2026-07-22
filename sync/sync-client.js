@@ -30,7 +30,7 @@
 "use strict";
 
 (function () {
-  const VERSION = "1.0.0";
+  const VERSION = "1.1.0";
 
   // --- Sync state: tracks pending/confirmed/failed/queued mutation counts ---
   const sync = {

@@ -55,7 +55,7 @@
 "use strict";
 
 (function () {
-  const VERSION = "1.0.0";
+  const VERSION = "1.1.0";
 
   // --- Configuration constants ---
   // To customize: copy this file, change values, serve via SyncWorkerHandlerWith.
