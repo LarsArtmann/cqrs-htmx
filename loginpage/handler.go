@@ -127,7 +127,7 @@ func NewPageData(cfg Config, r *http.Request) (PageData, error) {
 
 // renderPage writes the login page HTML.
 func renderPage(w http.ResponseWriter, r *http.Request, data PageData) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Type", cqrshtmx.ContentTypeHTML)
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	if err := Page(data).Render(r.Context(), w); err != nil {

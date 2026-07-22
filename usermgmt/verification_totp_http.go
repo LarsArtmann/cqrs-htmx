@@ -228,52 +228,61 @@ func (h *AuthHandler) authContext(
 }
 
 func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel, ok := h.importExportContext(w, r, h.importLimiter, "too many export requests")
-	if !ok {
-		return
-	}
-	defer cancel()
-
-	format := parseUserDataFormat(r)
-	switch format {
-	case UserDataFormatCSV:
-		w.Header().Set("Content-Type", "text/csv; charset=utf-8")
-		w.Header().Set("Content-Disposition", "attachment; filename=users.csv")
-		if err := h.service.ExportUsersToCSV(ctx, w); err != nil {
-			writeError(w, http.StatusInternalServerError, err.Error())
-			return
+	h.withImportExportContext(w, r, "too many export requests", func(ctx context.Context) {
+		format := parseUserDataFormat(r)
+		switch format {
+		case UserDataFormatCSV:
+			w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+			w.Header().Set("Content-Disposition", "attachment; filename=users.csv")
+			if err := h.service.ExportUsersToCSV(ctx, w); err != nil {
+				writeError(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+		case UserDataFormatJSON:
+			w.Header().Set("Content-Type", contentTypeJSON)
+			w.Header().Set("Content-Disposition", "attachment; filename=users.json")
+			if err := h.service.ExportUsersToJSON(ctx, w); err != nil {
+				writeError(w, http.StatusInternalServerError, err.Error())
+				return
+			}
 		}
-	case UserDataFormatJSON:
-		w.Header().Set("Content-Type", contentTypeJSON)
-		w.Header().Set("Content-Disposition", "attachment; filename=users.json")
-		if err := h.service.ExportUsersToJSON(ctx, w); err != nil {
-			writeError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-	}
+	})
 }
 
 func (h *AuthHandler) handleImportUsers(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel, ok := h.importExportContext(w, r, h.importLimiter, "too many import requests")
+	h.withImportExportContext(w, r, "too many import requests", func(ctx context.Context) {
+		format := parseImportFormat(r)
+		var result *ImportResult
+		var err error
+		switch format {
+		case UserDataFormatCSV:
+			result, err = h.service.ImportUsersFromCSV(ctx, io.LimitReader(r.Body, maxAuthBodySize))
+		case UserDataFormatJSON:
+			result, err = h.service.ImportUsersFromJSON(ctx, io.LimitReader(r.Body, maxAuthBodySize))
+		}
+		if err != nil {
+			writeDispatchError(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, result)
+	})
+}
+
+// withImportExportContext runs the import/export preflight and calls fn with
+// the resulting context. If the preflight fails the HTTP response is already
+// written and fn is not called.
+func (h *AuthHandler) withImportExportContext(
+	w http.ResponseWriter,
+	r *http.Request,
+	limitMsg string,
+	fn func(ctx context.Context),
+) {
+	ctx, cancel, ok := h.importExportContext(w, r, h.importLimiter, limitMsg)
 	if !ok {
 		return
 	}
 	defer cancel()
-
-	format := parseImportFormat(r)
-	var result *ImportResult
-	var err error
-	switch format {
-	case UserDataFormatCSV:
-		result, err = h.service.ImportUsersFromCSV(ctx, io.LimitReader(r.Body, maxAuthBodySize))
-	case UserDataFormatJSON:
-		result, err = h.service.ImportUsersFromJSON(ctx, io.LimitReader(r.Body, maxAuthBodySize))
-	}
-	if err != nil {
-		writeDispatchError(w, r, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, result)
+	fn(ctx)
 }
 
 func parseUserDataFormat(r *http.Request) UserDataFormat {

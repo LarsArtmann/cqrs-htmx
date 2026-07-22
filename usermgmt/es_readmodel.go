@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -15,11 +14,10 @@ import (
 
 // UserReadModel is the projection-side store for users.
 type UserReadModel struct {
-	mu               sync.RWMutex
+	readModelCore[*UserReadModel]
 	users            map[id.AggregateID]*User
 	emails           map[string]id.AggregateID
 	externalAccounts map[externalAccountKey]id.AggregateID
-	handlers         map[event.Type]userEventHandler
 }
 
 // externalAccountKey is the composite key for the global provider+subject → user index.
@@ -31,23 +29,25 @@ type externalAccountKey struct {
 
 func NewUserReadModel() *UserReadModel {
 	return &UserReadModel{
+		readModelCore: readModelCore[*UserReadModel]{
+			handlers: map[event.Type]eventHandler[*UserReadModel]{
+				eventUserRegistered:          (*UserReadModel).handleUserRegistered,
+				eventRolesUpdated:            (*UserReadModel).handleRolesUpdated,
+				eventEmailChanged:            (*UserReadModel).handleEmailChanged,
+				eventDisplayNameChanged:      (*UserReadModel).handleDisplayNameChanged,
+				eventCredentialAdded:         (*UserReadModel).handleCredentialAdded,
+				eventCredentialRemoved:       (*UserReadModel).handleCredentialRemoved,
+				eventUserDeleted:             (*UserReadModel).handleUserDeleted,
+				eventEmailVerified:           (*UserReadModel).handleEmailVerified,
+				eventTOTPEnabled:             (*UserReadModel).handleTOTPEnabled,
+				eventTOTPDisabled:            (*UserReadModel).handleTOTPDisabled,
+				eventExternalAccountLinked:   (*UserReadModel).handleExternalAccountLinked,
+				eventExternalAccountUnlinked: (*UserReadModel).handleExternalAccountUnlinked,
+			},
+		},
 		users:            make(map[id.AggregateID]*User),
 		emails:           make(map[string]id.AggregateID),
 		externalAccounts: make(map[externalAccountKey]id.AggregateID),
-		handlers: map[event.Type]userEventHandler{
-			eventUserRegistered:          (*UserReadModel).handleUserRegistered,
-			eventRolesUpdated:            (*UserReadModel).handleRolesUpdated,
-			eventEmailChanged:            (*UserReadModel).handleEmailChanged,
-			eventDisplayNameChanged:      (*UserReadModel).handleDisplayNameChanged,
-			eventCredentialAdded:         (*UserReadModel).handleCredentialAdded,
-			eventCredentialRemoved:       (*UserReadModel).handleCredentialRemoved,
-			eventUserDeleted:             (*UserReadModel).handleUserDeleted,
-			eventEmailVerified:           (*UserReadModel).handleEmailVerified,
-			eventTOTPEnabled:             (*UserReadModel).handleTOTPEnabled,
-			eventTOTPDisabled:            (*UserReadModel).handleTOTPDisabled,
-			eventExternalAccountLinked:   (*UserReadModel).handleExternalAccountLinked,
-			eventExternalAccountUnlinked: (*UserReadModel).handleExternalAccountUnlinked,
-		},
 	}
 }
 
@@ -55,18 +55,8 @@ func (m *UserReadModel) Name() string { return "user-read-model" }
 
 func (m *UserReadModel) EventTypes() []event.Type { return allUserEventTypes }
 
-// userEventHandler handles a single event type in the UserReadModel.
-type userEventHandler func(m *UserReadModel, aggID id.AggregateID, evt event.Event) error
-
 func (m *UserReadModel) Handle(_ context.Context, evt event.Event) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	handler, ok := m.handlers[evt.Type()]
-	if !ok {
-		return nil
-	}
-	return handler(m, evt.AggregateID(), evt)
+	return m.handleEvent(m, evt)
 }
 
 // decodePayload unmarshals an event payload of type T, wrapping decode failures

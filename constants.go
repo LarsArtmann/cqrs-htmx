@@ -11,6 +11,7 @@ const (
 	ContentTypeHTML    = "text/html; charset=utf-8"
 	ContentTypeJSON    = "application/json; charset=utf-8"
 	ContentTypeProblem = "application/problem+json; charset=utf-8"
+	ContentTypeSSE     = "text/event-stream"
 )
 
 // JSON map key constants for consistent error/status response shapes.

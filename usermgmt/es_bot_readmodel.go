@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -24,14 +23,20 @@ type Bot struct {
 // It indexes bots by aggregate ID for lookup by BotID, and provides
 // FindByTokenHash for API token authentication middleware.
 type BotReadModel struct {
-	mu          sync.RWMutex
+	readModelCore[*BotReadModel]
 	bots        map[id.AggregateID]*Bot
 	byTokenHash map[string]*Bot
 }
 
 // NewBotReadModel creates an empty BotReadModel.
 func NewBotReadModel() *BotReadModel {
-	return &BotReadModel{ //nolint:exhaustruct // mu starts zero-valued
+	return &BotReadModel{
+		readModelCore: readModelCore[*BotReadModel]{
+			handlers: map[event.Type]eventHandler[*BotReadModel]{
+				eventBotRegistered: (*BotReadModel).handleBotRegistered,
+				eventBotDeleted:    (*BotReadModel).handleBotDeleted,
+			},
+		},
 		bots:        make(map[id.AggregateID]*Bot),
 		byTokenHash: make(map[string]*Bot),
 	}
@@ -42,46 +47,37 @@ func (m *BotReadModel) Name() string { return "bot-read-model" }
 func (m *BotReadModel) EventTypes() []event.Type { return allBotEventTypes }
 
 func (m *BotReadModel) Handle(_ context.Context, evt event.Event) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	return m.handleEvent(m, evt)
+}
 
-	aggID := evt.AggregateID()
-
-	switch evt.Type() {
-	case eventBotRegistered:
-		p, err := unmarshalPayload[BotRegisteredPayload](evt)
-		if err != nil {
-			return errorfamily.WrapCorruption(
-				err, "usermgmt.bot_readmodel.decode_failed",
-				"decode BotRegistered in read model",
-			)
-		}
-		scopes := make([]string, len(p.Scopes))
-		copy(scopes, p.Scopes)
-		tokenHashStr := string(p.TokenHash)
-		bot := &Bot{
-			ID:        NewBotID(aggID.String()),
-			Name:      p.Name,
-			OwnerID:   p.OwnerID,
-			TokenHash: p.TokenHash,
-			Scopes:    scopes,
-			Deleted:   false,
-		}
-		m.bots[aggID] = bot
-		m.byTokenHash[tokenHashStr] = bot
-
-	case eventBotDeleted:
-		if bot, ok := m.botsDelete(aggID); ok {
-			delete(m.byTokenHash, string(bot.TokenHash))
-		}
-
-	default:
-		return errorfamily.NewRejection(
-			"usermgmt.bot_readmodel.unknown_event",
-			"bot read model received unknown event type: "+string(evt.Type()),
+func (m *BotReadModel) handleBotRegistered(aggID id.AggregateID, evt event.Event) error {
+	p, err := unmarshalPayload[BotRegisteredPayload](evt)
+	if err != nil {
+		return errorfamily.WrapCorruption(
+			err, "usermgmt.bot_readmodel.decode_failed",
+			"decode BotRegistered in read model",
 		)
 	}
+	scopes := make([]string, len(p.Scopes))
+	copy(scopes, p.Scopes)
+	tokenHashStr := string(p.TokenHash)
+	bot := &Bot{
+		ID:        NewBotID(aggID.String()),
+		Name:      p.Name,
+		OwnerID:   p.OwnerID,
+		TokenHash: p.TokenHash,
+		Scopes:    scopes,
+		Deleted:   false,
+	}
+	m.bots[aggID] = bot
+	m.byTokenHash[tokenHashStr] = bot
+	return nil
+}
 
+func (m *BotReadModel) handleBotDeleted(aggID id.AggregateID, _ event.Event) error {
+	if bot, ok := m.botsDelete(aggID); ok {
+		delete(m.byTokenHash, string(bot.TokenHash))
+	}
 	return nil
 }
 
