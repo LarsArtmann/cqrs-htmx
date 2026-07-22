@@ -49,6 +49,39 @@ func DecodeFormQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
 	return decodeAndSet(decodeFormBody[T], mapper, setQueryDecoder)
 }
 
+// DecodeJSONTyped decodes a JSON request body directly into a typed command
+// value of type Q. The body shape must unmarshal into Q, which must satisfy
+// command.Command. Use with App.CommandTyped[Q].
+func DecodeJSONTyped[Q command.Command]() HandlerOption {
+	return DecodeJSON(func(q Q) (command.Command, error) {
+		return q, nil
+	})
+}
+
+// DecodeFormTyped decodes form data directly into a typed command value of type
+// Q. Use with App.CommandTyped[Q].
+func DecodeFormTyped[Q command.Command]() HandlerOption {
+	return DecodeForm(func(q Q) (command.Command, error) {
+		return q, nil
+	})
+}
+
+// DecodeJSONQueryTyped decodes a JSON request body directly into a typed query
+// value of type Q, which must satisfy query.Query. Use with App.QueryTyped[Q, R].
+func DecodeJSONQueryTyped[Q query.Query]() HandlerOption {
+	return DecodeJSONQuery(func(q Q) (query.Query, error) {
+		return q, nil
+	})
+}
+
+// DecodeFormQueryTyped decodes form data directly into a typed query value of
+// type Q. Use with App.QueryTyped[Q, R].
+func DecodeFormQueryTyped[Q query.Query]() HandlerOption {
+	return DecodeFormQuery(func(q Q) (query.Query, error) {
+		return q, nil
+	})
+}
+
 // DecodeAndValidateJSON decodes a JSON request body into T, calls T.Validate(),
 // then maps the validated body to a command. A validation failure returns the
 // error from Validate(), which is surfaced as a 400 Bad Request by the default
