@@ -91,6 +91,8 @@ github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.1 h1:AXcbQtwzMjCuuOBzFzTRhmT5km
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.1/go.mod h1:RIY1xsk3KRPaHVy/rTnZr5Carup2FAiMjHwBpbzrMZc=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0 h1:iJQguwy+uyrfZVGDBTbL7oeIlE3RYv6//cKjaxf2oTo=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0/go.mod h1:NKxQSvZ5bsoTlWlq5R7cM6Yr1AYDKdiWJpxGkDK/4Q4=
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.1 h1:ujmR6n3htaSw2msV6abQijaBtXb69dCwwtZ5Cm1Tl/g=
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.1/go.mod h1:ZgVGmnJpu5KAklUKJpWPCn4Xzo6p9OZzEfW7GVk7RcI=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0 h1:EI1EngpkjTnc6rO7o9aAOd7kgT4aNvuj7LhwtUN2l9I=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0/go.mod h1:hIVOj7B1YkbOmPrgB2KH+JLlXo1ZHsK3G7pmSiMEnLQ=
 github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.0.1 h1:6HF2lyvw+qDdiR66uhKZQ+JTvPs10AlDfFqTuyocnI4=

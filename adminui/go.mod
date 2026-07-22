@@ -44,6 +44,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.1 // indirect
