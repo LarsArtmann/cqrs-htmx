@@ -139,7 +139,7 @@ func (a *App) handleCommandDispatch(
 	cmdType command.Type,
 	cfg *handlerConfig,
 ) {
-	a.dispatchRequest[any, any](a, w, r, cfg, string(cmdType), "command",
+	dispatchRequest[any, any](a, w, r, cfg, string(cmdType), "command",
 		func() bool { return cfg.commandDecoder == nil },
 		func(r *http.Request) (any, error) { return cfg.commandDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
@@ -228,7 +228,7 @@ func (a *App) handleQueryDispatch(
 	qryType query.Type,
 	cfg *handlerConfig,
 ) {
-	a.dispatchRequest[any, any](a, w, r, cfg, string(qryType), "query",
+	dispatchRequest[any, any](a, w, r, cfg, string(qryType), "query",
 		func() bool { return cfg.queryDecoder == nil },
 		func(r *http.Request) (any, error) { return cfg.queryDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
