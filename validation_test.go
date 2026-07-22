@@ -174,5 +174,88 @@ var _ = Describe("Validation HandlerOption", func() {
 			Expect(w.code()).To(Equal(http.StatusBadRequest))
 			Expect(w.Body.String()).To(ContainSubstring("page must be positive"))
 		})
+
+		It("rejects malformed JSON body", func() {
+			app := newQueryAppWithResult(testResultQueryHandler())
+
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{not json`))
+			w := serve(app.Query(
+				"GetUser",
+				cqrshmx.DecodeAndValidateJSONQuery(func(_ testPagedQueryRequest) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("decode"))
+		})
+	})
+
+	Describe("DecodeAndValidateForm", func() {
+		It("dispatches when form body passes Validate", func() {
+			var dispatched bool
+
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
+			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			serve(app.Command(
+				"CreateUser",
+				cqrshmx.DecodeAndValidateForm(func(_ testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+				}),
+			), newPostRequest("/users", "email=test%40example.com",
+				withHeader("Content-Type", "application/x-www-form-urlencoded"),
+			))
+			Expect(dispatched).To(BeTrue())
+		})
+
+		It("rejects form bodies that fail Validate", func() {
+			app := newCommandApp()
+			w := serve(app.Command(
+				"CreateUser",
+				cqrshmx.DecodeAndValidateForm(func(_ testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+				}),
+			), newPostRequest("/users", "email=",
+				withHeader("Content-Type", "application/x-www-form-urlencoded"),
+			))
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("email is required"))
+		})
+	})
+
+	Describe("DecodeAndValidateFormQuery", func() {
+		It("returns OK when form query body passes Validate", func() {
+			app := newQueryAppWithResult(testResultQueryHandler())
+
+			r := newPostRequest("/users", "page=1",
+				withHeader("Content-Type", "application/x-www-form-urlencoded"),
+			)
+			w := serve(app.Query(
+				"GetUser",
+				cqrshmx.DecodeAndValidateFormQuery(func(_ testPagedQueryRequest) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+				cqrshmx.Render(encodeJSONResult),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusOK))
+		})
+
+		It("rejects form query bodies that fail Validate", func() {
+			app := newQueryAppWithResult(testResultQueryHandler())
+
+			r := newPostRequest("/users", "page=0",
+				withHeader("Content-Type", "application/x-www-form-urlencoded"),
+			)
+			w := serve(app.Query(
+				"GetUser",
+				cqrshmx.DecodeAndValidateFormQuery(func(_ testPagedQueryRequest) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("page must be positive"))
+		})
 	})
 })

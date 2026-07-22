@@ -139,9 +139,7 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 
 			handler := cqrshtmx.QueryTyped[*typedSumQuery, int](
 				app, "Sum",
-				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
-					return &testGetUserQuery{}, nil
-				}),
+				cqrshtmx.DecodeJSONQueryTyped[*typedSumQuery](),
 				cqrshtmx.RenderJSON[int](),
 			)
 
@@ -153,6 +151,76 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			handler.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusBadRequest))
+		})
+	})
+
+	Describe("CommandTyped with form decoder", func() {
+		It("dispatches a typed command from form data", func() {
+			var received string
+
+			disp := command.NewDispatcher()
+			err := command.RegisterTyped(
+				disp, "Echo",
+				func(_ context.Context, cmd *typedEchoCommand) error {
+					received = cmd.Message
+
+					return nil
+				},
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := cqrshtmx.CommandTyped[*typedEchoCommand](
+				app, "Echo",
+				cqrshtmx.DecodeFormTyped[*typedEchoCommand](),
+				cqrshtmx.WithSuccessStatus(http.StatusAccepted),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(
+				http.MethodPost, "/echo",
+				strings.NewReader("message=hello"),
+			)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusAccepted))
+			Expect(received).To(Equal("hello"))
+		})
+	})
+
+	Describe("QueryTyped with form decoder", func() {
+		It("dispatches a typed query from form data and renders a typed result", func() {
+			disp := query.NewDispatcher()
+			err := query.RegisterTyped(
+				disp, "Sum",
+				func(_ context.Context, q *typedSumQuery) (int, error) {
+					return q.A + q.B, nil
+				},
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := cqrshtmx.QueryTyped[*typedSumQuery, int](
+				app, "Sum",
+				cqrshtmx.DecodeFormQueryTyped[*typedSumQuery](),
+				cqrshtmx.RenderJSON[int](),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(
+				http.MethodPost, "/sum",
+				strings.NewReader("a=3&b=4"),
+			)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(w.Body.String()).To(ContainSubstring("7"))
 		})
 	})
 })
