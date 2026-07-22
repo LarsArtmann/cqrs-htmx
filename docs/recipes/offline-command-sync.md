@@ -8,7 +8,7 @@ idempotency, and the offline SharedWorker command queue.
 
 - A cqrs-htmx `App` with commands registered
 - An SSE endpoint (Broadcaster + SSEStream)
-- The adminui panel (or your own HTMX frontend with `admin.js`)
+- HTMX loaded on the page (via `HTMXScriptHandler()` or CDN)
 
 ## Architecture
 
@@ -111,14 +111,44 @@ mux.Handle("GET /sync-worker.js", cqrshtmx.SyncWorkerHandler())
 mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 ```
 
-Include the client script in your HTML after the HTMX script tag:
+Include the client script in your HTML after the HTMX script tag. Use the
+`SyncClientScriptTag` helper or write the tag directly:
+
+```go
+// In a Go template/templ handler:
+fmt.Fprint(w, cqrshtmx.SyncClientScriptTag("/sync-client.js"))
+// => <script src="/sync-client.js"></script>
+```
 
 ```html
+<!-- Or write it directly: -->
 <script src="/sync-client.js"></script>
 ```
 
 The client auto-initializes on DOMContentLoaded if `<body data-sse-url>` is
 present. No data-sse-url = no sync (graceful no-op).
+
+### Serving custom sync assets
+
+To serve a modified sync-worker.js or sync-client.js (e.g. with different
+retry configuration), use the `With` variants:
+
+```go
+customWorker := []byte(/* your modified sync-worker.js */)
+mux.Handle("GET /sync-worker.js",
+    cqrshtmx.SyncWorkerHandlerWith(customWorker, "2.0.0"))
+```
+
+### How the worker URL is derived
+
+The sync client automatically derives the SharedWorker URL by replacing
+`sync-client.js` with `sync-worker.js` in its own `<script src>` path. If you
+mount them at different paths, add a `data-sync-worker-url` attribute to the
+`<script>` tag:
+
+```html
+<script src="/assets/client.js" data-sync-worker-url="/workers/sync.js"></script>
+```
 
 ## Step 3a: Wire the admin panel (if using adminui)
 
@@ -136,17 +166,27 @@ Setting `SSEURL` activates:
 - `<script src="sync-client.js">` included conditionally (adminui delegates to root handlers)
 - SharedWorker registration (offline command queue)
 
-## Step 4: CSP (if using SecurityHeadersMiddleware)
+## Step 4: Content Security Policy
 
-SharedWorker scripts from the same origin are covered by `default-src 'self'`
-or `worker-src 'self'`. No additional CSP directives needed.
+The sync system requires three CSP directives when using a restrictive CSP.
+`RecommendedCSP` already covers all three via `default-src 'self'`:
+
+| Directive | Why |
+|-----------|-----|
+| `worker-src 'self'` | SharedWorker loaded from same origin |
+| `script-src 'self'` | sync-client.js loaded via `<script>` tag |
+| `connect-src 'self'` | SSE EventSource connects to same origin |
 
 ```go
 cqrshtmx.SecurityHeadersConfig{
     ContentSecurityPolicy: cqrshtmx.RecommendedCSP,
-    // default-src 'self' covers worker-src
+    // default-src 'self' covers worker-src, script-src, connect-src
 }
 ```
+
+If you use a stricter CSP with explicit per-directive sources, ensure all
+three directives include `'self'` (or the specific origin you serve the sync
+assets from).
 
 ## How Offline Detection Works
 

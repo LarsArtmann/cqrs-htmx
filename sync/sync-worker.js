@@ -48,63 +48,71 @@
 // the entry is removed. Dead tabs (crash without bye) leave a stale entry
 // whose postMessage is silently dropped — bounded by crash count, cleaned up
 // when the worker is killed (all tabs closed).
+//
+// CONFIGURATION: The retry limits and stagger delays below are compile-time
+// constants. To customize them, copy this file, modify the values, and serve
+// the result via cqrshtmx.SyncWorkerHandlerWith(customJS, "1.0.0-custom").
 "use strict";
 
 (function () {
-  var DB_NAME = "cqrshtmx-sync";
-  var STORE = "commands";
-  var DB_VERSION = 1;
-  var MAX_RETRIES = 10;
-  var RETRY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-  var STAGGER_MS = 100; // delay between successive retry messages
-  var STAGGER_CAP_MS = 2000; // max stagger delay
+  const VERSION = "1.0.0";
 
-  var db = null; // IDBDatabase once opened; null while opening or unavailable
+  // --- Configuration constants ---
+  // To customize: copy this file, change values, serve via SyncWorkerHandlerWith.
+  const DB_NAME = "cqrshtmx-sync";
+  const STORE = "commands";
+  const DB_VERSION = 1;
+  const MAX_RETRIES = 10;
+  const RETRY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+  const STAGGER_MS = 100; // delay between successive retry messages
+  const STAGGER_CAP_MS = 2000; // max stagger delay
+
+  let db = null; // IDBDatabase once opened; null while opening or unavailable
 
   // tabId -> MessagePort. Tracks connected tabs for targeted retry and
   // broadcast. Dead tabs (crash without bye) leave a stale entry whose
   // postMessage is silently dropped — bounded by crash count, cleaned up
   // when the worker is killed (all tabs closed).
-  var ports = new Map();
+  const ports = new Map();
 
   // port -> tabId (WeakMap: entry is GC'd when the port is collected).
-  var portTabId = new WeakMap();
+  const portTabId = new WeakMap();
 
   // commandId -> tabId. Tracks which tab enqueued each command so retry
   // messages go to the originating tab (avoids thundering herd: one tab
   // retries instead of every tab).
-  var originatingTab = new Map();
+  const originatingTab = new Map();
 
   // In-memory fallback when IndexedDB is unavailable (private browsing,
   // quota exceeded). commandId -> { envelope, queuedAt, retries }.
-  var memQueue = new Map();
+  const memQueue = new Map();
 
-  var online = navigator.onLine;
-  var rrIndex = 0; // round-robin counter for distributing retried commands
-  var flushing = false; // prevents concurrent flush cycles
-  var flushPending = false; // schedules a follow-up flush after the current one
+  let online = navigator.onLine;
+  let rrIndex = 0; // round-robin counter for distributing retried commands
+  let flushing = false; // prevents concurrent flush cycles
+  let flushPending = false; // schedules a follow-up flush after the current one
 
   // ---------------------------------------------------------------------------
   // Broadcasting
   // ---------------------------------------------------------------------------
 
   function broadcast(msg) {
-    var dead = [];
-    ports.forEach(function (port, tabId) {
+    const dead = [];
+    ports.forEach((port, tabId) => {
       try {
         port.postMessage(msg);
       } catch (e) {
         dead.push(tabId);
       }
     });
-    for (var i = 0; i < dead.length; i++) {
-      ports.delete(dead[i]);
+    for (const tabId of dead) {
+      ports.delete(tabId);
     }
   }
 
   function alivePorts() {
-    var list = [];
-    ports.forEach(function (port) {
+    const list = [];
+    ports.forEach((port) => {
       list.push(port);
     });
     return list;
@@ -114,7 +122,7 @@
   // round-robin across all alive ports.
   function pickPort(commandId, portList) {
     if (portList.length === 0) return null;
-    var tabId = originatingTab.get(commandId);
+    const tabId = originatingTab.get(commandId);
     if (tabId && ports.has(tabId)) {
       return ports.get(tabId);
     }
@@ -127,23 +135,23 @@
   // ---------------------------------------------------------------------------
 
   function openDB() {
-    return new Promise(function (resolve) {
+    return new Promise((resolve) => {
       if (typeof indexedDB === "undefined") {
         resolve(null);
         return;
       }
       try {
-        var req = indexedDB.open(DB_NAME, DB_VERSION);
-        req.onupgradeneeded = function (e) {
-          var database = e.target.result;
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const database = e.target.result;
           if (!database.objectStoreNames.contains(STORE)) {
             database.createObjectStore(STORE, { keyPath: "commandId" });
           }
         };
-        req.onsuccess = function (e) {
+        req.onsuccess = (e) => {
           resolve(e.target.result);
         };
-        req.onerror = function () {
+        req.onerror = () => {
           console.warn("[sync-worker] IndexedDB unavailable — degrading to in-memory");
           resolve(null);
         };
@@ -156,18 +164,18 @@
 
   function idbRun(fn) {
     if (!db) return Promise.resolve(null);
-    return new Promise(function (resolve) {
+    return new Promise((resolve) => {
       try {
-        var tx = db.transaction(STORE, "readwrite");
-        var store = tx.objectStore(STORE);
-        var result = fn(store);
-        tx.oncomplete = function () {
+        const tx = db.transaction(STORE, "readwrite");
+        const store = tx.objectStore(STORE);
+        const result = fn(store);
+        tx.oncomplete = () => {
           resolve(result);
         };
-        tx.onerror = function () {
+        tx.onerror = () => {
           resolve(null);
         };
-        tx.onabort = function () {
+        tx.onabort = () => {
           resolve(null);
         };
       } catch (e) {
@@ -190,7 +198,7 @@
       }
       return Promise.resolve();
     }
-    return idbRun(function (store) {
+    return idbRun((store) => {
       store.add({
         commandId: commandId,
         envelope: envelope,
@@ -205,38 +213,38 @@
       memQueue.delete(commandId);
       return Promise.resolve();
     }
-    return idbRun(function (store) {
+    return idbRun((store) => {
       store.delete(commandId);
     });
   }
 
   function incrementRetryCount(commandId) {
     if (!db) {
-      var memRecord = memQueue.get(commandId);
+      const memRecord = memQueue.get(commandId);
       if (memRecord) {
         memRecord.retries = (memRecord.retries || 0) + 1;
       }
       return Promise.resolve();
     }
-    return new Promise(function (resolve) {
+    return new Promise((resolve) => {
       try {
-        var tx = db.transaction(STORE, "readwrite");
-        var store = tx.objectStore(STORE);
-        var req = store.get(commandId);
-        req.onsuccess = function (e) {
-          var record = e.target.result;
+        const tx = db.transaction(STORE, "readwrite");
+        const store = tx.objectStore(STORE);
+        const req = store.get(commandId);
+        req.onsuccess = (e) => {
+          const record = e.target.result;
           if (record) {
             record.retries = (record.retries || 0) + 1;
             store.put(record);
           }
         };
-        tx.oncomplete = function () {
+        tx.oncomplete = () => {
           resolve();
         };
-        tx.onerror = function () {
+        tx.onerror = () => {
           resolve();
         };
-        tx.onabort = function () {
+        tx.onabort = () => {
           resolve();
         };
       } catch (e) {
@@ -247,8 +255,8 @@
 
   function loadAllCommands() {
     if (!db) {
-      var result = [];
-      memQueue.forEach(function (val, key) {
+      const result = [];
+      memQueue.forEach((val, key) => {
         result.push({
           commandId: key,
           envelope: val.envelope,
@@ -258,14 +266,14 @@
       });
       return Promise.resolve(result);
     }
-    return new Promise(function (resolve) {
+    return new Promise((resolve) => {
       try {
-        var tx = db.transaction(STORE, "readonly");
-        var req = tx.objectStore(STORE).getAll();
-        req.onsuccess = function (e) {
+        const tx = db.transaction(STORE, "readonly");
+        const req = tx.objectStore(STORE).getAll();
+        req.onsuccess = (e) => {
           resolve(e.target.result || []);
         };
-        req.onerror = function () {
+        req.onerror = () => {
           resolve([]);
         };
       } catch (e) {
@@ -276,14 +284,14 @@
 
   function pendingCount() {
     if (!db) return Promise.resolve(memQueue.size);
-    return new Promise(function (resolve) {
+    return new Promise((resolve) => {
       try {
-        var tx = db.transaction(STORE, "readonly");
-        var req = tx.objectStore(STORE).count();
-        req.onsuccess = function (e) {
+        const tx = db.transaction(STORE, "readonly");
+        const req = tx.objectStore(STORE).count();
+        req.onsuccess = (e) => {
           resolve(e.target.result || 0);
         };
-        req.onerror = function () {
+        req.onerror = () => {
           resolve(0);
         };
       } catch (e) {
@@ -293,7 +301,7 @@
   }
 
   function broadcastPendingCount() {
-    pendingCount().then(function (count) {
+    pendingCount().then((count) => {
       broadcast({ type: "pending", count: count });
     });
   }
@@ -309,7 +317,7 @@
       return;
     }
     flushing = true;
-    doFlush().then(function () {
+    doFlush().then(() => {
       flushing = false;
       if (flushPending) {
         flushPending = false;
@@ -319,19 +327,18 @@
   }
 
   function doFlush() {
-    return loadAllCommands().then(function (all) {
+    return loadAllCommands().then((all) => {
       if (all.length === 0) {
         broadcastPendingCount();
         return;
       }
 
-      var now = Date.now();
-      var alive = [];
+      const now = Date.now();
+      const alive = [];
 
-      for (var i = 0; i < all.length; i++) {
-        var cmd = all[i];
-        var age = now - (cmd.queuedAt || now);
-        var retries = cmd.retries || 0;
+      for (const cmd of all) {
+        const age = now - (cmd.queuedAt || now);
+        const retries = cmd.retries || 0;
 
         if (age > RETRY_TTL_MS || retries >= MAX_RETRIES) {
           broadcast({ type: "dead", commandId: cmd.commandId });
@@ -347,7 +354,7 @@
         return;
       }
 
-      var portList = alivePorts();
+      const portList = alivePorts();
       if (portList.length === 0) {
         // No tabs open — leave in IDB for next spawn
         broadcastPendingCount();
@@ -355,23 +362,21 @@
       }
 
       // Oldest first so long-waited commands get priority
-      alive.sort(function (a, b) {
-        return (a.queuedAt || 0) - (b.queuedAt || 0);
-      });
+      alive.sort((a, b) => (a.queuedAt || 0) - (b.queuedAt || 0));
 
       // Increment all retry counts before delivering so a concurrent
       // flush (after the lock releases) sees updated counts and does
       // not double-increment the same commands.
-      var increments = [];
-      for (var j = 0; j < alive.length; j++) {
-        var item = alive[j];
-        var port = pickPort(item.commandId, portList);
+      const increments = [];
+      for (let j = 0; j < alive.length; j++) {
+        const item = alive[j];
+        const port = pickPort(item.commandId, portList);
         if (!port) continue;
 
         increments.push(incrementRetryCount(item.commandId));
 
         // Stagger delivery to avoid thundering herd on server recovery
-        var delay = Math.min(j * STAGGER_MS, STAGGER_CAP_MS);
+        const delay = Math.min(j * STAGGER_MS, STAGGER_CAP_MS);
         sendRetry(port, item, delay);
       }
 
@@ -381,7 +386,7 @@
   }
 
   function sendRetry(port, cmd, delay) {
-    setTimeout(function () {
+    setTimeout(() => {
       try {
         port.postMessage({
           type: "retry",
@@ -399,7 +404,7 @@
   // immediately re-flight persisted commands.
   // ---------------------------------------------------------------------------
 
-  openDB().then(function (database) {
+  openDB().then((database) => {
     db = database;
     if (online) {
       flush();
@@ -412,11 +417,11 @@
   // Connection handler: each tab connects via its own MessagePort
   // ---------------------------------------------------------------------------
 
-  self.onconnect = function (e) {
-    var port = e.ports[0];
+  self.onconnect = (e) => {
+    const port = e.ports[0];
 
-    port.onmessage = function (ev) {
-      var data = ev.data;
+    port.onmessage = (ev) => {
+      const data = ev.data;
       if (!data || !data.type) return;
 
       if (data.type === "hello") {
@@ -446,7 +451,7 @@
       }
 
       if (data.type === "bye") {
-        var tabId = portTabId.get(port);
+        const tabId = portTabId.get(port);
         if (tabId) ports.delete(tabId);
         portTabId.delete(port);
         return;
@@ -465,7 +470,7 @@
         // Track which tab enqueued this for targeted retry
         originatingTab.set(data.commandId, portTabId.get(port));
 
-        persistCommand(data.commandId, data.envelope).then(function () {
+        persistCommand(data.commandId, data.envelope).then(() => {
           broadcastPendingCount();
           // If already online, immediately attempt retry so commands
           // enqueued during a brief connectivity blip are re-flown.
@@ -490,13 +495,13 @@
   // Connectivity events: SharedWorker scope receives these directly
   // ---------------------------------------------------------------------------
 
-  self.addEventListener("online", function () {
+  self.addEventListener("online", () => {
     online = true;
     broadcast({ type: "online" });
     flush();
   });
 
-  self.addEventListener("offline", function () {
+  self.addEventListener("offline", () => {
     online = false;
     broadcast({ type: "offline" });
   });
