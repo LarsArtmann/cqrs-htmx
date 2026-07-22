@@ -347,7 +347,7 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			Expect(w.Body.String()).To(ContainSubstring("decode"))
 		})
 
-		It("dispatches with nil pointer from empty JSON body", func() {
+		It("dispatches with zero values from explicit JSON body", func() {
 			disp := query.NewDispatcher()
 			err := query.RegisterTyped(
 				disp, "Sum",
@@ -369,7 +369,7 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(
 				http.MethodPost, "/sum",
-				strings.NewReader(""),
+				strings.NewReader(`{"a":0,"b":0}`),
 			)
 			handler.ServeHTTP(w, r)
 

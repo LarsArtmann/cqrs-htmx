@@ -3,6 +3,7 @@
 // It demonstrates:
 //   - Creating an App with command and query dispatchers
 //   - HTMX handlers with JSON decoding via mapper functions
+//   - Typed command/query handlers (no manual type assertions)
 //   - SSE live updates via Broadcaster
 //   - Embedded HTMX script serving
 //
@@ -57,6 +58,28 @@ type listItemsPaginatedQuery struct {
 
 func (q *listItemsPaginatedQuery) Type() query.Type { return query.Type("ListItemsPaginated") }
 
+// --- Typed command/query types (no mapper needed) ---
+
+// greetCmd is a typed command that implements command.Command directly.
+// The JSON body shape matches the struct fields (minus the command methods).
+type greetCmd struct {
+	aggID id.AggregateID
+	cmdID id.CommandID
+	Name  string `json:"name"`
+}
+
+func (c *greetCmd) Type() command.Type          { return "Greet" }
+func (c *greetCmd) AggregateID() id.AggregateID { return c.aggID }
+func (c *greetCmd) ID() id.CommandID            { return c.cmdID }
+
+// sumQuery is a typed query that implements query.Query directly.
+type sumQuery struct {
+	A int `json:"a"`
+	B int `json:"b"`
+}
+
+func (q *sumQuery) Type() query.Type { return "Sum" }
+
 // --- In-memory store + SSE broadcaster ---
 
 var (
@@ -109,6 +132,14 @@ func main() {
 			return nil
 		})
 
+	// Typed command handler: no type assertion needed — the dispatcher
+	// calls the handler with the concrete *greetCmd directly.
+	_ = command.RegisterTyped(cmdDisp, "Greet",
+		func(_ context.Context, cmd *greetCmd) error {
+			db.add("Hello, " + cmd.Name + "!")
+			return nil
+		})
+
 	// --- Query dispatcher ---
 	qryDisp := query.NewDispatcher()
 	_ = qryDisp.Register(query.Type("ListItems"),
@@ -121,6 +152,12 @@ func main() {
 				return db.listPaginated(pq.pagination), nil
 			}
 			return db.listPaginated(query.NewPagination(1, 10)), nil
+		})
+
+	// Typed query handler: returns a concrete result type (int).
+	_ = query.RegisterTyped(qryDisp, "Sum",
+		func(_ context.Context, q *sumQuery) (int, error) {
+			return q.A + q.B, nil
 		})
 
 	// --- Build the App ---
@@ -165,6 +202,20 @@ func main() {
 		cqrshtmx.RenderPaginatedJSON[item](),
 	))
 
+	// POST /api/greet — typed command handler (no mapper, no type assertion)
+	mux.Handle("POST /api/greet", cqrshtmx.CommandTyped[*greetCmd](
+		app, "Greet",
+		cqrshtmx.DecodeJSONTyped[*greetCmd](),
+		cqrshtmx.WithSuccessStatus(201),
+	))
+
+	// POST /api/sum — typed query handler (returns int, no mapper)
+	mux.Handle("POST /api/sum", cqrshtmx.QueryTyped[*sumQuery, int](
+		app, "Sum",
+		cqrshtmx.DecodeJSONQueryTyped[*sumQuery](),
+		cqrshtmx.RenderJSON[int](),
+	))
+
 	// GET /api/events — SSE live updates
 	mux.HandleFunc("GET /api/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := cqrshtmx.NewSSEStream(w, r)
@@ -196,11 +247,28 @@ func indexPage(w http.ResponseWriter, _ *http.Request) {
 <head><script src="/htmx.js"></script></head>
 <body>
   <h1>cqrs-htmx Basic Example</h1>
+
+  <h2>Untyped (mapper-based)</h2>
   <form hx-post="/api/items" hx-swap="none">
     <input name="name" placeholder="Item name" required>
     <button>Add</button>
   </form>
   <div id="items" hx-get="/api/items" hx-trigger="load, itemCreated from:body">Loading...</div>
+
+  <h2>Typed command: Greet</h2>
+  <form hx-post="/api/greet" hx-swap="none">
+    <input name="name" placeholder="Your name" required>
+    <button>Greet</button>
+  </form>
+
+  <h2>Typed query: Sum</h2>
+  <form hx-post="/api/sum" hx-target="#sum-result">
+    <input name="a" type="number" value="3" required>
+    <input name="b" type="number" value="4" required>
+    <button>Calculate</button>
+  </form>
+  <pre id="sum-result"></pre>
+
   <script>
     var es = new EventSource('/api/events');
     es.addEventListener('itemCreated', function() {
