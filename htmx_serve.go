@@ -29,7 +29,8 @@ func HTMXScriptHandlerWith(js []byte, version string) http.Handler {
 }
 
 // serveJS is the shared handler for serving JavaScript with long-lived caching.
-// Used by HTMXScriptHandlerWith, HTMXExtensionHandler, and HTMXExtensionsHandler.
+// Used by HTMXScriptHandlerWith, HTMXExtensionHandler, HTMXExtensionsHandler,
+// SyncWorkerHandlerWith, and SyncClientHandlerWith.
 func serveJS(js []byte, etag string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
