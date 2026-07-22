@@ -159,7 +159,7 @@ type SQLiteEventSourcedSetup struct {
 func (s *SQLiteEventSourcedSetup) Close() error {
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
-			errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.stop_projections", "stop projection host")
+			_ = errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.stop_projections", "stop projection host")
 		}
 	}
 	if s.Bundle != nil {
@@ -173,7 +173,7 @@ func (s *SQLiteEventSourcedSetup) Close() error {
 func (s *SQLiteEventSourcedSetup) GracefulClose(ctx context.Context) error {
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
-			errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.stop_projections", "stop projection host")
+			_ = errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.stop_projections", "stop projection host")
 		}
 	}
 	if s.Bundle != nil {

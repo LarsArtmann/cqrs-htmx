@@ -61,7 +61,7 @@ func TestCollectProjections_OptionalNil(t *testing.T) {
 func TestStartProjections_ReadYourWrites(t *testing.T) {
 	t.Parallel()
 
-	setup, err := NewEventSourcedSetup(EventSourcedConfig{}) //nolint:exhaustruct // all fields optional
+	setup, err := NewEventSourcedSetup(EventSourcedConfig{})
 	if err != nil {
 		t.Fatalf("NewEventSourcedSetup: %v", err)
 	}

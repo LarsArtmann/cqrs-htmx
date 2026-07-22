@@ -134,7 +134,7 @@ type PostgresEventSourcedSetup struct {
 func (s *PostgresEventSourcedSetup) Close() error {
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
-			errorfamily.WrapTransient(err, "usermgmt.postgres_setup.stop_projections", "stop projection host")
+			_ = errorfamily.WrapTransient(err, "usermgmt.postgres_setup.stop_projections", "stop projection host")
 		}
 	}
 	if s.Bundle != nil {
@@ -148,7 +148,7 @@ func (s *PostgresEventSourcedSetup) Close() error {
 func (s *PostgresEventSourcedSetup) GracefulClose(ctx context.Context) error {
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
-			errorfamily.WrapTransient(err, "usermgmt.postgres_setup.stop_projections", "stop projection host")
+			_ = errorfamily.WrapTransient(err, "usermgmt.postgres_setup.stop_projections", "stop projection host")
 		}
 	}
 	if s.Bundle != nil {
