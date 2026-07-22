@@ -162,6 +162,17 @@ func TestPanel_AssetsServeSyncWorker(t *testing.T) {
 	}
 }
 
+func TestPanel_AssetsServeSyncClient(t *testing.T) {
+	user := mustUser(t, "admin@example.com")
+	h, _ := newTestPanel(t, user)
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/-/sync-client.js", nil))
+	if rec.Code != http.StatusOK {
+		t.Errorf("sync-client asset: status %d, want 200", rec.Code)
+	}
+}
+
 func TestPanel_AssetsNotFound(t *testing.T) {
 	user := mustUser(t, "admin@example.com")
 	h, _ := newTestPanel(t, user)
