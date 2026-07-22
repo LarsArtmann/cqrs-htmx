@@ -15,8 +15,16 @@ import (
 // The worker URL must be communicated to the sync client (sync-client.js) so
 // it can instantiate new SharedWorker(workerURL). The sync client derives the
 // worker URL from its own <script src> path by default.
-func SyncWorkerHandler() http.Handler {
-	return serveJS(syncWorkerJS, fmt.Sprintf(`"cqrshtmx-sync-worker-%s"`, syncVersion))
+// SyncWorkerHandlerWith returns an http.Handler that serves custom offline
+// sync SharedWorker JavaScript. Use this when you want to serve a modified
+// sync-worker.js (e.g. with different retry configuration baked in). The
+// version string is used for the ETag header so conditional requests work
+// correctly.
+//
+//	mux.Handle("/sync-worker.js",
+//	    cqrshtmx.SyncWorkerHandlerWith(customJS, "2.0.0"))
+func SyncWorkerHandlerWith(js []byte, version string) http.Handler {
+	return serveJS(js, fmt.Sprintf(`"cqrshtmx-sync-worker-%s"`, version))
 }
 
 // SyncClientHandler returns an http.Handler that serves the embedded offline
@@ -30,8 +38,15 @@ func SyncWorkerHandler() http.Handler {
 // attribute is present on the <body> element. It derives the SharedWorker URL
 // from its own <script src> path (replacing "sync-client.js" with
 // "sync-worker.js").
-func SyncClientHandler() http.Handler {
-	return serveJS(syncClientJS, fmt.Sprintf(`"cqrshtmx-sync-client-%s"`, syncVersion))
+// SyncClientHandlerWith returns an http.Handler that serves custom offline
+// sync tab-side JavaScript. Use this when you want to serve a modified
+// sync-client.js. The version string is used for the ETag header so conditional
+// requests work correctly.
+//
+//	mux.Handle("/sync-client.js",
+//	    cqrshtmx.SyncClientHandlerWith(customJS, "2.0.0"))
+func SyncClientHandlerWith(js []byte, version string) http.Handler {
+	return serveJS(js, fmt.Sprintf(`"cqrshtmx-sync-client-%s"`, version))
 }
 
 // SyncClientScriptTag returns an HTML <script> tag that loads the sync client
