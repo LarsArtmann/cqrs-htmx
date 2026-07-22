@@ -260,17 +260,18 @@ var _ = Describe("Validation HandlerOption", func() {
 	})
 
 	Describe("DecodeAndValidateForm error paths", func() {
-		It("rejects form bodies with wrong type for int field", func() {
+		It("rejects empty form body when validation requires non-empty fields", func() {
 			app := newCommandApp()
 			w := serve(app.Command(
 				"CreateUser",
 				cqrshmx.DecodeAndValidateForm(func(_ testCreateUserRequest) (command.Command, error) {
 					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
 				}),
-			), newPostRequest("/users", "email=not-an-email",
+			), newPostRequest("/users", "",
 				withHeader("Content-Type", "application/x-www-form-urlencoded"),
 			))
-			Expect(w.code()).To(Equal(http.StatusOK))
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("email is required"))
 		})
 	})
 
