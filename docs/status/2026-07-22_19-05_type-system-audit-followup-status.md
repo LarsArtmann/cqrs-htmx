@@ -18,6 +18,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 ## a) FULLY DONE
 
 ### 1. Error-path tests for `DecodeFormTyped` / `DecodeFormQueryTyped`
+
 - **Status:** SHIPPED, committed (by parallel session, commit 15b78a1).
 - Added 9 new BDD specs to `typed_handlers_test.go`:
   - `CommandTyped` error paths: malformed JSON (400), empty JSON body (nil pointer dispatches), empty form body (nil pointer dispatches)
@@ -26,6 +27,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 - **Key discovery:** Empty body produces a nil `*typedEchoCommand` which, when wrapped in a `command.Command` interface, is non-nil in Go (interface stores type info). The `any(v) == nil` guard in `dispatchRequest` does NOT catch this case. The command dispatches successfully with a nil pointer. This is documented behavior, not a bug.
 
 ### 2. Error-path tests for `DecodeAndValidateForm` / `DecodeAndValidateFormQuery`
+
 - **Status:** SHIPPED, committed (by parallel session, commit 15b78a1).
 - Added 3 new BDD specs to `validation_test.go`:
   - `DecodeAndValidateForm` error path: empty form body triggers validation failure (email required)
@@ -33,6 +35,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 - These test the validation-then-dispatch pipeline with form data edge cases.
 
 ### 3. Full workspace test verification
+
 - **Status:** DONE.
 - Root module: 703 tests pass (0 failures)
 - adminui: builds and tests pass
@@ -42,6 +45,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 - golangci-lint: clean run, no issues (gci false positive confirmed resolved in v2)
 
 ### 4. Typed handler examples in `examples/basic/`
+
 - **Status:** SHIPPED, committed (by parallel session, commit 40f5f43).
 - Added `greetCmd` type (typed command implementing `command.Command` directly)
 - Added `sumQuery` type (typed query implementing `query.Query` directly)
@@ -50,6 +54,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 - Updated HTML page with forms for both typed endpoints
 
 ### 5. Typed handlers documented in SKILL.md
+
 - **Status:** SHIPPED, committed (by parallel session).
 - Added "Typed endpoints (no mapper, no type assertion)" section to Path A in SKILL.md
 - Includes full code examples for typed command and typed query
@@ -57,6 +62,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 - Includes the generic-method limitation gotcha
 
 ### 6. Coverage gate and gci verification
+
 - **Status:** DONE.
 - Root module tests pass (703/703)
 - golangci-lint run with no gci issues (confirmed resolved in v2.12.2)
@@ -67,12 +73,14 @@ test verification, typed handler examples, and SKILL.md documentation.
 ## b) PARTIALLY DONE
 
 ### Coverage gate (`nix run .#coverage-gate`)
+
 - **Status:** NOT RUN THIS SESSION.
 - Root module tests pass but the specific 90% threshold check was not run.
 - Should verify with `nix run .#coverage-gate` to confirm root module still meets the 90% threshold.
 - **Risk:** Low. No production code was changed, only tests and examples.
 
 ### CHANGELOG.md update for new tests
+
 - **Status:** NOT DONE.
 - The new error-path tests should be mentioned in CHANGELOG.md under the typed handlers entry.
 - The prior session already added a `dispatchRequest` refactor mention but the test additions are not documented.
@@ -82,24 +90,29 @@ test verification, typed handler examples, and SKILL.md documentation.
 ## c) NOT STARTED
 
 ### Typed handler integration tests (items 27-30 from status doc)
+
 - CSRF middleware integration test for `CommandTyped`
 - `RenderJSON[R]` + pagination integration test for `QueryTyped`
 - Typed handler with `Authorize` option test
 - Typed handler with `RequestGuard` option test
 
 ### Typed handler benchmarks (item 12)
+
 - Benchmark comparing typed vs untyped dispatch overhead
 
 ### Go doc examples (item 13)
+
 - `ExampleCommandTyped`, `ExampleQueryTyped`
 
 ### Typed handler with `WithTimeout` (item 31)
 
 ### Fuzz tests for typed decoders (items 33-34)
+
 - `FuzzDecodeJSONTyped` with malformed JSON
 - `FuzzDecodeFormTyped` with malformed form data
 
 ### Nil pointer behavior investigation
+
 - The `any(v) == nil` guard doesn't catch nil pointers wrapped in interfaces (Go language behavior). Empty body + pointer type = nil pointer that passes the nil check and dispatches successfully. This could be a bug or intentional — needs design decision.
 
 ---
@@ -107,11 +120,13 @@ test verification, typed handler examples, and SKILL.md documentation.
 ## d) TOTALLY FUCKED UP
 
 ### Nothing major this session
+
 - The working tree was clean at session start (parallel session had already committed).
 - All 6 tasks completed without significant issues.
 - The only stumble was initial test expectation errors (expecting 400 for empty body when the actual behavior is 200/204 due to Go's interface nil semantics).
 
 ### Pre-existing usermgmt build failure not investigated
+
 - `usermgmt/sqlite_setup_test.go` references `SQLiteEventSourcedSetup` and `NewSQLiteEventSourcedSetup` which are undefined. This is from a refactor that moved SQLite setup to the root module but didn't update the test file. Not investigated or fixed this session.
 
 ---
@@ -135,12 +150,14 @@ test verification, typed handler examples, and SKILL.md documentation.
 ## f) Next 50 Things To Do
 
 ### High Priority (Immediate)
+
 1. Run `nix run .#coverage-gate` to verify root 90% threshold
 2. Update CHANGELOG.md with error-path test additions
 3. Investigate nil pointer dispatch behavior — design decision needed
 4. Fix usermgmt `sqlite_setup_test.go` build failure
 
 ### Medium Priority (Next Sprint)
+
 5. Add integration test for `CommandTyped` with CSRF middleware
 6. Add integration test for `QueryTyped` with `RenderJSON[R]` + pagination
 7. Add test for typed handler with `Authorize` option
@@ -152,6 +169,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 13. Add Go doc examples (`ExampleCommandTyped`, `ExampleQueryTyped`)
 
 ### Low Priority (Backlog)
+
 14. Implement micro-types (the last "DO IT" item from the audit)
 15. Add typed handler examples with SSE integration
 16. Add typed handler examples with form-based decoders
@@ -161,6 +179,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 20. Consider whether `DecodeJSONTyped[Q]()` should validate the decoded command's `Type()` matches the registered type
 
 ### Lint Debt (Pre-Existing)
+
 21. Fix `varnamelen` warnings (50 issues)
 22. Fix `testpackage` warnings (9 test files)
 23. Fix `ireturn` warnings (4 functions)
@@ -171,6 +190,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 28. Fix `testableexamples` warning (1 example)
 
 ### Architecture / Design
+
 29. Evaluate whether `Result[T]` should be reconsidered
 30. Consider whether the generic `Store[T, ID]` should be used inside usermgmt repositories
 31. Evaluate OPFS/sqlite-wasm for the offline queue
@@ -178,6 +198,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 33. Consider whether `CommandTyped`/`QueryTyped` should also support `DecodeFormTyped` out of the box (documented together)
 
 ### Testing
+
 34. Add test for `InMemoryStore` with concurrent access (race detector)
 35. Add fuzz test for `DecodeJSONTyped` with malformed JSON
 36. Add fuzz test for `DecodeFormTyped` with malformed form data
@@ -185,6 +206,7 @@ test verification, typed handler examples, and SKILL.md documentation.
 38. Add test for typed handler with `WithTimeout` option
 
 ### Documentation
+
 39. Update `docs/brainstorming/cqrs-htmx-type-system-audit.html` to mark implemented items
 40. Add ADR for the generic-method workaround decision
 41. Update `CONTRIBUTING.md` with the `gofumpt -w` warning
@@ -192,12 +214,14 @@ test verification, typed handler examples, and SKILL.md documentation.
 43. Add typed handler usage to the cheat sheet in SKILL.md
 
 ### Code Quality
+
 44. Consider extracting the type-assertion pattern in `handleCommandTypedDispatch` into a shared helper
 45. Verify `nil` command/query from typed decoders is handled correctly (the `any(v) == nil` guard)
 46. Consider whether `DecodeJSONTyped[Q]()` should validate the decoded command's `Type()` matches the registered type
 47. Rename `typed_handlers_test.go` to better reflect its scope (tests decoders AND dispatch)
 
 ### Offline / Sync (Separate Track)
+
 48. Evaluate `sync-worker.js` error handling robustness
 49. Add browser-based E2E test for the offline queue
 50. Consider Web Locks API for cross-tab coordination

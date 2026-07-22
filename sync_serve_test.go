@@ -177,7 +177,7 @@ func TestSyncWorkerHandlerWith_ServesCustomJS(t *testing.T) {
 		t.Errorf("body: got %q, want // custom worker", rec.Body.String())
 	}
 
-	wantETag := `"cqrshtmx-sync-worker-2.0.0"`
+	wantETag := `"sync-worker-2.0.0"`
 	if etag := rec.Header().Get("ETag"); etag != wantETag {
 		t.Errorf("ETag: got %q, want %q", etag, wantETag)
 	}
@@ -198,7 +198,7 @@ func TestSyncClientHandlerWith_ServesCustomJS(t *testing.T) {
 		t.Errorf("body: got %q, want // custom client", rec.Body.String())
 	}
 
-	wantETag := `"cqrshtmx-sync-client-3.0.0"`
+	wantETag := `"sync-client-3.0.0"`
 	if etag := rec.Header().Get("ETag"); etag != wantETag {
 		t.Errorf("ETag: got %q, want %q", etag, wantETag)
 	}
@@ -206,7 +206,7 @@ func TestSyncClientHandlerWith_ServesCustomJS(t *testing.T) {
 
 func TestSyncWorkerHandlerWith_304OnIfNoneMatch(t *testing.T) {
 	handler := cqrshtmx.SyncWorkerHandlerWith([]byte("// v2"), "2.0.0")
-	etag := `"cqrshtmx-sync-worker-2.0.0"`
+	etag := `"sync-worker-2.0.0"`
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
