@@ -171,11 +171,11 @@ Setting `SSEURL` activates:
 The sync system requires three CSP directives when using a restrictive CSP.
 `RecommendedCSP` already covers all three via `default-src 'self'`:
 
-| Directive | Why |
-|-----------|-----|
-| `worker-src 'self'` | SharedWorker loaded from same origin |
-| `script-src 'self'` | sync-client.js loaded via `<script>` tag |
-| `connect-src 'self'` | SSE EventSource connects to same origin |
+| Directive            | Why                                      |
+| -------------------- | ---------------------------------------- |
+| `worker-src 'self'`  | SharedWorker loaded from same origin     |
+| `script-src 'self'`  | sync-client.js loaded via `<script>` tag |
+| `connect-src 'self'` | SSE EventSource connects to same origin  |
 
 ```go
 cqrshtmx.SecurityHeadersConfig{

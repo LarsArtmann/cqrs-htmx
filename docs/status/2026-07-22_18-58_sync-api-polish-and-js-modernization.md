@@ -8,17 +8,17 @@
 
 ## A) FULLY DONE
 
-| # | Task | Files Touched | Verified |
-|---|------|---------------|----------|
-| 1 | **Added `SyncWorkerHandlerWith(js, version)` + `SyncClientHandlerWith(js, version)`** — mirrors `HTMXScriptHandlerWith` pattern | `sync_serve.go`, `htmx_serve.go` (serveJS doc comment) | Build OK, 24 sync tests pass |
-| 2 | **Added 4 godoc examples** — `ExampleSyncWorkerHandler`, `ExampleSyncClientHandler`, `ExampleSyncClientScriptTag`, `ExampleSyncVersion` | `example_htmx_test.go` | All 4 pass with `// Output:` verification |
-| 3 | **Added `SyncClientScriptTag` edge case tests** — table-driven: empty path, query params, fragment, relative, full URL (5 sub-tests) | `sync_serve_test.go` | All 5 sub-tests pass |
-| 4 | **Added `With` variant tests** — custom JS content, custom ETag, 304-on-If-None-Match | `sync_serve_test.go` | 3 tests pass |
-| 5 | **Added adminui delegation integration tests** — `TestPanel_SyncWorkerDelegationMatchesRoot` + `TestPanel_SyncClientDelegationMatchesRoot` verify byte-identical content between adminui routes and root handlers | `adminui/coverage_gaps2_test.go` | Both pass with `-race` |
-| 6 | **Modernized JS** — `var` → `const`/`let` in both files (0 `var` remaining), added `VERSION = "1.1.0"` constant to both files | `sync/sync-worker.js`, `sync/sync-client.js` | `node -e "new Function(...)"` syntax OK |
-| 7 | **Added `data-sync-worker-url` override** — sync-client.js checks `script.getAttribute("data-sync-worker-url")` before falling back to path derivation | `sync/sync-client.js` | Syntax OK (not browser-tested) |
-| 8 | **Updated recipe doc** — `SyncClientScriptTag` helper usage, `With` variants section, `data-sync-worker-url` docs, CSP directive table (worker-src/script-src/connect-src) | `docs/recipes/offline-command-sync.md` | Content verified |
-| 9 | **Updated CHANGELOG** — Added entries for `With` variants, `data-sync-worker-url`, godoc examples, integration tests, JS modernization, version bump | `CHANGELOG.md` | Content verified |
+| #   | Task                                                                                                                                                                                                              | Files Touched                                          | Verified                                  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------- |
+| 1   | **Added `SyncWorkerHandlerWith(js, version)` + `SyncClientHandlerWith(js, version)`** — mirrors `HTMXScriptHandlerWith` pattern                                                                                   | `sync_serve.go`, `htmx_serve.go` (serveJS doc comment) | Build OK, 24 sync tests pass              |
+| 2   | **Added 4 godoc examples** — `ExampleSyncWorkerHandler`, `ExampleSyncClientHandler`, `ExampleSyncClientScriptTag`, `ExampleSyncVersion`                                                                           | `example_htmx_test.go`                                 | All 4 pass with `// Output:` verification |
+| 3   | **Added `SyncClientScriptTag` edge case tests** — table-driven: empty path, query params, fragment, relative, full URL (5 sub-tests)                                                                              | `sync_serve_test.go`                                   | All 5 sub-tests pass                      |
+| 4   | **Added `With` variant tests** — custom JS content, custom ETag, 304-on-If-None-Match                                                                                                                             | `sync_serve_test.go`                                   | 3 tests pass                              |
+| 5   | **Added adminui delegation integration tests** — `TestPanel_SyncWorkerDelegationMatchesRoot` + `TestPanel_SyncClientDelegationMatchesRoot` verify byte-identical content between adminui routes and root handlers | `adminui/coverage_gaps2_test.go`                       | Both pass with `-race`                    |
+| 6   | **Modernized JS** — `var` → `const`/`let` in both files (0 `var` remaining), added `VERSION = "1.1.0"` constant to both files                                                                                     | `sync/sync-worker.js`, `sync/sync-client.js`           | `node -e "new Function(...)"` syntax OK   |
+| 7   | **Added `data-sync-worker-url` override** — sync-client.js checks `script.getAttribute("data-sync-worker-url")` before falling back to path derivation                                                            | `sync/sync-client.js`                                  | Syntax OK (not browser-tested)            |
+| 8   | **Updated recipe doc** — `SyncClientScriptTag` helper usage, `With` variants section, `data-sync-worker-url` docs, CSP directive table (worker-src/script-src/connect-src)                                        | `docs/recipes/offline-command-sync.md`                 | Content verified                          |
+| 9   | **Updated CHANGELOG** — Added entries for `With` variants, `data-sync-worker-url`, godoc examples, integration tests, JS modernization, version bump                                                              | `CHANGELOG.md`                                         | Content verified                          |
 
 ### Verification evidence
 
@@ -53,18 +53,18 @@ I ran `nix run .#lint` at the start (75 pre-existing issues, 0 in sync files). A
 
 ## C) NOT STARTED
 
-| Item | Source | Why skipped |
-|------|--------|-------------|
-| **Pre-commit hook for `syncVersion` bump detection** | Report #1 item #3, Report #2 item #3 | Requires shell script + git hook setup; deemed lower priority than API completeness |
-| **Browser E2E tests** (Playwright/Cypress) | Report #1 items #6-10, Report #2 item #1 | Major infrastructure investment; deferred per Report #2 G1 |
-| **JS unit test harness** | Report #1 items #11-15 | No existing JS test infrastructure in the project |
-| **doc.go package-level sync handler docs** | Report #1 item #29-30 | doc.go doesn't exist as a separate file; package docs are in individual source files |
-| **Content-hash `syncVersion`** | Report #1 item #16, Report #2 C/Q3 | Decided to keep manual version (consistent with `htmxVersion` pattern); bumped to 1.1.0 manually |
-| **`SyncBundledHandler()`** (worker+client concatenated) | Report #1 item #20 | Not requested; YAGNI for now |
-| **Exponential backoff for retry delivery** | Report #2 item #12 | Would change sync-worker.js retry semantics; deferred |
-| **Configurable MAX_RETRIES/RETRY_TTL_MS via JS config object** | Report #2 item #13 | Would change the wire protocol; deferred |
-| **SSE reconnection with Last-Event-ID** | Report #2 item #15 | Requires server-side changes beyond sync scope |
-| **Dead command notification UI** | Report #2 item #14 | adminui frontend change, not root module |
+| Item                                                           | Source                                   | Why skipped                                                                                      |
+| -------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Pre-commit hook for `syncVersion` bump detection**           | Report #1 item #3, Report #2 item #3     | Requires shell script + git hook setup; deemed lower priority than API completeness              |
+| **Browser E2E tests** (Playwright/Cypress)                     | Report #1 items #6-10, Report #2 item #1 | Major infrastructure investment; deferred per Report #2 G1                                       |
+| **JS unit test harness**                                       | Report #1 items #11-15                   | No existing JS test infrastructure in the project                                                |
+| **doc.go package-level sync handler docs**                     | Report #1 item #29-30                    | doc.go doesn't exist as a separate file; package docs are in individual source files             |
+| **Content-hash `syncVersion`**                                 | Report #1 item #16, Report #2 C/Q3       | Decided to keep manual version (consistent with `htmxVersion` pattern); bumped to 1.1.0 manually |
+| **`SyncBundledHandler()`** (worker+client concatenated)        | Report #1 item #20                       | Not requested; YAGNI for now                                                                     |
+| **Exponential backoff for retry delivery**                     | Report #2 item #12                       | Would change sync-worker.js retry semantics; deferred                                            |
+| **Configurable MAX_RETRIES/RETRY_TTL_MS via JS config object** | Report #2 item #13                       | Would change the wire protocol; deferred                                                         |
+| **SSE reconnection with Last-Event-ID**                        | Report #2 item #15                       | Requires server-side changes beyond sync scope                                                   |
+| **Dead command notification UI**                               | Report #2 item #14                       | adminui frontend change, not root module                                                         |
 
 ---
 
