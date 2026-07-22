@@ -121,7 +121,7 @@ func closeBus(bus event.Bus) {
 func (s *EventSourcedSetup) Close() error {
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
-			errorfamily.WrapTransient(err, "usermgmt.es_setup.stop_projections", "stop projection host")
+			_ = errorfamily.WrapTransient(err, "usermgmt.es_setup.stop_projections", "stop projection host")
 		}
 	}
 	if c, ok := s.Bus.(io.Closer); ok {

@@ -416,7 +416,7 @@ func (s *Service) GracefulClose(ctx context.Context) error {
 func (s *Service) closeInfra() error {
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
-			errorfamily.WrapTransient(err, "usermgmt.service.stop_projections", "stop projection host")
+			_ = errorfamily.WrapTransient(err, "usermgmt.service.stop_projections", "stop projection host")
 		}
 	}
 	if c, ok := s.bus.(interface{ Close() error }); ok {
