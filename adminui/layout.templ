@@ -95,6 +95,9 @@ templ Layout(p pageData) {
 				class="admin-scrim fixed inset-0 z-40 hidden bg-black/40 max-md:block"
 			></div>
 			@toastHost()
+			if p.SSEURL != "" {
+				<script src={ p.BasePath + "/-/sync-client.js" }></script>
+			}
 			<script src={ p.BasePath + "/-/admin.js" }></script>
 		</body>
 	</html>
