@@ -96,6 +96,9 @@ templ Layout(p pageData) {
 			></div>
 			@toastHost()
 			if p.SSEURL != "" {
+				// sync-client.js must load before admin.js: it registers htmx:beforeRequest
+				// and htmx:sendError listeners that admin.js's CSRF config depends on being
+				// in place. Both scripts run synchronously, so load order is deterministic.
 				<script src={ p.BasePath + "/-/sync-client.js" }></script>
 			}
 			<script src={ p.BasePath + "/-/admin.js" }></script>
