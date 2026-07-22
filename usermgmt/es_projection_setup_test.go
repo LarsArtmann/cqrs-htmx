@@ -68,8 +68,8 @@ func TestStartProjections_ReadYourWrites(t *testing.T) {
 	t.Cleanup(func() { _ = setup.Close() })
 
 	// The read model should be empty after initial setup (no events in journal).
-	if users := setup.ReadModel.All(); len(users) != 0 {
-		t.Errorf("expected 0 users after empty setup, got %d", len(users))
+	if count := setup.ReadModel.Count(); count != 0 {
+		t.Errorf("expected 0 users after empty setup, got %d", count)
 	}
 }
 

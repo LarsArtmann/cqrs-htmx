@@ -223,8 +223,11 @@ func TestSigningEncryption_AuthzProjectionSurvivesCrypto(t *testing.T) {
 }
 
 // waitForUser polls the read model until the user appears or the context deadline
-// expires. This is necessary because StartProjections runs the projection runner
-// in a background goroutine — there is no synchronous "replay complete" signal.
+// expires. Although StartProjections now drains the journal synchronously before
+// returning (read-your-writes), live events published after startup are
+// processed asynchronously. This helper covers the reload path where a fresh
+// Service replays events from an existing store — the drain completes before
+// NewService returns, but we keep the polling pattern as a defensive guard.
 // Uses context.WithTimeout for the deadline (not time.After+select) per the
 // project's flaky-test anti-pattern guidance.
 func waitForUser(svc *usermgmt.Service, email string) bool {
