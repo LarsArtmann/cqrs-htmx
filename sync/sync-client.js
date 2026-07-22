@@ -41,6 +41,10 @@
     queued: 0,
   };
 
+  /**
+   * Update the [data-sync-status] indicator element with current sync state.
+   * Called whenever pending/confirmed/failed/queued counts change.
+   */
   function updateIndicator() {
     const bar = document.querySelector("[data-sync-status]");
     if (!bar) return;
@@ -99,6 +103,11 @@
 
   // --- SSE connection manager (auto-reconnect via EventSource) ---
   let eventSource = null;
+  /**
+   * Connect to the SSE endpoint for server ACK confirmations.
+   * Reads the URL from <body data-sse-url>. Auto-reconnects via EventSource.
+   * No-op if no data-sse-url or EventSource unavailable.
+   */
   function connectSSE() {
     const sseURL = document.body.getAttribute("data-sse-url");
     if (!sseURL || typeof EventSource === "undefined") return;
@@ -132,6 +141,11 @@
   }
 
   // --- Sync ACK handler: flips DOM state on server confirmation/rejection ---
+  /**
+   * Handle a server ACK (confirmed or rejected) for a tracked command.
+   * Flips the DOM element's sync state and updates counters.
+   * @param {{ commandId: string, status: string, error?: string }} detail - ACK payload from SSE.
+   */
   function handleSyncAck(detail) {
     if (!detail || !detail.commandId) return;
 
@@ -160,6 +174,12 @@
   let syncWorker = null;
   let tabId = null;
 
+  /**
+   * Initialize the SharedWorker connection. Derives the worker URL from
+   * this script's <script src> path (or data-sync-worker-url override),
+   * registers a tabId, and wires up retry/pending/dead message handlers.
+   * No-op if SharedWorker is unavailable (graceful degradation).
+   */
   function initSyncWorker() {
     if (typeof SharedWorker === "undefined") return;
 
@@ -216,6 +236,11 @@
     }
   }
 
+  /**
+   * Queue a command envelope to the SharedWorker for offline persistence.
+   * @param {string} commandId - Unique command identifier.
+   * @param {{ verb: string, url: string, values: Object|null, headers: Object|null }|null} envelope - Request data for retry.
+   */
   function enqueueCommand(commandId, envelope) {
     if (!syncWorker || !commandId) return;
     syncWorker.port.postMessage({
@@ -245,6 +270,13 @@
     updateIndicator();
   }
 
+  /**
+   * Retry a queued command. If the originating DOM element still exists,
+   * re-trigger it via htmx.trigger(). If gone, use rebuildAndRetry() to
+   * synthesize a new host element and re-issue via htmx.ajax().
+   * @param {string} commandId - Unique command identifier.
+   * @param {{ verb: string, url: string, values: Object|null, headers: Object|null }} [envelope] - Persisted request data for cross-session retry.
+   */
   function retryQueuedCommand(commandId, envelope) {
     if (!commandId) return;
     const selector = '[data-command-id="' + commandId + '"]';
@@ -276,8 +308,13 @@
     }
   }
 
-  // rebuildAndRetry re-issues a persisted command whose originating DOM
-  // element is gone (cross-tab drain after a browser restart).
+  /**
+   * Rebuild a DOM element for a persisted command whose originating element
+   * is gone (cross-session retry after browser restart). Uses htmx.ajax()
+   * to re-issue the request into a fresh host element.
+   * @param {string} commandId - Unique command identifier.
+   * @param {{ verb: string, url: string, values: Object|null, headers: Object|null }} envelope - Persisted request data.
+   */
   function rebuildAndRetry(commandId, envelope) {
     const host = document.createElement("div");
     host.setAttribute("data-command-id", commandId);
