@@ -23,6 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.2
 	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/httputil v0.5.0
 	github.com/oklog/ulid/v2 v2.1.1
 	modernc.org/sqlite v1.54.0
 	pgregory.net/rapid v1.3.0
@@ -67,7 +68,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.1 // indirect
-	github.com/larsartmann/httputil v0.5.0 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
