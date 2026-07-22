@@ -215,6 +215,6 @@ normally, offline commands fail with `htmx:sendError` and show as rejected
 
 ## Limitations
 
-- **IndexedDB persistence (Phase 2b, ADR-0040):** Queued commands survive closed tabs and browser restarts via IndexedDB. Commands are evicted after 10 retries or 24 hours (TTL). Degrades to in-memory-only when IndexedDB is unavailable (private browsing, quota).
+- **IndexedDB persistence (ADR-0040):** Queued commands survive closed tabs and browser restarts via IndexedDB. Commands are evicted after 10 retries or 24 hours (TTL). Degrades to in-memory-only when IndexedDB is unavailable (private browsing, quota).
 - **Element-bound retry**: If the user navigates away from the page, the queued command's DOM element is gone. The worker sends the envelope (persisted in IDB) so `rebuildAndRetry` can synthesize a new host element and re-issue the request via `htmx.ajax`.
 - **Not E2E browser-tested**: The `rebuildAndRetry` cross-session path and IndexedDB persistence are unit-test-verified at the protocol level but have not been verified in a real browser (Playwright/Selenium).
