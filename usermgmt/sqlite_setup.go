@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	stacksqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	sqlopt "github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
@@ -66,11 +67,12 @@ func newSQLiteSetup(
 		return nil, err
 	}
 
-	if err := StartProjections(
+	host, err := StartProjections(
 		bundle.Journal, bundle.Subscriber,
 		checkpointStore,
 		rm, memRm, tenRm, botRm, casbinProj, auditLog,
-	); err != nil {
+	)
+	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "start projections")
 	}
@@ -79,7 +81,7 @@ func newSQLiteSetup(
 		UserRepository:       repos.User,
 		MembershipRepository: repos.Membership,
 		TenantRepository:     repos.Tenant,
-		BotRepository:        repos.Bot,
+		BotRepository:       repos.Bot,
 		ReadModel:            rm,
 		MembershipReadModel:  memRm,
 		TenantReadModel:      tenRm,
@@ -87,6 +89,7 @@ func newSQLiteSetup(
 		Bundle:               bundle,
 		DB:                   extractDB(bundle),
 		casbinProjection:     casbinProj,
+		projectionHost:       host,
 	}, nil
 }
 
@@ -150,9 +153,15 @@ type SQLiteEventSourcedSetup struct {
 	Bundle               *stack.Bundle
 	DB                   *sql.DB
 	casbinProjection     *CasbinProjection
+	projectionHost       *projectionhost.Host
 }
 
 func (s *SQLiteEventSourcedSetup) Close() error {
+	if s.projectionHost != nil {
+		if err := s.projectionHost.Stop(); err != nil {
+			errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.stop_projections", "stop projection host")
+		}
+	}
 	if s.Bundle != nil {
 		if err := s.Bundle.Close(); err != nil {
 			return errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.close", "close sqlite bundle")
@@ -162,6 +171,11 @@ func (s *SQLiteEventSourcedSetup) Close() error {
 }
 
 func (s *SQLiteEventSourcedSetup) GracefulClose(ctx context.Context) error {
+	if s.projectionHost != nil {
+		if err := s.projectionHost.Stop(); err != nil {
+			errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.stop_projections", "stop projection host")
+		}
+	}
 	if s.Bundle != nil {
 		if err := s.Bundle.GracefulClose(ctx); err != nil {
 			return errorfamily.WrapTransient(

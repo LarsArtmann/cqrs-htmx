@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -94,6 +95,7 @@ type EventSourcedSetup struct {
 	TenantReadModel      *TenantReadModel
 	BotReadModel         *BotReadModel
 	casbinProjection     *CasbinProjection
+	projectionHost       *projectionhost.Host
 }
 
 // UserDecider returns the Decider for the User aggregate.
@@ -117,6 +119,11 @@ func closeBus(bus event.Bus) {
 // io.Closer). It is safe to call multiple times. Use this for graceful
 // shutdown of event-sourced infrastructure created by NewEventSourcedSetup.
 func (s *EventSourcedSetup) Close() error {
+	if s.projectionHost != nil {
+		if err := s.projectionHost.Stop(); err != nil {
+			errorfamily.WrapTransient(err, "usermgmt.es_setup.stop_projections", "stop projection host")
+		}
+	}
 	if c, ok := s.Bus.(io.Closer); ok {
 		if err := c.Close(); err != nil {
 			return errorfamily.WrapTransient(err, "usermgmt.es_setup.close_bus", "close event bus")
@@ -231,7 +238,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	}
 
 	journal := journalFromStore(store)
-	if err := StartProjections(
+	host, err := StartProjections(
 		journal,
 		bus,
 		cfg.CheckpointStore,
@@ -241,7 +248,8 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		botProj,
 		casbinProjection,
 		cfg.AuditLog,
-	); err != nil {
+	)
+	if err != nil {
 		closeBus(bus)
 		return nil, errorfamily.NewTransient("internal", "start projections").WithCause(err)
 	}
@@ -258,5 +266,6 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		TenantReadModel:      tenantReadModel,
 		BotReadModel:         botReadModel,
 		casbinProjection:     casbinProjection,
+		projectionHost:       host,
 	}, nil
 }

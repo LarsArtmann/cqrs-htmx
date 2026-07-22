@@ -2,34 +2,36 @@ package usermgmt
 
 import (
 	"context"
-	"log/slog"
-	"slices"
+	"fmt"
+	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // StartProjections replays historical events from the journal into all
 // registered projections, then subscribes to live events from the bus.
 //
-// Replay is synchronous: every historical event is dispatched to projections
-// before StartProjections returns. Combined with the synchronous event bus
-// (watermill.EventBus with BlockPublishUntilSubscriberAck), this provides
-// read-your-writes consistency: after a command completes, the read model
-// already reflects the change — no timing-based sleeps.
+// Uses projectionhost.Host from go-cqrs-lite for projection lifecycle management:
+// per-projection goroutines, per-projection checkpoints, retry with dead-letter
+// queue, and crash auto-restart with backoff. This replaces the former
+// hand-rolled replay+dedup+live-handler logic (~155 LOC).
 //
-// Checkpoint: when cpStore is non-nil AND the journal implements
-// event.SeekableJournal, replay resumes from the last checkpoint instead of
-// reading the full journal. This avoids re-processing the entire event
-// history on every restart. When cpStore is nil, full journal replay is used.
+// Read-your-writes: the function blocks until all projections have finished
+// their initial journal drain (reached live state) before returning. After
+// StartProjections returns, all read models reflect all historical events.
 //
-// Dedup: event IDs processed during replay are tracked in a bounded [dedup.Ring]
-// (1024 entries, ~90KB) and skipped in the live handler to prevent
-// doubleprocessing at the replay-to-live boundary. Overlapping events are
-// always at the tail of the replay sequence, so a ring covering the live
-// channel buffer size (4-10x margin) is sufficient regardless of journal size.
+// Checkpoint: when cpStore is non-nil, each projection resumes from its own
+// last checkpoint (keyed by projection Name()). When nil, an in-memory
+// checkpoint store is used (checkpoints are lost on restart — full replay each
+// time). Note: per-projection checkpoint keys replace the former single
+// "usermgmt:start_projections" key; existing checkpoint data is incompatible
+// and will be ignored (one-time full replay on first run after upgrade).
+//
+// The returned *projectionhost.Host must be stopped on shutdown (call Stop()).
 func StartProjections(
 	journal event.Journal,
 	bus event.Subscriber,
@@ -40,24 +42,53 @@ func StartProjections(
 	botReadModel projection.Projection,
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
-) error {
-	projections := collectProjections(
-		readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog,
+) (*projectionhost.Host, error) {
+	seekable, ok := journal.(event.SeekableJournal)
+	if !ok {
+		return nil, errorfamily.NewRejection(
+			"usermgmt.projection.journal_not_seekable",
+			"projectionhost requires a SeekableJournal (ReadFrom); "+
+				"the event store does not implement event.SeekableJournal",
+		)
+	}
+
+	store := cpStore
+	if store == nil {
+		store = memory.NewMemoryCheckpointStore()
+	}
+
+	host, err := projectionhost.New(seekable, store,
+		projectionhost.WithSubscriber(bus),
+		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 0),
 	)
-
-	replayIDs, err := replayProjections(journal, cpStore, projections)
 	if err != nil {
-		return err
+		return nil, errorfamily.WrapInfrastructure(err,
+			"usermgmt.projection.host_create_failed",
+			"create projection host")
 	}
 
-	liveHandler := buildLiveHandler(projections, replayIDs)
-	if err := bus.SubscribeAll(liveHandler); err != nil {
-		return errorfamily.WrapInfrastructure(err,
-			"usermgmt.projection.subscribe_failed",
-			"subscribe to live events")
+	for _, p := range collectProjections(
+		readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog,
+	) {
+		if err := host.Register(p); err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"usermgmt.projection.register_failed",
+				"register projection "+p.Name())
+		}
 	}
 
-	return nil
+	if err := host.Start(context.Background()); err != nil {
+		return nil, errorfamily.WrapInfrastructure(err,
+			"usermgmt.projection.start_failed",
+			"start projection host")
+	}
+
+	if err := waitForDrain(host); err != nil {
+		_ = host.Stop()
+		return nil, err
+	}
+
+	return host, nil
 }
 
 // collectProjections gathers all projection implementations into a slice.
@@ -87,141 +118,52 @@ func collectProjections(
 	return projections
 }
 
-// replayProjections reads events from the journal and dispatches each to
-// every projection that handles its event type. Returns a [dedup.Ring] of
-// replayed event IDs for live-handler dedup.
-//
-// When cpStore is non-nil AND the journal is seekable, replay resumes from
-// the stored checkpoint (ReadFrom). Otherwise, full journal replay (ReadAll).
-func replayProjections(
-	journal event.Journal,
-	cpStore event.CheckpointStore,
-	projections []projection.Projection,
-) (*dedup.Ring, error) {
-	replayCtx := event.WithProcessingMode(context.Background(), event.ModeReplay)
+// waitForDrain blocks until all projection host workers have finished their
+// initial journal drain and transitioned to live state (WorkerLive), or one
+// has failed. This preserves read-your-writes: after this returns, all
+// projections have processed all historical events.
+func waitForDrain(host *projectionhost.Host) error {
+	const (
+		pollInterval = 10 * time.Millisecond
+		drainTimeout = 30 * time.Second
+	)
 
-	events, cpName, err := loadReplayEvents(context.Background(), journal, cpStore)
-	if err != nil {
-		return nil, err
-	}
+	timer := time.NewTimer(drainTimeout)
+	defer timer.Stop()
 
-	replayIDs := dedup.NewRing(dedup.DefaultCapacity)
-	for _, evt := range events {
-		replayIDs.Add(evt.ID().String())
+	ticker := time.NewTicker(pollInterval)
+	defer ticker.Stop()
 
-		for _, proj := range projections {
-			if !slices.Contains(proj.EventTypes(), evt.Type()) {
-				continue
+	for {
+		select {
+		case <-ticker.C:
+			statuses := host.Status()
+			allLive := true
+			for _, s := range statuses {
+				switch s.Status {
+				case projectionhost.WorkerLive:
+				case projectionhost.WorkerFailed:
+					return errorfamily.NewInfrastructure(
+						"usermgmt.projection.worker_failed",
+						fmt.Sprintf("projection %q failed during initial drain: %s", s.Name, s.LastError),
+					)
+				case projectionhost.WorkerStopped:
+					return errorfamily.NewInfrastructure(
+						"usermgmt.projection.worker_stopped",
+						fmt.Sprintf("projection %q stopped unexpectedly during initial drain", s.Name),
+					)
+				default:
+					allLive = false
+				}
 			}
-
-			if err := proj.Handle(replayCtx, evt); err != nil {
-				return nil, errorfamily.WrapInfrastructure(err,
-					"usermgmt.projection.replay_failed",
-					"replay event in projection "+proj.Name())
+			if allLive {
+				return nil
 			}
-		}
-
-		// Save checkpoint after each event so restarts resume from here.
-		if cpStore != nil && cpName != "" {
-			if saveErr := cpStore.Save(context.Background(), cpName, event.Checkpoint{
-				EventID:     evt.ID(),
-				ProcessedAt: evt.OccurredAt(),
-			}); saveErr != nil {
-				slog.Warn("usermgmt: save checkpoint during replay",
-					"event_id", evt.ID().String(), "error", saveErr)
-			}
+		case <-timer.C:
+			return errorfamily.NewTransient(
+				"usermgmt.projection.drain_timeout",
+				fmt.Sprintf("projection drain timed out after %s", drainTimeout),
+			)
 		}
 	}
-
-	return replayIDs, nil
-}
-
-// loadReplayEvents loads events from the journal for replay. When a
-// checkpoint store is provided AND the journal is seekable, it resumes
-// from the stored checkpoint. Otherwise it reads the full journal.
-// Returns the events and the checkpoint name (empty if not using checkpoints).
-func loadReplayEvents(
-	ctx context.Context,
-	journal event.Journal,
-	cpStore event.CheckpointStore,
-) ([]event.Event, string, error) {
-	if cpStore == nil {
-		events, err := journal.ReadAll(ctx)
-		if err != nil {
-			return nil, "", errorfamily.WrapInfrastructure(err,
-				"usermgmt.projection.replay_failed",
-				"read events from journal")
-		}
-		return events, "", nil
-	}
-
-	seekable, ok := journal.(event.SeekableJournal)
-	if !ok {
-		events, err := journal.ReadAll(ctx)
-		if err != nil {
-			return nil, "", errorfamily.WrapInfrastructure(err,
-				"usermgmt.projection.replay_failed",
-				"read events from journal")
-		}
-		return events, "", nil
-	}
-
-	const cpName = "usermgmt:start_projections"
-	cp, err := cpStore.Load(ctx, cpName)
-	if err != nil {
-		return nil, "", errorfamily.WrapInfrastructure(err,
-			"usermgmt.projection.checkpoint_load_failed",
-			"load checkpoint for replay")
-	}
-
-	events, err := seekable.ReadFrom(ctx, cp.EventID, 0)
-	if err != nil {
-		return nil, "", errorfamily.WrapInfrastructure(err,
-			"usermgmt.projection.replay_failed",
-			"read events from journal via ReadFrom")
-	}
-
-	return events, cpName, nil
-}
-
-// buildLiveHandler creates an event.Handler that routes live events to all
-// projections. Events already seen during replay are skipped (dedup via
-// [dedup.Ring]).
-//
-// Error handling: projection errors during live processing are logged at
-// error level but do not stop event delivery. This is intentional — a single
-// failing projection should not block other projections or cause the bus to
-// retry the event indefinitely. The previous projection.Runner had retry
-// and dead-letter-queue support; that complexity was intentionally dropped
-// in favor of simplicity (ADR-0016). Consumers needing retry semantics can
-// wrap their projection's Handle method.
-//
-// Memory: the replayIDs ring is a fixed-capacity dedup set (1024 entries).
-// Only the most recent replay event IDs are retained, which is sufficient
-// because overlapping events are always at the tail of the replay sequence.
-// A nil ring (no replay occurred) always returns false from Has — safe no-op.
-func buildLiveHandler(
-	projections []projection.Projection,
-	replayIDs *dedup.Ring,
-) event.Handler {
-	return event.Handler(func(ctx context.Context, evt event.Event) error {
-		if replayIDs.Has(evt.ID().String()) {
-			return nil
-		}
-
-		for _, proj := range projections {
-			if !slices.Contains(proj.EventTypes(), evt.Type()) {
-				continue
-			}
-
-			if err := proj.Handle(ctx, evt); err != nil {
-				slog.Error("usermgmt: projection handler failed",
-					"projection", proj.Name(),
-					"event_type", evt.Type().String(),
-					"error", err)
-			}
-		}
-
-		return nil
-	})
 }
