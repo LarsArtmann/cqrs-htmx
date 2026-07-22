@@ -241,6 +241,61 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 	})
 }
 
+// CommandTyped returns a typed http.HandlerFunc that dispatches a command of
+// type Q. The decoder must return a value that implements command.Command and is
+// assignable to Q; if it returns a different type, the handler responds with
+// 400 Bad Request. Use this with DecodeJSONTyped[Q] or DecodeFormTyped[Q].
+//
+// Example:
+//
+//	app.CommandTyped[*CreateItemCmd]("CreateItem",
+//	    cqrshtmx.DecodeJSONTyped[*CreateItemCmd](),
+//	)
+func (a *App) CommandTyped[Q command.Command](cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
+	cfg := a.buildHandlerConfigChecked(cmdType.IsZero(), "command", opts)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if a.commands == nil {
+			a.errorHandler(w, r, errCommandsNil)
+
+			return
+		}
+
+		w, r = a.applyServerTiming(w, r)
+		r = a.enrichUserID(r)
+		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
+		a.handleCommandTypedDispatch[Q](w, r, cmdType, cfg)
+	})
+}
+
+// QueryTyped returns a typed http.HandlerFunc that dispatches a query of type Q
+// and expects a result of type R. The decoder must return a value that implements
+// query.Query and is assignable to Q. Use this with DecodeJSONQueryTyped[Q] and
+// a typed renderer such as RenderJSON[R]().
+//
+// Example:
+//
+//	app.QueryTyped[*GetUserQuery, *User]("GetUser",
+//	    cqrshtmx.DecodeJSONQueryTyped[*GetUserQuery](),
+//	    cqrshtmx.RenderJSON[*User](),
+//	)
+func (a *App) QueryTyped[Q query.Query, R any](qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
+	cfg := a.buildHandlerConfigChecked(qryType.IsZero(), "query", opts)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if a.queries == nil {
+			a.errorHandler(w, r, errQueriesNil)
+
+			return
+		}
+
+		w, r = a.applyServerTiming(w, r)
+		r = a.enrichUserID(r)
+		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
+		a.handleQueryTypedDispatch[Q, R](w, r, qryType, cfg)
+	})
+}
+
 // buildHandlerConfigChecked is the shared entry-point preamble for App.Command
 // and App.Query: it validates that the caller passed a non-empty command/query
 // type, then resolves the HandlerConfig (falling back to the App's default
