@@ -70,7 +70,8 @@ func (a *App) handleErr(
 // decoderNil gates the unconfigured-decoder branch; decode runs the decoder;
 // dispatch performs the actual CQRS call (returning a result, nil for commands);
 // respond renders the success response. All four are per-kind adapters.
-func (a *App) dispatchRequest[Q, R any](
+func dispatchRequest[Q, R any](
+	a *App,
 	w http.ResponseWriter,
 	r *http.Request,
 	cfg *handlerConfig,
@@ -138,7 +139,7 @@ func (a *App) handleCommandDispatch(
 	cmdType command.Type,
 	cfg *handlerConfig,
 ) {
-	a.dispatchRequest[any, any](w, r, cfg, string(cmdType), "command",
+	a.dispatchRequest[any, any](a, w, r, cfg, string(cmdType), "command",
 		func() bool { return cfg.commandDecoder == nil },
 		func(r *http.Request) (any, error) { return cfg.commandDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
@@ -227,7 +228,7 @@ func (a *App) handleQueryDispatch(
 	qryType query.Type,
 	cfg *handlerConfig,
 ) {
-	a.dispatchRequest[any, any](w, r, cfg, string(qryType), "query",
+	a.dispatchRequest[any, any](a, w, r, cfg, string(qryType), "query",
 		func() bool { return cfg.queryDecoder == nil },
 		func(r *http.Request) (any, error) { return cfg.queryDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
@@ -244,13 +245,14 @@ func (a *App) handleQueryDispatch(
 // handleCommandTypedDispatch runs the shared pipeline for a typed command handler.
 // The decoder must return a value of type Q (which satisfies command.Command); if it
 // returns a different concrete type, the handler rejects with ErrDecodeFailed.
-func (a *App) handleCommandTypedDispatch[Q command.Command](
+func handleCommandTypedDispatch[Q command.Command](
+	a *App,
 	w http.ResponseWriter,
 	r *http.Request,
 	cmdType command.Type,
 	cfg *handlerConfig,
 ) {
-	a.dispatchRequest[Q, any](w, r, cfg, string(cmdType), "command",
+	dispatchRequest[Q, any](a, w, r, cfg, string(cmdType), "command",
 		func() bool { return cfg.commandDecoder == nil },
 		func(r *http.Request) (Q, error) {
 			v, err := cfg.commandDecoder(r)
@@ -284,13 +286,14 @@ func (a *App) handleCommandTypedDispatch[Q command.Command](
 // Q is the query type and R is the result type. The decoder must return a value of
 // type Q (which satisfies query.Query); if it returns a different concrete type,
 // the handler rejects with ErrDecodeFailed.
-func (a *App) handleQueryTypedDispatch[Q query.Query, R any](
+func handleQueryTypedDispatch[Q query.Query, R any](
+	a *App,
 	w http.ResponseWriter,
 	r *http.Request,
 	qryType query.Type,
 	cfg *handlerConfig,
 ) {
-	a.dispatchRequest[Q, R](w, r, cfg, string(qryType), "query",
+	dispatchRequest[Q, R](a, w, r, cfg, string(qryType), "query",
 		func() bool { return cfg.queryDecoder == nil },
 		func(r *http.Request) (Q, error) {
 			v, err := cfg.queryDecoder(r)
