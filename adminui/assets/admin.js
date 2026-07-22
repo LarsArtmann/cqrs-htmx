@@ -188,12 +188,15 @@
     };
   }
 
-  // --- Offline command queue (ADR 0029): SharedWorker coordination ---
+  // --- Offline command queue (ADR 0029 + ADR 0040): SharedWorker coordination ---
   // When a mutation fails with a network error (htmx:sendError), the command
   // ID is enqueued to a SharedWorker. On reconnect, the worker tells this tab
   // to retry via htmx.trigger(). The UI shows "queued — offline" (not rejected).
+  // Commands that exceed the worker's max retry count or TTL are reported as
+  // dead — the tab shows them as permanently failed with a manual retry option.
 
   var syncWorker = null;
+  var tabId = null;
 
   function initSyncWorker() {
     if (typeof SharedWorker === "undefined") return;
@@ -206,6 +209,11 @@
 
     try {
       syncWorker = new SharedWorker(workerURL);
+      tabId =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : String(Date.now()) + Math.random().toString(36).slice(2);
+
       syncWorker.port.onmessage = function (e) {
         var data = e.data;
         if (!data || !data.type) return;
@@ -217,9 +225,28 @@
           // Surface it in the indicator so users see deferred sync work.
           sync.queued = Math.max(sync.queued, data.count | 0);
           updateIndicator();
+        } else if (data.type === "dead") {
+          handleDeadCommand(data.commandId);
         }
       };
       syncWorker.port.start();
+
+      // Register this tab with the worker so it can target retry messages
+      // to the originating tab and clean up on disconnect.
+      syncWorker.port.postMessage({ type: "hello", tabId: tabId });
+
+      // Best-effort unregister on beforeunload (tab close, navigation).
+      // If this doesn't fire (tab crash), the worker detects the dead port
+      // on the next broadcast and removes it.
+      window.addEventListener("beforeunload", function () {
+        if (syncWorker) {
+          try {
+            syncWorker.port.postMessage({ type: "bye", tabId: tabId });
+          } catch (e) {
+            // Worker already gone — nothing to clean up
+          }
+        }
+      });
     } catch (e) {
       // SharedWorker unavailable — online path unaffected (graceful degradation)
     }
@@ -241,6 +268,22 @@
     // Tell the worker the command is settled server-side so it can delete the
     // persisted copy (ADR-0040) and stop retrying it.
     syncWorker.port.postMessage({ type: "ack", commandId: commandId });
+  }
+
+  // handleDeadCommand processes a {type:"dead"} message from the worker,
+  // meaning the command exceeded the max retry count or TTL. The worker has
+  // already deleted it from persistence — the tab just needs to show it as
+  // permanently failed with a manual retry option.
+  function handleDeadCommand(commandId) {
+    if (!commandId) return;
+    var el = document.querySelector('[data-command-id="' + commandId + '"]');
+    if (el) {
+      setSyncState(el, "rejected");
+      announce(el, "Sync failed after retries — manual retry needed", true);
+    }
+    sync.queued = Math.max(0, sync.queued - 1);
+    sync.failed++;
+    updateIndicator();
   }
 
   function retryQueuedCommand(commandId, envelope) {
