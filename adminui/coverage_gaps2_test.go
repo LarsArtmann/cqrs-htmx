@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"bytes"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 func TestNew_NilService_ReturnsError(t *testing.T) {
@@ -170,6 +172,51 @@ func TestPanel_AssetsServeSyncClient(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/-/sync-client.js", nil))
 	if rec.Code != http.StatusOK {
 		t.Errorf("sync-client asset: status %d, want 200", rec.Code)
+	}
+}
+
+// TestPanel_SyncWorkerDelegationMatchesRoot verifies that adminui's delegation
+// to the root SyncWorkerHandler serves byte-identical content. This catches
+// drift if someone accidentally replaces the delegation with a stale embedded copy.
+func TestPanel_SyncWorkerDelegationMatchesRoot(t *testing.T) {
+	user := mustUser(t, "admin@example.com")
+	h, _ := newTestPanel(t, user)
+
+	// Get bytes from adminui panel route
+	panelRec := httptest.NewRecorder()
+	h.ServeHTTP(panelRec, httptest.NewRequest(http.MethodGet, "/admin/-/sync-worker.js", nil))
+
+	// Get bytes from root handler directly
+	rootRec := httptest.NewRecorder()
+	cqrshtmx.SyncWorkerHandler().ServeHTTP(rootRec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if !bytes.Equal(panelRec.Body.Bytes(), rootRec.Body.Bytes()) {
+		t.Errorf(
+			"sync-worker.js delegation mismatch: adminui %d bytes vs root %d bytes",
+			panelRec.Body.Len(), rootRec.Body.Len(),
+		)
+	}
+}
+
+// TestPanel_SyncClientDelegationMatchesRoot verifies that adminui's delegation
+// to the root SyncClientHandler serves byte-identical content.
+func TestPanel_SyncClientDelegationMatchesRoot(t *testing.T) {
+	user := mustUser(t, "admin@example.com")
+	h, _ := newTestPanel(t, user)
+
+	// Get bytes from adminui panel route
+	panelRec := httptest.NewRecorder()
+	h.ServeHTTP(panelRec, httptest.NewRequest(http.MethodGet, "/admin/-/sync-client.js", nil))
+
+	// Get bytes from root handler directly
+	rootRec := httptest.NewRecorder()
+	cqrshtmx.SyncClientHandler().ServeHTTP(rootRec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if !bytes.Equal(panelRec.Body.Bytes(), rootRec.Body.Bytes()) {
+		t.Errorf(
+			"sync-client.js delegation mismatch: adminui %d bytes vs root %d bytes",
+			panelRec.Body.Len(), rootRec.Body.Len(),
+		)
 	}
 }
 
