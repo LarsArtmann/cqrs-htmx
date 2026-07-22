@@ -34,7 +34,7 @@
 | [0028](0028-brand-all-id-types.md)                | Brand all ID types with go-branded-id                                           | Accepted                                                         |
 | [0029](0029-sharedworker-phase2a.md)              | SharedWorker for Phase 2a Offline Command Sync                                  | Accepted                                                         |
 | [0030](0030-phase2-persistence-strategy.md)       | Phase 2 Persistence Strategy — SharedWorker with IndexedDB                      | Proposed                                                         |
-| [0031](0031-projection-lifecycle-decision.md)     | Projection Lifecycle — StartProjections vs projectionhost vs CatchUpSubscriber  | Accepted (checkpoint replay shipped; CatchUpSubscriber deferred) |
+| [0031](0031-projection-lifecycle-decision.md)     | Projection Lifecycle — StartProjections vs projectionhost vs CatchUpSubscriber  | Superseded (projectionhost/v4 adopted; CatchUpSubscriber Not Needed) |
 | [0032](0032-basic-command-embedding.md)           | Embed `command.BasicCommand` in all usermgmt commands                           | Accepted                                                         |
 | [0033](0033-server-timing-api.md)                 | Server-Timing API                                                               | Accepted                                                         |
 | [0034](0034-http-status-carrier.md)               | HTTPStatusCarrier — Errors That Pin Their HTTP Status                           | Accepted                                                         |

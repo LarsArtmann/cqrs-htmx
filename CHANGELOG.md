@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Projection lifecycle: adopted `projectionhost/v4`** (`usermgmt/es_projection_setup.go`, ADR-0031 Superseded): Replaced the 155-line hand-rolled replay+dedup+live-handler logic in `StartProjections` with go-cqrs-lite's `projectionhost.Host`. Benefits: per-projection goroutines, per-projection checkpoint keys (each projection resumes from its own position), poison-message dead-letter queue (`MemoryDeadLetterStore`), crash auto-restart with exponential backoff, and built-in replay→live handoff via `WithSubscriber`. Read-your-writes on startup is preserved via a `waitForDrain` sync-wait wrapper that blocks until all workers complete their initial journal drain. `StartProjections` now returns `(*projectionhost.Host, error)` — callers must stop the host on shutdown (all setup structs and `Service` hold it and stop it in `Close()`/`closeInfra()`). **Breaking for checkpoint users:** per-projection checkpoint keys replace the former single `"usermgmt:start_projections"` key — existing checkpoint data is incompatible (one-time full replay on first run after upgrade). CatchUpSubscriber evaluation is closed as Not Needed (projectionhost `WithSubscriber` provides the same replay→live handoff without CatchUpSubscriber's message-model adapter overhead).
+- **Projection replay benchmark** (`usermgmt/es_projection_replay_bench_test.go`): Added `BenchmarkProjectionReplay` measuring drain time for 100/1K/10K events through projectionhost into all read models. Results: ~3µs/event, linear scaling, 10K events = 30ms.
+
 ### Added
 
 - **Partial rendering helpers** (`partial.go`, `options_render.go`): Five new functions that eliminate the boilerplate `if HX-Request { renderPartial } else { renderFull }` branching repeated in every HTMX handler:
