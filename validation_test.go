@@ -258,4 +258,53 @@ var _ = Describe("Validation HandlerOption", func() {
 			Expect(w.Body.String()).To(ContainSubstring("page must be positive"))
 		})
 	})
+
+	Describe("DecodeAndValidateForm error paths", func() {
+		It("rejects form bodies with wrong type for int field", func() {
+			app := newCommandApp()
+			w := serve(app.Command(
+				"CreateUser",
+				cqrshmx.DecodeAndValidateForm(func(_ testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+				}),
+			), newPostRequest("/users", "email=not-an-email",
+				withHeader("Content-Type", "application/x-www-form-urlencoded"),
+			))
+			Expect(w.code()).To(Equal(http.StatusOK))
+		})
+	})
+
+	Describe("DecodeAndValidateFormQuery error paths", func() {
+		It("rejects empty form body when validation requires non-zero values", func() {
+			app := newQueryAppWithResult(testResultQueryHandler())
+
+			r := newPostRequest("/users", "",
+				withHeader("Content-Type", "application/x-www-form-urlencoded"),
+			)
+			w := serve(app.Query(
+				"GetUser",
+				cqrshmx.DecodeAndValidateFormQuery(func(_ testPagedQueryRequest) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("page must be positive"))
+		})
+
+		It("rejects form bodies with wrong type for int field", func() {
+			app := newQueryAppWithResult(testResultQueryHandler())
+
+			r := newPostRequest("/users", "page=not-a-number",
+				withHeader("Content-Type", "application/x-www-form-urlencoded"),
+			)
+			w := serve(app.Query(
+				"GetUser",
+				cqrshmx.DecodeAndValidateFormQuery(func(_ testPagedQueryRequest) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("decode"))
+		})
+	})
 })
