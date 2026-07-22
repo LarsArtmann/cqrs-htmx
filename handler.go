@@ -101,6 +101,10 @@ func dispatchRequest[Q, R any](
 		return
 	}
 
+	// any(v) == nil: in Go, v == nil on a generic type parameter fails to compile
+	// when v is a non-interface type (the compiler cannot prove nil-comparability).
+	// Wrapping with any(v) converts v to an interface{} first, then the nil check
+	// works on the interface (a nil interface holds neither type nor value).
 	if any(v) == nil {
 		// The decoder was configured but returned (nil, nil): a server-side
 		// wiring bug, not a transient infrastructure problem. Classify as
