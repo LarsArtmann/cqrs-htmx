@@ -10,7 +10,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
-//go:embed assets/admin-tw.css assets/admin.js assets/sync-worker.js
+//go:embed assets/admin-tw.css assets/admin.js
 var assetsFS embed.FS
 
 // assetHandler serves a single embedded file with long-lived caching and a
@@ -37,4 +37,10 @@ const assetETag = `adminui-v3.3.0`
 
 // htmxScriptHandler serves the embedded HTMX script (v2.0.10) from the root
 // cqrs-htmx module, so the panel is fully self-contained.
-func htmxScriptHandler() http.Handler { return cqrshtmx.HTMXScriptHandler() }
+func htmxScriptHandler() http.Handler  { return cqrshtmx.HTMXScriptHandler() }
+
+// syncWorkerHandler serves the offline sync SharedWorker from the root module.
+func syncWorkerHandler() http.Handler { return cqrshtmx.SyncWorkerHandler() }
+
+// syncClientHandler serves the offline sync tab-side client from the root module.
+func syncClientHandler() http.Handler { return cqrshtmx.SyncClientHandler() }
