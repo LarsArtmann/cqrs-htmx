@@ -27,6 +27,7 @@
 //     <script src="/assets/client.js" data-sync-worker-url="/workers/sync.js">
 //
 // NO BUILD STEP. No framework. No dependencies beyond HTMX (loaded separately).
+// @ts-check
 "use strict";
 
 (function () {

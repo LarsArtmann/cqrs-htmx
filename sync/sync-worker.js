@@ -52,6 +52,7 @@
 // CONFIGURATION: The retry limits and stagger delays below are compile-time
 // constants. To customize them, copy this file, modify the values, and serve
 // the result via cqrshtmx.SyncWorkerHandlerWith(customJS, "1.0.0-custom").
+// @ts-check
 "use strict";
 
 (function () {
@@ -96,6 +97,11 @@
   // Broadcasting
   // ---------------------------------------------------------------------------
 
+  /**
+   * Send a message to every connected tab. Tabs whose port throws on
+   * postMessage are removed (crash detection).
+   * @param {Record<string, unknown>} msg - Message to broadcast.
+   */
   function broadcast(msg) {
     const dead = [];
     ports.forEach((port, tabId) => {
@@ -185,8 +191,13 @@
     });
   }
 
-  // Uses store.add (not store.put) so a re-enqueue of an existing command
-  // preserves its retry count instead of resetting it to 0.
+  /**
+   * Persist a command envelope to IndexedDB (or in-memory fallback).
+   * Uses store.add (not put) so re-enqueue preserves retry count.
+   * @param {string} commandId - Unique command identifier.
+   * @param {{ verb: string, url: string, values: Object|null, headers: Object|null }} envelope - Request data for retry.
+   * @returns {Promise<void>}
+   */
   function persistCommand(commandId, envelope) {
     if (!db) {
       if (!memQueue.has(commandId)) {
@@ -208,6 +219,12 @@
     });
   }
 
+  /**
+   * Delete a command from IndexedDB (or in-memory fallback).
+   * Called on ACK (server confirmed/rejected) or eviction (dead).
+   * @param {string} commandId - Unique command identifier.
+   * @returns {Promise<void>}
+   */
   function deleteCommand(commandId) {
     if (!db) {
       memQueue.delete(commandId);
@@ -253,6 +270,10 @@
     });
   }
 
+  /**
+   * Load all persisted commands from IndexedDB (or in-memory fallback).
+   * @returns {Promise<Array<{ commandId: string, envelope: Object, queuedAt: number, retries: number }>>}
+   */
   function loadAllCommands() {
     if (!db) {
       const result = [];
@@ -282,6 +303,11 @@
     });
   }
 
+  /**
+   * Count pending commands in IndexedDB (or in-memory fallback).
+   * Uses store.count() — not getAll().length — for efficiency.
+   * @returns {Promise<number>}
+   */
   function pendingCount() {
     if (!db) return Promise.resolve(memQueue.size);
     return new Promise((resolve) => {
@@ -311,6 +337,12 @@
   // messages across alive tabs with staggered delivery.
   // ---------------------------------------------------------------------------
 
+  /**
+   * Trigger a flush cycle: read all persisted commands, evict dead ones
+   * (MAX_RETRIES or TTL exceeded), then distribute retry messages to
+   * alive tabs with staggered delivery (prevents thundering herd).
+   * Concurrent calls are coalesced (flushPending flag).
+   */
   function flush() {
     if (flushing) {
       flushPending = true;
