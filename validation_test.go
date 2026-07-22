@@ -114,6 +114,7 @@ var _ = Describe("Validation HandlerOption", func() {
 			Expect(w.Body.String()).To(ContainSubstring("decode"))
 			Expect(w.Body.String()).NotTo(ContainSubstring("should not run"))
 		})
+	})
 	Describe("DecodeAndValidateJSON", func() {
 		It("dispatches when body passes Validate", func() {
 			var dispatched bool
