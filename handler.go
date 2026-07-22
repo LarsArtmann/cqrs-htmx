@@ -70,15 +70,15 @@ func (a *App) handleErr(
 // decoderNil gates the unconfigured-decoder branch; decode runs the decoder;
 // dispatch performs the actual CQRS call (returning a result, nil for commands);
 // respond renders the success response. All four are per-kind adapters.
-func (a *App) dispatchRequest(
+func (a *App) dispatchRequest[Q, R any](
 	w http.ResponseWriter,
 	r *http.Request,
 	cfg *handlerConfig,
 	typeName, kind string,
 	decoderNil func() bool,
-	decode func(*http.Request) (any, error),
-	dispatch func(ctx context.Context, v any) (any, error),
-	respond func(http.ResponseWriter, *http.Request, *handlerConfig, any),
+	decode func(*http.Request) (Q, error),
+	dispatch func(ctx context.Context, q Q) (R, error),
+	respond func(http.ResponseWriter, *http.Request, *handlerConfig, R),
 ) {
 	ctx, err := a.dispatchContext(w, r, cfg)
 	if err != nil {
@@ -138,7 +138,7 @@ func (a *App) handleCommandDispatch(
 	cmdType command.Type,
 	cfg *handlerConfig,
 ) {
-	a.dispatchRequest(w, r, cfg, string(cmdType), "command",
+	a.dispatchRequest[any, any](w, r, cfg, string(cmdType), "command",
 		func() bool { return cfg.commandDecoder == nil },
 		func(r *http.Request) (any, error) { return cfg.commandDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
