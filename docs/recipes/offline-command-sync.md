@@ -26,13 +26,13 @@ Browser Tab ── HTMX mutation (POST/PUT/DELETE)
   HTMX sends   │               htmx:sendError fires
   request      │                          │
      │         │               admin.js: enqueueCommand(id)
-     │         │               SharedWorker: queue [{id, port}]
+     │         │               SharedWorker: persist to IndexedDB
      │         │               UI: data-sync-queued (amber, "offline")
      │         │                          │
      │         │               ... network returns ...
      │         │                          │
      │         │               SharedWorker: online event
-     │         │               → postMessage {type:"retry", id}
+     │         │               → postMessage {type:"retry", id, envelope}
      │         │               admin.js: htmx.trigger(element, "click")
      │         │                          │
      └─────┬───┘──────────────────────────┘
@@ -137,6 +137,7 @@ cqrshtmx.SecurityHeadersConfig{
 | `htmx:responseError` | HTTP error response (4xx, 5xx)                     | Shows "rejected" (server rejected)                      |
 | SSE `sync:ack`       | Server confirms/rejects command                    | Flips `data-sync-state` to confirmed/rejected           |
 | SharedWorker `retry` | Network restored, queued command retried           | `htmx.trigger(element)` re-sends request                |
+| SharedWorker `dead`  | Command exceeded max retries (10) or TTL (24h)     | Shows "rejected" + "Sync failed after retries"          |
 
 **Key distinction:** `htmx:sendError` (offline) enqueues for retry. `htmx:responseError` (server error) shows rejected. Offline ≠ rejected.
 
@@ -152,8 +153,8 @@ Browsers without SharedWorker support gracefully degrade: the online path works
 normally, offline commands fail with `htmx:sendError` and show as rejected
 (honest UI — never silently dropped).
 
-## Limitations (Phase 2a)
+## Limitations
 
-- **Commands lost on last-tab-close**: The SharedWorker dies when all tabs close. This is the Queue-Only contract (ADR-0027). Phase 2b (Service Worker + Background Sync) can extend this if needed.
-- **Element-bound retry**: If the user navigates away from the page, the queued command's DOM element is gone. The retry shows "rejected (element not found)" — honest, not silent.
-- **No persistence**: In-memory only. IndexedDB is banned (ADR-0029). OPFS is deferred to Phase 2b.
+- **IndexedDB persistence (Phase 2b, ADR-0040):** Queued commands survive closed tabs and browser restarts via IndexedDB. Commands are evicted after 10 retries or 24 hours (TTL). Degrades to in-memory-only when IndexedDB is unavailable (private browsing, quota).
+- **Element-bound retry**: If the user navigates away from the page, the queued command's DOM element is gone. The worker sends the envelope (persisted in IDB) so `rebuildAndRetry` can synthesize a new host element and re-issue the request via `htmx.ajax`.
+- **Not E2E browser-tested**: The `rebuildAndRetry` cross-session path and IndexedDB persistence are unit-test-verified at the protocol level but have not been verified in a real browser (Playwright/Selenium).
