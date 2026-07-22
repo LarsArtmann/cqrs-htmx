@@ -248,10 +248,10 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 //
 // Example:
 //
-//	app.CommandTyped[*CreateItemCmd]("CreateItem",
+//	cqrshtmx.CommandTyped[*CreateItemCmd](app, "CreateItem",
 //	    cqrshtmx.DecodeJSONTyped[*CreateItemCmd](),
 //	)
-func (a *App) CommandTyped[Q command.Command](cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
+func CommandTyped[Q command.Command](a *App, cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
 	cfg := a.buildHandlerConfigChecked(cmdType.IsZero(), "command", opts)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -264,7 +264,7 @@ func (a *App) CommandTyped[Q command.Command](cmdType command.Type, opts ...Hand
 		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
 		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
-		a.handleCommandTypedDispatch[Q](w, r, cmdType, cfg)
+		handleCommandTypedDispatch[Q](a, w, r, cmdType, cfg)
 	})
 }
 
@@ -275,11 +275,11 @@ func (a *App) CommandTyped[Q command.Command](cmdType command.Type, opts ...Hand
 //
 // Example:
 //
-//	app.QueryTyped[*GetUserQuery, *User]("GetUser",
+//	cqrshtmx.QueryTyped[*GetUserQuery, *User](app, "GetUser",
 //	    cqrshtmx.DecodeJSONQueryTyped[*GetUserQuery](),
 //	    cqrshtmx.RenderJSON[*User](),
 //	)
-func (a *App) QueryTyped[Q query.Query, R any](qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
+func QueryTyped[Q query.Query, R any](a *App, qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
 	cfg := a.buildHandlerConfigChecked(qryType.IsZero(), "query", opts)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -292,7 +292,7 @@ func (a *App) QueryTyped[Q query.Query, R any](qryType query.Type, opts ...Handl
 		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
 		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
-		a.handleQueryTypedDispatch[Q, R](w, r, qryType, cfg)
+		handleQueryTypedDispatch[Q, R](a, w, r, qryType, cfg)
 	})
 }
 
