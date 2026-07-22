@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // BenchmarkProjectionReplay measures the time to drain a journal of N events
@@ -33,12 +34,13 @@ func BenchmarkProjectionReplay(b *testing.B) {
 				store := memory.NewMemoryStore()
 				ctx := context.Background()
 				for _, evt := range events {
-					if _, err := store.Append(ctx, evt.AggregateID(), []event.Event{evt}); err != nil {
-						b.Fatalf("Append: %v", err)
+					ref := id.AggregateRef{ID: evt.AggregateID(), Type: "User"}
+					if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+						b.Fatalf("AppendBatch: %v", err)
 					}
 				}
 
-				bus := mustNewEventBus()
+				bus := watermill.NewEventBus()
 
 				readModel := NewUserReadModel()
 				authz, err := NewAuthz()
