@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Validatable is the constraint used by DecodeAndValidate* helpers.
@@ -91,7 +93,12 @@ func DecodeFormQueryTyped[Q query.Query]() HandlerOption {
 func DecodeAndValidateJSON[T Validatable](mapper func(T) (command.Command, error)) HandlerOption {
 	return DecodeJSON(func(t T) (command.Command, error) {
 		if err := t.Validate(); err != nil {
-			return nil, err
+			return nil, errorfamily.Wrapf(
+			err,
+			event.Rejection,
+			"cqrshtmx.decode.validation_failed",
+			"validation failed",
+		)
 		}
 
 		return mapper(t)
@@ -103,7 +110,12 @@ func DecodeAndValidateJSON[T Validatable](mapper func(T) (command.Command, error
 func DecodeAndValidateJSONQuery[T Validatable](mapper func(T) (query.Query, error)) HandlerOption {
 	return DecodeJSONQuery(func(t T) (query.Query, error) {
 		if err := t.Validate(); err != nil {
-			return nil, err
+			return nil, errorfamily.Wrapf(
+			err,
+			event.Rejection,
+			"cqrshtmx.decode.validation_failed",
+			"validation failed",
+		)
 		}
 
 		return mapper(t)
@@ -115,7 +127,12 @@ func DecodeAndValidateJSONQuery[T Validatable](mapper func(T) (query.Query, erro
 func DecodeAndValidateForm[T Validatable](mapper func(T) (command.Command, error)) HandlerOption {
 	return DecodeForm(func(t T) (command.Command, error) {
 		if err := t.Validate(); err != nil {
-			return nil, err
+			return nil, errorfamily.Wrapf(
+			err,
+			event.Rejection,
+			"cqrshtmx.decode.validation_failed",
+			"validation failed",
+		)
 		}
 
 		return mapper(t)
@@ -127,7 +144,12 @@ func DecodeAndValidateForm[T Validatable](mapper func(T) (command.Command, error
 func DecodeAndValidateFormQuery[T Validatable](mapper func(T) (query.Query, error)) HandlerOption {
 	return DecodeFormQuery(func(t T) (query.Query, error) {
 		if err := t.Validate(); err != nil {
-			return nil, err
+			return nil, errorfamily.Wrapf(
+			err,
+			event.Rejection,
+			"cqrshtmx.decode.validation_failed",
+			"validation failed",
+		)
 		}
 
 		return mapper(t)
