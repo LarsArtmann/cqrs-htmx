@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 type testWidget struct {
