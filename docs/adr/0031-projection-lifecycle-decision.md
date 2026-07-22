@@ -64,12 +64,12 @@ The read-your-writes concern (the original reason projectionhost was rejected) i
 
 ## Comparison (final)
 
-| Feature                        | Former StartProjections (v3.3.0)   | projectionhost (adopted) | CatchUpSubscriber (not adopted) |
-| ------------------------------ | ----------------------------------- | ------------------------ | ------------------------------- |
-| Read-your-writes on startup    | **Yes** (synchronous)               | **Yes** (waitForDrain)   | Would need wrapper              |
-| Checkpoint persistence         | Single key                          | **Per-projection**       | Per-topic                       |
-| Crash auto-restart             | No                                  | **Yes**                  | No                              |
-| Dead-letter queue              | No                                  | **Yes**                  | No                              |
-| Code complexity                | 155 LOC (hand-rolled)               | ~60 LOC (wiring+wrapper) | ~10 LOC + message adapter       |
-| Full journal replay on restart | Only when cpStore is nil            | No (O(delta))             | No (O(delta))                   |
-| Message model                  | `event.Event`                       | `event.Event`             | `message.Message` (adapter req) |
+| Feature                        | Former StartProjections (v3.3.0) | projectionhost (adopted) | CatchUpSubscriber (not adopted) |
+| ------------------------------ | -------------------------------- | ------------------------ | ------------------------------- |
+| Read-your-writes on startup    | **Yes** (synchronous)            | **Yes** (waitForDrain)   | Would need wrapper              |
+| Checkpoint persistence         | Single key                       | **Per-projection**       | Per-topic                       |
+| Crash auto-restart             | No                               | **Yes**                  | No                              |
+| Dead-letter queue              | No                               | **Yes**                  | No                              |
+| Code complexity                | 155 LOC (hand-rolled)            | ~60 LOC (wiring+wrapper) | ~10 LOC + message adapter       |
+| Full journal replay on restart | Only when cpStore is nil         | No (O(delta))            | No (O(delta))                   |
+| Message model                  | `event.Event`                    | `event.Event`            | `message.Message` (adapter req) |
