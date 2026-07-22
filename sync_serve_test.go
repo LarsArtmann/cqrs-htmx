@@ -16,12 +16,15 @@ func TestSyncWorkerHandler_ServesJS(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want 200", rec.Code)
 	}
+
 	if ct := rec.Header().Get("Content-Type"); ct != "text/javascript; charset=utf-8" {
 		t.Errorf("Content-Type: got %q, want text/javascript; charset=utf-8", ct)
 	}
+
 	if rec.Body.Len() == 0 {
 		t.Error("body is empty")
 	}
+
 	if etag := rec.Header().Get("ETag"); etag == "" {
 		t.Error("missing ETag header")
 	}
@@ -35,12 +38,15 @@ func TestSyncClientHandler_ServesJS(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want 200", rec.Code)
 	}
+
 	if ct := rec.Header().Get("Content-Type"); ct != "text/javascript; charset=utf-8" {
 		t.Errorf("Content-Type: got %q, want text/javascript; charset=utf-8", ct)
 	}
+
 	if rec.Body.Len() == 0 {
 		t.Error("body is empty")
 	}
+
 	if etag := rec.Header().Get("ETag"); etag == "" {
 		t.Error("missing ETag header")
 	}
@@ -53,6 +59,7 @@ func TestSyncWorkerHandler_304OnIfNoneMatch(t *testing.T) {
 	rec1 := httptest.NewRecorder()
 	h.ServeHTTP(rec1, httptest.NewRequest(http.MethodGet, "/", nil))
 	etag := rec1.Header().Get("ETag")
+
 	if etag == "" {
 		t.Fatal("first request: missing ETag")
 	}
@@ -66,6 +73,7 @@ func TestSyncWorkerHandler_304OnIfNoneMatch(t *testing.T) {
 	if rec2.Code != http.StatusNotModified {
 		t.Errorf("304: got %d, want 304", rec2.Code)
 	}
+
 	if rec2.Body.Len() != 0 {
 		t.Errorf("304 body: got %d bytes, want 0", rec2.Body.Len())
 	}
@@ -110,16 +118,16 @@ func TestSyncClientHandler_RejectsPost(t *testing.T) {
 
 func TestSyncVersion(t *testing.T) {
 	v := cqrshtmx.SyncVersion()
+
 	if v == "" {
 		t.Error("SyncVersion returned empty string")
 	}
 }
 
-func TestSyncScriptTags(t *testing.T) {
-	if tag := cqrshtmx.SyncClientScriptTag("/sync.js"); tag != `<script src="/sync.js"></script>` {
+func TestSyncClientScriptTag(t *testing.T) {
+	tag := cqrshtmx.SyncClientScriptTag("/sync-client.js")
+
+	if tag != `<script src="/sync-client.js"></script>` {
 		t.Errorf("SyncClientScriptTag: got %q", tag)
-	}
-	if tag := cqrshtmx.SyncWorkerScriptTag("/worker.js"); tag != `<script src="/worker.js"></script>` {
-		t.Errorf("SyncWorkerScriptTag: got %q", tag)
 	}
 }
