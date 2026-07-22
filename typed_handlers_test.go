@@ -137,9 +137,13 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
 			Expect(err).NotTo(HaveOccurred())
 
+			// The decoder returns testGetUserQuery, but the handler expects
+			// *typedSumQuery. The type assertion should fail gracefully.
 			handler := cqrshtmx.QueryTyped[*typedSumQuery, int](
 				app, "Sum",
-				cqrshtmx.DecodeJSONQueryTyped[*typedSumQuery](),
+				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
 				cqrshtmx.RenderJSON[int](),
 			)
 
