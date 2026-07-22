@@ -281,7 +281,7 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			)
 			handler.ServeHTTP(w, r)
 
-			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(w.Code).To(Equal(http.StatusNoContent))
 			Expect(dispatched).To(BeTrue())
 		})
 
@@ -315,7 +315,7 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			handler.ServeHTTP(w, r)
 
-			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(w.Code).To(Equal(http.StatusNoContent))
 			Expect(dispatched).To(BeTrue())
 		})
 	})
