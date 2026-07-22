@@ -73,8 +73,8 @@ github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.1 h1:u1h2r0QeORxhhcv2
 github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.1/go.mod h1:G4r9m0Ej3LQgbfPT09u4R+tX2Ce7FaBHwsv5rGRk7E8=
 github.com/larsartmann/go-error-family v0.7.0 h1:D3fMZbx0gjVjtWOyIfevlUKWMWE65NnHFwtpBP3l9bw=
 github.com/larsartmann/go-error-family v0.7.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
-github.com/larsartmann/httputil v0.5.0 h1:ARo/PLrZSqQH7CDyMQmWRNZq6h18uRjG9YnFy928T0c=
-github.com/larsartmann/httputil v0.5.0/go.mod h1:do35f2Dt4vcF6MmTibmw+/XgI0eL2qjXl7+r8LKgBmo=
+github.com/larsartmann/httputil v0.6.0 h1:FRcn1jTV//sVX3YhhMjKIODxBCe/XeHXzsPPUF3sWVc=
+github.com/larsartmann/httputil v0.6.0/go.mod h1:WZOXUsHhqvzmNe+wogKEyIp8RlCXwnLhEyjqXomiiRA=
 github.com/maypok86/otter/v2 v2.3.0 h1:8H8AVVFUSzJwIegKwv1uF5aGitTY+AIrtktg7OcLs8w=
 github.com/maypok86/otter/v2 v2.3.0/go.mod h1:XgIdlpmL6jYz882/CAx1E4C1ukfgDKSaw4mWq59+7l8=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=

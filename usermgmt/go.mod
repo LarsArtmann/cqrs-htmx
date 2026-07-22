@@ -23,7 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.2
 	github.com/larsartmann/go-error-family v0.7.0
-	github.com/larsartmann/httputil v0.5.0
+	github.com/larsartmann/httputil v0.6.0
 	github.com/oklog/ulid/v2 v2.1.1
 	modernc.org/sqlite v1.54.0
 	pgregory.net/rapid v1.3.0
