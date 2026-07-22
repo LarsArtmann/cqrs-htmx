@@ -15,6 +15,10 @@ import (
 // The worker URL must be communicated to the sync client (sync-client.js) so
 // it can instantiate new SharedWorker(workerURL). The sync client derives the
 // worker URL from its own <script src> path by default.
+func SyncWorkerHandler() http.Handler {
+	return SyncWorkerHandlerWith(syncWorkerJS, syncVersion)
+}
+
 // SyncWorkerHandlerWith returns an http.Handler that serves custom offline
 // sync SharedWorker JavaScript. Use this when you want to serve a modified
 // sync-worker.js (e.g. with different retry configuration baked in). The
@@ -38,6 +42,10 @@ func SyncWorkerHandlerWith(js []byte, version string) http.Handler {
 // attribute is present on the <body> element. It derives the SharedWorker URL
 // from its own <script src> path (replacing "sync-client.js" with
 // "sync-worker.js").
+func SyncClientHandler() http.Handler {
+	return SyncClientHandlerWith(syncClientJS, syncVersion)
+}
+
 // SyncClientHandlerWith returns an http.Handler that serves custom offline
 // sync tab-side JavaScript. Use this when you want to serve a modified
 // sync-client.js. The version string is used for the ETag header so conditional

@@ -87,6 +87,30 @@ func ExampleHTMXScriptHandlerWith() {
 	// Output: mounted
 }
 
+func ExampleSyncWorkerHandler() {
+	mux := http.NewServeMux()
+	mux.Handle("/sync-worker.js", cqrshtmx.SyncWorkerHandler())
+	fmt.Println("mounted")
+	// Output: mounted
+}
+
+func ExampleSyncClientHandler() {
+	mux := http.NewServeMux()
+	mux.Handle("/sync-client.js", cqrshtmx.SyncClientHandler())
+	fmt.Println("mounted")
+	// Output: mounted
+}
+
+func ExampleSyncClientScriptTag() {
+	fmt.Println(cqrshtmx.SyncClientScriptTag("/sync-client.js"))
+	// Output: <script src="/sync-client.js"></script>
+}
+
+func ExampleSyncVersion() {
+	fmt.Println(cqrshtmx.SyncVersion() != "")
+	// Output: true
+}
+
 func ExampleHTMXCDNScriptTag() {
 	fmt.Println(cqrshtmx.HTMXCDNScriptTag(""))
 	fmt.Println(cqrshtmx.HTMXCDNScriptTag("4.0.0"))
