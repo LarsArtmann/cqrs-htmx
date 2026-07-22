@@ -101,7 +101,7 @@ func dispatchRequest[Q, R any](
 		return
 	}
 
-	if v == nil {
+	if any(v) == nil {
 		// The decoder was configured but returned (nil, nil): a server-side
 		// wiring bug, not a transient infrastructure problem. Classify as
 		// Corruption (500) so it is not retried as 503.
