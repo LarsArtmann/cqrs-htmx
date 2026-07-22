@@ -83,15 +83,24 @@ func MustParseCorrelationID(s string) CorrelationID {
 	return v
 }
 
-type userIDKey struct{}
+type contextKey[T any] struct{ name string }
 
-type correlationIDKey struct{}
+func (k contextKey[T]) WithValue(ctx context.Context, v T) context.Context {
+	return context.WithValue(ctx, k, v)
+}
 
-type requestIDKey struct{}
+func (k contextKey[T]) FromContext(ctx context.Context) (T, bool) {
+	v, ok := ctx.Value(k).(T)
+	return v, ok
+}
 
-type actorIDKey struct{}
-
-type impersonatorIDKey struct{}
+var (
+	userIDKeyInstance         = contextKey[UserID]{name: "user_id"}
+	correlationIDKeyInstance  = contextKey[CorrelationID]{name: "correlation_id"}
+	requestIDKeyInstance      = contextKey[RequestID]{name: "request_id"}
+	actorIDKeyInstance        = contextKey[ActorID]{name: "actor_id"}
+	impersonatorIDKeyInstance = contextKey[ImpersonatorID]{name: "impersonator_id"}
+)
 
 // MetadataKeyActorID is the event metadata custom-data key for the effective
 // identity — who the request acts AS. Written by EventOptionsFromContext.
@@ -129,39 +138,39 @@ func MustParseRequestID(s string) RequestID {
 
 // WithRequestID stores a strongly-typed request ID in the context.
 func WithRequestID(ctx context.Context, requestID RequestID) context.Context {
-	return context.WithValue(ctx, requestIDKey{}, requestID)
+	return requestIDKeyInstance.WithValue(ctx, requestID)
 }
 
 // RequestIDFromContext retrieves the request ID stored by WithRequestID.
 // Returns the zero value of RequestID if no request ID is present.
 func RequestIDFromContext(ctx context.Context) RequestID {
-	v, _ := ctx.Value(requestIDKey{}).(RequestID)
+	v, _ := requestIDKeyInstance.FromContext(ctx)
 
 	return v
 }
 
 // WithCorrelationID stores a strongly-typed correlation ID in the context.
 func WithCorrelationID(ctx context.Context, correlationID CorrelationID) context.Context {
-	return context.WithValue(ctx, correlationIDKey{}, correlationID)
+	return correlationIDKeyInstance.WithValue(ctx, correlationID)
 }
 
 // CorrelationIDFromContext retrieves the correlation ID stored by WithCorrelationID.
 // Returns the zero value of CorrelationID if no correlation ID is present.
 func CorrelationIDFromContext(ctx context.Context) CorrelationID {
-	v, _ := ctx.Value(correlationIDKey{}).(CorrelationID)
+	v, _ := correlationIDKeyInstance.FromContext(ctx)
 
 	return v
 }
 
 // WithUserID stores a strongly-typed user ID in the context for downstream CQRS handlers.
 func WithUserID(ctx context.Context, userID UserID) context.Context {
-	return context.WithValue(ctx, userIDKey{}, userID)
+	return userIDKeyInstance.WithValue(ctx, userID)
 }
 
 // UserIDFromContext retrieves the user ID stored by WithUserID.
 // Returns the zero value of UserID if no user ID is present.
 func UserIDFromContext(ctx context.Context) UserID {
-	v, _ := ctx.Value(userIDKey{}).(UserID)
+	v, _ := userIDKeyInstance.FromContext(ctx)
 
 	return v
 }
@@ -190,13 +199,13 @@ type ImpersonatorID = ActorID
 // This is who the request ACTS AS — the target user in impersonation,
 // or the authenticated user in direct login.
 func WithActorID(ctx context.Context, actorID ActorID) context.Context {
-	return context.WithValue(ctx, actorIDKey{}, actorID)
+	return actorIDKeyInstance.WithValue(ctx, actorID)
 }
 
 // ActorIDFromContext retrieves the effective actor ID stored by WithActorID.
 // Returns the zero value (empty string) if no actor ID is present.
 func ActorIDFromContext(ctx context.Context) ActorID {
-	v, _ := ctx.Value(actorIDKey{}).(ActorID)
+	v, _ := actorIDKeyInstance.FromContext(ctx)
 
 	return v
 }
@@ -205,13 +214,13 @@ func ActorIDFromContext(ctx context.Context) ActorID {
 // When set, the request is an impersonation: ActorID is the target,
 // ImpersonatorID is the admin acting on their behalf.
 func WithImpersonatorID(ctx context.Context, impersonatorID ImpersonatorID) context.Context {
-	return context.WithValue(ctx, impersonatorIDKey{}, impersonatorID)
+	return impersonatorIDKeyInstance.WithValue(ctx, impersonatorID)
 }
 
 // ImpersonatorIDFromContext retrieves the impersonator ID stored by WithImpersonatorID.
 // Returns the zero value (empty string) if not an impersonation request.
 func ImpersonatorIDFromContext(ctx context.Context) ImpersonatorID {
-	v, _ := ctx.Value(impersonatorIDKey{}).(ImpersonatorID)
+	v, _ := impersonatorIDKeyInstance.FromContext(ctx)
 
 	return v
 }
