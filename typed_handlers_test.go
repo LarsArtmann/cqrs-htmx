@@ -285,27 +285,38 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			Expect(received).To(Equal(""))
 		})
 
-		It("returns 400 when form body has wrong type for int field", func() {
+		It("dispatches with zero-value body for empty form", func() {
+			var received string
+
 			disp := command.NewDispatcher()
-			_ = disp.Register("CreateUser", noOpCommandHandler)
+			err := command.RegisterTyped(
+				disp, "Echo",
+				func(_ context.Context, cmd *typedEchoCommand) error {
+					received = cmd.Message
+
+					return nil
+				},
+			)
+			Expect(err).NotTo(HaveOccurred())
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
 
 			handler := cqrshtmx.CommandTyped[*typedEchoCommand](
-				app, "CreateUser",
+				app, "Echo",
 				cqrshtmx.DecodeFormTyped[*typedEchoCommand](),
 			)
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(
-				http.MethodPost, "/users",
-				strings.NewReader("message=%00%00%00"),
+				http.MethodPost, "/echo",
+				strings.NewReader(""),
 			)
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			handler.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(received).To(Equal(""))
 		})
 	})
 
