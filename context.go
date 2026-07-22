@@ -91,10 +91,11 @@ func (k contextKey[T]) WithValue(ctx context.Context, v T) context.Context {
 
 func (k contextKey[T]) FromContext(ctx context.Context) (T, bool) {
 	v, ok := ctx.Value(k).(T)
+
 	return v, ok
 }
 
-var (
+//nolint:gochecknoglobals // context key singletons; one instance per key is standard.
 	userIDKeyInstance         = contextKey[UserID]{name: "user_id"}
 	correlationIDKeyInstance  = contextKey[CorrelationID]{name: "correlation_id"}
 	requestIDKeyInstance      = contextKey[RequestID]{name: "request_id"}
