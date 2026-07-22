@@ -9,6 +9,7 @@ import (
 
 	cqrshmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -112,6 +113,65 @@ var _ = Describe("Validation HandlerOption", func() {
 			), r)
 			Expect(w.Body.String()).To(ContainSubstring("decode"))
 			Expect(w.Body.String()).NotTo(ContainSubstring("should not run"))
+		})
+	Describe("DecodeAndValidateJSON", func() {
+		It("dispatches when body passes Validate", func() {
+			var dispatched bool
+
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", trackingCommandHandler(&dispatched))
+			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			serve(app.Command(
+				"CreateUser",
+				cqrshmx.DecodeAndValidateJSON(func(_ testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+				}),
+			), newPostRequest("/users", `{"email":"a@b.com"}`))
+			Expect(dispatched).To(BeTrue())
+		})
+
+		It("rejects bodies that fail Validate", func() {
+			app := newCommandApp()
+			w := serve(app.Command(
+				"CreateUser",
+				cqrshmx.DecodeAndValidateJSON(func(_ testCreateUserRequest) (command.Command, error) {
+					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+				}),
+			), newPostRequest("/users", `{"email":""}`))
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("email is required"))
+		})
+	})
+
+	Describe("DecodeAndValidateJSONQuery", func() {
+		It("returns OK when query body passes Validate", func() {
+			app := newQueryAppWithResult(testResultQueryHandler())
+
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{"page":1}`))
+			w := serve(app.Query(
+				"GetUser",
+				cqrshmx.DecodeAndValidateJSONQuery(func(_ testPagedQueryRequest) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+				cqrshmx.Render(encodeJSONResult),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusOK))
+		})
+
+		It("rejects query bodies that fail Validate", func() {
+			app := newQueryAppWithResult(testResultQueryHandler())
+
+			r := httptest.NewRequest(http.MethodGet, "/users", strings.NewReader(`{"page":0}`))
+			w := serve(app.Query(
+				"GetUser",
+				cqrshmx.DecodeAndValidateJSONQuery(func(_ testPagedQueryRequest) (query.Query, error) {
+					return &testGetUserQuery{}, nil
+				}),
+			), r)
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("page must be positive"))
 		})
 	})
 })
