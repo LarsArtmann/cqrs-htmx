@@ -9,78 +9,78 @@
 
 ### projectionhost/v4 Adoption (Core)
 
-| Item | Status | Detail |
-|---|---|---|
-| `es_projection_setup.go` rewrite | DONE | Replaced 155 LOC hand-rolled replay+dedup+live-handler with `projectionhost.Host`. `StartProjections` returns `(*projectionhost.Host, error)`. Uses `WithSubscriber` for replay→live handoff, `WithDeadLetterStore` for poison-event capture. |
-| `waitForDrain` sync-wait wrapper | DONE | Polls `host.Status()` until all workers reach `WorkerLive` or `WorkerStopped`. Preserves read-your-writes. 30s timeout. |
-| `EventSourcedSetup` struct + `Close()` | DONE | Holds `*projectionhost.Host`, stops it in `Close()` before closing bus/store. |
-| `SQLiteEventSourcedSetup` struct + `Close()`/`GracefulClose()` | DONE | Same pattern. |
-| `PostgresEventSourcedSetup` struct + `Close()`/`GracefulClose()` | DONE | Same pattern. |
-| `Service` struct + `closeInfra()` | DONE | Holds `*projectionhost.Host`, stops it in `closeInfra()`. |
-| `usermgmt/go.mod` | DONE | Added `projectionhost/v4 v4.0.0` require. |
-| All callers updated | DONE | `es_setup.go`, `sqlite_setup.go`, `postgres_setup.go`, `service_core.go` — all handle the new `(*Host, error)` return. |
+| Item                                                             | Status | Detail                                                                                                                                                                                                                                        |
+| ---------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `es_projection_setup.go` rewrite                                 | DONE   | Replaced 155 LOC hand-rolled replay+dedup+live-handler with `projectionhost.Host`. `StartProjections` returns `(*projectionhost.Host, error)`. Uses `WithSubscriber` for replay→live handoff, `WithDeadLetterStore` for poison-event capture. |
+| `waitForDrain` sync-wait wrapper                                 | DONE   | Polls `host.Status()` until all workers reach `WorkerLive` or `WorkerStopped`. Preserves read-your-writes. 30s timeout.                                                                                                                       |
+| `EventSourcedSetup` struct + `Close()`                           | DONE   | Holds `*projectionhost.Host`, stops it in `Close()` before closing bus/store.                                                                                                                                                                 |
+| `SQLiteEventSourcedSetup` struct + `Close()`/`GracefulClose()`   | DONE   | Same pattern.                                                                                                                                                                                                                                 |
+| `PostgresEventSourcedSetup` struct + `Close()`/`GracefulClose()` | DONE   | Same pattern.                                                                                                                                                                                                                                 |
+| `Service` struct + `closeInfra()`                                | DONE   | Holds `*projectionhost.Host`, stops it in `closeInfra()`.                                                                                                                                                                                     |
+| `usermgmt/go.mod`                                                | DONE   | Added `projectionhost/v4 v4.0.0` require.                                                                                                                                                                                                     |
+| All callers updated                                              | DONE   | `es_setup.go`, `sqlite_setup.go`, `postgres_setup.go`, `service_core.go` — all handle the new `(*Host, error)` return.                                                                                                                        |
 
 ### Tests
 
-| Item | Status | Detail |
-|---|---|---|
-| `es_projection_setup_test.go` | DONE | Rewrote: kept `collectProjections` test + `stubProjection`, added `TestStartProjections_ReadYourWrites`, removed dead `buildLiveHandler` tests. |
-| `es_checkpoint_test.go` | DONE | Updated checkpoint name from `"usermgmt:start_projections"` to per-projection `"usermgmt-user-read-model"`. |
-| Integration test | DONE | Updated `waitForUser` comment. |
-| Full test suite passes | DONE | All modules: root, usermgmt, integration_test, adminui, loginpage. Race detector clean. |
-| Lint clean | DONE | `golangci-lint run ./usermgmt/...` → 0 issues. |
-| Coverage | DONE | usermgmt 80.5% (gate: ≥74%), root 93.8% (gate: ≥90%). |
+| Item                          | Status | Detail                                                                                                                                          |
+| ----------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `es_projection_setup_test.go` | DONE   | Rewrote: kept `collectProjections` test + `stubProjection`, added `TestStartProjections_ReadYourWrites`, removed dead `buildLiveHandler` tests. |
+| `es_checkpoint_test.go`       | DONE   | Updated checkpoint name from `"usermgmt:start_projections"` to per-projection `"usermgmt-user-read-model"`.                                     |
+| Integration test              | DONE   | Updated `waitForUser` comment.                                                                                                                  |
+| Full test suite passes        | DONE   | All modules: root, usermgmt, integration_test, adminui, loginpage. Race detector clean.                                                         |
+| Lint clean                    | DONE   | `golangci-lint run ./usermgmt/...` → 0 issues.                                                                                                  |
+| Coverage                      | DONE   | usermgmt 80.5% (gate: ≥74%), root 93.8% (gate: ≥90%).                                                                                           |
 
 ### Benchmark
 
-| Item | Status | Detail |
-|---|---|---|
-| `BenchmarkProjectionReplay` | DONE | 100/1K/10K events. Results: ~3µs/event, linear scaling. 10K = 30ms. |
-| Hot-path profiling | DONE | Dispatch ~1µs, decode ~1-2µs, error mapping ~1-5µs, JSON ~10µs. All within bounds — no optimization needed. |
+| Item                        | Status | Detail                                                                                                      |
+| --------------------------- | ------ | ----------------------------------------------------------------------------------------------------------- |
+| `BenchmarkProjectionReplay` | DONE   | 100/1K/10K events. Results: ~3µs/event, linear scaling. 10K = 30ms.                                         |
+| Hot-path profiling          | DONE   | Dispatch ~1µs, decode ~1-2µs, error mapping ~1-5µs, JSON ~10µs. All within bounds — no optimization needed. |
 
 ### Documentation
 
-| Item | Status | Detail |
-|---|---|---|
-| ADR-0031 | DONE | Rewritten: Status → Superseded. Documents why projectionhost won over CatchUpSubscriber. |
-| ADR INDEX | DONE | Updated status to "Superseded". |
-| ROADMAP.md | DONE | All 4 items marked Done or Not Needed. |
-| FEATURES.md | DONE | Checkpoint Replay + Projection Setup entries updated. |
-| CHANGELOG.md | DONE | Unreleased section: Changed + Added entries. |
-| AGENTS.md | DONE | Key Pattern + Gotcha entries added. |
+| Item         | Status | Detail                                                                                   |
+| ------------ | ------ | ---------------------------------------------------------------------------------------- |
+| ADR-0031     | DONE   | Rewritten: Status → Superseded. Documents why projectionhost won over CatchUpSubscriber. |
+| ADR INDEX    | DONE   | Updated status to "Superseded".                                                          |
+| ROADMAP.md   | DONE   | All 4 items marked Done or Not Needed.                                                   |
+| FEATURES.md  | DONE   | Checkpoint Replay + Projection Setup entries updated.                                    |
+| CHANGELOG.md | DONE   | Unreleased section: Changed + Added entries.                                             |
+| AGENTS.md    | DONE   | Key Pattern + Gotcha entries added.                                                      |
 
 ### CatchUpSubscriber Evaluation
 
-| Item | Status | Detail |
-|---|---|---|
-| Evaluation | DONE | **Closed as Not Needed.** projectionhost `WithSubscriber` provides the same replay→live handoff. CatchUpSubscriber would add `message.Message` adapter overhead without benefit. |
+| Item       | Status | Detail                                                                                                                                                                           |
+| ---------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Evaluation | DONE   | **Closed as Not Needed.** projectionhost `WithSubscriber` provides the same replay→live handoff. CatchUpSubscriber would add `message.Message` adapter overhead without benefit. |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item | What's done | What's missing |
-|---|---|---|
-| Error handling in `Close()` methods | `_ = errorfamily.WrapTransient(err, ...)` used to suppress unused-result lint | Errors are silently discarded, not logged. Should use `slog.Warn` or return the error. |
-| `EventSourcedConfig.CheckpointStore` docstring | Field still works correctly | Docstring still says "enables checkpoint-based projection replay" without mentioning per-projection keys or the breaking change from single-key migration. |
-| `ServiceConfig.CheckpointStore` docstring | Same | Same stale documentation. |
-| `FuzzProjectionDedupMap` | Test still compiles and passes | Comment references "replay→live dedup path" which is now handled internally by projectionhost, not by usermgmt code. The fuzz test itself just tests a map lookup — harmless but misleading comment. |
+| Item                                           | What's done                                                                   | What's missing                                                                                                                                                                                       |
+| ---------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Error handling in `Close()` methods            | `_ = errorfamily.WrapTransient(err, ...)` used to suppress unused-result lint | Errors are silently discarded, not logged. Should use `slog.Warn` or return the error.                                                                                                               |
+| `EventSourcedConfig.CheckpointStore` docstring | Field still works correctly                                                   | Docstring still says "enables checkpoint-based projection replay" without mentioning per-projection keys or the breaking change from single-key migration.                                           |
+| `ServiceConfig.CheckpointStore` docstring      | Same                                                                          | Same stale documentation.                                                                                                                                                                            |
+| `FuzzProjectionDedupMap`                       | Test still compiles and passes                                                | Comment references "replay→live dedup path" which is now handled internally by projectionhost, not by usermgmt code. The fuzz test itself just tests a map lookup — harmless but misleading comment. |
 
 ---
 
 ## c) NOT STARTED
 
-| Item | Why it matters |
-|---|---|
-| `docs/migrations/v2-to-v3.md` update | Still references old `StartProjections()` signature and behavior. Migration checklist item says "Projection startup uses `StartProjections()`" without noting it now returns `*Host`. |
-| `docs/MIGRATION-v3-incremental.md` update | Documents checkpoint-based replay with old single-key model. Needs note about per-projection keys. |
-| `docs/evaluations/catchup-subscriber-evaluation.md` update | Still says "Verdict: Defer" — should be updated to "Closed as Not Needed" with cross-reference to ADR-0031 Superseded. |
-| `es_materialize_adapter.go` docstring update | Comment says "so it can be used with `StartProjections`" — still accurate but could mention projectionhost. |
-| `TODO_LIST.md` check | May contain projection-related TODO items that are now done. |
-| `examples/` check | No examples reference `StartProjections` directly, but examples that use `NewService` now transitively use projectionhost. Should verify no example breaks. |
-| `nix fmt` full run | Only ran `gofmt` on changed files. `nix fmt` covers more (prettier for markdown, etc.). |
-| `cqrs-lint` run | Not run. Should verify no CQRS anti-patterns introduced. |
-| Committing remaining 5 files | 5 files with minor fixes (`_ =` prefix, gofmt) are uncommitted. |
+| Item                                                       | Why it matters                                                                                                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/migrations/v2-to-v3.md` update                       | Still references old `StartProjections()` signature and behavior. Migration checklist item says "Projection startup uses `StartProjections()`" without noting it now returns `*Host`. |
+| `docs/MIGRATION-v3-incremental.md` update                  | Documents checkpoint-based replay with old single-key model. Needs note about per-projection keys.                                                                                    |
+| `docs/evaluations/catchup-subscriber-evaluation.md` update | Still says "Verdict: Defer" — should be updated to "Closed as Not Needed" with cross-reference to ADR-0031 Superseded.                                                                |
+| `es_materialize_adapter.go` docstring update               | Comment says "so it can be used with `StartProjections`" — still accurate but could mention projectionhost.                                                                           |
+| `TODO_LIST.md` check                                       | May contain projection-related TODO items that are now done.                                                                                                                          |
+| `examples/` check                                          | No examples reference `StartProjections` directly, but examples that use `NewService` now transitively use projectionhost. Should verify no example breaks.                           |
+| `nix fmt` full run                                         | Only ran `gofmt` on changed files. `nix fmt` covers more (prettier for markdown, etc.).                                                                                               |
+| `cqrs-lint` run                                            | Not run. Should verify no CQRS anti-patterns introduced.                                                                                                                              |
+| Committing remaining 5 files                               | 5 files with minor fixes (`_ =` prefix, gofmt) are uncommitted.                                                                                                                       |
 
 ---
 
@@ -97,6 +97,7 @@ _ = errorfamily.WrapTransient(err, "usermgmt.es_setup.stop_projections", "stop p
 ```
 
 This creates a wrapped error and immediately discards it. It allocates an error object for nothing. The correct pattern is either:
+
 - `slog.Warn("projection host stop failed", "error", err)` — log it
 - Or just `_ = s.projectionHost.Stop()` — don't wrap at all if you're going to discard
 
@@ -105,6 +106,7 @@ The `_ = errorfamily.WrapTransient(...)` pattern is the worst of both worlds: it
 ### `waitForDrain` is a polling hack
 
 The `waitForDrain` function polls `host.Status()` every 10ms. This works but is architecturally ugly:
+
 - It's timing-based, not signal-based
 - If a worker crashes and restarts during drain, the poller might see `WorkerBackoff` and wait unnecessarily
 - The 30s timeout is arbitrary — no way for consumers to configure it
@@ -119,6 +121,7 @@ The DLQ is in-memory with no size limit. In a long-running process with repeated
 ### Behavior change: retry with backoff during drain
 
 The old `StartProjections` handled projection errors by logging and continuing (fail-soft). The new code uses projectionhost which retries 3 times with exponential backoff before dead-lettering. This means:
+
 - A projection handler bug during drain now causes 3 retries per bad event
 - Each retry has backoff delay (1s initial, 30s max)
 - For 10 bad events, drain could take 30+ seconds
@@ -220,6 +223,7 @@ This is a semantic change that could surprise consumers upgrading from the old f
 ### 1. Should `StartProjections` expose the `*projectionhost.Host` publicly?
 
 Currently `Service` holds it as unexported `projectionHost`. Consumers who want to:
+
 - Inspect worker status (`host.Status()`)
 - Check projection lag (`host.LagDuration()`)
 - Replay dead letters (`host.ReplayDeadLetters()`)
@@ -242,6 +246,7 @@ Should I push for this upstream, or is the global threshold sufficient for this 
 The polling approach works but is architecturally inelegant. The clean solution is for projectionhost to expose a channel or callback that fires when all workers complete their initial drain. This would require an upstream change to `projectionhost.Host`.
 
 Should I:
+
 - (a) Push for this upstream in go-cqrs-lite (adds API surface, correct solution)
 - (b) Keep the polling wrapper (works now, no upstream dependency, acceptable overhead)
 - (c) Use a different approach entirely (e.g., check `host.LastProcessedAt()` against the journal's latest event timestamp)

@@ -2,7 +2,7 @@ module github.com/larsartmann/cqrs-htmx/examples/catalog-demo
 
 go 1.26.4
 
-require github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.0.2
+require github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.0.3
 
 require (
 	github.com/go-faster/errors v0.7.1 // indirect
