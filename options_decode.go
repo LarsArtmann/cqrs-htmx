@@ -7,6 +7,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
+// Validatable is the constraint used by DecodeAndValidate* helpers.
+// Request-body types that implement Validate() error can be decoded and
+// validated in a single step, catching validation failures before the
+// command/query mapper runs.
+type Validatable interface {
+	Validate() error
+}
+
 func setCommandDecoder(cfg *handlerConfig, dec func(*http.Request) (command.Command, error)) {
 	cfg.commandDecoder = dec
 }
@@ -39,6 +47,58 @@ func DecodeForm[T any](mapper func(T) (command.Command, error)) HandlerOption {
 // DecodeFormQuery decodes form data into a query using the mapper.
 func DecodeFormQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
 	return decodeAndSet(decodeFormBody[T], mapper, setQueryDecoder)
+}
+
+// DecodeAndValidateJSON decodes a JSON request body into T, calls T.Validate(),
+// then maps the validated body to a command. A validation failure returns the
+// error from Validate(), which is surfaced as a 400 Bad Request by the default
+// error handler. An empty body is treated as a zero-value T.
+//
+// Compile-time guarantee: T must implement Validate() error.
+func DecodeAndValidateJSON[T Validatable](mapper func(T) (command.Command, error)) HandlerOption {
+	return DecodeJSON(func(t T) (command.Command, error) {
+		if err := t.Validate(); err != nil {
+			return nil, err
+		}
+
+		return mapper(t)
+	})
+}
+
+// DecodeAndValidateJSONQuery decodes a JSON request body into T, calls
+// T.Validate(), then maps the validated body to a query.
+func DecodeAndValidateJSONQuery[T Validatable](mapper func(T) (query.Query, error)) HandlerOption {
+	return DecodeJSONQuery(func(t T) (query.Query, error) {
+		if err := t.Validate(); err != nil {
+			return nil, err
+		}
+
+		return mapper(t)
+	})
+}
+
+// DecodeAndValidateForm decodes form data into T, calls T.Validate(), then maps
+// the validated body to a command.
+func DecodeAndValidateForm[T Validatable](mapper func(T) (command.Command, error)) HandlerOption {
+	return DecodeForm(func(t T) (command.Command, error) {
+		if err := t.Validate(); err != nil {
+			return nil, err
+		}
+
+		return mapper(t)
+	})
+}
+
+// DecodeAndValidateFormQuery decodes form data into T, calls T.Validate(), then
+// maps the validated body to a query.
+func DecodeAndValidateFormQuery[T Validatable](mapper func(T) (query.Query, error)) HandlerOption {
+	return DecodeFormQuery(func(t T) (query.Query, error) {
+		if err := t.Validate(); err != nil {
+			return nil, err
+		}
+
+		return mapper(t)
+	})
 }
 
 // DecodeJSONWithRequest decodes a JSON request body into a command, giving the
