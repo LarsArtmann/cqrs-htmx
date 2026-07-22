@@ -25,7 +25,7 @@ Browser Tab ── HTMX mutation (POST/PUT/DELETE)
      │         │                          │
   HTMX sends   │               htmx:sendError fires
   request      │                          │
-     │         │               admin.js: enqueueCommand(id)
+     │         │               sync-client.js: enqueueCommand(id)
      │         │               SharedWorker: persist to IndexedDB
      │         │               UI: data-sync-queued (amber, "offline")
      │         │                          │
@@ -33,7 +33,7 @@ Browser Tab ── HTMX mutation (POST/PUT/DELETE)
      │         │                          │
      │         │               SharedWorker: online event
      │         │               → postMessage {type:"retry", id, envelope}
-     │         │               admin.js: htmx.trigger(element, "click")
+     │         │               sync-client.js: htmx.trigger(element, "click")
      │         │                          │
      └─────┬───┘──────────────────────────┘
            │
@@ -43,9 +43,27 @@ Browser Tab ── HTMX mutation (POST/PUT/DELETE)
            │
      ┌─────┴─────┐
      │ ACK       │
-     │ confirmed │──→ SSE broadcast → admin.js: data-sync-state="confirmed"
-     │ rejected  │──→ SSE broadcast → admin.js: data-sync-state="rejected"
+     │ confirmed │──→ SSE broadcast → sync-client.js: data-sync-state="confirmed"
+     │ rejected  │──→ SSE broadcast → sync-client.js: data-sync-state="rejected"
      └───────────┘
+```
+
+```mermaid
+graph LR
+    Tab[Browser Tab] -->|HTMX mutation| Client[sync-client.js]
+    Client -->|beforeRequest: stamp X-Command-Id| Pending[data-sync-state=pending]
+
+    Pending -->|Online| Server[Go Server]
+    Pending -->|Offline| Worker[SharedWorker]
+    Worker -->|persist| IDB[(IndexedDB)]
+
+    Worker -->|online event| Retry[retry message]
+    Retry -->|htmx.trigger / htmx.ajax| Client
+
+    Server -->|SSE sync:ack| Client
+    Client -->|confirmed/rejected| UI[DOM sync state]
+    Client -->|ack commandId| Worker
+    Worker -->|delete| IDB
 ```
 
 ## Step 1: SSE Endpoint
@@ -190,7 +208,7 @@ assets from).
 
 ## How Offline Detection Works
 
-| Event                | Fired when                                         | admin.js action                                         |
+| Event                | Fired when                                         | sync-client.js action                                   |
 | -------------------- | -------------------------------------------------- | ------------------------------------------------------- |
 | `htmx:beforeRequest` | Any HTMX request                                   | Stamps `X-Command-Id`, sets `data-sync-state="pending"` |
 | `htmx:sendError`     | Network failure (offline, DNS, server unreachable) | Enqueues to SharedWorker, shows "queued — offline"      |
