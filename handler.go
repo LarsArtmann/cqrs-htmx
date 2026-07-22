@@ -227,7 +227,7 @@ func (a *App) handleQueryDispatch(
 	qryType query.Type,
 	cfg *handlerConfig,
 ) {
-	a.dispatchRequest(w, r, cfg, string(qryType), "query",
+	a.dispatchRequest[any, any](w, r, cfg, string(qryType), "query",
 		func() bool { return cfg.queryDecoder == nil },
 		func(r *http.Request) (any, error) { return cfg.queryDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
@@ -236,6 +236,85 @@ func (a *App) handleQueryDispatch(
 			return a.queries.Dispatch(ctx, qry)
 		},
 		func(w http.ResponseWriter, r *http.Request, cfg *handlerConfig, result any) {
+			a.applyQueryResponse(w, r, cfg, result)
+		},
+	)
+}
+
+// handleCommandTypedDispatch runs the shared pipeline for a typed command handler.
+// The decoder must return a value of type Q (which satisfies command.Command); if it
+// returns a different concrete type, the handler rejects with ErrDecodeFailed.
+func (a *App) handleCommandTypedDispatch[Q command.Command](
+	w http.ResponseWriter,
+	r *http.Request,
+	cmdType command.Type,
+	cfg *handlerConfig,
+) {
+	a.dispatchRequest[Q, any](w, r, cfg, string(cmdType), "command",
+		func() bool { return cfg.commandDecoder == nil },
+		func(r *http.Request) (Q, error) {
+			v, err := cfg.commandDecoder(r)
+			if err != nil {
+				var zero Q
+
+				return zero, err
+			}
+
+			qry, ok := v.(Q)
+			if !ok {
+				var zero Q
+
+				return zero, errorfamily.Wrapf(ErrDecodeFailed, event.Rejection,
+					"cqrshtmx.handler.command_type_mismatch",
+					"expected %T, got %T", zero, v)
+			}
+
+			return qry, nil
+		},
+		func(ctx context.Context, q Q) (any, error) {
+			return nil, a.commands.Dispatch(ctx, q)
+		},
+		func(w http.ResponseWriter, r *http.Request, cfg *handlerConfig, _ any) {
+			a.applyCommandResponse(w, r, cfg)
+		},
+	)
+}
+
+// handleQueryTypedDispatch runs the shared pipeline for a typed query handler.
+// Q is the query type and R is the result type. The decoder must return a value of
+// type Q (which satisfies query.Query); if it returns a different concrete type,
+// the handler rejects with ErrDecodeFailed.
+func (a *App) handleQueryTypedDispatch[Q query.Query, R any](
+	w http.ResponseWriter,
+	r *http.Request,
+	qryType query.Type,
+	cfg *handlerConfig,
+) {
+	a.dispatchRequest[Q, R](w, r, cfg, string(qryType), "query",
+		func() bool { return cfg.queryDecoder == nil },
+		func(r *http.Request) (Q, error) {
+			v, err := cfg.queryDecoder(r)
+			if err != nil {
+				var zero Q
+
+				return zero, err
+			}
+
+			qry, ok := v.(Q)
+			if !ok {
+				var zero Q
+
+				return zero, errorfamily.Wrapf(ErrDecodeFailed, event.Rejection,
+					"cqrshtmx.handler.query_type_mismatch",
+					"expected %T, got %T", zero, v)
+			}
+
+			return qry, nil
+		},
+		func(ctx context.Context, q Q) (R, error) {
+			return query.DispatchTyped[R](ctx, a.queries, q)
+		},
+		func(w http.ResponseWriter, r *http.Request, cfg *handlerConfig, result R) {
 			a.applyQueryResponse(w, r, cfg, result)
 		},
 	)
