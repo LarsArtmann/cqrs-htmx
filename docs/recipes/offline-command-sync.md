@@ -101,7 +101,26 @@ ackMW := func(next http.Handler) http.Handler {
 }
 ```
 
-## Step 3: Wire the admin panel
+## Step 3: Serve the sync assets (root module)
+
+The offline sync SharedWorker and tab-side client are embedded in the root
+`cqrs-htmx` module and served just like `HTMXScriptHandler()`:
+
+```go
+mux.Handle("GET /sync-worker.js", cqrshtmx.SyncWorkerHandler())
+mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
+```
+
+Include the client script in your HTML after the HTMX script tag:
+
+```html
+<script src="/sync-client.js"></script>
+```
+
+The client auto-initializes on DOMContentLoaded if `<body data-sse-url>` is
+present. No data-sse-url = no sync (graceful no-op).
+
+## Step 3a: Wire the admin panel (if using adminui)
 
 ```go
 panel, _ := adminui.New(adminui.Config{
@@ -112,9 +131,10 @@ panel, _ := adminui.New(adminui.Config{
 
 Setting `SSEURL` activates:
 
-- `data-sse-url` attribute on `<body>` → admin.js connects EventSource
+- `data-sse-url` attribute on `<body>` → sync-client.js connects EventSource
 - `.sync-bar` indicator in the header
-- `sync-worker.js` registration (offline command queue)
+- `<script src="sync-client.js">` included conditionally (adminui delegates to root handlers)
+- SharedWorker registration (offline command queue)
 
 ## Step 4: CSP (if using SecurityHeadersMiddleware)
 
