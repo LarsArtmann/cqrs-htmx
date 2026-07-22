@@ -34,19 +34,6 @@ func SyncClientHandler() http.Handler {
 	return serveJS(syncClientJS, fmt.Sprintf(`"cqrshtmx-sync-client-%s"`, syncVersion))
 }
 
-// SyncWorkerScriptTag returns an HTML <script>-loadable tag for the sync
-// SharedWorker, suitable for embedding in a template or templ component.
-// The path should point to where SyncWorkerHandler is mounted.
-//
-//	cqrshtmx.SyncWorkerScriptTag("/sync-worker.js")
-//
-// Note: the SharedWorker is loaded programmatically by sync-client.js, not
-// via a <script> tag. This helper exists for consumers who need to reference
-// the worker URL in a CSP meta tag or for debugging.
-func SyncWorkerScriptTag(path string) string {
-	return `<script src="` + path + `"></script>`
-}
-
 // SyncClientScriptTag returns an HTML <script> tag that loads the sync client
 // from the given path. Include it after the HTMX script tag.
 //
