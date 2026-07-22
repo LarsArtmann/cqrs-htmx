@@ -3,15 +3,17 @@ package cqrshtmx_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"regexp"
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 func TestSyncWorkerHandler_ServesJS(t *testing.T) {
-	h := cqrshtmx.SyncWorkerHandler()
+	handler := cqrshtmx.SyncWorkerHandler()
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want 200", rec.Code)
@@ -31,9 +33,9 @@ func TestSyncWorkerHandler_ServesJS(t *testing.T) {
 }
 
 func TestSyncClientHandler_ServesJS(t *testing.T) {
-	h := cqrshtmx.SyncClientHandler()
+	handler := cqrshtmx.SyncClientHandler()
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want 200", rec.Code)
@@ -53,11 +55,11 @@ func TestSyncClientHandler_ServesJS(t *testing.T) {
 }
 
 func TestSyncWorkerHandler_304OnIfNoneMatch(t *testing.T) {
-	h := cqrshtmx.SyncWorkerHandler()
+	handler := cqrshtmx.SyncWorkerHandler()
 
 	// First request to get the ETag
 	rec1 := httptest.NewRecorder()
-	h.ServeHTTP(rec1, httptest.NewRequest(http.MethodGet, "/", nil))
+	handler.ServeHTTP(rec1, httptest.NewRequest(http.MethodGet, "/", nil))
 	etag := rec1.Header().Get("ETag")
 
 	if etag == "" {
@@ -68,7 +70,7 @@ func TestSyncWorkerHandler_304OnIfNoneMatch(t *testing.T) {
 	rec2 := httptest.NewRecorder()
 	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req2.Header.Set("If-None-Match", etag)
-	h.ServeHTTP(rec2, req2)
+	handler.ServeHTTP(rec2, req2)
 
 	if rec2.Code != http.StatusNotModified {
 		t.Errorf("304: got %d, want 304", rec2.Code)
@@ -80,16 +82,16 @@ func TestSyncWorkerHandler_304OnIfNoneMatch(t *testing.T) {
 }
 
 func TestSyncClientHandler_304OnIfNoneMatch(t *testing.T) {
-	h := cqrshtmx.SyncClientHandler()
+	handler := cqrshtmx.SyncClientHandler()
 
 	rec1 := httptest.NewRecorder()
-	h.ServeHTTP(rec1, httptest.NewRequest(http.MethodGet, "/", nil))
+	handler.ServeHTTP(rec1, httptest.NewRequest(http.MethodGet, "/", nil))
 	etag := rec1.Header().Get("ETag")
 
 	rec2 := httptest.NewRecorder()
 	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req2.Header.Set("If-None-Match", etag)
-	h.ServeHTTP(rec2, req2)
+	handler.ServeHTTP(rec2, req2)
 
 	if rec2.Code != http.StatusNotModified {
 		t.Errorf("304: got %d, want 304", rec2.Code)
@@ -97,9 +99,9 @@ func TestSyncClientHandler_304OnIfNoneMatch(t *testing.T) {
 }
 
 func TestSyncWorkerHandler_RejectsPost(t *testing.T) {
-	h := cqrshtmx.SyncWorkerHandler()
+	handler := cqrshtmx.SyncWorkerHandler()
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/", nil))
 
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Errorf("POST: got %d, want 405", rec.Code)
@@ -107,9 +109,9 @@ func TestSyncWorkerHandler_RejectsPost(t *testing.T) {
 }
 
 func TestSyncClientHandler_RejectsPost(t *testing.T) {
-	h := cqrshtmx.SyncClientHandler()
+	handler := cqrshtmx.SyncClientHandler()
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/", nil))
 
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Errorf("POST: got %d, want 405", rec.Code)
@@ -162,10 +164,10 @@ func TestSyncClientScriptTag_EdgeCases(t *testing.T) {
 
 func TestSyncWorkerHandlerWith_ServesCustomJS(t *testing.T) {
 	customJS := []byte("// custom worker")
-	h := cqrshtmx.SyncWorkerHandlerWith(customJS, "2.0.0")
+	handler := cqrshtmx.SyncWorkerHandlerWith(customJS, "2.0.0")
 
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want 200", rec.Code)
@@ -183,10 +185,10 @@ func TestSyncWorkerHandlerWith_ServesCustomJS(t *testing.T) {
 
 func TestSyncClientHandlerWith_ServesCustomJS(t *testing.T) {
 	customJS := []byte("// custom client")
-	h := cqrshtmx.SyncClientHandlerWith(customJS, "3.0.0")
+	handler := cqrshtmx.SyncClientHandlerWith(customJS, "3.0.0")
 
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want 200", rec.Code)
@@ -203,15 +205,53 @@ func TestSyncClientHandlerWith_ServesCustomJS(t *testing.T) {
 }
 
 func TestSyncWorkerHandlerWith_304OnIfNoneMatch(t *testing.T) {
-	h := cqrshtmx.SyncWorkerHandlerWith([]byte("// v2"), "2.0.0")
+	handler := cqrshtmx.SyncWorkerHandlerWith([]byte("// v2"), "2.0.0")
 	etag := `"cqrshtmx-sync-worker-2.0.0"`
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("If-None-Match", etag)
-	h.ServeHTTP(rec, req)
+	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusNotModified {
 		t.Errorf("304: got %d, want 304", rec.Code)
+	}
+}
+
+// TestSyncVersionMatchesJSConstants prevents silent version drift between the
+// Go syncVersion constant and the VERSION constants embedded in the JS files.
+// If a JS file is updated but syncVersion isn't bumped, cached clients get
+// stale 304s for a year. This test catches that mismatch at CI time.
+func TestSyncVersionMatchesJSConstants(t *testing.T) {
+	goVersion := cqrshtmx.SyncVersion()
+
+	jsFiles := []string{
+		"sync/sync-worker.js",
+		"sync/sync-client.js",
+	}
+
+	versionRe := regexp.MustCompile(`VERSION\s*=\s*"([^"]+)"`)
+
+	for _, file := range jsFiles {
+		t.Run(file, func(t *testing.T) {
+			content, err := os.ReadFile(file)
+
+			if err != nil {
+				t.Fatalf("read %s: %v", file, err)
+			}
+
+			matches := versionRe.FindSubmatch(content)
+
+			if matches == nil {
+				t.Fatalf("VERSION constant not found in %s", file)
+			}
+
+			jsVersion := string(matches[1])
+
+			if jsVersion != goVersion {
+				t.Errorf("version drift: %s VERSION=%q, Go syncVersion=%q — bump syncVersion in sync_embed.go",
+					file, jsVersion, goVersion)
+			}
+		})
 	}
 }
