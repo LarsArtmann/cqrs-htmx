@@ -19,16 +19,21 @@
 //   has a [data-sse-url] attribute. No data-sse-url = no sync (graceful no-op).
 //
 // SHAREDWORKER URL:
-//   Derived from this script's own <script src> path: it replaces
+//   By default, derived from this script's own <script src> path: it replaces
 //   "sync-client.js" with "sync-worker.js" in the URL. Both must be served
 //   under the same base path.
+//   Override with a data-sync-worker-url attribute on the <script> tag if
+//   the worker is mounted at a different path:
+//     <script src="/assets/client.js" data-sync-worker-url="/workers/sync.js">
 //
 // NO BUILD STEP. No framework. No dependencies beyond HTMX (loaded separately).
 "use strict";
 
 (function () {
+  const VERSION = "1.0.0";
+
   // --- Sync state: tracks pending/confirmed/failed/queued mutation counts ---
-  var sync = {
+  const sync = {
     pending: 0,
     confirmed: 0,
     failed: 0,
@@ -36,10 +41,10 @@
   };
 
   function updateIndicator() {
-    var bar = document.querySelector("[data-sync-status]");
+    const bar = document.querySelector("[data-sync-status]");
     if (!bar) return;
 
-    var status, text;
+    let status, text;
     if (sync.queued > 0) {
       status = "offline";
       text = sync.queued + " queued — offline";
@@ -53,7 +58,7 @@
       status = "ok";
       text = "All changes saved";
       // Auto-fade to idle after 2s
-      setTimeout(function () {
+      setTimeout(() => {
         bar.setAttribute("data-sync-status", "idle");
         bar.textContent = "Synced";
         sync.confirmed = 0;
@@ -72,7 +77,7 @@
   }
 
   // --- aria-live region for screen reader announcements (confirmed only) ---
-  var liveRegion = null;
+  let liveRegion = null;
   function announce(element, message, isError) {
     if (!liveRegion) {
       liveRegion = document.querySelector("[data-sync-live]");
@@ -92,14 +97,14 @@
   }
 
   // --- SSE connection manager (auto-reconnect via EventSource) ---
-  var eventSource = null;
+  let eventSource = null;
   function connectSSE() {
-    var sseURL = document.body.getAttribute("data-sse-url");
+    const sseURL = document.body.getAttribute("data-sse-url");
     if (!sseURL || typeof EventSource === "undefined") return;
 
     eventSource = new EventSource(sseURL);
 
-    eventSource.addEventListener("sync:ack", function (e) {
+    eventSource.addEventListener("sync:ack", (e) => {
       try {
         handleSyncAck(JSON.parse(e.data));
       } catch (err) {
@@ -107,17 +112,17 @@
       }
     });
 
-    eventSource.addEventListener("open", function () {
-      var bar = document.querySelector("[data-sync-status]");
+    eventSource.addEventListener("open", () => {
+      const bar = document.querySelector("[data-sync-status]");
       if (bar && sync.pending === 0) {
         bar.setAttribute("data-sync-status", "ok");
         bar.textContent = "Connected";
       }
     });
 
-    eventSource.onerror = function () {
+    eventSource.onerror = () => {
       // EventSource auto-reconnects; just update the indicator
-      var bar = document.querySelector("[data-sync-status]");
+      const bar = document.querySelector("[data-sync-status]");
       if (bar && sync.pending > 0) {
         bar.setAttribute("data-sync-status", "pending");
         bar.textContent = "Reconnecting…";
@@ -129,7 +134,7 @@
   function handleSyncAck(detail) {
     if (!detail || !detail.commandId) return;
 
-    var el = document.querySelector('[data-command-id="' + detail.commandId + '"]');
+    const el = document.querySelector('[data-command-id="' + detail.commandId + '"]');
     if (!el) return;
 
     if (detail.status === "confirmed") {
@@ -151,17 +156,23 @@
   }
 
   // --- Offline command queue (ADR 0029 + ADR 0040): SharedWorker coordination ---
-  var syncWorker = null;
-  var tabId = null;
+  let syncWorker = null;
+  let tabId = null;
 
   function initSyncWorker() {
     if (typeof SharedWorker === "undefined") return;
 
-    // Derive worker URL from this script's own src path.
-    var script = document.querySelector('script[src$="sync-client.js"]');
+    // Find this script's tag to derive the worker URL.
+    const script = document.querySelector('script[src$="sync-client.js"]');
     if (!script) return;
-    var basePath = script.src.replace(/\/sync-client\.js$/, "");
-    var workerURL = basePath + "/sync-worker.js";
+
+    // Allow consumers to override the worker URL via a data attribute
+    // when the worker is mounted at a different path than the client.
+    let workerURL = script.getAttribute("data-sync-worker-url");
+    if (!workerURL) {
+      const basePath = script.src.replace(/\/sync-client\.js$/, "");
+      workerURL = basePath + "/sync-worker.js";
+    }
 
     try {
       syncWorker = new SharedWorker(workerURL);
@@ -170,8 +181,8 @@
           ? crypto.randomUUID()
           : String(Date.now()) + Math.random().toString(36).slice(2);
 
-      syncWorker.port.onmessage = function (e) {
-        var data = e.data;
+      syncWorker.port.onmessage = (e) => {
+        const data = e.data;
         if (!data || !data.type) return;
 
         if (data.type === "retry") {
@@ -190,7 +201,7 @@
       syncWorker.port.postMessage({ type: "hello", tabId: tabId });
 
       // Best-effort unregister on beforeunload (tab close, navigation).
-      window.addEventListener("beforeunload", function () {
+      window.addEventListener("beforeunload", () => {
         if (syncWorker) {
           try {
             syncWorker.port.postMessage({ type: "bye", tabId: tabId });
@@ -223,7 +234,7 @@
   // handleDeadCommand: the worker gave up after MAX_RETRIES or TTL.
   function handleDeadCommand(commandId) {
     if (!commandId) return;
-    var el = document.querySelector('[data-command-id="' + commandId + '"]');
+    const el = document.querySelector('[data-command-id="' + commandId + '"]');
     if (el) {
       setSyncState(el, "rejected");
       announce(el, "Sync failed after retries — manual retry needed", true);
@@ -235,8 +246,8 @@
 
   function retryQueuedCommand(commandId, envelope) {
     if (!commandId) return;
-    var selector = '[data-command-id="' + commandId + '"]';
-    var el = document.querySelector(selector);
+    const selector = '[data-command-id="' + commandId + '"]';
+    const el = document.querySelector(selector);
     if (!el) {
       // Element gone (user navigated away). If we have a persisted envelope
       // (ADR-0040 cross-tab/cross-session retry), rebuild the request via the
@@ -267,7 +278,7 @@
   // rebuildAndRetry re-issues a persisted command whose originating DOM
   // element is gone (cross-tab drain after a browser restart).
   function rebuildAndRetry(commandId, envelope) {
-    var host = document.createElement("div");
+    const host = document.createElement("div");
     host.setAttribute("data-command-id", commandId);
     host.setAttribute("data-sync-state", "pending");
     document.body.appendChild(host);
@@ -285,21 +296,21 @@
   // --- Optimistic render: mark pending on htmx:beforeRequest ---
   // Auto-generates X-Command-Id for mutation requests (POST/PUT/DELETE)
   // so every destructive action is tracked without manual hx-headers.
-  document.addEventListener("htmx:beforeRequest", function (e) {
-    var verb = (e.detail.requestConfig.verb || "").toLowerCase();
-    var isMutation = verb === "post" || verb === "put" || verb === "delete";
+  document.addEventListener("htmx:beforeRequest", (e) => {
+    const verb = (e.detail.requestConfig.verb || "").toLowerCase();
+    const isMutation = verb === "post" || verb === "put" || verb === "delete";
     if (!isMutation) return;
 
     e.detail.requestConfig.headers = e.detail.requestConfig.headers || {};
-    var cmdID = e.detail.requestConfig.headers["X-Command-Id"];
+    let cmdID = e.detail.requestConfig.headers["X-Command-Id"];
     if (!cmdID && typeof crypto !== "undefined" && crypto.randomUUID) {
       cmdID = crypto.randomUUID();
       e.detail.requestConfig.headers["X-Command-Id"] = cmdID;
     }
     if (!cmdID) return;
 
-    var target = e.detail.elt;
-    var syncEl =
+    const target = e.detail.elt;
+    const syncEl =
       target.closest("[data-sync-target]") ||
       target.closest("tr") ||
       target.closest("li") ||
@@ -311,9 +322,9 @@
   });
 
   // --- Never-silent rollback: on transport error, show rejected ---
-  document.addEventListener("htmx:responseError", function (e) {
-    var target = e.detail.elt;
-    var syncEl = target.closest("[data-command-id]") || target.closest("[data-sync-state]");
+  document.addEventListener("htmx:responseError", (e) => {
+    const target = e.detail.elt;
+    const syncEl = target.closest("[data-command-id]") || target.closest("[data-sync-state]");
     if (syncEl) {
       setSyncState(syncEl, "rejected");
       sync.pending = Math.max(0, sync.pending - 1);
@@ -326,18 +337,18 @@
   // --- Network error (offline): queue for retry instead of rejecting ---
   // htmx:sendError fires when the request can't be sent at all (network down).
   // Offline ≠ rejected — the command is queued, not lost.
-  document.addEventListener("htmx:sendError", function (e) {
-    var target = e.detail.elt;
-    var syncEl = target.closest("[data-command-id]") || target.closest("[data-sync-state]");
+  document.addEventListener("htmx:sendError", (e) => {
+    const target = e.detail.elt;
+    const syncEl = target.closest("[data-command-id]") || target.closest("[data-sync-state]");
     if (!syncEl) return;
 
-    var cmdID = syncEl.getAttribute("data-command-id");
+    const cmdID = syncEl.getAttribute("data-command-id");
     if (!cmdID) return;
 
     // Capture the request envelope so the SharedWorker can persist it (ADR-0040)
     // and any tab can rebuild the request on cross-session retry.
-    var cfg = (e.detail && e.detail.requestConfig) || null;
-    var envelope = null;
+    const cfg = (e.detail && e.detail.requestConfig) || null;
+    let envelope = null;
     if (cfg) {
       envelope = {
         verb: cfg.verb || "",
@@ -355,11 +366,11 @@
   });
 
   // --- Retry button: re-dispatch a rejected command ---
-  document.addEventListener("click", function (e) {
-    var btn = e.target.closest && e.target.closest("[data-sync-retry]");
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest && e.target.closest("[data-sync-retry]");
     if (!btn) return;
 
-    var row = btn.closest("[data-command-id]");
+    const row = btn.closest("[data-command-id]");
     if (!row) return;
 
     // Clear rejected state and re-trigger via HTMX if the original element exists
@@ -369,7 +380,7 @@
     updateIndicator();
 
     // If the row has an hx-post/hx-get, re-issue it
-    var trigger = row.querySelector("[hx-post], [hx-get]");
+    const trigger = row.querySelector("[hx-post], [hx-get]");
     if (trigger && typeof htmx !== "undefined") {
       htmx.trigger(trigger, "retry");
     }
