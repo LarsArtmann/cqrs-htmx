@@ -28,18 +28,23 @@ type Store[T any, ID comparable] interface {
 //
 // It is intended for tests and small prototypes. It is not suitable for
 // production: data is lost on process restart and there is no persistence.
+//
+// The idOf function extracts the entity ID from a value. This keeps the store
+// generic while still allowing typed IDs (e.g. brandid.ID) or simple scalars.
 type InMemoryStore[T any, ID comparable] struct {
 	mu    sync.RWMutex
 	items map[ID]T
+	idOf  func(T) ID
 }
 
-// NewInMemoryStore creates an empty InMemoryStore.
-func NewInMemoryStore[T any, ID comparable]() *InMemoryStore[T, ID] {
-	return &InMemoryStore[T, ID]{items: make(map[ID]T)}
+// NewInMemoryStore creates an empty InMemoryStore. idOf must return the stable
+// identifier for an entity; it is called under lock during Save, Create, and FindByID.
+func NewInMemoryStore[T any, ID comparable](idOf func(T) ID) *InMemoryStore[T, ID] {
+	return &InMemoryStore[T, ID]{items: make(map[ID]T), idOf: idOf}
 }
 
 // FindByID returns the entity with the given ID. If no entity exists, it
-// returns the zero value of T.
+// returns the zero value of T and a nil error.
 func (s *InMemoryStore[T, ID]) FindByID(_ context.Context, id ID) (T, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -56,10 +61,9 @@ func (s *InMemoryStore[T, ID]) FindByID(_ context.Context, id ID) (T, error) {
 
 // Save inserts or updates the entity under its ID.
 func (s *InMemoryStore[T, ID]) Save(_ context.Context, entity T) error {
-	var zero T
-	if any(entity) == any(zero) {
-		return errors.New("cannot save zero-value entity")
-	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.items[s.idOf(entity)] = entity
 
 	return nil
 }
@@ -67,7 +71,15 @@ func (s *InMemoryStore[T, ID]) Save(_ context.Context, entity T) error {
 // Create inserts the entity. If an entity with the same ID already exists,
 // it returns an error.
 func (s *InMemoryStore[T, ID]) Create(_ context.Context, entity T) error {
-	_ = entity
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	id := s.idOf(entity)
+	if _, exists := s.items[id]; exists {
+		return errors.New("entity already exists")
+	}
+
+	s.items[id] = entity
 
 	return nil
 }
