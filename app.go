@@ -263,7 +263,6 @@ func CommandTyped[Q command.Command](a *App, cmdType command.Type, opts ...Handl
 
 		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
-		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		handleCommandTypedDispatch[Q](a, w, r, cmdType, cfg)
 	})
 }
@@ -291,7 +290,6 @@ func QueryTyped[Q query.Query, R any](a *App, qryType query.Type, opts ...Handle
 
 		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
-		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		handleQueryTypedDispatch[Q, R](a, w, r, qryType, cfg)
 	})
 }

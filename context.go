@@ -96,6 +96,7 @@ func (k contextKey[T]) FromContext(ctx context.Context) (T, bool) {
 }
 
 //nolint:gochecknoglobals // context key singletons; one instance per key is standard.
+var (
 	userIDKeyInstance         = contextKey[UserID]{name: "user_id"}
 	correlationIDKeyInstance  = contextKey[CorrelationID]{name: "correlation_id"}
 	requestIDKeyInstance      = contextKey[RequestID]{name: "request_id"}
