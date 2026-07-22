@@ -2,7 +2,7 @@ package cqrshtmx_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -339,7 +339,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 			Expect(w.code()).To(Equal(http.StatusOK))
 
 			var users []bddUser
-			Expect(json.NewDecoder(w.Body).Decode(&users)).To(Succeed())
+			Expect(json.UnmarshalRead(w.Body, &users)).To(Succeed())
 			Expect(users[0].Name).To(Equal(aliceName))
 		})
 	})

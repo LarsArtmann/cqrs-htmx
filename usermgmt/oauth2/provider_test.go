@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -227,11 +227,11 @@ func newFakeOAuth2Server(t *testing.T, userInfo map[string]any) ProviderConfig {
 		_ = r.ParseForm()
 		if r.PostFormValue("code") != "test-auth-code" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "invalid_grant"})
+			json.MarshalWrite(w, map[string]string{"error": "invalid_grant"})
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
+		json.MarshalWrite(w, map[string]string{
 			"access_token": "test-access-token",
 			"token_type":   "Bearer",
 		})
@@ -244,7 +244,7 @@ func newFakeOAuth2Server(t *testing.T, userInfo map[string]any) ProviderConfig {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(userInfo)
+		json.MarshalWrite(w, userInfo)
 	})
 
 	server := httptest.NewServer(mux)
@@ -421,7 +421,7 @@ func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 
 	mux.HandleFunc("GET /.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{
+		json.MarshalWrite(w, map[string]any{
 			"issuer":                                prov.issuer,
 			"authorization_endpoint":                prov.issuer + "/auth",
 			"token_endpoint":                        prov.issuer + "/token",
@@ -435,14 +435,14 @@ func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 
 	mux.HandleFunc("GET /jwks", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(cachedJWKS)
+		json.MarshalWrite(w, cachedJWKS)
 	})
 
 	mux.HandleFunc("POST /token", func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		if r.PostFormValue("code") != "test-auth-code" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "invalid_grant"})
+			json.MarshalWrite(w, map[string]string{"error": "invalid_grant"})
 			return
 		}
 
@@ -470,7 +470,7 @@ func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
+		json.MarshalWrite(w, map[string]string{
 			"access_token": "test-access-token",
 			"token_type":   "Bearer",
 			"id_token":     idToken,
@@ -570,7 +570,7 @@ func TestProvider_FinishLogin_PureOAuth2_UserInfoError(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /token", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
+		json.MarshalWrite(w, map[string]string{
 			"access_token": "tok",
 			"token_type":   "Bearer",
 		})

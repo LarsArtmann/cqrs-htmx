@@ -2,7 +2,7 @@ package cqrshtmx_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -223,7 +223,7 @@ var _ = Describe("App", func() {
 			Expect(w.code()).To(Equal(http.StatusOK))
 
 			var result map[string]string
-			Expect(json.NewDecoder(w.Body).Decode(&result)).To(Succeed())
+			Expect(json.UnmarshalRead(w.Body, &result)).To(Succeed())
 			Expect(result[testEmailKey]).To(Equal(testEmailValue))
 		})
 	})

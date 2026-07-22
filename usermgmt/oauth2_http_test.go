@@ -2,7 +2,7 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -34,7 +34,7 @@ func TestHandler_OAuth2Begin_Success(t *testing.T) {
 	assertStatusCode(t, w, http.StatusOK)
 
 	var resp BeginOAuthLoginResponse
-	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+	if err := json.UnmarshalRead(w.Body, &resp); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
 	if resp.RedirectURL == "" {
@@ -81,7 +81,7 @@ func TestHandler_OAuth2Callback_Success(t *testing.T) {
 	assertStatusCode(t, beginW, http.StatusOK)
 
 	var beginResp BeginOAuthLoginResponse
-	if err := json.NewDecoder(beginW.Body).Decode(&beginResp); err != nil {
+	if err := json.UnmarshalRead(beginW.Body, &beginResp); err != nil {
 		t.Fatalf("decode begin response: %v", err)
 	}
 
@@ -151,7 +151,7 @@ func TestHandler_OAuth2Callback_SuccessRedirect(t *testing.T) {
 	beginW := httptest.NewRecorder()
 	mux.ServeHTTP(beginW, beginReq)
 	var beginResp BeginOAuthLoginResponse
-	_ = json.NewDecoder(beginW.Body).Decode(&beginResp)
+	_ = json.UnmarshalRead(beginW.Body, &beginResp)
 	parsedURL, _ := url.Parse(beginResp.RedirectURL)
 	state := parsedURL.Query().Get("state")
 

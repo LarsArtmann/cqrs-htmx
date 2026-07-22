@@ -2,7 +2,7 @@ package cqrshtmx_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
