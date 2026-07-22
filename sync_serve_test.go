@@ -131,3 +131,83 @@ func TestSyncClientScriptTag(t *testing.T) {
 		t.Errorf("SyncClientScriptTag: got %q", tag)
 	}
 }
+
+func TestSyncClientScriptTag_EdgeCases(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+		want string
+	}{
+		{"empty path", "", `<script src=""></script>`},
+		{"with query params", "/sync-client.js?v=2", `<script src="/sync-client.js?v=2"></script>`},
+		{"with fragment", "/sync-client.js#section", `<script src="/sync-client.js#section"></script>`},
+		{"relative path", "sync-client.js", `<script src="sync-client.js"></script>`},
+		{"full URL", "https://cdn.example.com/sync-client.js", `<script src="https://cdn.example.com/sync-client.js"></script>`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := cqrshtmx.SyncClientScriptTag(tt.path)
+
+			if got != tt.want {
+				t.Errorf("SyncClientScriptTag(%q): got %q, want %q", tt.path, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSyncWorkerHandlerWith_ServesCustomJS(t *testing.T) {
+	customJS := []byte("// custom worker")
+	h := cqrshtmx.SyncWorkerHandlerWith(customJS, "2.0.0")
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200", rec.Code)
+	}
+
+	if rec.Body.String() != "// custom worker" {
+		t.Errorf("body: got %q, want // custom worker", rec.Body.String())
+	}
+
+	wantETag := `"cqrshtmx-sync-worker-2.0.0"`
+	if etag := rec.Header().Get("ETag"); etag != wantETag {
+		t.Errorf("ETag: got %q, want %q", etag, wantETag)
+	}
+}
+
+func TestSyncClientHandlerWith_ServesCustomJS(t *testing.T) {
+	customJS := []byte("// custom client")
+	h := cqrshtmx.SyncClientHandlerWith(customJS, "3.0.0")
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200", rec.Code)
+	}
+
+	if rec.Body.String() != "// custom client" {
+		t.Errorf("body: got %q, want // custom client", rec.Body.String())
+	}
+
+	wantETag := `"cqrshtmx-sync-client-3.0.0"`
+	if etag := rec.Header().Get("ETag"); etag != wantETag {
+		t.Errorf("ETag: got %q, want %q", etag, wantETag)
+	}
+}
+
+func TestSyncWorkerHandlerWith_304OnIfNoneMatch(t *testing.T) {
+	h := cqrshtmx.SyncWorkerHandlerWith([]byte("// v2"), "2.0.0")
+	etag := `"cqrshtmx-sync-worker-2.0.0"`
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("If-None-Match", etag)
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotModified {
+		t.Errorf("304: got %d, want 304", rec.Code)
+	}
+}
