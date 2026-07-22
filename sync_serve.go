@@ -60,6 +60,10 @@ func SyncClientHandlerWith(js []byte, version string) http.Handler {
 // SyncClientScriptTag returns an HTML <script> tag that loads the sync client
 // from the given path. Include it after the HTMX script tag.
 //
+// The path is intended to be a developer-controlled URL (e.g. "/sync-client.js"
+// or a CDN URL), not user input. If the path originates from untrusted input,
+// sanitize or validate it first to prevent attribute injection.
+//
 //	cqrshtmx.SyncClientScriptTag("/sync-client.js")
 //	// => <script src="/sync-client.js"></script>
 func SyncClientScriptTag(path string) string {
