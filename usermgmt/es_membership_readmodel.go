@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -15,14 +14,21 @@ import (
 // It indexes memberships by aggregate ID (actor+tenant pair) and by
 // actor ID for "what tenants is this actor a member of?" queries.
 type MembershipReadModel struct {
-	mu          sync.RWMutex
+	readModelCore[*MembershipReadModel]
 	memberships map[id.AggregateID]*Membership
 	byActor     map[string][]id.AggregateID
 }
 
 // NewMembershipReadModel creates an empty MembershipReadModel.
 func NewMembershipReadModel() *MembershipReadModel {
-	return &MembershipReadModel{ //nolint:exhaustruct // mu starts zero-valued
+	return &MembershipReadModel{
+		readModelCore: readModelCore[*MembershipReadModel]{
+			handlers: map[event.Type]eventHandler[*MembershipReadModel]{
+				eventMemberAdded:        (*MembershipReadModel).applyMemberAdded,
+				eventMemberRolesChanged: (*MembershipReadModel).handleMemberRolesChanged,
+				eventMemberRemoved:      (*MembershipReadModel).handleMemberRemoved,
+			},
+		},
 		memberships: make(map[id.AggregateID]*Membership),
 		byActor:     make(map[string][]id.AggregateID),
 	}
@@ -33,42 +39,30 @@ func (m *MembershipReadModel) Name() string { return "membership-read-model" }
 func (m *MembershipReadModel) EventTypes() []event.Type { return allMembershipEventTypes }
 
 func (m *MembershipReadModel) Handle(_ context.Context, evt event.Event) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	return m.handleEvent(m, evt)
+}
 
-	aggID := evt.AggregateID()
-
-	switch evt.Type() {
-	case eventMemberAdded:
-		return m.applyMemberAdded(aggID, evt)
-
-	case eventMemberRolesChanged:
-		p, err := unmarshalPayload[MemberRolesChangedPayload](evt)
-		if err != nil {
-			return errorfamily.WrapCorruption(
-				err,
-				"usermgmt.membership_readmodel.decode_failed",
-				"decode MemberRolesChanged in read model",
-			)
-		}
-		mem, ok := m.memberships[aggID]
-		if !ok {
-			return nil
-		}
-		roles := make([]Role, len(p.Roles))
-		copy(roles, p.Roles)
-		mem.Roles = roles
-
-	case eventMemberRemoved:
-		m.removeMembership(aggID)
-
-	default:
-		return errorfamily.NewRejection(
-			"usermgmt.membership_readmodel.unknown_event",
-			"membership read model received unknown event type: "+string(evt.Type()),
+func (m *MembershipReadModel) handleMemberRolesChanged(aggID id.AggregateID, evt event.Event) error {
+	p, err := unmarshalPayload[MemberRolesChangedPayload](evt)
+	if err != nil {
+		return errorfamily.WrapCorruption(
+			err,
+			"usermgmt.membership_readmodel.decode_failed",
+			"decode MemberRolesChanged in read model",
 		)
 	}
+	mem, ok := m.memberships[aggID]
+	if !ok {
+		return nil
+	}
+	roles := make([]Role, len(p.Roles))
+	copy(roles, p.Roles)
+	mem.Roles = roles
+	return nil
+}
 
+func (m *MembershipReadModel) handleMemberRemoved(aggID id.AggregateID, _ event.Event) error {
+	m.removeMembership(aggID)
 	return nil
 }
 

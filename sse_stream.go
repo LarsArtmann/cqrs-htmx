@@ -48,6 +48,16 @@ type SSEStream struct {
 
 type flusher interface{ Flush() }
 
+// SetSSEHeaders sets the response headers required for Server-Sent Events:
+// text/event-stream content type, no caching, and keep-alive connection.
+// Call this before writing the initial status code.
+func SetSSEHeaders(w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Type", ContentTypeSSE)
+	h.Set("Cache-Control", "no-cache")
+	h.Set("Connection", "keep-alive")
+}
+
 // NewSSEStream creates an SSE stream from an HTTP response writer and request.
 // Sets the required SSE headers (Content-Type, Cache-Control, Connection).
 // Returns an SSEStream that can be used to send events to the client.
@@ -55,9 +65,7 @@ type flusher interface{ Flush() }
 // The stream is cancelled when the request context is done (client disconnects).
 // Callers should defer stream.Close() to ensure cleanup.
 func NewSSEStream(w http.ResponseWriter, r *http.Request) *SSEStream {
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
+	SetSSEHeaders(w)
 	w.WriteHeader(http.StatusOK)
 
 	fw, _ := w.(flusher)

@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"encoding/json/jsontext"
-	"encoding/json/v2"
 	"testing"
 )
 

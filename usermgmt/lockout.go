@@ -82,13 +82,19 @@ func (l *AccountLockout) IsLocked(email string) bool {
 	return true
 }
 
+// normalizeAndLock normalizes the email and acquires the write lock.
+// Returns the normalized email and an unlock function the caller must defer.
+func (l *AccountLockout) normalizeAndLock(email string) (string, func()) {
+	normalized := normalizeEmail(email)
+	l.mu.Lock()
+	return normalized, l.mu.Unlock
+}
+
 // RecordFailure increments the failure counter for the email and returns true
 // if the account has just been locked (i.e. the threshold was reached).
 func (l *AccountLockout) RecordFailure(email string) bool {
-	normalized := normalizeEmail(email)
-
-	l.mu.Lock()
-	defer l.mu.Unlock()
+	normalized, unlock := l.normalizeAndLock(email)
+	defer unlock()
 	if lockedAt, ok := l.lockedAt[normalized]; ok && time.Since(lockedAt) > l.config.Duration {
 		delete(l.lockedAt, normalized)
 		l.attempts[normalized] = 0
@@ -103,10 +109,8 @@ func (l *AccountLockout) RecordFailure(email string) bool {
 
 // Reset clears the failure counter and lockout for the given email.
 func (l *AccountLockout) Reset(email string) {
-	normalized := normalizeEmail(email)
-
-	l.mu.Lock()
-	defer l.mu.Unlock()
+	normalized, unlock := l.normalizeAndLock(email)
+	defer unlock()
 	delete(l.attempts, normalized)
 	delete(l.lockedAt, normalized)
 }

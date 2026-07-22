@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -21,13 +20,21 @@ type Tenant struct {
 
 // TenantReadModel is the projection-side store for tenants.
 type TenantReadModel struct {
-	mu      sync.RWMutex
+	readModelCore[*TenantReadModel]
 	tenants map[id.AggregateID]*Tenant
 }
 
 // NewTenantReadModel creates an empty TenantReadModel.
 func NewTenantReadModel() *TenantReadModel {
-	return &TenantReadModel{ //nolint:exhaustruct // mu starts zero-valued
+	return &TenantReadModel{
+		readModelCore: readModelCore[*TenantReadModel]{
+			handlers: map[event.Type]eventHandler[*TenantReadModel]{
+				eventTenantCreated:     (*TenantReadModel).handleTenantCreated,
+				eventTenantSuspended:   (*TenantReadModel).handleTenantSuspended,
+				eventTenantReactivated: (*TenantReadModel).handleTenantReactivated,
+				eventTenantDeleted:     (*TenantReadModel).handleTenantDeleted,
+			},
+		},
 		tenants: make(map[id.AggregateID]*Tenant),
 	}
 }
@@ -37,48 +44,43 @@ func (m *TenantReadModel) Name() string { return "tenant-read-model" }
 func (m *TenantReadModel) EventTypes() []event.Type { return allTenantEventTypes }
 
 func (m *TenantReadModel) Handle(_ context.Context, evt event.Event) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	return m.handleEvent(m, evt)
+}
 
-	aggID := evt.AggregateID()
-
-	switch evt.Type() {
-	case eventTenantCreated:
-		p, err := unmarshalPayload[TenantCreatedPayload](evt)
-		if err != nil {
-			return errorfamily.WrapCorruption(
-				err, "usermgmt.tenant_readmodel.decode_failed",
-				"decode TenantCreated in read model",
-			)
-		}
-		m.tenants[aggID] = &Tenant{
-			ID:          NewTenantID(aggID.String()),
-			Name:        p.Name,
-			DisplayName: p.DisplayName,
-			Suspended:   false,
-			Deleted:     false,
-		}
-
-	case eventTenantSuspended:
-		if t, ok := m.tenants[aggID]; ok {
-			t.Suspended = true
-		}
-
-	case eventTenantReactivated:
-		if t, ok := m.tenants[aggID]; ok {
-			t.Suspended = false
-		}
-
-	case eventTenantDeleted:
-		delete(m.tenants, aggID)
-
-	default:
-		return errorfamily.NewRejection(
-			"usermgmt.tenant_readmodel.unknown_event",
-			"tenant read model received unknown event type: "+string(evt.Type()),
+func (m *TenantReadModel) handleTenantCreated(aggID id.AggregateID, evt event.Event) error {
+	p, err := unmarshalPayload[TenantCreatedPayload](evt)
+	if err != nil {
+		return errorfamily.WrapCorruption(
+			err, "usermgmt.tenant_readmodel.decode_failed",
+			"decode TenantCreated in read model",
 		)
 	}
+	m.tenants[aggID] = &Tenant{
+		ID:          NewTenantID(aggID.String()),
+		Name:        p.Name,
+		DisplayName: p.DisplayName,
+		Suspended:   false,
+		Deleted:     false,
+	}
+	return nil
+}
 
+func (m *TenantReadModel) handleTenantSuspended(aggID id.AggregateID, _ event.Event) error {
+	if t, ok := m.tenants[aggID]; ok {
+		t.Suspended = true
+	}
+	return nil
+}
+
+func (m *TenantReadModel) handleTenantReactivated(aggID id.AggregateID, _ event.Event) error {
+	if t, ok := m.tenants[aggID]; ok {
+		t.Suspended = false
+	}
+	return nil
+}
+
+func (m *TenantReadModel) handleTenantDeleted(aggID id.AggregateID, _ event.Event) error {
+	delete(m.tenants, aggID)
 	return nil
 }
 
