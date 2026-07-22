@@ -131,7 +131,7 @@ func collectProjections(
 func waitForDrain(host *projectionhost.Host) error {
 	const (
 		pollInterval = 10 * time.Millisecond
-		drainTimeout  = 30 * time.Second
+		drainTimeout = 30 * time.Second
 	)
 
 	timer := time.NewTimer(drainTimeout)

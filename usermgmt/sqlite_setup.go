@@ -81,7 +81,7 @@ func newSQLiteSetup(
 		UserRepository:       repos.User,
 		MembershipRepository: repos.Membership,
 		TenantRepository:     repos.Tenant,
-		BotRepository:       repos.Bot,
+		BotRepository:        repos.Bot,
 		ReadModel:            rm,
 		MembershipReadModel:  memRm,
 		TenantReadModel:      tenRm,
