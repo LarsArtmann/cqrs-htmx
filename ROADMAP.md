@@ -3,8 +3,9 @@
 > Long-term direction and raw ideas not yet refined into actionable tasks.
 > For short-term work, see [TODO_LIST.md](TODO_LIST.md).
 > For what exists today, see [FEATURES.md](FEATURES.md).
+> For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-07-20 | **Version:** v4.3.0+unreleased (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions)
+**Updated:** 2026-07-22 | **Version:** v4.3.0+unreleased (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions)
 
 ## Current State
 
@@ -18,150 +19,18 @@
 
 ---
 
-## Shipped (v1.0.0 → v3.3.0)
+## Upstream Adoption & Scale
 
-Major milestones delivered. Maintained here for historical context.
-
-| Version | Key Deliverables                                                                                                                                                                                                                                           |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| v1.0.0  | Initial release: App builder, command/query dispatch, handler options, HTMX middleware, error handling, Casbin authorization, branded UserID, session management                                                                                           |
-| v1.5.0  | CSRF (nosurf), rate limiting (token-bucket + heap eviction), security headers, recovery middleware, request logging (text + JSON + slog), lifecycle hooks                                                                                                  |
-| v2.0.0  | go-cqrs-lite v2 migration, 42-file import path bump, pre-release fixes (nil-enforcer bypass, query nil panic, Login error classification, UpdateRoles ordering)                                                                                            |
-| v2.1.0  | SSE + WebSocket real-time: Broadcaster fan-out, SSE reconnection (SSEEventStore + ReplayEvents), CQRS dispatch bridges (SSE + WS), typed WS message parser, WS OOB HTML, WS encoder, embedded HTMX v2.0.9 JS                                               |
-| v2.2.0  | SQL Event Store (Postgres/SQLite/MySQL), SQL Session Store, pagination (DecodePagination + RenderPaginatedJSON[T]), typed dispatch adoption                                                                                                                |
-| v2.3.0  | go-cqrs-lite v2.3.0: TypedHandler, deadline propagation, empty type validation, per-module go-cqrs-lite tags                                                                                                                                               |
-| v2.4.0  | TOTP MFA (pquerna/otp), email verification, user import/export (JSON/CSV), audit log, per-endpoint rate limiting, account lockout                                                                                                                          |
-| v2.5.0  | Event signing + encryption opt-in seams (ADR-0011), OAuth2/OIDC integration (ADR-0014), event schema versioning + upcasters (ADR-0013), catalog sub-package (ADR-0008)                                                                                     |
-| v2.6.0  | Identity model redesign (ADR-0015): Tenant, Bot, Membership, Impersonation, ActorID. go-cqrs-lite v2.6.0. SQL event store delegation to upstream. Roles→memberships migration.                                                                             |
-| v3.0.0  | go-cqrs-lite v3.0.0 migration (ADR-0016): manual projection replay, watermill EventBus, storage/memory split, Decider.Fold→Apply. Module path bump /v2→/v3. God object split (es_decide.go → 5 files). Dead code removal.                                  |
-| v3.1.0  | go-cqrs-lite v3.1.0: SQL-backed persistent read models (4 aggregates), one-call SQLite/Postgres stack presets, `OptimizeSQLiteDB`, graceful shutdown (`Service.Close`/`GracefulClose`), CI coverage gate, 697 tests.                                       |
-| v3.2.0  | catalog/ module merged upstream into go-cqrs-lite/catalog/v3 (v3.2.0). ADR number collision fix, migration checklist (AGENTS.md #22-26), doc-honesty sweep, 51 stale status reports archived.                                                              |
-| v3.3.0  | go-cqrs-lite v3.4.0 upgrade. BasicCommand embedding (ADR-0032 — structurally eliminates zero-cmdID bug). Checkpoint-based projection replay (ADR-0031 Accepted). Server-Timing API (W3C). Offline command queue Phase 2a (ADR-0029). 8 modules in go.work. |
-
----
-
-## v3.2.0 — Stabilization & Documentation (Completed)
-
-_Focus: Close the gap between what shipped and what's documented. Improve test coverage for identity model._
-
-| Area | Item                                                             | Priority | Status |
-| ---- | ---------------------------------------------------------------- | -------- | ------ |
-| Docs | Update FEATURES.md                                               | Critical | Done   |
-| Docs | Update ROADMAP.md                                                | Critical | Done   |
-| Docs | Add VERSIONING.md documenting semver policy                      | Medium   | Done   |
-| Docs | Consumer migration guide (v2→v3: import paths, bus, projections) | High     | Done   |
-| Docs | Add godoc examples for App, Handler, Service entry points        | Medium   | Done   |
-| Test | Service-level impersonation tests through full dispatch          | High     | Done   |
-| Test | Service-level membership tests through full dispatch             | High     | Done   |
-| Test | Projection replay integration test (journal vs live dedup)       | High     | Done   |
-| Test | Property-based tests for foldTenant, foldBot, foldMembership     | Medium   | Done   |
-| Test | Fuzz tests for projection dedup + identity model deciders        | Medium   | Done   |
-| Lint | Enable revive:exported linter + fix violations                   | Medium   | Done   |
-| Code | Remove deprecated ClientIP() wrapper                             | Low      | Open   |
-| Code | Verify and wire BrandNamer for root module marker types          | Medium   | Done   |
-
----
-
-## v3.3.0 — Observability & Metrics
-
-_Focus: Production-grade observability for CQRS dispatch pipelines._
-
-| Area          | Item                                                                          | Priority | Status                                |
-| ------------- | ----------------------------------------------------------------------------- | -------- | ------------------------------------- |
-| Observability | Server-Timing API (W3C header, debug-gated, nil-receiver)                     | High     | Done                                  |
-| Observability | OTel seam: document `go-cqrs-lite/otel/v3` + `middleware/v3` wiring guide     | Medium   | Done (`docs/observability-wiring.md`) |
-| Observability | Prometheus seam: document `go-cqrs-lite/prometheus/v3` `/metrics` integration | Low      | Done (`docs/observability-wiring.md`) |
-| CI            | Coverage gate in CI (fail on regression below threshold)                      | Medium   | Done                                  |
-
-> **Note:** OpenTelemetry and Prometheus are already available via go-cqrs-lite upstream
-> (`otel/v3`, `middleware/v3`, `prometheus/v3`). cqrs-htmx doesn't need to re-implement
-> them — it needs a wiring guide showing consumers how to bolt them onto the App.
-
----
-
-## v3.4.0 — Upstream Adoption & Scale
-
-_Focus: Adopting go-cqrs-lite v3.4.0 capabilities to reduce hand-rolled code._
+_Focus: Adopting go-cqrs-lite capabilities to reduce hand-rolled code._
 
 | Area | Item                                                               | Priority | Status                                                          |
 | ---- | ------------------------------------------------------------------ | -------- | --------------------------------------------------------------- |
 | ES   | Adopt `projectionhost/v3` — replace hand-rolled `StartProjections` | High     | Planned (checkpoint replay shipped in v3.3.0 as interim fix)    |
 | ES   | Adopt `CatchUpSubscriber` — ordered durable projections            | Medium   | Planned (ADR-0031 Accepted; deferred — needs sync-wait wrapper) |
-| Test | Adopt `scenario/v3` BDD DSL for usermgmt decider tests             | Medium   | Done (all 4 aggregates: User + Tenant + Bot + Membership)       |
-| Perf | Opt-in aggregate snapshotting                                      | Medium   | Done (shipped as `SnapshotConfig` — see CHANGELOG [Unreleased]) |
 | Perf | Profile and optimize hot paths (dispatch, decode)                  | Low      | Planned                                                         |
 | Perf | Benchmark projection replay with large stores (10K+ events)        | Low      | Planned                                                         |
 
 ---
-
-## v4.1.0 — Embedded HTMX Extensions (Shipped)
-
-_Focus: Zero-CDN-dependency HTMX setup with embedded extensions._
-
-| Area | Item                                                               | Priority | Status |
-| ---- | ------------------------------------------------------------------ | -------- | ------ |
-| UX   | Embedded HTMX extensions (SSE, WS, idiomorph) via `go:embed`       | High     | Done   |
-| UX   | `HTMXExtensionHandler(name)` + `HTMXExtensionsHandler(bundle)` API | High     | Done   |
-| UX   | HTMX core bumped 2.0.9 → 2.0.10                                    | Medium   | Done   |
-
-## v4.2.0 — Consumer Feedback + Error Quality (Shipped)
-
-_Focus: APIs requested by 3 real consumers (Overview, DiscordSync, SwettySwipper). Error family adoption across all modules._
-
-| Area  | Item                                                                             | Priority | Status |
-| ----- | -------------------------------------------------------------------------------- | -------- | ------ |
-| API   | `RequestGuard` custom auth guard                                                 | High     | Done   |
-| API   | Request-aware decoders (`*WithRequest` variants)                                 | High     | Done   |
-| API   | `DefaultRateLimiterConfig()` constructor                                         | Medium   | Done   |
-| API   | `SecurityHeaderSkip` sentinel                                                    | Medium   | Done   |
-| API   | `RenderHTML(html)` HandlerOption                                                 | Medium   | Done   |
-| API   | `SSEEventConnected`/`SSEEventHeartbeat` constants                                | Low      | Done   |
-| API   | `Broadcaster.Close()` + `fanOut.Close()` graceful shutdown                       | Medium   | Done   |
-| API   | JSON error `"code"` field + `StructuredError.Code`                               | High     | Done   |
-| API   | `CSRFTestToken(mw)` test helper (returns token + cookie)                         | Medium   | Done   |
-| Error | go-error-family direct dep in ALL modules (32 violations → 0)                    | Critical | Done   |
-| Error | Error context enrichment (`.WithContext()` chaining)                             | High     | Done   |
-| Perf  | `dedup.Ring` (O(1) memory projection dedup) + `codec.ForEncoding` (CBOR support) | Medium   | Done   |
-
-## v4.2.1 — Release Hygiene (Shipped)
-
-_Focus: Version drift alignment, go.work fix, CHANGELOGs for all modules._
-
-| Area  | Item                                                | Priority | Status |
-| ----- | --------------------------------------------------- | -------- | ------ |
-| Infra | go.work replace+use conflict fix                    | Critical | Done   |
-| Infra | go-cqrs-lite version drift alignment (all → v3.7.4) | High     | Done   |
-| Docs  | CHANGELOGs created for all 6 modules                | High     | Done   |
-
-## Unreleased — go-cqrs-lite v4 Migration
-
-_Focus: Migrate from go-cqrs-lite v3 to v4. Eliminate vendored eventtest._
-
-| Area  | Item                                                                    | Priority | Status |
-| ----- | ----------------------------------------------------------------------- | -------- | ------ |
-| Deps  | go-cqrs-lite v3.7.4 → v4.0.0 (import paths `/v3` → `/v4`)               | Critical | Done   |
-| Deps  | go-error-family v0.6.1 → v0.7.0                                         | High     | Done   |
-| Deps  | templ-components v0.15.0 → v0.16.0                                      | Medium   | Done   |
-| Infra | `.vendor-local/eventtest` eliminated                                    | High     | Done   |
-| API   | `ErrorCode` exported, `ErrorRecorder` extracted from `StatusRecorder`   | Medium   | Done   |
-| API   | `writeDispatchError` consolidates 15 error-writing sites in usermgmt    | Medium   | Done   |
-| Refac | `UserReadModel.Handle` dispatch table (eliminates last lint issue)      | Medium   | Done   |
-| Test  | CBOR round-trip tests, request-aware decoder tests, CSRFTestToken tests | High     | Done   |
-
-## v4.0.0 — Auth Strategy Extraction (Shipped)
-
-_Focus: Module isolation for auth strategies. Consumers import only what they need._
-
-| Area       | Item                                                                       | Priority | Status |
-| ---------- | -------------------------------------------------------------------------- | -------- | ------ |
-| Extraction | TOTP behind TOTPProvider interface → `usermgmt/totp/v4` module             | Critical | Done   |
-| Extraction | WebAuthn behind WebAuthnProvider interface → `usermgmt/webauthn/v4` module | Critical | Done   |
-| Extraction | OAuth2/OIDC behind OAuth2Provider interface → `usermgmt/oauth2/v4` module  | Critical | Done   |
-| Testing    | W3C spec ceremony tests for WebAuthn provider                              | High     | Done   |
-| Testing    | Real JWT signing tests for OAuth2/OIDC provider                            | High     | Done   |
-| Testing    | Compile-time interface assertions in integration_test                      | High     | Done   |
-| Docs       | ADR-0035 (auth strategy extraction decision)                               | Medium   | Done   |
-| Docs       | Migration guide v3→v4                                                      | High     | Done   |
 
 ## Not Planned
 

@@ -73,6 +73,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`errors.AsType` adoption** (`usermgmt/service_register.go`): Replaced `errors.As(err, &ee)` with `errors.AsType[*event.Error](err)` per gopls recommendation.
 - **`UserReadModel.Handle` refactored** (`usermgmt/es_readmodel.go`): Extracted the 12-case switch into a dispatch table (`handlers` map) with per-event handler methods and a shared `decodePayload[T]` generic helper. Eliminates the `maintidx` lint warning (complexity 38). The last remaining lint issue in the entire codebase is now resolved.
 - **coreos/go-oidc/v3 v3.19.0 → v3.20.0**: Bumped to latest released version in the `usermgmt/oauth2` module.
+- **go-error-family v0.6.1 → v0.7.0**: Upgraded across all modules. v0.7.0 adds `errors.AsType[E]` generic helper and refines the `Family.HTTPStatus()` contract.
+- **templ-components v0.15.0 → v0.16.0**: Bumped in `adminui` and `examples/admin-demo` for latest component additions and bug fixes.
 
 ### Fixed
 
@@ -91,6 +93,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [v4.2.1] - 2026-07-08
 
+### Added
+
+- **Per-module CHANGELOGs**: Created CHANGELOG.md files for all 6 sub-modules (usermgmt, usermgmt/totp, usermgmt/webauthn, usermgmt/oauth2, adminui, loginpage) so consumers can track changes per module independently.
+
 ### Fixed
 
 - **go.work replace+use conflict**: Moved `eventtest` from go.work `replace` directive to `use` block. Having a module in both `use` and `replace` caused a Go workspace error (`workspace module is replaced at all versions`) that broke BuildFlow test-race, go-fix, and govalid-generate steps. Per-module go.mod `replace` directives retain GOWORK=off compatibility.
@@ -105,6 +111,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **SSE channel lifecycle** (`sse_stream.go`): `OnDisconnect(fn)` callback registration for cleanup when clients disconnect.
 - **SSE event constants** (`sse_event.go`): `SSEEventConnected` and `SSEEventHeartbeat` named constants for the ACK/heartbeat protocol.
 - **go-error-family adoption** (all modules): Migrated from transitive dependency to direct import across root, usermgmt, and all auth strategy modules. Enriched error contexts with domain-specific identifiers (user IDs, provider names, credential IDs) for better debugging.
+- **`DefaultRateLimiterConfig()`** (`ratelimit_config.go`): Constructor returning a sensible default `RateLimiterConfig` (token-bucket, 10 req/s burst 20) so consumers don't have to build the struct from scratch.
+- **`SecurityHeaderSkip` sentinel** (`security_headers.go`): Pass as a header value to `SecurityHeadersMiddleware` to skip all security headers on a specific response (e.g. for HTML pages that embed inline styles from a trusted source).
+- **`RenderHTML(html)` HandlerOption** (`options_render.go`): Renders raw HTML strings (non-templ) as the handler response. Use for static HTML, redirects, or when using `html/template` instead of `templ`.
+- **`Broadcaster.Close()` + `fanOut.Close()`** (`sse_broadcaster.go`, `fanout.go`): Graceful shutdown — closes all subscriber channels and stops accepting new subscribers. Idempotent. Enables clean shutdown of SSE broadcasters during `Service.GracefulClose`.
 
 ### Changed
 
@@ -153,6 +163,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Coverage tests for parse helpers** (`usermgmt/coverage_parse_helpers_test.go`): `ParseUserID`, `MustParseUserID`, `ParseActorID` round-trip, `ParseActorID` no-prefix fallback, `MustParseEmail` panic.
 - **Pre-generated RSA key fixture** for OAuth2 OIDC tests: `sync.Once` cache eliminates ~50ms RSA key generation per test invocation. Shared across all `fakeOIDCServer` tests.
 - **Fuzz tests on JSON boundary** (`usermgmt/webauthn_fuzz_test.go`, `usermgmt/webauthn/provider_fuzz_test.go`): `FuzzMarshalWebAuthnUser`, `FuzzParseUser`, `FuzzParseSession` — crash-tested with 400K+ iterations.
+- **Compile-time interface assertions** (`integration_test`): `var _ TOTPProvider = (*usermgmt.Service)(nil)` and equivalent assertions for `WebAuthnProvider` and `OAuth2Provider` prove at compile time that the core `Service` satisfies each auth strategy interface. Prevents silent interface drift.
 
 ### Changed
 
@@ -303,8 +314,20 @@ See `docs/migrations/v3-to-v4.md` for detailed before/after examples.
 
 ## [3.2.0] - 2026-06-28
 
+### Added
+
+- **VERSIONING.md**: Documents the semver policy for the library (when major/minor/patch bumps occur, pre-release tagging, and consumer upgrade expectations).
+- **Consumer migration guide (v2→v3)** (`docs/migrations/v2-to-v3.md`): Covers import path changes (`/v2` → `/v3`), bus replacement (manual → watermill EventBus), and projection replay changes (automatic → manual checkpoint-based).
+- **Godoc examples**: Added runnable godoc examples for `App`, `Handler`, and `Service` entry points so consumers can discover the API from `pkg.go.dev`.
+- **Service-level impersonation tests**: End-to-end tests through full dispatch (command → event → read model) verifying impersonation flows.
+- **Service-level membership tests**: End-to-end tests through full dispatch verifying membership add/update/remove flows.
+- **Projection replay integration test**: Verifies journal-vs-live dedup correctness when projections restart from a checkpoint.
+- **Property-based tests for event folds** (`foldTenant`, `foldBot`, `foldMembership`): Sequence-property tests verifying associativity, tombstone idempotency, and aggregate-specific invariants across random event streams.
+- **Fuzz tests for projection dedup + identity model deciders**: Adversarial input testing for the dedup ring and all four aggregate deciders.
+
 ### Changed
 
+- **revive:exported linter enabled**: All exported symbols now have godoc comments. Fixes all revive:exported violations across the codebase.
 - **catalog/ module merged into go-cqrs-lite** (**BREAKING**): The
   `github.com/larsartmann/cqrs-htmx/catalog/v3` module is deleted. Its
   single-service Builder facade and standalone HTTP handlers (D2, Health,
