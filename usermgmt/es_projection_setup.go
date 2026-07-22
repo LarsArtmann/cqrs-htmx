@@ -119,13 +119,19 @@ func collectProjections(
 }
 
 // waitForDrain blocks until all projection host workers have finished their
-// initial journal drain and transitioned to live state (WorkerLive), or one
-// has failed. This preserves read-your-writes: after this returns, all
-// projections have processed all historical events.
+// initial journal drain, or one has failed. This preserves read-your-writes:
+// after this returns, all projections have processed all historical events.
+//
+// The watermill EventBus implements SubscribeAll as a non-blocking registration
+// (it registers the handler and returns immediately). This means projectionhost
+// workers transition through WorkerLive momentarily, then exit to WorkerStopped
+// once SubscribeAll returns — the live handler is registered and active, but
+// the worker goroutine has exited. Both WorkerLive and WorkerStopped are valid
+// drain-complete terminal states for non-blocking subscribers.
 func waitForDrain(host *projectionhost.Host) error {
 	const (
 		pollInterval = 10 * time.Millisecond
-		drainTimeout = 30 * time.Second
+		drainTimeout  = 30 * time.Second
 	)
 
 	timer := time.NewTimer(drainTimeout)
@@ -138,25 +144,23 @@ func waitForDrain(host *projectionhost.Host) error {
 		select {
 		case <-ticker.C:
 			statuses := host.Status()
-			allLive := true
+			allDone := true
 			for _, s := range statuses {
 				switch s.Status {
-				case projectionhost.WorkerLive:
+				case projectionhost.WorkerLive, projectionhost.WorkerStopped:
+					// Worker has completed drain and registered live handler.
 				case projectionhost.WorkerFailed:
 					return errorfamily.NewInfrastructure(
 						"usermgmt.projection.worker_failed",
 						fmt.Sprintf("projection %q failed during initial drain: %s", s.Name, s.LastError),
 					)
-				case projectionhost.WorkerStopped:
-					return errorfamily.NewInfrastructure(
-						"usermgmt.projection.worker_stopped",
-						fmt.Sprintf("projection %q stopped unexpectedly during initial drain", s.Name),
-					)
 				default:
-					allLive = false
+					// WorkerIdle, WorkerRunning, WorkerBackoff, WorkerDraining:
+					// still working or hasn't started yet.
+					allDone = false
 				}
 			}
-			if allLive {
+			if allDone {
 				return nil
 			}
 		case <-timer.C:
