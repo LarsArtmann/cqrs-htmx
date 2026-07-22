@@ -227,4 +227,171 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			Expect(w.Body.String()).To(ContainSubstring("7"))
 		})
 	})
+
+	Describe("CommandTyped error paths", func() {
+		It("returns 400 when JSON body is malformed", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("Echo", noOpCommandHandler)
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := cqrshtmx.CommandTyped[*typedEchoCommand](
+				app, "Echo",
+				cqrshtmx.DecodeJSONTyped[*typedEchoCommand](),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(
+				http.MethodPost, "/echo",
+				strings.NewReader(`{not json`),
+			)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("decode"))
+		})
+
+		It("dispatches with zero-value body for empty JSON", func() {
+			var received string
+
+			disp := command.NewDispatcher()
+			err := command.RegisterTyped(
+				disp, "Echo",
+				func(_ context.Context, cmd *typedEchoCommand) error {
+					received = cmd.Message
+
+					return nil
+				},
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := cqrshtmx.CommandTyped[*typedEchoCommand](
+				app, "Echo",
+				cqrshtmx.DecodeJSONTyped[*typedEchoCommand](),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(
+				http.MethodPost, "/echo",
+				strings.NewReader(""),
+			)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(received).To(Equal(""))
+		})
+
+		It("returns 400 when form body has wrong type for int field", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("Sum", noOpCommandHandler)
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := cqrshtmx.CommandTyped[*typedSumQuery](
+				app, "Sum",
+				cqrshtmx.DecodeFormTyped[*typedSumQuery](),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(
+				http.MethodPost, "/sum",
+				strings.NewReader("a=not-a-number&b=4"),
+			)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("decode"))
+		})
+	})
+
+	Describe("QueryTyped error paths", func() {
+		It("returns 400 when JSON body is malformed", func() {
+			disp := query.NewDispatcher()
+			_ = disp.Register("Sum", func(_ context.Context, _ query.Query) (any, error) {
+				return 0, nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := cqrshtmx.QueryTyped[*typedSumQuery, int](
+				app, "Sum",
+				cqrshtmx.DecodeJSONQueryTyped[*typedSumQuery](),
+				cqrshtmx.RenderJSON[int](),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(
+				http.MethodPost, "/sum",
+				strings.NewReader(`{not json`),
+			)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("decode"))
+		})
+
+		It("dispatches with zero-value body for empty JSON", func() {
+			disp := query.NewDispatcher()
+			err := query.RegisterTyped(
+				disp, "Sum",
+				func(_ context.Context, q *typedSumQuery) (int, error) {
+					return q.A + q.B, nil
+				},
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := cqrshtmx.QueryTyped[*typedSumQuery, int](
+				app, "Sum",
+				cqrshtmx.DecodeJSONQueryTyped[*typedSumQuery](),
+				cqrshtmx.RenderJSON[int](),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(
+				http.MethodPost, "/sum",
+				strings.NewReader(""),
+			)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusOK))
+			Expect(w.Body.String()).To(ContainSubstring("0"))
+		})
+
+		It("returns 400 when form body has wrong type for int field", func() {
+			disp := query.NewDispatcher()
+			_ = disp.Register("Sum", func(_ context.Context, _ query.Query) (any, error) {
+				return 0, nil
+			})
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
+			Expect(err).NotTo(HaveOccurred())
+
+			handler := cqrshtmx.QueryTyped[*typedSumQuery, int](
+				app, "Sum",
+				cqrshtmx.DecodeFormQueryTyped[*typedSumQuery](),
+				cqrshtmx.RenderJSON[int](),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(
+				http.MethodPost, "/sum",
+				strings.NewReader("a=not-a-number&b=4"),
+			)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Body.String()).To(ContainSubstring("decode"))
+		})
+	})
 })
