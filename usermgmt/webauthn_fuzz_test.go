@@ -1,7 +1,8 @@
 package usermgmt
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"testing"
 )
 
@@ -24,7 +25,7 @@ func FuzzMarshalWebAuthnUser(f *testing.F) {
 		if err != nil {
 			return
 		}
-		if !json.Valid(data) {
+		if !jsontext.Value(data).IsValid() {
 			t.Errorf("marshalWebAuthnUser produced invalid JSON: %s", string(data))
 		}
 	})

@@ -2,7 +2,7 @@ package cqrshtmx_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 
 	"github.com/casbin/casbin/v3"
@@ -17,7 +17,7 @@ import (
 func encodeJSONResult(w http.ResponseWriter, _ *http.Request, result any) error {
 	w.Header().Set("Content-Type", "application/json")
 
-	return json.NewEncoder(w).Encode(result)
+	return json.MarshalWrite(w, result)
 }
 
 // registerBDDListUsers registers a "ListUsers" query handler that returns a

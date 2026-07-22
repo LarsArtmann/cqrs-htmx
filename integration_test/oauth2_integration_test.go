@@ -2,7 +2,7 @@ package integration_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -146,11 +146,11 @@ func newMockOAuth2Server(t *testing.T, userInfo map[string]any) (string, func())
 		_ = r.ParseForm()
 		if r.PostFormValue("code") != "test-auth-code" {
 			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid_grant"})
+			_ = json.MarshalWrite(w, map[string]string{"error": "invalid_grant"})
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]string{
+		_ = json.MarshalWrite(w, map[string]string{
 			"access_token": "test-access-token",
 			"token_type":   "Bearer",
 		})
@@ -163,7 +163,7 @@ func newMockOAuth2Server(t *testing.T, userInfo map[string]any) (string, func())
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(userInfo)
+		_ = json.MarshalWrite(w, userInfo)
 	})
 
 	server := httptest.NewServer(mux)
