@@ -2,6 +2,7 @@ package cqrshtmx_test
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -26,9 +27,29 @@ type testCreateUserRequest struct {
 	Name  string `json:"name"`
 }
 
+func (r testCreateUserRequest) Validate() error {
+	if r.Email == "" {
+		return errors.New("email is required")
+	}
+
+	return nil
+}
+
 type testGetUserQuery struct{}
 
 func (q *testGetUserQuery) Type() query.Type { return "GetUser" }
+
+type testPagedQueryRequest struct {
+	Page int `json:"page"`
+}
+
+func (q testPagedQueryRequest) Validate() error {
+	if q.Page <= 0 {
+		return errors.New("page must be positive")
+	}
+
+	return nil
+}
 
 type bddCreateUserReq struct {
 	Email string `json:"email"`
