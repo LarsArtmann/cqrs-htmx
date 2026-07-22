@@ -3,10 +3,10 @@ package cqrshtmx
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	httputil "github.com/larsartmann/httputil"
 )
 
 // RenderJSON renders query results as JSON with 200 OK and
@@ -80,24 +80,10 @@ func RequireMethod(method string) HandlerOption {
 //	    }),
 //	)
 func DecodePagination(r *http.Request) query.Pagination {
-	page := parseUintQuery(r, "page")
-	pageSize := parseUintQuery(r, "page_size")
+	page := httputil.ParseUintQuery(r, "page")
+	pageSize := httputil.ParseUintQuery(r, "page_size")
 
 	return query.NewPagination(page, pageSize)
-}
-
-func parseUintQuery(r *http.Request, key string) uint {
-	v := r.URL.Query().Get(key)
-	if v == "" {
-		return 0
-	}
-
-	n, err := strconv.ParseUint(v, 10, 32)
-	if err != nil {
-		return 0
-	}
-
-	return uint(n)
 }
 
 // RenderPaginatedJSON renders a query.PaginatedResult[T] as JSON with 200 OK.

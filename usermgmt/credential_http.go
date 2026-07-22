@@ -3,10 +3,10 @@ package usermgmt
 import (
 	"encoding/base64"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	httputil "github.com/larsartmann/httputil"
 )
 
 // credentialSummary is a sanitized view of a WebAuthnCredential for API responses.
@@ -53,8 +53,8 @@ func (h *AuthHandler) handleListCredentials(w http.ResponseWriter, r *http.Reque
 
 	totalCount := len(summaries)
 	p := query.NewPagination(
-		parseUintQueryParam(r, credentialPaginationPage),
-		parseUintQueryParam(r, credentialPaginationPageSize),
+		httputil.ParseUintQuery(r, credentialPaginationPage),
+		httputil.ParseUintQuery(r, credentialPaginationPageSize),
 	)
 	page, pageSize := int(p.Page), int(p.PageSize)
 	paged := paginate(summaries, page, pageSize)
@@ -66,24 +66,6 @@ func (h *AuthHandler) handleListCredentials(w http.ResponseWriter, r *http.Reque
 		PageSize:    pageSize,
 		TotalPages:  totalPages(totalCount, pageSize),
 	})
-}
-
-// parseUintQueryParam extracts a uint from a query parameter, returning 0 on
-// missing or invalid values (query.NewPagination then applies defaults).
-//
-// Intentional structural duplicate of cqrshtmx.parseUintQuery: the usermgmt
-// module has a clean-boundary rule and MUST NOT import the root cqrshtmx
-// package, so the helper is duplicated rather than shared.
-func parseUintQueryParam(r *http.Request, key string) uint {
-	v := r.URL.Query().Get(key)
-	if v == "" {
-		return 0
-	}
-	n, err := strconv.ParseUint(v, 10, 32)
-	if err != nil {
-		return 0
-	}
-	return uint(n)
 }
 
 func totalPages(totalCount, pageSize int) int {
