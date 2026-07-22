@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	stackpostgres "github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	sqlopt "github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
@@ -64,11 +65,12 @@ func newPostgresSetup(
 		return nil, err
 	}
 
-	if err := StartProjections(
+	host, err := StartProjections(
 		bundle.Journal, bundle.Subscriber,
 		checkpointStore,
 		rm, memRm, tenRm, botRm, casbinProj, auditLog,
-	); err != nil {
+	)
+	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "start projections")
 	}
@@ -85,6 +87,7 @@ func newPostgresSetup(
 		Bundle:               bundle,
 		DB:                   db,
 		casbinProjection:     casbinProj,
+		projectionHost:       host,
 	}, nil
 }
 
@@ -125,9 +128,15 @@ type PostgresEventSourcedSetup struct {
 	Bundle               *stack.Bundle
 	DB                   *sql.DB
 	casbinProjection     *CasbinProjection
+	projectionHost       *projectionhost.Host
 }
 
 func (s *PostgresEventSourcedSetup) Close() error {
+	if s.projectionHost != nil {
+		if err := s.projectionHost.Stop(); err != nil {
+			errorfamily.WrapTransient(err, "usermgmt.postgres_setup.stop_projections", "stop projection host")
+		}
+	}
 	if s.Bundle != nil {
 		if err := s.Bundle.Close(); err != nil {
 			return errorfamily.WrapTransient(err, "usermgmt.postgres_setup.close", "close postgres bundle")
@@ -137,6 +146,11 @@ func (s *PostgresEventSourcedSetup) Close() error {
 }
 
 func (s *PostgresEventSourcedSetup) GracefulClose(ctx context.Context) error {
+	if s.projectionHost != nil {
+		if err := s.projectionHost.Stop(); err != nil {
+			errorfamily.WrapTransient(err, "usermgmt.postgres_setup.stop_projections", "stop projection host")
+		}
+	}
 	if s.Bundle != nil {
 		if err := s.Bundle.GracefulClose(ctx); err != nil {
 			return errorfamily.WrapTransient(

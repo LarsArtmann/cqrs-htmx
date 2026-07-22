@@ -56,6 +56,7 @@ type Service struct {
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration
 	tokenPepper              TokenPepper
+	projectionHost           *projectionhost.Host
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -290,6 +291,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		bus:                 setup.Bus,
 		store:               setup.Store,
 		auditLog:            cfg.AuditLog,
+		projectionHost:      setup.projectionHost,
 	}
 
 	if cfg.WebAuthn != nil {
@@ -411,6 +413,11 @@ func (s *Service) GracefulClose(ctx context.Context) error {
 // closeInfra closes the bus and store if they implement io.Closer.
 // Returns the first error encountered.
 func (s *Service) closeInfra() error {
+	if s.projectionHost != nil {
+		if err := s.projectionHost.Stop(); err != nil {
+			errorfamily.WrapTransient(err, "usermgmt.service.stop_projections", "stop projection host")
+		}
+	}
 	if c, ok := s.bus.(interface{ Close() error }); ok {
 		if err := c.Close(); err != nil {
 			return errorfamily.WrapTransient(err, "usermgmt.service.close_bus", "close event bus")
