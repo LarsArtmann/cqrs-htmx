@@ -1,64 +1,64 @@
 package usermgmt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
 
-const (
-	aggregateTypeUser       event.StreamType = "User"
-	aggregateTypeMembership event.StreamType = "Membership"
-	aggregateTypeTenant     event.StreamType = "Tenant"
-	aggregateTypeBot        event.StreamType = "Bot"
+var (
+	aggregateTypeUser       = identitymodel.AggregateTypeUser
+	aggregateTypeMembership = identitymodel.AggregateTypeMembership
+	aggregateTypeTenant     = identitymodel.AggregateTypeTenant
+	aggregateTypeBot        = identitymodel.AggregateTypeBot
 
-	eventUserRegistered          event.Type = "UserRegistered"
-	eventRolesUpdated            event.Type = "RolesUpdated" // legacy: no longer emitted, decoded for backward compat
-	eventEmailChanged            event.Type = "EmailChanged"
-	eventDisplayNameChanged      event.Type = "DisplayNameChanged"
-	eventUserDeleted             event.Type = "UserDeleted"
-	eventCredentialAdded         event.Type = "CredentialAdded"   //nolint:gosec // event type name, not credential
-	eventCredentialRemoved       event.Type = "CredentialRemoved" //nolint:gosec // event type name, not credential
-	eventEmailVerified           event.Type = "EmailVerified"
-	eventTOTPEnabled             event.Type = "TOTPEnabled"
-	eventTOTPDisabled            event.Type = "TOTPDisabled"
-	eventExternalAccountLinked   event.Type = "ExternalAccountLinked"
-	eventExternalAccountUnlinked event.Type = "ExternalAccountUnlinked"
+	eventUserRegistered          = identitymodel.EventUserRegistered
+	eventRolesUpdated            = identitymodel.EventRolesUpdated
+	eventEmailChanged            = identitymodel.EventEmailChanged
+	eventDisplayNameChanged      = identitymodel.EventDisplayNameChanged
+	eventUserDeleted             = identitymodel.EventUserDeleted
+	eventCredentialAdded         = identitymodel.EventCredentialAdded
+	eventCredentialRemoved       = identitymodel.EventCredentialRemoved
+	eventEmailVerified           = identitymodel.EventEmailVerified
+	eventTOTPEnabled             = identitymodel.EventTOTPEnabled
+	eventTOTPDisabled            = identitymodel.EventTOTPDisabled
+	eventExternalAccountLinked   = identitymodel.EventExternalAccountLinked
+	eventExternalAccountUnlinked = identitymodel.EventExternalAccountUnlinked
 
-	eventMemberAdded        event.Type = "MemberAdded"
-	eventMemberRolesChanged event.Type = "MemberRolesChanged"
-	eventMemberRemoved      event.Type = "MemberRemoved"
+	eventMemberAdded        = identitymodel.EventMemberAdded
+	eventMemberRolesChanged = identitymodel.EventMemberRolesChanged
+	eventMemberRemoved      = identitymodel.EventMemberRemoved
 
-	eventTenantCreated     event.Type = "TenantCreated"
-	eventTenantSuspended   event.Type = "TenantSuspended"
-	eventTenantReactivated event.Type = "TenantReactivated"
-	eventTenantDeleted     event.Type = "TenantDeleted"
+	eventTenantCreated     = identitymodel.EventTenantCreated
+	eventTenantSuspended   = identitymodel.EventTenantSuspended
+	eventTenantReactivated = identitymodel.EventTenantReactivated
+	eventTenantDeleted     = identitymodel.EventTenantDeleted
 
-	eventBotRegistered event.Type = "BotRegistered"
-	eventBotDeleted    event.Type = "BotDeleted"
+	eventBotRegistered = identitymodel.EventBotRegistered
+	eventBotDeleted    = identitymodel.EventBotDeleted
 
-	cmdRegisterUser          command.Type = "RegisterUser"
-	cmdChangeEmail           command.Type = "ChangeEmail"
-	cmdChangeDisplayName     command.Type = "ChangeDisplayName"
-	cmdDeleteUser            command.Type = "DeleteUser"
-	cmdAddCredential         command.Type = "AddCredential"    //nolint:gosec // command type name, not credential
-	cmdRemoveCredential      command.Type = "RemoveCredential" //nolint:gosec // command type name, not credential
-	cmdVerifyEmail           command.Type = "VerifyEmail"
-	cmdEnableTOTP            command.Type = "EnableTOTP"
-	cmdDisableTOTP           command.Type = "DisableTOTP"
-	cmdLinkExternalAccount   command.Type = "LinkExternalAccount"
-	cmdUnlinkExternalAccount command.Type = "UnlinkExternalAccount"
+	cmdRegisterUser          = identitymodel.CmdRegisterUser
+	cmdChangeEmail           = identitymodel.CmdChangeEmail
+	cmdChangeDisplayName     = identitymodel.CmdChangeDisplayName
+	cmdDeleteUser            = identitymodel.CmdDeleteUser
+	cmdAddCredential         = identitymodel.CmdAddCredential
+	cmdRemoveCredential      = identitymodel.CmdRemoveCredential
+	cmdVerifyEmail           = identitymodel.CmdVerifyEmail
+	cmdEnableTOTP            = identitymodel.CmdEnableTOTP
+	cmdDisableTOTP           = identitymodel.CmdDisableTOTP
+	cmdLinkExternalAccount   = identitymodel.CmdLinkExternalAccount
+	cmdUnlinkExternalAccount = identitymodel.CmdUnlinkExternalAccount
 
-	cmdAddMember         command.Type = "AddMember"
-	cmdUpdateMemberRoles command.Type = "UpdateMemberRoles"
-	cmdRemoveMember      command.Type = "RemoveMember"
+	cmdAddMember         = identitymodel.CmdAddMember
+	cmdUpdateMemberRoles = identitymodel.CmdUpdateMemberRoles
+	cmdRemoveMember      = identitymodel.CmdRemoveMember
 
-	cmdCreateTenant     command.Type = "CreateTenant"
-	cmdSuspendTenant    command.Type = "SuspendTenant"
-	cmdReactivateTenant command.Type = "ReactivateTenant"
-	cmdDeleteTenant     command.Type = "DeleteTenant"
+	cmdCreateTenant     = identitymodel.CmdCreateTenant
+	cmdSuspendTenant    = identitymodel.CmdSuspendTenant
+	cmdReactivateTenant = identitymodel.CmdReactivateTenant
+	cmdDeleteTenant     = identitymodel.CmdDeleteTenant
 
-	cmdRegisterBot command.Type = "RegisterBot"
-	cmdDeleteBot   command.Type = "DeleteBot"
+	cmdRegisterBot = identitymodel.CmdRegisterBot
+	cmdDeleteBot   = identitymodel.CmdDeleteBot
 )
 
 var allUserEventTypes = []event.Type{
@@ -76,8 +76,6 @@ var allUserEventTypes = []event.Type{
 	eventExternalAccountUnlinked,
 }
 
-// allMembershipEventTypes is used by MembershipReadModel and CasbinProjection
-// to subscribe to membership lifecycle events.
 var allMembershipEventTypes = []event.Type{
 	eventMemberAdded,
 	eventMemberRolesChanged,
@@ -96,7 +94,4 @@ var allBotEventTypes = []event.Type{
 	eventBotDeleted,
 }
 
-// currentSchemaVersion is the payload schema version for all new events.
-// Old events without the field decode as 0; foldUser treats 0 as v1.
-// v2 adds: Membership aggregate events (MemberAdded, MemberRolesChanged, MemberRemoved).
-const currentSchemaVersion = 2
+var currentSchemaVersion = identitymodel.CurrentSchemaVersion

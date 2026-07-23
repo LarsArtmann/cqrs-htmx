@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 )
 
 func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +101,7 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 				Lag:        lag.String(),
 				Processed:  ws.Processed,
 				Errors:     ws.Errors,
-				StatusKind: projectionStatusKind(ws.Status),
+				StatusKind: projectionStatusKind(string(ws.Status)),
 			})
 		}
 	}

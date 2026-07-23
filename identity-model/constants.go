@@ -6,59 +6,59 @@ import (
 )
 
 const (
-	aggregateTypeUser       event.StreamType = "User"
-	aggregateTypeMembership event.StreamType = "Membership"
-	aggregateTypeTenant     event.StreamType = "Tenant"
-	aggregateTypeBot        event.StreamType = "Bot"
+	AggregateTypeUser       event.StreamType = "User"
+	AggregateTypeMembership event.StreamType = "Membership"
+	AggregateTypeTenant     event.StreamType = "Tenant"
+	AggregateTypeBot        event.StreamType = "Bot"
 
-	eventUserRegistered          event.Type = "UserRegistered"
-	eventRolesUpdated            event.Type = "RolesUpdated" // legacy: no longer emitted, decoded for backward compat
-	eventEmailChanged            event.Type = "EmailChanged"
-	eventDisplayNameChanged      event.Type = "DisplayNameChanged"
-	eventUserDeleted             event.Type = "UserDeleted"
-	eventCredentialAdded         event.Type = "CredentialAdded"   //nolint:gosec // event type name, not credential
-	eventCredentialRemoved       event.Type = "CredentialRemoved" //nolint:gosec // event type name, not credential
-	eventEmailVerified           event.Type = "EmailVerified"
-	eventTOTPEnabled             event.Type = "TOTPEnabled"
-	eventTOTPDisabled            event.Type = "TOTPDisabled"
-	eventExternalAccountLinked   event.Type = "ExternalAccountLinked"
-	eventExternalAccountUnlinked event.Type = "ExternalAccountUnlinked"
+	EventUserRegistered          event.Type = "UserRegistered"
+	EventRolesUpdated            event.Type = "RolesUpdated" // legacy: no longer emitted, decoded for backward compat
+	EventEmailChanged            event.Type = "EmailChanged"
+	EventDisplayNameChanged      event.Type = "DisplayNameChanged"
+	EventUserDeleted             event.Type = "UserDeleted"
+	EventCredentialAdded         event.Type = "CredentialAdded"   //nolint:gosec // event type name, not credential
+	EventCredentialRemoved       event.Type = "CredentialRemoved" //nolint:gosec // event type name, not credential
+	EventEmailVerified           event.Type = "EmailVerified"
+	EventTOTPEnabled             event.Type = "TOTPEnabled"
+	EventTOTPDisabled            event.Type = "TOTPDisabled"
+	EventExternalAccountLinked   event.Type = "ExternalAccountLinked"
+	EventExternalAccountUnlinked event.Type = "ExternalAccountUnlinked"
 
-	eventMemberAdded        event.Type = "MemberAdded"
-	eventMemberRolesChanged event.Type = "MemberRolesChanged"
-	eventMemberRemoved      event.Type = "MemberRemoved"
+	EventMemberAdded        event.Type = "MemberAdded"
+	EventMemberRolesChanged event.Type = "MemberRolesChanged"
+	EventMemberRemoved      event.Type = "MemberRemoved"
 
-	eventTenantCreated     event.Type = "TenantCreated"
-	eventTenantSuspended   event.Type = "TenantSuspended"
-	eventTenantReactivated event.Type = "TenantReactivated"
-	eventTenantDeleted     event.Type = "TenantDeleted"
+	EventTenantCreated     event.Type = "TenantCreated"
+	EventTenantSuspended   event.Type = "TenantSuspended"
+	EventTenantReactivated event.Type = "TenantReactivated"
+	EventTenantDeleted     event.Type = "TenantDeleted"
 
-	eventBotRegistered event.Type = "BotRegistered"
-	eventBotDeleted    event.Type = "BotDeleted"
+	EventBotRegistered event.Type = "BotRegistered"
+	EventBotDeleted    event.Type = "BotDeleted"
 
-	cmdRegisterUser          command.Type = "RegisterUser"
-	cmdChangeEmail           command.Type = "ChangeEmail"
-	cmdChangeDisplayName     command.Type = "ChangeDisplayName"
-	cmdDeleteUser            command.Type = "DeleteUser"
-	cmdAddCredential         command.Type = "AddCredential"    //nolint:gosec // command type name, not credential
-	cmdRemoveCredential      command.Type = "RemoveCredential" //nolint:gosec // command type name, not credential
-	cmdVerifyEmail           command.Type = "VerifyEmail"
-	cmdEnableTOTP            command.Type = "EnableTOTP"
-	cmdDisableTOTP           command.Type = "DisableTOTP"
-	cmdLinkExternalAccount   command.Type = "LinkExternalAccount"
-	cmdUnlinkExternalAccount command.Type = "UnlinkExternalAccount"
+	CmdRegisterUser          command.Type = "RegisterUser"
+	CmdChangeEmail           command.Type = "ChangeEmail"
+	CmdChangeDisplayName     command.Type = "ChangeDisplayName"
+	CmdDeleteUser            command.Type = "DeleteUser"
+	CmdAddCredential         command.Type = "AddCredential"    //nolint:gosec // command type name, not credential
+	CmdRemoveCredential      command.Type = "RemoveCredential" //nolint:gosec // command type name, not credential
+	CmdVerifyEmail           command.Type = "VerifyEmail"
+	CmdEnableTOTP            command.Type = "EnableTOTP"
+	CmdDisableTOTP           command.Type = "DisableTOTP"
+	CmdLinkExternalAccount   command.Type = "LinkExternalAccount"
+	CmdUnlinkExternalAccount command.Type = "UnlinkExternalAccount"
 
-	cmdAddMember         command.Type = "AddMember"
-	cmdUpdateMemberRoles command.Type = "UpdateMemberRoles"
-	cmdRemoveMember      command.Type = "RemoveMember"
+	CmdAddMember         command.Type = "AddMember"
+	CmdUpdateMemberRoles command.Type = "UpdateMemberRoles"
+	CmdRemoveMember      command.Type = "RemoveMember"
 
-	cmdCreateTenant     command.Type = "CreateTenant"
-	cmdSuspendTenant    command.Type = "SuspendTenant"
-	cmdReactivateTenant command.Type = "ReactivateTenant"
-	cmdDeleteTenant     command.Type = "DeleteTenant"
+	CmdCreateTenant     command.Type = "CreateTenant"
+	CmdSuspendTenant    command.Type = "SuspendTenant"
+	CmdReactivateTenant command.Type = "ReactivateTenant"
+	CmdDeleteTenant     command.Type = "DeleteTenant"
 
-	cmdRegisterBot command.Type = "RegisterBot"
-	cmdDeleteBot   command.Type = "DeleteBot"
+	CmdRegisterBot command.Type = "RegisterBot"
+	CmdDeleteBot   command.Type = "DeleteBot"
 )
 
-const currentSchemaVersion = 2
+const CurrentSchemaVersion = 2

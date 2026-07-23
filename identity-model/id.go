@@ -102,17 +102,17 @@ const (
 )
 
 const (
-	actorKindUserStr = "user"
-	actorKindBotStr  = "bot"
+	ActorKindUserStr = "user"
+	ActorKindBotStr  = "bot"
 )
 
 // String returns the lowercase kind name used in prefixed identifiers.
 func (k ActorKind) String() string {
 	switch k {
 	case ActorUser:
-		return actorKindUserStr
+		return ActorKindUserStr
 	case ActorBot:
-		return actorKindBotStr
+		return ActorKindBotStr
 	default:
 		return "unknown"
 	}
@@ -160,7 +160,7 @@ func (a ActorID) PrefixedString() string {
 
 // ParseActorID reconstructs an [ActorID] from a [ActorID.PrefixedString] value.
 func ParseActorID(s string) ActorID {
-	if after, ok := strings.CutPrefix(s, actorKindBotStr+":"); ok {
+	if after, ok := strings.CutPrefix(s, ActorKindBotStr+":"); ok {
 		return ActorID{kind: ActorBot, raw: after}
 	}
 	if _, after, ok := strings.Cut(s, ":"); ok {

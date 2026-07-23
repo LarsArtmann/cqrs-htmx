@@ -17,7 +17,8 @@ func (d *Dashboard) Handler() http.Handler { return d.routes() }
 //	mux := http.NewServeMux()
 //	d.Mount(mux, "/dashboard/")
 func (d *Dashboard) Mount(mux *http.ServeMux, pattern string) {
-	mux.Handle(pattern, http.StripPrefix(pattern, d.routes()))
+	prefix := trimTrailingSlash(pattern)
+	mux.Handle(pattern, http.StripPrefix(prefix, d.routes()))
 }
 
 // Middleware returns the recommended middleware chain for the dashboard.

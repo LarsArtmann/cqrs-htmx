@@ -8,7 +8,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-const maxEmailLength = 254 // RFC 5321 max
+const MaxEmailLength = 254 // RFC 5321 max
 
 // Email is a validated, normalized email address.
 // Use ParseEmail or MustParseEmail to construct from user input.
@@ -24,13 +24,13 @@ func ParseEmail(raw string) (Email, error) {
 	if err != nil {
 		return "", errorfamily.Wrapf(ErrValidation, event.Rejection, "usermgmt.email.invalid", "invalid email %q", s)
 	}
-	if len(addr.Address) > maxEmailLength {
+	if len(addr.Address) > MaxEmailLength {
 		return "", errorfamily.Wrapf(
 			ErrValidation,
 			event.Rejection,
 			"usermgmt.email.too_long",
 			"email too long (max %d)",
-			maxEmailLength,
+			MaxEmailLength,
 		)
 	}
 	return Email(addr.Address), nil
