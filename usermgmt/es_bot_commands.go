@@ -10,9 +10,16 @@ type (
 	DeleteBotCmd   = identitymodel.DeleteBotCmd
 )
 
-func NewRegisterBotCmd(aggID id.AggregateID, name string, ownerID UserID, tokenHash []byte, scopes []string) *RegisterBotCmd {
+func NewRegisterBotCmd(
+	aggID id.AggregateID,
+	name string,
+	ownerID UserID,
+	tokenHash []byte,
+	scopes []string,
+) *RegisterBotCmd {
 	return identitymodel.NewRegisterBotCmd(aggID, name, ownerID, tokenHash, scopes)
 }
+
 func NewDeleteBotCmd(aggID id.AggregateID, reason string) *DeleteBotCmd {
 	return identitymodel.NewDeleteBotCmd(aggID, reason)
 }

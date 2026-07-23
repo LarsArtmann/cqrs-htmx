@@ -26,11 +26,15 @@ func TestAuthz_Authorize_Allowed(t *testing.T) {
 
 func TestAuthz_Apply_RemoveAndAddPolicies(t *testing.T) {
 	a := newTestAuthz(t)
-	_ = a.AddPolicy(Policy{"*", "*", "res.get", ActionRead, EffectAllow})
+	_ = a.AddPolicy(Policy{Subject: "*", Domain: "*", Object: "res.get", Action: ActionRead, Effect: EffectAllow})
 
 	err := a.Apply(PolicyUpdate{
-		RemovePolicies: []Policy{{"*", "*", "res.get", ActionRead, EffectAllow}},
-		AddPolicies:    []Policy{{"*", "*", "res.put", ActionExecute, EffectAllow}},
+		RemovePolicies: []Policy{
+			{Subject: "*", Domain: "*", Object: "res.get", Action: ActionRead, Effect: EffectAllow},
+		},
+		AddPolicies: []Policy{
+			{Subject: "*", Domain: "*", Object: "res.put", Action: ActionExecute, Effect: EffectAllow},
+		},
 	})
 	if err != nil {
 		t.Fatalf("Apply: %v", err)
@@ -68,11 +72,13 @@ func TestAuthz_EnforceEx_Error(t *testing.T) {
 func TestAuthz_Apply_RemovePolicies(t *testing.T) {
 	a := newTestAuthz(
 		t,
-		Policy{"*", "*", "res.action", ActionExecute, EffectAllow},
+		Policy{Subject: "*", Domain: "*", Object: "res.action", Action: ActionExecute, Effect: EffectAllow},
 	)
 
 	if err := a.Apply(PolicyUpdate{
-		RemovePolicies: []Policy{{"*", "*", "res.action", ActionExecute, EffectAllow}},
+		RemovePolicies: []Policy{
+			{Subject: "*", Domain: "*", Object: "res.action", Action: ActionExecute, Effect: EffectAllow},
+		},
 	}); err != nil {
 		t.Fatalf("Apply remove policies: %v", err)
 	}
