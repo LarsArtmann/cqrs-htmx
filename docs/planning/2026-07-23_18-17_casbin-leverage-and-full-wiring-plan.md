@@ -50,70 +50,70 @@ identity-model/                   usermgmt/
 
 Move the Authz engine to identity-model. This is the user's direct request and the highest-impact change.
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1.1 | Add `casbin/v3` to identity-model/go.mod | Critical | 2 min |
+| #   | Task                                                                                                                              | Impact   | Effort |
+| --- | --------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ |
+| 1.1 | Add `casbin/v3` to identity-model/go.mod                                                                                          | Critical | 2 min  |
 | 1.2 | Create `identity-model/authz.go` — move Authz struct, NewAuthz, Enforce, EnforceAny, EnforceEx, Authorize, AsEnforcer, policyArgs | Critical | 15 min |
-| 1.3 | Create `identity-model/authz_roles.go` — move all role query methods + convertRoles | Critical | 10 min |
-| 1.4 | Create `identity-model/authz_policies.go` — move all policy CRUD methods + error wrappers | Critical | 15 min |
-| 1.5 | Update `identity-model/authz_model.go` — keep DefaultRBACModel, DefaultPolicies, DefaultRoleHierarchy (already there) | Critical | 2 min |
-| 1.6 | Delete `usermgmt/authz_types.go`, `authz_roles.go`, `authz_policies.go` content → replace with type aliases | Critical | 10 min |
-| 1.7 | Build + fix compilation errors | Critical | 15 min |
-| 1.8 | Test identity-model + usermgmt | Critical | 10 min |
+| 1.3 | Create `identity-model/authz_roles.go` — move all role query methods + convertRoles                                               | Critical | 10 min |
+| 1.4 | Create `identity-model/authz_policies.go` — move all policy CRUD methods + error wrappers                                         | Critical | 15 min |
+| 1.5 | Update `identity-model/authz_model.go` — keep DefaultRBACModel, DefaultPolicies, DefaultRoleHierarchy (already there)             | Critical | 2 min  |
+| 1.6 | Delete `usermgmt/authz_types.go`, `authz_roles.go`, `authz_policies.go` content → replace with type aliases                       | Critical | 10 min |
+| 1.7 | Build + fix compilation errors                                                                                                    | Critical | 15 min |
+| 1.8 | Test identity-model + usermgmt                                                                                                    | Critical | 10 min |
 
 ### 4% → 64% (Eliminate the Split Brain)
 
 Wire ALL usermgmt domain types to identity-model. This is the #1 issue from the self-review.
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 2.1 | Add identity-model as dependency in usermgmt/go.mod | Critical | 2 min |
-| 2.2 | Replace `usermgmt/id.go` → aliases to identitymodel | High | 5 min |
-| 2.3 | Replace `usermgmt/email.go` → alias + re-export ParseEmail/MustParseEmail | High | 5 min |
-| 2.4 | Replace `usermgmt/credential.go` → alias | High | 5 min |
-| 2.5 | Replace `usermgmt/external_account.go` → alias | High | 5 min |
-| 2.6 | Replace `usermgmt/es_constants.go` → import constants from identitymodel | High | 5 min |
-| 2.7 | Replace `usermgmt/es_events.go` → aliases for all payload types | High | 10 min |
-| 2.8 | Replace `usermgmt/es_commands.go` → aliases + update decide functions to use accessors | High | 20 min |
-| 2.9 | Replace `usermgmt/es_state.go` → aliases for UserState + delete foldUser | High | 10 min |
-| 2.10 | Replace `usermgmt/es_membership_state.go` → aliases + delete foldMembership | High | 5 min |
-| 2.11 | Replace `usermgmt/es_tenant_state.go` → aliases + delete foldTenant | High | 5 min |
-| 2.12 | Replace `usermgmt/es_bot_state.go` → aliases + delete foldBot | High | 5 min |
-| 2.13 | Replace `usermgmt/errors.go` → wrap identitymodel errors with HTTP status | High | 15 min |
-| 2.14 | Replace `usermgmt/user.go` → aliases for User, Session, etc. | High | 10 min |
-| 2.15 | Replace `usermgmt/crypto.go` → aliases | Medium | 3 min |
-| 2.16 | Replace `usermgmt/random.go` → delete (internal to identitymodel) | Medium | 2 min |
-| 2.17 | Replace `usermgmt/auth_interfaces.go` → aliases | Medium | 5 min |
-| 2.18 | Replace `usermgmt/store_interfaces.go` → aliases | Medium | 5 min |
-| 2.19 | Replace `usermgmt/membership.go` (inline in user.go) → alias | Medium | 3 min |
-| 2.20 | Build + fix ALL compilation errors across workspace | Critical | 30 min |
-| 2.21 | Test entire workspace | Critical | 15 min |
+| #    | Task                                                                                   | Impact   | Effort |
+| ---- | -------------------------------------------------------------------------------------- | -------- | ------ |
+| 2.1  | Add identity-model as dependency in usermgmt/go.mod                                    | Critical | 2 min  |
+| 2.2  | Replace `usermgmt/id.go` → aliases to identitymodel                                    | High     | 5 min  |
+| 2.3  | Replace `usermgmt/email.go` → alias + re-export ParseEmail/MustParseEmail              | High     | 5 min  |
+| 2.4  | Replace `usermgmt/credential.go` → alias                                               | High     | 5 min  |
+| 2.5  | Replace `usermgmt/external_account.go` → alias                                         | High     | 5 min  |
+| 2.6  | Replace `usermgmt/es_constants.go` → import constants from identitymodel               | High     | 5 min  |
+| 2.7  | Replace `usermgmt/es_events.go` → aliases for all payload types                        | High     | 10 min |
+| 2.8  | Replace `usermgmt/es_commands.go` → aliases + update decide functions to use accessors | High     | 20 min |
+| 2.9  | Replace `usermgmt/es_state.go` → aliases for UserState + delete foldUser               | High     | 10 min |
+| 2.10 | Replace `usermgmt/es_membership_state.go` → aliases + delete foldMembership            | High     | 5 min  |
+| 2.11 | Replace `usermgmt/es_tenant_state.go` → aliases + delete foldTenant                    | High     | 5 min  |
+| 2.12 | Replace `usermgmt/es_bot_state.go` → aliases + delete foldBot                          | High     | 5 min  |
+| 2.13 | Replace `usermgmt/errors.go` → wrap identitymodel errors with HTTP status              | High     | 15 min |
+| 2.14 | Replace `usermgmt/user.go` → aliases for User, Session, etc.                           | High     | 10 min |
+| 2.15 | Replace `usermgmt/crypto.go` → aliases                                                 | Medium   | 3 min  |
+| 2.16 | Replace `usermgmt/random.go` → delete (internal to identitymodel)                      | Medium   | 2 min  |
+| 2.17 | Replace `usermgmt/auth_interfaces.go` → aliases                                        | Medium   | 5 min  |
+| 2.18 | Replace `usermgmt/store_interfaces.go` → aliases                                       | Medium   | 5 min  |
+| 2.19 | Replace `usermgmt/membership.go` (inline in user.go) → alias                           | Medium   | 3 min  |
+| 2.20 | Build + fix ALL compilation errors across workspace                                    | Critical | 30 min |
+| 2.21 | Test entire workspace                                                                  | Critical | 15 min |
 
 ### 20% → 80% (Polish + Validation)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 3.1 | Fix `bytesEqual` → use `bytes.Equal` in identity-model/fold.go | Medium | 2 min |
-| 3.2 | Run golangci-lint on identity-model, fix warnings | Medium | 15 min |
-| 3.3 | Add GOWORK=off replace directives to identity-model/go.mod | High | 10 min |
-| 3.4 | Verify `GOWORK=off go build` works in identity-model | High | 5 min |
-| 3.5 | Verify `GOWORK=off go build` works in usermgmt | High | 5 min |
-| 3.6 | Add identity-model to flake.nix build targets | Medium | 10 min |
-| 3.7 | Update AGENTS.md with identity-model info | Medium | 5 min |
-| 3.8 | Add CHANGELOG entry | Low | 5 min |
-| 3.9 | Copy LICENSE to identity-model | Low | 1 min |
+| #   | Task                                                           | Impact | Effort |
+| --- | -------------------------------------------------------------- | ------ | ------ |
+| 3.1 | Fix `bytesEqual` → use `bytes.Equal` in identity-model/fold.go | Medium | 2 min  |
+| 3.2 | Run golangci-lint on identity-model, fix warnings              | Medium | 15 min |
+| 3.3 | Add GOWORK=off replace directives to identity-model/go.mod     | High   | 10 min |
+| 3.4 | Verify `GOWORK=off go build` works in identity-model           | High   | 5 min  |
+| 3.5 | Verify `GOWORK=off go build` works in usermgmt                 | High   | 5 min  |
+| 3.6 | Add identity-model to flake.nix build targets                  | Medium | 10 min |
+| 3.7 | Update AGENTS.md with identity-model info                      | Medium | 5 min  |
+| 3.8 | Add CHANGELOG entry                                            | Low    | 5 min  |
+| 3.9 | Copy LICENSE to identity-model                                 | Low    | 1 min  |
 
 ### Remaining 20% → 100%
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 4.1 | Test foldMembership with 3+ scenarios in identity-model | Medium | 10 min |
-| 4.2 | Test foldBot with 2+ scenarios | Medium | 5 min |
-| 4.3 | Test ActorID JSON marshal/unmarshal round-trip | Low | 5 min |
-| 4.4 | Test Session JSON marshal/unmarshal round-trip | Low | 5 min |
-| 4.5 | Add identity-model to integration_test module | Medium | 10 min |
-| 4.6 | Consider whether CasbinProjection should move to identity-model | Low |Discussion |
-| 4.7 | Add `example_test.go` with godoc examples | Low | 10 min |
+| #   | Task                                                            | Impact | Effort     |
+| --- | --------------------------------------------------------------- | ------ | ---------- |
+| 4.1 | Test foldMembership with 3+ scenarios in identity-model         | Medium | 10 min     |
+| 4.2 | Test foldBot with 2+ scenarios                                  | Medium | 5 min      |
+| 4.3 | Test ActorID JSON marshal/unmarshal round-trip                  | Low    | 5 min      |
+| 4.4 | Test Session JSON marshal/unmarshal round-trip                  | Low    | 5 min      |
+| 4.5 | Add identity-model to integration_test module                   | Medium | 10 min     |
+| 4.6 | Consider whether CasbinProjection should move to identity-model | Low    | Discussion |
+| 4.7 | Add `example_test.go` with godoc examples                       | Low    | 10 min     |
 
 ---
 
@@ -166,14 +166,14 @@ graph TD
 
 ## Risk Analysis
 
-| Risk | Probability | Impact | Mitigation |
-|------|------------|--------|------------|
-| Command accessor methods break decide functions | Medium | High | Decide functions use `cmd.Email()` instead of `cmd.email` — mechanical rename |
-| Error wrapping behavior changes | Low | Medium | usermgmt keeps wrapping identitymodel errors with WithHTTPStatus |
-| adminui breaks on Authz type change | Low | Medium | Type alias makes `usermgmt.Authz` == `identitymodel.Authz` |
-| Test compilation breaks (sqlite_setup_test.go) | Already broken | None | Pre-existing issue, not caused by this change |
-| GOWORK=off fails in identity-model | High | Medium | Add replace directives matching go.work |
-| Casbin version mismatch | Low | High | Pin same version as usermgmt (v3.10.0) |
+| Risk                                            | Probability    | Impact | Mitigation                                                                    |
+| ----------------------------------------------- | -------------- | ------ | ----------------------------------------------------------------------------- |
+| Command accessor methods break decide functions | Medium         | High   | Decide functions use `cmd.Email()` instead of `cmd.email` — mechanical rename |
+| Error wrapping behavior changes                 | Low            | Medium | usermgmt keeps wrapping identitymodel errors with WithHTTPStatus              |
+| adminui breaks on Authz type change             | Low            | Medium | Type alias makes `usermgmt.Authz` == `identitymodel.Authz`                    |
+| Test compilation breaks (sqlite_setup_test.go)  | Already broken | None   | Pre-existing issue, not caused by this change                                 |
+| GOWORK=off fails in identity-model              | High           | Medium | Add replace directives matching go.work                                       |
+| Casbin version mismatch                         | Low            | High   | Pin same version as usermgmt (v3.10.0)                                        |
 
 ---
 

@@ -5,9 +5,8 @@ go 1.26.4
 replace github.com/larsartmann/cqrs-htmx/v4 => ../
 
 require (
-	github.com/casbin/casbin/v3 v3.10.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-branded-id v0.3.2
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.1
@@ -21,9 +20,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.4
-	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/go-error-family v0.8.0
 	github.com/larsartmann/httputil v0.6.0
-	github.com/oklog/ulid/v2 v2.1.1
 	modernc.org/sqlite v1.54.0
 	pgregory.net/rapid v1.3.0
 )
@@ -50,6 +48,7 @@ require (
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
+	github.com/casbin/casbin/v3 v3.10.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -59,12 +58,14 @@ require (
 	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
+	github.com/larsartmann/go-branded-id v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.3 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
+	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
