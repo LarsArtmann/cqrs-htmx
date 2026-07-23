@@ -246,7 +246,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				close(done)
 			}()
 
-			Eventually(rec.body).Should(ContainSubstring(": keepalive"))
+			Eventually(rec.body).Should(ContainSubstring(": heartbeat"))
 
 			cancel()
 			Eventually(done).Should(BeClosed())
