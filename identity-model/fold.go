@@ -231,7 +231,7 @@ func FoldMembership(state MembershipState, evt event.Event) (MembershipState, er
 		}
 		roles := make([]Role, len(p.Roles))
 		copy(roles, p.Roles)
-		kind, err := actorKindFromString(p.ActorKind)
+		kind, err := ActorKindFromString(p.ActorKind)
 		if err != nil {
 			return state, err
 		}
@@ -341,7 +341,7 @@ func FoldBot(state BotState, evt event.Event) (BotState, error) {
 	return next, nil
 }
 
-func actorKindFromString(s string) (ActorKind, error) {
+func ActorKindFromString(s string) (ActorKind, error) {
 	switch s {
 	case ActorKindUserStr:
 		return ActorUser, nil
