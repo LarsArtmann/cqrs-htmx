@@ -20,7 +20,7 @@ func RegisterCommands(
 		func(ctx context.Context, c *RegisterUserCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeUser,
-				decideRegisterUser(c.StreamID(), c.email, c.displayName, c.roles),
+				decideRegisterUser(c.StreamID(), c.Email(), c.DisplayName(), c.Roles()),
 			)
 		},
 	); err != nil {
@@ -38,7 +38,7 @@ func RegisterCommands(
 		func(ctx context.Context, c *ChangeEmailCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeUser,
-				decideChangeEmail(c.StreamID(), c.email),
+				decideChangeEmail(c.StreamID(), c.Email()),
 			)
 		},
 	); err != nil {
@@ -56,7 +56,7 @@ func RegisterCommands(
 		func(ctx context.Context, c *ChangeDisplayNameCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeUser,
-				decideChangeDisplayName(c.StreamID(), c.displayName),
+				decideChangeDisplayName(c.StreamID(), c.DisplayName()),
 			)
 		},
 	); err != nil {
@@ -74,7 +74,7 @@ func RegisterCommands(
 		func(ctx context.Context, c *DeleteUserCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeUser,
-				decideDeleteUser(c.StreamID(), c.reason),
+				decideDeleteUser(c.StreamID(), c.Reason()),
 			)
 		},
 	); err != nil {
@@ -92,7 +92,7 @@ func RegisterCommands(
 		func(ctx context.Context, c *AddCredentialCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeUser,
-				decideAddCredential(c.StreamID(), c.credential),
+				decideAddCredential(c.StreamID(), c.Credential()),
 			)
 		},
 	); err != nil {
@@ -110,7 +110,7 @@ func RegisterCommands(
 		func(ctx context.Context, c *RemoveCredentialCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeUser,
-				decideRemoveCredential(c.StreamID(), c.credentialID),
+				decideRemoveCredential(c.StreamID(), c.CredentialID()),
 			)
 		},
 	); err != nil {
@@ -146,7 +146,7 @@ func RegisterCommands(
 		func(ctx context.Context, c *EnableTOTPCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeUser,
-				decideEnableTOTP(c.StreamID(), c.secret),
+				decideEnableTOTP(c.StreamID(), c.Secret()),
 			)
 		},
 	); err != nil {
@@ -183,7 +183,7 @@ func RegisterCommands(
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeUser,
 				decideLinkExternalAccount(
-					c.StreamID(), c.provider, c.subject, c.email, c.displayName,
+					c.StreamID(), c.Provider(), c.Subject(), c.Email(), c.DisplayName(),
 				),
 			)
 		},
@@ -202,7 +202,7 @@ func RegisterCommands(
 		func(ctx context.Context, c *UnlinkExternalAccountCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeUser,
-				decideUnlinkExternalAccount(c.StreamID(), c.provider, c.subject),
+				decideUnlinkExternalAccount(c.StreamID(), c.Provider(), c.Subject()),
 			)
 		},
 	); err != nil {

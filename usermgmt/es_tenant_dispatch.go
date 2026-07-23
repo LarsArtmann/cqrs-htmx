@@ -21,7 +21,7 @@ func RegisterTenantCommands(
 		func(ctx context.Context, c *CreateTenantCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeTenant,
-				decideCreateTenant(c.StreamID(), c.name, c.displayName),
+				decideCreateTenant(c.StreamID(), c.Name(), c.DisplayName()),
 			)
 		},
 	); err != nil {
@@ -37,7 +37,7 @@ func RegisterTenantCommands(
 		func(ctx context.Context, c *SuspendTenantCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeTenant,
-				decideSuspendTenant(c.StreamID(), c.reason),
+				decideSuspendTenant(c.StreamID(), c.Reason()),
 			)
 		},
 	); err != nil {
@@ -69,7 +69,7 @@ func RegisterTenantCommands(
 		func(ctx context.Context, c *DeleteTenantCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeTenant,
-				decideDeleteTenant(c.StreamID(), c.reason),
+				decideDeleteTenant(c.StreamID(), c.Reason()),
 			)
 		},
 	); err != nil {
