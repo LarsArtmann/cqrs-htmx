@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	aggregateTypeUser       event.AggregateType = "User"
-	aggregateTypeMembership event.AggregateType = "Membership"
-	aggregateTypeTenant     event.AggregateType = "Tenant"
-	aggregateTypeBot        event.AggregateType = "Bot"
+	aggregateTypeUser       event.StreamType = "User"
+	aggregateTypeMembership event.StreamType = "Membership"
+	aggregateTypeTenant     event.StreamType = "Tenant"
+	aggregateTypeBot        event.StreamType = "Bot"
 
 	eventUserRegistered          event.Type = "UserRegistered"
 	eventRolesUpdated            event.Type = "RolesUpdated" // legacy: no longer emitted, decoded for backward compat
