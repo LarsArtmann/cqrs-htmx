@@ -19,7 +19,11 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 )
