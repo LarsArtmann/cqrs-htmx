@@ -20,7 +20,7 @@ func RegisterBotCommands(
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeBot,
 				decideRegisterBot(
-					c.StreamID(), c.name, c.ownerID, c.tokenHash, c.scopes,
+					c.StreamID(), c.Name(), c.OwnerID(), c.TokenHash(), c.Scopes(),
 				),
 			)
 		},
@@ -37,7 +37,7 @@ func RegisterBotCommands(
 		func(ctx context.Context, c *DeleteBotCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeBot,
-				decideDeleteBot(c.StreamID(), c.reason),
+				decideDeleteBot(c.StreamID(), c.Reason()),
 			)
 		},
 	); err != nil {

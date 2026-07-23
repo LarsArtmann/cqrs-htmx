@@ -20,7 +20,7 @@ func RegisterMembershipCommands(
 		func(ctx context.Context, c *AddMemberCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeMembership,
-				decideAddMember(c.StreamID(), c.actorID, c.tenantID, c.roles),
+				decideAddMember(c.StreamID(), c.ActorID(), c.TenantID(), c.Roles()),
 			)
 		},
 	); err != nil {
@@ -36,7 +36,7 @@ func RegisterMembershipCommands(
 		func(ctx context.Context, c *UpdateMemberRolesCmd) error {
 			return repo.Execute(
 				ctx, c.StreamID(), aggregateTypeMembership,
-				decideUpdateMemberRoles(c.StreamID(), c.roles),
+				decideUpdateMemberRoles(c.StreamID(), c.Roles()),
 			)
 		},
 	); err != nil {
