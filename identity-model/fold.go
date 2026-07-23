@@ -101,7 +101,7 @@ func FoldUser(state UserState, evt event.Event) (UserState, error) {
 	next := state
 
 	switch evt.Type() {
-	case eventUserRegistered:
+	case EventUserRegistered:
 		p, err := unmarshalPayload[UserRegisteredPayload](evt)
 		if err != nil {
 			return state, err
@@ -111,13 +111,13 @@ func FoldUser(state UserState, evt event.Event) (UserState, error) {
 			DisplayName: p.DisplayName,
 		}
 
-	case eventRolesUpdated:
+	case EventRolesUpdated:
 		_, err := unmarshalPayload[RolesUpdatedPayload](evt)
 		if err != nil {
 			return state, err
 		}
 
-	case eventEmailChanged:
+	case EventEmailChanged:
 		p, err := unmarshalPayload[EmailChangedPayload](evt)
 		if err != nil {
 			return state, err
@@ -127,14 +127,14 @@ func FoldUser(state UserState, evt event.Event) (UserState, error) {
 		next.TOTPEnabled = false
 		next.TOTPSecret = nil
 
-	case eventDisplayNameChanged:
+	case EventDisplayNameChanged:
 		p, err := unmarshalPayload[DisplayNameChangedPayload](evt)
 		if err != nil {
 			return state, err
 		}
 		next.DisplayName = p.DisplayName
 
-	case eventUserDeleted:
+	case EventUserDeleted:
 		p, err := unmarshalPayload[UserDeletedPayload](evt)
 		if err != nil {
 			return state, err
@@ -142,14 +142,14 @@ func FoldUser(state UserState, evt event.Event) (UserState, error) {
 		next.Deleted = true
 		next.DeleteReason = p.Reason
 
-	case eventCredentialAdded:
+	case EventCredentialAdded:
 		p, err := unmarshalPayload[CredentialAddedPayload](evt)
 		if err != nil {
 			return state, err
 		}
 		next.Credentials = append(next.Credentials, NewCredentialFromPayload(p, evt.OccurredAt()))
 
-	case eventCredentialRemoved:
+	case EventCredentialRemoved:
 		p, err := unmarshalPayload[CredentialRemovedPayload](evt)
 		if err != nil {
 			return state, err
@@ -162,14 +162,14 @@ func FoldUser(state UserState, evt event.Event) (UserState, error) {
 		}
 		next.Credentials = filtered
 
-	case eventEmailVerified:
+	case EventEmailVerified:
 		_, err := unmarshalPayload[EmailVerifiedPayload](evt)
 		if err != nil {
 			return state, err
 		}
 		next.EmailVerified = true
 
-	case eventTOTPEnabled:
+	case EventTOTPEnabled:
 		p, err := unmarshalPayload[TOTPEnabledPayload](evt)
 		if err != nil {
 			return state, err
@@ -177,11 +177,11 @@ func FoldUser(state UserState, evt event.Event) (UserState, error) {
 		next.TOTPEnabled = true
 		next.TOTPSecret = p.Secret
 
-	case eventTOTPDisabled:
+	case EventTOTPDisabled:
 		next.TOTPEnabled = false
 		next.TOTPSecret = nil
 
-	case eventExternalAccountLinked:
+	case EventExternalAccountLinked:
 		p, err := unmarshalPayload[ExternalAccountLinkedPayload](evt)
 		if err != nil {
 			return state, err
@@ -196,7 +196,7 @@ func FoldUser(state UserState, evt event.Event) (UserState, error) {
 			LinkedAt: evt.OccurredAt(),
 		})
 
-	case eventExternalAccountUnlinked:
+	case EventExternalAccountUnlinked:
 		p, err := unmarshalPayload[ExternalAccountUnlinkedPayload](evt)
 		if err != nil {
 			return state, err
@@ -224,7 +224,7 @@ func FoldMembership(state MembershipState, evt event.Event) (MembershipState, er
 	next := state
 
 	switch evt.Type() {
-	case eventMemberAdded:
+	case EventMemberAdded:
 		p, err := unmarshalPayload[MemberAddedPayload](evt)
 		if err != nil {
 			return state, err
@@ -240,7 +240,7 @@ func FoldMembership(state MembershipState, evt event.Event) (MembershipState, er
 		next.Roles = roles
 		next.Removed = false
 
-	case eventMemberRolesChanged:
+	case EventMemberRolesChanged:
 		p, err := unmarshalPayload[MemberRolesChangedPayload](evt)
 		if err != nil {
 			return state, err
@@ -249,7 +249,7 @@ func FoldMembership(state MembershipState, evt event.Event) (MembershipState, er
 		copy(roles, p.Roles)
 		next.Roles = roles
 
-	case eventMemberRemoved:
+	case EventMemberRemoved:
 		next.Roles = nil
 		next.Removed = true
 
@@ -268,7 +268,7 @@ func FoldTenant(state TenantState, evt event.Event) (TenantState, error) {
 	next := state
 
 	switch evt.Type() {
-	case eventTenantCreated:
+	case EventTenantCreated:
 		p, err := unmarshalPayload[TenantCreatedPayload](evt)
 		if err != nil {
 			return state, err
@@ -278,7 +278,7 @@ func FoldTenant(state TenantState, evt event.Event) (TenantState, error) {
 		next.Suspended = false
 		next.Deleted = false
 
-	case eventTenantSuspended:
+	case EventTenantSuspended:
 		p, err := unmarshalPayload[TenantSuspendedPayload](evt)
 		if err != nil {
 			return state, err
@@ -286,11 +286,11 @@ func FoldTenant(state TenantState, evt event.Event) (TenantState, error) {
 		next.Suspended = true
 		next.SuspendReason = p.Reason
 
-	case eventTenantReactivated:
+	case EventTenantReactivated:
 		next.Suspended = false
 		next.SuspendReason = ""
 
-	case eventTenantDeleted:
+	case EventTenantDeleted:
 		p, err := unmarshalPayload[TenantDeletedPayload](evt)
 		if err != nil {
 			return state, err
@@ -315,7 +315,7 @@ func FoldBot(state BotState, evt event.Event) (BotState, error) {
 	next := state
 
 	switch evt.Type() {
-	case eventBotRegistered:
+	case EventBotRegistered:
 		p, err := unmarshalPayload[BotRegisteredPayload](evt)
 		if err != nil {
 			return state, err
@@ -328,7 +328,7 @@ func FoldBot(state BotState, evt event.Event) (BotState, error) {
 		next.Scopes = scopes
 		next.Deleted = false
 
-	case eventBotDeleted:
+	case EventBotDeleted:
 		next.Deleted = true
 
 	default:

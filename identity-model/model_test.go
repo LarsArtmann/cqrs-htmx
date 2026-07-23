@@ -404,7 +404,7 @@ func TestFoldUser_Registered(t *testing.T) {
 	aggID := id.NewStreamID()
 
 	payload, err := MarshalPayload(UserRegisteredPayload{
-		SchemaVersion: currentSchemaVersion,
+		SchemaVersion: CurrentSchemaVersion,
 		Email:         "test@example.com",
 		DisplayName:   "Test",
 	})
@@ -412,7 +412,7 @@ func TestFoldUser_Registered(t *testing.T) {
 		t.Fatalf("marshal payload: %v", err)
 	}
 
-	evt, evtErr := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1, payload)
+	evt, evtErr := event.NewEvent(EventUserRegistered, aggID, AggregateTypeUser, 1, payload)
 	if evtErr != nil {
 		t.Fatalf("event.New: %v", evtErr)
 	}
@@ -433,11 +433,11 @@ func TestFoldTenant_Lifecycle(t *testing.T) {
 	aggID := id.NewStreamID()
 
 	createdPayload, _ := MarshalPayload(TenantCreatedPayload{
-		SchemaVersion: currentSchemaVersion,
+		SchemaVersion: CurrentSchemaVersion,
 		Name:          "acme",
 		DisplayName:   "Acme Corp",
 	})
-	created, err := event.NewEvent(eventTenantCreated, aggID, aggregateTypeTenant, 1, createdPayload)
+	created, err := event.NewEvent(EventTenantCreated, aggID, AggregateTypeTenant, 1, createdPayload)
 	if err != nil {
 		t.Fatalf("event.New created: %v", err)
 	}
@@ -450,10 +450,10 @@ func TestFoldTenant_Lifecycle(t *testing.T) {
 	}
 
 	suspendedPayload, _ := MarshalPayload(TenantSuspendedPayload{
-		SchemaVersion: currentSchemaVersion,
+		SchemaVersion: CurrentSchemaVersion,
 		Reason:        "non-payment",
 	})
-	suspended, err := event.NewEvent(eventTenantSuspended, aggID, aggregateTypeTenant, 2, suspendedPayload)
+	suspended, err := event.NewEvent(EventTenantSuspended, aggID, AggregateTypeTenant, 2, suspendedPayload)
 	if err != nil {
 		t.Fatalf("event.New suspended: %v", err)
 	}
