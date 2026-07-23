@@ -56,7 +56,8 @@ func WithHTTPStatus(err error, status int) error {
 
 // carrierStatus returns the explicit HTTP status carried by err, if any.
 // Used by [MapError] as the highest-priority status source.
-// Errors carrying an out-of-range status fall back to 500 to stay safe.
+// Returns (0, false) when the carrier's HTTPStatus() is 0 (meaning "no override"),
+// so MapError falls through to the family-based default.
 func carrierStatus(err error) (int, bool) {
 	carrier, ok := errors.AsType[HTTPStatusCarrier](err)
 	if !ok {
@@ -64,6 +65,10 @@ func carrierStatus(err error) (int, bool) {
 	}
 
 	status := carrier.HTTPStatus()
+	if status == 0 {
+		return 0, false
+	}
+
 	if validHTTPStatus(status) {
 		return status, true
 	}
