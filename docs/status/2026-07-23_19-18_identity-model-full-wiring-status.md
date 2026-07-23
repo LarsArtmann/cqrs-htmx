@@ -76,16 +76,19 @@ All 4 dispatch files now call `c.Email()`, `c.Roles()`, `c.Name()`, `c.OwnerID()
 ## b) PARTIALLY DONE
 
 ### usermgmt tests: PASS with caveats
+
 - usermgmt test suite runs and passes WITHOUT `-race` for most tests
 - WITH `-race`, 9 tests fail due to the pre-existing MapError bug (see section d)
 - `TestAuthz_Authorize_ReturnsErrForbidden` was failing initially but is now FIXED (errors.Is identity matching works)
 
 ### identity-model lint: clean but could be better
+
 - 0 golangci-lint issues
 - Missing: GOWORK=off replace directives not yet added to `identity-model/go.mod`
 - Missing: identity-model not added to `flake.nix` build targets
 
 ### adminui/integration_test
+
 - adminui: all tests pass
 - integration_test: 2 tests fail (TestCrossModuleErrUnauthorized, TestCrossModuleErrForbidden) — pre-existing
 
@@ -112,6 +115,7 @@ All 4 dispatch files now call `c.Email()`, `c.Roles()`, `c.Name()`, `c.OwnerID()
 **Root cause:** `go-error-family` was bumped to **v0.8.0** (AGENTS.md still says v0.7.0). In v0.8.0, `*errorfamily.Error` gained an `HTTPStatus() int` method that returns the `httpStatus` field (0 when unset). This makes EVERY `*errorfamily.Error` satisfy `cqrshtmx.HTTPStatusCarrier` interface. `MapError` → `carrierStatus()` matches, gets status=0, `validHTTPStatus(0)` returns false, so it falls back to `(500, true)`. This short-circuits all other status mapping logic.
 
 **Impact:** 11+ tests fail across root, usermgmt, and integration_test:
+
 - Root: `TestProblemDetailsErrorHandler_ShapeAndContentType` (500 instead of 400)
 - usermgmt: `TestErrorStatus` (all subtests), `TestHandlers_Register_DuplicateEmail` (500 instead of 409), `TestHandlers_Register_EmptyBody` (500 instead of 400), `TestHandlers_Logout_StoreError`, `TestHandler_WebAuthnBegin_UserNotFound`, `TestWriteDispatchError_IncludesCodeField`, `TestHandler_OAuth2Callback_InvalidState`
 - integration_test: `TestCrossModuleErrUnauthorized` (500 instead of 401), `TestCrossModuleErrForbidden` (500 instead of 403)
@@ -148,68 +152,23 @@ I initially left `ErrForbidden` and `ErrUnauthorized` unwrapped, then wrapped th
 ## f) Up to 50 things to get done next
 
 **Critical (blocks tests):**
+
 1. Fix `carrierStatus()` in `errors_status.go` to treat `HTTPStatus()==0` as "not set" (return false)
 2. Update `go-error-family` version reference in AGENTS.md from v0.7.0 to v0.8.0
 3. Re-run full test suite after MapError fix to verify all 11+ tests pass
 4. Run `nix run .#test` to verify workspace-level test gate passes
 
-**identity-model completeness:**
-5. Add GOWORK=off replace directives to `identity-model/go.mod` (matching go.work)
-6. Verify `GOWORK=off go build ./...` works in identity-model
-7. Verify `GOWORK=off go build ./...` works in usermgmt
-8. Add identity-model to `flake.nix` build targets
-9. Add identity-model to `flake.nix` test/lint/check targets
-10. Add identity-model to `flake.nix` coverage gate
-11. Add more foldMembership tests (3+ scenarios)
-12. Add foldBot tests (2+ scenarios)
-13. Add ActorID JSON marshal/unmarshal round-trip test
-14. Add Session JSON marshal/unmarshal round-trip test
-15. Add godoc examples (`example_test.go`)
-16. Consider moving CasbinProjection to identity-model
-17. Extract TOTPProvider/WebAuthnProvider/OAuth2Provider interfaces to identity-model
-18. Extract store interfaces to identity-model
-19. Consolidate constants.go — alias from usermgmt to identity-model instead of duplicating
-20. Consolidate `maxEmailLength` — single source
-21. Consolidate fold functions — parameterize the upcaster registry
-22. Consolidate `unmarshalPayload` — single source with injectable upcasters
-23. Add identity-model to integration_test module bridge tests
-24. Add `DeriveMembershipID` test in identity-model
-25. Document the identity-model module architecture in a README
+**identity-model completeness:** 5. Add GOWORK=off replace directives to `identity-model/go.mod` (matching go.work) 6. Verify `GOWORK=off go build ./...` works in identity-model 7. Verify `GOWORK=off go build ./...` works in usermgmt 8. Add identity-model to `flake.nix` build targets 9. Add identity-model to `flake.nix` test/lint/check targets 10. Add identity-model to `flake.nix` coverage gate 11. Add more foldMembership tests (3+ scenarios) 12. Add foldBot tests (2+ scenarios) 13. Add ActorID JSON marshal/unmarshal round-trip test 14. Add Session JSON marshal/unmarshal round-trip test 15. Add godoc examples (`example_test.go`) 16. Consider moving CasbinProjection to identity-model 17. Extract TOTPProvider/WebAuthnProvider/OAuth2Provider interfaces to identity-model 18. Extract store interfaces to identity-model 19. Consolidate constants.go — alias from usermgmt to identity-model instead of duplicating 20. Consolidate `maxEmailLength` — single source 21. Consolidate fold functions — parameterize the upcaster registry 22. Consolidate `unmarshalPayload` — single source with injectable upcasters 23. Add identity-model to integration_test module bridge tests 24. Add `DeriveMembershipID` test in identity-model 25. Document the identity-model module architecture in a README
 
-**Code quality:**
-26. Run `golangci-lint` on usermgmt after all changes — verify clean
-27. Run `golangci-lint` on root after MapError fix — verify clean
-28. Run `nix run .#lint` workspace-wide
-29. Run `nix run .#coverage` and `nix run .#coverage-gate`
-30. Fix `sqlite_setup_test.go` build tag issue properly (currently masked with `//go:build ignore`)
-31. Review all type alias files for completeness — ensure no exported symbol was missed
-32. Add a cross-module test verifying `usermgmt.Authz` == `identitymodel.Authz` at compile time
-33. Update the cqrs-htmx skill SKILL.md with identity-model module description
-34. Update the skill's module table to include identity-model
+**Code quality:** 26. Run `golangci-lint` on usermgmt after all changes — verify clean 27. Run `golangci-lint` on root after MapError fix — verify clean 28. Run `nix run .#lint` workspace-wide 29. Run `nix run .#coverage` and `nix run .#coverage-gate` 30. Fix `sqlite_setup_test.go` build tag issue properly (currently masked with `//go:build ignore`) 31. Review all type alias files for completeness — ensure no exported symbol was missed 32. Add a cross-module test verifying `usermgmt.Authz` == `identitymodel.Authz` at compile time 33. Update the cqrs-htmx skill SKILL.md with identity-model module description 34. Update the skill's module table to include identity-model
 
-**Error handling:**
-35. Evaluate whether identity-model errors should carry HTTP status hints natively
-36. Consider making `errorfamily.HTTPStatus()` return the family default when httpStatus==0 (upstream fix)
-37. Add error wrapping tests to identity-model (verify codes survive wrapping)
-38. Document the error wrapping strategy (identitymodel → usermgmt WithHTTPStatus → MapError)
+**Error handling:** 35. Evaluate whether identity-model errors should carry HTTP status hints natively 36. Consider making `errorfamily.HTTPStatus()` return the family default when httpStatus==0 (upstream fix) 37. Add error wrapping tests to identity-model (verify codes survive wrapping) 38. Document the error wrapping strategy (identitymodel → usermgmt WithHTTPStatus → MapError)
 
-**Examples:**
-39. Update `examples/admin-demo` to verify it still works with aliased types
-40. Add an identity-model usage example (standalone, without usermgmt)
-41. Verify all examples build and run
+**Examples:** 39. Update `examples/admin-demo` to verify it still works with aliased types 40. Add an identity-model usage example (standalone, without usermgmt) 41. Verify all examples build and run
 
-**Documentation:**
-42. Update FEATURES.md with identity-model module
-43. Update docs/DOMAIN_LANGUAGE.md with identity-model terms
-44. Write an ADR for the identity-model extraction decision
-45. Write an ADR for the Casbin-as-first-class-dependency decision
-46. Update the planning doc to mark Phase 2 as complete
+**Documentation:** 42. Update FEATURES.md with identity-model module 43. Update docs/DOMAIN_LANGUAGE.md with identity-model terms 44. Write an ADR for the identity-model extraction decision 45. Write an ADR for the Casbin-as-first-class-dependency decision 46. Update the planning doc to mark Phase 2 as complete
 
-**Technical debt:**
-47. The `sqlite_setup.go` file has `//go:build ignore` — the SQLite stack module isn't in go.mod. This is pre-existing but should be resolved.
-48. The `go.work.sum` may need updating after all module changes
-49. Consider whether `event.AggregateRef`/`event.AggregateType` backward-compat aliases in go-cqrs-lite will be removed (plan for forward compatibility)
-50. Run `cqrs-lint` on the workspace to verify CQRS pattern compliance
+**Technical debt:** 47. The `sqlite_setup.go` file has `//go:build ignore` — the SQLite stack module isn't in go.mod. This is pre-existing but should be resolved. 48. The `go.work.sum` may need updating after all module changes 49. Consider whether `event.AggregateRef`/`event.AggregateType` backward-compat aliases in go-cqrs-lite will be removed (plan for forward compatibility) 50. Run `cqrs-lint` on the workspace to verify CQRS pattern compliance
 
 ---
 
