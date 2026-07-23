@@ -8,25 +8,25 @@
 
 ## A) FULLY DONE
 
-| # | Task | Files Touched | Verified |
-|---|------|---------------|----------|
-| 1 | **Fixed varnamelen lint**: renamed all `h` → `handler` in sync_serve_test.go (20 occurrences across 10 tests) | `sync_serve_test.go` | Lint clean for sync files |
-| 2 | **Added version-drift prevention test**: `TestSyncVersionMatchesJSConstants` reads `VERSION` constants from both JS files via regex and asserts they match Go `syncVersion` | `sync_serve_test.go` (+`os`, `regexp` imports) | 2 sub-tests pass |
-| 3 | **Unified ETag prefix**: `cqrshtmx-sync-worker-%s` → `sync-worker-%s`, `cqrshtmx-sync-client-%s` → `sync-client-%s` (matches `htmx-%s` pattern) | `sync_serve.go`, `sync_serve_test.go` | All 18 sync tests pass |
-| 4 | **Updated FEATURES.md**: added `With` variants, `SyncVersion()`, `data-sync-worker-url` to Offline Sync row | `FEATURES.md` | Content verified |
-| 5 | **Updated AGENTS.md**: added `With` variants, version 1.1.0, ETag format, drift test info to gotcha section | `AGENTS.md` | Content verified |
-| 6 | **Removed "Phase 2b" jargon** from recipe doc limitations section | `docs/recipes/offline-command-sync.md` | 0 "Phase" matches remain |
-| 7 | **Added XSS security note** to `SyncClientScriptTag` doc comment | `sync_serve.go` | Doc comment present |
-| 8 | **Added `@ts-check` pragma** to both JS files | `sync/sync-worker.js`, `sync/sync-client.js` | JS syntax valid |
-| 9 | **Added JSDoc to sync-worker.js**: 6 functions documented (broadcast, persistCommand, deleteCommand, flush, loadAllCommands, pendingCount) with param types and return types | `sync/sync-worker.js` | JS syntax valid |
-| 10 | **Added JSDoc to sync-client.js**: 7 functions documented (updateIndicator, connectSSE, handleSyncAck, initSyncWorker, enqueueCommand, retryQueuedCommand, rebuildAndRetry) with param types | `sync/sync-client.js` | JS syntax valid |
-| 11 | **Added mermaid architecture diagram** to recipe doc + fixed 5 stale `admin.js` → `sync-client.js` references in ASCII art and event table | `docs/recipes/offline-command-sync.md` | Diagram renders, refs verified |
-| 12 | **Updated CHANGELOG**: ETag prefix change, version-drift test, XSS doc, @ts-check, JSDoc, data-sync-worker-url entries | `CHANGELOG.md` | Content verified |
-| 13 | **Verified admin-demo compiles** with new asset paths | `examples/admin-demo/` | Build OK with `-buildvcs=false` |
-| 14 | **Added script ordering comment** to layout.templ explaining why sync-client.js must load before admin.js + regenerated templ | `adminui/layout.templ`, `adminui/layout_templ.go` | Build OK |
-| 15 | **Ran nix fmt**: 0 files changed (already formatted) | — | Clean |
-| 16 | **Ran nix lint**: 0 issues in sync files (78 pre-existing in other files, gosec false positive suppressed with nolint) | `sync_serve_test.go` (nolint:gosec) | Lint clean for sync files |
-| 17 | **Full verification**: build, 25 sync tests pass with -race, root coverage 94.1%, JS syntax valid | — | All green |
+| #   | Task                                                                                                                                                                                         | Files Touched                                     | Verified                        |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------- |
+| 1   | **Fixed varnamelen lint**: renamed all `h` → `handler` in sync_serve_test.go (20 occurrences across 10 tests)                                                                                | `sync_serve_test.go`                              | Lint clean for sync files       |
+| 2   | **Added version-drift prevention test**: `TestSyncVersionMatchesJSConstants` reads `VERSION` constants from both JS files via regex and asserts they match Go `syncVersion`                  | `sync_serve_test.go` (+`os`, `regexp` imports)    | 2 sub-tests pass                |
+| 3   | **Unified ETag prefix**: `cqrshtmx-sync-worker-%s` → `sync-worker-%s`, `cqrshtmx-sync-client-%s` → `sync-client-%s` (matches `htmx-%s` pattern)                                              | `sync_serve.go`, `sync_serve_test.go`             | All 18 sync tests pass          |
+| 4   | **Updated FEATURES.md**: added `With` variants, `SyncVersion()`, `data-sync-worker-url` to Offline Sync row                                                                                  | `FEATURES.md`                                     | Content verified                |
+| 5   | **Updated AGENTS.md**: added `With` variants, version 1.1.0, ETag format, drift test info to gotcha section                                                                                  | `AGENTS.md`                                       | Content verified                |
+| 6   | **Removed "Phase 2b" jargon** from recipe doc limitations section                                                                                                                            | `docs/recipes/offline-command-sync.md`            | 0 "Phase" matches remain        |
+| 7   | **Added XSS security note** to `SyncClientScriptTag` doc comment                                                                                                                             | `sync_serve.go`                                   | Doc comment present             |
+| 8   | **Added `@ts-check` pragma** to both JS files                                                                                                                                                | `sync/sync-worker.js`, `sync/sync-client.js`      | JS syntax valid                 |
+| 9   | **Added JSDoc to sync-worker.js**: 6 functions documented (broadcast, persistCommand, deleteCommand, flush, loadAllCommands, pendingCount) with param types and return types                 | `sync/sync-worker.js`                             | JS syntax valid                 |
+| 10  | **Added JSDoc to sync-client.js**: 7 functions documented (updateIndicator, connectSSE, handleSyncAck, initSyncWorker, enqueueCommand, retryQueuedCommand, rebuildAndRetry) with param types | `sync/sync-client.js`                             | JS syntax valid                 |
+| 11  | **Added mermaid architecture diagram** to recipe doc + fixed 5 stale `admin.js` → `sync-client.js` references in ASCII art and event table                                                   | `docs/recipes/offline-command-sync.md`            | Diagram renders, refs verified  |
+| 12  | **Updated CHANGELOG**: ETag prefix change, version-drift test, XSS doc, @ts-check, JSDoc, data-sync-worker-url entries                                                                       | `CHANGELOG.md`                                    | Content verified                |
+| 13  | **Verified admin-demo compiles** with new asset paths                                                                                                                                        | `examples/admin-demo/`                            | Build OK with `-buildvcs=false` |
+| 14  | **Added script ordering comment** to layout.templ explaining why sync-client.js must load before admin.js + regenerated templ                                                                | `adminui/layout.templ`, `adminui/layout_templ.go` | Build OK                        |
+| 15  | **Ran nix fmt**: 0 files changed (already formatted)                                                                                                                                         | —                                                 | Clean                           |
+| 16  | **Ran nix lint**: 0 issues in sync files (78 pre-existing in other files, gosec false positive suppressed with nolint)                                                                       | `sync_serve_test.go` (nolint:gosec)               | Lint clean for sync files       |
+| 17  | **Full verification**: build, 25 sync tests pass with -race, root coverage 94.1%, JS syntax valid                                                                                            | —                                                 | All green                       |
 
 ### Verification evidence
 
@@ -64,22 +64,22 @@ Adding `@ts-check` enables type checking IF a consumer opens the file in an edit
 
 ## C) NOT STARTED
 
-| Item | Source | Why skipped |
-|------|--------|-------------|
-| **Browser E2E tests** (Playwright/Cypress) | All prior reports | Major infrastructure investment; requires Node.js dev dependency in a Go library; deferred per prior report G1 |
-| **JS unit test harness** | All prior reports | No existing JS test infrastructure; disproportionate effort for a Go library |
-| **Pre-commit hook for syncVersion bump detection** | Report #1 item #3 | Mitigated by `TestSyncVersionMatchesJSConstants` which catches drift at CI time; a pre-commit hook would catch it earlier but requires shell scripting |
-| **Configurable MAX_RETRIES/RETRY_TTL_MS via JS config object** | Report #2 item #32 | Changes wire protocol semantics; deferred |
-| **Exponential backoff for retry delivery** | Report #2 item #35 | Currently fixed 100ms stagger; changing requires careful thought about server impact |
-| **Content-hash syncVersion** | Report #1 item #16 | Decided to keep manual version (consistent with `htmxVersion` pattern); version-drift test now catches mismatches |
-| **SyncBundledHandler (worker+client concatenated)** | Report #1 item #20 | YAGNI — two HTTP requests is not a problem |
-| **`SyncWorkerURL(path)` Go helper** | Report #1 item #8 | Decided against: the path is consumer-chosen, and `data-sync-worker-url` covers the JS side. No formal documentation of this decision in ROADMAP.md "Not Planned" — this is a gap (see D3) |
-| **SSE reconnection with Last-Event-ID** | Report #2 item #15 | Requires server-side changes beyond sync scope |
-| **Dead command notification UI** | Report #2 item #14 | adminui frontend change, not root module |
-| **IDB quota handling** | Report #2 item #37 | Broadcast warning to tabs on quota error |
-| **Graceful worker shutdown** | Report #2 item #38 | Cancel pending setTimeout retry timers on last tab disconnect |
-| **`navigator.storage.persist()`** | Report #2 item #39 | Request persistent storage permission |
-| **`store.clear()` method** | Report #2 item #40 | For debugging/testing |
+| Item                                                           | Source             | Why skipped                                                                                                                                                                                |
+| -------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Browser E2E tests** (Playwright/Cypress)                     | All prior reports  | Major infrastructure investment; requires Node.js dev dependency in a Go library; deferred per prior report G1                                                                             |
+| **JS unit test harness**                                       | All prior reports  | No existing JS test infrastructure; disproportionate effort for a Go library                                                                                                               |
+| **Pre-commit hook for syncVersion bump detection**             | Report #1 item #3  | Mitigated by `TestSyncVersionMatchesJSConstants` which catches drift at CI time; a pre-commit hook would catch it earlier but requires shell scripting                                     |
+| **Configurable MAX_RETRIES/RETRY_TTL_MS via JS config object** | Report #2 item #32 | Changes wire protocol semantics; deferred                                                                                                                                                  |
+| **Exponential backoff for retry delivery**                     | Report #2 item #35 | Currently fixed 100ms stagger; changing requires careful thought about server impact                                                                                                       |
+| **Content-hash syncVersion**                                   | Report #1 item #16 | Decided to keep manual version (consistent with `htmxVersion` pattern); version-drift test now catches mismatches                                                                          |
+| **SyncBundledHandler (worker+client concatenated)**            | Report #1 item #20 | YAGNI — two HTTP requests is not a problem                                                                                                                                                 |
+| **`SyncWorkerURL(path)` Go helper**                            | Report #1 item #8  | Decided against: the path is consumer-chosen, and `data-sync-worker-url` covers the JS side. No formal documentation of this decision in ROADMAP.md "Not Planned" — this is a gap (see D3) |
+| **SSE reconnection with Last-Event-ID**                        | Report #2 item #15 | Requires server-side changes beyond sync scope                                                                                                                                             |
+| **Dead command notification UI**                               | Report #2 item #14 | adminui frontend change, not root module                                                                                                                                                   |
+| **IDB quota handling**                                         | Report #2 item #37 | Broadcast warning to tabs on quota error                                                                                                                                                   |
+| **Graceful worker shutdown**                                   | Report #2 item #38 | Cancel pending setTimeout retry timers on last tab disconnect                                                                                                                              |
+| **`navigator.storage.persist()`**                              | Report #2 item #39 | Request persistent storage permission                                                                                                                                                      |
+| **`store.clear()` method**                                     | Report #2 item #40 | For debugging/testing                                                                                                                                                                      |
 
 ---
 
@@ -122,6 +122,7 @@ I wrote: "it registers htmx:beforeRequest and htmx:sendError listeners that admi
 ### E1. BuildFlow pre-commit hook auto-commits with bad messages
 
 The pre-commit hook auto-commits ALL staged changes with AI-generated commit messages that are generic and inaccurate. This makes the git history unreadable. Either:
+
 - Disable the hook for session work (`git commit --no-verify`)
 - Configure BuildFlow to use better commit message templates
 - Accept that the git history will be messy and rely on status reports for accurate records
@@ -137,6 +138,7 @@ There are 50 pre-existing `varnamelen` warnings in the project. I fixed the one 
 ### E4. The version-drift test uses regex parsing of JS files
 
 `TestSyncVersionMatchesJSConstants` reads the JS files with `os.ReadFile` and extracts the `VERSION` constant via regex. This works but is fragile:
+
 - If someone adds a comment with `VERSION = "something"`, the regex might match it
 - The regex `VERSION\s*=\s*"([^"]+)"` could match `DB_VERSION = "1"` (it doesn't because of word boundary, but it's not anchored)
 - A better approach would be to parse the JS with a proper parser, but that's disproportionate for a test
