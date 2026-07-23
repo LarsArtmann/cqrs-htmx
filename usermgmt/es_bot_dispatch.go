@@ -18,9 +18,9 @@ func RegisterBotCommands(
 		dispatcher, cmdRegisterBot,
 		func(ctx context.Context, c *RegisterBotCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeBot,
+				ctx, c.StreamID(), aggregateTypeBot,
 				decideRegisterBot(
-					c.AggregateID(), c.name, c.ownerID, c.tokenHash, c.scopes,
+					c.StreamID(), c.name, c.ownerID, c.tokenHash, c.scopes,
 				),
 			)
 		},
@@ -36,8 +36,8 @@ func RegisterBotCommands(
 		dispatcher, cmdDeleteBot,
 		func(ctx context.Context, c *DeleteBotCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeBot,
-				decideDeleteBot(c.AggregateID(), c.reason),
+				ctx, c.StreamID(), aggregateTypeBot,
+				decideDeleteBot(c.StreamID(), c.reason),
 			)
 		},
 	); err != nil {

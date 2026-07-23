@@ -19,8 +19,8 @@ func RegisterMembershipCommands(
 		dispatcher, cmdAddMember,
 		func(ctx context.Context, c *AddMemberCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeMembership,
-				decideAddMember(c.AggregateID(), c.actorID, c.tenantID, c.roles),
+				ctx, c.StreamID(), aggregateTypeMembership,
+				decideAddMember(c.StreamID(), c.actorID, c.tenantID, c.roles),
 			)
 		},
 	); err != nil {
@@ -35,8 +35,8 @@ func RegisterMembershipCommands(
 		dispatcher, cmdUpdateMemberRoles,
 		func(ctx context.Context, c *UpdateMemberRolesCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeMembership,
-				decideUpdateMemberRoles(c.AggregateID(), c.roles),
+				ctx, c.StreamID(), aggregateTypeMembership,
+				decideUpdateMemberRoles(c.StreamID(), c.roles),
 			)
 		},
 	); err != nil {
@@ -51,8 +51,8 @@ func RegisterMembershipCommands(
 		dispatcher, cmdRemoveMember,
 		func(ctx context.Context, c *RemoveMemberCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeMembership,
-				decideRemoveMember(c.AggregateID()),
+				ctx, c.StreamID(), aggregateTypeMembership,
+				decideRemoveMember(c.StreamID()),
 			)
 		},
 	); err != nil {
