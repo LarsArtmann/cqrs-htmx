@@ -23,7 +23,7 @@ type recordingStore struct {
 
 func (s *recordingStore) Save(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -330,7 +330,7 @@ func TestService_StoreWrapper_TransformationRoundTrip(t *testing.T) {
 	if innerStore == nil {
 		t.Fatal("inner store was not captured — wrapper did not receive *memory.MemoryStore")
 	}
-	rawEvents, err := innerStore.Load(context.Background(), event.AggregateRef{
+	rawEvents, err := innerStore.Load(context.Background(), id.StreamRef{
 		ID: mustParseAggIDSvc(t, reg.User.ID.Get().String()), Type: aggregateTypeUser,
 	})
 	if err != nil {
@@ -372,7 +372,7 @@ type xorTransformStore struct {
 
 func (s *xorTransformStore) Save(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -394,7 +394,7 @@ func (s *xorTransformStore) Save(
 
 func (s *xorTransformStore) Load(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.StreamRef,
 ) ([]event.Event, error) {
 	events, err := s.Store.Load(ctx, ref)
 	if err != nil {

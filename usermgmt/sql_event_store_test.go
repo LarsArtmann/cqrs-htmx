@@ -41,7 +41,7 @@ func TestSQLEventStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
+	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -65,7 +65,7 @@ func TestSQLEventStore_OptimisticConcurrency(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
+	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
 	payload, _ := marshalPayload(UserRegisteredPayload{
 		Email: "concur@test.com",
@@ -93,7 +93,7 @@ func TestSQLEventStore_AppendBatch(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
+	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
 	p1, _ := marshalPayload(UserRegisteredPayload{
 		Email: "batch@test.com",
@@ -133,8 +133,8 @@ func TestSQLEventStore_ReadAll(t *testing.T) {
 	evt1, _ := event.NewEvent(eventUserRegistered, agg1, aggregateTypeUser, 1, p1)
 	evt2, _ := event.NewEvent(eventUserRegistered, agg2, aggregateTypeUser, 1, p2)
 
-	_ = store.AppendBatch(ctx, event.AggregateRef{ID: agg1, Type: aggregateTypeUser}, []event.Event{evt1})
-	_ = store.AppendBatch(ctx, event.AggregateRef{ID: agg2, Type: aggregateTypeUser}, []event.Event{evt2})
+	_ = store.AppendBatch(ctx, id.StreamRef{ID: agg1, Type: aggregateTypeUser}, []event.Event{evt1})
+	_ = store.AppendBatch(ctx, id.StreamRef{ID: agg2, Type: aggregateTypeUser}, []event.Event{evt2})
 
 	all, err := store.ReadAll(ctx)
 	if err != nil {
@@ -180,10 +180,10 @@ func appendThreeTestEvents(
 	t *testing.T,
 	store *SQLEventStore,
 	ctx context.Context,
-) event.AggregateRef {
+) id.StreamRef {
 	t.Helper()
 	aggID := id.NewAggregateID()
-	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
+	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
 	p1, _ := marshalPayload(UserRegisteredPayload{Email: "v@test.com"})
 	p2, _ := marshalPayload(EmailChangedPayload{Email: "new@test.com"})
@@ -202,7 +202,7 @@ func TestSQLEventStore_EmptyAggregate(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.AggregateRef{ID: aggID, Type: aggregateTypeUser}
+	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
 	// Upstream storage.SQLEventStore returns ErrAggregateNotFound when Load
 	// finds no events (RequireHit: true). The decider's Repository handles
@@ -235,7 +235,7 @@ func TestSQLEventStore_WithService(t *testing.T) {
 	}
 
 	// Verify events are persisted in SQL
-	ref := event.AggregateRef{ID: aggIDFromUserID(t, reg.User.ID), Type: aggregateTypeUser}
+	ref := id.StreamRef{ID: aggIDFromUserID(t, reg.User.ID), Type: aggregateTypeUser}
 	loaded, err := store.Load(context.Background(), ref)
 	if err != nil {
 		t.Fatalf("Load from SQL: %v", err)

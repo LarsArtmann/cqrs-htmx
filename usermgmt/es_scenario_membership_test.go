@@ -20,7 +20,7 @@ func TestScenario_AddMember_HappyPath(t *testing.T) {
 	cmd := NewAddMemberCmd(actor, tenant, []Role{"admin"})
 
 	decide := func(state MembershipState, _ *AddMemberCmd) ([]event.Event, error) {
-		inner := decideAddMember(cmd.AggregateID(), cmd.actorID, cmd.tenantID, cmd.roles)
+		inner := decideAddMember(cmd.StreamID(), cmd.actorID, cmd.tenantID, cmd.roles)
 		return inner(state, 0)
 	}
 
@@ -37,7 +37,7 @@ func TestScenario_AddMember_AlreadyExists(t *testing.T) {
 	cmd := NewAddMemberCmd(actor, tenant, []Role{"admin"})
 
 	existing, err := event.NewEvent(
-		eventMemberAdded, cmd.AggregateID(), aggregateTypeMembership, 1,
+		eventMemberAdded, cmd.StreamID(), aggregateTypeMembership, 1,
 		mustMarshalPayload(t, MemberAddedPayload{
 			SchemaVersion: currentSchemaVersion,
 			ActorKind:     actor.Kind().String(),
@@ -51,7 +51,7 @@ func TestScenario_AddMember_AlreadyExists(t *testing.T) {
 	}
 
 	decide := func(state MembershipState, _ *AddMemberCmd) ([]event.Event, error) {
-		inner := decideAddMember(cmd.AggregateID(), cmd.actorID, cmd.tenantID, cmd.roles)
+		inner := decideAddMember(cmd.StreamID(), cmd.actorID, cmd.tenantID, cmd.roles)
 		return inner(state, 1)
 	}
 
@@ -67,7 +67,7 @@ func TestScenario_AddMember_ActorRequired(t *testing.T) {
 	cmd := NewAddMemberCmd(ActorID{}, tenant, []Role{"admin"})
 
 	decide := func(state MembershipState, _ *AddMemberCmd) ([]event.Event, error) {
-		inner := decideAddMember(cmd.AggregateID(), cmd.actorID, cmd.tenantID, cmd.roles)
+		inner := decideAddMember(cmd.StreamID(), cmd.actorID, cmd.tenantID, cmd.roles)
 		return inner(state, 0)
 	}
 
@@ -84,7 +84,7 @@ func TestScenario_UpdateMemberRoles_HappyPath(t *testing.T) {
 	cmd := NewUpdateMemberRolesCmd(actor, tenant, []Role{"admin", "writer"})
 
 	added, err := event.NewEvent(
-		eventMemberAdded, cmd.AggregateID(), aggregateTypeMembership, 1,
+		eventMemberAdded, cmd.StreamID(), aggregateTypeMembership, 1,
 		mustMarshalPayload(t, MemberAddedPayload{
 			SchemaVersion: currentSchemaVersion,
 			ActorKind:     actor.Kind().String(),
@@ -98,7 +98,7 @@ func TestScenario_UpdateMemberRoles_HappyPath(t *testing.T) {
 	}
 
 	decide := func(state MembershipState, _ *UpdateMemberRolesCmd) ([]event.Event, error) {
-		inner := decideUpdateMemberRoles(cmd.AggregateID(), cmd.roles)
+		inner := decideUpdateMemberRoles(cmd.StreamID(), cmd.roles)
 		return inner(state, 1)
 	}
 
@@ -115,7 +115,7 @@ func TestScenario_RemoveMember_HappyPath(t *testing.T) {
 	cmd := NewRemoveMemberCmd(actor, tenant)
 
 	added, err := event.NewEvent(
-		eventMemberAdded, cmd.AggregateID(), aggregateTypeMembership, 1,
+		eventMemberAdded, cmd.StreamID(), aggregateTypeMembership, 1,
 		mustMarshalPayload(t, MemberAddedPayload{
 			SchemaVersion: currentSchemaVersion,
 			ActorKind:     actor.Kind().String(),
@@ -129,7 +129,7 @@ func TestScenario_RemoveMember_HappyPath(t *testing.T) {
 	}
 
 	decide := func(state MembershipState, _ *RemoveMemberCmd) ([]event.Event, error) {
-		inner := decideRemoveMember(cmd.AggregateID())
+		inner := decideRemoveMember(cmd.StreamID())
 		return inner(state, 1)
 	}
 
@@ -146,7 +146,7 @@ func TestScenario_RemoveMember_NotFound(t *testing.T) {
 	cmd := NewRemoveMemberCmd(actor, tenant)
 
 	decide := func(state MembershipState, _ *RemoveMemberCmd) ([]event.Event, error) {
-		inner := decideRemoveMember(cmd.AggregateID())
+		inner := decideRemoveMember(cmd.StreamID())
 		return inner(state, 0)
 	}
 

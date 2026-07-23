@@ -134,7 +134,7 @@ func TestMembershipCommands_TypeAndAggregateID(t *testing.T) {
 	if updateCmd.Type() != cmdUpdateMemberRoles {
 		t.Errorf("Type = %q, want %q", updateCmd.Type(), cmdUpdateMemberRoles)
 	}
-	if updateCmd.AggregateID() != addCmd.AggregateID() {
+	if updateCmd.StreamID() != addCmd.StreamID() {
 		t.Error("update and add commands should have same aggregate ID")
 	}
 
@@ -142,7 +142,7 @@ func TestMembershipCommands_TypeAndAggregateID(t *testing.T) {
 	if removeCmd.Type() != cmdRemoveMember {
 		t.Errorf("Type = %q, want %q", removeCmd.Type(), cmdRemoveMember)
 	}
-	if removeCmd.AggregateID() != addCmd.AggregateID() {
+	if removeCmd.StreamID() != addCmd.StreamID() {
 		t.Error("remove and add commands should have same aggregate ID")
 	}
 }
@@ -153,12 +153,12 @@ func TestMembershipCommands_DeriveAggregateID_Deterministic(t *testing.T) {
 
 	cmd1 := NewAddMemberCmd(aid, tid, nil)
 	cmd2 := NewAddMemberCmd(aid, tid, nil)
-	if cmd1.AggregateID() != cmd2.AggregateID() {
+	if cmd1.StreamID() != cmd2.StreamID() {
 		t.Error("same actor+tenant should produce same aggregate ID")
 	}
 
 	cmd3 := NewAddMemberCmd(aid, NewTenantID("t2"), nil)
-	if cmd1.AggregateID() == cmd3.AggregateID() {
+	if cmd1.StreamID() == cmd3.StreamID() {
 		t.Error("different tenant should produce different aggregate ID")
 	}
 }
