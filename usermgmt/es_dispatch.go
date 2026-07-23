@@ -19,8 +19,8 @@ func RegisterCommands(
 		dispatcher, cmdRegisterUser,
 		func(ctx context.Context, c *RegisterUserCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideRegisterUser(c.AggregateID(), c.email, c.displayName, c.roles),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideRegisterUser(c.StreamID(), c.email, c.displayName, c.roles),
 			)
 		},
 	); err != nil {
@@ -37,8 +37,8 @@ func RegisterCommands(
 		dispatcher, cmdChangeEmail,
 		func(ctx context.Context, c *ChangeEmailCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideChangeEmail(c.AggregateID(), c.email),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideChangeEmail(c.StreamID(), c.email),
 			)
 		},
 	); err != nil {
@@ -55,8 +55,8 @@ func RegisterCommands(
 		dispatcher, cmdChangeDisplayName,
 		func(ctx context.Context, c *ChangeDisplayNameCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideChangeDisplayName(c.AggregateID(), c.displayName),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideChangeDisplayName(c.StreamID(), c.displayName),
 			)
 		},
 	); err != nil {
@@ -73,8 +73,8 @@ func RegisterCommands(
 		dispatcher, cmdDeleteUser,
 		func(ctx context.Context, c *DeleteUserCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideDeleteUser(c.AggregateID(), c.reason),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideDeleteUser(c.StreamID(), c.reason),
 			)
 		},
 	); err != nil {
@@ -91,8 +91,8 @@ func RegisterCommands(
 		dispatcher, cmdAddCredential,
 		func(ctx context.Context, c *AddCredentialCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideAddCredential(c.AggregateID(), c.credential),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideAddCredential(c.StreamID(), c.credential),
 			)
 		},
 	); err != nil {
@@ -109,8 +109,8 @@ func RegisterCommands(
 		dispatcher, cmdRemoveCredential,
 		func(ctx context.Context, c *RemoveCredentialCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideRemoveCredential(c.AggregateID(), c.credentialID),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideRemoveCredential(c.StreamID(), c.credentialID),
 			)
 		},
 	); err != nil {
@@ -127,8 +127,8 @@ func RegisterCommands(
 		dispatcher, cmdVerifyEmail,
 		func(ctx context.Context, c *VerifyEmailCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideVerifyEmail(c.AggregateID()),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideVerifyEmail(c.StreamID()),
 			)
 		},
 	); err != nil {
@@ -145,8 +145,8 @@ func RegisterCommands(
 		dispatcher, cmdEnableTOTP,
 		func(ctx context.Context, c *EnableTOTPCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideEnableTOTP(c.AggregateID(), c.secret),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideEnableTOTP(c.StreamID(), c.secret),
 			)
 		},
 	); err != nil {
@@ -163,8 +163,8 @@ func RegisterCommands(
 		dispatcher, cmdDisableTOTP,
 		func(ctx context.Context, c *DisableTOTPCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideDisableTOTP(c.AggregateID()),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideDisableTOTP(c.StreamID()),
 			)
 		},
 	); err != nil {
@@ -181,9 +181,9 @@ func RegisterCommands(
 		dispatcher, cmdLinkExternalAccount,
 		func(ctx context.Context, c *LinkExternalAccountCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
+				ctx, c.StreamID(), aggregateTypeUser,
 				decideLinkExternalAccount(
-					c.AggregateID(), c.provider, c.subject, c.email, c.displayName,
+					c.StreamID(), c.provider, c.subject, c.email, c.displayName,
 				),
 			)
 		},
@@ -201,8 +201,8 @@ func RegisterCommands(
 		dispatcher, cmdUnlinkExternalAccount,
 		func(ctx context.Context, c *UnlinkExternalAccountCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeUser,
-				decideUnlinkExternalAccount(c.AggregateID(), c.provider, c.subject),
+				ctx, c.StreamID(), aggregateTypeUser,
+				decideUnlinkExternalAccount(c.StreamID(), c.provider, c.subject),
 			)
 		},
 	); err != nil {

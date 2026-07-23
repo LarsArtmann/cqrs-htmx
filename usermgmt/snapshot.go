@@ -108,7 +108,7 @@ func (m *MemorySnapshotStore) Save(_ context.Context, s snapshot.Snapshot) error
 		s.CreatedAt = time.Now()
 	}
 
-	ref := id.AggregateRef{Type: s.AggregateType, ID: s.AggregateID}
+	ref := id.AggregateRef{Type: s.StreamType, ID: s.StreamID}
 	m.snapshots[ref] = s
 
 	return nil
@@ -164,8 +164,8 @@ func cloneSnapshot(s snapshot.Snapshot) *snapshot.Snapshot {
 	copy(stateCopy, s.State)
 
 	return &snapshot.Snapshot{
-		AggregateID:   s.AggregateID,
-		AggregateType: s.AggregateType,
+		StreamID:   s.StreamID,
+		StreamType: s.StreamType,
 		Version:       s.Version,
 		State:         stateCopy,
 		CreatedAt:     s.CreatedAt,

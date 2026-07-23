@@ -20,8 +20,8 @@ func RegisterTenantCommands(
 		dispatcher, cmdCreateTenant,
 		func(ctx context.Context, c *CreateTenantCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeTenant,
-				decideCreateTenant(c.AggregateID(), c.name, c.displayName),
+				ctx, c.StreamID(), aggregateTypeTenant,
+				decideCreateTenant(c.StreamID(), c.name, c.displayName),
 			)
 		},
 	); err != nil {
@@ -36,8 +36,8 @@ func RegisterTenantCommands(
 		dispatcher, cmdSuspendTenant,
 		func(ctx context.Context, c *SuspendTenantCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeTenant,
-				decideSuspendTenant(c.AggregateID(), c.reason),
+				ctx, c.StreamID(), aggregateTypeTenant,
+				decideSuspendTenant(c.StreamID(), c.reason),
 			)
 		},
 	); err != nil {
@@ -52,8 +52,8 @@ func RegisterTenantCommands(
 		dispatcher, cmdReactivateTenant,
 		func(ctx context.Context, c *ReactivateTenantCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeTenant,
-				decideReactivateTenant(c.AggregateID()),
+				ctx, c.StreamID(), aggregateTypeTenant,
+				decideReactivateTenant(c.StreamID()),
 			)
 		},
 	); err != nil {
@@ -68,8 +68,8 @@ func RegisterTenantCommands(
 		dispatcher, cmdDeleteTenant,
 		func(ctx context.Context, c *DeleteTenantCmd) error {
 			return repo.Execute(
-				ctx, c.AggregateID(), aggregateTypeTenant,
-				decideDeleteTenant(c.AggregateID(), c.reason),
+				ctx, c.StreamID(), aggregateTypeTenant,
+				decideDeleteTenant(c.StreamID(), c.reason),
 			)
 		},
 	); err != nil {
