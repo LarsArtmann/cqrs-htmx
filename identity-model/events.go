@@ -39,7 +39,7 @@ type UserDeletedPayload struct {
 
 type CredentialAddedPayload struct {
 	SchemaVersion int `json:"schema_version"`
-	credentialCore
+	CredentialCore
 }
 
 type CredentialRemovedPayload struct {
@@ -63,7 +63,7 @@ type TOTPDisabledPayload struct {
 
 type ExternalAccountLinkedPayload struct {
 	SchemaVersion int `json:"schema_version"`
-	externalAccountCore
+	ExternalAccountCore
 }
 
 type ExternalAccountUnlinkedPayload struct {

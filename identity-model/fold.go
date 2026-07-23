@@ -189,7 +189,7 @@ func FoldUser(state UserState, evt event.Event) (UserState, error) {
 			return state, err
 		}
 		next.ExternalAccounts = append(next.ExternalAccounts, ExternalAccount{
-			externalAccountCore: externalAccountCore{
+			ExternalAccountCore: ExternalAccountCore{
 				Provider:    p.Provider,
 				Subject:     p.Subject,
 				Email:       p.Email,

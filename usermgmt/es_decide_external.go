@@ -30,7 +30,7 @@ func decideLinkExternalAccount(
 		}
 		payload, err := marshalPayload(ExternalAccountLinkedPayload{
 			SchemaVersion: currentSchemaVersion,
-			externalAccountCore: externalAccountCore{
+			ExternalAccountCore: ExternalAccountCore{
 				Provider:    provider,
 				Subject:     subject,
 				Email:       email,

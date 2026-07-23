@@ -132,7 +132,7 @@ func (m *UserReadModel) handleCredentialAdded(_ id.AggregateID, evt event.Event)
 		return err
 	}
 	if u, ok := m.users[aggID]; ok {
-		u.Credentials = append(u.Credentials, newCredentialFromPayload(p, evt.OccurredAt()))
+		u.Credentials = append(u.Credentials, NewCredentialFromPayload(p, evt.OccurredAt()))
 		u.UpdatedAt = evt.OccurredAt()
 	}
 	return nil
@@ -207,7 +207,7 @@ func (m *UserReadModel) handleExternalAccountLinked(_ id.AggregateID, evt event.
 	}
 	if u, ok := m.users[aggID]; ok {
 		u.ExternalAccounts = append(u.ExternalAccounts, ExternalAccount{
-			externalAccountCore: externalAccountCore{
+			ExternalAccountCore: ExternalAccountCore{
 				Provider:    p.Provider,
 				Subject:     p.Subject,
 				Email:       p.Email,
