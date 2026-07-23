@@ -17,10 +17,10 @@ func (d *Dashboard) renderLayout(p pageData, content func() string) string {
 	b.WriteString("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n")
 	b.WriteString("<meta name=\"color-scheme\" content=\"light dark\"/>\n")
 	b.WriteString("<meta name=\"robots\" content=\"noindex\"/>\n")
-	b.WriteString(fmt.Sprintf("<title>%s · %s</title>\n", p.Title, p.Brand))
-	b.WriteString(fmt.Sprintf("<style>:root{--accent:%s;}</style>\n", p.Accent))
-	b.WriteString(fmt.Sprintf("<link rel=\"stylesheet\" href=\"%s/-/dashboard.css\"/>\n", p.BasePath))
-	b.WriteString(fmt.Sprintf("<script src=\"%s/-/htmx.js\"></script>\n", p.BasePath))
+	fmt.Fprintf(&b, "<title>%s · %s</title>\n", p.Title, p.Brand)
+	fmt.Fprintf(&b, "<style>:root{--accent:%s;}</style>\n", p.Accent)
+	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard.css\"/>\n", p.BasePath)
+	fmt.Fprintf(&b, "<script src=\"%s/-/htmx.js\"></script>\n", p.BasePath)
 	b.WriteString("</head>\n<body>\n")
 
 	b.WriteString(`<div style="display:grid;grid-template-columns:248px 1fr;min-height:100vh">`)
@@ -28,43 +28,66 @@ func (d *Dashboard) renderLayout(p pageData, content func() string) string {
 	b.WriteString(d.renderSidebar(p))
 	b.WriteString(`<div style="display:flex;flex-direction:column;min-width:0">`)
 	b.WriteString(d.renderHeader(p))
-	b.WriteString(fmt.Sprintf(`<main style="width:100%%;max-width:1200px;padding:24px">%s</main>`, content()))
+	fmt.Fprintf(&b, `<main style="width:100%%;max-width:1200px;padding:24px">%s</main>`, content())
 	b.WriteString("</div></div>\n")
 
 	b.WriteString("</body>\n</html>")
+
 	return b.String()
 }
 
 func (d *Dashboard) renderSidebar(p pageData) string {
 	var b strings.Builder
-	b.WriteString(`<aside style="background:#0f172a;color:#94a3b8;padding:18px 14px;position:sticky;top:0;height:100vh;overflow-y:auto">`)
+	b.WriteString(
+		`<aside style="background:#0f172a;color:#94a3b8;padding:18px 14px;position:sticky;top:0;height:100vh;overflow-y:auto">`,
+	)
 
-	b.WriteString(fmt.Sprintf(`<div style="display:flex;align-items:center;gap:10px;padding-bottom:16px;color:#f1f5f9;font-weight:700">
+	fmt.Fprintf(
+		&b,
+		`<div style="display:flex;align-items:center;gap:10px;padding-bottom:16px;color:#f1f5f9;font-weight:700">
 		<span style="display:grid;place-items:center;width:26px;height:26px;background:var(--accent);color:white;border-radius:8px;font-size:0.85em">%s</span>
-		%s</div>`, initials(p.Brand), p.Brand))
+		%s</div>`,
+		initials(p.Brand),
+		p.Brand,
+	)
 
 	b.WriteString(`<nav style="display:flex;flex-direction:column;gap:2px">`)
+
 	for _, item := range p.Nav {
 		bg := "transparent"
 		color := "#94a3b8"
+
 		if item.Active {
 			bg = "color-mix(in srgb, var(--accent) 14%, transparent)"
 			color = "var(--accent)"
 		}
-		b.WriteString(fmt.Sprintf(`<a href="%s%s" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;text-decoration:none;font-size:0.9rem;font-weight:500;color:%s;background:%s">%s</a>`,
-			p.BasePath, item.Href, color, bg, item.Label))
+
+		fmt.Fprintf(
+			&b,
+			`<a href="%s%s" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;text-decoration:none;font-size:0.9rem;font-weight:500;color:%s;background:%s">%s</a>`,
+			p.BasePath,
+			item.Href,
+			color,
+			bg,
+			item.Label,
+		)
 	}
+
 	b.WriteString("</nav>")
 
 	b.WriteString(`<div style="margin-top:auto;padding-top:8px;font-size:0.75rem;opacity:0.5">dashboardui</div>`)
 	b.WriteString("</aside>")
+
 	return b.String()
 }
 
 func (d *Dashboard) renderHeader(p pageData) string {
-	return fmt.Sprintf(`<header style="position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid #e6e8ec;background:color-mix(in srgb, white 86%%, transparent);backdrop-filter:blur(8px)">
+	return fmt.Sprintf(
+		`<header style="position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid #e6e8ec;background:color-mix(in srgb, white 86%%, transparent);backdrop-filter:blur(8px)">
 		<div style="font-size:1.1rem;font-weight:600">%s</div>
-	</header>`, p.Title)
+	</header>`,
+		p.Title,
+	)
 }
 
 func initials(brand string) string {
@@ -72,9 +95,11 @@ func initials(brand string) string {
 	if len(words) == 0 {
 		return "?"
 	}
+
 	if len(words) == 1 {
 		return strings.ToUpper(brand[:min(2, len(brand))])
 	}
+
 	return strings.ToUpper(string(words[0][0]) + string(words[1][0]))
 }
 

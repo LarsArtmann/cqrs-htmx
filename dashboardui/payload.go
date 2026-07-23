@@ -50,6 +50,7 @@ func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([
 	if err != nil {
 		return nil, fmt.Errorf("pretty-print payload: %w", err)
 	}
+
 	return out, nil
 }
 
@@ -60,6 +61,7 @@ func renderPayload(r PayloadRenderer, evt event.Event) []byte {
 	if err != nil || out == nil {
 		return evt.Payload()
 	}
+
 	return out
 }
 
