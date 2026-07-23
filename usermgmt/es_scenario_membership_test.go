@@ -20,7 +20,7 @@ func TestScenario_AddMember_HappyPath(t *testing.T) {
 	cmd := NewAddMemberCmd(actor, tenant, []Role{"admin"})
 
 	decide := func(state MembershipState, _ *AddMemberCmd) ([]event.Event, error) {
-		inner := decideAddMember(cmd.StreamID(), cmd.actorID, cmd.tenantID, cmd.roles)
+		inner := decideAddMember(cmd.StreamID(), cmd.ActorID(), cmd.TenantID(), cmd.Roles())
 		return inner(state, 0)
 	}
 
@@ -51,7 +51,7 @@ func TestScenario_AddMember_AlreadyExists(t *testing.T) {
 	}
 
 	decide := func(state MembershipState, _ *AddMemberCmd) ([]event.Event, error) {
-		inner := decideAddMember(cmd.StreamID(), cmd.actorID, cmd.tenantID, cmd.roles)
+		inner := decideAddMember(cmd.StreamID(), cmd.ActorID(), cmd.TenantID(), cmd.Roles())
 		return inner(state, 1)
 	}
 
@@ -67,7 +67,7 @@ func TestScenario_AddMember_ActorRequired(t *testing.T) {
 	cmd := NewAddMemberCmd(ActorID{}, tenant, []Role{"admin"})
 
 	decide := func(state MembershipState, _ *AddMemberCmd) ([]event.Event, error) {
-		inner := decideAddMember(cmd.StreamID(), cmd.actorID, cmd.tenantID, cmd.roles)
+		inner := decideAddMember(cmd.StreamID(), cmd.ActorID(), cmd.TenantID(), cmd.Roles())
 		return inner(state, 0)
 	}
 
@@ -98,7 +98,7 @@ func TestScenario_UpdateMemberRoles_HappyPath(t *testing.T) {
 	}
 
 	decide := func(state MembershipState, _ *UpdateMemberRolesCmd) ([]event.Event, error) {
-		inner := decideUpdateMemberRoles(cmd.StreamID(), cmd.roles)
+		inner := decideUpdateMemberRoles(cmd.StreamID(), cmd.Roles())
 		return inner(state, 1)
 	}
 

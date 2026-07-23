@@ -21,7 +21,7 @@ func TestScenario_RegisterBot_HappyPath(t *testing.T) {
 
 	decide := func(state BotState, _ *RegisterBotCmd) ([]event.Event, error) {
 		inner := decideRegisterBot(
-			cmd.StreamID(), cmd.name, cmd.ownerID, cmd.tokenHash, cmd.scopes,
+			cmd.StreamID(), cmd.Name(), cmd.OwnerID(), cmd.TokenHash(), cmd.Scopes(),
 		)
 		return inner(state, 0)
 	}
@@ -55,7 +55,7 @@ func TestScenario_RegisterBot_AlreadyExists(t *testing.T) {
 
 	decide := func(state BotState, _ *RegisterBotCmd) ([]event.Event, error) {
 		inner := decideRegisterBot(
-			cmd.StreamID(), cmd.name, cmd.ownerID, cmd.tokenHash, cmd.scopes,
+			cmd.StreamID(), cmd.Name(), cmd.OwnerID(), cmd.TokenHash(), cmd.Scopes(),
 		)
 		return inner(state, 1)
 	}
@@ -75,7 +75,7 @@ func TestScenario_RegisterBot_NameRequired(t *testing.T) {
 
 	decide := func(state BotState, _ *RegisterBotCmd) ([]event.Event, error) {
 		inner := decideRegisterBot(
-			cmd.StreamID(), cmd.name, cmd.ownerID, cmd.tokenHash, cmd.scopes,
+			cmd.StreamID(), cmd.Name(), cmd.OwnerID(), cmd.TokenHash(), cmd.Scopes(),
 		)
 		return inner(state, 0)
 	}
@@ -94,7 +94,7 @@ func TestScenario_RegisterBot_OwnerRequired(t *testing.T) {
 
 	decide := func(state BotState, _ *RegisterBotCmd) ([]event.Event, error) {
 		inner := decideRegisterBot(
-			cmd.StreamID(), cmd.name, cmd.ownerID, cmd.tokenHash, cmd.scopes,
+			cmd.StreamID(), cmd.Name(), cmd.OwnerID(), cmd.TokenHash(), cmd.Scopes(),
 		)
 		return inner(state, 0)
 	}
@@ -127,7 +127,7 @@ func TestScenario_DeleteBot_HappyPath(t *testing.T) {
 	}
 
 	decide := func(state BotState, _ *DeleteBotCmd) ([]event.Event, error) {
-		inner := decideDeleteBot(cmd.StreamID(), cmd.reason)
+		inner := decideDeleteBot(cmd.StreamID(), cmd.Reason())
 		return inner(state, 1)
 	}
 
@@ -143,7 +143,7 @@ func TestScenario_DeleteBot_NotFound(t *testing.T) {
 	cmd := NewDeleteBotCmd(aggID, "reason")
 
 	decide := func(state BotState, _ *DeleteBotCmd) ([]event.Event, error) {
-		inner := decideDeleteBot(cmd.StreamID(), cmd.reason)
+		inner := decideDeleteBot(cmd.StreamID(), cmd.Reason())
 		return inner(state, 0)
 	}
 

@@ -19,7 +19,7 @@ func TestScenario_CreateTenant_HappyPath(t *testing.T) {
 	cmd := NewCreateTenantCmd(aggID, "acme", "Acme Corp")
 
 	decide := func(state TenantState, _ *CreateTenantCmd) ([]event.Event, error) {
-		inner := decideCreateTenant(cmd.StreamID(), cmd.name, cmd.displayName)
+		inner := decideCreateTenant(cmd.StreamID(), cmd.Name(), cmd.DisplayName())
 		return inner(state, 0)
 	}
 
@@ -47,7 +47,7 @@ func TestScenario_CreateTenant_AlreadyExists(t *testing.T) {
 	}
 
 	decide := func(state TenantState, _ *CreateTenantCmd) ([]event.Event, error) {
-		inner := decideCreateTenant(cmd.StreamID(), cmd.name, cmd.displayName)
+		inner := decideCreateTenant(cmd.StreamID(), cmd.Name(), cmd.DisplayName())
 		return inner(state, 1)
 	}
 
@@ -63,7 +63,7 @@ func TestScenario_CreateTenant_NameRequired(t *testing.T) {
 	cmd := NewCreateTenantCmd(aggID, "", "Display")
 
 	decide := func(state TenantState, _ *CreateTenantCmd) ([]event.Event, error) {
-		inner := decideCreateTenant(cmd.StreamID(), cmd.name, cmd.displayName)
+		inner := decideCreateTenant(cmd.StreamID(), cmd.Name(), cmd.DisplayName())
 		return inner(state, 0)
 	}
 
@@ -91,7 +91,7 @@ func TestScenario_SuspendTenant_HappyPath(t *testing.T) {
 	}
 
 	decide := func(state TenantState, _ *SuspendTenantCmd) ([]event.Event, error) {
-		inner := decideSuspendTenant(cmd.StreamID(), cmd.reason)
+		inner := decideSuspendTenant(cmd.StreamID(), cmd.Reason())
 		return inner(state, 1)
 	}
 
@@ -107,7 +107,7 @@ func TestScenario_SuspendTenant_NotFound(t *testing.T) {
 	cmd := NewSuspendTenantCmd(aggID, "reason")
 
 	decide := func(state TenantState, _ *SuspendTenantCmd) ([]event.Event, error) {
-		inner := decideSuspendTenant(cmd.StreamID(), cmd.reason)
+		inner := decideSuspendTenant(cmd.StreamID(), cmd.Reason())
 		return inner(state, 0)
 	}
 
@@ -173,7 +173,7 @@ func TestScenario_DeleteTenant_HappyPath(t *testing.T) {
 	}
 
 	decide := func(state TenantState, _ *DeleteTenantCmd) ([]event.Event, error) {
-		inner := decideDeleteTenant(cmd.StreamID(), cmd.reason)
+		inner := decideDeleteTenant(cmd.StreamID(), cmd.Reason())
 		return inner(state, 1)
 	}
 
@@ -189,7 +189,7 @@ func TestScenario_DeleteTenant_NotFound(t *testing.T) {
 	cmd := NewDeleteTenantCmd(aggID, "reason")
 
 	decide := func(state TenantState, _ *DeleteTenantCmd) ([]event.Event, error) {
-		inner := decideDeleteTenant(cmd.StreamID(), cmd.reason)
+		inner := decideDeleteTenant(cmd.StreamID(), cmd.Reason())
 		return inner(state, 0)
 	}
 
