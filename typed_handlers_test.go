@@ -22,7 +22,7 @@ type typedEchoCommand struct {
 }
 
 func (c *typedEchoCommand) Type() command.Type          { return "Echo" }
-func (c *typedEchoCommand) AggregateID() id.AggregateID { return id.NewAggregateID() }
+func (c *typedEchoCommand) StreamID() id.StreamID { return id.NewAggregateID() }
 func (c *typedEchoCommand) ID() id.CommandID            { return id.NewCommandID() }
 
 // typedSumQuery is a self-contained query type used to exercise the

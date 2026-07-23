@@ -18,7 +18,7 @@ type testCreateUserCmd struct {
 }
 
 func (c *testCreateUserCmd) Type() command.Type          { return "CreateUser" }
-func (c *testCreateUserCmd) AggregateID() id.AggregateID { return c.aggID }
+func (c *testCreateUserCmd) StreamID() id.StreamID { return c.aggID }
 func (c *testCreateUserCmd) ID() id.CommandID            { return c.cmdID }
 func (c *testCreateUserCmd) IdempotencyKey() string      { return c.aggID.String() }
 
@@ -64,7 +64,7 @@ type bddCreateUserCmd struct {
 }
 
 func (c *bddCreateUserCmd) Type() command.Type          { return "CreateUser" }
-func (c *bddCreateUserCmd) AggregateID() id.AggregateID { return c.aggID }
+func (c *bddCreateUserCmd) StreamID() id.StreamID { return c.aggID }
 func (c *bddCreateUserCmd) ID() id.CommandID            { return c.cmdID }
 func (c *bddCreateUserCmd) IdempotencyKey() string      { return c.aggID.String() }
 
@@ -74,7 +74,7 @@ type bddDeleteUserCmd struct {
 }
 
 func (c *bddDeleteUserCmd) Type() command.Type          { return "DeleteUser" }
-func (c *bddDeleteUserCmd) AggregateID() id.AggregateID { return c.aggID }
+func (c *bddDeleteUserCmd) StreamID() id.StreamID { return c.aggID }
 func (c *bddDeleteUserCmd) ID() id.CommandID            { return c.cmdID }
 func (c *bddDeleteUserCmd) IdempotencyKey() string      { return c.aggID.String() }
 
