@@ -1,8 +1,6 @@
 package identitymodel
 
 import (
-	"fmt"
-
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -185,9 +183,4 @@ func convertRoles(roles []string) []Role {
 	}
 
 	return result
-}
-
-// fmtPolicy formats a policy for error messages.
-func fmtPolicy(p Policy) string {
-	return fmt.Sprintf("{%s, %s, %s, %s, %s}", p.Subject, p.Domain, p.Object, p.Action, p.Effect)
 }

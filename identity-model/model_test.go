@@ -401,7 +401,7 @@ func TestDeriveMembershipID_Deterministic(t *testing.T) {
 }
 
 func TestFoldUser_Registered(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	payload, err := MarshalPayload(UserRegisteredPayload{
 		SchemaVersion: currentSchemaVersion,
@@ -430,7 +430,7 @@ func TestFoldUser_Registered(t *testing.T) {
 }
 
 func TestFoldTenant_Lifecycle(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	createdPayload, _ := MarshalPayload(TenantCreatedPayload{
 		SchemaVersion: currentSchemaVersion,

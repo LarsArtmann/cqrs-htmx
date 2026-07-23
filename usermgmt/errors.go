@@ -3,8 +3,8 @@ package usermgmt
 import (
 	"net/http"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // All domain error sentinels now live in identity-model (domain-only, no HTTP

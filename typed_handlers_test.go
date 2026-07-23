@@ -21,9 +21,9 @@ type typedEchoCommand struct {
 	Message string `json:"message"`
 }
 
-func (c *typedEchoCommand) Type() command.Type          { return "Echo" }
+func (c *typedEchoCommand) Type() command.Type    { return "Echo" }
 func (c *typedEchoCommand) StreamID() id.StreamID { return id.NewAggregateID() }
-func (c *typedEchoCommand) ID() id.CommandID            { return id.NewCommandID() }
+func (c *typedEchoCommand) ID() id.CommandID      { return id.NewCommandID() }
 
 // typedSumQuery is a self-contained query type used to exercise the
 // type-safe QueryTyped path.

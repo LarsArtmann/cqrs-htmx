@@ -21,13 +21,13 @@ const (
 	ActorBot  = identitymodel.ActorBot
 )
 
-func NewUserID(s string) UserID                   { return identitymodel.NewUserID(s) }
-func SyntheticUserID(s string) UserID             { return identitymodel.SyntheticUserID(s) }
-func ParseUserID(s string) (UserID, error)        { return identitymodel.ParseUserID(s) }
-func MustParseUserID(s string) UserID             { return identitymodel.MustParseUserID(s) }
-func GenerateUserID() UserID                      { return identitymodel.GenerateUserID() }
-func NewTenantID(s string) TenantID               { return identitymodel.NewTenantID(s) }
-func NewBotID(s string) BotID                     { return identitymodel.NewBotID(s) }
+func NewUserID(s string) UserID            { return identitymodel.NewUserID(s) }
+func SyntheticUserID(s string) UserID      { return identitymodel.SyntheticUserID(s) }
+func ParseUserID(s string) (UserID, error) { return identitymodel.ParseUserID(s) }
+func MustParseUserID(s string) UserID      { return identitymodel.MustParseUserID(s) }
+func GenerateUserID() UserID               { return identitymodel.GenerateUserID() }
+func NewTenantID(s string) TenantID        { return identitymodel.NewTenantID(s) }
+func NewBotID(s string) BotID              { return identitymodel.NewBotID(s) }
 func NewActorID(kind ActorKind, raw string) ActorID {
 	return identitymodel.NewActorID(kind, raw)
 }
