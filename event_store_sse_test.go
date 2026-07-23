@@ -227,9 +227,9 @@ func TestJournalSSEStore_ConcurrentAccess(t *testing.T) {
 			defer wg.Done()
 
 			for range 50 {
-				_ = sse.EventsAfter("")
+				_ = sse.EventsAfter(SSEEventID{})
 				if idx > 0 {
-					_ = sse.EventsAfter(events[idx%50].ID().String())
+					_ = sse.EventsAfter(NewSSEEventID(events[idx%50].ID().String()))
 				}
 			}
 		}(i)
