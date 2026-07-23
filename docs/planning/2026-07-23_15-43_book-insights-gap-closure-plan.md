@@ -2,8 +2,8 @@
 
 > **Source:** `docs/reviews/book-insights-vs-cqrs-htmx.md`
 > **Date:** 2026-07-23
-> **Total tasks:** 28 (all <= 12 min each)
-> **Estimated total:** ~4h 48m
+> **Total tasks:** 27 (all <= 12 min each)
+> **Estimated total:** ~4h 46m
 > **Method:** Pareto breakdown (1% -> 51%, 4% -> 64%, 20% -> 80%), then sorted by impact/customer-value/effort within each tier.
 
 ---
@@ -73,7 +73,6 @@ Convenience methods, runbooks, and acknowledged debt tracking. These polish the 
 | 25 | Write rebuild-projection runbook (when to rebuild, how, verification steps) | Event Replay | 3 | 4 | 1 | **2.15** | 10m |
 | 26 | Update ROADMAP.md with v5 usermgmt decomposition plan (module boundaries) | usermgmt Split | 2 | 2 | 1 | **1.25** | 10m |
 | 27 | Document dependency tree analysis for extraction trigger (when to split modules) | usermgmt Split | 1 | 1 | 1 | **0.50** | 10m |
-| 28 | Document MySQL event store implementation requirements on ROADMAP | MySQL Support | 2 | 2 | 1 | **1.25** | 8m |
 
 ---
 
@@ -109,7 +108,7 @@ Tasks below are sorted by priority score (highest first), which naturally surfac
 | 24 | 10 | Write retention patterns + monitoring guidance | Doc | 1 | 1.85 | 10m |
 | 25 | 24 | Test projection rebuild workflow | Test | 3 | 1.75 | 12m |
 | 26 | 26 | Update ROADMAP with v5 usermgmt decomposition plan | Doc | 3 | 1.25 | 10m |
-| 27 | 28 | Document MySQL event store requirements on ROADMAP | Doc | 3 | 1.25 | 8m |
+> **Total** | **27 tasks** | **~286m (~4h 46m)** |
 | 28 | 27 | Document dep-tree analysis for module extraction trigger | Doc | 3 | 0.50 | 10m |
 
 ---
@@ -140,7 +139,7 @@ Tier 3 (Polish — depends on Tier 2)
 ├── 24 (test — after 23)
 ├── 25 (runbook — after 23, 24)
 ├── 26, 27 (roadmap — no deps)
-└── 28 (MySQL — no deps)
+└── 26, 27 (roadmap — no deps)
 ```
 
 ---
@@ -157,7 +156,7 @@ Tasks with no dependencies can be done in parallel:
 | D | 11 + 18 | EventCatalog type + ProjectionStatusHandler (different files) |
 | E | 14 + 19 | EventCatalog test + ProjectionStatus test (different files) |
 | F | 16 + 17 | Sequential (same module, but different aggregate types) |
-| G | 26, 27, 28 | All roadmap updates |
+| G | 26, 27 | All roadmap updates |
 
 ---
 
@@ -189,5 +188,4 @@ From `docs/reviews/book-insights-vs-cqrs-htmx.md` "What We Should NOT Do":
 | Monotonic read / consistency model | 1, 2, 3 | 28m |
 | Event replay tooling | 4, 23, 24, 25 | 42m |
 | usermgmt decomposition (roadmap) | 26, 27 | 20m |
-| MySQL support (existing P3) | 28 | 8m |
-| **Total** | **28 tasks** | **~294m (~5h)** |
+| **Total** | **27 tasks** | **~286m (~4h 46m)** |
