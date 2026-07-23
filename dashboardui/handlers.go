@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -14,7 +15,11 @@ import (
 
 func notImplemented(w http.ResponseWriter, panel string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, "<div style=\"padding:40px;text-align:center;color:#64748b\"><h2>%s</h2><p>This panel is coming soon.</p></div>", panel)
+	fmt.Fprintf(
+		w,
+		"<div style=\"padding:40px;text-align:center;color:#64748b\"><h2>%s</h2><p>This panel is coming soon.</p></div>",
+		panel,
+	)
 }
 
 // ===== Event Stream Browser =====
@@ -25,6 +30,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	events, err := d.loadRecentEvents(r.Context(), d.cfg.PageSize)
 	if err != nil {
 		http.Error(w, "failed to load events: "+err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 
@@ -40,16 +46,20 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, limit int) ([]event.Ev
 	if d.cfg.SeekableJournal != nil {
 		return d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, limit)
 	}
+
 	if d.cfg.Journal != nil {
 		all, err := d.cfg.Journal.ReadAll(ctx)
 		if err != nil {
 			return nil, err
 		}
+
 		if len(all) > limit {
 			all = all[:limit]
 		}
+
 		return all, nil
 	}
+
 	return nil, nil
 }
 
@@ -69,8 +79,9 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 		}
 
 		var rows string
+		var rowsSb72 strings.Builder
 		for _, evt := range events {
-			rows += fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
+			rowsSb72.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px"><code>%s</code></td>
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
@@ -82,8 +93,9 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 				truncate(evt.StreamID().String(), 24),
 				evt.StreamType(),
 				evt.Version().String(),
-			)
+			))
 		}
+		rows += rowsSb72.String()
 
 		return fmt.Sprintf(`
 			<h3 style="margin-bottom:12px">Event Stream</h3>
@@ -106,6 +118,7 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 	p := d.page("Aggregates", "/aggregates", r)
 
 	var listings []listing.StreamListing
+
 	if d.cfg.StreamReader != nil {
 		page, err := d.cfg.StreamReader.List(r.Context(), listing.ListOptions{Limit: uint(d.cfg.PageSize)})
 		if err == nil && page != nil {
@@ -128,8 +141,9 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 		}
 
 		var rows string
+		var rowsSb131 strings.Builder
 		for _, l := range listings {
-			rows += fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
+			rowsSb131.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px">%s</td>
 				<td style="padding:8px">%s</td>
@@ -141,8 +155,9 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 				l.Version.String(),
 				l.EventCount,
 				l.LastEventAt.Format("2006-01-02 15:04:05"),
-			)
+			))
 		}
+		rows += rowsSb131.String()
 
 		return fmt.Sprintf(`
 			<h3 style="margin-bottom:12px">Aggregates</h3>
@@ -165,6 +180,7 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 	p := d.page("Projections", "/projections", r)
 
 	var projs []projectionStat
+
 	if d.cfg.ProjectionHost != nil {
 		lagPerProj := d.cfg.ProjectionHost.LagPerProjection()
 		for _, ws := range d.cfg.ProjectionHost.Status() {
@@ -187,14 +203,18 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Request) {
 	if d.cfg.ProjectionHost == nil {
 		http.Error(w, "projection host not configured", http.StatusBadRequest)
+
 		return
 	}
+
 	name := r.PathValue("name")
 	if err := d.cfg.ProjectionHost.Reset(r.Context(), name); err != nil {
 		triggerToast(w, "err", "Reset failed: "+err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
+
 	triggerToast(w, "ok", "Projection reset")
 	redirect(w, r, d.cfg.BasePath+"/projections")
 }
@@ -206,8 +226,11 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 		}
 
 		var rows string
+
+		var rowsSb209 strings.Builder
 		for _, proj := range projs {
 			color := "#64748b"
+
 			switch proj.StatusKind {
 			case "good":
 				color = "#16a34a"
@@ -216,14 +239,16 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 			case "bad":
 				color = "#dc2626"
 			}
-			rows += fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
+
+			rowsSb209.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-weight:500">%s</td>
 				<td style="padding:8px"><span style="color:%s;font-weight:600">%s</span></td>
 				<td style="padding:8px;font-family:monospace">%s</td>
 				<td style="padding:8px">%d</td>
 				<td style="padding:8px">%d</td>
-			</tr>`, proj.Name, color, proj.Status, proj.Lag, proj.Processed, proj.Errors)
+			</tr>`, proj.Name, color, proj.Status, proj.Lag, proj.Processed, proj.Errors))
 		}
+		rows += rowsSb209.String()
 
 		return fmt.Sprintf(`
 			<h3 style="margin-bottom:12px">Projections</h3>
@@ -254,11 +279,14 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 	proj := r.PathValue("projection")
 
 	var entries []projectionhost.DeadLetterEntry
+
 	if d.cfg.DeadLetterStore != nil {
 		var err error
+
 		entries, err = d.cfg.DeadLetterStore.List(r.Context(), proj)
 		if err != nil {
 			http.Error(w, "failed to list dead letters: "+err.Error(), http.StatusInternalServerError)
+
 			return
 		}
 	}
@@ -271,15 +299,20 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 	if d.cfg.ProjectionHost == nil {
 		http.Error(w, "projection host not configured", http.StatusBadRequest)
+
 		return
 	}
+
 	proj := r.PathValue("projection")
+
 	result, err := d.cfg.ProjectionHost.ReplayDeadLetters(r.Context(), proj)
 	if err != nil {
 		triggerToast(w, "err", "Replay failed: "+err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
+
 	msg := fmt.Sprintf("Replayed %d, %d still failing", len(result.Replayed), len(result.StillFailing))
 	triggerToast(w, "ok", msg)
 	redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
@@ -288,15 +321,20 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if d.cfg.DeadLetterStore == nil {
 		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
+
 		return
 	}
+
 	proj := r.PathValue("projection")
+
 	eventID := r.PathValue("eventID")
 	if err := d.cfg.DeadLetterStore.Delete(r.Context(), proj, eventID); err != nil {
 		triggerToast(w, "err", "Delete failed: "+err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
+
 	triggerToast(w, "ok", "Dead letter deleted")
 	redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
 }
@@ -304,14 +342,18 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 	if d.cfg.DeadLetterStore == nil {
 		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
+
 		return
 	}
+
 	proj := r.PathValue("projection")
 	if err := d.cfg.DeadLetterStore.Purge(r.Context(), proj); err != nil {
 		triggerToast(w, "err", "Purge failed: "+err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
+
 	triggerToast(w, "ok", "Dead letters purged")
 	redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
 }
@@ -319,12 +361,16 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.DeadLetterEntry) string {
 	return d.renderLayout(p, func() string {
 		if len(entries) == 0 {
-			return fmt.Sprintf(`<div style="padding:40px;text-align:center;color:#64748b"><h3>No dead letters for %s</h3></div>`, proj)
+			return fmt.Sprintf(
+				`<div style="padding:40px;text-align:center;color:#64748b"><h3>No dead letters for %s</h3></div>`,
+				proj,
+			)
 		}
 
 		var rows string
+		var rowsSb326 strings.Builder
 		for _, e := range entries {
-			rows += fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
+			rowsSb326.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px"><code>%s</code></td>
 				<td style="padding:8px;color:#dc2626">%s</td>
@@ -334,8 +380,9 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 				e.EventType,
 				truncate(e.Error, 60),
 				e.ErrorFamily,
-			)
+			))
 		}
+		rows += rowsSb326.String()
 
 		return fmt.Sprintf(`
 			<h3 style="margin-bottom:12px">Dead Letters: %s</h3>
@@ -385,7 +432,7 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 	http.Error(w, "not implemented", http.StatusNotImplemented)
 }
 
-// Ensure we use the imports
+// Ensure we use the imports.
 var (
 	_ = id.NewAggregateID
 	_ = event.Type("")

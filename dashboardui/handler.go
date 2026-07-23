@@ -49,6 +49,7 @@ func (d *Dashboard) routes() http.Handler {
 	// Aggregate Browser
 	if d.caps.StreamReader || d.caps.EventSource {
 		mux.HandleFunc("GET /aggregates", d.guard(d.aggregatesIndexHandler))
+
 		if d.caps.EventSource {
 			mux.HandleFunc("GET /aggregates/{type}/{id}", d.guard(d.aggregateDetailHandler))
 		}
@@ -57,6 +58,7 @@ func (d *Dashboard) routes() http.Handler {
 	// Projection Dashboard
 	if d.caps.ProjectionHost {
 		mux.HandleFunc("GET /projections", d.guard(d.projectionsIndexHandler))
+
 		if !d.cfg.ReadOnly {
 			mux.HandleFunc("POST /projections/{name}/reset", d.guard(d.projectionResetHandler))
 		}
@@ -66,9 +68,11 @@ func (d *Dashboard) routes() http.Handler {
 	if d.caps.DeadLetterStore || d.caps.ProjectionHost {
 		mux.HandleFunc("GET /dead-letters", d.guard(d.dlqIndexHandler))
 		mux.HandleFunc("GET /dead-letters/{projection}", d.guard(d.dlqDetailHandler))
+
 		if !d.cfg.ReadOnly && d.caps.ProjectionHost {
 			mux.HandleFunc("POST /dead-letters/{projection}/replay", d.guard(d.dlqReplayHandler))
 		}
+
 		if !d.cfg.ReadOnly && d.caps.DeadLetterStore {
 			mux.HandleFunc("POST /dead-letters/{projection}/{eventID}/delete", d.guard(d.dlqDeleteHandler))
 			mux.HandleFunc("POST /dead-letters/{projection}/purge", d.guard(d.dlqPurgeHandler))
@@ -95,6 +99,7 @@ func (d *Dashboard) routes() http.Handler {
 	if d.caps.SnapshotStore {
 		mux.HandleFunc("GET /snapshots", d.guard(d.snapshotsIndexHandler))
 		mux.HandleFunc("GET /snapshots/{type}/{id}", d.guard(d.snapshotDetailHandler))
+
 		if !d.cfg.ReadOnly {
 			mux.HandleFunc("POST /snapshots/{type}/{id}/delete", d.guard(d.snapshotDeleteHandler))
 		}

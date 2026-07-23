@@ -85,27 +85,36 @@ type Config struct {
 
 func (cfg Config) withDefaults() (Config, error) {
 	if cfg.EventSource == nil && cfg.Journal == nil && cfg.SeekableJournal == nil {
-		return cfg, errConfig("at least one of Config.EventSource, Config.Journal, or Config.SeekableJournal is required")
+		return cfg, errConfig(
+			"at least one of Config.EventSource, Config.Journal, or Config.SeekableJournal is required",
+		)
 	}
+
 	if cfg.Title == "" {
 		cfg.Title = defaultTitle
 	}
+
 	if cfg.BasePath == "" {
 		cfg.BasePath = defaultBasePath
 	}
+
 	cfg.BasePath = trimTrailingSlash(cfg.BasePath)
 	if cfg.AccentColor == "" {
 		cfg.AccentColor = defaultAccentColor
 	}
+
 	if cfg.PageSize == 0 {
 		cfg.PageSize = defaultPageSize
 	}
+
 	if cfg.PageSize > maxPageSize {
 		cfg.PageSize = maxPageSize
 	}
+
 	if cfg.PayloadRenderer == nil {
 		cfg.PayloadRenderer = DefaultPayloadRenderer{}
 	}
+
 	return cfg, nil
 }
 
@@ -155,6 +164,7 @@ type navItem struct {
 
 func buildNav(caps Capabilities, basePath string) []navItem {
 	var items []navItem
+
 	add := func(href, label, icon string) {
 		items = append(items, navItem{Href: href, Label: label, Icon: icon})
 	}
@@ -164,24 +174,31 @@ func buildNav(caps Capabilities, basePath string) []navItem {
 	if caps.hasEventRead() {
 		add("/events", "Events", "queue")
 	}
+
 	if caps.StreamReader || caps.EventSource {
 		add("/aggregates", "Aggregates", "cube")
 	}
+
 	if caps.ProjectionHost {
 		add("/projections", "Projections", "arrow-path")
 	}
+
 	if caps.DeadLetterStore || caps.ProjectionHost {
 		add("/dead-letters", "Dead Letters", "bug")
 	}
+
 	if caps.CommandJournal {
 		add("/commands", "Commands", "clipboard")
 	}
+
 	if caps.QueryJournal {
 		add("/queries", "Queries", "magnifying-glass")
 	}
+
 	if caps.EventSource {
 		add("/time-travel", "Time Travel", "clock")
 	}
+
 	if caps.SnapshotStore {
 		add("/snapshots", "Snapshots", "archive")
 	}
@@ -210,10 +227,12 @@ func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
 	if err != nil {
 		return id.StreamRef{}, err
 	}
+
 	sid, err := id.ParseStreamID(streamID)
 	if err != nil {
 		return id.StreamRef{}, err
 	}
+
 	return id.NewStreamRef(st, sid), nil
 }
 
@@ -221,5 +240,6 @@ func trimTrailingSlash(s string) string {
 	for len(s) > 1 && s[len(s)-1] == '/' {
 		s = s[:len(s)-1]
 	}
+
 	return s
 }

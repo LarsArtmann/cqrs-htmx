@@ -32,6 +32,7 @@ func TestDashboard_OverviewRenders(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
 	}
+
 	body := rec.Body.String()
 	for _, want := range []string{"Overview", "dashboard.css", "htmx.js"} {
 		if !strings.Contains(body, want) {
@@ -61,6 +62,7 @@ func TestDashboard_EventBrowserRenders(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
 	}
+
 	body := rec.Body.String()
 	if !strings.Contains(body, "user.created") {
 		t.Errorf("events page should contain event type 'user.created'")
@@ -82,12 +84,15 @@ func TestDashboard_CapabilityDetection(t *testing.T) {
 	if !caps.EventSource {
 		t.Error("EventSource should be detected")
 	}
+
 	if !caps.Journal {
 		t.Error("Journal should be detected")
 	}
+
 	if caps.SeekableJournal {
 		t.Error("SeekableJournal should not be detected")
 	}
+
 	if caps.ProjectionHost {
 		t.Error("ProjectionHost should not be detected")
 	}
@@ -108,6 +113,7 @@ func TestDashboard_NavBuildsFromCapabilities(t *testing.T) {
 	})
 
 	p := d.page("Test", "/", &http.Request{})
+
 	labels := make(map[string]bool)
 	for _, n := range p.Nav {
 		labels[n.Label] = true
@@ -116,12 +122,15 @@ func TestDashboard_NavBuildsFromCapabilities(t *testing.T) {
 	if !labels["Overview"] {
 		t.Error("nav should contain Overview")
 	}
+
 	if !labels["Events"] {
 		t.Error("nav should contain Events")
 	}
+
 	if !labels["Aggregates"] {
 		t.Error("nav should contain Aggregates")
 	}
+
 	if labels["Projections"] {
 		t.Error("nav should NOT contain Projections (not configured)")
 	}

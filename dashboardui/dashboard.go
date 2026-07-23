@@ -29,7 +29,9 @@ func New(cfg Config) (*Dashboard, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	caps := cfg.capabilities()
+
 	return &Dashboard{
 		cfg:  cfg,
 		caps: caps,
@@ -43,6 +45,7 @@ func MustNew(cfg Config) *Dashboard {
 	if err != nil {
 		panic(fmt.Sprintf("dashboardui: %v", err))
 	}
+
 	return d
 }
 
@@ -54,6 +57,7 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 		n.Active = n.Href == active
 		nav[i] = n
 	}
+
 	return pageData{
 		Title:     title,
 		BasePath:  d.cfg.BasePath,
@@ -74,11 +78,14 @@ func (d *Dashboard) guard(fn http.HandlerFunc) http.HandlerFunc {
 	if d.cfg.Authorizer == nil {
 		return fn
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := d.cfg.Authorizer(r); err != nil {
 			http.Error(w, "forbidden", http.StatusForbidden)
+
 			return
 		}
+
 		fn(w, r)
 	}
 }
