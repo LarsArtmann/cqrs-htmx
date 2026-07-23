@@ -74,10 +74,3 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace (
-	github.com/larsartmann/cqrs-htmx/adminui/v4 => ../../adminui
-	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 => ../../usermgmt/totp
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../../usermgmt
-	github.com/larsartmann/cqrs-htmx/v4 => ../..
-)
