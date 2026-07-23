@@ -3,11 +3,11 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.4.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.4.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.4.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.4.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.0.1
@@ -43,6 +43,7 @@ require (
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.0.0-20260723162555-beae91131538 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.3 // indirect
@@ -62,7 +63,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.4 // indirect
-	github.com/larsartmann/go-error-family v0.7.0 // indirect
+	github.com/larsartmann/go-error-family v0.8.0 // indirect
 	github.com/larsartmann/httputil v0.6.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
