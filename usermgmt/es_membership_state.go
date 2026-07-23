@@ -9,9 +9,9 @@ import (
 type MembershipState = identitymodel.MembershipState
 
 // actorKind constants are used by foldMembership and the SQL session store.
-const (
-	actorKindUserStr = "user"
-	actorKindBotStr  = "bot"
+var (
+	actorKindUserStr = identitymodel.ActorKindUserStr
+	actorKindBotStr  = identitymodel.ActorKindBotStr
 )
 
 // foldMembership applies an event to the current MembershipState, returning the
