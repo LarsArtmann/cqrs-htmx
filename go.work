@@ -3,6 +3,7 @@ go 1.26.4
 use (
 	.
 	./adminui
+	./dashboardui
 	./examples/admin-demo
 	./examples/basic
 	./examples/catalog-demo
