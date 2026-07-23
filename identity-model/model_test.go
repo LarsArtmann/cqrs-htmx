@@ -417,9 +417,9 @@ func TestFoldUser_Registered(t *testing.T) {
 		t.Fatalf("event.New: %v", evtErr)
 	}
 
-	state, err := foldUser(UserState{}, evt)
+	state, err := FoldUser(UserState{}, evt)
 	if err != nil {
-		t.Fatalf("foldUser failed: %v", err)
+		t.Fatalf("FoldUser failed: %v", err)
 	}
 	if !state.Exists() {
 		t.Error("state should exist after UserRegistered")
@@ -441,9 +441,9 @@ func TestFoldTenant_Lifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("event.New created: %v", err)
 	}
-	state, foldErr := foldTenant(TenantState{}, created)
+	state, foldErr := FoldTenant(TenantState{}, created)
 	if foldErr != nil {
-		t.Fatalf("foldTenant created: %v", foldErr)
+		t.Fatalf("FoldTenant created: %v", foldErr)
 	}
 	if !state.IsActive() {
 		t.Error("tenant should be active after creation")
@@ -457,9 +457,9 @@ func TestFoldTenant_Lifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("event.New suspended: %v", err)
 	}
-	state, foldErr = foldTenant(state, suspended)
+	state, foldErr = FoldTenant(state, suspended)
 	if foldErr != nil {
-		t.Fatalf("foldTenant suspended: %v", foldErr)
+		t.Fatalf("FoldTenant suspended: %v", foldErr)
 	}
 	if state.IsActive() {
 		t.Error("tenant should not be active when suspended")

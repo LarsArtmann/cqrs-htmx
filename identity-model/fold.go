@@ -96,10 +96,10 @@ func (s BotState) Exists() bool {
 	return s.Name != "" && !s.Deleted
 }
 
-// foldUser applies an event to the current UserState, returning the new state.
+// FoldUser applies an event to the current UserState, returning the new state.
 //
 //nolint:gocognit // inherent to 12-case event switch; each case is simple decode+mutate
-func foldUser(state UserState, evt event.Event) (UserState, error) {
+func FoldUser(state UserState, evt event.Event) (UserState, error) {
 	next := state
 
 	switch evt.Type() {
@@ -214,15 +214,15 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 	default:
 		return state, errorfamily.NewRejection(
 			"usermgmt.user.unknown_event",
-			"foldUser received unknown event type: "+string(evt.Type()),
+			"FoldUser received unknown event type: "+string(evt.Type()),
 		)
 	}
 
 	return next, nil
 }
 
-// foldMembership applies an event to the current MembershipState.
-func foldMembership(state MembershipState, evt event.Event) (MembershipState, error) {
+// FoldMembership applies an event to the current MembershipState.
+func FoldMembership(state MembershipState, evt event.Event) (MembershipState, error) {
 	next := state
 
 	switch evt.Type() {
@@ -258,15 +258,15 @@ func foldMembership(state MembershipState, evt event.Event) (MembershipState, er
 	default:
 		return state, errorfamily.NewRejection(
 			"usermgmt.membership.unknown_event",
-			"foldMembership received unknown event type: "+string(evt.Type()),
+			"FoldMembership received unknown event type: "+string(evt.Type()),
 		)
 	}
 
 	return next, nil
 }
 
-// foldTenant applies an event to the current TenantState.
-func foldTenant(state TenantState, evt event.Event) (TenantState, error) {
+// FoldTenant applies an event to the current TenantState.
+func FoldTenant(state TenantState, evt event.Event) (TenantState, error) {
 	next := state
 
 	switch evt.Type() {
@@ -305,15 +305,15 @@ func foldTenant(state TenantState, evt event.Event) (TenantState, error) {
 	default:
 		return state, errorfamily.NewRejection(
 			"usermgmt.tenant.unknown_event",
-			"foldTenant received unknown event type: "+string(evt.Type()),
+			"FoldTenant received unknown event type: "+string(evt.Type()),
 		)
 	}
 
 	return next, nil
 }
 
-// foldBot applies an event to the current BotState.
-func foldBot(state BotState, evt event.Event) (BotState, error) {
+// FoldBot applies an event to the current BotState.
+func FoldBot(state BotState, evt event.Event) (BotState, error) {
 	next := state
 
 	switch evt.Type() {
@@ -336,7 +336,7 @@ func foldBot(state BotState, evt event.Event) (BotState, error) {
 	default:
 		return state, errorfamily.NewRejection(
 			"usermgmt.bot.unknown_event",
-			"foldBot received unknown event type: "+string(evt.Type()),
+			"FoldBot received unknown event type: "+string(evt.Type()),
 		)
 	}
 
