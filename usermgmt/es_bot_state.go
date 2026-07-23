@@ -2,23 +2,11 @@ package usermgmt
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// BotState is the aggregate state for a Bot (machine actor), reconstructed
-// by folding events.
-type BotState struct {
-	Name      string
-	OwnerID   UserID
-	TokenHash []byte
-	Scopes    []string
-	Deleted   bool
-}
-
-// Exists reports whether the bot has been registered (has at least one event).
-func (s BotState) Exists() bool {
-	return s.Name != "" && !s.Deleted
-}
+type BotState = identitymodel.BotState
 
 // foldBot applies an event to the current BotState, returning the new state.
 func foldBot(state BotState, evt event.Event) (BotState, error) {

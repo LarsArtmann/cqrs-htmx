@@ -92,5 +92,5 @@ type Impersonation struct {
 func (Impersonation) isSessionOrigin() {}
 
 func generateToken() (string, error) {
-	return randomBase64URLString(sessionTokenBytes, "session token")
+	return RandomBase64URLString(sessionTokenBytes, "session token")
 }

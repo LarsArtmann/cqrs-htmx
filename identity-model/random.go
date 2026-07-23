@@ -10,7 +10,7 @@ import (
 
 // randomBase64URLString returns n cryptographically secure random bytes,
 // base64url-encoded without padding.
-func randomBase64URLString(n int, purpose string) (string, error) {
+func RandomBase64URLString(n int, purpose string) (string, error) {
 	b := make([]byte, n)
 	if _, err := rand.Read(b); err != nil {
 		return "", errorfamily.Wrapf(err, event.Infrastructure, "usermgmt.random.failed", "generate %s", purpose)
