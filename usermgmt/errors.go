@@ -22,7 +22,7 @@ var (
 	// ErrUserIDExists is returned when attempting to create a user with an ID that already exists.
 	ErrUserIDExists = cqrshtmx.WithHTTPStatus(identitymodel.ErrUserIDExists, http.StatusNotFound)
 	// ErrEmailExists is returned when attempting to register an email that is already taken.
-	ErrEmailExists = identitymodel.ErrEmailExists
+	ErrEmailExists = cqrshtmx.WithHTTPStatus(identitymodel.ErrEmailExists, http.StatusConflict)
 	// ErrInvalidCredentials is returned when WebAuthn login fails.
 	ErrInvalidCredentials = cqrshtmx.WithHTTPStatus(identitymodel.ErrInvalidCredentials, http.StatusUnauthorized)
 	// ErrNoCredentials is returned when a user has no registered WebAuthn credentials.
@@ -51,17 +51,17 @@ var (
 	)
 	// ErrEmailVerificationNotConfigured is returned when email verification is
 	// used without being configured in ServiceConfig.
-	ErrEmailVerificationNotConfigured = identitymodel.ErrEmailVerificationNotConfigured
+	ErrEmailVerificationNotConfigured = cqrshtmx.WithHTTPStatus(identitymodel.ErrEmailVerificationNotConfigured, http.StatusServiceUnavailable)
 	// ErrInvalidVerificationToken is returned when a verification token is
 	// invalid, already used, or expired.
 	ErrInvalidVerificationToken = identitymodel.ErrInvalidVerificationToken
 	// ErrEmailAlreadyVerified is returned when verification is requested for
 	// an already-verified email.
-	ErrEmailAlreadyVerified = identitymodel.ErrEmailAlreadyVerified
+	ErrEmailAlreadyVerified = cqrshtmx.WithHTTPStatus(identitymodel.ErrEmailAlreadyVerified, http.StatusConflict)
 	// ErrTOTPNotConfigured is returned when TOTP MFA is used without being configured.
-	ErrTOTPNotConfigured = identitymodel.ErrTOTPNotConfigured
+	ErrTOTPNotConfigured = cqrshtmx.WithHTTPStatus(identitymodel.ErrTOTPNotConfigured, http.StatusServiceUnavailable)
 	// ErrTOTPAlreadyEnabled is returned when TOTP setup is requested for a user who already has it.
-	ErrTOTPAlreadyEnabled = identitymodel.ErrTOTPAlreadyEnabled
+	ErrTOTPAlreadyEnabled = cqrshtmx.WithHTTPStatus(identitymodel.ErrTOTPAlreadyEnabled, http.StatusConflict)
 	// ErrTOTPNotEnabled is returned when TOTP verification is requested for a user without TOTP.
 	ErrTOTPNotEnabled = identitymodel.ErrTOTPNotEnabled
 	// ErrInvalidTOTPCode is returned when the provided TOTP code is invalid.
@@ -69,7 +69,7 @@ var (
 	// ErrTOTPSetupExpired is returned when the pending TOTP setup has expired.
 	ErrTOTPSetupExpired = identitymodel.ErrTOTPSetupExpired
 	// ErrOAuthNotConfigured is returned when OAuth2 is used without being configured.
-	ErrOAuthNotConfigured = identitymodel.ErrOAuthNotConfigured
+	ErrOAuthNotConfigured = cqrshtmx.WithHTTPStatus(identitymodel.ErrOAuthNotConfigured, http.StatusServiceUnavailable)
 	// ErrOAuthProviderNotFound is returned when the requested provider is not configured.
 	ErrOAuthProviderNotFound = cqrshtmx.WithHTTPStatus(identitymodel.ErrOAuthProviderNotFound, http.StatusNotFound)
 	// ErrOAuthInvalidState is returned when the state token is invalid, expired, or missing.
@@ -78,5 +78,5 @@ var (
 	ErrOAuthTokenExchange = identitymodel.ErrOAuthTokenExchange
 	// ErrExternalAccountAlreadyLinked is returned when an external account
 	// (provider+subject pair) is already linked to a different user.
-	ErrExternalAccountAlreadyLinked = identitymodel.ErrExternalAccountAlreadyLinked
+	ErrExternalAccountAlreadyLinked = cqrshtmx.WithHTTPStatus(identitymodel.ErrExternalAccountAlreadyLinked, http.StatusConflict)
 )
