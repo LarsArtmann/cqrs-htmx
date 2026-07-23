@@ -29,8 +29,8 @@ func TestMemorySnapshotStore_SaveLoadDelete(t *testing.T) {
 
 	// Save a snapshot, then Load returns it.
 	original := snapshot.Snapshot{
-		AggregateID:   ref.ID,
-		AggregateType: ref.Type,
+		StreamID:   ref.ID,
+		StreamType: ref.Type,
 		Version:       event.Version(3),
 		State:         []byte(`{"email":"a@b.com"}`),
 	}
