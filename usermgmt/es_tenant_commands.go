@@ -1,58 +1,26 @@
 package usermgmt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// CreateTenantCmd creates a new tenant.
-type CreateTenantCmd struct {
-	*command.BasicCommand
-	name        string
-	displayName string
-}
+type (
+	CreateTenantCmd     = identitymodel.CreateTenantCmd
+	SuspendTenantCmd    = identitymodel.SuspendTenantCmd
+	ReactivateTenantCmd = identitymodel.ReactivateTenantCmd
+	DeleteTenantCmd     = identitymodel.DeleteTenantCmd
+)
 
 func NewCreateTenantCmd(aggID id.AggregateID, name, displayName string) *CreateTenantCmd {
-	return &CreateTenantCmd{
-		BasicCommand: mustCommand(cmdCreateTenant, aggID),
-		name:         name,
-		displayName:  displayName,
-	}
+	return identitymodel.NewCreateTenantCmd(aggID, name, displayName)
 }
-
-// SuspendTenantCmd temporarily suspends a tenant.
-type SuspendTenantCmd struct {
-	*command.BasicCommand
-	reason string
-}
-
 func NewSuspendTenantCmd(aggID id.AggregateID, reason string) *SuspendTenantCmd {
-	return &SuspendTenantCmd{
-		BasicCommand: mustCommand(cmdSuspendTenant, aggID),
-		reason:       reason,
-	}
+	return identitymodel.NewSuspendTenantCmd(aggID, reason)
 }
-
-// ReactivateTenantCmd restores a suspended tenant.
-type ReactivateTenantCmd struct {
-	*command.BasicCommand
-}
-
 func NewReactivateTenantCmd(aggID id.AggregateID) *ReactivateTenantCmd {
-	return &ReactivateTenantCmd{
-		BasicCommand: mustCommand(cmdReactivateTenant, aggID),
-	}
+	return identitymodel.NewReactivateTenantCmd(aggID)
 }
-
-// DeleteTenantCmd permanently deletes a tenant.
-type DeleteTenantCmd struct {
-	*command.BasicCommand
-	reason string
-}
-
 func NewDeleteTenantCmd(aggID id.AggregateID, reason string) *DeleteTenantCmd {
-	return &DeleteTenantCmd{
-		BasicCommand: mustCommand(cmdDeleteTenant, aggID),
-		reason:       reason,
-	}
+	return identitymodel.NewDeleteTenantCmd(aggID, reason)
 }

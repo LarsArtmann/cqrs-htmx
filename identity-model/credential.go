@@ -2,9 +2,9 @@ package identitymodel
 
 import "time"
 
-// credentialCore contains the shared WebAuthn credential fields used by both
+// CredentialCore contains the shared WebAuthn credential fields used by both
 // WebAuthnCredential (domain model) and CredentialAddedPayload (event payload).
-type credentialCore struct {
+type CredentialCore struct {
 	ID              []byte   `json:"id"`
 	PublicKey       []byte   `json:"public_key"`
 	AttestationType string   `json:"attestation_type"`
@@ -18,7 +18,7 @@ type credentialCore struct {
 
 // WebAuthnCredential represents a registered passkey/WebAuthn credential.
 type WebAuthnCredential struct {
-	credentialCore
+	CredentialCore
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -27,7 +27,7 @@ type WebAuthnCredential struct {
 // slices so the result does not alias event payload memory.
 func NewCredentialFromPayload(p CredentialAddedPayload, createdAt time.Time) WebAuthnCredential {
 	return WebAuthnCredential{
-		credentialCore: credentialCore{
+		CredentialCore: CredentialCore{
 			ID:              p.ID,
 			PublicKey:       p.PublicKey,
 			AttestationType: p.AttestationType,

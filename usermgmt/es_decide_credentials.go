@@ -28,7 +28,7 @@ func decideAddCredential(
 		}
 		payload, err := marshalPayload(CredentialAddedPayload{
 			SchemaVersion: currentSchemaVersion,
-			credentialCore: credentialCore{
+			CredentialCore: CredentialCore{
 				ID:              cred.ID,
 				PublicKey:       cred.PublicKey,
 				AttestationType: cred.AttestationType,

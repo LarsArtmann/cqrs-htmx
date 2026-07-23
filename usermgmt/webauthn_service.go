@@ -144,7 +144,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 
 	s.webauthnSessions.Delete(sessionKey)
 
-	var cred credentialCore
+	var cred CredentialCore
 	if err := json.Unmarshal(credJSON, &cred); err != nil {
 		return errorfamily.NewInfrastructure("usermgmt.webauthn.unmarshal_credential", "unmarshal credential").
 			WithCause(err)
@@ -157,7 +157,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	}
 	if err := s.dispatcher.Dispatch(
 		ctx,
-		NewAddCredentialCmd(aggID, WebAuthnCredential{credentialCore: cred}),
+		NewAddCredentialCmd(aggID, WebAuthnCredential{CredentialCore: cred}),
 	); err != nil {
 		return errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"usermgmt.webauthn.dispatch_failed", "finish registration dispatch")

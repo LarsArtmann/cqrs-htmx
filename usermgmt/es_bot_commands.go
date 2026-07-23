@@ -1,40 +1,18 @@
 package usermgmt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// RegisterBotCmd registers a new bot with an API token.
-type RegisterBotCmd struct {
-	*command.BasicCommand
-	name      string
-	ownerID   UserID
-	tokenHash []byte
-	scopes    []string
-}
+type (
+	RegisterBotCmd = identitymodel.RegisterBotCmd
+	DeleteBotCmd   = identitymodel.DeleteBotCmd
+)
 
-func NewRegisterBotCmd(
-	aggID id.AggregateID, name string, ownerID UserID, tokenHash []byte, scopes []string,
-) *RegisterBotCmd {
-	return &RegisterBotCmd{
-		BasicCommand: mustCommand(cmdRegisterBot, aggID),
-		name:         name,
-		ownerID:      ownerID,
-		tokenHash:    tokenHash,
-		scopes:       scopes,
-	}
+func NewRegisterBotCmd(aggID id.AggregateID, name string, ownerID UserID, tokenHash []byte, scopes []string) *RegisterBotCmd {
+	return identitymodel.NewRegisterBotCmd(aggID, name, ownerID, tokenHash, scopes)
 }
-
-// DeleteBotCmd permanently deletes a bot.
-type DeleteBotCmd struct {
-	*command.BasicCommand
-	reason string
-}
-
 func NewDeleteBotCmd(aggID id.AggregateID, reason string) *DeleteBotCmd {
-	return &DeleteBotCmd{
-		BasicCommand: mustCommand(cmdDeleteBot, aggID),
-		reason:       reason,
-	}
+	return identitymodel.NewDeleteBotCmd(aggID, reason)
 }
