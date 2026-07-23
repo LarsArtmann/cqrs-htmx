@@ -25,7 +25,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-error-family v0.7.0 // indirect
 	github.com/larsartmann/httputil v0.6.0 // indirect
