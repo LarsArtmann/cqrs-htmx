@@ -129,7 +129,7 @@ func TestFoldUserProperty_CredentialAddRemoveRoundTrip(t *testing.T) {
 		credID := rapid.SliceOfN(rapid.Byte(), 16, 32).Draw(t, "credID")
 
 		addEvt := mustPropEvent(eventCredentialAdded, 2, CredentialAddedPayload{
-			credentialCore: credentialCore{
+			CredentialCore: CredentialCore{
 				ID:             credID,
 				PublicKey:      []byte{0x01, 0x02},
 				SignCount:      42,

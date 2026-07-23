@@ -109,7 +109,7 @@ func TestDecideDeleteUser_AlreadyDeleted(t *testing.T) {
 
 func TestDecideAddCredential_Success(t *testing.T) {
 	decide := decideAddCredential(id.NewAggregateID(), WebAuthnCredential{
-		credentialCore: credentialCore{ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none"},
+		CredentialCore: CredentialCore{ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none"},
 	})
 	state := UserState{Email: "u@example.com"}
 	events, err := decide(state, 1)
@@ -126,11 +126,11 @@ func TestDecideAddCredential_Success(t *testing.T) {
 
 func TestDecideAddCredential_Duplicate(t *testing.T) {
 	decide := decideAddCredential(id.NewAggregateID(), WebAuthnCredential{
-		credentialCore: credentialCore{ID: []byte{1, 2, 3}},
+		CredentialCore: CredentialCore{ID: []byte{1, 2, 3}},
 	})
 	state := UserState{
 		Email:       "u@example.com",
-		Credentials: []WebAuthnCredential{{credentialCore: credentialCore{ID: []byte{1, 2, 3}}}},
+		Credentials: []WebAuthnCredential{{CredentialCore: CredentialCore{ID: []byte{1, 2, 3}}}},
 	}
 	events, err := decide(state, 1)
 	if err == nil {
@@ -145,7 +145,7 @@ func TestDecideRemoveCredential_Success(t *testing.T) {
 	decide := decideRemoveCredential(id.NewAggregateID(), []byte{1, 2, 3})
 	state := UserState{
 		Email:       "u@example.com",
-		Credentials: []WebAuthnCredential{{credentialCore: credentialCore{ID: []byte{1, 2, 3}}}},
+		Credentials: []WebAuthnCredential{{CredentialCore: CredentialCore{ID: []byte{1, 2, 3}}}},
 	}
 	events, err := decide(state, 1)
 	if err != nil {
@@ -163,7 +163,7 @@ func TestDecideRemoveCredential_NotFound(t *testing.T) {
 	decide := decideRemoveCredential(id.NewAggregateID(), []byte{9, 9, 9})
 	state := UserState{
 		Email:       "u@example.com",
-		Credentials: []WebAuthnCredential{{credentialCore: credentialCore{ID: []byte{1, 2, 3}}}},
+		Credentials: []WebAuthnCredential{{CredentialCore: CredentialCore{ID: []byte{1, 2, 3}}}},
 	}
 	events, err := decide(state, 1)
 	if err == nil {

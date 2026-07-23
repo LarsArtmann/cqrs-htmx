@@ -97,7 +97,7 @@ func TestWebAuthn_BeginLogin_Success(t *testing.T) {
 	registerTestUser(t, svc, "u1", "login@test.com")
 
 	fakeCred := WebAuthnCredential{
-		credentialCore: credentialCore{
+		CredentialCore: CredentialCore{
 			ID:              []byte{0x01, 0x02, 0x03},
 			PublicKey:       []byte{0x04, 0x05, 0x06},
 			AttestationType: "none",

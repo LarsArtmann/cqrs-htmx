@@ -21,7 +21,7 @@ func TestUser_Clone_DeepCopy(t *testing.T) {
 		ID:    NewUserID("u1"),
 		Email: "a@b.com",
 		Credentials: []WebAuthnCredential{
-			{credentialCore: credentialCore{ID: []byte{1}}},
+			{CredentialCore: CredentialCore{ID: []byte{1}}},
 		},
 	}
 	cp := u.Clone()
@@ -35,7 +35,7 @@ func TestUser_Clone_DeepCopy(t *testing.T) {
 func TestUser_HasCredential(t *testing.T) {
 	u := &User{
 		Credentials: []WebAuthnCredential{
-			{credentialCore: credentialCore{ID: []byte{1, 2, 3}}},
+			{CredentialCore: CredentialCore{ID: []byte{1, 2, 3}}},
 		},
 	}
 	if !u.HasCredential([]byte{1, 2, 3}) {
@@ -58,7 +58,7 @@ func TestUser_MarshalJSON(t *testing.T) {
 		ID:          NewUserID("u1"),
 		Email:       "test@example.com",
 		DisplayName: "Test",
-		Credentials: []WebAuthnCredential{{credentialCore: credentialCore{ID: []byte{1}}}},
+		Credentials: []WebAuthnCredential{{CredentialCore: CredentialCore{ID: []byte{1}}}},
 	}
 
 	data, err := json.Marshal(u)
@@ -130,7 +130,7 @@ func TestService_ReadModel(t *testing.T) {
 }
 
 func TestAuthz_NilEnforcer(t *testing.T) {
-	a := &Authz{enforcer: nil}
+	a := &Authz{}
 	uid := NewUserID("u1")
 
 	tests := []struct {

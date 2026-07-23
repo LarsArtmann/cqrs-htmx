@@ -1,7 +1,11 @@
 package usermgmt
 
 import (
+	"fmt"
+
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
@@ -53,4 +57,12 @@ func NewLinkExternalAccountCmd(
 }
 func NewUnlinkExternalAccountCmd(aggID id.AggregateID, provider, subject string) *UnlinkExternalAccountCmd {
 	return identitymodel.NewUnlinkExternalAccountCmd(aggID, provider, subject)
+}
+
+func mustCommand(cmdType command.Type, aggID id.AggregateID) *command.BasicCommand {
+	base, err := command.New(cmdType, aggID)
+	if err != nil {
+		panic(fmt.Sprintf("mustCommand(%q, %s): %v", cmdType, aggID, err))
+	}
+	return base
 }

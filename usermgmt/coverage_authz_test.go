@@ -49,7 +49,7 @@ func TestAuthz_Apply_RemoveAndAddPolicies(t *testing.T) {
 
 func TestAuthz_EnforceEx_Error(t *testing.T) {
 	a, _ := NewAuthz(EnforcerConfig{
-		ModelString: defaultModel,
+		ModelString: "",
 		Policies:    []Policy{},
 	})
 
