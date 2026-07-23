@@ -109,6 +109,8 @@
                   export GOEXPERIMENT=jsonv2
                   echo "==> Root module"
                   go test ./... -count=1 -race
+                  echo "==> identity-model submodule"
+                  (cd identity-model && go test ./... -count=1 -race)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go test ./... -count=1 -race)
                   echo "==> usermgmt/totp submodule"
@@ -139,6 +141,8 @@
                   export GOEXPERIMENT=jsonv2
                   echo "==> Root module"
                   go test ./... -count=1 -race
+                  echo "==> identity-model submodule"
+                  (cd identity-model && go test ./... -count=1 -race)
                   echo "==> adminui submodule"
                   (cd adminui && go test ./... -count=1 -race)
                   echo "==> loginpage submodule"
@@ -163,6 +167,8 @@
                   export GOEXPERIMENT=jsonv2
                   echo "==> Root module (3 iterations)"
                   go test ./... -count=3 -race
+                  echo "==> identity-model submodule (3 iterations)"
+                  (cd identity-model && go test ./... -count=3 -race)
                   echo "==> usermgmt submodule (3 iterations)"
                   (cd usermgmt && go test ./... -count=3 -race)
                   echo "==> usermgmt/totp submodule (3 iterations)"
@@ -196,6 +202,12 @@
                     echo "    -> $fuzz"
                     go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
                   done
+
+                  echo "==> identity-model submodule fuzz tests"
+                  (cd identity-model && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done)
 
                   echo "==> adminui submodule fuzz tests"
                   (cd adminui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
@@ -248,6 +260,8 @@
                   export GOEXPERIMENT=jsonv2
                   echo "==> Root module"
                   golangci-lint run
+                  echo "==> identity-model submodule"
+                  (cd identity-model && golangci-lint run)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && golangci-lint run)
                   echo "==> usermgmt/totp submodule"
@@ -278,6 +292,8 @@
                   echo "==> Root module coverage"
                   go test ./... -count=1 -coverprofile=coverage.out
                   go tool cover -func=coverage.out
+                  echo "==> identity-model submodule coverage"
+                  (cd identity-model && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                   echo "==> usermgmt submodule coverage"
                   (cd usermgmt && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                   echo "==> usermgmt/totp submodule coverage"
@@ -305,6 +321,8 @@
                   export GOEXPERIMENT=jsonv2
                   echo "==> Root module"
                   go build ./...
+                  echo "==> identity-model submodule"
+                  (cd identity-model && go build ./...)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go build ./...)
                   echo "==> usermgmt/totp submodule"

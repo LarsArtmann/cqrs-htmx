@@ -191,16 +191,16 @@ func buildNav(caps Capabilities, basePath string) []navItem {
 
 // pageData is passed to every templ page renderer.
 type pageData struct {
-	Title      string
-	BasePath   string
-	Accent     string
-	Brand      string
-	Nav        []navItem
-	LogoutURL  string
-	CSRFToken  string
-	CSRFMeta   string
-	ReadOnly   bool
-	Caps       Capabilities
+	Title     string
+	BasePath  string
+	Accent    string
+	Brand     string
+	Nav       []navItem
+	LogoutURL string
+	CSRFToken string
+	CSRFMeta  string
+	ReadOnly  bool
+	Caps      Capabilities
 }
 
 // StreamRefFromID constructs an id.StreamRef from type + ID strings.
