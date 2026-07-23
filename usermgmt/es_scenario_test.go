@@ -22,7 +22,7 @@ func TestScenario_RegisterUser_New(t *testing.T) {
 	// Our decider is (aggID, params) → (state, version) → events.
 	// The adapter closes over the command to bridge the two shapes.
 	decide := func(state UserState, _ *RegisterUserCmd) ([]event.Event, error) {
-		inner := decideRegisterUser(cmd.StreamID(), cmd.email, cmd.displayName, cmd.roles)
+		inner := decideRegisterUser(cmd.StreamID(), cmd.Email(), cmd.DisplayName(), cmd.Roles())
 		return inner(state, 0)
 	}
 
@@ -53,7 +53,7 @@ func TestScenario_RegisterUser_AlreadyExists(t *testing.T) {
 	}
 
 	decide := func(state UserState, _ *RegisterUserCmd) ([]event.Event, error) {
-		inner := decideRegisterUser(cmd.StreamID(), cmd.email, cmd.displayName, cmd.roles)
+		inner := decideRegisterUser(cmd.StreamID(), cmd.Email(), cmd.DisplayName(), cmd.Roles())
 		return inner(state, 1)
 	}
 
@@ -84,7 +84,7 @@ func TestScenario_ChangeEmail_HappyPath(t *testing.T) {
 	}
 
 	decide := func(state UserState, _ *ChangeEmailCmd) ([]event.Event, error) {
-		inner := decideChangeEmail(cmd.StreamID(), cmd.email)
+		inner := decideChangeEmail(cmd.StreamID(), cmd.Email())
 		return inner(state, 1)
 	}
 
