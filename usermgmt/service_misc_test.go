@@ -34,7 +34,13 @@ func TestService_Authorize(t *testing.T) {
 	svc, _ := NewService(ServiceConfig{
 		Authz: newTestAuthz(
 			t,
-			Policy{RoleOwner, "*", "game.play_round", ActionExecute, EffectAllow},
+			Policy{
+				Subject: RoleOwner,
+				Domain:  "*",
+				Object:  "game.play_round",
+				Action:  ActionExecute,
+				Effect:  EffectAllow,
+			},
 		),
 	})
 	ctx := context.Background()

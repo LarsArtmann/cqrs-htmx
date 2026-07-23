@@ -36,9 +36,9 @@ var (
 	// ErrSessionExpired is returned when a session token has passed its expiration time.
 	ErrSessionExpired = cqrshtmx.WithHTTPStatus(identitymodel.ErrSessionExpired, http.StatusUnauthorized)
 	// ErrForbidden is returned when an authorization check denies access.
-	ErrForbidden = identitymodel.ErrForbidden
+	ErrForbidden = cqrshtmx.WithHTTPStatus(identitymodel.ErrForbidden, http.StatusForbidden)
 	// ErrUnauthorized is returned when authentication is required but missing or invalid.
-	ErrUnauthorized = identitymodel.ErrUnauthorized
+	ErrUnauthorized = cqrshtmx.WithHTTPStatus(identitymodel.ErrUnauthorized, http.StatusUnauthorized)
 	// ErrValidation is returned when input validation fails (e.g. invalid email).
 	ErrValidation = identitymodel.ErrValidation
 	// ErrAccountLocked is returned when login is rejected because the account exceeded the
@@ -51,7 +51,10 @@ var (
 	)
 	// ErrEmailVerificationNotConfigured is returned when email verification is
 	// used without being configured in ServiceConfig.
-	ErrEmailVerificationNotConfigured = cqrshtmx.WithHTTPStatus(identitymodel.ErrEmailVerificationNotConfigured, http.StatusServiceUnavailable)
+	ErrEmailVerificationNotConfigured = cqrshtmx.WithHTTPStatus(
+		identitymodel.ErrEmailVerificationNotConfigured,
+		http.StatusServiceUnavailable,
+	)
 	// ErrInvalidVerificationToken is returned when a verification token is
 	// invalid, already used, or expired.
 	ErrInvalidVerificationToken = identitymodel.ErrInvalidVerificationToken
@@ -78,5 +81,8 @@ var (
 	ErrOAuthTokenExchange = identitymodel.ErrOAuthTokenExchange
 	// ErrExternalAccountAlreadyLinked is returned when an external account
 	// (provider+subject pair) is already linked to a different user.
-	ErrExternalAccountAlreadyLinked = cqrshtmx.WithHTTPStatus(identitymodel.ErrExternalAccountAlreadyLinked, http.StatusConflict)
+	ErrExternalAccountAlreadyLinked = cqrshtmx.WithHTTPStatus(
+		identitymodel.ErrExternalAccountAlreadyLinked,
+		http.StatusConflict,
+	)
 )

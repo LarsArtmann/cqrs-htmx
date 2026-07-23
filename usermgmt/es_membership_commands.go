@@ -14,9 +14,11 @@ type (
 func NewAddMemberCmd(actorID ActorID, tenantID TenantID, roles []Role) *AddMemberCmd {
 	return identitymodel.NewAddMemberCmd(actorID, tenantID, roles)
 }
+
 func NewUpdateMemberRolesCmd(actorID ActorID, tenantID TenantID, roles []Role) *UpdateMemberRolesCmd {
 	return identitymodel.NewUpdateMemberRolesCmd(actorID, tenantID, roles)
 }
+
 func NewRemoveMemberCmd(actorID ActorID, tenantID TenantID) *RemoveMemberCmd {
 	return identitymodel.NewRemoveMemberCmd(actorID, tenantID)
 }

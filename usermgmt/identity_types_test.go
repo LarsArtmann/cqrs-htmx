@@ -158,7 +158,9 @@ func TestRoleHierarchy_AdminInheritsViewer(t *testing.T) {
 	}
 
 	// Add a viewer-only policy
-	if err := az.AddPolicy(Policy{RoleViewer, "tenant-Y", "documents", ActionRead, EffectAllow}); err != nil {
+	if err := az.AddPolicy(
+		Policy{Subject: RoleViewer, Domain: "tenant-Y", Object: "documents", Action: ActionRead, Effect: EffectAllow},
+	); err != nil {
 		t.Fatalf("AddPolicy failed: %v", err)
 	}
 
