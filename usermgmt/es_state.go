@@ -5,28 +5,11 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// UserState is the aggregate state for the User, reconstructed by folding events.
-// Roles are NOT tracked here — they are managed by the Membership aggregate
-// and CasbinProjection. Use MembershipReadModel or Authz.RolesForActor to query roles.
-type UserState struct {
-	Email            string
-	DisplayName      string
-	Credentials      []WebAuthnCredential
-	ExternalAccounts []ExternalAccount
-	Deleted          bool
-	DeleteReason     string
-	EmailVerified    bool
-	TOTPEnabled      bool
-	TOTPSecret       []byte
-}
-
-// Exists reports whether the user has been registered (has at least one event).
-func (s UserState) Exists() bool {
-	return s.Email != ""
-}
+type UserState = identitymodel.UserState
 
 // unmarshalPayload decodes an event's payload into a typed value using the
 // codec that matches the event's declared encoding (JSON or CBOR). This makes
@@ -58,10 +41,6 @@ func unmarshalPayload[T any](evt event.Event) (T, error) {
 }
 
 // foldUser applies an event to the current UserState, returning the new state.
-// Uses a shallow-copy-and-mutate pattern: next := state carries all existing
-// fields forward, so each case only touches the fields it changes. This makes
-// adding new aggregate fields O(1) instead of requiring every case to rebuild
-// the entire struct.
 //
 //nolint:gocognit // inherent to 12-case event switch; each case is simple decode+mutate
 func foldUser(state UserState, evt event.Event) (UserState, error) {
@@ -79,9 +58,6 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		}
 
 	case eventRolesUpdated:
-		// Roles are no longer part of UserState. They are managed by the
-		// Membership aggregate and derived by CasbinProjection. We still
-		// decode the payload to detect corruption.
 		_, err := unmarshalPayload[RolesUpdatedPayload](evt)
 		if err != nil {
 			return state, err
@@ -93,7 +69,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			return state, err
 		}
 		next.Email = p.Email
-		next.EmailVerified = false // email change resets verification
+		next.EmailVerified = false
 		next.TOTPEnabled = false
 		next.TOTPSecret = nil
 
@@ -117,7 +93,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		if err != nil {
 			return state, err
 		}
-		next.Credentials = append(next.Credentials, newCredentialFromPayload(p, evt.OccurredAt()))
+		next.Credentials = append(next.Credentials, NewCredentialFromPayload(p, evt.OccurredAt()))
 
 	case eventCredentialRemoved:
 		p, err := unmarshalPayload[CredentialRemovedPayload](evt)
@@ -156,15 +132,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		if err != nil {
 			return state, err
 		}
-		next.ExternalAccounts = append(next.ExternalAccounts, ExternalAccount{
-			externalAccountCore: externalAccountCore{
-				Provider:    p.Provider,
-				Subject:     p.Subject,
-				Email:       p.Email,
-				DisplayName: p.DisplayName,
-			},
-			LinkedAt: evt.OccurredAt(),
-		})
+		next.ExternalAccounts = append(next.ExternalAccounts,
+			NewExternalAccount(p.Provider, p.Subject, p.Email, p.DisplayName, evt.OccurredAt()))
 
 	case eventExternalAccountUnlinked:
 		p, err := unmarshalPayload[ExternalAccountUnlinkedPayload](evt)

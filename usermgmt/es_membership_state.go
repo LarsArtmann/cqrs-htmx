@@ -2,35 +2,20 @@ package usermgmt
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// MembershipState is the aggregate state for a Membership (actor+tenant pair),
-// reconstructed by folding membership events.
-type MembershipState struct {
-	ActorID  ActorID
-	TenantID TenantID
-	Roles    []Role
-	Removed  bool
-}
+type MembershipState = identitymodel.MembershipState
 
-// Exists reports whether the membership has been added (has at least one event).
-func (s MembershipState) Exists() bool {
-	return !s.ActorID.IsZero() && !s.Removed
-}
-
-// HasRole reports whether the membership grants the given role.
-func (s MembershipState) HasRole(role Role) bool {
-	for _, r := range s.Roles {
-		if r == role {
-			return true
-		}
-	}
-	return false
-}
+// actorKind constants are used by foldMembership and the SQL session store.
+const (
+	actorKindUserStr = "user"
+	actorKindBotStr  = "bot"
+)
 
 // foldMembership applies an event to the current MembershipState, returning the
-// new state. Uses the same shallow-copy-and-mutate pattern as foldUser.
+// new state.
 func foldMembership(state MembershipState, evt event.Event) (MembershipState, error) {
 	next := state
 
