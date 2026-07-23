@@ -1,6 +1,8 @@
 package identitymodel
 
 import (
+	"bytes"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -156,7 +158,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 		}
 		filtered := make([]WebAuthnCredential, 0, len(next.Credentials))
 		for _, c := range next.Credentials {
-			if !bytesEqual(c.ID, p.ID) {
+			if !bytes.Equal(c.ID, p.ID) {
 				filtered = append(filtered, c)
 			}
 		}
@@ -353,16 +355,4 @@ func actorKindFromString(s string) (ActorKind, error) {
 			"unknown actor kind: "+s,
 		)
 	}
-}
-
-func bytesEqual(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }

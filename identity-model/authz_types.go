@@ -15,6 +15,7 @@ func (a Action) Valid() bool {
 	case ActionExecute, ActionRead, ActionAll:
 		return true
 	}
+
 	return false
 }
 
@@ -32,6 +33,7 @@ func (e Effect) Valid() bool {
 	case EffectAllow, EffectDeny:
 		return true
 	}
+
 	return false
 }
 
@@ -52,6 +54,7 @@ func (r Role) Valid() bool {
 	case RoleSuperAdmin, RoleAdmin, RoleUser, RoleViewer, RoleOwner:
 		return true
 	}
+
 	return false
 }
 

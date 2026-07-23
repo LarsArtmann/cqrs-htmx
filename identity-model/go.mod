@@ -3,6 +3,7 @@ module github.com/larsartmann/cqrs-htmx/identity-model/v4
 go 1.26.4
 
 require (
+	github.com/casbin/casbin/v3 v3.10.0
 	github.com/larsartmann/go-branded-id v0.3.2
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.4
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.2
@@ -14,7 +15,6 @@ require (
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
-	github.com/casbin/casbin/v3 v3.10.0 // indirect
 	github.com/casbin/govaluate v1.3.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
