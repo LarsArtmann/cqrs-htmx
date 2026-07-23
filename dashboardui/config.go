@@ -1,0 +1,225 @@
+package dashboardui
+
+import (
+	"net/http"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+)
+
+const (
+	defaultBasePath    = "/dashboard"
+	defaultTitle       = "CQRS Dashboard"
+	defaultAccentColor = "#4f46e5"
+	defaultPageSize    = 50
+	maxPageSize        = 200
+)
+
+// Config wires the dashboard to go-cqrs-lite introspection interfaces.
+// Only EventSource or a Journal is required; everything else is optional
+// and conditionally activates panels.
+type Config struct {
+	// EventSource provides per-aggregate event loading (aggregate detail,
+	// time-travel). Can be nil if only the global event log is needed.
+	EventSource event.EventSource
+
+	// Journal or SeekableJournal provides the global event log.
+	// SeekableJournal is preferred (paginated). Journal is the fallback.
+	Journal         event.Journal
+	SeekableJournal event.SeekableJournal
+
+	// StreamReader lists aggregates for the Aggregate Browser panel.
+	// If nil, the dashboard auto-creates an InMemoryStreamReader from
+	// Journal (if available).
+	StreamReader listing.StreamReader
+
+	// ProjectionHost enables the Projection Dashboard panel.
+	ProjectionHost *projectionhost.Host
+
+	// DeadLetterStore enables the Dead-Letter Queue panel.
+	// If ProjectionHost is set, its internal DLQ is used automatically.
+	DeadLetterStore projectionhost.DeadLetterStore
+
+	// CommandJournal enables the Command Audit panel.
+	CommandJournal command.CommandJournal
+
+	// QueryJournal enables the Query Audit panel.
+	QueryJournal query.QueryJournal
+
+	// SnapshotStore enables the Snapshot Inspector panel.
+	SnapshotStore snapshot.SnapshotStore
+
+	// EventBus enables SSE live updates (event tail, projection changes).
+	EventBus event.Bus
+
+	// PayloadRenderer formats event payloads for display. If nil,
+	// DefaultPayloadRenderer is used (JSON/CBOR pretty-print).
+	PayloadRenderer PayloadRenderer
+
+	// Title is the brand text in the sidebar and browser tab.
+	Title string
+
+	// BasePath is the URL prefix the dashboard is mounted under.
+	BasePath string
+
+	// AccentColor is the highlight color (any CSS color value).
+	AccentColor string
+
+	// ReadOnly disables all write operations: projection reset, DLQ
+	// replay/delete/purge, snapshot delete. Default: true (safe).
+	ReadOnly bool
+
+	// PageSize controls the number of rows per page in tables.
+	// Default: 50. Max: 200.
+	PageSize int
+
+	// Authorizer controls access. If nil, allows all requests (the
+	// consumer MUST wrap the dashboard with their own auth middleware).
+	Authorizer func(*http.Request) error
+}
+
+func (cfg Config) withDefaults() (Config, error) {
+	if cfg.EventSource == nil && cfg.Journal == nil && cfg.SeekableJournal == nil {
+		return cfg, errConfig("at least one of Config.EventSource, Config.Journal, or Config.SeekableJournal is required")
+	}
+	if cfg.Title == "" {
+		cfg.Title = defaultTitle
+	}
+	if cfg.BasePath == "" {
+		cfg.BasePath = defaultBasePath
+	}
+	cfg.BasePath = trimTrailingSlash(cfg.BasePath)
+	if cfg.AccentColor == "" {
+		cfg.AccentColor = defaultAccentColor
+	}
+	if cfg.PageSize == 0 {
+		cfg.PageSize = defaultPageSize
+	}
+	if cfg.PageSize > maxPageSize {
+		cfg.PageSize = maxPageSize
+	}
+	if cfg.PayloadRenderer == nil {
+		cfg.PayloadRenderer = DefaultPayloadRenderer{}
+	}
+	return cfg, nil
+}
+
+// Capabilities describes which panels are available based on the
+// interfaces the consumer provided. The dashboard uses this to decide
+// which nav items to show and which routes to register.
+type Capabilities struct {
+	EventSource     bool
+	Journal         bool
+	SeekableJournal bool
+	StreamReader    bool
+	ProjectionHost  bool
+	DeadLetterStore bool
+	CommandJournal  bool
+	QueryJournal    bool
+	SnapshotStore   bool
+	EventBus        bool
+}
+
+func (cfg Config) capabilities() Capabilities {
+	return Capabilities{
+		EventSource:     cfg.EventSource != nil,
+		Journal:         cfg.Journal != nil,
+		SeekableJournal: cfg.SeekableJournal != nil,
+		StreamReader:    cfg.StreamReader != nil,
+		ProjectionHost:  cfg.ProjectionHost != nil,
+		DeadLetterStore: cfg.DeadLetterStore != nil,
+		CommandJournal:  cfg.CommandJournal != nil,
+		QueryJournal:    cfg.QueryJournal != nil,
+		SnapshotStore:   cfg.SnapshotStore != nil,
+		EventBus:        cfg.EventBus != nil,
+	}
+}
+
+// hasEventRead returns true if any event reading interface is available.
+func (c Capabilities) hasEventRead() bool {
+	return c.Journal || c.SeekableJournal
+}
+
+// navItem represents a sidebar navigation entry.
+type navItem struct {
+	Href   string
+	Label  string
+	Icon   string
+	Active bool
+}
+
+func buildNav(caps Capabilities, basePath string) []navItem {
+	var items []navItem
+	add := func(href, label, icon string) {
+		items = append(items, navItem{Href: href, Label: label, Icon: icon})
+	}
+
+	add("/", "Overview", "chart")
+
+	if caps.hasEventRead() {
+		add("/events", "Events", "queue")
+	}
+	if caps.StreamReader || caps.EventSource {
+		add("/aggregates", "Aggregates", "cube")
+	}
+	if caps.ProjectionHost {
+		add("/projections", "Projections", "arrow-path")
+	}
+	if caps.DeadLetterStore || caps.ProjectionHost {
+		add("/dead-letters", "Dead Letters", "bug")
+	}
+	if caps.CommandJournal {
+		add("/commands", "Commands", "clipboard")
+	}
+	if caps.QueryJournal {
+		add("/queries", "Queries", "magnifying-glass")
+	}
+	if caps.EventSource {
+		add("/time-travel", "Time Travel", "clock")
+	}
+	if caps.SnapshotStore {
+		add("/snapshots", "Snapshots", "archive")
+	}
+
+	return items
+}
+
+// pageData is passed to every templ page renderer.
+type pageData struct {
+	Title      string
+	BasePath   string
+	Accent     string
+	Brand      string
+	Nav        []navItem
+	LogoutURL  string
+	CSRFToken  string
+	CSRFMeta   string
+	ReadOnly   bool
+	Caps       Capabilities
+}
+
+// StreamRefFromID constructs an id.StreamRef from type + ID strings.
+// Used by handlers that parse path parameters.
+func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
+	st, err := id.ParseStreamType(streamType)
+	if err != nil {
+		return id.StreamRef{}, err
+	}
+	sid, err := id.ParseStreamID(streamID)
+	if err != nil {
+		return id.StreamRef{}, err
+	}
+	return id.NewStreamRef(st, sid), nil
+}
+
+func trimTrailingSlash(s string) string {
+	for len(s) > 1 && s[len(s)-1] == '/' {
+		s = s[:len(s)-1]
+	}
+	return s
+}
