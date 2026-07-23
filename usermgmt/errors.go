@@ -36,9 +36,9 @@ var (
 	// ErrSessionExpired is returned when a session token has passed its expiration time.
 	ErrSessionExpired = cqrshtmx.WithHTTPStatus(identitymodel.ErrSessionExpired, http.StatusUnauthorized)
 	// ErrForbidden is returned when an authorization check denies access.
-	ErrForbidden = cqrshtmx.WithHTTPStatus(identitymodel.ErrForbidden, http.StatusForbidden)
+	ErrForbidden = identitymodel.ErrForbidden
 	// ErrUnauthorized is returned when authentication is required but missing or invalid.
-	ErrUnauthorized = cqrshtmx.WithHTTPStatus(identitymodel.ErrUnauthorized, http.StatusUnauthorized)
+	ErrUnauthorized = identitymodel.ErrUnauthorized
 	// ErrValidation is returned when input validation fails (e.g. invalid email).
 	ErrValidation = identitymodel.ErrValidation
 	// ErrAccountLocked is returned when login is rejected because the account exceeded the
