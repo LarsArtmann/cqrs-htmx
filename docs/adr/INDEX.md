@@ -46,3 +46,5 @@
 | [0040](0040-phase2b-indexeddb-persistence.md)     | Phase 2b — IndexedDB Persistence for the Offline Command Queue                  | Accepted (supersedes ADR 0030)                                       |
 | [0041](0041-snapshot-integration.md)              | Aggregate Snapshot Integration                                                  | Accepted                                                             |
 | [0042](0042-offline-sync-extraction-to-root.md)   | Extract Offline Sync from adminui to Root Module                                | Accepted                                                             |
+| [0043](0043-identity-model-extraction.md)         | Extract identity-model as Domain Source of Truth                                | Accepted                                                             |
+| [0044](0044-casbin-first-class-dependency.md)     | Casbin as First-Class Dependency of identity-model                              | Accepted                                                             |
