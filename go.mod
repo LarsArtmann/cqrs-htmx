@@ -31,16 +31,20 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0 // indirect
+	github.com/tidwall/gjson v1.19.0 // indirect
+	github.com/tidwall/match v1.2.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
