@@ -56,24 +56,30 @@ func WithHTTPStatus(err error, status int) error {
 
 // carrierStatus returns the explicit HTTP status carried by err, if any.
 // Used by [MapError] as the highest-priority status source.
-// Returns (0, false) when the carrier's HTTPStatus() is 0 (meaning "no override"),
-// so MapError falls through to the family-based default.
+//
+// Walks the error chain looking for the first HTTPStatusCarrier with a
+// non-zero status. Zero means "no override" (e.g. errorfamily.Error defaults
+// to httpStatus=0), so we skip it and continue down the chain to find a
+// real override (e.g. from WithHTTPStatus).
 func carrierStatus(err error) (int, bool) {
-	carrier, ok := errors.AsType[HTTPStatusCarrier](err)
-	if !ok {
-		return 0, false
+	current := err
+	for current != nil {
+		carrier, ok := errors.AsType[HTTPStatusCarrier](current)
+		if ok {
+			status := carrier.HTTPStatus()
+			if status == 0 {
+				// This carrier has no override; unwrap and keep looking.
+				current = errors.Unwrap(current)
+				continue
+			}
+			if validHTTPStatus(status) {
+				return status, true
+			}
+			return http.StatusInternalServerError, true
+		}
+		current = errors.Unwrap(current)
 	}
-
-	status := carrier.HTTPStatus()
-	if status == 0 {
-		return 0, false
-	}
-
-	if validHTTPStatus(status) {
-		return status, true
-	}
-
-	return http.StatusInternalServerError, true
+	return 0, false
 }
 
 // validHTTPStatus reports whether status is a plausible 1xx-5xx HTTP status.
