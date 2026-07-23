@@ -194,13 +194,13 @@ type memoryEventStore struct {
 	events []cqrshtmx.SSEEvent
 }
 
-func (m *memoryEventStore) EventsAfter(lastID string) []cqrshtmx.SSEEvent {
-	if lastID == "" {
+func (m *memoryEventStore) EventsAfter(lastID cqrshtmx.SSEEventID) []cqrshtmx.SSEEvent {
+	if lastID.Get() == "" {
 		return m.events
 	}
 
 	for i, evt := range m.events {
-		if evt.ID == cqrshtmx.NewSSEEventID(lastID) {
+		if evt.ID == lastID {
 			if i+1 < len(m.events) {
 				return m.events[i+1:]
 			}
