@@ -139,7 +139,7 @@ func (c *CQRS) appendDomainEvent(ctx context.Context, aggID, eventType string, p
 
 func (c *CQRS) registerCommandHandlers() {
 	_ = command.RegisterTyped(c.Commands, "CreateTodo", func(ctx context.Context, cmd *CreateTodoCmd) error {
-		todoID := cmd.AggregateID().String()
+		todoID := cmd.StreamID().String()
 		payload, _ := json.Marshal(TodoCreatedPayload{
 			ID:        todoID,
 			Title:     cmd.Title,
@@ -151,7 +151,7 @@ func (c *CQRS) registerCommandHandlers() {
 	})
 
 	_ = command.RegisterTyped(c.Commands, "ToggleTodo", func(ctx context.Context, cmd *ToggleTodoCmd) error {
-		todoID := cmd.AggregateID().String()
+		todoID := cmd.StreamID().String()
 		payload, _ := json.Marshal(TodoToggledPayload{ID: todoID})
 
 		c.appendDomainEvent(ctx, todoID, "TodoToggled", payload)
@@ -159,7 +159,7 @@ func (c *CQRS) registerCommandHandlers() {
 	})
 
 	_ = command.RegisterTyped(c.Commands, "DeleteTodo", func(ctx context.Context, cmd *DeleteTodoCmd) error {
-		todoID := cmd.AggregateID().String()
+		todoID := cmd.StreamID().String()
 		payload, _ := json.Marshal(TodoDeletedPayload{ID: todoID})
 
 		c.appendDomainEvent(ctx, todoID, "TodoDeleted", payload)
@@ -167,7 +167,7 @@ func (c *CQRS) registerCommandHandlers() {
 	})
 
 	_ = command.RegisterTyped(c.Commands, "UpdateTodo", func(ctx context.Context, cmd *UpdateTodoCmd) error {
-		todoID := cmd.AggregateID().String()
+		todoID := cmd.StreamID().String()
 		payload, _ := json.Marshal(TodoUpdatedPayload{ID: todoID, Title: cmd.Title})
 
 		c.appendDomainEvent(ctx, todoID, "TodoUpdated", payload)

@@ -166,8 +166,8 @@ func cloneSnapshot(s snapshot.Snapshot) *snapshot.Snapshot {
 	return &snapshot.Snapshot{
 		StreamID:   s.StreamID,
 		StreamType: s.StreamType,
-		Version:       s.Version,
-		State:         stateCopy,
-		CreatedAt:     s.CreatedAt,
+		Version:    s.Version,
+		State:      stateCopy,
+		CreatedAt:  s.CreatedAt,
 	}
 }

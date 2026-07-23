@@ -42,9 +42,9 @@ type createItemCmd struct {
 	Name  string
 }
 
-func (c *createItemCmd) Type() command.Type          { return c.typ }
-func (c *createItemCmd) AggregateID() id.AggregateID { return c.aggID }
-func (c *createItemCmd) ID() id.CommandID            { return c.cmdID }
+func (c *createItemCmd) Type() command.Type    { return c.typ }
+func (c *createItemCmd) StreamID() id.StreamID { return c.aggID }
+func (c *createItemCmd) ID() id.CommandID      { return c.cmdID }
 
 // listItemsQuery is a custom query.Query.
 type listItemsQuery struct{}
@@ -68,9 +68,9 @@ type greetCmd struct {
 	Name  string `json:"name"`
 }
 
-func (c *greetCmd) Type() command.Type          { return "Greet" }
-func (c *greetCmd) AggregateID() id.AggregateID { return c.aggID }
-func (c *greetCmd) ID() id.CommandID            { return c.cmdID }
+func (c *greetCmd) Type() command.Type    { return "Greet" }
+func (c *greetCmd) StreamID() id.StreamID { return c.aggID }
+func (c *greetCmd) ID() id.CommandID      { return c.cmdID }
 
 // sumQuery is a typed query that implements query.Query directly.
 type sumQuery struct {

@@ -97,8 +97,6 @@ func (s BotState) Exists() bool {
 }
 
 // FoldUser applies an event to the current UserState, returning the new state.
-//
-//nolint:gocognit // inherent to 12-case event switch; each case is simple decode+mutate
 func FoldUser(state UserState, evt event.Event) (UserState, error) {
 	next := state
 

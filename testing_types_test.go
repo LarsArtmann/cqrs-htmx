@@ -17,10 +17,10 @@ type testCreateUserCmd struct {
 	name  string
 }
 
-func (c *testCreateUserCmd) Type() command.Type          { return "CreateUser" }
-func (c *testCreateUserCmd) StreamID() id.StreamID { return c.aggID }
-func (c *testCreateUserCmd) ID() id.CommandID            { return c.cmdID }
-func (c *testCreateUserCmd) IdempotencyKey() string      { return c.aggID.String() }
+func (c *testCreateUserCmd) Type() command.Type     { return "CreateUser" }
+func (c *testCreateUserCmd) StreamID() id.StreamID  { return c.aggID }
+func (c *testCreateUserCmd) ID() id.CommandID       { return c.cmdID }
+func (c *testCreateUserCmd) IdempotencyKey() string { return c.aggID.String() }
 
 type testCreateUserRequest struct {
 	Email string `json:"email"`
@@ -63,20 +63,20 @@ type bddCreateUserCmd struct {
 	name  string
 }
 
-func (c *bddCreateUserCmd) Type() command.Type          { return "CreateUser" }
-func (c *bddCreateUserCmd) StreamID() id.StreamID { return c.aggID }
-func (c *bddCreateUserCmd) ID() id.CommandID            { return c.cmdID }
-func (c *bddCreateUserCmd) IdempotencyKey() string      { return c.aggID.String() }
+func (c *bddCreateUserCmd) Type() command.Type     { return "CreateUser" }
+func (c *bddCreateUserCmd) StreamID() id.StreamID  { return c.aggID }
+func (c *bddCreateUserCmd) ID() id.CommandID       { return c.cmdID }
+func (c *bddCreateUserCmd) IdempotencyKey() string { return c.aggID.String() }
 
 type bddDeleteUserCmd struct {
 	aggID id.AggregateID
 	cmdID id.CommandID
 }
 
-func (c *bddDeleteUserCmd) Type() command.Type          { return "DeleteUser" }
-func (c *bddDeleteUserCmd) StreamID() id.StreamID { return c.aggID }
-func (c *bddDeleteUserCmd) ID() id.CommandID            { return c.cmdID }
-func (c *bddDeleteUserCmd) IdempotencyKey() string      { return c.aggID.String() }
+func (c *bddDeleteUserCmd) Type() command.Type     { return "DeleteUser" }
+func (c *bddDeleteUserCmd) StreamID() id.StreamID  { return c.aggID }
+func (c *bddDeleteUserCmd) ID() id.CommandID       { return c.cmdID }
+func (c *bddDeleteUserCmd) IdempotencyKey() string { return c.aggID.String() }
 
 type bddListUsersQuery struct{}
 

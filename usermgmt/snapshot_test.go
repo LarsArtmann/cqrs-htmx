@@ -31,8 +31,8 @@ func TestMemorySnapshotStore_SaveLoadDelete(t *testing.T) {
 	original := snapshot.Snapshot{
 		StreamID:   ref.ID,
 		StreamType: ref.Type,
-		Version:       event.Version(3),
-		State:         []byte(`{"email":"a@b.com"}`),
+		Version:    event.Version(3),
+		State:      []byte(`{"email":"a@b.com"}`),
 	}
 	if err := store.Save(ctx, original); err != nil {
 		t.Fatalf("Save: %v", err)

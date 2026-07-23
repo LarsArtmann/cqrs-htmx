@@ -61,37 +61,4 @@ const (
 	cmdDeleteBot   command.Type = "DeleteBot"
 )
 
-var allUserEventTypes = []event.Type{
-	eventUserRegistered,
-	eventRolesUpdated,
-	eventEmailChanged,
-	eventDisplayNameChanged,
-	eventUserDeleted,
-	eventCredentialAdded,
-	eventCredentialRemoved,
-	eventEmailVerified,
-	eventTOTPEnabled,
-	eventTOTPDisabled,
-	eventExternalAccountLinked,
-	eventExternalAccountUnlinked,
-}
-
-var allMembershipEventTypes = []event.Type{
-	eventMemberAdded,
-	eventMemberRolesChanged,
-	eventMemberRemoved,
-}
-
-var allTenantEventTypes = []event.Type{
-	eventTenantCreated,
-	eventTenantSuspended,
-	eventTenantReactivated,
-	eventTenantDeleted,
-}
-
-var allBotEventTypes = []event.Type{
-	eventBotRegistered,
-	eventBotDeleted,
-}
-
 const currentSchemaVersion = 2

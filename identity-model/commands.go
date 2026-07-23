@@ -17,7 +17,7 @@ type RegisterUserCmd struct {
 }
 
 func NewRegisterUserCmd(
-	aggID id.AggregateID, email, displayName string, roles []Role,
+	aggID id.StreamID, email, displayName string, roles []Role,
 ) *RegisterUserCmd {
 	return &RegisterUserCmd{
 		BasicCommand: mustCommand(cmdRegisterUser, aggID),
@@ -36,7 +36,7 @@ type ChangeEmailCmd struct {
 	email string
 }
 
-func NewChangeEmailCmd(aggID id.AggregateID, email string) *ChangeEmailCmd {
+func NewChangeEmailCmd(aggID id.StreamID, email string) *ChangeEmailCmd {
 	return &ChangeEmailCmd{
 		BasicCommand: mustCommand(cmdChangeEmail, aggID),
 		email:        email,
@@ -50,7 +50,7 @@ type ChangeDisplayNameCmd struct {
 	displayName string
 }
 
-func NewChangeDisplayNameCmd(aggID id.AggregateID, displayName string) *ChangeDisplayNameCmd {
+func NewChangeDisplayNameCmd(aggID id.StreamID, displayName string) *ChangeDisplayNameCmd {
 	return &ChangeDisplayNameCmd{
 		BasicCommand: mustCommand(cmdChangeDisplayName, aggID),
 		displayName:  displayName,
@@ -64,7 +64,7 @@ type DeleteUserCmd struct {
 	reason string
 }
 
-func NewDeleteUserCmd(aggID id.AggregateID, reason string) *DeleteUserCmd {
+func NewDeleteUserCmd(aggID id.StreamID, reason string) *DeleteUserCmd {
 	return &DeleteUserCmd{
 		BasicCommand: mustCommand(cmdDeleteUser, aggID),
 		reason:       reason,
@@ -78,7 +78,7 @@ type AddCredentialCmd struct {
 	credential WebAuthnCredential
 }
 
-func NewAddCredentialCmd(aggID id.AggregateID, cred WebAuthnCredential) *AddCredentialCmd {
+func NewAddCredentialCmd(aggID id.StreamID, cred WebAuthnCredential) *AddCredentialCmd {
 	return &AddCredentialCmd{
 		BasicCommand: mustCommand(cmdAddCredential, aggID),
 		credential:   cred,
@@ -92,7 +92,7 @@ type RemoveCredentialCmd struct {
 	credentialID []byte
 }
 
-func NewRemoveCredentialCmd(aggID id.AggregateID, credID []byte) *RemoveCredentialCmd {
+func NewRemoveCredentialCmd(aggID id.StreamID, credID []byte) *RemoveCredentialCmd {
 	return &RemoveCredentialCmd{
 		BasicCommand: mustCommand(cmdRemoveCredential, aggID),
 		credentialID: credID,
@@ -105,7 +105,7 @@ type VerifyEmailCmd struct {
 	*command.BasicCommand
 }
 
-func NewVerifyEmailCmd(aggID id.AggregateID) *VerifyEmailCmd {
+func NewVerifyEmailCmd(aggID id.StreamID) *VerifyEmailCmd {
 	return &VerifyEmailCmd{
 		BasicCommand: mustCommand(cmdVerifyEmail, aggID),
 	}
@@ -116,7 +116,7 @@ type EnableTOTPCmd struct {
 	secret []byte
 }
 
-func NewEnableTOTPCmd(aggID id.AggregateID, secret []byte) *EnableTOTPCmd {
+func NewEnableTOTPCmd(aggID id.StreamID, secret []byte) *EnableTOTPCmd {
 	return &EnableTOTPCmd{
 		BasicCommand: mustCommand(cmdEnableTOTP, aggID),
 		secret:       secret,
@@ -129,7 +129,7 @@ type DisableTOTPCmd struct {
 	*command.BasicCommand
 }
 
-func NewDisableTOTPCmd(aggID id.AggregateID) *DisableTOTPCmd {
+func NewDisableTOTPCmd(aggID id.StreamID) *DisableTOTPCmd {
 	return &DisableTOTPCmd{
 		BasicCommand: mustCommand(cmdDisableTOTP, aggID),
 	}
@@ -144,7 +144,7 @@ type LinkExternalAccountCmd struct {
 }
 
 func NewLinkExternalAccountCmd(
-	aggID id.AggregateID, provider, subject, email, displayName string,
+	aggID id.StreamID, provider, subject, email, displayName string,
 ) *LinkExternalAccountCmd {
 	return &LinkExternalAccountCmd{
 		BasicCommand: mustCommand(cmdLinkExternalAccount, aggID),
@@ -167,7 +167,7 @@ type UnlinkExternalAccountCmd struct {
 }
 
 func NewUnlinkExternalAccountCmd(
-	aggID id.AggregateID, provider, subject string,
+	aggID id.StreamID, provider, subject string,
 ) *UnlinkExternalAccountCmd {
 	return &UnlinkExternalAccountCmd{
 		BasicCommand: mustCommand(cmdUnlinkExternalAccount, aggID),
@@ -182,8 +182,8 @@ func (c *UnlinkExternalAccountCmd) Subject() string  { return c.subject }
 // --- Membership commands ---
 
 // DeriveMembershipID constructs a deterministic AggregateID for a membership.
-func DeriveMembershipID(actorID ActorID, tenantID TenantID) id.AggregateID {
-	return id.DeriveAggregateID("membership", actorID.PrefixedString(), tenantID.Get())
+func DeriveMembershipID(actorID ActorID, tenantID TenantID) id.StreamID {
+	return id.DeriveStreamID("membership", actorID.PrefixedString(), tenantID.Get())
 }
 
 type AddMemberCmd struct {
@@ -240,7 +240,7 @@ type CreateTenantCmd struct {
 	displayName string
 }
 
-func NewCreateTenantCmd(aggID id.AggregateID, name, displayName string) *CreateTenantCmd {
+func NewCreateTenantCmd(aggID id.StreamID, name, displayName string) *CreateTenantCmd {
 	return &CreateTenantCmd{
 		BasicCommand: mustCommand(cmdCreateTenant, aggID),
 		name:         name,
@@ -256,7 +256,7 @@ type SuspendTenantCmd struct {
 	reason string
 }
 
-func NewSuspendTenantCmd(aggID id.AggregateID, reason string) *SuspendTenantCmd {
+func NewSuspendTenantCmd(aggID id.StreamID, reason string) *SuspendTenantCmd {
 	return &SuspendTenantCmd{
 		BasicCommand: mustCommand(cmdSuspendTenant, aggID),
 		reason:       reason,
@@ -269,7 +269,7 @@ type ReactivateTenantCmd struct {
 	*command.BasicCommand
 }
 
-func NewReactivateTenantCmd(aggID id.AggregateID) *ReactivateTenantCmd {
+func NewReactivateTenantCmd(aggID id.StreamID) *ReactivateTenantCmd {
 	return &ReactivateTenantCmd{
 		BasicCommand: mustCommand(cmdReactivateTenant, aggID),
 	}
@@ -280,7 +280,7 @@ type DeleteTenantCmd struct {
 	reason string
 }
 
-func NewDeleteTenantCmd(aggID id.AggregateID, reason string) *DeleteTenantCmd {
+func NewDeleteTenantCmd(aggID id.StreamID, reason string) *DeleteTenantCmd {
 	return &DeleteTenantCmd{
 		BasicCommand: mustCommand(cmdDeleteTenant, aggID),
 		reason:       reason,
@@ -300,7 +300,7 @@ type RegisterBotCmd struct {
 }
 
 func NewRegisterBotCmd(
-	aggID id.AggregateID, name string, ownerID UserID, tokenHash []byte, scopes []string,
+	aggID id.StreamID, name string, ownerID UserID, tokenHash []byte, scopes []string,
 ) *RegisterBotCmd {
 	return &RegisterBotCmd{
 		BasicCommand: mustCommand(cmdRegisterBot, aggID),
@@ -321,7 +321,7 @@ type DeleteBotCmd struct {
 	reason string
 }
 
-func NewDeleteBotCmd(aggID id.AggregateID, reason string) *DeleteBotCmd {
+func NewDeleteBotCmd(aggID id.StreamID, reason string) *DeleteBotCmd {
 	return &DeleteBotCmd{
 		BasicCommand: mustCommand(cmdDeleteBot, aggID),
 		reason:       reason,
@@ -331,7 +331,7 @@ func NewDeleteBotCmd(aggID id.AggregateID, reason string) *DeleteBotCmd {
 func (c *DeleteBotCmd) Reason() string { return c.reason }
 
 // mustCommand creates a BasicCommand, panicking on error.
-func mustCommand(cmdType command.Type, aggID id.AggregateID) *command.BasicCommand {
+func mustCommand(cmdType command.Type, aggID id.StreamID) *command.BasicCommand {
 	base, err := command.New(cmdType, aggID)
 	if err != nil {
 		panic(errorfamily.Wrapf(

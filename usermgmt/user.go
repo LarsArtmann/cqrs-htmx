@@ -7,12 +7,12 @@ import (
 )
 
 type (
-	User            = identitymodel.User
-	Session         = identitymodel.Session
-	SessionOrigin   = identitymodel.SessionOrigin
-	DirectLogin     = identitymodel.DirectLogin
-	Impersonation   = identitymodel.Impersonation
-	Membership      = identitymodel.Membership
+	User          = identitymodel.User
+	Session       = identitymodel.Session
+	SessionOrigin = identitymodel.SessionOrigin
+	DirectLogin   = identitymodel.DirectLogin
+	Impersonation = identitymodel.Impersonation
+	Membership    = identitymodel.Membership
 )
 
 func NewUser(id UserID, email, displayName string) *User {
