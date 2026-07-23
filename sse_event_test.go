@@ -228,7 +228,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			cancel()
 			Eventually(done).Should(BeClosed())
 
-			Expect(w.Body.String()).To(ContainSubstring(": keepalive\n\n"))
+			Expect(w.Body.String()).To(ContainSubstring(": heartbeat\n\n"))
 		})
 
 		It("stops heartbeat when context is cancelled", func() {

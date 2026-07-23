@@ -137,7 +137,7 @@ func BenchmarkWSBroadcasterConcurrentSubscribe(b *testing.B) {
 // heartbeat comment frame — the same write SSEStream.Heartbeat performs on each tick.
 func BenchmarkSSEHeartbeatWrite(b *testing.B) {
 	w := httptest.NewRecorder()
-	frame := []byte(": keepalive\n\n")
+	frame := []byte(": heartbeat\n\n")
 
 	b.ResetTimer()
 
