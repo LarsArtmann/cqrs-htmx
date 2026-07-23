@@ -69,7 +69,7 @@ func TestDecideDeleteUser_NotFound(t *testing.T) {
 func TestDecideAddCredential_NotFound(t *testing.T) {
 	decide := decideAddCredential(
 		id.NewAggregateID(),
-		WebAuthnCredential{credentialCore: credentialCore{ID: []byte{1}}},
+		WebAuthnCredential{CredentialCore: CredentialCore{ID: []byte{1}}},
 	)
 	if _, err := decide(UserState{}, 0); err == nil {
 		t.Fatal("expected not-found error")
@@ -79,7 +79,7 @@ func TestDecideAddCredential_NotFound(t *testing.T) {
 func TestDecideAddCredential_Deleted(t *testing.T) {
 	decide := decideAddCredential(
 		id.NewAggregateID(),
-		WebAuthnCredential{credentialCore: credentialCore{ID: []byte{1}}},
+		WebAuthnCredential{CredentialCore: CredentialCore{ID: []byte{1}}},
 	)
 	if _, err := decide(deletedState(), 1); err == nil {
 		t.Fatal("expected deleted error")
@@ -227,7 +227,7 @@ func TestDecideGuardErrorsAreRejections(t *testing.T) {
 		{"delete_user", decideDeleteUser(aggID, "r")},
 		{
 			"add_credential",
-			decideAddCredential(aggID, WebAuthnCredential{credentialCore: credentialCore{ID: []byte{1}}}),
+			decideAddCredential(aggID, WebAuthnCredential{CredentialCore: CredentialCore{ID: []byte{1}}}),
 		},
 		{"remove_credential", decideRemoveCredential(aggID, []byte{1})},
 		{"verify_email", decideVerifyEmail(aggID)},

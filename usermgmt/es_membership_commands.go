@@ -19,3 +19,7 @@ func NewUpdateMemberRolesCmd(actorID ActorID, tenantID TenantID, roles []Role) *
 func NewRemoveMemberCmd(actorID ActorID, tenantID TenantID) *RemoveMemberCmd {
 	return identitymodel.NewRemoveMemberCmd(actorID, tenantID)
 }
+
+func deriveMembershipID(actorID ActorID, tenantID TenantID) id.AggregateID {
+	return identitymodel.DeriveMembershipID(actorID, tenantID)
+}

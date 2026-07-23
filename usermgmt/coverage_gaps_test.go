@@ -94,7 +94,7 @@ func TestFoldUser_CredentialAdded_SignCountPreserved(t *testing.T) {
 		Email: "u@test.com",
 	}
 	payload, err := marshalPayload(CredentialAddedPayload{
-		credentialCore: credentialCore{
+		CredentialCore: CredentialCore{
 			ID:        []byte{1, 2, 3},
 			PublicKey: []byte{4, 5},
 			SignCount: 42,

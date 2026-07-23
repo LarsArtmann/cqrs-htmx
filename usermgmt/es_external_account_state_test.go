@@ -9,7 +9,7 @@ import (
 func TestFoldUser_ExternalAccountLinked(t *testing.T) {
 	initial := UserState{Email: "h@example.com"}
 	state, err := foldUser(initial, makeEvent(t, eventExternalAccountLinked, 2, ExternalAccountLinkedPayload{
-		externalAccountCore: externalAccountCore{
+		ExternalAccountCore: ExternalAccountCore{
 			Provider:    "google",
 			Subject:     "sub-123",
 			Email:       "h@gmail.com",
@@ -35,8 +35,8 @@ func TestFoldUser_ExternalAccountUnlinked(t *testing.T) {
 	initial := UserState{
 		Email: "i@example.com",
 		ExternalAccounts: []ExternalAccount{
-			{externalAccountCore: externalAccountCore{Provider: "google", Subject: "sub-123"}},
-			{externalAccountCore: externalAccountCore{Provider: "github", Subject: "sub-456"}},
+			{ExternalAccountCore: ExternalAccountCore{Provider: "google", Subject: "sub-123"}},
+			{ExternalAccountCore: ExternalAccountCore{Provider: "github", Subject: "sub-456"}},
 		},
 	}
 	state, err := foldUser(
@@ -66,9 +66,9 @@ func TestFoldUser_ExternalAccountLinkedPreservesExistingState(t *testing.T) {
 		EmailVerified: true,
 		TOTPEnabled:   true,
 		TOTPSecret:    []byte{9, 8, 7},
-		Credentials:   []WebAuthnCredential{{credentialCore: credentialCore{ID: []byte{1}}}},
+		Credentials:   []WebAuthnCredential{{CredentialCore: CredentialCore{ID: []byte{1}}}},
 		ExternalAccounts: []ExternalAccount{
-			{externalAccountCore: externalAccountCore{Provider: "github", Subject: "old"}},
+			{ExternalAccountCore: ExternalAccountCore{Provider: "github", Subject: "old"}},
 		},
 	}
 	state, err := foldUser(
@@ -77,7 +77,7 @@ func TestFoldUser_ExternalAccountLinkedPreservesExistingState(t *testing.T) {
 			t,
 			eventExternalAccountLinked,
 			3,
-			ExternalAccountLinkedPayload{externalAccountCore: externalAccountCore{Provider: "google", Subject: "new"}},
+			ExternalAccountLinkedPayload{ExternalAccountCore: ExternalAccountCore{Provider: "google", Subject: "new"}},
 		),
 	)
 	if err != nil {
@@ -106,7 +106,7 @@ func TestFoldUser_ExternalAccountUnlinkedNonExistent_NoOp(t *testing.T) {
 	initial := UserState{
 		Email: "k@example.com",
 		ExternalAccounts: []ExternalAccount{
-			{externalAccountCore: externalAccountCore{Provider: "google", Subject: "sub-123"}},
+			{ExternalAccountCore: ExternalAccountCore{Provider: "google", Subject: "sub-123"}},
 		},
 	}
 	state, err := foldUser(initial, makeEvent(t, eventExternalAccountUnlinked, 3, ExternalAccountUnlinkedPayload{
@@ -127,9 +127,9 @@ func TestFoldUser_ExternalAccountUnlinkedRemovesAllMatching(t *testing.T) {
 	initial := UserState{
 		Email: "l@example.com",
 		ExternalAccounts: []ExternalAccount{
-			{externalAccountCore: externalAccountCore{Provider: "google", Subject: "dup"}},
-			{externalAccountCore: externalAccountCore{Provider: "google", Subject: "dup"}}, // duplicate
-			{externalAccountCore: externalAccountCore{Provider: "github", Subject: "keep"}},
+			{ExternalAccountCore: ExternalAccountCore{Provider: "google", Subject: "dup"}},
+			{ExternalAccountCore: ExternalAccountCore{Provider: "google", Subject: "dup"}}, // duplicate
+			{ExternalAccountCore: ExternalAccountCore{Provider: "github", Subject: "keep"}},
 		},
 	}
 	state, err := foldUser(

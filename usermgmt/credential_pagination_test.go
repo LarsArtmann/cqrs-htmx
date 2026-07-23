@@ -43,7 +43,7 @@ func setupPaginationTestHandler(t *testing.T, userID string) (http.Handler, *Use
 
 	for i := range 5 {
 		cred := WebAuthnCredential{
-			credentialCore: credentialCore{
+			CredentialCore: CredentialCore{
 				ID:   []byte{byte(i + 1)},
 				Name: "key-" + string(rune('A'+i)),
 			},

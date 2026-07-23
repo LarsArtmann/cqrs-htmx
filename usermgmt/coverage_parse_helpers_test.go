@@ -43,14 +43,14 @@ func TestParseActorID_RoundTrip(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			original := ActorID{kind: tc.kind, raw: tc.raw}
+			original := NewActorID(tc.kind, tc.raw)
 			prefixed := original.PrefixedString()
 			parsed := ParseActorID(prefixed)
-			if parsed.kind != tc.kind {
-				t.Errorf("kind: got %v, want %v", parsed.kind, tc.kind)
+			if parsed.Kind() != tc.kind {
+				t.Errorf("kind: got %v, want %v", parsed.Kind(), tc.kind)
 			}
-			if parsed.raw != tc.raw {
-				t.Errorf("raw: got %q, want %q", parsed.raw, tc.raw)
+			if parsed.String() != tc.raw {
+				t.Errorf("raw: got %q, want %q", parsed.String(), tc.raw)
 			}
 		})
 	}
@@ -62,11 +62,11 @@ func TestParseActorID_NoPrefix(t *testing.T) {
 	t.Parallel()
 
 	parsed := ParseActorID("just-an-id")
-	if parsed.kind != ActorUser {
-		t.Errorf("expected ActorUser, got %v", parsed.kind)
+	if parsed.Kind() != ActorUser {
+		t.Errorf("expected ActorUser, got %v", parsed.Kind())
 	}
-	if parsed.raw != "just-an-id" {
-		t.Errorf("expected raw 'just-an-id', got %q", parsed.raw)
+	if parsed.String() != "just-an-id" {
+		t.Errorf("expected raw 'just-an-id', got %q", parsed.String())
 	}
 }
 
