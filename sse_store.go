@@ -13,7 +13,7 @@ type SSEEventStore interface {
 	// EventsAfter returns events with IDs strictly after the given lastID.
 	// Returns an empty slice if no events are found or lastID is unknown.
 	// The returned slice must be ordered by event ID (ascending).
-	EventsAfter(lastID string) []SSEEvent
+	EventsAfter(lastID SSEEventID) []SSEEvent
 }
 
 // ReplayEvents sends all events from the store after the given lastEventID

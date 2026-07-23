@@ -99,7 +99,7 @@ func NewJournalSSEStore(
 // Errors are logged at warn level and result in an empty or partial slice —
 // the SSEEventStore interface has no error return, so callers see best-effort
 // results.
-func (s *JournalSSEStore) EventsAfter(lastID string) []SSEEvent {
+func (s *JournalSSEStore) EventsAfter(lastID SSEEventID) []SSEEvent {
 	ctx := context.Background()
 
 	if s.seekable != nil {
@@ -110,8 +110,8 @@ func (s *JournalSSEStore) EventsAfter(lastID string) []SSEEvent {
 }
 
 // eventsAfterSeekable uses ReadFrom for efficient position-based replay.
-func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID string) []SSEEvent {
-	if lastID == "" {
+func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEventID) []SSEEvent {
+	if lastID.Get() == "" {
 		// No cursor — return the most recent events (consistent with fullScan path).
 		// We can't use ReadFrom(zero, limit) because that returns the FIRST N,
 		// not the last N. So we ReadAll and slice the tail.
@@ -137,11 +137,11 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID string
 		return s.mapEvents(events)
 	}
 
-	afterID, err := id.ParseEventID(lastID)
+	afterID, err := id.ParseEventID(lastID.Get())
 	if err != nil {
 		slog.WarnContext(
 			ctx, "cqrshtmx.sse.invalid_last_event_id",
-			slog.String("lastID", lastID),
+			slog.String("lastID", lastID.Get()),
 			slog.String("error", err.Error()),
 		)
 
@@ -157,7 +157,7 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID string
 	if err != nil {
 		slog.WarnContext(
 			ctx, "cqrshtmx.sse.journal_read_failed",
-			slog.String("lastID", lastID),
+			slog.String("lastID", lastID.Get()),
 			slog.String("error", err.Error()),
 		)
 
@@ -169,19 +169,19 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID string
 
 // eventsAfterFullScan falls back to ReadAll + in-memory filter when the
 // journal does not support SeekableJournal.
-func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID string) []SSEEvent {
+func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID SSEEventID) []SSEEvent {
 	events, err := s.journal.ReadAll(ctx)
 	if err != nil {
 		slog.WarnContext(
 			ctx, "cqrshtmx.sse.journal_readall_failed",
-			slog.String("lastID", lastID),
+			slog.String("lastID", lastID.Get()),
 			slog.String("error", err.Error()),
 		)
 
 		return nil
 	}
 
-	if lastID == "" {
+	if lastID.Get() == "" {
 		// No cursor — return the last maxReplay events
 		start := 0
 		if s.maxReplay > 0 && len(events) > s.maxReplay {
@@ -193,7 +193,7 @@ func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID string
 
 	// Find the position after lastID
 	startIdx := slices.IndexFunc(events, func(evt event.Event) bool {
-		return evt.ID().String() == lastID
+		return evt.ID().String() == lastID.Get()
 	})
 
 	if startIdx == -1 {
