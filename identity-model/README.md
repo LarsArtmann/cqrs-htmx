@@ -51,15 +51,15 @@ session, err := identitymodel.NewSession(uid, 24*time.Hour)
 
 Only Go ecosystem libraries for CQRS/event-sourcing primitives:
 
-| Dependency | Purpose |
-|---|---|
-| go-cqrs-lite/id/v4 | UserID type |
-| go-cqrs-lite/event/v4 | Event types, classification |
-| go-cqrs-lite/command/v4 | Command types |
-| go-cqrs-lite/codec/v4 | Payload encoding/decoding |
-| go-branded-id | Branded types (TenantID, BotID) |
-| go-error-family | Error classification |
-| oklog/ulid/v2 | ULID parsing |
+| Dependency              | Purpose                         |
+| ----------------------- | ------------------------------- |
+| go-cqrs-lite/id/v4      | UserID type                     |
+| go-cqrs-lite/event/v4   | Event types, classification     |
+| go-cqrs-lite/command/v4 | Command types                   |
+| go-cqrs-lite/codec/v4   | Payload encoding/decoding       |
+| go-branded-id           | Branded types (TenantID, BotID) |
+| go-error-family         | Error classification            |
+| oklog/ulid/v2           | ULID parsing                    |
 
 **Not imported**: casbin, modernc.org/sqlite, database/sql, net/http, cqrs-htmx root.
 

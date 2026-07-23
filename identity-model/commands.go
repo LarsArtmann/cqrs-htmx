@@ -28,8 +28,8 @@ func NewRegisterUserCmd(
 }
 
 func (c *RegisterUserCmd) Email() string       { return c.email }
-func (c *RegisterUserCmd) DisplayName() string  { return c.displayName }
-func (c *RegisterUserCmd) Roles() []Role        { return c.roles }
+func (c *RegisterUserCmd) DisplayName() string { return c.displayName }
+func (c *RegisterUserCmd) Roles() []Role       { return c.roles }
 
 type ChangeEmailCmd struct {
 	*command.BasicCommand
@@ -202,7 +202,7 @@ func NewAddMemberCmd(actorID ActorID, tenantID TenantID, roles []Role) *AddMembe
 	}
 }
 
-func (c *AddMemberCmd) ActorID() ActorID  { return c.actorID }
+func (c *AddMemberCmd) ActorID() ActorID   { return c.actorID }
 func (c *AddMemberCmd) TenantID() TenantID { return c.tenantID }
 func (c *AddMemberCmd) Roles() []Role      { return c.roles }
 
