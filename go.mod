@@ -15,6 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.0.3
 	github.com/larsartmann/go-error-family v0.8.0
+	github.com/larsartmann/go-sse v0.1.0
 	github.com/larsartmann/httputil v0.6.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/ginkgo/v2 v2.32.0
@@ -61,3 +62,5 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/tools v0.48.0 // indirect
 )
+
+replace github.com/larsartmann/go-sse => ../go-sse

@@ -1,12 +1,14 @@
 package cqrshtmx
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-sse"
 )
 
 // SSEEventStore retrieves events for SSE reconnection replay.
 // Implementations must be safe for concurrent access.
+//
+// Since [SSEEvent] is a type alias for [sse.Event], any type implementing
+// [SSEEventStore] also implements [sse.EventStore].
 type SSEEventStore interface {
 	// EventsAfter returns events with IDs strictly after the given lastID.
 	// Returns an empty slice if no events are found or lastID is unknown.
@@ -20,13 +22,5 @@ type SSEEventStore interface {
 //
 // Returns the number of events replayed, or an error if writing fails.
 func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID SSEEventID) (int, error) {
-	events := store.EventsAfter(lastEventID.Get())
-	for i, evt := range events {
-		if err := stream.Send(evt); err != nil {
-			return i, errorfamily.Wrapf(err, event.Transient, "cqrshtmx.sse.replay_failed",
-				"replay after %q (sent %d of %d)", lastEventID.Get(), i, len(events))
-		}
-	}
-
-	return len(events), nil
+	return sse.Replay(stream, store, lastEventID) //nolint:wrapcheck // pure delegation
 }

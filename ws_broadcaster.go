@@ -1,13 +1,16 @@
 package cqrshtmx
 
 import (
+	"context"
 	"net/http"
+
+	"github.com/larsartmann/go-sse"
 )
 
 // WSBroadcaster distributes WebSocket messages to all subscribed clients.
 // It mirrors the SSE [Broadcaster] API but for WebSocket connections.
 //
-// Unlike SSE where SSEStream manages the connection, WS connections are managed
+// Unlike SSE where [SSEStream] manages the connection, WS connections are managed
 // by the consumer's WebSocket library. WSBroadcaster only handles message
 // fan-out — the consumer reads from the Subscribe channel and writes to their
 // WS connection.
@@ -25,50 +28,35 @@ import (
 //
 //	// Push updates from anywhere:
 //	wsBroadcaster.Broadcast("<div hx-swap-oob='true'>Updated</div>")
-//
-// # Backpressure and drop policy
-//
-// Broadcast is non-blocking. If a subscriber's channel buffer is full (default
-// capacity 64), the message is silently dropped for that subscriber. This
-// prevents one slow consumer from blocking the entire fan-out. Consumers that
-// need guaranteed delivery should implement application-level ack/retry on top
-// of the WS protocol.
 type WSBroadcaster struct {
-	*fanOut[string]
+	*sse.Broadcaster[string]
 }
 
 // NewWSBroadcaster creates a new WebSocket message broadcaster with no subscribers.
 func NewWSBroadcaster() *WSBroadcaster {
-	return &WSBroadcaster{fanOut: newFanOut[string]()}
+	return &WSBroadcaster{Broadcaster: sse.NewBroadcaster[string]()}
 }
 
 // BroadcastHTML is a convenience method that wraps HTML in an OOB swap
-// before broadcasting. The target element must have a matching hx-swap-oob
-// attribute or the wrapping applies it automatically.
+// before broadcasting.
 func (b *WSBroadcaster) BroadcastHTML(id, html string, swapStrategy ...SwapStrategy) {
 	b.Broadcast(WSOOBHTML(id, html, swapStrategy...))
 }
 
 // BroadcastOnSuccessWS creates an AfterDispatchHook that broadcasts a WS message
-// when a command dispatch succeeds (err == nil). This is the WebSocket equivalent
-// of [Broadcaster.BroadcastOnSuccess].
+// when a command dispatch succeeds (err == nil).
 func (b *WSBroadcaster) BroadcastOnSuccessWS(msg string) AfterDispatchHook {
 	return b.broadcastOnSuccessHook(func(_ *http.Request) string { return msg })
 }
 
 // BroadcastOnSuccessWSFunc creates an AfterDispatchHook that generates a WS
-// message dynamically from the request when dispatch succeeds. The msgFunc
-// receives the request and returns the message string to broadcast.
-//
-// This is the WebSocket equivalent of [Broadcaster.BroadcastOnSuccessFunc].
+// message dynamically from the request when dispatch succeeds.
 func (b *WSBroadcaster) BroadcastOnSuccessWSFunc(msgFunc func(r *http.Request) string) AfterDispatchHook {
 	return b.broadcastOnSuccessHook(msgFunc)
 }
 
 // BroadcastOnErrorWS creates an AfterDispatchHook that broadcasts a WS error
-// message when a command dispatch fails (err != nil). The error is serialized
-// as a StructuredError JSON string. This is the WebSocket equivalent of
-// [Broadcaster.BroadcastOnError].
+// message when a command dispatch fails (err != nil).
 func (b *WSBroadcaster) BroadcastOnErrorWS() AfterDispatchHook {
 	return b.broadcastOnErrorHook(func(r *http.Request, err error) string {
 		payload := NewStructuredError(err, r)
@@ -78,23 +66,31 @@ func (b *WSBroadcaster) BroadcastOnErrorWS() AfterDispatchHook {
 }
 
 // BroadcastOnErrorWSFunc creates an AfterDispatchHook that generates a WS error
-// message dynamically from the request and error when dispatch fails. The
-// errFunc receives both the request and the error, allowing callers to customize
-// the message based on the error type.
-//
-// This is the WebSocket equivalent of [Broadcaster.BroadcastOnErrorFunc].
+// message dynamically from the request and error when dispatch fails.
 func (b *WSBroadcaster) BroadcastOnErrorWSFunc(errFunc func(r *http.Request, err error) string) AfterDispatchHook {
 	return b.broadcastOnErrorHook(errFunc)
 }
 
-// OnSubscribe registers a callback fired after each successful Subscribe.
-// Pass nil to clear a previously registered callback.
-func (b *WSBroadcaster) OnSubscribe(fn func()) {
-	b.setOnSubscribe(fn)
+// broadcastOnSuccessHook builds an AfterDispatchHook that broadcasts the result
+// of mapper(r) when dispatch succeeds (err == nil).
+func (b *WSBroadcaster) broadcastOnSuccessHook(mapper func(r *http.Request) string) AfterDispatchHook {
+	return func(_ context.Context, r *http.Request, err error) {
+		if err != nil {
+			return
+		}
+
+		b.Broadcast(mapper(r))
+	}
 }
 
-// OnUnsubscribe registers a callback fired after each successful Unsubscribe.
-// Pass nil to clear a previously registered callback.
-func (b *WSBroadcaster) OnUnsubscribe(fn func()) {
-	b.setOnUnsubscribe(fn)
+// broadcastOnErrorHook builds an AfterDispatchHook that broadcasts the result
+// of mapper(r, err) when dispatch fails (err != nil).
+func (b *WSBroadcaster) broadcastOnErrorHook(mapper func(r *http.Request, err error) string) AfterDispatchHook {
+	return func(_ context.Context, r *http.Request, err error) {
+		if err == nil {
+			return
+		}
+
+		b.Broadcast(mapper(r, err))
+	}
 }
