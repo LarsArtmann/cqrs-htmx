@@ -70,15 +70,20 @@ func carrierStatus(err error) (int, bool) {
 			if status == 0 {
 				// This carrier has no override; unwrap and keep looking.
 				current = errors.Unwrap(current)
+
 				continue
 			}
+
 			if validHTTPStatus(status) {
 				return status, true
 			}
+
 			return http.StatusInternalServerError, true
 		}
+
 		current = errors.Unwrap(current)
 	}
+
 	return 0, false
 }
 
