@@ -1,6 +1,7 @@
 package identitymodel
 
 import (
+	"encoding/json/v2"
 	"testing"
 	"time"
 
@@ -482,5 +483,165 @@ func TestErrors_Exist(t *testing.T) {
 		if err.Error() == "" {
 			t.Error("error sentinel should have non-empty message")
 		}
+	}
+}
+
+func TestFoldMembership_Lifecycle(t *testing.T) {
+	userID := GenerateUserID()
+	tenantID := NewTenantID("acme")
+	actorID := ActorIDFromUser(userID)
+	aggID := DeriveMembershipID(actorID, tenantID)
+
+	addedPayload, _ := MarshalPayload(MemberAddedPayload{
+		SchemaVersion: CurrentSchemaVersion,
+		ActorKind:     ActorKindUserStr,
+		ActorID:       actorID.String(),
+		TenantID:      tenantID.String(),
+		Roles:         []Role{RoleAdmin},
+	})
+	added, err := event.NewEvent(EventMemberAdded, aggID, AggregateTypeMembership, 1, addedPayload)
+	if err != nil {
+		t.Fatalf("event.New MemberAdded: %v", err)
+	}
+	state, foldErr := FoldMembership(MembershipState{}, added)
+	if foldErr != nil {
+		t.Fatalf("FoldMembership MemberAdded: %v", foldErr)
+	}
+	if !state.Exists() {
+		t.Fatal("membership should exist after MemberAdded")
+	}
+	if !state.HasRole(RoleAdmin) {
+		t.Error("membership should have Admin role")
+	}
+
+	changedPayload, _ := MarshalPayload(MemberRolesChangedPayload{
+		SchemaVersion: CurrentSchemaVersion,
+		ActorKind:     ActorKindUserStr,
+		ActorID:       actorID.String(),
+		TenantID:      tenantID.String(),
+		Roles:         []Role{RoleUser},
+	})
+	changed, err := event.NewEvent(EventMemberRolesChanged, aggID, AggregateTypeMembership, 2, changedPayload)
+	if err != nil {
+		t.Fatalf("event.New MemberRolesChanged: %v", err)
+	}
+	state, foldErr = FoldMembership(state, changed)
+	if foldErr != nil {
+		t.Fatalf("FoldMembership MemberRolesChanged: %v", foldErr)
+	}
+	if state.HasRole(RoleAdmin) {
+		t.Error("membership should no longer have Admin role")
+	}
+	if !state.HasRole(RoleUser) {
+		t.Error("membership should have User role after change")
+	}
+
+	removedPayload, _ := MarshalPayload(MemberRemovedPayload{
+		SchemaVersion: CurrentSchemaVersion,
+		ActorID:       actorID.String(),
+		TenantID:      tenantID.String(),
+	})
+	removed, err := event.NewEvent(EventMemberRemoved, aggID, AggregateTypeMembership, 3, removedPayload)
+	if err != nil {
+		t.Fatalf("event.New MemberRemoved: %v", err)
+	}
+	state, foldErr = FoldMembership(state, removed)
+	if foldErr != nil {
+		t.Fatalf("FoldMembership MemberRemoved: %v", foldErr)
+	}
+	if state.Exists() {
+		t.Error("membership should not exist after MemberRemoved")
+	}
+}
+
+func TestFoldBot_Lifecycle(t *testing.T) {
+	aggID := id.NewStreamID()
+	ownerID := GenerateUserID()
+
+	registeredPayload, _ := MarshalPayload(BotRegisteredPayload{
+		SchemaVersion: CurrentSchemaVersion,
+		Name:          "deploy-bot",
+		OwnerID:       ownerID,
+		TokenHash:     []byte("hashed-token"),
+		Scopes:        []string{"deploy", "read"},
+	})
+	registered, err := event.NewEvent(EventBotRegistered, aggID, AggregateTypeBot, 1, registeredPayload)
+	if err != nil {
+		t.Fatalf("event.New BotRegistered: %v", err)
+	}
+	state, foldErr := FoldBot(BotState{}, registered)
+	if foldErr != nil {
+		t.Fatalf("FoldBot BotRegistered: %v", foldErr)
+	}
+	if !state.Exists() {
+		t.Fatal("bot should exist after BotRegistered")
+	}
+	if state.Name != "deploy-bot" {
+		t.Errorf("expected name 'deploy-bot', got %q", state.Name)
+	}
+	if len(state.Scopes) != 2 {
+		t.Errorf("expected 2 scopes, got %d", len(state.Scopes))
+	}
+
+	deletedPayload, _ := MarshalPayload(BotDeletedPayload{
+		SchemaVersion: CurrentSchemaVersion,
+		Reason:        "decommissioned",
+	})
+	deleted, err := event.NewEvent(EventBotDeleted, aggID, AggregateTypeBot, 2, deletedPayload)
+	if err != nil {
+		t.Fatalf("event.New BotDeleted: %v", err)
+	}
+	state, foldErr = FoldBot(state, deleted)
+	if foldErr != nil {
+		t.Fatalf("FoldBot BotDeleted: %v", foldErr)
+	}
+	if state.Exists() {
+		t.Error("bot should not exist after BotDeleted")
+	}
+}
+
+func TestActorID_JSONRoundTrip(t *testing.T) {
+	original := ActorIDFromUser(GenerateUserID())
+	data, err := json.Marshal(original)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	var decoded ActorID
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if original.String() != decoded.String() {
+		t.Errorf("round-trip mismatch: got %q, want %q", decoded.String(), original.String())
+	}
+	if original.Kind() != decoded.Kind() {
+		t.Errorf("kind mismatch: got %d, want %d", decoded.Kind(), original.Kind())
+	}
+}
+
+func TestSession_JSONRoundTrip(t *testing.T) {
+	userID := GenerateUserID()
+	sess, err := NewSession(userID, time.Hour)
+	if err != nil {
+		t.Fatalf("NewSession: %v", err)
+	}
+	data, err := json.Marshal(sess)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	var decoded Session
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if sess.Token != decoded.Token {
+		t.Errorf("token mismatch: got %q, want %q", decoded.Token, sess.Token)
+	}
+	if sess.UserID.Get() != decoded.UserID.Get() {
+		t.Errorf("userID mismatch")
+	}
+	if sess.ActorID.String() != decoded.ActorID.String() {
+		t.Errorf("actorID mismatch")
+	}
+	if !sess.CreatedAt.Equal(decoded.CreatedAt) {
+		t.Errorf("createdAt mismatch: got %v, want %v", decoded.CreatedAt, sess.CreatedAt)
 	}
 }

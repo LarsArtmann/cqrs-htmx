@@ -112,6 +112,10 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
+      - path: upcaster\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
       - path: id\.go$
         linters:
           - recvcheck
