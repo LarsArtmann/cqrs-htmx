@@ -484,8 +484,3 @@ func TestErrors_Exist(t *testing.T) {
 		}
 	}
 }
-
-// GenerateUserID creates a fresh random UserID for testing.
-func GenerateUserID() UserID {
-	return SyntheticUserID("test-" + time.Now().Format(time.RFC3339Nano))
-}

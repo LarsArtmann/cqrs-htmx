@@ -66,6 +66,11 @@ func MustParseUserID(s string) UserID {
 	return uid
 }
 
+// GenerateUserID creates a fresh random UserID (new ULID) for production use.
+func GenerateUserID() UserID {
+	return SyntheticUserID(ulid.Make().String())
+}
+
 type tenantBrand struct{}
 
 func (tenantBrand) Name() string { return "Tenant" }
