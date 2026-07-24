@@ -135,3 +135,70 @@ func TestDashboard_NavBuildsFromCapabilities(t *testing.T) {
 		t.Error("nav should NOT contain Projections (not configured)")
 	}
 }
+
+func TestDashboard_EventDetailRenders(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	aggID := id.NewAggregateID()
+	evt, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
+	_ = store.Save(nil, id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
+
+	d, _ := New(Config{
+		EventSource: store,
+		Journal:     store,
+	})
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	url := "/dashboard/events/" + evt.ID().String()
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	for _, want := range []string{"user.created", "Payload", "Metadata", "Stream Type"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("event detail page should contain %q", want)
+		}
+	}
+}
+
+func TestDashboard_AggregateDetailRenders(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	aggID := id.NewAggregateID()
+	ref := id.NewStreamRef("User", aggID)
+
+	evt1, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
+	_ = store.Save(nil, ref, []event.Event{evt1}, event.Version(0))
+
+	evt2, _ := event.New("user.renamed", aggID, "User", event.Version(2), struct{ Name string }{Name: "Bob"})
+	_ = store.Save(nil, ref, []event.Event{evt2}, event.Version(1))
+
+	d, _ := New(Config{
+		EventSource: store,
+		Journal:     store,
+	})
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	url := "/dashboard/aggregates/User/" + aggID.String()
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	for _, want := range []string{"Event Timeline", "user.created", "user.renamed", "current version"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("aggregate detail page should contain %q", want)
+		}
+	}
+}

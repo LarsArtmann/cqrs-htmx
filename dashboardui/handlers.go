@@ -272,7 +272,95 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Request) {
-	notImplemented(w, "Aggregate Detail")
+	streamType := r.PathValue("type")
+	streamID := r.PathValue("id")
+
+	ref, err := StreamRefFromID(streamType, streamID)
+	if err != nil {
+		http.Error(w, "invalid stream reference: "+err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	events, err := d.cfg.EventSource.Load(r.Context(), ref)
+	if err != nil {
+		http.Error(w, "failed to load aggregate: "+err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+
+	p := d.page("Aggregate: "+streamType+"/"+truncate(streamID, 12), "/aggregates", r)
+
+	link := func(href, label string) string {
+		return fmt.Sprintf(`<a href="%s" style="color:var(--accent);text-decoration:none">%s</a>`, href, label)
+	}
+
+	html := d.renderAggregateDetail(p, ref, events, link)
+	renderPage(w, r, html)
+}
+
+func (d *Dashboard) renderAggregateDetail(
+	p pageData,
+	ref id.StreamRef,
+	events []event.Event,
+	link func(string, string) string,
+) string {
+	return d.renderLayout(p, func() string {
+		var b strings.Builder
+
+		fmt.Fprintf(&b, `<div style="margin-bottom:24px">`)
+		fmt.Fprintf(&b, `<h2 style="margin:0 0 4px">%s: <code>%s</code></h2>`, esc(string(ref.Type)), esc(ref.ID.String()))
+		fmt.Fprintf(&b, `<div style="color:var(--muted);font-size:0.88em">%d events · current version %s</div>`,
+			len(events), latestVersion(events))
+		b.WriteString(`</div>`)
+
+		if d.caps.EventSource && len(events) > 0 {
+			maxVer := events[len(events)-1].Version().Int()
+			fmt.Fprintf(&b,
+				`<div style="margin-bottom:16px"><a href="%s/time-travel/%s/%s" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--accent);font-size:0.85em">Inspect time-travel for this aggregate</a></div>`,
+				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
+			_ = maxVer
+		}
+
+		if len(events) == 0 {
+			b.WriteString(`<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No events</h3><p>This aggregate has no recorded events.</p></div>`)
+
+			return b.String()
+		}
+
+		b.WriteString(`<h4 style="margin-bottom:8px">Event Timeline</h4>`)
+		b.WriteString(`<table style="width:100%;border-collapse:collapse">`)
+		b.WriteString(`<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">`)
+		b.WriteString(`<th style="padding:8px">Version</th><th style="padding:8px">Type</th>`)
+		b.WriteString(`<th style="padding:8px">Occurred At</th><th style="padding:8px">Event ID</th>`)
+		b.WriteString(`</tr></thead><tbody>`)
+
+		for _, evt := range events {
+			fmt.Fprintf(&b, `<tr style="border-bottom:1px solid var(--border)">
+				<td style="padding:8px;font-weight:600">%s</td>
+				<td style="padding:8px">%s</td>
+				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
+				<td style="padding:8px">%s</td>
+			</tr>`,
+				esc(evt.Version().String()),
+				link(fmt.Sprintf("%s/events/%s", p.BasePath, esc(evt.ID().String())), esc(string(evt.Type()))),
+				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
+				fmt.Sprintf(`<code style="font-size:0.8em">%s</code>`, truncate(evt.ID().String(), 20)),
+			)
+		}
+
+		b.WriteString(`</tbody></table>`)
+
+		return b.String()
+	})
+}
+
+func latestVersion(events []event.Event) string {
+	if len(events) == 0 {
+		return "0"
+	}
+
+	return events[len(events)-1].Version().String()
 }
 
 func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing) string {

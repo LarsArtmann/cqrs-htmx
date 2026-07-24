@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
