@@ -7,7 +7,6 @@ use (
 	./examples/admin-demo
 	./examples/basic
 	./examples/catalog-demo
-	./examples/dashboard-demo
 	./examples/datastar-demo
 	./identity-model
 	./integration_test
