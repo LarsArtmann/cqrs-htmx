@@ -37,6 +37,11 @@ func (d *Dashboard) routes() http.Handler {
 	mux.Handle("GET /-/dashboard.js", d.guard(d.serveJS()))
 	mux.Handle("GET /-/htmx.js", cqrshtmx.HTMXScriptHandler())
 
+	// SSE live updates
+	if d.caps.EventBus {
+		mux.Handle("GET /-/events/stream", d.guard(d.sseHandler))
+	}
+
 	// Overview (always available)
 	mux.HandleFunc("GET /{$}", d.guard(d.overviewHandler))
 

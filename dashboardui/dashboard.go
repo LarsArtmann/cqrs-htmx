@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
