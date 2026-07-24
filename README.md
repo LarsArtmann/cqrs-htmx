@@ -461,7 +461,7 @@ Client-side:
 || `WriteSSEEvent(w, event)` | Write a single SSE event to any `io.Writer` |
 || `NewSSEStream(w, r)` | Create a managed SSE connection (correct headers, flush, context-aware lifecycle) |
 || `stream.Send(event)` | Send event to connected client |
-|| `stream.SendHTML(name, html)` | Shorthand for HTML content events |
+|| `stream.SendData(name, data)` | Shorthand for raw string content events |
 || `stream.LastEventID()` | Client's last event ID (for reconnection) |
 || `stream.Close()` | Graceful shutdown |
 | `stream.Heartbeat(ctx, interval)` | Send SSE comment-frame pings to prevent proxy idle kills |

@@ -153,7 +153,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				stream := cqrshtmx.NewSSEStream(rec, r)
 				defer stream.Close()
 
-				Expect(stream.SendHTML("toast", "<div class='toast'>Saved</div>")).
+				Expect(stream.SendData("toast", "<div class='toast'>Saved</div>")).
 					To(Succeed())
 
 				body := rec.Body.String()
