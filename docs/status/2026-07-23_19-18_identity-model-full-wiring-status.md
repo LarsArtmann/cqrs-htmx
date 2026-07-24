@@ -3,6 +3,12 @@
 **Date:** 2026-07-23 19:18
 **Session scope:** Execute the Phase 2 wiring plan (casbin-leverage-and-full-wiring-plan.md) — fix go-cqrs-lite API breakage, wire ALL usermgmt domain types to identity-model via type aliases, build + test entire workspace, polish.
 
+> **Update 2026-07-24 (v4.5.0):** The carrierStatus bug described in §b was FIXED in the
+> subsequent build-repair session (`2026-07-23_21-00`) — `carrierStatus()` now treats
+> `HTTPStatus()==0` as "not set". identity-model was added to flake.nix (all 7 targets).
+> All wiring shipped in v4.5.0. The fold function duplication noted in §b was resolved in
+> the consolidation session (`2026-07-23_21-27`).
+
 ---
 
 ## a) FULLY DONE

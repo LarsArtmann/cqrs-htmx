@@ -5,6 +5,12 @@
 **Previous State:** 5 tests, skeleton with stubs, basic overview/events/aggregates/projections/DLQ
 **Final State:** 12 tests, all handlers implemented, SSE live updates, demo + README
 
+> **Update 2026-07-24 (v4.5.0):** dashboardui shipped as `dashboardui/v4.0.0`. Dead code
+> (`notImplemented()` at `handlers.go:21`, `renderStatCardsTempl()` at `templ_render.go:25`)
+> **still exists** — cleanup tracked in TODO_LIST. The 11 open items in §c are a mix of shipped
+> (SSE, templ rendering) and deferred (HTMX partial rendering unused, toast JS listener, CSRF,
+> pagination, dark mode). Test coverage is minimal (1 test file, 12 tests).
+
 ---
 
 ## a) FULLY DONE — Completed and Verified

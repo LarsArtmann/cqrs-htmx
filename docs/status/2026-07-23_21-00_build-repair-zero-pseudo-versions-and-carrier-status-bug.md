@@ -5,6 +5,11 @@
 **Starting State:** 4 buildflow steps failing (go-fix, govalid-generate, hierarchical-errors, test-race)
 **Ending State:** BuildFlow 38/39 passing (1 skipped via config)
 
+> **Update 2026-07-24 (v4.5.0):** go-sse v0.2.0 is now published (was "not a git repo, no tags"
+> at time of writing). The carrierStatus bug was the fix applied in this session and shipped
+> in v4.5.0. The zero pseudo-version issue in go-cqrs-lite submodules remains (go.work local
+> replaces are still required — see AGENTS.md).
+
 ---
 
 ## What Was Broken (3 Distinct Root Causes)
