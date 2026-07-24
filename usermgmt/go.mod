@@ -3,8 +3,8 @@ module github.com/larsartmann/cqrs-htmx/usermgmt/v4
 go 1.26.4
 
 require (
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.0.0-20260723162555-beae91131538
-	github.com/larsartmann/cqrs-htmx/v4 v4.4.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.1
