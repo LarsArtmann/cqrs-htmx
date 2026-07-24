@@ -43,6 +43,27 @@ func StartProjections(
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
 ) (*projectionhost.Host, error) {
+	return startProjectionHost(
+		context.Background(),
+		journal,
+		bus,
+		cpStore,
+		collectProjections(readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog),
+	)
+}
+
+// startProjectionHost is the shared projection-host factory used by both
+// StartProjections (initial startup) and RebuildProjection (rebuild after
+// reset). It validates the journal, creates a projectionhost.Host with a
+// dead-letter store, registers all projections, starts the host, and blocks
+// until every projection has drained its initial journal backlog.
+func startProjectionHost(
+	ctx context.Context,
+	journal event.Journal,
+	bus event.Subscriber,
+	cpStore event.CheckpointStore,
+	projections []projection.Projection,
+) (*projectionhost.Host, error) {
 	seekable, ok := journal.(event.SeekableJournal)
 	if !ok {
 		return nil, errorfamily.NewRejection(
@@ -67,9 +88,7 @@ func StartProjections(
 			"create projection host")
 	}
 
-	for _, p := range collectProjections(
-		readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog,
-	) {
+	for _, p := range projections {
 		if err := host.Register(p); err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
 				"usermgmt.projection.register_failed",
@@ -77,7 +96,7 @@ func StartProjections(
 		}
 	}
 
-	if err := host.Start(context.Background()); err != nil {
+	if err := host.Start(ctx); err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
 			"usermgmt.projection.start_failed",
 			"start projection host")

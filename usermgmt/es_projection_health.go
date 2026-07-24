@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -110,7 +109,7 @@ func (svc *Service) RebuildProjection(ctx context.Context, name string) error {
 		return err
 	}
 
-	host, err := createProjectionHost(ctx, svc.store, svc.bus, svc.checkpointStore, svc.projectionListField)
+	host, err := createProjectionHost(ctx, svc.store, svc.bus, svc.checkpointStore, svc.projections)
 	if err != nil {
 		return err
 	}
@@ -120,9 +119,9 @@ func (svc *Service) RebuildProjection(ctx context.Context, name string) error {
 	return nil
 }
 
-// createProjectionHost creates a fresh projectionhost.Host, registers all
-// projections, starts it, and blocks until drain completes. Shared by both
-// EventSourcedSetup and Service rebuild methods.
+// createProjectionHost converts an event.Store to a journal and delegates to
+// the shared startProjectionHost factory. Used by both EventSourcedSetup and
+// Service rebuild methods.
 func createProjectionHost(
 	ctx context.Context,
 	store event.Store,
@@ -130,52 +129,7 @@ func createProjectionHost(
 	cpStore event.CheckpointStore,
 	projections []projection.Projection,
 ) (*projectionhost.Host, error) {
-	journal := journalFromStore(store)
-
-	seekable, ok := journal.(event.SeekableJournal)
-	if !ok {
-		return nil, errorfamily.NewRejection(
-			"usermgmt.rebuild.journal_not_seekable",
-			"projectionhost requires a SeekableJournal (ReadFrom); "+
-				"the event store does not implement event.SeekableJournal",
-		)
-	}
-
-	cp := cpStore
-	if cp == nil {
-		cp = memory.NewMemoryCheckpointStore()
-	}
-
-	host, err := projectionhost.New(seekable, cp,
-		projectionhost.WithSubscriber(bus),
-		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 0),
-	)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err,
-			"usermgmt.rebuild.host_create_failed",
-			"create projection host")
-	}
-
-	for _, p := range projections {
-		if err := host.Register(p); err != nil {
-			return nil, errorfamily.WrapInfrastructure(err,
-				"usermgmt.rebuild.register_failed",
-				"register projection "+p.Name())
-		}
-	}
-
-	if err := host.Start(ctx); err != nil {
-		return nil, errorfamily.WrapInfrastructure(err,
-			"usermgmt.rebuild.start_failed",
-			"restart projection host after rebuild")
-	}
-
-	if err := waitForDrain(host); err != nil {
-		_ = host.Stop()
-		return nil, err
-	}
-
-	return host, nil
+	return startProjectionHost(ctx, journalFromStore(store), bus, cpStore, projections)
 }
 
 // adaptWorkerStates converts projectionhost.WorkerState slices to the
