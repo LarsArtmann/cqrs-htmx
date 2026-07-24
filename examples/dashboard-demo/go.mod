@@ -13,3 +13,5 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0
 )
+
+replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../../dashboardui
