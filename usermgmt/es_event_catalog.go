@@ -1,8 +1,8 @@
 package usermgmt
 
 import (
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // DefaultEventCatalog builds a cqrshtmx.EventCatalog populated with all 21

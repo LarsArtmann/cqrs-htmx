@@ -256,8 +256,8 @@ func TestDashboard_QueryAuditRenders(t *testing.T) {
 	_ = queryStore.SaveQuery(nil, q)
 
 	d, _ := New(Config{
-		EventSource: store,
-		Journal:     store,
+		EventSource:  store,
+		Journal:      store,
 		QueryJournal: queryStore,
 	})
 

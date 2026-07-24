@@ -85,12 +85,12 @@ A query immediately after a command might NOT reflect the command's effect. The 
 
 ## Summary
 
-| Property | Guaranteed? | Mechanism |
-| --- | --- | --- |
-| Read-your-writes at startup | Yes | `waitForDrain` in `StartProjections` |
+| Property                         | Guaranteed?          | Mechanism                            |
+| -------------------------------- | -------------------- | ------------------------------------ |
+| Read-your-writes at startup      | Yes                  | `waitForDrain` in `StartProjections` |
 | Causal consistency per aggregate | Yes (single process) | In-order event processing per stream |
-| Idempotent processing | Yes | Checkpoints + idempotent handlers |
-| Cross-projection atomicity | No | Independent projection goroutines |
-| Multi-instance consistency | No | In-process bus only |
-| Monotonic reads during rebuild | No | Full replay from scratch |
-| Strong command-query consistency | No | Async projection lag |
+| Idempotent processing            | Yes                  | Checkpoints + idempotent handlers    |
+| Cross-projection atomicity       | No                   | Independent projection goroutines    |
+| Multi-instance consistency       | No                   | In-process bus only                  |
+| Monotonic reads during rebuild   | No                   | Full replay from scratch             |
+| Strong command-query consistency | No                   | Async projection lag                 |

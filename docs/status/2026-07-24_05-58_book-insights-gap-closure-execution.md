@@ -10,51 +10,51 @@
 
 ### Root module code (`cqrs-htmx/v4`)
 
-| File | What | Tests | Status |
-| --- | --- | --- | --- |
-| `event_catalog.go` | `EventCatalog` type, `Register()`, `Events()`, `JSON()` with json/v2 `MarshalWrite` | 5 tests | Done |
-| `event_catalog_handler.go` | `EventCatalogHandler` — eager serialize, FNV-1a ETag, 1yr immutable, 304 | 5 tests | Done |
-| `projection_status_handler.go` | `ProjectionStatusHandler` — live JSON, no-cache, per-request ETag, 304 | 7 tests | Done |
+| File                           | What                                                                                | Tests   | Status |
+| ------------------------------ | ----------------------------------------------------------------------------------- | ------- | ------ |
+| `event_catalog.go`             | `EventCatalog` type, `Register()`, `Events()`, `JSON()` with json/v2 `MarshalWrite` | 5 tests | Done   |
+| `event_catalog_handler.go`     | `EventCatalogHandler` — eager serialize, FNV-1a ETag, 1yr immutable, 304            | 5 tests | Done   |
+| `projection_status_handler.go` | `ProjectionStatusHandler` — live JSON, no-cache, per-request ETag, 304              | 7 tests | Done   |
 
 ### usermgmt code (`usermgmt/v4`)
 
-| File | What | Tests | Status |
-| --- | --- | --- | --- |
-| `es_event_catalog.go` | `DefaultEventCatalog()` — all 21 events registered with metadata | 3 tests | Done |
-| `es_projection_health.go` | `ProjectionStatuses()`, `RebuildProjection()`, `EventCatalog()` on Service + Setup | 5 tests | Done |
-| `es_setup.go` (modified) | Added `checkpointStore`, `auditLog`, `projections` fields to `EventSourcedSetup` | — | Done |
-| `service_core.go` (modified) | Added `checkpointStore`, `projectionListField` fields to `Service` | — | Done |
+| File                         | What                                                                               | Tests   | Status |
+| ---------------------------- | ---------------------------------------------------------------------------------- | ------- | ------ |
+| `es_event_catalog.go`        | `DefaultEventCatalog()` — all 21 events registered with metadata                   | 3 tests | Done   |
+| `es_projection_health.go`    | `ProjectionStatuses()`, `RebuildProjection()`, `EventCatalog()` on Service + Setup | 5 tests | Done   |
+| `es_setup.go` (modified)     | Added `checkpointStore`, `auditLog`, `projections` fields to `EventSourcedSetup`   | —       | Done   |
+| `service_core.go` (modified) | Added `checkpointStore`, `projectionListField` fields to `Service`                 | —       | Done   |
 
 ### Documentation (7 guides in `docs/guides/`)
 
-| Guide | Topics | Status |
-| --- | --- | --- |
-| `consistency-model.md` | Read-your-writes, causal consistency, NOT guaranteed, summary table | Done |
-| `event-replay-and-rebuild.md` | `host.Reset()` mechanics, `RebuildProjection` API, when (not) to rebuild | Done |
-| `auth-provider-fault-tolerance.md` | Transient vs permanent, gobreaker wrapper examples for OAuth2/WebAuthn | Done |
-| `event-store-storage-health.md` | Immutable event log principle, Postgres VACUUM/partitioning, SQLite WAL, monitoring | Done |
-| `event-catalog-guide.md` | How to serve/extend/consume the event catalog, all 21 events listed | Done |
-| `projection-health-monitoring.md` | Status endpoint reference, lag interpretation table, alerting examples | Done |
-| `rebuild-projection-runbook.md` | Step-by-step rebuild procedure, verification, troubleshooting | Done |
+| Guide                              | Topics                                                                              | Status |
+| ---------------------------------- | ----------------------------------------------------------------------------------- | ------ |
+| `consistency-model.md`             | Read-your-writes, causal consistency, NOT guaranteed, summary table                 | Done   |
+| `event-replay-and-rebuild.md`      | `host.Reset()` mechanics, `RebuildProjection` API, when (not) to rebuild            | Done   |
+| `auth-provider-fault-tolerance.md` | Transient vs permanent, gobreaker wrapper examples for OAuth2/WebAuthn              | Done   |
+| `event-store-storage-health.md`    | Immutable event log principle, Postgres VACUUM/partitioning, SQLite WAL, monitoring | Done   |
+| `event-catalog-guide.md`           | How to serve/extend/consume the event catalog, all 21 events listed                 | Done   |
+| `projection-health-monitoring.md`  | Status endpoint reference, lag interpretation table, alerting examples              | Done   |
+| `rebuild-projection-runbook.md`    | Step-by-step rebuild procedure, verification, troubleshooting                       | Done   |
 
 ### ROADMAP
 
-| Change | Status |
-| --- | --- |
-| Added "v5 Vision: usermgmt Decomposition" section with module boundaries, trigger criteria, cost/benefit | Done |
+| Change                                                                                                   | Status |
+| -------------------------------------------------------------------------------------------------------- | ------ |
+| Added "v5 Vision: usermgmt Decomposition" section with module boundaries, trigger criteria, cost/benefit | Done   |
 
 ### Verification
 
-| Check | Result |
-| --- | --- |
-| Root build | Pass |
-| Root tests (race) | Pass — `ok 4.044s` |
-| Root coverage | 93.5% (was 93.8% — slight drop from new untested infrastructure code) |
-| usermgmt build | Pass |
-| usermgmt tests (race) | Pass — `ok 21.220s` |
-| usermgmt coverage | 80.9% (was 80.2% — slight gain from new tests) |
-| adminui build | Pass |
-| Lint (new files) | 0 issues |
+| Check                 | Result                                                                |
+| --------------------- | --------------------------------------------------------------------- |
+| Root build            | Pass                                                                  |
+| Root tests (race)     | Pass — `ok 4.044s`                                                    |
+| Root coverage         | 93.5% (was 93.8% — slight drop from new untested infrastructure code) |
+| usermgmt build        | Pass                                                                  |
+| usermgmt tests (race) | Pass — `ok 21.220s`                                                   |
+| usermgmt coverage     | 80.9% (was 80.2% — slight gain from new tests)                        |
+| adminui build         | Pass                                                                  |
+| Lint (new files)      | 0 issues                                                              |
 
 ---
 

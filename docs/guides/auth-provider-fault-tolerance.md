@@ -96,13 +96,13 @@ func NewCircuitBreakerWebAuthn(inner usermgmt.WebAuthnProvider) usermgmt.WebAuth
 
 Not all provider failures should trip the circuit breaker:
 
-| Failure Type | Trip Circuit? | Example |
-| --- | --- | --- |
-| Network timeout | Yes | OAuth provider is down |
-| Rate limited (429) | Yes | Too many requests to provider |
-| Invalid credentials | No | User entered wrong code |
-| User cancelled | No | User closed WebAuthn prompt |
-| Invalid grant | No | OAuth code expired |
+| Failure Type        | Trip Circuit? | Example                       |
+| ------------------- | ------------- | ----------------------------- |
+| Network timeout     | Yes           | OAuth provider is down        |
+| Rate limited (429)  | Yes           | Too many requests to provider |
+| Invalid credentials | No            | User entered wrong code       |
+| User cancelled      | No            | User closed WebAuthn prompt   |
+| Invalid grant       | No            | OAuth code expired            |
 
 Distinguish by error type: `Transient` errors should count toward the circuit; `Rejection` errors should not.
 

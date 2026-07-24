@@ -134,17 +134,17 @@ func (cfg Config) withDefaults() (Config, error) {
 // interfaces the consumer provided. The dashboard uses this to decide
 // which nav items to show and which routes to register.
 type Capabilities struct {
-	EventSource      bool
-	EventByIDLoader  bool
-	Journal          bool
-	SeekableJournal  bool
-	StreamReader     bool
-	ProjectionHost   bool
-	DeadLetterStore  bool
-	CommandJournal   bool
-	QueryJournal     bool
-	SnapshotStore    bool
-	EventBus         bool
+	EventSource     bool
+	EventByIDLoader bool
+	Journal         bool
+	SeekableJournal bool
+	StreamReader    bool
+	ProjectionHost  bool
+	DeadLetterStore bool
+	CommandJournal  bool
+	QueryJournal    bool
+	SnapshotStore   bool
+	EventBus        bool
 }
 
 func (cfg Config) capabilities() Capabilities {

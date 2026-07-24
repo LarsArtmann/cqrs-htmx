@@ -28,6 +28,7 @@ mux.Handle("GET /events/catalog", handler)
 ```
 
 The handler:
+
 - Serializes the catalog eagerly at construction (startup errors surface immediately).
 - Serves immutable JSON with a 1-year `Cache-Control` and an FNV-1a ETag.
 - Returns 304 on matching `If-None-Match`.
@@ -60,12 +61,12 @@ The catalog is a JSON array of event metadata:
 
 ## Registered Events (21 total)
 
-| Aggregate | Event Types |
-| --- | --- |
-| User (12) | UserRegistered, RolesUpdated (legacy), EmailChanged, DisplayNameChanged, UserDeleted, CredentialAdded, CredentialRemoved, EmailVerified, TOTPEnabled, TOTPDisabled, ExternalAccountLinked, ExternalAccountUnlinked |
-| Membership (3) | MemberAdded, MemberRolesChanged, MemberRemoved |
-| Tenant (4) | TenantCreated, TenantSuspended, TenantReactivated, TenantDeleted |
-| Bot (2) | BotRegistered, BotDeleted |
+| Aggregate      | Event Types                                                                                                                                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| User (12)      | UserRegistered, RolesUpdated (legacy), EmailChanged, DisplayNameChanged, UserDeleted, CredentialAdded, CredentialRemoved, EmailVerified, TOTPEnabled, TOTPDisabled, ExternalAccountLinked, ExternalAccountUnlinked |
+| Membership (3) | MemberAdded, MemberRolesChanged, MemberRemoved                                                                                                                                                                     |
+| Tenant (4)     | TenantCreated, TenantSuspended, TenantReactivated, TenantDeleted                                                                                                                                                   |
+| Bot (2)        | BotRegistered, BotDeleted                                                                                                                                                                                          |
 
 ---
 
@@ -113,6 +114,7 @@ handler, _ := cqrshtmx.EventCatalogHandler(catalog)
 ### Building Custom Projections
 
 A consumer building a projection needs to know:
+
 1. What events exist (the `type` field).
 2. What aggregate owns them (the `aggregate` field).
 3. What the payload looks like (the `payload_fields` array).
