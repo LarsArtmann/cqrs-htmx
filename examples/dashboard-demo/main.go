@@ -11,11 +11,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
+
+	"encoding/json/jsontext"
 
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -99,7 +101,7 @@ func seedDemoData(
 			"email": fmt.Sprintf("%s@example.com", name),
 		})
 
-		created, _ := event.New("user.created", aggID, "User", event.Version(1), json.RawMessage(payload))
+		created, _ := event.New("user.created", aggID, "User", event.Version(1), jsontext.Value(payload))
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
 		renamed, _ := event.New("user.renamed", aggID, "User", event.Version(2), map[string]any{"name": name + " Jr."})

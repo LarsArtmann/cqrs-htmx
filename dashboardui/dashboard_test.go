@@ -402,6 +402,7 @@ func TestDashboard_SSEBridgeWorks(t *testing.T) {
 
 	// Publish an event to the bus
 	aggID := id.NewAggregateID()
+
 	evt, _ := event.New("order.placed", aggID, "Order", event.Version(1), struct{ Total int }{Total: 42})
 	if err := bus.Publish(nil, evt); err != nil {
 		t.Fatalf("Publish: %v", err)
