@@ -32,19 +32,28 @@ func streamRefFromRequest(r *http.Request) (id.StreamRef, error) {
 }
 
 func (d *Dashboard) loadStreamFromRequest(
+	w http.ResponseWriter,
 	r *http.Request,
-) (id.StreamRef, []event.Event, error) {
+) (id.StreamRef, []event.Event, bool) {
 	ref, err := streamRefFromRequest(r)
 	if err != nil {
-		return id.StreamRef{}, nil, fmt.Errorf("invalid stream reference: %w", err)
+		http.Error(w, "invalid stream reference: "+err.Error(), http.StatusBadRequest)
+
+		return id.StreamRef{}, nil, false
 	}
 
 	events, err := d.cfg.EventSource.Load(r.Context(), ref)
 	if err != nil {
-		return id.StreamRef{}, nil, fmt.Errorf("failed to load aggregate: %w", err)
+		http.Error(w, "failed to load aggregate: "+err.Error(), http.StatusInternalServerError)
+
+		return id.StreamRef{}, nil, false
 	}
 
-	return ref, events, nil
+	return ref, events, true
+}
+
+func streamPathValues(r *http.Request) (string, string) {
+	return r.PathValue("type"), r.PathValue("id")
 }
 
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -304,13 +313,10 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Request) {
-	streamType := r.PathValue("type")
-	streamID := r.PathValue("id")
+	streamType, streamID := streamPathValues(r)
 
-	ref, events, err := d.loadStreamFromRequest(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-
+	ref, events, ok := d.loadStreamFromRequest(w, r)
+	if !ok {
 		return
 	}
 
@@ -862,13 +868,10 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 }
 
 func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Request) {
-	streamType := r.PathValue("type")
-	streamID := r.PathValue("id")
+	streamType, streamID := streamPathValues(r)
 
-	ref, allEvents, err := d.loadStreamFromRequest(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-
+	ref, allEvents, ok := d.loadStreamFromRequest(w, r)
+	if !ok {
 		return
 	}
 
