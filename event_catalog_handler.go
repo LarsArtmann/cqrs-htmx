@@ -44,16 +44,20 @@ type eventCatalogServer struct {
 	marshal []byte
 }
 
-func (s *eventCatalogServer) serve(w http.ResponseWriter, r *http.Request) {
+func serveImmutableJSON(w http.ResponseWriter, r *http.Request, etag string, data []byte) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	w.Header().Set("ETag", s.etag)
+	w.Header().Set("ETag", etag)
 
-	if match := r.Header.Get("If-None-Match"); match != "" && match == s.etag {
+	if match := r.Header.Get("If-None-Match"); match != "" && match == etag {
 		w.WriteHeader(http.StatusNotModified)
 
 		return
 	}
 
-	_, _ = w.Write(s.marshal)
+	_, _ = w.Write(data)
+}
+
+func (s *eventCatalogServer) serve(w http.ResponseWriter, r *http.Request) {
+	serveImmutableJSON(w, r, s.etag, s.marshal)
 }
