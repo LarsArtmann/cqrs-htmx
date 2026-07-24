@@ -19,7 +19,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 ## Architecture
 
-**Multi-module Go workspace.** 13 independent Go modules under one `go.work`:
+**Multi-module Go workspace.** 14 independent Go modules under one `go.work`:
 
 - **Root** (`cqrs-htmx/v4`): Core library — HTTP handler builder, HTMX/SSE/WS helpers, authz (Casbin), CSRF, rate limiting, security headers, error mapping, pagination, `openapi/` sub-package (dependency-free OpenAPI 3.1 spec builder + `WithOpenAPI`/`OpenAPISpecHandler`)
 - **identity-model** (`identity-model/v4`): Pure domain types for event-sourced identity management — IDs (UserID/TenantID/BotID/ActorID), events (22 payload structs), commands (19 structs with accessor methods), fold functions (FoldUser/FoldMembership/FoldTenant/FoldBot), state structs, Authz engine (Casbin-backed), Session, User, Membership, ExternalAccount, WebAuthnCredential, crypto helpers, domain errors (errorfamily-only, no HTTP dependency), upcaster registry, exported constants (event types, command types, aggregate types, schema version). Casbin is a first-class dependency.
@@ -27,10 +27,11 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 - **usermgmt/totp**, **usermgmt/webauthn**, **usermgmt/oauth2**: Independent auth strategy modules — satisfy `usermgmt` interfaces via structural typing
 - **adminui** (`adminui/v4`): Ready-made admin dashboard (templ + HTMX)
 - **loginpage** (`loginpage/v4`): Ready-made passwordless login page
+- **dashboardui** (`dashboardui/v4`): Ready-made CQRS/ES observability dashboard — projection health, event catalog overview, real-time SSE updates (templ + HTMX)
 - **integration_test**: Cross-module bridge tests
-- **examples/**: `basic`, `datastar-demo`, `catalog-demo`, `admin-demo`
+- **examples/**: `basic`, `datastar-demo`, `catalog-demo`, `admin-demo`, `dashboard-demo`
 
-**Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt. Nothing depends on adminui or loginpage.
+**Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt. dashboardui → root + usermgmt. Nothing depends on adminui, loginpage, or dashboardui.
 
 **Key dependencies:** go-cqrs-lite v4 (CQRS/event sourcing), casbin/v3 (authz), justinas/nosurf (CSRF), go-error-family (error classification), go-branded-id (typed IDs), a-h/templ (HTML templating), ginkgo/gomega (BDD testing).
 

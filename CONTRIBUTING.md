@@ -218,15 +218,17 @@ This repo uses **multi-module tagging**: each module gets its own semver tag.
 
 | Module            | Tag prefix                 | Example tag                |
 | ----------------- | -------------------------- | -------------------------- |
-| Root              | `v4.X.Y` (no prefix)       | `v4.2.2`                   |
-| usermgmt          | `usermgmt/v4.X.Y`          | `usermgmt/v4.2.2`          |
-| usermgmt/totp     | `usermgmt/totp/v4.X.Y`     | `usermgmt/totp/v4.2.2`     |
-| usermgmt/webauthn | `usermgmt/webauthn/v4.X.Y` | `usermgmt/webauthn/v4.2.2` |
-| usermgmt/oauth2   | `usermgmt/oauth2/v4.X.Y`   | `usermgmt/oauth2/v4.2.2`   |
-| adminui           | `adminui/v4.X.Y`           | `adminui/v4.2.2`           |
-| loginpage         | `loginpage/v4.X.Y`         | `loginpage/v4.2.2`         |
+| Root              | `v4.X.Y` (no prefix)       | `v4.5.0`                   |
+| identity-model    | `identity-model/v4.X.Y`    | `identity-model/v4.1.0`    |
+| usermgmt          | `usermgmt/v4.X.Y`          | `usermgmt/v4.5.0`          |
+| usermgmt/totp     | `usermgmt/totp/v4.X.Y`     | `usermgmt/totp/v4.5.0`     |
+| usermgmt/webauthn | `usermgmt/webauthn/v4.X.Y` | `usermgmt/webauthn/v4.5.0` |
+| usermgmt/oauth2   | `usermgmt/oauth2/v4.X.Y`   | `usermgmt/oauth2/v4.5.0`   |
+| adminui           | `adminui/v4.X.Y`           | `adminui/v4.5.0`           |
+| loginpage         | `loginpage/v4.X.Y`         | `loginpage/v4.5.0`         |
+| dashboardui       | `dashboardui/v4.X.Y`       | `dashboardui/v4.0.0`       |
 
-All modules are versioned in lockstep — a release bumps all tags.
+All modules are versioned in lockstep — a release bumps all tags. identity-model and dashboardui may have independent version tracks when their changes don't align with the lockstep cycle.
 
 ### Pre-release checklist
 
@@ -251,12 +253,14 @@ Tag all modules atomically from a clean working tree:
 
 ```bash
 git tag v4.X.Y
+git tag identity-model/v4.X.Y
 git tag usermgmt/v4.X.Y
 git tag usermgmt/totp/v4.X.Y
 git tag usermgmt/webauthn/v4.X.Y
 git tag usermgmt/oauth2/v4.X.Y
 git tag adminui/v4.X.Y
 git tag loginpage/v4.X.Y
+git tag dashboardui/v4.X.Y
 ```
 
 ### Publishing
