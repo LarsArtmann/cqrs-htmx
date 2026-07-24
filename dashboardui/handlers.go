@@ -78,10 +78,12 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 			return `<div style="padding:40px;text-align:center;color:#64748b"><h3>No events yet</h3><p>Events will appear here as they are committed to the store.</p></div>`
 		}
 
-		var rows string
-		var rowsSb72 strings.Builder
+		var (
+			rows     string
+			rowsSb72 strings.Builder
+		)
 		for _, evt := range events {
-			rowsSb72.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(&rowsSb72, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px"><code>%s</code></td>
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
@@ -92,9 +94,9 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 				evt.Type(),
 				truncate(evt.StreamID().String(), 24),
 				evt.StreamType(),
-				evt.Version().String(),
-			))
+				evt.Version().String())
 		}
+
 		rows += rowsSb72.String()
 
 		return fmt.Sprintf(`
@@ -140,10 +142,12 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 			return `<div style="padding:40px;text-align:center;color:#64748b"><h3>No aggregates found</h3></div>`
 		}
 
-		var rows string
-		var rowsSb131 strings.Builder
+		var (
+			rows      string
+			rowsSb131 strings.Builder
+		)
 		for _, l := range listings {
-			rowsSb131.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(&rowsSb131, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px">%s</td>
 				<td style="padding:8px">%s</td>
@@ -154,9 +158,9 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 				l.Type,
 				l.Version.String(),
 				l.EventCount,
-				l.LastEventAt.Format("2006-01-02 15:04:05"),
-			))
+				l.LastEventAt.Format("2006-01-02 15:04:05"))
 		}
+
 		rows += rowsSb131.String()
 
 		return fmt.Sprintf(`
@@ -228,6 +232,7 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 		var rows string
 
 		var rowsSb209 strings.Builder
+
 		for _, proj := range projs {
 			color := "#64748b"
 
@@ -240,14 +245,15 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 				color = "#dc2626"
 			}
 
-			rowsSb209.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(&rowsSb209, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-weight:500">%s</td>
 				<td style="padding:8px"><span style="color:%s;font-weight:600">%s</span></td>
 				<td style="padding:8px;font-family:monospace">%s</td>
 				<td style="padding:8px">%d</td>
 				<td style="padding:8px">%d</td>
-			</tr>`, proj.Name, color, proj.Status, proj.Lag, proj.Processed, proj.Errors))
+			</tr>`, proj.Name, color, proj.Status, proj.Lag, proj.Processed, proj.Errors)
 		}
+
 		rows += rowsSb209.String()
 
 		return fmt.Sprintf(`
@@ -367,10 +373,12 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 			)
 		}
 
-		var rows string
-		var rowsSb326 strings.Builder
+		var (
+			rows      string
+			rowsSb326 strings.Builder
+		)
 		for _, e := range entries {
-			rowsSb326.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(&rowsSb326, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px"><code>%s</code></td>
 				<td style="padding:8px;color:#dc2626">%s</td>
@@ -379,9 +387,9 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 				e.FailedAt.Format("2006-01-02 15:04:05"),
 				e.EventType,
 				truncate(e.Error, 60),
-				e.ErrorFamily,
-			))
+				e.ErrorFamily)
 		}
+
 		rows += rowsSb326.String()
 
 		return fmt.Sprintf(`

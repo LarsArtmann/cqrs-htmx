@@ -1,7 +1,8 @@
 package dashboardui
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
 
@@ -46,7 +47,7 @@ func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([
 		return payload, nil
 	}
 
-	out, err := json.MarshalIndent(raw, "", "  ")
+	out, err := json.Marshal(raw, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		return nil, fmt.Errorf("pretty-print payload: %w", err)
 	}

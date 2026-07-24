@@ -1,6 +1,8 @@
 package cqrshtmx
 
 import (
+	"bytes"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -47,9 +49,11 @@ func (c *EventCatalog) Register(meta EventMetadata) {
 	for i, existing := range c.events {
 		if existing.Type == meta.Type && existing.Aggregate == meta.Aggregate {
 			c.events[i] = meta
+
 			return
 		}
 	}
+
 	c.events = append(c.events, meta)
 }
 
@@ -58,17 +62,19 @@ func (c *EventCatalog) Register(meta EventMetadata) {
 func (c *EventCatalog) Events() []EventMetadata {
 	result := make([]EventMetadata, len(c.events))
 	copy(result, c.events)
+
 	return result
 }
 
 // JSON serializes the catalog to indented JSON suitable for serving at a
 // catalog endpoint (e.g. GET /events/catalog).
 func (c *EventCatalog) JSON() ([]byte, error) {
-	data, err := json.MarshalIndent(c.events, "", "  ")
-	if err != nil {
+	var buf bytes.Buffer
+	if err := json.MarshalWrite(&buf, c.events, jsontext.WithIndent("  ")); err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
 			"cqrshtmx.event_catalog.serialize",
 			"serialize event catalog to JSON")
 	}
-	return data, nil
+
+	return buf.Bytes(), nil
 }

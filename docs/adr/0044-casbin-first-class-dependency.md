@@ -45,12 +45,14 @@ Rationale:
 ## Consequences
 
 **Positive:**
+
 - Authorization logic is testable without any infrastructure
 - Consumers can use the Authz engine without usermgmt
 - The domain model is self-contained: types + logic + authorization
 - Casbin version is pinned once in identity-model/go.mod
 
 **Negative:**
+
 - identity-model depends on casbin/v3, adding ~2MB to its dependency tree
 - A consumer who only needs UserID/Email types also pulls in Casbin (mitigated
   by Go's lazy module loading — unused Casbin code is never compiled)

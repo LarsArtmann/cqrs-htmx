@@ -14,6 +14,7 @@ domain types, creating tight coupling between the "what" (domain model) and the
 "how" (CQRS infrastructure, SQL stores, HTTP handlers).
 
 This made it impossible to:
+
 - Share domain types without pulling in the full usermgmt infrastructure
 - Test domain logic in isolation
 - Evolve the domain model independently of the persistence/transport layer
@@ -35,8 +36,8 @@ Concrete changes:
   constants (event types, command types, aggregate types, schema version).
 
 - **usermgmt** — Rewired to use type aliases (`type UserID =
-  identitymodel.UserID`) and var aliases (`var foldUser =
-  identitymodel.FoldUser`) for ALL domain types. No domain type is defined in
+identitymodel.UserID`) and var aliases (`var foldUser =
+identitymodel.FoldUser`) for ALL domain types. No domain type is defined in
   usermgmt anymore. usermgmt retains only: Service orchestration, HTTP
   handlers, SQL stores, CasbinProjection, read models, and decide/dispatch
   functions.
@@ -52,6 +53,7 @@ Concrete changes:
 ## Consequences
 
 **Positive:**
+
 - Domain types are accessible without importing infrastructure code
 - identity-model has zero dependency on usermgmt, cqrs-htmx root, or SQL
 - The authorization model (Authz) is usable standalone
@@ -60,6 +62,7 @@ Concrete changes:
 - Constants have a single source of truth (no string-literal drift)
 
 **Negative:**
+
 - Go has no const alias, so constants become `var` in usermgmt (practically
   irrelevant: nobody reassigns event type strings)
 - `unmarshalPayload` requires a thin wrapper in usermgmt (generic function
