@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.5.0] - 2026-07-24
+
+### Added
+
+- **Projection health monitoring** (`es_projection_health.go`): `ProjectionStatuses()` method on both `EventSourcedSetup` and `Service` returns live projection status (name, state, lag, last-event, error). Enables ops dashboards and alerting via `cqrshtmx.ProjectionStatusHandler`.
+- **Projection rebuild** (`es_projection_health.go`): `RebuildProjection(ctx, name)` on both `EventSourcedSetup` and `Service`. Stops host, resets named projection checkpoint + read-model, creates fresh host, replays entire journal. Preserves read-your-writes by blocking until all workers reach live state.
+- **Event catalog** (`es_event_catalog.go`): `DefaultEventCatalog()` pre-populates all 21 event types across User (12), Membership (3), Tenant (4), Bot (2) with descriptions and payload field metadata. `EventCatalog()` method on both setup structs.
+- **Upcaster support** (`upcaster.go`): Thin wrapper around identity-model's upcaster registry for event payload version migration.
+
+### Changed
+
+- **identity-model integration**: All domain type definitions replaced with type aliases to identity-model. identity-model is now the single source of truth for domain types, fold logic, and constants. Command dispatch uses accessor methods (`c.Email()`, `c.Roles()`).
+- **Projection host factory deduplicated**: Extracted shared `startProjectionHost` helper used by both `StartProjections` and `RebuildProjection`.
+- **Service field renamed**: `projectionListField` → `projections` for consistency.
+- **go-cqrs-lite v4.0.x dependency alignment**: Updated all go-cqrs-lite module references.
+
 ## [v4.2.0] - 2026-07-08
 
 ### Added

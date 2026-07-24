@@ -605,6 +605,22 @@
               };
             };
 
+            build-dashboard-demo = {
+              type = "app";
+              meta.description = "Build the dashboard-demo example binary";
+              program = pkgs.writeShellApplication {
+                name = "build-dashboard-demo";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
+                  cd examples/dashboard-demo
+                  go build ./... "$@"
+                '';
+              };
+            };
+
             build-catalog-demo = {
               type = "app";
               meta.description = "Build the catalog-demo example binary";

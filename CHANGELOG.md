@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.5.0] - 2026-07-24
+
 ### Added
 
 - **Event catalog** (`event_catalog.go`, `event_catalog_handler.go`): `EventCatalog` type with `Register`/`Events`/`JSON` methods for building a Published Language catalog of event types. `EventCatalogHandler(catalog)` serves it as immutable JSON with a 1-year Cache-Control and FNV-1a ETag, mirroring `OpenAPISpecHandler`. Consumers building custom projections can discover event schemas at runtime via `GET /events/catalog` without reading source code.
