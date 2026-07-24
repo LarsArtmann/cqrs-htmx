@@ -27,7 +27,25 @@ func notImplemented(w http.ResponseWriter, panel string) {
 	)
 }
 
-// ===== Event Stream Browser =====
+func streamRefFromRequest(r *http.Request) (id.StreamRef, error) {
+	return StreamRefFromID(r.PathValue("type"), r.PathValue("id"))
+}
+
+func (d *Dashboard) loadStreamFromRequest(
+	r *http.Request,
+) (id.StreamRef, []event.Event, error) {
+	ref, err := streamRefFromRequest(r)
+	if err != nil {
+		return id.StreamRef{}, nil, fmt.Errorf("invalid stream reference: %w", err)
+	}
+
+	events, err := d.cfg.EventSource.Load(r.Context(), ref)
+	if err != nil {
+		return id.StreamRef{}, nil, fmt.Errorf("failed to load aggregate: %w", err)
+	}
+
+	return ref, events, nil
+}
 
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Events", "/events", r)
@@ -289,16 +307,9 @@ func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Reques
 	streamType := r.PathValue("type")
 	streamID := r.PathValue("id")
 
-	ref, err := StreamRefFromID(streamType, streamID)
+	ref, events, err := d.loadStreamFromRequest(r)
 	if err != nil {
-		http.Error(w, "invalid stream reference: "+err.Error(), http.StatusBadRequest)
-
-		return
-	}
-
-	events, err := d.cfg.EventSource.Load(r.Context(), ref)
-	if err != nil {
-		http.Error(w, "failed to load aggregate: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 
 		return
 	}
@@ -854,17 +865,9 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	streamType := r.PathValue("type")
 	streamID := r.PathValue("id")
 
-	ref, err := StreamRefFromID(streamType, streamID)
+	ref, allEvents, err := d.loadStreamFromRequest(r)
 	if err != nil {
-		http.Error(w, "invalid stream reference: "+err.Error(), http.StatusBadRequest)
-
-		return
-	}
-
-	// Load full event history to determine max version.
-	allEvents, err := d.cfg.EventSource.Load(r.Context(), ref)
-	if err != nil {
-		http.Error(w, "failed to load aggregate: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 
 		return
 	}
@@ -1041,7 +1044,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	streamType := r.PathValue("type")
 	streamID := r.PathValue("id")
 
-	ref, err := StreamRefFromID(streamType, streamID)
+	ref, err := streamRefFromRequest(r)
 	if err != nil {
 		http.Error(w, "invalid stream reference: "+err.Error(), http.StatusBadRequest)
 
@@ -1141,10 +1144,7 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	streamType := r.PathValue("type")
-	streamID := r.PathValue("id")
-
-	ref, err := StreamRefFromID(streamType, streamID)
+	ref, err := streamRefFromRequest(r)
 	if err != nil {
 		http.Error(w, "invalid stream reference: "+err.Error(), http.StatusBadRequest)
 

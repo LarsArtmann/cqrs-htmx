@@ -76,17 +76,7 @@ type openAPISpecServer struct {
 }
 
 func (s *openAPISpecServer) serve(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	w.Header().Set("ETag", s.etag)
-
-	if match := r.Header.Get("If-None-Match"); match != "" && match == s.etag {
-		w.WriteHeader(http.StatusNotModified)
-
-		return
-	}
-
-	_, _ = w.Write(s.marshal)
+	serveImmutableJSON(w, r, s.etag, s.marshal)
 }
 
 // hashTag derives a short, stable cache tag from the spec bytes using the
