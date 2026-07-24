@@ -1,5 +1,10 @@
 # Book Insights Gap Closure Plan
 
+> **Status: ALL 27 TASKS COMPLETED (2026-07-24).**
+> See `CHANGELOG.md` [Unreleased] for the feature list.
+> See `docs/reviews/book-insights-vs-cqrs-htmx.md` for gap-closure resolution notes.
+> See `docs/status/2026-07-24_05-58_book-insights-gap-closure-execution.md` for the execution retrospective.
+>
 > **Source:** `docs/reviews/book-insights-vs-cqrs-htmx.md`
 > **Date:** 2026-07-23
 > **Total tasks:** 27 (all <= 12 min each)
