@@ -49,6 +49,7 @@ func (d *Dashboard) startEventBridge() {
 		d.broadcaster.Broadcast(cqrshtmx.SSEEvent{
 			Event: "event",
 			Data:  string(data),
+			ID:    cqrshtmx.NewSSEEventID(payload.EventID),
 		})
 
 		return nil
@@ -60,7 +61,7 @@ func (d *Dashboard) startEventBridge() {
 }
 
 // sseHandler serves the SSE stream endpoint. Each connected client
-// receives a live feed of events as they are published to the event bus.
+// receives replayed events followed by the live event feed.
 func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 	if d.broadcaster == nil {
 		http.Error(w, "SSE not available (no event bus configured)", http.StatusServiceUnavailable)
@@ -68,5 +69,25 @@ func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	d.broadcaster.ServeSSE(w, r)
+	stream := cqrshtmx.NewSSEStream(w, r)
+	defer func() { _ = stream.Close() }()
+
+	ch := d.broadcaster.Subscribe()
+	defer d.broadcaster.Unsubscribe(ch)
+
+	_ = stream.Send(cqrshtmx.SSEEvent{Event: cqrshtmx.SSEEventConnected, Data: "connected"})
+	if d.cfg.SSEHeartbeatInterval > 0 {
+		go stream.Heartbeat(stream.Context(), d.cfg.SSEHeartbeatInterval)
+	}
+
+	for {
+		select {
+		case <-stream.Context().Done():
+			return
+		case evt, ok := <-ch:
+			if !ok || stream.Send(evt) != nil {
+				return
+			}
+		}
+	}
 }
