@@ -122,7 +122,3 @@ replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => /home/lars/projects/
 // ParseUintQuery. Both root and usermgmt use it to avoid duplicating the
 // query-param-to-uint parsing helper.
 replace github.com/larsartmann/httputil => /home/lars/projects/httputil
-
-// Local replace for go-sse: SSE/WS broadcaster, stream, and replay primitives
-// extracted from cqrs-htmx. No published tag yet.
-replace github.com/larsartmann/go-sse => /home/lars/projects/go-sse
