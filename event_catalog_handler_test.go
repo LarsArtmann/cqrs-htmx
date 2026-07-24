@@ -27,15 +27,18 @@ func sampleCatalog() *cqrshtmx.EventCatalog {
 		Aggregate:     "Tenant",
 		SchemaVersion: 2,
 	})
+
 	return catalog
 }
 
 func mustCatalogHandler(t *testing.T, catalog *cqrshtmx.EventCatalog) http.HandlerFunc {
 	t.Helper()
+
 	handler, err := cqrshtmx.EventCatalogHandler(catalog)
 	if err != nil {
 		t.Fatalf("EventCatalogHandler returned error: %v", err)
 	}
+
 	return handler
 }
 
