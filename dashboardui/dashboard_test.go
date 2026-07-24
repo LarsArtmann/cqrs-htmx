@@ -6,8 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
