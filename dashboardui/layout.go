@@ -21,6 +21,11 @@ func (d *Dashboard) renderLayout(p pageData, content func() string) string {
 	fmt.Fprintf(&b, "<style>:root{--accent:%s;}</style>\n", p.Accent)
 	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard.css\"/>\n", p.BasePath)
 	fmt.Fprintf(&b, "<script src=\"%s/-/htmx.js\"></script>\n", p.BasePath)
+
+	if p.Caps.EventBus {
+		fmt.Fprintf(&b, "<script src=\"%s/-/dashboard.js\"></script>\n", p.BasePath)
+	}
+
 	b.WriteString("</head>\n<body>\n")
 
 	b.WriteString(`<div style="display:grid;grid-template-columns:248px 1fr;min-height:100vh">`)
@@ -82,11 +87,18 @@ func (d *Dashboard) renderSidebar(p pageData) string {
 }
 
 func (d *Dashboard) renderHeader(p pageData) string {
+	var indicator string
+
+	if p.Caps.EventBus {
+		indicator = `<span data-live-indicator style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);opacity:0.4;transition:opacity 0.3s;margin-left:8px" title="Live"></span>`
+	}
+
 	return fmt.Sprintf(
 		`<header style="position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid #e6e8ec;background:color-mix(in srgb, white 86%%, transparent);backdrop-filter:blur(8px)">
-		<div style="font-size:1.1rem;font-weight:600">%s</div>
+		<div style="font-size:1.1rem;font-weight:600">%s%s</div>
 	</header>`,
 		p.Title,
+		indicator,
 	)
 }
 
@@ -149,5 +161,22 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 `
 
 const dashboardJS = `
-console.log("dashboardui loaded");
+(function() {
+  var path = document.currentScript.src.replace(/\/dashboard\.js$/, "");
+  var base = path.replace(/\/-\/$/, "");
+  var es = new EventSource(base + "/-/events/stream");
+  es.addEventListener("event", function(e) {
+    try {
+      var data = JSON.parse(e.data);
+      document.dispatchEvent(new CustomEvent("dashboard:event", { detail: data }));
+      var indicator = document.querySelector("[data-live-indicator]");
+      if (indicator) {
+        indicator.style.opacity = "1";
+        setTimeout(function() { indicator.style.opacity = "0.4"; }, 1000);
+      }
+    } catch (err) {}
+  });
+  es.onerror = function() { es.close(); setTimeout(function() { es = new EventSource(base + "/-/events/stream"); }, 5000); };
+})();
+console.log("dashboardui loaded with live updates");
 `
