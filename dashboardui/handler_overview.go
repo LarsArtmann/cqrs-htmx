@@ -3,6 +3,7 @@ package dashboardui
 import (
 	"context"
 	"fmt"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
@@ -234,4 +235,19 @@ func truncate(s string, n int) string {
 	}
 
 	return s[:n] + "..."
+}
+
+// esc wraps html.EscapeString for terse call sites.
+func esc(s string) string {
+	return html.EscapeString(s)
+}
+
+// metaRow writes a key-value row into a metadata table.
+func metaRow(b *strings.Builder, key, value string) {
+	fmt.Fprintf(
+		b,
+		`<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--muted);font-weight:500">%s</td><td style="padding:6px 8px;font-family:monospace;font-size:0.85em">%s</td></tr>`,
+		key,
+		value,
+	)
 }
