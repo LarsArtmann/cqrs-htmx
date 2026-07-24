@@ -32,6 +32,50 @@ _Focus: Adopting go-cqrs-lite capabilities to reduce hand-rolled code._
 
 ---
 
+## v5 Vision: usermgmt Decomposition (Deferred)
+
+The usermgmt module is a god-package: 4 aggregates (User, Membership, Tenant, Bot) plus shared infrastructure in one Go module. ADR-0019 (Blocked) and ADR-0038 (Proposed, deferred to v5) acknowledge this. The current v4 module works correctly and the split has zero consumer benefit while everything shares one `go.mod`.
+
+### Decomposition Trigger (When to Split)
+
+The split becomes worthwhile when:
+
+1. **A consumer needs only User/Membership without Tenant/Bot** — currently they get the full dep tree.
+2. **Dep-tree analysis shows >30% of usermgmt dependencies are pulled in for aggregates the consumer doesn't use.** Current dep-tree: go-cqrs-lite (event/command/decider/projection/projectionhost), casbin, go-error-family, go-branded-id. These are all shared infrastructure — the split would only help if aggregate-specific deps diverge.
+3. **Compile times become a bottleneck** — the current module compiles in ~3s. No urgency.
+
+### Proposed Module Boundaries (v5)
+
+```
+usermgmt/v5                  ← core: Service, shared infra, session/authz
+usermgmt/user/v5             ← User aggregate + UserReadModel + UserDecider
+usermgmt/membership/v5       ← Membership aggregate + MembershipReadModel
+usermgmt/tenant/v5           ← Tenant aggregate + TenantReadModel
+usermgmt/bot/v5              ← Bot aggregate + BotReadModel
+usermgmt/webauthn/v5         ← (unchanged: auth strategy sub-module)
+usermgmt/oauth2/v5           ← (unchanged: auth strategy sub-module)
+usermgmt/totp/v5             ← (unchanged: auth strategy sub-module)
+```
+
+### What the Split Enables
+
+- Consumers who only need User auth get a smaller dep tree (no casbin policy for tenants/bots).
+- Independent versioning per aggregate (Tenant schema can evolve without a User release).
+- Clearer bounded context boundaries (DDD alignment).
+
+### What the Split Costs
+
+- Cross-module event references (Tenant references UserID from user module).
+- More `go.mod` files to maintain.
+- The `Service` struct must compose sub-services or use a facade pattern.
+- Breaking change for all consumers (new import paths).
+
+### Current Assessment
+
+**Not justified for v4.** No consumer has requested a reduced dep tree. The god-package is well-organized internally (clean seams between aggregates, separate files per concern). Re-open when a real consumer need emerges.
+
+---
+
 ## Not Planned
 
 These are explicitly out of scope for this library:
