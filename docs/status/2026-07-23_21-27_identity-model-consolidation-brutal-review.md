@@ -80,7 +80,7 @@
    - `71125e5` "feat(usermgmt): implement event sourcing upcasters and state management" — Says "implement" when we actually DELETED the upcaster code from usermgmt
    - `71f408d` "chore(identity-model): update linter configuration and enhance test coverage" — Bland
    - `c78d99e` "docs(adr): add ADR-0044 establishing Casbin as first-class dependency" — Only this one is accurate
-   
+
    These commit messages actively mislead future readers about what happened. A consolidation that deleted ~400 lines and replaced them with aliases reads as "implement event sourcing upcasters" which implies NEW code was written.
 
 2. **flake.nix changes were REDUNDANT** — identity-model was ALREADY in flake.nix at HEAD (14 references found in `74b9aca:flake.nix`). My 7 multiedit operations may have been no-ops or duplicate additions. I didn't verify the BEFORE state before editing. This is a violation of "read before you write."
@@ -188,17 +188,17 @@
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Files changed | 18 |
-| Lines added | ~401 |
-| Lines deleted | ~421 |
-| New tests | 4 (identity-model) + 6 (upcaster tests moved) |
-| identity-model tests | 40 total |
-| Commits ahead of origin | 4 (auto-committed by BuildFlow) |
-| identity-model coverage | **41.3%** (LOW) |
-| usermgmt coverage | 81.2% |
-| root coverage | 93.7% |
-| Build | Clean |
-| Lint (identity-model) | 0 issues |
-| Tests (-race) | ALL PASS |
+| Metric                  | Value                                         |
+| ----------------------- | --------------------------------------------- |
+| Files changed           | 18                                            |
+| Lines added             | ~401                                          |
+| Lines deleted           | ~421                                          |
+| New tests               | 4 (identity-model) + 6 (upcaster tests moved) |
+| identity-model tests    | 40 total                                      |
+| Commits ahead of origin | 4 (auto-committed by BuildFlow)               |
+| identity-model coverage | **41.3%** (LOW)                               |
+| usermgmt coverage       | 81.2%                                         |
+| root coverage           | 93.7%                                         |
+| Build                   | Clean                                         |
+| Lint (identity-model)   | 0 issues                                      |
+| Tests (-race)           | ALL PASS                                      |

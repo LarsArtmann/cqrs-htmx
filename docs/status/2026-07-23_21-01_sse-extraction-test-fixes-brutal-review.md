@@ -11,6 +11,7 @@
 ### The Problem
 
 The user pasted a `buildflow -s test-race` failure showing:
+
 - 69 of 703 ginkgo specs failed (634 passed)
 - `ExampleRequireMethod`: got 500, want 405
 - `ExampleStructuredError`: got 500 rejection, want 400 rejection
@@ -27,12 +28,12 @@ A refactor extracted SSE primitives (Broadcaster, Stream, Event, fanOut) from cq
 
 ### What I Fixed
 
-| File | Change | Why |
-|------|--------|-----|
-| `go.work` | Added `replace github.com/larsartmann/go-sse => /home/lars/projects/go-sse` | Workspace couldn't resolve go-sse without it |
-| `bdd_realtime_test.go:249` | `: keepalive` → `: heartbeat` | go-sse `WriteHeartbeat` uses "heartbeat" not "keepalive" |
-| `sse_event_test.go:231` | `: keepalive\n\n` → `: heartbeat\n\n` | Same rename |
-| `benchmark_server_test.go:140` | `: keepalive\n\n` → `: heartbeat\n\n` | Last remaining stale reference |
+| File                           | Change                                                                      | Why                                                      |
+| ------------------------------ | --------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `go.work`                      | Added `replace github.com/larsartmann/go-sse => /home/lars/projects/go-sse` | Workspace couldn't resolve go-sse without it             |
+| `bdd_realtime_test.go:249`     | `: keepalive` → `: heartbeat`                                               | go-sse `WriteHeartbeat` uses "heartbeat" not "keepalive" |
+| `sse_event_test.go:231`        | `: keepalive\n\n` → `: heartbeat\n\n`                                       | Same rename                                              |
+| `benchmark_server_test.go:140` | `: keepalive\n\n` → `: heartbeat\n\n`                                       | Last remaining stale reference                           |
 
 `go.mod` already had `go-sse v0.1.0` with a local replace (was committed by prior work). I didn't touch it.
 
@@ -109,6 +110,7 @@ A refactor extracted SSE primitives (Broadcaster, Stream, Event, fanOut) from cq
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Critical (blocks consumers / publishing)
+
 1. Publish `go-sse` as a real tagged release (v0.1.0+ to GitHub)
 2. Update `go.mod` to use the published go-sse tag (remove local replace)
 3. Remove `go.work` local replace for go-sse once published
@@ -118,6 +120,7 @@ A refactor extracted SSE primitives (Broadcaster, Stream, Event, fanOut) from cq
 7. Run full `nix run .#test` (all submodules, GOWORK=off) after go-sse is published
 
 ### Documentation
+
 8. Update `AGENTS.md` with go-sse extraction details (SSE types are now aliases)
 9. Update `AGENTS.md` Key Dependencies section to list go-sse
 10. Update `AGENTS.md` gotchas about heartbeat string change
@@ -127,6 +130,7 @@ A refactor extracted SSE primitives (Broadcaster, Stream, Event, fanOut) from cq
 14. Check if `docs/DOMAIN_LANGUAGE.md` needs SSE vocabulary updates
 
 ### Testing & Verification
+
 15. Run full `nix run .#test-race` to confirm all submodules pass
 16. Run `nix run .#lint` (golangci-lint) to catch any new lint issues
 17. Run `nix run .#coverage` and `nix run .#coverage-gate` (root ≥90%, usermgmt ≥74%)
@@ -138,6 +142,7 @@ A refactor extracted SSE primitives (Broadcaster, Stream, Event, fanOut) from cq
 23. Run the integration_test submodule specifically for SSE scenarios
 
 ### Code Quality
+
 24. Verify `OnSubscribe`/`OnUnsubscribe` methods still exist on the Broadcaster (removed in the refactor — check if any consumer uses them)
 25. Check if `fanOut` is still referenced anywhere in cqrs-htmx (should be gone now)
 26. Audit all SSE type aliases in `sse_event.go` for completeness
@@ -149,6 +154,7 @@ A refactor extracted SSE primitives (Broadcaster, Stream, Event, fanOut) from cq
 32. Check `ratelimit_config.go` — it also showed up in the broken imports list
 
 ### Architecture & Dependencies
+
 33. Add go-sse to the "Key dependencies" list in AGENTS.md
 34. Decide: should go-sse be part of the go-cqrs-lite ecosystem or standalone?
 35. Check if go-sse needs its own coverage gate / lint config
@@ -158,6 +164,7 @@ A refactor extracted SSE primitives (Broadcaster, Stream, Event, fanOut) from cq
 39. Audit go-sse's own go.sum for consistency
 
 ### Pre-Publish Checklist
+
 40. Run `nix flake check` to verify the flake is valid
 41. Verify GOPRIVATE is set correctly for go-sse in the nix devShell
 42. Check if go-sse needs to be added to GOPRIVATE in CI

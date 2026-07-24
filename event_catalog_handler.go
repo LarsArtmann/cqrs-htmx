@@ -1,9 +1,7 @@
 package cqrshtmx
 
 import (
-	"hash/fnv"
 	"net/http"
-	"strconv"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -53,6 +51,7 @@ func (s *eventCatalogServer) serve(w http.ResponseWriter, r *http.Request) {
 
 	if match := r.Header.Get("If-None-Match"); match != "" && match == s.etag {
 		w.WriteHeader(http.StatusNotModified)
+
 		return
 	}
 

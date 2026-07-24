@@ -33,6 +33,7 @@ go-error-family v0.8.0 added `HTTPStatus() int` as a method on `*Error`
 defined in `errors_status.go`.
 
 The old `carrierStatus()` function was:
+
 ```go
 carrier, ok := errors.AsType[HTTPStatusCarrier](err)
 status := carrier.HTTPStatus()
@@ -58,6 +59,7 @@ even when an `errorfamily.Error` wrapper sits on top of an
 
 A previous session had started refactoring SSE/WS broadcasters to use the
 new `github.com/larsartmann/go-sse` package. Files modified:
+
 - `sse_broadcaster.go`: Now embeds `*sse.Broadcaster[sse.Event]` instead of `*fanOut[SSEEvent]`
 - `ws_broadcaster.go`: Now embeds `*sse.Broadcaster[string]` instead of `*fanOut[string]`
 - `sse_store.go`: Now delegates `ReplayEvents` to `sse.Replay`
@@ -93,7 +95,7 @@ to `go.work`, then `go get github.com/larsartmann/go-sse` in root, then
 - **Lint/typecheck in GOWORK=off mode:** The lint step (`nix run .#lint`) sets
   `GOWORK=off` and runs `golangci-lint` per-module against published tags. The
   root module lint shows a typecheck error: `event_store_sse_test.go:273:
-  undefined: id.StreamRef`. The local go-cqrs-lite has `StreamRef` (renamed from
+undefined: id.StreamRef`. The local go-cqrs-lite has `StreamRef` (renamed from
   `AggregateRef`), but published `id/v4@v4.0.3` only has `AggregateRef`. This is
   a **workspace-vs-published-version mismatch** that tests don't catch (workspace
   mode uses local replaces). BuildFlow's own linter doesn't run `GOWORK=off`
@@ -157,6 +159,7 @@ to `go.work`, then `go get github.com/larsartmann/go-sse` in root, then
 ## f) Next Steps (Up to 50)
 
 ### Critical / Immediate
+
 1. Publish `go-sse` as a git repo with at least one tag, or add it to go.work `use` block
 2. Fix the lint typecheck: either tag go-cqrs-lite id/v4 with the StreamRef rename, or update test to use `AggregateRef`
 3. Update AGENTS.md with go-sse dependency note and carrierStatus chain-walking gotcha
@@ -164,6 +167,7 @@ to `go.work`, then `go get github.com/larsartmann/go-sse` in root, then
 5. Run `nix run .#lint` to confirm the only remaining issue is the StreamRef typecheck
 
 ### go-sse Extraction
+
 6. Review the SSE/WS broadcaster refactor for semantic equivalence with old fanOut
 7. Check if `sse.Broadcaster` has configurable buffer capacity (old fanOut default was 64)
 8. Verify `sse.Broadcaster.Subscribe/Unsubscribe` channel lifecycle matches old API
@@ -172,6 +176,7 @@ to `go.work`, then `go get github.com/larsartmann/go-sse` in root, then
 11. Add go-sse to the `go.work` `use()` block if it should be a workspace member
 
 ### Dependency Hygiene
+
 12. Audit ALL workspace go.mod files for any remaining zero pseudo-versions
 13. Add a CI check that rejects `00010101000000-000000000000` in any go.mod
 14. Consider a `go work sync` to align all module versions
@@ -179,6 +184,7 @@ to `go.work`, then `go get github.com/larsartmann/go-sse` in root, then
 16. Verify `nix run .#coverage` and `nix run .#coverage-gate` still pass
 
 ### Testing
+
 17. Run the full examples test suite (`examples/*/go test`)
 18. Verify `nix run .#test` passes (it may run differently than per-module tests)
 19. Add a test that verifies `WithHTTPStatus` works when wrapped by `errorfamily.NewRejection`
@@ -186,12 +192,14 @@ to `go.work`, then `go get github.com/larsartmann/go-sse` in root, then
 21. Add a test for MapError with unknown error type (should return 503 via Transient default)
 
 ### Documentation
+
 22. Document the go-sse extraction in a CHANGELOG entry
 23. Update the architecture section in AGENTS.md to mention go-sse
 24. Add go-sse to the dependency direction diagram
 25. Create an ADR for the SSE/WS broadcaster extraction to go-sse
 
 ### Pre-existing Issues Noticed
+
 26. The `id.StreamRef` vs `id.AggregateRef` rename needs to be resolved in lint mode
 27. Check if other test files use `StreamRef` in ways that would break with published tags
 28. The `go.work` replace comment block should mention go-sse as a new local replace
@@ -199,6 +207,7 @@ to `go.work`, then `go get github.com/larsartmann/go-sse` in root, then
 30. Check if cqrs-lint needs updating for the go-sse package
 
 ### Broader Quality
+
 31. Run `nix flake check` to verify the flake is healthy
 32. Run the hierarchical-errors skill to check for error handling modernization
 33. Review whether the carrierStatus fix should be upstreamed to go-error-family docs
