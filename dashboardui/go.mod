@@ -13,10 +13,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.8.0
-	github.com/larsartmann/templ-components v1.1.0
+	github.com/larsartmann/templ-components v1.2.0
 )
 
 require (
+	github.com/Oudwins/tailwind-merge-go v0.2.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
