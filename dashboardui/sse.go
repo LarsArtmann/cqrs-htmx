@@ -21,6 +21,33 @@ type sseEventPayload struct {
 	EventID    string `json:"eventId"`
 }
 
+func newSSEEvent(evt event.Event) cqrshtmx.SSEEvent {
+	payload := sseEventPayload{
+		Type:       string(evt.Type()),
+		StreamType: string(evt.StreamType()),
+		StreamID:   evt.StreamID().String(),
+		Version:    evt.Version().UInt64(),
+		OccurredAt: evt.OccurredAt().Format(time.RFC3339),
+		EventID:    evt.ID().String(),
+	}
+
+	data, err := json.Marshal(payload)
+	if err != nil {
+		slog.Error("dashboardui: marshal SSE event", "error", err, "eventType", payload.Type)
+
+		return cqrshtmx.SSEEvent{
+			Event: "event",
+			ID:    cqrshtmx.NewSSEEventID(payload.EventID),
+		}
+	}
+
+	return cqrshtmx.SSEEvent{
+		Event: "event",
+		Data:  string(data),
+		ID:    cqrshtmx.NewSSEEventID(payload.EventID),
+	}
+}
+
 // startEventBridge subscribes to the event bus and forwards every event
 // to the internal SSE broadcaster. Called once during [New] when
 // Config.EventBus is configured.
@@ -30,27 +57,7 @@ func (d *Dashboard) startEventBridge() {
 	}
 
 	handler := func(_ context.Context, evt event.Event) error {
-		payload := sseEventPayload{
-			Type:       string(evt.Type()),
-			StreamType: string(evt.StreamType()),
-			StreamID:   evt.StreamID().String(),
-			Version:    evt.Version().UInt64(),
-			OccurredAt: evt.OccurredAt().Format(time.RFC3339),
-			EventID:    evt.ID().String(),
-		}
-
-		data, err := json.Marshal(payload)
-		if err != nil {
-			slog.Error("dashboardui: marshal SSE event", "error", err, "eventType", payload.Type)
-
-			return nil
-		}
-
-		d.broadcaster.Broadcast(cqrshtmx.SSEEvent{
-			Event: "event",
-			Data:  string(data),
-			ID:    cqrshtmx.NewSSEEventID(payload.EventID),
-		})
+		d.broadcaster.Broadcast(newSSEEvent(evt))
 
 		return nil
 	}
@@ -61,7 +68,7 @@ func (d *Dashboard) startEventBridge() {
 }
 
 // sseHandler serves the SSE stream endpoint. Each connected client
-// receives replayed events followed by the live event feed.
+// receives a live feed of events as they are published to the event bus.
 func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 	if d.broadcaster == nil {
 		http.Error(w, "SSE not available (no event bus configured)", http.StatusServiceUnavailable)

@@ -411,8 +411,8 @@ func TestDashboard_SSEBridgeWorks(t *testing.T) {
 	// The broadcaster should receive the event
 	select {
 	case sseEvt := <-ch:
-		if !strings.Contains(sseEvt.Data, "order.placed") {
-			t.Errorf("SSE event data should contain event type, got: %s", sseEvt.Data)
+		if sseEvt.ID.Get() != evt.ID().String() {
+			t.Errorf("SSE event ID = %q, want %q", sseEvt.ID.Get(), evt.ID().String())
 		}
 
 	case <-time.After(time.Second):

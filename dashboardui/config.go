@@ -74,6 +74,8 @@ type Config struct {
 	// keep-alive comment frames. A non-positive value disables heartbeats.
 	// Default: 15 seconds.
 	SSEHeartbeatInterval time.Duration
+
+	// PayloadRenderer formats event payloads for display. If nil,
 	// DefaultPayloadRenderer is used (JSON/CBOR pretty-print).
 	PayloadRenderer PayloadRenderer
 
