@@ -5,17 +5,17 @@
 > For what exists today, see [FEATURES.md](FEATURES.md).
 > For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-07-22 | **Version:** v4.3.0+unreleased (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions)
+**Updated:** 2026-07-24 | **Version:** v4.5.0 (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions)
 
 ## Current State
 
-- **Version:** v4.3.0+unreleased (12 modules: root + usermgmt + 3 auth sub-modules + adminui + loginpage + integration_test + 4 examples)
-- **Coverage:** 93.8% root, 80.2% usermgmt, 88.2% totp, 89.2% webauthn, 88.3% oauth2, 69.0% adminui, 80.1% loginpage (~920 tests), race-safe. CI gates: root 90%, usermgmt 74%, auth 80%, adminui 66%, loginpage 80% (see `nix run .#coverage-gate`)
+- **Version:** v4.5.0 (15 modules: root + identity-model + usermgmt + 3 auth sub-modules + adminui + loginpage + dashboardui + integration_test + 5 examples)
+- **Coverage:** 93.5% root, 81.0% usermgmt, ~41% identity-model, 88.2% totp, 89.2% webauthn, 88.3% oauth2, 69.0% adminui, 80.1% loginpage (~950 tests), race-safe. CI gates: root 90%, usermgmt 74%, auth 80%, adminui 66%, loginpage 80% (see `nix run .#coverage-gate`)
 - **Lint:** 0 issues across all linted modules
-- **ErrorFamily:** 0 violations across all modules (sub-modules adopted go-error-family directly in v4.2.0)
-- **Dependencies:** go-cqrs-lite v4.0.x (sub-modules v4.0.0–v4.0.2), go-error-family v0.7.0, go-branded-id v0.3.2, httputil v0.5.0, templ-components v0.16.0. Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are in optional sub-modules — core usermgmt has ZERO auth deps
-- **Architecture:** Fully event-sourced usermgmt (12 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay). Auth strategies extracted behind interfaces (ADR-0035). loginpage module (passwordless login UI). adminui module (templ+HTMX dashboard).
-- **Modules:** 12 Go modules in go.work (root, usermgmt, usermgmt/totp, usermgmt/webauthn, usermgmt/oauth2, adminui, loginpage, integration_test, 4 examples)
+- **ErrorFamily:** 0 violations across all modules
+- **Dependencies:** go-cqrs-lite v4.0.x (sub-modules v4.0.0–v4.0.2), go-error-family v0.8.0, go-branded-id v0.3.2, go-sse v0.2.0, httputil v0.5.0, templ-components v0.16.0. Casbin v3 is a first-class dependency of identity-model (ADR-0044). Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are in optional sub-modules — core usermgmt has ZERO auth deps
+- **Architecture:** identity-model is the domain source of truth (pure types, fold functions, Authz engine, constants). usermgmt re-exports via type aliases. Fully event-sourced (22 events, 19 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay via projectionhost). dashboardui provides CQRS/ES observability (event browser, projection health, time-travel inspector, SSE live updates). Auth strategies extracted behind interfaces (ADR-0035).
+- **Modules:** 15 Go modules in go.work (root, identity-model, usermgmt, usermgmt/totp, usermgmt/webauthn, usermgmt/oauth2, adminui, loginpage, dashboardui, integration_test, examples/basic, examples/catalog-demo, examples/datastar-demo, examples/admin-demo, examples/dashboard-demo)
 
 ---
 
