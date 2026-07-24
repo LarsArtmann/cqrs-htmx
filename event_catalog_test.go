@@ -115,7 +115,7 @@ func TestEventCatalog_JSON(t *testing.T) {
 	for _, want := range []string{
 		`"type": "UserRegistered"`,
 		`"aggregate": "User"`,
-		`"schema_version": 2`,
+		`"schemaVersion": 2`,
 		`"type": "TenantCreated"`,
 		`"aggregate": "Tenant"`,
 		`"email"`,
