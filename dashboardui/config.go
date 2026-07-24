@@ -3,6 +3,7 @@ package dashboardui
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -69,7 +70,10 @@ type Config struct {
 	// EventBus enables SSE live updates (event tail, projection changes).
 	EventBus event.Bus
 
-	// PayloadRenderer formats event payloads for display. If nil,
+	// SSEHeartbeatInterval controls how often connected SSE clients receive
+	// keep-alive comment frames. A non-positive value disables heartbeats.
+	// Default: 15 seconds.
+	SSEHeartbeatInterval time.Duration
 	// DefaultPayloadRenderer is used (JSON/CBOR pretty-print).
 	PayloadRenderer PayloadRenderer
 
@@ -125,6 +129,10 @@ func (cfg Config) withDefaults() (Config, error) {
 
 	if cfg.PayloadRenderer == nil {
 		cfg.PayloadRenderer = DefaultPayloadRenderer{}
+	}
+
+	if cfg.SSEHeartbeatInterval == 0 {
+		cfg.SSEHeartbeatInterval = 15 * time.Second
 	}
 
 	return cfg, nil
