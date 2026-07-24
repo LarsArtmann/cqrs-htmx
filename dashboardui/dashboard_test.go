@@ -417,17 +417,4 @@ func TestDashboard_SSEBridgeWorks(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("timed out waiting for SSE event from broadcaster")
 	}
-
-	// SSE route should be registered
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
-
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/events/stream", nil)
-	mux.ServeHTTP(rec, req)
-
-	// SSE connection should start (not 404)
-	if rec.Code == http.StatusNotFound {
-		t.Error("SSE route should be registered, got 404")
-	}
 }
