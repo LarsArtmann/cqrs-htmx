@@ -166,14 +166,14 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			Expect(body).To(ContainSubstring("event: e2\ndata: d2\n\n"))
 		})
 
-		It("sends HTML via SendHTML convenience method", func() {
+		It("sends data via SendData convenience method", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
 			defer stream.Close()
 
-			err := stream.SendHTML("todoUpdated", "<ul><li>Buy milk</li></ul>")
+			err := stream.SendData("todoUpdated", "<ul><li>Buy milk</li></ul>")
 			Expect(err).NotTo(HaveOccurred())
 
 			body := w.Body.String()

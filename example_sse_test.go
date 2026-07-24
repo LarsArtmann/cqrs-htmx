@@ -38,7 +38,7 @@ func ExampleSSEStream() {
 	defer stream.Close()
 
 	_ = stream.Send(cqrshtmx.SSEEvent{Event: "update", Data: "<div>new</div>"})
-	_ = stream.SendHTML("update", "<div>newer</div>")
+	_ = stream.SendData("update", "<div>newer</div>")
 
 	fmt.Println(w.Header().Get("Content-Type"))
 	// Output: text/event-stream
