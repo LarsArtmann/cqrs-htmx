@@ -39,7 +39,146 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
-	notImplemented(w, "Event Detail")
+	eventIDStr := r.PathValue("id")
+
+	eventID, err := id.ParseEventID(eventIDStr)
+	if err != nil {
+		http.Error(w, "invalid event ID: "+err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	evt, err := d.loadEventByID(r.Context(), eventID)
+	if err != nil {
+		http.Error(w, "event not found: "+err.Error(), http.StatusNotFound)
+
+		return
+	}
+
+	p := d.page("Event: "+truncate(string(evt.Type()), 30), "/events", r)
+	html := d.renderEventDetail(p, evt)
+	renderPage(w, r, html)
+}
+
+// loadEventByID retrieves a single event. Uses EventByIDLoader if available
+// (O(1)), otherwise scans the journal.
+func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) {
+	if d.cfg.EventByIDLoader != nil {
+		return d.cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
+	}
+
+	if d.cfg.SeekableJournal != nil {
+		const scanLimit = 5000
+
+		var after id.EventID
+
+		for {
+			batch, err := d.cfg.SeekableJournal.ReadFrom(ctx, after, scanLimit)
+			if err != nil {
+				return nil, fmt.Errorf("scan journal for event: %w", err)
+			}
+
+			for _, evt := range batch {
+				if evt.ID() == eventID {
+					return evt, nil
+				}
+			}
+
+			if len(batch) < scanLimit {
+				break
+			}
+
+			after = batch[len(batch)-1].ID()
+		}
+
+		return nil, fmt.Errorf("event %s not found in journal scan", eventID)
+	}
+
+	if d.cfg.Journal != nil {
+		all, err := d.cfg.Journal.ReadAll(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("read journal: %w", err)
+		}
+
+		for _, evt := range all {
+			if evt.ID() == eventID {
+				return evt, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("no event source available to load event %s", eventID)
+}
+
+func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
+	return d.renderLayout(p, func() string {
+		var b strings.Builder
+
+		payload := renderPayload(d.cfg.PayloadRenderer, evt)
+		meta := evt.Metadata()
+
+		fmt.Fprintf(&b, `<div style="margin-bottom:24px">`)
+		fmt.Fprintf(&b, `<h2 style="margin:0 0 4px"><code>%s</code></h2>`, esc(string(evt.Type())))
+		fmt.Fprintf(&b, `<div style="color:var(--muted);font-size:0.85em;font-family:monospace">%s</div>`, esc(evt.ID().String()))
+		b.WriteString(`</div>`)
+
+		b.WriteString(`<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">`)
+
+		// Metadata panel
+		b.WriteString(`<div><h4 style="margin:0 0 8px">Metadata</h4><table style="width:100%%;border-collapse:collapse;font-size:0.88em">`)
+		metaRow(&b, "Stream Type", esc(string(evt.StreamType())))
+		metaRow(&b, "Stream ID", esc(evt.StreamID().String()))
+		metaRow(&b, "Version", esc(evt.Version().String()))
+		metaRow(&b, "Schema Version", esc(fmt.Sprintf("%d", evt.SchemaVersion())))
+		metaRow(&b, "Encoding", esc(string(evt.Encoding())))
+		metaRow(&b, "Occurred At", esc(evt.OccurredAt().Format(time.RFC3339)))
+
+		if corrID := meta.CorrelationID.String(); corrID != "" {
+			metaRow(&b, "Correlation ID", esc(corrID))
+		}
+
+		if causID := meta.CausationID.String(); causID != "" {
+			metaRow(&b, "Causation ID", esc(causID))
+		}
+
+		if userID := meta.UserID.String(); userID != "" {
+			metaRow(&b, "User ID", esc(userID))
+		}
+
+		if reqID := meta.RequestID.String(); reqID != "" {
+			metaRow(&b, "Request ID", esc(reqID))
+		}
+
+		if deadline, ok := evt.Deadline(); ok {
+			metaRow(&b, "Deadline", esc(deadline.Format(time.RFC3339)))
+		}
+
+		b.WriteString(`</table>`)
+
+		if len(meta.Custom) > 0 {
+			b.WriteString(`<h4 style="margin:16px 0 8px">Custom Metadata</h4><table style="width:100%%;border-collapse:collapse;font-size:0.88em">`)
+			for k, v := range meta.Custom {
+				metaRow(&b, esc(string(k)), esc(v))
+			}
+
+			b.WriteString(`</table>`)
+		}
+
+		b.WriteString(`</div>`)
+
+		// Payload panel
+		b.WriteString(`<div><h4 style="margin:0 0 8px">Payload</h4>`)
+		fmt.Fprintf(
+			&b,
+			`<pre style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;font-size:0.85em;line-height:1.5;margin:0"><code>%s</code></pre>`,
+			esc(string(payload)),
+		)
+		b.WriteString(`</div>`)
+
+		b.WriteString(`</div>`)
+
+		return b.String()
+	})
 }
 
 func (d *Dashboard) loadRecentEvents(ctx context.Context, limit int) ([]event.Event, error) {

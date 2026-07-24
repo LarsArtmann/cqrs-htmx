@@ -20,6 +20,13 @@ const (
 	maxPageSize        = 200
 )
 
+// EventByIDLoader loads a single event by its EventID in O(1). Implemented
+// by SQL event stores. If not configured, the dashboard falls back to
+// scanning the event journal for event detail views.
+type EventByIDLoader interface {
+	LoadByEventID(ctx context.Context, eventID id.EventID) (event.Event, error)
+}
+
 // Config wires the dashboard to go-cqrs-lite introspection interfaces.
 // Only EventSource or a Journal is required; everything else is optional
 // and conditionally activates panels.
@@ -27,6 +34,10 @@ type Config struct {
 	// EventSource provides per-aggregate event loading (aggregate detail,
 	// time-travel). Can be nil if only the global event log is needed.
 	EventSource event.EventSource
+
+	// EventByIDLoader provides O(1) single-event lookup by EventID.
+	// If nil, the dashboard scans the journal for event detail views.
+	EventByIDLoader EventByIDLoader
 
 	// Journal or SeekableJournal provides the global event log.
 	// SeekableJournal is preferred (paginated). Journal is the fallback.
@@ -122,21 +133,23 @@ func (cfg Config) withDefaults() (Config, error) {
 // interfaces the consumer provided. The dashboard uses this to decide
 // which nav items to show and which routes to register.
 type Capabilities struct {
-	EventSource     bool
-	Journal         bool
-	SeekableJournal bool
-	StreamReader    bool
-	ProjectionHost  bool
-	DeadLetterStore bool
-	CommandJournal  bool
-	QueryJournal    bool
-	SnapshotStore   bool
-	EventBus        bool
+	EventSource      bool
+	EventByIDLoader  bool
+	Journal          bool
+	SeekableJournal  bool
+	StreamReader     bool
+	ProjectionHost   bool
+	DeadLetterStore  bool
+	CommandJournal   bool
+	QueryJournal     bool
+	SnapshotStore    bool
+	EventBus         bool
 }
 
 func (cfg Config) capabilities() Capabilities {
 	return Capabilities{
 		EventSource:     cfg.EventSource != nil,
+		EventByIDLoader: cfg.EventByIDLoader != nil,
 		Journal:         cfg.Journal != nil,
 		SeekableJournal: cfg.SeekableJournal != nil,
 		StreamReader:    cfg.StreamReader != nil,
