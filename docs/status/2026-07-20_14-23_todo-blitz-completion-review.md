@@ -4,6 +4,11 @@
 **Session scope:** Resume OpenAPI integration verification → full workspace gates → doc updates → brutal self-review  
 **Overall verdict:** 🟡 **Functional but has a concurrency bug and process violations — not production-ready**
 
+> **Update 2026-07-20 (commit in `2026-07-20_23-04`):** The critical OpenAPISpecHandler data race
+> was FIXED via eager serialization in the constructor — the handler is now immutable and
+> concurrency-safe post-construction. The OpenAPI spec builder shipped in v4.5.0 as
+> FULLY_FUNCTIONAL (see FEATURES.md).
+
 ---
 
 ## a) FULLY DONE ✅

@@ -134,3 +134,9 @@ graph TD
 | ETag mismatch after asset move                 | Bump adminui ETag + root has its own ETag                                            |
 | Consumer confusion (where is sync-worker now?) | Root handlers + updated recipe + backward compat path in adminui                     |
 | sync-client.js load order with htmx            | sync-client.js uses DOMContentLoaded — htmx.js loads in `<head>`, always ready first |
+
+---
+
+> **Resolution (2026-07-22, v4.5.0):** Executed. `sync/sync-worker.js` + `sync/sync-client.js`
+> moved to root module. `SyncWorkerHandler()` / `SyncClientHandler()` serve them. adminui delegates.
+> ADR-0042 documents the decision. See status reports `2026-07-22_18-02` through `2026-07-22_19-23`.

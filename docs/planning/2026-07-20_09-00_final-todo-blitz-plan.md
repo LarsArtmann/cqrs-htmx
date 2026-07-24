@@ -66,3 +66,10 @@
 ## Final deliverable
 
 Table view of all 5 TODOs: status, files touched, verification result.
+
+---
+
+> **Resolution (2026-07-20, v4.5.0):** All 5 items executed. dedup.Ring 100K benchmark, SSE
+> broadcaster load benchmarks, and property-based sequence tests shipped. AdminUI OAuth2 unlink
+> views and OpenAPI spec generation also shipped. The OpenAPI race condition found during execution
+> was fixed in `2026-07-20_23-04`. See CHANGELOG [v4.5.0].
