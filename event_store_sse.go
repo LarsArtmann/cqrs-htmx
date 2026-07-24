@@ -2,7 +2,7 @@ package cqrshtmx
 
 import (
 	"context"
-	"log/slog"
+	"fmt"
 	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -96,10 +96,9 @@ func NewJournalSSEStore(
 // If lastID is empty, returns the most recent events (up to maxReplay).
 // If lastID is not found, returns an empty slice.
 //
-// Errors are logged at warn level and result in an empty or partial slice —
-// the SSEEventStore interface has no error return, so callers see best-effort
-// results.
-func (s *JournalSSEStore) EventsAfter(lastID SSEEventID) []SSEEvent {
+// Returns an error if the underlying journal read fails. Invalid cursor IDs
+// are treated as "not found" (empty slice, no error).
+func (s *JournalSSEStore) EventsAfter(lastID SSEEventID) ([]SSEEvent, error) {
 	ctx := context.Background()
 
 	if s.seekable != nil {
@@ -110,19 +109,14 @@ func (s *JournalSSEStore) EventsAfter(lastID SSEEventID) []SSEEvent {
 }
 
 // eventsAfterSeekable uses ReadFrom for efficient position-based replay.
-func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEventID) []SSEEvent {
+func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEventID) ([]SSEEvent, error) {
 	if lastID.Get() == "" {
 		// No cursor — return the most recent events (consistent with fullScan path).
 		// We can't use ReadFrom(zero, limit) because that returns the FIRST N,
 		// not the last N. So we ReadAll and slice the tail.
 		events, err := s.journal.ReadAll(ctx)
 		if err != nil {
-			slog.WarnContext(
-				ctx, "cqrshtmx.sse.journal_readall_failed",
-				slog.String("error", err.Error()),
-			)
-
-			return nil
+			return nil, fmt.Errorf("cqrshtmx.sse.journal_readall_failed: %w", err)
 		}
 
 		limit := s.maxReplay
@@ -134,18 +128,13 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEve
 			events = events[len(events)-limit:]
 		}
 
-		return s.mapEvents(events)
+		return s.mapEvents(events), nil
 	}
 
 	afterID, err := id.ParseEventID(lastID.Get())
 	if err != nil {
-		slog.WarnContext(
-			ctx, "cqrshtmx.sse.invalid_last_event_id",
-			slog.String("lastID", lastID.Get()),
-			slog.String("error", err.Error()),
-		)
-
-		return nil
+		// Invalid cursor — treat as "not found" rather than a store error.
+		return nil, nil
 	}
 
 	limit := s.maxReplay
@@ -155,30 +144,18 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEve
 
 	events, err := s.seekable.ReadFrom(ctx, afterID, limit)
 	if err != nil {
-		slog.WarnContext(
-			ctx, "cqrshtmx.sse.journal_read_failed",
-			slog.String("lastID", lastID.Get()),
-			slog.String("error", err.Error()),
-		)
-
-		return nil
+		return nil, fmt.Errorf("cqrshtmx.sse.journal_read_failed: %w", err)
 	}
 
-	return s.mapEvents(events)
+	return s.mapEvents(events), nil
 }
 
 // eventsAfterFullScan falls back to ReadAll + in-memory filter when the
 // journal does not support SeekableJournal.
-func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID SSEEventID) []SSEEvent {
+func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID SSEEventID) ([]SSEEvent, error) {
 	events, err := s.journal.ReadAll(ctx)
 	if err != nil {
-		slog.WarnContext(
-			ctx, "cqrshtmx.sse.journal_readall_failed",
-			slog.String("lastID", lastID.Get()),
-			slog.String("error", err.Error()),
-		)
-
-		return nil
+		return nil, fmt.Errorf("cqrshtmx.sse.journal_readall_failed: %w", err)
 	}
 
 	if lastID.Get() == "" {
@@ -188,7 +165,7 @@ func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID SSEEve
 			start = len(events) - s.maxReplay
 		}
 
-		return s.mapEvents(events[start:])
+		return s.mapEvents(events[start:]), nil
 	}
 
 	// Find the position after lastID
@@ -198,7 +175,7 @@ func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID SSEEve
 
 	if startIdx == -1 {
 		// lastID not found — return empty (matches memoryEventStore behavior)
-		return nil
+		return nil, nil
 	}
 
 	result := events[startIdx+1:]
@@ -206,7 +183,7 @@ func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID SSEEve
 		result = result[:s.maxReplay]
 	}
 
-	return s.mapEvents(result)
+	return s.mapEvents(result), nil
 }
 
 // mapEvents converts domain events to SSE events using the consumer-provided mapper.

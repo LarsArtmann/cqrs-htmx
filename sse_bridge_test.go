@@ -194,20 +194,20 @@ type memoryEventStore struct {
 	events []cqrshtmx.SSEEvent
 }
 
-func (m *memoryEventStore) EventsAfter(lastID cqrshtmx.SSEEventID) []cqrshtmx.SSEEvent {
+func (m *memoryEventStore) EventsAfter(lastID cqrshtmx.SSEEventID) ([]cqrshtmx.SSEEvent, error) {
 	if lastID.Get() == "" {
-		return m.events
+		return m.events, nil
 	}
 
 	for i, evt := range m.events {
 		if evt.ID == lastID {
 			if i+1 < len(m.events) {
-				return m.events[i+1:]
+				return m.events[i+1:], nil
 			}
 
-			return nil
+			return nil, nil
 		}
 	}
 
-	return nil
+	return nil, nil
 }
