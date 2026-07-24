@@ -31,6 +31,7 @@ func TestJournalSSEStore_EventsAfterEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
+
 	if len(result) != 0 {
 		t.Fatalf("expected 0 events from empty store, got %d", len(result))
 	}
@@ -49,6 +50,7 @@ func TestJournalSSEStore_EventsAfterAll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
+
 	if len(result) != 5 {
 		t.Fatalf("expected 5 events, got %d", len(result))
 	}
@@ -78,6 +80,7 @@ func TestJournalSSEStore_EventsAfterCursor(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
+
 	if len(result) != 2 {
 		t.Fatalf("expected 2 events after cursor, got %d", len(result))
 	}
@@ -103,6 +106,7 @@ func TestJournalSSEStore_EventsAfterLastEvent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
+
 	if len(result) != 0 {
 		t.Fatalf("expected 0 events after last, got %d", len(result))
 	}
@@ -123,6 +127,7 @@ func TestJournalSSEStore_EventsAfterNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
+
 	if len(result) != 3 {
 		t.Fatalf("expected 3 events for unknown cursor (upstream returns all), got %d", len(result))
 	}
@@ -142,6 +147,7 @@ func TestJournalSSEStore_EventsAfterInvalidCursor(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
+
 	if len(result) != 0 {
 		t.Fatalf("expected 0 events for invalid cursor, got %d", len(result))
 	}
@@ -161,6 +167,7 @@ func TestJournalSSEStore_MaxReplay(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
+
 	if len(result) != 3 {
 		t.Fatalf("expected 3 events with maxReplay=3, got %d", len(result))
 	}
@@ -200,6 +207,7 @@ func TestJournalSSEStore_FullScanFallback(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
+
 	if len(result) != 2 {
 		t.Fatalf("expected 2 events from full-scan fallback, got %d", len(result))
 	}
