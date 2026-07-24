@@ -18,7 +18,7 @@ type ProjectionStatusEntry struct {
 	Processed  int64  `json:"processed"`
 	Errors     int64  `json:"errors"`
 	Restarts   int    `json:"restarts"`
-	LagMillis  int64  `json:"lag_ms"`
+	LagMillis  int64  `json:"lagMs"`
 	LastError  string `json:"lastError,omitempty"`
 }
 

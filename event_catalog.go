@@ -21,9 +21,9 @@ type PayloadField struct {
 type EventMetadata struct {
 	Type          string         `json:"type"`
 	Aggregate     string         `json:"aggregate"`
-	SchemaVersion int            `json:"schema_version"`
+	SchemaVersion int            `json:"schemaVersion"`
 	Description   string         `json:"description,omitempty"`
-	PayloadFields []PayloadField `json:"payload_fields,omitempty"`
+	PayloadFields []PayloadField `json:"payloadFields,omitempty"`
 }
 
 // EventCatalog is a mutable registry of event types and their metadata.
@@ -60,7 +60,7 @@ func (c *EventCatalog) Register(meta EventMetadata) {
 // Events returns a copy of all registered event metadata, ordered by
 // registration. Safe to call after registration is complete.
 func (c *EventCatalog) Events() []EventMetadata {
-	result := make([]EventMetadata, len(c.events))
+	result := make([]EventMetadata, len(c.events)) //nolint:makezero // length may be zero for empty catalog
 	copy(result, c.events)
 
 	return result
