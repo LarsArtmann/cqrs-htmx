@@ -96,6 +96,9 @@ type EventSourcedSetup struct {
 	BotReadModel         *BotReadModel
 	casbinProjection     *CasbinProjection
 	projectionHost       *projectionhost.Host
+	checkpointStore      event.CheckpointStore
+	auditLog             *AuditLog
+	projections          []projection.Projection
 }
 
 // UserDecider returns the Decider for the User aggregate.
@@ -238,6 +241,9 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	}
 
 	journal := journalFromStore(store)
+	allProjections := collectProjections(
+		userProj, membershipProj, tenantProj, botProj, casbinProjection, cfg.AuditLog,
+	)
 	host, err := StartProjections(
 		journal,
 		bus,
@@ -267,5 +273,8 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		BotReadModel:         botReadModel,
 		casbinProjection:     casbinProjection,
 		projectionHost:       host,
+		checkpointStore:      cfg.CheckpointStore,
+		auditLog:             cfg.AuditLog,
+		projections:          allProjections,
 	}, nil
 }

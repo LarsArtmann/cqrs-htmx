@@ -57,6 +57,8 @@ type Service struct {
 	oauth2StateTTL           time.Duration
 	tokenPepper              TokenPepper
 	projectionHost           *projectionhost.Host
+	checkpointStore          event.CheckpointStore
+	projectionListField      []projection.Projection
 }
 
 // ServiceConfig holds optional dependencies for NewService.
