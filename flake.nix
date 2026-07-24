@@ -361,6 +361,8 @@
                   (cd examples/admin-demo && go build ./...)
                   echo "==> basic example"
                   (cd examples/basic && go build ./...)
+                  echo "==> dashboard-demo example"
+                  (cd examples/dashboard-demo && go build ./...)
                   echo "All modules built successfully."
                 '';
               };
@@ -424,6 +426,22 @@
                   export GOPRIVATE='github.com/larsartmann/*'
                   export GOEXPERIMENT=jsonv2
                   cd loginpage
+                  go test ./... -count=1 -race "$@"
+                '';
+              };
+            };
+
+            test-dashboardui = {
+              type = "app";
+              meta.description = "Run the dashboardui submodule's Go tests in isolation";
+              program = pkgs.writeShellApplication {
+                name = "test-dashboardui";
+                runtimeInputs = [ pkgs.go_1_26 ];
+                text = ''
+                  export GOWORK=off
+                  export GOPRIVATE='github.com/larsartmann/*'
+                  export GOEXPERIMENT=jsonv2
+                  cd dashboardui
                   go test ./... -count=1 -race "$@"
                 '';
               };
