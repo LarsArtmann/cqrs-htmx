@@ -87,13 +87,13 @@ find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= r
   done < <(grep '=>' "$gomod" 2>/dev/null || true)
 done
 
-# Re-resolve requires
-echo "Re-resolving requires (go mod tidy with replaces stripped)..."
-find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -not -path './examples/*' -not -path './integration_test/*' | while IFS= read -r gomod; do
-  dir="$(dirname "$gomod")"
-  echo "  tidying $dir..."
-  (cd "$dir" && GOWORK=off GOEXPERIMENT=jsonv2 go mod tidy -e 2>/dev/null || true)
-done
+# NOTE: We deliberately do NOT run `go mod tidy` here.
+# go mod tidy -e with GOWORK=off silently removes dependencies whose
+# published tags are broken (go-cqrs-lite publishing bug, unpublished go-sse).
+# This caused v4.5.0-rc1 tags to ship with empty require blocks.
+# Instead, we only strip replace directives and tag directly — the require
+# versions in go.mod were resolved via go.work replaces during development
+# and are the best available references.
 
 # Verify no pseudo-versions in tagged modules
 echo "Verifying no pseudo-versions remain..."
