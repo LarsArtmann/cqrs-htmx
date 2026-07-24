@@ -13,26 +13,29 @@ modules=(
   "usermgmt/webauthn"
   "adminui"
   "loginpage"
+  "dashboardui"
 )
 versions=(
-  "v4.4.0"
+  "v4.5.0"
+  "v4.1.0"
+  "v4.5.0"
+  "v4.5.0"
+  "v4.5.0"
+  "v4.5.0"
+  "v4.5.0"
+  "v4.5.0"
   "v4.0.0"
-  "v4.4.0"
-  "v4.4.0"
-  "v4.4.0"
-  "v4.4.0"
-  "v4.4.0"
-  "v4.4.0"
 )
 descriptions=(
-  "go-cqrs-lite v4.0.4 deps, identity-model extraction, offline sync"
-  "First release: extracted pure domain-model module"
-  "go-cqrs-lite v4 migration, identity-model integration, projectionhost"
-  "go-cqrs-lite v4 dependency alignment"
-  "go-cqrs-lite v4 dependency alignment"
-  "go-cqrs-lite v4 dependency alignment"
-  "go-cqrs-lite v4 dependency alignment, root sync delegation"
-  "go-cqrs-lite v4 dependency alignment"
+  "Event catalog, projection status, SSE broadcasting, typed handlers, dashboardui module"
+  "Upcaster registry, enhanced fold operations"
+  "Projection health monitoring, event catalog, identity-model integration"
+  "Lockstep v4.5.0 alignment"
+  "Lockstep v4.5.0 alignment"
+  "Lockstep v4.5.0 alignment"
+  "Explicit root+usermgmt dependencies, lockstep alignment"
+  "Explicit root+usermgmt dependencies, lockstep alignment"
+  "First release: CQRS/ES observability dashboard with SSE real-time updates"
 )
 
 tags=()
@@ -72,6 +75,10 @@ find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= r
   dir="$(dirname "$gomod")"
   mkdir -p "$backup_dir/$dir"
   cp "$gomod" "$backup_dir/$gomod"
+  # Also back up go.sum so it can be restored after tagging
+  if [ -f "$dir/go.sum" ]; then
+    cp "$dir/go.sum" "$backup_dir/$dir/go.sum"
+  fi
   while IFS= read -r replace_line; do
     replace_path=$(echo "$replace_line" | grep -oP 'github\.com/larsartmann/cqrs-htmx/\S+' | head -1 || true)
     if [ -n "$replace_path" ]; then
@@ -123,8 +130,12 @@ find . -name go.sum -not -path './vendor/*' -not -path './.git/*' | while IFS= r
   fi
 done
 
-git reset --soft HEAD~1
-git checkout -- .
+# Undo the temporary release commit without touching the restored working tree.
+# --mixed resets both HEAD and the index to the parent, leaving working tree
+# files (restored from backup above) intact.  Do NOT use --soft + checkout
+# here — that would overwrite the restored originals with stripped-replace
+# versions from the index.
+git reset --mixed HEAD~1
 
 echo ""
 echo "Created ${#tags[@]} tags. To push:"
