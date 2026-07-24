@@ -33,11 +33,18 @@ func New(cfg Config) (*Dashboard, error) {
 
 	caps := cfg.capabilities()
 
-	return &Dashboard{
+	d := &Dashboard{
 		cfg:  cfg,
 		caps: caps,
 		nav:  buildNav(caps, cfg.BasePath),
-	}, nil
+	}
+
+	if caps.EventBus {
+		d.broadcaster = cqrshtmx.NewBroadcaster()
+		d.startEventBridge()
+	}
+
+	return d, nil
 }
 
 // MustNew is like [New] but panics on error. For init-time setup.
