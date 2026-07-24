@@ -98,49 +98,63 @@
 
 ### High Impact
 
-**1. No projection lag observability** _(DDIA: "measure replication lag")_
+**1. No projection lag observability** _(DDIA: "measure replication lag")_ — ✅ CLOSED
 
 There's no built-in metric for "how far behind is this projection from the event log head?" `Server-Timing` headers exist for HTTP but not for projection health. Consumers flying blind on projection catch-up status.
 
 **Recommendation:** Expose `projectionHost.Status()` as a Prometheus-compatible metric or at minimum a `/health/projections` endpoint that reports each projection's last-processed event version vs. the journal head.
 
-**2. No published event schema contract** _(DDD: Published Language; DDIA: Encoding & Evolution)_
+**Resolution:** `cqrshtmx.ProjectionStatusHandler(provider)` serves live projection health as JSON with per-request ETag. `ProjectionStatusProvider` interface implemented by `*usermgmt.Service` and `*EventSourcedSetup`. See `docs/guides/projection-health-monitoring.md`.
+
+**2. No published event schema contract** _(DDD: Published Language; DDIA: Encoding & Evolution)_ — ✅ CLOSED
 
 The `openapi/` package documents HTTP endpoints — but events are ALSO part of the public API surface for any consumer building custom projections. There's no `EventCatalog` or schema documentation for the 21 event types across 4 aggregates.
 
 **Recommendation:** Generate an event catalog (similar to `OpenAPISpecHandler` but for events). Could be as simple as a Go struct registry that produces a JSON schema or markdown table of all event types + their payload shapes + current schema versions. Consumers building projections need this.
 
-**3. No event store compaction/retention guidance** _(DDIA: Log Compaction; Joshi: Segmented Log cleanup)_
+**Resolution:** `cqrshtmx.EventCatalog` + `EventCatalogHandler` serve event schemas as immutable JSON. `usermgmt.DefaultEventCatalog()` pre-registers all 21 events. See `docs/guides/event-catalog-guide.md`.
+
+**3. No event store compaction/retention guidance** _(DDIA: Log Compaction; Joshi: Segmented Log cleanup)_ — ✅ CLOSED
 
 Events accumulate forever. Snapshots help read performance but don't reduce storage. For long-running production systems, this is a growth problem that consumers will hit and not know how to solve.
 
 **Recommendation:** Document retention/compaction strategies. Even if the library doesn't implement it (the SQL backend handles its own storage), provide guidance: "After snapshotting, events older than the snapshot version can be archived to cold storage." Or provide a `Compact(aggregateID, upToVersion)` method that delegates to the store.
 
-**4. No circuit breaker for auth providers** _(DDIA: Transient faults; Stopford: fault tolerance)_
+**Resolution:** `docs/guides/event-store-storage-health.md` documents immutable event log principle, snapshotting for read performance, Postgres VACUUM/partitioning, SQLite WAL checkpointing, monitoring queries, and capacity planning with explicit "What NOT to Do" section.
+
+**4. No circuit breaker for auth providers** _(DDIA: Transient faults; Stopford: fault tolerance)_ — ✅ CLOSED
 
 OAuth2, WebAuthn, TOTP call external systems. If Google's OAuth endpoint is down, what happens? The library returns a Transient error (503) — but there's no circuit breaker to fail fast instead of queuing retries against a dead provider.
 
 **Recommendation:** Consider an opt-in circuit breaker wrapper for auth provider calls. Even documentation saying "wrap your auth provider calls with [gobreaker/sony/gobreaker]" would help. The library correctly doesn't force this, but consumers need to know it's their responsibility.
 
+**Resolution:** `docs/guides/auth-provider-fault-tolerance.md` documents transient vs permanent failures, gobreaker wrapper examples for OAuth2 and WebAuthn, and circuit breaker configuration.
+
 ### Medium Impact
 
-**5. No monotonic read guarantee documented** _(DDIA: Replication lag problems)_
+**5. No monotonic read guarantee documented** _(DDIA: Replication lag problems)_ — ✅ CLOSED
 
 Read-your-writes is solved via `waitForDrain` at startup. But there's no mechanism preventing a user from seeing a newer state, then an older state (e.g., if projections are rebuilt or if there's a race). For a single-process system this is unlikely, but the guarantee should be documented.
 
 **Recommendation:** Document the exact consistency model: "This library provides read-your-writes consistency at startup via drain. During steady-state operation, all projections process events in order per aggregate, ensuring causal consistency within a single process."
 
-**6. No event replay tooling** _(DDIA: Event sourcing benefit — temporal queries)_
+**Resolution:** `docs/guides/consistency-model.md` documents read-your-writes at startup, causal consistency per aggregate, and what is NOT guaranteed (cross-projection atomicity, multi-instance, monotonic reads during rebuild).
+
+**6. No event replay tooling** _(DDIA: Event sourcing benefit — temporal queries)_ — ✅ CLOSED
 
 The whole point of event sourcing is the ability to replay events to rebuild state. The library has the machinery (`SeekableJournal`, checkpoints, projections), but no `ReplayFrom(timestamp)` or `RebuildProjection(name)` API for consumers.
 
 **Recommendation:** Expose a `RebuildProjection(ctx, projectionName, fromVersion)` method on `projectionhost.Host`. This is the killer feature of event sourcing that's currently implicit in the machinery.
 
-**7. `usermgmt` god-package decomposition deferred** _(DDD: module boundaries)_
+**Resolution:** `RebuildProjection(ctx, name)` on both `*usermgmt.Service` and `*usermgmt.EventSourcedSetup` stops host, resets checkpoint + read-model, creates fresh host, replays journal. See `docs/guides/event-replay-and-rebuild.md` and `docs/guides/rebuild-projection-runbook.md`.
+
+**7. `usermgmt` god-package decomposition deferred** _(DDD: module boundaries)_ — ✅ CLOSED (roadmapped)
 
 ADR-0019 (Blocked) and ADR-0038 (Proposed, deferred to v5) acknowledge that usermgmt is a god-package. The aggregates are clean, but they all live in one module with shared infrastructure. This violates the bounded context principle — User, Membership, Tenant, Bot could be separate contexts.
 
 **Recommendation:** This is correctly deferred to v5. The current state works. But it should stay on the roadmap as an acknowledged debt.
+
+**Resolution:** `ROADMAP.md` now includes a "v5 Vision: usermgmt Decomposition (Deferred)" section with module boundaries, decomposition trigger criteria, proposed module tree, and cost/benefit analysis.
 
 ---
 
@@ -198,16 +212,16 @@ The current approach — explicit `UserState`, `MembershipState`, etc. with hand
 | Projections as derived state      | Applied | —                                    |
 | Idempotency (checkpoints + store) | Applied | —                                    |
 | Schema evolution (upcasters)      | Applied | —                                    |
-| Bounded contexts (modules)        | Applied | Decompose usermgmt in v5             |
+| Bounded contexts (modules)        | Applied | v5 decomposition plan in ROADMAP     |
 | Small aggregates                  | Applied | —                                    |
-| Read-your-writes                  | Applied | Document steady-state guarantees     |
+| Read-your-writes                  | Applied | Documented in `docs/guides/consistency-model.md` |
 | DLQ + retry                       | Applied | —                                    |
 | Snapshotting                      | Applied | —                                    |
-| Projection lag observability      | Missing | Add health/metrics endpoint          |
-| Published event schemas           | Missing | Generate event catalog               |
-| Compaction/retention guidance     | Missing | Document strategies                  |
-| Circuit breaker for auth          | Missing | Document consumer responsibility     |
-| Replay tooling                    | Missing | Expose `RebuildProjection`           |
+| Projection lag observability      | Closed  | `ProjectionStatusHandler` + guide    |
+| Published event schemas           | Closed  | `EventCatalogHandler` + `DefaultEventCatalog` |
+| Compaction/retention guidance     | Closed  | `docs/guides/event-store-storage-health.md` |
+| Circuit breaker for auth          | Closed  | `docs/guides/auth-provider-fault-tolerance.md` |
+| Replay tooling                    | Closed  | `RebuildProjection` + runbook guide  |
 | Distributed consensus             | Don't   | Consumer's DB handles this           |
 | Message broker                    | Don't   | Out of scope for a library           |
 | Schema registry                   | Don't   | Upcasters are sufficient             |
