@@ -28,6 +28,33 @@
           lib,
           ...
         }:
+        let
+          goPkg = pkgs.go_1_26;
+
+          goEnv = ''
+            export GOWORK=off
+            export GOPRIVATE='github.com/larsartmann/*,github.com/LarsArtmann/*'
+            export GOEXPERIMENT=jsonv2
+            export GOTOOLCHAIN=local
+          '';
+
+          goApp =
+            {
+              name,
+              text,
+              description ? null,
+              runtimeInputs ? [ ],
+            }:
+            {
+              type = "app";
+              meta = lib.optionalAttrs (description != null) { inherit description; };
+              program = pkgs.writeShellApplication {
+                inherit name;
+                runtimeInputs = [ goPkg ] ++ runtimeInputs;
+                text = goEnv + text;
+              };
+            };
+        in
         {
           treefmt = {
             projectRootFile = "go.mod";
@@ -54,7 +81,6 @@
               description = "Go library for go-cqrs-lite with HTMX, templ, and Casbin authorization";
               homepage = "https://github.com/larsartmann/cqrs-htmx";
               license = licenses.mit;
-              mainProgram = "cqrs-htmx";
               maintainers = [
                 {
                   name = "Lars Artmann";
@@ -68,7 +94,7 @@
           devShells = {
             default = pkgs.mkShellNoCC {
               packages = [
-                pkgs.go_1_26
+                goPkg
                 pkgs.gopls
                 pkgs.golangci-lint
                 pkgs.tailwindcss_4
@@ -76,19 +102,22 @@
               ];
 
               GOWORK = "off";
-              GOPRIVATE = "github.com/larsartmann/*";
+              GOPRIVATE = "github.com/larsartmann/*,github.com/LarsArtmann/*";
               GOEXPERIMENT = "jsonv2";
+              GOTOOLCHAIN = "local";
             };
 
             ci = pkgs.mkShellNoCC {
               packages = [
-                pkgs.go_1_26
+                goPkg
                 pkgs.golangci-lint
+                pkgs.templ
               ];
 
               GOWORK = "off";
-              GOPRIVATE = "github.com/larsartmann/*";
+              GOPRIVATE = "github.com/larsartmann/*,github.com/LarsArtmann/*";
               GOEXPERIMENT = "jsonv2";
+              GOTOOLCHAIN = "local";
             };
           };
 
@@ -98,447 +127,342 @@
           };
 
           apps = {
-            test = {
-              type = "app";
-              program = pkgs.writeShellApplication {
-                name = "run-tests";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  echo "==> Root module"
-                  go test ./... -count=1 -race
-                  echo "==> identity-model submodule"
-                  (cd identity-model && go test ./... -count=1 -race)
-                  echo "==> usermgmt submodule"
-                  (cd usermgmt && go test ./... -count=1 -race)
-                  echo "==> usermgmt/totp submodule"
-                  (cd usermgmt/totp && go test ./... -count=1 -race)
-                  echo "==> usermgmt/webauthn submodule"
-                  (cd usermgmt/webauthn && go test ./... -count=1 -race)
-                  echo "==> usermgmt/oauth2 submodule"
-                  (cd usermgmt/oauth2 && go test ./... -count=1 -race)
-                  echo "==> adminui submodule"
-                  (cd adminui && go test ./... -count=1 -race)
-                  echo "==> loginpage submodule"
-                  (cd loginpage && go test ./... -count=1 -race)
-                  echo "==> dashboardui submodule"
-                  (cd dashboardui && go test ./... -count=1 -race)
-                  echo "==> integration_test submodule"
-                  (cd integration_test && go test ./... -count=1 -race)
-                '';
-              };
+            test = goApp {
+              name = "run-tests";
+              text = ''
+                echo "==> Root module"
+                go test ./... -count=1 -race
+                echo "==> identity-model submodule"
+                (cd identity-model && go test ./... -count=1 -race)
+                echo "==> usermgmt submodule"
+                (cd usermgmt && go test ./... -count=1 -race)
+                echo "==> usermgmt/totp submodule"
+                (cd usermgmt/totp && go test ./... -count=1 -race)
+                echo "==> usermgmt/webauthn submodule"
+                (cd usermgmt/webauthn && go test ./... -count=1 -race)
+                echo "==> usermgmt/oauth2 submodule"
+                (cd usermgmt/oauth2 && go test ./... -count=1 -race)
+                echo "==> adminui submodule"
+                (cd adminui && go test ./... -count=1 -race)
+                echo "==> loginpage submodule"
+                (cd loginpage && go test ./... -count=1 -race)
+                echo "==> dashboardui submodule"
+                (cd dashboardui && go test ./... -count=1 -race)
+                echo "==> integration_test submodule"
+                (cd integration_test && go test ./... -count=1 -race)
+              '';
             };
 
-            test-race = {
-              type = "app";
-              meta.description = "Run all Go tests with the race detector across all modules";
-              program = pkgs.writeShellApplication {
-                name = "run-tests-race";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  echo "==> Root module"
-                  go test ./... -count=1 -race
-                  echo "==> identity-model submodule"
-                  (cd identity-model && go test ./... -count=1 -race)
-                  echo "==> adminui submodule"
-                  (cd adminui && go test ./... -count=1 -race)
-                  echo "==> loginpage submodule"
-                  (cd loginpage && go test ./... -count=1 -race)
-                  echo "==> dashboardui submodule"
-                  (cd dashboardui && go test ./... -count=1 -race)
-                  echo "==> usermgmt submodule"
-                  (cd usermgmt && go test ./... -count=1 -race)
-                  echo "==> integration_test submodule"
-                  (cd integration_test && go test ./... -count=1 -race)
-                '';
-              };
+            test-race = goApp {
+              name = "run-tests-race";
+              description = "Run all Go tests with the race detector across all modules";
+              text = ''
+                echo "==> Root module"
+                go test ./... -count=1 -race
+                echo "==> identity-model submodule"
+                (cd identity-model && go test ./... -count=1 -race)
+                echo "==> adminui submodule"
+                (cd adminui && go test ./... -count=1 -race)
+                echo "==> loginpage submodule"
+                (cd loginpage && go test ./... -count=1 -race)
+                echo "==> dashboardui submodule"
+                (cd dashboardui && go test ./... -count=1 -race)
+                echo "==> usermgmt submodule"
+                (cd usermgmt && go test ./... -count=1 -race)
+                echo "==> integration_test submodule"
+                (cd integration_test && go test ./... -count=1 -race)
+              '';
             };
 
-            test-flake = {
-              type = "app";
-              meta.description = "Run all Go tests 3x with race detector to detect flaky tests";
-              program = pkgs.writeShellApplication {
-                name = "run-tests-flake";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  echo "==> Root module (3 iterations)"
-                  go test ./... -count=3 -race
-                  echo "==> identity-model submodule (3 iterations)"
-                  (cd identity-model && go test ./... -count=3 -race)
-                  echo "==> usermgmt submodule (3 iterations)"
-                  (cd usermgmt && go test ./... -count=3 -race)
-                  echo "==> usermgmt/totp submodule (3 iterations)"
-                  (cd usermgmt/totp && go test ./... -count=3 -race)
-                  echo "==> usermgmt/webauthn submodule (3 iterations)"
-                  (cd usermgmt/webauthn && go test ./... -count=3 -race)
-                  echo "==> usermgmt/oauth2 submodule (3 iterations)"
-                  (cd usermgmt/oauth2 && go test ./... -count=3 -race)
-                  echo "==> adminui submodule (3 iterations)"
-                  (cd adminui && go test ./... -count=3 -race)
-                  echo "==> dashboardui submodule (3 iterations)"
-                  (cd dashboardui && go test ./... -count=3 -race)
-                  echo "==> integration_test submodule (3 iterations)"
-                  (cd integration_test && go test ./... -count=3 -race)
-                '';
-              };
+            test-flake = goApp {
+              name = "run-tests-flake";
+              description = "Run all Go tests 3x with race detector to detect flaky tests";
+              text = ''
+                echo "==> Root module (3 iterations)"
+                go test ./... -count=3 -race
+                echo "==> identity-model submodule (3 iterations)"
+                (cd identity-model && go test ./... -count=3 -race)
+                echo "==> usermgmt submodule (3 iterations)"
+                (cd usermgmt && go test ./... -count=3 -race)
+                echo "==> usermgmt/totp submodule (3 iterations)"
+                (cd usermgmt/totp && go test ./... -count=3 -race)
+                echo "==> usermgmt/webauthn submodule (3 iterations)"
+                (cd usermgmt/webauthn && go test ./... -count=3 -race)
+                echo "==> usermgmt/oauth2 submodule (3 iterations)"
+                (cd usermgmt/oauth2 && go test ./... -count=3 -race)
+                echo "==> adminui submodule (3 iterations)"
+                (cd adminui && go test ./... -count=3 -race)
+                echo "==> dashboardui submodule (3 iterations)"
+                (cd dashboardui && go test ./... -count=3 -race)
+                echo "==> integration_test submodule (3 iterations)"
+                (cd integration_test && go test ./... -count=3 -race)
+              '';
             };
 
-            test-fuzz = {
-              type = "app";
-              meta.description = "Run all Go fuzz tests across all modules (FUZZTIME env var, default 30s)";
-              program = pkgs.writeShellApplication {
-                name = "run-tests-fuzz";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  FUZZTIME="''${FUZZTIME:-30s}"
+            test-fuzz = goApp {
+              name = "run-tests-fuzz";
+              description = "Run all Go fuzz tests across all modules (FUZZTIME env var, default 30s)";
+              text = ''
+                FUZZTIME="''${FUZZTIME:-30s}"
 
-                  echo "==> Root module fuzz tests"
-                  for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done
+                echo "==> Root module fuzz tests"
+                for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done
 
-                  echo "==> identity-model submodule fuzz tests"
-                  (cd identity-model && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done)
+                echo "==> identity-model submodule fuzz tests"
+                (cd identity-model && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
 
-                  echo "==> adminui submodule fuzz tests"
-                  (cd adminui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done)
+                echo "==> adminui submodule fuzz tests"
+                (cd adminui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
 
-                  echo "==> usermgmt submodule fuzz tests"
-                  (cd usermgmt && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done)
+                echo "==> usermgmt submodule fuzz tests"
+                (cd usermgmt && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
 
-                  echo "==> usermgmt/totp submodule fuzz tests"
-                  (cd usermgmt/totp && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done)
+                echo "==> usermgmt/totp submodule fuzz tests"
+                (cd usermgmt/totp && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
 
-                  echo "==> usermgmt/webauthn submodule fuzz tests"
-                  (cd usermgmt/webauthn && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done)
+                echo "==> usermgmt/webauthn submodule fuzz tests"
+                (cd usermgmt/webauthn && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
 
-                  echo "==> usermgmt/oauth2 submodule fuzz tests"
-                  (cd usermgmt/oauth2 && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done)
+                echo "==> usermgmt/oauth2 submodule fuzz tests"
+                (cd usermgmt/oauth2 && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
 
-                  echo "==> dashboardui submodule fuzz tests"
-                  (cd dashboardui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done)
+                echo "==> dashboardui submodule fuzz tests"
+                (cd dashboardui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
 
-                  echo "==> integration_test submodule fuzz tests"
-                  (cd integration_test && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                  done)
-                '';
-              };
+                echo "==> integration_test submodule fuzz tests"
+                (cd integration_test && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
+              '';
             };
 
-            lint = {
-              type = "app";
-              meta.description = "Run golangci-lint across all modules";
-              program = pkgs.writeShellApplication {
-                name = "run-lint";
-                runtimeInputs = [ pkgs.golangci-lint ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  echo "==> Root module"
-                  golangci-lint run
-                  echo "==> identity-model submodule"
-                  (cd identity-model && golangci-lint run)
-                  echo "==> usermgmt submodule"
-                  (cd usermgmt && golangci-lint run)
-                  echo "==> usermgmt/totp submodule"
-                  (cd usermgmt/totp && golangci-lint run)
-                  echo "==> usermgmt/webauthn submodule"
-                  (cd usermgmt/webauthn && golangci-lint run)
-                  echo "==> usermgmt/oauth2 submodule"
-                  (cd usermgmt/oauth2 && golangci-lint run)
-                  echo "==> adminui submodule"
-                  (cd adminui && golangci-lint run)
-                  echo "==> loginpage submodule"
-                  (cd loginpage && golangci-lint run)
-                  echo "==> dashboardui submodule"
-                  (cd dashboardui && golangci-lint run)
-                  echo "==> integration_test submodule"
-                  (cd integration_test && golangci-lint run)
-                '';
-              };
+            lint = goApp {
+              name = "run-lint";
+              description = "Run golangci-lint across all modules";
+              runtimeInputs = [ pkgs.golangci-lint ];
+              text = ''
+                echo "==> Root module"
+                golangci-lint run
+                echo "==> identity-model submodule"
+                (cd identity-model && golangci-lint run)
+                echo "==> usermgmt submodule"
+                (cd usermgmt && golangci-lint run)
+                echo "==> usermgmt/totp submodule"
+                (cd usermgmt/totp && golangci-lint run)
+                echo "==> usermgmt/webauthn submodule"
+                (cd usermgmt/webauthn && golangci-lint run)
+                echo "==> usermgmt/oauth2 submodule"
+                (cd usermgmt/oauth2 && golangci-lint run)
+                echo "==> adminui submodule"
+                (cd adminui && golangci-lint run)
+                echo "==> loginpage submodule"
+                (cd loginpage && golangci-lint run)
+                echo "==> dashboardui submodule"
+                (cd dashboardui && golangci-lint run)
+                echo "==> integration_test submodule"
+                (cd integration_test && golangci-lint run)
+              '';
             };
 
-            coverage = {
-              type = "app";
-              program = pkgs.writeShellApplication {
-                name = "run-coverage";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  echo "==> Root module coverage"
-                  go test ./... -count=1 -coverprofile=coverage.out
-                  go tool cover -func=coverage.out
-                  echo "==> identity-model submodule coverage"
-                  (cd identity-model && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                  echo "==> usermgmt submodule coverage"
-                  (cd usermgmt && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                  echo "==> usermgmt/totp submodule coverage"
-                  (cd usermgmt/totp && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                  echo "==> usermgmt/webauthn submodule coverage"
-                  (cd usermgmt/webauthn && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                  echo "==> usermgmt/oauth2 submodule coverage"
-                  (cd usermgmt/oauth2 && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                  echo "==> adminui submodule coverage"
-                  (cd adminui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                  echo "==> loginpage submodule coverage"
-                  (cd loginpage && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                  echo "==> dashboardui submodule coverage"
-                  (cd dashboardui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                '';
-              };
+            coverage = goApp {
+              name = "run-coverage";
+              text = ''
+                echo "==> Root module coverage"
+                go test ./... -count=1 -coverprofile=coverage.out
+                go tool cover -func=coverage.out
+                echo "==> identity-model submodule coverage"
+                (cd identity-model && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                echo "==> usermgmt submodule coverage"
+                (cd usermgmt && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                echo "==> usermgmt/totp submodule coverage"
+                (cd usermgmt/totp && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                echo "==> usermgmt/webauthn submodule coverage"
+                (cd usermgmt/webauthn && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                echo "==> usermgmt/oauth2 submodule coverage"
+                (cd usermgmt/oauth2 && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                echo "==> adminui submodule coverage"
+                (cd adminui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                echo "==> loginpage submodule coverage"
+                (cd loginpage && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                echo "==> dashboardui submodule coverage"
+                (cd dashboardui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+              '';
             };
 
-            build = {
-              type = "app";
-              program = pkgs.writeShellApplication {
-                name = "run-build";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  echo "==> Root module"
-                  go build ./...
-                  echo "==> identity-model submodule"
-                  (cd identity-model && go build ./...)
-                  echo "==> usermgmt submodule"
-                  (cd usermgmt && go build ./...)
-                  echo "==> usermgmt/totp submodule"
-                  (cd usermgmt/totp && go build ./...)
-                  echo "==> usermgmt/webauthn submodule"
-                  (cd usermgmt/webauthn && go build ./...)
-                  echo "==> usermgmt/oauth2 submodule"
-                  (cd usermgmt/oauth2 && go build ./...)
-                  echo "==> adminui submodule"
-                  (cd adminui && go build ./...)
-                  echo "==> loginpage submodule"
-                  (cd loginpage && go build ./...)
-                  echo "==> dashboardui submodule"
-                  (cd dashboardui && go build ./...)
-                  echo "==> integration_test submodule"
-                  (cd integration_test && go build ./...)
-                  echo "==> datastar-demo example"
-                  (cd examples/datastar-demo && go build ./...)
-                  echo "==> admin-demo example"
-                  (cd examples/admin-demo && go build ./...)
-                  echo "==> basic example"
-                  (cd examples/basic && go build ./...)
-                  echo "==> dashboard-demo example"
-                  (cd examples/dashboard-demo && go build ./...)
-                  echo "All modules built successfully."
-                '';
-              };
+            build = goApp {
+              name = "run-build";
+              text = ''
+                echo "==> Root module"
+                go build ./...
+                echo "==> identity-model submodule"
+                (cd identity-model && go build ./...)
+                echo "==> usermgmt submodule"
+                (cd usermgmt && go build ./...)
+                echo "==> usermgmt/totp submodule"
+                (cd usermgmt/totp && go build ./...)
+                echo "==> usermgmt/webauthn submodule"
+                (cd usermgmt/webauthn && go build ./...)
+                echo "==> usermgmt/oauth2 submodule"
+                (cd usermgmt/oauth2 && go build ./...)
+                echo "==> adminui submodule"
+                (cd adminui && go build ./...)
+                echo "==> loginpage submodule"
+                (cd loginpage && go build ./...)
+                echo "==> dashboardui submodule"
+                (cd dashboardui && go build ./...)
+                echo "==> integration_test submodule"
+                (cd integration_test && go build ./...)
+                echo "==> datastar-demo example"
+                (cd examples/datastar-demo && go build ./...)
+                echo "==> admin-demo example"
+                (cd examples/admin-demo && go build ./...)
+                echo "==> basic example"
+                (cd examples/basic && go build ./...)
+                echo "==> dashboard-demo example"
+                (cd examples/dashboard-demo && go build ./...)
+                echo "All modules built successfully."
+              '';
             };
 
-            test-root = {
-              type = "app";
-              meta.description = "Run the root module's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-root";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
+            test-root = goApp {
+              name = "test-root";
+              description = "Run the root module's Go tests in isolation";
+              text = ''
+                go test ./... -count=1 -race "$@"
+              '';
             };
 
-            test-usermgmt = {
-              type = "app";
-              meta.description = "Run the usermgmt submodule's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-usermgmt";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd usermgmt
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
+            test-usermgmt = goApp {
+              name = "test-usermgmt";
+              description = "Run the usermgmt submodule's Go tests in isolation";
+              text = ''
+                cd usermgmt
+                go test ./... -count=1 -race "$@"
+              '';
             };
 
-            test-adminui = {
-              type = "app";
-              meta.description = "Run the adminui submodule's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-adminui";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd adminui
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
+            test-adminui = goApp {
+              name = "test-adminui";
+              description = "Run the adminui submodule's Go tests in isolation";
+              text = ''
+                cd adminui
+                go test ./... -count=1 -race "$@"
+              '';
             };
 
-            test-loginpage = {
-              type = "app";
-              meta.description = "Run the loginpage submodule's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-loginpage";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd loginpage
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
+            test-loginpage = goApp {
+              name = "test-loginpage";
+              description = "Run the loginpage submodule's Go tests in isolation";
+              text = ''
+                cd loginpage
+                go test ./... -count=1 -race "$@"
+              '';
             };
 
-            test-dashboardui = {
-              type = "app";
-              meta.description = "Run the dashboardui submodule's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-dashboardui";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd dashboardui
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
+            test-dashboardui = goApp {
+              name = "test-dashboardui";
+              description = "Run the dashboardui submodule's Go tests in isolation";
+              text = ''
+                cd dashboardui
+                go test ./... -count=1 -race "$@"
+              '';
             };
 
-            test-integration = {
-              type = "app";
-              meta.description = "Run the integration_test module's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-integration";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd integration_test
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
+            test-integration = goApp {
+              name = "test-integration";
+              description = "Run the integration_test module's Go tests in isolation";
+              text = ''
+                cd integration_test
+                go test ./... -count=1 -race "$@"
+              '';
             };
 
-            test-totp = {
-              type = "app";
-              meta.description = "Run the usermgmt/totp submodule's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-totp";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd usermgmt/totp
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
+            test-totp = goApp {
+              name = "test-totp";
+              description = "Run the usermgmt/totp submodule's Go tests in isolation";
+              text = ''
+                cd usermgmt/totp
+                go test ./... -count=1 -race "$@"
+              '';
             };
 
-            test-webauthn = {
-              type = "app";
-              meta.description = "Run the usermgmt/webauthn submodule's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-webauthn";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd usermgmt/webauthn
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
+            test-webauthn = goApp {
+              name = "test-webauthn";
+              description = "Run the usermgmt/webauthn submodule's Go tests in isolation";
+              text = ''
+                cd usermgmt/webauthn
+                go test ./... -count=1 -race "$@"
+              '';
             };
 
-            test-oauth2 = {
-              type = "app";
-              meta.description = "Run the usermgmt/oauth2 submodule's Go tests in isolation";
-              program = pkgs.writeShellApplication {
-                name = "test-oauth2";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd usermgmt/oauth2
-                  go test ./... -count=1 -race "$@"
-                '';
-              };
+            test-oauth2 = goApp {
+              name = "test-oauth2";
+              description = "Run the usermgmt/oauth2 submodule's Go tests in isolation";
+              text = ''
+                cd usermgmt/oauth2
+                go test ./... -count=1 -race "$@"
+              '';
             };
 
-            build-datastar-demo = {
-              type = "app";
-              meta.description = "Build the datastar-demo example binary";
-              program = pkgs.writeShellApplication {
-                name = "build-datastar-demo";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  cd examples/datastar-demo
-                  go build ./... "$@"
-                '';
-              };
+            build-datastar-demo = goApp {
+              name = "build-datastar-demo";
+              description = "Build the datastar-demo example binary";
+              text = ''
+                cd examples/datastar-demo
+                go build ./... "$@"
+              '';
             };
 
-            build-admin-demo = {
-              type = "app";
-              meta.description = "Build the admin-demo example binary (runnable admin panel showcase)";
-              program = pkgs.writeShellApplication {
-                name = "build-admin-demo";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd examples/admin-demo
-                  go build ./... "$@"
-                '';
-              };
+            build-admin-demo = goApp {
+              name = "build-admin-demo";
+              description = "Build the admin-demo example binary (runnable admin panel showcase)";
+              text = ''
+                cd examples/admin-demo
+                go build ./... "$@"
+              '';
+            };
+
+            build-dashboard-demo = goApp {
+              name = "build-dashboard-demo";
+              description = "Build the dashboard-demo example binary";
+              text = ''
+                cd examples/dashboard-demo
+                go build ./... "$@"
+              '';
+            };
+
+            build-catalog-demo = goApp {
+              name = "build-catalog-demo";
+              description = "Build the catalog-demo example binary";
+              text = ''
+                cd examples/catalog-demo
+                go build ./... "$@"
+              '';
             };
 
             build-adminui-css = {
@@ -548,7 +472,7 @@
                 name = "build-adminui-css";
                 runtimeInputs = [
                   pkgs.tailwindcss_4
-                  pkgs.go_1_26
+                  goPkg
                 ];
                 text = ''
                   cd adminui
@@ -593,7 +517,7 @@
               program = pkgs.writeShellApplication {
                 name = "templ-generate";
                 runtimeInputs = [
-                  pkgs.go_1_26
+                  goPkg
                   pkgs.templ
                 ];
                 text = ''
@@ -601,36 +525,6 @@
                   templ generate
                   gofmt -w *_templ.go
                   echo "Done: adminui templ components regenerated and formatted"
-                '';
-              };
-            };
-
-            build-dashboard-demo = {
-              type = "app";
-              meta.description = "Build the dashboard-demo example binary";
-              program = pkgs.writeShellApplication {
-                name = "build-dashboard-demo";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  cd examples/dashboard-demo
-                  go build ./... "$@"
-                '';
-              };
-            };
-
-            build-catalog-demo = {
-              type = "app";
-              meta.description = "Build the catalog-demo example binary";
-              program = pkgs.writeShellApplication {
-                name = "build-catalog-demo";
-                runtimeInputs = [ pkgs.go_1_26 ];
-                text = ''
-                  export GOWORK=off
-                  cd examples/catalog-demo
-                  go build ./... "$@"
                 '';
               };
             };
@@ -691,7 +585,7 @@
               meta.description = "Run all module architecture checks (isolation, dep budgets, version drift, replace directives)";
               program = pkgs.writeShellApplication {
                 name = "check-modules";
-                runtimeInputs = [ pkgs.go_1_26 ];
+                runtimeInputs = [ goPkg ];
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-module-isolation.sh
@@ -710,7 +604,7 @@
               meta.description = "Scan .md files for version strings that don't match go.mod";
               program = pkgs.writeShellApplication {
                 name = "check-docs-freshness";
-                runtimeInputs = [ pkgs.go_1_26 ];
+                runtimeInputs = [ goPkg ];
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-docs-freshness.sh
@@ -724,7 +618,7 @@
               program = pkgs.writeShellApplication {
                 name = "check-codegen";
                 runtimeInputs = [
-                  pkgs.go_1_26
+                  goPkg
                   pkgs.templ
                 ];
                 text = ''
@@ -743,45 +637,36 @@
               };
             };
 
-            coverage-gate = {
-              type = "app";
-              meta.description = "Run tests and fail if coverage drops below thresholds";
-              program = pkgs.writeShellApplication {
-                name = "coverage-gate";
-                runtimeInputs = [
-                  pkgs.go_1_26
-                  pkgs.bc
-                ];
-                text = ''
-                  export GOWORK=off
-                  export GOPRIVATE='github.com/larsartmann/*'
-                  export GOEXPERIMENT=jsonv2
-                  fail=0
-                  check_cov() {
-                    local mod="$1" threshold="$2"
-                    local cov
-                    cov=$(cd "$mod" && go test ./... -count=1 -coverprofile=/tmp/cov >/dev/null 2>&1 && go tool cover -func=/tmp/cov | tail -1 | grep -oP '\d+\.\d+(?=%)')
-                    echo "$mod coverage: ''${cov}% (threshold: ''${threshold}%)"
-                    if (( $(echo "$cov < $threshold" | bc -l) )); then
-                      echo "FAIL: $mod coverage ''${cov}% < ''${threshold}%"
-                      fail=1
-                    fi
-                  }
-                  check_cov . 90
-                  check_cov usermgmt 74
-                  check_cov usermgmt/totp 80
-                  check_cov usermgmt/webauthn 80
-                  check_cov usermgmt/oauth2 80
-                  check_cov adminui 66
-                  check_cov loginpage 80
-                  check_cov dashboardui 60
-                  if [ "$fail" -eq 1 ]; then
-                    echo "Coverage gate FAILED"
-                    exit 1
+            coverage-gate = goApp {
+              name = "coverage-gate";
+              description = "Run tests and fail if coverage drops below thresholds";
+              runtimeInputs = [ pkgs.bc ];
+              text = ''
+                fail=0
+                check_cov() {
+                  local mod="$1" threshold="$2"
+                  local cov
+                  cov=$(cd "$mod" && go test ./... -count=1 -coverprofile=/tmp/cov >/dev/null 2>&1 && go tool cover -func=/tmp/cov | tail -1 | grep -oP '\d+\.\d+(?=%)')
+                  echo "$mod coverage: ''${cov}% (threshold: ''${threshold}%)"
+                  if (( $(echo "$cov < $threshold" | bc -l) )); then
+                    echo "FAIL: $mod coverage ''${cov}% < ''${threshold}%"
+                    fail=1
                   fi
-                  echo "Coverage gate PASSED"
-                '';
-              };
+                }
+                check_cov . 90
+                check_cov usermgmt 74
+                check_cov usermgmt/totp 80
+                check_cov usermgmt/webauthn 80
+                check_cov usermgmt/oauth2 80
+                check_cov adminui 66
+                check_cov loginpage 80
+                check_cov dashboardui 60
+                if [ "$fail" -eq 1 ]; then
+                  echo "Coverage gate FAILED"
+                  exit 1
+                fi
+                echo "Coverage gate PASSED"
+              '';
             };
 
             release-checklist = {
@@ -789,14 +674,13 @@
               meta.description = "Pre-release verification: CHANGELOG, versions, builds, git status";
               program = pkgs.writeShellApplication {
                 name = "release-checklist";
-                runtimeInputs = [ pkgs.go_1_26 ];
+                runtimeInputs = [ goPkg ];
                 text = ''
                   bash scripts/release-checklist.sh
                 '';
               };
             };
           };
-
         };
     };
 }
