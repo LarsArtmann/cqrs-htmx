@@ -4,6 +4,13 @@
 **Session scope:** Extracting a pure domain-model module from `usermgmt/` into `identity-model/`
 **Verdict:** Foundation laid, but the critical "wire it up" step was never done. This is a **copy**, not an **extraction**.
 
+> **Update 2026-07-24 (v4.5.0):** RESOLVED. The wiring was completed in two subsequent sessions
+> (`2026-07-23_19-18` + `2026-07-23_21-27`). usermgmt now imports identity-model via type aliases
+> (`type UserID = identitymodel.UserID`, etc.), eliminating the split brain. Casbin/Authz engine
+> moved to identity-model as a first-class dependency (ADR-0044). All fold functions, constants,
+> and upcaster registry consolidated. Shipped as identity-model/v4.1.0 + usermgmt/v4.5.0.
+> **Still open:** identity-model test coverage is low (~41%, 2 test files) — see TODO_LIST.
+
 ---
 
 ## a) FULLY DONE

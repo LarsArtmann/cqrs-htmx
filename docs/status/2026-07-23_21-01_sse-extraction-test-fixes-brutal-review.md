@@ -4,6 +4,10 @@
 **Session scope:** Fix failing `buildflow -s test-race` after SSE library extraction; brutally review own work
 **Status:** Tests green, but significant gaps remain
 
+> **Update 2026-07-24 (v4.5.0):** go-sse v0.2.0 is now published as a tagged release.
+> Root `go.mod` references `v0.2.0` (no longer a pseudo-version). The `go.work` replace
+> for go-sse has been removed. AGENTS.md updated with go-sse as a key dependency.
+
 ---
 
 ## What Happened This Session

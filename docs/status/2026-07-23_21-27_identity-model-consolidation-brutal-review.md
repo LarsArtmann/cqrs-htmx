@@ -3,6 +3,10 @@
 **Date:** 2026-07-23 21:27
 **Session goal:** Execute remaining Phase 2 wiring tasks — consolidate constants, fold functions, upcaster registry, add tests, ADRs, flake.nix wiring.
 
+> **Update 2026-07-24 (v4.5.0):** Shipped as identity-model/v4.1.0. ADR-0043 + ADR-0044 added.
+> **Still open:** identity-model test coverage is low (~41%, only 2 test files: `model_test.go`,
+> `upcaster_test.go`) and no coverage gate threshold is defined for this module. See TODO_LIST.
+
 ---
 
 ## a) FULLY DONE
