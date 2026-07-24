@@ -125,7 +125,10 @@ func TestService_RebuildProjection(t *testing.T) {
 	ctx := context.Background()
 
 	// Register a user so events exist in the store.
-	_, err = svc.Register(ctx, "test@example.com", "Test User")
+	resp, err := svc.Register(ctx, usermgmt.RegisterRequest{
+		ID:    usermgmt.SyntheticUserID("test-user"),
+		Email: "test@example.com",
+	})
 	if err != nil {
 		t.Fatalf("Register error: %v", err)
 	}
@@ -137,21 +140,13 @@ func TestService_RebuildProjection(t *testing.T) {
 	}
 
 	// After rebuild, the read model should still contain the user.
-	users, err := svc.ListUsers(ctx)
+	user, err := svc.GetUser(ctx, resp.User.ID)
 	if err != nil {
-		t.Fatalf("ListUsers error: %v", err)
+		t.Fatalf("GetUser error after rebuild: %v", err)
 	}
 
-	found := false
-	for _, u := range users {
-		if u.Email == "test@example.com" {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		t.Error("user not found in read model after rebuild")
+	if user.Email != "test@example.com" {
+		t.Errorf("user email after rebuild = %q, want %q", user.Email, "test@example.com")
 	}
 }
 
