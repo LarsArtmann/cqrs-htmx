@@ -59,7 +59,7 @@ type Service struct {
 	tokenPepper              TokenPepper
 	projectionHost           *projectionhost.Host
 	checkpointStore          event.CheckpointStore
-	projectionListField      []projection.Projection
+	projections              []projection.Projection
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -296,7 +296,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		auditLog:            cfg.AuditLog,
 		projectionHost:      setup.projectionHost,
 		checkpointStore:     setup.checkpointStore,
-		projectionListField: setup.projections,
+		projections:         setup.projections,
 	}
 
 	if cfg.WebAuthn != nil {
