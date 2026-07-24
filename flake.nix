@@ -123,6 +123,8 @@
                   (cd adminui && go test ./... -count=1 -race)
                   echo "==> loginpage submodule"
                   (cd loginpage && go test ./... -count=1 -race)
+                  echo "==> dashboardui submodule"
+                  (cd dashboardui && go test ./... -count=1 -race)
                   echo "==> integration_test submodule"
                   (cd integration_test && go test ./... -count=1 -race)
                 '';
@@ -147,6 +149,8 @@
                   (cd adminui && go test ./... -count=1 -race)
                   echo "==> loginpage submodule"
                   (cd loginpage && go test ./... -count=1 -race)
+                  echo "==> dashboardui submodule"
+                  (cd dashboardui && go test ./... -count=1 -race)
                   echo "==> usermgmt submodule"
                   (cd usermgmt && go test ./... -count=1 -race)
                   echo "==> integration_test submodule"
@@ -179,6 +183,8 @@
                   (cd usermgmt/oauth2 && go test ./... -count=3 -race)
                   echo "==> adminui submodule (3 iterations)"
                   (cd adminui && go test ./... -count=3 -race)
+                  echo "==> dashboardui submodule (3 iterations)"
+                  (cd dashboardui && go test ./... -count=3 -race)
                   echo "==> integration_test submodule (3 iterations)"
                   (cd integration_test && go test ./... -count=3 -race)
                 '';
@@ -239,6 +245,12 @@
                     go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
                   done)
 
+                  echo "==> dashboardui submodule fuzz tests"
+                  (cd dashboardui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done)
+
                   echo "==> integration_test submodule fuzz tests"
                   (cd integration_test && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
                     echo "    -> $fuzz"
@@ -274,6 +286,8 @@
                   (cd adminui && golangci-lint run)
                   echo "==> loginpage submodule"
                   (cd loginpage && golangci-lint run)
+                  echo "==> dashboardui submodule"
+                  (cd dashboardui && golangci-lint run)
                   echo "==> integration_test submodule"
                   (cd integration_test && golangci-lint run)
                 '';
@@ -306,6 +320,8 @@
                   (cd adminui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                   echo "==> loginpage submodule coverage"
                   (cd loginpage && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                  echo "==> dashboardui submodule coverage"
+                  (cd dashboardui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                 '';
               };
             };
@@ -335,6 +351,8 @@
                   (cd adminui && go build ./...)
                   echo "==> loginpage submodule"
                   (cd loginpage && go build ./...)
+                  echo "==> dashboardui submodule"
+                  (cd dashboardui && go build ./...)
                   echo "==> integration_test submodule"
                   (cd integration_test && go build ./...)
                   echo "==> datastar-demo example"
@@ -722,6 +740,7 @@
                   check_cov usermgmt/oauth2 80
                   check_cov adminui 66
                   check_cov loginpage 80
+                  check_cov dashboardui 60
                   if [ "$fail" -eq 1 ]; then
                     echo "Coverage gate FAILED"
                     exit 1
