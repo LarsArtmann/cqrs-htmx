@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.5.0] - 2026-07-24
+
+### Changed
+
+- **Explicit dependencies on root + usermgmt**: go.mod now directly requires `cqrs-htmx/v4` and `cqrs-htmx/usermgmt/v4` (previously transitive). All transitive dependencies materialized in go.sum.
+- **go-cqrs-lite v4.0.x dependency alignment**: Updated all go-cqrs-lite module references.
+
 ## [v4.2.0] - 2026-07-08
 
 ### Changed
