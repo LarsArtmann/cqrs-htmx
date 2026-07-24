@@ -21,7 +21,6 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -34,9 +33,8 @@ func main() {
 	cmdStore := memorystorage.NewMemoryCommandStore()
 	queryStore := memorystorage.NewMemoryQueryStore()
 	snapStore := memorystorage.NewMemorySnapshotStore()
-	bus := eventtest.NewFakeBus()
 
-	seedDemoData(store, cmdStore, queryStore, snapStore, bus)
+	seedDemoData(store, cmdStore, queryStore, snapStore)
 
 	reader := listing.NewInMemoryStreamReader(store)
 
@@ -48,7 +46,6 @@ func main() {
 		CommandJournal: cmdStore,
 		QueryJournal:   queryStore,
 		SnapshotStore:  snapStore,
-		EventBus:       bus,
 		ReadOnly:       false,
 		PageSize:       25,
 	})
@@ -89,7 +86,6 @@ func seedDemoData(
 	cmdStore *memorystorage.MemoryCommandStore,
 	queryStore *memorystorage.MemoryQueryStore,
 	snapStore *memorystorage.MemorySnapshotStore,
-	bus event.Bus,
 ) {
 	ctx := context.Background()
 
@@ -143,9 +139,6 @@ func seedDemoData(
 			"trackingNumber": fmt.Sprintf("TRK%d", i*1000+i),
 		})
 		_ = store.Save(ctx, ref, []event.Event{shipped}, event.Version(1))
-
-		// Publish to bus for SSE demo
-		_ = bus.Publish(ctx, placed, shipped)
 	}
 
 	// --- Queries ---

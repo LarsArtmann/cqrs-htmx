@@ -53,7 +53,7 @@ func TestProjectionStatusHandler_RunningState(t *testing.T) {
 				Processed:  5000,
 				Errors:     0,
 				Restarts:   0,
-				LagMillis: 1500,
+				LagMillis:  1500,
 			},
 			{
 				Name:       "casbin-projection",
@@ -62,7 +62,7 @@ func TestProjectionStatusHandler_RunningState(t *testing.T) {
 				Processed:  5000,
 				Errors:     2,
 				Restarts:   1,
-				LagMillis: 32,
+				LagMillis:  32,
 				LastError:  "connection reset",
 			},
 		},
