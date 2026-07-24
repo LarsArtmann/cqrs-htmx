@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-22 | **Version:** v4.3.0+unreleased (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.8% root, 80.2% usermgmt (recompute via `nix run .#coverage-gate`)
+**Updated:** 2026-07-24 | **Version:** v4.5.0 (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.5% root, 81.0% usermgmt, ~41% identity-model (recompute via `nix run .#coverage-gate`)
 
 ## Status legend
 
@@ -118,6 +118,8 @@
 | Event Catalog          | 🟢 `FULLY_FUNCTIONAL` | `EventCatalog` type with `Register`/`Events`/`JSON`. `EventCatalogHandler(catalog)` serves immutable JSON (1-year cache, FNV-1a ETag, 304 on match). Mirrors `OpenAPISpecHandler` pattern. Published Language for projection builders.        |
 | Projection Status      | 🟢 `FULLY_FUNCTIONAL` | `ProjectionStatusHandler(provider)` serves live projection health as JSON (`no-cache`, per-request ETag). `ProjectionStatusProvider` interface — implemented by `*usermgmt.Service` and `*usermgmt.EventSourcedSetup`. 503 when provider nil. |
 
+| Partial Rendering      | 🟢 `FULLY_FUNCTIONAL` | `RenderPartialOrFull[T](partial, full)` — auto-selects partial vs full render based on `HX-Request`. `RenderPartialOrFullFunc`, `RenderIf(check, match, noMatch)`, `RenderTemplComponent(w, r, partial, full)`, `OOBHTML(id, html, swap...)`. Eliminates boilerplate HTMX partial/full branching. v4.5.0.       |
+
 ### Real-Time — SSE
 
 | Feature            | Status                | Notes                                                                                                                                                                                                                                                                                                                           |
@@ -140,7 +142,12 @@
 | WS Broadcaster          | 🟢 `FULLY_FUNCTIONAL` | `WSBroadcaster` — thread-safe fan-out for WS messages via generic `fanOut[T]`. Mirrors SSE `Broadcaster` API. `BroadcastHTML` for OOB swaps. `SubscriberCount()`.                                                                                                                                                                                                                                                                            |
 | WS + CQRS Bridge        | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnSuccessWS(msg)` / `BroadcastOnSuccessWSFunc(fn)` / `BroadcastOnErrorWS()` / `BroadcastOnErrorWSFunc(fn)` — AfterDispatchHook factories for `WSBroadcaster`. Full parity with SSE hooks.                                                                                                                                                                                                                                          |
 | ACK Protocol (WS)       | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnAckWS()` / `BroadcastOnAckWSFunc(fn)` — WebSocket ACK counterpart to SSE ACK hooks. Same `CommandAck` JSON payload, same opt-in `X-Command-Id` header.                                                                                                                                                                                                                                                                           |
-| OpenAPI Spec Builder    | 🟢 `FULLY_FUNCTIONAL` | `openapi/` sub-package — dependency-free fluent builder for OpenAPI 3.1 documents (`New`, `Path`, `Get`/`Post`/`Put`/`Patch`/`Delete`/`Head`/`Options`, `Schema`, `Spec.JSON()`). `WithOpenAPI(op)` attaches per-handler operation metadata (no runtime effect). `OpenAPISpecHandler(spec)` serves `/openapi.json` with FNV-1a ETag, 1-year immutable cache, and 304-on-match. Complements the heavier catalog v4 reflection-based approach. |
+
+### OpenAPI Spec Builder
+
+| Feature           | Status                | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OpenAPI 3.1 Builder | 🟢 `FULLY_FUNCTIONAL` | `openapi/` sub-package — dependency-free fluent builder for OpenAPI 3.1 documents (`New`, `Path`, `Get`/`Post`/`Put`/`Patch`/`Delete`/`Head`/`Options`, `Schema`, `Spec.JSON()`). `WithOpenAPI(op)` attaches per-handler operation metadata (no runtime effect). `OpenAPISpecHandler(spec)` serves `/openapi.json` with FNV-1a ETag, 1-year immutable cache, and 304-on-match. Eager serialization at construction (concurrency-safe, immutable handler). v4.5.0. |
 
 ### Offline Sync
 
@@ -247,6 +254,26 @@
 
 ---
 
+## identity-model Module (`github.com/larsartmann/cqrs-htmx/identity-model/v4`)
+
+> Pure domain types for event-sourced identity management. Zero infrastructure dependencies.
+> Extracted from usermgmt in v4.5.0 (ADR-0043). usermgmt re-exports all types via aliases.
+
+| Feature             | Status                | Notes                                                                                                                                                                                                                                                                                                                                              |
+| ------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain IDs          | 🟢 `FULLY_FUNCTIONAL` | `UserID`, `TenantID`, `BotID`, `ActorID` (kind-discriminated: ActorUser/ActorBot), `SessionID`. Backed by go-branded-id. `NewUserID`/`ParseUserID`/`SyntheticUserID`/`GenerateUserID` constructors.                                                                                                                                                |
+| Event Payloads      | 🟢 `FULLY_FUNCTIONAL` | 22 event payload structs across User (12), Membership (3), Tenant (4), Bot (2), ExternalAccount (2), Credentials (2). Schema versioning with `CurrentSchemaVersion`.                                                                                                                                                                              |
+| Commands            | 🟢 `FULLY_FUNCTIONAL` | 19 command structs with accessor methods (`c.Email()`, `c.Roles()`, etc.). All embed `*command.BasicCommand` (ADR-0032).                                                                                                                                                                                                                          |
+| Fold Functions      | 🟢 `FULLY_FUNCTIONAL` | `FoldUser`/`FoldMembership`/`FoldTenant`/`FoldBot` — pure state reconstruction from event streams. Strict: unknown events return Rejection error.                                                                                                                                                                                                 |
+| State Structs       | 🟢 `FULLY_FUNCTIONAL` | `UserState`, `MembershipState`, `TenantState`, `BotState` — aggregate snapshots from fold functions.                                                                                                                                                                                                                                                                                                                                 |
+| Authz Engine        | 🟢 `FULLY_FUNCTIONAL` | Casbin-backed RBAC with `Enforce`/`EnforceAny`/`EnforceEx`/`Authorize`/`AsEnforcer`/`RolesForUser`/`AddPolicy`/`Apply`. Default policies + role hierarchy (SuperAdmin→Admin→User→Viewer). Casbin is a first-class dependency (ADR-0044).                                                                                                            |
+| Domain Errors       | 🟢 `FULLY_FUNCTIONAL` | errorfamily-only errors (Rejection/Conflict/Transient) — zero HTTP dependency. usermgmt wraps with `WithHTTPStatus` for correct status codes.                                                                                                                                                                                                     |
+| Upcaster Registry   | 🟢 `FULLY_FUNCTIONAL` | `Upcaster`, `UpcasterRegistry`, `NewUpcasterRegistry`, `SetUpcasterRegistry` for v1→v2 event schema migration. `UnmarshalPayload` exported.                                                                                                                                                                                                       |
+| Constants           | 🟢 `FULLY_FUNCTIONAL` | 41 event/command/aggregate-type constants (`EventUserRegistered`, `CmdRegisterUser`, etc.). `MaxEmailLength`, `ActorKindUserStr`/`ActorKindBotStr`, `ActorKindFromString`.                                                                                                                                                                          |
+| Crypto Helpers      | 🟢 `FULLY_FUNCTIONAL` | `GenerateToken`/`HashToken`/`VerifyToken` (HMAC-SHA256 + pepper).                                                                                                                                                                                                                                                                                  |
+
+---
+
 ## API Documentation (via go-cqrs-lite/catalog/v4)
 
 API documentation generation (OpenAPI, AsyncAPI, D2, EventCatalog) is now provided by **go-cqrs-lite/catalog v4** directly. Use the `simple` sub-package for the single-service Builder facade and the `docserver` sub-package for HTTP handlers (D2Handler, HealthCheckHandler, GenerateEventCatalog, and the full DocsServer for OpenAPI/AsyncAPI with HTML UIs).
@@ -305,6 +332,28 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ---
 
+## dashboardui Module (`github.com/larsartmann/cqrs-htmx/dashboardui/v4`)
+
+> Ready-made CQRS/ES observability dashboard. templ + HTMX + Tailwind v4.
+> NEW in v4.5.0 (dashboardui/v4.0.0). First Go-native CQRS dashboard with built-in observability UI.
+
+| Feature               | Status                    | Notes                                                                                                                                                                                                                                                                                                                                       |
+| --------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Overview Dashboard    | 🟢 `FULLY_FUNCTIONAL`     | Stats cards (total events, active projections, DLQ count). System health. Auto-detects capabilities via typed `Capabilities` struct.                                                                                                                                                                                                       |
+| Event Stream Browser  | 🟢 `FULLY_FUNCTIONAL`     | Paginated event list with type, ID, timestamp. Event detail view with metadata table (stream type, version, encoding, correlation/causation IDs), pretty-printed payload. HTML-escaped. O(1) lookup via `EventByIDLoader` interface with fallback to journal scan.                                                                          |
+| Aggregate Browser     | 🟢 `FULLY_FUNCTIONAL`     | Aggregate detail view with event timeline (version, type, timestamp, event ID). Links to time-travel inspector.                                                                                                                                                                                                                             |
+| Projection Dashboard  | 🟢 `FULLY_FUNCTIONAL`     | Live projection status (name, status, lag, last-event). Integrates with `ProjectionStatusProvider`.                                                                                                                                                                                                                                        |
+| Command/Query Audit   | 🟢 `FULLY_FUNCTIONAL`     | Audit trail viewer with command/query type, actor, timestamp.                                                                                                                                                                                                                                                                              |
+| Snapshot Inspector    | 🟢 `FULLY_FUNCTIONAL`     | View aggregate snapshots with version, strategy, and state reconstruction.                                                                                                                                                                                                                                                                 |
+| Time-Travel Inspector | 🟢 `FULLY_FUNCTIONAL`     | Replay aggregate state at any historical version — unique differentiator (no competitor has this).                                                                                                                                                                                                                                          |
+| SSE Live Updates      | 🟢 `FULLY_FUNCTIONAL`     | Real-time event stream via SSE bridge. Auto-updates dashboard panels on new events.                                                                                                                                                                                                                                                        |
+| Templ Rendering       | 🟢 `FULLY_FUNCTIONAL`     | Uses templ-components v0.16.0. Compiled CSS embedded via `go:embed`. Conditional `<script>` includes (HTMX, SSE) based on config.                                                                                                                                                                                                          |
+| Auth Integration      | 🟢 `FULLY_FUNCTIONAL`     | Read-only by default. Configurable authorizer hook.                                                                                                                                                                                                                                                                                         |
+| Dead Code             | 🔴 `BROKEN`               | `notImplemented()` at `handlers.go:21` and `renderStatCardsTempl()` at `templ_render.go:25` exist but are never called. Cleanup tracked in TODO_LIST.                                                                                                                                                                                       |
+| Test Coverage         | 🟡 `PARTIALLY_FUNCTIONAL` | 1 test file (`dashboard_test.go`, 12 tests) for 12 source files. `handlers.go` is 1136 lines (needs per-domain split).                                                                                                                                                                                                                      |
+
+---
+
 ## Not Planned
 
 | Feature                         | Reason                                                                                                                                |
@@ -324,11 +373,11 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Metrics
 
-| Metric        | Root  | usermgmt | totp  | webauthn | oauth2 | adminui | loginpage | integration_test |
-| ------------- | ----- | -------- | ----- | -------- | ------ | ------- | --------- | ---------------- |
-| Coverage      | 93.8% | 80.2%    | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | —                |
-| CI gate       | 90%   | 74%      | 80%   | 80%      | 80%    | 66%     | 80%       | —                |
-| Tests passing | ~250  | ~580     | 3     | 18       | 18     | 35      | 30+       | ~20              |
-| Lint issues   | 0     | 0        | 0     | 0        | 0      | 0       | 0         | 0                |
-| ErrorFamily   | 0     | 0        | 0     | 0        | 0      | 0       | 0         | 0                |
-| Go modules    | 1     | 1        | 1     | 1        | 1      | 1       | 1         | 1                |
+| Metric        | Root  | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | integration_test |
+| ------------- | ----- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | ---------------- |
+| Coverage      | 93.5% | 81.0%    | ~41%           | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | low         | —                |
+| CI gate       | 90%   | 74%      | (not set)      | 80%   | 80%      | 80%    | 66%     | 80%       | (not set)   | —                |
+| Tests passing | ~250  | ~580     | ~40            | 3     | 18       | 18     | 35      | 30+       | 12          | ~20              |
+| Lint issues   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
+| ErrorFamily   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
+| Go modules    | 1     | 1        | 1              | 1     | 1        | 1      | 1       | 1         | 1           | 1                |
