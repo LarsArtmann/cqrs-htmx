@@ -163,7 +163,6 @@ func registerUserEvents(catalog *cqrshtmx.EventCatalog) {
 	})
 }
 
-//nolint:exhaustruct // descriptions are intentional; field lists are illustrative
 func registerMembershipEvents(catalog *cqrshtmx.EventCatalog) {
 	sv := identitymodel.CurrentSchemaVersion
 
