@@ -5,11 +5,14 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
@@ -272,6 +275,101 @@ func TestDashboard_QueryAuditRenders(t *testing.T) {
 	for _, want := range []string{"Query Audit", "get.user"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("queries page should contain %q", want)
+		}
+	}
+}
+
+func TestDashboard_TimeTravelDetailRenders(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	aggID := id.NewAggregateID()
+	ref := id.NewStreamRef("Order", aggID)
+
+	for i := 1; i <= 3; i++ {
+		evt, _ := event.New(
+			"order.updated",
+			aggID,
+			"Order",
+			event.Version(i),
+			struct{ Step int }{Step: i},
+		)
+		_ = store.Save(nil, ref, []event.Event{evt}, event.Version(i-1))
+	}
+
+	reader := listing.NewInMemoryStreamReader(store)
+
+	d, _ := New(Config{
+		EventSource:  store,
+		Journal:      store,
+		StreamReader: reader,
+	})
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	// Test version 2 of 3
+	url := "/dashboard/time-travel/Order/" + aggID.String() + "?v=2"
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	for _, want := range []string{"Time Travel", "Viewing version 2 of 3", "order.updated"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("time-travel detail page should contain %q", want)
+		}
+	}
+}
+
+func TestDashboard_SnapshotDetailRenders(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	snapStore := memorystorage.NewMemorySnapshotStore()
+
+	aggID := id.NewAggregateID()
+	ref := id.NewStreamRef("Order", aggID)
+
+	// Save a snapshot
+	createdAt, _ := time.Parse(time.RFC3339, "2026-01-15T10:30:00Z")
+	snap := snapshot.Snapshot{
+		StreamID:   aggID,
+		StreamType: "Order",
+		Version:    event.Version(5),
+		State:      []byte(`{"status":"shipped","total":42}`),
+		CreatedAt:  createdAt,
+	}
+	_ = snapStore.Save(nil, snap)
+
+	evt, _ := event.New("order.created", aggID, "Order", event.Version(1), struct{}{})
+	_ = store.Save(nil, ref, []event.Event{evt}, event.Version(0))
+
+	reader := listing.NewInMemoryStreamReader(store)
+
+	d, _ := New(Config{
+		EventSource:   store,
+		Journal:       store,
+		StreamReader:  reader,
+		SnapshotStore: snapStore,
+	})
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	url := "/dashboard/snapshots/Order/" + aggID.String()
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	for _, want := range []string{"Snapshot", "Version", "shipped"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("snapshot detail page should contain %q", want)
 		}
 	}
 }

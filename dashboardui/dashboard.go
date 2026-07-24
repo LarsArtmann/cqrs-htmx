@@ -16,9 +16,10 @@ import (
 // provides. The dashboard auto-detects capabilities and shows only
 // relevant panels.
 type Dashboard struct {
-	cfg  Config
-	caps Capabilities
-	nav  []navItem
+	cfg         Config
+	caps        Capabilities
+	nav         []navItem
+	broadcaster *cqrshtmx.Broadcaster
 }
 
 // New builds a dashboard from cfg, applying defaults and validating
