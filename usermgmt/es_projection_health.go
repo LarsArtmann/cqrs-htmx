@@ -4,6 +4,7 @@ import (
 	"context"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
@@ -59,7 +60,7 @@ func (s *EventSourcedSetup) RebuildProjection(ctx context.Context, name string) 
 		return err
 	}
 
-	host, err := s.restartProjections(ctx)
+	host, err := createProjectionHost(ctx, s.Store, s.Bus, s.checkpointStore, s.projections)
 	if err != nil {
 		return err
 	}
@@ -67,58 +68,6 @@ func (s *EventSourcedSetup) RebuildProjection(ctx context.Context, name string) 
 	s.projectionHost = host
 
 	return nil
-}
-
-// restartProjections creates a fresh projectionhost.Host, registers all
-// projections, starts it, and blocks until drain completes. Used by
-// RebuildProjection after the old host has been stopped and reset.
-func (s *EventSourcedSetup) restartProjections(ctx context.Context) (*projectionhost.Host, error) {
-	journal := journalFromStore(s.Store)
-
-	cpStore := s.checkpointStore
-	if cpStore == nil {
-		cpStore = memory.NewMemoryCheckpointStore()
-	}
-
-	seekable, ok := journal.(eventSeekableJournal)
-	if !ok {
-		return nil, errorfamily.NewRejection(
-			"usermgmt.rebuild.journal_not_seekable",
-			"projectionhost requires a SeekableJournal (ReadFrom); "+
-				"the event store does not implement event.SeekableJournal",
-		)
-	}
-
-	host, err := projectionhost.New(seekable, cpStore,
-		projectionhost.WithSubscriber(s.Bus),
-		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 0),
-	)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err,
-			"usermgmt.rebuild.host_create_failed",
-			"create projection host")
-	}
-
-	for _, p := range s.projections {
-		if err := host.Register(p); err != nil {
-			return nil, errorfamily.WrapInfrastructure(err,
-				"usermgmt.rebuild.register_failed",
-				"register projection "+p.Name())
-		}
-	}
-
-	if err := host.Start(ctx); err != nil {
-		return nil, errorfamily.WrapInfrastructure(err,
-			"usermgmt.rebuild.start_failed",
-			"restart projection host after rebuild")
-	}
-
-	if err := waitForDrain(host); err != nil {
-		_ = host.Stop()
-		return nil, err
-	}
-
-	return host, nil
 }
 
 // --- Service methods ---
@@ -130,8 +79,7 @@ func (svc *Service) EventCatalog() *cqrshtmx.EventCatalog {
 }
 
 // ProjectionStatuses adapts the internal projectionhost.Host status to the
-// cqrshtmx.ProjectionStatusProvider interface. This lets consumers pass the
-// Service directly to cqrshtmx.ProjectionStatusHandler.
+// cqrshtmx.ProjectionStatusProvider interface.
 func (svc *Service) ProjectionStatuses() []cqrshtmx.ProjectionStatusEntry {
 	if svc.projectionHost == nil {
 		return nil
@@ -162,7 +110,7 @@ func (svc *Service) RebuildProjection(ctx context.Context, name string) error {
 		return err
 	}
 
-	host, err := svc.restartProjections(ctx)
+	host, err := createProjectionHost(ctx, svc.store, svc.bus, svc.checkpointStore, svc.projectionListField)
 	if err != nil {
 		return err
 	}
@@ -172,26 +120,34 @@ func (svc *Service) RebuildProjection(ctx context.Context, name string) error {
 	return nil
 }
 
-// restartProjections creates a fresh projectionhost.Host for the Service.
-// The Service stores the same components as EventSourcedSetup.
-func (svc *Service) restartProjections(ctx context.Context) (*projectionhost.Host, error) {
-	journal := journalFromStore(svc.store)
+// createProjectionHost creates a fresh projectionhost.Host, registers all
+// projections, starts it, and blocks until drain completes. Shared by both
+// EventSourcedSetup and Service rebuild methods.
+func createProjectionHost(
+	ctx context.Context,
+	store event.Store,
+	bus event.Subscriber,
+	cpStore event.CheckpointStore,
+	projections []projection.Projection,
+) (*projectionhost.Host, error) {
+	journal := journalFromStore(store)
 
-	cpStore := svc.checkpointStoreField()
-	if cpStore == nil {
-		cpStore = memory.NewMemoryCheckpointStore()
-	}
-
-	seekable, ok := journal.(eventSeekableJournal)
+	seekable, ok := journal.(event.SeekableJournal)
 	if !ok {
 		return nil, errorfamily.NewRejection(
 			"usermgmt.rebuild.journal_not_seekable",
-			"projectionhost requires a SeekableJournal",
+			"projectionhost requires a SeekableJournal (ReadFrom); "+
+				"the event store does not implement event.SeekableJournal",
 		)
 	}
 
-	host, err := projectionhost.New(seekable, cpStore,
-		projectionhost.WithSubscriber(svc.bus),
+	cp := cpStore
+	if cp == nil {
+		cp = memory.NewMemoryCheckpointStore()
+	}
+
+	host, err := projectionhost.New(seekable, cp,
+		projectionhost.WithSubscriber(bus),
 		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 0),
 	)
 	if err != nil {
@@ -200,7 +156,7 @@ func (svc *Service) restartProjections(ctx context.Context) (*projectionhost.Hos
 			"create projection host")
 	}
 
-	for _, p := range svc.projectionList() {
+	for _, p := range projections {
 		if err := host.Register(p); err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
 				"usermgmt.rebuild.register_failed",
@@ -221,14 +177,6 @@ func (svc *Service) restartProjections(ctx context.Context) (*projectionhost.Hos
 
 	return host, nil
 }
-
-// checkpointStoreField and projectionList are thin accessors for Service fields
-// that mirror EventSourcedSetup. The Service does not currently store these
-// directly (it stores the projectionHost only), so these return nil/empty
-// to signal that the Service-level rebuild is not supported and the caller
-// should use EventSourcedSetup.RebuildProjection instead.
-func (svc *Service) checkpointStoreField() eventCheckpointStore { return nil }
-func (svc *Service) projectionList() []projection.Projection     { return nil }
 
 // adaptWorkerStates converts projectionhost.WorkerState slices to the
 // root-module DTO. Lag is converted from time.Duration to milliseconds.
