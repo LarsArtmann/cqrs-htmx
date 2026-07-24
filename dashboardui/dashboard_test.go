@@ -204,3 +204,74 @@ func TestDashboard_AggregateDetailRenders(t *testing.T) {
 		}
 	}
 }
+
+func TestDashboard_CommandAuditRenders(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	cmdStore := memorystorage.NewMemoryCommandStore()
+
+	aggID := id.NewAggregateID()
+	ref := id.NewStreamRef("User", aggID)
+
+	cmd, _ := command.NewPersistedCommand(
+		"create.user",
+		ref,
+		[]byte(`{"name":"Alice"}`),
+	)
+	_ = cmdStore.Save(nil, ref, cmd)
+
+	d, _ := New(Config{
+		EventSource:    store,
+		Journal:        store,
+		CommandJournal: cmdStore,
+	})
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/commands", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	for _, want := range []string{"Command Audit", "create.user", "User"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("commands page should contain %q", want)
+		}
+	}
+}
+
+func TestDashboard_QueryAuditRenders(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	queryStore := memorystorage.NewMemoryQueryStore()
+
+	q, _ := query.NewPersistedQuery("get.user", []byte(`{"id":"123"}`))
+	_ = queryStore.SaveQuery(nil, q)
+
+	d, _ := New(Config{
+		EventSource: store,
+		Journal:     store,
+		QueryJournal: queryStore,
+	})
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/queries", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	for _, want := range []string{"Query Audit", "get.user"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("queries page should contain %q", want)
+		}
+	}
+}
