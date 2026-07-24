@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -371,5 +372,62 @@ func TestDashboard_SnapshotDetailRenders(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Errorf("snapshot detail page should contain %q", want)
 		}
+	}
+}
+
+func TestDashboard_SSEBridgeWorks(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	bus := eventtest.NewFakeBus()
+
+	d, err := New(Config{
+		EventSource: store,
+		Journal:     store,
+		EventBus:    bus,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if d.broadcaster == nil {
+		t.Fatal("broadcaster should be created when EventBus is configured")
+	}
+
+	if !d.Capabilities().EventBus {
+		t.Fatal("EventBus capability should be detected")
+	}
+
+	// Subscribe to broadcaster
+	ch := d.broadcaster.Subscribe()
+	defer d.broadcaster.Unsubscribe(ch)
+
+	// Publish an event to the bus
+	aggID := id.NewAggregateID()
+	evt, _ := event.New("order.placed", aggID, "Order", event.Version(1), struct{ Total int }{Total: 42})
+	if err := bus.Publish(nil, evt); err != nil {
+		t.Fatalf("Publish: %v", err)
+	}
+
+	// The broadcaster should receive the event
+	select {
+	case sseEvt := <-ch:
+		if !strings.Contains(sseEvt.Data, "order.placed") {
+			t.Errorf("SSE event data should contain event type, got: %s", sseEvt.Data)
+		}
+
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for SSE event from broadcaster")
+	}
+
+	// SSE route should be registered
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/events/stream", nil)
+	mux.ServeHTTP(rec, req)
+
+	// SSE connection should start (not 404)
+	if rec.Code == http.StatusNotFound {
+		t.Error("SSE route should be registered, got 404")
 	}
 }
