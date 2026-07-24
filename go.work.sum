@@ -44,6 +44,13 @@ github.com/klauspost/pgzip v1.2.6 h1:8RXeL5crjEUFnR2/Sn6GJNWtSQ3Dk8pq4CL3jvdDyjU
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/larsartmann/cqrs-htmx/adminui/v4 v4.5.0/go.mod h1:XrhfQMNt6Sv4yfTpCN3gTM8QkQ3ZXsXGWwHrbu8DkgE=
+github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.0/go.mod h1:G+o05BKKPAHKPd1WdmcmQeREynBKxkOLtpTbSGo1Oio=
+github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.5.0/go.mod h1:z2rqebMUsItLmajnEL1RHaSGb5o81V0yZDQWG5lPgP8=
+github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.5.0/go.mod h1:jTnqPwR5KucrvPjIQLmewLYDkEVl55rheni3Sj6nZ0c=
+github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.5.0/go.mod h1:QGZD4mYdHA9PFjNdVduTAMiqunrdzDqyYY/t3zzuxuo=
+github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.5.0/go.mod h1:pb927G9HPrMwXw/CeNa8JyPVkr3Gsw4Yh4vxXeVYbiM=
+github.com/larsartmann/cqrs-htmx/v4 v4.5.0/go.mod h1:1NHeYvXTIRv7bjDBXMsv+Jk44zEl1X9ml01pZOneZQ0=
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0 h1:YJ49k6SM93hrBjRw6QbvbalbD7l0dDZ4tYXL2iZHe08=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0/go.mod h1:50woocxkEaz+2Pm8m53KKsNOIU+7bDvTx43LydVgOeQ=

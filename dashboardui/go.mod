@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0
-	github.com/larsartmann/go-error-family v0.8.0
+	github.com/larsartmann/go-error-family v0.9.0
 	github.com/larsartmann/templ-components v1.2.0
 )
 
