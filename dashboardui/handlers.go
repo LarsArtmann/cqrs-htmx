@@ -124,13 +124,19 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
 
 		fmt.Fprintf(&b, `<div style="margin-bottom:24px">`)
 		fmt.Fprintf(&b, `<h2 style="margin:0 0 4px"><code>%s</code></h2>`, esc(string(evt.Type())))
-		fmt.Fprintf(&b, `<div style="color:var(--muted);font-size:0.85em;font-family:monospace">%s</div>`, esc(evt.ID().String()))
+		fmt.Fprintf(
+			&b,
+			`<div style="color:var(--muted);font-size:0.85em;font-family:monospace">%s</div>`,
+			esc(evt.ID().String()),
+		)
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">`)
 
 		// Metadata panel
-		b.WriteString(`<div><h4 style="margin:0 0 8px">Metadata</h4><table style="width:100%%;border-collapse:collapse;font-size:0.88em">`)
+		b.WriteString(
+			`<div><h4 style="margin:0 0 8px">Metadata</h4><table style="width:100%%;border-collapse:collapse;font-size:0.88em">`,
+		)
 		metaRow(&b, "Stream Type", esc(string(evt.StreamType())))
 		metaRow(&b, "Stream ID", esc(evt.StreamID().String()))
 		metaRow(&b, "Version", esc(evt.Version().String()))
@@ -161,7 +167,10 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
 		b.WriteString(`</table>`)
 
 		if len(meta.Custom) > 0 {
-			b.WriteString(`<h4 style="margin:16px 0 8px">Custom Metadata</h4><table style="width:100%%;border-collapse:collapse;font-size:0.88em">`)
+			b.WriteString(
+				`<h4 style="margin:16px 0 8px">Custom Metadata</h4><table style="width:100%%;border-collapse:collapse;font-size:0.88em">`,
+			)
+
 			for k, v := range meta.Custom {
 				metaRow(&b, esc(string(k)), esc(v))
 			}
@@ -314,21 +323,34 @@ func (d *Dashboard) renderAggregateDetail(
 		var b strings.Builder
 
 		fmt.Fprintf(&b, `<div style="margin-bottom:24px">`)
-		fmt.Fprintf(&b, `<h2 style="margin:0 0 4px">%s: <code>%s</code></h2>`, esc(string(ref.Type)), esc(ref.ID.String()))
+		fmt.Fprintf(
+			&b,
+			`<h2 style="margin:0 0 4px">%s: <code>%s</code></h2>`,
+			esc(string(ref.Type)),
+			esc(ref.ID.String()),
+		)
 		fmt.Fprintf(&b, `<div style="color:var(--muted);font-size:0.88em">%d events · current version %s</div>`,
 			len(events), latestVersion(events))
 		b.WriteString(`</div>`)
 
 		if d.caps.EventSource && len(events) > 0 {
 			maxVer := events[len(events)-1].Version().Int()
-			fmt.Fprintf(&b,
+
+			fmt.Fprintf(
+				&b,
 				`<div style="margin-bottom:16px"><a href="%s/time-travel/%s/%s" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--accent);font-size:0.85em">Inspect time-travel for this aggregate</a></div>`,
-				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
+				p.BasePath,
+				esc(string(ref.Type)),
+				esc(ref.ID.String()),
+			)
+
 			_ = maxVer
 		}
 
 		if len(events) == 0 {
-			b.WriteString(`<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No events</h3><p>This aggregate has no recorded events.</p></div>`)
+			b.WriteString(
+				`<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No events</h3><p>This aggregate has no recorded events.</p></div>`,
+			)
 
 			return b.String()
 		}
@@ -791,7 +813,9 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 		var b strings.Builder
 
 		b.WriteString(`<div style="margin-bottom:16px">`)
-		b.WriteString(`<p style="color:var(--muted);margin:0">Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.</p>`)
+		b.WriteString(
+			`<p style="color:var(--muted);margin:0">Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.</p>`,
+		)
 		b.WriteString(`</div>`)
 
 		if len(listings) == 0 {
@@ -899,7 +923,10 @@ func (d *Dashboard) renderTimeTravelDetail(
 		b.WriteString(`</div>`)
 
 		// Version slider.
-		fmt.Fprintf(&b, `<div style="margin-bottom:24px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">`)
+		fmt.Fprintf(
+			&b,
+			`<div style="margin-bottom:24px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">`,
+		)
 		fmt.Fprintf(&b, `<label style="display:block;margin-bottom:8px;font-weight:600">Version</label>`)
 
 		// Generate version links.
@@ -969,7 +996,9 @@ func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamLi
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		b.WriteString(`<p style="color:var(--muted);margin-bottom:16px">Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.</p>`)
+		b.WriteString(
+			`<p style="color:var(--muted);margin-bottom:16px">Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.</p>`,
+		)
 
 		if len(listings) == 0 {
 			b.WriteString(`<div style="padding:40px;text-align:center;color:var(--muted)">`)
@@ -1061,7 +1090,9 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 			fmt.Fprintf(&b, `<form method="POST" action="%s/snapshots/%s/%s/delete" style="margin-bottom:24px">`,
 				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
 			fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, p.CSRFToken)
-			b.WriteString(`<button type="submit" style="padding:6px 12px;border:1px solid var(--err);border-radius:6px;background:transparent;color:var(--err);cursor:pointer;font-size:0.85em">Delete Snapshot</button>`)
+			b.WriteString(
+				`<button type="submit" style="padding:6px 12px;border:1px solid var(--err);border-radius:6px;background:transparent;color:var(--err);cursor:pointer;font-size:0.85em">Delete Snapshot</button>`,
+			)
 			b.WriteString(`</form>`)
 		}
 
@@ -1077,8 +1108,10 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 
 		// State.
 		b.WriteString(`<h4 style="margin-bottom:8px">State</h4>`)
+
 		stateDisplay := d.renderSnapshotState(snap.State)
-		fmt.Fprintf(&b,
+		fmt.Fprintf(
+			&b,
 			`<pre style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;font-size:0.85em;line-height:1.5;margin:0"><code>%s</code></pre>`,
 			stateDisplay,
 		)
