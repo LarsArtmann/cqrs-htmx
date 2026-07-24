@@ -3,21 +3,23 @@ package cqrshtmx
 import (
 	"encoding/json/v2"
 	"net/http"
-	"time"
 )
 
 // ProjectionStatusEntry represents the health of a single projection worker.
 // It mirrors the fields of projectionhost.WorkerState so that any system
 // exposing projection health can serve a consistent JSON shape.
+//
+// LagMillis is in milliseconds (not time.Duration) because encoding/json/v2
+// does not provide a default representation for time.Duration.
 type ProjectionStatusEntry struct {
-	Name       string        `json:"name"`
-	Status     string        `json:"status"`
-	Checkpoint string        `json:"checkpoint"`
-	Processed  int64         `json:"processed"`
-	Errors     int64         `json:"errors"`
-	Restarts   int           `json:"restarts"`
-	Lag        time.Duration `json:"lag"`
-	LastError  string        `json:"lastError,omitempty"`
+	Name       string `json:"name"`
+	Status     string `json:"status"`
+	Checkpoint string `json:"checkpoint"`
+	Processed  int64  `json:"processed"`
+	Errors     int64  `json:"errors"`
+	Restarts   int    `json:"restarts"`
+	LagMillis  int64  `json:"lag_ms"`
+	LastError  string `json:"lastError,omitempty"`
 }
 
 // ProjectionStatusProvider reports the current health of registered
