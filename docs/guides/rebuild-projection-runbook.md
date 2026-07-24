@@ -6,14 +6,14 @@
 
 ## When to Rebuild
 
-| Scenario | Rebuild? | Why |
-| --- | --- | --- |
-| Projection returned bad data after a code deploy | Yes | New code produces different read model shape; replay to regenerate |
-| Casbin authorization rules drifted from events | Yes | Rebuild `casbin-projection` to re-derive policies |
-| Read model table corrupted (disk error, bad SQL) | Yes | Replay to regenerate from source-of-truth events |
-| Projection stuck in `failed` state | Yes | Poison event in DLQ; fix handler, rebuild to retry |
-| After a schema_version upcaster deploy | Maybe | Only if old projection data is incompatible |
-| Routine maintenance | No | Projections self-heal via checkpoints on restart |
+| Scenario                                         | Rebuild? | Why                                                                |
+| ------------------------------------------------ | -------- | ------------------------------------------------------------------ |
+| Projection returned bad data after a code deploy | Yes      | New code produces different read model shape; replay to regenerate |
+| Casbin authorization rules drifted from events   | Yes      | Rebuild `casbin-projection` to re-derive policies                  |
+| Read model table corrupted (disk error, bad SQL) | Yes      | Replay to regenerate from source-of-truth events                   |
+| Projection stuck in `failed` state               | Yes      | Poison event in DLQ; fix handler, rebuild to retry                 |
+| After a schema_version upcaster deploy           | Maybe    | Only if old projection data is incompatible                        |
+| Routine maintenance                              | No       | Projections self-heal via checkpoints on restart                   |
 
 ---
 
@@ -25,14 +25,14 @@
 
 ### Projection Names
 
-| Read Model | Name |
-| --- | --- |
-| User read model | `user-read-model` |
+| Read Model            | Name                    |
+| --------------------- | ----------------------- |
+| User read model       | `user-read-model`       |
 | Membership read model | `membership-read-model` |
-| Tenant read model | `tenant-read-model` |
-| Bot read model | `bot-read-model` |
-| Casbin authorization | `casbin-projection` |
-| Audit log | `audit-log` |
+| Tenant read model     | `tenant-read-model`     |
+| Bot read model        | `bot-read-model`        |
+| Casbin authorization  | `casbin-projection`     |
+| Audit log             | `audit-log`             |
 
 ---
 
@@ -49,6 +49,7 @@ if err != nil {
 ```
 
 This single call:
+
 1. Stops the projection host (all projections briefly pause).
 2. Clears the checkpoint and resets the read model state for the named projection.
 3. Creates a fresh host and replays the entire event journal.
@@ -122,6 +123,7 @@ The projection name is case-sensitive and must match `projection.Name()` exactly
 ### Rebuild Succeeds But Read Model Is Empty
 
 The projection may not implement `Resettable`. In this case, the read model was not cleared before replay. The replay appends to existing data, which may produce duplicates. Either:
+
 - Implement `Resettable` on your read model, OR
 - Manually clear the read model table before rebuilding (Option B above).
 

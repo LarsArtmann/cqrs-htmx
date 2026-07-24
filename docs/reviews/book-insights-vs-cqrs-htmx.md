@@ -206,27 +206,27 @@ The current approach — explicit `UserState`, `MembershipState`, etc. with hand
 
 ## Summary Matrix
 
-| Book Insight                      | Status  | Action                               |
-| --------------------------------- | ------- | ------------------------------------ |
-| Append-only log as truth          | Applied | —                                    |
-| Projections as derived state      | Applied | —                                    |
-| Idempotency (checkpoints + store) | Applied | —                                    |
-| Schema evolution (upcasters)      | Applied | —                                    |
-| Bounded contexts (modules)        | Applied | v5 decomposition plan in ROADMAP     |
-| Small aggregates                  | Applied | —                                    |
+| Book Insight                      | Status  | Action                                           |
+| --------------------------------- | ------- | ------------------------------------------------ |
+| Append-only log as truth          | Applied | —                                                |
+| Projections as derived state      | Applied | —                                                |
+| Idempotency (checkpoints + store) | Applied | —                                                |
+| Schema evolution (upcasters)      | Applied | —                                                |
+| Bounded contexts (modules)        | Applied | v5 decomposition plan in ROADMAP                 |
+| Small aggregates                  | Applied | —                                                |
 | Read-your-writes                  | Applied | Documented in `docs/guides/consistency-model.md` |
-| DLQ + retry                       | Applied | —                                    |
-| Snapshotting                      | Applied | —                                    |
-| Projection lag observability      | Closed  | `ProjectionStatusHandler` + guide    |
-| Published event schemas           | Closed  | `EventCatalogHandler` + `DefaultEventCatalog` |
-| Compaction/retention guidance     | Closed  | `docs/guides/event-store-storage-health.md` |
-| Circuit breaker for auth          | Closed  | `docs/guides/auth-provider-fault-tolerance.md` |
-| Replay tooling                    | Closed  | `RebuildProjection` + runbook guide  |
-| Distributed consensus             | Don't   | Consumer's DB handles this           |
-| Message broker                    | Don't   | Out of scope for a library           |
-| Schema registry                   | Don't   | Upcasters are sufficient             |
-| Saga orchestration                | Don't   | Choreography is correct here         |
-| Data lake/analytics               | Don't   | OLTP, not OLAP                       |
-| 2PC / distributed transactions    | Don't   | Eventually consistent is right       |
-| Built-in router                   | Don't   | Framework-agnostic is correct        |
-| Generic aggregate framework       | Don't   | Explicit > abstract for domain logic |
+| DLQ + retry                       | Applied | —                                                |
+| Snapshotting                      | Applied | —                                                |
+| Projection lag observability      | Closed  | `ProjectionStatusHandler` + guide                |
+| Published event schemas           | Closed  | `EventCatalogHandler` + `DefaultEventCatalog`    |
+| Compaction/retention guidance     | Closed  | `docs/guides/event-store-storage-health.md`      |
+| Circuit breaker for auth          | Closed  | `docs/guides/auth-provider-fault-tolerance.md`   |
+| Replay tooling                    | Closed  | `RebuildProjection` + runbook guide              |
+| Distributed consensus             | Don't   | Consumer's DB handles this                       |
+| Message broker                    | Don't   | Out of scope for a library                       |
+| Schema registry                   | Don't   | Upcasters are sufficient                         |
+| Saga orchestration                | Don't   | Choreography is correct here                     |
+| Data lake/analytics               | Don't   | OLTP, not OLAP                                   |
+| 2PC / distributed transactions    | Don't   | Eventually consistent is right                   |
+| Built-in router                   | Don't   | Framework-agnostic is correct                    |
+| Generic aggregate framework       | Don't   | Explicit > abstract for domain logic             |

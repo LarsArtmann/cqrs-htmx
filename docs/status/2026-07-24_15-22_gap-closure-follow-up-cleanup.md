@@ -21,35 +21,35 @@ This session was a **follow-up cleanup pass** after the main implementation sess
 
 ### Code Refactoring
 
-| Item | Files | Verification |
-|------|-------|-------------|
-| Extracted `startProjectionHost` shared factory | `usermgmt/es_projection_setup.go` | Eliminates ~50 lines of duplicated seekable-check + host-create + register + start + drain logic between `StartProjections` and `RebuildProjection`. `createProjectionHost` now delegates to it. |
-| Renamed `projectionListField` → `projections` | `usermgmt/service_core.go`, `usermgmt/es_projection_health.go` | Consistent with `EventSourcedSetup.projections`. All references updated. |
-| Removed unused `memory` import | `usermgmt/es_projection_health.go` | After delegation, the import was dead. |
-| Fixed `nlreturn`/`wsl_v5` lint issues | `event_catalog_handler_test.go` | Blank lines before return statements. |
+| Item                                           | Files                                                          | Verification                                                                                                                                                                                     |
+| ---------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Extracted `startProjectionHost` shared factory | `usermgmt/es_projection_setup.go`                              | Eliminates ~50 lines of duplicated seekable-check + host-create + register + start + drain logic between `StartProjections` and `RebuildProjection`. `createProjectionHost` now delegates to it. |
+| Renamed `projectionListField` → `projections`  | `usermgmt/service_core.go`, `usermgmt/es_projection_health.go` | Consistent with `EventSourcedSetup.projections`. All references updated.                                                                                                                         |
+| Removed unused `memory` import                 | `usermgmt/es_projection_health.go`                             | After delegation, the import was dead.                                                                                                                                                           |
+| Fixed `nlreturn`/`wsl_v5` lint issues          | `event_catalog_handler_test.go`                                | Blank lines before return statements.                                                                                                                                                            |
 
 ### Documentation
 
-| Document | Change |
-|----------|--------|
-| `CHANGELOG.md` | Added 13 `### Added` entries (EventCatalog, EventCatalogHandler, ProjectionStatusHandler, DefaultEventCatalog, RebuildProjection, 7 guides, ROADMAP v5) + 2 `### Changed` entries (dedup refactor, field rename). |
-| `AGENTS.md` | Added 4 Key Patterns (event catalog, projection health, rebuild, shared factory) + 3 Gotchas (RebuildProjection lifecycle, LagMillis type, guides reference). |
-| `FEATURES.md` | Added Event Catalog + Projection Status rows (root module). Added Event Catalog + Projection Health & Rebuild rows (usermgmt module). |
-| `.agents/skills/cqrs-htmx/SKILL.md` | Added `EventCatalogHandler`, `ProjectionStatusHandler`, `RebuildProjection` to Discoverability notes section with guide references. |
-| `docs/reviews/book-insights-vs-cqrs-htmx.md` | All 7 gap items marked `CLOSED` with Resolution paragraphs. Summary Matrix updated: 5 `Missing` → `Closed`, 2 `Applied` action notes updated with implementation references. |
-| `docs/planning/2026-07-23_15-43_book-insights-gap-closure-plan.md` | Added completion status banner at top with links to CHANGELOG and execution retrospective. |
+| Document                                                           | Change                                                                                                                                                                                                            |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CHANGELOG.md`                                                     | Added 13 `### Added` entries (EventCatalog, EventCatalogHandler, ProjectionStatusHandler, DefaultEventCatalog, RebuildProjection, 7 guides, ROADMAP v5) + 2 `### Changed` entries (dedup refactor, field rename). |
+| `AGENTS.md`                                                        | Added 4 Key Patterns (event catalog, projection health, rebuild, shared factory) + 3 Gotchas (RebuildProjection lifecycle, LagMillis type, guides reference).                                                     |
+| `FEATURES.md`                                                      | Added Event Catalog + Projection Status rows (root module). Added Event Catalog + Projection Health & Rebuild rows (usermgmt module).                                                                             |
+| `.agents/skills/cqrs-htmx/SKILL.md`                                | Added `EventCatalogHandler`, `ProjectionStatusHandler`, `RebuildProjection` to Discoverability notes section with guide references.                                                                               |
+| `docs/reviews/book-insights-vs-cqrs-htmx.md`                       | All 7 gap items marked `CLOSED` with Resolution paragraphs. Summary Matrix updated: 5 `Missing` → `Closed`, 2 `Applied` action notes updated with implementation references.                                      |
+| `docs/planning/2026-07-23_15-43_book-insights-gap-closure-plan.md` | Added completion status banner at top with links to CHANGELOG and execution retrospective.                                                                                                                        |
 
 ### Verification
 
-| Check | Result |
-|-------|--------|
-| Root build | PASS |
-| usermgmt build | PASS |
-| Root tests (race) | PASS — 93.5% coverage (gate: 90%) |
-| usermgmt tests (race) | PASS — 81.0% coverage (gate: 74%) |
-| All auth/admin modules | PASS (totp 88.2%, webauthn 89.2%, oauth2 88.3%, adminui 68.7%, loginpage 80.1%) |
-| Lint on changed files | CLEAN — 0 issues in `event_catalog.go`, `event_catalog_handler.go`, `projection_status_handler.go`, `es_projection_health.go`, `es_projection_setup.go`, `service_core.go` |
-| Git working tree | CLEAN |
+| Check                  | Result                                                                                                                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Root build             | PASS                                                                                                                                                                       |
+| usermgmt build         | PASS                                                                                                                                                                       |
+| Root tests (race)      | PASS — 93.5% coverage (gate: 90%)                                                                                                                                          |
+| usermgmt tests (race)  | PASS — 81.0% coverage (gate: 74%)                                                                                                                                          |
+| All auth/admin modules | PASS (totp 88.2%, webauthn 89.2%, oauth2 88.3%, adminui 68.7%, loginpage 80.1%)                                                                                            |
+| Lint on changed files  | CLEAN — 0 issues in `event_catalog.go`, `event_catalog_handler.go`, `projection_status_handler.go`, `es_projection_health.go`, `es_projection_setup.go`, `service_core.go` |
+| Git working tree       | CLEAN                                                                                                                                                                      |
 
 ---
 
@@ -59,25 +59,26 @@ This session was a **follow-up cleanup pass** after the main implementation sess
 
 The root module has 134 golangci-lint issues. **None are in files this session created or modified.** But the repository is not lint-clean:
 
-| Linter | Count | Files most affected |
-|--------|-------|-------------------|
-| `varnamelen` | 50 | `server_timing_test.go` (21), scattered across ~15 files |
-| `exhaustruct` | 30 | SSE event structs in tests (`sse_event_test.go`, `bdd_realtime_test.go`) |
-| `staticcheck` (SA1019) | 18 | Deprecated `id.NewAggregateID`/`id.AggregateID` in test files |
-| `testpackage` | 9 | 9 test files use internal `package cqrshtmx` instead of `cqrshtmx_test` |
-| `errcheck` | 10 | Unchecked `stream.Close()` in BDD/integration tests |
-| `dupl` | 2 | `typed_handlers_test.go` lines 101-129 / 350-378 |
-| `ireturn` | 4 | Interface returns in test helpers |
-| `makezero` | 4 | `make([]T, n)` where n could be 0 |
-| `nonamedreturns` | 4 | Named returns in decoder/ws functions |
-| `tagliatelle` | 2 | `HEADERS` in ws.go (intentional), `chat_message` in test |
-| `testableexamples` | 1 | `ExampleJSONLogFormatter` missing output |
+| Linter                 | Count | Files most affected                                                      |
+| ---------------------- | ----- | ------------------------------------------------------------------------ |
+| `varnamelen`           | 50    | `server_timing_test.go` (21), scattered across ~15 files                 |
+| `exhaustruct`          | 30    | SSE event structs in tests (`sse_event_test.go`, `bdd_realtime_test.go`) |
+| `staticcheck` (SA1019) | 18    | Deprecated `id.NewAggregateID`/`id.AggregateID` in test files            |
+| `testpackage`          | 9     | 9 test files use internal `package cqrshtmx` instead of `cqrshtmx_test`  |
+| `errcheck`             | 10    | Unchecked `stream.Close()` in BDD/integration tests                      |
+| `dupl`                 | 2     | `typed_handlers_test.go` lines 101-129 / 350-378                         |
+| `ireturn`              | 4     | Interface returns in test helpers                                        |
+| `makezero`             | 4     | `make([]T, n)` where n could be 0                                        |
+| `nonamedreturns`       | 4     | Named returns in decoder/ws functions                                    |
+| `tagliatelle`          | 2     | `HEADERS` in ws.go (intentional), `chat_message` in test                 |
+| `testableexamples`     | 1     | `ExampleJSONLogFormatter` missing output                                 |
 
 **Assessment:** These are all pre-existing. The `varnamelen` linter is extremely noisy (50 of 134 issues) and arguably should be disabled or relaxed. The `staticcheck` SA1019 deprecation warnings are the most actionable — `id.NewAggregateID` → `id.NewStreamID` migration was started but not completed in test files.
 
 ### FEATURES.md Metrics Table is Stale
 
 The metrics table at the bottom of `FEATURES.md` (lines 322-331) shows outdated numbers:
+
 - Root coverage listed as 93.8% — actual is 93.5%
 - usermgmt listed as 80.2% — actual is 81.0%
 - adminui listed as 69.0% — actual is 68.7%
@@ -242,6 +243,7 @@ This session was a focused cleanup pass. Nothing was broken. All changes build, 
 ### Q1: Should `sqlite_setup_test.go` be fixed or deleted?
 
 The file has a `//go:build ignore` tag and references types that don't exist: `NewSQLiteEventSourcedSetup`, `SQLiteSetupConfig`, `SQLiteEventSourcedSetup`, `createPostgresReadModels`. The actual SQLite setup types are `NewSQLiteEventSourcedSetup` — wait, those ARE the names. But gopls says they're undefined. This means either:
+
 - (a) These types were deleted/renamed in a previous session and this test is orphaned → **delete it**
 - (b) These types exist in a build-tagged file that gopls can't resolve → **fix the build tags**
 - (c) These types were supposed to be created but never were → **create them or delete the test**
@@ -251,6 +253,7 @@ I cannot determine which without knowing whether the SQLite setup stack was inte
 ### Q2: Is `dashboardui` a permanent module or an experiment?
 
 The `dashboardui/` directory has source code, tests, and a go.mod, but it's not listed in the `go.work` workspace, not mentioned in `AGENTS.md` Architecture section, and its example (`dashboard-demo`) references go-cqrs-lite at v4.1.0 (different from the workspace's local replaces). Should I:
+
 - (a) Add it to `go.work` and wire it properly?
 - (b) Delete it as an abandoned experiment?
 - (c) Leave it as-is (it doesn't break anything since it's not in the workspace)?
@@ -258,6 +261,7 @@ The `dashboardui/` directory has source code, tests, and a go.mod, but it's not 
 ### Q3: Should the 4 unpushed commits be pushed now?
 
 There are 4 local commits ahead of origin/master:
+
 1. `c7f767e` refactor(usermgmt): restructure event sourcing projection health and setup
 2. `e56ef19` docs(cqrs-htmx): update project documentation and changelog
 3. `527e1a8` docs(planning): add book insights gap closure plan and skill improvements
@@ -269,17 +273,17 @@ All build and test clean. Should I push, or is there a reason to hold?
 
 ## Metrics Summary
 
-| Metric | Value |
-|--------|-------|
-| Root coverage | 93.5% (gate: 90%) |
-| usermgmt coverage | 81.0% (gate: 74%) |
-| Root lint issues | 134 (0 in files this session touched) |
-| usermgmt lint issues | 0 |
-| Tests passing | ALL (root + usermgmt + auth modules + adminui + loginpage) |
-| Commits this session | 4 (unpushed) |
-| Guides written | 7 (898 lines total) |
-| Files refactored | 3 (es_projection_setup.go, es_projection_health.go, service_core.go) |
-| Files documented | 6 (CHANGELOG, AGENTS, FEATURES, SKILL, book-insights review, planning doc) |
+| Metric                    | Value                                                                                                |
+| ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Root coverage             | 93.5% (gate: 90%)                                                                                    |
+| usermgmt coverage         | 81.0% (gate: 74%)                                                                                    |
+| Root lint issues          | 134 (0 in files this session touched)                                                                |
+| usermgmt lint issues      | 0                                                                                                    |
+| Tests passing             | ALL (root + usermgmt + auth modules + adminui + loginpage)                                           |
+| Commits this session      | 4 (unpushed)                                                                                         |
+| Guides written            | 7 (898 lines total)                                                                                  |
+| Files refactored          | 3 (es_projection_setup.go, es_projection_health.go, service_core.go)                                 |
+| Files documented          | 6 (CHANGELOG, AGENTS, FEATURES, SKILL, book-insights review, planning doc)                           |
 | Pre-existing issues found | 5+ (sqlite ghost file, dashboard-demo go.mod, 134 lint issues, go-cqrs-lite replaces, stale metrics) |
 
 ---

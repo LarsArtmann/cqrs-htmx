@@ -55,28 +55,28 @@ The `*usermgmt.Service` (and `*EventSourcedSetup`) implements `cqrshtmx.Projecti
 
 ### Field Reference
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `name` | string | Projection name (e.g. `"user-read-model"`) |
-| `status` | string | Worker lifecycle state (see below) |
-| `checkpoint` | string | Last processed event ID |
-| `processed` | int64 | Total events processed since start |
-| `errors` | int64 | Total processing errors |
-| `restarts` | int | Number of crash-restart cycles |
-| `lag_ms` | int64 | Approximate lag in milliseconds (how far behind the event log head) |
-| `lastError` | string | Last error message (omitted if empty) |
+| Field        | Type   | Description                                                         |
+| ------------ | ------ | ------------------------------------------------------------------- |
+| `name`       | string | Projection name (e.g. `"user-read-model"`)                          |
+| `status`     | string | Worker lifecycle state (see below)                                  |
+| `checkpoint` | string | Last processed event ID                                             |
+| `processed`  | int64  | Total events processed since start                                  |
+| `errors`     | int64  | Total processing errors                                             |
+| `restarts`   | int    | Number of crash-restart cycles                                      |
+| `lag_ms`     | int64  | Approximate lag in milliseconds (how far behind the event log head) |
+| `lastError`  | string | Last error message (omitted if empty)                               |
 
 ### Status Values
 
-| Status | Meaning |
-| --- | --- |
-| `idle` | Worker registered but not started |
-| `running` | Worker is replaying historical events (initial drain) |
-| `live` | Worker has finished drain and is processing live events |
-| `backoff` | Worker crashed and is waiting to restart (exponential backoff) |
-| `draining` | Worker is shutting down (flushing in-flight events) |
-| `stopped` | Worker has stopped (terminal state for non-blocking subscribers) |
-| `failed` | Worker permanently failed (max retries exceeded) |
+| Status     | Meaning                                                          |
+| ---------- | ---------------------------------------------------------------- |
+| `idle`     | Worker registered but not started                                |
+| `running`  | Worker is replaying historical events (initial drain)            |
+| `live`     | Worker has finished drain and is processing live events          |
+| `backoff`  | Worker crashed and is waiting to restart (exponential backoff)   |
+| `draining` | Worker is shutting down (flushing in-flight events)              |
+| `stopped`  | Worker has stopped (terminal state for non-blocking subscribers) |
+| `failed`   | Worker permanently failed (max retries exceeded)                 |
 
 ---
 
@@ -84,12 +84,12 @@ The `*usermgmt.Service` (and `*EventSourcedSetup`) implements `cqrshtmx.Projecti
 
 `lag_ms` tells you how far behind a projection is from the event log head:
 
-| Lag Range | Health | Action |
-| --- | --- | --- |
-| 0-100ms | Healthy | No action needed |
-| 100ms-1s | Elevated | Monitor closely |
-| 1s-10s | Degraded | Investigate slow handlers or DB contention |
-| >10s | Critical | Projection is severely behind; users see stale data |
+| Lag Range | Health   | Action                                              |
+| --------- | -------- | --------------------------------------------------- |
+| 0-100ms   | Healthy  | No action needed                                    |
+| 100ms-1s  | Elevated | Monitor closely                                     |
+| 1s-10s    | Degraded | Investigate slow handlers or DB contention          |
+| >10s      | Critical | Projection is severely behind; users see stale data |
 
 ---
 
@@ -102,10 +102,10 @@ Scrape the endpoint and convert to metrics:
 ```yaml
 # prometheus.yml
 scrape_configs:
-  - job_name: 'projection-health'
+  - job_name: "projection-health"
     static_configs:
-      - targets: ['localhost:8080']
-    metrics_path: '/health/projections'
+      - targets: ["localhost:8080"]
+    metrics_path: "/health/projections"
 ```
 
 ### Simple HTTP Polling

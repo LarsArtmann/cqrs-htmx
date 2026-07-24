@@ -43,14 +43,14 @@ This method:
 
 ### Projection Names
 
-| Projection | Name |
-| --- | --- |
-| User read model | `user-read-model` |
+| Projection            | Name                    |
+| --------------------- | ----------------------- |
+| User read model       | `user-read-model`       |
 | Membership read model | `membership-read-model` |
-| Tenant read model | `tenant-read-model` |
-| Bot read model | `bot-read-model` |
-| Casbin authorization | `casbin-projection` |
-| Audit log (optional) | `audit-log` |
+| Tenant read model     | `tenant-read-model`     |
+| Bot read model        | `bot-read-model`        |
+| Casbin authorization  | `casbin-projection`     |
+| Audit log (optional)  | `audit-log`             |
 
 ### When to Rebuild
 

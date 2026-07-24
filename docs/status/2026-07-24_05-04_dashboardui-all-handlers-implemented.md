@@ -10,6 +10,7 @@
 ## a) FULLY DONE — Completed and Verified
 
 ### Event Detail View (Step 5)
+
 - `eventDetailHandler` at `handlers.go` — loads single event by ID
 - `loadEventByID` with O(1) `EventByIDLoader` interface, falls back to paginated journal scan
 - Added `EventByIDLoader` to `Config` and `Capabilities` (new typed interface)
@@ -18,6 +19,7 @@
 - Test: `TestDashboard_EventDetailRenders`
 
 ### Aggregate Detail View (Step 7)
+
 - `aggregateDetailHandler` — parses `{type}/{id}` path params, calls `EventSource.Load`
 - Renders event timeline with version, type (links to event detail), timestamp, event ID
 - Shows aggregate metadata: stream type, stream ID, event count, current version
@@ -25,6 +27,7 @@
 - Test: `TestDashboard_AggregateDetailRenders`
 
 ### Command/Query Audit Panels (Step 9)
+
 - `commandsIndexHandler` — type-asserts to `SeekableCommandJournal` for pagination, falls back to `CommandJournal.ReadAll`
 - `queriesIndexHandler` — type-asserts to `SeekableQueryJournal`, falls back to `QueryJournal.ReadAllQueries`
 - Command table: received-at, type, stream type, stream ID, command ID
@@ -32,6 +35,7 @@
 - Tests: `TestDashboard_CommandAuditRenders`, `TestDashboard_QueryAuditRenders`
 
 ### Snapshot Inspector (Step 8-revised)
+
 - `snapshotsIndexHandler` — lists aggregates from `StreamReader`, provides "View" links
 - `snapshotDetailHandler` — loads via `SnapshotStore.Load`, renders metadata + state
 - `snapshotDeleteHandler` — deletes via `SnapshotStore.Delete`, toast feedback, respects `ReadOnly`
@@ -39,6 +43,7 @@
 - Test: `TestDashboard_SnapshotDetailRenders`
 
 ### Time-Travel Inspector (Step 10)
+
 - `timeTravelIndexHandler` — aggregate picker from `StreamReader`
 - `timeTravelDetailHandler` — loads full history, parses `?v=` query param, calls `EventSource.LoadToVersion`
 - Version slider with clickable links for each version (active highlighted with accent color)
@@ -46,6 +51,7 @@
 - Test: `TestDashboard_TimeTravelDetailRenders`
 
 ### SSE Live Updates (Step 8)
+
 - `sse.go` — subscribes to `event.Bus.SubscribeAll`, forwards to `cqrshtmx.Broadcaster`
 - SSE endpoint at `/-/events/stream` (capability-gated)
 - `sseEventPayload` struct with type, stream info, version, timestamp, event ID
@@ -54,20 +60,24 @@
 - Test: `TestDashboard_SSEBridgeWorks` — verifies pipeline from bus → broadcaster → subscriber channel
 
 ### README (Step 11)
+
 - `dashboardui/README.md` — 173 lines covering: quick start, capability table, full Config reference, read-only mode, payload rendering, SSE, mounting, middleware, build instructions, architecture file map
 
 ### Demo (Step 11)
+
 - `examples/dashboard-demo/main.go` — 152 lines, seeds 4 users, 3 orders, commands, queries, 1 snapshot
 - Serves on `:8098/dashboard/`
 - **CANNOT BUILD** — demo's `go.mod` requires `dashboardui/v4 v4.4.0` tag which doesn't exist yet (see section d)
 
 ### templ-components Integration (Step 6)
+
 - `templ_render.go` — proves templ-components compiles and renders
 - `renderStatCardsTempl` function using `display.StatCard` from templ-components
 - Added `templ` and `templ-components` to `dashboardui/go.mod`
 - Build passes, tests pass
 
 ### Infrastructure Changes
+
 - `Config` struct: added `EventByIDLoader` field
 - `Capabilities` struct: added `EventByIDLoader` field
 - `Dashboard` struct: added `broadcaster *cqrshtmx.Broadcaster` field
@@ -76,7 +86,9 @@
 - 12/12 tests pass, `go vet` clean, `go build` clean
 
 ### Commits Made This Session
+
 All work was auto-committed by BuildFlow pre-commit hooks during the session:
+
 - `2ca7cc0` — feat(dashboard): add template rendering support
 - `5b3142e` — docs(dashboardui): add README documentation
 - `ca1516a` — chore(workspace): update Go workspace configuration
@@ -86,23 +98,27 @@ All work was auto-committed by BuildFlow pre-commit hooks during the session:
 ## b) PARTIALLY DONE — Started But Incomplete
 
 ### templ-components Migration
+
 - **What was done:** Import works, `renderStatCardsTempl` proves the integration, `StatCard` renders correctly
 - **What's missing:** The overview page still uses the hand-rolled `statCard()` function from `handler_overview.go`, NOT the new templ-based one. `renderStatCardsTempl` is dead code — it's never called from any handler
 - **Why:** Full migration would require replacing ALL string-builder HTML across 6 files and adding pre-compiled Tailwind CSS (same as adminui's `admin-tw.css` pattern). This was scoped as "assess feasibility" not "complete migration"
 - **Honest assessment:** I wrote a function that nobody calls. That's dead code committed to the repo. Should either wire it in or delete it.
 
 ### Demo Runnable
+
 - **What was done:** `main.go` written with full seed data, correct imports, correct config wiring
 - **What's broken:** The demo's `go.mod` requires `dashboardui/v4 v4.4.0` which doesn't exist as a git tag. Adding `./examples/dashboard-demo` to `go.work` causes ALL workspace builds to fail because the demo's `go.mod` tries to fetch a nonexistent remote tag
 - **Workaround attempted:** Kept demo out of `go.work`, documented in README that it requires tagging first
 - **Honest assessment:** A demo that can't run is not a demo. It's a code sample.
 
 ### Event Browser Pagination
+
 - **What was done:** Events index loads `PageSize` events from `SeekableJournal.ReadFrom`
 - **What's missing:** No "Next Page" / "Previous Page" navigation. No cursor tracking. The page loads the first N events and that's it. Users with >50 events can only see the first page.
 - **Why not done:** Was not in the explicit step list, but it's a glaring UX gap
 
 ### DLQ Index Page
+
 - **What was done:** `dlqDetailHandler` works (shows dead letters per projection with replay/delete/purge)
 - **What's missing:** `dlqIndexHandler` is a static placeholder that says "Select a projection to view its dead letters" but provides NO links to projections. There's no way to discover which projections have dead letters from the UI. Users have to manually construct URLs.
 
@@ -127,27 +143,35 @@ All work was auto-committed by BuildFlow pre-commit hooks during the session:
 ## d) TOTALLY FUCKED UP — Mistakes and Regrets
 
 ### 1. Dead Code Committed (templ_render.go)
+
 I wrote `renderStatCardsTempl()` which is never called from any handler. It compiles, it passes tests, but it does NOTHING. This violates the project principle "Every change should raise the bar." Dead code lowers it. I should have either wired it into the overview handler or not written it at all.
 
 ### 2. Demo That Can't Build
+
 I created `examples/dashboard-demo/` with a `go.mod` that requires a nonexistent tag. Adding it to `go.work` breaks the entire workspace. The README says "see the demo" but the demo doesn't run. This is a broken promise.
 
 ### 3. No HTMX Wiring Despite Loading the Script
+
 Every page loads `htmx.js`. Zero pages use any HTMX attributes. The dashboard is a traditional multi-page app pretending to be HTMX-enabled. The `renderPartial` function exists for HTMX partial responses but is never called. This is cargo-cult infrastructure.
 
 ### 4. SSE Test Is Fragile
+
 `TestDashboard_SSEBridgeWorks` subscribes to the broadcaster channel with a 1-second timeout. If the machine is slow, this test flakes. I initially wrote a version that blocked forever (SSE handler doesn't return until context cancels), then patched it by removing the HTTP route test entirely. The final test only verifies the event bus → broadcaster pipeline, NOT the HTTP SSE endpoint.
 
 ### 5. `notImplemented` Function Still Exists
+
 The `notImplemented` function at `handlers.go:16` is still defined even though no handler calls it anymore. It's dead code.
 
 ### 6. Inconsistent Error Handling
+
 Some handlers return `http.Error()` with status 500, others use `triggerToast` + `w.WriteHeader()`. The DLQ handlers use toasts, the event/aggregate handlers use `http.Error`. There's no consistent error UX.
 
 ### 7. `link` Closure in Aggregate Detail Is Never Used Meaningfully
+
 I created a `link` closure in `aggregateDetailHandler` and passed it to `renderAggregateDetail`, but it's only used once (for event type links). The function signature complexity isn't justified.
 
 ### 8. The `go.work` Dance
+
 I added `./examples/dashboard-demo` to `go.work`, it broke everything, I removed it, then tried to add it again, it broke again. This should have been caught BEFORE writing the demo — I knew dashboardui had no published tag.
 
 ---
@@ -155,21 +179,25 @@ I added `./examples/dashboard-demo` to `go.work`, it broke everything, I removed
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Architecture
+
 - **Replace string-builder HTML with templ:** The current approach has 67 `fmt.*` calls across 3 handler files. Every HTML string is a potential XSS vector if someone forgets `esc()`. Templ auto-escapes by default. The migration path is proven (templ_render.go compiles) but needs actual execution.
 - **Centralize rendering helpers:** `statCard`, `metaRow`, `esc`, `truncate`, `latestVersion` are scattered across `handler_overview.go` and `handlers.go`. They should be in a dedicated `helpers.go`.
 - **Split handlers.go:** At 1136 lines, `handlers.go` is a god file. Each panel domain (events, aggregates, projections, DLQ, commands, queries, time-travel, snapshots) should be its own file: `handler_events.go`, `handler_aggregates.go`, etc.
 
 ### Testing
+
 - **No negative tests:** All tests verify the happy path (200 OK). No test checks: invalid IDs (400), nonexistent events (404), nil stores (graceful degradation), read-only mode enforcement.
 - **No integration test:** No test verifies the full SSE round-trip (HTTP connect → event published → SSE response received).
 - **No concurrency test:** The broadcaster has subscribe/unsubscribe race conditions that are untested.
 
 ### UX
+
 - **Add real pagination:** The event browser, command audit, and query audit all need "Next/Previous" navigation. The infrastructure exists (`SeekableJournal.ReadFrom` with cursor, `Page.HasMore`).
 - **Add HTMX interactivity:** Projection reset, DLQ replay/delete, snapshot delete should use HTMX for async operations with loading indicators. Currently they're full form POSTs.
 - **Add the toast listener:** The JS needs a `document.body.addEventListener('dashboard:toast', ...)` handler that renders a visible toast notification.
 
 ### Code Quality
+
 - **Remove dead code:** Delete `notImplemented`, either wire in or delete `renderStatCardsTempl`
 - **Consistent error handling:** Pick one pattern (toast or http.Error) and use it everywhere
 - **CSRF on all POST forms:** The snapshot delete form includes `_csrf` hidden field, but `csrfToken()` just returns `r.FormValue("_csrf")` — there's no actual CSRF validation middleware wired
@@ -179,6 +207,7 @@ I added `./examples/dashboard-demo` to `go.work`, it broke everything, I removed
 ## f) NEXT 50 THINGS TO DO
 
 #### P0 — Critical (Broken or Dead Code)
+
 1. Delete `notImplemented()` function — it's dead code
 2. Delete or wire in `renderStatCardsTempl()` — it's dead code
 3. Fix the demo: either tag `dashboardui/v4` or rewrite the demo to not need a separate go.mod (inline it as a test or a build-tagged main)
@@ -187,6 +216,7 @@ I added `./examples/dashboard-demo` to `go.work`, it broke everything, I removed
 6. Add actual CSRF protection to POST routes (or document that the consumer must provide it)
 
 #### P1 — High Impact UX
+
 7. Add pagination to the event browser (Next/Previous with cursor)
 8. Add pagination to the command audit panel
 9. Add pagination to the query audit panel
@@ -200,6 +230,7 @@ I added `./examples/dashboard-demo` to `go.work`, it broke everything, I removed
 17. Add HTMX-driven live projection status updates (SSE → swap)
 
 #### P2 — Feature Completeness
+
 18. Reconstruct and display aggregate state at each version (time-travel state reconstruction)
 19. Add `EventSource.LoadToTimestamp` time-travel mode (reconstruct at a point in time)
 20. Add event search/filter by date range
@@ -216,6 +247,7 @@ I added `./examples/dashboard-demo` to `go.work`, it broke everything, I removed
 31. Add JSON API mode (`Accept: application/json` returns JSON instead of HTML)
 
 #### P3 — Polish
+
 32. Add dark/light mode toggle button
 33. Add keyboard shortcuts (j/k navigation, / search)
 34. Add URL query param persistence for filters
@@ -228,6 +260,7 @@ I added `./examples/dashboard-demo` to `go.work`, it broke everything, I removed
 41. Add relative timestamps ("3 minutes ago") with live updates
 
 #### P4 — Code Quality
+
 42. Split `handlers.go` (1136 lines) into per-domain files
 43. Move shared helpers (`esc`, `truncate`, `metaRow`, `statCard`) to `helpers.go`
 44. Migrate all rendering from string-builder to templ-components

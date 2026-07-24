@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 func TestDefaultEventCatalog_HasAllEvents(t *testing.T) {

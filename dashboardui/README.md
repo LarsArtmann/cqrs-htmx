@@ -30,19 +30,19 @@ interfaces you wired and shows only relevant panels.
 The dashboard reads from go-cqrs-lite introspection interfaces. Each optional
 interface activates a panel:
 
-| Config Field         | Interface                          | Panel Activated                     |
-|----------------------|------------------------------------|-------------------------------------|
-| `EventSource`        | `event.EventSource`                | Aggregates, Aggregate Detail, Time-Travel |
-| `EventByIDLoader`    | `LoadByEventID(ctx, id.EventID)`   | Event Detail (O(1) lookup)         |
-| `Journal`            | `event.Journal`                    | Events, Overview                    |
-| `SeekableJournal`    | `event.SeekableJournal`            | Events (paginated)                  |
-| `StreamReader`       | `listing.StreamReader`             | Aggregate Browser                   |
-| `ProjectionHost`     | `*projectionhost.Host`             | Projections, Projection Reset       |
-| `DeadLetterStore`    | `projectionhost.DeadLetterStore`   | Dead-Letter Queue (delete/purge)    |
-| `CommandJournal`     | `command.CommandJournal`           | Command Audit                       |
-| `QueryJournal`       | `query.QueryJournal`               | Query Audit                         |
-| `SnapshotStore`      | `snapshot.SnapshotStore`           | Snapshot Inspector                  |
-| `EventBus`           | `event.Bus`                        | SSE Live Updates                    |
+| Config Field      | Interface                        | Panel Activated                           |
+| ----------------- | -------------------------------- | ----------------------------------------- |
+| `EventSource`     | `event.EventSource`              | Aggregates, Aggregate Detail, Time-Travel |
+| `EventByIDLoader` | `LoadByEventID(ctx, id.EventID)` | Event Detail (O(1) lookup)                |
+| `Journal`         | `event.Journal`                  | Events, Overview                          |
+| `SeekableJournal` | `event.SeekableJournal`          | Events (paginated)                        |
+| `StreamReader`    | `listing.StreamReader`           | Aggregate Browser                         |
+| `ProjectionHost`  | `*projectionhost.Host`           | Projections, Projection Reset             |
+| `DeadLetterStore` | `projectionhost.DeadLetterStore` | Dead-Letter Queue (delete/purge)          |
+| `CommandJournal`  | `command.CommandJournal`         | Command Audit                             |
+| `QueryJournal`    | `query.QueryJournal`             | Query Audit                               |
+| `SnapshotStore`   | `snapshot.SnapshotStore`         | Snapshot Inspector                        |
+| `EventBus`        | `event.Bus`                      | SSE Live Updates                          |
 
 Only `EventSource` OR `Journal` OR `SeekableJournal` is required (at least one
 event-reading interface). Everything else is opt-in.
@@ -76,6 +76,7 @@ type Config struct {
 ### Read-Only Mode
 
 `ReadOnly` defaults to `true` (safe). When enabled, these operations are disabled:
+
 - Projection reset
 - DLQ replay, delete, purge
 - Snapshot delete
@@ -159,6 +160,7 @@ GOEXPERIMENT=jsonv2 go test ./dashboardui/...
 ## Architecture
 
 The dashboard follows the same pattern as `adminui/`:
+
 - `config.go` — Config struct, Capabilities detection, nav building
 - `dashboard.go` — Dashboard struct, New(), MustNew(), page shell
 - `handler.go` — Route registration and mounting

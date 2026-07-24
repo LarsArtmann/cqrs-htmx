@@ -127,13 +127,13 @@ VACUUM;
 
 Track these metrics:
 
-| Metric | Query (Postgres) | Alert Threshold |
-| --- | --- | --- |
-| Events table size | `SELECT pg_size_pretty(pg_total_relation_size('events'));` | Plan capacity at 10GB+ |
-| Event count | `SELECT count(*) FROM events;` | Context-dependent |
-| Events per day | `SELECT date_trunc('day', created_at), count(*) FROM events GROUP BY 1;` | Growth rate trend |
+| Metric                   | Query (Postgres)                                                              | Alert Threshold                                |
+| ------------------------ | ----------------------------------------------------------------------------- | ---------------------------------------------- |
+| Events table size        | `SELECT pg_size_pretty(pg_total_relation_size('events'));`                    | Plan capacity at 10GB+                         |
+| Event count              | `SELECT count(*) FROM events;`                                                | Context-dependent                              |
+| Events per day           | `SELECT date_trunc('day', created_at), count(*) FROM events GROUP BY 1;`      | Growth rate trend                              |
 | Largest aggregate stream | `SELECT stream_id, count(*) FROM events GROUP BY 1 ORDER BY 2 DESC LIMIT 10;` | >10k events per aggregate → consider snapshots |
-| Database bloat ratio | Compare `pg_stat_user_tables.n_dead_tup` to `n_live_tup` | >20% dead tuples → VACUUM |
+| Database bloat ratio     | Compare `pg_stat_user_tables.n_dead_tup` to `n_live_tup`                      | >20% dead tuples → VACUUM                      |
 
 ---
 
