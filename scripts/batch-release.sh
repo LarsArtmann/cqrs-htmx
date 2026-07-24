@@ -87,22 +87,52 @@ find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= r
   done < <(grep '=>' "$gomod" 2>/dev/null || true)
 done
 
-# NOTE: We deliberately do NOT run `go mod tidy` here.
-# go mod tidy -e with GOWORK=off silently removes dependencies whose
-# published tags are broken (go-cqrs-lite publishing bug, unpublished go-sse).
-# This caused v4.5.0-rc1 tags to ship with empty require blocks.
-# Instead, we only strip replace directives and tag directly — the require
-# versions in go.mod were resolved via go.work replaces during development
-# and are the best available references.
+# --- Resolve internal cqrs-htmx requires to target versions ---
+# We deliberately do NOT run `go mod tidy` here: with GOWORK=off it silently
+# removes dependencies whose published tags are broken (go-cqrs-lite publishing
+# bug). Instead, we surgically update each internal require to its target
+# version using `go mod edit -require=`. This fixes the root cause of
+# inter-module version drift: replace directives mask stale require versions
+# during development, and stripping replaces without re-resolving exposes them.
+echo "Resolving internal requires to target versions..."
 
-# Verify no pseudo-versions in tagged modules
-echo "Verifying no pseudo-versions remain..."
-for mod in "${modules[@]}"; do
-  if grep -q "00010101000000" "${mod}/go.mod" 2>/dev/null; then
-    echo "WARNING: ${mod}/go.mod still has pseudo-versions"
-    grep "00010101000000" "${mod}/go.mod"
+# Build module-path → version mapping from the modules/versions arrays.
+mapping_file="$(mktemp)"
+for i in "${!modules[@]}"; do
+  mod="${modules[$i]}"
+  ver="${versions[$i]}"
+  mod_path=$(head -1 "${mod}/go.mod" | awk '{print $2}')
+  if [ -n "$mod_path" ]; then
+    printf '%s\t%s\n' "$mod_path" "$ver" >> "$mapping_file"
   fi
 done
+
+# For every go.mod, update internal cqrs-htmx requires to their target versions.
+find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= read -r gomod; do
+  dir="$(dirname "$gomod")"
+  own_path=$(head -1 "$gomod" | awk '{print $2}')
+  while IFS= read -r req_path; do
+    # Skip self-references (the module's own path)
+    [ "$req_path" = "$own_path" ] && continue
+    target_ver=$(grep -P "^${req_path}\t" "$mapping_file" | cut -f2)
+    if [ -n "$target_ver" ]; then
+      (cd "$dir" && go mod edit "-require=${req_path}@${target_ver}")
+      echo "  ${dir}/go.mod: ${req_path} → ${target_ver}"
+    fi
+  done < <(grep -oP 'github\.com/larsartmann/cqrs-htmx/\S+' "$gomod" | sort -u)
+done
+rm -f "$mapping_file"
+
+# Verify no pseudo-versions remain in ANY go.mod (not just tagged modules).
+# Catches both zero-date (00010101000000) and date-based (YYYYMMDDHHMMSS) forms.
+echo "Verifying no pseudo-versions remain..."
+while IFS= read -r gomod; do
+  if grep -qP 'v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{14}' "$gomod" 2>/dev/null; then
+    echo "ERROR: ${gomod} still has pseudo-versions"
+    grep -nP 'v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{14}' "$gomod"
+    exit 1
+  fi
+done < <(find . -name go.mod -not -path './vendor/*' -not -path './.git/*')
 
 # Create temporary commit
 git add -A
