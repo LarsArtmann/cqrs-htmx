@@ -6,6 +6,11 @@
 
 **Working tree:** 22 changes (20 modified + 2 new files) — **NOT committed, NOT pushed.**
 
+> **Update 2026-07-20:** All 22 changes were committed in subsequent sessions. The BuildFlow
+> `fatcontext`/`dupword` linter-revert landmine was permanently fixed with `//nolint:fatcontext`
+> and `//nolint:dupword` directives (see AGENTS.md gotchas). The enum `Valid()` methods, snapshot
+> integration tests, and `SyntheticUserID` disambiguation all shipped in v4.5.0.
+
 ---
 
 ## a) FULLY DONE (verified: builds, tests pass, lint clean, ready to commit)
