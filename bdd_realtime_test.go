@@ -263,7 +263,9 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 
 			Expect(cleanedUp).To(BeFalse())
 			cancel()
-			stream.Close()
+
+			_ = stream.Close()
+
 			Expect(cleanedUp).To(BeTrue())
 		})
 	})
