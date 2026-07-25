@@ -8,7 +8,7 @@
 
 ## TL;DR
 
-The open-source data-mesh ecosystem (DataHub, OpenMetadata, ODCS, EventCatalog, Dagster, OpenLineage, etc.) is solving problems — centralization, stale metadata, undefined "data products," forgotten history, hand-waved governance — that **event sourcing structurally prevents from existing in the first place.** The opportunity isn't to build a better DataHub. It's to recognize that an event-sourced system already *is* a data mesh, and the only work is **exposure**: transport + documentation + the binding between them.
+The open-source data-mesh ecosystem (DataHub, OpenMetadata, ODCS, EventCatalog, Dagster, OpenLineage, etc.) is solving problems — centralization, stale metadata, undefined "data products," forgotten history, hand-waved governance — that **event sourcing structurally prevents from existing in the first place.** The opportunity isn't to build a better DataHub. It's to recognize that an event-sourced system already _is_ a data mesh, and the only work is **exposure**: transport + documentation + the binding between them.
 
 ---
 
@@ -31,24 +31,24 @@ The open-source data-mesh ecosystem (DataHub, OpenMetadata, ODCS, EventCatalog, 
 
 Grouped by layer in the mesh. Star counts as of mid-2026.
 
-| Category | Project | Stars | What it is |
-|----------|---------|-------|-----------|
-| **Catalog / Discovery** | OpenMetadata | 14.6k | Schema-first unified metadata platform (born from Uber's Databook) |
-| | DataHub | 12.3k | LinkedIn-born, real-time Kafka push, federated GMS |
-| | Amundsen | 4.8k | Lyft-born, usage-ranked "Google for data" (development slowing) |
-| | Marquez | 2.2k | OpenLineage reference impl, job/dataset/run provenance |
-| | Egeria | 918 | Federated metadata exchange framework (complex, low adoption) |
-| **Data Contracts** | ODCS (Bitol) | 1.1k | The de-facto contract standard (v3.1.0, LF-governed) |
-| | data-contract-cli | 958 | Lint/test/enforce contracts in CI/CD (25+ export formats) |
-| **Data Product specs** | DPDS | 84 | Open Data Mesh Initiative descriptor spec |
-| | ODPS | 112 | Bitol product spec |
-| | DPROD | 36 | EKGF product workgroup |
-| **Lineage** | OpenLineage | 2.6k | Vendor-neutral lineage standard (Spark/Airflow/dbt) |
-| **Orchestration** | Dagster | 15.9k | Asset-oriented (closest to mesh-native) |
-| | Airflow | 46.2k | Task-centric DAGs (not asset-oriented) |
-| | Mage | 8.8k | Visual notebook-style pipeline builder |
-| **Architecture docs** | EventCatalog | 2.8k | Docs-as-code for event-driven architectures (Astro + MDX) |
-| **Streaming** | Conduit | 604 | Go-based Kafka Connect replacement (Meroxa) |
+| Category                | Project           | Stars | What it is                                                         |
+| ----------------------- | ----------------- | ----- | ------------------------------------------------------------------ |
+| **Catalog / Discovery** | OpenMetadata      | 14.6k | Schema-first unified metadata platform (born from Uber's Databook) |
+|                         | DataHub           | 12.3k | LinkedIn-born, real-time Kafka push, federated GMS                 |
+|                         | Amundsen          | 4.8k  | Lyft-born, usage-ranked "Google for data" (development slowing)    |
+|                         | Marquez           | 2.2k  | OpenLineage reference impl, job/dataset/run provenance             |
+|                         | Egeria            | 918   | Federated metadata exchange framework (complex, low adoption)      |
+| **Data Contracts**      | ODCS (Bitol)      | 1.1k  | The de-facto contract standard (v3.1.0, LF-governed)               |
+|                         | data-contract-cli | 958   | Lint/test/enforce contracts in CI/CD (25+ export formats)          |
+| **Data Product specs**  | DPDS              | 84    | Open Data Mesh Initiative descriptor spec                          |
+|                         | ODPS              | 112   | Bitol product spec                                                 |
+|                         | DPROD             | 36    | EKGF product workgroup                                             |
+| **Lineage**             | OpenLineage       | 2.6k  | Vendor-neutral lineage standard (Spark/Airflow/dbt)                |
+| **Orchestration**       | Dagster           | 15.9k | Asset-oriented (closest to mesh-native)                            |
+|                         | Airflow           | 46.2k | Task-centric DAGs (not asset-oriented)                             |
+|                         | Mage              | 8.8k  | Visual notebook-style pipeline builder                             |
+| **Architecture docs**   | EventCatalog      | 2.8k  | Docs-as-code for event-driven architectures (Astro + MDX)          |
+| **Streaming**           | Conduit           | 604   | Go-based Kafka Connect replacement (Meroxa)                        |
 
 **Key truth:** there is no single "data mesh platform." A mesh is assembled from a catalog + contracts + orchestrator + lineage standard. OpenMetadata comes closest to mesh-native; DataHub is the most battle-tested.
 
@@ -80,7 +80,7 @@ DataHub needs Kafka + Elasticsearch + Neo4j + MySQL + microservices (GMS, fronte
 
 ### 3.2 No runtime truth
 
-EventCatalog is docs-only (no live introspection of Kafka clusters or schema registries). Catalogs ingest metadata on schedules (pull-based via Airflow connectors) — they never see **actual message flow**. The catalog describes *intended* architecture; reality drifts. There's no continuous "what events actually flowed where, when, to whom."
+EventCatalog is docs-only (no live introspection of Kafka clusters or schema registries). Catalogs ingest metadata on schedules (pull-based via Airflow connectors) — they never see **actual message flow**. The catalog describes _intended_ architecture; reality drifts. There's no continuous "what events actually flowed where, when, to whom."
 
 ### 3.3 Schema-first but not event-first
 
@@ -88,7 +88,7 @@ They model **tables, datasets, pipelines** — the analytical/warehouse world. N
 
 ### 3.4 "Data product" is still undefined after 6 years
 
-No consensus definition, versioning rules, SLA, or interface. ODCS even *deprecated* its `dataProduct` field in v3.1.0 (a step *away* from product thinking). DPDS, ODPS, and DPROD compete on what a product even *is*. A core primitive of the theory has no consensus implementation. We're still arguing over what a "data product" actually is.
+No consensus definition, versioning rules, SLA, or interface. ODCS even _deprecated_ its `dataProduct` field in v3.1.0 (a step _away_ from product thinking). DPDS, ODPS, and DPROD compete on what a product even _is_. A core primitive of the theory has no consensus implementation. We're still arguing over what a "data product" actually is.
 
 ### 3.5 Governance is hand-waved
 
@@ -104,7 +104,7 @@ Five competing product specs (DPDS, ODPS, DPROD, ODCS, datacontract.com). Three 
 
 ### 3.8 The analytical/operational divide persists
 
-"Orders" exists in the REST API *and* in the warehouse. They drift. The mesh was supposed to bridge this divide (Dehghani's "great divide of data"); it mostly added a third copy (the "data product"). The ETL labyrinth remains; it just has more stops.
+"Orders" exists in the REST API _and_ in the warehouse. They drift. The mesh was supposed to bridge this divide (Dehghani's "great divide of data"); it mostly added a third copy (the "data product"). The ETL labyrinth remains; it just has more stops.
 
 ---
 
@@ -114,29 +114,29 @@ Event sourcing doesn't just improve the mesh — it **dissolves several of the h
 
 ### The structural advantages you get for free
 
-| Problem traditional meshes struggle with | What event sourcing gives you |
-|---|---|
-| "Databases that forget" (no history) | The event store **is** the immutable history. Time-travel is a read operation, not a feature to bolt on. |
-| Lineage is reverse-engineered from logs | Lineage is **structural** — events carry causal metadata, correlation IDs, and reference their causes. No OpenLineage instrumentation needed. |
-| "What's the actual state?" requires querying stale copies | Replay the events to any point. The source of truth is the log, not a projection. |
-| Data contracts are static documents | Events **carry their schema version inline**. The contract is executable — the payload struct IS the schema. Upcasters handle evolution at read time. |
-| Real-time requires bolting on CDC/Kafka | Real-time is the default. Events propagate as they happen. No CDC, no Kafka Connect pipeline. |
-| Producer shapes don't fit consumer needs | Consumers **build their own projections** from raw events. Decoupled by construction. |
-| "Data product" is undefined | The event stream **is** the product. Not a table, not a contract — a versioned, replayable, owned stream of domain facts. |
-| Analytical/operational divide | A single event stream serves both operational (live projections) and analytical (replay/rebuild) consumers. |
+| Problem traditional meshes struggle with                  | What event sourcing gives you                                                                                                                         |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Databases that forget" (no history)                      | The event store **is** the immutable history. Time-travel is a read operation, not a feature to bolt on.                                              |
+| Lineage is reverse-engineered from logs                   | Lineage is **structural** — events carry causal metadata, correlation IDs, and reference their causes. No OpenLineage instrumentation needed.         |
+| "What's the actual state?" requires querying stale copies | Replay the events to any point. The source of truth is the log, not a projection.                                                                     |
+| Data contracts are static documents                       | Events **carry their schema version inline**. The contract is executable — the payload struct IS the schema. Upcasters handle evolution at read time. |
+| Real-time requires bolting on CDC/Kafka                   | Real-time is the default. Events propagate as they happen. No CDC, no Kafka Connect pipeline.                                                         |
+| Producer shapes don't fit consumer needs                  | Consumers **build their own projections** from raw events. Decoupled by construction.                                                                 |
+| "Data product" is undefined                               | The event stream **is** the product. Not a table, not a contract — a versioned, replayable, owned stream of domain facts.                             |
+| Analytical/operational divide                             | A single event stream serves both operational (live projections) and analytical (replay/rebuild) consumers.                                           |
 
 ### The opportunity: an event-sourced-native mesh
 
 The existing tools are built for the table/warehouse world. An event-sourced environment lets you build something fundamentally simpler and more honest:
 
 **1. The event store is the data product — not a separate artifact.**
-Traditional meshes require you to *define* a data product (a contract), *build* it (a pipeline), *publish* it (to a catalog), and *maintain* it (versioning, SLAs). In ES, the event stream already exists — it's the write model. The "product" is just making it discoverable and consumable. This collapses the entire "data product lifecycle" into "expose what you already have."
+Traditional meshes require you to _define_ a data product (a contract), _build_ it (a pipeline), _publish_ it (to a catalog), and _maintain_ it (versioning, SLAs). In ES, the event stream already exists — it's the write model. The "product" is just making it discoverable and consumable. This collapses the entire "data product lifecycle" into "expose what you already have."
 
 **2. The catalog is auto-generated from the code.**
 No manual authoring, no ingestion jobs. The event types, their payloads, their schemas — all derivable from the Go types via reflection (which `catalog/v4`'s `SchemaFromType[T]()` already does). The catalog is a build artifact, not a database to keep in sync. When you change an event struct, the catalog updates on the next build. Zero drift.
 
 **3. Contracts are executable, not documentary.**
-ODCS is a YAML file describing a schema. An event-sourced contract is the **compiled binary** — the struct definition, the upcaster chain, the fold function. You can't ship an event that violates its contract because the contract *is the code*. The `UpcasterRegistry` handles backward compat automatically; no migration scripts.
+ODCS is a YAML file describing a schema. An event-sourced contract is the **compiled binary** — the struct definition, the upcaster chain, the fold function. You can't ship an event that violates its contract because the contract _is the code_. The `UpcasterRegistry` handles backward compat automatically; no migration scripts.
 
 **4. Lineage is free and exact.**
 Every event carries: its causation ID (which command produced it), its correlation ID (which request), its aggregate ID, its schema version, its timestamp. You don't need OpenLineage — you need a query over the event store. Cross-domain lineage: when domain A's projection consumes domain B's events, the subscription itself is the lineage edge, recorded in the checkpoint store.
@@ -159,7 +159,7 @@ The research confirms that `catalog/v4` + `transport/http/v4` + event sourcing a
 
 3. **Pull-based machine transport** — `GET /events?after=<id>` returning JSON/NDJSON. No existing tool provides this (SSEBroker is push-only; JournalSSEStore is SSE-framed). ~100 LOC.
 
-4. **Time-travel as a first-class mesh operation** — "rebuild this data product as of 2024-01-15." The event store supports it; no mesh tool exposes it. This is the killer feature traditional meshes *can't* offer.
+4. **Time-travel as a first-class mesh operation** — "rebuild this data product as of 2024-01-15." The event store supports it; no mesh tool exposes it. This is the killer feature traditional meshes _can't_ offer.
 
 5. **The narrative** — the insight that in ES, you don't need DataHub/OpenMetadata/ODCS. You need: expose your events (transport), document them (catalog), and let consumers build projections. The "data product" is the event stream itself. This needs to be written down clearly, because the industry is still stuck in the table/warehouse mental model.
 
@@ -187,7 +187,7 @@ It's not all upside. Intellectual honesty demands acknowledging the trade-offs:
 
 The existing data-mesh tools are solving problems (centralization, stale metadata, undefined products, forgotten history) that event sourcing **structurally prevents from existing in the first place.**
 
-The opportunity isn't to build a better DataHub — it's to recognize that an event-sourced system already *is* a data mesh, and the only work is **exposure** (transport + documentation + the binding between them).
+The opportunity isn't to build a better DataHub — it's to recognize that an event-sourced system already _is_ a data mesh, and the only work is **exposure** (transport + documentation + the binding between them).
 
 ### What cqrs-htmx / go-cqrs-lite should do
 
@@ -218,29 +218,34 @@ The opportunity isn't to build a better DataHub — it's to recognize that an ev
 ### Catalogs / Discovery Platforms
 
 #### OpenMetadata (14.6k stars)
-- **Origin:** Built by the team that created Uber's metadata platform *Databook*.
+
+- **Origin:** Built by the team that created Uber's metadata platform _Databook_.
 - **Architecture:** Schema-first (JSON Schemas as source of truth, code-generated into Java/Python/TypeScript). REST API server (Dropwizard/Jetty). Backend: MySQL 8.x or PostgreSQL. Search: Elasticsearch/OpenSearch. No dedicated graph DB (uses `entity_relationship` table). Ingestion: Python framework with 130+ connectors, typically orchestrated by Airflow (pull-based).
 - **Gets right:** Genuine breadth in one platform (catalog + DQ + profiling + lineage + governance + contracts + search). Built-in data quality (30-40+ test types — DataHub has none). Open standards alignment (ODCS, DCAT/DPROD, PROV-O, JSON-LD/SHACL). Proven scale (2M assets / 15M relations benchmark). MCP server + AI features.
 - **Gets wrong:** Centralized, not federated (single store, no native federated metadata services — a structural mesh mismatch). Pull-based/Airflow-centric ingestion (weaker real-time than DataHub). No native graph DB/GraphQL. Self-hosting operational burden. Upgrades are a known pain point. Critical CVEs in 2024 (CVE-2024-28255 etc., RCE, actively exploited for cryptomining). OSS vs commercial (Collate) feature gap.
 
 #### DataHub (12.3k stars)
+
 - **Origin:** Built at LinkedIn (evolved from WhereHows), commercialized by Acryl Data (now DataHub Inc.).
 - **Architecture:** Schema-first metadata modeling (Pegasus PDL). Stream-based real-time metadata (Kafka — changes in seconds). Federated metadata serving (multiple GMS owned by different teams). Stack: MySQL/Postgres + Elasticsearch + Neo4j + Kafka + microservices (GMS, frontend, MCE consumer, MAE consumer).
 - **Gets right:** Battle-tested at hyperscale (LinkedIn, Netflix, Pinterest, 10M+ assets). Push-based real-time architecture (innovative, better than pull-based). Extensible metadata model (PDL aspects). 80+ production-grade connectors. Active commercial stewardship. Federated metadata serving (architecturally supports mesh). Explicit Domains + data products + data contracts.
 - **Gets wrong:** Operational complexity (4 infrastructure deps + microservices — the #1 criticism). No native data quality profiling (requires Great Expectations/dbt). Lineage gaps (column-level not supported across all platforms). Governance not fully mature. Data contracts limited to datasets only. Single-domain-per-asset limitation. Domain-based access control can hurt performance. Federated serving not first-class in open source.
 
 #### Amundsen (4.8k stars)
+
 - **Origin:** Built at Lyft. Hosted by LF AI & Data Foundation.
 - **Architecture:** Neo4j or Apache Atlas backend + Elasticsearch search.
 - **Gets right:** Usage-based ranking (page-rank-style search where frequently queried tables rank higher). Simpler and more focused for pure discovery.
 - **Gets wrong:** Development has slowed. Lacks data quality, observability, governance, data contracts. Architecturally dated (more moving parts than monolithic alternatives). Not suited as a comprehensive mesh platform.
 
 #### Marquez (2.2k stars)
+
 - **Origin:** Open-sourced by WeWork. LF AI & Data Graduate project. Reference implementation of OpenLineage API.
 - **Gets right:** Tracks data lineage (job/dataset/run provenance). Dataset lifecycle management. Integrates with OpenLineage.
 - **Gets wrong:** Narrower scope (lineage-focused, not a full catalog). Smaller community.
 
 #### Egeria (918 stars)
+
 - **Origin:** odpi / Linux Foundation / ODPi.
 - **Gets right:** Deep governance focus. Federated metadata architecture (designed for exchanging metadata between heterogeneous platforms).
 - **Gets wrong:** Steep complexity (Java-heavy, enterprise-oriented). Low community adoption. Framework/standard rather than ready-to-use product.
@@ -248,12 +253,14 @@ The opportunity isn't to build a better DataHub — it's to recognize that an ev
 ### Data Contract Tools
 
 #### ODCS — Open Data Contract Standard (1.1k stars)
+
 - **Origin:** PayPal internal template, open-sourced, now governed by Bitol under LF AI & Data Foundation. v3.1.0 (Dec 2025). Media type: `application/odcs+yaml;version=3.1.0`.
 - **Sections:** Fundamentals (`apiVersion`, `kind`, `id`, `name`, `version`, `status`, `domain`, `tenant`, `description`), `schema` (dual logical/physical typing), `references` (foreign keys, v3.1.0), `servers` (30+ types), `slaProperties` (flat array), `quality` (library/sql/text/custom), `team`, `roles`, `support`, `price`, `customProperties`, `authoritativeDefinitions`.
 - **Gets right:** Dual logical/physical typing (one contract, multiple warehouses). Broad lifecycle-spanning coverage. Platform/vendor-neutral. Library-based quality metrics (v3.1.0). Extensibility (`customProperties` everywhere). Linux Foundation governance. Ecosystem convergence (datacontract.com deprecated in its favor).
 - **Gets wrong:** Scope creep and naming collisions (ODPS acronym clash). Schema is array-based, not map-based (fragile referencing until v3.1.0 retrofitted `id`s). No native DRY type-reuse/`$ref`. `terms` is fragmented across `description`/`price`/`authoritativeDefinitions`. Enterprise baggage/verbosity. Deprecation churn (v3.0.0 was a large breaking rewrite). SLA model relies on external Medium article for taxonomy. Contract-first, not product-first (no input/output port modeling, no discoverability).
 
 #### data-contract-cli (958 stars)
+
 - **Origin:** datacontract organization, created by Stefan Negele, Jochen Christ, Simon Harrer (Entropy Data / INNOQ).
 - **Gets right:** End-to-end contract enforcement (lint, test against live data sources — Postgres, Snowflake, BigQuery, Kafka, Databricks). Excellent CI/CD integration. Rich import/export (25+ formats). dbt integration. Now defaults to ODCS.
 - **Gets wrong:** Python-based with complex optional dependencies. Niche tool requiring organizational buy-in. No built-in UI.
@@ -269,6 +276,7 @@ All three compete on what a "data product" even is. No consensus after 6 years.
 ### Lineage
 
 #### OpenLineage (2.6k stars)
+
 - **Origin:** Launched by Datakin/WeWork. LF AI & Data Graduate project.
 - **Gets right:** Vendor-neutral standard for lineage collection. Supported by Spark, Airflow, dbt, Flink. Table-level and column-level lineage. Decouples collection from storage.
 - **Gets wrong:** Standard + client libraries, not a full lineage platform. Integration coverage uneven. Requires modifying pipeline tools to emit events.
@@ -276,18 +284,22 @@ All three compete on what a "data product" even is. No consensus after 6 years.
 ### Orchestration
 
 #### Dagster (15.9k stars)
+
 - Asset-oriented (closest to mesh-native). The asset graph IS your data product catalog. Integrated lineage and observability. Best-in-class testability.
 - **Limitation:** Newer paradigm; enterprise features behind Dagster+.
 
 #### Airflow (46.2k stars)
+
 - Industry standard. Massive ecosystem. Task-centric (not asset-oriented — harder to reason about data products). Steep operational overhead. No native lineage/quality/observability.
 
 #### Mage (8.8k stars)
+
 - Visual notebook-style pipeline builder. Best developer experience for local development. Enterprise features gated.
 
 ### Architecture Documentation
 
 #### EventCatalog (2.8k stars)
+
 - **Origin:** Created by David Boyne (v1 launched January 2022). 40,000+ catalogs created. Adopted by Nike, AWS, GOV.UK, Eurostar, NHS, Worldpay, Ticketmaster, M&S.
 - **Architecture:** Astro 5.x + React 18. Content model: MDX files in git (docs-as-code). Visualization: `@xyflow/react` node graphs. Static site generator (no database, no broker). AI chat + MCP server (v4, premium).
 - **Gets right:** Documentation-as-code done right (PR review, version history apply to architecture docs). Architecture-native (domains, services, events, commands, queries, flows, ADRs). Strong visualization. Automation via generators (AsyncAPI, OpenAPI, Kafka, Schema Registry). Schema field-level search. AI/MCP integration. Low operational overhead (static site).
@@ -296,6 +308,7 @@ All three compete on what a "data product" even is. No consensus after 6 years.
 ### Streaming
 
 #### Conduit (604 stars)
+
 - Go-based Kafka Connect replacement (Meroxa). No JVM required. gRPC plugin protocol. Single binary.
 - Not explicitly designed as a data mesh tool.
 
@@ -329,6 +342,7 @@ The central data team as a bottleneck. The "great divide of data" between operat
 ## Appendix C: Sources
 
 ### Project repositories
+
 - OpenMetadata: https://github.com/open-metadata/OpenMetadata
 - DataHub: https://github.com/datahub-project/datahub
 - Amundsen: https://github.com/amundsen-io/amundsen
@@ -347,6 +361,7 @@ The central data team as a bottleneck. The "great divide of data" between operat
 - Conduit: https://github.com/ConduitIO/conduit
 
 ### Analysis and criticism
+
 - Zhamak Dehghani, "Data Mesh Principles" (Martin Fowler): https://martinfowler.com/articles/data-mesh-principles.html
 - Data Mesh Architecture: https://www.datamesh-architecture.com/
 - Thinklytics, "Data Mesh in Practice" (failure modes, scale thresholds): https://thinklytics.com/insights/data-mesh-in-practice
@@ -356,6 +371,7 @@ The central data team as a bottleneck. The "great divide of data" between operat
 - Xomnia, "Risks and Disadvantages of Data Mesh" (transformation costs, ownership blame ping-pong): https://xomnia.com/post/what-are-the-risks-and-disadvantages-of-data-mesh/
 
 ### Event-sourced / event-driven mesh
+
 - Adam Bellemare, "Building an Event-Driven Data Mesh" (O'Reilly, 2023): https://www.oreilly.com/library/view/building-an-event-driven/9781098127596/
 - Adam Bellemare, "The Definitive Guide to Building a Data Mesh with Event Streams": https://dev.to/bellemare/the-definitive-guide-to-building-a-data-mesh-with-event-streams-207b
 - eventsourcing.ai, Data Mesh concept: https://www.eventsourcing.ai/concepts/data-mesh/
@@ -364,6 +380,7 @@ The central data team as a bottleneck. The "great divide of data" between operat
 - AWS, "Event-driven architecture to build a data mesh on AWS": https://aws.amazon.com/blogs/big-data/use-an-event-driven-architecture-to-build-a-data-mesh-on-aws/
 
 ### Architecture comparisons
+
 - TextQL DataHub Wiki: https://www.textql.com/wiki/datahub
 - Atlan, "OpenMetadata vs DataHub": https://atlan.com/openmetadata-vs-datahub/
 - DeepWiki, DataHub architecture: https://deepwiki.com/acryldata/datahub

@@ -69,6 +69,7 @@ EventCatalog is a **static-site generator** built on **Astro 5.x + React 18** wi
 ```
 
 **Key architectural decisions:**
+
 - **No database.** The file system IS the database. MDX frontmatter is the schema.
 - **No message broker.** Static by default; SSR only for premium AI features.
 - **Docs-as-code.** PR review, version history, branching all apply to architecture docs.
@@ -77,16 +78,16 @@ EventCatalog is a **static-site generator** built on **Astro 5.x + React 18** wi
 
 **Monorepo package inventory:**
 
-| Package | Purpose |
-|---------|---------|
-| `@eventcatalog/core` | The Astro app + build pipeline |
-| `@eventcatalog/sdk` | 150+ function data layer over MDX files |
-| `@eventcatalog/cli` | Terminal access to SDK functions |
-| `@eventcatalog/linter` | Zod-based frontmatter validation |
-| `@eventcatalog/connectors` | GitHub / Microsoft Entra ID directory sync |
-| `@eventcatalog/visualiser` | Standalone React graph component |
-| `@eventcatalog/breaking-changes` | Breaking change detection between versions |
-| `@eventcatalog/create-eventcatalog` | Scaffolding CLI |
+| Package                             | Purpose                                    |
+| ----------------------------------- | ------------------------------------------ |
+| `@eventcatalog/core`                | The Astro app + build pipeline             |
+| `@eventcatalog/sdk`                 | 150+ function data layer over MDX files    |
+| `@eventcatalog/cli`                 | Terminal access to SDK functions           |
+| `@eventcatalog/linter`              | Zod-based frontmatter validation           |
+| `@eventcatalog/connectors`          | GitHub / Microsoft Entra ID directory sync |
+| `@eventcatalog/visualiser`          | Standalone React graph component           |
+| `@eventcatalog/breaking-changes`    | Breaking change detection between versions |
+| `@eventcatalog/create-eventcatalog` | Scaffolding CLI                            |
 
 ---
 
@@ -96,25 +97,25 @@ Every resource is an `index.mdx` file (or flat `.mdx` for users/teams) with YAML
 
 ### Resource types
 
-| Type | Directory | Key fields beyond BaseSchema |
-|------|-----------|------------------------------|
-| **Domain** | `domains/` | `systems[]`, `services[]`, `agents[]`, `domains[]` (subdomains), `entities[]`, `flows[]`, `dataProducts[]`, `sends[]`, `receives[]`, `ubiquitousLanguage[]` |
-| **Service** | `services/` | `sends[]`, `receives[]`, `entities[]`, `writesTo[]`, `readsFrom[]`, `flows[]`, `externalSystem`, `specifications[]` |
-| **Event** | `events/` | `channels[]`, `operation` |
-| **Command** | `commands/` | `channels[]`, `operation` |
-| **Query** | `queries/` | `channels[]`, `operation` |
-| **Channel** | `channels/` | `address`, `protocols[]`, `deliveryGuarantee`, `routes[]`, `parameters{}` |
-| **Entity** | `entities/` | `aggregateRoot`, `identifier`, `properties[]` (nested, with references + relationType) |
-| **Flow** | `flows/` | `steps[]` (each: service/message/agent/actor/custom/externalSystem, with `next_step`/`next_steps` for branching) |
-| **System** | `systems/` | `scope` (internal/external), `services[]`, `flows[]`, `entities[]`, `containers[]`, `relationships[]`, `actors[]` |
-| **Agent** | `agents/` | `sends[]`, `receives[]`, `writesTo[]`, `readsFrom[]`, `flows[]`, `model` (provider/name/version), `tools[]` |
-| **Container** | `containers/` | `container_type` (database/cache/objectStore/searchIndex/dataWarehouse/dataLake/externalSaaS/other), `technology`, `authoritative`, `classification`, `retention` |
-| **Data Product** | `data-products/` | `inputs[]`, `outputs[]` (each with optional `contract: {path, name, type}`) |
-| **ADR** | `adrs/` | `status` (proposed/accepted/rejected/deprecated/superseded), `date`, `decisionMakers[]`, `appliesTo[]`, `supersedes[]`, `supersededBy[]`, `amends[]`, `amendedBy[]`, `related[]` |
-| **User** | `users/` | `avatarUrl`, `role`, `email`, `slackDirectMessageUrl`, `source` (provider/id/url) |
-| **Team** | `teams/` | `members[]`, `email`, `slackDirectMessageUrl` |
-| **Diagram** | `diagrams/` | (file-based, C4/Mermaid/LikeC4) |
-| **Custom Doc** | `docs/` | (freeform pages) |
+| Type             | Directory        | Key fields beyond BaseSchema                                                                                                                                                     |
+| ---------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Domain**       | `domains/`       | `systems[]`, `services[]`, `agents[]`, `domains[]` (subdomains), `entities[]`, `flows[]`, `dataProducts[]`, `sends[]`, `receives[]`, `ubiquitousLanguage[]`                      |
+| **Service**      | `services/`      | `sends[]`, `receives[]`, `entities[]`, `writesTo[]`, `readsFrom[]`, `flows[]`, `externalSystem`, `specifications[]`                                                              |
+| **Event**        | `events/`        | `channels[]`, `operation`                                                                                                                                                        |
+| **Command**      | `commands/`      | `channels[]`, `operation`                                                                                                                                                        |
+| **Query**        | `queries/`       | `channels[]`, `operation`                                                                                                                                                        |
+| **Channel**      | `channels/`      | `address`, `protocols[]`, `deliveryGuarantee`, `routes[]`, `parameters{}`                                                                                                        |
+| **Entity**       | `entities/`      | `aggregateRoot`, `identifier`, `properties[]` (nested, with references + relationType)                                                                                           |
+| **Flow**         | `flows/`         | `steps[]` (each: service/message/agent/actor/custom/externalSystem, with `next_step`/`next_steps` for branching)                                                                 |
+| **System**       | `systems/`       | `scope` (internal/external), `services[]`, `flows[]`, `entities[]`, `containers[]`, `relationships[]`, `actors[]`                                                                |
+| **Agent**        | `agents/`        | `sends[]`, `receives[]`, `writesTo[]`, `readsFrom[]`, `flows[]`, `model` (provider/name/version), `tools[]`                                                                      |
+| **Container**    | `containers/`    | `container_type` (database/cache/objectStore/searchIndex/dataWarehouse/dataLake/externalSaaS/other), `technology`, `authoritative`, `classification`, `retention`                |
+| **Data Product** | `data-products/` | `inputs[]`, `outputs[]` (each with optional `contract: {path, name, type}`)                                                                                                      |
+| **ADR**          | `adrs/`          | `status` (proposed/accepted/rejected/deprecated/superseded), `date`, `decisionMakers[]`, `appliesTo[]`, `supersedes[]`, `supersededBy[]`, `amends[]`, `amendedBy[]`, `related[]` |
+| **User**         | `users/`         | `avatarUrl`, `role`, `email`, `slackDirectMessageUrl`, `source` (provider/id/url)                                                                                                |
+| **Team**         | `teams/`         | `members[]`, `email`, `slackDirectMessageUrl`                                                                                                                                    |
+| **Diagram**      | `diagrams/`      | (file-based, C4/Mermaid/LikeC4)                                                                                                                                                  |
+| **Custom Doc**   | `docs/`          | (freeform pages)                                                                                                                                                                 |
 
 ### Relationship model — `sends` / `receives` pointers
 
@@ -122,11 +123,11 @@ Relationships between services/agents and messages are **bidirectional pointers*
 
 ```typescript
 type SendsPointer = {
-  id: string;           // message ID
-  version?: string;     // semver, supports ranges (^1.0.0, ~1.2.0, 0.0.x, latest)
-  fields?: string[];    // specific fields this service touches
-  to?: ChannelPointer[];// which channels this message goes through
-  group?: string;       // visual grouping
+  id: string; // message ID
+  version?: string; // semver, supports ranges (^1.0.0, ~1.2.0, 0.0.x, latest)
+  fields?: string[]; // specific fields this service touches
+  to?: ChannelPointer[]; // which channels this message goes through
+  group?: string; // visual grouping
 };
 
 type ReceivesPointer = {
@@ -135,7 +136,7 @@ type ReceivesPointer = {
   fields?: string[];
   from?: ChannelPointer[];
   group?: string;
-  triggers?: TriggerPointer[];  // conditional consumption: { id, version?, condition? }
+  triggers?: TriggerPointer[]; // conditional consumption: { id, version?, condition? }
 };
 ```
 
@@ -149,12 +150,12 @@ interface EntityProperty {
   type: string;
   required?: boolean;
   description?: string;
-  references?: string;        // FK to another entity
-  referenceTarget?: 'entity';
-  relationType?: string;      // belongsTo, hasMany, etc.
+  references?: string; // FK to another entity
+  referenceTarget?: "entity";
+  relationType?: string; // belongsTo, hasMany, etc.
   enum?: string[];
-  properties?: EntityProperty[];  // nested objects
-  items?: { type: string; properties?: EntityProperty[] };  // arrays
+  properties?: EntityProperty[]; // nested objects
+  items?: { type: string; properties?: EntityProperty[] }; // arrays
 }
 ```
 
@@ -182,21 +183,21 @@ This matches DPDS/ODPS structure — input ports, output ports with contracts. c
 The SDK (`@eventcatalog/sdk`) is the data layer — a single default function that takes a catalog path and returns an object with ~150+ methods.
 
 ```typescript
-import utils from '@eventcatalog/sdk';
-const catalog = utils('/path/to/eventcatalog');
+import utils from "@eventcatalog/sdk";
+const catalog = utils("/path/to/eventcatalog");
 ```
 
 ### CRUD pattern (consistent across all resource types)
 
-| Operation | Naming convention | Example |
-|-----------|-------------------|---------|
-| Read one | `get<Resource>(id, version?)` | `getEvent('OrderCreated', '1.0.0')` |
-| Read all | `get<Resources>(opts?)` | `getEvents()` |
-| Write (create or update) | `write<Resource>(data, opts?)` | `writeEvent({...}, { override: true })` |
-| Delete by path | `rm<Resource>(path)` | `rmEvent('events/OrderCreated')` |
-| Delete by ID | `rm<Resource>ById(id)` | `rmEventById('OrderCreated')` |
-| Version | `version<Resource>(id)` | `versionEvent('OrderCreated')` |
-| Check version | `<resource>HasVersion(id, version)` | `eventHasVersion('OrderCreated', '1.0.0')` |
+| Operation                | Naming convention                   | Example                                    |
+| ------------------------ | ----------------------------------- | ------------------------------------------ |
+| Read one                 | `get<Resource>(id, version?)`       | `getEvent('OrderCreated', '1.0.0')`        |
+| Read all                 | `get<Resources>(opts?)`             | `getEvents()`                              |
+| Write (create or update) | `write<Resource>(data, opts?)`      | `writeEvent({...}, { override: true })`    |
+| Delete by path           | `rm<Resource>(path)`                | `rmEvent('events/OrderCreated')`           |
+| Delete by ID             | `rm<Resource>ById(id)`              | `rmEventById('OrderCreated')`              |
+| Version                  | `version<Resource>(id)`             | `versionEvent('OrderCreated')`             |
+| Check version            | `<resource>HasVersion(id, version)` | `eventHasVersion('OrderCreated', '1.0.0')` |
 
 ### Resource types with full CRUD
 
@@ -206,70 +207,70 @@ Events, Commands, Queries, Services, Domains, Systems, Agents, Channels, Flows, 
 
 ```typescript
 // Add a message to a service (sends or receives)
-addEventToService(serviceId, 'sends' | 'receives', { event: 'OrderCreated', version: '2.0.0' })
-addCommandToService(serviceId, 'sends' | 'receives', { command: 'PlaceOrder', version: '1.0.0' })
-addQueryToService(serviceId, 'sends' | 'receives', { query: 'GetOrder', version: '1.0.0' })
+addEventToService(serviceId, "sends" | "receives", { event: "OrderCreated", version: "2.0.0" });
+addCommandToService(serviceId, "sends" | "receives", { command: "PlaceOrder", version: "1.0.0" });
+addQueryToService(serviceId, "sends" | "receives", { query: "GetOrder", version: "1.0.0" });
 
 // Add a service to a domain
-addServiceToDomain(domainId, { id: 'OrderService', version: '1.0.0' })
+addServiceToDomain(domainId, { id: "OrderService", version: "1.0.0" });
 
 // Add a subdomain
-addSubDomainToDomain(domainId, { id: 'Checkout', version: '1.0.0' })
+addSubDomainToDomain(domainId, { id: "Checkout", version: "1.0.0" });
 
 // Add an entity to a service
-addEntityToService(serviceId, { id: 'Order', version: '1.0.0' })
+addEntityToService(serviceId, { id: "Order", version: "1.0.0" });
 
 // Add a data store to a service
-addDataStoreToService(serviceId, 'writesTo' | 'readsFrom', { id: 'orders-db', version: '2.0.0' })
+addDataStoreToService(serviceId, "writesTo" | "readsFrom", { id: "orders-db", version: "2.0.0" });
 
 // Add a data product to a domain
-addDataProductToDomain(domainId, { id: 'orders-stream', version: '1.0.0' })
+addDataProductToDomain(domainId, { id: "orders-stream", version: "1.0.0" });
 
 // Add ubiquitous language to a domain
-addUbiquitousLanguageToDomain(domainId, dictionary)
+addUbiquitousLanguageToDomain(domainId, dictionary);
 ```
 
 ### Schema and file management
 
 ```typescript
 // Attach a JSON schema to an event
-addSchemaToEvent('OrderCreated', { fileName: 'schema.json', content: '{...}' })
+addSchemaToEvent("OrderCreated", { fileName: "schema.json", content: "{...}" });
 
 // Attach an example payload
-addExampleToEvent('OrderCreated', { fileName: 'example.json', content: '{...}' })
+addExampleToEvent("OrderCreated", { fileName: "example.json", content: "{...}" });
 
 // Attach arbitrary file
-addFileToEvent('OrderCreated', { fileName: 'migration.md', content: '...' })
+addFileToEvent("OrderCreated", { fileName: "migration.md", content: "..." });
 ```
 
 ### Graph and analysis
 
 ```typescript
 // Get the relationship graph
-getGraph(root, options)
+getGraph(root, options);
 
 // Who produces/consumes this message?
-getProducersAndConsumersForMessage('OrderCreated', '1.0.0')
+getProducersAndConsumersForMessage("OrderCreated", "1.0.0");
 // → { producers: [...], consumers: [...] }
 
 // Who produces/consumes this schema?
-getProducersOfSchema('/path/to/schema.json')
-getConsumersOfSchema('/path/to/schema.json')
+getProducersOfSchema("/path/to/schema.json");
+getConsumersOfSchema("/path/to/schema.json");
 
 // Find a message by schema
-getSchemaForMessage('OrderCreated', '1.0.0')
-getMessageBySchemaPath('/path/to/schema.json')
+getSchemaForMessage("OrderCreated", "1.0.0");
+getMessageBySchemaPath("/path/to/schema.json");
 
 // Who owns this resource?
-getOwnersForResource('OrderCreated', '1.0.0')
+getOwnersForResource("OrderCreated", "1.0.0");
 ```
 
 ### Snapshots and diffing
 
 ```typescript
-createSnapshot()
-diffSnapshots(snapshot1, snapshot2)
-listSnapshots()
+createSnapshot();
+diffSnapshots(snapshot1, snapshot2);
+listSnapshots();
 ```
 
 ### Changelogs
@@ -284,13 +285,13 @@ rmChangelog(resourceId, opts)
 ### FlowBuilder (fluent API)
 
 ```typescript
-import { FlowBuilder } from '@eventcatalog/sdk';
+import { FlowBuilder } from "@eventcatalog/sdk";
 
-const flow = new FlowBuilder({ id: 'OrderFlow', name: 'Order Process', version: '0.0.1' });
+const flow = new FlowBuilder({ id: "OrderFlow", name: "Order Process", version: "0.0.1" });
 flow
-  .addServiceStep({ id: 'OrdersService', title: 'Order Service' })
-  .addMessageStep({ id: 'OrderPlaced', title: 'Order Placed' })
-  .addActorStep({ title: 'Customer' })
+  .addServiceStep({ id: "OrdersService", title: "Order Service" })
+  .addMessageStep({ id: "OrderPlaced", title: "Order Placed" })
+  .addActorStep({ title: "Customer" })
   .build();
 ```
 
@@ -298,7 +299,7 @@ flow
 
 ```typescript
 // Dump entire catalog to JSON
-dumpCatalog(directory)
+dumpCatalog(directory);
 ```
 
 **Assessment:** The SDK is the most complete CRUD layer for a documentation system I've seen. It makes programmatic catalog generation trivial — which is exactly what a code-to-catalog pipeline needs. catalog/v4 has no equivalent; it has Go builders (`simple.New()`, `catalog.Event[T]()`) but no read/delete/version/relationship management API.
@@ -332,28 +333,28 @@ Run with `npm run generate` → each generator calls SDK functions (`writeEventT
 
 ### AsyncAPI generator — mapping
 
-| AsyncAPI concept | EventCatalog resource |
-|------------------|-----------------------|
-| `info.title` + `info.version` | Service |
-| `operations` with `action: send` | Service `sends[]` |
-| `operations` with `action: receive` | Service `receives[]` |
-| `components/messages/*` | Event, Command, or Query (default: event) |
-| `channels/*` (when `parseChannels: true`) | Channel |
-| Config `domain: {id, name, version}` | Domain |
-| `info.version` | Default version for service + all messages |
+| AsyncAPI concept                          | EventCatalog resource                      |
+| ----------------------------------------- | ------------------------------------------ |
+| `info.title` + `info.version`             | Service                                    |
+| `operations` with `action: send`          | Service `sends[]`                          |
+| `operations` with `action: receive`       | Service `receives[]`                       |
+| `components/messages/*`                   | Event, Command, or Query (default: event)  |
+| `channels/*` (when `parseChannels: true`) | Channel                                    |
+| Config `domain: {id, name, version}`      | Domain                                     |
+| `info.version`                            | Default version for service + all messages |
 
 ### The `x-eventcatalog-*` extensions (clever design)
 
 These AsyncAPI extensions let you control catalog behavior from within the spec itself:
 
-| Extension | Values | Effect |
-|-----------|--------|--------|
-| `x-eventcatalog-message-type` | `event` \| `command` \| `query` | Which EventCatalog directory the message lands in. Default: `event` |
-| `x-eventcatalog-message-version` | semver string | Per-message version override (default: inherits `info.version`) |
-| `x-eventcatalog-role` | `provider` \| `client` | `provider` = this service owns the message (creates docs). `client` = external contract (records relationship only, no message docs created) |
-| `x-eventcatalog-draft` | `true` | Marks message/service as draft |
-| `x-eventcatalog-deprecated-date` | date string | Deprecation banner |
-| `x-eventcatalog-group` | string | Visual grouping in the graph |
+| Extension                        | Values                          | Effect                                                                                                                                       |
+| -------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `x-eventcatalog-message-type`    | `event` \| `command` \| `query` | Which EventCatalog directory the message lands in. Default: `event`                                                                          |
+| `x-eventcatalog-message-version` | semver string                   | Per-message version override (default: inherits `info.version`)                                                                              |
+| `x-eventcatalog-role`            | `provider` \| `client`          | `provider` = this service owns the message (creates docs). `client` = external contract (records relationship only, no message docs created) |
+| `x-eventcatalog-draft`           | `true`                          | Marks message/service as draft                                                                                                               |
+| `x-eventcatalog-deprecated-date` | date string                     | Deprecation banner                                                                                                                           |
+| `x-eventcatalog-group`           | string                          | Visual grouping in the graph                                                                                                                 |
 
 **The `x-eventcatalog-role: provider|client` pattern is particularly well-designed.** It solves the "who owns this message?" problem in multi-service architectures. When service A produces `OrderCreated` and service B consumes it, both might list it in their AsyncAPI specs. Without the role extension, the generator would create duplicate message docs. With `provider`/`client`, only the provider creates the message; the client gets the `receives` relationship without duplicating docs.
 
@@ -368,6 +369,7 @@ This is EventCatalog's strongest feature and the area where catalog/v4 is weakes
 Every versioned resource supports semver (`version: 1.0.0` in frontmatter). The `versionResource(id)` function moves the current resource into a `versioned/{version}/` subdirectory, preserving history.
 
 Version references support:
+
 - Exact: `version: 1.0.0`
 - `latest` keyword
 - Semver ranges: `^1.0.0`, `~1.2.0`
@@ -392,13 +394,14 @@ This means you can regenerate from specs without losing manual documentation. Th
 interface Changelog {
   createdAt: Date | string;
   badges?: Badge[];
-  markdown: string;  // freeform MDX
+  markdown: string; // freeform MDX
 }
 ```
 
 Changelogs are stored alongside resources (e.g., `events/OrderCreated/changelog.md`). SDK: `writeChangelog`, `appendChangelog`, `getChangelog`, `rmChangelog`.
 
 **Assessment:** catalog/v4 has `Version` on every message and `Changelog []Change` (with `Version`, `Date`, `Summary`), but:
+
 - No versioning-on-re-run logic (no snapshot/preserve mechanism)
 - No changelog as a separate document (it's an inline field, not a file)
 - No semver range resolution in relationships
@@ -421,23 +424,23 @@ Available at `https://your-catalog.com/docs/mcp/` when running in SSR mode. Supp
 
 ### 19 MCP tools
 
-| Tool | What it does |
-|------|-------------|
-| `getResources` | Get events, services, commands, queries, flows, domains |
-| `getResource` | Get a specific resource by id and version |
-| `getMessagesProducedOrConsumedByResource` | Messages a resource sends/receives |
-| `getSchemaForResource` | Get OpenAPI/AsyncAPI schemas |
-| `findResourcesByOwner` | Resources owned by a team or user |
-| `getProducersOfMessage` | Services that produce a message |
-| `getConsumersOfMessage` | Services that consume a message |
-| `getC4Diagram` | Get C4 diagram source |
-| `analyzeChangeImpact` | Impact of changing a message |
-| `explainBusinessFlow` | Detailed flow information |
-| `getTeams` / `getTeam` | Query teams |
-| `getUsers` / `getUser` | Query users |
-| `findMessageBySchemaId` | Find messages by schema identifiers |
-| `explainUbiquitousLanguageTerms` | DDD ubiquitous language from domains |
-| `getCustomDocs` / `searchCustomDocs` / `getCustomDoc` | Custom documentation |
+| Tool                                                  | What it does                                            |
+| ----------------------------------------------------- | ------------------------------------------------------- |
+| `getResources`                                        | Get events, services, commands, queries, flows, domains |
+| `getResource`                                         | Get a specific resource by id and version               |
+| `getMessagesProducedOrConsumedByResource`             | Messages a resource sends/receives                      |
+| `getSchemaForResource`                                | Get OpenAPI/AsyncAPI schemas                            |
+| `findResourcesByOwner`                                | Resources owned by a team or user                       |
+| `getProducersOfMessage`                               | Services that produce a message                         |
+| `getConsumersOfMessage`                               | Services that consume a message                         |
+| `getC4Diagram`                                        | Get C4 diagram source                                   |
+| `analyzeChangeImpact`                                 | Impact of changing a message                            |
+| `explainBusinessFlow`                                 | Detailed flow information                               |
+| `getTeams` / `getTeam`                                | Query teams                                             |
+| `getUsers` / `getUser`                                | Query users                                             |
+| `findMessageBySchemaId`                               | Find messages by schema identifiers                     |
+| `explainUbiquitousLanguageTerms`                      | DDD ubiquitous language from domains                    |
+| `getCustomDocs` / `searchCustomDocs` / `getCustomDoc` | Custom documentation                                    |
 
 ### 17 MCP resources
 
@@ -457,9 +460,11 @@ eventcatalog://teams         eventcatalog://users
 // eventcatalog.chat.js
 export const tools = {
   myCustomTool: {
-    description: 'My custom tool',
+    description: "My custom tool",
     parameters: z.object({ query: z.string() }),
-    execute: async ({ query }) => { return { result: '...' }; },
+    execute: async ({ query }) => {
+      return { result: "..." };
+    },
   },
 };
 ```
@@ -487,6 +492,7 @@ Exposes SDK functions from the terminal.
 ### Linter (`@eventcatalog/linter`)
 
 Validates frontmatter schemas using **Zod**. Checks:
+
 - All required fields present
 - All resource references (sends/receives pointers) resolve to existing resources
 - Semver ranges are valid
@@ -497,11 +503,12 @@ Validated resource types: domains, services, events, commands, queries, channels
 ### Connectors (`@eventcatalog/connectors`)
 
 Syncs external systems into teams/users:
+
 - **GitHub directory**: `githubDirectory({ org, teams, users, token })`
 - **Microsoft Entra ID**: `microsoftEntraDirectory({ tenantId, clientId, clientSecret, groups })`
 - **Custom**: `defineDirectorySource({ type, name, loadUsers(), loadTeams() })`
 
-**Assessment:** The linter concept is valuable. catalog/v4 has `Validate()` which checks required fields, but EventCatalog's linter validates *references* (do all `sends`/`receives` pointers resolve?) — a stronger guarantee. The connectors concept (syncing org structure) is out of scope for catalog/v4 but relevant for mesh federation.
+**Assessment:** The linter concept is valuable. catalog/v4 has `Validate()` which checks required fields, but EventCatalog's linter validates _references_ (do all `sends`/`receives` pointers resolve?) — a stronger guarantee. The connectors concept (syncing org structure) is out of scope for catalog/v4 but relevant for mesh federation.
 
 ---
 
@@ -579,36 +586,36 @@ EventCatalog versions resources by snapshotting MDX files. catalog/v4 can rebuil
 
 ### 9.5 The exporter ecosystem
 
-catalog/v4 already has AsyncAPI, OpenAPI, D2, eventcatalog.dev, and docserver exporters. EventCatalog *consumes* AsyncAPI/OpenAPI but doesn't *produce* them. catalog/v4 is a **producer** of contract formats; EventCatalog is a **consumer**. They're complementary.
+catalog/v4 already has AsyncAPI, OpenAPI, D2, eventcatalog.dev, and docserver exporters. EventCatalog _consumes_ AsyncAPI/OpenAPI but doesn't _produce_ them. catalog/v4 is a **producer** of contract formats; EventCatalog is a **consumer**. They're complementary.
 
 ---
 
 ## 10. Side-by-Side Comparison
 
-| Dimension | EventCatalog | go-cqrs-lite catalog/v4 |
-|-----------|-------------|------------------------|
-| **Language** | TypeScript (Astro + React) | Go |
-| **Source of truth** | External specs (AsyncAPI/OpenAPI YAML) | Go types (reflection) |
-| **Drift risk** | High (spec may diverge from code) | Zero (code IS the spec) |
-| **Content model** | Rich: 17 resource types | Rich: 12 resource types |
-| **Versioning** | Semver + snapshot + preserve-on-regenerate | Semver (inline field only) |
-| **Changelogs** | First-class (separate markdown files) | Inline field (`[]Change`) |
-| **SDK** | 150+ functions | None (Go builders only) |
-| **Generators** | External specs → MDX (AsyncAPI, OpenAPI, Schema Registry, EventBridge) | None (code → catalog is the generator) |
-| **Exporters** | None (consumer, not producer) | AsyncAPI, OpenAPI, D2, eventcatalog.dev, docserver |
-| **CLI** | Yes (`@eventcatalog/cli`) | No |
-| **Linter** | Yes (Zod validation + reference checking) | `Validate()` (basic field checking) |
-| **MCP server** | Yes (19 tools, 17 resources, scoped servers) | No |
-| **AI chat** | Yes (premium) | No |
-| **Visualizations** | Node graphs (`@xyflow/react`), schema viewer, Mermaid, LikeC4 | D2 diagrams, docserver HTML UIs (Scalar, AsyncAPI Studio) |
-| **Teams/Users** | Yes (with GitHub/Entra ID sync) | Types exist (`Team`, `User`), no sync |
-| **ADRs** | Yes (with supersedes/amends chains) | No |
-| **Flows** | Rich (branching, conditions, triggers) | Present (`FlowStep` with `NextSteps`) |
-| **Data Products** | Yes (`inputs[]`, `outputs[]` with contracts) | Yes (`DataProduct` + `DataContract` + `DataProductOutput`) |
-| **License** | MIT core + Commercial for premium | Apache 2.0 (fully open) |
-| **Deployment** | Static site (trivial) or SSR (for AI) | Go handler (embed in any HTTP server) |
-| **Runtime connection** | None (documentation only) | Same binary as event store + projections |
-| **Time-travel** | No (snapshots are manual) | Yes (rebuild from event store at any point) |
+| Dimension              | EventCatalog                                                           | go-cqrs-lite catalog/v4                                    |
+| ---------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Language**           | TypeScript (Astro + React)                                             | Go                                                         |
+| **Source of truth**    | External specs (AsyncAPI/OpenAPI YAML)                                 | Go types (reflection)                                      |
+| **Drift risk**         | High (spec may diverge from code)                                      | Zero (code IS the spec)                                    |
+| **Content model**      | Rich: 17 resource types                                                | Rich: 12 resource types                                    |
+| **Versioning**         | Semver + snapshot + preserve-on-regenerate                             | Semver (inline field only)                                 |
+| **Changelogs**         | First-class (separate markdown files)                                  | Inline field (`[]Change`)                                  |
+| **SDK**                | 150+ functions                                                         | None (Go builders only)                                    |
+| **Generators**         | External specs → MDX (AsyncAPI, OpenAPI, Schema Registry, EventBridge) | None (code → catalog is the generator)                     |
+| **Exporters**          | None (consumer, not producer)                                          | AsyncAPI, OpenAPI, D2, eventcatalog.dev, docserver         |
+| **CLI**                | Yes (`@eventcatalog/cli`)                                              | No                                                         |
+| **Linter**             | Yes (Zod validation + reference checking)                              | `Validate()` (basic field checking)                        |
+| **MCP server**         | Yes (19 tools, 17 resources, scoped servers)                           | No                                                         |
+| **AI chat**            | Yes (premium)                                                          | No                                                         |
+| **Visualizations**     | Node graphs (`@xyflow/react`), schema viewer, Mermaid, LikeC4          | D2 diagrams, docserver HTML UIs (Scalar, AsyncAPI Studio)  |
+| **Teams/Users**        | Yes (with GitHub/Entra ID sync)                                        | Types exist (`Team`, `User`), no sync                      |
+| **ADRs**               | Yes (with supersedes/amends chains)                                    | No                                                         |
+| **Flows**              | Rich (branching, conditions, triggers)                                 | Present (`FlowStep` with `NextSteps`)                      |
+| **Data Products**      | Yes (`inputs[]`, `outputs[]` with contracts)                           | Yes (`DataProduct` + `DataContract` + `DataProductOutput`) |
+| **License**            | MIT core + Commercial for premium                                      | Apache 2.0 (fully open)                                    |
+| **Deployment**         | Static site (trivial) or SSR (for AI)                                  | Go handler (embed in any HTTP server)                      |
+| **Runtime connection** | None (documentation only)                                              | Same binary as event store + projections                   |
+| **Time-travel**        | No (snapshots are manual)                                              | Yes (rebuild from event store at any point)                |
 
 ---
 
@@ -630,7 +637,7 @@ catalog/v4 already has AsyncAPI, OpenAPI, D2, eventcatalog.dev, and docserver ex
 
 1. **The 150-function SDK** — catalog/v4 is Go, not JS. The model is code-derived, not file-system-manipulated. A Go SDK over MDX files makes no sense when the source of truth is Go types.
 
-2. **External spec generators** — catalog/v4 doesn't need AsyncAPI/OpenAPI generators because it *produces* AsyncAPI/OpenAPI, not consumes them. The direction is reversed.
+2. **External spec generators** — catalog/v4 doesn't need AsyncAPI/OpenAPI generators because it _produces_ AsyncAPI/OpenAPI, not consumes them. The direction is reversed.
 
 3. **The MDX file system** — catalog/v4 builds an in-memory `*Catalog` from Go types. Storing it as MDX files would be a regression.
 
