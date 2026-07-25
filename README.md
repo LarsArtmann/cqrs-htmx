@@ -239,7 +239,7 @@ Client-side JS:
 
 ```js
 document.body.addEventListener("showMessage", function (evt) {
-  showNotification(evt.detail.level, evt.detail.message);
+	showNotification(evt.detail.level, evt.detail.message);
 });
 ```
 
@@ -449,7 +449,7 @@ Client-side:
 
 ```html
 <div hx-ext="sse" sse-connect="/events" sse-swap="todoUpdated">
-  <!-- content swapped here -->
+	<!-- content swapped here -->
 </div>
 ```
 
@@ -517,10 +517,10 @@ Client-side:
 
 ```html
 <div hx-ext="ws" ws-connect="/ws">
-  <form ws-send>
-    <input name="message" />
-    <button>Send</button>
-  </form>
+	<form ws-send>
+		<input name="message" />
+		<button>Send</button>
+	</form>
 </div>
 ```
 
