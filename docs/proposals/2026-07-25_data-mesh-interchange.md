@@ -1,581 +1,460 @@
 # Data-Mesh Interchange Interface for cqrs-htmx
 
 **Date:** 2026-07-25
-**Status:** Proposal — awaiting decision
-**Scope:** Root module (`github.com/larsartmann/cqrs-htmx/v4`)
+**Status:** Proposal — revised after deep source investigation
+**Scope:** Root module + relationship to go-cqrs-lite `catalog/v4` and `transport/http/v4`
 
 ---
 
 ## TL;DR
 
-cqrs-htmx already holds the three contract primitives a data-mesh interchange needs (Published Language via `EventCatalog`, HTTP input-port via `openapi/`, and a cursor-based ordered event log via `event.SeekableJournal`), but it lacks three things: **(1) a machine-readable transport**, **(2) a vendor-neutral event envelope**, and **(3) a data-product descriptor**. This proposal evaluates five implementation options and recommends a phased delivery: CloudEvents-framed `EventStreamHandler` first, `DataProduct` envelope second, AsyncAPI export third.
+**We don't need to build a data-mesh interchange interface. go-cqrs-lite already has one — `catalog/v4`.** It ships `DataProduct`, `DataContract`, `Channel` (AsyncAPI), `Message` (with producers/consumers/schemas/operations), full AsyncAPI 3.0 + OpenAPI + eventcatalog.dev + D2 exporters, and an embedded doc server. cqrs-htmx's root module **doesn't import it** — instead it ships a hand-rolled `EventCatalog` with 3 fields and its own `openapi/` sub-package, both of which are impoverished subsets of what the upstream provides.
+
+The real work is **adoption and exposure**, not invention. The only genuinely missing code in the entire ecosystem is a **Channel↔Bus binding** (connecting a `catalog.Channel` documentation entry to a runtime `event.Bus` subscription) and an optional **CloudEvents `payloadTransform`** (using `transport/http/v4.SSEBroker`'s existing hook).
 
 ---
 
 ## Table of Contents
 
-- [1. Problem Statement](#1-problem-statement)
-- [2. Research: Existing Primitives in cqrs-htmx](#2-research-existing-primitives-in-cqrs-htmx)
-- [3. Research: Industry Standards](#3-research-industry-standards)
-- [4. The Three Real Gaps](#4-the-three-real-gaps)
-- [5. Five Implementation Options](#5-five-implementation-options)
+- [1. What Happened (The Embarrassing Truth)](#1-what-happened-the-embarrassing-truth)
+- [2. What go-cqrs-lite Already Provides](#2-what-go-cqrs-lite-already-provides)
+- [3. What cqrs-htmx Ships Instead (the Re-invention)](#3-what-cqrs-htmx-ships-instead-the-re-invention)
+- [4. The Three Genuinely Missing Pieces](#4-the-three-genuinely-missing-pieces)
+- [5. Five Approaches](#5-five-approaches)
 - [6. Recommendation](#6-recommendation)
 - [7. Phased Delivery Plan](#7-phased-delivery-plan)
-- [8. Open Questions](#8-open-questions)
-- [Appendix A: Verified Code References](#appendix-a-verified-code-references)
-- [Appendix B: Standards Quick Reference](#appendix-b-standards-quick-reference)
+- [Appendix A: Verified Source References](#appendix-a-verified-source-references)
 
 ---
 
-## 1. Problem Statement
+## 1. What Happened (The Embarrassing Truth)
 
-> **How can we provide an interchange interface for data-mesh scenarios?**
+The original version of this document proposed building `DataProduct`, `CloudEvent`, `EventStreamHandler`, `asyncapi/`, and `DataProductRegistry` from scratch in cqrs-htmx. That was wrong. A deep read of the source revealed that **go-cqrs-lite's `catalog/v4` module already provides nearly all of this** — and cqrs-htmx already has a working demo (`examples/catalog-demo/`) and integration tests (`integration_test/catalog_test.go`) that use it.
 
-A data mesh treats domains as independent **data products** that expose their data through well-defined contracts. For cqrs-htmx — a CQRS/event-sourcing library — this means: how does a domain built on this library **publish its events** to other domains/services in a discoverable, versioned, transport-agnostic, and standards-aligned way?
-
-The question is explicitly about **interchange** (machine-to-machine, cross-domain), not the existing SSE/WS realtime (browser-to-server, within one app).
-
-### Design constraints (from the library principle)
-
-From `AGENTS.md`:
-
-- **Library, not platform.** "Never enforce defaults consumers might disagree with." The library provides building blocks; consumers compose them with their infrastructure (Kafka, NATS, Backstage, Confluent).
-- **Framework-agnostic.** Works with `net/http`, Chi, Gin. Never picks the router.
-- **Opt-in everything.** No mandatory CSP/HSTS/CSRF. Interchange features must follow the same pattern.
-- **Dependency-free where possible.** The `openapi/` sub-package has zero deps on the root package; the envelope type should avoid dragging in `cloudevents/sdk-go` (a heavy SDK) when the spec is only 7 required fields.
+The problem is not "we need to build an interchange." The problem is **cqrs-htmx's root module re-invented a poor subset of what its own dependency already ships, and doesn't expose the rich model.**
 
 ---
 
-## 2. Research: Existing Primitives in cqrs-htmx
+## 2. What go-cqrs-lite Already Provides
 
-The library already contains most of the building blocks. This section is grounded in a full read of the source (see [Appendix A](#appendix-a-verified-code-references) for exact file:line).
+All verified by reading the source at `/home/lars/go/pkg/mod/github.com/larsartmann/go-cqrs-lite/catalog/v4@v4.1.0/` and the local checkout at `/home/lars/projects/go-cqrs-lite/catalog/`.
 
-### 2.1 Published Language — `EventCatalog`
+### 2.1 Data Product + Data Contract (the mesh envelope)
 
-**Files:** `event_catalog.go`, `event_catalog_handler.go`
-
-`EventCatalog` (`event_catalog.go:36`) is explicitly designed for the Published Language pattern (DDD). It is a mutable registry of `EventMetadata` (`event_catalog.go:21`):
+`catalog/types_resources.go:37-95`:
 
 ```go
-type EventMetadata struct {
-    Type          string         `json:"type"`          // "UserRegistered"
-    Aggregate     string         `json:"aggregate"`     // "User"
-    SchemaVersion int            `json:"schemaVersion"` // 2
-    Description   string         `json:"description,omitempty"`
-    PayloadFields []PayloadField `json:"payloadFields,omitempty"`
+// DataProduct represents a data product in a data mesh — a curated, owned dataset.
+type DataProduct struct {
+    ID      DataProductID       `json:"id"`
+    Name    Name                `json:"name"`
+    Version Version             `json:"version"`
+    Summary Summary             `json:"summary,omitempty"`
+    Inputs  []Ref               `json:"inputs,omitempty"`
+    Outputs []DataProductOutput `json:"outputs,omitempty"`
+    Hidden  bool                `json:"hidden,omitempty"`
+    Owners  []string            `json:"owners,omitempty"`
+    Badges  []Badge             `json:"badges,omitempty"`
+}
+
+type DataContract struct {
+    Path string `json:"path"`
+    Name Name   `json:"name,omitempty"`
+    Type string `json:"type,omitempty"`
+}
+
+type DataProductOutput struct {
+    Ref
+    Contract *DataContract `json:"contract,omitempty"`
 }
 ```
 
-`EventCatalogHandler` (`event_catalog_handler.go:22`) serves it as immutable JSON with a 1-year cache and FNV-1a ETag via the shared `serveImmutableJSON` helper (`event_catalog_handler.go:47`). `usermgmt.DefaultEventCatalog()` pre-registers all 21 identity events.
+This is the DPDS/Bitol data-product envelope. `Domain` has a `DataProducts []DataProductID` field (`types.go:190`). `Catalog` has `DataProducts []DataProduct` (`types.go:219`). `FlowStep` can reference a `DataProduct` (`types_resources.go:145`).
 
-**Role in a mesh:** This is the **output-port schema** — the list of event types a domain emits.
+### 2.2 Channel (AsyncAPI channels with protocols and delivery guarantees)
 
-### 2.2 HTTP Input-Port Contract — `openapi/`
-
-**Files:** `openapi/types.go`, `openapi/builder.go`, `openapi/schema.go`, `options_openapi.go`
-
-A dependency-free fluent builder for OpenAPI 3.1 specs. `Spec` (`openapi/types.go:20`) carries `Info`, `Paths`, `Components`. `OpenAPISpecHandler` (`options_openapi.go:52`) serves it as immutable JSON via the same `serveImmutableJSON` path.
-
-`WithOpenAPI(op)` (`options_openapi.go:32`) attaches operation metadata to a handler — pure documentation, no runtime effect, because the library does not own the consumer's router.
-
-**Role in a mesh:** This is the **input-port contract** — the commands/queries a domain accepts.
-
-### 2.3 Cursor-Based Event Log — `event.SeekableJournal`
-
-**Source:** go-cqrs-lite `event/v4` (consumed by cqrs-htmx)
+`catalog/types.go:193-206`:
 
 ```go
-type Journal interface {
-    ReadAll(ctx) ([]Event, error)                           // global, ordered by OccurredAt
-}
-type SeekableJournal interface {
-    Journal
-    ReadFrom(ctx, afterEventID id.EventID, limit int) ([]Event, error) // position-based cursor
+type Channel struct {
+    ID                ChannelID               `json:"id"`
+    Name              Name                    `json:"name"`
+    Version           Version                 `json:"version"`
+    Summary           Summary                 `json:"summary,omitempty"`
+    Address           Address                 `json:"address,omitempty"`
+    Protocols         []Protocol              `json:"protocols,omitempty"`     // "http", "kafka", "nats"
+    Messages          []MessageID             `json:"messages,omitempty"`
+    DeliveryGuarantee DeliveryGuarantee       `json:"deliveryGuarantee,omitempty"` // "at-least-once"
+    Parameters        map[string]ChannelParam `json:"parameters,omitempty"`
+    Routes            []ChannelRoute          `json:"routes,omitempty"`
+    Owners            []string                `json:"owners,omitempty"`
+    Badges            []Badge                 `json:"badges,omitempty"`
 }
 ```
 
-The cursor is the event's ULID `EventID` — monotonically ordered, so `ReadFrom(afterID, N)` returns the next N events after that position. This is **the natural interchange primitive**: an ordered, resumable global event log.
+Channel options (`channel_config.go`): `ChannelAddress`, `ChannelProtocols`, `ChannelMessages`, `ChannelDeliveryGuarantee`, `ChannelParameters`, `ChannelRoutes`, `ChannelOwners`.
 
-### 2.4 Replay Machinery (browser-framed)
+### 2.3 Message (rich event/command/query model)
 
-**Files:** `event_store_sse.go`, `sse_store.go`, `sse_event.go`
-
-- `JournalSSEStore` (`event_store_sse.go:32`) adapts `event.SeekableJournal` into `SSEEventStore`.
-- `JournalSSEStore.EventsAfter(lastID)` (`event_store_sse.go:101`) calls `SeekableJournal.ReadFrom` under the hood — cursor-based replay already works.
-- `ReplayEvents(stream, store, lastEventID)` (`sse_store.go:25`) drives the replay.
-- `LastEventIDFromRequest(r)` (`sse_event.go:64`) reads the `Last-Event-ID` header.
-
-**The problem:** This machinery emits **SSE wire format** (`event: foo\ndata: {...}\n\n`). That is browser-shaped. A service consumer wants `GET /events/stream?after=<id>` → JSON array or NDJSON of envelopes.
-
-### 2.5 Federation Seam (undocumented)
-
-**Source:** go-cqrs-lite `watermill/v4`
-
-`watermill.EventBus` exposes `WithBackend(publisher, subscriber, closer)` — inject Kafka/NATS Watermill plugins to make the in-process bus multi-process. Currently single-topic (`DefaultEventBusTopic = "cqrs.events"`), undocumented, with no example.
-
-### 2.6 Schema Evolution
-
-**File:** `identity-model/upcaster.go`
-
-`UpcasterRegistry` chains upcasters v0 → … → current (`CurrentSchemaVersion = 2`). Handles backward-compatible reads across versions.
-
-### 2.7 What does NOT exist
-
-Grep for `interchange|exchange|data product|mesh|federat` across `*.go` returned **zero matches** for the mesh concepts. The terms "contract", "registry", "schema" appear only incidentally (OAuth2 token exchange, interface contracts, the EventCatalog calling itself "a registry"). There is **no** data-product envelope, **no** federated discovery, **no** machine transport, **no** CloudEvents framing.
-
----
-
-## 3. Research: Industry Standards
-
-Grounded in the actual specs (AsyncAPI, CloudEvents verified via web fetch; DPDS/Bitol from spec knowledge).
-
-### 3.1 Data Product Descriptor Specification (DPDS)
-
-Maintained by the Open Data Mesh Initiative (Agile Lab). Top-level: `dataProductDescriptorSpecVersion`, `info` (owner, version SemVer, name), `interface` (the contract), `components` (`inputPorts`, `outputPorts`, `discoveryPorts`, `observabilityPorts`).
-
-Each output port has `promises` containing a `dataContracts` / `api` object whose `specification` is usually an **OpenAPI or AsyncAPI document** (inline or `$ref`). DPDS wraps existing spec formats — it does not invent a new message schema.
-
-**Relevance:** DPDS is the canonical "data product envelope." A Go library can model a slim subset.
-
-### 3.2 Data Contracts (Bitol / Data Contract CLI)
-
-**Bitol** (`bitol-io/data-contracts`): YAML/JSON with `dataContractSpecification: 1.1.1`, `info` (title, version, status, owner, contact), `servers` (per protocol: `type: kafka|postgres|bigquery|s3|local`, `host`, `topic`), `terms` (usage, limitations, billing, noticePeriod), `schema` (type: dbt|sql|jsonschema|avro|protobuf), `servicelevels` (freshness, frequency, latency, availability, retention, support, backup), `quality`.
-
-`info.status` ∈ `proposed | draft | active | deprecated | retired`. The CLI validates and exports to OpenAPI/AsyncAPI/Soda/dbt/Great Expectations.
-
-**Relevance:** Bitol is the most pragmatic contract format — servers + schema + SLAs + terms. A Go `DataProduct` could mirror this subset.
-
-### 3.3 AsyncAPI
-
-Spec `asyncapi: 3.0.x`. Differs from OpenAPI by modeling **channels/topics + messages + operations** instead of request/response paths. `channels` keys are addresses (Kafka topic / AMQP queue / SSE stream); each channel declares `messages` and `address`.
-
-Each message has `name`, `title`, `contentType`, `headers` (JSON Schema), `payload` (`schemaFormat` + inline/`$ref` schema), `correlationId`, `bindings`. Transport-specific detail lives in `bindings` (`bindings.kafka`, `bindings.http`, `bindings.nats`, etc.).
-
-**Relevance:** AsyncAPI is the OpenAPI-for-events. It describes both the schema and the transport in one document. Tooling generates Go types (modelina) and renders eventcatalog.dev pages. This is the richest contract format for event-driven architectures.
-
-### 3.4 CloudEvents (CNCF, graduated)
-
-Problem: every producer used bespoke envelopes, so consumers rewrote parsing per source. CloudEvents defines one vendor-neutral event envelope so routers (Knative Eventing, AWS EventBridge, Azure EventGrid) and sinks are interoperable.
-
-**Required attributes:** `specversion` ("1.0"), `id`, `source` (URI, identifies producer context, unique per `id`), `type` (e.g. `com.example.order.created.v3`).
-**Optional:** `time`, `subject`, `datacontenttype`, `dataschema` (URI to a schema).
-
-Three serializations: **structured** (whole envelope is the body, `application/cloudevents+json`), **binary** (attributes in headers, `data` is raw body — dominant Kafka mode), **batch**. Protocol bindings exist for HTTP, Kafka, AMQP, MQTT, WebSockets, NATS.
-
-Go SDK: `github.com/cloudevents/sdk-go/v2`.
-
-**Relevance:** This is the right **per-message wire format**. It is normalized, vendor-neutral, and every event router speaks it. The `type` + `source` pair maps naturally to cqrs-htmx's `event.Type` + service identity.
-
-### 3.5 Schema Registry (Confluent, Apicurio)
-
-REST API backing state into a compacted Kafka topic `_schemas`. **Subject** = the name a schema is registered under; versions are sequential integers per subject. Subject-naming strategies: `TopicNameStrategy`, `RecordNameStrategy`, `TopicRecordNameStrategy`.
-
-Compatibility modes: `NONE`, `BACKWARD` (new schema reads old data — default), `FORWARD`, `FULL`, `*_TRANSITIVE`. Producers register/lookup schema before producing; consumers download by ID.
-
-**Relevance:** A `Registry` interface (`Register`, `GetByID`, `CheckCompatibility`, `GetLatest`) abstracting Confluent + Apicurio is the right boundary if schema registry support is added.
-
-### 3.6 Event Catalog (eventcatalog.dev)
-
-Open-source documentation site generator for event-driven/AsyncAPI architectures. Not a registry, not a transport — it's the **discovery/documentation layer**. Ingests AsyncAPI and OpenAPI as the source of truth.
-
-**Relevance:** This is where discovery lives in a real mesh. cqrs-htmx should produce the contract documents that EventCatalog consumes, not reinvent discovery.
-
-### 3.7 The 3 Layers in Real Data-Mesh Implementations
-
-| Layer                         | What                                                                          | Examples                                                                                                   |
-| ----------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **(a) Envelope / descriptor** | A data-product or contract file the owning domain authors and versions in git | DPDS descriptor, Bitol YAML, AsyncAPI doc                                                                  |
-| **(b) Discovery / registry**  | Where consumers find contracts                                                | EventCatalog, Schema Registry, Backstage, DataHub                                                          |
-| **(c) Transport**             | The actual wire                                                               | Kafka topics (+ Schema Registry + Avro/Protobuf + CloudEvents), Pulsar, NATS JetStream, webhook, SSE, HTTP |
-
-The descriptor's `servers[].type` enumerates the transport; the message on the wire is the CloudEvents/AsyncAPI message; the contract and registry keep producers and consumers aligned without coupling.
-
----
-
-## 4. The Three Real Gaps
-
-Cross-referencing the existing primitives (§2) against the industry 3-layer model (§3.7):
-
-| Gap                                | What's missing                                                                                          | What exists (partially)                                                                                                         |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **Gap 1: Machine transport**       | `GET /events/stream?after=<id>` → JSON/NDJSON of envelopes for service consumers                        | `SeekableJournal.ReadFrom` cursor + `JournalSSEStore.EventsAfter` replay logic exist, but framed for browsers (SSE wire format) |
-| **Gap 2: Event envelope**          | CloudEvents-style `source`/`type`/`dataschema`/`subject` on every message                               | Events carry `event.Type` and payload, but no vendor-neutral envelope. `dashboardui/sse.go` payload is ad-hoc                   |
-| **Gap 3: Data-product descriptor** | One document with owner/version/SLO/transport binding that composes EventCatalog + OpenAPI + stream URL | EventCatalog and OpenAPI are served at separate URLs with no binding                                                            |
-
-The federation seam (`watermill.WithBackend`) is present but undocumented and single-topic — **not** the first thing to fix.
-
----
-
-## 5. Five Implementation Options
-
-| #     | Option                                      | Scope               | New code          | Standards alignment      | Solves                                           |
-| ----- | ------------------------------------------- | ------------------- | ----------------- | ------------------------ | ------------------------------------------------ |
-| **1** | **DataProduct envelope only**               | Root module         | ~1 file           | DPDS-lite                | Gap 3 (discovery)                                |
-| **2** | **CloudEvents-framed `EventStreamHandler`** | Root module         | ~2 files          | CloudEvents 1.0          | Gap 1 + Gap 2 (transport + envelope)             |
-| **3** | **`asyncapi/` contract package**            | New sub-package     | ~`openapi/`-sized | AsyncAPI 3.0             | Gaps 2+3 (rich contract with transport bindings) |
-| **4** | **`DataProductRegistry` federation**        | Root module         | ~2 files          | DPDS registry            | Mesh-wide discovery (layer b)                    |
-| **5** | **Watermill `TopicRouter` + backend docs**  | Docs + small helper | ~1 file + example | Kafka/NATS via Watermill | Production-scale push transport (layer c)        |
-
-### Option 1 — DataProduct envelope only
-
-A `DataProduct` struct that composes the existing pieces into one discoverable descriptor:
+`catalog/types.go:126-149`:
 
 ```go
-dp := cqrshtmx.NewDataProduct("identity").
-    Owner("team-platform", "platform@x.com").
-    Version("1.2.0").
-    OutputPort(cqrshtmx.DataPort{
-        Name:        "user-events",
-        Description: "All events emitted by the identity domain",
-        Catalog:     svc.EventCatalog(),     // *EventCatalog (existing)
-        Transport:   "https",                 // or "kafka", "nats"
-        StreamURL:   "https://api.x.com/events/stream",
-    }).
-    InputPort(cqrshtmx.DataPort{
-        Name:        "identity-api",
-        Description: "HTTP commands and queries",
-        Spec:        openapiSpec,             // *openapi.Spec (existing)
-        Transport:   "https",
-        BaseURL:     "https://api.x.com",
-    }).
-    SLO(cqrshtmx.SLO{Availability: "99.9%", LatencyP99: "200ms"})
-```
-
-Served via `DataProductHandler(dp)` reusing `serveImmutableJSON` (`event_catalog_handler.go:47`).
-
-**Pros:** Trivial (~1 file); composes what exists; makes the contract discoverable as one document; aligns with DPDS without adopting its full weight.
-**Cons:** Doesn't move bytes — discovery only. Must be paired with a transport.
-**LOC estimate:** ~120 LOC + tests.
-
-### Option 2 — CloudEvents-framed `EventStreamHandler`
-
-`EventStreamHandler(journal event.SeekableJournal, opts...)` returns a handler serving `GET /events/stream?after=<eventID>&limit=N` → `[]CloudEvent` JSON (or `application/x-ndjson` streaming).
-
-Each event is framed as a CloudEvent:
-
-```go
-type CloudEvent struct {
-    SpecVersion     string          `json:"specversion"`           // "1.0"
-    ID              string          `json:"id"`                    // event ULID
-    Source          string          `json:"source"`                // service URI (e.g. "/identity")
-    Type            string          `json:"type"`                  // event.Type (e.g. "UserRegistered")
-    Time            time.Time       `json:"time"`                  // event.OccurredAt
-    Subject         string          `json:"subject"`               // aggregate ID
-    DataContentType string          `json:"datacontenttype"`       // "application/json"
-    Data            json.RawMessage `json:"data"`                  // event payload
+type Message struct {
+    Kind        MessageKind       `json:"kind"` // command | event | query
+    ID          MessageID         `json:"id"`
+    Name        Name              `json:"name"`
+    Version     Version           `json:"version"`
+    Summary     Summary           `json:"summary,omitempty"`
+    Schema      *Schema           `json:"schema,omitempty"`        // auto-derived from Go types
+    Schemas     []SchemaPointer   `json:"schemas,omitempty"`
+    Direction   Direction         `json:"direction"`               // sends | receives
+    Examples    []jsontext.Value  `json:"examples,omitempty"`
+    Owners      []string          `json:"owners,omitempty"`
+    Labels      map[string]string `json:"labels,omitempty"`
+    Deprecated  bool              `json:"deprecated,omitempty"`
+    Deprecation *DeprecationInfo  `json:"deprecation,omitempty"`
+    Channels    []ChannelID       `json:"channels,omitempty"`
+    Changelog   []Change          `json:"changelog,omitempty"`
+    Producers   []ServiceID       `json:"producers,omitempty"`
+    Consumers   []ServiceID       `json:"consumers,omitempty"`
+    Operation   *Operation        `json:"operation,omitempty"`     // HTTP method + path + status codes
+    Responses   []ResponseSpec    `json:"responses,omitempty"`
+    Badges      []Badge           `json:"badges,omitempty"`
+    Repository  *Repository       `json:"repository,omitempty"`
+    Security    []string          `json:"security,omitempty"`
 }
 ```
 
-Cursor = ULID event ID (same as `JournalSSEStore` already uses). Resumable, cache-friendly, router-compatible.
+Generics-based registration (`message_config.go:206-222`): `Command[T]()`, `Event[T]()`, `Query[T]()` — auto-derive JSON Schema from Go struct types via reflection.
+
+### 2.4 Exporters (the contract formats)
+
+| Exporter | Package | Output | cqrs-htmx equivalent |
+|----------|---------|--------|---------------------|
+| **AsyncAPI 3.0** | `catalog/v4/asyncapi` | `asyncapi.Document` (JSON/YAML) | **None** (proposed as "Option 3" in original doc) |
+| **OpenAPI 3.0** | `catalog/v4/openapi` | OpenAPI spec (JSON/YAML) | Hand-rolled `openapi/` sub-package (~400 LOC) |
+| **D2 diagrams** | `catalog/v4/d2` | Architecture/service diagrams | **None** |
+| **EventCatalog** | `catalog/v4/eventcatalog` | eventcatalog.dev MDX file tree | **None** |
+| **Doc server** | `catalog/v4/docserver` | Embedded HTML UIs (Scalar, AsyncAPI Studio) | **None** |
+
+### 2.5 The `simple` fluent builder
+
+`catalog/v4/simple/builder.go` — the high-level API used in cqrs-htmx's own catalog-demo:
 
 ```go
-mux.Handle("GET /events/stream", cqrshtmx.EventStreamHandler(journal,
-    cqrshtmx.WithStreamSource("/identity"),
-    cqrshtmx.WithStreamLimit(1000),
-    cqrshtmx.WithStreamFilter(eventTypeFilter), // optional: filter by event.Type
-))
-```
-
-**Pros:** Closes Gap 1 + Gap 2 together. The cursor, replay logic, and immutable-serve pattern all exist — only the framing is missing. CloudEvents is vendor-neutral and every router speaks it. ~150 LOC, no new deps (the envelope is 7 required fields; no need for `cloudevents/sdk-go`).
-**Cons:** Pull-based only (client polls). No push notifications when new events arrive. Consumers wanting push must compose with webhooks or the SSE handler.
-**LOC estimate:** ~150 LOC + tests.
-
-### Option 3 — `asyncapi/` contract package
-
-A parallel to `openapi/`: fluent builder for AsyncAPI 3.0.
-
-```go
-spec := asyncapi.New("Identity Events", "1.0.0").
-    Server("production", "api.x.com", asyncapi.ProtocolHTTP).
-    Channel("user-events", asyncapi.Send,
-        asyncapi.Message("UserRegistered").
-            ContentType("application/json").
-            Payload(userRegisteredSchema),
-    )
-```
-
-`EventCatalog` becomes a thin facade that can _export_ to AsyncAPI via `EventCatalog.AsyncAPI()`.
-
-**Pros:** AsyncAPI is the OpenAPI-for-events. One document describes both schema and transport (via `bindings.kafka`/`bindings.http`/`bindings.nats`). Tooling generates Go types (modelina), renders eventcatalog.dev pages. Standards-correct.
-**Cons:** Bigger investment. AsyncAPI 3.0 has more surface area than OpenAPI 3.1 (channels, operations, messages, bindings). Best deferred until Options 1+2 prove demand.
-**LOC estimate:** ~`openapi/`-sized (~400 LOC).
-
-### Option 4 — `DataProductRegistry` federation
-
-A federated discovery layer:
-
-```go
-reg := cqrshtmx.NewDataProductRegistry().
-    Register("identity", "https://api.x.com/.well-known/data-product").
-    Register("billing", "https://billing.x.com/.well-known/data-product").
-    Register("inventory", "https://inv.x.com/.well-known/data-product")
-
-mux.Handle("GET /.well-known/data-products", cqrshtmx.DataProductRegistryHandler(reg))
-```
-
-Remote descriptors fetched on a schedule, cached, staleness-tagged. Served as mutable JSON with short TTL + per-request ETag (like `ProjectionStatusHandler`).
-
-**Pros:** This is where "mesh" actually starts — federated discovery across domains.
-**Cons:** Platform territory. The library principle says make it building blocks, not a service. Consumers may prefer Backstage/DataHub/EventCatalog for this.
-**LOC estimate:** ~200 LOC + tests.
-
-### Option 5 — Watermill `TopicRouter` + backend docs
-
-A `TopicRouter` mapping `event.Type` → topic name (replacing the single `DefaultEventBusTopic = "cqrs.events"`):
-
-```go
-router := cqrshtmx.NewTopicRouter().
-    Route("UserRegistered", "identity.users").
-    Route("TenantCreated", "identity.tenants").
-    Default("identity.misc")
-
-bus := watermill.NewEventBus(
-    watermill.WithBackend(kafkaPublisher, kafkaSubscriber, kafkaCloser),
-    watermill.WithEventBusTopic(router.TopicFor),
+b := simple.New("Order Service", "1.0.0",
+    simple.WithServiceSummary("Example service"),
 )
+simple.Command[CreateOrderCommand](b, "create-order",
+    simple.WithOperation("POST", "/orders"),
+    catalog.WithSummary("Place a new order"),
+)
+simple.Event[OrderCreatedEvent](b, "order.created", catalog.Sends,
+    catalog.WithSummary("An order was placed"),
+)
+cat := b.Build()
 ```
 
-Combined with `WithBackend(kafkaPublisher, kafkaSubscriber, closer)`, this gives real Kafka/NATS federation.
+### 2.6 The `docserver` — serve everything from one handler
 
-**Pros:** Production-scale push transport. Mostly documentation + an example — the seam exists, it's just invisible.
-**Cons:** No new transport code in cqrs-htmx; consumers bring Watermill plugins. Kafka/NATS are infra choices the library should not enforce.
-**LOC estimate:** ~80 LOC + docs + example.
+`catalog/v4/docserver/docserver.go` — used in cqrs-htmx's own catalog-demo and integration tests:
+
+```go
+ds := docserver.NewDocsServer(func() *catalog.Catalog { return cat }, docserver.Config{
+    ServiceName: "Order Service",
+    Version:     "1.0.0",
+})
+mux.Handle("/openapi.json", ds.OpenAPISpec())
+mux.Handle("/asyncapi.json", ds.AsyncAPISpec())
+mux.Handle("/diagram.d2", docserver.D2Handler(cat))
+mux.Handle("/health", docserver.HealthCheckHandler(cat))
+```
+
+### 2.7 Production-grade transport — `transport/http/v4.SSEBroker`
+
+`transport/http/v4/sse.go:27-41`:
+
+```go
+type SSEBroker struct {
+    mu               sync.RWMutex
+    clients          map[SSEClientID]chan event.Event
+    handler          event.Handler
+    cancel           context.CancelFunc
+    journal          event.SeekableJournal    // optional: Last-Event-ID replay
+    replayLimit      int
+    replayTimeout    time.Duration
+    replayMetrics    *ReplayMetrics
+    replayByteBudget int
+    dedupRingCap     int
+    retryInterval    time.Duration
+    eventFilter      func(event.Type) bool    // filtering hook
+    payloadTransform func(event.Event) []byte  // CloudEvents transform hook
+}
+```
+
+Features cqrs-htmx's `Broadcaster`/`JournalSSEStore` lack: event filtering, payload transformation, dedup ring, byte-budget replay limits, replay metrics, replay timeout, OpenTelemetry instrumentation, configurable heartbeat/retry.
+
+The `transport/http/v4/doc.go` explicitly states the design vision: *"Future transports (gRPC, NATS, Redis) will live as sibling modules under `transport/`."* `transport/grpc/v4` is already in `go.work` local replaces.
+
+### 2.8 What's verified absent
+
+Grep across **all** of go-cqrs-lite for `CloudEvent`, `interchange`, `dataport`, `federation` returned **zero Go matches**. The only mesh-adjacent concept is `DataProduct` (documented as "a data product in a data mesh"). There is no code binding a `catalog.Channel` to a runtime `event.Bus` topic or `StreamingJournal` — the documentation model and the runtime transport are fully decoupled.
+
+---
+
+## 3. What cqrs-htmx Ships Instead (the Re-invention)
+
+| Concern | go-cqrs-lite `catalog/v4` | cqrs-htmx root | Verdict |
+|---------|--------------------------|----------------|---------|
+| Event metadata | `Message` with 20+ fields (Kind, Schema, Producers, Consumers, Operation, Changelog, Deprecated, ...) | `EventMetadata` with 5 fields (Type, Aggregate, SchemaVersion, Description, PayloadFields) | **Subset** |
+| Schema derivation | Auto from Go types via reflection (`SchemaFromType[T]()`) | Manual `[]PayloadField` lists | **Manual + error-prone** |
+| Data product | `DataProduct` + `DataContract` + `DataProductOutput` | **Does not exist** | **Missing** |
+| Channel / transport binding | `Channel` with Address, Protocols, DeliveryGuarantee, Routes | **Does not exist** | **Missing** |
+| AsyncAPI export | `asyncapi.Exporter` full AsyncAPI 3.0 | **Does not exist** | **Missing** |
+| OpenAPI export | `openapi.Exporter` full OpenAPI 3.0 | Hand-rolled `openapi/` sub-package (~400 LOC) | **Re-invented** |
+| D2 diagrams | `d2.Exporter` | **Does not exist** | **Missing** |
+| eventcatalog.dev | `eventcatalog.Exporter` full MDX file tree | **Does not exist** | **Missing** |
+| Doc server (HTML UIs) | `docserver.DocsServer` (Scalar, AsyncAPI Studio) | **Does not exist** | **Missing** |
+| HTTP serving | `docserver.NewDocsServer(...)` — all formats from one handler | `EventCatalogHandler` (JSON array only) + `OpenAPISpecHandler` (separate) | **Re-invented** |
+| Realtime transport | `SSEBroker` (filtering, dedup, metrics, OTel, byte budget) | `Broadcaster` + `JournalSSEStore` (simple fan-out + replay) | **Re-invented (simpler)** |
+| Streaming reads | `StreamingJournal.ReadStreamFrom` returns `EventIterator` (non-materializing) | `SeekableJournal.ReadFrom` returns `[]Event` (materializes full slice) | **Not used** |
+
+**Root cause:** cqrs-htmx's root `go.mod` depends on `event/v4`, `command/v4`, `query/v4`, `id/v4` — but **not** `catalog/v4` or `transport/http/v4`. The `catalog/v4` import only appears in `integration_test/go.mod` and `examples/catalog-demo/`. The library ships its own subset instead of exposing the upstream.
+
+---
+
+## 4. The Three Genuinely Missing Pieces
+
+After accounting for everything the upstream already provides, only three things are actually absent from the combined ecosystem:
+
+### Gap 1: Channel-to-Bus binding (the documentation-runtime disconnect)
+
+`catalog.Channel` describes *what* a channel is (address, protocol, messages, delivery guarantee). `event.Bus` / `StreamingJournal` provides the *runtime* transport. **No code connects them.** A consumer who defines a `Channel` in their catalog has no way to say "this channel is backed by this `event.Bus` subscription" or "this channel reads from this `StreamingJournal`."
+
+This is the **interchange binding** — the one piece that would make the catalog model *actionable* rather than purely documentary.
+
+### Gap 2: CloudEvents envelope
+
+Neither go-cqrs-lite nor cqrs-htmx produces CloudEvents-formatted messages. The `event.Event` type carries `ID()`, `Type()`, `StreamID()`, `OccurredAt()`, `Payload()` — enough to map to CloudEvents attributes, but no code does the mapping.
+
+**However:** `transport/http/v4.SSEBroker` already has `payloadTransform func(event.Event) []byte` — a per-event transform hook. A CloudEvents wrapper is a single function piped through this existing hook. No new type needed in the transport layer.
+
+### Gap 3: Pull-based machine transport
+
+The interchange currently assumes SSE (browser-friendly push). A data-mesh consumer often wants **pull-based HTTP** (`GET /events?after=<id>` then `[]CloudEvent` JSON or NDJSON) — for batch consumers, cron jobs, non-streaming clients. No existing code provides this variant. (`SSEBroker` is push-only; `SeekableJournal.ReadFrom` returns a slice but isn't wrapped in an HTTP handler; `JournalSSEStore` emits SSE wire format.)
+
+`transport/grpc/v4` is in local replaces (exists or in development). NATS/Kafka federation is via `watermill.WithBackend`. These are upstream concerns, not cqrs-htmx gaps.
+
+---
+
+## 5. Five Approaches
+
+### Approach A: Full adoption — deprecate EventCatalog + openapi/, depend on catalog/v4
+
+Add `catalog/v4` as a root dependency. Deprecate `EventCatalog`, `EventCatalogHandler`, and the `openapi/` sub-package. Expose `docserver` handlers directly. Migrate `usermgmt.DefaultEventCatalog()` to return a `*catalog.Catalog` via `simple.New()`.
+
+**Pros:** One source of truth. Rich model. All exporters. No duplicated types.
+**Cons:** Breaking change. Forces every root consumer to pull in `catalog/v4` even if they don't need docs. Violates the "never enforce defaults" principle for consumers who want zero doc overhead.
+
+### Approach B: Opt-in catalog adapter — bridge, don't replace
+
+Keep `EventCatalog` as the zero-dependency lightweight path. Add `EventCatalog.ToCatalog()` returning `*catalog.Catalog`. Consumers who want AsyncAPI/DataProduct/eventcatalog.dev call the adapter. The root `go.mod` does not depend on `catalog/v4` — the adapter lives in a separate optional package.
+
+**Pros:** Non-breaking. Zero overhead for consumers who skip docs. Clean upgrade path.
+**Cons:** Two type systems. The `EventMetadata` to `catalog.Message` mapping is lossy (no Producers/Consumers/Operation/Schema in EventMetadata). Adapter produces hollow entries.
+
+### Approach C: Expose catalog/v4 as the recommended path, deprecate EventCatalog gradually
+
+Don't add `catalog/v4` to the root `go.mod` (keep root lean). Instead:
+1. Document `catalog/v4` + `simple.New()` + `docserver` as the **recommended** way to build data-mesh contracts (the catalog-demo already shows this).
+2. Add `// Deprecated:` markers on `EventCatalog` / `EventCatalogHandler` / `openapi.Spec` / `OpenAPISpecHandler` pointing to `catalog/v4`.
+3. Provide `usermgmt.DefaultCatalog()` returning `*catalog.Catalog` (built via `simple.New()` from the existing identity event types) alongside the deprecated `DefaultEventCatalog()`.
+4. Add a `docs/guides/data-mesh-interchange.md` guide showing the full composition.
+
+**Pros:** Lean root (no new dep). Clear direction without forcing migration. The catalog-demo and integration_test already validate the pattern. Consumer keeps full control.
+**Cons:** Two APIs coexist during the deprecation window. Consumer confusion about which to use.
+
+### Approach D: Channel binding + pull-based EventStreamHandler (the genuinely new code)
+
+Independent of the catalog adoption question: build the three missing runtime pieces.
+
+1. **`ChannelBinding`** — a thin connector binding a `catalog.Channel` to a runtime `event.Bus` subscription or `StreamingJournal` read. Makes the catalog model actionable: "this Channel's messages come from this Bus subscription."
+
+2. **`EventStreamHandler`** — a pull-based HTTP handler (`GET /events?after=<eventID>&limit=N` returning JSON array or NDJSON) backed by `event.SeekableJournal` or `StreamingJournal`. Uses `StreamingJournal.ReadStreamFrom` (non-materializing iterator) for high-volume streams. Optional CloudEvents framing.
+
+3. **`CloudEventFromEvent()`** — a pure function mapping `event.Event` to a CloudEvents 1.0 envelope (7 required fields). Pipable through `SSEBroker.payloadTransform` or usable standalone in the `EventStreamHandler`.
+
+**Pros:** Closes the three genuine gaps. Works with or without catalog adoption.
+**Cons:** The `EventStreamHandler` partially overlaps with `transport/http/v4.SSEBroker` (which does push-based SSE). Need to decide: adopt SSEBroker, build pull-based alongside, or both.
+
+### Approach E: Documentation only — no code changes
+
+Write `docs/guides/data-mesh-interchange.md` showing how to compose `catalog/v4` + `transport/http/v4.SSEBroker` + `watermill.WithBackend` in a cqrs-htmx app today, with zero library changes. The catalog-demo already proves this works.
+
+**Pros:** Zero risk. Immediate. Honest about what already exists.
+**Cons:** Doesn't fix the root problem (consumers still reach for `EventCatalog` first because it's what the library exports). Doesn't close the Channel-to-Bus binding gap.
 
 ---
 
 ## 6. Recommendation
 
-### Ranked recommendation: **Option 2 first → Option 1 second → Option 3 as the evolution path**
+### Ranked: **Approach C + D combined**
 
-#### Why Option 2 first
+| Criterion | A (full adopt) | B (adapter) | C (gradual deprecate) | D (missing pieces) | E (docs only) |
+|-----------|:---:|:---:|:---:|:---:|:---:|
+| Closes real gaps | Partial | No (lossy) | Partial (direction) | **Yes (all 3)** | No |
+| Breaking change | **Yes** | No | No | No | No |
+| Root stays lean | No (new dep) | Yes | **Yes** | **Yes** | **Yes** |
+| New code in root | Migration | Adapter | `DefaultCatalog()` in usermgmt | ~180 LOC | 0 |
+| Honest about upstream | Yes | Partial | **Yes** | **Yes** | Yes |
+| Consumer can ignore | No | Yes | **Yes** | **Yes** | Yes |
+| Proven by existing demo | Yes | No | **Yes** (catalog-demo) | No (new) | Yes |
 
-1. **It is the only thing that actually closes a gap.** The cursor (`SeekableJournal.ReadFrom`), replay logic, and immutable-serve pattern all exist — only the framing is missing. Without a machine transport, "interchange" is just documentation.
-2. **CloudEvents is the right envelope.** 7 required fields, vendor-neutral, every router speaks it. The `type` + `source` pair maps naturally to cqrs-htmx's `event.Type` + service identity.
-3. **Small surface, no new deps.** ~150 LOC. The envelope is a plain struct — no need for `cloudevents/sdk-go` (a heavy SDK) when the spec is this small.
-4. **Immediate utility.** A consumer can `GET /events/stream?after=<id>` and get a resumable JSON stream of CloudEvents. This works with curl, HTTP clients, and can be bridged to Kafka/NATS by the consumer.
+#### Why not Approach A
 
-#### Why Option 1 second
+Forces `catalog/v4` as a hard dependency on every root consumer. The library principle says "never enforce defaults." Many consumers want CQRS+HTMX dispatch without documentation overhead — they shouldn't pay the `catalog/v4` import cost.
 
-1. **Nearly free once Option 2 exists.** The descriptor references the stream URL from Option 2, the EventCatalog, and the OpenAPI spec — all already served.
-2. **Turns scattered endpoints into a data product.** Instead of EventCatalog at `/events/catalog`, OpenAPI at `/openapi.json`, stream at `/events/stream` — one document at `/.well-known/data-product` with owner/version/SLO/transport binding.
-3. **Aligns with DPDS without adopting its full weight.** A slim Go struct, not a YAML parser.
+#### Why not Approach B
 
-#### Why Option 3 is the evolution path (deferred)
+The `EventMetadata` to `catalog.Message` mapping is lossy. `EventMetadata` has no `Producers`, `Consumers`, `Operation`, or auto-derived `Schema`. An adapter produces hollow entries — you get the AsyncAPI format but not the richness that makes it useful. Better to register directly via `simple.Event[T]()` which auto-derives schema from Go types.
 
-1. **AsyncAPI is the right format** for event-driven contracts, but it's a bigger investment.
-2. **Clean migration:** `EventCatalog.AsyncAPI()` emits an AsyncAPI doc from the registered metadata — EventCatalog stays the source of truth, AsyncAPI becomes an export view. No rewrite.
-3. **Defer until demand is proven** by Options 1+2 adoption.
+#### Why C + D combined
 
-#### Why Options 4 and 5 are consumer composition, not library code
-
-1. **Option 4 (federation registry):** The library should _enable_ discovery (via the descriptor in Option 1) but not _be_ a discovery platform. Consumers compose Backstage/DataHub/EventCatalog.
-2. **Option 5 (Kafka backend):** The library should _document_ the existing `WithBackend` seam and provide a `TopicRouter` helper, but not enforce Kafka/NATS. Consumers bring Watermill plugins.
-3. **The "never enforce defaults" principle** (AGENTS.md) means the library provides building blocks; the consumer's infrastructure choices stay theirs.
-
-### Decision matrix
-
-| Criterion             | Opt 1                  | Opt 2                                    | Opt 3                           | Opt 4                      | Opt 5                                    |
-| --------------------- | ---------------------- | ---------------------------------------- | ------------------------------- | -------------------------- | ---------------------------------------- |
-| Closes a real gap     | Partial (discovery)    | **Yes (transport+envelope)**             | Yes (contract)                  | Yes (federation)           | Yes (push transport)                     |
-| New code size         | ~120 LOC               | ~150 LOC                                 | ~400 LOC                        | ~200 LOC                   | ~80 LOC                                  |
-| New dependencies      | None                   | None                                     | None                            | None                       | None (consumer brings Watermill plugins) |
-| Standards alignment   | DPDS-lite              | **CloudEvents 1.0**                      | AsyncAPI 3.0                    | DPDS registry              | Kafka/NATS via Watermill                 |
-| Reuses existing code  | EventCatalog + OpenAPI | SeekableJournal + JournalSSEStore replay | EventCatalog (as export source) | Option 1 descriptors       | watermill.WithBackend                    |
-| Library principle fit | Strong                 | **Strong**                               | Strong                          | Medium (platform-flavored) | Strong (docs + helper)                   |
-| Immediate utility     | Discovery only         | **Machine transport**                    | Rich contract docs              | Mesh discovery             | Push at scale                            |
+1. **C gives the direction** without forcing migration: deprecated markers + `DefaultCatalog()` + guide. The catalog-demo already proves the pattern works. Lean root stays lean.
+2. **D closes the genuine gaps** that no upstream package addresses: Channel-to-Bus binding (~50 LOC), pull-based `EventStreamHandler` (~100 LOC), CloudEvents mapping (~30 LOC). Total new code: **~180 LOC**.
+3. **Everything else is adoption, documentation, and deprecation** — not invention.
 
 ---
 
 ## 7. Phased Delivery Plan
 
-### Phase 1 (now): `EventStreamHandler` + `CloudEvent` envelope
+### Phase 1: Documentation + deprecation markers (zero risk, immediate value)
 
 **Deliverables:**
+- `docs/guides/data-mesh-interchange.md` — comprehensive guide showing how to use `catalog/v4` + `simple.New()` + `docserver` in a cqrs-htmx app for data-mesh interchange. Reference the existing `examples/catalog-demo/`. Cover DataProduct, Channel, AsyncAPI export, eventcatalog.dev generation, and the `watermill.WithBackend` Kafka/NATS federation seam.
+- `// Deprecated:` markers on `EventCatalog`, `EventCatalogHandler`, `openapi.Spec`, `OpenAPISpecHandler` pointing to `catalog/v4` + `docserver`.
+- Update `AGENTS.md` to document the catalog/v4 relationship.
 
-- `cloudevent.go` — `CloudEvent` struct (7 required + optional fields, CloudEvents 1.0 compliant).
-- `event_stream_handler.go` — `EventStreamHandler(journal, opts...)` serving `GET /events/stream?after=<id>&limit=N`.
-- Options: `WithStreamSource("/identity")`, `WithStreamLimit(1000)`, `WithStreamFilter(fn)`.
-- Content negotiation: `Accept: application/json` → JSON array; `Accept: application/x-ndjson` → streaming NDJSON; default JSON array.
-- Cursor validation and error mapping (404 for unknown cursor, 400 for malformed).
-- Tests: unit tests for envelope, handler tests for cursor/replay/filter, example in `examples/`.
+**Acceptance:** A consumer reading the guide can build a full data-mesh contract (DataProduct + Channel + AsyncAPI + eventcatalog.dev) without any library code changes.
 
-**Acceptance criteria:**
-
-- `curl 'https://api.x.com/events/stream'` returns `[]CloudEvent` JSON.
-- `curl 'https://api.x.com/events/stream?after=<id>'` returns events after the cursor.
-- Events are valid CloudEvents 1.0 (validated against the spec).
-- No new dependencies in `go.mod`.
-
-### Phase 2 (next): `DataProduct` + `DataProductHandler`
+### Phase 2: `usermgmt.DefaultCatalog()` (thin, high-value)
 
 **Deliverables:**
+- `usermgmt.DefaultCatalog()` returning `*catalog.Catalog` — built via `simple.New()` from the existing 21 identity event types, 19 command types, and queries. Uses `simple.Event[UserRegisteredPayload]()` etc. to auto-derive schemas from the Go types in `identity-model/events.go`.
+- Lives in a new file `usermgmt/es_catalog.go`. The `usermgmt/go.mod` adds an explicit `catalog/v4` dependency.
+- Keep `DefaultEventCatalog()` as a deprecated thin wrapper that delegates to the catalog and extracts a flat event list, or delete it if no consumers depend on it.
 
-- `data_product.go` — `DataProduct` struct with `Owner`, `Version`, `OutputPorts`, `InputPorts`, `SLO`.
-- `data_product_handler.go` — `DataProductHandler(dp)` reusing `serveImmutableJSON`.
-- Example showing composition of EventCatalog + OpenAPI + EventStreamHandler URL.
-- Guide: `docs/guides/data-mesh-interchange.md`.
+**Acceptance:** `curl /asyncapi.json` on a usermgmt app returns a valid AsyncAPI 3.0 document with all 21 identity events.
 
-**Acceptance criteria:**
-
-- `curl /.well-known/data-product` returns one JSON document binding owner/version/SLO/ports.
-- The descriptor references the EventCatalog, OpenAPI spec, and EventStreamHandler URL.
-
-### Phase 3 (when justified): `EventCatalog.AsyncAPI()` exporter
+### Phase 3: Build the genuinely missing pieces (Approach D)
 
 **Deliverables:**
+- `event_stream_handler.go` (~100 LOC) — `EventStreamHandler(journal, opts...)` serving `GET /events?after=<eventID>&limit=N`. Content negotiation: JSON array (default) or NDJSON. Uses `StreamingJournal.ReadStreamFrom` when available (non-materializing iterator), falls back to `SeekableJournal.ReadFrom`. Options: `WithStreamLimit`, `WithStreamFilter`, `WithCloudEvents(source)`.
+- `cloudevent.go` (~30 LOC) — `CloudEvent` struct (7 CloudEvents 1.0 required fields: `specversion`, `id`, `source`, `type`, `time`, `subject`, `datacontenttype`, `data`) + `CloudEventFromEvent(evt event.Event, source string) CloudEvent`. Pure function, no SDK dependency. Pipable through `SSEBroker.payloadTransform` or usable standalone.
+- `channel_binding.go` (~50 LOC) — `ChannelBinding` interface binding a `catalog.Channel` to a runtime transport. Implementations: `BusChannelBinding` (subscribe to `event.Bus`), `JournalChannelBinding` (read from `StreamingJournal`). Exposes a `Stream(ctx) (<-chan event.Event, error)` or similar.
 
-- `asyncapi.go` — `EventCatalog.AsyncAPI()` method emitting an AsyncAPI 3.0 document from registered metadata.
-- Optionally a full `asyncapi/` sub-package if demand warrants.
-- Integration with the `DataProduct` descriptor (output port can reference an AsyncAPI doc instead of / in addition to the EventCatalog).
+**Acceptance:**
+- `curl '/events?after=01H...'` returns a JSON array of CloudEvents.
+- A `catalog.Channel` can be bound to a runtime `event.Bus` and the binding exposes the live stream.
 
-**Acceptance criteria:**
+### Phase 4: Transport consolidation (deferred, larger effort)
 
-- `EventCatalog.AsyncAPI()` produces a valid AsyncAPI 3.0 document.
-- The document can be validated by the AsyncAPI parser.
-- The document can be ingested by eventcatalog.dev.
-
-### Documentation (cross-cutting): Consumer patterns for Options 4 and 5
-
-**Deliverables:**
-
-- `docs/guides/data-mesh-interchange.md` — covers the 3-layer model, how cqrs-htmx maps to it, and consumer patterns for federation (Option 4) and Kafka/NATS backends (Option 5).
-- Example: `examples/data-mesh/` showing a two-service interchange using EventStreamHandler + DataProduct.
+Evaluate adopting `transport/http/v4.SSEBroker` to replace `Broadcaster`/`JournalSSEStore`. This is a bigger migration (the `Broadcaster` API is used by dashboardui, adminui, and consumers). Defer until Phase 1-3 prove demand and the catalog adoption is stable.
 
 ---
 
-## 8. Open Questions
+## Appendix A: Verified Source References
 
-1. **Push vs pull transport.** Option 2 is pull-based (client polls). Should the library also provide a webhook/SSE-for-machines variant, or leave push to consumer composition (Option 5 / `Broadcaster`)? **Recommendation:** leave push to composition; pull is the simpler, more interoperable default.
+### go-cqrs-lite `catalog/v4@v4.1.0`
 
-2. **Schema registry integration.** Should the library provide a `Registry` interface abstracting Confluent/Apicurio, or leave that to consumer infra? **Recommendation:** defer until consumers ask; the CloudEvents `dataschema` URI is enough for discovery.
+Base path: `/home/lars/go/pkg/mod/github.com/larsartmann/go-cqrs-lite/catalog/v4@v4.1.0/`
+Local checkout: `/home/lars/projects/go-cqrs-lite/catalog/`
 
-3. **Envelope dependency.** `cloudevents/sdk-go/v2` is a heavy SDK. The CloudEvents spec is only 7 required fields. **Recommendation:** implement a dependency-free `CloudEvent` struct; do not import the SDK.
+| Type / Function | File | Line | Notes |
+|----------------|------|------|-------|
+| `DataProduct` | `types_resources.go` | 37 | "represents a data product in a data mesh" |
+| `DataContract` | `types_resources.go` | 83 | Path, Name, Type |
+| `DataProductOutput` | `types_resources.go` | 91 | Ref + Contract |
+| `Domain.DataProducts` | `types.go` | 190 | `[]DataProductID` |
+| `Catalog.DataProducts` | `types.go` | 219 | `[]DataProduct` |
+| `Channel` | `types.go` | 193 | Address, Protocols, Messages, DeliveryGuarantee, Routes |
+| `ChannelOption` | `channel_config.go` | 5 | Address, Protocols, Messages, DeliveryGuarantee, Parameters, Routes |
+| `Message` | `types.go` | 126 | Kind, Schema, Producers, Consumers, Operation, Changelog |
+| `MessageKind` | `types.go` | 97 | command, event, query |
+| `Direction` | `types.go` | 79 | sends, receives |
+| `Service` | `types.go` | 151 | Commands, Events, Queries, WritesTo, ReadsFrom |
+| `Domain` | `types.go` | 173 | Services, Sends, Receives, DataProducts, SubDomains |
+| `Catalog` | `types.go` | 208 | Top-level aggregate root |
+| `Operation` | `types_helpers.go` | 29 | Method, Path, StatusCodes |
+| `SchemaFromType[T]()` | `schema.go` | — | Auto-derive JSON Schema from Go types via reflection |
+| `Command[T]()` | `message_config.go` | 206 | Generic command registration |
+| `Event[T]()` | `message_config.go` | 214 | Generic event registration |
+| `Query[T]()` | `message_config.go` | 222 | Generic query registration |
+| `Builder.AddDataProduct` | `build.go` | 112 | Programmatic accumulation |
+| `Registry` | `registry.go` | 15 | Thread-safe map accumulators |
+| `Registry.AddDataProduct` | `registry_resources.go` | 59 | — |
+| `Exporter[T]` interface | `exporter.go` | 8 | `Export(cat *Catalog) T` |
+| `WalkDataProducts` | `walk.go` | 50 | Iterator |
+| `Validate()` | `validate.go` | 25 | Includes `validateDataProduct` (`:305`) |
+| `simple.New()` | `simple/builder.go` | — | Fluent high-level builder |
+| `asyncapi.Document` | `asyncapi/types.go` | 9 | AsyncAPI 3.0 document model |
+| `asyncapi.Exporter` | `asyncapi/exporter.go` | 22 | `Export(cat) *Document` |
+| `asyncapi.Export()` | `asyncapi/builder.go` | 11 | Converts Catalog to AsyncAPI |
+| `openapi.Exporter` | `openapi/exporter.go` | — | Converts Catalog to OpenAPI |
+| `d2.Exporter` | `d2/exporter.go` | — | Converts Catalog to D2 diagram |
+| `eventcatalog.Exporter` | `eventcatalog/exporter.go` | — | Converts Catalog to eventcatalog.dev MDX |
+| `docserver.NewDocsServer()` | `docserver/docserver.go` | — | Serves OpenAPI + AsyncAPI + D2 + HTML UIs |
+| `docserver.D2Handler()` | `docserver/docserver.go` | — | D2 diagram handler |
+| `docserver.HealthCheckHandler()` | `docserver/docserver.go` | — | Health check handler |
+| `docserver.GenerateEventCatalog()` | `docserver/embed.go` | — | Build-time MDX generation |
 
-4. **Filtering.** Should `EventStreamHandler` support server-side filtering by event type, aggregate, or content? **Recommendation:** start with event-type filter only (`WithStreamFilter(fn)`); defer content-based filtering.
+### go-cqrs-lite `transport/http/v4@v4.1.0`
 
-5. **Authz.** Should the interchange endpoints integrate with the existing Casbin authz, or be treated as a separate concern? **Recommendation:** treat as separate — the consumer wraps the handler with their own auth middleware (consistent with the library principle).
+Base path: `/home/lars/go/pkg/mod/github.com/larsartmann/go-cqrs-lite/transport/http/v4@v4.1.0/`
 
----
+| Type / Function | File | Line | Notes |
+|----------------|------|------|-------|
+| `SSEBroker` | `sse.go` | 27 | Production-grade event.Bus to SSE bridge |
+| `SSEBroker.journal` | `sse.go` | 33 | `event.SeekableJournal` for Last-Event-ID replay |
+| `SSEBroker.eventFilter` | `sse.go` | 39 | `func(event.Type) bool` |
+| `SSEBroker.payloadTransform` | `sse.go` | 40 | `func(event.Event) []byte` — CloudEvents hook |
+| `SSEBroker.dedupRingCap` | `sse.go` | 38 | Dedup ring buffer |
+| `SSEBroker.replayByteBudget` | `sse.go` | 37 | Replay byte budget |
+| `SSEBroker.replayMetrics` | `sse.go` | 36 | `*ReplayMetrics` |
+| `NewSSEBroker()` | `sse.go` | 57 | Constructor (subscribes via `bus.SubscribeAll`) |
+| `SSEHandler()` | `sse.go` | 198 | Returns `http.Handler` |
+| Design vision | `doc.go` | 6-7 | "Future transports (gRPC, NATS, Redis) will live as sibling modules" |
+| gRPC exclusion rationale | `doc.go` | 36-37 | "consumers who need bidirectional transport should use transport/grpc" |
 
-## Appendix A: Verified Code References
+### go-cqrs-lite `event/v4@v4.1.0`
 
-All file:line references verified against the source on 2026-07-25.
+| Type / Function | File | Line | Notes |
+|----------------|------|------|-------|
+| `Event = *ImmutableEvent` | `event.go` | 55 | Type alias |
+| `ImmutableEvent` | `event.go` | 59 | id, eventType, streamID, payload, metadata, occurredAt |
+| `Event.ID()` | `event.go` | 80 | returns `id.EventID` (ULID, cursor) |
+| `Event.Type()` | `event.go` | 83 | returns `Type` |
+| `Event.StreamID()` | `event.go` | 86 | returns `id.StreamID` |
+| `Event.Payload()` | `event.go` | 118 | returns cloned `[]byte` |
+| `Event.OccurredAt()` | `event.go` | 129 | returns `time.Time` |
+| `EventIterator` | `streaming_source.go` | 28 | `Next() (Event, error); Close() error` |
+| `StreamingJournal` | `streaming_source.go` | 60 | `ReadStream(ctx); ReadStreamFrom(ctx, afterID, limit)` |
+| `SeekableJournal` | `store.go` | 113 | `ReadFrom(ctx, afterID, limit) ([]Event, error)` |
+| `Bus` | `bus.go` | 40 | Publisher + Subscriber + Use + UsePublish |
+| `Publisher` | `bus.go` | 12 | `Publish(ctx, events ...Event) error` |
+| `Subscriber` | `bus.go` | 26 | `Subscribe(type, handler); SubscribeAll(handler)` |
 
-### Root module (`github.com/larsartmann/cqrs-htmx/v4`)
+### cqrs-htmx (current state)
 
-| Primitive                     | File                           | Line | Signature / Type                                                                                                          |
-| ----------------------------- | ------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------- |
-| `PayloadField`                | `event_catalog.go`             | 12   | `struct { Name, Type string; Required bool }`                                                                             |
-| `EventMetadata`               | `event_catalog.go`             | 21   | `struct { Type, Aggregate string; SchemaVersion int; Description string; PayloadFields []PayloadField }`                  |
-| `EventCatalog`                | `event_catalog.go`             | 36   | `struct { events []EventMetadata }` — Published Language registry                                                         |
-| `NewEventCatalog`             | `event_catalog.go`             | 41   | `func NewEventCatalog() *EventCatalog`                                                                                    |
-| `EventCatalog.Register`       | `event_catalog.go`             | 48   | `func (c *EventCatalog) Register(meta EventMetadata)`                                                                     |
-| `EventCatalog.Events`         | `event_catalog.go`             | 62   | `func (c *EventCatalog) Events() []EventMetadata`                                                                         |
-| `EventCatalog.JSON`           | `event_catalog.go`             | 71   | `func (c *EventCatalog) JSON() ([]byte, error)`                                                                           |
-| `EventCatalogHandler`         | `event_catalog_handler.go`     | 22   | `func EventCatalogHandler(catalog *EventCatalog) (http.HandlerFunc, error)`                                               |
-| `serveImmutableJSON`          | `event_catalog_handler.go`     | 47   | `func serveImmutableJSON(w, r, etag string, data []byte)` — shared helper                                                 |
-| `hashTag`                     | `options_openapi.go`           | 86   | `func hashTag(data []byte) string` — FNV-1a 64-bit → hex ETag                                                             |
-| `WithOpenAPI`                 | `options_openapi.go`           | 32   | `func WithOpenAPI(op openapi.Operation) HandlerOption`                                                                    |
-| `OpenAPISpecHandler`          | `options_openapi.go`           | 52   | `func OpenAPISpecHandler(spec *openapi.Spec) (http.HandlerFunc, error)`                                                   |
-| `JournalSSEStore`             | `event_store_sse.go`           | 32   | `struct { journal event.Journal; seekable event.SeekableJournal; mapper EventToSSEMapper; maxReplay int }`                |
-| `NewJournalSSEStore`          | `event_store_sse.go`           | 63   | `func NewJournalSSEStore(journal event.Journal, mapper EventToSSEMapper, opts ...JournalSSEStoreOption) *JournalSSEStore` |
-| `JournalSSEStore.EventsAfter` | `event_store_sse.go`           | 101  | `func (s *JournalSSEStore) EventsAfter(lastID SSEEventID) ([]SSEEvent, error)`                                            |
-| `WithMaxReplay`               | `event_store_sse.go`           | 45   | `func WithMaxReplay(n int) JournalSSEStoreOption`                                                                         |
-| `SSEEventStore` interface     | `sse_store.go`                 | 12   | `interface { EventsAfter(lastID SSEEventID) ([]SSEEvent, error) }`                                                        |
-| `ReplayEvents`                | `sse_store.go`                 | 25   | `func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID SSEEventID) (int, error)`                          |
-| `LastEventIDFromRequest`      | `sse_event.go`                 | 64   | `func LastEventIDFromRequest(r *http.Request) SSEEventID`                                                                 |
-| `Broadcaster`                 | `sse_broadcaster.go`           | 24   | `struct { *sse.Broadcaster[sse.Event] }`                                                                                  |
-| `Broadcaster.ServeSSE`        | `sse_broadcaster.go`           | 90   | `func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request)`                                                  |
-| `WSBroadcaster`               | `ws_broadcaster.go`            | 31   | `struct { *sse.Broadcaster[string] }`                                                                                     |
-| `SSEStream`                   | `sse_event.go`                 | 56   | `type SSEStream = sse.Stream` (type alias)                                                                                |
-| `ProjectionStatusProvider`    | `projection_status_handler.go` | 28   | `interface { ProjectionStatuses() []ProjectionStatusEntry }`                                                              |
-| `ProjectionStatusHandler`     | `projection_status_handler.go` | —    | `func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc`                                        |
-
-### `openapi/` sub-package
-
-| Primitive     | File                 | Line |
-| ------------- | -------------------- | ---- |
-| `Spec`        | `openapi/types.go`   | 20   |
-| `Info`        | `openapi/types.go`   | 28   |
-| `Components`  | `openapi/types.go`   | 35   |
-| `PathItem`    | `openapi/types.go`   | 40   |
-| `Operation`   | `openapi/types.go`   | 54   |
-| `Parameter`   | `openapi/types.go`   | 66   |
-| `RequestBody` | `openapi/types.go`   | 75   |
-| `Response`    | `openapi/types.go`   | 82   |
-| `MediaType`   | `openapi/types.go`   | 88   |
-| `New`         | `openapi/builder.go` | 5    |
-| `Schema`      | `openapi/schema.go`  | 10   |
-| `Spec.JSON`   | `openapi/marshal.go` | 11   |
-
-### go-cqrs-lite (`event/v4`)
-
-| Primitive          | File (in module cache) | Line | Signature                                                                                                                     |
-| ------------------ | ---------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `EventSink`        | `store.go`             | 20   | `interface { Save(ctx, ref, events []Event, expectedVersion Version) error; AppendBatch(ctx, ref, events []Event) error }`    |
-| `EventSource`      | `store.go`             | 60   | `interface { Load(ctx, ref) ([]Event, error); LoadFromVersion(ctx, ref, version) ([]Event, error); ... }`                     |
-| `Store`            | `store.go`             | 93   | `interface { EventSink; EventSource }`                                                                                        |
-| `Journal`          | `store.go`             | 102  | `interface { ReadAll(ctx) ([]Event, error) }`                                                                                 |
-| `SeekableJournal`  | `store.go`             | 113  | `interface { Journal; ReadFrom(ctx, afterEventID id.EventID, limit int) ([]Event, error) }`                                   |
-| `EventIterator`    | `streaming_source.go`  | 28   | `interface { Next() (Event, error); Close() error }`                                                                          |
-| `StreamingSource`  | `streaming_source.go`  | 43   | `interface { LoadStream(ctx, ref) (EventIterator, error); LoadStreamFromVersion(ctx, ref, version) (EventIterator, error) }`  |
-| `StreamingJournal` | `streaming_source.go`  | 60   | `interface { ReadStream(ctx) (EventIterator, error); ReadStreamFrom(ctx, afterEventID, limit) (EventIterator, error) }`       |
-| `Handler`          | `bus.go`               | 8    | `type Handler func(ctx context.Context, event Event) error`                                                                   |
-| `Publisher`        | `bus.go`               | 12   | `interface { Publish(ctx, events ...Event) error }`                                                                           |
-| `Subscriber`       | `bus.go`               | 26   | `interface { Subscribe(eventType Type, handler Handler) error; SubscribeAll(handler Handler) error }`                         |
-| `Bus`              | `bus.go`               | 40   | `interface { Publisher; Subscriber; Use(middleware ...Middleware) error; UsePublish(middleware ...PublishMiddleware) error }` |
-| `Checkpoint`       | `checkpoint.go`        | 11   | `struct { EventID id.EventID; ProcessedAt time.Time }`                                                                        |
-| `CheckpointStore`  | `checkpoint.go`        | 42   | `interface { CheckpointSink; CheckpointSource }`                                                                              |
-
-### go-cqrs-lite (`watermill/v4`)
-
-| Primitive                    | File (in module cache) | Line | Signature                                                                           |
-| ---------------------------- | ---------------------- | ---- | ----------------------------------------------------------------------------------- |
-| `DefaultEventBusTopic`       | `event_bus.go`         | 54   | `const DefaultEventBusTopic = "cqrs.events"`                                        |
-| `WithEventBusTopic`          | `event_bus_options.go` | 19   | `func WithEventBusTopic(topic string)`                                              |
-| `WithBackend`                | `event_bus_options.go` | 26   | `func WithBackend(pub message.Publisher, sub message.Subscriber, closer io.Closer)` |
-| `EventBus.MessageSubscriber` | `event_bus.go`         | 52   | `func (b *EventBus) MessageSubscriber() message.Subscriber`                         |
-
-### go-cqrs-lite (`projection/v4`)
-
-| Primitive    | File (in module cache) | Line | Signature                                                                              |
-| ------------ | ---------------------- | ---- | -------------------------------------------------------------------------------------- |
-| `Projection` | `projection.go`        | 23   | `interface { Name() string; Handle(ctx, evt Event) error; EventTypes() []event.Type }` |
-
-### `identity-model/v4`
-
-| Primitive                   | File           | Line  |
-| --------------------------- | -------------- | ----- |
-| `CurrentSchemaVersion = 2`  | `constants.go` | 64    |
-| 21 event type constants     | `constants.go` | 14–37 |
-| `Upcaster`                  | `upcaster.go`  | 14    |
-| `UpcasterRegistry`          | `upcaster.go`  | 19    |
-| `UpcasterRegistry.Register` | `upcaster.go`  | 35    |
-| `UpcasterRegistry.Upcast`   | `upcaster.go`  | 52    |
-| `MarshalPayload`            | `events.go`    | 137   |
-
-### `usermgmt/v4`
-
-| Primitive                          | File                      | Line |
-| ---------------------------------- | ------------------------- | ---- |
-| `DefaultEventCatalog()`            | `es_event_catalog.go`     | 13   |
-| `Service.EventCatalog()`           | `es_projection_health.go` | 76   |
-| `EventSourcedSetup.EventCatalog()` | `es_projection_health.go` | 17   |
-| `Service.RebuildProjection`        | `es_projection_setup.go`  | —    |
-| `UserReadModel.Name()`             | `es_readmodel.go`         | 54   |
-
----
-
-## Appendix B: Standards Quick Reference
-
-| Standard                      | Version | Role                                                         | URL                                                                   |
-| ----------------------------- | ------- | ------------------------------------------------------------ | --------------------------------------------------------------------- |
-| **CloudEvents**               | 1.0     | Per-message wire envelope (CNCF graduated)                   | https://cloudevents.io                                                |
-| **AsyncAPI**                  | 3.0.x   | Event-driven API contract (channels/messages/bindings)       | https://www.asyncapi.com                                              |
-| **OpenAPI**                   | 3.1     | HTTP request/response API contract                           | https://www.openapis.org                                              |
-| **DPDS**                      | 1.x     | Data product descriptor (envelope + ports)                   | https://dpds.opendatamesh.org/                                        |
-| **Bitol Data Contracts**      | 1.1.1   | Pragmatic data contract (servers + schema + SLAs + terms)    | https://github.com/bitol-io/data-contracts                            |
-| **EventCatalog**              | —       | Discovery/docs site generator for event-driven architectures | https://www.eventcatalog.dev/                                         |
-| **Confluent Schema Registry** | —       | Subject/version schema registry for Kafka                    | https://docs.confluent.io/platform/current/schema-registry/index.html |
-| **Apicurio Registry**         | —       | Open-source schema registry (Confluent-compatible)           | https://www.apicur.io/registry/                                       |
-| **JSON Schema**               | 2020-12 | Schema language for JSON payloads                            | https://json-schema.org/                                              |
+| What | File | Line | Status |
+|------|------|------|--------|
+| `EventCatalog` | `event_catalog.go` | 36 | Does not import catalog/v4 — hand-rolled 3-field `EventMetadata` |
+| `EventCatalogHandler` | `event_catalog_handler.go` | 22 | Serves JSON array only (no AsyncAPI, no doc server) |
+| `openapi.Spec` | `openapi/types.go` | 20 | Hand-rolled OpenAPI 3.1 builder (~400 LOC) |
+| `OpenAPISpecHandler` | `options_openapi.go` | 52 | Separate from EventCatalogHandler |
+| `Broadcaster` | `sse_broadcaster.go` | 24 | Simple fan-out (no filter, no dedup, no metrics) |
+| `JournalSSEStore` | `event_store_sse.go` | 32 | SSE-framed replay (not JSON/NDJSON) |
+| Root `go.mod` cqrs-lite deps | `go.mod` | — | event, command, query, id — **not catalog, not transport/http** |
+| `catalog/v4` usage | `integration_test/`, `examples/catalog-demo/` | — | Proven but not exposed as first-class |
+| `transport/http/v4` usage | nowhere | — | **Zero imports anywhere in the repo** |
+| `StreamingJournal` usage | nowhere | — | **Zero imports anywhere** (uses slice-materializing `SeekableJournal`) |
