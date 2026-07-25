@@ -182,11 +182,11 @@ Open-source documentation site generator for event-driven/AsyncAPI architectures
 
 ### 3.7 The 3 Layers in Real Data-Mesh Implementations
 
-| Layer | What | Examples |
-|-------|------|----------|
-| **(a) Envelope / descriptor** | A data-product or contract file the owning domain authors and versions in git | DPDS descriptor, Bitol YAML, AsyncAPI doc |
-| **(b) Discovery / registry** | Where consumers find contracts | EventCatalog, Schema Registry, Backstage, DataHub |
-| **(c) Transport** | The actual wire | Kafka topics (+ Schema Registry + Avro/Protobuf + CloudEvents), Pulsar, NATS JetStream, webhook, SSE, HTTP |
+| Layer                         | What                                                                          | Examples                                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **(a) Envelope / descriptor** | A data-product or contract file the owning domain authors and versions in git | DPDS descriptor, Bitol YAML, AsyncAPI doc                                                                  |
+| **(b) Discovery / registry**  | Where consumers find contracts                                                | EventCatalog, Schema Registry, Backstage, DataHub                                                          |
+| **(c) Transport**             | The actual wire                                                               | Kafka topics (+ Schema Registry + Avro/Protobuf + CloudEvents), Pulsar, NATS JetStream, webhook, SSE, HTTP |
 
 The descriptor's `servers[].type` enumerates the transport; the message on the wire is the CloudEvents/AsyncAPI message; the contract and registry keep producers and consumers aligned without coupling.
 
@@ -196,11 +196,11 @@ The descriptor's `servers[].type` enumerates the transport; the message on the w
 
 Cross-referencing the existing primitives (§2) against the industry 3-layer model (§3.7):
 
-| Gap | What's missing | What exists (partially) |
-|-----|----------------|------------------------|
-| **Gap 1: Machine transport** | `GET /events/stream?after=<id>` → JSON/NDJSON of envelopes for service consumers | `SeekableJournal.ReadFrom` cursor + `JournalSSEStore.EventsAfter` replay logic exist, but framed for browsers (SSE wire format) |
-| **Gap 2: Event envelope** | CloudEvents-style `source`/`type`/`dataschema`/`subject` on every message | Events carry `event.Type` and payload, but no vendor-neutral envelope. `dashboardui/sse.go` payload is ad-hoc |
-| **Gap 3: Data-product descriptor** | One document with owner/version/SLO/transport binding that composes EventCatalog + OpenAPI + stream URL | EventCatalog and OpenAPI are served at separate URLs with no binding |
+| Gap                                | What's missing                                                                                          | What exists (partially)                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Gap 1: Machine transport**       | `GET /events/stream?after=<id>` → JSON/NDJSON of envelopes for service consumers                        | `SeekableJournal.ReadFrom` cursor + `JournalSSEStore.EventsAfter` replay logic exist, but framed for browsers (SSE wire format) |
+| **Gap 2: Event envelope**          | CloudEvents-style `source`/`type`/`dataschema`/`subject` on every message                               | Events carry `event.Type` and payload, but no vendor-neutral envelope. `dashboardui/sse.go` payload is ad-hoc                   |
+| **Gap 3: Data-product descriptor** | One document with owner/version/SLO/transport binding that composes EventCatalog + OpenAPI + stream URL | EventCatalog and OpenAPI are served at separate URLs with no binding                                                            |
 
 The federation seam (`watermill.WithBackend`) is present but undocumented and single-topic — **not** the first thing to fix.
 
@@ -208,13 +208,13 @@ The federation seam (`watermill.WithBackend`) is present but undocumented and si
 
 ## 5. Five Implementation Options
 
-| # | Option | Scope | New code | Standards alignment | Solves |
-|---|--------|-------|----------|---------------------|--------|
-| **1** | **DataProduct envelope only** | Root module | ~1 file | DPDS-lite | Gap 3 (discovery) |
-| **2** | **CloudEvents-framed `EventStreamHandler`** | Root module | ~2 files | CloudEvents 1.0 | Gap 1 + Gap 2 (transport + envelope) |
-| **3** | **`asyncapi/` contract package** | New sub-package | ~`openapi/`-sized | AsyncAPI 3.0 | Gaps 2+3 (rich contract with transport bindings) |
-| **4** | **`DataProductRegistry` federation** | Root module | ~2 files | DPDS registry | Mesh-wide discovery (layer b) |
-| **5** | **Watermill `TopicRouter` + backend docs** | Docs + small helper | ~1 file + example | Kafka/NATS via Watermill | Production-scale push transport (layer c) |
+| #     | Option                                      | Scope               | New code          | Standards alignment      | Solves                                           |
+| ----- | ------------------------------------------- | ------------------- | ----------------- | ------------------------ | ------------------------------------------------ |
+| **1** | **DataProduct envelope only**               | Root module         | ~1 file           | DPDS-lite                | Gap 3 (discovery)                                |
+| **2** | **CloudEvents-framed `EventStreamHandler`** | Root module         | ~2 files          | CloudEvents 1.0          | Gap 1 + Gap 2 (transport + envelope)             |
+| **3** | **`asyncapi/` contract package**            | New sub-package     | ~`openapi/`-sized | AsyncAPI 3.0             | Gaps 2+3 (rich contract with transport bindings) |
+| **4** | **`DataProductRegistry` federation**        | Root module         | ~2 files          | DPDS registry            | Mesh-wide discovery (layer b)                    |
+| **5** | **Watermill `TopicRouter` + backend docs**  | Docs + small helper | ~1 file + example | Kafka/NATS via Watermill | Production-scale push transport (layer c)        |
 
 ### Option 1 — DataProduct envelope only
 
@@ -294,7 +294,7 @@ spec := asyncapi.New("Identity Events", "1.0.0").
     )
 ```
 
-`EventCatalog` becomes a thin facade that can *export* to AsyncAPI via `EventCatalog.AsyncAPI()`.
+`EventCatalog` becomes a thin facade that can _export_ to AsyncAPI via `EventCatalog.AsyncAPI()`.
 
 **Pros:** AsyncAPI is the OpenAPI-for-events. One document describes both schema and transport (via `bindings.kafka`/`bindings.http`/`bindings.nats`). Tooling generates Go types (modelina), renders eventcatalog.dev pages. Standards-correct.
 **Cons:** Bigger investment. AsyncAPI 3.0 has more surface area than OpenAPI 3.1 (channels, operations, messages, bindings). Best deferred until Options 1+2 prove demand.
@@ -368,21 +368,21 @@ Combined with `WithBackend(kafkaPublisher, kafkaSubscriber, closer)`, this gives
 
 #### Why Options 4 and 5 are consumer composition, not library code
 
-1. **Option 4 (federation registry):** The library should *enable* discovery (via the descriptor in Option 1) but not *be* a discovery platform. Consumers compose Backstage/DataHub/EventCatalog.
-2. **Option 5 (Kafka backend):** The library should *document* the existing `WithBackend` seam and provide a `TopicRouter` helper, but not enforce Kafka/NATS. Consumers bring Watermill plugins.
+1. **Option 4 (federation registry):** The library should _enable_ discovery (via the descriptor in Option 1) but not _be_ a discovery platform. Consumers compose Backstage/DataHub/EventCatalog.
+2. **Option 5 (Kafka backend):** The library should _document_ the existing `WithBackend` seam and provide a `TopicRouter` helper, but not enforce Kafka/NATS. Consumers bring Watermill plugins.
 3. **The "never enforce defaults" principle** (AGENTS.md) means the library provides building blocks; the consumer's infrastructure choices stay theirs.
 
 ### Decision matrix
 
-| Criterion | Opt 1 | Opt 2 | Opt 3 | Opt 4 | Opt 5 |
-|-----------|-------|-------|-------|-------|-------|
-| Closes a real gap | Partial (discovery) | **Yes (transport+envelope)** | Yes (contract) | Yes (federation) | Yes (push transport) |
-| New code size | ~120 LOC | ~150 LOC | ~400 LOC | ~200 LOC | ~80 LOC |
-| New dependencies | None | None | None | None | None (consumer brings Watermill plugins) |
-| Standards alignment | DPDS-lite | **CloudEvents 1.0** | AsyncAPI 3.0 | DPDS registry | Kafka/NATS via Watermill |
-| Reuses existing code | EventCatalog + OpenAPI | SeekableJournal + JournalSSEStore replay | EventCatalog (as export source) | Option 1 descriptors | watermill.WithBackend |
-| Library principle fit | Strong | **Strong** | Strong | Medium (platform-flavored) | Strong (docs + helper) |
-| Immediate utility | Discovery only | **Machine transport** | Rich contract docs | Mesh discovery | Push at scale |
+| Criterion             | Opt 1                  | Opt 2                                    | Opt 3                           | Opt 4                      | Opt 5                                    |
+| --------------------- | ---------------------- | ---------------------------------------- | ------------------------------- | -------------------------- | ---------------------------------------- |
+| Closes a real gap     | Partial (discovery)    | **Yes (transport+envelope)**             | Yes (contract)                  | Yes (federation)           | Yes (push transport)                     |
+| New code size         | ~120 LOC               | ~150 LOC                                 | ~400 LOC                        | ~200 LOC                   | ~80 LOC                                  |
+| New dependencies      | None                   | None                                     | None                            | None                       | None (consumer brings Watermill plugins) |
+| Standards alignment   | DPDS-lite              | **CloudEvents 1.0**                      | AsyncAPI 3.0                    | DPDS registry              | Kafka/NATS via Watermill                 |
+| Reuses existing code  | EventCatalog + OpenAPI | SeekableJournal + JournalSSEStore replay | EventCatalog (as export source) | Option 1 descriptors       | watermill.WithBackend                    |
+| Library principle fit | Strong                 | **Strong**                               | Strong                          | Medium (platform-flavored) | Strong (docs + helper)                   |
+| Immediate utility     | Discovery only         | **Machine transport**                    | Rich contract docs              | Mesh discovery             | Push at scale                            |
 
 ---
 
@@ -391,6 +391,7 @@ Combined with `WithBackend(kafkaPublisher, kafkaSubscriber, closer)`, this gives
 ### Phase 1 (now): `EventStreamHandler` + `CloudEvent` envelope
 
 **Deliverables:**
+
 - `cloudevent.go` — `CloudEvent` struct (7 required + optional fields, CloudEvents 1.0 compliant).
 - `event_stream_handler.go` — `EventStreamHandler(journal, opts...)` serving `GET /events/stream?after=<id>&limit=N`.
 - Options: `WithStreamSource("/identity")`, `WithStreamLimit(1000)`, `WithStreamFilter(fn)`.
@@ -399,6 +400,7 @@ Combined with `WithBackend(kafkaPublisher, kafkaSubscriber, closer)`, this gives
 - Tests: unit tests for envelope, handler tests for cursor/replay/filter, example in `examples/`.
 
 **Acceptance criteria:**
+
 - `curl 'https://api.x.com/events/stream'` returns `[]CloudEvent` JSON.
 - `curl 'https://api.x.com/events/stream?after=<id>'` returns events after the cursor.
 - Events are valid CloudEvents 1.0 (validated against the spec).
@@ -407,23 +409,27 @@ Combined with `WithBackend(kafkaPublisher, kafkaSubscriber, closer)`, this gives
 ### Phase 2 (next): `DataProduct` + `DataProductHandler`
 
 **Deliverables:**
+
 - `data_product.go` — `DataProduct` struct with `Owner`, `Version`, `OutputPorts`, `InputPorts`, `SLO`.
 - `data_product_handler.go` — `DataProductHandler(dp)` reusing `serveImmutableJSON`.
 - Example showing composition of EventCatalog + OpenAPI + EventStreamHandler URL.
 - Guide: `docs/guides/data-mesh-interchange.md`.
 
 **Acceptance criteria:**
+
 - `curl /.well-known/data-product` returns one JSON document binding owner/version/SLO/ports.
 - The descriptor references the EventCatalog, OpenAPI spec, and EventStreamHandler URL.
 
 ### Phase 3 (when justified): `EventCatalog.AsyncAPI()` exporter
 
 **Deliverables:**
+
 - `asyncapi.go` — `EventCatalog.AsyncAPI()` method emitting an AsyncAPI 3.0 document from registered metadata.
 - Optionally a full `asyncapi/` sub-package if demand warrants.
 - Integration with the `DataProduct` descriptor (output port can reference an AsyncAPI doc instead of / in addition to the EventCatalog).
 
 **Acceptance criteria:**
+
 - `EventCatalog.AsyncAPI()` produces a valid AsyncAPI 3.0 document.
 - The document can be validated by the AsyncAPI parser.
 - The document can be ingested by eventcatalog.dev.
@@ -431,6 +437,7 @@ Combined with `WithBackend(kafkaPublisher, kafkaSubscriber, closer)`, this gives
 ### Documentation (cross-cutting): Consumer patterns for Options 4 and 5
 
 **Deliverables:**
+
 - `docs/guides/data-mesh-interchange.md` — covers the 3-layer model, how cqrs-htmx maps to it, and consumer patterns for federation (Option 4) and Kafka/NATS backends (Option 5).
 - Example: `examples/data-mesh/` showing a two-service interchange using EventStreamHandler + DataProduct.
 
@@ -456,119 +463,119 @@ All file:line references verified against the source on 2026-07-25.
 
 ### Root module (`github.com/larsartmann/cqrs-htmx/v4`)
 
-| Primitive | File | Line | Signature / Type |
-|-----------|------|------|------------------|
-| `PayloadField` | `event_catalog.go` | 12 | `struct { Name, Type string; Required bool }` |
-| `EventMetadata` | `event_catalog.go` | 21 | `struct { Type, Aggregate string; SchemaVersion int; Description string; PayloadFields []PayloadField }` |
-| `EventCatalog` | `event_catalog.go` | 36 | `struct { events []EventMetadata }` — Published Language registry |
-| `NewEventCatalog` | `event_catalog.go` | 41 | `func NewEventCatalog() *EventCatalog` |
-| `EventCatalog.Register` | `event_catalog.go` | 48 | `func (c *EventCatalog) Register(meta EventMetadata)` |
-| `EventCatalog.Events` | `event_catalog.go` | 62 | `func (c *EventCatalog) Events() []EventMetadata` |
-| `EventCatalog.JSON` | `event_catalog.go` | 71 | `func (c *EventCatalog) JSON() ([]byte, error)` |
-| `EventCatalogHandler` | `event_catalog_handler.go` | 22 | `func EventCatalogHandler(catalog *EventCatalog) (http.HandlerFunc, error)` |
-| `serveImmutableJSON` | `event_catalog_handler.go` | 47 | `func serveImmutableJSON(w, r, etag string, data []byte)` — shared helper |
-| `hashTag` | `options_openapi.go` | 86 | `func hashTag(data []byte) string` — FNV-1a 64-bit → hex ETag |
-| `WithOpenAPI` | `options_openapi.go` | 32 | `func WithOpenAPI(op openapi.Operation) HandlerOption` |
-| `OpenAPISpecHandler` | `options_openapi.go` | 52 | `func OpenAPISpecHandler(spec *openapi.Spec) (http.HandlerFunc, error)` |
-| `JournalSSEStore` | `event_store_sse.go` | 32 | `struct { journal event.Journal; seekable event.SeekableJournal; mapper EventToSSEMapper; maxReplay int }` |
-| `NewJournalSSEStore` | `event_store_sse.go` | 63 | `func NewJournalSSEStore(journal event.Journal, mapper EventToSSEMapper, opts ...JournalSSEStoreOption) *JournalSSEStore` |
-| `JournalSSEStore.EventsAfter` | `event_store_sse.go` | 101 | `func (s *JournalSSEStore) EventsAfter(lastID SSEEventID) ([]SSEEvent, error)` |
-| `WithMaxReplay` | `event_store_sse.go` | 45 | `func WithMaxReplay(n int) JournalSSEStoreOption` |
-| `SSEEventStore` interface | `sse_store.go` | 12 | `interface { EventsAfter(lastID SSEEventID) ([]SSEEvent, error) }` |
-| `ReplayEvents` | `sse_store.go` | 25 | `func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID SSEEventID) (int, error)` |
-| `LastEventIDFromRequest` | `sse_event.go` | 64 | `func LastEventIDFromRequest(r *http.Request) SSEEventID` |
-| `Broadcaster` | `sse_broadcaster.go` | 24 | `struct { *sse.Broadcaster[sse.Event] }` |
-| `Broadcaster.ServeSSE` | `sse_broadcaster.go` | 90 | `func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request)` |
-| `WSBroadcaster` | `ws_broadcaster.go` | 31 | `struct { *sse.Broadcaster[string] }` |
-| `SSEStream` | `sse_event.go` | 56 | `type SSEStream = sse.Stream` (type alias) |
-| `ProjectionStatusProvider` | `projection_status_handler.go` | 28 | `interface { ProjectionStatuses() []ProjectionStatusEntry }` |
-| `ProjectionStatusHandler` | `projection_status_handler.go` | — | `func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc` |
+| Primitive                     | File                           | Line | Signature / Type                                                                                                          |
+| ----------------------------- | ------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------- |
+| `PayloadField`                | `event_catalog.go`             | 12   | `struct { Name, Type string; Required bool }`                                                                             |
+| `EventMetadata`               | `event_catalog.go`             | 21   | `struct { Type, Aggregate string; SchemaVersion int; Description string; PayloadFields []PayloadField }`                  |
+| `EventCatalog`                | `event_catalog.go`             | 36   | `struct { events []EventMetadata }` — Published Language registry                                                         |
+| `NewEventCatalog`             | `event_catalog.go`             | 41   | `func NewEventCatalog() *EventCatalog`                                                                                    |
+| `EventCatalog.Register`       | `event_catalog.go`             | 48   | `func (c *EventCatalog) Register(meta EventMetadata)`                                                                     |
+| `EventCatalog.Events`         | `event_catalog.go`             | 62   | `func (c *EventCatalog) Events() []EventMetadata`                                                                         |
+| `EventCatalog.JSON`           | `event_catalog.go`             | 71   | `func (c *EventCatalog) JSON() ([]byte, error)`                                                                           |
+| `EventCatalogHandler`         | `event_catalog_handler.go`     | 22   | `func EventCatalogHandler(catalog *EventCatalog) (http.HandlerFunc, error)`                                               |
+| `serveImmutableJSON`          | `event_catalog_handler.go`     | 47   | `func serveImmutableJSON(w, r, etag string, data []byte)` — shared helper                                                 |
+| `hashTag`                     | `options_openapi.go`           | 86   | `func hashTag(data []byte) string` — FNV-1a 64-bit → hex ETag                                                             |
+| `WithOpenAPI`                 | `options_openapi.go`           | 32   | `func WithOpenAPI(op openapi.Operation) HandlerOption`                                                                    |
+| `OpenAPISpecHandler`          | `options_openapi.go`           | 52   | `func OpenAPISpecHandler(spec *openapi.Spec) (http.HandlerFunc, error)`                                                   |
+| `JournalSSEStore`             | `event_store_sse.go`           | 32   | `struct { journal event.Journal; seekable event.SeekableJournal; mapper EventToSSEMapper; maxReplay int }`                |
+| `NewJournalSSEStore`          | `event_store_sse.go`           | 63   | `func NewJournalSSEStore(journal event.Journal, mapper EventToSSEMapper, opts ...JournalSSEStoreOption) *JournalSSEStore` |
+| `JournalSSEStore.EventsAfter` | `event_store_sse.go`           | 101  | `func (s *JournalSSEStore) EventsAfter(lastID SSEEventID) ([]SSEEvent, error)`                                            |
+| `WithMaxReplay`               | `event_store_sse.go`           | 45   | `func WithMaxReplay(n int) JournalSSEStoreOption`                                                                         |
+| `SSEEventStore` interface     | `sse_store.go`                 | 12   | `interface { EventsAfter(lastID SSEEventID) ([]SSEEvent, error) }`                                                        |
+| `ReplayEvents`                | `sse_store.go`                 | 25   | `func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID SSEEventID) (int, error)`                          |
+| `LastEventIDFromRequest`      | `sse_event.go`                 | 64   | `func LastEventIDFromRequest(r *http.Request) SSEEventID`                                                                 |
+| `Broadcaster`                 | `sse_broadcaster.go`           | 24   | `struct { *sse.Broadcaster[sse.Event] }`                                                                                  |
+| `Broadcaster.ServeSSE`        | `sse_broadcaster.go`           | 90   | `func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request)`                                                  |
+| `WSBroadcaster`               | `ws_broadcaster.go`            | 31   | `struct { *sse.Broadcaster[string] }`                                                                                     |
+| `SSEStream`                   | `sse_event.go`                 | 56   | `type SSEStream = sse.Stream` (type alias)                                                                                |
+| `ProjectionStatusProvider`    | `projection_status_handler.go` | 28   | `interface { ProjectionStatuses() []ProjectionStatusEntry }`                                                              |
+| `ProjectionStatusHandler`     | `projection_status_handler.go` | —    | `func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc`                                        |
 
 ### `openapi/` sub-package
 
-| Primitive | File | Line |
-|-----------|------|------|
-| `Spec` | `openapi/types.go` | 20 |
-| `Info` | `openapi/types.go` | 28 |
-| `Components` | `openapi/types.go` | 35 |
-| `PathItem` | `openapi/types.go` | 40 |
-| `Operation` | `openapi/types.go` | 54 |
-| `Parameter` | `openapi/types.go` | 66 |
-| `RequestBody` | `openapi/types.go` | 75 |
-| `Response` | `openapi/types.go` | 82 |
-| `MediaType` | `openapi/types.go` | 88 |
-| `New` | `openapi/builder.go` | 5 |
-| `Schema` | `openapi/schema.go` | 10 |
-| `Spec.JSON` | `openapi/marshal.go` | 11 |
+| Primitive     | File                 | Line |
+| ------------- | -------------------- | ---- |
+| `Spec`        | `openapi/types.go`   | 20   |
+| `Info`        | `openapi/types.go`   | 28   |
+| `Components`  | `openapi/types.go`   | 35   |
+| `PathItem`    | `openapi/types.go`   | 40   |
+| `Operation`   | `openapi/types.go`   | 54   |
+| `Parameter`   | `openapi/types.go`   | 66   |
+| `RequestBody` | `openapi/types.go`   | 75   |
+| `Response`    | `openapi/types.go`   | 82   |
+| `MediaType`   | `openapi/types.go`   | 88   |
+| `New`         | `openapi/builder.go` | 5    |
+| `Schema`      | `openapi/schema.go`  | 10   |
+| `Spec.JSON`   | `openapi/marshal.go` | 11   |
 
 ### go-cqrs-lite (`event/v4`)
 
-| Primitive | File (in module cache) | Line | Signature |
-|-----------|------------------------|------|-----------|
-| `EventSink` | `store.go` | 20 | `interface { Save(ctx, ref, events []Event, expectedVersion Version) error; AppendBatch(ctx, ref, events []Event) error }` |
-| `EventSource` | `store.go` | 60 | `interface { Load(ctx, ref) ([]Event, error); LoadFromVersion(ctx, ref, version) ([]Event, error); ... }` |
-| `Store` | `store.go` | 93 | `interface { EventSink; EventSource }` |
-| `Journal` | `store.go` | 102 | `interface { ReadAll(ctx) ([]Event, error) }` |
-| `SeekableJournal` | `store.go` | 113 | `interface { Journal; ReadFrom(ctx, afterEventID id.EventID, limit int) ([]Event, error) }` |
-| `EventIterator` | `streaming_source.go` | 28 | `interface { Next() (Event, error); Close() error }` |
-| `StreamingSource` | `streaming_source.go` | 43 | `interface { LoadStream(ctx, ref) (EventIterator, error); LoadStreamFromVersion(ctx, ref, version) (EventIterator, error) }` |
-| `StreamingJournal` | `streaming_source.go` | 60 | `interface { ReadStream(ctx) (EventIterator, error); ReadStreamFrom(ctx, afterEventID, limit) (EventIterator, error) }` |
-| `Handler` | `bus.go` | 8 | `type Handler func(ctx context.Context, event Event) error` |
-| `Publisher` | `bus.go` | 12 | `interface { Publish(ctx, events ...Event) error }` |
-| `Subscriber` | `bus.go` | 26 | `interface { Subscribe(eventType Type, handler Handler) error; SubscribeAll(handler Handler) error }` |
-| `Bus` | `bus.go` | 40 | `interface { Publisher; Subscriber; Use(middleware ...Middleware) error; UsePublish(middleware ...PublishMiddleware) error }` |
-| `Checkpoint` | `checkpoint.go` | 11 | `struct { EventID id.EventID; ProcessedAt time.Time }` |
-| `CheckpointStore` | `checkpoint.go` | 42 | `interface { CheckpointSink; CheckpointSource }` |
+| Primitive          | File (in module cache) | Line | Signature                                                                                                                     |
+| ------------------ | ---------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `EventSink`        | `store.go`             | 20   | `interface { Save(ctx, ref, events []Event, expectedVersion Version) error; AppendBatch(ctx, ref, events []Event) error }`    |
+| `EventSource`      | `store.go`             | 60   | `interface { Load(ctx, ref) ([]Event, error); LoadFromVersion(ctx, ref, version) ([]Event, error); ... }`                     |
+| `Store`            | `store.go`             | 93   | `interface { EventSink; EventSource }`                                                                                        |
+| `Journal`          | `store.go`             | 102  | `interface { ReadAll(ctx) ([]Event, error) }`                                                                                 |
+| `SeekableJournal`  | `store.go`             | 113  | `interface { Journal; ReadFrom(ctx, afterEventID id.EventID, limit int) ([]Event, error) }`                                   |
+| `EventIterator`    | `streaming_source.go`  | 28   | `interface { Next() (Event, error); Close() error }`                                                                          |
+| `StreamingSource`  | `streaming_source.go`  | 43   | `interface { LoadStream(ctx, ref) (EventIterator, error); LoadStreamFromVersion(ctx, ref, version) (EventIterator, error) }`  |
+| `StreamingJournal` | `streaming_source.go`  | 60   | `interface { ReadStream(ctx) (EventIterator, error); ReadStreamFrom(ctx, afterEventID, limit) (EventIterator, error) }`       |
+| `Handler`          | `bus.go`               | 8    | `type Handler func(ctx context.Context, event Event) error`                                                                   |
+| `Publisher`        | `bus.go`               | 12   | `interface { Publish(ctx, events ...Event) error }`                                                                           |
+| `Subscriber`       | `bus.go`               | 26   | `interface { Subscribe(eventType Type, handler Handler) error; SubscribeAll(handler Handler) error }`                         |
+| `Bus`              | `bus.go`               | 40   | `interface { Publisher; Subscriber; Use(middleware ...Middleware) error; UsePublish(middleware ...PublishMiddleware) error }` |
+| `Checkpoint`       | `checkpoint.go`        | 11   | `struct { EventID id.EventID; ProcessedAt time.Time }`                                                                        |
+| `CheckpointStore`  | `checkpoint.go`        | 42   | `interface { CheckpointSink; CheckpointSource }`                                                                              |
 
 ### go-cqrs-lite (`watermill/v4`)
 
-| Primitive | File (in module cache) | Line | Signature |
-|-----------|------------------------|------|-----------|
-| `DefaultEventBusTopic` | `event_bus.go` | 54 | `const DefaultEventBusTopic = "cqrs.events"` |
-| `WithEventBusTopic` | `event_bus_options.go` | 19 | `func WithEventBusTopic(topic string)` |
-| `WithBackend` | `event_bus_options.go` | 26 | `func WithBackend(pub message.Publisher, sub message.Subscriber, closer io.Closer)` |
-| `EventBus.MessageSubscriber` | `event_bus.go` | 52 | `func (b *EventBus) MessageSubscriber() message.Subscriber` |
+| Primitive                    | File (in module cache) | Line | Signature                                                                           |
+| ---------------------------- | ---------------------- | ---- | ----------------------------------------------------------------------------------- |
+| `DefaultEventBusTopic`       | `event_bus.go`         | 54   | `const DefaultEventBusTopic = "cqrs.events"`                                        |
+| `WithEventBusTopic`          | `event_bus_options.go` | 19   | `func WithEventBusTopic(topic string)`                                              |
+| `WithBackend`                | `event_bus_options.go` | 26   | `func WithBackend(pub message.Publisher, sub message.Subscriber, closer io.Closer)` |
+| `EventBus.MessageSubscriber` | `event_bus.go`         | 52   | `func (b *EventBus) MessageSubscriber() message.Subscriber`                         |
 
 ### go-cqrs-lite (`projection/v4`)
 
-| Primitive | File (in module cache) | Line | Signature |
-|-----------|------------------------|------|-----------|
-| `Projection` | `projection.go` | 23 | `interface { Name() string; Handle(ctx, evt Event) error; EventTypes() []event.Type }` |
+| Primitive    | File (in module cache) | Line | Signature                                                                              |
+| ------------ | ---------------------- | ---- | -------------------------------------------------------------------------------------- |
+| `Projection` | `projection.go`        | 23   | `interface { Name() string; Handle(ctx, evt Event) error; EventTypes() []event.Type }` |
 
 ### `identity-model/v4`
 
-| Primitive | File | Line |
-|-----------|------|------|
-| `CurrentSchemaVersion = 2` | `constants.go` | 64 |
-| 21 event type constants | `constants.go` | 14–37 |
-| `Upcaster` | `upcaster.go` | 14 |
-| `UpcasterRegistry` | `upcaster.go` | 19 |
-| `UpcasterRegistry.Register` | `upcaster.go` | 35 |
-| `UpcasterRegistry.Upcast` | `upcaster.go` | 52 |
-| `MarshalPayload` | `events.go` | 137 |
+| Primitive                   | File           | Line  |
+| --------------------------- | -------------- | ----- |
+| `CurrentSchemaVersion = 2`  | `constants.go` | 64    |
+| 21 event type constants     | `constants.go` | 14–37 |
+| `Upcaster`                  | `upcaster.go`  | 14    |
+| `UpcasterRegistry`          | `upcaster.go`  | 19    |
+| `UpcasterRegistry.Register` | `upcaster.go`  | 35    |
+| `UpcasterRegistry.Upcast`   | `upcaster.go`  | 52    |
+| `MarshalPayload`            | `events.go`    | 137   |
 
 ### `usermgmt/v4`
 
-| Primitive | File | Line |
-|-----------|------|------|
-| `DefaultEventCatalog()` | `es_event_catalog.go` | 13 |
-| `Service.EventCatalog()` | `es_projection_health.go` | 76 |
-| `EventSourcedSetup.EventCatalog()` | `es_projection_health.go` | 17 |
-| `Service.RebuildProjection` | `es_projection_setup.go` | — |
-| `UserReadModel.Name()` | `es_readmodel.go` | 54 |
+| Primitive                          | File                      | Line |
+| ---------------------------------- | ------------------------- | ---- |
+| `DefaultEventCatalog()`            | `es_event_catalog.go`     | 13   |
+| `Service.EventCatalog()`           | `es_projection_health.go` | 76   |
+| `EventSourcedSetup.EventCatalog()` | `es_projection_health.go` | 17   |
+| `Service.RebuildProjection`        | `es_projection_setup.go`  | —    |
+| `UserReadModel.Name()`             | `es_readmodel.go`         | 54   |
 
 ---
 
 ## Appendix B: Standards Quick Reference
 
-| Standard | Version | Role | URL |
-|----------|---------|------|-----|
-| **CloudEvents** | 1.0 | Per-message wire envelope (CNCF graduated) | https://cloudevents.io |
-| **AsyncAPI** | 3.0.x | Event-driven API contract (channels/messages/bindings) | https://www.asyncapi.com |
-| **OpenAPI** | 3.1 | HTTP request/response API contract | https://www.openapis.org |
-| **DPDS** | 1.x | Data product descriptor (envelope + ports) | https://dpds.opendatamesh.org/ |
-| **Bitol Data Contracts** | 1.1.1 | Pragmatic data contract (servers + schema + SLAs + terms) | https://github.com/bitol-io/data-contracts |
-| **EventCatalog** | — | Discovery/docs site generator for event-driven architectures | https://www.eventcatalog.dev/ |
-| **Confluent Schema Registry** | — | Subject/version schema registry for Kafka | https://docs.confluent.io/platform/current/schema-registry/index.html |
-| **Apicurio Registry** | — | Open-source schema registry (Confluent-compatible) | https://www.apicur.io/registry/ |
-| **JSON Schema** | 2020-12 | Schema language for JSON payloads | https://json-schema.org/ |
+| Standard                      | Version | Role                                                         | URL                                                                   |
+| ----------------------------- | ------- | ------------------------------------------------------------ | --------------------------------------------------------------------- |
+| **CloudEvents**               | 1.0     | Per-message wire envelope (CNCF graduated)                   | https://cloudevents.io                                                |
+| **AsyncAPI**                  | 3.0.x   | Event-driven API contract (channels/messages/bindings)       | https://www.asyncapi.com                                              |
+| **OpenAPI**                   | 3.1     | HTTP request/response API contract                           | https://www.openapis.org                                              |
+| **DPDS**                      | 1.x     | Data product descriptor (envelope + ports)                   | https://dpds.opendatamesh.org/                                        |
+| **Bitol Data Contracts**      | 1.1.1   | Pragmatic data contract (servers + schema + SLAs + terms)    | https://github.com/bitol-io/data-contracts                            |
+| **EventCatalog**              | —       | Discovery/docs site generator for event-driven architectures | https://www.eventcatalog.dev/                                         |
+| **Confluent Schema Registry** | —       | Subject/version schema registry for Kafka                    | https://docs.confluent.io/platform/current/schema-registry/index.html |
+| **Apicurio Registry**         | —       | Open-source schema registry (Confluent-compatible)           | https://www.apicur.io/registry/                                       |
+| **JSON Schema**               | 2020-12 | Schema language for JSON payloads                            | https://json-schema.org/                                              |
