@@ -145,3 +145,11 @@
 ---
 
 _End of report. Awaiting instructions._
+
+---
+
+## Resolution (2026-07-26)
+
+- The 12 extractions in §a **shipped** — they are the bulk of CHANGELOG `[v4.6.0]` `### Changed` ("Dedup sweep — harmful clones driven to zero"). `go.work` was bumped to `go 1.26.5` (the §e.1 drift). `cqrshtmx.ToastDetail` became a shared root type.
+- **Follow-ups routed:** the `go.work`-vs-`go.mod` directive drift (§e.1) and the request for a CI gate to prevent it are now TODO_LIST **P2 Quality Gates** ("CI gate: `go.work` go-directive matches root `go.mod`"). The SQLite/SQL readmodel constructor consolidation (§e/§f) remains a ROADMAP-class idea, not pursued.
+- **Caveat preserved:** the "zero harmful clones" headline was never independently re-verified — `art-dupl` was not re-run in a later session, and the 2026-07-26 20:40 self-critique (§b.3) explicitly flags the count as an unverified report self-assessment. Treat the metric as the sweep's own claim, not an audited number.

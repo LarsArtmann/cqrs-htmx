@@ -208,3 +208,12 @@ Ranked by impact.
 | Time to complete            | ~30 minutes                                                          |
 | Mistakes caught             | 1 major (Stream rename), 2 minor (stale report, lost test scenarios) |
 | Mistakes shipped            | 0 blocking, 2 cosmetic (garbage commit message, stale first report)  |
+
+---
+
+## Resolution (2026-07-26)
+
+- **v4.6.0 still NOT tagged** — the §F.1–F.5 operator steps (batch-release, tag, push, post-tag verify) remain pending. The §F.6 design flaw in `release-checklist.sh` (gates that structurally cannot pass pre-tag) is now tracked as TODO_LIST **P2 Quality Gates**.
+- **Lost test scenarios** (§D.2): the deleted `usermgmt/sqlite_setup_test.go` held unique `RestartSurvival` and `RegisterUserThroughStack` scenarios. These were `//go:build ignore` and non-compiling (no active coverage lost), but the scenario knowledge is gone from the repo — not yet re-captured as a TODO.
+- **The Stream-rename deviation is now self-documenting:** the planning doc (`docs/planning/2026-07-26_21-05_*.md`) carries an inline correction + resolution table so a future reader won't act on the disproven rename.
+- **Lint triage (§F.8):** not done as a cleanup pass, but the lint state is now documented honestly — root (~160), usermgmt (~100), dashboardui (~150) all currently fail `nix run .#lint` on pre-existing style nits + `id.*AggregateID` SA1019 deprecation; the other 7 modules pass clean. The `id.NewAggregateID` → `id.NewStreamID` migration (§F.37) remains TODO_LIST **P3**.
