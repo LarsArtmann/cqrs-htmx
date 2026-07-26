@@ -1779,9 +1779,14 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
       })();
     </script>
 
-    <div style="margin:2rem auto 3rem;max-width:900px;padding:1.25rem 1.5rem;border:1px solid rgba(128,128,128,0.5);border-radius:10px;color:inherit">
-      <p style="margin:0 0 .35rem;font-weight:700">Update 2026-07-26 &mdash; BUILT.</p>
-      <p style="margin:0">
+    <style>
+      .built-update{margin:2rem auto 3rem;max-width:900px;padding:1.25rem 1.5rem;border:1px solid rgba(128,128,128,0.5);border-radius:10px;color:inherit}
+      .built-update__title{margin:0 0 .35rem;font-weight:700}
+      .built-update__body{margin:0}
+    </style>
+    <div class="built-update">
+      <p class="built-update__title">Update 2026-07-26 &mdash; BUILT.</p>
+      <p class="built-update__body">
         This design study shipped as the <code>dashboardui/v4</code> module in v4.5.0
         (<code>dashboardui/v4.0.0</code> tag). Overview, event stream browser, aggregate
         browser, projection dashboard, DLQ, command/query audit, snapshot inspector,
