@@ -80,18 +80,21 @@ func newSQLiteSetup(
 	}
 
 	return &SQLiteEventSourcedSetup{
-		UserRepository:       repos.User,
-		MembershipRepository: repos.Membership,
-		TenantRepository:     repos.Tenant,
-		BotRepository:        repos.Bot,
-		ReadModel:            rm,
-		MembershipReadModel:  memRm,
-		TenantReadModel:      tenRm,
-		BotReadModel:         botRm,
-		Bundle:               bundle,
-		DB:                   extractDB(bundle),
-		casbinProjection:     casbinProj,
-		projectionHost:       host,
+		eventSourcedSetupCore: eventSourcedSetupCore{
+			backendName: "sqlite",
+			UserRepository:       repos.User,
+			MembershipRepository: repos.Membership,
+			TenantRepository:     repos.Tenant,
+			BotRepository:        repos.Bot,
+			ReadModel:            rm,
+			MembershipReadModel:  memRm,
+			TenantReadModel:      tenRm,
+			BotReadModel:         botRm,
+			Bundle:               bundle,
+			DB:                   extractDB(bundle),
+			casbinProjection:     casbinProj,
+			projectionHost:       host,
+		},
 	}, nil
 }
 
@@ -144,50 +147,5 @@ func extractDB(bundle *stack.Bundle) *sql.DB {
 
 // SQLiteEventSourcedSetup provides SQLite-backed event-sourced infrastructure.
 type SQLiteEventSourcedSetup struct {
-	UserRepository       *decider.Repository[UserState]
-	MembershipRepository *decider.Repository[MembershipState]
-	TenantRepository     *decider.Repository[TenantState]
-	BotRepository        *decider.Repository[BotState]
-	ReadModel            projection.Projection
-	MembershipReadModel  projection.Projection
-	TenantReadModel      projection.Projection
-	BotReadModel         projection.Projection
-	Bundle               *stack.Bundle
-	DB                   *sql.DB
-	casbinProjection     *CasbinProjection
-	projectionHost       *projectionhost.Host
+	eventSourcedSetupCore
 }
-
-func (s *SQLiteEventSourcedSetup) Close() error {
-	if s.projectionHost != nil {
-		if err := s.projectionHost.Stop(); err != nil {
-			_ = errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.stop_projections", "stop projection host")
-		}
-	}
-	if s.Bundle != nil {
-		if err := s.Bundle.Close(); err != nil {
-			return errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.close", "close sqlite bundle")
-		}
-	}
-	return nil
-}
-
-func (s *SQLiteEventSourcedSetup) GracefulClose(ctx context.Context) error {
-	if s.projectionHost != nil {
-		if err := s.projectionHost.Stop(); err != nil {
-			_ = errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.stop_projections", "stop projection host")
-		}
-	}
-	if s.Bundle != nil {
-		if err := s.Bundle.GracefulClose(ctx); err != nil {
-			return errorfamily.WrapTransient(
-				err,
-				"usermgmt.sqlite_setup.graceful_close",
-				"graceful close sqlite bundle",
-			)
-		}
-	}
-	return nil
-}
-
-func (s *SQLiteEventSourcedSetup) Authz() *Authz { return s.casbinProjection.authz }
