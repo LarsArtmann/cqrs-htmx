@@ -40,8 +40,8 @@ The previous session thought the OOM was caused by scanning the templ-components
 
 ```css
 .overflow-hidden > .overflow-x-auto {
-  border: 0 !important;
-  border-radius: 0 !important;
+	border: 0 !important;
+	border-radius: 0 !important;
 }
 ```
 

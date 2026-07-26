@@ -67,7 +67,6 @@ func NewDeleteUserCmd(aggID id.StreamID, reason string) *DeleteUserCmd {
 	return &DeleteUserCmd{reasonedCommand: newReasonedCommand(CmdDeleteUser, aggID, reason)}
 }
 
-
 type AddCredentialCmd struct {
 	*command.BasicCommand
 	credential WebAuthnCredential
@@ -254,7 +253,6 @@ func NewSuspendTenantCmd(aggID id.StreamID, reason string) *SuspendTenantCmd {
 	return &SuspendTenantCmd{reasonedCommand: newReasonedCommand(CmdSuspendTenant, aggID, reason)}
 }
 
-
 type ReactivateTenantCmd struct {
 	*command.BasicCommand
 }
@@ -272,7 +270,6 @@ type DeleteTenantCmd struct {
 func NewDeleteTenantCmd(aggID id.StreamID, reason string) *DeleteTenantCmd {
 	return &DeleteTenantCmd{reasonedCommand: newReasonedCommand(CmdDeleteTenant, aggID, reason)}
 }
-
 
 // --- Bot commands ---
 
@@ -308,7 +305,6 @@ type DeleteBotCmd struct {
 func NewDeleteBotCmd(aggID id.StreamID, reason string) *DeleteBotCmd {
 	return &DeleteBotCmd{reasonedCommand: newReasonedCommand(CmdDeleteBot, aggID, reason)}
 }
-
 
 // reasonedCommand is the shared base for commands that carry a human-readable
 // reason (deletions, suspensions). Embedding it gives the command the standard
