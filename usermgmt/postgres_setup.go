@@ -78,18 +78,21 @@ func newPostgresSetup(
 	}
 
 	return &PostgresEventSourcedSetup{
-		UserRepository:       repos.User,
-		MembershipRepository: repos.Membership,
-		TenantRepository:     repos.Tenant,
-		BotRepository:        repos.Bot,
-		ReadModel:            rm,
-		MembershipReadModel:  memRm,
-		TenantReadModel:      tenRm,
-		BotReadModel:         botRm,
-		Bundle:               bundle,
-		DB:                   db,
-		casbinProjection:     casbinProj,
-		projectionHost:       host,
+		eventSourcedSetupCore: eventSourcedSetupCore{
+			backendName: "postgres",
+			UserRepository:       repos.User,
+			MembershipRepository: repos.Membership,
+			TenantRepository:     repos.Tenant,
+			BotRepository:        repos.Bot,
+			ReadModel:            rm,
+			MembershipReadModel:  memRm,
+			TenantReadModel:      tenRm,
+			BotReadModel:         botRm,
+			Bundle:               bundle,
+			DB:                   db,
+			casbinProjection:     casbinProj,
+			projectionHost:       host,
+		},
 	}, nil
 }
 
@@ -119,50 +122,5 @@ func createPostgresReadModels(db *sql.DB) (
 }
 
 type PostgresEventSourcedSetup struct {
-	UserRepository       *decider.Repository[UserState]
-	MembershipRepository *decider.Repository[MembershipState]
-	TenantRepository     *decider.Repository[TenantState]
-	BotRepository        *decider.Repository[BotState]
-	ReadModel            projection.Projection
-	MembershipReadModel  projection.Projection
-	TenantReadModel      projection.Projection
-	BotReadModel         projection.Projection
-	Bundle               *stack.Bundle
-	DB                   *sql.DB
-	casbinProjection     *CasbinProjection
-	projectionHost       *projectionhost.Host
+	eventSourcedSetupCore
 }
-
-func (s *PostgresEventSourcedSetup) Close() error {
-	if s.projectionHost != nil {
-		if err := s.projectionHost.Stop(); err != nil {
-			_ = errorfamily.WrapTransient(err, "usermgmt.postgres_setup.stop_projections", "stop projection host")
-		}
-	}
-	if s.Bundle != nil {
-		if err := s.Bundle.Close(); err != nil {
-			return errorfamily.WrapTransient(err, "usermgmt.postgres_setup.close", "close postgres bundle")
-		}
-	}
-	return nil
-}
-
-func (s *PostgresEventSourcedSetup) GracefulClose(ctx context.Context) error {
-	if s.projectionHost != nil {
-		if err := s.projectionHost.Stop(); err != nil {
-			_ = errorfamily.WrapTransient(err, "usermgmt.postgres_setup.stop_projections", "stop projection host")
-		}
-	}
-	if s.Bundle != nil {
-		if err := s.Bundle.GracefulClose(ctx); err != nil {
-			return errorfamily.WrapTransient(
-				err,
-				"usermgmt.postgres_setup.graceful_close",
-				"graceful close postgres bundle",
-			)
-		}
-	}
-	return nil
-}
-
-func (s *PostgresEventSourcedSetup) Authz() *Authz { return s.casbinProjection.authz }
