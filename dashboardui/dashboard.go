@@ -3,6 +3,7 @@ package dashboardui
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -22,6 +23,8 @@ type Dashboard struct {
 	nav         []navItem
 	broadcaster *cqrshtmx.Broadcaster
 	sseStore    cqrshtmx.SSEEventStore
+	done        chan struct{}
+	closeOnce   sync.Once
 }
 
 // New builds a dashboard from cfg, applying defaults and validating
@@ -39,6 +42,7 @@ func New(cfg Config) (*Dashboard, error) {
 		cfg:  cfg,
 		caps: caps,
 		nav:  buildNav(caps, cfg.BasePath),
+		done: make(chan struct{}),
 	}
 
 	if caps.EventBus {
@@ -113,12 +117,18 @@ func (d *Dashboard) Capabilities() Capabilities { return d.caps }
 func (d *Dashboard) Config() Config { return d.cfg }
 
 // Close releases dashboard resources. Safe to call multiple times.
-// Closes the SSE broadcaster, which disconnects all connected SSE clients.
+// Signals the event-bus handler to stop, then closes the SSE broadcaster,
+// which disconnects all connected SSE clients.
 // Call this during application shutdown.
 func (d *Dashboard) Close() {
-	if d.broadcaster != nil {
-		d.broadcaster.Close()
-	}
+	d.closeOnce.Do(func() {
+		if d.done != nil {
+			close(d.done)
+		}
+		if d.broadcaster != nil {
+			d.broadcaster.Close()
+		}
+	})
 }
 
 // errConfig constructs a configuration validation error.

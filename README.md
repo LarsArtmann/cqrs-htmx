@@ -1176,10 +1176,10 @@ cqrs-htmx/
 │   ├── authz_policies.go   # Apply, AddGroupPolicy, AddPolicy
 │   ├── authz_roles.go      # RolesForUser, ImplicitRolesForUser
 │   ├── es_constants.go     # Event-sourced aggregate + event + command type constants
-│   ├── es_events.go        # 7 event payload structs
-│   ├── es_commands.go      # 7 command structs
+│   ├── es_events.go        # 22 event payload types (re-exported from identity-model)
+│   ├── es_commands.go      # 19 command types (re-exported from identity-model)
 │   ├── es_state.go         # UserState + foldUser() pure function
-│   ├── es_decide.go        # 7 pure decide functions
+│   ├── es_decide.go        # 19 pure decide functions
 │   ├── es_dispatch.go      # RegisterCommands — wires commands to decider.Repository
 │   ├── es_setup.go         # DefaultEventSourcedSetup, UserDecider
 │   ├── es_readmodel.go     # UserReadModel projection + email index
@@ -1205,13 +1205,17 @@ cqrs-htmx/
 │   ├── totp/               # TOTP MFA sub-module (pquerna/otp)
 │   ├── webauthn/           # WebAuthn sub-module (go-webauthn)
 │   └── oauth2/             # OAuth2/OIDC sub-module (golang.org/x/oauth2 + coreos/go-oidc)
+├── identity-model/     # Pure domain types — IDs, events, commands, fold functions, Authz engine (ADR 0043)
 ├── adminui/             # Admin Dashboard UI (templ + HTMX, independent Go module)
+├── loginpage/          # Ready-made passwordless login page (templ + HTMX, independent Go module)
+├── dashboardui/        # CQRS/ES observability dashboard (HTMX + Tailwind v4, independent Go module)
 ├── integration_test/   # Cross-module integration tests (independent Go module)
 └── examples/
     ├── basic/           # Minimal cqrs-htmx consumer example
     ├── datastar-demo/   # Standalone datastar + go-cqrs-lite SSE example
     ├── catalog-demo/    # Catalog doc-server example
-    └── admin-demo/      # Runnable admin panel showcase
+    ├── admin-demo/      # Runnable admin panel showcase
+    └── dashboard-demo/  # CQRS/ES observability dashboard demo
 ```
 
 ## Optional Sub-Packages
@@ -1246,11 +1250,13 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | go-cqrs-lite v4.1.0     | CQRS command/query dispatch, pagination |
 | casbin/casbin/v3        | Authorization                           |
 | go-error-family v0.10.0 | Error classification                    |
+| go-sse v0.2.1           | SSE protocol writer, broadcaster, replay |
+| larsartmann/httputil v0.6.1 | ClientIP extraction                 |
 | justinas/nosurf         | CSRF protection                         |
-| larsartmann/httputil    | ClientIP extraction                     |
 | golang.org/x/time       | Token-bucket rate limiting              |
-| go-branded-id           | Branded types (usermgmt)                |
+| go-branded-id v0.3.2    | Branded types (usermgmt)                |
 | go-playground/form/v4   | Form decoding                           |
+| templ-components v1.2.0 | UI component library (adminui, loginpage) |
 
 **Optional sub-module dependencies** (only import the auth strategies you need):
 
