@@ -7,14 +7,14 @@
 
 ## Headline Metrics
 
-| Metric | Before | After | Delta |
-|--------|--------|-------|-------|
-| Clone groups | 33 | 26 | -7 (-21%) |
-| Total clones | 73 | 58 | -15 (-21%) |
-| Total tokens | 150 | 120 | -30 (-20%) |
-| Harmful clones | ~10 | **0** | **-100%** |
-| Modules build clean | 10/10 | 10/10 | — |
-| Modules pass `-race` | 10/10 | 10/10 | — |
+| Metric               | Before | After | Delta      |
+| -------------------- | ------ | ----- | ---------- |
+| Clone groups         | 33     | 26    | -7 (-21%)  |
+| Total clones         | 73     | 58    | -15 (-21%) |
+| Total tokens         | 150    | 120   | -30 (-20%) |
+| Harmful clones       | ~10    | **0** | **-100%**  |
+| Modules build clean  | 10/10  | 10/10 | —          |
+| Modules pass `-race` | 10/10  | 10/10 | —          |
 
 ---
 
@@ -185,19 +185,19 @@ The examples have pre-existing `go.mod` drift (64 gopls errors about missing dep
 
 ## Appendix: Files Changed This Session
 
-| File | Change | Committed? |
-|------|--------|------------|
-| `event_catalog_handler.go` | Extracted `newImmutableJSONHandler` factory | Yes (2113c7d) |
-| `options_openapi.go` | Use shared factory | Yes (2113c7d) |
-| `ws_dispatch.go` | `wsContext` delegates to `requestContextOrBackground` | Yes (2113c7d) |
-| `redirect.go` (NEW) | Exported `HTMXRedirect` + `SafeRedirectPath` | Yes (2113c7d) |
-| `openapi/builder.go` | `Description` delegates to `Desc` | Yes (36db7c2) |
-| `usermgmt/http.go` | Extracted `requireUser` helper | Yes (36db7c2) |
-| `usermgmt/credential_http.go` | Use `requireUser` (2 sites) | Yes (36db7c2) |
-| `usermgmt/verification_totp_http.go` | Extracted `formatFromQuery` | Yes (36db7c2) |
-| `adminui/render.go` | Delegated redirect + extracted `setHTMLNoStoreHeaders` | Yes (36db7c2) |
-| `adminui/models.go` | Added `toMemberRows` helper | Yes (6bd986f) |
-| `dashboardui/render.go` | Delegated redirect to `cqrshtmx.HTMXRedirect` | Yes (36db7c2) |
-| `loginpage/util.go` | Delegated `safeRedirectPath` to root | Yes (36db7c2) |
-| `adminui/handler_members.go` | Use `toMemberRows` + `parseTenantMemberPath` | **NO (uncommitted)** |
-| `adminui/handler_tenants.go` | Use `toMemberRows` | **NO (uncommitted)** |
+| File                                 | Change                                                 | Committed?           |
+| ------------------------------------ | ------------------------------------------------------ | -------------------- |
+| `event_catalog_handler.go`           | Extracted `newImmutableJSONHandler` factory            | Yes (2113c7d)        |
+| `options_openapi.go`                 | Use shared factory                                     | Yes (2113c7d)        |
+| `ws_dispatch.go`                     | `wsContext` delegates to `requestContextOrBackground`  | Yes (2113c7d)        |
+| `redirect.go` (NEW)                  | Exported `HTMXRedirect` + `SafeRedirectPath`           | Yes (2113c7d)        |
+| `openapi/builder.go`                 | `Description` delegates to `Desc`                      | Yes (36db7c2)        |
+| `usermgmt/http.go`                   | Extracted `requireUser` helper                         | Yes (36db7c2)        |
+| `usermgmt/credential_http.go`        | Use `requireUser` (2 sites)                            | Yes (36db7c2)        |
+| `usermgmt/verification_totp_http.go` | Extracted `formatFromQuery`                            | Yes (36db7c2)        |
+| `adminui/render.go`                  | Delegated redirect + extracted `setHTMLNoStoreHeaders` | Yes (36db7c2)        |
+| `adminui/models.go`                  | Added `toMemberRows` helper                            | Yes (6bd986f)        |
+| `dashboardui/render.go`              | Delegated redirect to `cqrshtmx.HTMXRedirect`          | Yes (36db7c2)        |
+| `loginpage/util.go`                  | Delegated `safeRedirectPath` to root                   | Yes (36db7c2)        |
+| `adminui/handler_members.go`         | Use `toMemberRows` + `parseTenantMemberPath`           | **NO (uncommitted)** |
+| `adminui/handler_tenants.go`         | Use `toMemberRows`                                     | **NO (uncommitted)** |

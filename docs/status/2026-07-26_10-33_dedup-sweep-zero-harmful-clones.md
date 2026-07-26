@@ -6,15 +6,15 @@
 
 ## Headline metrics
 
-| Tool | Metric | Before | After | Δ |
-|------|--------|--------|-------|---|
-| `art-dupl` (-t 3, type-aware) | Clone groups | 10 | 2 | **-80%** |
-| `art-dupl` | Total clones | 21 | 4 | **-81%** |
-| `art-dupl` | Total tokens | 67 | 12 | **-82%** |
-| `branching-flow dupe` | Type groups | 73 | 52 | **-29%** |
-| `branching-flow dupe` | Actionable (harmful) groups | ~16 | 0 | **zero harmful** |
-| Build (`go build ./...`) | — | green | green | no regression |
-| Tests (10 modules, `-race`) | — | green | green | no regression |
+| Tool                          | Metric                      | Before | After | Δ                |
+| ----------------------------- | --------------------------- | ------ | ----- | ---------------- |
+| `art-dupl` (-t 3, type-aware) | Clone groups                | 10     | 2     | **-80%**         |
+| `art-dupl`                    | Total clones                | 21     | 4     | **-81%**         |
+| `art-dupl`                    | Total tokens                | 67     | 12    | **-82%**         |
+| `branching-flow dupe`         | Type groups                 | 73     | 52    | **-29%**         |
+| `branching-flow dupe`         | Actionable (harmful) groups | ~16    | 0     | **zero harmful** |
+| Build (`go build ./...`)      | —                           | green  | green | no regression    |
+| Tests (10 modules, `-race`)   | —                           | green  | green | no regression    |
 
 **Verification:** build green, all 10 workspace modules pass `go test -race`, gofmt clean on every touched file, no new lint issues in changed files.
 
@@ -22,26 +22,26 @@
 
 ## a) FULLY DONE (verified green)
 
-| # | Work item | Files |
-|---|-----------|-------|
-| 1 | Aliased 4 store interfaces (`WebAuthnSessionStore`, `VerificationTokenStore`, `LockoutStore`, `PendingTOTPStore`) in usermgmt → identity-model | `usermgmt/store_interfaces.go`, `identity-model/interfaces.go` |
-| 2 | Aliased 3 auth interfaces (`TOTPProvider`, `WebAuthnProvider`, `OAuth2Provider`) + `OAuth2UserInfo` in usermgmt → identity-model; enriched identity-model per-method docs (no doc loss) | `usermgmt/auth_interfaces.go`, `identity-model/interfaces.go` |
-| 3 | Extracted `eventSourcedSetupCore` (12 shared fields + `Close`/`GracefulClose`/`Authz` + `backendName`); Postgres/SQLite setups now embed it as a one-liner | new `usermgmt/es_setup_core.go` (compiled), `usermgmt/postgres_setup.go`, `usermgmt/sqlite_setup.go` |
-| 4 | Consolidated `eventCatalogServer` + `openAPISpecServer` → single `immutableJSONServer` in root | `event_catalog_handler.go`, `options_openapi.go` |
-| 5 | Aliased `BeginRegistrationResponse` / `BeginLoginResponse` → shared unexported `webauthnBeginResponse` | `usermgmt/webauthn_service.go` |
-| 6 | Extracted `listStreams(r)` helper for the 3 list handlers (aggregates/time-travel/snapshots) | `dashboardui/handlers.go` |
-| 7 | Shared `cqrshtmx.ToastDetail` in root; adminui + dashboardui `toastDetail` now aliases of it (per-module `triggerToast` kept — they differ in wire behavior) | `notify.go`, `adminui/render.go`, `dashboardui/render.go` |
-| 8 | Extracted `reasonedCommand` base + `newReasonedCommand` for the 4 reason-carrying commands (`DeleteUserCmd`, `SuspendTenantCmd`, `DeleteTenantCmd`, `DeleteBotCmd`) | `identity-model/commands.go` |
-| 9 | Extracted `rebuildProjection` free function; `EventSourcedSetup.RebuildProjection` + `Service.RebuildProjection` now one-line delegations | `usermgmt/es_projection_health.go` |
-| 10 | Extracted `writeHTML` helper (renderPage/renderPartial shared body) | `dashboardui/render.go` |
-| 11 | Added **INTENTIONAL DUPLICATION** rationale comments on the accepted cross-module seam mirrors (`credentialData`, `userInfo`) | `usermgmt/webauthn/provider.go`, `usermgmt/oauth2/provider.go` |
-| 12 | Bumped `go.work` go directive `1.26.4 → 1.26.5` (prerequisite to unblock build; replace directives untouched) | `go.work` |
+| #   | Work item                                                                                                                                                                               | Files                                                                                                |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1   | Aliased 4 store interfaces (`WebAuthnSessionStore`, `VerificationTokenStore`, `LockoutStore`, `PendingTOTPStore`) in usermgmt → identity-model                                          | `usermgmt/store_interfaces.go`, `identity-model/interfaces.go`                                       |
+| 2   | Aliased 3 auth interfaces (`TOTPProvider`, `WebAuthnProvider`, `OAuth2Provider`) + `OAuth2UserInfo` in usermgmt → identity-model; enriched identity-model per-method docs (no doc loss) | `usermgmt/auth_interfaces.go`, `identity-model/interfaces.go`                                        |
+| 3   | Extracted `eventSourcedSetupCore` (12 shared fields + `Close`/`GracefulClose`/`Authz` + `backendName`); Postgres/SQLite setups now embed it as a one-liner                              | new `usermgmt/es_setup_core.go` (compiled), `usermgmt/postgres_setup.go`, `usermgmt/sqlite_setup.go` |
+| 4   | Consolidated `eventCatalogServer` + `openAPISpecServer` → single `immutableJSONServer` in root                                                                                          | `event_catalog_handler.go`, `options_openapi.go`                                                     |
+| 5   | Aliased `BeginRegistrationResponse` / `BeginLoginResponse` → shared unexported `webauthnBeginResponse`                                                                                  | `usermgmt/webauthn_service.go`                                                                       |
+| 6   | Extracted `listStreams(r)` helper for the 3 list handlers (aggregates/time-travel/snapshots)                                                                                            | `dashboardui/handlers.go`                                                                            |
+| 7   | Shared `cqrshtmx.ToastDetail` in root; adminui + dashboardui `toastDetail` now aliases of it (per-module `triggerToast` kept — they differ in wire behavior)                            | `notify.go`, `adminui/render.go`, `dashboardui/render.go`                                            |
+| 8   | Extracted `reasonedCommand` base + `newReasonedCommand` for the 4 reason-carrying commands (`DeleteUserCmd`, `SuspendTenantCmd`, `DeleteTenantCmd`, `DeleteBotCmd`)                     | `identity-model/commands.go`                                                                         |
+| 9   | Extracted `rebuildProjection` free function; `EventSourcedSetup.RebuildProjection` + `Service.RebuildProjection` now one-line delegations                                               | `usermgmt/es_projection_health.go`                                                                   |
+| 10  | Extracted `writeHTML` helper (renderPage/renderPartial shared body)                                                                                                                     | `dashboardui/render.go`                                                                              |
+| 11  | Added **INTENTIONAL DUPLICATION** rationale comments on the accepted cross-module seam mirrors (`credentialData`, `userInfo`)                                                           | `usermgmt/webauthn/provider.go`, `usermgmt/oauth2/provider.go`                                       |
+| 12  | Bumped `go.work` go directive `1.26.4 → 1.26.5` (prerequisite to unblock build; replace directives untouched)                                                                           | `go.work`                                                                                            |
 
 ---
 
 ## b) PARTIALLY DONE
 
-- **Ignored-file verification gap.** `postgres_setup.go` and `sqlite_setup.go` carry `//go:build ignore` and pull in exotic modules (`stack/postgres`, `stack/sqlite`) not required by `usermgmt/go.mod`. I could not compile-verify the *ignored* files themselves without polluting go.mod. The shared code I extracted (`es_setup_core.go`) IS compiled and verified by the normal build; the two thin ignored wrappers were verified only by gofmt + manual review.
+- **Ignored-file verification gap.** `postgres_setup.go` and `sqlite_setup.go` carry `//go:build ignore` and pull in exotic modules (`stack/postgres`, `stack/sqlite`) not required by `usermgmt/go.mod`. I could not compile-verify the _ignored_ files themselves without polluting go.mod. The shared code I extracted (`es_setup_core.go`) IS compiled and verified by the normal build; the two thin ignored wrappers were verified only by gofmt + manual review.
 - **`wrapcheck` lint warnings** on the `Reset` call in `rebuildProjection` (and the original code) — these are pre-existing (the original code returned `Reset`'s error unwrapped). I left behavior identical and did not introduce a new wrap. Could be wrapped in a follow-up.
 
 ---
@@ -74,6 +74,7 @@
 ## f) Up to 50 things to get done next (rough Pareto order)
 
 ### High impact
+
 1. Add a CI check that `go.work` go-directive matches root `go.mod` (prevent the 1.26.4/1.26.5 drift).
 2. Re-run `art-dupl` at `-t 5` (semantic) to catch deeper structural clones the type-aware pass misses.
 3. Wrap the `projectionhost.Host.Reset` error in `rebuildProjection` (satisfies `wrapcheck`, improves diagnostics).
@@ -86,6 +87,7 @@
 10. Add doc-generation that asserts aliased types have Godoc on the canonical definition only.
 
 ### Medium impact
+
 11. Audit `examples/datastar-demo` — is `Signals` vs `TodoUpdatedPayload` a real shared concept worth a shared type, or genuinely separate?
 12. Extract a shared `streamListPage` renderer for the 3 dashboardui index pages (currently each has its own `renderXxxIndex`).
 13. Check if `webAuthnUserData` (usermgmt) and `userData` (webauthn module) can share via the same seam-documentation pattern.
@@ -98,6 +100,7 @@
 20. Re-run `branching-flow dupe` after excluding examples to get a true "library" duplication number.
 
 ### Lower impact / polish
+
 21. Unify the `contentTypeHTML` const across adminui/dashboardui/loginpage (3 copies exist).
 22. Extract a shared `renderLayout` base if adminui/dashboardui layouts converge.
 23. Add `//nolint:wrapcheck // behavior preserved` on the `Reset` return if not wrapping.
