@@ -32,6 +32,20 @@ _Focus: Adopting go-cqrs-lite capabilities to reduce hand-rolled code._
 
 ---
 
+## Data Mesh Interchange (Researched — Not Yet Adopted)
+
+Research and a proposal (`docs/research/2026-07-25_*`, `docs/proposals/2026-07-25_data-mesh-interchange.md`) concluded that cqrs-htmx should **not** build a data-mesh interchange from scratch — go-cqrs-lite `catalog/v4` already provides the documentation layer (DataProduct / Channel / Message / exporters / docserver). The proposal's recommendation is **Approach C + D**: gradually deprecate the hand-rolled `EventCatalog`/`openapi/` in favor of `catalog/v4`, plus build the three genuinely missing runtime pieces:
+
+| Gap | What | Effort |
+| --- | ---- | ------ |
+| 1. Channel-to-runtime binding | Connect `catalog.Channel` (docs) to `event.Bus`/`StreamingJournal` (runtime) | ~50 LOC |
+| 2. CloudEvents envelope | Standardized event envelope for cross-system interchange | ~30 LOC |
+| 3. Pull-based machine transport | `GET /events?after=<id>` → JSON/NDJSON stream | ~100 LOC |
+
+**Status:** under consideration. No code written. The strategic angle (per the landscape research): event sourcing *structurally prevents* the data-discovery problems DataHub/OpenMetadata/ODDS exist to solve, so time-travel + the catalog are a stronger positioning than a bespoke mesh product. Not yet committed to a release.
+
+---
+
 ## v5 Vision: usermgmt Decomposition (Deferred)
 
 The usermgmt module is a god-package: 4 aggregates (User, Membership, Tenant, Bot) plus shared infrastructure in one Go module. ADR-0019 (Blocked) and ADR-0038 (Proposed, deferred to v5) acknowledge this. The current v4 module works correctly and the split has zero consumer benefit while everything shares one `go.mod`.
@@ -95,3 +109,4 @@ These are explicitly out of scope for this library:
 - **Integration test importing the published version (not local replace)** — Blocked, not rejected: the `go.work` local replaces exist precisely because published go-cqrs-lite tags carry broken zero pseudo-versions. An integration test against the published version would fail until upstream cuts a clean consolidated release (v4.0.3+ or v4.1.0). Re-open once the publishing bug is resolved.
 - **Standardize import grouping** — Cosmetic defer. gofmt + goimports already enforce a consistent style; further normalization has no functional impact.
 - **Automate GitHub Release creation via CI on tag push** — Manual `gh release create` is sufficient for the current release cadence; automating adds CI complexity without near-term payoff.
+- **`SyncWorkerURL(path)` Go helper** — Rejected across three sync sessions (each time re-discovered and re-rejected): consumers already control the worker path via the `data-sync-worker-url` HTML attribute and `SyncWorkerHandlerWith(js, version)`. A Go-side URL builder would add API surface for a concern that belongs in markup/template, not server code.

@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-24 | **Version:** v4.5.0 (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.5% root, 81.0% usermgmt, ~41% identity-model (recompute via `nix run .#coverage-gate`)
+**Updated:** 2026-07-26 | **Version:** v4.5.0 (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.5% root, 81.0% usermgmt, ~41% identity-model (recompute via `nix run .#coverage-gate`)
 
 ## Status legend
 
@@ -119,6 +119,7 @@
 | Projection Status      | 🟢 `FULLY_FUNCTIONAL` | `ProjectionStatusHandler(provider)` serves live projection health as JSON (`no-cache`, per-request ETag). `ProjectionStatusProvider` interface — implemented by `*usermgmt.Service` and `*usermgmt.EventSourcedSetup`. 503 when provider nil. |
 
 | Partial Rendering | 🟢 `FULLY_FUNCTIONAL` | `RenderPartialOrFull[T](partial, full)` — auto-selects partial vs full render based on `HX-Request`. `RenderPartialOrFullFunc`, `RenderIf(check, match, noMatch)`, `RenderTemplComponent(w, r, partial, full)`, `OOBHTML(id, html, swap...)`. Eliminates boilerplate HTMX partial/full branching. v4.5.0. |
+| HTMX Redirect Helpers | 🟢 `FULLY_FUNCTIONAL` | `HTMXRedirect(w, r, path)` + `SafeRedirectPath(path)` (`redirect.go`) — HTMX-aware redirect that respects the `HX-Request` header (emits `HX-Redirect` for HTMX clients, falls back to standard `http.Redirect`). `SafeRedirectPath` guards against open-redirect by normalizing untrusted paths to site-relative URLs. Extracted during the 2026-07-26 dedup sweep; exercised by adminui + loginpage handler tests. Unreleased (post-v4.5.0). |
 
 ### Real-Time — SSE
 
@@ -349,8 +350,8 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | SSE Live Updates      | 🟢 `FULLY_FUNCTIONAL`     | Real-time event stream via SSE bridge. Auto-updates dashboard panels on new events.                                                                                                                                                                                |
 | Templ Rendering       | 🟢 `FULLY_FUNCTIONAL`     | Uses templ-components v0.16.0. Compiled CSS embedded via `go:embed`. Conditional `<script>` includes (HTMX, SSE) based on config.                                                                                                                                  |
 | Auth Integration      | 🟢 `FULLY_FUNCTIONAL`     | Read-only by default. Configurable authorizer hook.                                                                                                                                                                                                                |
-| Dead Code             | 🔴 `BROKEN`               | `notImplemented()` at `handlers.go:21` and `renderStatCardsTempl()` at `templ_render.go:25` exist but are never called. Cleanup tracked in TODO_LIST.                                                                                                              |
-| Test Coverage         | 🟡 `PARTIALLY_FUNCTIONAL` | 1 test file (`dashboard_test.go`, 12 tests) for 12 source files. `handlers.go` is 1136 lines (needs per-domain split).                                                                                                                                             |
+| Dead Code             | 🔴 `BROKEN`               | `notImplemented()` at `handlers.go:21` and `renderStatCardsTempl()` at `templ_render.go:25` exist but are never called (verified: 0 callers). Cleanup tracked in TODO_LIST P2. `handlers.go` is 1167 lines and needs a per-domain split.                                                                                                              |
+| Test Coverage         | 🟡 `PARTIALLY_FUNCTIONAL` | 1 test file (`dashboard_test.go`, 12 tests) for 12 source files. Needs handler-level, SSE-bridge, and payload-rendering tests. |                                                                                                                                             |
 
 ---
 
@@ -381,3 +382,6 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | Lint issues   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
 | ErrorFamily   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
 | Go modules    | 1     | 1        | 1              | 1     | 1        | 1      | 1       | 1         | 1           | 1                |
+
+> _Recompute live: `nix run .#coverage-gate`, `nix run .#lint`, `nix run .#errorfamily`._
+> _The **0 Lint issues** row reflects the enforced per-submodule lint gates. The root module additionally carries ~80 pre-existing low-severity style nits (varnamelen ×50, staticcheck SA1019 ×18, testpackage ×9) that are suppressed at the module level rather than gate-enforced; these are tracked, not blocking._
