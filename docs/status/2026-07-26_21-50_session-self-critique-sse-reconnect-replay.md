@@ -4,6 +4,8 @@
 **Session goal:** Fix the dashboardui SSE reconnect replay bug (TODO_LIST P2 item).
 **Prior session:** v4.6.0 release prep (docs, dead code, pseudo-version, batch-release.sh).
 
+> **Update 2026-07-26:** the reconnect-replay fix **shipped** in commits `b98b2fa` (SSE-based real-time updates + config) and `62dada4` (SSE replay test + docs), and is recorded under CHANGELOG `[v4.6.0]` Added. The `Dashboard.Close()` resource leak documented in §D1 is **still open** — it is now tracked as TODO_LIST **P1 Correctness** (with the `event.Bus.UnsubscribeAll` upstream gap noted in ROADMAP). v4.6.0 is **not yet tagged**. Full status in [Resolution](#resolution) below.
+
 ---
 
 ## A) FULLY DONE ✓
@@ -193,3 +195,18 @@
 | Docs updated            | 3 (CHANGELOG, TODO_LIST, FEATURES)                                     |
 | Time to fix             | ~15 minutes                                                            |
 | Overall assessment      | Good wiring work, sloppy lifecycle completeness, amateur test timing   |
+
+---
+
+## Resolution (2026-07-26)
+
+| Item (§) | Resolution |
+| --- | --- |
+| §A — reconnect replay, backfill, heartbeat, `Close()`, 4 tests | **SHIPPED** (`b98b2fa`, `62dada4`); CHANGELOG `[v4.6.0]` Added; FEATURES "SSE Live Updates" row documents reconnect replay + backfill + heartbeat + Close. dashboardui now has **16 tests** across 2 files. |
+| §D1 / §F1 — `Dashboard.Close()` event-bus subscription leak | **OPEN → tracked.** Now TODO_LIST **P1 Correctness** (`dashboardui/sse.go:65`, `dashboardui/dashboard.go:118`). `event.Bus` still has no `UnsubscribeAll`; upstream gap logged in ROADMAP. |
+| §F5 — sleep-based SSE tests | **OPEN.** Not yet rewritten with deterministic synchronization. |
+| §F4 — wire `signal.NotifyContext` + `defer Close()` in `examples/dashboard-demo` | **OPEN.** Demo still does not call `Close()`. |
+| §F8 — `goleak.VerifyNone(t)` | **OPEN.** |
+| §F10 — `nix run .#coverage-gate` re-run | **Verified separately:** root 93.5%, usermgmt 80.9%, totp/webauthn/oauth2 88–89%. dashboardui coverage still "low" (no gate set). |
+
+**Tagging:** v4.6.0 is **not yet tagged**; the operator runs `bash scripts/batch-release.sh` + push. Whether the `Close()` leak should block the release (§G1) remains the operator's call — it only affects consumers who create+close Dashboard instances at runtime, not the one-dashboard-per-process norm.

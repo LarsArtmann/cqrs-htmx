@@ -166,6 +166,7 @@ linters:
         - .+\.fakeTracer$
         - .+\.cidCapture$
         - .+\.SSEEvent$
+        - .+\.stubCarrier$
         - .+\.CommandAck$
         - .+\.JournalSSEStore$
         - .+\.sseReadResult$
