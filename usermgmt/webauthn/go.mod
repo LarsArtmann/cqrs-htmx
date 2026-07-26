@@ -1,10 +1,10 @@
 module github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/go-webauthn/webauthn v0.17.4
-	github.com/larsartmann/go-error-family v0.9.0
+	github.com/larsartmann/go-error-family v0.10.0
 )
 
 require (

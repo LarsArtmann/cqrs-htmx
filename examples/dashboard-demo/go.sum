@@ -83,12 +83,12 @@ github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1 h1:8QKWQw1KXTX+aEQO7L51kTB
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1/go.mod h1:yI30IQ+G1uhUt/9HOjPueG28jUgN934J4YfNx+BMBNs=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.2 h1:em+ZNIHIcyWYxAvii8a9t1Kk4BmVTr5xUNcZ7giSSHI=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.2/go.mod h1:y1a2+ZmyLaaE0fprVhOHdqBw6erVMpN40pH11lPPhnI=
-github.com/larsartmann/go-error-family v0.9.0 h1:DpIAvgi5q6+HrGbMNc979yO/0rq/uFaQLvqt33GiEaE=
-github.com/larsartmann/go-error-family v0.9.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
+github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
+github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-sse v0.2.0 h1:d77B+rtOmM27MZHSy7YG9Ygl3hriAWaf0cD0o+ejw4M=
 github.com/larsartmann/go-sse v0.2.0/go.mod h1:qFY1CWP8caGmjKwKG4JqNn5tfFRqU5yQGx3xUQ1tGj4=
-github.com/larsartmann/httputil v0.6.0 h1:FRcn1jTV//sVX3YhhMjKIODxBCe/XeHXzsPPUF3sWVc=
-github.com/larsartmann/httputil v0.6.0/go.mod h1:WZOXUsHhqvzmNe+wogKEyIp8RlCXwnLhEyjqXomiiRA=
+github.com/larsartmann/httputil v0.6.1 h1:1Yav44hzBvrmcnNc17RS+ept/30e6KnwKiCwtEslinw=
+github.com/larsartmann/httputil v0.6.1/go.mod h1:IYVTbv9asqvzJahTYbH4hrmU6Mr7W8yjFQOkTusXucA=
 github.com/larsartmann/templ-components v1.2.0 h1:jcD2rokFGubJ14YG4g5AueqhaSh/fV9tg95gjeUrH3U=
 github.com/larsartmann/templ-components v1.2.0/go.mod h1:WYy1204gZeqEiD3i+hakhdaMAhWRQ4cyoh6p6V0FjRo=
 github.com/mattn/go-isatty v0.0.23 h1:cYwCQTQf3HB6xUC+BtyCLZNr7IzbOmoZbmssVNzSyiQ=
