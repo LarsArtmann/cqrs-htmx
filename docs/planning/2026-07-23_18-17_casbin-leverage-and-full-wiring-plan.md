@@ -203,3 +203,11 @@ identity-model commands already have accessors (`.Email()`, `.Roles()`, etc.). u
 ### D5: Fold functions move to identity-model
 
 `foldUser`, `foldMembership`, `foldTenant`, `foldBot` are pure domain logic. They belong with the types they operate on. usermgmt's state files become thin aliases.
+
+---
+
+## Resolution (2026-07-26, v4.5.0)
+
+**Executed.** Casbin was pulled into identity-model as a first-class dependency (ADR-0044), the `Authz` engine + RBAC model + default policies + role hierarchy moved there, and ALL usermgmt domain types were wired to identity-model via type aliases. This was the only plan in the 2026-07-2* set that lacked a resolution marker; its sibling plan (`docs/planning/2026-07-23_17-09_identity-model-extraction-plan.html`) and the execution reports (`docs/status/2026-07-23_19-18`, `docs/status/2026-07-23_21-27`) confirm shipment as `identity-model/v4.1.0` + `usermgmt/v4.5.0`. See CHANGELOG [v4.5.0].
+
+**Still open from this plan's Phase 4:** whether `CasbinProjection` should move to identity-model (deferred — it has infrastructure coupling, so it stayed in usermgmt); godoc examples for identity-model.
