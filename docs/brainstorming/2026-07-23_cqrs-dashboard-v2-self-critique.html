@@ -617,9 +617,14 @@
       (function(){if(!("IntersectionObserver"in window))return;var n=document.querySelector("[data-nav]");if(!n)return;var l=n.querySelectorAll('a[href^="#"]');var i=Array.from(l).map(function(l){return l.getAttribute("href").slice(1)});var s=i.map(function(i){return document.getElementById(i)}).filter(Boolean);if(!s.length)return;var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){l.forEach(function(li){li.classList.toggle("active",li.getAttribute("href")==="#"+en.target.id)})}})},{rootMargin:"-80px 0px -60% 0px",threshold:0});s.forEach(function(s){o.observe(s)})})();
     </script>
 
-    <div style="margin:2rem auto 3rem;max-width:900px;padding:1.25rem 1.5rem;border:1px solid rgba(128,128,128,0.5);border-radius:10px;color:inherit">
-      <p style="margin:0 0 .35rem;font-weight:700">Update 2026-07-26 &mdash; BUILT.</p>
-      <p style="margin:0">
+    <style>
+      .built-update{margin:2rem auto 3rem;max-width:900px;padding:1.25rem 1.5rem;border:1px solid rgba(128,128,128,0.5);border-radius:10px;color:inherit}
+      .built-update__title{margin:0 0 .35rem;font-weight:700}
+      .built-update__body{margin:0}
+    </style>
+    <div class="built-update">
+      <p class="built-update__title">Update 2026-07-26 &mdash; BUILT.</p>
+      <p class="built-update__body">
         The revised 15-step plan from this critique was executed: <code>dashboardui/v4</code>
         shipped in v4.5.0 (<code>dashboardui/v4.0.0</code>) with templ-components v0.16.0,
         SQL-backed stream reading, capability detection, and the time-travel inspector.
