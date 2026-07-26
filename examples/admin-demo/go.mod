@@ -50,7 +50,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-sse v0.2.0 // indirect
+	github.com/larsartmann/go-sse v0.2.1 // indirect
 	github.com/larsartmann/httputil v0.6.1 // indirect
 	github.com/larsartmann/templ-components v1.2.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
