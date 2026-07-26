@@ -2,9 +2,9 @@ package cqrshtmx
 
 import (
 	"context"
-	"fmt"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
@@ -116,7 +116,8 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEve
 		// not the last N. So we ReadAll and slice the tail.
 		events, err := s.journal.ReadAll(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("cqrshtmx.sse.journal_readall_failed: %w", err)
+			return nil, errorfamily.WrapInfrastructure(err,
+				"cqrshtmx.sse.journal_readall_failed", "read all events from journal")
 		}
 
 		limit := s.maxReplay
@@ -144,7 +145,8 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEve
 
 	events, err := s.seekable.ReadFrom(ctx, afterID, limit)
 	if err != nil {
-		return nil, fmt.Errorf("cqrshtmx.sse.journal_read_failed: %w", err)
+		return nil, errorfamily.WrapInfrastructure(err,
+		"cqrshtmx.sse.journal_read_failed", "read events from journal")
 	}
 
 	return s.mapEvents(events), nil
@@ -155,7 +157,8 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEve
 func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID SSEEventID) ([]SSEEvent, error) {
 	events, err := s.journal.ReadAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("cqrshtmx.sse.journal_readall_failed: %w", err)
+		return nil, errorfamily.WrapInfrastructure(err,
+			"cqrshtmx.sse.journal_readall_failed", "read all events from journal")
 	}
 
 	if lastID.Get() == "" {

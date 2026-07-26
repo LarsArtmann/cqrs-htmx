@@ -3,9 +3,9 @@ package dashboardui
 import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
-	"fmt"
 	"net/http"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -34,13 +34,15 @@ func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([
 	switch encoding {
 	case codec.EncodingJSON, "":
 		if err := json.Unmarshal(payload, &raw); err != nil {
-			return nil, fmt.Errorf("decode JSON payload: %w", err)
+			return nil, errorfamily.WrapCorruption(err,
+				"dashboardui.payload.json_decode_failed", "decode JSON payload")
 		}
 
 	case codec.EncodingCBOR:
 		c := codec.CBORCodec{}
 		if err := c.Decode(payload, &raw); err != nil {
-			return nil, fmt.Errorf("decode CBOR payload: %w", err)
+			return nil, errorfamily.WrapCorruption(err,
+				"dashboardui.payload.cbor_decode_failed", "decode CBOR payload")
 		}
 
 	default:
@@ -49,7 +51,8 @@ func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([
 
 	out, err := json.Marshal(raw, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
-		return nil, fmt.Errorf("pretty-print payload: %w", err)
+		return nil, errorfamily.WrapInfrastructure(err,
+			"dashboardui.payload.pretty_print_failed", "pretty-print payload")
 	}
 
 	return out, nil
