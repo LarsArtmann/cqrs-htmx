@@ -1241,16 +1241,16 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Dependencies
 
-| Dependency             | Purpose                                 |
-| ---------------------- | --------------------------------------- |
-| go-cqrs-lite v4.1.0    | CQRS command/query dispatch, pagination |
-| casbin/casbin/v3       | Authorization                           |
-| go-error-family v0.10.0 | Error classification                   |
-| justinas/nosurf        | CSRF protection                         |
-| larsartmann/httputil   | ClientIP extraction                     |
-| golang.org/x/time      | Token-bucket rate limiting              |
-| go-branded-id          | Branded types (usermgmt)                |
-| go-playground/form/v4  | Form decoding                           |
+| Dependency              | Purpose                                 |
+| ----------------------- | --------------------------------------- |
+| go-cqrs-lite v4.1.0     | CQRS command/query dispatch, pagination |
+| casbin/casbin/v3        | Authorization                           |
+| go-error-family v0.10.0 | Error classification                    |
+| justinas/nosurf         | CSRF protection                         |
+| larsartmann/httputil    | ClientIP extraction                     |
+| golang.org/x/time       | Token-bucket rate limiting              |
+| go-branded-id           | Branded types (usermgmt)                |
+| go-playground/form/v4   | Form decoding                           |
 
 **Optional sub-module dependencies** (only import the auth strategies you need):
 
