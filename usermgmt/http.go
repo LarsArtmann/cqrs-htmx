@@ -266,9 +266,8 @@ func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) handleMe(w http.ResponseWriter, r *http.Request) {
-	user, ok := UserFromContext(r.Context())
-	if !ok || user == nil {
-		writeError(w, http.StatusUnauthorized, "not authenticated")
+	user, ok := requireUser(w, r)
+	if !ok {
 		return
 	}
 	writeJSON(w, http.StatusOK, user)
@@ -324,6 +323,20 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 // family and includes the machine-readable code and request ID.
 func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{errorKey: message})
+}
+
+// requireUser extracts the authenticated user from the request context. If no
+// user is present it writes a 401 and returns false; the caller must return
+// immediately. Centralises the auth guard used by credential and profile
+// handlers.
+func requireUser(w http.ResponseWriter, r *http.Request) (*User, bool) {
+	user, ok := UserFromContext(r.Context())
+	if !ok || user == nil {
+		writeError(w, http.StatusUnauthorized, "not authenticated")
+		return nil, false
+	}
+
+	return user, true
 }
 
 // errorStatus derives the HTTP status for an error. Each usermgmt sentinel

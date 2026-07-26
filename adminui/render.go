@@ -10,10 +10,16 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
-// renderPage writes a full templ component (a page) as HTML.
-func renderPage(w http.ResponseWriter, r *http.Request, c templ.Component) {
+// setHTMLNoStoreHeaders sets Content-Type and Cache-Control for HTML responses
+// that must never be cached. Shared by renderPage and renderPartial.
+func setHTMLNoStoreHeaders(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
+}
+
+// renderPage writes a full templ component (a page) as HTML.
+func renderPage(w http.ResponseWriter, r *http.Request, c templ.Component) {
+	setHTMLNoStoreHeaders(w)
 	if err := c.Render(r.Context(), w); err != nil {
 		slog.ErrorContext(r.Context(), "adminui: render page", "error", err)
 		http.Error(w, "render error", http.StatusInternalServerError)
@@ -22,8 +28,7 @@ func renderPage(w http.ResponseWriter, r *http.Request, c templ.Component) {
 
 // renderPartial writes a templ fragment for an HTMX swap (no full document).
 func renderPartial(w http.ResponseWriter, r *http.Request, c templ.Component) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
+	setHTMLNoStoreHeaders(w)
 	if err := c.Render(r.Context(), w); err != nil {
 		slog.ErrorContext(r.Context(), "adminui: render partial", "error", err)
 	}
@@ -61,22 +66,10 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 // redirect attacks even when the path is derived from user-controlled input
 // (e.g. a tenant id taken from the URL).
 func redirect(w http.ResponseWriter, r *http.Request, path string) {
-	path = safeRedirectPath(path)
-	if cqrshtmx.IsHTMXRequest(r) {
-		w.Header().Set("HX-Redirect", path)
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-	http.Redirect(w, r, path, http.StatusSeeOther) //nolint:gosec // G710: safeRedirectPath guarantees same-origin
+	cqrshtmx.HTMXRedirect(w, r, cqrshtmx.SafeRedirectPath(path))
 }
 
-// safeRedirectPath returns path if it is a safe same-origin redirect target
-// (starts with "/" but not "//"), otherwise "/". Protocol-relative URLs ("//")
-// and scheme-bearing URLs ("https://...") are rejected because browsers would
-// follow them off-site.
+// safeRedirectPath delegates to the shared cqrshtmx.SafeRedirectPath.
 func safeRedirectPath(path string) string {
-	if path == "" || path[0] != '/' || len(path) > 1 && path[1] == '/' {
-		return "/"
-	}
-	return path
+	return cqrshtmx.SafeRedirectPath(path)
 }

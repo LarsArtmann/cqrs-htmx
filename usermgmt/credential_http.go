@@ -34,9 +34,8 @@ const (
 )
 
 func (h *AuthHandler) handleListCredentials(w http.ResponseWriter, r *http.Request) {
-	user, ok := UserFromContext(r.Context())
-	if !ok || user == nil {
-		writeError(w, http.StatusUnauthorized, "not authenticated")
+	user, ok := requireUser(w, r)
+	if !ok {
 		return
 	}
 
@@ -92,9 +91,8 @@ func paginate[T any](items []T, page, pageSize int) []T {
 }
 
 func (h *AuthHandler) handleDeleteCredential(w http.ResponseWriter, r *http.Request) {
-	user, ok := UserFromContext(r.Context())
-	if !ok || user == nil {
-		writeError(w, http.StatusUnauthorized, "not authenticated")
+	user, ok := requireUser(w, r)
+	if !ok {
 		return
 	}
 

@@ -285,16 +285,21 @@ func (h *AuthHandler) withImportExportContext(
 	fn(ctx)
 }
 
+// formatFromQuery returns the lowercased "format" query parameter, or "" if
+// absent. Shared by parseUserDataFormat and parseImportFormat.
+func formatFromQuery(r *http.Request) string {
+	return strings.ToLower(r.URL.Query().Get("format"))
+}
+
 func parseUserDataFormat(r *http.Request) UserDataFormat {
-	v := strings.ToLower(r.URL.Query().Get("format"))
-	if v == string(UserDataFormatCSV) {
+	if formatFromQuery(r) == string(UserDataFormatCSV) {
 		return UserDataFormatCSV
 	}
 	return UserDataFormatJSON
 }
 
 func parseImportFormat(r *http.Request) UserDataFormat {
-	v := strings.ToLower(r.URL.Query().Get("format"))
+	v := formatFromQuery(r)
 	if v == string(UserDataFormatCSV) {
 		return UserDataFormatCSV
 	}
