@@ -17,9 +17,8 @@
 ## P2 — Quality Gates
 
 - [~] **identity-model test coverage.** ~41% coverage (2 test files for 25 source files). No coverage-gate threshold defined for this module in `flake.nix`. Needs tests for the Authz engine, command constructors, event payload round-trips, crypto helpers, and the remaining fold functions (`foldMembership`, `foldBot`). Source: `docs/status/2026-07-23_21-27_identity-model-consolidation-brutal-review.md`.
-- [~] **dashboardui test coverage.** 1 test file (`dashboard_test.go`, 12 tests) for 12 source files. Needs handler-level tests, an SSE bridge test, and payload-rendering tests.
+- [~] **dashboardui test coverage.** SSE reconnect replay, initial backfill, heartbeat emission, and Close lifecycle now tested (`sse_replay_test.go`, 4 tests). Remaining: handler-level tests and payload-rendering tests.
 - [ ] **dashboardui `handlers.go` split.** Single file at **1158 lines** — split per domain (overview, events, aggregates, projections, DLQ, audit, snapshots, time-travel).
-- [ ] **dashboardui SSE reconnect replay.** The SSE bridge now emits domain event IDs and has heartbeat config (`SSEHeartbeatInterval`), but it does **not** construct a journal-backed store or call `ReplayEvents` for `Last-Event-ID`. A reconnecting client gets live-only data, missing events that fired during disconnect. Also missing: a `Dashboard.Close()` lifecycle contract and a heartbeat-emission test. Source: `docs/status/2026-07-25_02-03_sse-integration-status.html`.
 
 ---
 

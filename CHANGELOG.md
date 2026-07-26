@@ -14,6 +14,7 @@ _Nothing yet._
 
 - **Root HTMX redirect helpers** (`redirect.go`): `HTMXRedirect(w, r, path)` emits an HTMX-aware redirect (`HX-Redirect` for HTMX clients, standard `http.Redirect` otherwise); `SafeRedirectPath(path)` normalizes untrusted paths to site-relative URLs as an open-redirect guard. Extracted during the dedup sweep; exercised by adminui + loginpage handler tests.
 - **dashboardui SSE bridge improvements** (`dashboardui/sse.go`, `dashboardui/config.go`): emitted SSE events now carry the domain event ID (enables reconnect dedup); `Config.SSEHeartbeatInterval` (15s default) drives a heartbeat to keep proxies from killing idle connections.
+- **dashboardui SSE reconnect replay + lifecycle** (`dashboardui/sse.go`, `dashboardui/dashboard.go`): the SSE handler now reads `Last-Event-ID` on reconnect and replays missed events from the journal via `cqrshtmx.JournalSSEStore` + `cqrshtmx.ReplayEvents` before entering the live loop. On first connect (no cursor), recent history is backfilled (up to `DefaultMaxReplay=1000` events). `Dashboard.Close()` disconnects all SSE clients by closing the broadcaster. Subscribe-before-replay ordering prevents the race where events fire during replay and are lost.
 
 ### Changed
 
