@@ -30,26 +30,26 @@ The `*usermgmt.Service` (and `*EventSourcedSetup`) implements `cqrshtmx.Projecti
 
 ```json
 [
-  {
-    "name": "user-read-model",
-    "status": "live",
-    "checkpoint": "evt-018a3f...",
-    "processed": 5234,
-    "errors": 0,
-    "restarts": 0,
-    "lag_ms": 15,
-    "lastError": ""
-  },
-  {
-    "name": "casbin-projection",
-    "status": "live",
-    "checkpoint": "evt-018a3f...",
-    "processed": 5234,
-    "errors": 2,
-    "restarts": 1,
-    "lag_ms": 32,
-    "lastError": "connection reset: retrying"
-  }
+	{
+		"name": "user-read-model",
+		"status": "live",
+		"checkpoint": "evt-018a3f...",
+		"processed": 5234,
+		"errors": 0,
+		"restarts": 0,
+		"lag_ms": 15,
+		"lastError": ""
+	},
+	{
+		"name": "casbin-projection",
+		"status": "live",
+		"checkpoint": "evt-018a3f...",
+		"processed": 5234,
+		"errors": 2,
+		"restarts": 1,
+		"lag_ms": 32,
+		"lastError": "connection reset: retrying"
+	}
 ]
 ```
 

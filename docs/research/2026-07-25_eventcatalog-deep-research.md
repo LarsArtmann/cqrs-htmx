@@ -123,20 +123,20 @@ Relationships between services/agents and messages are **bidirectional pointers*
 
 ```typescript
 type SendsPointer = {
-  id: string; // message ID
-  version?: string; // semver, supports ranges (^1.0.0, ~1.2.0, 0.0.x, latest)
-  fields?: string[]; // specific fields this service touches
-  to?: ChannelPointer[]; // which channels this message goes through
-  group?: string; // visual grouping
+	id: string; // message ID
+	version?: string; // semver, supports ranges (^1.0.0, ~1.2.0, 0.0.x, latest)
+	fields?: string[]; // specific fields this service touches
+	to?: ChannelPointer[]; // which channels this message goes through
+	group?: string; // visual grouping
 };
 
 type ReceivesPointer = {
-  id: string;
-  version?: string;
-  fields?: string[];
-  from?: ChannelPointer[];
-  group?: string;
-  triggers?: TriggerPointer[]; // conditional consumption: { id, version?, condition? }
+	id: string;
+	version?: string;
+	fields?: string[];
+	from?: ChannelPointer[];
+	group?: string;
+	triggers?: TriggerPointer[]; // conditional consumption: { id, version?, condition? }
 };
 ```
 
@@ -146,16 +146,16 @@ The reverse lookup (finding which services produce/consume a given message) is c
 
 ```typescript
 interface EntityProperty {
-  name: string;
-  type: string;
-  required?: boolean;
-  description?: string;
-  references?: string; // FK to another entity
-  referenceTarget?: "entity";
-  relationType?: string; // belongsTo, hasMany, etc.
-  enum?: string[];
-  properties?: EntityProperty[]; // nested objects
-  items?: { type: string; properties?: EntityProperty[] }; // arrays
+	name: string;
+	type: string;
+	required?: boolean;
+	description?: string;
+	references?: string; // FK to another entity
+	referenceTarget?: "entity";
+	relationType?: string; // belongsTo, hasMany, etc.
+	enum?: string[];
+	properties?: EntityProperty[]; // nested objects
+	items?: { type: string; properties?: EntityProperty[] }; // arrays
 }
 ```
 
@@ -165,12 +165,12 @@ This is a richer entity model than catalog/v4's `Entity` which has `Properties [
 
 ```typescript
 interface DataProduct extends BaseSchema {
-  inputs?: ResourcePointer[];
-  outputs?: {
-    id: string;
-    version?: string;
-    contract?: { path: string; name?: string; type?: string };
-  }[];
+	inputs?: ResourcePointer[];
+	outputs?: {
+		id: string;
+		version?: string;
+		contract?: { path: string; name?: string; type?: string };
+	}[];
 }
 ```
 
@@ -289,10 +289,10 @@ import { FlowBuilder } from "@eventcatalog/sdk";
 
 const flow = new FlowBuilder({ id: "OrderFlow", name: "Order Process", version: "0.0.1" });
 flow
-  .addServiceStep({ id: "OrdersService", title: "Order Service" })
-  .addMessageStep({ id: "OrderPlaced", title: "Order Placed" })
-  .addActorStep({ title: "Customer" })
-  .build();
+	.addServiceStep({ id: "OrdersService", title: "Order Service" })
+	.addMessageStep({ id: "OrderPlaced", title: "Order Placed" })
+	.addActorStep({ title: "Customer" })
+	.build();
 ```
 
 ### dumpCatalog
@@ -392,9 +392,9 @@ This means you can regenerate from specs without losing manual documentation. Th
 
 ```typescript
 interface Changelog {
-  createdAt: Date | string;
-  badges?: Badge[];
-  markdown: string; // freeform MDX
+	createdAt: Date | string;
+	badges?: Badge[];
+	markdown: string; // freeform MDX
 }
 ```
 
@@ -459,13 +459,13 @@ eventcatalog://teams         eventcatalog://users
 ```javascript
 // eventcatalog.chat.js
 export const tools = {
-  myCustomTool: {
-    description: "My custom tool",
-    parameters: z.object({ query: z.string() }),
-    execute: async ({ query }) => {
-      return { result: "..." };
-    },
-  },
+	myCustomTool: {
+		description: "My custom tool",
+		parameters: z.object({ query: z.string() }),
+		execute: async ({ query }) => {
+			return { result: "..." };
+		},
+	},
 };
 ```
 

@@ -10,22 +10,25 @@ import (
 
 const contentTypeHTML = "text/html; charset=utf-8"
 
-func renderPage(w http.ResponseWriter, r *http.Request, html string) {
+// writeHTML writes pre-rendered HTML with no-store caching, logging under the
+// given label. Shared by renderPage (full documents) and renderPartial (HTMX
+// fragments), which differ only in the log label — the wire response is the
+// same. The two public names are kept to document caller intent.
+func writeHTML(w http.ResponseWriter, r *http.Request, html, label string) {
 	w.Header().Set("Content-Type", contentTypeHTML)
 	w.Header().Set("Cache-Control", "no-store")
 
 	if _, err := w.Write([]byte(html)); err != nil {
-		slog.ErrorContext(r.Context(), "dashboardui: write page", "error", err)
+		slog.ErrorContext(r.Context(), "dashboardui: "+label, "error", err)
 	}
 }
 
-func renderPartial(w http.ResponseWriter, r *http.Request, html string) {
-	w.Header().Set("Content-Type", contentTypeHTML)
-	w.Header().Set("Cache-Control", "no-store")
+func renderPage(w http.ResponseWriter, r *http.Request, html string) {
+	writeHTML(w, r, html, "write page")
+}
 
-	if _, err := w.Write([]byte(html)); err != nil {
-		slog.ErrorContext(r.Context(), "dashboardui: write partial", "error", err)
-	}
+func renderPartial(w http.ResponseWriter, r *http.Request, html string) {
+	writeHTML(w, r, html, "write partial")
 }
 
 func isPartial(r *http.Request) bool {
