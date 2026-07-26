@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-26 | **Version:** v4.6.0 (go-cqrs-lite v4.1.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.5% root, 81.0% usermgmt, ~41% identity-model (recompute via `nix run .#coverage-gate`)
+**Updated:** 2026-07-26 | **Version:** v4.6.0 (go-cqrs-lite v4.1.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.5% root, 80.9% usermgmt, ~41% identity-model (recompute via `nix run .#coverage-gate`)
 
 ## Status legend
 
@@ -376,12 +376,12 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Metric        | Root  | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | integration_test |
 | ------------- | ----- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | ---------------- |
-| Coverage      | 93.5% | 81.0%    | ~41%           | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | low         | —                |
+| Coverage      | 93.5% | 80.9%    | ~41%           | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | low         | —                |
 | CI gate       | 90%   | 74%      | (not set)      | 80%   | 80%      | 80%    | 66%     | 80%       | (not set)   | —                |
 | Tests passing | ~250  | ~580     | ~40            | 3     | 18       | 18     | 35      | 30+       | 16          | ~20              |
-| Lint issues   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
+| Lint issues   | ~160  | ~100     | 0              | 0     | 0        | 0      | 0       | 0         | ~150        | 0                |
 | ErrorFamily   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
 | Go modules    | 1     | 1        | 1              | 1     | 1        | 1      | 1       | 1         | 1           | 1                |
 
 > _Recompute live: `nix run .#coverage-gate`, `nix run .#lint`, `nix run .#errorfamily`._
-> _The **0 Lint issues** row reflects the enforced per-submodule lint gates. The root module additionally carries ~80 pre-existing low-severity style nits (varnamelen ×50, staticcheck SA1019 ×18, testpackage ×9) that are suppressed at the module level rather than gate-enforced; these are tracked, not blocking._
+> _Lint: the 7 non-root non-dashboardui non-usermgmt modules pass clean. Root (~160), usermgmt (~100), and dashboardui (~150) currently fail `nix run .#lint` on pre-existing style nits (varnamelen, exhaustruct, `mnd`, canonical header casing) and `id.*AggregateID` SA1019 deprecation warnings — these are tracked, non-release-blocking (v4.5.0 and v4.6.0 shipped with them). The `nix run .#lint` wrapper stops at the root module's failure, so submodule failures are only visible when linting each module with `GOEXPERIMENT=jsonv2` directly._
