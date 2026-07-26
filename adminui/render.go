@@ -30,10 +30,9 @@ func renderPartial(w http.ResponseWriter, r *http.Request, c templ.Component) {
 }
 
 // toastDetail is the payload dispatched as the adminui:toast HTMX trigger event.
-type toastDetail struct {
-	Message string `json:"message"`
-	Kind    string `json:"kind"`
-}
+// Aliased to the shared cqrshtmx.ToastDetail so the wire shape is identical to
+// dashboardui's.
+type toastDetail = cqrshtmx.ToastDetail
 
 // triggerToast queues a toast on the client by setting the HX-Trigger header.
 // kind is "" (default), "ok", or "err".

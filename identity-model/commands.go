@@ -60,18 +60,13 @@ func NewChangeDisplayNameCmd(aggID id.StreamID, displayName string) *ChangeDispl
 func (c *ChangeDisplayNameCmd) DisplayName() string { return c.displayName }
 
 type DeleteUserCmd struct {
-	*command.BasicCommand
-	reason string
+	reasonedCommand
 }
 
 func NewDeleteUserCmd(aggID id.StreamID, reason string) *DeleteUserCmd {
-	return &DeleteUserCmd{
-		BasicCommand: mustCommand(CmdDeleteUser, aggID),
-		reason:       reason,
-	}
+	return &DeleteUserCmd{reasonedCommand: newReasonedCommand(CmdDeleteUser, aggID, reason)}
 }
 
-func (c *DeleteUserCmd) Reason() string { return c.reason }
 
 type AddCredentialCmd struct {
 	*command.BasicCommand
@@ -252,18 +247,13 @@ func (c *CreateTenantCmd) Name() string        { return c.name }
 func (c *CreateTenantCmd) DisplayName() string { return c.displayName }
 
 type SuspendTenantCmd struct {
-	*command.BasicCommand
-	reason string
+	reasonedCommand
 }
 
 func NewSuspendTenantCmd(aggID id.StreamID, reason string) *SuspendTenantCmd {
-	return &SuspendTenantCmd{
-		BasicCommand: mustCommand(CmdSuspendTenant, aggID),
-		reason:       reason,
-	}
+	return &SuspendTenantCmd{reasonedCommand: newReasonedCommand(CmdSuspendTenant, aggID, reason)}
 }
 
-func (c *SuspendTenantCmd) Reason() string { return c.reason }
 
 type ReactivateTenantCmd struct {
 	*command.BasicCommand
@@ -276,18 +266,13 @@ func NewReactivateTenantCmd(aggID id.StreamID) *ReactivateTenantCmd {
 }
 
 type DeleteTenantCmd struct {
-	*command.BasicCommand
-	reason string
+	reasonedCommand
 }
 
 func NewDeleteTenantCmd(aggID id.StreamID, reason string) *DeleteTenantCmd {
-	return &DeleteTenantCmd{
-		BasicCommand: mustCommand(CmdDeleteTenant, aggID),
-		reason:       reason,
-	}
+	return &DeleteTenantCmd{reasonedCommand: newReasonedCommand(CmdDeleteTenant, aggID, reason)}
 }
 
-func (c *DeleteTenantCmd) Reason() string { return c.reason }
 
 // --- Bot commands ---
 
@@ -317,18 +302,33 @@ func (c *RegisterBotCmd) TokenHash() []byte { return c.tokenHash }
 func (c *RegisterBotCmd) Scopes() []string  { return c.scopes }
 
 type DeleteBotCmd struct {
+	reasonedCommand
+}
+
+func NewDeleteBotCmd(aggID id.StreamID, reason string) *DeleteBotCmd {
+	return &DeleteBotCmd{reasonedCommand: newReasonedCommand(CmdDeleteBot, aggID, reason)}
+}
+
+
+// reasonedCommand is the shared base for commands that carry a human-readable
+// reason (deletions, suspensions). Embedding it gives the command the standard
+// *command.BasicCommand embedding plus a Reason() accessor, so each concrete
+// command only declares its type and constructor.
+type reasonedCommand struct {
 	*command.BasicCommand
 	reason string
 }
 
-func NewDeleteBotCmd(aggID id.StreamID, reason string) *DeleteBotCmd {
-	return &DeleteBotCmd{
-		BasicCommand: mustCommand(CmdDeleteBot, aggID),
+// Reason returns the human-readable rationale supplied with the command.
+func (c *reasonedCommand) Reason() string { return c.reason }
+
+// newReasonedCommand builds the shared base for a reason-carrying command.
+func newReasonedCommand(cmdType command.Type, aggID id.StreamID, reason string) reasonedCommand {
+	return reasonedCommand{
+		BasicCommand: mustCommand(cmdType, aggID),
 		reason:       reason,
 	}
 }
-
-func (c *DeleteBotCmd) Reason() string { return c.reason }
 
 // mustCommand creates a BasicCommand, panicking on error.
 func mustCommand(cmdType command.Type, aggID id.StreamID) *command.BasicCommand {
