@@ -60,11 +60,18 @@ func marshalWebAuthnUser(user *User) ([]byte, error) {
 // maxWebAuthnBodySize limits the authenticator response body to prevent abuse.
 const maxWebAuthnBodySize = 1 << 20 // 1 MB
 
-// BeginRegistrationResponse contains the credential creation options to send to the client.
-type BeginRegistrationResponse struct {
+// webauthnBeginResponse is the shared shape returned by both WebAuthn begin
+// ceremonies (registration and login): the JSON options to send to the client
+// and the server-side session key. The two ceremonies expose it under
+// distinct public names (BeginRegistrationResponse / BeginLoginResponse) for
+// API clarity, but the wire shape is identical, so it is defined once here.
+type webauthnBeginResponse struct {
 	Options    jsontext.Value `json:"options"`
 	SessionKey string         `json:"session_key"`
 }
+
+// BeginRegistrationResponse contains the credential creation options to send to the client.
+type BeginRegistrationResponse = webauthnBeginResponse
 
 // BeginRegistration starts the WebAuthn credential registration ceremony.
 // The returned options must be sent to the client, which uses the browser
@@ -168,10 +175,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 }
 
 // BeginLoginResponse contains the assertion options to send to the client.
-type BeginLoginResponse struct {
-	Options    jsontext.Value `json:"options"`
-	SessionKey string         `json:"session_key"`
-}
+type BeginLoginResponse = webauthnBeginResponse
 
 // BeginLogin starts the WebAuthn login ceremony.
 // The user is looked up by email. The returned options must be sent to

@@ -296,17 +296,24 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 
 // ===== Aggregate Browser =====
 
+// listStreams returns the first page of stream listings for the index pages
+// (aggregates, time-travel, snapshots). When no StreamReader is configured or
+// the lookup fails it returns nil so the page renders an empty state.
+func (d *Dashboard) listStreams(r *http.Request) []listing.StreamListing {
+	if d.cfg.StreamReader == nil {
+		return nil
+	}
+	page, err := d.cfg.StreamReader.List(r.Context(), listing.ListOptions{Limit: uint(d.cfg.PageSize)})
+	if err != nil || page == nil {
+		return nil
+	}
+	return page.Items
+}
+
 func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Aggregates", "/aggregates", r)
 
-	var listings []listing.StreamListing
-
-	if d.cfg.StreamReader != nil {
-		page, err := d.cfg.StreamReader.List(r.Context(), listing.ListOptions{Limit: uint(d.cfg.PageSize)})
-		if err == nil && page != nil {
-			listings = page.Items
-		}
-	}
+	listings := d.listStreams(r)
 
 	html := d.renderAggregates(p, listings)
 	renderPage(w, r, html)
@@ -812,14 +819,7 @@ func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery) s
 func (d *Dashboard) timeTravelIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Time Travel", "/time-travel", r)
 
-	var listings []listing.StreamListing
-
-	if d.cfg.StreamReader != nil {
-		page, err := d.cfg.StreamReader.List(r.Context(), listing.ListOptions{Limit: uint(d.cfg.PageSize)})
-		if err == nil && page != nil {
-			listings = page.Items
-		}
-	}
+	listings := d.listStreams(r)
 
 	html := d.renderTimeTravelIndex(p, listings)
 	renderPage(w, r, html)
@@ -985,14 +985,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 func (d *Dashboard) snapshotsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Snapshots", "/snapshots", r)
 
-	var listings []listing.StreamListing
-
-	if d.cfg.StreamReader != nil {
-		page, err := d.cfg.StreamReader.List(r.Context(), listing.ListOptions{Limit: uint(d.cfg.PageSize)})
-		if err == nil && page != nil {
-			listings = page.Items
-		}
-	}
+	listings := d.listStreams(r)
 
 	html := d.renderSnapshotsIndex(p, listings)
 	renderPage(w, r, html)
