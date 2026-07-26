@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- **Dedicated `carrierStatus` regression coverage** (`carrier_status_internal_test.go`, `errors_model_test.go`): an internal unit test for `carrierStatus` (nil, plain error, zero-status skip, valid/out-of-range status, chain-walk past a zero carrier to a deeper override, and the real `errorfamily.Rejection` trigger) plus public `MapError` family-default tests pinning the full matrix (Rejection→400, Conflict→409, Transient→503, Infrastructure→503, Corruption→500), a wrapped-Rejection case, and an explicit-override-wins case. Locks down the v4.5.0 fix so the go-error-family v0.8.0 regression (every errorfamily error short-circuiting to 500) cannot return silently.
 
 ## [v4.6.0] - 2026-07-26
 
