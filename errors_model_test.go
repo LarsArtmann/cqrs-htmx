@@ -3,6 +3,7 @@ package cqrshtmx_test
 import (
 	"encoding/json/v2"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -40,6 +41,64 @@ func TestWithHTTPStatus_PreservesFamily(t *testing.T) {
 	wrapped := cqrshtmx.WithHTTPStatus(cqrshtmx.ErrValidationFailed, http.StatusNotFound)
 	if errorfamily.Classify(wrapped) != event.Rejection {
 		t.Error("WithHTTPStatus must preserve the wrapped error's family")
+	}
+}
+
+// TestMapError_FamilyDefaults pins the family -> HTTP status contract that the
+// carrierStatus zero-status fix restores. Before the fix, go-error-family
+// v0.8.0 made every *errorfamily.Error satisfy HTTPStatusCarrier (returning 0
+// when unset), so MapError short-circuited to 500 for ALL families. With the
+// fix, a zero carrier status means "not set" and the family default wins.
+//
+// Note: the Infrastructure family maps to 503 (Service Unavailable) upstream in
+// go-error-family, not 500; this is the family default cqrs-htmx defers to.
+func TestMapError_FamilyDefaults(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name string
+		err  error
+		want int
+	}{
+		{"Rejection -> 400", errorfamily.NewRejection("bad_input", "email is required"), http.StatusBadRequest},
+		{"Conflict -> 409", errorfamily.NewConflict("email_taken", "email already registered"), http.StatusConflict},
+		{"Transient -> 503", errorfamily.NewTransient("db_down", "database unavailable"), http.StatusServiceUnavailable},
+		{"Infrastructure -> 503", errorfamily.NewInfrastructure("store_nil", "event store is nil"), http.StatusServiceUnavailable},
+		{"Corruption -> 500", errorfamily.NewCorruption("decode_nil", "decoder returned nil"), http.StatusInternalServerError},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			if got := cqrshtmx.MapError(tc.err); got != tc.want {
+				t.Errorf("MapError(%v) = %d, want %d", tc.err, got, tc.want)
+			}
+		})
+	}
+}
+
+// TestMapError_WrappedRejectionStillMapsTo400 ensures a Rejection that has been
+// wrapped as it propagates (the common real-world shape) still resolves to 400,
+// not 500. This exercises the carrierStatus chain-walk past the zero-status
+// errorfamily carrier down to the family default.
+func TestMapError_WrappedRejectionStillMapsTo400(t *testing.T) {
+	t.Parallel()
+
+	err := fmt.Errorf("create user: %w", errorfamily.NewRejection("bad_input", "email is required"))
+	if got := cqrshtmx.MapError(err); got != http.StatusBadRequest {
+		t.Errorf("MapError(wrapped Rejection) = %d, want %d", got, http.StatusBadRequest)
+	}
+}
+
+// TestMapError_ExplicitOverrideBeatsFamily is the regression complement to the
+// zero-status fix: a non-zero HTTPStatus override must still win over the
+// family default. The fix must not break explicit overrides.
+func TestMapError_ExplicitOverrideBeatsFamily(t *testing.T) {
+	t.Parallel()
+
+	// A Rejection (family default 400) surfaced as 404 via an explicit carrier.
+	err := cqrshtmx.WithHTTPStatus(errorfamily.NewRejection("not_found", "user not found"), http.StatusNotFound)
+	if got := cqrshtmx.MapError(err); got != http.StatusNotFound {
+		t.Errorf("MapError(overridden Rejection) = %d, want %d", got, http.StatusNotFound)
 	}
 }
 

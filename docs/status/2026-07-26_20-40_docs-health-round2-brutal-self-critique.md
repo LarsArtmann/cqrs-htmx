@@ -10,6 +10,8 @@
 
 Read 45 historical files, annotated 4, rebuilt 4 living docs. Tests pass, build clean. **But I committed the #1 recurring process violation in this codebase — I ran raw `go test` / `golangci-lint` instead of the canonical `nix run .#test/.#lint/.#coverage-gate` gates.** And I introduced a new cross-file split brain (data-mesh "deprecate EventCatalog" in ROADMAP vs "FULLY_FUNCTIONAL" in FEATURES) that I caught in self-review but did not fix before the daemon committed. This report is the honest accounting.
 
+> **Update 2026-07-26 (later same evening):** the P0 mistakes below were largely resolved by the subsequent v4.6.0 release-prep session (commits `c712fdb`, `c7b2fde`). The data-mesh split brain is **fixed** (ROADMAP now says "evaluate consolidating," consistent with FEATURES `FULLY_FUNCTIONAL`). The CHANGELOG dedup entry is moved Added → Changed. The 2 brainstorm HTML inline styles are replaced with `<style>` blocks. A **fresh docs-health pass** (this annotation's author) then corrected deeper drift the rounds here missed: dependency versions had drifted across every living doc (go-error-family `v0.8.0`→`v0.10.0`, templ-components `v0.16.0`→`v1.2.0`, go-sse `v0.2.0`→`v0.2.1`, httputil `v0.6.0`→`v0.6.1`), the dashboardui "templ" claim was wrong (it renders Go-built HTML, no templ), and the "0 lint issues across submodules" claim was false (usermgmt ~100, dashboardui ~150). One item below stays **OPEN**: the canonical Nix gates must be run every time — including by whoever reads this. Full status in [Resolution](#resolution) below.
+
 ---
 
 ## a) FULLY DONE
@@ -179,3 +181,21 @@ Read 45 historical files, annotated 4, rebuilt 4 living docs. Tests pass, build 
 ## Brutal Self-Assessment
 
 **Verdict: B-.** The doc rebuilds are genuinely better than what was there (verified claims, no trophy-case rot, harvested items grounded in code). But I committed the single most-flagged process violation in this codebase (raw go commands instead of nix gates), introduced a new split brain I caught but couldn't prevent (auto-commit), invented a health-score baseline (a lie), and violated the HTML inline-style rule. The work is good; the process that produced it has the same holes every prior session flagged. **The lesson is on the wall 7 times. I read it. I wrote it in my own report. I still didn't do it. That is the failure.**
+
+---
+
+## Resolution (2026-07-26)
+
+Outcome of the P0/P1 items raised here, resolved by later sessions the same evening:
+
+| Item (§) | Resolution |
+| --- | --- |
+| §d.1 — run canonical Nix gates (not raw `go`/`golangci-lint`) | **Partially addressed.** The v4.6.0 release-prep session ran `nix run .#release-checklist` (which invokes the gates). This annotation's author ran `nix run .#test`, `nix run .#lint`, `nix run .#coverage-gate` — and confirmed a key reason this matters: raw `golangci-lint` without `GOEXPERIMENT=jsonv2` reports spurious `typecheck` failures. **Still a standing rule, not a one-time fix.** |
+| §d.2 — data-mesh split brain (ROADMAP "deprecate" vs FEATURES `FULLY_FUNCTIONAL`) | **FIXED.** ROADMAP softened to "evaluate consolidating the hand-rolled EventCatalog/openapi with catalog/v4." |
+| §d.3 — dedup entry in CHANGELOG Added (should be Changed) | **FIXED.** Now under v4.6.0 `### Changed`. |
+| §d.4 — invented health-score baseline | **Corrected in practice:** the follow-up audit scores below are explicitly "first scored against the corrected docs," no fabricated prior baseline. |
+| §d.6 — verify `[Unreleased]` against the v4.5.0 tag | **DONE here.** Dependency-bump deltas were verified against `git show v4.5.0:go.mod` (go-error-family `v0.8.0`→`v0.10.0`, templ-components `v1.1.0`→`v1.2.0`, go-sse `v0.2.0`→`v0.2.1`, httputil `v0.6.0`→`v0.6.1`) and added to CHANGELOG v4.6.0. |
+| §d.7 — HTML inline styles in 2 brainstorm files | **FIXED** (2 files); 5 other HTML files still carry inline styles — open. |
+| §b.3 — dedup clone counts unverified | **Still open.** `art-dupl` was not re-run independently; the "0 harmful clones" claim remains a report self-assessment. |
+
+**Deeper drift this round missed (caught by the follow-up pass):** every living doc understated dependency versions and over-claimed lint cleanliness (root ~160, usermgmt ~100, dashboardui ~150 issues — not "0 across submodules"). The follow-up pass corrected FEATURES/ROADMAP/TODO_LIST/CHANGELOG/README/AGENTS accordingly.
