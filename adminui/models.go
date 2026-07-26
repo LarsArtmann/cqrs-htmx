@@ -94,7 +94,7 @@ type memberRow struct {
 }
 
 // toMemberRows converts a membership slice to display rows.
-func toMemberRows(memberships []usermgmt.Membership) []memberRow {
+func toMemberRows(memberships []*usermgmt.Membership) []memberRow {
 	members := make([]memberRow, 0, len(memberships))
 	for _, m := range memberships {
 		members = append(members, memberRow{Actor: m.ActorID, Roles: m.Roles})
