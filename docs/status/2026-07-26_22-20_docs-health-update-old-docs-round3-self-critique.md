@@ -14,6 +14,8 @@ Found and fixed real, deep drift the prior two docs-health rounds missed: **ever
 
 **But I certified "0 ErrorFamily violations" without running `nix run .#errorfamily`.** When I finally ran it (for this report), it lists **11 informational violations** of the AGENTS.md `errors.New`/`fmt.Errorf` ban across root + dashboardui + usermgmt. The gate exits 0 (passes), so the "0" claim is defensible-by-exit-code — but it is misleading-by-content, and I made the claim **without verifying**, which is the exact failure mode both skills exist to prevent. I also skipped `nix run .#check-docs-freshness`, per-module CHANGELOG verification, `docs/DOMAIN_LANGUAGE.md` freshness, and a thorough README walkthrough. My 9.5/9.5 health scores were **premature** — I scored before finishing the audit.
 
+> **Update 2026-07-27 (commit `15c27c3`):** the 11 ErrorFamily violations flagged here were **FIXED** — all `fmt.Errorf`/`errors.New` calls in non-test code were migrated to `errorfamily` constructors. `nix run .#errorfamily` now reports 0 violations across all modules. The `Dashboard.Close()` event-bus leak (§b.10, harvested as TODO_LIST P1) was **also fixed** (done-channel + `sync.Once`). `nix run .#check-docs-freshness` and `nix flake check` now **PASS**. The premature 9.5/9.5 score concern is addressed by this annotation's Resolution below. Full item-by-item status in [Resolution](#resolution-2026-07-27) below.
+
 ---
 
 ## a) FULLY DONE ✓
@@ -240,3 +242,24 @@ Ranked roughly by impact.
 **Verdict: B.** The doc fixes are genuinely valuable — the version drift and the dashboardui-templ lie were real, deep, caught-by-ground-truthing findings that two prior rounds missed. The harvest was disciplined (verified against code, not dumped). The snapshot annotations follow the skill. The canonical gates were run (5 of 6).
 
 **But:** I certified "ErrorFamily: 0" without running the gate — the foundational mistake of docs-health. I scored the audit 9.5/9.5 before finishing it. I skipped `check-docs-freshness`, per-module CHANGELOGs, DOMAIN_LANGUAGE, and a real README walkthrough. The audit was an AUDIT-of-the-4-named-docs, not an AUDIT-of-the-documentation-model. The work I did is good; the claim that it was "complete" or "superb" was not. **The lesson is the same one on the wall 8 times now: verify every claim against code, every time — including the claims you are re-stating, not just the ones you are writing fresh. I read it. I wrote it in my own report. I still certified a number I had not measured. That is the failure.**
+
+---
+
+## Resolution (2026-07-27)
+
+Outcome of the P0–P2 items raised here, resolved by a later session:
+
+| Item (§) | Resolution |
+| -------- | ---------- |
+| §d.1 / §b.2 — "0 ErrorFamily" claim unverified; 11 violations exist | **FIXED** (`15c27c3`). All 11 `fmt.Errorf`/`errors.New` calls in non-test code migrated to `errorfamily` constructors (`WrapInfrastructure`, `WrapCorruption`, `Newf`, `NewConflict`). `nix run .#errorfamily` now reports 0 violations across all modules. The ROADMAP "ErrorFamily: 0 violations across all modules" claim is now **true**, not just gate-green. |
+| §b.9 — 11 ErrorFamily violations not fixed | **FIXED** — same commit. 3 in root `event_store_sse.go`, 7 in dashboardui (`handlers.go`, `payload.go`), 1 in `usermgmt/store.go`. |
+| §b.10 / §f.13 — `Dashboard.Close()` event-bus leak not fixed | **FIXED** (`15c27c3`). `Close()` now signals a `done` channel that makes the event-bus handler a no-op before closing the broadcaster. Uses `sync.Once` for idempotent shutdown. The `event.Bus` still lacks `UnsubscribeAll` (tracked in ROADMAP Upstream table), but the handler is now inert. |
+| §c.1 — `nix run .#errorfamily` never run | **DONE** — passes (0 violations). |
+| §c.2 — `nix run .#check-docs-freshness` never run | **DONE** — passes. Only findings: legacy `fmt.Errorf` references in archived (pre-v4) status reports under `docs/status/archive/`, which are historical. |
+| §c.3 — `nix run .#check-modules` | **RAN** — fails on adminui/loginpage/integration_test (expected lockstep pre-tag cascade; resolves when v4.6.0 is tagged). |
+| §c.6 — `docs/DOMAIN_LANGUAGE.md` freshness | **DONE** — verified fresh. Contains all post-v4.5.0 terms (DashboardUI, HTMXRedirect, SafeRedirectPath, JournalSSEStore, SSE Reconnect, SnapshotConfig). |
+| §c.7 — README.md freshness | **DONE** — version table correct (go-cqrs-lite v4.1.0, go-error-family v0.10.0, go-sse v0.2.1, httputil v0.6.1, templ-components v1.2.0). |
+| §c.9 — `docs/adr/INDEX.md` | **DONE** — ADR-0044 is the latest. |
+| §c.4 — per-module CHANGELOGs stale | **Partial.** usermgmt/adminui/dashboardui have `[v4.6.0]` entries. The 3 auth sub-modules (totp/webauthn/oauth2) were still stuck at `[v4.0.2]` — updated in this session. `loginpage` and `identity-model` still have no CHANGELOG.md (policy decision deferred). |
+| §c.10 — `art-dupl` independently verify "0 harmful clones" | **Still open.** `art-dupl` was not re-run. The "harmful clones → 0" claim remains a report self-assessment, not an independently audited number. |
+| §d.4 — lint counts approximate | **Partially addressed.** Docs now cite uncapped counts (~610 root / ~330 usermgmt / ~150 dashboardui) with a recompute command. The `nix run .#lint` wrapper still caps at 50/linter. |
