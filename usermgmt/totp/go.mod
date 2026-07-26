@@ -1,9 +1,9 @@
 module github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4
 
-go 1.26.4
+go 1.26.5
 
 require (
-	github.com/larsartmann/go-error-family v0.9.0
+	github.com/larsartmann/go-error-family v0.10.0
 	github.com/pquerna/otp v1.5.0
 )
 

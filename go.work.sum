@@ -49,12 +49,6 @@ github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfn
 github.com/kr/pty v1.1.1 h1:VkoXIwSboBpnk99O/KFauAEILuNHv5DVFKZMBN/gUgw=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/larsartmann/cqrs-htmx/adminui/v4 v4.5.0/go.mod h1:XrhfQMNt6Sv4yfTpCN3gTM8QkQ3ZXsXGWwHrbu8DkgE=
-github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.0/go.mod h1:G+o05BKKPAHKPd1WdmcmQeREynBKxkOLtpTbSGo1Oio=
-github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.5.0/go.mod h1:z2rqebMUsItLmajnEL1RHaSGb5o81V0yZDQWG5lPgP8=
-github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.5.0/go.mod h1:jTnqPwR5KucrvPjIQLmewLYDkEVl55rheni3Sj6nZ0c=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.5.0/go.mod h1:QGZD4mYdHA9PFjNdVduTAMiqunrdzDqyYY/t3zzuxuo=
-github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.5.0/go.mod h1:pb927G9HPrMwXw/CeNa8JyPVkr3Gsw4Yh4vxXeVYbiM=
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0 h1:YJ49k6SM93hrBjRw6QbvbalbD7l0dDZ4tYXL2iZHe08=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0/go.mod h1:50woocxkEaz+2Pm8m53KKsNOIU+7bDvTx43LydVgOeQ=
@@ -96,8 +90,7 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0/go.mod h1:fVSYaW6Wd
 github.com/larsartmann/go-cqrs-lite/testutil/v3 v3.7.3/go.mod h1:bGjPnEzcOqf+6tuAjbps4mr/RNdeEZ/ym82HMEiPNn4=
 github.com/larsartmann/go-error-family v0.3.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
 github.com/larsartmann/go-error-family v0.7.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
-github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
-github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
+github.com/larsartmann/go-error-family v0.9.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
 github.com/larsartmann/go-error-family/diagnose v0.1.0/go.mod h1:yjLhP+5go9A50hbzaidbviaTkejBNValDufSLekBAx4=
 github.com/larsartmann/httputil v0.1.0 h1:SFk6OSXhZqdmDNjlFKpfqP6S7WCBIoujEzNmxz3fgEY=
 github.com/larsartmann/httputil v0.1.0/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
