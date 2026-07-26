@@ -31,12 +31,18 @@ func EventCatalogHandler(catalog *EventCatalog) (http.HandlerFunc, error) {
 			"serialize event catalog")
 	}
 
-	server := &immutableJSONServer{
+	return newImmutableJSONHandler(data), nil
+}
+
+// newImmutableJSONHandler wraps pre-serialized JSON bytes in an
+// immutableJSONServer and returns its serve method. Shared by
+// EventCatalogHandler and OpenAPISpecHandler so the ETag + server construction
+// lives in exactly one place.
+func newImmutableJSONHandler(data []byte) http.HandlerFunc {
+	return (&immutableJSONServer{
 		etag:    `"` + hashTag(data) + `"`,
 		marshal: data,
-	}
-
-	return server.serve, nil
+	}).serve
 }
 
 // immutableJSONServer holds eagerly-serialized JSON bytes and their ETag. Both
