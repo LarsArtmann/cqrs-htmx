@@ -36,13 +36,13 @@ _Focus: Adopting go-cqrs-lite capabilities to reduce hand-rolled code._
 
 Research and a proposal (`docs/research/2026-07-25_*`, `docs/proposals/2026-07-25_data-mesh-interchange.md`) concluded that cqrs-htmx should **not** build a data-mesh interchange from scratch — go-cqrs-lite `catalog/v4` already provides the documentation layer (DataProduct / Channel / Message / exporters / docserver). The proposal's recommendation is **Approach C + D**: gradually deprecate the hand-rolled `EventCatalog`/`openapi/` in favor of `catalog/v4`, plus build the three genuinely missing runtime pieces:
 
-| Gap | What | Effort |
-| --- | ---- | ------ |
-| 1. Channel-to-runtime binding | Connect `catalog.Channel` (docs) to `event.Bus`/`StreamingJournal` (runtime) | ~50 LOC |
-| 2. CloudEvents envelope | Standardized event envelope for cross-system interchange | ~30 LOC |
-| 3. Pull-based machine transport | `GET /events?after=<id>` → JSON/NDJSON stream | ~100 LOC |
+| Gap                             | What                                                                         | Effort   |
+| ------------------------------- | ---------------------------------------------------------------------------- | -------- |
+| 1. Channel-to-runtime binding   | Connect `catalog.Channel` (docs) to `event.Bus`/`StreamingJournal` (runtime) | ~50 LOC  |
+| 2. CloudEvents envelope         | Standardized event envelope for cross-system interchange                     | ~30 LOC  |
+| 3. Pull-based machine transport | `GET /events?after=<id>` → JSON/NDJSON stream                                | ~100 LOC |
 
-**Status:** under consideration. No code written. The strategic angle (per the landscape research): event sourcing *structurally prevents* the data-discovery problems DataHub/OpenMetadata/ODDS exist to solve, so time-travel + the catalog are a stronger positioning than a bespoke mesh product. Not yet committed to a release.
+**Status:** under consideration. No code written. The strategic angle (per the landscape research): event sourcing _structurally prevents_ the data-discovery problems DataHub/OpenMetadata/ODDS exist to solve, so time-travel + the catalog are a stronger positioning than a bespoke mesh product. Not yet committed to a release.
 
 ---
 
