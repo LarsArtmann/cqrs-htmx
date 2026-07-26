@@ -21,6 +21,7 @@ func TestDashboard_SSEReconnectReplay(t *testing.T) {
 	// Seed 3 events to the journal.
 	aggID := id.NewAggregateID()
 	ref := id.NewStreamRef("Order", aggID)
+
 	events := make([]event.Event, 3)
 	for i := range events {
 		evt, err := event.New(
@@ -67,6 +68,7 @@ func TestDashboard_SSEReconnectReplay(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
+
 	go func() {
 		d.sseHandler(rec, req)
 		close(done)
@@ -120,6 +122,7 @@ func TestDashboard_SSEInitialBackfill(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
+
 	go func() {
 		d.sseHandler(rec, req)
 		close(done)
@@ -165,6 +168,7 @@ func TestDashboard_SSEHeartbeatEmission(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
+
 	go func() {
 		d.sseHandler(rec, req)
 		close(done)
@@ -179,7 +183,8 @@ func TestDashboard_SSEHeartbeatEmission(t *testing.T) {
 
 	// Heartbeat is a comment frame (line starting with ":").
 	heartbeatCount := 0
-	for _, line := range strings.Split(body, "\n") {
+
+	for line := range strings.SplitSeq(body, "\n") {
 		if strings.HasPrefix(line, ":") {
 			heartbeatCount++
 		}
