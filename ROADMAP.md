@@ -5,7 +5,7 @@
 > For what exists today, see [FEATURES.md](FEATURES.md).
 > For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-07-26 | **Version:** v4.5.0 (go-cqrs-lite v4.0.x; see AGENTS.md for per-sub-module versions)
+**Updated:** 2026-07-26 | **Version:** v4.6.0 (go-cqrs-lite v4.1.0; see AGENTS.md for per-sub-module versions)
 
 ## Current State
 
