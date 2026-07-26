@@ -209,3 +209,11 @@ Currently `handleDeadCommand` sets `data-sync-state="rejected"` (same as server 
 ### Q3: Do you want me to set up a Playwright E2E test suite for the offline sync, or is the "unit-test-verified protocol, not browser-tested" status acceptable for now?
 
 This is the #1 open item across every status report since Phase 2a shipped. Setting up Playwright requires: a test server binary (Go), a browser runner, and CI integration. It's a significant investment (estimated 4-8 hours). The alternative is adding an explicit "untested in browser" caveat to `adminui/README.md` and deferring until a consumer requests it.
+
+---
+
+## Resolution (2026-07-26, v4.5.0)
+
+The hardening described here shipped, then the entire sync stack was **extracted from `adminui/` into the root module** in two follow-up sessions (`docs/status/2026-07-22_18-02`, `2026-07-22_18-21`). `adminui/assets/sync-worker.js` — the file this report hardens — **no longer exists**; it lives at `sync/sync-worker.js` in the root module and is served via `cqrshtmx.SyncWorkerHandler()` / `SyncClientHandler()`. adminui now delegates. See ADR-0042 and CHANGELOG [v4.5.0].
+
+**Still open:** browser E2E testing (Playwright) remains the #1 deferred item — tracked in TODO_LIST.md (P3). The dead-command visual state question (Q2) was resolved by keeping `data-sync-state="rejected"` for dead commands.
