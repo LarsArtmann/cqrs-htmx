@@ -3,13 +3,10 @@
 package usermgmt
 
 import (
-	"context"
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
-	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	stackpostgres "github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	sqlopt "github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
@@ -79,7 +76,7 @@ func newPostgresSetup(
 
 	return &PostgresEventSourcedSetup{
 		eventSourcedSetupCore: eventSourcedSetupCore{
-			backendName: "postgres",
+			backendName:          "postgres",
 			UserRepository:       repos.User,
 			MembershipRepository: repos.Membership,
 			TenantRepository:     repos.Tenant,

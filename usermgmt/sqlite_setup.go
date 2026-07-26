@@ -3,13 +3,10 @@
 package usermgmt
 
 import (
-	"context"
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
-	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	stacksqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	sqlopt "github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
@@ -81,7 +78,7 @@ func newSQLiteSetup(
 
 	return &SQLiteEventSourcedSetup{
 		eventSourcedSetupCore: eventSourcedSetupCore{
-			backendName: "sqlite",
+			backendName:          "sqlite",
 			UserRepository:       repos.User,
 			MembershipRepository: repos.Membership,
 			TenantRepository:     repos.Tenant,
