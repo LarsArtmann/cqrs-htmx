@@ -57,6 +57,11 @@ type userData struct {
 
 // credentialData mirrors the credentialCore struct in core usermgmt.
 // The Name field is omitted — the Service adds it after FinishRegistration.
+//
+// INTENTIONAL DUPLICATION (Sollbruchstelle seam): this auth-strategy module must
+// NOT import core usermgmt (see AGENTS.md dependency direction), so it keeps a
+// private copy of the JSON wire shape. The two structs are kept in sync by the
+// JSON tags, which are the actual contract between the two modules.
 type credentialData struct {
 	ID              []byte   `json:"id"`
 	PublicKey       []byte   `json:"public_key"`
