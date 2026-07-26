@@ -14,10 +14,7 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *use
 		tenant = t
 	}
 	memberships := h.cfg.Service.TenantMembers(r.Context(), h.cfg.TenantID)
-	members := make([]memberRow, 0, len(memberships))
-	for _, m := range memberships {
-		members = append(members, memberRow{Actor: m.ActorID, Roles: m.Roles})
-	}
+	members := toMemberRows(memberships)
 	memberBase := h.cfg.BasePath + "/members"
 	p := h.page("Members", "/members", user, r)
 	renderPage(w, r, membersPage(p, tenantDetailData{
@@ -48,10 +45,15 @@ func (h *Handler) tenantAddMember(w http.ResponseWriter, r *http.Request, _ *use
 	h.doAddMember(w, r, tenantID, h.cfg.BasePath+"/tenants/"+tenantID.Get())
 }
 
+// parseTenantMemberPath extracts the tenant ID and actor ID from path values.
+// Used by super-admin member handlers that take both from the URL.
+func parseTenantMemberPath(r *http.Request) (usermgmt.TenantID, usermgmt.ActorID) {
+	return usermgmt.NewTenantID(r.PathValue("id")), usermgmt.ParseActorID(r.PathValue("actor"))
+}
+
 // tenantRemoveMember handles "remove member" in super-admin mode.
 func (h *Handler) tenantRemoveMember(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	tenantID := usermgmt.NewTenantID(r.PathValue("id"))
-	actor := usermgmt.ParseActorID(r.PathValue("actor"))
+	tenantID, actor := parseTenantMemberPath(r)
 	h.doRemoveMember(w, r, tenantID, actor, h.cfg.BasePath+"/tenants/"+tenantID.Get())
 }
 
@@ -109,8 +111,7 @@ func (h *Handler) membersUpdateRole(w http.ResponseWriter, r *http.Request, _ *u
 
 // tenantUpdateMemberRole handles "change role" in super-admin mode.
 func (h *Handler) tenantUpdateMemberRole(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	tenantID := usermgmt.NewTenantID(r.PathValue("id"))
-	actor := usermgmt.ParseActorID(r.PathValue("actor"))
+	tenantID, actor := parseTenantMemberPath(r)
 	h.doUpdateRole(w, r, tenantID, actor, h.cfg.BasePath+"/tenants/"+tenantID.Get())
 }
 

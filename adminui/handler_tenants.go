@@ -56,10 +56,7 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *use
 		return
 	}
 	memberships := h.cfg.Service.TenantMembers(r.Context(), tenantID)
-	members := make([]memberRow, 0, len(memberships))
-	for _, m := range memberships {
-		members = append(members, memberRow{Actor: m.ActorID, Roles: m.Roles})
-	}
+	members := toMemberRows(memberships)
 	memberBase := h.cfg.BasePath + "/tenants/" + tenantID.Get() + "/members"
 	p := h.page(tenant.DisplayName, "/tenants", user, r)
 	renderPage(w, r, tenantDetailPage(p, tenantDetailData{
