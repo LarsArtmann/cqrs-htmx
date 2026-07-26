@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.6.0] - 2026-07-26
+
+### Changed
+
+- **Lockstep version bump** with root `cqrs-htmx/v4` v4.6.0 — no code changes in this sub-module; the bump keeps the lockstep release consistent. go-cqrs-lite sub-module version refs aligned to v4.1.0; go-error-family bumped to v0.10.0.
+
 ## [v4.0.2] - 2026-07-08
 
 ### Changed

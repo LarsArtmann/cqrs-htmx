@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.6.0] - 2026-07-26
+
+### Changed
+
+- **Lockstep version bump** with root `cqrs-htmx/v4` v4.6.0. go-cqrs-lite sub-module version refs aligned to v4.1.0; go-error-family bumped to v0.10.0.
+- **Projection health integration** (`provider.go`): the OAuth2 provider now integrates with event-store projection health monitoring for authentication-related projections (commit `2bfee80`).
+
 ## [v4.0.2] - 2026-07-08
 
 ### Changed
