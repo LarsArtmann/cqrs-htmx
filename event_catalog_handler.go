@@ -31,7 +31,7 @@ func EventCatalogHandler(catalog *EventCatalog) (http.HandlerFunc, error) {
 			"serialize event catalog")
 	}
 
-	server := &eventCatalogServer{
+	server := &immutableJSONServer{
 		etag:    `"` + hashTag(data) + `"`,
 		marshal: data,
 	}
@@ -39,7 +39,11 @@ func EventCatalogHandler(catalog *EventCatalog) (http.HandlerFunc, error) {
 	return server.serve, nil
 }
 
-type eventCatalogServer struct {
+// immutableJSONServer holds eagerly-serialized JSON bytes and their ETag. Both
+// fields are set once at construction and never mutated, so serve is safe for
+// concurrent use without synchronization. Shared by EventCatalogHandler and
+// OpenAPISpecHandler.
+type immutableJSONServer struct {
 	etag    string
 	marshal []byte
 }
@@ -58,6 +62,6 @@ func serveImmutableJSON(w http.ResponseWriter, r *http.Request, etag string, dat
 	_, _ = w.Write(data)
 }
 
-func (s *eventCatalogServer) serve(w http.ResponseWriter, r *http.Request) {
+func (s *immutableJSONServer) serve(w http.ResponseWriter, r *http.Request) {
 	serveImmutableJSON(w, r, s.etag, s.marshal)
 }

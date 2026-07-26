@@ -59,24 +59,12 @@ func OpenAPISpecHandler(spec *openapi.Spec) (http.HandlerFunc, error) {
 		return nil, errorfamily.WrapInfrastructure(err, "cqrshtmx.openapi.serialize", "serialize OpenAPI spec")
 	}
 
-	server := &openAPISpecServer{
+	server := &immutableJSONServer{
 		etag:    `"` + hashTag(data) + `"`,
 		marshal: data,
 	}
 
 	return server.serve, nil
-}
-
-// openAPISpecServer holds the eagerly-serialized spec bytes and ETag. Both
-// fields are set once at construction and never mutated, so serve is safe for
-// concurrent use without synchronization.
-type openAPISpecServer struct {
-	etag    string
-	marshal []byte
-}
-
-func (s *openAPISpecServer) serve(w http.ResponseWriter, r *http.Request) {
-	serveImmutableJSON(w, r, s.etag, s.marshal)
 }
 
 // hashTag derives a short, stable cache tag from the spec bytes using the
