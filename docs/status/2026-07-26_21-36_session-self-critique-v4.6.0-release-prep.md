@@ -196,15 +196,15 @@ Ranked by impact.
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Tasks planned | 18 (from planning doc) |
-| Tasks completed | 13 (revised after empirical verification) |
-| Tasks skipped (unnecessary) | 2 (Stream rename — 35+ sites, proven unnecessary) |
-| Tasks deferred to operator | 3 (batch-release, tag, push) |
-| Files changed | ~20 (code + docs + config) |
-| Tests run | 3 modules (root, dashboardui, usermgmt) |
-| Gates passing | 6/11 (5 fail from lockstep cascade) |
-| Time to complete | ~30 minutes |
-| Mistakes caught | 1 major (Stream rename), 2 minor (stale report, lost test scenarios) |
-| Mistakes shipped | 0 blocking, 2 cosmetic (garbage commit message, stale first report) |
+| Metric                      | Value                                                                |
+| --------------------------- | -------------------------------------------------------------------- |
+| Tasks planned               | 18 (from planning doc)                                               |
+| Tasks completed             | 13 (revised after empirical verification)                            |
+| Tasks skipped (unnecessary) | 2 (Stream rename — 35+ sites, proven unnecessary)                    |
+| Tasks deferred to operator  | 3 (batch-release, tag, push)                                         |
+| Files changed               | ~20 (code + docs + config)                                           |
+| Tests run                   | 3 modules (root, dashboardui, usermgmt)                              |
+| Gates passing               | 6/11 (5 fail from lockstep cascade)                                  |
+| Time to complete            | ~30 minutes                                                          |
+| Mistakes caught             | 1 major (Stream rename), 2 minor (stale report, lost test scenarios) |
+| Mistakes shipped            | 0 blocking, 2 cosmetic (garbage commit message, stale first report)  |
