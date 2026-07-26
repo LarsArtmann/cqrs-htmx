@@ -69,6 +69,11 @@ type Config struct {
 // userInfo is the normalized user information extracted from either an OIDC ID
 // token or a UserInfo endpoint response. Serialized to JSON and returned to
 // the Service, which deserializes it into usermgmt.OAuth2UserInfo.
+//
+// INTENTIONAL DUPLICATION (Sollbruchstelle seam): this auth-strategy module
+// must NOT import core usermgmt (see AGENTS.md dependency direction). The JSON
+// tags are the real contract — they are kept identical to OAuth2UserInfo on
+// purpose so the two modules stay decoupled.
 type userInfo struct {
 	Subject       string `json:"subject"`
 	Email         string `json:"email"`

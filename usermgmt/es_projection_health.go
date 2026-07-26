@@ -41,32 +41,7 @@ func (s *EventSourcedSetup) ProjectionStatuses() []cqrshtmx.ProjectionStatusEntr
 // named one is rebuilt. The host lifecycle is managed internally: the old
 // host is stopped and replaced with a new one.
 func (s *EventSourcedSetup) RebuildProjection(ctx context.Context, name string) error {
-	if s.projectionHost == nil {
-		return errorfamily.NewRejection(
-			"usermgmt.rebuild.no_host",
-			"no projection host configured",
-		)
-	}
-
-	if err := s.projectionHost.Stop(); err != nil {
-		return errorfamily.WrapTransient(err,
-			"usermgmt.rebuild.stop_failed",
-			"stop projection host for rebuild",
-		)
-	}
-
-	if err := s.projectionHost.Reset(ctx, name); err != nil {
-		return err
-	}
-
-	host, err := createProjectionHost(ctx, s.Store, s.Bus, s.checkpointStore, s.projections)
-	if err != nil {
-		return err
-	}
-
-	s.projectionHost = host
-
-	return nil
+	return rebuildProjection(ctx, &s.projectionHost, s.Store, s.Bus, s.checkpointStore, s.projections, name)
 }
 
 // --- Service methods ---
@@ -91,30 +66,47 @@ func (svc *Service) ProjectionStatuses() []cqrshtmx.ProjectionStatusEntry {
 // the entire event journal from scratch. Blocks until all projections reach
 // live state (read-your-writes preserved).
 func (svc *Service) RebuildProjection(ctx context.Context, name string) error {
-	if svc.projectionHost == nil {
+	return rebuildProjection(ctx, &svc.projectionHost, svc.store, svc.bus, svc.checkpointStore, svc.projections, name)
+}
+
+// rebuildProjection is the shared body of EventSourcedSetup.RebuildProjection
+// and Service.RebuildProjection. It stops the current host, resets the named
+// projection's checkpoint + read-model, creates a fresh host that replays the
+// entire journal, and stores the new host back through hostPtr. The two
+// receivers differ only in field-name casing, so they delegate here.
+func rebuildProjection(
+	ctx context.Context,
+	hostPtr **projectionhost.Host,
+	store event.Store,
+	bus event.Subscriber,
+	cpStore event.CheckpointStore,
+	projections []projection.Projection,
+	name string,
+) error {
+	if *hostPtr == nil {
 		return errorfamily.NewRejection(
 			"usermgmt.rebuild.no_host",
 			"no projection host configured",
 		)
 	}
 
-	if err := svc.projectionHost.Stop(); err != nil {
+	if err := (*hostPtr).Stop(); err != nil {
 		return errorfamily.WrapTransient(err,
 			"usermgmt.rebuild.stop_failed",
 			"stop projection host for rebuild",
 		)
 	}
 
-	if err := svc.projectionHost.Reset(ctx, name); err != nil {
+	if err := (*hostPtr).Reset(ctx, name); err != nil {
 		return err
 	}
 
-	host, err := createProjectionHost(ctx, svc.store, svc.bus, svc.checkpointStore, svc.projections)
+	host, err := createProjectionHost(ctx, store, bus, cpStore, projections)
 	if err != nil {
 		return err
 	}
 
-	svc.projectionHost = host
+	*hostPtr = host
 
 	return nil
 }
