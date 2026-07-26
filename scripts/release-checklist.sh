@@ -25,7 +25,7 @@ fi
 # 2. go.mod versions match AGENTS.md
 step "Version consistency"
 GO_CQRS_VERSION=$(grep 'go-cqrs-lite' go.mod | head -1 | grep -oP 'v\d+\.\d+\.\d+' || echo "")
-AGENTS_VERSION=$(grep 'go-cqrs-lite v' AGENTS.md | head -1 | grep -oP 'v\d+\.\d+\.\d+' || echo "")
+AGENTS_VERSION=$(grep -oP 'go-cqrs-lite \Kv\d+\.\d+\.\d+' AGENTS.md | head -1 || echo "")
 if [ -n "$GO_CQRS_VERSION" ] && [ -n "$AGENTS_VERSION" ]; then
     if [ "$GO_CQRS_VERSION" = "$AGENTS_VERSION" ]; then
         pass "go-cqrs-lite $GO_CQRS_VERSION matches between go.mod and AGENTS.md"
