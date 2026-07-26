@@ -18,15 +18,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
-func notImplemented(w http.ResponseWriter, panel string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(
-		w,
-		"<div style=\"padding:40px;text-align:center;color:#64748b\"><h2>%s</h2><p>This panel is coming soon.</p></div>",
-		panel,
-	)
-}
-
 func streamRefFromRequest(r *http.Request) (id.StreamRef, error) {
 	return StreamRefFromID(r.PathValue("type"), r.PathValue("id"))
 }

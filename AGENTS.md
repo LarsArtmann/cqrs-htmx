@@ -33,7 +33,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 **Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt. dashboardui → root + usermgmt. Nothing depends on adminui, loginpage, or dashboardui.
 
-**Key dependencies:** go-cqrs-lite v4 (CQRS/event sourcing), casbin/v3 (authz), justinas/nosurf (CSRF), go-error-family (error classification), go-branded-id (typed IDs), go-sse v0.2.0 (SSE/WS broadcaster, stream, replay), a-h/templ (HTML templating), ginkgo/gomega (BDD testing).
+**Key dependencies:** go-cqrs-lite v4.1.0 (CQRS/event sourcing), casbin/v3 (authz), justinas/nosurf (CSRF), go-error-family (error classification), go-branded-id (typed IDs), go-sse v0.2.0 (SSE/WS broadcaster, stream, replay), a-h/templ (HTML templating), ginkgo/gomega (BDD testing).
 
 ## Key Patterns
 
