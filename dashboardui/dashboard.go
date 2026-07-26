@@ -125,6 +125,7 @@ func (d *Dashboard) Close() {
 		if d.done != nil {
 			close(d.done)
 		}
+
 		if d.broadcaster != nil {
 			d.broadcaster.Close()
 		}
