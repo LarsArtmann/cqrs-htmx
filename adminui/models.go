@@ -93,6 +93,15 @@ type memberRow struct {
 	Roles []usermgmt.Role
 }
 
+// toMemberRows converts a membership slice to display rows.
+func toMemberRows(memberships []usermgmt.Membership) []memberRow {
+	members := make([]memberRow, 0, len(memberships))
+	for _, m := range memberships {
+		members = append(members, memberRow{Actor: m.ActorID, Roles: m.Roles})
+	}
+	return members
+}
+
 // auditData drives the audit log page.
 type auditData struct {
 	Entries  []usermgmt.AuditEntry

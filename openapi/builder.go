@@ -122,9 +122,7 @@ func (b *opBuilder) Desc(text string) *opBuilder {
 
 // Description is an alias for Desc for naming consistency with the field.
 func (b *opBuilder) Description(text string) *opBuilder {
-	b.op.Description = text
-
-	return b
+	return b.Desc(text)
 }
 
 // Tag adds a tag to the operation.

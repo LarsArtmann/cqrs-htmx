@@ -3,6 +3,7 @@ package loginpage
 import (
 	"strings"
 
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -16,14 +17,10 @@ func trimTrailingSlash(s string) string {
 	return strings.TrimRight(s, "/")
 }
 
-// safeRedirectPath returns path if it is a safe same-origin redirect target
-// (starts with "/" but not "//"), otherwise "/". This prevents open-redirect
-// attacks from user-controlled input.
+// safeRedirectPath delegates to the shared cqrshtmx.SafeRedirectPath to
+// prevent open-redirect attacks from user-controlled input.
 func safeRedirectPath(path string) string {
-	if path == "" || path[0] != '/' || len(path) > 1 && path[1] == '/' {
-		return "/"
-	}
-	return path
+	return cqrshtmx.SafeRedirectPath(path)
 }
 
 // firstRune returns the first Unicode code point of s as a string, or "?" if

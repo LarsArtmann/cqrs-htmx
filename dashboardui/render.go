@@ -47,12 +47,5 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 }
 
 func redirect(w http.ResponseWriter, r *http.Request, path string) {
-	if cqrshtmx.IsHTMXRequest(r) {
-		w.Header().Set("HX-Redirect", path)
-		w.WriteHeader(http.StatusOK)
-
-		return
-	}
-
-	http.Redirect(w, r, path, http.StatusSeeOther)
+	cqrshtmx.HTMXRedirect(w, r, path)
 }
