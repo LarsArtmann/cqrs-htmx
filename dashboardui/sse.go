@@ -69,6 +69,10 @@ func (d *Dashboard) startEventBridge() {
 
 // sseHandler serves the SSE stream endpoint. Each connected client
 // receives a live feed of events as they are published to the event bus.
+//
+// On reconnection (Last-Event-ID header present), missed events are replayed
+// from the journal before the live feed begins. On first connect, recent
+// history is backfilled so the dashboard shows immediate activity.
 func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 	if d.broadcaster == nil {
 		http.Error(w, "SSE not available (no event bus configured)", http.StatusServiceUnavailable)
@@ -79,10 +83,24 @@ func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 	stream := cqrshtmx.NewSSEStream(w, r)
 	defer func() { _ = stream.Close() }()
 
+	// Subscribe BEFORE replay to avoid missing events during the replay window.
+	// Live events buffer in the channel while replay writes to the stream.
 	ch := d.broadcaster.Subscribe()
 	defer d.broadcaster.Unsubscribe(ch)
 
 	_ = stream.Send(cqrshtmx.SSEEvent{Event: cqrshtmx.SSEEventConnected, Data: "connected"})
+
+	// Replay missed events (reconnect with Last-Event-ID) or backfill recent
+	// history (first connect with empty Last-Event-ID). Events arrive after
+	// "connected" and before the live loop.
+	if d.sseStore != nil {
+		lastID := stream.LastEventID()
+
+		if _, err := cqrshtmx.ReplayEvents(stream, d.sseStore, lastID); err != nil {
+			slog.Warn("dashboardui: SSE replay failed", "error", err, "lastEventID", lastID.Get())
+		}
+	}
+
 	if d.cfg.SSEHeartbeatInterval > 0 {
 		go stream.Heartbeat(stream.Context(), d.cfg.SSEHeartbeatInterval)
 	}

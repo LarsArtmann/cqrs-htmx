@@ -260,6 +260,17 @@ func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
 	return id.NewStreamRef(st, sid), nil
 }
 
+// journalForReplay returns the best available journal for SSE reconnect replay.
+// SeekableJournal is preferred (efficient cursor-based ReadFrom); Journal is the fallback.
+// Returns nil if no journal is configured.
+func (cfg Config) journalForReplay() event.Journal {
+	if cfg.SeekableJournal != nil {
+		return cfg.SeekableJournal // SeekableJournal embeds Journal
+	}
+
+	return cfg.Journal
+}
+
 func trimTrailingSlash(s string) string {
 	for len(s) > 1 && s[len(s)-1] == '/' {
 		s = s[:len(s)-1]

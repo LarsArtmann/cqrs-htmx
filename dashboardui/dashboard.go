@@ -21,6 +21,7 @@ type Dashboard struct {
 	caps        Capabilities
 	nav         []navItem
 	broadcaster *cqrshtmx.Broadcaster
+	sseStore    cqrshtmx.SSEEventStore
 }
 
 // New builds a dashboard from cfg, applying defaults and validating
@@ -43,6 +44,12 @@ func New(cfg Config) (*Dashboard, error) {
 	if caps.EventBus {
 		d.broadcaster = cqrshtmx.NewBroadcaster()
 		d.startEventBridge()
+
+		// Build SSE replay store from the configured journal. Enables reconnect
+		// replay (Last-Event-ID) and initial backfill of recent events.
+		if journal := cfg.journalForReplay(); journal != nil {
+			d.sseStore = cqrshtmx.NewJournalSSEStore(journal, newSSEEvent)
+		}
 	}
 
 	return d, nil
@@ -104,6 +111,15 @@ func (d *Dashboard) Capabilities() Capabilities { return d.caps }
 
 // Config returns the resolved configuration (with defaults applied).
 func (d *Dashboard) Config() Config { return d.cfg }
+
+// Close releases dashboard resources. Safe to call multiple times.
+// Closes the SSE broadcaster, which disconnects all connected SSE clients.
+// Call this during application shutdown.
+func (d *Dashboard) Close() {
+	if d.broadcaster != nil {
+		d.broadcaster.Close()
+	}
+}
 
 // errConfig constructs a configuration validation error.
 func errConfig(msg string) error {
