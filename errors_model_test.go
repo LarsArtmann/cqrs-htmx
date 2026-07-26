@@ -60,11 +60,31 @@ func TestMapError_FamilyDefaults(t *testing.T) {
 		err  error
 		want int
 	}{
-		{"Rejection -> 400", errorfamily.NewRejection("bad_input", "email is required"), http.StatusBadRequest},
-		{"Conflict -> 409", errorfamily.NewConflict("email_taken", "email already registered"), http.StatusConflict},
-		{"Transient -> 503", errorfamily.NewTransient("db_down", "database unavailable"), http.StatusServiceUnavailable},
-		{"Infrastructure -> 503", errorfamily.NewInfrastructure("store_nil", "event store is nil"), http.StatusServiceUnavailable},
-		{"Corruption -> 500", errorfamily.NewCorruption("decode_nil", "decoder returned nil"), http.StatusInternalServerError},
+		{
+			name: "Rejection -> 400",
+			err:  errorfamily.NewRejection("bad_input", "email is required"),
+			want: http.StatusBadRequest,
+		},
+		{
+			name: "Conflict -> 409",
+			err:  errorfamily.NewConflict("email_taken", "email already registered"),
+			want: http.StatusConflict,
+		},
+		{
+			name: "Transient -> 503",
+			err:  errorfamily.NewTransient("db_down", "database unavailable"),
+			want: http.StatusServiceUnavailable,
+		},
+		{
+			name: "Infrastructure -> 503",
+			err:  errorfamily.NewInfrastructure("store_nil", "event store is nil"),
+			want: http.StatusServiceUnavailable,
+		},
+		{
+			name: "Corruption -> 500",
+			err:  errorfamily.NewCorruption("decode_nil", "decoder returned nil"),
+			want: http.StatusInternalServerError,
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

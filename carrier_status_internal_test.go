@@ -8,21 +8,22 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// stubCarrier is a minimal HTTPStatusCarrier for exercising carrierStatus in
-// isolation, without coupling to errorfamily internals. A status of 0 means
+// stubCarrierError is a minimal HTTPStatusCarrier for exercising carrierStatus
+// in isolation, without coupling to errorfamily internals. A status of 0 means
 // "not set", mirroring how *errorfamily.Error behaves when no override is
-// pinned (the root cause of the go-error-family v0.8.0 carrierStatus bug).
-type stubCarrier struct {
+// pinned (the root cause of the go-error-family v0.8.0 carrierStatus
+// regression).
+type stubCarrierError struct {
 	status int
 	cause  error
 }
 
-func (e *stubCarrier) Error() string   { return "stub carrier" }
-func (e *stubCarrier) Unwrap() error   { return e.cause }
-func (e *stubCarrier) HTTPStatus() int { return e.status }
+func (e *stubCarrierError) Error() string   { return "stub carrier" }
+func (e *stubCarrierError) Unwrap() error   { return e.cause }
+func (e *stubCarrierError) HTTPStatus() int { return e.status }
 
 // TestCarrierStatus is the dedicated regression guard for the carrierStatus
-// bug: go-error-family v0.8.0 added HTTPStatus() int to *errorfamily.Error
+// defect: go-error-family v0.8.0 added HTTPStatus() int to *errorfamily.Error
 // (returning 0 when unset), which made every errorfamily error satisfy
 // HTTPStatusCarrier. carrierStatus must treat that 0 as "not set" so MapError
 // falls through to the family-based default (e.g. Rejection -> 400) instead of
@@ -49,15 +50,15 @@ func TestCarrierStatus(t *testing.T) {
 			wantOK:     false,
 		},
 		{
-			// The core bug: a carrier whose HTTPStatus()==0 means "not set".
+			// The core case: a carrier whose HTTPStatus()==0 means "not set".
 			name:       "zero status carrier means not set",
-			err:        &stubCarrier{status: 0, cause: nil},
+			err:        &stubCarrierError{status: 0, cause: nil},
 			wantStatus: 0,
 			wantOK:     false,
 		},
 		{
 			name:       "valid explicit status is returned",
-			err:        &stubCarrier{status: http.StatusTeapot, cause: nil},
+			err:        &stubCarrierError{status: http.StatusTeapot, cause: nil},
 			wantStatus: http.StatusTeapot,
 			wantOK:     true,
 		},
@@ -65,7 +66,7 @@ func TestCarrierStatus(t *testing.T) {
 			// Non-zero but implausible status degrades to 500 rather than
 			// leaking a nonsensical code.
 			name:       "out-of-range status falls back to 500",
-			err:        &stubCarrier{status: 999, cause: nil},
+			err:        &stubCarrierError{status: 999, cause: nil},
 			wantStatus: http.StatusInternalServerError,
 			wantOK:     true,
 		},
@@ -74,7 +75,7 @@ func TestCarrierStatus(t *testing.T) {
 			// a real override deeper in the chain (e.g. WithHTTPStatus wrapping
 			// a bare errorfamily.Error whose HTTPStatus()==0).
 			name:       "zero carrier unwraps to a deeper override",
-			err:        &stubCarrier{status: 0, cause: &stubCarrier{status: http.StatusNotFound, cause: nil}},
+			err:        &stubCarrierError{status: 0, cause: &stubCarrierError{status: http.StatusNotFound, cause: nil}},
 			wantStatus: http.StatusNotFound,
 			wantOK:     true,
 		},
