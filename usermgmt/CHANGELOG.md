@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.6.0] - 2026-07-26
+
+### Fixed
+
+- **ErrorFamily compliance** (`store.go`): migrated `errors.New("entity already exists")` to `errorfamily.NewConflict`. `nix run .#errorfamily` now reports 0 violations for usermgmt.
+
+### Changed
+
+- **Dedup sweep**: shared helpers extracted (see root CHANGELOG `[v4.6.0]` Changed section for the full list).
+
 ## [v4.5.0] - 2026-07-24
 
 ### Added

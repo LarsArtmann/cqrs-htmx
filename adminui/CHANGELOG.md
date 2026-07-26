@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.6.0] - 2026-07-26
+
+### Changed
+
+- **Dependency bump**: templ-components `v1.1.0` → `v1.2.0`.
+- **Dedup sweep**: `ToastDetail` extracted to root module (`cqrshtmx.ToastDetail`); adminui now re-exports the shared type. See root CHANGELOG `[v4.6.0]` for the full dedup sweep summary.
+
 ## [v4.5.0] - 2026-07-24
 
 ### Changed

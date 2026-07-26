@@ -24,25 +24,33 @@ Every term below should mean the **same thing** to everyone who reads it.
 | Credential         | A WebAuthn passkey registered to a user for passwordless authentication                                      | Authentication                |
 | CQRS               | Command Query Responsibility Segregation — separate write and read models                                    | Architecture pattern          |
 | Decider            | Pure function that validates a command against current state and emits events                                | Event sourcing                |
+| DashboardUI        | Ready-made CQRS/ES observability dashboard module — event browser, projection health, time-travel inspector, SSE live updates | dashboardui module            |
 | EmailVerification  | Token-based confirmation that a user controls an email address (single-use, TTL)                             | Authentication                |
 | Enforcer           | Interface satisfied by Casbin; the authorization decision point                                              | Authorization                 |
 | Event              | An immutable record of something that happened in the past                                                   | Event sourcing                |
 | Event Store        | Append-only persistence for events on an aggregate stream                                                    | Event sourcing                |
+| EventCatalog       | Immutable JSON catalog of event schemas (type, description, payload fields); served as Published Language for projection builders | cqrs-htmx root module         |
 | ExternalAccount    | An OAuth2/OIDC provider account (provider + subject) linked to a User                                        | OAuth2 integration (ADR 0014) |
 | Fold               | Pure function that reconstructs aggregate state by replaying events                                          | Event sourcing                |
 | foldUser           | The concrete fold function that reconstructs `UserState` from the User event stream                          | Event sourcing                |
 | HandlerOption      | Functional option pattern for configuring CQRS HTTP handlers                                                 | cqrs-htmx root module         |
 | HTMX               | HTML-over-the-wire library for dynamic web pages without writing JavaScript                                  | Frontend                      |
+| HTMXRedirect       | Helper that emits an HTMX-aware redirect (`HX-Redirect` for HTMX clients, standard `http.Redirect` otherwise) | cqrs-htmx root module         |
 | Impersonation      | A SuperAdmin acting on behalf of another user with an auditable session origin                               | Identity model (ADR 0015)     |
 | EventBus           | In-memory event bus (`watermill.EventBus`) that blocks publishers until handlers complete (read-your-writes) | Event sourcing                |
+| JournalSSEStore    | SSE replay store that reads missed events from a journal on reconnect, using `Last-Event-ID` as a cursor     | cqrs-htmx root module         |
 | Membership         | A grant of roles to an Actor within a Tenant — the RBAC link between actor and tenant                        | Identity model (ADR 0015)     |
 | Passkey            | A WebAuthn credential (FIDO2) bound to a device, enabling passwordless login                                 | Authentication                |
 | Projection         | A read model built by subscribing to events and updating a materialized view                                 | CQRS read side                |
+| ProjectionStatus   | Live health snapshot of a projection (name, state, lag, last-event, error); served as JSON via `ProjectionStatusHandler` | cqrs-htmx root module         |
 | Read Model         | A query-optimized view of current state, derived from the event stream                                       | CQRS read side                |
 | Role               | A named permission group (SuperAdmin, Admin, User, Viewer, Owner) assigned within a domain                   | RBAC authorization            |
+| SafeRedirectPath   | Normalizes untrusted redirect paths to site-relative URLs as an open-redirect guard                           | cqrs-htmx root module         |
+| SSE Reconnect      | Browser reconnects to the SSE endpoint; the server replays missed events from the journal using `Last-Event-ID` | dashboardui module            |
 | Service            | The application service orchestrating commands, queries, and session management                              | usermgmt module               |
 | Session            | An ephemeral authentication artifact (token + expiry) created after login                                    | Authentication                |
 | SessionOrigin      | The cause of a session: DirectLogin, Impersonation, or OAuth2                                                | Authentication                |
+| SnapshotConfig     | Opt-in configuration for aggregate snapshotting (Store + Codec + Strategy); zero-value = full-replay mode     | Event sourcing (ADR 0041)     |
 | SQLEventStore      | Persistent `event.Store` for PostgreSQL and SQLite with optimistic concurrency                               | Persistence                   |
 | Templ              | Go HTML templating engine with type-safe compile-checked templates                                           | Frontend                      |
 | Tenant             | An organizational boundary for multi-tenancy — contains members with roles                                   | Identity model (ADR 0015)     |
@@ -118,10 +126,12 @@ Intents that trigger state changes.
 
 ## Bounded Contexts
 
-| Context         | Responsibility                                          | Module           |
-| --------------- | ------------------------------------------------------- | ---------------- |
-| User Management | User lifecycle, authentication, authorization, sessions | usermgmt         |
-| CQRS-HTMX Core  | HTTP handler integration, response building, middleware | root module      |
-| Authorization   | RBAC policy management, enforcement, role hierarchy     | usermgmt (Authz) |
-| MFA             | TOTP second-factor enrollment and verification          | usermgmt         |
-| Auditing        | Immutable record of user actions derived from events    | usermgmt         |
+| Context              | Responsibility                                          | Module             |
+| -------------------- | ------------------------------------------------------- | ------------------ |
+| User Management      | User lifecycle, authentication, authorization, sessions | usermgmt           |
+| Identity Model       | Pure domain types — IDs, events, commands, fold functions, Authz engine | identity-model     |
+| CQRS-HTMX Core       | HTTP handler integration, response building, middleware | root module        |
+| Dashboard Observability | CQRS/ES event browser, projection health, time-travel inspector, SSE live updates | dashboardui |
+| Authorization        | RBAC policy management, enforcement, role hierarchy     | usermgmt (Authz)   |
+| MFA                  | TOTP second-factor enrollment and verification          | usermgmt           |
+| Auditing             | Immutable record of user actions derived from events    | usermgmt           |
