@@ -19,6 +19,7 @@ github.com/chzyer/readline v1.5.1/go.mod h1:Eh+b79XXUwfKfcPLepksvw2tcLE/Ct21YObk
 github.com/chzyer/test v1.0.0/go.mod h1:2JlltgoNkt4TW/z9V/IzDdFaMTM2JPIi26O1pF38GC8=
 github.com/cli/browser v1.3.0 h1:LejqCrpWr+1pRqmEPDGnTZOjsMe7sehifLynZJuqJpo=
 github.com/cli/browser v1.3.0/go.mod h1:HH8s+fOAxjhQoBUAsKuPCbqUuxZDhQ2/aD+SzsEfBTk=
+github.com/creack/pty v1.1.9 h1:uDmaGzcdjhF4i/plgjmEsriH11Y0o7RKapEf/LDaM3w=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/dlclark/regexp2 v1.11.5 h1:Q/sSnsKerHeCkc/jSTNq1oCm7KiVgUMZRDUoRu0JQZQ=
 github.com/dlclark/regexp2 v1.11.5/go.mod h1:DHkYz0B9wPfa6wondMfaivmHpzrQ3v9q8cnmRbL6yW8=
@@ -41,9 +42,11 @@ github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e/go.mod h1:boTsfXsheKC
 github.com/google/pprof v0.0.0-20260402051712-545e8a4df936/go.mod h1:MxpfABSjhmINe3F1It9d+8exIHFvUqtLIRCdOGNXqiI=
 github.com/ianlancetaylor/demangle v0.0.0-20250417193237-f615e6bd150b h1:ogbOPx86mIhFy764gGkqnkFC8m5PJA7sPzlk9ppLVQA=
 github.com/ianlancetaylor/demangle v0.0.0-20250417193237-f615e6bd150b/go.mod h1:gx7rwoVhcfuVKG5uya9Hs3Sxj7EIvldVofAWIUtGouw=
+github.com/kisielk/sqlstruct v0.0.0-20201105191214-5f3e10d3ab46 h1:veS9QfglfvqAw2e+eeNT/SbGySq8ajECXJ9e4fPoLhY=
 github.com/kisielk/sqlstruct v0.0.0-20201105191214-5f3e10d3ab46/go.mod h1:yyMNCyc/Ib3bDTKd379tNMpB/7/H5TjM2Y9QJ5THLbE=
 github.com/klauspost/pgzip v1.2.6 h1:8RXeL5crjEUFnR2/Sn6GJNWtSQ3Dk8pq4CL3jvdDyjU=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
+github.com/kr/pty v1.1.1 h1:VkoXIwSboBpnk99O/KFauAEILuNHv5DVFKZMBN/gUgw=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/larsartmann/cqrs-htmx/adminui/v4 v4.5.0/go.mod h1:XrhfQMNt6Sv4yfTpCN3gTM8QkQ3ZXsXGWwHrbu8DkgE=
@@ -52,7 +55,6 @@ github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.5.0/go.mod h1:z2rqebMUsIt
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.5.0/go.mod h1:jTnqPwR5KucrvPjIQLmewLYDkEVl55rheni3Sj6nZ0c=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.5.0/go.mod h1:QGZD4mYdHA9PFjNdVduTAMiqunrdzDqyYY/t3zzuxuo=
 github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.5.0/go.mod h1:pb927G9HPrMwXw/CeNa8JyPVkr3Gsw4Yh4vxXeVYbiM=
-github.com/larsartmann/cqrs-htmx/v4 v4.5.0/go.mod h1:1NHeYvXTIRv7bjDBXMsv+Jk44zEl1X9ml01pZOneZQ0=
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0 h1:YJ49k6SM93hrBjRw6QbvbalbD7l0dDZ4tYXL2iZHe08=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0/go.mod h1:50woocxkEaz+2Pm8m53KKsNOIU+7bDvTx43LydVgOeQ=
@@ -94,9 +96,9 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0/go.mod h1:fVSYaW6Wd
 github.com/larsartmann/go-cqrs-lite/testutil/v3 v3.7.3/go.mod h1:bGjPnEzcOqf+6tuAjbps4mr/RNdeEZ/ym82HMEiPNn4=
 github.com/larsartmann/go-error-family v0.3.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
 github.com/larsartmann/go-error-family v0.7.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
+github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
+github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-error-family/diagnose v0.1.0/go.mod h1:yjLhP+5go9A50hbzaidbviaTkejBNValDufSLekBAx4=
-github.com/larsartmann/go-sse v0.2.0 h1:d77B+rtOmM27MZHSy7YG9Ygl3hriAWaf0cD0o+ejw4M=
-github.com/larsartmann/go-sse v0.2.0/go.mod h1:qFY1CWP8caGmjKwKG4JqNn5tfFRqU5yQGx3xUQ1tGj4=
 github.com/larsartmann/httputil v0.1.0 h1:SFk6OSXhZqdmDNjlFKpfqP6S7WCBIoujEzNmxz3fgEY=
 github.com/larsartmann/httputil v0.1.0/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
 github.com/lucasb-eyer/go-colorful v1.2.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
@@ -113,6 +115,7 @@ github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLA
 github.com/onsi/ginkgo/v2 v2.29.0/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
 github.com/onsi/gomega v1.40.0/go.mod h1:M/Uqpu/8qTjtzCLUA2zJHX9Iilrau25x1PdoSRbWh5A=
 github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30 h1:BHT1/DKsYDGkUgQ2jmMaozVcdk+sVfz0+1ZJq4zkWgw=
+github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e h1:aoZm08cpOy4WuID//EZDgcC4zIxODThtZNPirFr42+A=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/prometheus/client_golang v1.23.2 h1:Je96obch5RDVy3FDMndoUsjAhG5Edi49h0RJWRi/o0o=
 github.com/prometheus/client_golang v1.23.2/go.mod h1:Tb1a6LWHB3/SPIzCoaDXI4I8UHKeFTEQ1YCr+0Gyqmg=
@@ -182,7 +185,9 @@ golang.org/x/tools v0.26.0/go.mod h1:TPVVj70c7JJ3WCazhD8OdXcZg/og+b9+tH/KxylGwH0
 golang.org/x/tools v0.44.0/go.mod h1:KA0AfVErSdxRZIsOVipbv3rQhVXTnlU6UhKxHd1seDI=
 golang.org/x/tools v0.45.0/go.mod h1:LuUGqqaXcXMEFEruIVJVm5mgDD8vww/z/SR1gQ4uE/0=
 golang.org/x/tools v0.47.0/go.mod h1:dFHnyTvFWY212G+h7ZY4Vsp/K3U4/7W9TyVaAul8uCA=
+golang.org/x/tools/go/expect v0.1.1-deprecated h1:jpBZDwmgPhXsKZC6WhL20P4b/wmnpsEAGHaNy0n/rJM=
 golang.org/x/tools/go/expect v0.1.1-deprecated/go.mod h1:eihoPOH+FgIqa3FpoTwguz/bVUSGBlGQU67vpBeOrBY=
+golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated h1:1h2MnaIAIXISqTFKdENegdpAgUXz6NrPEsbIeWaBRvM=
 golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated/go.mod h1:RVAQXBGNv1ib0J382/DPCRS/BPnsGebyM1Gj5VSDpG8=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
@@ -191,3 +196,4 @@ google.golang.org/protobuf v1.36.7/go.mod h1:jduwjTPXsFjZGTmRluh+L6NjiWu7pchiJ2/
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 modernc.org/libc v1.74.1/go.mod h1:uH4t5bOx3G3g9Xcmj10YKlTcVISlRDwv8VoQJG9n8Os=
+pgregory.net/rapid v1.1.0/go.mod h1:PY5XlDGj0+V1FCq0o192FdRhpKHGTRIWBgqjDBTrq04=
