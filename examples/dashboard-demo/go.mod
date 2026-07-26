@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/dashboard-demo
 go 1.26.5
 
 require (
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.0.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/cqrs-htmx/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0
@@ -15,8 +15,6 @@ require (
 )
 
 require (
-	github.com/Oudwins/tailwind-merge-go v0.2.2 // indirect
-	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -34,9 +32,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-sse v0.2.0 // indirect
+	github.com/larsartmann/go-sse v0.2.1 // indirect
 	github.com/larsartmann/httputil v0.6.1 // indirect
-	github.com/larsartmann/templ-components v1.2.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

@@ -1,9 +1,5 @@
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/Oudwins/tailwind-merge-go v0.2.2 h1:5CvKoyU8riD05wawuJpcr2OxtxHQHkSm+V6nCcsa/ao=
-github.com/Oudwins/tailwind-merge-go v0.2.2/go.mod h1:kkZodgOPvZQ8f7SIrlWkG/w1g9JTbtnptnePIh3V72U=
-github.com/a-h/templ v0.3.1020 h1:ypAT/L5ySWEnZ6Zft/5yfoWXYYkhFNvEFOeeqecg4tw=
-github.com/a-h/templ v0.3.1020/go.mod h1:A2DlK61v+K+NRoGnhmYbNYVmtYHcFO5/AisMvBdDxTM=
 github.com/bmatcuk/doublestar/v4 v4.10.0 h1:zU9WiOla1YA122oLM6i4EXvGW62DvKZVxIe6TYWexEs=
 github.com/bmatcuk/doublestar/v4 v4.10.0/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
 github.com/casbin/casbin/v3 v3.10.0 h1:039ORla55vCeIZWd0LfzWFt1yiEA5X4W41xBW2bQuHs=
@@ -85,12 +81,10 @@ github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.2 h1:em+ZNIHIcyWYxAvii8a9t1
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.2/go.mod h1:y1a2+ZmyLaaE0fprVhOHdqBw6erVMpN40pH11lPPhnI=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
-github.com/larsartmann/go-sse v0.2.0 h1:d77B+rtOmM27MZHSy7YG9Ygl3hriAWaf0cD0o+ejw4M=
-github.com/larsartmann/go-sse v0.2.0/go.mod h1:qFY1CWP8caGmjKwKG4JqNn5tfFRqU5yQGx3xUQ1tGj4=
+github.com/larsartmann/go-sse v0.2.1 h1:cvqViY+2MgTSHU3PgpFAHHtT56hYazom2Ky8ZPL+258=
+github.com/larsartmann/go-sse v0.2.1/go.mod h1:jzjpWqwufPRLht+qk15EHwHG65mhZDdTV1VIUk5pQ2Y=
 github.com/larsartmann/httputil v0.6.1 h1:1Yav44hzBvrmcnNc17RS+ept/30e6KnwKiCwtEslinw=
 github.com/larsartmann/httputil v0.6.1/go.mod h1:IYVTbv9asqvzJahTYbH4hrmU6Mr7W8yjFQOkTusXucA=
-github.com/larsartmann/templ-components v1.2.0 h1:jcD2rokFGubJ14YG4g5AueqhaSh/fV9tg95gjeUrH3U=
-github.com/larsartmann/templ-components v1.2.0/go.mod h1:WYy1204gZeqEiD3i+hakhdaMAhWRQ4cyoh6p6V0FjRo=
 github.com/mattn/go-isatty v0.0.23 h1:cYwCQTQf3HB6xUC+BtyCLZNr7IzbOmoZbmssVNzSyiQ=
 github.com/mattn/go-isatty v0.0.23/go.mod h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=
 github.com/maypok86/otter/v2 v2.3.0 h1:8H8AVVFUSzJwIegKwv1uF5aGitTY+AIrtktg7OcLs8w=
