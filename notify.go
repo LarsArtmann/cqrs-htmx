@@ -2,6 +2,16 @@ package cqrshtmx
 
 const defaultNotificationEvent = "showMessage"
 
+// ToastDetail is the JSON payload dispatched via the HX-Trigger header to ask
+// the client to show a toast notification. Message is the human text; Kind is a
+// short severity label whose vocabulary is owned by the caller (e.g. "ok",
+// "err", or ""). Shared by the ready-made UI modules (adminui, dashboardui) so
+// they serialize the identical wire shape.
+type ToastDetail struct {
+	Message string `json:"message"`
+	Kind    string `json:"kind"`
+}
+
 // NotificationLevel represents the severity level of a notification.
 type NotificationLevel string
 
