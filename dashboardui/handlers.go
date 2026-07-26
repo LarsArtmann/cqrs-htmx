@@ -16,6 +16,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func streamRefFromRequest(r *http.Request) (id.StreamRef, error) {
@@ -98,7 +100,8 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 		for {
 			batch, err := d.cfg.SeekableJournal.ReadFrom(ctx, after, scanLimit)
 			if err != nil {
-				return nil, fmt.Errorf("scan journal for event: %w", err)
+				return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.event_detail.scan_failed", "scan journal for event")
 			}
 
 			for _, evt := range batch {
@@ -114,13 +117,15 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 			after = batch[len(batch)-1].ID()
 		}
 
-		return nil, fmt.Errorf("event %s not found in journal scan", eventID)
+		return nil, errorfamily.Newf(event.Rejection,
+		"dashboardui.event_detail.not_found", "event %s not found in journal scan", eventID)
 	}
 
 	if d.cfg.Journal != nil {
 		all, err := d.cfg.Journal.ReadAll(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("read journal: %w", err)
+			return nil, errorfamily.WrapInfrastructure(err,
+			"dashboardui.event_detail.read_failed", "read journal")
 		}
 
 		for _, evt := range all {
@@ -130,7 +135,8 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 		}
 	}
 
-	return nil, fmt.Errorf("no event source available to load event %s", eventID)
+	return nil, errorfamily.Newf(event.Infrastructure,
+		"dashboardui.event_detail.no_source", "no event source available to load event %s", eventID)
 }
 
 func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {

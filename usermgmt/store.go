@@ -2,9 +2,10 @@ package usermgmt
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Store is a generic persistence contract for ID-addressable entities.
@@ -76,7 +77,7 @@ func (s *InMemoryStore[T, ID]) Create(_ context.Context, entity T) error {
 
 	id := s.idOf(entity)
 	if _, exists := s.items[id]; exists {
-		return errors.New("entity already exists")
+		return errorfamily.NewConflict("usermgmt.store.entity_exists", "entity already exists")
 	}
 
 	s.items[id] = entity
