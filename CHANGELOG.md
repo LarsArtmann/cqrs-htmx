@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **Eliminated 11 stdlib error constructor violations** (`event_store_sse.go`, `dashboardui/handlers.go`, `dashboardui/payload.go`, `usermgmt/store.go`): migrated all `fmt.Errorf`/`errors.New` calls in non-test code to `errorfamily` constructors (`WrapInfrastructure`, `WrapCorruption`, `Newf`, `NewConflict`). `nix run .#errorfamily` now reports 0 violations across all modules.
 - **Removed accidentally-tracked `examples/dashboard-demo/dashboard-demo` binary** (commit `f25599a`): the ~12 MB compiled demo had been committed to the repo; it is now gitignored and removed from history going forward.
 
 ### Documented

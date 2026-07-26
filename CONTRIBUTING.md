@@ -53,26 +53,29 @@ All tests in all modules must pass with zero errors before submitting.
 
 This is a **library/SDK**, not an application. There is no `main` package. Consumers import `github.com/larsartmann/cqrs-htmx/v4` into their projects.
 
-The project uses a **multi-module Go workspace** with 12 modules:
+The project uses a **multi-module Go workspace** with 15 modules:
 
 | Module            | Path                        | Go Module                                               | Tests |
 | ----------------- | --------------------------- | ------------------------------------------------------- | ----- |
 | Root              | `./`                        | `github.com/larsartmann/cqrs-htmx/v4`                   | Yes   |
+| Identity-Model    | `./identity-model/`         | `github.com/larsartmann/cqrs-htmx/identity-model/v4`    | Yes   |
 | Usermgmt          | `./usermgmt/`               | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`          | Yes   |
 | Usermgmt/TOTP     | `./usermgmt/totp/`          | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`     | Yes   |
 | Usermgmt/WebAuthn | `./usermgmt/webauthn/`      | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4` | Yes   |
 | Usermgmt/OAuth2   | `./usermgmt/oauth2/`        | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`   | Yes   |
 | Admin UI          | `./adminui/`                | `github.com/larsartmann/cqrs-htmx/adminui/v4`           | Yes   |
 | Login Page        | `./loginpage/`              | `github.com/larsartmann/cqrs-htmx/loginpage/v4`         | Yes   |
+| Dashboard UI      | `./dashboardui/`            | `github.com/larsartmann/cqrs-htmx/dashboardui/v4`       | Yes   |
 | Integration Test  | `./integration_test/`       | separate test module                                    | Yes   |
 | Basic Example     | `./examples/basic/`         | example app                                             | No    |
 | Datastar Demo     | `./examples/datastar-demo/` | example app (Datastar SSE)                              | No    |
 | Catalog Demo      | `./examples/catalog-demo/`  | example app (go-cqrs-lite catalog)                      | No    |
 | Admin Demo        | `./examples/admin-demo/`    | runnable admin panel showcase                           | No    |
+| Dashboard Demo    | `./examples/dashboard-demo/`| CQRS/ES observability demo                              | No    |
 
 **Auth sub-modules** (totp, webauthn, oauth2) use **structural typing** — they implement core interfaces via primitive types (`[]byte`, `string`) without importing core `usermgmt`. This keeps auth dependencies (pquerna/otp, go-webauthn, oauth2/oidc) out of core. Each has its own `.golangci.yml`.
 
-**Dependency direction:** Root → usermgmt: zero imports. Usermgmt → root: YES (imports `RateLimiter`). Auth sub-modules → usermgmt: ZERO (structural typing via interfaces). Adminui → root + usermgmt. Nothing depends on adminui.
+**Dependency direction:** identity-model is the domain source of truth (pure types). usermgmt re-exports identity-model via type aliases. Root → usermgmt: zero imports. Auth sub-modules → usermgmt: ZERO (structural typing via interfaces). Adminui/loginpage/dashboardui → root + usermgmt. Nothing depends on adminui, loginpage, or dashboardui.
 
 ## Key Conventions
 

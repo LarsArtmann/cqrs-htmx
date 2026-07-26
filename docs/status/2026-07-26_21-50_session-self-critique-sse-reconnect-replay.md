@@ -4,7 +4,7 @@
 **Session goal:** Fix the dashboardui SSE reconnect replay bug (TODO_LIST P2 item).
 **Prior session:** v4.6.0 release prep (docs, dead code, pseudo-version, batch-release.sh).
 
-> **Update 2026-07-26:** the reconnect-replay fix **shipped** in commits `b98b2fa` (SSE-based real-time updates + config) and `62dada4` (SSE replay test + docs), and is recorded under CHANGELOG `[v4.6.0]` Added. The `Dashboard.Close()` resource leak documented in §D1 is **still open** — it is now tracked as TODO_LIST **P1 Correctness** (with the `event.Bus.UnsubscribeAll` upstream gap noted in ROADMAP). v4.6.0 is **not yet tagged**. Full status in [Resolution](#resolution) below.
+> **Update 2026-07-26:** the reconnect-replay fix **shipped** in commits `b98b2fa` (SSE-based real-time updates + config) and `62dada4` (SSE replay test + docs), and is recorded under CHANGELOG `[v4.6.0]` Added. The `Dashboard.Close()` resource leak documented in §D1 is **still open** — it is now tracked as TODO_LIST **P1 Correctness** (with the `event.Bus.UnsubscribeAll` upstream gap noted in ROADMAP). v4.6.0 is **not yet tagged**. Full status in [Resolution](#resolution-2026-07-26) below.
 
 ---
 
