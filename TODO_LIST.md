@@ -34,7 +34,7 @@
 
 - [ ] **MySQL event-store support.** Currently Postgres + SQLite only (dropped in v3.0.0 when `SQLEventStore` was delegated to `go-cqrs-lite/storage`, which has no MySQL dialect). `SQLSessionStore` already supports MySQL.
 - [ ] **Offline sync E2E browser testing.** The SharedWorker IndexedDB queue (`sync/sync-worker.js`) is unit-verified but never exercised in a real browser. Needs a Playwright E2E test verifying the queue → retry → ACK cycle and the cross-session `rebuildAndRetry` path. The #1 deferred item across every sync status report since ADR-0029.
-- [ ] **Migrate `id.NewAggregateID` → `id.NewStreamID`** across usermgmt (~121 call sites). go-cqrs-lite v4 renamed the API; backward-compatible aliases exist, but the migration aligns with upstream naming.
+- [ ] **Migrate `id.NewAggregateID` → `id.NewStreamID`** across usermgmt. go-cqrs-lite v4 renamed the API; backward-compatible aliases exist, but the migration aligns with upstream naming. Production footprint is small — **2 call sites** in non-test usermgmt code (`import_export.go:155`, `service_oauth2.go:139`; ~8 repo-wide) — the larger ~121-figure count is test fixtures, which can follow once the production sites move.
 - [ ] **Delete `usermgmt/sqlite_setup_test.go`.** Carries a `//go:build ignore` tag (excluded from builds) but is stale cruft with compilation errors against the current API. Note: the sibling `//go:build ignore` files (`sqlite_setup.go`, `postgres_setup.go`, `es_setup_core.go`) are the intended integration-path entry points and should stay.
 
 ---
