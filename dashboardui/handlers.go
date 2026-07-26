@@ -101,7 +101,7 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 			batch, err := d.cfg.SeekableJournal.ReadFrom(ctx, after, scanLimit)
 			if err != nil {
 				return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.event_detail.scan_failed", "scan journal for event")
+					"dashboardui.event_detail.scan_failed", "scan journal for event")
 			}
 
 			for _, evt := range batch {
@@ -118,14 +118,14 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 		}
 
 		return nil, errorfamily.Newf(event.Rejection,
-		"dashboardui.event_detail.not_found", "event %s not found in journal scan", eventID)
+			"dashboardui.event_detail.not_found", "event %s not found in journal scan", eventID)
 	}
 
 	if d.cfg.Journal != nil {
 		all, err := d.cfg.Journal.ReadAll(ctx)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
-			"dashboardui.event_detail.read_failed", "read journal")
+				"dashboardui.event_detail.read_failed", "read journal")
 		}
 
 		for _, evt := range all {

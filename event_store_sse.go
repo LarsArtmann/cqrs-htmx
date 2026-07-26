@@ -4,9 +4,9 @@ import (
 	"context"
 	"slices"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // EventToSSEMapper converts a domain event from the event store into an SSE
@@ -146,7 +146,7 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEve
 	events, err := s.seekable.ReadFrom(ctx, afterID, limit)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
-		"cqrshtmx.sse.journal_read_failed", "read events from journal")
+			"cqrshtmx.sse.journal_read_failed", "read events from journal")
 	}
 
 	return s.mapEvents(events), nil

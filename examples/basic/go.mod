@@ -14,7 +14,7 @@ require (
 	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.1.0 // indirect
