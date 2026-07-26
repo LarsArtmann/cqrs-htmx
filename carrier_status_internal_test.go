@@ -100,6 +100,7 @@ func TestCarrierStatus(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			gotStatus, gotOK := carrierStatus(tc.err)
 			if gotStatus != tc.wantStatus || gotOK != tc.wantOK {
 				t.Errorf("carrierStatus(%v) = (%d, %t), want (%d, %t)",

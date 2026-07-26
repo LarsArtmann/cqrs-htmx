@@ -69,6 +69,7 @@ func TestMapError_FamilyDefaults(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			if got := cqrshtmx.MapError(tc.err); got != tc.want {
 				t.Errorf("MapError(%v) = %d, want %d", tc.err, got, tc.want)
 			}

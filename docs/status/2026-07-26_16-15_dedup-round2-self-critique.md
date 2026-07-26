@@ -201,3 +201,12 @@ The examples have pre-existing `go.mod` drift (64 gopls errors about missing dep
 | `loginpage/util.go`                  | Delegated `safeRedirectPath` to root                   | Yes (36db7c2)        |
 | `adminui/handler_members.go`         | Use `toMemberRows` + `parseTenantMemberPath`           | **NO (uncommitted)** |
 | `adminui/handler_tenants.go`         | Use `toMemberRows`                                     | **NO (uncommitted)** |
+
+---
+
+## Resolution (2026-07-26)
+
+- **The 2 "uncommitted" files are now committed** (`b763c88 "and tenant handlers in round 2"`) — the §B.2 commit-hygiene gap closed. All round-2 extractions shipped under CHANGELOG `[v4.6.0]` `### Changed`.
+- **`AGENTS.md` was updated** (the §B.3 gap): the new root `redirect.go` helpers are documented, and dependency versions corrected (go-sse `v0.2.1`, httputil `v0.6.1`) by a later docs-health pass.
+- **Still open from this report:** unit tests for the root `cqrshtmx.SafeRedirectPath` / `HTMXRedirect` (§C.1) — the adminui/loginpage wrappers are tested, but the root canonicals are not. `hashTag` locality (§C.5) and the `golangci-lint` run on changed files (§C.2) are unverified.
+- **Caveat:** the "0 harmful clones" headline (§D.1) was never independently re-verified with `art-dupl`; the 20:40 self-critique (§b.3) flags it as an unverified self-assessment.
