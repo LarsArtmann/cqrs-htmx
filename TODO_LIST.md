@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-07-26 | **Version:** v4.6.0 (15 modules in `go.work`; see AGENTS.md for per-sub-module versions) | **Coverage:** Root 93.5% (gate 90%), usermgmt 80.9% (gate 74%), identity-model ~41% (no gate) — recompute via `nix run .#coverage-gate` | **Lint:** `nix run .#lint` fails on root (~160), usermgmt (~100), and dashboardui (~150) on pre-existing style nits + `id.*AggregateID` SA1019 deprecation; the other 7 modules pass clean. Non-release-blocking (recompute: `nix run .#lint`, `GOEXPERIMENT=jsonv2 golangci-lint run` per submodule).
+**Updated:** 2026-07-26 | **Version:** v4.6.0 (15 modules in `go.work`; see AGENTS.md for per-sub-module versions) | **Coverage:** Root 93.5% (gate 90%), usermgmt 80.9% (gate 74%), identity-model ~41% (no gate) — recompute via `nix run .#coverage-gate` | **Lint:** `nix run .#lint` fails on root (~610, varnamelen-dominated), usermgmt (~330, SA1019-dominated), and dashboardui (~150) on pre-existing style nits + `id.*AggregateID` SA1019 deprecation; the other 7 modules pass clean. Non-release-blocking. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 
 ## Status Legend
 
