@@ -16,26 +16,26 @@ modules=(
   "dashboardui"
 )
 versions=(
-  "v4.5.0"
+  "v4.6.0"
   "v4.1.0"
-  "v4.5.0"
-  "v4.5.0"
-  "v4.5.0"
-  "v4.5.0"
-  "v4.5.0"
-  "v4.5.0"
-  "v4.0.0"
+  "v4.6.0"
+  "v4.6.0"
+  "v4.6.0"
+  "v4.6.0"
+  "v4.6.0"
+  "v4.6.0"
+  "v4.1.0"
 )
 descriptions=(
-  "Event catalog, projection status, SSE broadcasting, typed handlers, dashboardui module"
+  "HTMX redirect helpers, dedup sweep, dashboardui SSE bridge, dashboard-demo pseudo-version fix"
   "Upcaster registry, enhanced fold operations"
   "Projection health monitoring, event catalog, identity-model integration"
-  "Lockstep v4.5.0 alignment"
-  "Lockstep v4.5.0 alignment"
-  "Lockstep v4.5.0 alignment"
+  "Lockstep v4.6.0 alignment"
+  "Lockstep v4.6.0 alignment"
+  "Lockstep v4.6.0 alignment"
   "Explicit root+usermgmt dependencies, lockstep alignment"
   "Explicit root+usermgmt dependencies, lockstep alignment"
-  "First release: CQRS/ES observability dashboard with SSE real-time updates"
+  "Dead code cleanup (notImplemented, renderStatCardsTempl), SSE bridge improvements"
 )
 
 tags=()

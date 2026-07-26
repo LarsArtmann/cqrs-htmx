@@ -6,15 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [v4.6.0] - 2026-07-26
+
 ### Added
 
 - **Root HTMX redirect helpers** (`redirect.go`): `HTMXRedirect(w, r, path)` emits an HTMX-aware redirect (`HX-Redirect` for HTMX clients, standard `http.Redirect` otherwise); `SafeRedirectPath(path)` normalizes untrusted paths to site-relative URLs as an open-redirect guard. Extracted during the dedup sweep; exercised by adminui + loginpage handler tests.
-- **Dedup sweep — harmful clones driven to zero** (two rounds, 2026-07-26): consolidated the event-catalog and OpenAPI handlers into a shared `immutableJSONServer`; extracted `requireUser` guard, `formatFromQuery`, `setHTMLNoStoreHeaders`, `toMemberRows`, `parseTenantMemberPath`, `reasonedCommand`, shared `cqrshtmx.ToastDetail`, a free `rebuildProjection` function, `writeHTML` helper, and `wsContext` delegation. Clone groups 33→26, harmful clones → 0.
 - **dashboardui SSE bridge improvements** (`dashboardui/sse.go`, `dashboardui/config.go`): emitted SSE events now carry the domain event ID (enables reconnect dedup); `Config.SSEHeartbeatInterval` (15s default) drives a heartbeat to keep proxies from killing idle connections.
 
 ### Changed
 
-- **Inter-module go.mod version references resolved** (commit `e274540`, `59e33ef`): `usermgmt`, `adminui`, and `loginpage` now reference `cqrs-htmx/v4 v4.5.0` (was stale `v4.4.0`), and the identity-model pseudo-version was replaced with `v4.1.0`. Root cause fixed in `scripts/batch-release.sh` (re-resolves `require` lines after stripping `replace` directives). Workspace builds were unaffected (go.work local replaces); this unblocks `GOWORK=off` resolution for external consumers. **One residual:** `examples/dashboard-demo/go.mod` still carries a zero pseudo-version for `dashboardui/v4` — see TODO_LIST P1.
+- **Dedup sweep — harmful clones driven to zero** (two rounds, 2026-07-26): consolidated the event-catalog and OpenAPI handlers into a shared `immutableJSONServer`; extracted `requireUser` guard, `formatFromQuery`, `setHTMLNoStoreHeaders`, `toMemberRows`, `parseTenantMemberPath`, `reasonedCommand`, shared `cqrshtmx.ToastDetail`, a free `rebuildProjection` function, `writeHTML` helper, and `wsContext` delegation. Clone groups 33→26, harmful clones → 0.
+- **Inter-module go.mod version references resolved** (commit `e274540`, `59e33ef`): `usermgmt`, `adminui`, and `loginpage` now reference `cqrs-htmx/v4 v4.5.0` (was stale `v4.4.0`), and the identity-model pseudo-version was replaced with `v4.1.0`. Root cause fixed in `scripts/batch-release.sh` (re-resolves `require` lines after stripping `replace` directives). Workspace builds were unaffected (go.work local replaces); this unblocks `GOWORK=off` resolution for external consumers. The `examples/dashboard-demo/go.mod` zero pseudo-version for `dashboardui/v4` is also resolved in this release (`v4.0.0-000...` → `v4.0.0`).
 
 ### Fixed
 
