@@ -32,10 +32,11 @@ func isPartial(r *http.Request) bool {
 	return cqrshtmx.RenderPartial(r)
 }
 
-type toastDetail struct {
-	Message string `json:"message"`
-	Kind    string `json:"kind"`
-}
+// toastDetail is aliased to the shared cqrshtmx.ToastDetail (same wire shape as
+// adminui's). dashboardui's triggerToast writes it directly as the HX-Trigger
+// body, while adminui nests it under a named event — hence the function stays
+// per-module even though the struct is shared.
+type toastDetail = cqrshtmx.ToastDetail
 
 func triggerToast(w http.ResponseWriter, kind, message string) {
 	detail, _ := json.Marshal(toastDetail{Message: message, Kind: kind})
