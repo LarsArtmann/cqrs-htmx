@@ -57,6 +57,12 @@ func (d *Dashboard) startEventBridge() {
 	}
 
 	handler := func(_ context.Context, evt event.Event) error {
+		select {
+		case <-d.done:
+			return nil
+		default:
+		}
+
 		d.broadcaster.Broadcast(newSSEEvent(evt))
 
 		return nil

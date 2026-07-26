@@ -5,9 +5,9 @@ import (
 	"encoding/json/v2"
 	"net/http"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // PayloadRenderer formats event payloads for display without decoding

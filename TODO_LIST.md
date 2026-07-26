@@ -14,19 +14,12 @@
 
 ---
 
-## P1 — Correctness
-
-- [ ] **`Dashboard.Close()` event-bus subscription leak** (`dashboardui/sse.go:65`, `dashboardui/dashboard.go:118`). `Close()` closes the SSE broadcaster but the `EventBus.SubscribeAll(handler)` registration has no matching unsubscribe — `event.Bus` exposes no `UnsubscribeAll`, so the handler closure stays registered and keeps broadcasting into a closed broadcaster (a no-op, but a handler/goroutine reference leak). Harmless for one-dashboard-per-process; a real leak for per-tenant or per-request dashboard lifecycles. Fix: wrap the handler in a context-cancellable closure that `Close()` cancels (~15 LOC), or wait for upstream `event.Bus.UnsubscribeAll` (see ROADMAP). Source: `docs/status/2026-07-26_21-50_session-self-critique-sse-reconnect-replay.md` §D1.
-
----
-
 ## P2 — Quality Gates
 
 - [~] **identity-model test coverage.** ~41% coverage (2 test files for 25 source files). No coverage-gate threshold defined for this module in `flake.nix`. Needs tests for the Authz engine, command constructors, event payload round-trips, crypto helpers, and the remaining fold functions (`foldMembership`, `foldBot`). Source: `docs/status/2026-07-23_21-27_identity-model-consolidation-brutal-review.md`.
 - [~] **dashboardui test coverage.** SSE reconnect replay, initial backfill, heartbeat emission, and Close lifecycle now tested (`sse_replay_test.go`, 4 tests; 16 tests total across 2 files). Remaining: handler-level tests and payload-rendering tests.
 - [ ] **dashboardui `handlers.go` split.** Single file at **1158 lines** — split per domain (overview, events, aggregates, projections, DLQ, audit, snapshots, time-travel).
-- [ ] **`release-checklist.sh`: detect the lockstep pre-tag state.** The script runs gates that structurally cannot pass before tagging (adminui/loginpage/dashboardui reference root exports — `ToastDetail`, `HTMXRedirect`, `SafeRedirectPath` — published only once `v4.6.0` is tagged). It should detect pre-tag lockstep and expect/skip those failures with a clear message, or offer a post-tag variant. Source: `docs/status/2026-07-26_21-36_session-self-critique-v4.6.0-release-prep.md` §E6.
-- [ ] **CI gate: `go.work` go-directive matches root `go.mod`.** A silent `1.26.4` vs `1.26.5` drift blocked the workspace build at the start of the 2026-07-26 dedup session (`go.work` said `go 1.26.4` while root `go.mod` required `1.26.5`). Add a check, or a `go work sync` step to the devShell hook. Source: `docs/status/2026-07-26_10-33_dedup-sweep-zero-harmful-clones.md` §e.1.
+- [ ] **Triage lint nits.** Root ~610 (varnamelen 405, exhaustruct 61, staticcheck 37, errcheck 27, canonicalheader 24), usermgmt ~330 (staticcheck SA1019 271 — `id.NewAggregateID` deprecation), dashboardui ~150. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module. Non-release-blocking.
 
 ---
 

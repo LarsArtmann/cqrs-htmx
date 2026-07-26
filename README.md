@@ -1245,18 +1245,18 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Dependencies
 
-| Dependency              | Purpose                                 |
-| ----------------------- | --------------------------------------- |
-| go-cqrs-lite v4.1.0     | CQRS command/query dispatch, pagination |
-| casbin/casbin/v3        | Authorization                           |
-| go-error-family v0.10.0 | Error classification                    |
-| go-sse v0.2.1           | SSE protocol writer, broadcaster, replay |
-| larsartmann/httputil v0.6.1 | ClientIP extraction                 |
-| justinas/nosurf         | CSRF protection                         |
-| golang.org/x/time       | Token-bucket rate limiting              |
-| go-branded-id v0.3.2    | Branded types (usermgmt)                |
-| go-playground/form/v4   | Form decoding                           |
-| templ-components v1.2.0 | UI component library (adminui, loginpage) |
+| Dependency                  | Purpose                                   |
+| --------------------------- | ----------------------------------------- |
+| go-cqrs-lite v4.1.0         | CQRS command/query dispatch, pagination   |
+| casbin/casbin/v3            | Authorization                             |
+| go-error-family v0.10.0     | Error classification                      |
+| go-sse v0.2.1               | SSE protocol writer, broadcaster, replay  |
+| larsartmann/httputil v0.6.1 | ClientIP extraction                       |
+| justinas/nosurf             | CSRF protection                           |
+| golang.org/x/time           | Token-bucket rate limiting                |
+| go-branded-id v0.3.2        | Branded types (usermgmt)                  |
+| go-playground/form/v4       | Form decoding                             |
+| templ-components v1.2.0     | UI component library (adminui, loginpage) |
 
 **Optional sub-module dependencies** (only import the auth strategies you need):
 
