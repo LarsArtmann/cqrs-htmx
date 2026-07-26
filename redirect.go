@@ -9,13 +9,18 @@ import "net/http"
 // input.
 func HTMXRedirect(w http.ResponseWriter, r *http.Request, path string) {
 	if IsHTMXRequest(r) {
-		w.Header().Set("HX-Redirect", path)
+		w.Header().Set("Hx-Redirect", path)
 		w.WriteHeader(http.StatusOK)
 
 		return
 	}
 
-	http.Redirect(w, r, path, http.StatusSeeOther) //nolint:gosec // G710: caller is responsible for sanitization when path is user-controlled
+	http.Redirect(
+		w,
+		r,
+		path,
+		http.StatusSeeOther,
+	)
 }
 
 // SafeRedirectPath returns path if it is a safe same-origin redirect target

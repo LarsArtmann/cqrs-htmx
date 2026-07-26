@@ -23,7 +23,10 @@ var (
 	// ErrNoCredentials is returned when a user has no registered WebAuthn credentials.
 	ErrNoCredentials = errorfamily.NewRejection("usermgmt.no_credentials", "user has no registered credentials")
 	// ErrWebAuthnNotConfigured is returned when WebAuthn is required but not configured.
-	ErrWebAuthnNotConfigured = errorfamily.NewRejection("usermgmt.webauthn_not_configured", "WebAuthn is not configured")
+	ErrWebAuthnNotConfigured = errorfamily.NewRejection(
+		"usermgmt.webauthn_not_configured",
+		"WebAuthn is not configured",
+	)
 	// ErrSessionDataNotFound is returned when WebAuthn session data is not found or expired.
 	ErrSessionDataNotFound = errorfamily.NewRejection(
 		"usermgmt.session_data_not_found",
@@ -66,7 +69,10 @@ var (
 	// ErrTOTPNotConfigured is returned when TOTP MFA is used without being configured.
 	ErrTOTPNotConfigured = errorfamily.NewTransient("usermgmt.totp_not_configured", "TOTP is not configured")
 	// ErrTOTPAlreadyEnabled is returned when TOTP setup is requested for a user who already has it.
-	ErrTOTPAlreadyEnabled = errorfamily.NewConflict("usermgmt.totp_already_enabled", "TOTP is already enabled for this user")
+	ErrTOTPAlreadyEnabled = errorfamily.NewConflict(
+		"usermgmt.totp_already_enabled",
+		"TOTP is already enabled for this user",
+	)
 	// ErrTOTPNotEnabled is returned when TOTP verification is requested for a user without TOTP.
 	ErrTOTPNotEnabled = errorfamily.NewRejection("usermgmt.totp_not_enabled", "TOTP is not enabled for this user")
 	// ErrInvalidTOTPCode is returned when the provided TOTP code is invalid.
@@ -79,7 +85,10 @@ var (
 	// ErrOAuthNotConfigured is returned when OAuth2 is used without being configured.
 	ErrOAuthNotConfigured = errorfamily.NewTransient("usermgmt.oauth_not_configured", "OAuth2 is not configured")
 	// ErrOAuthProviderNotFound is returned when the requested provider is not configured.
-	ErrOAuthProviderNotFound = errorfamily.NewRejection("usermgmt.oauth_provider_not_found", "OAuth2 provider not found")
+	ErrOAuthProviderNotFound = errorfamily.NewRejection(
+		"usermgmt.oauth_provider_not_found",
+		"OAuth2 provider not found",
+	)
 	// ErrOAuthInvalidState is returned when the state token is invalid, expired, or missing.
 	ErrOAuthInvalidState = errorfamily.NewRejection(
 		"usermgmt.oauth_invalid_state",
