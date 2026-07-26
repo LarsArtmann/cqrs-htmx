@@ -59,12 +59,7 @@ func OpenAPISpecHandler(spec *openapi.Spec) (http.HandlerFunc, error) {
 		return nil, errorfamily.WrapInfrastructure(err, "cqrshtmx.openapi.serialize", "serialize OpenAPI spec")
 	}
 
-	server := &immutableJSONServer{
-		etag:    `"` + hashTag(data) + `"`,
-		marshal: data,
-	}
-
-	return server.serve, nil
+	return newImmutableJSONHandler(data), nil
 }
 
 // hashTag derives a short, stable cache tag from the spec bytes using the

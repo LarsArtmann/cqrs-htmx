@@ -187,11 +187,7 @@ func (a *App) DispatchWSQuery(
 
 // wsContext returns the request context if r is non-nil, otherwise context.Background.
 func wsContext(r *http.Request) context.Context {
-	if r == nil {
-		return context.Background()
-	}
-
-	return r.Context()
+	return requestContextOrBackground(r)
 }
 
 // wsCallContext returns the request context enriched by the BeforeDispatch hook,
