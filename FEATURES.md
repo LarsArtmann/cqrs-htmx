@@ -379,9 +379,9 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | Coverage      | 93.5% | 80.9%    | ~41%           | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | low         | —                |
 | CI gate       | 90%   | 74%      | (not set)      | 80%   | 80%      | 80%    | 66%     | 80%       | (not set)   | —                |
 | Tests passing | ~250  | ~580     | ~40            | 3     | 18       | 18     | 35      | 30+       | 16          | ~20              |
-| Lint issues   | ~160  | ~100     | 0              | 0     | 0        | 0      | 0       | 0         | ~150        | 0                |
+| Lint issues   | ~610  | ~330     | 0              | 0     | 0        | 0      | 0       | 0         | ~150        | 0                |
 | ErrorFamily   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
 | Go modules    | 1     | 1        | 1              | 1     | 1        | 1      | 1       | 1         | 1           | 1                |
 
-> _Recompute live: `nix run .#coverage-gate`, `nix run .#lint`, `nix run .#errorfamily`._
-> _Lint: the 7 non-root non-dashboardui non-usermgmt modules pass clean. Root (~160), usermgmt (~100), and dashboardui (~150) currently fail `nix run .#lint` on pre-existing style nits (varnamelen, exhaustruct, `mnd`, canonical header casing) and `id.*AggregateID` SA1019 deprecation warnings — these are tracked, non-release-blocking (v4.5.0 and v4.6.0 shipped with them). The `nix run .#lint` wrapper stops at the root module's failure, so submodule failures are only visible when linting each module with `GOEXPERIMENT=jsonv2` directly._
+> _Recompute live: `nix run .#coverage-gate`, `nix run .#lint`, `nix run .#errorfamily`. Lint counts are uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module._
+> _Lint: the 7 non-root non-dashboardui non-usermgmt modules pass clean. Root (~610, dominated by varnamelen 405 + exhaustruct 61), usermgmt (~330, dominated by staticcheck SA1019 271 — the `id.NewAggregateID` deprecation), and dashboardui (~150) currently fail `nix run .#lint` on pre-existing style nits and deprecation warnings — these are tracked, non-release-blocking (v4.5.0 and v4.6.0 shipped with them). The `nix run .#lint` wrapper caps varnamelen at 50 (`max-issues-per-linter: 50` in `.golangci.yml`) and stops at the root module's failure, so the real count is higher and submodule failures are only visible via per-module runs._
