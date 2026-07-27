@@ -60,7 +60,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-sse v0.2.1 // indirect
+	github.com/larsartmann/go-sse v0.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
