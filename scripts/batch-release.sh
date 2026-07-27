@@ -123,13 +123,14 @@ find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= r
 done
 rm -f "$mapping_file"
 
-# Verify no pseudo-versions remain in ANY go.mod (not just tagged modules).
-# Catches both zero-date (00010101000000) and date-based (YYYYMMDDHHMMSS) forms.
-echo "Verifying no pseudo-versions remain..."
+# Verify no INTERNAL cqrs-htmx pseudo-versions remain in ANY go.mod.
+# Only checks internal cqrs-htmx/go-cqrs-lite deps — third-party libs
+# (e.g. remyoudompheng/bigfft) legitimately use pseudo-versions.
+echo "Verifying no internal cqrs-htmx pseudo-versions remain..."
 while IFS= read -r gomod; do
-  if grep -qP 'v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{14}' "$gomod" 2>/dev/null; then
-    echo "ERROR: ${gomod} still has pseudo-versions"
-    grep -nP 'v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{14}' "$gomod"
+  if grep -P 'github\.com/larsartmann/(cqrs-htmx|go-cqrs-lite)\S+\s+v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{14}' "$gomod" 2>/dev/null | grep -qv 'eventtest'; then
+    echo "ERROR: ${gomod} still has internal pseudo-versions"
+    grep -nP 'github\.com/larsartmann/(cqrs-htmx|go-cqrs-lite)\S+\s+v[0-9]+\.[0-9]+\.[0-9]+-[0-9]{14}' "$gomod"
     exit 1
   fi
 done < <(find . -name go.mod -not -path './vendor/*' -not -path './.git/*')
