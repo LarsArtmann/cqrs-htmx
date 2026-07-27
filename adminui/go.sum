@@ -64,6 +64,8 @@ github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.0 h1:66xrfF4quDOTojv5suQ
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.0/go.mod h1:G+o05BKKPAHKPd1WdmcmQeREynBKxkOLtpTbSGo1Oio=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.5.0 h1:sa1Y5wAk1fmaUHygggX/i+bhptIp4fRtRk6yUq/volI=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.5.0/go.mod h1:QGZD4mYdHA9PFjNdVduTAMiqunrdzDqyYY/t3zzuxuo=
+github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.6.0 h1:92OZefbQBKGcBPP9iM7PCwJ7FUC+p0SRn5dE5OKlw6c=
+github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.6.0/go.mod h1:qPA9Nc3ndQ5V4vUIVW69iJ0bE7TUbufPViG9XZE/1K0=
 github.com/larsartmann/cqrs-htmx/v4 v4.5.0 h1:EMfZ35z95WKN+unHQqgKBc/4rMgoK31SLs5hLddpoG4=
 github.com/larsartmann/cqrs-htmx/v4 v4.5.0/go.mod h1:1NHeYvXTIRv7bjDBXMsv+Jk44zEl1X9ml01pZOneZQ0=
 github.com/larsartmann/cqrs-htmx/v4 v4.6.0 h1:pza8zZrU29C98jj1jsY/cPDfhOR6eDXlGD7TrNybr/Q=
@@ -124,6 +126,8 @@ github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxm
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-sse v0.2.1 h1:cvqViY+2MgTSHU3PgpFAHHtT56hYazom2Ky8ZPL+258=
 github.com/larsartmann/go-sse v0.2.1/go.mod h1:jzjpWqwufPRLht+qk15EHwHG65mhZDdTV1VIUk5pQ2Y=
+github.com/larsartmann/go-sse v0.3.0 h1:1XGi5C7dhGqrYvRB0s9ngwpGsZmeyuECM8JAUVEW8MY=
+github.com/larsartmann/go-sse v0.3.0/go.mod h1:jzjpWqwufPRLht+qk15EHwHG65mhZDdTV1VIUk5pQ2Y=
 github.com/larsartmann/httputil v0.6.1 h1:1Yav44hzBvrmcnNc17RS+ept/30e6KnwKiCwtEslinw=
 github.com/larsartmann/httputil v0.6.1/go.mod h1:IYVTbv9asqvzJahTYbH4hrmU6Mr7W8yjFQOkTusXucA=
 github.com/larsartmann/templ-components v1.2.0 h1:jcD2rokFGubJ14YG4g5AueqhaSh/fV9tg95gjeUrH3U=
