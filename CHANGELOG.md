@@ -6,7 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [v4.6.0] - 2026-07-27
+## [v4.6.1] - 2026-07-27
+
+### Changed
+
+- **Dependency bumps** (since v4.6.0): go-cqrs-lite `v4.0.0`/`v4.1.0` → `v4.1.0` (storage/memory `v4.0.0` and snapshot `v4.0.1` brought up to `v4.1.0`; all other modules already at `v4.1.0`), go-sse `v0.2.1` → `v0.3.0`. No cqrs-htmx API change.
+- **identity-model event-handling refresh** (`identity-model/fold.go`, `identity-model/membership.go`): simplified `HasRole`/`HasAnyRole` to use `slices.Contains`/`slices.ContainsFunc` instead of manual loops.
+
+### Added
+
+- **identity-model module metadata files** (`identity-model/`): `.editorconfig`, `.gitattributes`, `.gitignore`, `CONTRIBUTING.md`, `CHANGELOG.md` — standard project hygiene for the independently versioned module.
+
+## [v4.6.0] - 2026-07-26
 
 ### Added
 
@@ -20,9 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Dedup sweep — harmful clones driven to zero** (two rounds, 2026-07-26): consolidated the event-catalog and OpenAPI handlers into a shared `immutableJSONServer`; extracted `requireUser` guard, `formatFromQuery`, `setHTMLNoStoreHeaders`, `toMemberRows`, `parseTenantMemberPath`, `reasonedCommand`, shared `cqrshtmx.ToastDetail`, a free `rebuildProjection` function, `writeHTML` helper, and `wsContext` delegation. Clone groups 33→26, harmful clones → 0.
 - **Inter-module go.mod version references resolved** (commit `e274540`, `59e33ef`): `usermgmt`, `adminui`, and `loginpage` now reference `cqrs-htmx/v4 v4.5.0` (was stale `v4.4.0`), and the identity-model pseudo-version was replaced with `v4.1.0`. Root cause fixed in `scripts/batch-release.sh` (re-resolves `require` lines after stripping `replace` directives). Workspace builds were unaffected (go.work local replaces); this unblocks `GOWORK=off` resolution for external consumers. The `examples/dashboard-demo/go.mod` zero pseudo-version for `dashboardui/v4` is also resolved in this release (`v4.0.0-000...` → `v4.0.0`).
-- **Dependency bumps** (since v4.5.0, verified against the `v4.5.0` tag): go-cqrs-lite `v4.0.0` → `v4.1.0` (all modules — command, event, id, query, storage/memory, snapshot, idempotency, dispatcher, metadata now at v4.1.0+; codec at v4.1.1), go-error-family `v0.8.0` → `v0.10.0`, templ-components `v1.1.0` → `v1.2.0` (adminui + admin-demo), go-sse `v0.2.0` → `v0.3.0`, httputil `v0.6.0` → `v0.6.1`. No cqrs-htmx API change.
+- **Dependency bumps** (since v4.5.0, verified against the `v4.5.0` tag): go-error-family `v0.8.0` → `v0.10.0`, templ-components `v1.1.0` → `v1.2.0` (adminui + admin-demo), go-sse `v0.2.0` → `v0.2.1`, httputil `v0.6.0` → `v0.6.1`. No cqrs-htmx API change.
 - **Release-checklist pre-tag lockstep detection** (`scripts/release-checklist.sh`): the script now detects when HEAD is not tagged and marks sub-module test/build/check-modules failures as EXPECTED (they resolve once modules are tagged and pushed). Lint failures are marked as pre-existing nits with a recompute command. Adds a `go.work` vs `go.mod` go-directive consistency check.
-- **identity-model project metadata + event-handling refresh** (`identity-model/`): added module-level metadata files (`.editorconfig`, `.gitattributes`, `.gitignore`, `CONTRIBUTING.md`, `CHANGELOG.md`). Simplified `HasRole`/`HasAnyRole` in `fold.go` and `membership.go` to use `slices.Contains`/`slices.ContainsFunc` instead of manual loops.
 
 ### Fixed
 
