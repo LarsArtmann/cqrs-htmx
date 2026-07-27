@@ -20,10 +20,5 @@ func (m Membership) HasRole(role Role) bool {
 
 // HasAnyRole reports whether the membership grants any of the given roles.
 func (m Membership) HasAnyRole(roles ...Role) bool {
-	for _, target := range roles {
-		if m.HasRole(target) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(roles, m.HasRole)
 }
