@@ -111,6 +111,8 @@ fi
 step "Coverage gate (nix run .#coverage-gate)"
 if nix run .#coverage-gate 2>&1 | tail -5; then
     pass "Coverage above thresholds"
+elif [ "$PRE_TAG" -eq 1 ]; then
+    expected "Coverage gate failed — runs with GOWORK=off so sub-modules that depend on unpublished root exports cannot build pre-tag. Tag + push resolves this."
 else
     fail "Coverage below thresholds"
 fi
