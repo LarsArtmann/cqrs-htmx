@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/a-h/templ v0.3.1020
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.5.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.5.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.6.0
 	github.com/larsartmann/go-error-family v0.10.0
 )
 
