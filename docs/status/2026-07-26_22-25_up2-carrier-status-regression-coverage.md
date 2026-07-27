@@ -124,13 +124,14 @@ That's it. No broken tests, no reverted changes, no wrong-status contracts shipp
 
 The regression coverage **shipped** — it lives in CHANGELOG `[Unreleased]` Added ("Dedicated `carrierStatus` regression coverage") and will tag with the next release. The gate gaps flagged in §c are now closed:
 
-| §c item | Status |
-| ------- | ------ |
-| §c.1 — `nix run .#coverage-gate` never ran | **DONE** — root 93.6% (gate 90%), usermgmt 80.9% (gate 74%), all auth modules 88–89%. PASS. |
-| §c.4 — `nix flake check` never ran | **DONE** — `nix flake check` reports "all checks passed!" |
-| §c.5 — full workspace test | **Partial** — root/identity-model/usermgmt/totp/webauthn/oauth2 PASS via `nix run .#test`. adminui/loginpage/integration_test still fail GOWORK=off (expected lockstep pre-tag cascade — resolves when v4.6.0 is tagged). |
+| §c item                                    | Status                                                                                                                                                                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| §c.1 — `nix run .#coverage-gate` never ran | **DONE** — root 93.6% (gate 90%), usermgmt 80.9% (gate 74%), all auth modules 88–89%. PASS.                                                                                                                               |
+| §c.4 — `nix flake check` never ran         | **DONE** — `nix flake check` reports "all checks passed!"                                                                                                                                                                 |
+| §c.5 — full workspace test                 | **Partial** — root/identity-model/usermgmt/totp/webauthn/oauth2 PASS via `nix run .#test`. adminui/loginpage/integration_test still fail GOWORK=off (expected lockstep pre-tag cascade — resolves when v4.6.0 is tagged). |
 
 **Still open (not blocking):**
+
 - `carrierStatus` benchmark (§c.2, build-repair todo #41) — `benchmark_error_test.go` still has no `carrierStatus` entry. The O(n) chain-walk vs old O(1) is unmeasured.
 - Chain-walking depth limit (§c.3, build-repair todo #40) — not evaluated (YAGNI vs cap decision deferred).
 - DiscordSync `mapErrorToHTTPStatus` workaround deletion (§b, §f.4–6) — cross-repo; depends on confirming DiscordSync's `cqrs-htmx/v4` version is ≥ v4.5.0.
