@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/dashboardui/v4
 go 1.26.5
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.5.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0
@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.10.0
 )
 
