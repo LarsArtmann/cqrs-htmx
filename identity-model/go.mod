@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/casbin/casbin/v3 v3.10.0
-	github.com/larsartmann/go-branded-id v0.3.2
+	github.com/larsartmann/go-branded-id v0.4.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0

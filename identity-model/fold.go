@@ -2,6 +2,7 @@ package identitymodel
 
 import (
 	"bytes"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -40,12 +41,7 @@ func (s MembershipState) Exists() bool {
 
 // HasRole reports whether the membership grants the given role.
 func (s MembershipState) HasRole(role Role) bool {
-	for _, r := range s.Roles {
-		if r == role {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(s.Roles, role)
 }
 
 // TenantState is the aggregate state for a Tenant, reconstructed by folding events.
