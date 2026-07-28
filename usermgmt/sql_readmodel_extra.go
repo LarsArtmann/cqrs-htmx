@@ -36,7 +36,13 @@ func membershipViewMapper() storage.ViewMapper[MembershipView] {
 }
 
 func NewSQLiteMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
-	store, err := newViewStoreOrFail(storage.NewSQLiteViewStore[MembershipView, id.AggregateID], db, membershipViewMapper(), "usermgmt.sql_readmodel.membership_create", "create sqlite membership view store")
+	store, err := newViewStoreOrFail(
+		storage.NewSQLiteViewStore[MembershipView, id.AggregateID],
+		db,
+		membershipViewMapper(),
+		"usermgmt.sql_readmodel.membership_create",
+		"create sqlite membership view store",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +50,13 @@ func NewSQLiteMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 }
 
 func NewSQLMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
-	store, err := newViewStoreOrFail(storage.NewSQLViewStore[MembershipView, id.AggregateID], db, membershipViewMapper(), "usermgmt.sql_readmodel.membership_create", "create sql membership view store")
+	store, err := newViewStoreOrFail(
+		storage.NewSQLViewStore[MembershipView, id.AggregateID],
+		db,
+		membershipViewMapper(),
+		"usermgmt.sql_readmodel.membership_create",
+		"create sql membership view store",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +129,13 @@ func tenantViewMapper() storage.ViewMapper[TenantView] {
 }
 
 func NewSQLiteTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
-	store, err := newViewStoreOrFail(storage.NewSQLiteViewStore[TenantView, TenantID], db, tenantViewMapper(), "usermgmt.sql_readmodel.tenant_create", "create sqlite tenant view store")
+	store, err := newViewStoreOrFail(
+		storage.NewSQLiteViewStore[TenantView, TenantID],
+		db,
+		tenantViewMapper(),
+		"usermgmt.sql_readmodel.tenant_create",
+		"create sqlite tenant view store",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +143,13 @@ func NewSQLiteTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
 }
 
 func NewSQLTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
-	store, err := newViewStoreOrFail(storage.NewSQLViewStore[TenantView, TenantID], db, tenantViewMapper(), "usermgmt.sql_readmodel.tenant_create", "create sql tenant view store")
+	store, err := newViewStoreOrFail(
+		storage.NewSQLViewStore[TenantView, TenantID],
+		db,
+		tenantViewMapper(),
+		"usermgmt.sql_readmodel.tenant_create",
+		"create sql tenant view store",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +216,13 @@ func botViewMapper() storage.ViewMapper[BotView] {
 }
 
 func NewSQLiteBotReadModel(db *sql.DB) (*SQLBotReadModel, error) {
-	store, err := newViewStoreOrFail(storage.NewSQLiteViewStore[BotView, BotID], db, botViewMapper(), "usermgmt.sql_readmodel.bot_create", "create sqlite bot view store")
+	store, err := newViewStoreOrFail(
+		storage.NewSQLiteViewStore[BotView, BotID],
+		db,
+		botViewMapper(),
+		"usermgmt.sql_readmodel.bot_create",
+		"create sqlite bot view store",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +230,13 @@ func NewSQLiteBotReadModel(db *sql.DB) (*SQLBotReadModel, error) {
 }
 
 func NewSQLBotReadModel(db *sql.DB) (*SQLBotReadModel, error) {
-	store, err := newViewStoreOrFail(storage.NewSQLViewStore[BotView, BotID], db, botViewMapper(), "usermgmt.sql_readmodel.bot_create", "create sql bot view store")
+	store, err := newViewStoreOrFail(
+		storage.NewSQLViewStore[BotView, BotID],
+		db,
+		botViewMapper(),
+		"usermgmt.sql_readmodel.bot_create",
+		"create sql bot view store",
+	)
 	if err != nil {
 		return nil, err
 	}
