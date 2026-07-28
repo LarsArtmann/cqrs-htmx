@@ -169,7 +169,7 @@ var _ = Describe("Recovery Middleware", func() {
 						"[request_id: %s] [correlation_id: %s] %s",
 						cqrshtmx.RequestIDFromContext(r.Context()).String(),
 						cqrshtmx.CorrelationIDFromContext(r.Context()).String(),
-						err.Error(),
+						cqrshtmx.SafeDetail(err, http.StatusInternalServerError, false),
 					)))
 				},
 			})
