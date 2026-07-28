@@ -103,7 +103,7 @@ test('offline enqueue persists command envelope to IndexedDB', async ({ page, co
   await expect.poll(() => page.evaluate(queueDepthScript), { timeout: 10_000 }).toBe(1);
 
   // Verify the persisted envelope has the expected shape
-  const entries = await page.evaluate(queueEntriesScript) as any[];
+  const entries: any[] = await page.evaluate(queueEntriesScript);
   expect(entries).toHaveLength(1);
   expect(entries[0].commandId).toBeTruthy();
   expect(entries[0].envelope.verb).toBe('POST');
