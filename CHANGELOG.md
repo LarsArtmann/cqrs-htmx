@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Fixed
+### Added
 
-- **Panic recovery now echoes request_id** (`recovery.go`): `writePanicResponse` recovers the RequestID from the `X-Request-ID` response header (written by `ContextEnrichmentMiddleware`) when it is absent from the request context. Because `RecoveryMiddleware`/`RecoverHandler` runs outside `ContextEnrichmentMiddleware` in the recommended stack order, its captured request lacked the RequestID — making panic 500 responses the only error path that dropped the correlation ID. The fix enriches the request before delegating to the error handler so panic responses now carry the same request_id as every other error path. No consumer changes required.
+- **HTMX-aware panic recovery** (`recovery.go`): `writePanicResponse` recovers the RequestID from the `X-Request-ID` response header (written by `ContextEnrichmentMiddleware`) when it is absent from the request context. Because `RecoveryMiddleware`/`RecoverHandler` runs outside `ContextEnrichmentMiddleware` in the recommended stack order, its captured request lacked the RequestID — making panic 500 responses the only error path that dropped the correlation ID. The fix enriches the request before delegating to the error handler so panic responses now carry the same request_id as every other error path. New test coverage in `recovery_test.go`. No consumer changes required.
+- **SQL read model query projections** (`usermgmt/sql_readmodel.go`, `usermgmt/sql_readmodel_extra.go`): extended the SQL read model with additional query projection methods and a shared `sql_view_marshal.go` helper for view marshalling. Corrects dependency drift in the SQL read model.
+- **dashboardui guard methods** (`dashboardui/handlers.go`): extracted `requireProjectionHost` and `requireDeadLetterStore` guard helpers, replacing inline nil-checks across projection reset, DLQ replay, and DLQ delete handlers.
+
+### Changed
+
+- **Dependency bumps**: go-cqrs-lite `v4.1.0` → `v4.2.0` (command, event, id, idempotency, query; storage/memory and snapshot remain at `v4.1.0`), go-branded-id `v0.3.2` → `v0.5.0`. All examples and sub-modules updated. No cqrs-htmx API change.
+- **identity-model authorization policies refactored** (`identity-model/authz_policies.go`, `identity-model/authz_roles.go`): simplified role hierarchy and policy definitions.
+- **Event catalog handler aligned** (`event_catalog_handler.go`): aligned with SQL-backed session and view marshalling patterns.
 
 ## [v4.6.1] - 2026-07-27
 

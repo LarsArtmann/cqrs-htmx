@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-26 | **Version:** v4.6.0 (go-cqrs-lite v4.1.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.5% root, 80.9% usermgmt, ~41% identity-model (recompute via `nix run .#coverage-gate`)
+**Updated:** 2026-07-28 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** ~93.5% root, ~81% usermgmt, ~41% identity-model (recompute via `nix run .#coverage-gate`)
 
 ## Status legend
 
@@ -350,7 +350,7 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | SSE Live Updates      | 🟢 `FULLY_FUNCTIONAL`     | Real-time event stream via SSE bridge. Auto-updates dashboard panels on new events. Reconnect replay via `Last-Event-ID` + `JournalSSEStore` (missed events replayed from journal). Initial backfill on first connect. Heartbeat keep-alive (`SSEHeartbeatInterval`, 15s default). `Dashboard.Close()` lifecycle for clean shutdown. |
 | HTML Rendering        | 🟢 `FULLY_FUNCTIONAL`     | Renders HTML via Go string-building (`writeHTML`; no templ dependency — the dead `renderTempl` path was removed in v4.6.0). Compiled CSS embedded via `go:embed`. Conditional `<script>` includes (HTMX, SSE) based on config.                                                                                                       |
 | Auth Integration      | 🟢 `FULLY_FUNCTIONAL`     | Read-only by default. Configurable authorizer hook.                                                                                                                                                                                                                                                                                  |
-| File Structure        | 🟡 `PARTIALLY_FUNCTIONAL` | `handlers.go` is 1158 lines and needs a per-domain split (event browser, aggregate browser, projections, snapshots as separate files). Dead code (`notImplemented`, `renderStatCardsTempl`) removed in v4.6.0.                                                                                                                       |
+| File Structure        | 🟡 `PARTIALLY_FUNCTIONAL` | `handlers.go` is 1179 lines and needs a per-domain split (event browser, aggregate browser, projections, snapshots as separate files). Dead code (`notImplemented`, `renderStatCardsTempl`) removed in v4.6.0.                                                                                                                       |
 | Test Coverage         | 🟡 `PARTIALLY_FUNCTIONAL` | 2 test files (`dashboard_test.go` + `sse_replay_test.go`, 16 tests) for 10 source files. Needs handler-level and payload-rendering tests (SSE bridge, reconnect replay, heartbeat, and `Close` lifecycle now tested).                                                                                                                |     |
 
 ---
