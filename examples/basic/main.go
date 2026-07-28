@@ -37,7 +37,7 @@ type item struct {
 // createItemCmd is a custom command.Command carrying the decoded request data.
 type createItemCmd struct {
 	typ   command.Type
-	aggID id.AggregateID
+	aggID id.StreamID
 	cmdID id.CommandID
 	Name  string
 }
@@ -63,7 +63,7 @@ func (q *listItemsPaginatedQuery) Type() query.Type { return query.Type("ListIte
 // greetCmd is a typed command that implements command.Command directly.
 // The JSON body shape matches the struct fields (minus the command methods).
 type greetCmd struct {
-	aggID id.AggregateID
+	aggID id.StreamID
 	cmdID id.CommandID
 	Name  string `json:"name"`
 }
@@ -95,7 +95,7 @@ type itemStore struct {
 func (s *itemStore) add(name string) item {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	it := item{ID: id.NewAggregateID().String(), Name: name}
+	it := item{ID: id.NewStreamID().String(), Name: name}
 	s.items = append(s.items, it)
 	broadcaster.Broadcast(cqrshtmx.SSEEvent{
 		Event: "itemCreated",
@@ -176,7 +176,7 @@ func main() {
 		cqrshtmx.DecodeJSON(func(req createItemRequest) (command.Command, error) {
 			return &createItemCmd{
 				typ:   command.Type("CreateItem"),
-				aggID: id.NewAggregateID(),
+				aggID: id.NewStreamID(),
 				cmdID: id.NewCommandID(),
 				Name:  req.Name,
 			}, nil

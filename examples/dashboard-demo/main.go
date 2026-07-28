@@ -93,7 +93,7 @@ func seedDemoData(
 
 	// --- Users ---
 	for i, name := range []string{"Alice", "Bob", "Charlie", "Diana"} {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		ref := id.NewStreamRef("User", aggID)
 
 		payload, _ := json.Marshal(map[string]any{
@@ -127,7 +127,7 @@ func seedDemoData(
 
 	// --- Orders ---
 	for i := 1; i <= 3; i++ {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		ref := id.NewStreamRef("Order", aggID)
 
 		placed, _ := event.New("order.placed", aggID, "Order", event.Version(1), map[string]any{
