@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-28 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** ~93.5% root, ~81% usermgmt, ~41% identity-model (recompute via `nix run .#coverage-gate`)
+**Updated:** 2026-07-28 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.4% root (gate 90%), 80.9% usermgmt (gate 74%), 74.9% identity-model (no gate yet), 55% dashboardui (gate 55%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 15 modules
 
 ## Status legend
 

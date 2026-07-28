@@ -221,15 +221,15 @@ This repo uses **multi-module tagging**: each module gets its own semver tag.
 
 | Module            | Tag prefix                 | Example tag                |
 | ----------------- | -------------------------- | -------------------------- |
-| Root              | `v4.X.Y` (no prefix)       | `v4.5.0`                   |
-| identity-model    | `identity-model/v4.X.Y`    | `identity-model/v4.1.0`    |
-| usermgmt          | `usermgmt/v4.X.Y`          | `usermgmt/v4.5.0`          |
-| usermgmt/totp     | `usermgmt/totp/v4.X.Y`     | `usermgmt/totp/v4.5.0`     |
-| usermgmt/webauthn | `usermgmt/webauthn/v4.X.Y` | `usermgmt/webauthn/v4.5.0` |
-| usermgmt/oauth2   | `usermgmt/oauth2/v4.X.Y`   | `usermgmt/oauth2/v4.5.0`   |
-| adminui           | `adminui/v4.X.Y`           | `adminui/v4.5.0`           |
-| loginpage         | `loginpage/v4.X.Y`         | `loginpage/v4.5.0`         |
-| dashboardui       | `dashboardui/v4.X.Y`       | `dashboardui/v4.0.0`       |
+| Root              | `v4.X.Y` (no prefix)       | `v4.6.1`                   |
+| identity-model    | `identity-model/v4.X.Y`    | `identity-model/v4.1.1`    |
+| usermgmt          | `usermgmt/v4.X.Y`          | `usermgmt/v4.6.1`          |
+| usermgmt/totp     | `usermgmt/totp/v4.X.Y`     | `usermgmt/totp/v4.6.1`     |
+| usermgmt/webauthn | `usermgmt/webauthn/v4.X.Y` | `usermgmt/webauthn/v4.6.1` |
+| usermgmt/oauth2   | `usermgmt/oauth2/v4.X.Y`   | `usermgmt/oauth2/v4.6.1`   |
+| adminui           | `adminui/v4.X.Y`           | `adminui/v4.6.1`           |
+| loginpage         | `loginpage/v4.X.Y`         | `loginpage/v4.6.1`         |
+| dashboardui       | `dashboardui/v4.X.Y`       | `dashboardui/v4.1.1`       |
 
 All modules are versioned in lockstep — a release bumps all tags. identity-model and dashboardui may have independent version tracks when their changes don't align with the lockstep cycle.
 
