@@ -50,7 +50,7 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 				<td style="padding:8px"><a href="%s/time-travel/%s/%s" style="color:var(--accent);text-decoration:none">Inspect</a></td>
 			</tr>`,
 				esc(string(l.Type)),
-				esc(truncate(l.ID.String(), 24)),
+				esc(truncate(l.ID.String(), listIDWidth)),
 				esc(l.Version.String()),
 				p.BasePath,
 				esc(string(l.Type)),
@@ -104,7 +104,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	p := d.page("Time Travel: "+streamType+"/"+truncate(streamID, 12), "/time-travel", r)
+	p := d.page("Time Travel: "+streamType+"/"+truncate(streamID, titleIDWidth), "/time-travel", r)
 	html := d.renderTimeTravelDetail(p, ref, eventsToVersion, requestedVersion, maxVersion)
 	renderPage(w, r, html)
 }

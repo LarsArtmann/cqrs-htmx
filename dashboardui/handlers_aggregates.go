@@ -45,7 +45,7 @@ func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	p := d.page("Aggregate: "+streamType+"/"+truncate(streamID, 12), "/aggregates", r)
+	p := d.page("Aggregate: "+streamType+"/"+truncate(streamID, titleIDWidth), "/aggregates", r)
 
 	link := func(href, label string) string {
 		return fmt.Sprintf(`<a href="%s" style="color:var(--accent);text-decoration:none">%s</a>`, href, label)
@@ -114,7 +114,7 @@ func (d *Dashboard) renderAggregateDetail(
 				esc(evt.Version().String()),
 				link(fmt.Sprintf("%s/events/%s", p.BasePath, esc(evt.ID().String())), esc(string(evt.Type()))),
 				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
-				fmt.Sprintf(`<code style="font-size:0.8em">%s</code>`, truncate(evt.ID().String(), 20)),
+				fmt.Sprintf(`<code style="font-size:0.8em">%s</code>`, truncate(evt.ID().String(), eventIDWidth)),
 			)
 		}
 
@@ -142,7 +142,7 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 				<td style="padding:8px">%d</td>
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 			</tr>`,
-				truncate(l.ID.String(), 24),
+				truncate(l.ID.String(), listIDWidth),
 				l.Type,
 				l.Version.String(),
 				l.EventCount,

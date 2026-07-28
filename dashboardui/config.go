@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	defaultBasePath    = "/dashboard"
-	defaultTitle       = "CQRS Dashboard"
-	defaultAccentColor = "#4f46e5"
-	defaultPageSize    = 50
-	maxPageSize        = 200
+	defaultBasePath            = "/dashboard"
+	defaultTitle               = "CQRS Dashboard"
+	defaultAccentColor         = "#4f46e5"
+	defaultPageSize            = 50
+	maxPageSize                = 200
+	defaultSSEHeartbeatInterval = 15 * time.Second
 )
 
 // EventByIDLoader loads a single event by its EventID in O(1). Implemented
@@ -134,7 +135,7 @@ func (cfg Config) withDefaults() (Config, error) {
 	}
 
 	if cfg.SSEHeartbeatInterval == 0 {
-		cfg.SSEHeartbeatInterval = 15 * time.Second
+		cfg.SSEHeartbeatInterval = defaultSSEHeartbeatInterval
 	}
 
 	return cfg, nil

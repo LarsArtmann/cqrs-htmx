@@ -60,7 +60,7 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand)
 				esc(string(cmd.Type())),
 				esc(string(cmd.StreamType())),
 				esc(cmd.StreamID().String()),
-				truncate(cmd.ID().String(), 20),
+				truncate(cmd.ID().String(), eventIDWidth),
 			)
 		}
 
@@ -123,7 +123,7 @@ func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery) s
 			</tr>`,
 				esc(q.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(q.Type())),
-				truncate(q.ID().String(), 20),
+				truncate(q.ID().String(), eventIDWidth),
 			)
 		}
 
