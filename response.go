@@ -279,26 +279,26 @@ func (resp *Response) Apply() bool {
 // Returns the sanitized URL and whether it's safe to redirect.
 // Blocks absolute URLs, scheme/host references, and paths that escape above root.
 func sanitizeRedirectURL(rawURL string) (string, bool) {
-	u, err := url.Parse(rawURL)
+	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return "", false
 	}
 
-	if u.Scheme != "" || u.Host != "" {
+	if parsedURL.Scheme != "" || parsedURL.Host != "" {
 		return "", false
 	}
 
-	if u.Opaque != "" {
+	if parsedURL.Opaque != "" {
 		return "", false
 	}
 
-	cleaned := path.Clean(u.Path)
+	cleaned := path.Clean(parsedURL.Path)
 
-	if pathEscapesRoot(u.Path) {
+	if pathEscapesRoot(parsedURL.Path) {
 		return "", false
 	}
 
-	return cleaned, u.Path != ""
+	return cleaned, parsedURL.Path != ""
 }
 
 // pathEscapesRoot checks whether a URL path contains ".." segments that would

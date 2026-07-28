@@ -274,13 +274,13 @@ func appendDispatchErrorAttrs(attrs []slog.Attr, err error) []slog.Attr {
 	// that were wrapped by dispatch error handling.
 	current := err
 	for current != nil {
-		var ee *event.Error
-		if errors.As(current, &ee) && ee != nil {
-			for k, v := range ee.ErrorContext() {
+		var evtErr *event.Error
+		if errors.As(current, &evtErr) && evtErr != nil {
+			for k, v := range evtErr.ErrorContext() {
 				attrs = append(attrs, slog.String("error_ctx_"+k, v))
 			}
 			// Move past this event.Error to find deeper ones.
-			current = errors.Unwrap(ee)
+			current = errors.Unwrap(evtErr)
 
 			continue
 		}

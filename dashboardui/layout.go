@@ -62,11 +62,11 @@ func (d *Dashboard) renderSidebar(p pageData) string {
 	b.WriteString(`<nav style="display:flex;flex-direction:column;gap:2px">`)
 
 	for _, item := range p.Nav {
-		bg := "transparent"
+		bgColor := "transparent"
 		color := "#94a3b8"
 
 		if item.Active {
-			bg = "color-mix(in srgb, var(--accent) 14%, transparent)"
+			bgColor = "color-mix(in srgb, var(--accent) 14%, transparent)"
 			color = "var(--accent)"
 		}
 
@@ -76,7 +76,7 @@ func (d *Dashboard) renderSidebar(p pageData) string {
 			p.BasePath,
 			item.Href,
 			color,
-			bg,
+			bgColor,
 			item.Label,
 		)
 	}

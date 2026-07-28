@@ -124,11 +124,11 @@ func New(cfg Config) (*App, error) {
 		loginRedirect = defaultLoginRedirect
 	}
 
-	eh := cfg.ErrorHandler
-	if eh == nil {
+	errorHandler := cfg.ErrorHandler
+	if errorHandler == nil {
 		includeInternal := cfg.IncludeInternalDetails
 		includeRequestID := cfg.IncludeRequestIDInErrors
-		eh = func(w http.ResponseWriter, r *http.Request, err error) {
+		errorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 			handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, includeInternal, includeRequestID))
 		}
 	}
@@ -138,7 +138,7 @@ func New(cfg Config) (*App, error) {
 		queries:         cfg.Queries,
 		enforcer:        cfg.Enforcer,
 		userIDExtractor: cfg.UserIDExtractor,
-		errorHandler:    eh,
+		errorHandler:    errorHandler,
 		loginRedirect:   loginRedirect,
 		timeout:         cfg.Timeout,
 		maxBodySize:     cfg.MaxBodySize,
