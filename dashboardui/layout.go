@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// brandInitialsLen is the number of characters used for the sidebar brand initials.
+const brandInitialsLen = 2
+
 // renderLayout wraps content in the dashboard HTML shell: sidebar,
 // header, content area. This is intentionally simple Go-generated HTML
 // for the initial version. Future iterations will use templ components.
@@ -109,7 +112,7 @@ func initials(brand string) string {
 	}
 
 	if len(words) == 1 {
-		return strings.ToUpper(brand[:min(2, len(brand)) //nolint:mnd // 2-char brand initials])
+		return strings.ToUpper(brand[:min(brandInitialsLen, len(brand))])
 	}
 
 	return strings.ToUpper(string(words[0][0]) + string(words[1][0]))
