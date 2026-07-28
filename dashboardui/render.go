@@ -11,9 +11,7 @@ import (
 const contentTypeHTML = "text/html; charset=utf-8"
 
 // writeHTML writes pre-rendered HTML with no-store caching, logging under the
-// given label. Shared by renderPage (full documents) and renderPartial (HTMX
-// fragments), which differ only in the log label — the wire response is the
-// same. The two public names are kept to document caller intent.
+// given label.
 func writeHTML(w http.ResponseWriter, r *http.Request, html, label string) {
 	w.Header().Set("Content-Type", contentTypeHTML)
 	w.Header().Set("Cache-Control", "no-store")
@@ -25,14 +23,6 @@ func writeHTML(w http.ResponseWriter, r *http.Request, html, label string) {
 
 func renderPage(w http.ResponseWriter, r *http.Request, html string) {
 	writeHTML(w, r, html, "write page")
-}
-
-func renderPartial(w http.ResponseWriter, r *http.Request, html string) {
-	writeHTML(w, r, html, "write partial")
-}
-
-func isPartial(r *http.Request) bool {
-	return cqrshtmx.RenderPartial(r)
 }
 
 // toastDetail is aliased to the shared cqrshtmx.ToastDetail (same wire shape as

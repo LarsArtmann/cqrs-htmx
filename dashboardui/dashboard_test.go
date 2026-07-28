@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -51,7 +52,7 @@ func TestDashboard_EventBrowserRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 	aggID := id.NewStreamID()
 	evt, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
-	_ = store.Save(nil, id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
+	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
 
 	d, _ := New(Config{
 		EventSource: store,
@@ -146,7 +147,7 @@ func TestDashboard_EventDetailRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 	aggID := id.NewStreamID()
 	evt, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
-	_ = store.Save(nil, id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
+	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
 
 	d, _ := New(Config{
 		EventSource: store,
@@ -179,10 +180,10 @@ func TestDashboard_AggregateDetailRenders(t *testing.T) {
 	ref := id.NewStreamRef("User", aggID)
 
 	evt1, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
-	_ = store.Save(nil, ref, []event.Event{evt1}, event.Version(0))
+	_ = store.Save(context.Background(), ref, []event.Event{evt1}, event.Version(0))
 
 	evt2, _ := event.New("user.renamed", aggID, "User", event.Version(2), struct{ Name string }{Name: "Bob"})
-	_ = store.Save(nil, ref, []event.Event{evt2}, event.Version(1))
+	_ = store.Save(context.Background(), ref, []event.Event{evt2}, event.Version(1))
 
 	d, _ := New(Config{
 		EventSource: store,
@@ -221,7 +222,7 @@ func TestDashboard_CommandAuditRenders(t *testing.T) {
 		ref,
 		[]byte(`{"name":"Alice"}`),
 	)
-	_ = cmdStore.Save(nil, ref, cmd)
+	_ = cmdStore.Save(context.Background(), ref, cmd)
 
 	d, _ := New(Config{
 		EventSource:    store,
@@ -253,7 +254,7 @@ func TestDashboard_QueryAuditRenders(t *testing.T) {
 	queryStore := memorystorage.NewMemoryQueryStore()
 
 	q, _ := query.NewPersistedQuery("get.user", []byte(`{"id":"123"}`))
-	_ = queryStore.SaveQuery(nil, q)
+	_ = queryStore.SaveQuery(context.Background(), q)
 
 	d, _ := New(Config{
 		EventSource:  store,
@@ -293,7 +294,7 @@ func TestDashboard_TimeTravelDetailRenders(t *testing.T) {
 			event.Version(i),
 			struct{ Step int }{Step: i},
 		)
-		_ = store.Save(nil, ref, []event.Event{evt}, event.Version(i-1))
+		_ = store.Save(context.Background(), ref, []event.Event{evt}, event.Version(i-1))
 	}
 
 	reader := listing.NewInMemoryStreamReader(store)
@@ -341,10 +342,10 @@ func TestDashboard_SnapshotDetailRenders(t *testing.T) {
 		State:      []byte(`{"status":"shipped","total":42}`),
 		CreatedAt:  createdAt,
 	}
-	_ = snapStore.Save(nil, snap)
+	_ = snapStore.Save(context.Background(), snap)
 
 	evt, _ := event.New("order.created", aggID, "Order", event.Version(1), struct{}{})
-	_ = store.Save(nil, ref, []event.Event{evt}, event.Version(0))
+	_ = store.Save(context.Background(), ref, []event.Event{evt}, event.Version(0))
 
 	reader := listing.NewInMemoryStreamReader(store)
 
@@ -404,7 +405,7 @@ func TestDashboard_SSEBridgeWorks(t *testing.T) {
 	aggID := id.NewStreamID()
 
 	evt, _ := event.New("order.placed", aggID, "Order", event.Version(1), struct{ Total int }{Total: 42})
-	if err := bus.Publish(nil, evt); err != nil {
+	if err := bus.Publish(context.Background(), evt); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 

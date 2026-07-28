@@ -203,15 +203,6 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, limit int) ([]event.Ev
 	return nil, nil
 }
 
-type eventRow struct {
-	Time     time.Time
-	Type     string
-	StreamID string
-	Stream   string
-	Version  string
-	EventID  string
-}
-
 func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 	return d.renderLayout(p, func() string {
 		if len(events) == 0 {
