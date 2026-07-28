@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -11,6 +12,29 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
+
+// viewStoreCreator is the constructor signature shared by
+// storage.NewSQLiteViewStore and storage.NewSQLViewStore.
+type viewStoreCreator[V any, K fmt.Stringer] func(
+	*sql.DB, storage.ViewMapper[V], ...storage.ViewStoreOption,
+) (*storage.SQLViewStore[V, K], error)
+
+// newViewStoreOrFail calls create to build a SQL view store and wraps any
+// error as a Transient failure with the caller's error code and message.
+// Shared by all New(NewSQLite|NewSQL)XReadModel constructor pairs so the
+// error wrapping logic lives in exactly one place.
+func newViewStoreOrFail[V any, K fmt.Stringer](
+	create viewStoreCreator[V, K],
+	db *sql.DB,
+	mapper storage.ViewMapper[V],
+	errCode, errMsg string,
+) (*storage.SQLViewStore[V, K], error) {
+	store, err := create(db, mapper)
+	if err != nil {
+		return nil, errorfamily.WrapTransient(err, errCode, errMsg)
+	}
+	return store, nil
+}
 
 type UserView struct {
 	Email         string `json:"email"          view:"email"`
@@ -42,17 +66,17 @@ func userViewMapper() storage.ViewMapper[UserView] {
 }
 
 func NewSQLiteUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
-	store, err := storage.NewSQLiteViewStore[UserView, UserID](db, userViewMapper())
+	store, err := newViewStoreOrFail(storage.NewSQLiteViewStore[UserView, UserID], db, userViewMapper(), "usermgmt.sql_readmodel.create", "create sqlite user view store")
 	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.create", "create sqlite user view store")
+		return nil, err
 	}
 	return newSQLUserReadModel(store), nil
 }
 
 func NewSQLUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
-	store, err := storage.NewSQLViewStore[UserView, UserID](db, userViewMapper())
+	store, err := newViewStoreOrFail(storage.NewSQLViewStore[UserView, UserID], db, userViewMapper(), "usermgmt.sql_readmodel.create", "create sql user view store")
 	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.create", "create sql user view store")
+		return nil, err
 	}
 	return newSQLUserReadModel(store), nil
 }
