@@ -43,7 +43,8 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 		b.WriteString(`</tr></thead><tbody>`)
 
 		for _, l := range listings {
-			fmt.Fprintf(&b, `<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(
+				&b, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px">%s</td>
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px">%s</td>
@@ -109,7 +110,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderTimeTravelDetail(
+func (d *Dashboard) renderTimeTravelDetail( //nolint:funlen // HTML string building is inherently verbose (no templ dep, see FEATURES.md)
 	p pageData,
 	ref id.StreamRef,
 	events []event.Event,
@@ -160,7 +161,8 @@ func (d *Dashboard) renderTimeTravelDetail(
 		b.WriteString(`</tr></thead><tbody>`)
 
 		for _, evt := range events {
-			fmt.Fprintf(&b, `<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(
+				&b, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-weight:600">%s</td>
 				<td style="padding:8px"><a href="%s/events/%s" style="color:var(--accent);text-decoration:none"><code>%s</code></a></td>
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
