@@ -89,7 +89,7 @@ func (b *Broadcaster) broadcastOnErrorHook(mapper func(r *http.Request, err erro
 // the client disconnects, then unsubscribes and closes the stream.
 func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	stream := NewSSEStream(w, r)
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)

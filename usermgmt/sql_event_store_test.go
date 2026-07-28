@@ -56,7 +56,7 @@ func TestSQLEventStore_SaveAndLoad(t *testing.T) {
 	if loaded[0].Type() != eventUserRegistered {
 		t.Errorf("type = %q", loaded[0].Type())
 	}
-	if loaded[0].AggregateID() != aggID {
+	if loaded[0].StreamID() != aggID {
 		t.Errorf("aggregate ID mismatch")
 	}
 }

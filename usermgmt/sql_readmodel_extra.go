@@ -67,7 +67,7 @@ func (m *SQLMembershipReadModel) Handle(ctx context.Context, evt event.Event) er
 	if err := m.MembershipReadModel.Handle(ctx, evt); err != nil {
 		return err
 	}
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	if evt.Type() == eventMemberRemoved {
 		if err := m.store.Delete(ctx, aggID); err != nil {
 			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.membership_delete", "delete membership view")
@@ -160,7 +160,7 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 	if err := m.TenantReadModel.Handle(ctx, evt); err != nil {
 		return err
 	}
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	tid := NewTenantID(aggID.String())
 	if evt.Type() == eventTenantDeleted {
 		if err := m.store.Delete(ctx, tid); err != nil {
@@ -247,7 +247,7 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 	if err := m.BotReadModel.Handle(ctx, evt); err != nil {
 		return err
 	}
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	bid := NewBotID(aggID.String())
 	if evt.Type() == eventBotDeleted {
 		if err := m.store.Delete(ctx, bid); err != nil {

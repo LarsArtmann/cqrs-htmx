@@ -27,5 +27,5 @@ func (c *readModelCore[T]) handleEvent(m T, evt event.Event) error {
 	if !ok {
 		return nil
 	}
-	return h(m, evt.AggregateID(), evt)
+	return h(m, evt.StreamID(), evt)
 }

@@ -38,7 +38,7 @@ func MigrateRolesToMemberships(
 				err, event.Infrastructure,
 				"usermgmt.migration.event_failed",
 				"migrate event %s for aggregate %s",
-				evt.Type(), evt.AggregateID(),
+				evt.Type(), evt.StreamID(),
 			)
 		}
 	}
@@ -55,7 +55,7 @@ func migrateEvent(ctx context.Context, evt event.Event, dispatcher *command.Disp
 		if len(p.Roles) == 0 {
 			return nil
 		}
-		userID := evt.AggregateID().String()
+		userID := evt.StreamID().String()
 		actor := ActorIDFromUser(NewUserID(userID))
 		tenant := NewTenantID(userID) // legacy: self-scoped domain
 		cmd := NewAddMemberCmd(actor, tenant, p.Roles)
@@ -70,7 +70,7 @@ func migrateEvent(ctx context.Context, evt event.Event, dispatcher *command.Disp
 		if err != nil {
 			return err
 		}
-		userID := evt.AggregateID().String()
+		userID := evt.StreamID().String()
 		actor := ActorIDFromUser(NewUserID(userID))
 		domain := p.Domain
 		if domain == "" {
