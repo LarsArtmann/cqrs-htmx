@@ -109,7 +109,7 @@ func initials(brand string) string {
 	}
 
 	if len(words) == 1 {
-		return strings.ToUpper(brand[:min(2, len(brand))])
+		return strings.ToUpper(brand[:min(2, len(brand)) //nolint:mnd // 2-char brand initials])
 	}
 
 	return strings.ToUpper(string(words[0][0]) + string(words[1][0]))

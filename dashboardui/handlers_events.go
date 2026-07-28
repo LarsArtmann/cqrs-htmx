@@ -43,7 +43,7 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p := d.page("Event: "+truncate(string(evt.Type()), 30), "/events", r)
+	p := d.page("Event: "+truncate(string(evt.Type()), 30) //nolint:mnd // display tuning: event type width, "/events", r)
 	html := d.renderEventDetail(p, evt)
 	renderPage(w, r, html)
 }
@@ -223,7 +223,7 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 			</tr>`,
 				evt.OccurredAt().Format("2006-01-02 15:04:05"),
 				evt.Type(),
-				truncate(evt.StreamID().String(), 24),
+				truncate(evt.StreamID().String(), listIDWidth),
 				evt.StreamType(),
 				evt.Version().String())
 		}

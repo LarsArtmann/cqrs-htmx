@@ -54,7 +54,7 @@ func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamLi
 				<td style="padding:8px"><a href="%s/snapshots/%s/%s" style="color:var(--accent);text-decoration:none">View</a></td>
 			</tr>`,
 				esc(string(l.Type)),
-				esc(truncate(l.ID.String(), 24)),
+				esc(truncate(l.ID.String(), listIDWidth)),
 				esc(l.Version.String()),
 				p.BasePath,
 				esc(string(l.Type)),
@@ -81,19 +81,19 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 
 	snap, err := d.cfg.SnapshotStore.Load(r.Context(), ref)
 	if err != nil {
-		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, 12), "/snapshots", r)
+		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
 			return fmt.Sprintf(`<div style="padding:40px;text-align:center;color:var(--muted)">
 				<h3>No snapshot found</h3>
 				<p>No snapshot exists for %s/<code>%s</code>.</p>
-			</div>`, esc(streamType), esc(truncate(streamID, 16)))
+			</div>`, esc(streamType), esc(truncate(streamID, 16) //nolint:mnd // display tuning: snapshot detail width))
 		}))
 
 		return
 	}
 
 	if snap == nil {
-		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, 12), "/snapshots", r)
+		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
 			return `<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No snapshot</h3></div>`
 		}))
@@ -101,7 +101,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, 12), "/snapshots", r)
+	p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 	html := d.renderSnapshotDetail(p, ref, snap)
 	renderPage(w, r, html)
 }

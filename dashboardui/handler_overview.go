@@ -13,6 +13,24 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 )
 
+// Projection status kinds drive the color-coding of projection health in the UI.
+const (
+	statusGood    = "good"
+	statusWarn    = "warn"
+	statusBad     = "bad"
+	statusNeutral = "neutral"
+)
+
+// Display truncation widths for IDs shown in the dashboard UI.
+const (
+	titleIDWidth = 12 // page-title stream/aggregate ID truncation
+	listIDWidth  = 24 // list-row ID truncation
+	eventIDWidth = 20 // event ID truncation in tables
+)
+
+// recentEventsLimit is how many recent events the overview card shows.
+const recentEventsLimit = 5
+
 func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Overview", "/", r)
 
@@ -61,7 +79,7 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 	}
 
 	if d.cfg.SeekableJournal != nil {
-		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, 5)
+		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, recentEventsLimit)
 		if err == nil {
 			for _, evt := range events {
 				stats.RecentEvents = append(stats.RecentEvents, recentEvent{
@@ -80,7 +98,7 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 		if err == nil {
 			stats.TotalEvents = strconv.Itoa(len(events))
 			for i, evt := range events {
-				if i >= 5 {
+				if i >= recentEventsLimit {
 					break
 				}
 
@@ -116,13 +134,13 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 func projectionStatusKind(status string) string {
 	switch strings.ToLower(status) {
 	case "running", "live":
-		return "good"
+		return statusGood
 	case "idle", "backoff", "draining":
-		return "warn"
+		return statusWarn
 	case "stopped", "failed":
-		return "bad"
+		return statusBad
 	default:
-		return "neutral"
+		return statusNeutral
 	}
 }
 
@@ -146,7 +164,7 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 			active := 0
 
 			for _, p := range stats.Projections {
-				if p.StatusKind == "good" {
+				if p.StatusKind == statusGood {
 					active++
 				}
 			}
@@ -168,11 +186,11 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 				color := "#64748b"
 
 				switch p.StatusKind {
-				case "good":
+				case statusGood:
 					color = "#16a34a"
-				case "warn":
+				case statusWarn:
 					color = "#d97706"
-				case "bad":
+				case statusBad:
 					color = "#dc2626"
 				}
 
@@ -202,7 +220,7 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 					<td style="padding:8px"><code>%s</code></td>
 					<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 					<td style="padding:8px">%s</td>
-				</tr>`, e.Time, e.Type, truncate(e.StreamID, 20), e.Version)
+				</tr>`, e.Time, e.Type, truncate(e.StreamID, eventIDWidth), e.Version)
 			}
 
 			inner.WriteString(`</tbody></table>`)

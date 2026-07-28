@@ -87,11 +87,11 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 			color := "#64748b"
 
 			switch proj.StatusKind {
-			case "good":
+			case statusGood:
 				color = "#16a34a"
-			case "warn":
+			case statusWarn:
 				color = "#d97706"
-			case "bad":
+			case statusBad:
 				color = "#dc2626"
 			}
 
