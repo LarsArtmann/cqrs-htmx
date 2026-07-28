@@ -128,6 +128,8 @@ func (s *Service) classifyDispatchError(err error, userID UserID, kv ...string) 
 			errorfamily.NewTransient("internal", "dispatch command").WithCause(err), userID,
 		)
 	default:
+		// Safety net for future errorfamily classifications or unclassified errors.
+		// Without this, classified would be nil and .WithContext below would panic.
 		classified = withUserIDContext(
 			errorfamily.NewTransient("internal", "dispatch command").WithCause(err), userID,
 		)
