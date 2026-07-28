@@ -125,7 +125,10 @@ func closeBus(bus event.Bus) {
 func (s *EventSourcedSetup) Close() error {
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
-			slog.Warn("usermgmt.EventSourcedSetup: failed to stop projection host during close", slog.String("error", err.Error()))
+			slog.Warn(
+				"usermgmt.EventSourcedSetup: failed to stop projection host during close",
+				slog.String("error", err.Error()),
+			)
 			_ = errorfamily.WrapTransient(err, "usermgmt.es_setup.stop_projections", "stop projection host")
 		}
 	}

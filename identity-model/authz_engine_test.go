@@ -133,7 +133,9 @@ func TestAuthz_Apply(t *testing.T) {
 	uid, _ := userActorPair("u1")
 	update := PolicyUpdate{
 		AddGroups: []GroupPolicy{{Subject: uid.String(), Role: RoleAdmin, Domain: "tenant-a"}},
-		AddPolicies: []Policy{{Subject: RoleUser, Domain: "tenant-a", Object: "resource", Action: ActionRead, Effect: EffectAllow}},
+		AddPolicies: []Policy{
+			{Subject: RoleUser, Domain: "tenant-a", Object: "resource", Action: ActionRead, Effect: EffectAllow},
+		},
 	}
 	if err := a.Apply(update); err != nil {
 		t.Fatalf("Apply: %v", err)

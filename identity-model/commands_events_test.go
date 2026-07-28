@@ -95,7 +95,8 @@ func TestNewDisableTOTPCmd(t *testing.T) {
 
 func TestNewLinkExternalAccountCmd(t *testing.T) {
 	cmd := NewLinkExternalAccountCmd(testStreamID(), "google", "sub123", "g@example.com", "G")
-	if cmd.Provider() != "google" || cmd.Subject() != "sub123" || cmd.Email() != "g@example.com" || cmd.DisplayName() != "G" {
+	if cmd.Provider() != "google" || cmd.Subject() != "sub123" || cmd.Email() != "g@example.com" ||
+		cmd.DisplayName() != "G" {
 		t.Fatalf("unexpected: %+v", cmd)
 	}
 	if cmd.Type() != CmdLinkExternalAccount {
@@ -319,5 +320,3 @@ func TestNewCredentialFromPayload(t *testing.T) {
 		t.Fatalf("unexpected credential: %+v", cred)
 	}
 }
-
-

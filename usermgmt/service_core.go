@@ -420,7 +420,10 @@ func (s *Service) GracefulClose(ctx context.Context) error {
 func (s *Service) closeInfra() error {
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
-			slog.Warn("usermgmt.Service: failed to stop projection host during close", slog.String("error", err.Error()))
+			slog.Warn(
+				"usermgmt.Service: failed to stop projection host during close",
+				slog.String("error", err.Error()),
+			)
 			_ = errorfamily.WrapTransient(err, "usermgmt.service.stop_projections", "stop projection host")
 		}
 	}

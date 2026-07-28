@@ -54,6 +54,7 @@ func writePanicResponse(
 			}
 		}
 	}
+
 	if CorrelationIDFromContext(r.Context()).IsZero() {
 		if cidStr := r.Header.Get(headerCorrelationID); cidStr != "" {
 			if cid, err := ParseCorrelationID(cidStr); err == nil {
