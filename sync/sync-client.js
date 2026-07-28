@@ -31,7 +31,7 @@
 "use strict";
 
 (function () {
-  const VERSION = "1.1.0";
+  const VERSION = "1.2.0";
 
   // --- Sync state: tracks pending/confirmed/failed/queued mutation counts ---
   const sync = {
@@ -388,10 +388,20 @@
     const cfg = (e.detail && e.detail.requestConfig) || null;
     let envelope = null;
     if (cfg) {
+      // HTMX 2.x: cfg.parameters is a FormData object, not a plain object.
+      // postMessage cannot clone FormData (structured clone algorithm does not
+      // support it). Convert to a plain {key: value} object before sending to
+      // the SharedWorker. Without this, offline commands are silently lost.
+      var params = cfg.parameters;
+      if (params && typeof params.forEach === "function" && !(params instanceof Object && params.constructor === Object)) {
+        var plain = {};
+        params.forEach(function(val, key) { plain[key] = val; });
+        params = plain;
+      }
       envelope = {
         verb: cfg.verb || "",
         url: cfg.path || "",
-        values: cfg.parameters || null,
+        values: params || null,
         headers: cfg.headers || null,
       };
     }
