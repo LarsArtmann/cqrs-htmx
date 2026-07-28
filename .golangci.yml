@@ -21,7 +21,11 @@ linters:
     - asciicheck
     - bidichk
     - bodyclose
-    - canonicalheader
+    # canonicalheader disabled: every custom header in this HTMX library follows
+    # the HTMX spec casing (HX-Request, HX-Redirect, …). Go's http.Header
+    # auto-canonicalizes on Get/Set so the spec-form literals are functionally
+    # correct and match the HTMX documentation consumers grep for.
+    # - canonicalheader
     - clickhouselint
     - containedctx
     - contextcheck
@@ -110,7 +114,10 @@ linters:
     - tagliatelle
     - testableexamples
     - testifylint
-    - testpackage
+    # testpackage disabled: this library intentionally white-box-tests unexported
+    # internals (e.g. app.applyServerTiming, sse.seekable, cfg.cookieName).
+    # Moving those suites to _test packages would break compilation.
+    # - testpackage
     - thelper
     - tparallel
     - unconvert
