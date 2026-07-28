@@ -29,7 +29,7 @@ var _ = Describe("SSE Reconnection", func() {
 			w := httptest.NewRecorder()
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			Expect(stream.LastEventID()).To(Equal(cqrshtmx.NewSSEEventID("evt-99")))
 		})
@@ -40,7 +40,7 @@ var _ = Describe("SSE Reconnection", func() {
 			r.Header.Set("Last-Event-ID", "2")
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			store := &memoryEventStore{
 				events: []cqrshtmx.SSEEvent{
@@ -69,7 +69,7 @@ var _ = Describe("SSE Reconnection", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			store := &memoryEventStore{
 				events: []cqrshtmx.SSEEvent{
@@ -88,7 +88,7 @@ var _ = Describe("SSE Reconnection", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			store := &memoryEventStore{
 				events: []cqrshtmx.SSEEvent{

@@ -35,7 +35,7 @@ func ExampleSSEStream() {
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 	stream := cqrshtmx.NewSSEStream(w, r)
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	_ = stream.Send(cqrshtmx.SSEEvent{Event: "update", Data: "<div>new</div>"})
 	_ = stream.SendData("update", "<div>newer</div>")

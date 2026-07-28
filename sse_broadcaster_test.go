@@ -270,7 +270,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			go func() {
 				defer close(done)
 				defer b.Unsubscribe(ch)
-				defer stream.Close()
+				defer func() { _ = stream.Close() }()
 
 				for {
 					select {

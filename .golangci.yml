@@ -265,6 +265,9 @@ linters:
           # varnamelen: test fixtures legitimately use short names (w, r, bc, st);
           # signal is low in tests and the idiomatic names are already ignored above.
           - varnamelen
+          # ireturn: test factories/stubs legitimately return interfaces (Enforcer,
+          # command.Command) to inject into the system under test.
+          - ireturn
       - path: _test\.go
         text: unused
         linters:
