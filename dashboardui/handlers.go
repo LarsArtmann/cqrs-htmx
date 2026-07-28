@@ -485,8 +485,10 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 func (d *Dashboard) requireProjectionHost(w http.ResponseWriter) bool {
 	if d.cfg.ProjectionHost == nil {
 		http.Error(w, "projection host not configured", http.StatusBadRequest)
+
 		return false
 	}
+
 	return true
 }
 
@@ -495,8 +497,10 @@ func (d *Dashboard) requireProjectionHost(w http.ResponseWriter) bool {
 func (d *Dashboard) requireDeadLetterStore(w http.ResponseWriter) bool {
 	if d.cfg.DeadLetterStore == nil {
 		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
+
 		return false
 	}
+
 	return true
 }
 
