@@ -11,7 +11,7 @@ require (
 )
 
 require (
-	github.com/Oudwins/tailwind-merge-go v0.2.2 // indirect
+	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/casbin/casbin/v3 v3.10.0 // indirect
