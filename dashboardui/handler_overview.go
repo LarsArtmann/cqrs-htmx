@@ -68,7 +68,7 @@ type recentEvent struct {
 	EventID  string
 }
 
-func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:cyclop,funlen // stat computation
+func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:cyclop // stat computation
 	stats := overviewStats{}
 
 	if d.cfg.StreamReader != nil {
