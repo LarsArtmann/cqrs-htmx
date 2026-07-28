@@ -108,7 +108,7 @@ func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if d.cfg.SSEHeartbeatInterval > 0 {
-		go stream.Heartbeat(stream.Context(), d.cfg.SSEHeartbeatInterval) //nolint:contextcheck // stream.Context() IS the request-derived lifecycle context
+		go stream.Heartbeat(stream.Context(), d.cfg.SSEHeartbeatInterval) //nolint:contextcheck // stream ctx is request-derived
 	}
 
 	for {

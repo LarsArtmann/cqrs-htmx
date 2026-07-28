@@ -50,14 +50,16 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 // loadEventByID retrieves a single event. Uses EventByIDLoader if available
 // (O(1)), otherwise scans the journal.
-func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) { //nolint:cyclop // journal-fallback branching across optional providers
+func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) { //nolint:cyclop // journal fallback
 	if d.cfg.EventByIDLoader != nil {
 		evt, err := d.cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
 		if err != nil {
 			var zero event.Event
+
 			return zero, errorfamily.WrapInfrastructure(err,
 				"dashboardui.event_detail.load_failed", "load event by ID")
 		}
+
 		return evt, nil
 	}
 
@@ -108,7 +110,7 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 		"dashboardui.event_detail.no_source", "no event source available to load event %s", eventID)
 }
 
-func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string { //nolint:funlen // HTML string building is inherently verbose (no templ dep, see FEATURES.md)
+func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string { //nolint:funlen // HTML string builder
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -195,6 +197,7 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, limit int) ([]event.Ev
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.recent_events.read_failed", "read recent events")
 		}
+
 		return events, nil
 	}
 
