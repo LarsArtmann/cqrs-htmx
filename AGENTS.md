@@ -6,16 +6,16 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 ## Quick Reference
 
-| Item     | Value                                                                     |
-| -------- | ------------------------------------------------------------------------- |
-| Language | Go 1.26.5 (`GOEXPERIMENT=jsonv2` required)                                |
-| Module   | `github.com/larsartmann/cqrs-htmx/v4`                                     |
-| Test     | `nix run .#test` or `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race`    |
-| Build    | `nix run .#build` or `GOEXPERIMENT=jsonv2 go build ./...`                 |
-| Lint     | `nix run .#lint` or `GOEXPERIMENT=jsonv2 golangci-lint run`               |
+| Item     | Value                                                                                                                         |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Language | Go 1.26.5 (`GOEXPERIMENT=jsonv2` required)                                                                                    |
+| Module   | `github.com/larsartmann/cqrs-htmx/v4`                                                                                         |
+| Test     | `nix run .#test` or `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race`                                                        |
+| Build    | `nix run .#build` or `GOEXPERIMENT=jsonv2 go build ./...`                                                                     |
+| Lint     | `nix run .#lint` or `GOEXPERIMENT=jsonv2 golangci-lint run`                                                                   |
 | Coverage | `nix run .#coverage` / `nix run .#coverage-gate` (root 93.4%/gate 90%, usermgmt 80.9%/gate 74%, identity-model 74.9%/no gate) |
-| Fmt      | `nix fmt`                                                                 |
-| DevShell | `nix develop`                                                             |
+| Fmt      | `nix fmt`                                                                                                                     |
+| DevShell | `nix develop`                                                                                                                 |
 
 ## Architecture
 
