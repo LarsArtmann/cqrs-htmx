@@ -4,6 +4,8 @@
 **Session scope:** Diagnose `govalid-generate` failure in `datastar-demo`; migrate deprecated `id.AggregateID` APIs.
 **Commit produced:** `a7c09ab chore(repo): update example apps and adminui dependencies` (auto-committed by the git daemon)
 
+> **Update 2026-07-28 (23:02 sweep):** The "AggregateID migration INCOMPLETE — examples only, 24 non-test files + 51 test files untouched" claim in §b below was **fully resolved** by `docs/status/2026-07-28_23-02_*`: all `id.AggregateID`/`id.NewAggregateID`/`id.ParseAggregateID`/`.AggregateID()` calls migrated to `id.StreamID` equivalents across **all 15 modules**, test files included. **Zero SA1019 warnings remain.**
+
 ---
 
 ## a) FULLY DONE

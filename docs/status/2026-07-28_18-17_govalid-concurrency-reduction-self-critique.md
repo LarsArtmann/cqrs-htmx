@@ -7,6 +7,8 @@
 - `f214813 feat(usermgmt): implement event store recovery and core service refactoring` — contains my `.buildflow.yml` `max_concurrency: 4 → 2` change batched with unrelated usermgmt recovery work.
 - `d2c9e08 chore(dashboard): update dashboard handler and agent guidance` — contains my `AGENTS.md` govalid gotcha batched with a `dashboardui/dashboard.go` `slog.Warn` change **I did not author**.
 
+> **Update 2026-07-28 (23:02 sweep):** The "18 `staticcheck SA1019 id.AggregateID` deprecations" and "161 lint issues" referenced in §f/§g below were **fully resolved** by `docs/status/2026-07-28_23-02_*`: all 15 modules at **0 SA1019 warnings** and **0 lint issues**. The `max_concurrency: 4 → 2` change in `.buildflow.yml` shipped as described and is documented in AGENTS.md gotchas.
+
 ---
 
 ## a) FULLY DONE

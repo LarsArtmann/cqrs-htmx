@@ -4,6 +4,8 @@
 
 **Session goal:** Execute the entire TODO_LIST.md, verify everything works.
 
+> **Update 2026-07-28 (23:02 sweep):** The open items in §b below were **all resolved** later the same day by `docs/status/2026-07-28_23-02_*`: usermgmt SA1019 "15 warnings remain" → **0** (full migration to `id.StreamID`); lint style nits (~405 varnamelen, ~61 exhaustruct, ~24 canonicalheader) → **0 issues across all 15 modules**; identity-model coverage "estimated ~60%, not verified" → **verified at 74.9%**. The §f forward-looking items that remained genuinely open are harvested into `TODO_LIST.md` (identity-model coverage gate, dashboardui handler tests, `.golangci.yml` exclusion audit).
+
 ---
 
 ## a) FULLY DONE (verified: build + tests pass)

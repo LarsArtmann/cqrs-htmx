@@ -4,6 +4,8 @@
 **Session scope:** Fix the `RecoverHandler` request-ID gap — recovered panic responses lacked `request_id` because recovery runs outermost and captured the pre-enrichment request.
 **Verdict:** Fix shipped and tested. Several quality gaps remain.
 
+> **Update 2026-07-28 (18:31 session):** The "CorrelationID gap — Not fixed" item in §b below was **resolved** later the same day by `docs/status/2026-07-28_18-31_*`: `writePanicResponse` now recovers CorrelationID from the `X-Correlation-ID` request header (same pattern). New test in `recovery_test.go`. See CHANGELOG `[Unreleased]` Added.
+
 ---
 
 ## a) FULLY DONE

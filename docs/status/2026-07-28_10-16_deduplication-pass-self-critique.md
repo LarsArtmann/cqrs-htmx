@@ -15,6 +15,8 @@
 
 The refactoring itself is sound and well-structured. The gaps are all in **verification discipline** — I skipped multiple mandatory quality gates documented in AGENTS.md.
 
+> **Update 2026-07-28 (18:31 + 23:02 sessions):** The "zero unit tests for 10 new helpers" gap (§c.7) was **resolved** by `docs/status/2026-07-28_18-31_*`: 24 new tests across 4 files (`authz_helpers_test.go` 14, `sql_helpers_test.go` 4, `event_catalog_helpers_test.go` 2, `handlers_helpers_test.go` 4). The "never ran nix lint/fmt/coverage" gap (§c.1-4) was **resolved** by `docs/status/2026-07-28_23-02_*`: all 15 modules at 0 lint issues, coverage verified.
+
 ---
 
 ## a) FULLY DONE
