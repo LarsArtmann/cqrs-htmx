@@ -24,6 +24,9 @@ type PayloadRenderer interface {
 // re-encodes as pretty-printed JSON.
 type DefaultPayloadRenderer struct{}
 
+// Render pretty-prints an event payload for display in the dashboard. JSON and
+// CBOR payloads are decoded then re-encoded with 2-space indent; raw payloads
+// are returned verbatim.
 func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([]byte, error) {
 	if len(payload) == 0 {
 		return []byte("{}"), nil
@@ -44,6 +47,9 @@ func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([
 			return nil, errorfamily.WrapCorruption(err,
 				"dashboardui.payload.cbor_decode_failed", "decode CBOR payload")
 		}
+
+	case codec.EncodingRaw:
+		return payload, nil
 
 	default:
 		return payload, nil
