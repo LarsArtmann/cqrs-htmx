@@ -211,6 +211,16 @@ linters:
         - a
         - b
         - v
+        # Idiomatic Go short names for HTTP handlers and concurrency primitives.
+        # w/r are the universal net/http handler convention; ch/wg/mu are channel/WaitGroup/mutex.
+        - w
+        - r
+        - ch
+        - wg
+        - mu
+        - mw
+        - rw
+        - ws
       ignore-type-assert-ok: true
   exclusions:
     generated: lax
@@ -241,6 +251,9 @@ linters:
           - funlen
           - paralleltest
           - err113
+          # varnamelen: test fixtures legitimately use short names (w, r, bc, st);
+          # signal is low in tests and the idiomatic names are already ignored above.
+          - varnamelen
       - path: _test\.go
         text: unused
         linters:
