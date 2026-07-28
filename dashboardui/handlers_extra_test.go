@@ -17,6 +17,7 @@ func TestDefaultPayloadRenderer_Empty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Render: %v", err)
 	}
+
 	if string(out) != "{}" {
 		t.Fatalf("expected {}, got %q", out)
 	}
@@ -27,6 +28,7 @@ func TestDefaultPayloadRenderer_JSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Render: %v", err)
 	}
+
 	if !bytes.Contains(out, []byte(`"a": 1`)) {
 		t.Fatalf("expected pretty-printed JSON, got %q", out)
 	}
@@ -34,10 +36,12 @@ func TestDefaultPayloadRenderer_JSON(t *testing.T) {
 
 func TestDefaultPayloadRenderer_UnknownEncoding(t *testing.T) {
 	raw := []byte("raw-bytes")
+
 	out, err := DefaultPayloadRenderer{}.Render(raw, codec.Encoding("custom"))
 	if err != nil {
 		t.Fatalf("Render: %v", err)
 	}
+
 	if !bytes.Equal(out, raw) {
 		t.Fatalf("expected passthrough, got %q", out)
 	}
@@ -62,6 +66,7 @@ func TestRenderPayload_FallbackOnError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("event.New: %v", err)
 	}
+
 	out := renderPayload(DefaultPayloadRenderer{}, evt)
 	if !bytes.Equal(out, []byte("raw")) {
 		t.Fatalf("expected fallback to raw payload, got %q", out)
@@ -73,6 +78,7 @@ func TestCSRFToken(t *testing.T) {
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	_ = r.ParseForm()
 	r.Form.Set("_csrf", "abc123")
+
 	if got := csrfToken(r); got != "abc123" {
 		t.Fatalf("csrfToken: got %q", got)
 	}
@@ -83,9 +89,11 @@ func TestDLOIndexHandler_Renders(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/dead-letters", nil)
 	d.dlqIndexHandler(w, r)
+
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
+
 	if !bytes.Contains(w.Body.Bytes(), []byte("Dead-Letter Queue")) {
 		t.Fatal("expected DLQ heading")
 	}
@@ -97,6 +105,7 @@ func TestDLQDetailHandler_NoStore(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/dead-letters/proj1", nil)
 	r.SetPathValue("projection", "proj1")
 	d.dlqDetailHandler(w, r)
+
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
@@ -107,6 +116,7 @@ func TestProjectionsIndexHandler_NoHost(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/projections", nil)
 	d.projectionsIndexHandler(w, r)
+
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
@@ -114,12 +124,14 @@ func TestProjectionsIndexHandler_NoHost(t *testing.T) {
 
 func mustTestDashboard(t *testing.T) *Dashboard {
 	t.Helper()
+
 	d, err := New(Config{
 		Journal: &stubJournal{},
 	})
 	if err != nil {
 		t.Fatalf("New Dashboard: %v", err)
 	}
+
 	return d
 }
 
@@ -127,5 +139,7 @@ type stubJournal struct{}
 
 func (stubJournal) ReadAll(ctx context.Context) ([]event.Event, error) { return nil, nil }
 
-var _ event.Journal = stubJournal{}
-var _ id.EventID = id.NewEventID()
+var (
+	_ event.Journal = stubJournal{}
+	_ id.EventID    = id.NewEventID()
+)

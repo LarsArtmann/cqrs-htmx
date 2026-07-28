@@ -165,12 +165,12 @@ var _ = Describe("Recovery Middleware", func() {
 				ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
 					w.Header().Set("Content-Type", "text/plain")
 					w.WriteHeader(http.StatusInternalServerError)
-					_, _ = w.Write([]byte(fmt.Sprintf(
+					_, _ = w.Write(fmt.Appendf(nil,
 						"[request_id: %s] [correlation_id: %s] %s",
 						cqrshtmx.RequestIDFromContext(r.Context()).String(),
 						cqrshtmx.CorrelationIDFromContext(r.Context()).String(),
 						cqrshtmx.SafeDetail(err, http.StatusInternalServerError, false),
-					)))
+					))
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -183,6 +183,7 @@ var _ = Describe("Recovery Middleware", func() {
 			)
 
 			const correlationID = "01HK1549P84T9XF8R94E960633"
+
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.Header.Set("X-Correlation-ID", correlationID)

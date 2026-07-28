@@ -15,12 +15,12 @@ import (
 // AggregateID and UserID use branded types to prevent accidental cross-assignment
 // with other string-typed identifiers. Both serialize as JSON strings.
 type AuditEntry struct {
-	EventType   event.Type     `json:"event_type"`
+	EventType   event.Type  `json:"event_type"`
 	AggregateID id.StreamID `json:"aggregate_id"`
-	OccurredAt  time.Time      `json:"occurred_at"`
-	UserID      UserID         `json:"user_id,omitzero"`
-	Email       string         `json:"email,omitempty"`
-	Action      string         `json:"action"`
+	OccurredAt  time.Time   `json:"occurred_at"`
+	UserID      UserID      `json:"user_id,omitzero"`
+	Email       string      `json:"email,omitempty"`
+	Action      string      `json:"action"`
 }
 
 // Audit action constants — the stable vocabulary recorded in AuditEntry.Action.

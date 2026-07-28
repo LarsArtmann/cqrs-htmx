@@ -3,6 +3,7 @@
 **Date:** 2026-07-28 18:17 CEST
 **Session scope:** Resolve the `govalid-generate` failure pasted by the user; brutally review own work.
 **Commits produced (by the auto-git daemon, NOT by me):**
+
 - `f214813 feat(usermgmt): implement event store recovery and core service refactoring` — contains my `.buildflow.yml` `max_concurrency: 4 → 2` change batched with unrelated usermgmt recovery work.
 - `d2c9e08 chore(dashboard): update dashboard handler and agent guidance` — contains my `AGENTS.md` govalid gotcha batched with a `dashboardui/dashboard.go` `slog.Warn` change **I did not author**.
 
@@ -60,6 +61,7 @@
 ## f) Up to 50 things we should get done next
 
 ### Verification hardening (HIGH — prove the fix actually fixes)
+
 1. Run `buildflow -s govalid-generate` 20× at `max_concurrency: 2` and record pass/fail count.
 2. Temporarily revert to `max_concurrency: 4`, run 20× more, compare flake rates.
 3. If flake rate is non-zero at 2, investigate deeper (build cache, GOFLAGS, `go/packages` cache dir).
@@ -67,17 +69,20 @@
 5. Check whether `GOCACHE` is on a slow/network filesystem (filesystem-speed-check ran fast, but confirm).
 
 ### Documentation hygiene (MEDIUM — finish what I started)
+
 6. Add CHANGELOG.md entry for the `.buildflow.yml` max_concurrency reduction.
 7. Remove TODO_LIST.md item #30 (now resolved) and cross-reference CHANGELOG.
 8. Audit the two commits `f214813` and `d2c9e08` for subject/diff mismatch and note in CHANGELOG that the `.buildflow.yml` and `AGENTS.md` changes landed under misleading subjects.
 9. Consider a `git notes` annotation on `f214813` and `d2c9e08` clarifying which hunks are the govalid mitigation.
 
 ### Pre-commit path (MEDIUM — the hook is what actually gates)
+
 10. Run `buildflow --build-mode pre-commit --staged-only` with a staged trivial change to confirm the hook path works post-config-change.
 11. Verify the pre-commit hook doesn't re-introduce a higher concurrency somehow.
 12. Document the pre-commit vs full-build concurrency interaction in AGENTS.md if different.
 
 ### Root-cause alternatives (MEDIUM — concurrency may not be the real cause)
+
 13. Investigate whether `govalid`/`markers` honors a `GOFLAGS` env var that could disable the race.
 14. Check the `go/packages` cache directory permissions and size.
 15. Look at whether `buildflow` sets `GOEXPERIMENT=jsonv2` for `govalid` invocations (it logged it does — but verify the child process inherits it).
@@ -85,22 +90,26 @@
 17. Consider a `govalid` wrapper script that retries once on `markers: failed prerequisites`.
 
 ### Unrelated-stray-change cleanup (MEDIUM — the dashboardui slog.Warn)
+
 18. Decide whether the `slog.Warn("...no broadcaster configured...")` in `dashboardui/dashboard.go` is intentional or noise; it landed in `d2c9e08` without review.
 19. If intentional, add a CHANGELOG entry; if noise, revert in a follow-up commit.
 20. Audit whether `dashboardui.Dashboard.Close` can actually be called with a nil broadcaster (if not, the else branch is dead code).
 
 ### Process (LOW)
+
 21. Add a "definition of done for flake fixes" item to AGENTS.md: must reproduce failure, must measure before/after.
 22. Add a session-start checklist item: `git status` regardless of snapshot.
 23. Review whether the auto-git daemon can be configured to split commits by file-domain (would have prevented the misleading subjects).
 24. Consider committing `.buildflow.yml` and `AGENTS.md` changes manually with `--no-verify` to control the subject, then letting the daemon take everything else.
 
 ### Lint debt (LOW — pre-existing, surfaced by `nix run .#lint`)
+
 25. The 161 lint issues (canonicalheader, exhaustruct, varnamelen, staticcheck SA1019 deprecations, etc.) are pre-existing and unrelated. Decide policy: fix-in-place, batch, or suppress.
 26. The 18 `staticcheck SA1019 id.AggregateID` deprecations are the unfinished migration from the prior session (TODO_LIST item).
 27. The 24 `canonicalheader` findings (HX-* headers) may be intentional for HTMX wire compatibility — confirm before "fixing."
 
 ### Buildflow config (LOW)
+
 28. Consider whether `max_concurrency: 2` slows the full pipeline unacceptably (it went from ~24s to ~56s in my two full runs — but the second run included a 37s nix-build, so the comparison is confounded).
 29. Benchmark pipeline time at 2 vs 3 vs 4 to pick the best throughput/reliability tradeoff.
 30. Add a comment in `.buildflow.yml` near `parallel: true` noting the throughput cost of the reduction.

@@ -6,7 +6,7 @@ require (
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/justinas/nosurf v1.2.0
-	github.com/larsartmann/go-branded-id v0.5.0
+	github.com/larsartmann/go-branded-id v0.5.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
