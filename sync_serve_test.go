@@ -234,7 +234,6 @@ func TestSyncVersionMatchesJSConstants(t *testing.T) {
 
 	for _, file := range jsFiles {
 		t.Run(file, func(t *testing.T) {
-			//nolint:gosec // file paths are hardcoded test constants, not user input
 			content, err := os.ReadFile(file)
 			if err != nil {
 				t.Fatalf("read %s: %v", file, err)

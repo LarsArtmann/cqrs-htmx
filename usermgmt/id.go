@@ -23,7 +23,7 @@ const (
 
 // Deprecated: NewUserID silently hashes non-ULID strings, masking invalid input.
 // Use [ParseUserID] for strict ULID validation or [SyntheticUserID] for explicit hashing.
-func NewUserID(s string) UserID { return identitymodel.NewUserID(s) } //nolint:staticcheck // backward-compat shim, intentionally delegates
+func NewUserID(s string) UserID            { return identitymodel.NewUserID(s) }
 func SyntheticUserID(s string) UserID      { return identitymodel.SyntheticUserID(s) }
 func ParseUserID(s string) (UserID, error) { return identitymodel.ParseUserID(s) }
 func MustParseUserID(s string) UserID      { return identitymodel.MustParseUserID(s) }

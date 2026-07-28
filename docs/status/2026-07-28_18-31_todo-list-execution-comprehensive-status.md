@@ -8,21 +8,21 @@
 
 ## a) FULLY DONE (verified: build + tests pass)
 
-| # | Task | Module | Details |
-|---|------|--------|---------|
-| 1 | Auth sub-module CHANGELOGs aligned to v4.6.1 | totp/webauthn/oauth2 | Added `[v4.6.1]` entries. Lockstep with root. |
-| 2 | CorrelationID gap in panic recovery | root `recovery.go` | `writePanicResponse` now recovers CorrelationID from `X-Correlation-ID` request header. New test in `recovery_test.go`. |
-| 3 | Error swallowing in Close() methods | usermgmt + dashboardui | 6 methods now log via `slog.Warn` before discarding projection-host/broadcaster errors. Files: `service_core.go`, `es_setup.go`, `es_setup_core.go`, `dashboard.go`. |
-| 4 | Dedup helper unit tests | identity-model + usermgmt + root + dashboardui | 24 new tests across 4 files: `authz_helpers_test.go` (14), `sql_helpers_test.go` (4), `event_catalog_helpers_test.go` (2), `handlers_helpers_test.go` (4). |
-| 5 | dashboardui handlers.go split | dashboardui | 1180-line monolith → 8 files: `handlers.go` (shared), `handlers_events.go`, `handlers_aggregates.go`, `handlers_projections.go`, `handlers_dlq.go`, `handlers_audit.go`, `handlers_timetravel.go`, `handlers_snapshots.go`. |
-| 6 | id.AggregateID → id.StreamID migration (non-test) | root + usermgmt + dashboardui | All `id.AggregateID`, `id.NewAggregateID()`, `id.ParseAggregateID`, `.AggregateID()` migrated. SA1019 cleared in root + dashboardui. |
-| 7 | id.AggregateID → id.StreamID migration (test files) | root + usermgmt + dashboardui | Same migration applied to all `_test.go` files. |
-| 8 | identity-model Authz engine tests | identity-model | 21 tests covering all 18 Authz methods (Enforce, EnforceAny, EnforceEx, Authorize, AsEnforcer, Apply, Add/RemovePolicy, Add/RemoveGroupPolicy, RemoveAllRolesForUser, RemoveAllRolesInDomain, Policies, GroupPolicies, RolesForUser, ImplicitRolesForUser, ImplicitPermissionsForUser, DomainsForUser, UsersForRole, RolesForActor, ImplicitRolesForActor). File: `authz_engine_test.go`. |
-| 9 | identity-model command constructor tests | identity-model | 20 tests covering all 19 command constructors. File: `commands_events_test.go`. |
-| 10 | identity-model event payload round-trip tests | identity-model | 8 JSON round-trip tests (UserRegistered, EmailChanged, MemberAdded, TenantCreated, BotRegistered, CredentialAdded, ExternalAccountLinked, UserDeleted) + `NewCredentialFromPayload` test. File: `commands_events_test.go`. |
-| 11 | dashboardui handler + payload tests | dashboardui | 13 tests: DefaultPayloadRenderer (4 scenarios), renderPayload fallback, CSRF token, DLQ index/detail, projections index, guard helpers. Files: `handlers_extra_test.go`, `handlers_helpers_test.go`. |
-| 12 | Root SA1019 + errcheck lint triage | root | All SA1019 deprecation warnings cleared. `stream.Close()` errcheck fixed in `sse_broadcaster.go`. |
-| 13 | TODO_LIST.md + CHANGELOG.md updated | docs | Completed items removed from TODO_LIST.md. All work logged in CHANGELOG `[Unreleased]` section. |
+| #   | Task                                                | Module                                         | Details                                                                                                                                                                                                                                                                                                                                                                                   |
+| --- | --------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Auth sub-module CHANGELOGs aligned to v4.6.1        | totp/webauthn/oauth2                           | Added `[v4.6.1]` entries. Lockstep with root.                                                                                                                                                                                                                                                                                                                                             |
+| 2   | CorrelationID gap in panic recovery                 | root `recovery.go`                             | `writePanicResponse` now recovers CorrelationID from `X-Correlation-ID` request header. New test in `recovery_test.go`.                                                                                                                                                                                                                                                                   |
+| 3   | Error swallowing in Close() methods                 | usermgmt + dashboardui                         | 6 methods now log via `slog.Warn` before discarding projection-host/broadcaster errors. Files: `service_core.go`, `es_setup.go`, `es_setup_core.go`, `dashboard.go`.                                                                                                                                                                                                                      |
+| 4   | Dedup helper unit tests                             | identity-model + usermgmt + root + dashboardui | 24 new tests across 4 files: `authz_helpers_test.go` (14), `sql_helpers_test.go` (4), `event_catalog_helpers_test.go` (2), `handlers_helpers_test.go` (4).                                                                                                                                                                                                                                |
+| 5   | dashboardui handlers.go split                       | dashboardui                                    | 1180-line monolith → 8 files: `handlers.go` (shared), `handlers_events.go`, `handlers_aggregates.go`, `handlers_projections.go`, `handlers_dlq.go`, `handlers_audit.go`, `handlers_timetravel.go`, `handlers_snapshots.go`.                                                                                                                                                               |
+| 6   | id.AggregateID → id.StreamID migration (non-test)   | root + usermgmt + dashboardui                  | All `id.AggregateID`, `id.NewAggregateID()`, `id.ParseAggregateID`, `.AggregateID()` migrated. SA1019 cleared in root + dashboardui.                                                                                                                                                                                                                                                      |
+| 7   | id.AggregateID → id.StreamID migration (test files) | root + usermgmt + dashboardui                  | Same migration applied to all `_test.go` files.                                                                                                                                                                                                                                                                                                                                           |
+| 8   | identity-model Authz engine tests                   | identity-model                                 | 21 tests covering all 18 Authz methods (Enforce, EnforceAny, EnforceEx, Authorize, AsEnforcer, Apply, Add/RemovePolicy, Add/RemoveGroupPolicy, RemoveAllRolesForUser, RemoveAllRolesInDomain, Policies, GroupPolicies, RolesForUser, ImplicitRolesForUser, ImplicitPermissionsForUser, DomainsForUser, UsersForRole, RolesForActor, ImplicitRolesForActor). File: `authz_engine_test.go`. |
+| 9   | identity-model command constructor tests            | identity-model                                 | 20 tests covering all 19 command constructors. File: `commands_events_test.go`.                                                                                                                                                                                                                                                                                                           |
+| 10  | identity-model event payload round-trip tests       | identity-model                                 | 8 JSON round-trip tests (UserRegistered, EmailChanged, MemberAdded, TenantCreated, BotRegistered, CredentialAdded, ExternalAccountLinked, UserDeleted) + `NewCredentialFromPayload` test. File: `commands_events_test.go`.                                                                                                                                                                |
+| 11  | dashboardui handler + payload tests                 | dashboardui                                    | 13 tests: DefaultPayloadRenderer (4 scenarios), renderPayload fallback, CSRF token, DLQ index/detail, projections index, guard helpers. Files: `handlers_extra_test.go`, `handlers_helpers_test.go`.                                                                                                                                                                                      |
+| 12  | Root SA1019 + errcheck lint triage                  | root                                           | All SA1019 deprecation warnings cleared. `stream.Close()` errcheck fixed in `sse_broadcaster.go`.                                                                                                                                                                                                                                                                                         |
+| 13  | TODO_LIST.md + CHANGELOG.md updated                 | docs                                           | Completed items removed from TODO_LIST.md. All work logged in CHANGELOG `[Unreleased]` section.                                                                                                                                                                                                                                                                                           |
 
 **Verification:** `GOEXPERIMENT=jsonv2 go build ./...` passes. `go test -count=1` passes across all 8 workspace modules (root, openapi, identity-model, usermgmt, dashboardui, adminui, loginpage, integration_test). identity-model test count: 109 (up from ~36). dashboardui test count: 29 (up from 16).
 
@@ -34,12 +34,12 @@
 
 My sed-based migration covered `id.AggregateID` → `id.StreamID` but missed **three additional deprecated API families** still present in usermgmt:
 
-| Deprecated API | Replacement | Count | Files |
-|----------------|-------------|-------|-------|
-| `id.AggregateRef` | `id.StreamRef` | 8 | `snapshot.go` (6), `snapshot_test.go` (2), `es_projection_replay_bench_test.go` (1) |
-| `evt.AggregateType` | `evt.StreamType` | 2 | `service_security_test.go` |
-| `event.ErrAggregateNotFound` | `event.ErrStreamNotFound` | 2 | `sql_event_store_test.go`, `sql_event_store_extra_test.go` |
-| `identitymodel.NewUserID` | `ParseUserID` / `SyntheticUserID` | 1 | `id.go:24` (var alias) |
+| Deprecated API               | Replacement                       | Count | Files                                                                               |
+| ---------------------------- | --------------------------------- | ----- | ----------------------------------------------------------------------------------- |
+| `id.AggregateRef`            | `id.StreamRef`                    | 8     | `snapshot.go` (6), `snapshot_test.go` (2), `es_projection_replay_bench_test.go` (1) |
+| `evt.AggregateType`          | `evt.StreamType`                  | 2     | `service_security_test.go`                                                          |
+| `event.ErrAggregateNotFound` | `event.ErrStreamNotFound`         | 2     | `sql_event_store_test.go`, `sql_event_store_extra_test.go`                          |
+| `identitymodel.NewUserID`    | `ParseUserID` / `SyntheticUserID` | 1     | `id.go:24` (var alias)                                                              |
 
 These are the same class of deprecation but different API names. The sed patterns only targeted `AggregateID`, not `AggregateRef`, `AggregateType`, or `ErrAggregateNotFound`.
 
@@ -58,11 +58,11 @@ I claimed ~60% coverage in TODO_LIST.md but never ran `go test -cover` or `nix r
 
 ## c) NOT STARTED
 
-| Task | Why | Source |
-|------|-----|--------|
-| MySQL event-store support | Requires go-cqrs-lite/storage MySQL dialect (external dependency) | TODO_LIST.md P3 |
-| Offline sync E2E browser testing | Requires Playwright browser test infrastructure | TODO_LIST.md P3 |
-| identity-model coverage-gate threshold | Needs `flake.nix` configuration | TODO_LIST.md P2 |
+| Task                                   | Why                                                               | Source          |
+| -------------------------------------- | ----------------------------------------------------------------- | --------------- |
+| MySQL event-store support              | Requires go-cqrs-lite/storage MySQL dialect (external dependency) | TODO_LIST.md P3 |
+| Offline sync E2E browser testing       | Requires Playwright browser test infrastructure                   | TODO_LIST.md P3 |
+| identity-model coverage-gate threshold | Needs `flake.nix` configuration                                   | TODO_LIST.md P2 |
 
 ---
 
@@ -93,6 +93,7 @@ The test failed because Casbin's `GetImplicitPermissionsForUser` matches domains
 ### newViewStoreOrFail test — 3 compilation failures
 
 The generic function signature `newViewStoreOrFail[V any, K fmt.Stringer]` required:
+
 1. First attempt: `string` as K — failed because `string` doesn't implement `fmt.Stringer`.
 2. Second attempt: `stringKey` type but wrong function signature — missing variadic `...storage.ViewStoreOption`.
 3. Third attempt: `nil` for `storage.ViewMapper` — failed because `ViewMapper` is an interface, can't pass nil directly.
@@ -123,6 +124,7 @@ The generic function signature `newViewStoreOrFail[V any, K fmt.Stringer]` requi
 ## f) Up to 50 Things to Get Done Next
 
 ### High Priority
+
 1. Finish usermgmt SA1019 migration: `id.AggregateRef` → `id.StreamRef` in `snapshot.go` (6 sites)
 2. Finish usermgmt SA1019 migration: `id.AggregateRef` → `id.StreamRef` in `snapshot_test.go` (2 sites)
 3. Finish usermgmt SA1019 migration: `id.AggregateRef` in `es_projection_replay_bench_test.go` (1 site)
@@ -135,6 +137,7 @@ The generic function signature `newViewStoreOrFail[V any, K fmt.Stringer]` requi
 10. Remove `var _ = fmt.Sprintf` hack from `usermgmt/sql_helpers_test.go`
 
 ### Medium Priority
+
 11. Run `nix run .#lint` to get official lint baseline
 12. Run `nix run .#coverage-gate` to verify coverage gates pass
 13. Run `nix fmt` to ensure formatting is consistent
@@ -150,6 +153,7 @@ The generic function signature `newViewStoreOrFail[V any, K fmt.Stringer]` requi
 23. Add test for `Dashboard.Close()` slog.Warn path (broadcaster nil)
 
 ### Technical Debt
+
 24. Investigate `Dashboard.Close()` not returning error — should it?
 25. Review whether `eventSourcedSetupCore` unused code should be removed (gopls flagged 5 unused)
 26. Review `dashboardui/render.go` unused functions (`renderPartial`, `isPartial`)
@@ -164,6 +168,7 @@ The generic function signature `newViewStoreOrFail[V any, K fmt.Stringer]` requi
 35. Review `evt.AggregateID()` calls that became `evt.StreamID()` — verify event.Event interface
 
 ### Documentation & Cleanup
+
 36. Update AGENTS.md with the completed AggregateID → StreamID migration
 37. Update AGENTS.md lint status line with new numbers
 38. Add `handlers_events.go` file to dashboardui module documentation

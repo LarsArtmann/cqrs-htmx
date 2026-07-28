@@ -3,7 +3,6 @@ module github.com/larsartmann/cqrs-htmx/dashboardui/v4
 go 1.26.5
 
 require (
-	github.com/a-h/templ v0.3.1020
 	github.com/larsartmann/cqrs-htmx/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0
@@ -16,11 +15,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/templ-components v1.3.0
 )
 
 require (
-	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect

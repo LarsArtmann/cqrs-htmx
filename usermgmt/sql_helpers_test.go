@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -76,5 +75,3 @@ func TestWrapTransientOrOK_Error(t *testing.T) {
 		t.Fatalf("expected wrapped error, got %v", err)
 	}
 }
-
-var _ = fmt.Sprintf

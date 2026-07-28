@@ -150,7 +150,7 @@ func projectionStatusKind(status string) string {
 // renderOverview produces the overview page HTML.
 // This is intentionally simple Go-generated HTML for the initial version.
 // Future iterations will use templ components from templ-components.
-func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string { //nolint:funlen // HTML string builder
+func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 	var b strings.Builder
 
 	b.WriteString(d.renderLayout(p, func() string {

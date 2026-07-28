@@ -112,7 +112,7 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 		"dashboardui.event_detail.no_source", "no event source available to load event %s", eventID)
 }
 
-func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string { //nolint:funlen // HTML string builder
+func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
