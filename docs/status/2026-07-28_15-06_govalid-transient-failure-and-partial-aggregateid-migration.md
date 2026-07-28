@@ -12,7 +12,7 @@
    - `go build ./...` passes workspace-wide.
    - `govalid ./...` passes individually for every module, every time.
    - `buildflow -s govalid-generate` passes 15/15, reproduced 3×.
-   - The full pre-commit run fails on *different random modules* each invocation (loginpage, dashboardui, datastar-demo, catalog-demo, oauth2, dashboard-demo) — not systematic.
+   - The full pre-commit run fails on _different random modules_ each invocation (loginpage, dashboardui, datastar-demo, catalog-demo, oauth2, dashboard-demo) — not systematic.
    - `buildflow --build-mode pre-commit` exits 0 ("passed with warnings"); transient failures do not block commits.
 
 2. **Migrated deprecated `id.AggregateID` APIs in all `examples/` modules** (3 files, committed in `a7c09ab`):
@@ -34,7 +34,7 @@
 
 1. **CHANGELOG.md entry** for the deprecation migration. Per AGENTS.md convention, completed work goes to CHANGELOG.md — I produced none.
 2. **AGENTS.md memory update** for the v4.1.0 → v4.2.0 go-cqrs-lite version drift. AGENTS.md still says "Root currently uses: command/v4 v4.1.0…" but the example go.mod files now pin v4.2.0. I noticed the discrepancy in research and never wrote it down — a direct violation of the "Aggressive Update Protocol."
-3. **`buildflow-fsprobe-*` artifact hygiene.** The auto-commit *message* claimed a `buildflow-fsprobe-2900869571` file was committed; `git ls-files` shows it was NOT (the daemon's commit message hallucinated it). But the probe file pattern exists at runtime and should be `.gitignore`d preemptively. Not investigated.
+3. **`buildflow-fsprobe-*` artifact hygiene.** The auto-commit _message_ claimed a `buildflow-fsprobe-2900869571` file was committed; `git ls-files` shows it was NOT (the daemon's commit message hallucinated it). But the probe file pattern exists at runtime and should be `.gitignore`d preemptively. Not investigated.
 
 ---
 
@@ -60,6 +60,7 @@
 ## f) Up to 50 things we should get done next
 
 ### Deprecation migration (HIGH — finish what I started)
+
 1. Migrate `usermgmt/es_commands.go` (12 occurrences) to `id.StreamID` family.
 2. Migrate `usermgmt/es_decide.go`.
 3. Migrate `usermgmt/es_decide_credentials.go`.
@@ -87,28 +88,33 @@
 25. Sweep all 51 test files for the same deprecated APIs.
 
 ### Memory & docs (MEDIUM)
+
 26. Update AGENTS.md go-cqrs-lite version block from v4.1.0 to v4.2.0 (verify root go.mod first).
 27. Add CHANGELOG.md entry for the AggregateID→StreamID example migration (`a7c09ab`).
 28. Add CHANGELOG.md entry once the usermgmt/dashboardui migration lands.
 29. Record the transient govalid-generate flake pattern in AGENTS.md "Gotchas".
 
 ### Build tooling (MEDIUM)
+
 30. Evaluate reducing `.buildflow.yml` `max_concurrency: 4` → `2` to cut transient govalid flakes.
 31. Or: confirm whether buildflow supports a per-tool retry for `govalid-generate`.
 32. Add `buildflow-fsprobe-*` to `.gitignore` preemptively.
 33. Investigate the `resume: failed to write checkpoint … SQLITE_BUSY` warnings during buildflow runs.
 
 ### Stdversion / jsonv2 (LOW — likely benign, needs confirmation)
+
 34. Decide whether to bump `go 1.26.5` directives in example go.mod files to `go 1.27` to silence stdversion warnings.
 35. Or: document in AGENTS.md that `GOEXPERIMENT=jsonv2` makes the go1.27 stdversion warnings expected/harmless.
 36. Audit whether any non-example module emits stdversion warnings.
 
 ### Verification hardening (LOW)
+
 37. Add a CI guard (grep-based) that fails if any new `id.AggregateID`-family symbol lands in the repo.
 38. Add a CI guard for deprecated `id.NewUserID` usage (already deprecated per AGENTS.md).
 39. Run `buildflow --build-mode full` to confirm no other latent failures beyond govalid flakes.
 
 ### Process (LOW)
+
 40. Add a "definition of done for deprecation sweeps" checklist item: `grep -rln` workspace-wide before declaring complete.
 41. Review whether the auto-commit daemon's hallucinated commit message (fsprobe claim) indicates a real file-leak risk.
 
