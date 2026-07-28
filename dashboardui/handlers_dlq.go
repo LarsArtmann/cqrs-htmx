@@ -5,10 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"fmt"
-	"net/http"
-	"strings"
-
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 

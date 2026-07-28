@@ -5,10 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"fmt"
-	"net/http"
-	"strings"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
@@ -126,14 +122,6 @@ func (d *Dashboard) renderAggregateDetail(
 
 		return b.String()
 	})
-}
-
-func latestVersion(events []event.Event) string {
-	if len(events) == 0 {
-		return "0"
-	}
-
-	return events[len(events)-1].Version().String()
 }
 
 func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing) string {
