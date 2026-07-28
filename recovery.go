@@ -40,6 +40,19 @@ func writePanicResponse(
 	rec any,
 	handler ErrorHandler,
 ) {
+	// RecoverHandler runs outside ContextEnrichmentMiddleware, so the request
+	// it captures has no RequestID in context even though one was generated
+	// downstream. ContextEnrichmentMiddleware writes the RequestID to the
+	// X-Request-ID response header; recover it into the context so error
+	// handlers can echo it — matching every non-panic error path.
+	if RequestIDFromContext(r.Context()).IsZero() {
+		if ridStr := w.Header().Get(headerRequestID); ridStr != "" {
+			if rid, err := ParseRequestID(ridStr); err == nil {
+				r = r.WithContext(WithRequestID(r.Context(), rid))
+			}
+		}
+	}
+
 	slog.ErrorContext(
 		r.Context(), "panic recovered",
 		slog.Any("panic", rec),
