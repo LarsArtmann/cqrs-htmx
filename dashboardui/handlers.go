@@ -480,10 +480,28 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Request) {
+// requireProjectionHost checks that a projection host is configured and writes
+// a 400 error if not. Returns true if the caller should continue.
+func (d *Dashboard) requireProjectionHost(w http.ResponseWriter) bool {
 	if d.cfg.ProjectionHost == nil {
 		http.Error(w, "projection host not configured", http.StatusBadRequest)
+		return false
+	}
+	return true
+}
 
+// requireDeadLetterStore checks that a dead-letter store is configured and
+// writes a 400 error if not. Returns true if the caller should continue.
+func (d *Dashboard) requireDeadLetterStore(w http.ResponseWriter) bool {
+	if d.cfg.DeadLetterStore == nil {
+		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
+		return false
+	}
+	return true
+}
+
+func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Request) {
+	if !d.requireProjectionHost(w) {
 		return
 	}
 
@@ -579,9 +597,7 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
-	if d.cfg.ProjectionHost == nil {
-		http.Error(w, "projection host not configured", http.StatusBadRequest)
-
+	if !d.requireProjectionHost(w) {
 		return
 	}
 
@@ -601,9 +617,7 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	if d.cfg.DeadLetterStore == nil {
-		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
-
+	if !d.requireDeadLetterStore(w) {
 		return
 	}
 
@@ -622,9 +636,7 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
-	if d.cfg.DeadLetterStore == nil {
-		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
-
+	if !d.requireDeadLetterStore(w) {
 		return
 	}
 
