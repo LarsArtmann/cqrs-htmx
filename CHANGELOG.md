@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Panic recovery now echoes request_id** (`recovery.go`): `writePanicResponse` recovers the RequestID from the `X-Request-ID` response header (written by `ContextEnrichmentMiddleware`) when it is absent from the request context. Because `RecoveryMiddleware`/`RecoverHandler` runs outside `ContextEnrichmentMiddleware` in the recommended stack order, its captured request lacked the RequestID — making panic 500 responses the only error path that dropped the correlation ID. The fix enriches the request before delegating to the error handler so panic responses now carry the same request_id as every other error path. No consumer changes required.
+
 ## [v4.6.1] - 2026-07-27
 
 ### Changed
