@@ -24,7 +24,7 @@ type Bot struct {
 // FindByTokenHash for API token authentication middleware.
 type BotReadModel struct {
 	readModelCore[*BotReadModel]
-	bots        map[id.AggregateID]*Bot
+	bots        map[id.StreamID]*Bot
 	byTokenHash map[string]*Bot
 }
 
@@ -37,7 +37,7 @@ func NewBotReadModel() *BotReadModel {
 				eventBotDeleted:    (*BotReadModel).handleBotDeleted,
 			},
 		},
-		bots:        make(map[id.AggregateID]*Bot),
+		bots:        make(map[id.StreamID]*Bot),
 		byTokenHash: make(map[string]*Bot),
 	}
 }
@@ -50,7 +50,7 @@ func (m *BotReadModel) Handle(_ context.Context, evt event.Event) error {
 	return m.handleEvent(m, evt)
 }
 
-func (m *BotReadModel) handleBotRegistered(aggID id.AggregateID, evt event.Event) error {
+func (m *BotReadModel) handleBotRegistered(aggID id.StreamID, evt event.Event) error {
 	p, err := unmarshalPayload[BotRegisteredPayload](evt)
 	if err != nil {
 		return errorfamily.WrapCorruption(
@@ -74,7 +74,7 @@ func (m *BotReadModel) handleBotRegistered(aggID id.AggregateID, evt event.Event
 	return nil
 }
 
-func (m *BotReadModel) handleBotDeleted(aggID id.AggregateID, _ event.Event) error {
+func (m *BotReadModel) handleBotDeleted(aggID id.StreamID, _ event.Event) error {
 	if bot, ok := m.botsDelete(aggID); ok {
 		delete(m.byTokenHash, string(bot.TokenHash))
 	}
@@ -82,7 +82,7 @@ func (m *BotReadModel) handleBotDeleted(aggID id.AggregateID, _ event.Event) err
 }
 
 // botsDelete removes a bot from the bots map and returns it if found.
-func (m *BotReadModel) botsDelete(aggID id.AggregateID) (*Bot, bool) {
+func (m *BotReadModel) botsDelete(aggID id.StreamID) (*Bot, bool) {
 	bot, ok := m.bots[aggID]
 	if !ok {
 		return nil, false
@@ -92,7 +92,7 @@ func (m *BotReadModel) botsDelete(aggID id.AggregateID) (*Bot, bool) {
 }
 
 // FindByID returns the bot for the given aggregate ID.
-func (m *BotReadModel) FindByID(aggID id.AggregateID) (*Bot, bool) {
+func (m *BotReadModel) FindByID(aggID id.StreamID) (*Bot, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	bot, ok := m.bots[aggID]

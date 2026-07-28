@@ -7,7 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-var membershipTestAggID = id.NewAggregateID() //nolint:gochecknoglobals // test fixture
+var membershipTestAggID = id.NewStreamID() //nolint:gochecknoglobals // test fixture
 
 func makeMembershipEvent(
 	t *testing.T, eventType event.Type, version event.Version, payload any,

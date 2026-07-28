@@ -49,7 +49,7 @@ func TestDashboard_OverviewRenders(t *testing.T) {
 
 func TestDashboard_EventBrowserRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
 	_ = store.Save(nil, id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
 
@@ -144,7 +144,7 @@ func TestDashboard_NavBuildsFromCapabilities(t *testing.T) {
 
 func TestDashboard_EventDetailRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
 	_ = store.Save(nil, id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
 
@@ -175,7 +175,7 @@ func TestDashboard_EventDetailRenders(t *testing.T) {
 
 func TestDashboard_AggregateDetailRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("User", aggID)
 
 	evt1, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
@@ -213,7 +213,7 @@ func TestDashboard_CommandAuditRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 	cmdStore := memorystorage.NewMemoryCommandStore()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("User", aggID)
 
 	cmd, _ := command.NewPersistedCommand(
@@ -282,7 +282,7 @@ func TestDashboard_QueryAuditRenders(t *testing.T) {
 
 func TestDashboard_TimeTravelDetailRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("Order", aggID)
 
 	for i := 1; i <= 3; i++ {
@@ -329,7 +329,7 @@ func TestDashboard_SnapshotDetailRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 	snapStore := memorystorage.NewMemorySnapshotStore()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("Order", aggID)
 
 	// Save a snapshot
@@ -401,7 +401,7 @@ func TestDashboard_SSEBridgeWorks(t *testing.T) {
 	defer d.broadcaster.Unsubscribe(ch)
 
 	// Publish an event to the bus
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, _ := event.New("order.placed", aggID, "Order", event.Version(1), struct{ Total int }{Total: 42})
 	if err := bus.Publish(nil, evt); err != nil {

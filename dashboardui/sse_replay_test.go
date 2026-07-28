@@ -19,7 +19,7 @@ func TestDashboard_SSEReconnectReplay(t *testing.T) {
 	bus := eventtest.NewFakeBus()
 
 	// Seed 3 events to the journal.
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("Order", aggID)
 
 	events := make([]event.Event, 3)
@@ -95,7 +95,7 @@ func TestDashboard_SSEInitialBackfill(t *testing.T) {
 	bus := eventtest.NewFakeBus()
 
 	// Seed 2 events.
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("User", aggID)
 
 	evt1, _ := event.New("user.created", aggID, "User", event.Version(1), struct{}{})

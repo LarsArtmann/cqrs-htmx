@@ -152,7 +152,7 @@ func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportR
 			continue
 		}
 
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		if err := s.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
 			aggID, users[i].Email, users[i].DisplayName, []Role{RoleUser},
 		)); err != nil {

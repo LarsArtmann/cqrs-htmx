@@ -15,9 +15,9 @@ import (
 // UserReadModel is the projection-side store for users.
 type UserReadModel struct {
 	readModelCore[*UserReadModel]
-	users            map[id.AggregateID]*User
-	emails           map[string]id.AggregateID
-	externalAccounts map[externalAccountKey]id.AggregateID
+	users            map[id.StreamID]*User
+	emails           map[string]id.StreamID
+	externalAccounts map[externalAccountKey]id.StreamID
 }
 
 // externalAccountKey is the composite key for the global provider+subject → user index.
@@ -45,9 +45,9 @@ func NewUserReadModel() *UserReadModel {
 				eventExternalAccountUnlinked: (*UserReadModel).handleExternalAccountUnlinked,
 			},
 		},
-		users:            make(map[id.AggregateID]*User),
-		emails:           make(map[string]id.AggregateID),
-		externalAccounts: make(map[externalAccountKey]id.AggregateID),
+		users:            make(map[id.StreamID]*User),
+		emails:           make(map[string]id.StreamID),
+		externalAccounts: make(map[externalAccountKey]id.StreamID),
 	}
 }
 
@@ -74,7 +74,7 @@ func decodePayload[T any](evt event.Event, name string) (T, error) {
 	return p, nil
 }
 
-func (m *UserReadModel) handleUserRegistered(_ id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleUserRegistered(_ id.StreamID, evt event.Event) error {
 	aggID := evt.AggregateID()
 	p, err := decodePayload[UserRegisteredPayload](evt, "UserRegistered")
 	if err != nil {
@@ -91,12 +91,12 @@ func (m *UserReadModel) handleUserRegistered(_ id.AggregateID, evt event.Event) 
 	return nil
 }
 
-func (m *UserReadModel) handleRolesUpdated(_ id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleRolesUpdated(_ id.StreamID, evt event.Event) error {
 	_, err := decodePayload[RolesUpdatedPayload](evt, "RolesUpdated")
 	return err
 }
 
-func (m *UserReadModel) handleEmailChanged(_ id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleEmailChanged(_ id.StreamID, evt event.Event) error {
 	aggID := evt.AggregateID()
 	p, err := decodePayload[EmailChangedPayload](evt, "EmailChanged")
 	if err != nil {
@@ -112,7 +112,7 @@ func (m *UserReadModel) handleEmailChanged(_ id.AggregateID, evt event.Event) er
 	return nil
 }
 
-func (m *UserReadModel) handleDisplayNameChanged(_ id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleDisplayNameChanged(_ id.StreamID, evt event.Event) error {
 	aggID := evt.AggregateID()
 	p, err := decodePayload[DisplayNameChangedPayload](evt, "DisplayNameChanged")
 	if err != nil {
@@ -125,7 +125,7 @@ func (m *UserReadModel) handleDisplayNameChanged(_ id.AggregateID, evt event.Eve
 	return nil
 }
 
-func (m *UserReadModel) handleCredentialAdded(_ id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleCredentialAdded(_ id.StreamID, evt event.Event) error {
 	aggID := evt.AggregateID()
 	p, err := decodePayload[CredentialAddedPayload](evt, "CredentialAdded")
 	if err != nil {
@@ -138,7 +138,7 @@ func (m *UserReadModel) handleCredentialAdded(_ id.AggregateID, evt event.Event)
 	return nil
 }
 
-func (m *UserReadModel) handleCredentialRemoved(_ id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleCredentialRemoved(_ id.StreamID, evt event.Event) error {
 	aggID := evt.AggregateID()
 	p, err := decodePayload[CredentialRemovedPayload](evt, "CredentialRemoved")
 	if err != nil {
@@ -157,7 +157,7 @@ func (m *UserReadModel) handleCredentialRemoved(_ id.AggregateID, evt event.Even
 	return nil
 }
 
-func (m *UserReadModel) handleUserDeleted(aggID id.AggregateID, _ event.Event) error {
+func (m *UserReadModel) handleUserDeleted(aggID id.StreamID, _ event.Event) error {
 	if u, ok := m.users[aggID]; ok {
 		delete(m.emails, u.Email)
 		for _, ea := range u.ExternalAccounts {
@@ -168,7 +168,7 @@ func (m *UserReadModel) handleUserDeleted(aggID id.AggregateID, _ event.Event) e
 	return nil
 }
 
-func (m *UserReadModel) handleEmailVerified(aggID id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleEmailVerified(aggID id.StreamID, evt event.Event) error {
 	if u, ok := m.users[aggID]; ok {
 		u.EmailVerified = true
 		u.UpdatedAt = evt.OccurredAt()
@@ -176,7 +176,7 @@ func (m *UserReadModel) handleEmailVerified(aggID id.AggregateID, evt event.Even
 	return nil
 }
 
-func (m *UserReadModel) handleTOTPEnabled(_ id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleTOTPEnabled(_ id.StreamID, evt event.Event) error {
 	aggID := evt.AggregateID()
 	p, err := decodePayload[TOTPEnabledPayload](evt, "TOTPEnabled")
 	if err != nil {
@@ -190,7 +190,7 @@ func (m *UserReadModel) handleTOTPEnabled(_ id.AggregateID, evt event.Event) err
 	return nil
 }
 
-func (m *UserReadModel) handleTOTPDisabled(aggID id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleTOTPDisabled(aggID id.StreamID, evt event.Event) error {
 	if u, ok := m.users[aggID]; ok {
 		u.TOTPEnabled = false
 		u.TOTPSecret = nil
@@ -199,7 +199,7 @@ func (m *UserReadModel) handleTOTPDisabled(aggID id.AggregateID, evt event.Event
 	return nil
 }
 
-func (m *UserReadModel) handleExternalAccountLinked(_ id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleExternalAccountLinked(_ id.StreamID, evt event.Event) error {
 	aggID := evt.AggregateID()
 	p, err := decodePayload[ExternalAccountLinkedPayload](evt, "ExternalAccountLinked")
 	if err != nil {
@@ -221,7 +221,7 @@ func (m *UserReadModel) handleExternalAccountLinked(_ id.AggregateID, evt event.
 	return nil
 }
 
-func (m *UserReadModel) handleExternalAccountUnlinked(_ id.AggregateID, evt event.Event) error {
+func (m *UserReadModel) handleExternalAccountUnlinked(_ id.StreamID, evt event.Event) error {
 	aggID := evt.AggregateID()
 	p, err := decodePayload[ExternalAccountUnlinkedPayload](evt, "ExternalAccountUnlinked")
 	if err != nil {
@@ -241,7 +241,7 @@ func (m *UserReadModel) handleExternalAccountUnlinked(_ id.AggregateID, evt even
 	return nil
 }
 
-func (m *UserReadModel) FindByID(aggID id.AggregateID) (*User, bool) {
+func (m *UserReadModel) FindByID(aggID id.StreamID) (*User, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	u, ok := m.users[aggID]
@@ -299,7 +299,7 @@ func (m *UserReadModel) AllUsers() []*User {
 }
 
 func (m *UserReadModel) FindByUserID(userID UserID) (*User, bool) {
-	aggID, err := id.ParseAggregateID(userID.Get().String())
+	aggID, err := id.ParseStreamID(userID.Get().String())
 	if err != nil {
 		return nil, false
 	}
@@ -311,10 +311,10 @@ var _ projection.Projection = (*UserReadModel)(nil)
 // aggIDFromBranded converts any branded string ID to an AggregateID.
 // Shared by aggIDFromUser, aggIDFromTenant, aggIDFromBot — eliminates
 // triplicated ParseAggregateID + Wrapf boilerplate.
-func aggIDFromBranded(raw, sentinel string) (id.AggregateID, error) {
-	aggID, err := id.ParseAggregateID(raw)
+func aggIDFromBranded(raw, sentinel string) (id.StreamID, error) {
+	aggID, err := id.ParseStreamID(raw)
 	if err != nil {
-		return id.AggregateID{}, errorfamily.Wrapf(
+		return id.StreamID{}, errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			sentinel,
@@ -324,7 +324,7 @@ func aggIDFromBranded(raw, sentinel string) (id.AggregateID, error) {
 	return aggID, nil
 }
 
-func aggIDFromUser(userID UserID) (id.AggregateID, error) {
+func aggIDFromUser(userID UserID) (id.StreamID, error) {
 	return aggIDFromBranded(userID.Get().String(), "usermgmt.readmodel.invalid_userid")
 }
 

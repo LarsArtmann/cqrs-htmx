@@ -21,7 +21,7 @@ func requireExists(state UserState, domain string) error {
 }
 
 func decideRegisterUser(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	email, displayName string,
 	roles []Role,
 ) func(UserState, event.Version) ([]event.Event, error) {
@@ -65,7 +65,7 @@ func decideRegisterUser(
 }
 
 func decideDeleteUser(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	reason string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {

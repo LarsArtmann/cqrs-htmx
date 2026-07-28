@@ -9,7 +9,7 @@ import (
 )
 
 func TestDecideRegisterUser_Success(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	decide := decideRegisterUser(aggID, "alice@example.com", "Alice", []Role{RoleUser})
 	events, err := decide(UserState{}, 0)
 	if err != nil {
@@ -24,7 +24,7 @@ func TestDecideRegisterUser_Success(t *testing.T) {
 }
 
 func TestDecideRegisterUser_AlreadyExists(t *testing.T) {
-	decide := decideRegisterUser(id.NewAggregateID(), "a@b.com", "A", []Role{RoleUser})
+	decide := decideRegisterUser(id.NewStreamID(), "a@b.com", "A", []Role{RoleUser})
 	events, err := decide(UserState{Email: "existing@example.com"}, 1)
 	if err == nil {
 		t.Fatalf("expected error, got %d events", len(events))
@@ -35,7 +35,7 @@ func TestDecideRegisterUser_AlreadyExists(t *testing.T) {
 }
 
 func TestDecideRegisterUser_EmptyEmail(t *testing.T) {
-	decide := decideRegisterUser(id.NewAggregateID(), "", "A", []Role{RoleUser})
+	decide := decideRegisterUser(id.NewStreamID(), "", "A", []Role{RoleUser})
 	events, err := decide(UserState{}, 0)
 	if err == nil {
 		t.Fatalf("expected error, got %d events", len(events))
@@ -70,7 +70,7 @@ func TestDecideChangeEmail(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			decide := decideChangeEmail(id.NewAggregateID(), tc.newEmail)
+			decide := decideChangeEmail(id.NewStreamID(), tc.newEmail)
 			state := UserState{Email: tc.stateEmail}
 			events, err := decide(state, 1)
 			if err != nil {
@@ -84,7 +84,7 @@ func TestDecideChangeEmail(t *testing.T) {
 }
 
 func TestDecideDeleteUser_Success(t *testing.T) {
-	decide := decideDeleteUser(id.NewAggregateID(), "GDPR")
+	decide := decideDeleteUser(id.NewStreamID(), "GDPR")
 	state := UserState{Email: "u@example.com"}
 	events, err := decide(state, 1)
 	if err != nil {
@@ -99,7 +99,7 @@ func TestDecideDeleteUser_Success(t *testing.T) {
 }
 
 func TestDecideDeleteUser_AlreadyDeleted(t *testing.T) {
-	decide := decideDeleteUser(id.NewAggregateID(), "r")
+	decide := decideDeleteUser(id.NewStreamID(), "r")
 	state := UserState{Email: "u@example.com", Deleted: true}
 	events, err := decide(state, 1)
 	if err == nil {
@@ -108,7 +108,7 @@ func TestDecideDeleteUser_AlreadyDeleted(t *testing.T) {
 }
 
 func TestDecideAddCredential_Success(t *testing.T) {
-	decide := decideAddCredential(id.NewAggregateID(), WebAuthnCredential{
+	decide := decideAddCredential(id.NewStreamID(), WebAuthnCredential{
 		CredentialCore: CredentialCore{ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none"},
 	})
 	state := UserState{Email: "u@example.com"}
@@ -125,7 +125,7 @@ func TestDecideAddCredential_Success(t *testing.T) {
 }
 
 func TestDecideAddCredential_Duplicate(t *testing.T) {
-	decide := decideAddCredential(id.NewAggregateID(), WebAuthnCredential{
+	decide := decideAddCredential(id.NewStreamID(), WebAuthnCredential{
 		CredentialCore: CredentialCore{ID: []byte{1, 2, 3}},
 	})
 	state := UserState{
@@ -142,7 +142,7 @@ func TestDecideAddCredential_Duplicate(t *testing.T) {
 }
 
 func TestDecideRemoveCredential_Success(t *testing.T) {
-	decide := decideRemoveCredential(id.NewAggregateID(), []byte{1, 2, 3})
+	decide := decideRemoveCredential(id.NewStreamID(), []byte{1, 2, 3})
 	state := UserState{
 		Email:       "u@example.com",
 		Credentials: []WebAuthnCredential{{CredentialCore: CredentialCore{ID: []byte{1, 2, 3}}}},
@@ -160,7 +160,7 @@ func TestDecideRemoveCredential_Success(t *testing.T) {
 }
 
 func TestDecideRemoveCredential_NotFound(t *testing.T) {
-	decide := decideRemoveCredential(id.NewAggregateID(), []byte{9, 9, 9})
+	decide := decideRemoveCredential(id.NewStreamID(), []byte{9, 9, 9})
 	state := UserState{
 		Email:       "u@example.com",
 		Credentials: []WebAuthnCredential{{CredentialCore: CredentialCore{ID: []byte{1, 2, 3}}}},

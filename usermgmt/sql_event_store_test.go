@@ -29,7 +29,7 @@ func newTestSQLiteStore(t *testing.T) *SQLEventStore {
 func TestSQLEventStore_SaveAndLoad(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	payload, _ := marshalPayload(UserRegisteredPayload{
 		Email: "sql@test.com",
@@ -64,7 +64,7 @@ func TestSQLEventStore_SaveAndLoad(t *testing.T) {
 func TestSQLEventStore_OptimisticConcurrency(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
 	payload, _ := marshalPayload(UserRegisteredPayload{
@@ -92,7 +92,7 @@ func TestSQLEventStore_OptimisticConcurrency(t *testing.T) {
 func TestSQLEventStore_AppendBatch(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
 	p1, _ := marshalPayload(UserRegisteredPayload{
@@ -121,8 +121,8 @@ func TestSQLEventStore_ReadAll(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
 
-	agg1 := id.NewAggregateID()
-	agg2 := id.NewAggregateID()
+	agg1 := id.NewStreamID()
+	agg2 := id.NewStreamID()
 
 	p1, _ := marshalPayload(UserRegisteredPayload{
 		Email: "ra1@test.com",
@@ -182,7 +182,7 @@ func appendThreeTestEvents(
 	ctx context.Context,
 ) id.StreamRef {
 	t.Helper()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
 	p1, _ := marshalPayload(UserRegisteredPayload{Email: "v@test.com"})
@@ -201,7 +201,7 @@ func appendThreeTestEvents(
 func TestSQLEventStore_EmptyAggregate(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
 	// Upstream storage.SQLEventStore returns ErrAggregateNotFound when Load
@@ -245,7 +245,7 @@ func TestSQLEventStore_WithService(t *testing.T) {
 	}
 }
 
-func aggIDFromUserID(t *testing.T, userID UserID) (aggID id.AggregateID) {
+func aggIDFromUserID(t *testing.T, userID UserID) (aggID id.StreamID) {
 	t.Helper()
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {

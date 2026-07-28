@@ -127,6 +127,6 @@ func (s *Service) TenantMembers(_ context.Context, tenantID TenantID) []*Members
 	return s.membershipReadModel.FindByTenant(tenantID.Get())
 }
 
-func aggIDFromTenant(tenantID TenantID) (id.AggregateID, error) {
+func aggIDFromTenant(tenantID TenantID) (id.StreamID, error) {
 	return aggIDFromBranded(tenantID.Get(), "usermgmt.invalid_tenant_id")
 }

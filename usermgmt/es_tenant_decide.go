@@ -16,7 +16,7 @@ func TenantDecider() decider.Decider[TenantState] {
 }
 
 func decideCreateTenant(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	name, displayName string,
 ) func(TenantState, event.Version) ([]event.Event, error) {
 	return func(state TenantState, version event.Version) ([]event.Event, error) {
@@ -60,7 +60,7 @@ func decideCreateTenant(
 }
 
 func decideSuspendTenant(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	reason string,
 ) func(TenantState, event.Version) ([]event.Event, error) {
 	return func(state TenantState, version event.Version) ([]event.Event, error) {
@@ -100,7 +100,7 @@ func decideSuspendTenant(
 }
 
 func decideReactivateTenant(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) func(TenantState, event.Version) ([]event.Event, error) {
 	return func(state TenantState, version event.Version) ([]event.Event, error) {
 		if !state.Exists() {
@@ -139,7 +139,7 @@ func decideReactivateTenant(
 
 //nolint:dupl // mirrors decideDeleteBot; tombstone deletion is structurally identical
 func decideDeleteTenant(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	reason string,
 ) func(TenantState, event.Version) ([]event.Event, error) {
 	return func(state TenantState, version event.Version) ([]event.Event, error) {

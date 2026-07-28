@@ -29,7 +29,7 @@ func BenchmarkSession_TokenMatches(b *testing.B) {
 	}
 }
 
-var benchAggID = id.NewAggregateID() //nolint:gochecknoglobals // benchmark fixture
+var benchAggID = id.NewStreamID() //nolint:gochecknoglobals // benchmark fixture
 
 func benchEvent(b *testing.B, eventType event.Type, payload any) event.Event {
 	b.Helper()

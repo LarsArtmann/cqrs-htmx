@@ -32,7 +32,7 @@ func sampleWebAuthnCredential() WebAuthnCredential {
 	}
 }
 
-func dispatchAddCredential(t *testing.T, disp *command.Dispatcher, ctx context.Context, aggID id.AggregateID) {
+func dispatchAddCredential(t *testing.T, disp *command.Dispatcher, ctx context.Context, aggID id.StreamID) {
 	t.Helper()
 	if err := disp.Dispatch(ctx, NewAddCredentialCmd(aggID, sampleWebAuthnCredential())); err != nil {
 		t.Fatalf("add credential: %v", err)
@@ -43,7 +43,7 @@ func dispatchRegisterUser(
 	t *testing.T,
 	disp *command.Dispatcher,
 	ctx context.Context,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	email, name string,
 ) {
 	t.Helper()
@@ -57,7 +57,7 @@ func TestWiring_RegisterUser(t *testing.T) {
 	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	dispatchRegisterUser(t, disp, ctx, aggID, "alice@example.com", "Alice")
 
 	user, ok := setup.ReadModel.FindByID(aggID)
@@ -74,7 +74,7 @@ func TestWiring_RegisterDuplicate(t *testing.T) {
 	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	dispatchRegisterUser(t, disp, ctx, aggID, "dup@example.com", "Dup")
 
 	err := disp.Dispatch(ctx, NewRegisterUserCmd(
@@ -90,7 +90,7 @@ func TestWiring_DeleteUser(t *testing.T) {
 	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	dispatchRegisterUser(t, disp, ctx, aggID, "delete@example.com", "Del")
 
 	if err := disp.Dispatch(ctx, NewDeleteUserCmd(aggID, "test")); err != nil {
@@ -108,7 +108,7 @@ func TestWiring_AddCredential(t *testing.T) {
 	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	dispatchRegisterUser(t, disp, ctx, aggID, "cred@example.com", "Cred")
 
 	dispatchAddCredential(t, disp, ctx, aggID)
@@ -124,7 +124,7 @@ func TestWiring_RemoveCredential(t *testing.T) {
 	disp := newTestDispatcher(t, setup)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	dispatchRegisterUser(t, disp, ctx, aggID, "remcred@example.com", "RemCred")
 
 	dispatchAddCredential(t, disp, ctx, aggID)

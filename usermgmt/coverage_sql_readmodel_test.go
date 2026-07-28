@@ -13,7 +13,7 @@ func makeEventFor(
 	t *testing.T,
 	eventType event.Type,
 	version event.Version,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	aggType event.StreamType,
 	payload any,
 ) event.Event {
@@ -84,7 +84,7 @@ func TestSQLTenantReadModel_HandleAndQuery(t *testing.T) {
 	}
 
 	tenantID := NewTenantID("01JXTENANT0000000000000000B")
-	aggID, err := id.ParseAggregateID(tenantID.Get())
+	aggID, err := id.ParseStreamID(tenantID.Get())
 	if err != nil {
 		t.Fatalf("ParseAggregateID: %v", err)
 	}
@@ -133,7 +133,7 @@ func TestSQLBotReadModel_HandleAndQuery(t *testing.T) {
 	botID := NewBotID("01JXBOT0000000000000000AB")
 	ownerID := NewUserID("01JXBOTOWNER00000000000001")
 	tokenHash := []byte{0xDE, 0xAD, 0xBE, 0xEF}
-	aggID, err := id.ParseAggregateID(botID.Get())
+	aggID, err := id.ParseStreamID(botID.Get())
 	if err != nil {
 		t.Fatalf("ParseAggregateID: %v", err)
 	}

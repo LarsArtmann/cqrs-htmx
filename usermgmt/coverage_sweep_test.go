@@ -18,7 +18,7 @@ import (
 func TestAuditLog_AllEventActions(t *testing.T) {
 	log := NewAuditLog()
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	cases := []struct {
 		eventType  event.Type
@@ -60,7 +60,7 @@ func TestAuditLog_AllEventActions(t *testing.T) {
 
 func TestAuditLog_UnknownEventActionDefault(t *testing.T) {
 	log := NewAuditLog()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	payload, _ := marshalPayload(UserDeletedPayload{})
 	evt, _ := event.NewEvent(event.Type("user.unknown_thing"), aggID, aggregateTypeUser, 1, payload)
 
@@ -75,7 +75,7 @@ func TestAuditLog_UnknownEventActionDefault(t *testing.T) {
 func TestAuditLog_Recent_ReturnsAllWhenNGreaterThanLen(t *testing.T) {
 	log := NewAuditLog()
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	for i := range 3 {
 		payload, _ := marshalPayload(UserDeletedPayload{})
 		evt, _ := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, event.Version(i+1), payload)

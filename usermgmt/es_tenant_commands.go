@@ -12,18 +12,18 @@ type (
 	DeleteTenantCmd     = identitymodel.DeleteTenantCmd
 )
 
-func NewCreateTenantCmd(aggID id.AggregateID, name, displayName string) *CreateTenantCmd {
+func NewCreateTenantCmd(aggID id.StreamID, name, displayName string) *CreateTenantCmd {
 	return identitymodel.NewCreateTenantCmd(aggID, name, displayName)
 }
 
-func NewSuspendTenantCmd(aggID id.AggregateID, reason string) *SuspendTenantCmd {
+func NewSuspendTenantCmd(aggID id.StreamID, reason string) *SuspendTenantCmd {
 	return identitymodel.NewSuspendTenantCmd(aggID, reason)
 }
 
-func NewReactivateTenantCmd(aggID id.AggregateID) *ReactivateTenantCmd {
+func NewReactivateTenantCmd(aggID id.StreamID) *ReactivateTenantCmd {
 	return identitymodel.NewReactivateTenantCmd(aggID)
 }
 
-func NewDeleteTenantCmd(aggID id.AggregateID, reason string) *DeleteTenantCmd {
+func NewDeleteTenantCmd(aggID id.StreamID, reason string) *DeleteTenantCmd {
 	return identitymodel.NewDeleteTenantCmd(aggID, reason)
 }

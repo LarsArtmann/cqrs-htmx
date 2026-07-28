@@ -24,7 +24,7 @@ type MembershipView struct {
 
 type SQLMembershipReadModel struct {
 	*MembershipReadModel
-	store   *storage.SQLViewStore[MembershipView, id.AggregateID]
+	store   *storage.SQLViewStore[MembershipView, id.StreamID]
 	querier kv.ViewQuerier[MembershipView]
 }
 
@@ -37,7 +37,7 @@ func membershipViewMapper() storage.ViewMapper[MembershipView] {
 
 func NewSQLiteMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 	store, err := newViewStoreOrFail(
-		storage.NewSQLiteViewStore[MembershipView, id.AggregateID],
+		storage.NewSQLiteViewStore[MembershipView, id.StreamID],
 		db,
 		membershipViewMapper(),
 		"usermgmt.sql_readmodel.membership_create",
@@ -51,7 +51,7 @@ func NewSQLiteMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 
 func NewSQLMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 	store, err := newViewStoreOrFail(
-		storage.NewSQLViewStore[MembershipView, id.AggregateID],
+		storage.NewSQLViewStore[MembershipView, id.StreamID],
 		db,
 		membershipViewMapper(),
 		"usermgmt.sql_readmodel.membership_create",

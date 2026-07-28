@@ -8,7 +8,7 @@ import (
 
 //nolint:dupl // mirrors decideChangeDisplayName; single-field deciders are structurally identical by design
 func decideChangeEmail(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	email string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
@@ -50,7 +50,7 @@ func decideChangeEmail(
 
 //nolint:dupl // mirrors decideChangeEmail; single-field deciders are structurally identical by design
 func decideChangeDisplayName(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	displayName string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
@@ -91,7 +91,7 @@ func decideChangeDisplayName(
 }
 
 func decideVerifyEmail(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
 		if err := requireExists(state, "verify_email"); err != nil {

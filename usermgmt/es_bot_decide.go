@@ -16,7 +16,7 @@ func BotDecider() decider.Decider[BotState] {
 }
 
 func decideRegisterBot(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	name string,
 	ownerID UserID,
 	tokenHash []byte,
@@ -80,7 +80,7 @@ func decideRegisterBot(
 
 //nolint:dupl // mirrors decideDeleteTenant; tombstone deletion is structurally identical
 func decideDeleteBot(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	reason string,
 ) func(BotState, event.Version) ([]event.Event, error) {
 	return func(state BotState, version event.Version) ([]event.Event, error) {

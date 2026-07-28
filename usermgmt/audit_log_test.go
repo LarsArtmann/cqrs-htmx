@@ -114,9 +114,9 @@ func TestAuditLog_Recent(t *testing.T) {
 	}
 }
 
-func mustParseAggID(t *testing.T, s string) id.AggregateID {
+func mustParseAggID(t *testing.T, s string) id.StreamID {
 	t.Helper()
-	a, err := id.ParseAggregateID(s)
+	a, err := id.ParseStreamID(s)
 	if err != nil {
 		t.Fatalf("ParseAggregateID(%q): %v", s, err)
 	}

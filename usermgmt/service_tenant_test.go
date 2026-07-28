@@ -14,7 +14,7 @@ func TestService_CreateTenant_Success(t *testing.T) {
 	t.Cleanup(svc.Stop)
 	ctx := context.Background()
 
-	tenantID := NewTenantID(id.NewAggregateID().String())
+	tenantID := NewTenantID(id.NewStreamID().String())
 	tenant, err := svc.CreateTenant(ctx, CreateTenantRequest{
 		ID:          tenantID,
 		Name:        "acme-corp",
@@ -68,7 +68,7 @@ func TestService_SuspendAndReactivateTenant(t *testing.T) {
 	t.Cleanup(svc.Stop)
 	ctx := context.Background()
 
-	tenantID := NewTenantID(id.NewAggregateID().String())
+	tenantID := NewTenantID(id.NewStreamID().String())
 	_, err := svc.CreateTenant(ctx, CreateTenantRequest{
 		ID:   tenantID,
 		Name: "suspend-test",
@@ -109,7 +109,7 @@ func TestService_DeleteTenant(t *testing.T) {
 	t.Cleanup(svc.Stop)
 	ctx := context.Background()
 
-	tenantID := NewTenantID(id.NewAggregateID().String())
+	tenantID := NewTenantID(id.NewStreamID().String())
 	_, err := svc.CreateTenant(ctx, CreateTenantRequest{
 		ID:   tenantID,
 		Name: "delete-test",
@@ -138,14 +138,14 @@ func TestService_AllTenants(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := svc.CreateTenant(ctx, CreateTenantRequest{
-		ID:   NewTenantID(id.NewAggregateID().String()),
+		ID:   NewTenantID(id.NewStreamID().String()),
 		Name: "t1",
 	})
 	if err != nil {
 		t.Fatalf("CreateTenant t1: %v", err)
 	}
 	_, err = svc.CreateTenant(ctx, CreateTenantRequest{
-		ID:   NewTenantID(id.NewAggregateID().String()),
+		ID:   NewTenantID(id.NewStreamID().String()),
 		Name: "t2",
 	})
 	if err != nil {
@@ -165,7 +165,7 @@ func TestService_TenantMembers(t *testing.T) {
 	t.Cleanup(svc.Stop)
 	ctx := context.Background()
 
-	tenantID := NewTenantID(id.NewAggregateID().String())
+	tenantID := NewTenantID(id.NewStreamID().String())
 	if _, err := svc.CreateTenant(ctx, CreateTenantRequest{ID: tenantID, Name: "acme"}); err != nil {
 		t.Fatalf("CreateTenant: %v", err)
 	}

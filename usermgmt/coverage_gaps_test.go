@@ -40,7 +40,7 @@ func isTransient(err error) bool {
 }
 
 func TestDecideChangeDisplayName_NoOp(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	state := UserState{
 		Email:       "u@test.com",
 		DisplayName: "Alice",
@@ -56,7 +56,7 @@ func TestDecideChangeDisplayName_NoOp(t *testing.T) {
 }
 
 func TestDecideChangeEmail_NoOp(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	state := UserState{
 		Email:       "same@test.com",
 		DisplayName: "Alice",

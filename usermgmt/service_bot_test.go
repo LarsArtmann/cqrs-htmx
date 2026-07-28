@@ -21,7 +21,7 @@ func TestService_RegisterBot_Success(t *testing.T) {
 	t.Cleanup(svc.Stop)
 	ctx := context.Background()
 
-	botID := NewBotID(id.NewAggregateID().String())
+	botID := NewBotID(id.NewStreamID().String())
 	result, err := svc.RegisterBot(ctx, RegisterBotRequest{
 		ID:      botID,
 		Name:    "deploy-bot",
@@ -58,7 +58,7 @@ func TestService_RegisterBot_NoPepper(t *testing.T) {
 	t.Cleanup(svc.Stop)
 
 	_, err := svc.RegisterBot(context.Background(), RegisterBotRequest{
-		ID:   NewBotID(id.NewAggregateID().String()),
+		ID:   NewBotID(id.NewStreamID().String()),
 		Name: "bot-no-pepper",
 	})
 	if err == nil {
@@ -73,7 +73,7 @@ func TestService_RegisterBot_EmptyName(t *testing.T) {
 	t.Cleanup(svc.Stop)
 
 	_, err := svc.RegisterBot(context.Background(), RegisterBotRequest{
-		ID:   NewBotID(id.NewAggregateID().String()),
+		ID:   NewBotID(id.NewStreamID().String()),
 		Name: "",
 	})
 	if err == nil {
@@ -89,7 +89,7 @@ func TestService_ResolveBotByToken(t *testing.T) {
 	ctx := context.Background()
 
 	result, err := svc.RegisterBot(ctx, RegisterBotRequest{
-		ID:      NewBotID(id.NewAggregateID().String()),
+		ID:      NewBotID(id.NewStreamID().String()),
 		Name:    "resolver-bot",
 		OwnerID: NewUserID("owner-1"),
 	})
@@ -120,7 +120,7 @@ func TestService_DeleteBot(t *testing.T) {
 	t.Cleanup(svc.Stop)
 	ctx := context.Background()
 
-	botID := NewBotID(id.NewAggregateID().String())
+	botID := NewBotID(id.NewStreamID().String())
 	_, err := svc.RegisterBot(ctx, RegisterBotRequest{
 		ID:      botID,
 		Name:    "delete-bot",

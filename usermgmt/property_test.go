@@ -11,7 +11,7 @@ import (
 // Property-based tests for foldUser() using pgregory.net/rapid.
 // Verifies key invariants with random inputs.
 
-var propAggID = id.NewAggregateID() //nolint:gochecknoglobals // test fixture
+var propAggID = id.NewStreamID() //nolint:gochecknoglobals // test fixture
 
 func rapidEmail() *rapid.Generator[string] {
 	return rapid.StringMatching(`[a-z]{3,8}@test\.com`)

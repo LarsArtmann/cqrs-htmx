@@ -7,7 +7,7 @@ import (
 )
 
 func decideLinkExternalAccount(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	provider, subject, email, displayName string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
@@ -60,7 +60,7 @@ func decideLinkExternalAccount(
 }
 
 func decideUnlinkExternalAccount(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	provider, subject string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {

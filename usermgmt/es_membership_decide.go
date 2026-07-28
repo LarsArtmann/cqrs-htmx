@@ -17,7 +17,7 @@ func MembershipDecider() decider.Decider[MembershipState] {
 }
 
 func decideAddMember(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	actorID ActorID,
 	tenantID TenantID,
 	roles []Role,
@@ -73,7 +73,7 @@ func decideAddMember(
 }
 
 func decideUpdateMemberRoles(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	roles []Role,
 ) func(MembershipState, event.Version) ([]event.Event, error) {
 	return func(state MembershipState, version event.Version) ([]event.Event, error) {
@@ -115,7 +115,7 @@ func decideUpdateMemberRoles(
 }
 
 func decideRemoveMember(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) func(MembershipState, event.Version) ([]event.Event, error) {
 	return func(state MembershipState, version event.Version) ([]event.Event, error) {
 		if !state.Exists() {

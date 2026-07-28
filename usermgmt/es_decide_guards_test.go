@@ -21,21 +21,21 @@ func deletedState() UserState {
 }
 
 func TestDecideChangeEmail_NotFound(t *testing.T) {
-	decide := decideChangeEmail(id.NewAggregateID(), "new@example.com")
+	decide := decideChangeEmail(id.NewStreamID(), "new@example.com")
 	if _, err := decide(UserState{}, 0); err == nil {
 		t.Fatal("expected not-found error")
 	}
 }
 
 func TestDecideChangeEmail_Deleted(t *testing.T) {
-	decide := decideChangeEmail(id.NewAggregateID(), "new@example.com")
+	decide := decideChangeEmail(id.NewStreamID(), "new@example.com")
 	if _, err := decide(deletedState(), 1); err == nil {
 		t.Fatal("expected deleted error")
 	}
 }
 
 func TestDecideChangeDisplayName_Success(t *testing.T) {
-	decide := decideChangeDisplayName(id.NewAggregateID(), "New Name")
+	decide := decideChangeDisplayName(id.NewStreamID(), "New Name")
 	events, err := decide(existingState(), 1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -46,21 +46,21 @@ func TestDecideChangeDisplayName_Success(t *testing.T) {
 }
 
 func TestDecideChangeDisplayName_NotFound(t *testing.T) {
-	decide := decideChangeDisplayName(id.NewAggregateID(), "New Name")
+	decide := decideChangeDisplayName(id.NewStreamID(), "New Name")
 	if _, err := decide(UserState{}, 0); err == nil {
 		t.Fatal("expected not-found error")
 	}
 }
 
 func TestDecideChangeDisplayName_Deleted(t *testing.T) {
-	decide := decideChangeDisplayName(id.NewAggregateID(), "New Name")
+	decide := decideChangeDisplayName(id.NewStreamID(), "New Name")
 	if _, err := decide(deletedState(), 1); err == nil {
 		t.Fatal("expected deleted error")
 	}
 }
 
 func TestDecideDeleteUser_NotFound(t *testing.T) {
-	decide := decideDeleteUser(id.NewAggregateID(), "gdpr")
+	decide := decideDeleteUser(id.NewStreamID(), "gdpr")
 	if _, err := decide(UserState{}, 0); err == nil {
 		t.Fatal("expected not-found error")
 	}
@@ -68,7 +68,7 @@ func TestDecideDeleteUser_NotFound(t *testing.T) {
 
 func TestDecideAddCredential_NotFound(t *testing.T) {
 	decide := decideAddCredential(
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		WebAuthnCredential{CredentialCore: CredentialCore{ID: []byte{1}}},
 	)
 	if _, err := decide(UserState{}, 0); err == nil {
@@ -78,7 +78,7 @@ func TestDecideAddCredential_NotFound(t *testing.T) {
 
 func TestDecideAddCredential_Deleted(t *testing.T) {
 	decide := decideAddCredential(
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		WebAuthnCredential{CredentialCore: CredentialCore{ID: []byte{1}}},
 	)
 	if _, err := decide(deletedState(), 1); err == nil {
@@ -87,21 +87,21 @@ func TestDecideAddCredential_Deleted(t *testing.T) {
 }
 
 func TestDecideRemoveCredential_UserNotFound(t *testing.T) {
-	decide := decideRemoveCredential(id.NewAggregateID(), []byte{1})
+	decide := decideRemoveCredential(id.NewStreamID(), []byte{1})
 	if _, err := decide(UserState{}, 0); err == nil {
 		t.Fatal("expected not-found error")
 	}
 }
 
 func TestDecideRemoveCredential_Deleted(t *testing.T) {
-	decide := decideRemoveCredential(id.NewAggregateID(), []byte{1})
+	decide := decideRemoveCredential(id.NewStreamID(), []byte{1})
 	if _, err := decide(deletedState(), 1); err == nil {
 		t.Fatal("expected deleted error")
 	}
 }
 
 func TestDecideVerifyEmail_Success(t *testing.T) {
-	decide := decideVerifyEmail(id.NewAggregateID())
+	decide := decideVerifyEmail(id.NewStreamID())
 	events, err := decide(existingState(), 1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -112,21 +112,21 @@ func TestDecideVerifyEmail_Success(t *testing.T) {
 }
 
 func TestDecideVerifyEmail_NotFound(t *testing.T) {
-	decide := decideVerifyEmail(id.NewAggregateID())
+	decide := decideVerifyEmail(id.NewStreamID())
 	if _, err := decide(UserState{}, 0); err == nil {
 		t.Fatal("expected not-found error")
 	}
 }
 
 func TestDecideVerifyEmail_Deleted(t *testing.T) {
-	decide := decideVerifyEmail(id.NewAggregateID())
+	decide := decideVerifyEmail(id.NewStreamID())
 	if _, err := decide(deletedState(), 1); err == nil {
 		t.Fatal("expected deleted error")
 	}
 }
 
 func TestDecideVerifyEmail_AlreadyVerified(t *testing.T) {
-	decide := decideVerifyEmail(id.NewAggregateID())
+	decide := decideVerifyEmail(id.NewStreamID())
 	state := existingState()
 	state.EmailVerified = true
 	events, err := decide(state, 1)
@@ -139,7 +139,7 @@ func TestDecideVerifyEmail_AlreadyVerified(t *testing.T) {
 }
 
 func TestDecideEnableTOTP_Success(t *testing.T) {
-	decide := decideEnableTOTP(id.NewAggregateID(), []byte("secret"))
+	decide := decideEnableTOTP(id.NewStreamID(), []byte("secret"))
 	events, err := decide(existingState(), 1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -150,21 +150,21 @@ func TestDecideEnableTOTP_Success(t *testing.T) {
 }
 
 func TestDecideEnableTOTP_NotFound(t *testing.T) {
-	decide := decideEnableTOTP(id.NewAggregateID(), []byte("secret"))
+	decide := decideEnableTOTP(id.NewStreamID(), []byte("secret"))
 	if _, err := decide(UserState{}, 0); err == nil {
 		t.Fatal("expected not-found error")
 	}
 }
 
 func TestDecideEnableTOTP_Deleted(t *testing.T) {
-	decide := decideEnableTOTP(id.NewAggregateID(), []byte("secret"))
+	decide := decideEnableTOTP(id.NewStreamID(), []byte("secret"))
 	if _, err := decide(deletedState(), 1); err == nil {
 		t.Fatal("expected deleted error")
 	}
 }
 
 func TestDecideEnableTOTP_AlreadyEnabled(t *testing.T) {
-	decide := decideEnableTOTP(id.NewAggregateID(), []byte("secret"))
+	decide := decideEnableTOTP(id.NewStreamID(), []byte("secret"))
 	state := existingState()
 	state.TOTPEnabled = true
 	events, err := decide(state, 1)
@@ -177,7 +177,7 @@ func TestDecideEnableTOTP_AlreadyEnabled(t *testing.T) {
 }
 
 func TestDecideDisableTOTP_Success(t *testing.T) {
-	decide := decideDisableTOTP(id.NewAggregateID())
+	decide := decideDisableTOTP(id.NewStreamID())
 	state := existingState()
 	state.TOTPEnabled = true
 	events, err := decide(state, 1)
@@ -190,21 +190,21 @@ func TestDecideDisableTOTP_Success(t *testing.T) {
 }
 
 func TestDecideDisableTOTP_NotFound(t *testing.T) {
-	decide := decideDisableTOTP(id.NewAggregateID())
+	decide := decideDisableTOTP(id.NewStreamID())
 	if _, err := decide(UserState{}, 0); err == nil {
 		t.Fatal("expected not-found error")
 	}
 }
 
 func TestDecideDisableTOTP_Deleted(t *testing.T) {
-	decide := decideDisableTOTP(id.NewAggregateID())
+	decide := decideDisableTOTP(id.NewStreamID())
 	if _, err := decide(deletedState(), 1); err == nil {
 		t.Fatal("expected deleted error")
 	}
 }
 
 func TestDecideDisableTOTP_AlreadyDisabled(t *testing.T) {
-	decide := decideDisableTOTP(id.NewAggregateID())
+	decide := decideDisableTOTP(id.NewStreamID())
 	events, err := decide(existingState(), 1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -217,7 +217,7 @@ func TestDecideDisableTOTP_AlreadyDisabled(t *testing.T) {
 // TestDecideGuardErrorsAreRejections confirms the not-found/deleted guards all
 // classify as Rejections (a consistent contract across every decide function).
 func TestDecideGuardErrorsAreRejections(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cases := []struct {
 		name   string
 		decide func(UserState, event.Version) ([]event.Event, error)
