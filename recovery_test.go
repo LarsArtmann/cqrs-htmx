@@ -1,6 +1,7 @@
 package cqrshtmx_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -155,7 +156,44 @@ var _ = Describe("Recovery Middleware", func() {
 			Expect(w.Body.String()).NotTo(ContainSubstring("boom"))
 		})
 
-		It("omits request_id when no ContextEnrichmentMiddleware in stack", func() {
+		It("echoes correlation_id when ContextEnrichmentMiddleware ran downstream", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:                 disp,
+				IncludeRequestIDInErrors: true,
+				ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+					w.Header().Set("Content-Type", "text/plain")
+					w.WriteHeader(http.StatusInternalServerError)
+					_, _ = w.Write([]byte(fmt.Sprintf(
+						"[request_id: %s] [correlation_id: %s] %s",
+						cqrshtmx.RequestIDFromContext(r.Context()).String(),
+						cqrshtmx.CorrelationIDFromContext(r.Context()).String(),
+						err.Error(),
+					)))
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			panicHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+				panic("boom")
+			})
+			handler := app.RecoverHandler()(
+				cqrshtmx.ContextEnrichmentMiddleware(nil)(panicHandler),
+			)
+
+			const correlationID = "01HK1549P84T9XF8R94E960633"
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("X-Correlation-ID", correlationID)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusInternalServerError))
+			Expect(w.Body.String()).To(ContainSubstring("[correlation_id: " + correlationID + "]"))
+			Expect(w.Body.String()).NotTo(ContainSubstring("boom"))
+		})
+
+		It("omits correlation_id when no X-Correlation-ID was sent", func() {
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", noOpCommandHandler)
 			app, err := cqrshtmx.New(cqrshtmx.Config{
