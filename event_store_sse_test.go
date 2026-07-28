@@ -315,8 +315,7 @@ type journalOnlyStore struct {
 }
 
 func (j *journalOnlyStore) ReadAll(ctx context.Context) ([]event.Event, error) {
-	result := make([]event.Event, len(j.events))
-	copy(result, j.events)
+	result := make([]event.Event, 0, len(j.events))
 
-	return result, nil
+	return append(result, j.events...), nil
 }

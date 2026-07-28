@@ -205,7 +205,9 @@ linters:
         - stdlib
         - generic
     makezero:
-      always: true
+      # always: false reports only make([]T, 0) without capacity (the true anti-pattern);
+      # pre-allocated slices with known length or capacity are legitimate and left alone.
+      always: false
     revive:
       rules:
         - name: exported
