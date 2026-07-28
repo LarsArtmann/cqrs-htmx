@@ -54,12 +54,7 @@ func OpenAPISpecHandler(spec *openapi.Spec) (http.HandlerFunc, error) {
 		return nil, errorfamily.NewInfrastructure("cqrshtmx.openapi.nil-spec", "spec must not be nil")
 	}
 
-	data, err := spec.JSON()
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "cqrshtmx.openapi.serialize", "serialize OpenAPI spec")
-	}
-
-	return newImmutableJSONHandler(data), nil
+	return serializeToImmutableHandler(spec, "cqrshtmx.openapi.serialize", "serialize OpenAPI spec")
 }
 
 // hashTag derives a short, stable cache tag from the spec bytes using the
