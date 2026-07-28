@@ -8,19 +8,19 @@
 
 ## a) FULLY DONE (verified)
 
-| # | Task | Evidence |
-|---|------|----------|
-| 1 | **Read all 64 historical `2026-07-2*` files** via 5 parallel sub-agents with structured extraction (forward-looking items, resolution status, stale claims) | Sub-agent outputs in conversation; every file covered |
-| 2 | **Read both skills + all references** (`update-old-docs/SKILL.md`, `docs-health/SKILL.md`, `build-guide.md`, `verify-checklist.md`, `doc-ownership.md`, `common-mistakes.md`, `annotation-placement.md`, all 6 templates) | Viewed in-session before any edits |
-| 3 | **Verified current reality against code:** flake.nix coverage-gate (8 modules, identity-model absent), `.golangci.yml` exclusions, git tags (`v4.6.1` latest), test function counts per module (root 160, usermgmt 602, identity-model 109, dashboardui 29, etc.), CONTRIBUTING.md stale refs | `grep`, `view`, `bash` outputs in conversation |
-| 4 | **Rebuilt TODO_LIST.md** from 2 items → 5 open, bounded, evidence-cited items (P1: identity-model coverage gate; P2: golangci.yml exclusion audit, dashboardui handler tests; P3: MySQL, offline sync E2E). No `[x]` items, no "Previously Completed" section, no ROADMAP duplication | `TODO_LIST.md` at HEAD |
-| 5 | **Fixed ROADMAP.md stale claims:** lint "~610+330+150 failures" → "0 issues across all 15 modules"; coverage "~41% identity-model" → "74.9% (no gate yet)"; added lint/coverage summary to header line | `ROADMAP.md` lines 8, 13, 14 at HEAD |
-| 6 | **Fixed FEATURES.md:** Metrics table (coverage 93.5%→93.4%, identity-model ~41%→74.9%, lint ~610→0 across all, test counts updated to verified numbers, dashboardui gate 55%); Panic Recovery row updated (RequestID + CorrelationID recovery); dashboardui File Structure row upgraded PARTIALLY→FULLY (handlers.go split shipped); Test Coverage row updated (2→4 test files, 16→29 tests) | `FEATURES.md` at HEAD |
-| 7 | **Fixed CONTRIBUTING.md:** 9 stale version refs (`v4.5.0`→`v4.6.1`, dashboardui `v4.0.0`→`v4.1.1`, identity-model `v4.1.0`→`v4.1.1`, loginpage gate 80%→79%); publishing-bug section updated (ongoing, 13/40 broken tags, go.work replaces still required) | `CONTRIBUTING.md` lines 224-232, 276 at HEAD |
-| 8 | **Annotated 7 stale historical files** (6 markdown + 1 HTML): `2026-07-28_18-31_*`, `2026-07-28_19-51_*`, `2026-07-28_18-17_*`, `2026-07-28_15-06_*`, `2026-07-28_14-51_*`, `2026-07-28_10-16_*`, `2026-07-25_02-03_sse-integration-status.html`. Each annotation placed after opening paragraph (never between title and body), cites specific resolution (23-02 sweep / 18-31 session / v4.6.0 commits) | Diff in commits `72a2d5f`, `c5fb7df` |
-| 9 | **Added CHANGELOG `[Unreleased]` Changed entry** for CONTRIBUTING.md version-ref fix | `CHANGELOG.md` at HEAD |
-| 10 | **Build verified:** `GOEXPERIMENT=jsonv2 go build ./...` exit 0 | Bash output in conversation |
-| 11 | **Cross-file consistency verified:** coverage 74.9% aligned across TODO_LIST/ROADMAP/FEATURES; lint "0 issues" consistent; HTML section tags balanced (8/8); no split brains (TODO items not in CHANGELOG [Unreleased]) | Bash checks in conversation |
+| #   | Task                                                                                                                                                                                                                                                                                                                                                                                                      | Evidence                                              |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| 1   | **Read all 64 historical `2026-07-2*` files** via 5 parallel sub-agents with structured extraction (forward-looking items, resolution status, stale claims)                                                                                                                                                                                                                                               | Sub-agent outputs in conversation; every file covered |
+| 2   | **Read both skills + all references** (`update-old-docs/SKILL.md`, `docs-health/SKILL.md`, `build-guide.md`, `verify-checklist.md`, `doc-ownership.md`, `common-mistakes.md`, `annotation-placement.md`, all 6 templates)                                                                                                                                                                                 | Viewed in-session before any edits                    |
+| 3   | **Verified current reality against code:** flake.nix coverage-gate (8 modules, identity-model absent), `.golangci.yml` exclusions, git tags (`v4.6.1` latest), test function counts per module (root 160, usermgmt 602, identity-model 109, dashboardui 29, etc.), CONTRIBUTING.md stale refs                                                                                                             | `grep`, `view`, `bash` outputs in conversation        |
+| 4   | **Rebuilt TODO_LIST.md** from 2 items → 5 open, bounded, evidence-cited items (P1: identity-model coverage gate; P2: golangci.yml exclusion audit, dashboardui handler tests; P3: MySQL, offline sync E2E). No `[x]` items, no "Previously Completed" section, no ROADMAP duplication                                                                                                                     | `TODO_LIST.md` at HEAD                                |
+| 5   | **Fixed ROADMAP.md stale claims:** lint "~610+330+150 failures" → "0 issues across all 15 modules"; coverage "~41% identity-model" → "74.9% (no gate yet)"; added lint/coverage summary to header line                                                                                                                                                                                                    | `ROADMAP.md` lines 8, 13, 14 at HEAD                  |
+| 6   | **Fixed FEATURES.md:** Metrics table (coverage 93.5%→93.4%, identity-model ~41%→74.9%, lint ~610→0 across all, test counts updated to verified numbers, dashboardui gate 55%); Panic Recovery row updated (RequestID + CorrelationID recovery); dashboardui File Structure row upgraded PARTIALLY→FULLY (handlers.go split shipped); Test Coverage row updated (2→4 test files, 16→29 tests)              | `FEATURES.md` at HEAD                                 |
+| 7   | **Fixed CONTRIBUTING.md:** 9 stale version refs (`v4.5.0`→`v4.6.1`, dashboardui `v4.0.0`→`v4.1.1`, identity-model `v4.1.0`→`v4.1.1`, loginpage gate 80%→79%); publishing-bug section updated (ongoing, 13/40 broken tags, go.work replaces still required)                                                                                                                                                | `CONTRIBUTING.md` lines 224-232, 276 at HEAD          |
+| 8   | **Annotated 7 stale historical files** (6 markdown + 1 HTML): `2026-07-28_18-31_*`, `2026-07-28_19-51_*`, `2026-07-28_18-17_*`, `2026-07-28_15-06_*`, `2026-07-28_14-51_*`, `2026-07-28_10-16_*`, `2026-07-25_02-03_sse-integration-status.html`. Each annotation placed after opening paragraph (never between title and body), cites specific resolution (23-02 sweep / 18-31 session / v4.6.0 commits) | Diff in commits `72a2d5f`, `c5fb7df`                  |
+| 9   | **Added CHANGELOG `[Unreleased]` Changed entry** for CONTRIBUTING.md version-ref fix                                                                                                                                                                                                                                                                                                                      | `CHANGELOG.md` at HEAD                                |
+| 10  | **Build verified:** `GOEXPERIMENT=jsonv2 go build ./...` exit 0                                                                                                                                                                                                                                                                                                                                           | Bash output in conversation                           |
+| 11  | **Cross-file consistency verified:** coverage 74.9% aligned across TODO_LIST/ROADMAP/FEATURES; lint "0 issues" consistent; HTML section tags balanced (8/8); no split brains (TODO items not in CHANGELOG [Unreleased])                                                                                                                                                                                   | Bash checks in conversation                           |
 
 ---
 
@@ -76,6 +76,7 @@
 ## f) Up to 50 things we should get done next
 
 **P0 — Verification gaps (CRITICAL — run these NOW):**
+
 1. Run `nix run .#test`
 2. Run `nix run .#lint`
 3. Run `nix run .#coverage-gate`
@@ -85,67 +86,25 @@
 7. Run `nix flake check`
 8. Run `GOEXPERIMENT=jsonv2 go test -race -count=1 ./...` workspace-wide
 
-**P1 — Living-doc freshness (audit the docs I skipped):**
-9. Verify AGENTS.md freshness (coverage numbers, gotchas, lint status, version refs)
-10. Verify README.md freshness (version table, feature claims, quick-start commands)
-11. Verify `docs/DOMAIN_LANGUAGE.md` freshness
-12. Verify `docs/adr/INDEX.md` freshness (ADR-0030 status, latest ADR number)
-13. Verify all 8 per-module CHANGELOGs have `[v4.6.1]` entries
-14. Verify all internal markdown links resolve across ALL docs
-15. Check FEATURES "Not Planned" vs ROADMAP "Not Planned" for duplication
+**P1 — Living-doc freshness (audit the docs I skipped):** 9. Verify AGENTS.md freshness (coverage numbers, gotchas, lint status, version refs) 10. Verify README.md freshness (version table, feature claims, quick-start commands) 11. Verify `docs/DOMAIN_LANGUAGE.md` freshness 12. Verify `docs/adr/INDEX.md` freshness (ADR-0030 status, latest ADR number) 13. Verify all 8 per-module CHANGELOGs have `[v4.6.1]` entries 14. Verify all internal markdown links resolve across ALL docs 15. Check FEATURES "Not Planned" vs ROADMAP "Not Planned" for duplication
 
-**P2 — ROADMAP table freshness:**
-16. Update ROADMAP "Upstream Adoption" `UnsubscribeAll` row (done-channel mitigation shipped in v4.6.0 — row may be stale)
-17. Verify ROADMAP "Data Mesh Interchange" section status (still "under consideration"?)
-18. Verify ROADMAP "v5 Vision" decomposition trigger criteria still accurate
-19. Verify ROADMAP "Operational Tooling Ideas" (readiness checker, CLI, debug endpoint) — any shipped?
+**P2 — ROADMAP table freshness:** 16. Update ROADMAP "Upstream Adoption" `UnsubscribeAll` row (done-channel mitigation shipped in v4.6.0 — row may be stale) 17. Verify ROADMAP "Data Mesh Interchange" section status (still "under consideration"?) 18. Verify ROADMAP "v5 Vision" decomposition trigger criteria still accurate 19. Verify ROADMAP "Operational Tooling Ideas" (readiness checker, CLI, debug endpoint) — any shipped?
 
-**P3 — FEATURES.md hardening:**
-20. Replace hardcoded test counts in Metrics table with a recompute command pointer
-21. Verify every FULLY_FUNCTIONAL row against actual code (spot-check 5)
-22. Verify root module "Offline Sync" row reflects the root-module extraction (ADR-0042)
-23. Verify identity-model section is complete (all exported types documented)
+**P3 — FEATURES.md hardening:** 20. Replace hardcoded test counts in Metrics table with a recompute command pointer 21. Verify every FULLY_FUNCTIONAL row against actual code (spot-check 5) 22. Verify root module "Offline Sync" row reflects the root-module extraction (ADR-0042) 23. Verify identity-model section is complete (all exported types documented)
 
-**P4 — HTML / CSP compliance:**
-24. Audit all 5 remaining brainstorm HTML files for inline `style=` attributes
-25. Audit all HTML status files for inline `style=` / `on*=` handlers
-26. Consider extracting shared CSS to a `<style>` block or external file for HTML reports
+**P4 — HTML / CSP compliance:** 24. Audit all 5 remaining brainstorm HTML files for inline `style=` attributes 25. Audit all HTML status files for inline `style=` / `on*=` handlers 26. Consider extracting shared CSS to a `<style>` block or external file for HTML reports
 
-**P5 — Annotation completeness:**
-27. Re-read the 57 untouched historical files to confirm sub-agent "already annotated" claims
-28. Annotate `2026-07-28_09-58_buildflow-recovery-dependency-drift-fix.md` (no resolution, stale "GREEN" claim)
-29. Annotate `2026-07-28_15-25_docs-health-update-old-docs-round5-self-critique.md` (CONTRIBUTING.md + auth CHANGELOG gaps now resolved)
-30. Annotate `2026-07-28_23-02_todo-list-final-sweep-sa1019-lint-dead-code.md` — it's the latest report; verify its open items match the new TODO_LIST
+**P5 — Annotation completeness:** 27. Re-read the 57 untouched historical files to confirm sub-agent "already annotated" claims 28. Annotate `2026-07-28_09-58_buildflow-recovery-dependency-drift-fix.md` (no resolution, stale "GREEN" claim) 29. Annotate `2026-07-28_15-25_docs-health-update-old-docs-round5-self-critique.md` (CONTRIBUTING.md + auth CHANGELOG gaps now resolved) 30. Annotate `2026-07-28_23-02_todo-list-final-sweep-sa1019-lint-dead-code.md` — it's the latest report; verify its open items match the new TODO_LIST
 
-**P6 — CHANGELOG discipline:**
-31. Decide: should the doc-only changes (TODO_LIST rebuild, ROADMAP/FEATURES fixes, annotations) get CHANGELOG entries, or are they below the bar?
-32. Add CHANGELOG entries for the dashboardui handlers.go split + dead-code removal (v4.6.1 Changed section — may be missing)
-33. Verify CHANGELOG `[Unreleased]` items all correspond to unreleased commits (no already-tagged work)
+**P6 — CHANGELOG discipline:** 31. Decide: should the doc-only changes (TODO_LIST rebuild, ROADMAP/FEATURES fixes, annotations) get CHANGELOG entries, or are they below the bar? 32. Add CHANGELOG entries for the dashboardui handlers.go split + dead-code removal (v4.6.1 Changed section — may be missing) 33. Verify CHANGELOG `[Unreleased]` items all correspond to unreleased commits (no already-tagged work)
 
-**P7 — Process / tooling:**
-34. Add a pre-session checklist to AGENTS.md: "Run `nix run .#test/.#lint/.#coverage-gate` BEFORE declaring done"
-35. Consider a `nix run .#docs-health` wrapper that runs `check-docs-freshness` + coverage-gate + lint in sequence
-36. Add a CI gate: reject PRs that touch `.go` files without `nix run .#test` passing
-37. Add `nix run .#check-docs-freshness` to the pre-commit hook
+**P7 — Process / tooling:** 34. Add a pre-session checklist to AGENTS.md: "Run `nix run .#test/.#lint/.#coverage-gate` BEFORE declaring done" 35. Consider a `nix run .#docs-health` wrapper that runs `check-docs-freshness` + coverage-gate + lint in sequence 36. Add a CI gate: reject PRs that touch `.go` files without `nix run .#test` passing 37. Add `nix run .#check-docs-freshness` to the pre-commit hook
 
-**P8 — Code quality (from harvested reports):**
-38. Add identity-model coverage-gate threshold to flake.nix (TODO_LIST P1)
-39. Audit `.golangci.yml` exclusions for masked bugs (TODO_LIST P2)
-40. Write dashboardui DLQ/projection-reset/time-travel/snapshot-delete handler tests (TODO_LIST P2)
-41. Investigate `/tmp` disk-space leak flagged in 23-02 report
-42. Fix `es_projection_setup.go` exhaustive nolint (list all WorkerStatus cases explicitly)
-43. Remove unreachable `default:` case in `service_register.go`
+**P8 — Code quality (from harvested reports):** 38. Add identity-model coverage-gate threshold to flake.nix (TODO_LIST P1) 39. Audit `.golangci.yml` exclusions for masked bugs (TODO_LIST P2) 40. Write dashboardui DLQ/projection-reset/time-travel/snapshot-delete handler tests (TODO_LIST P2) 41. Investigate `/tmp` disk-space leak flagged in 23-02 report 42. Fix `es_projection_setup.go` exhaustive nolint (list all WorkerStatus cases explicitly) 43. Remove unreachable `default:` case in `service_register.go`
 
-**P9 — Deferred (long-term, already in ROADMAP/TODO_LIST):**
-44. MySQL event-store support (TODO_LIST P3)
-45. Offline sync E2E browser testing (TODO_LIST P3)
-46. Data-mesh interchange runtime pieces (ROADMAP — under consideration)
-47. usermgmt v5 decomposition (ROADMAP — deferred)
+**P9 — Deferred (long-term, already in ROADMAP/TODO_LIST):** 44. MySQL event-store support (TODO_LIST P3) 45. Offline sync E2E browser testing (TODO_LIST P3) 46. Data-mesh interchange runtime pieces (ROADMAP — under consideration) 47. usermgmt v5 decomposition (ROADMAP — deferred)
 
-**P10 — Meta:**
-48. Re-read this report before the next docs-health session and tick off the P0 items
-49. Compare this report's health scores against round5's scores (baseline citation)
-50. Write a "lessons learned" entry in AGENTS.md: "The #1 recurring failure across 65+ reports is skipping the Nix gates. If you do nothing else, run them."
+**P10 — Meta:** 48. Re-read this report before the next docs-health session and tick off the P0 items 49. Compare this report's health scores against round5's scores (baseline citation) 50. Write a "lessons learned" entry in AGENTS.md: "The #1 recurring failure across 65+ reports is skipping the Nix gates. If you do nothing else, run them."
 
 ---
 
