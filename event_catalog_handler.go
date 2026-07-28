@@ -6,6 +6,28 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// jsonSerializer is the structural interface for any type with a JSON()
+// method that returns pre-serialized bytes. Both *EventCatalog and
+// *openapi.Spec satisfy it, allowing the serialize-immutable-handler
+// boilerplate to live in exactly one place.
+type jsonSerializer interface {
+	JSON() ([]byte, error)
+}
+
+// serializeToImmutableHandler serializes the given jsonSerializer eagerly,
+// wraps any serialization error as an Infrastructure failure, and wraps the
+// result in an immutableJSONHandler. Shared by EventCatalogHandler and
+// OpenAPISpecHandler so the serialize-error-return-newImmutableJSONHandler
+// boilerplate lives in exactly one place.
+func serializeToImmutableHandler(s jsonSerializer, errCode, errMsg string) (http.HandlerFunc, error) {
+	data, err := s.JSON()
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err, errCode, errMsg)
+	}
+
+	return newImmutableJSONHandler(data), nil
+}
+
 // EventCatalogHandler returns an http.HandlerFunc that serves the given
 // event catalog as indented JSON with a 1-year immutable Cache-Control and
 // an FNV-1a ETag, mirroring [OpenAPISpecHandler].
@@ -24,14 +46,7 @@ func EventCatalogHandler(catalog *EventCatalog) (http.HandlerFunc, error) {
 		return nil, errorfamily.NewInfrastructure("cqrshtmx.event_catalog.nil", "catalog must not be nil")
 	}
 
-	data, err := catalog.JSON()
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err,
-			"cqrshtmx.event_catalog.serialize",
-			"serialize event catalog")
-	}
-
-	return newImmutableJSONHandler(data), nil
+	return serializeToImmutableHandler(catalog, "cqrshtmx.event_catalog.serialize", "serialize event catalog")
 }
 
 // newImmutableJSONHandler wraps pre-serialized JSON bytes in an

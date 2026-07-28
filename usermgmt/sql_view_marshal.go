@@ -21,3 +21,14 @@ func marshalViewJSON[T any](entity T, errCode, msg string) (string, error) {
 	}
 	return string(data), nil
 }
+
+// wrapTransientOrOK returns nil when err is nil, otherwise wraps err as a
+// Transient failure with the caller's error code and message. Eliminates the
+// repeated `if err != nil { return WrapTransient(err, code, msg) }; return nil`
+// boilerplate shared across SQL store methods.
+func wrapTransientOrOK(err error, errCode, errMsg string) error {
+	if err == nil {
+		return nil
+	}
+	return errorfamily.WrapTransient(err, errCode, errMsg)
+}

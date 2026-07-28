@@ -147,10 +147,7 @@ func (s *SQLSessionStore) migrateSessions(ctx context.Context, dialect string) e
 		).WithContext("dialect", dialect)
 	}
 	_, err := s.db.ExecContext(ctx, ddl)
-	if err != nil {
-		return errorfamily.WrapTransient(err, "usermgmt.sql_session.exec_ddl_failed", "exec ddl")
-	}
-	return nil
+	return wrapTransientOrOK(err, "usermgmt.sql_session.exec_ddl_failed", "exec ddl")
 }
 
 // origin_type discriminator values persisted in the user_sessions table, and
@@ -369,10 +366,7 @@ func (s *SQLSessionStore) Delete(ctx context.Context, token string) error {
 		`DELETE FROM user_sessions WHERE token = `+p1,
 		token,
 	)
-	if err != nil {
-		return errorfamily.WrapTransient(err, "usermgmt.sql_session.delete_failed", "delete session")
-	}
-	return nil
+	return wrapTransientOrOK(err, "usermgmt.sql_session.delete_failed", "delete session")
 }
 
 // DeleteByUserID removes all sessions belonging to the given user.
@@ -383,10 +377,7 @@ func (s *SQLSessionStore) DeleteByUserID(ctx context.Context, userID UserID) err
 		`DELETE FROM user_sessions WHERE user_id = `+p1,
 		userID.Get().String(),
 	)
-	if err != nil {
-		return errorfamily.WrapTransient(err, "usermgmt.sql_session.delete_by_user_failed", "delete sessions by user")
-	}
-	return nil
+	return wrapTransientOrOK(err, "usermgmt.sql_session.delete_by_user_failed", "delete sessions by user")
 }
 
 // EvictExpired removes all expired sessions and returns the count evicted.
