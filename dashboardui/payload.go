@@ -79,6 +79,6 @@ func csrfToken(r *http.Request) string {
 	return r.FormValue("_csrf")
 }
 
-func csrfMeta(r *http.Request) string {
+func csrfMeta(_ *http.Request) string {
 	return ""
 }
