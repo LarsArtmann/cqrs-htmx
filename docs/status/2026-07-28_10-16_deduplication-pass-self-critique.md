@@ -84,6 +84,7 @@ The refactoring itself is sound and well-structured. The gaps are all in **verif
 ## f) Up to 50 Things to Get Done Next
 
 ### Verification (critical — do these first)
+
 1. Run `nix run .#lint` and fix all new warnings from this session's changes
 2. Run `nix fmt` to format all changed files
 3. Run `nix run .#coverage` and verify root ≥90%, usermgmt ≥74%
@@ -92,6 +93,7 @@ The refactoring itself is sound and well-structured. The gaps are all in **verif
 6. Run `nix run .#test` (the nix wrapper, not raw `go test`)
 
 ### Deduplication follow-up
+
 7. Search for all `if err != nil { return errorfamily.WrapTransient(...) } return nil` patterns across the entire codebase and apply `wrapTransientOrOK` where applicable
 8. Replace `dedup-acceptance.md` with inline `//art-dupl:accept` directives at each accepted clone site
 9. Delete the root-level `dedup-acceptance.md` after migrating to inline directives
@@ -102,6 +104,7 @@ The refactoring itself is sound and well-structured. The gaps are all in **verif
 14. Check if `serializeToImmutableHandler` could be simplified — the `jsonSerializer` interface adds a layer of indirection for 2 call sites
 
 ### Testing
+
 15. Write unit test for `mutatePolicy` (add + remove, nil enforcer, error path)
 16. Write unit test for `mutateGroupPolicy` (add + remove, nil enforcer, error path)
 17. Write unit test for `getPolicies` (nil enforcer, error path)
@@ -114,12 +117,14 @@ The refactoring itself is sound and well-structured. The gaps are all in **verif
 24. Write unit test for `requireDeadLetterStore` (nil → false + 400, non-nil → true)
 
 ### Documentation
+
 25. Update CHANGELOG.md with the deduplication refactoring entry
 26. Fix stale line numbers in dedup-acceptance.md (or delete it after step 8-9)
 27. Add a note to AGENTS.md about the new shared helpers (`wrapTransientOrOK`, `newViewStoreOrFail`, `serializeToImmutableHandler`) so future sessions know they exist
 28. Update AGENTS.md "Key Patterns" section with the authz delegation pattern
 
 ### Code quality
+
 29. Review whether `viewStoreCreator[V, K]` named type should be inlined
 30. Check if the `errorfamily` import in `identity-model/events.go` is still needed (it is — used by `marshalJSONOrWrap`)
 31. Run `golangci-lint run --fix` on the specific changed files only (NOT repo-wide per AGENTS.md warning)
@@ -129,6 +134,7 @@ The refactoring itself is sound and well-structured. The gaps are all in **verif
 35. Consider whether `marshalJSONOrWrap` should be exported for consumer use
 
 ### Broader cleanup
+
 36. Search for other marshal helpers across the codebase that could use `marshalJSONOrWrap`
 37. Audit all `WrapTransient` call sites in usermgmt for `wrapTransientOrOK` applicability
 38. Check if the dashboardui has other repeated guard patterns beyond ProjectionHost/DeadLetterStore
@@ -138,6 +144,7 @@ The refactoring itself is sound and well-structured. The gaps are all in **verif
 42. Run a full architecture review to see if the refactoring introduced any split-brain patterns
 
 ### Future sessions
+
 43. Consider a `dedup` CI step that runs `art-dupl check` against a baseline to prevent new duplication
 44. Add `art-dupl baseline` recording to the release checklist
 45. Consider adding art-dupl to the flake.nix devShell if not already there

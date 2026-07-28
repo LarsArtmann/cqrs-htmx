@@ -24,8 +24,8 @@ github.com/klauspost/compress v1.16.7/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQs
 github.com/klauspost/compress v1.19.1 h1:VsB4HPswih7mmZ8WleSFQ75c/Ui1M4trX5oAsJnhSlk=
 github.com/klauspost/compress v1.19.1/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
 github.com/klauspost/pgzip v1.2.6/go.mod h1:Ch1tH69qFZu15pkjo5kYi6mth2Zzwzt50oCQKQE9RUs=
-github.com/larsartmann/go-branded-id v0.4.0 h1:5IPQ0OWtJE2BjF6qSTjmrMpNjKYblt9ae74WQj5PthI=
-github.com/larsartmann/go-branded-id v0.4.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
+github.com/larsartmann/go-branded-id v0.5.0 h1:IyZE8bM3GT+6PtY/HlvhSON9BCL6if3OBTkEEY6A/6s=
+github.com/larsartmann/go-branded-id v0.5.0/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
 github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 h1:1ADPqnQQYMiEov7BCASKd6hAiUzpWsmSo5JPIMWD3xE=
 github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0/go.mod h1:rllfH3yP5OoS+lpjkG9m7Y0FuDEmCxMhxQLtiflqKqE=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0 h1:MIYtn/KKD62b7em/X+pk0aQgnRwI6abOwkITMmOpMnw=
