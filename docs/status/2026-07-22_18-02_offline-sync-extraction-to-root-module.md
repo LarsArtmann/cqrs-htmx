@@ -54,6 +54,12 @@ Complete rewrite from 244-line prototype to 320-line production code.
 | `sync/sync-client.js` | Tab-side client (extracted from admin.js lines 63-402)                                                          |
 | `sync_embed.go`       | `//go:embed` declarations + `syncVersion` const                                                                 |
 | `sync_serve.go`       | `SyncWorkerHandler()`, `SyncClientHandler()`, `SyncWorkerScriptTag()`, `SyncClientScriptTag()`, `SyncVersion()` |
+
+> **Update 2026-07-28:** `SyncWorkerScriptTag()` was **deleted** in the next session
+> (`2026-07-22_18-21_post-extraction-cleanup-and-self-review.md`, item #1) — the URL-string helper
+> was unnecessary; consumers use the `<script data-sync-worker-url>` attribute instead. The
+> `With` variants (`SyncWorkerHandlerWith`/`SyncClientHandlerWith`) shipped later. See FEATURES.md
+> "Offline Sync" row for the current API surface.
 | `sync_serve_test.go`  | 8 tests: serve JS, 304-on-ETag, reject POST, version, script tags                                               |
 
 **New root module API (follows `HTMXScriptHandler` pattern):**

@@ -13,6 +13,10 @@ Executed 17 of 19 planned items. Fixed 11 ErrorFamily violations (gate now truly
 
 **But I missed 3 auth sub-module CHANGELOGs** (totp/webauthn/oauth2 all still say `[v4.0.2]`), left the ROADMAP referencing the now-fixed `Close()` leak as "Open," left coverage at `93.5%` in all docs when it's now `93.6%`, and **never ran the release-checklist script I just edited** to verify it works. I also may have misclassified one error family (`Infrastructure` for what is really a wiring bug = `Corruption`).
 
+> **Update 2026-07-28:** All items flagged here were resolved by the round4 session (`02-02`) and
+> the v4.6.1 release: auth sub-module CHANGELOGs updated, ROADMAP `Close()` row corrected, coverage
+> reconciled, release-checklist script run during v4.6.1 release.
+
 ---
 
 ## a) FULLY DONE ✓

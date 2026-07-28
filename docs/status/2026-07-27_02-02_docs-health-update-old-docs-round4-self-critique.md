@@ -12,6 +12,10 @@
 
 Read all 9 `2026-07-26*` snapshots and 4 living docs in full. Ran all canonical Nix gates (errorfamily, check-docs-freshness, coverage-gate, flake-check, check-modules, test, fmt — honoring the #1 recurring lesson across 8+ prior reports). Found that 7 of 9 snapshots were already annotated by the round3 session; annotated the remaining 2 (UP2 carrier-status, round3 self-critique). Fixed 3 stale auth sub-module CHANGELOGs (totp/webauthn/oauth2 stuck at v4.0.2 → v4.6.0). Fixed 1 stale ROADMAP reference (Dashboard.Close leak, now fixed in code but doc still described it as an open TODO).
 
+> **Update 2026-07-28:** v4.6.1 shipped later the same day — the auth sub-module CHANGELOGs are now
+> at v4.6.1 (totp/webauthn/oauth2). The `check-modules` FAILs on lockstep cascade noted in §a.4 are
+> also resolved (all modules tagged and pushed for v4.6.1).
+
 **But I trusted prior-session numbers instead of measuring them myself.** The docs claim `handlers.go` is "1158 lines" — it's actually **1163**. The docs claim root lint is "~610" — the actual uncapped count is **565** (the doc overcounts; the sub-breakdown by linter is exact). The docs claim "5 HTML files still have inline styles" — confirmed (5 of 5, all pre-existing). I did not independently run `art-dupl` (flagged open in 3 prior rounds). I did not re-read the 7 pre-existing annotations end-to-end to verify they're still accurate. I did not check CONTRIBUTING.md freshness. I did not make a recommendation on the `loginpage`/`identity-model` missing-CHANGELOG policy question. **The work I did is good; the claim that it was "superb" was earned by the gates, not by exhaustive verification of every inherited claim.**
 
 ---

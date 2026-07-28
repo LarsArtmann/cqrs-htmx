@@ -2,7 +2,10 @@
 
 > **Session goal:** Implement the remaining "DO IT" items from the type-system audit
 > (`docs/brainstorming/cqrs-htmx-type-system-audit.html`).
-> **Outcome:** 4 of 5 items shipped and tested. 1 item (micro-types) not started. 1 lint regression introduced and not fully resolved.
+> **Outcome:** 4 of 5 items shipped and tested. 1 item (micro-types) not started. ~~1 lint regression introduced and not fully resolved.~~
+> **Update 2026-07-28:** The lint regression (a `gci` false positive on `options_decode.go`) was
+> resolved in the followup sessions the same day (`18-36`, `19-05`). All typed handler items
+> shipped in v4.5.0 as `FULLY_FUNCTIONAL`.
 
 ---
 
