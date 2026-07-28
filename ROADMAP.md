@@ -5,15 +5,15 @@
 > For what exists today, see [FEATURES.md](FEATURES.md).
 > For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-07-26 | **Version:** v4.6.0 (go-cqrs-lite v4.1.0; see AGENTS.md for per-sub-module versions)
+**Updated:** 2026-07-28 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions)
 
 ## Current State
 
-- **Version:** v4.6.0 (15 modules: root + identity-model + usermgmt + 3 auth sub-modules + adminui + loginpage + dashboardui + integration_test + 5 examples). Released 2026-07-26; all inter-module version refs resolved to clean tags (`e274540` + this release).
+- **Version:** v4.6.1 (15 modules: root + identity-model + usermgmt + 3 auth sub-modules + adminui + loginpage + dashboardui + integration_test + 5 examples). v4.6.0 released 2026-07-26; v4.6.1 released 2026-07-27 (dependency bumps, identity-model metadata, slices.Contains refactor). All inter-module version refs resolved to clean tags (`e274540` + subsequent releases).
 - **Coverage:** 93.5% root, 80.9% usermgmt, ~41% identity-model (no gate yet), 88.2% totp, 89.2% webauthn, 88.3% oauth2, 69.0% adminui, 80.1% loginpage, dashboardui low, race-safe. CI gates: root 90%, usermgmt 74%, auth 80%, adminui 66%, loginpage 80% (see `nix run .#coverage-gate`).
 - **Lint:** `nix run .#lint` currently fails on root (~610, dominated by varnamelen 405 + exhaustruct 61), usermgmt (~330, dominated by staticcheck SA1019 271 — the `id.NewAggregateID` deprecation), and dashboardui (~150) on pre-existing style nits and deprecation warnings; the other 7 modules pass clean. Non-release-blocking (v4.5.0 and v4.6.0 shipped with them). The wrapper caps at 50 issues per linter and stops at the root failure; real counts need `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 - **ErrorFamily:** 0 violations across all modules.
-- **Dependencies:** go-cqrs-lite v4.1.0 (sub-modules v4.1.0), go-error-family v0.10.0, go-branded-id v0.3.2, go-sse v0.2.1, httputil v0.6.1, templ-components v1.2.0. Casbin v3 is a first-class dependency of identity-model (ADR-0044). Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are in optional sub-modules — core usermgmt has ZERO auth deps.
+- **Dependencies:** go-cqrs-lite v4.2.0 (storage/memory and snapshot at v4.1.0), go-error-family v0.10.0, go-branded-id v0.5.0, go-sse v0.3.0, httputil v0.6.1, templ-components v1.2.0. Casbin v3 is a first-class dependency of identity-model (ADR-0044). Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are in optional sub-modules — core usermgmt has ZERO auth deps.
 - **Architecture:** identity-model is the domain source of truth (pure types, fold functions, Authz engine, constants). usermgmt re-exports via type aliases. Fully event-sourced (22 events, 19 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay via projectionhost). dashboardui provides CQRS/ES observability (event browser, projection health, time-travel inspector, SSE live updates). Auth strategies extracted behind interfaces (ADR-0035). Harmful code duplication driven to zero across two dedup sweeps (2026-07-26).
 - **Modules:** 15 Go modules in `go.work` (root, identity-model, usermgmt, usermgmt/totp, usermgmt/webauthn, usermgmt/oauth2, adminui, loginpage, dashboardui, integration_test, examples/basic, examples/catalog-demo, examples/datastar-demo, examples/admin-demo, examples/dashboard-demo).
 
@@ -88,6 +88,18 @@ usermgmt/totp/v5             ← (unchanged: auth strategy sub-module)
 ### Current Assessment
 
 **Not justified for v4.** No consumer has requested a reduced dep tree. The god-package is well-organized internally (clean seams between aggregates, separate files per concern). Re-open when a real consumer need emerges.
+
+---
+
+## Operational Tooling Ideas (From Dashboard Design Research)
+
+_These emerged from the CQRS dashboard design brainstorm (`docs/brainstorming/2026-07-23_cqrs-dashboard-design.html`) and have not been refined into actionable tasks. They are candidates for future development if consumer demand emerges._
+
+| Idea | What | Effort |
+| ---- | ---- | ------ |
+| Composite readiness checker | `cqrshtmx.ReadinessHandler()` — combines `HealthHandler` + projection lag + DLQ depth into a single `/readyz` endpoint for load-balancer probes that should fail when projections are behind | ~50 LOC |
+| CQRS admin CLI (`cqrs-admin`) | `cqrs-admin events list`, `projections reset`, `dlq replay`, `aggregates list` — a command-line tool for operational CQRS/ES tasks without a running dashboard | Medium |
+| JSON debug endpoint | `GET /debug/cqrs` returning structured debug info (registered commands/queries, projection states, event counts) from `Bundle.DebugStructured()` | ~30 LOC |
 
 ---
 
