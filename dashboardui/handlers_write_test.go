@@ -109,7 +109,7 @@ func TestDLQDeleteHandler_NoStore(t *testing.T) {
 func TestDLQDeleteHandler_Success(t *testing.T) {
 	store := &fakeDeadLetterStore{}
 	d := mustTestDashboardWithConfig(t, Config{
-		Journal:        &stubJournal{},
+		Journal:         &stubJournal{},
 		DeadLetterStore: store,
 	})
 
@@ -119,8 +119,8 @@ func TestDLQDeleteHandler_Success(t *testing.T) {
 	r.SetPathValue("eventID", "evt1")
 	d.dlqDeleteHandler(w, r)
 
-	if w.Code != http.StatusFound {
-		t.Fatalf("expected 302 redirect, got %d", w.Code)
+	if w.Code != http.StatusSeeOther {
+		t.Fatalf("expected 303 redirect, got %d", w.Code)
 	}
 
 	loc := w.Header().Get("Location")
@@ -136,7 +136,7 @@ func TestDLQDeleteHandler_Success(t *testing.T) {
 
 func TestDLQDeleteHandler_StoreError(t *testing.T) {
 	d := mustTestDashboardWithConfig(t, Config{
-		Journal:        &stubJournal{},
+		Journal:         &stubJournal{},
 		DeadLetterStore: errorDeadLetterStore{},
 	})
 
@@ -173,7 +173,7 @@ func TestDLQPurgeHandler_NoStore(t *testing.T) {
 
 func TestDLQPurgeHandler_Success(t *testing.T) {
 	d := mustTestDashboardWithConfig(t, Config{
-		Journal:        &stubJournal{},
+		Journal:         &stubJournal{},
 		DeadLetterStore: fakeDeadLetterStore{},
 	})
 
@@ -182,8 +182,8 @@ func TestDLQPurgeHandler_Success(t *testing.T) {
 	r.SetPathValue("projection", "proj1")
 	d.dlqPurgeHandler(w, r)
 
-	if w.Code != http.StatusFound {
-		t.Fatalf("expected 302 redirect, got %d", w.Code)
+	if w.Code != http.StatusSeeOther {
+		t.Fatalf("expected 303 redirect, got %d", w.Code)
 	}
 
 	loc := w.Header().Get("Location")
@@ -199,7 +199,7 @@ func TestDLQPurgeHandler_Success(t *testing.T) {
 
 func TestDLQPurgeHandler_StoreError(t *testing.T) {
 	d := mustTestDashboardWithConfig(t, Config{
-		Journal:        &stubJournal{},
+		Journal:         &stubJournal{},
 		DeadLetterStore: errorDeadLetterStore{},
 	})
 
@@ -341,8 +341,8 @@ func TestSnapshotDeleteHandler_Success(t *testing.T) {
 	r.SetPathValue("id", "abc")
 	d.snapshotDeleteHandler(w, r)
 
-	if w.Code != http.StatusFound {
-		t.Fatalf("expected 302 redirect, got %d", w.Code)
+	if w.Code != http.StatusSeeOther {
+		t.Fatalf("expected 303 redirect, got %d", w.Code)
 	}
 
 	if !store.deleted {
@@ -497,10 +497,7 @@ func mustTestDashboardWithConfig(t *testing.T, cfg Config) *Dashboard {
 }
 
 var (
-	_ snapshot.SnapshotStore      = (*fakeSnapshotStore)(nil)
+	_ snapshot.SnapshotStore         = (*fakeSnapshotStore)(nil)
 	_ projectionhost.DeadLetterStore = errorDeadLetterStore{}
-	_ event.EventSource           = (*fakeEventSource)(nil)
+	_ event.EventSource              = (*fakeEventSource)(nil)
 )
-
-// Ensure time import is used (for future snapshot detail tests).
-var _ time.Duration

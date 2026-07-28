@@ -1,0 +1,17 @@
+{
+  "name": "cqrs-htmx-sync-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright E2E tests for the cqrs-htmx offline sync SharedWorker (ADR-0029 + ADR-0040)",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
