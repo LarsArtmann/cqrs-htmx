@@ -50,7 +50,9 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 // loadEventByID retrieves a single event. Uses EventByIDLoader if available
 // (O(1)), otherwise scans the journal.
-func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) { //nolint:cyclop // journal fallback
+//
+//nolint:cyclop // journal fallback
+func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) {
 	if d.cfg.EventByIDLoader != nil {
 		evt, err := d.cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
 		if err != nil {
