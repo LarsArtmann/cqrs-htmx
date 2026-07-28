@@ -12,7 +12,8 @@ import (
 
 // ===== Command/Query Audit =====
 
-func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request) { //nolint:dupl,nestif // parallel command/query structure; types differ so cannot share
+//nolint:dupl,nestif // parallel cmd/query
+func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Commands", "/commands", r)
 
 	var cmds []*command.PersistedCommand
@@ -80,7 +81,7 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand)
 	})
 }
 
-func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) { //nolint:dupl,nestif // parallel command/query structure; types differ so cannot share
+func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) { //nolint:dupl,nestif // parallel cmd/query
 	p := d.page("Queries", "/queries", r)
 
 	var queries []*query.PersistedQuery

@@ -110,7 +110,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderTimeTravelDetail( //nolint:funlen // HTML string building is inherently verbose (no templ dep, see FEATURES.md)
+func (d *Dashboard) renderTimeTravelDetail( //nolint:funlen // HTML string builder
 	p pageData,
 	ref id.StreamRef,
 	events []event.Event,
