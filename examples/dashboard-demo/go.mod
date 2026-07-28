@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/Oudwins/tailwind-merge-go v0.2.2 // indirect
+	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
