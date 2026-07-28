@@ -145,7 +145,7 @@ var _ = Describe("Context", func() {
 			ctx := context.Background()
 			userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
 			cid := cqrshtmx.MustParseCorrelationID("01HK154ANGZHV2ZW0X3SKSNEN2")
-			aggID := id.NewAggregateID()
+			aggID := id.NewStreamID()
 			ctx = cqrshtmx.WithUserID(ctx, userID)
 			ctx = cqrshtmx.WithCorrelationID(ctx, cid)
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
@@ -172,7 +172,7 @@ var _ = Describe("Context", func() {
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
 			Expect(opts).NotTo(BeNil())
 
-			aggID := id.NewAggregateID()
+			aggID := id.NewStreamID()
 			evt, err := event.NewEvent(
 				"TestEvent",
 				aggID,
@@ -196,7 +196,7 @@ var _ = Describe("Context", func() {
 			opts := cqrshtmx.EventOptionsFromContext(ctx)
 			Expect(opts).NotTo(BeNil())
 
-			aggID := id.NewAggregateID()
+			aggID := id.NewStreamID()
 			evt, err := event.NewEvent(
 				"TimeoutTestEvent",
 				aggID,

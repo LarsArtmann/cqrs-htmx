@@ -18,12 +18,12 @@ var _ = Describe("Integration: CQRS + HTMX + Casbin", func() {
 		var (
 			app    *cqrshtmx.App
 			enf    *casbin.Enforcer
-			userID id.AggregateID
+			userID id.StreamID
 		)
 
 		BeforeEach(func() {
 			enf = newTestEnforcer()
-			userID = id.NewAggregateID()
+			userID = id.NewStreamID()
 			app, _ = newIntegrationApp(command.NewDispatcher(), enf)
 		})
 

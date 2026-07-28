@@ -769,7 +769,7 @@ func TestApp_ServerTiming_EndToEndDispatch(t *testing.T) {
 	})
 
 	handler := app.Command("Ping", DecodeJSON(func(_ struct{}) (command.Command, error) {
-		return command.New("Ping", id.NewAggregateID())
+		return command.New("Ping", id.NewStreamID())
 	}))
 
 	rec := httptest.NewRecorder()

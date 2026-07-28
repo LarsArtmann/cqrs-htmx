@@ -275,7 +275,7 @@ func TestJournalSSEStore_ConcurrentAccess(t *testing.T) {
 func seedEventList(t *testing.T, count int) []event.Event {
 	t.Helper()
 
-	aggID, err := id.ParseAggregateID(ulid.Make().String())
+	aggID, err := id.ParseStreamID(ulid.Make().String())
 	if err != nil {
 		t.Fatalf("parse aggregate ID: %v", err)
 	}

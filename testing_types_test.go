@@ -11,7 +11,7 @@ import (
 )
 
 type testCreateUserCmd struct {
-	aggID id.AggregateID
+	aggID id.StreamID
 	cmdID id.CommandID
 	email string
 	name  string
@@ -57,7 +57,7 @@ type bddCreateUserReq struct {
 }
 
 type bddCreateUserCmd struct {
-	aggID id.AggregateID
+	aggID id.StreamID
 	cmdID id.CommandID
 	email string
 	name  string
@@ -69,7 +69,7 @@ func (c *bddCreateUserCmd) ID() id.CommandID       { return c.cmdID }
 func (c *bddCreateUserCmd) IdempotencyKey() string { return c.aggID.String() }
 
 type bddDeleteUserCmd struct {
-	aggID id.AggregateID
+	aggID id.StreamID
 	cmdID id.CommandID
 }
 

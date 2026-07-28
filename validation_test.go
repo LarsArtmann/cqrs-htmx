@@ -127,7 +127,7 @@ var _ = Describe("Validation HandlerOption", func() {
 			serve(app.Command(
 				"CreateUser",
 				cqrshmx.DecodeAndValidateJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 			), newPostRequest("/users", `{"email":"a@b.com"}`))
 			Expect(dispatched).To(BeTrue())
@@ -138,7 +138,7 @@ var _ = Describe("Validation HandlerOption", func() {
 			w := serve(app.Command(
 				"CreateUser",
 				cqrshmx.DecodeAndValidateJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 			), newPostRequest("/users", `{"email":""}`))
 			Expect(w.code()).To(Equal(http.StatusBadRequest))
@@ -202,7 +202,7 @@ var _ = Describe("Validation HandlerOption", func() {
 			serve(app.Command(
 				"CreateUser",
 				cqrshmx.DecodeAndValidateForm(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 			), newPostRequest("/users", "email=test%40example.com",
 				withHeader("Content-Type", "application/x-www-form-urlencoded"),
@@ -215,7 +215,7 @@ var _ = Describe("Validation HandlerOption", func() {
 			w := serve(app.Command(
 				"CreateUser",
 				cqrshmx.DecodeAndValidateForm(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 			), newPostRequest("/users", "email=",
 				withHeader("Content-Type", "application/x-www-form-urlencoded"),
@@ -265,7 +265,7 @@ var _ = Describe("Validation HandlerOption", func() {
 			w := serve(app.Command(
 				"CreateUser",
 				cqrshmx.DecodeAndValidateForm(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 			), newPostRequest("/users", "",
 				withHeader("Content-Type", "application/x-www-form-urlencoded"),

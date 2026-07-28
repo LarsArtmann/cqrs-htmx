@@ -257,7 +257,7 @@ var _ = Describe("Request Logging", func() {
 
 				handler := middleware(app.Command("CreateUser",
 					cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
-						return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+						return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 					}),
 				))
 

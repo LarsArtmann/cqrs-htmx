@@ -54,7 +54,7 @@ func TestEventOptionsFromContext_ActorChain(t *testing.T) {
 		t.Fatalf("expected at least 2 options, got %d", len(opts))
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent(
 		event.Type("TestEvent"), aggID, "TestAggregate", 1,
@@ -87,7 +87,7 @@ func TestEventOptionsFromContext_NoActorChain(t *testing.T) {
 		return
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent(
 		event.Type("TestEvent"), aggID, "TestAggregate", 1,
