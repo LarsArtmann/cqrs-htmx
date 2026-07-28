@@ -319,7 +319,9 @@ func TestAuthz_ImplicitPermissionsForUser(t *testing.T) {
 	a := newTestAuthz(t)
 	uid, _ := userActorPair("u1")
 	tid := NewTenantID("tenant-a")
-	if err := a.AddPolicy(Policy{Subject: RoleUser, Domain: tid.Get(), Object: "resource", Action: ActionRead, Effect: EffectAllow}); err != nil {
+	// Add a domain-scoped policy for the admin role so ImplicitPermissionsForUser
+	// finds it (Casbin matches domain exactly, not via wildcard).
+	if err := a.AddPolicy(Policy{Subject: RoleAdmin, Domain: tid.Get(), Object: "resource", Action: ActionRead, Effect: EffectAllow}); err != nil {
 		t.Fatalf("add policy: %v", err)
 	}
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
