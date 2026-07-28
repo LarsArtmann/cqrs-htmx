@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
 // IndexedDB inspection scripts as string expressions. Using strings avoids
 // Playwright's TypeScript transformer issues with module-level arrow
@@ -65,9 +65,9 @@ const QUEUE_ENTRIES = `(function() {
 // pending XHRs on offline for ~75s TCP timeout).
 async function goOffline(page, context) {
   await context.setOffline(true);
-  await page.route('**/api/items', (route) => {
-    if (route.request().method() === 'POST') {
-      route.abort('failed');
+  await page.route("**/api/items", (route) => {
+    if (route.request().method() === "POST") {
+      route.abort("failed");
     } else {
       route.continue();
     }
@@ -75,7 +75,7 @@ async function goOffline(page, context) {
 }
 
 async function goOnline(page, context) {
-  await page.unroute('**/api/items');
+  await page.unroute("**/api/items");
   await context.setOffline(false);
 }
 
@@ -83,9 +83,9 @@ async function goOnline(page, context) {
 // Verifies: htmx:sendError -> sync-client captures envelope -> SharedWorker
 // persists { commandId, envelope, queuedAt, retries } to IndexedDB.
 
-test('offline enqueue persists command envelope to IndexedDB', async ({ page, context }) => {
-  await page.goto('/');
-  await expect(page.locator('[data-sync-status]')).toContainText(
+test("offline enqueue persists command envelope to IndexedDB", async ({ page, context }) => {
+  await page.goto("/");
+  await expect(page.locator("[data-sync-status]")).toContainText(
     /Connected|Synced|All changes saved/i,
     { timeout: 15000 },
   );
@@ -96,7 +96,7 @@ test('offline enqueue persists command envelope to IndexedDB', async ({ page, co
   await goOffline(page, context);
   await page.waitForTimeout(500);
 
-  await page.fill('input[name="name"]', 'Offline Test Item');
+  await page.fill('input[name="name"]', "Offline Test Item");
   await page.click('button[type="submit"]');
 
   await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
@@ -104,19 +104,19 @@ test('offline enqueue persists command envelope to IndexedDB', async ({ page, co
   const entries = await page.evaluate(QUEUE_ENTRIES);
   expect(entries).toHaveLength(1);
   expect(entries[0].commandId).toBeTruthy();
-  expect(entries[0].envelope.verb).toBe('POST');
-  expect(entries[0].envelope.url).toBe('/api/items');
-  expect(entries[0].envelope.headers['X-Command-Id']).toBeTruthy();
-  expect(entries[0].envelope.values.name).toBe('Offline Test Item');
+  expect(entries[0].envelope.verb).toBe("POST");
+  expect(entries[0].envelope.url).toBe("/api/items");
+  expect(entries[0].envelope.headers["X-Command-Id"]).toBeTruthy();
+  expect(entries[0].envelope.values.name).toBe("Offline Test Item");
   expect(entries[0].retries).toBe(0);
 });
 
 // Test 2: Queued command is delivered when connectivity returns.
 // Verifies: online event -> SharedWorker flush -> retry -> server processes.
 
-test('online flush delivers queued command to server', async ({ page, context }) => {
-  await page.goto('/');
-  await expect(page.locator('[data-sync-status]')).toContainText(
+test("online flush delivers queued command to server", async ({ page, context }) => {
+  await page.goto("/");
+  await expect(page.locator("[data-sync-status]")).toContainText(
     /Connected|Synced|All changes saved/i,
     { timeout: 15000 },
   );
@@ -125,24 +125,29 @@ test('online flush delivers queued command to server', async ({ page, context })
   await goOffline(page, context);
   await page.waitForTimeout(500);
 
-  await page.fill('input[name="name"]', 'Delivered After Reconnect');
+  await page.fill('input[name="name"]', "Delivered After Reconnect");
   await page.click('button[type="submit"]');
   await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
-  const before = await page.request.get('/api/debug/items');
+  const before = await page.request.get("/api/debug/items");
   expect((await before.json()).length).toBe(0);
 
   await goOnline(page, context);
 
-  await expect.poll(async () => {
-    const resp = await page.request.get('/api/debug/items');
-    const items = await resp.json();
-    return items.length;
-  }, { timeout: 20000 }).toBeGreaterThanOrEqual(1);
+  await expect
+    .poll(
+      async () => {
+        const resp = await page.request.get("/api/debug/items");
+        const items = await resp.json();
+        return items.length;
+      },
+      { timeout: 20000 },
+    )
+    .toBeGreaterThanOrEqual(1);
 
-  const resp = await page.request.get('/api/debug/items');
+  const resp = await page.request.get("/api/debug/items");
   const items = await resp.json();
-  expect(items).toContain('Delivered After Reconnect');
+  expect(items).toContain("Delivered After Reconnect");
 });
 
 // Test 3: Cross-session rebuildAndRetry. A command queued in one tab is
@@ -150,13 +155,13 @@ test('online flush delivers queued command to server', async ({ page, context })
 // is cleaned up after ACK. This verifies the ADR-0040 IndexedDB persistence
 // + rebuildAndRetry cross-session recovery path.
 
-test('cross-session rebuildAndRetry delivers and cleans up', async ({ browser }) => {
+test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser }) => {
   const context = await browser.newContext();
 
   // Session 1: enqueue while offline, then close.
   const page1 = await context.newPage();
-  await page1.goto('/');
-  await expect(page1.locator('[data-sync-status]')).toContainText(
+  await page1.goto("/");
+  await expect(page1.locator("[data-sync-status]")).toContainText(
     /Connected|Synced|All changes saved/i,
     { timeout: 15000 },
   );
@@ -165,7 +170,7 @@ test('cross-session rebuildAndRetry delivers and cleans up', async ({ browser })
   await goOffline(page1, context);
   await page1.waitForTimeout(500);
 
-  await page1.fill('input[name="name"]', 'Cross-Session Recovery');
+  await page1.fill('input[name="name"]', "Cross-Session Recovery");
   await page1.click('button[type="submit"]');
   await expect.poll(() => page1.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
@@ -181,18 +186,23 @@ test('cross-session rebuildAndRetry delivers and cleans up', async ({ browser })
   // X-Command-Id). The server ACKs with the correct commandId, deleting
   // it from IndexedDB.
   const page2 = await context.newPage();
-  await page2.goto('/');
+  await page2.goto("/");
 
-  await expect(page2.locator('[data-sync-status]')).toContainText(
+  await expect(page2.locator("[data-sync-status]")).toContainText(
     /Connected|Synced|All changes saved/i,
     { timeout: 15000 },
   );
 
-  await expect.poll(async () => {
-    const resp = await page2.request.get('/api/debug/items');
-    if (!resp.ok()) return [];
-    return await resp.json();
-  }, { timeout: 20000 }).toContain('Cross-Session Recovery');
+  await expect
+    .poll(
+      async () => {
+        const resp = await page2.request.get("/api/debug/items");
+        if (!resp.ok()) return [];
+        return await resp.json();
+      },
+      { timeout: 20000 },
+    )
+    .toContain("Cross-Session Recovery");
 
   await expect.poll(() => page2.evaluate(QUEUE_DEPTH), { timeout: 20000 }).toBe(0);
 
@@ -201,9 +211,12 @@ test('cross-session rebuildAndRetry delivers and cleans up', async ({ browser })
 
 // Test 4: Multiple offline commands are all persisted and delivered.
 
-test('multiple offline commands are queued and delivered on reconnect', async ({ page, context }) => {
-  await page.goto('/');
-  await expect(page.locator('[data-sync-status]')).toContainText(
+test("multiple offline commands are queued and delivered on reconnect", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("[data-sync-status]")).toContainText(
     /Connected|Synced|All changes saved/i,
     { timeout: 15000 },
   );
@@ -212,7 +225,7 @@ test('multiple offline commands are queued and delivered on reconnect', async ({
   await goOffline(page, context);
   await page.waitForTimeout(500);
 
-  const names = ['Multi-1', 'Multi-2', 'Multi-3'];
+  const names = ["Multi-1", "Multi-2", "Multi-3"];
   for (const name of names) {
     await page.fill('input[name="name"]', name);
     await page.click('button[type="submit"]');
@@ -223,9 +236,16 @@ test('multiple offline commands are queued and delivered on reconnect', async ({
 
   await goOnline(page, context);
 
-  await expect.poll(async () => {
-    const resp = await page.request.get('/api/debug/items');
-    const items = await resp.json();
-    return items.filter(function(n) { return names.indexOf(n) >= 0; }).length;
-  }, { timeout: 30000 }).toBe(3);
+  await expect
+    .poll(
+      async () => {
+        const resp = await page.request.get("/api/debug/items");
+        const items = await resp.json();
+        return items.filter(function (n) {
+          return names.indexOf(n) >= 0;
+        }).length;
+      },
+      { timeout: 30000 },
+    )
+    .toBe(3);
 });
