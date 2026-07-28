@@ -661,7 +661,7 @@
                 check_cov usermgmt/oauth2 80
                 check_cov adminui 66
                 check_cov loginpage 79
-                check_cov dashboardui 55
+                check_cov dashboardui 60
                 if [ "$fail" -eq 1 ]; then
                   echo "Coverage gate FAILED"
                   exit 1
