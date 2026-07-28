@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"database/sql"
 	"io"
+	"log/slog"
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -124,6 +125,7 @@ func closeBus(bus event.Bus) {
 func (s *EventSourcedSetup) Close() error {
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
+			slog.Warn("usermgmt.EventSourcedSetup: failed to stop projection host during close", slog.String("error", err.Error()))
 			_ = errorfamily.WrapTransient(err, "usermgmt.es_setup.stop_projections", "stop projection host")
 		}
 	}

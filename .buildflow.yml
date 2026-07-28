@@ -5,8 +5,12 @@
 build_mode: full
 
 # Parallel execution
+# Reduced from 4 to 2 because govalid-generate (go/packages loader) intermittently
+# fails to resolve sibling modules under higher concurrency, producing cascading
+# "undefined: command" / "markers: failed prerequisites" errors that disappear on
+# re-run. This is a known transient flake in this workspace, not a code bug.
 parallel: true
-max_concurrency: 4
+max_concurrency: 2
 
 # File settings
 max_file_size: 350 # lines

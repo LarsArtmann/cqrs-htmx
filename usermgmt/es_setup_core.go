@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"database/sql"
+	"log/slog"
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
@@ -76,13 +77,18 @@ func (c *eventSourcedSetupCore) GracefulClose(ctx context.Context) error {
 // Authz returns the live Casbin enforcer populated by the projection.
 func (c *eventSourcedSetupCore) Authz() *Authz { return c.casbinProjection.authz }
 
-// stopProjections stops the host (if any), swallowing the error after wrapping
-// it so the backend close path still runs. Shared by Close and GracefulClose.
+// stopProjections stops the host (if any), logging the wrapped error so the
+// backend close path still runs. Shared by Close and GracefulClose.
 func stopProjections(host *projectionhost.Host, backendName string) {
 	if host == nil {
 		return
 	}
 	if err := host.Stop(); err != nil {
+		slog.Warn(
+			"usermgmt setup: failed to stop projection host during close",
+			slog.String("backend", backendName),
+			slog.String("error", err.Error()),
+		)
 		_ = errorfamily.WrapTransient(
 			err,
 			"usermgmt."+backendName+"_setup.stop_projections",
