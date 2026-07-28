@@ -88,13 +88,13 @@ func snapshotOptions[State any](cfg SnapshotConfig) []decider.RepositoryOption[S
 // read pattern of the decider Repository, which always loads the newest).
 type MemorySnapshotStore struct {
 	mu        sync.RWMutex
-	snapshots map[id.AggregateRef]snapshot.Snapshot
+	snapshots map[id.StreamRef]snapshot.Snapshot
 }
 
 // NewMemorySnapshotStore creates an empty in-memory snapshot store.
 func NewMemorySnapshotStore() *MemorySnapshotStore {
 	return &MemorySnapshotStore{ //nolint:exhaustruct // mutex zero-value, snapshots populated lazily
-		snapshots: make(map[id.AggregateRef]snapshot.Snapshot),
+		snapshots: make(map[id.StreamRef]snapshot.Snapshot),
 	}
 }
 
@@ -108,7 +108,7 @@ func (m *MemorySnapshotStore) Save(_ context.Context, s snapshot.Snapshot) error
 		s.CreatedAt = time.Now()
 	}
 
-	ref := id.AggregateRef{Type: s.StreamType, ID: s.StreamID}
+	ref := id.StreamRef{Type: s.StreamType, ID: s.StreamID}
 	m.snapshots[ref] = s
 
 	return nil
@@ -116,7 +116,7 @@ func (m *MemorySnapshotStore) Save(_ context.Context, s snapshot.Snapshot) error
 
 // Delete removes the snapshot for the given aggregate, if any. It is not an
 // error to delete a snapshot that does not exist.
-func (m *MemorySnapshotStore) Delete(_ context.Context, ref id.AggregateRef) error {
+func (m *MemorySnapshotStore) Delete(_ context.Context, ref id.StreamRef) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -128,7 +128,7 @@ func (m *MemorySnapshotStore) Delete(_ context.Context, ref id.AggregateRef) err
 // Load returns the latest snapshot for the aggregate, or (nil, nil) if none
 // exists. The returned state bytes are copied so callers may mutate them
 // freely.
-func (m *MemorySnapshotStore) Load(_ context.Context, ref id.AggregateRef) (*snapshot.Snapshot, error) {
+func (m *MemorySnapshotStore) Load(_ context.Context, ref id.StreamRef) (*snapshot.Snapshot, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -144,7 +144,7 @@ func (m *MemorySnapshotStore) Load(_ context.Context, ref id.AggregateRef) (*sna
 // version matches the requested version exactly, otherwise (nil, nil). This
 // supports the decider Repository's versioned reload path.
 func (m *MemorySnapshotStore) LoadAtVersion(
-	_ context.Context, ref id.AggregateRef, version event.Version,
+	_ context.Context, ref id.StreamRef, version event.Version,
 ) (*snapshot.Snapshot, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

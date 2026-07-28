@@ -34,7 +34,7 @@ func BenchmarkProjectionReplay(b *testing.B) {
 				store := memory.NewMemoryStore()
 				ctx := context.Background()
 				for _, evt := range events {
-					ref := id.AggregateRef{ID: evt.StreamID(), Type: "User"}
+					ref := id.StreamRef{ID: evt.StreamID(), Type: "User"}
 					if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
 						b.Fatalf("AppendBatch: %v", err)
 					}

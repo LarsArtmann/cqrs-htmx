@@ -45,11 +45,11 @@ func TestSQLEventStore_LoadToTimestamp(t *testing.T) {
 		t.Fatalf("expected 1 registered event, got %d (%v)", len(firstOnly), firstOnly)
 	}
 
-	// Cutoff before any event — upstream returns ErrAggregateNotFound
+	// Cutoff before any event — upstream returns ErrStreamNotFound
 	// (RequireHit: true on LoadToTimestamp).
 	none, err := store.LoadToTimestamp(ctx, ref, time.Now().Add(-3*time.Hour))
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound for past cutoff, got %v (events: %d)", err, len(none))
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound for past cutoff, got %v (events: %d)", err, len(none))
 	}
 }
 
