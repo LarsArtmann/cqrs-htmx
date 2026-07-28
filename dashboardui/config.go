@@ -12,6 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -250,12 +252,14 @@ type pageData struct {
 func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
 	st, err := id.ParseStreamType(streamType)
 	if err != nil {
-		return id.StreamRef{}, err
+		return id.StreamRef{}, errorfamily.WrapRejection(err,
+			"dashboardui.stream_ref.invalid_type", "parse stream type")
 	}
 
 	sid, err := id.ParseStreamID(streamID)
 	if err != nil {
-		return id.StreamRef{}, err
+		return id.StreamRef{}, errorfamily.WrapRejection(err,
+			"dashboardui.stream_ref.invalid_id", "parse stream ID")
 	}
 
 	return id.NewStreamRef(st, sid), nil

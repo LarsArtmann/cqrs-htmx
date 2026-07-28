@@ -86,7 +86,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 			return fmt.Sprintf(`<div style="padding:40px;text-align:center;color:var(--muted)">
 				<h3>No snapshot found</h3>
 				<p>No snapshot exists for %s/<code>%s</code>.</p>
-			</div>`, esc(streamType), esc(truncate(streamID, 16) //nolint:mnd // display tuning: snapshot detail width))
+			</div>`, esc(streamType), esc(truncate(streamID, snapshotIDWidth)))
 		}))
 
 		return

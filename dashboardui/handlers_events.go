@@ -43,7 +43,7 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p := d.page("Event: "+truncate(string(evt.Type()), 30) //nolint:mnd // display tuning: event type width, "/events", r)
+	p := d.page("Event: "+truncate(string(evt.Type()), eventTypeWidth), "/events", r)
 	html := d.renderEventDetail(p, evt)
 	renderPage(w, r, html)
 }
@@ -52,7 +52,13 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 // (O(1)), otherwise scans the journal.
 func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) {
 	if d.cfg.EventByIDLoader != nil {
-		return d.cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
+		evt, err := d.cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
+		if err != nil {
+			var zero event.Event
+			return zero, errorfamily.WrapInfrastructure(err,
+				"dashboardui.event_detail.load_failed", "load event by ID")
+		}
+		return evt, nil
 	}
 
 	if d.cfg.SeekableJournal != nil {
@@ -184,13 +190,19 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
 
 func (d *Dashboard) loadRecentEvents(ctx context.Context, limit int) ([]event.Event, error) {
 	if d.cfg.SeekableJournal != nil {
-		return d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, limit)
+		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, limit)
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.recent_events.read_failed", "read recent events")
+		}
+		return events, nil
 	}
 
 	if d.cfg.Journal != nil {
 		all, err := d.cfg.Journal.ReadAll(ctx)
 		if err != nil {
-			return nil, err
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.recent_events.read_all_failed", "read all events")
 		}
 
 		if len(all) > limit {

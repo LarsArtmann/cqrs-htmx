@@ -117,7 +117,7 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 			</tr>`,
 				e.FailedAt.Format("2006-01-02 15:04:05"),
 				e.EventType,
-				truncate(e.Error, 60) //nolint:mnd // display tuning: error message width,
+				truncate(e.Error, errorDisplayWidth),
 				e.ErrorFamily)
 		}
 
