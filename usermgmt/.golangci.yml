@@ -111,7 +111,10 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.readModelCore$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.InMemoryStore$
         - github\.com/larsartmann/go-cqrs-lite/storage/v4\.IndexSpec$
+        - github\.com/larsartmann/go-cqrs-lite/storage/v4/view\.IndexSpec$
+        - github\.com/larsartmann/go-cqrs-lite/view/v4\.IndexSpec$
         - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.UserState$
+        - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.User$
         - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.WebAuthnCredential$
     gocritic:
       disabled-checks:
@@ -141,6 +144,10 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
+      - path: upcaster\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
       - path: es_(bot|membership|tenant)_state\.go$
         text: is a global variable
         linters:
@@ -156,6 +163,9 @@ linters:
         linters:
           - cyclop
       - path: es_event_catalog\.go$
+        linters:
+          - goconst
+      - path: sql_readmodel_extra\.go$
         linters:
           - goconst
       - path: es_(state|readmodel|casbin_projection|setup|dispatch|events|event_catalog|commands|upcaster)\.go$

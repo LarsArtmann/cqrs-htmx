@@ -290,6 +290,9 @@ linters:
         text: unused
         linters:
           - unused
+      - path: _test\.go
+        linters:
+          - testpackage
       - path: benchmark_server_test\.go$
         linters:
           - exhaustruct
