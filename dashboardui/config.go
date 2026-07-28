@@ -188,7 +188,7 @@ type navItem struct {
 	Active bool
 }
 
-func buildNav(caps Capabilities, basePath string) []navItem {
+func buildNav(caps Capabilities) []navItem {
 	var items []navItem
 
 	add := func(href, label, icon string) {
@@ -267,7 +267,7 @@ func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
 // journalForReplay returns the best available journal for SSE reconnect replay.
 // SeekableJournal is preferred (efficient cursor-based ReadFrom); Journal is the fallback.
 // Returns nil if no journal is configured.
-func (cfg Config) journalForReplay() event.Journal {
+func (cfg Config) journalForReplay() event.Journal { //nolint:ireturn // intentionally returns the Journal interface to abstract over SeekableJournal/Journal
 	if cfg.SeekableJournal != nil {
 		return cfg.SeekableJournal // SeekableJournal embeds Journal
 	}

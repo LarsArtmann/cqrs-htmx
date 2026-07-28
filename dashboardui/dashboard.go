@@ -42,7 +42,7 @@ func New(cfg Config) (*Dashboard, error) {
 	d := &Dashboard{
 		cfg:  cfg,
 		caps: caps,
-		nav:  buildNav(caps, cfg.BasePath),
+		nav:  buildNav(caps),
 		done: make(chan struct{}),
 	}
 
