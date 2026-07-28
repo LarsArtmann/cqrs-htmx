@@ -135,7 +135,7 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEve
 	afterID, err := id.ParseEventID(lastID.Get())
 	if err != nil {
 		// Invalid cursor — treat as "not found" rather than a store error.
-		return nil, nil
+		return nil, nil //nolint:nilerr // intentional: invalid cursor is recoverable, not a store failure
 	}
 
 	limit := s.maxReplay

@@ -38,7 +38,7 @@ func TestDashboard_SSEReconnectReplay(t *testing.T) {
 		events[i] = evt
 	}
 
-	if err := store.Save(nil, ref, events, event.Version(0)); err != nil {
+	if err := store.Save(context.Background(), ref, events, event.Version(0)); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
@@ -101,7 +101,7 @@ func TestDashboard_SSEInitialBackfill(t *testing.T) {
 	evt1, _ := event.New("user.created", aggID, "User", event.Version(1), struct{}{})
 	evt2, _ := event.New("user.updated", aggID, "User", event.Version(2), struct{}{})
 
-	if err := store.Save(nil, ref, []event.Event{evt1, evt2}, event.Version(0)); err != nil {
+	if err := store.Save(context.Background(), ref, []event.Event{evt1, evt2}, event.Version(0)); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
