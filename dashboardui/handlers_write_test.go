@@ -307,7 +307,7 @@ func TestSnapshotDeleteHandler_NoStore(t *testing.T) {
 }
 
 func TestSnapshotDeleteHandler_InvalidRef(t *testing.T) {
-	store := &fakeSnapshotStore{}
+	store := &fakeSnapshotStore{} //nolint:exhaustruct // test stub: zero values are correct defaults
 	d := mustTestDashboardWithConfig(t, Config{
 		Journal:       &stubJournal{},
 		SnapshotStore: store,
@@ -329,7 +329,7 @@ func TestSnapshotDeleteHandler_InvalidRef(t *testing.T) {
 }
 
 func TestSnapshotDeleteHandler_Success(t *testing.T) {
-	store := &fakeSnapshotStore{}
+	store := &fakeSnapshotStore{} //nolint:exhaustruct // test stub: zero values are correct defaults
 	d := mustTestDashboardWithConfig(t, Config{
 		Journal:       &stubJournal{},
 		SnapshotStore: store,
@@ -369,6 +369,7 @@ func TestTimeTravelDetailHandler_WithEvents(t *testing.T) {
 	evts := make([]event.Event, 3)
 	for i := range evts {
 		ver := event.Version(i + 1)
+
 		e, err := event.New(
 			event.Type("UserRegistered"),
 			streamID,
@@ -379,10 +380,11 @@ func TestTimeTravelDetailHandler_WithEvents(t *testing.T) {
 		if err != nil {
 			t.Fatalf("event.New v%d: %v", ver, err)
 		}
+
 		evts[i] = e
 	}
 
-	src := &fakeEventSource{
+	src := &fakeEventSource{ //nolint:exhaustruct // test stub: only fields needed for this test
 		allEvents: evts,
 		toVersion: evts[:2], // viewing version 2
 	}
@@ -425,7 +427,7 @@ func TestTimeTravelDetailHandler_WithEvents(t *testing.T) {
 }
 
 func TestTimeTravelDetailHandler_NoEvents(t *testing.T) {
-	src := &fakeEventSource{
+	src := &fakeEventSource{ //nolint:exhaustruct // test stub: only fields needed for this test
 		allEvents: nil,
 	}
 
@@ -462,7 +464,7 @@ func TestTimeTravelDetailHandler_LoadToVersionError(t *testing.T) {
 		t.Fatalf("event.New: %v", err)
 	}
 
-	src := &fakeEventSource{
+	src := &fakeEventSource{ //nolint:exhaustruct // test stub: only fields needed for this test
 		allEvents:    []event.Event{e},
 		toVersion:    nil,
 		loadToVerErr: errors.New("version load failed"),
