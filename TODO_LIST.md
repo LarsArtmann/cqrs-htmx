@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-07-28 | **Version:** v4.6.1 (15 modules in `go.work`; see AGENTS.md for per-sub-module versions) | **Coverage:** Root ~93.5% (gate 90%), usermgmt ~81% (gate 74%), identity-model ~60% (no gate, up from ~41%) — recompute via `nix run .#coverage-gate` | **Lint:** Root ~530 (varnamelen-dominated, SA1019 cleared), usermgmt ~60 (SA1019 cleared), dashboardui ~150 (SA1019 cleared). Remaining are style nits (varnamelen, exhaustruct). Non-release-blocking. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
+**Updated:** 2026-07-28 | **Version:** v4.6.1 (15 modules in `go.work`; see AGENTS.md for per-sub-module versions) | **Coverage:** Root 93.4% (gate 90%), openapi 99.0%, usermgmt 80.9% (gate 74%), identity-model 74.9% (no gate) | **Lint:** All 15 modules at 0 issues. Zero SA1019 deprecation warnings. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 
 ## Status Legend
 
@@ -11,12 +11,6 @@
 - [~] **PARTIALLY DONE** — started but incomplete.
 
 > No `[x]` items here. When a task finishes, it moves to [CHANGELOG.md](CHANGELOG.md) and is removed from this list. Deferred/rejected ideas move to [ROADMAP.md](ROADMAP.md) → "Not Planned".
-
----
-
-## P2 — Quality Gates
-
-- [ ] **Triage remaining lint style nits.** Root ~530 (varnamelen ~405, exhaustruct 61, errcheck 27 in test files, canonicalheader 24), dashboardui ~150 (varnamelen, exhaustruct). All SA1019 deprecation warnings cleared across root + usermgmt + dashboardui. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module. Non-release-blocking.
 
 ---
 
