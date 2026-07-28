@@ -42,8 +42,30 @@ values are parameters, not duplication.
 ## HTTP header setting with different values (Group 14)
 
 - `adminui/render.go:16` — `Content-Type: text/html`, `Cache-Control: no-store`
-- `event_catalog_handler.go:58` — `Content-Type: application/json`, `Cache-Control: immutable`
+- `event_catalog_handler.go:73` — `Content-Type: application/json`, `Cache-Control: immutable`
 
 **Reason:** Completely different content types and cache policies across
 different modules. The two-line header set is too small to abstract
 meaningfully, and the values are intentionally unique.
+
+## Basic error propagation in constructors (post-refactoring)
+
+- `usermgmt/sql_readmodel.go:76,90` — `if err != nil { return nil, err }`
+  in `NewSQLiteUserReadModel` / `NewSQLUserReadModel`
+- `usermgmt/sql_readmodel_extra.go:46,60` — same in Membership constructors
+- `usermgmt/sql_readmodel_extra.go:139,153` — same in Tenant constructors
+- `usermgmt/sql_readmodel_extra.go:226,240` — same in Bot constructors
+
+**Reason:** After extracting `newViewStoreOrFail` (which absorbs the
+WrapTransient error-wrapping), the remaining `if err != nil { return nil, err }`
+is basic Go error propagation. Extracting further would require a generic
+constructor with 7+ parameters for 3 lines of saved code.
+
+## Guard-method call sites (post-refactoring)
+
+- `dashboardui/handlers.go:504,600` — `if !d.requireProjectionHost(w) { return }`
+- `dashboardui/handlers.go:620,639` — `if !d.requireDeadLetterStore(w) { return }`
+
+**Reason:** These 3-line guard calls replaced the original 6-line inline
+nil-check blocks. The duplication is now minimal (calling the same guard
+method) and each handler has different logic after the guard.
