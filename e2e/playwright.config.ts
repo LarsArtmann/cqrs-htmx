@@ -22,6 +22,11 @@ export default defineConfig({
 
   use: {
     baseURL: 'http://localhost:18923',
+    // On NixOS, Playwright's downloaded Chromium cannot run (no FHS linker).
+    // Use the system/Nix Chromium via E2E_BROWSER_PATH when set.
+    launchOptions: {
+      executablePath: process.env.E2E_BROWSER_PATH || undefined,
+    },
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
