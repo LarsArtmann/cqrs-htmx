@@ -4,22 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/listing/v4"
-	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
-
-}
 
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Events", "/events", r)
