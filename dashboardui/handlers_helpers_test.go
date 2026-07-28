@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,13 +11,16 @@ import (
 
 type fakeDeadLetterStore struct{}
 
-func (fakeDeadLetterStore) List(ctx context.Context) ([]projectionhost.DeadLetterItem, error) { return nil, nil }
-func (fakeDeadLetterStore) Get(ctx context.Context, id string) (projectionhost.DeadLetterItem, error) {
-	return projectionhost.DeadLetterItem{}, nil
+func (fakeDeadLetterStore) Store(ctx context.Context, entry projectionhost.DeadLetterEntry) error {
+	return nil
 }
-func (fakeDeadLetterStore) Replay(ctx context.Context, id string) error { return nil }
-func (fakeDeadLetterStore) Delete(ctx context.Context, id string) error { return nil }
-func (fakeDeadLetterStore) Purge(ctx context.Context) error             { return nil }
+func (fakeDeadLetterStore) List(ctx context.Context, projectionName string) ([]projectionhost.DeadLetterEntry, error) {
+	return nil, nil
+}
+func (fakeDeadLetterStore) Delete(ctx context.Context, projectionName, eventID string) error {
+	return nil
+}
+func (fakeDeadLetterStore) Purge(ctx context.Context, projectionName string) error { return nil }
 
 func TestRequireProjectionHost_Missing(t *testing.T) {
 	d := &Dashboard{cfg: Config{}}
