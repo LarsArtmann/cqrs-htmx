@@ -40,15 +40,24 @@ func writePanicResponse(
 	rec any,
 	handler ErrorHandler,
 ) {
-	// RecoverHandler runs outside ContextEnrichmentMiddleware, so the request
-	// it captures has no RequestID in context even though one was generated
-	// downstream. ContextEnrichmentMiddleware writes the RequestID to the
-	// X-Request-ID response header; recover it into the context so error
-	// handlers can echo it — matching every non-panic error path.
+	// RecoveryMiddleware/RecoverHandler run outside ContextEnrichmentMiddleware,
+	// so the captured request may not have RequestID/CorrelationID in context.
+	// ContextEnrichmentMiddleware writes the RequestID to the X-Request-ID
+	// response header; recover it into the context so error handlers can echo it
+	// — matching every non-panic error path. The correlation ID is only available
+	// from the request header (there is no generated fallback), so recover it from
+	// X-Correlation-ID when the client supplied it.
 	if RequestIDFromContext(r.Context()).IsZero() {
 		if ridStr := w.Header().Get(headerRequestID); ridStr != "" {
 			if rid, err := ParseRequestID(ridStr); err == nil {
 				r = r.WithContext(WithRequestID(r.Context(), rid))
+			}
+		}
+	}
+	if CorrelationIDFromContext(r.Context()).IsZero() {
+		if cidStr := r.Header.Get(headerCorrelationID); cidStr != "" {
+			if cid, err := ParseCorrelationID(cidStr); err == nil {
+				r = r.WithContext(WithCorrelationID(r.Context(), cid))
 			}
 		}
 	}
