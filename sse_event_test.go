@@ -126,7 +126,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			Expect(w.Header().Get("Content-Type")).To(Equal("text/event-stream"))
 			Expect(w.Header().Get("Cache-Control")).To(Equal("no-cache"))
@@ -139,7 +139,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			err := stream.Send(cqrshtmx.SSEEvent{
 				Event: eventUpdate,
@@ -156,7 +156,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			Expect(stream.Send(cqrshtmx.SSEEvent{Event: "e1", Data: "d1"})).To(Succeed())
 			Expect(stream.Send(cqrshtmx.SSEEvent{Event: "e2", Data: "d2"})).To(Succeed())
@@ -171,7 +171,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			err := stream.SendData("todoUpdated", "<ul><li>Buy milk</li></ul>")
 			Expect(err).NotTo(HaveOccurred())
@@ -190,7 +190,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			Expect(stream.Context().Done()).NotTo(BeNil())
 		})
@@ -202,7 +202,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 
 			stream := cqrshtmx.NewSSEStream(w, r)
-			defer stream.Close()
+			defer func() { _ = stream.Close() }()
 
 			cancel()
 
@@ -262,7 +262,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 				called = true
 			})
 
-			stream.Close()
+			_ = stream.Close()
 			Expect(called).To(BeTrue())
 		})
 
@@ -278,7 +278,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			stream.OnDisconnect(func() { order = append(order, 2) })
 			stream.OnDisconnect(func() { order = append(order, 3) })
 
-			stream.Close()
+			_ = stream.Close()
 			Expect(order).To(Equal([]int{1, 2, 3}))
 		})
 	})

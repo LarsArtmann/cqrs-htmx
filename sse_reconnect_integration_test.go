@@ -57,7 +57,7 @@ func newReconnectMux(store *memoryEventStore, includeReplayOnError bool) *http.S
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := cqrshtmx.NewSSEStream(w, r)
-		defer stream.Close()
+		defer func() { _ = stream.Close() }()
 
 		if lastID := cqrshtmx.LastEventIDFromRequest(r); !lastID.IsZero() {
 			if _, err := cqrshtmx.ReplayEvents(stream, store, lastID); err != nil {
@@ -158,7 +158,7 @@ func TestSSE_RealServer_ReconnectionNoLastID(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := cqrshtmx.NewSSEStream(w, r)
-		defer stream.Close()
+		defer func() { _ = stream.Close() }()
 
 		if lastID := cqrshtmx.LastEventIDFromRequest(r); !lastID.IsZero() {
 			_, _ = cqrshtmx.ReplayEvents(stream, store, lastID)

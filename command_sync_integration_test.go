@@ -80,7 +80,7 @@ func readSSEUntil(ctx context.Context, body io.Reader, patterns ...string) (stri
 func newSSEHandler(store *JournalSSEStore, bc *Broadcaster) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		stream := NewSSEStream(w, r)
-		defer stream.Close()
+		defer func() { _ = stream.Close() }()
 
 		// Flush response headers immediately so the client receives 200 OK
 		// before any event data is written (Go buffers until first Write/Flush).
@@ -170,7 +170,7 @@ func TestIntegration_JournalSSEStore_Replay(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := NewSSEStream(w, r)
-		defer stream.Close()
+		defer func() { _ = stream.Close() }()
 
 		lastID := LastEventIDFromRequest(r)
 		_, _ = ReplayEvents(stream, sseStore, lastID)

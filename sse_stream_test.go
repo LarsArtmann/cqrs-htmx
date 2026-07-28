@@ -44,7 +44,7 @@ var _ = Describe("SSE Stream Concurrency", func() {
 			}()
 
 			wg.Wait()
-			stream.Close()
+			_ = stream.Close()
 		}
 	})
 })
