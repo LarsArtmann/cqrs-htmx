@@ -6,7 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Offline sync FormData serialization bug** (`sync/sync-client.js`): in HTMX 2.x, `requestConfig.parameters` is a `FormData` object, not a plain object. `postMessage` cannot clone `FormData` across the SharedWorker boundary (structured clone algorithm does not support it), so the command envelope was silently lost and never reached the SharedWorker for persistence. The `htmx:sendError` handler now converts `FormData` to a plain `{key: value}` object before passing it to `postMessage`. This was a production bug that broke ALL offline HTMX form submissions. syncVersion bumped to `1.2.0`.
+- **Canonical nix quality gates verified**: `nix run .#test` (all 11 module groups pass), `nix run .#coverage-gate` (all 9 gated modules pass with verified thresholds). This resolves the #1 recurring verification gap flagged across 10+ prior status reports.
+
 ### Added
+
+- **identity-model coverage-gate threshold** (`flake.nix`): added `check_cov identity-model 70` to the coverage-gate app. Coverage verified at 74.9% (well above the 70% threshold). The coverage gate now checks 9 modules (was 8). This was flagged as open in 5+ status reports since 2026-07-23.
+- **`.golangci.yml` exclusion audit** — reviewed ALL exclusion rules across 4 config files (root, identity-model, usermgmt, adminui) and 100 `//nolint:` directives across the workspace. **Verdict: zero masked bugs.** All exclusions are structurally justified (`unused` for `//go:build ignore` consumers, `nilnil`/`nilerr` for not-found conventions, `exhaustruct` for builder-pattern structs, `wrapcheck` for typed domain errors, `goconst` for metadata labels, test-file pragmatism exclusions).
+- **dashboardui write-operation handler tests** (`dashboardui/handlers_write_test.go`): 16 new tests covering all previously-untested write-operation handlers — DLQ delete (3 scenarios), DLQ purge (3), DLQ replay (2), projection reset (2), snapshot delete (3), time-travel detail (3). Coverage improved from 55% to 66.5%.
 
 - **CorrelationID recovery in panic responses** (`recovery.go`): `writePanicResponse` now recovers the CorrelationID from the `X-Correlation-ID` request header (same pattern as the existing RequestID recovery from the response header). Panic responses now carry the same correlation context as every other error path. New test in `recovery_test.go`.
 - **identity-model Authz engine tests** (`identity-model/authz_engine_test.go`): comprehensive test coverage for all 18 `Authz` methods (Enforce, EnforceAny, EnforceEx, Authorize, AsEnforcer, Apply, AddPolicy, RemovePolicy, AddGroupPolicy, RemoveGroupPolicy, RemoveAllRolesForUser, RemoveAllRolesInDomain, Policies, GroupPolicies, RolesForUser, ImplicitRolesForUser, ImplicitPermissionsForUser, DomainsForUser, UsersForRole, RolesForActor, ImplicitRolesForActor). Coverage increased from 0 to full method coverage.
@@ -21,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **Coverage numbers updated with verified gate output**: Root 93.7% (gate 90%), openapi 99.0%, usermgmt 80.9% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 66.5% (gate 60%). All 9 coverage gates pass.
+- **TODO_LIST.md reconciled**: removed 3 completed items (identity-model coverage gate, .golangci.yml exclusion audit, dashboardui write-operation handler tests) that were split brains — already done but still listed as open.
 - **CONTRIBUTING.md version references updated** (stale `v4.5.0` → `v4.6.1` across the module tag table; dashboardui `v4.0.0` → `v4.1.1`, identity-model `v4.1.0` → `v4.1.1`; loginpage gate `80%` → `79%`). Publishing-bug section updated to reflect the ongoing 13-of-40 broken submodule tags and that `go.work` local replaces are still required.
 - **Migrated `id.AggregateID` → `id.StreamID` across all modules** (root, usermgmt, dashboardui, identity-model): all `id.NewAggregateID()`, `id.AggregateID`, `id.ParseAggregateID`, `id.DeriveAggregateID`, and `.AggregateID()` method calls migrated to the non-deprecated `StreamID` equivalents. All SA1019 staticcheck deprecation warnings cleared across root, usermgmt, and dashboardui. Aligns with go-cqrs-lite v4.2.0 upstream naming.
 - **dashboardui `handlers.go` split into domain files** (`dashboardui/handlers.go` + 7 new files): the 1180-line monolith split into `handlers_events.go`, `handlers_aggregates.go`, `handlers_projections.go`, `handlers_dlq.go`, `handlers_audit.go`, `handlers_timetravel.go`, `handlers_snapshots.go`. Shared helpers (`streamRefFromRequest`, `loadStreamFromRequest`, `streamPathValues`, `latestVersion`) remain in `handlers.go`.
@@ -32,7 +43,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Root `sse_broadcaster.go` errcheck fix**: `stream.Close()` error return now checked in `ServeSSE`.
 - **Completed SA1019 deprecation migration across all 15 modules**: `id.AggregateRef` → `id.StreamRef` (12 sites in usermgmt snapshot.go/test), `evt.AggregateType` → `evt.StreamType` (2 sites in service_security_test.go), `event.ErrAggregateNotFound` → `event.ErrStreamNotFound` (2 test files), `usermgmt.NewUserID` → marked deprecated with nolint (backward-compat shim), `examples/admin-demo` `NewUserID` → `SyntheticUserID` (2 sites). Zero SA1019 warnings remain across all 15 workspace modules.
 - **All 15 modules now lint-clean (0 issues each)**: triaged and resolved all remaining lint findings across root, usermgmt, dashboardui, and all sub-modules. Fixes include: errcheck on `defer svc.Close()` in projection health tests (5 sites), exhaustive switch cases (2 sites: added `errorfamily.Orchestration` and nolint for default-handled worker statuses), exhaustruct exclusion patterns for `readModelCore`/`InMemoryStore`/`IndexSpec`/`identitymodel.User`, gochecknoglobals exclusion for state var aliases, wrapcheck exclusion for thin re-export wrappers, goconst exclusion for event catalog schema strings, funlen exclusion for event catalog registration, testpackage exclusion for white-box test files, and nolintlint cleanup (removed unused `funlen` from 2 nolint directives in dashboardui). Removed dead `var _ = fmt.Sprintf` import hack from `sql_helpers_test.go`.
-- **Coverage verified with actual numbers**: Root 93.4% (gate 90%), openapi 99.0%, usermgmt 80.9% (gate 74%), identity-model 74.9% (no gate). All coverage gates pass.
 
 ## [v4.6.1] - 2026-07-27
 
