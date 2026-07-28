@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 
@@ -128,6 +129,8 @@ func (d *Dashboard) Close() {
 
 		if d.broadcaster != nil {
 			d.broadcaster.Close()
+		} else {
+			slog.Warn("dashboardui.Dashboard.Close: no broadcaster configured; SSE clients were not disconnected")
 		}
 	})
 }
