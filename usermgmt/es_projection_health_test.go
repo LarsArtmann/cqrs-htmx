@@ -65,7 +65,7 @@ func TestService_ProjectionStatuses(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewService error: %v", err)
 	}
-	defer svc.Close()
+	defer func() { _ = svc.Close() }()
 
 	statuses := svc.ProjectionStatuses()
 	if len(statuses) == 0 {
@@ -87,7 +87,7 @@ func TestService_SatisfiesProjectionStatusProvider(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewService error: %v", err)
 	}
-	defer svc.Close()
+	defer func() { _ = svc.Close() }()
 
 	var provider cqrshtmx.ProjectionStatusProvider = svc
 	statuses := provider.ProjectionStatuses()
@@ -102,7 +102,7 @@ func TestService_EventCatalog(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewService error: %v", err)
 	}
-	defer svc.Close()
+	defer func() { _ = svc.Close() }()
 
 	catalog := svc.EventCatalog()
 	if catalog == nil {
@@ -120,7 +120,7 @@ func TestService_RebuildProjection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewService error: %v", err)
 	}
-	defer svc.Close()
+	defer func() { _ = svc.Close() }()
 
 	ctx := context.Background()
 
@@ -155,7 +155,7 @@ func TestService_RebuildProjection_UnknownProjection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewService error: %v", err)
 	}
-	defer svc.Close()
+	defer func() { _ = svc.Close() }()
 
 	err = svc.RebuildProjection(context.Background(), "nonexistent-projection")
 	if err == nil {

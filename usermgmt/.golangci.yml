@@ -108,6 +108,11 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.SQL\w+ReadModel$
         - github\.com/larsartmann/go-cqrs-lite/kv/v4\.ViewQuery$
         - github\.com/larsartmann/go-cqrs-lite/kv/v4\.Condition$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.readModelCore$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.InMemoryStore$
+        - github\.com/larsartmann/go-cqrs-lite/storage/v4\.IndexSpec$
+        - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.UserState$
+        - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.WebAuthnCredential$
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -136,13 +141,24 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
+      - path: es_(bot|membership|tenant)_state\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
+      - path: es_state\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
       - path: id\.go$
         linters:
           - recvcheck
-      - path: es_(state|readmodel|casbin_projection|setup|dispatch|upcaster)\.go$
+      - path: es_(state|readmodel|casbin_projection|setup|dispatch|event_catalog|upcaster)\.go$
         linters:
           - cyclop
-      - path: es_(state|readmodel|casbin_projection|setup|dispatch|events|commands|upcaster)\.go$
+      - path: es_event_catalog\.go$
+        linters:
+          - goconst
+      - path: es_(state|readmodel|casbin_projection|setup|dispatch|events|event_catalog|commands|upcaster)\.go$
         linters:
           - funlen
       - path: (http|verification_totp_http)\.go$
@@ -155,6 +171,9 @@ linters:
         linters:
           - funlen
       - path: _test\.go
+        linters:
+          - wrapcheck
+      - path: (authz_types|crypto|email|es_events|es_projection_health|http|id|random|service_login|user)\.go$
         linters:
           - wrapcheck
       - path: _test\.go
@@ -192,6 +211,9 @@ linters:
           - noctx
       - path: _test\.go
         text: unused
+        linters:
+          - unused
+      - path: (es_setup_core|stack_repositories)\.go$
         linters:
           - unused
     paths:

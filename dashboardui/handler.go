@@ -29,7 +29,7 @@ func (d *Dashboard) Middleware() func(http.Handler) http.Handler {
 	)
 }
 
-func (d *Dashboard) routes() http.Handler { //nolint:cyclop,funlen // route registration is inherently a long switch on capabilities
+func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registration is inherently a long switch on capabilities
 	mux := http.NewServeMux()
 
 	// Static assets
