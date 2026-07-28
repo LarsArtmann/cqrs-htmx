@@ -41,27 +41,24 @@ func (a *Authz) Apply(update PolicyUpdate) error {
 
 // AddPolicy adds a single RBAC policy rule.
 func (a *Authz) AddPolicy(p Policy) error {
-	if a.enforcer == nil {
-		return ErrEnforcerNotInitialized
-	}
-
-	_, err := a.enforcer.AddPolicy(policyArgs(p)...)
-	if err != nil {
-		return errorfamily.WrapTransient(err, "casbin_error", "add policy")
-	}
-
-	return nil
+	return a.mutatePolicy(p, "add", a.enforcer.AddPolicy)
 }
 
 // RemovePolicy removes a single RBAC policy rule.
 func (a *Authz) RemovePolicy(p Policy) error {
+	return a.mutatePolicy(p, "remove", a.enforcer.RemovePolicy)
+}
+
+// mutatePolicy delegates to the given casbin policy method (AddPolicy or
+// RemovePolicy) and wraps any error as a Transient failure with a
+// human-readable action prefix.
+func (a *Authz) mutatePolicy(p Policy, action string, fn func(...any) (bool, error)) error {
 	if a.enforcer == nil {
 		return ErrEnforcerNotInitialized
 	}
 
-	_, err := a.enforcer.RemovePolicy(policyArgs(p)...)
-	if err != nil {
-		return errorfamily.WrapTransient(err, "casbin_error", "remove policy")
+	if _, err := fn(policyArgs(p)...); err != nil {
+		return errorfamily.WrapTransient(err, "casbin_error", action+" policy")
 	}
 
 	return nil
@@ -69,27 +66,24 @@ func (a *Authz) RemovePolicy(p Policy) error {
 
 // AddGroupPolicy assigns a role to a subject in a domain.
 func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
-	if a.enforcer == nil {
-		return ErrEnforcerNotInitialized
-	}
-
-	_, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain)
-	if err != nil {
-		return wrapGroupError(err, "add", g)
-	}
-
-	return nil
+	return a.mutateGroupPolicy(g, "add", a.enforcer.AddGroupingPolicy)
 }
 
 // RemoveGroupPolicy removes a role assignment from a subject in a domain.
 func (a *Authz) RemoveGroupPolicy(g GroupPolicy) error {
+	return a.mutateGroupPolicy(g, "remove", a.enforcer.RemoveGroupingPolicy)
+}
+
+// mutateGroupPolicy delegates to the given casbin grouping method
+// (AddGroupingPolicy or RemoveGroupingPolicy) and wraps any error via
+// wrapGroupError with the supplied action verb.
+func (a *Authz) mutateGroupPolicy(g GroupPolicy, action string, fn func(...any) (bool, error)) error {
 	if a.enforcer == nil {
 		return ErrEnforcerNotInitialized
 	}
 
-	_, err := a.enforcer.RemoveGroupingPolicy(g.Subject, string(g.Role), g.Domain)
-	if err != nil {
-		return wrapGroupError(err, "remove", g)
+	if _, err := fn(g.Subject, string(g.Role), g.Domain); err != nil {
+		return wrapGroupError(err, action, g)
 	}
 
 	return nil
@@ -148,28 +142,25 @@ func (a *Authz) RemoveAllRolesInDomain(subject string, domain TenantID) error {
 
 // Policies returns all stored policy rules.
 func (a *Authz) Policies() ([][]string, error) {
-	if a.enforcer == nil {
-		return nil, ErrEnforcerNotInitialized
-	}
-
-	p, err := a.enforcer.GetPolicy()
-	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "casbin_error", "get policies")
-	}
-
-	return p, nil
+	return a.getPolicies(a.enforcer.GetPolicy, "get policies")
 }
 
 // GroupPolicies returns all stored group (role) policies.
 func (a *Authz) GroupPolicies() ([][]string, error) {
+	return a.getPolicies(a.enforcer.GetGroupingPolicy, "get group policies")
+}
+
+// getPolicies delegates to the given casbin getter (GetPolicy or
+// GetGroupingPolicy) and wraps any error as a Transient failure.
+func (a *Authz) getPolicies(getter func() ([][]string, error), errMsg string) ([][]string, error) {
 	if a.enforcer == nil {
 		return nil, ErrEnforcerNotInitialized
 	}
 
-	g, err := a.enforcer.GetGroupingPolicy()
+	p, err := getter()
 	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "casbin_error", "get group policies")
+		return nil, errorfamily.WrapTransient(err, "casbin_error", errMsg)
 	}
 
-	return g, nil
+	return p, nil
 }

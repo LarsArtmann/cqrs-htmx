@@ -7,25 +7,26 @@ import (
 
 // RolesForUser returns the directly assigned roles for a user in the given domain.
 func (a *Authz) RolesForUser(userID UserID, domain TenantID) ([]Role, error) {
-	if a.enforcer == nil {
-		return nil, ErrEnforcerNotInitialized
-	}
-
-	roles, err := a.enforcer.GetRolesForUser(userID.Get().String(), domain.Get())
-	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "casbin_error", "domain="+domain.Get())
-	}
-
-	return convertRoles(roles), nil
+	return a.rolesForUser(userID, domain, a.enforcer.GetRolesForUser)
 }
 
 // ImplicitRolesForUser returns all roles inherited (transitively) by the user in the domain.
 func (a *Authz) ImplicitRolesForUser(userID UserID, domain TenantID) ([]Role, error) {
+	return a.rolesForUser(userID, domain, a.enforcer.GetImplicitRolesForUser)
+}
+
+// rolesForUser delegates to the given casbin role getter (GetRolesForUser
+// or GetImplicitRolesForUser), wraps any error as a Transient failure tagged
+// with the domain, and converts the raw role strings to Role values.
+func (a *Authz) rolesForUser(
+	userID UserID, domain TenantID,
+	getRoles func(string, string) ([]string, error),
+) ([]Role, error) {
 	if a.enforcer == nil {
 		return nil, ErrEnforcerNotInitialized
 	}
 
-	roles, err := a.enforcer.GetImplicitRolesForUser(userID.Get().String(), domain.Get())
+	roles, err := getRoles(userID.Get().String(), domain.Get())
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "casbin_error", "domain="+domain.Get())
 	}
