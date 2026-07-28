@@ -66,7 +66,13 @@ func userViewMapper() storage.ViewMapper[UserView] {
 }
 
 func NewSQLiteUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
-	store, err := newViewStoreOrFail(storage.NewSQLiteViewStore[UserView, UserID], db, userViewMapper(), "usermgmt.sql_readmodel.create", "create sqlite user view store")
+	store, err := newViewStoreOrFail(
+		storage.NewSQLiteViewStore[UserView, UserID],
+		db,
+		userViewMapper(),
+		"usermgmt.sql_readmodel.create",
+		"create sqlite user view store",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +80,13 @@ func NewSQLiteUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
 }
 
 func NewSQLUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
-	store, err := newViewStoreOrFail(storage.NewSQLViewStore[UserView, UserID], db, userViewMapper(), "usermgmt.sql_readmodel.create", "create sql user view store")
+	store, err := newViewStoreOrFail(
+		storage.NewSQLViewStore[UserView, UserID],
+		db,
+		userViewMapper(),
+		"usermgmt.sql_readmodel.create",
+		"create sql user view store",
+	)
 	if err != nil {
 		return nil, err
 	}
