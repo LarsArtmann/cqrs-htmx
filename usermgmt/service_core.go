@@ -444,7 +444,7 @@ func (s *Service) ReadModel() *UserReadModel { return s.readModel }
 func (s *Service) AuditLog() *AuditLog { return s.auditLog }
 
 func (s *Service) emailFromEvent(evt event.Event) string {
-	user, ok := s.readModel.FindByID(evt.AggregateID())
+	user, ok := s.readModel.FindByID(evt.StreamID())
 	if !ok {
 		return ""
 	}

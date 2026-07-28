@@ -302,7 +302,7 @@ func seedEventList(t *testing.T, count int) []event.Event {
 func appendEvents(t *testing.T, store *memory.MemoryStore, events []event.Event) {
 	t.Helper()
 
-	ref := id.StreamRef{ID: events[0].AggregateID(), Type: "test"}
+	ref := id.StreamRef{ID: events[0].StreamID(), Type: "test"}
 	if err := store.AppendBatch(context.Background(), ref, events); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}

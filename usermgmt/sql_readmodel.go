@@ -105,7 +105,7 @@ func (m *SQLUserReadModel) Handle(ctx context.Context, evt event.Event) error {
 }
 
 func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error {
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	if evt.Type() == eventUserDeleted {
 		userID := NewUserID(aggID.String())
 		if err := m.store.Delete(ctx, userID); err != nil {

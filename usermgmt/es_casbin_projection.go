@@ -53,7 +53,7 @@ func (p *CasbinProjection) EventTypes() []event.Type {
 }
 
 func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
-	subject := evt.AggregateID().String()
+	subject := evt.StreamID().String()
 
 	switch evt.Type() {
 	case eventUserRegistered:

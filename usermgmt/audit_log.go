@@ -61,7 +61,7 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 	//nolint:exhaustruct // Email not available at projection level
 	entry := AuditEntry{
 		EventType:   evt.Type(),
-		AggregateID: evt.AggregateID(),
+		AggregateID: evt.StreamID(),
 		OccurredAt:  evt.OccurredAt(),
 		UserID:      NewUserID(evt.Metadata().UserID.String()),
 		Action:      auditActionFor(evt.Type()),

@@ -75,7 +75,7 @@ func decodePayload[T any](evt event.Event, name string) (T, error) {
 }
 
 func (m *UserReadModel) handleUserRegistered(_ id.StreamID, evt event.Event) error {
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	p, err := decodePayload[UserRegisteredPayload](evt, "UserRegistered")
 	if err != nil {
 		return err
@@ -97,7 +97,7 @@ func (m *UserReadModel) handleRolesUpdated(_ id.StreamID, evt event.Event) error
 }
 
 func (m *UserReadModel) handleEmailChanged(_ id.StreamID, evt event.Event) error {
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	p, err := decodePayload[EmailChangedPayload](evt, "EmailChanged")
 	if err != nil {
 		return err
@@ -113,7 +113,7 @@ func (m *UserReadModel) handleEmailChanged(_ id.StreamID, evt event.Event) error
 }
 
 func (m *UserReadModel) handleDisplayNameChanged(_ id.StreamID, evt event.Event) error {
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	p, err := decodePayload[DisplayNameChangedPayload](evt, "DisplayNameChanged")
 	if err != nil {
 		return err
@@ -126,7 +126,7 @@ func (m *UserReadModel) handleDisplayNameChanged(_ id.StreamID, evt event.Event)
 }
 
 func (m *UserReadModel) handleCredentialAdded(_ id.StreamID, evt event.Event) error {
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	p, err := decodePayload[CredentialAddedPayload](evt, "CredentialAdded")
 	if err != nil {
 		return err
@@ -139,7 +139,7 @@ func (m *UserReadModel) handleCredentialAdded(_ id.StreamID, evt event.Event) er
 }
 
 func (m *UserReadModel) handleCredentialRemoved(_ id.StreamID, evt event.Event) error {
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	p, err := decodePayload[CredentialRemovedPayload](evt, "CredentialRemoved")
 	if err != nil {
 		return err
@@ -177,7 +177,7 @@ func (m *UserReadModel) handleEmailVerified(aggID id.StreamID, evt event.Event) 
 }
 
 func (m *UserReadModel) handleTOTPEnabled(_ id.StreamID, evt event.Event) error {
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	p, err := decodePayload[TOTPEnabledPayload](evt, "TOTPEnabled")
 	if err != nil {
 		return err
@@ -200,7 +200,7 @@ func (m *UserReadModel) handleTOTPDisabled(aggID id.StreamID, evt event.Event) e
 }
 
 func (m *UserReadModel) handleExternalAccountLinked(_ id.StreamID, evt event.Event) error {
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	p, err := decodePayload[ExternalAccountLinkedPayload](evt, "ExternalAccountLinked")
 	if err != nil {
 		return err
@@ -222,7 +222,7 @@ func (m *UserReadModel) handleExternalAccountLinked(_ id.StreamID, evt event.Eve
 }
 
 func (m *UserReadModel) handleExternalAccountUnlinked(_ id.StreamID, evt event.Event) error {
-	aggID := evt.AggregateID()
+	aggID := evt.StreamID()
 	p, err := decodePayload[ExternalAccountUnlinkedPayload](evt, "ExternalAccountUnlinked")
 	if err != nil {
 		return err
