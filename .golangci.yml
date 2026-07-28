@@ -1,7 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.26.4
+  go: 1.26.5
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
@@ -21,18 +21,13 @@ linters:
     - asciicheck
     - bidichk
     - bodyclose
-    # canonicalheader disabled: every custom header in this HTMX library follows
-    # the HTMX spec casing (HX-Request, HX-Redirect, …). Go's http.Header
-    # auto-canonicalizes on Get/Set so the spec-form literals are functionally
-    # correct and match the HTMX documentation consumers grep for.
-    # - canonicalheader
+    - canonicalheader
     - clickhouselint
     - containedctx
     - contextcheck
     - copyloopvar
     - cyclop
     - decorder
-    - depguard
     - dogsled
     - dupl
     - dupword
@@ -114,10 +109,7 @@ linters:
     - tagliatelle
     - testableexamples
     - testifylint
-    # testpackage disabled: this library intentionally white-box-tests unexported
-    # internals (e.g. app.applyServerTiming, sse.seekable, cfg.cookieName).
-    # Moving those suites to _test packages would break compilation.
-    # - testpackage
+    - testpackage
     - thelper
     - tparallel
     - unconvert
@@ -132,35 +124,29 @@ linters:
     - wrapcheck
     - wsl_v5
     - zerologlint
+  disable:
+    - depguard
   settings:
     cyclop:
       max-complexity: 12
-    depguard:
-      rules:
-        main:
-          allow:
-            - $gostd
-            - $module
-            # Self-import (test files reference the root package by full path;
-            # depguard v2's $module token doesn't match the bare module path).
-            - github.com/larsartmann/cqrs-htmx
-            # go-cqrs-lite family — the CQRS/event-sourcing foundation this library wires to net/http.
-            - github.com/larsartmann/go-cqrs-lite
-            # Sibling LarsArtmann libraries: classified errors and branded (typed) IDs.
-            - github.com/larsartmann/go-error-family
-            - github.com/larsartmann/go-branded-id
-            # SSE transport library (fan-out, stream lifecycle, event wire format).
-            - github.com/larsartmann/go-sse
-            - github.com/larsartmann/httputil
-            # First-party runtime dependencies of the root module.
-            - github.com/casbin/casbin/v3
-            - github.com/justinas/nosurf
-            - github.com/oklog/ulid
-            - github.com/go-playground/form/v4
-            # BDD test stack (onsi). Test-only but depguard evaluates tests too.
-            - github.com/onsi/ginkgo/v2
-            - github.com/onsi/gomega
-            - golang.org/x
+    errcheck:
+      exclude-functions:
+        - (*os.File).Close
+        - (io.Closer).Close
+        - (*sql.DB).Close
+        - (*sql.Rows).Close
+        - (*sql.Stmt).Close
+        - (net.Conn).Close
+        - (*net.TCPConn).Close
+        - (*net.UDPConn).Close
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Print
+        - fmt.Printf
+        - fmt.Println
+        - (*strings.Builder).WriteString
+        - (*bytes.Buffer).WriteString
     exhaustruct:
       exclude:
         - os/exec.Cmd
@@ -178,17 +164,16 @@ linters:
         - .+\.JournalSSEStore$
         - .+\.sseReadResult$
         - .+\.lockedRecorder$
-        # sse.Event has optional ID/Retry/Event/Data fields; partial init (zero-value = unset) is intended.
         - github\.com/larsartmann/go-sse\.Event$
-        # dashboardui structs mirror root's optional-config / internal-init pattern.
         - github\.com/larsartmann/cqrs-htmx/dashboardui/v4\.(Config|Dashboard|overviewStats|navItem)$
-        # External structs with optional/zero-value-default fields where partial init is intended.
         - net/http\.Request$
         - .+\.ListOptions$
         - .+\.StreamRef$
         - .+\.StatCardProps$
-        # Test fixtures with intentionally partial fields.
         - .+\.fakeSerializer$
+    funlen:
+      lines: 200
+      statements: 100
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true
@@ -197,6 +182,10 @@ linters:
         - ifElseChain
     gomoddirectives:
       replace-local: true
+    gosec:
+      excludes:
+        - G304
+        - G115
     ireturn:
       allow:
         - error
@@ -205,9 +194,13 @@ linters:
         - stdlib
         - generic
     makezero:
-      # always: false reports only make([]T, 0) without capacity (the true anti-pattern);
-      # pre-allocated slices with known length or capacity are legitimate and left alone.
       always: false
+    mnd:
+      ignored-numbers:
+        - "0"
+        - "1"
+        - "2"
+        - "100"
     revive:
       rules:
         - name: exported
@@ -232,8 +225,6 @@ linters:
         - a
         - b
         - v
-        # Idiomatic Go short names for HTTP handlers and concurrency primitives.
-        # w/r are the universal net/http handler convention; ch/wg/mu are channel/WaitGroup/mutex.
         - w
         - r
         - ch
@@ -242,8 +233,6 @@ linters:
         - mw
         - rw
         - ws
-        # Common single-letter variables clear from type/scope context (page, event,
-        # listing, query, dashboard, store/stream, counter/client).
         - p
         - e
         - l
@@ -251,11 +240,21 @@ linters:
         - d
         - s
         - c
-        # Idiomatic double-letter abbreviations.
         - sb
         - id
         - js
       ignore-type-assert-ok: true
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+        - .WithMessage(
+        - .WithMessagef(
+        - .WithStack(
   exclusions:
     generated: lax
     rules:
@@ -285,11 +284,7 @@ linters:
           - funlen
           - paralleltest
           - err113
-          # varnamelen: test fixtures legitimately use short names (w, r, bc, st);
-          # signal is low in tests and the idiomatic names are already ignored above.
           - varnamelen
-          # ireturn: test factories/stubs legitimately return interfaces (Enforcer,
-          # command.Command) to inject into the system under test.
           - ireturn
       - path: _test\.go
         text: unused

@@ -33,7 +33,7 @@ type toastDetail = cqrshtmx.ToastDetail
 
 func triggerToast(w http.ResponseWriter, kind, message string) {
 	detail, _ := json.Marshal(toastDetail{Message: message, Kind: kind})
-	w.Header().Set("HX-Trigger", string(detail))
+	w.Header().Set("Hx-Trigger", string(detail))
 }
 
 func redirect(w http.ResponseWriter, r *http.Request, path string) {

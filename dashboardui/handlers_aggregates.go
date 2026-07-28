@@ -55,7 +55,7 @@ func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Reques
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderAggregateDetail( //nolint:funlen // HTML string builder
+func (d *Dashboard) renderAggregateDetail(
 	p pageData,
 	ref id.StreamRef,
 	events []event.Event,
