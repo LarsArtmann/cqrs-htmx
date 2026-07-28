@@ -13,7 +13,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 | Test     | `nix run .#test` or `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race`                                                                                                                                                |
 | Build    | `nix run .#build` or `GOEXPERIMENT=jsonv2 go build ./...`                                                                                                                                                             |
 | Lint     | `nix run .#lint` or `GOEXPERIMENT=jsonv2 golangci-lint run`                                                                                                                                                           |
-| Coverage | `nix run .#coverage` / `nix run .#coverage-gate` (9 modules gated: root 93.4%/90, usermgmt 80.9%/74, identity-model 74.9%/70, dashboardui 66.5%/60, adminui gate 66, loginpage gate 79, totp/webauthn/oauth2 gate 80) |
+| Coverage | `nix run .#coverage` / `nix run .#coverage-gate` (9 modules gated: root 93.7%/90, usermgmt 80.9%/74, identity-model 74.9%/70, dashboardui 66.5%/60, adminui gate 66, loginpage gate 79, totp/webauthn/oauth2 gate 80) |
 | Fmt      | `nix fmt`                                                                                                                                                                                                             |
 | DevShell | `nix develop`                                                                                                                                                                                                         |
 
@@ -43,7 +43,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 - **Duck-typing for external libs:** `Enforcer` (← casbin), `TemplComponent` (← templ), auth provider interfaces — consumers import what they need
 - **authMode enum:** `authNone`/`authRequired`/`authAuthorized` — impossible states unrepresentable
 - **templ `_templ.go` committed:** Generated files are committed so consumers run no codegen
-- **Coverage gate:** Root ≥90% (actual 93.4%), usermgmt ≥74% (actual 80.9%), identity-model 74.9% (no gate) (CI-enforced)
+- **Coverage gate:** Root ≥90% (actual 93.7%), usermgmt ≥74% (actual 80.9%), identity-model ≥70% (actual 74.9%) (CI-enforced)
 - **Projection lifecycle via projectionhost:** `StartProjections` uses `projectionhost.Host` from go-cqrs-lite — per-projection goroutines, per-projection checkpoint keys (by projection `Name()`), DLQ, crash-restart. Read-your-writes preserved via `waitForDrain`. Returns `(*projectionhost.Host, error)`; all setup structs and `Service` hold it and stop it on `Close()`. ADR-0031 (Superseded). Shared `startProjectionHost` factory used by both `StartProjections` and `RebuildProjection`.
 - **Event catalog (Published Language):** `cqrshtmx.EventCatalog` + `EventCatalogHandler` serve event schemas as immutable JSON (1-year cache, FNV-1a ETag). `usermgmt.DefaultEventCatalog()` pre-registers all 21 events. `EventCatalog()` method on both `EventSourcedSetup` and `Service`.
 - **Projection health monitoring:** `cqrshtmx.ProjectionStatusHandler(provider)` serves live projection status as JSON (`no-cache`, per-request ETag). `ProjectionStatusProvider` interface implemented by `*usermgmt.Service` and `*usermgmt.EventSourcedSetup`. See `docs/guides/projection-health-monitoring.md`.
