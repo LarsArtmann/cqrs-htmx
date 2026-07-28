@@ -60,7 +60,7 @@ Complete rewrite from 244-line prototype to 320-line production code.
 > was unnecessary; consumers use the `<script data-sync-worker-url>` attribute instead. The
 > `With` variants (`SyncWorkerHandlerWith`/`SyncClientHandlerWith`) shipped later. See FEATURES.md
 > "Offline Sync" row for the current API surface.
-| `sync_serve_test.go`  | 8 tests: serve JS, 304-on-ETag, reject POST, version, script tags                                               |
+> | `sync_serve_test.go` | 8 tests: serve JS, 304-on-ETag, reject POST, version, script tags |
 
 **New root module API (follows `HTMXScriptHandler` pattern):**
 

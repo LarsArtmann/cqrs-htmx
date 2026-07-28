@@ -95,11 +95,11 @@ usermgmt/totp/v5             ← (unchanged: auth strategy sub-module)
 
 _These emerged from the CQRS dashboard design brainstorm (`docs/brainstorming/2026-07-23_cqrs-dashboard-design.html`) and have not been refined into actionable tasks. They are candidates for future development if consumer demand emerges._
 
-| Idea | What | Effort |
-| ---- | ---- | ------ |
-| Composite readiness checker | `cqrshtmx.ReadinessHandler()` — combines `HealthHandler` + projection lag + DLQ depth into a single `/readyz` endpoint for load-balancer probes that should fail when projections are behind | ~50 LOC |
-| CQRS admin CLI (`cqrs-admin`) | `cqrs-admin events list`, `projections reset`, `dlq replay`, `aggregates list` — a command-line tool for operational CQRS/ES tasks without a running dashboard | Medium |
-| JSON debug endpoint | `GET /debug/cqrs` returning structured debug info (registered commands/queries, projection states, event counts) from `Bundle.DebugStructured()` | ~30 LOC |
+| Idea                          | What                                                                                                                                                                                         | Effort  |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Composite readiness checker   | `cqrshtmx.ReadinessHandler()` — combines `HealthHandler` + projection lag + DLQ depth into a single `/readyz` endpoint for load-balancer probes that should fail when projections are behind | ~50 LOC |
+| CQRS admin CLI (`cqrs-admin`) | `cqrs-admin events list`, `projections reset`, `dlq replay`, `aggregates list` — a command-line tool for operational CQRS/ES tasks without a running dashboard                               | Medium  |
+| JSON debug endpoint           | `GET /debug/cqrs` returning structured debug info (registered commands/queries, projection states, event counts) from `Bundle.DebugStructured()`                                             | ~30 LOC |
 
 ---
 
