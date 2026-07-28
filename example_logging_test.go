@@ -26,7 +26,7 @@ func ExampleRequestLogging() {
 	// Output: logged
 }
 
-func ExampleJSONLogFormatter() {
+func ExampleJSONLogFormatter() { //nolint:testableexamples // output contains a non-deterministic timestamp
 	mux := http.NewServeMux()
 
 	logged := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
