@@ -17,7 +17,6 @@
 ## P1 — High Impact (recurring across 3+ sessions)
 
 - [ ] **Add identity-model coverage-gate threshold to `flake.nix`.** identity-model is the ONLY module without a coverage gate (`nix run .#coverage-gate` checks 8 modules; identity-model absent). Coverage is now 74.9% (verified). Add `check_cov identity-model 70` (or similar) to the `coverage-gate` app. One-line flake.nix edit. Flagged as open in 5+ status reports since 2026-07-23. Evidence: `flake.nix` coverage-gate app (lines ~330-350) lists 8 modules, identity-model not among them.
-- [ ] **CONTRIBUTING.md stale version references.** Lines 224-232 show `v4.5.0` for root/usermgmt/auth/adminui/loginpage and `v4.0.0` for dashboardui — all stale (current: `v4.6.1`, dashboardui `v4.1.1`, identity-model `v4.1.1`). Also the "go-cqrs-lite v4.0.0 publishing bug" section (line 276) should note the go.work local replaces are still required (see AGENTS.md gotcha). ~15 min.
 
 ---
 

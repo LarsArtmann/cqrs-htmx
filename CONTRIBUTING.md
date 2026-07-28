@@ -273,9 +273,9 @@ git tag dashboardui/v4.X.Y
 3. Verify `go get github.com/larsartmann/cqrs-htmx/v4@v4.X.Y` resolves from the Go proxy.
 4. Check that pkg.go.dev picks up the new version (may take a few minutes).
 
-### go-cqrs-lite v4.0.0 publishing bug
+### go-cqrs-lite publishing bug (ongoing)
 
-Due to a publishing bug in `go-cqrs-lite` v4.0.0, consumers must `go get` all transitive go-cqrs-lite modules manually after upgrading. The go.mod files reference internal siblings with zero pseudo-versions (`v4.0.0-00010101000000-000000000000`). Consumers should run:
+Due to a publishing bug in `go-cqrs-lite`, 13 of ~40 submodule tags still carry broken zero pseudo-versions. The `go.work` local replaces (pointing to `/home/lars/projects/go-cqrs-lite/*`) are **still required** for development — see AGENTS.md gotchas. Consumers must `go get` all transitive go-cqrs-lite modules manually after upgrading. The go.mod files reference internal siblings with zero pseudo-versions (`v4.0.0-00010101000000-000000000000`). Consumers should run:
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/command/v4@v4.0.0

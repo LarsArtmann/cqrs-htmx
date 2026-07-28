@@ -376,10 +376,10 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Metric        | Root  | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | integration_test |
 | ------------- | ----- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | ---------------- |
-| Coverage      | 93.5% | 80.9%    | ~41%           | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | low         | —                |
-| CI gate       | 90%   | 74%      | (not set)      | 80%   | 80%      | 80%    | 66%     | 80%       | (not set)   | —                |
-| Tests passing | ~250  | ~580     | ~40            | 3     | 18       | 18     | 35      | 30+       | 16          | ~20              |
-| Lint issues   | ~610  | ~330     | 0              | 0     | 0        | 0      | 0       | 0         | ~150        | 0                |
+| Coverage      | 93.4% | 80.9%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | 55% (gate)  | —                |
+| CI gate       | 90%   | 74%      | (not set)      | 80%   | 80%      | 80%    | 66%     | 79%       | 55%         | —                |
+| Tests passing | ~160  | ~602     | ~109           | 3     | 16       | 21     | ~75     | ~36       | 29          | ~29              |
+| Lint issues   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
 | ErrorFamily   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
 | Go modules    | 1     | 1        | 1              | 1     | 1        | 1      | 1       | 1         | 1           | 1                |
 
