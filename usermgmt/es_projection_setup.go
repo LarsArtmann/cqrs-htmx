@@ -165,7 +165,7 @@ func waitForDrain(host *projectionhost.Host) error {
 			statuses := host.Status()
 			allDone := true
 			for _, s := range statuses {
-				switch s.Status { //nolint:exhaustive // default handles all non-terminal statuses
+				switch s.Status {
 				case projectionhost.WorkerLive, projectionhost.WorkerStopped:
 					// Worker has completed drain and registered live handler.
 				case projectionhost.WorkerFailed:
@@ -173,9 +173,9 @@ func waitForDrain(host *projectionhost.Host) error {
 						"usermgmt.projection.worker_failed",
 						fmt.Sprintf("projection %q failed during initial drain: %s", s.Name, s.LastError),
 					)
-				default:
-					// WorkerIdle, WorkerRunning, WorkerBackoff, WorkerDraining:
-					// still working or hasn't started yet.
+				case projectionhost.WorkerIdle, projectionhost.WorkerRunning,
+					projectionhost.WorkerBackoff, projectionhost.WorkerDraining:
+					// Still working or hasn't started yet.
 					allDone = false
 				}
 			}
