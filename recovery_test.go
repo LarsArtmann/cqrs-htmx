@@ -121,5 +121,60 @@ var _ = Describe("Recovery Middleware", func() {
 				handler.ServeHTTP(w, r)
 			}).To(Panic())
 		})
+
+		It("echoes request_id when ContextEnrichmentMiddleware ran downstream", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:                 disp,
+				IncludeRequestIDInErrors: true,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			panicHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+				panic("boom")
+			})
+			// Simulate the documented stack order: Recovery wraps
+			// ContextEnrichment wraps the handler. ContextEnrichment generates
+			// the RequestID and writes it to the X-Request-ID response header,
+			// but Recovery's captured request is the pre-enrichment original.
+			handler := app.RecoverHandler()(
+				cqrshtmx.ContextEnrichmentMiddleware(nil)(panicHandler),
+			)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusInternalServerError))
+			ridHeader := w.Header().Get("X-Request-ID")
+			Expect(ridHeader).NotTo(BeEmpty())
+			// The panic response body echoes the same RequestID.
+			Expect(w.Body.String()).To(ContainSubstring("[request_id: " + ridHeader + "]"))
+			// Panic detail is still redacted.
+			Expect(w.Body.String()).NotTo(ContainSubstring("boom"))
+		})
+
+		It("omits request_id when no ContextEnrichmentMiddleware in stack", func() {
+			disp := command.NewDispatcher()
+			_ = disp.Register("CreateUser", noOpCommandHandler)
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Commands:                 disp,
+				IncludeRequestIDInErrors: true,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			panicHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+				panic("boom")
+			})
+			handler := app.RecoverHandler()(panicHandler)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(w.Code).To(Equal(http.StatusInternalServerError))
+			Expect(w.Body.String()).NotTo(ContainSubstring("request_id"))
+		})
 	})
 })
