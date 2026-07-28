@@ -113,7 +113,7 @@ var _ = Describe("WebSocket Protocol Helpers", func() {
 	Describe("ParseWSMessageInto", func() {
 		type chatMsg struct {
 			Room    string `json:"room"`
-			Message string `json:"chat_message"`
+			Message string `json:"chat_message"` //nolint:tagliatelle // simulates a snake_case external API
 		}
 
 		It("parses into typed struct with headers", func() {

@@ -20,7 +20,9 @@ const DefaultMaxBodySize int64 = 10 << 20
 // decodeJSONBody decodes JSON from request body into type T.
 // If maxBodySize > 0, bodies larger than maxBodySize are rejected with ErrRequestTooLarge.
 // An empty body (e.g. GET request with no body) is treated as a zero-value T, not an error.
-func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
+func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (T, error) {
+	var out T
+
 	body, readErr := readBody(r, maxBodySize)
 	if readErr != nil {
 		return out, errorfamily.Wrapf(readErr, event.Rejection,
@@ -84,7 +86,9 @@ func decodeRequest[T, R any](
 
 // decodeFormBody parses form data and decodes into type T.
 // If maxBodySize > 0, bodies larger than maxBodySize are rejected with ErrRequestTooLarge.
-func decodeFormBody[T any](r *http.Request, maxBodySize int64) (out T, err error) {
+func decodeFormBody[T any](r *http.Request, maxBodySize int64) (T, error) {
+	var out T
+
 	body, readErr := readBody(r, maxBodySize)
 	if readErr != nil {
 		return out, errorfamily.Wrapf(readErr, event.Rejection,

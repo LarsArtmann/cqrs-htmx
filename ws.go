@@ -143,7 +143,8 @@ func WSOOBHTML(id, html string, swapStrategy ...SwapStrategy) string {
 //	msg, headers, err := cqrshtmx.ParseWSMessageInto[ChatMessage](data)
 //	// msg.Room, msg.Message are typed fields
 //	// headers contains HTMX headers
-func ParseWSMessageInto[T any](data []byte) (msg T, headers map[string]string, err error) {
+func ParseWSMessageInto[T any](data []byte) (T, map[string]string, error) {
+	var msg T
 	// Decode body fields directly into T. The HEADERS key is ignored by
 	// json.Unmarshal if T has no matching field (the common case).
 	if unmarshalErr := json.Unmarshal(data, &msg); unmarshalErr != nil {
@@ -157,10 +158,10 @@ func ParseWSMessageInto[T any](data []byte) (msg T, headers map[string]string, e
 
 	// Extract HEADERS separately using a lightweight wrapper struct.
 	// This avoids the marshal→unmarshal round-trip of the previous approach.
-	headers = make(map[string]string)
+	headers := make(map[string]string)
 
 	var wrapper struct {
-		HEADERS jsontext.Value `json:"HEADERS"`
+		HEADERS jsontext.Value `json:"HEADERS"` //nolint:tagliatelle // matches the WS wire protocol field name
 	}
 	if json.Unmarshal(data, &wrapper) == nil && len(wrapper.HEADERS) > 0 {
 		headers = parseWSHeaders(wrapper.HEADERS)

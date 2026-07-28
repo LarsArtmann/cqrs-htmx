@@ -68,7 +68,7 @@ var _ = Describe("Lifecycle Hooks", func() {
 	})
 
 	Describe("AfterDispatch", func() {
-		trackAfterDispatch := func() (called *bool, capturedErr *error, hook func(context.Context, *http.Request, error)) {
+		trackAfterDispatch := func() (called *bool, capturedErr *error, hook func(context.Context, *http.Request, error)) { //nolint:nonamedreturns // documents the closure's three return values
 			var (
 				c bool
 				e error
