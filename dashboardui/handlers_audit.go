@@ -12,7 +12,7 @@ import (
 
 // ===== Command/Query Audit =====
 
-//nolint:dupl,nestif // parallel cmd/query
+//nolint:dupl // parallel cmd/query
 func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Commands", "/commands", r)
 
@@ -81,7 +81,8 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand)
 	})
 }
 
-func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) { //nolint:dupl,nestif // parallel cmd/query
+//nolint:dupl // parallel cmd/query
+func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Queries", "/queries", r)
 
 	var queries []*query.PersistedQuery
