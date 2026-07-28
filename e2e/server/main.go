@@ -12,7 +12,7 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"flag"
 	"fmt"
 	"html"
@@ -26,6 +26,7 @@ import (
 
 func main() {
 	addr := flag.String("addr", ":18923", "listen address")
+
 	flag.Parse()
 
 	store := &itemStore{}
@@ -58,6 +59,7 @@ func main() {
 	})
 
 	log.Printf("sync-e2e server listening on %s", *addr)
+
 	if err := http.ListenAndServe(*addr, mux); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
@@ -68,8 +70,10 @@ func main() {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
+
 		return
 	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, _ = w.Write([]byte(indexHTML))
 }
@@ -86,11 +90,13 @@ const indexHTML = `<!DOCTYPE html>
   <div id="sync-indicator" data-sync-status="idle">Synced</div>
   <main>
     <h1>Items</h1>
-    <form id="add-form" hx-post="/api/items" hx-target="#item-list" hx-swap="beforeend">
-      <input type="text" name="name" placeholder="Item name" required autocomplete="off">
-      <button type="submit">Add</button>
-    </form>
-    <ul id="item-list"></ul>
+    <div data-sync-target>
+      <form id="add-form" hx-post="/api/items" hx-target="#item-list" hx-swap="beforeend">
+        <input type="text" name="name" placeholder="Item name" required autocomplete="off">
+        <button type="submit">Add</button>
+      </form>
+      <ul id="item-list"></ul>
+    </div>
   </main>
   <script src="/sync-client.js"></script>
 </body>
@@ -118,6 +124,7 @@ func sseHandler(bc *cqrshtmx.Broadcaster) http.HandlerFunc {
 				if !ok {
 					return
 				}
+
 				if err := stream.Send(evt); err != nil {
 					return
 				}
@@ -132,11 +139,14 @@ func itemsPostHandler(store *itemStore, ackHook cqrshtmx.AfterDispatchHook) http
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, "bad form", http.StatusBadRequest)
+
 			return
 		}
+
 		name := strings.TrimSpace(r.FormValue("name"))
 		if name == "" {
 			http.Error(w, "name required", http.StatusBadRequest)
+
 			return
 		}
 
@@ -157,8 +167,9 @@ func itemsPostHandler(store *itemStore, ackHook cqrshtmx.AfterDispatchHook) http
 func itemsDebugHandler(store *itemStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		items := store.list()
+
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(items)
+		_ = json.MarshalWrite(w, items)
 	}
 }
 
@@ -172,13 +183,16 @@ type itemStore struct {
 func (s *itemStore) add(name string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	s.items = append(s.items, name)
 }
 
 func (s *itemStore) list() []string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	out := make([]string, len(s.items))
 	copy(out, s.items)
+
 	return out
 }
