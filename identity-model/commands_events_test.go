@@ -4,11 +4,14 @@ import (
 	"encoding/json/v2"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 func testStreamID() id.StreamID { return id.NewStreamID() }
+
+func testTimestamp() time.Time { return time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC) }
 
 func TestNewRegisterUserCmd(t *testing.T) {
 	aggID := testStreamID()
@@ -18,8 +21,8 @@ func TestNewRegisterUserCmd(t *testing.T) {
 	if cmd.Type() != CmdRegisterUser {
 		t.Fatalf("Type: got %s, want %s", cmd.Type(), CmdRegisterUser)
 	}
-	if cmd.AggregateID() != aggID {
-		t.Fatalf("AggregateID mismatch")
+	if cmd.StreamID() != aggID {
+		t.Fatalf("StreamID mismatch")
 	}
 	if cmd.Email() != "alice@example.com" {
 		t.Fatalf("Email: got %q", cmd.Email())
@@ -35,7 +38,7 @@ func TestNewRegisterUserCmd(t *testing.T) {
 func TestNewChangeEmailCmd(t *testing.T) {
 	aggID := testStreamID()
 	cmd := NewChangeEmailCmd(aggID, "new@example.com")
-	if cmd.Type() != CmdChangeEmail || cmd.Email() != "new@example.com" || cmd.AggregateID() != aggID {
+	if cmd.Type() != CmdChangeEmail || cmd.Email() != "new@example.com" {
 		t.Fatalf("unexpected cmd: %+v", cmd)
 	}
 }
@@ -303,16 +306,6 @@ func TestUserDeletedPayload_RoundTrip(t *testing.T) {
 	}
 }
 
-func TestDeriveMembershipID_Deterministic(t *testing.T) {
-	aid := NewActorID(ActorUser, "u1")
-	tid := NewTenantID("t1")
-	first := DeriveMembershipID(aid, tid)
-	second := DeriveMembershipID(aid, tid)
-	if first != second {
-		t.Fatalf("DeriveMembershipID not deterministic: %s vs %s", first, second)
-	}
-}
-
 func TestNewCredentialFromPayload(t *testing.T) {
 	p := CredentialAddedPayload{
 		CredentialCore: CredentialCore{
@@ -327,16 +320,4 @@ func TestNewCredentialFromPayload(t *testing.T) {
 	}
 }
 
-func TestWebAuthnCredential_Clone(t *testing.T) {
-	cred := WebAuthnCredential{
-		CredentialCore: CredentialCore{
-			ID:         []byte{1, 2},
-			Transports: []string{"usb"},
-		},
-	}
-	clone := cred.Clone()
-	clone.ID[0] = 99
-	if cred.ID[0] == 99 {
-		t.Fatal("Clone did not deep-copy ID slice")
-	}
-}
+

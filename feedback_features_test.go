@@ -95,7 +95,7 @@ var _ = Describe("Feedback-driven features", func() {
 				cqrshtmx.DecodeJSONWithRequest(func(r *http.Request, _ testCreateUserRequest) (command.Command, error) {
 					capturedHeader = r.Header.Get("X-Custom-Auth")
 
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 			)
 
@@ -129,7 +129,7 @@ var _ = Describe("Feedback-driven features", func() {
 						capturedHeader = r.Header.Get("X-Custom-Auth")
 						capturedEmail = body.Email
 
-						return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+						return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 					},
 				),
 			)
@@ -234,7 +234,7 @@ var _ = Describe("Feedback-driven features", func() {
 
 			handler := app.Command("CreateUser",
 				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 				cqrshtmx.RequestGuard(func(_ *http.Request, _ any) error {
 					return cqrshtmx.ErrForbidden
@@ -258,7 +258,7 @@ var _ = Describe("Feedback-driven features", func() {
 
 			handler := app.Command("CreateUser",
 				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 				cqrshtmx.RequestGuard(func(_ *http.Request, _ any) error {
 					return nil
@@ -318,7 +318,7 @@ var _ = Describe("Feedback-driven features", func() {
 
 			handler := app.Command("CreateUser",
 				cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-					return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 			)
 

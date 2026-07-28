@@ -40,7 +40,7 @@ func newTestGetUserNameQuery() *testGetUserNameQuery {
 
 func decodeCreateUserJSON() cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
-		return &testCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+		return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 	})
 }
 
@@ -50,7 +50,7 @@ func decodeCreateUserJSONWithBody() cqrshtmx.HandlerOption {
 
 func decodeBDDCreateUserJSON() cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSON(func(_ bddCreateUserReq) (command.Command, error) {
-		return &bddCreateUserCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID()}, nil
+		return &bddCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 	})
 }
 
@@ -60,13 +60,13 @@ func decodeGetUserJSONQuery() cqrshtmx.HandlerOption {
 	})
 }
 
-func decodeCreateUserJSONWithAggID(aggID id.AggregateID) cqrshtmx.HandlerOption {
+func decodeCreateUserJSONWithAggID(aggID id.StreamID) cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSON(func(_ testCreateUserRequest) (command.Command, error) {
 		return &testCreateUserCmd{aggID: aggID, cmdID: id.NewCommandID()}, nil
 	})
 }
 
-func decodeCreateUserJSONWithBodyAndAggID(aggID id.AggregateID) cqrshtmx.HandlerOption {
+func decodeCreateUserJSONWithBodyAndAggID(aggID id.StreamID) cqrshtmx.HandlerOption {
 	return cqrshtmx.DecodeJSON(func(req testCreateUserRequest) (command.Command, error) {
 		return &testCreateUserCmd{aggID: aggID, cmdID: id.NewCommandID(), email: req.Email, name: req.Name}, nil
 	})
@@ -76,7 +76,7 @@ func decodeCreateUserJSONWithBodyAndAggID(aggID id.AggregateID) cqrshtmx.Handler
 // Shared by JSON and form decoders; the aggID is fresh on every call.
 func bddCreateUserCommand(req bddCreateUserReq) (command.Command, error) {
 	return &bddCreateUserCmd{
-		aggID: id.NewAggregateID(),
+		aggID: id.NewStreamID(),
 		cmdID: id.NewCommandID(),
 		email: req.Email,
 		name:  req.Name,
@@ -87,7 +87,7 @@ func bddCreateUserCommand(req bddCreateUserReq) (command.Command, error) {
 // for the testCreateUserRequest / testCreateUserCmd pair.
 func testCreateUserCommand(req testCreateUserRequest) (command.Command, error) {
 	return &testCreateUserCmd{
-		aggID: id.NewAggregateID(),
+		aggID: id.NewStreamID(),
 		cmdID: id.NewCommandID(),
 		email: req.Email,
 		name:  req.Name,

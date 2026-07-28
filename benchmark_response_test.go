@@ -90,7 +90,7 @@ type benchmarkCreateUserCmd struct {
 func (c *benchmarkCreateUserCmd) Email() string { return "bench@example.com" }
 
 func newBenchmarkCreateUserCmd() *benchmarkCreateUserCmd {
-	core, err := command.New("CreateUser", id.NewAggregateID())
+	core, err := command.New("CreateUser", id.NewStreamID())
 	if err != nil {
 		panic(err)
 	}
