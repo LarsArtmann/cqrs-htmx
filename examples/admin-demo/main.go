@@ -140,7 +140,7 @@ func main() {
 // tenants so the panel has something to show. Storage is in-memory, so every
 // boot starts fresh and the registrations always succeed.
 func seed(ctx context.Context, svc *usermgmt.Service) string {
-	adminID := usermgmt.NewUserID(adminUserID)
+	adminID := usermgmt.SyntheticUserID(adminUserID)
 	resp, err := svc.Register(ctx, usermgmt.RegisterRequest{
 		ID: adminID, Email: adminEmail, DisplayName: "Demo Admin",
 	})
@@ -158,7 +158,7 @@ func seed(ctx context.Context, svc *usermgmt.Service) string {
 	for _, email := range []string{
 		"alice@acme.dev", "bob@acme.dev", "carol@other.dev", "dave@acme.dev",
 	} {
-		uid := usermgmt.NewUserID("seed-" + email)
+		uid := usermgmt.SyntheticUserID("seed-" + email)
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
 			ID: uid, Email: email, DisplayName: nameOf(email),
 		}); err != nil {
