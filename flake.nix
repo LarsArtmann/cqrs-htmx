@@ -654,6 +654,7 @@
                   fi
                 }
                 check_cov . 90
+                check_cov identity-model 70
                 check_cov usermgmt 74
                 check_cov usermgmt/totp 80
                 check_cov usermgmt/webauthn 80
