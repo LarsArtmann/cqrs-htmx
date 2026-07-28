@@ -23,12 +23,12 @@ const (
 
 // Display truncation widths for IDs shown in the dashboard UI.
 const (
-	titleIDWidth       = 12 // page-title stream/aggregate ID truncation
-	listIDWidth        = 24 // list-row ID truncation
-	eventIDWidth       = 20 // event ID truncation in tables
-	eventTypeWidth     = 30 // event type label truncation
-	snapshotIDWidth    = 16 // snapshot detail streamID truncation
-	errorDisplayWidth  = 60 // error message truncation in DLQ
+	titleIDWidth      = 12 // page-title stream/aggregate ID truncation
+	listIDWidth       = 24 // list-row ID truncation
+	eventIDWidth      = 20 // event ID truncation in tables
+	eventTypeWidth    = 30 // event type label truncation
+	snapshotIDWidth   = 16 // snapshot detail streamID truncation
+	errorDisplayWidth = 60 // error message truncation in DLQ
 )
 
 // recentEventsLimit is how many recent events the overview card shows.

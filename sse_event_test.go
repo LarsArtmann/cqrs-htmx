@@ -263,6 +263,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			})
 
 			_ = stream.Close()
+
 			Expect(called).To(BeTrue())
 		})
 
@@ -279,6 +280,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			stream.OnDisconnect(func() { order = append(order, 3) })
 
 			_ = stream.Close()
+
 			Expect(order).To(Equal([]int{1, 2, 3}))
 		})
 	})
