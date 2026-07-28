@@ -13,7 +13,7 @@ import (
 // --- Command Constructors ---
 
 func NewCreateTodo(title string) (*CreateTodoCmd, error) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	core, err := command.New("CreateTodo", aggID)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func NewCreateTodo(title string) (*CreateTodoCmd, error) {
 // failure with the todo aggregate's error tags. Callers wrap the returned
 // core in their specific *<Name>TodoCmd type.
 func newTodoCore(todoID, name string) (*command.BasicCommand, error) {
-	aggID, err := id.ParseAggregateID(todoID)
+	aggID, err := id.ParseStreamID(todoID)
 	if err != nil {
 		return nil, errorfamily.Wrapf(err, event.Rejection, "todo.invalid_id", "invalid todo ID %q", todoID)
 	}
