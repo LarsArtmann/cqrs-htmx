@@ -12,12 +12,12 @@ import (
 
 // ===== Command/Query Audit =====
 
-func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request) {
+func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request) { //nolint:dupl,nestif // parallel command/query structure; types differ so cannot share
 	p := d.page("Commands", "/commands", r)
 
 	var cmds []*command.PersistedCommand
 
-	if d.cfg.CommandJournal != nil {
+	if d.cfg.CommandJournal != nil { //nolint:nestif // journal-fallback branching is inherently nested
 		var err error
 
 		if seekable, ok := d.cfg.CommandJournal.(command.SeekableCommandJournal); ok {
@@ -49,7 +49,8 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand)
 		var rows strings.Builder
 
 		for _, cmd := range cmds {
-			fmt.Fprintf(&rows, `<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(
+				&rows, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px"><code>%s</code></td>
 				<td style="padding:8px">%s</td>
@@ -79,12 +80,12 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand)
 	})
 }
 
-func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) {
+func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) { //nolint:dupl,nestif // parallel command/query structure; types differ so cannot share
 	p := d.page("Queries", "/queries", r)
 
 	var queries []*query.PersistedQuery
 
-	if d.cfg.QueryJournal != nil {
+	if d.cfg.QueryJournal != nil { //nolint:nestif // journal-fallback branching is inherently nested
 		var err error
 
 		if seekable, ok := d.cfg.QueryJournal.(query.SeekableQueryJournal); ok {
@@ -116,7 +117,8 @@ func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery) s
 		var rows strings.Builder
 
 		for _, q := range queries {
-			fmt.Fprintf(&rows, `<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(
+				&rows, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px"><code>%s</code></td>
 				<td style="padding:8px;font-family:monospace;font-size:0.8em;color:var(--muted)">%s</td>

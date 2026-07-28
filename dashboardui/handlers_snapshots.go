@@ -47,7 +47,8 @@ func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamLi
 		b.WriteString(`</tr></thead><tbody>`)
 
 		for _, l := range listings {
-			fmt.Fprintf(&b, `<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(
+				&b, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px">%s</td>
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 				<td style="padding:8px">%s</td>

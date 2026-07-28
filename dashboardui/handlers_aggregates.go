@@ -55,7 +55,7 @@ func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Reques
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderAggregateDetail(
+func (d *Dashboard) renderAggregateDetail( //nolint:funlen // HTML string building is inherently verbose (no templ dep, see FEATURES.md)
 	p pageData,
 	ref id.StreamRef,
 	events []event.Event,
@@ -105,7 +105,8 @@ func (d *Dashboard) renderAggregateDetail(
 		b.WriteString(`</tr></thead><tbody>`)
 
 		for _, evt := range events {
-			fmt.Fprintf(&b, `<tr style="border-bottom:1px solid var(--border)">
+			fmt.Fprintf(
+				&b, `<tr style="border-bottom:1px solid var(--border)">
 				<td style="padding:8px;font-weight:600">%s</td>
 				<td style="padding:8px">%s</td>
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>

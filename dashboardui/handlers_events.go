@@ -50,7 +50,7 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 // loadEventByID retrieves a single event. Uses EventByIDLoader if available
 // (O(1)), otherwise scans the journal.
-func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) {
+func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) { //nolint:cyclop // journal-fallback branching across optional providers
 	if d.cfg.EventByIDLoader != nil {
 		evt, err := d.cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
 		if err != nil {
@@ -108,7 +108,7 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 		"dashboardui.event_detail.no_source", "no event source available to load event %s", eventID)
 }
 
-func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
+func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string { //nolint:funlen // HTML string building is inherently verbose (no templ dep, see FEATURES.md)
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
