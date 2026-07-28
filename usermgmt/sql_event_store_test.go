@@ -204,13 +204,13 @@ func TestSQLEventStore_EmptyAggregate(t *testing.T) {
 	aggID := id.NewStreamID()
 	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
-	// Upstream storage.SQLEventStore returns ErrAggregateNotFound when Load
+	// Upstream storage.SQLEventStore returns ErrStreamNotFound when Load
 	// finds no events (RequireHit: true). The decider's Repository handles
 	// this by returning its Initial state + version 0, so the CQRS flow
 	// treats it as a new aggregate correctly.
 	_, err := store.Load(ctx, ref)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound for empty aggregate, got %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound for empty aggregate, got %v", err)
 	}
 }
 

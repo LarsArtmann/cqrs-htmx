@@ -383,7 +383,7 @@ func (s *xorTransformStore) Save(
 		for j, b := range payload {
 			xored[j] = b ^ s.key
 		}
-		newEvt, err := event.New(evt.Type(), evt.StreamID(), evt.AggregateType(), evt.Version(), xored)
+		newEvt, err := event.New(evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(), xored)
 		if err != nil {
 			return fmt.Errorf("xor transform: rebuild event: %w", err)
 		}
@@ -406,7 +406,7 @@ func (s *xorTransformStore) Load(
 		for j, b := range payload {
 			unxored[j] = b ^ s.key
 		}
-		newEvt, err := event.New(evt.Type(), evt.StreamID(), evt.AggregateType(), evt.Version(), unxored)
+		newEvt, err := event.New(evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(), unxored)
 		if err != nil {
 			return nil, fmt.Errorf("xor transform: rebuild event on load: %w", err)
 		}

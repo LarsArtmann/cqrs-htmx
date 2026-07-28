@@ -18,7 +18,7 @@ func TestMemorySnapshotStore_SaveLoadDelete(t *testing.T) {
 	store := NewMemorySnapshotStore()
 	ctx := context.Background()
 	aggID, _ := id.ParseStreamID("user-1")
-	ref := id.AggregateRef{Type: "User", ID: aggID}
+	ref := id.StreamRef{Type: "User", ID: aggID}
 
 	// Load on empty store returns (nil, nil) — the "no snapshot" convention.
 	if snap, err := store.Load(ctx, ref); err != nil {
@@ -168,7 +168,7 @@ type countingSnapshotStore struct {
 	saveCalls int
 }
 
-func (c *countingSnapshotStore) Load(ctx context.Context, ref id.AggregateRef) (*snapshot.Snapshot, error) {
+func (c *countingSnapshotStore) Load(ctx context.Context, ref id.StreamRef) (*snapshot.Snapshot, error) {
 	c.mu.Lock()
 	c.loadCalls++
 	c.mu.Unlock()
@@ -196,7 +196,7 @@ type countingEventStore struct {
 	loadsFromVersion int
 }
 
-func (c *countingEventStore) Load(ctx context.Context, ref id.AggregateRef) ([]event.Event, error) {
+func (c *countingEventStore) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
 	c.mu.Lock()
 	c.fullLoads++
 	c.mu.Unlock()
@@ -205,7 +205,7 @@ func (c *countingEventStore) Load(ctx context.Context, ref id.AggregateRef) ([]e
 }
 
 func (c *countingEventStore) LoadFromVersion(
-	ctx context.Context, ref id.AggregateRef, version event.Version,
+	ctx context.Context, ref id.StreamRef, version event.Version,
 ) ([]event.Event, error) {
 	c.mu.Lock()
 	c.loadsFromVersion++
