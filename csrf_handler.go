@@ -30,8 +30,8 @@ func CSRFProtect(cfg CSRFConfig) HandlerOption {
 
 // executeCSRFValidation checks CSRF for per-handler protection (CSRFProtect option).
 // Returns nil if no CSRF config is set on the handler or validation passes.
-func executeCSRFValidation(w http.ResponseWriter, r *http.Request, hc *handlerConfig) error {
-	if hc.csrfConfig == nil {
+func executeCSRFValidation(w http.ResponseWriter, r *http.Request, handlerCfg *handlerConfig) error {
+	if handlerCfg.csrfConfig == nil {
 		return nil
 	}
 
@@ -46,18 +46,18 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, hc *handlerCo
 	})
 
 	handler := nosurf.New(dummy)
-	configureNosurfHandler(handler, *hc.csrfConfig)
+	configureNosurfHandler(handler, *handlerCfg.csrfConfig)
 
 	rec := httptest.NewRecorder()
 
 	// For plain HTTP requests without origin headers, set Sec-Fetch-Site
 	// to allow nosurf to skip origin validation.
-	setPlaintextHTTPOrigin(r, *hc.csrfConfig)
+	setPlaintextHTTPOrigin(r, *handlerCfg.csrfConfig)
 
-	needsTranslation := hc.csrfConfig.headerName() != defaultCSRFHeaderName ||
-		hc.csrfConfig.fieldName() != defaultCSRFFieldName
+	needsTranslation := handlerCfg.csrfConfig.headerName() != defaultCSRFHeaderName ||
+		handlerCfg.csrfConfig.fieldName() != defaultCSRFFieldName
 	if needsTranslation {
-		translateCSRFHeaders(r, *hc.csrfConfig)
+		translateCSRFHeaders(r, *handlerCfg.csrfConfig)
 	}
 
 	handler.ServeHTTP(rec, r)

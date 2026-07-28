@@ -226,6 +226,7 @@ linters:
         - fn
         - t
         - i
+        - j
         - m
         - g
         - a
@@ -241,6 +242,19 @@ linters:
         - mw
         - rw
         - ws
+        # Common single-letter variables clear from type/scope context (page, event,
+        # listing, query, dashboard, store/stream, counter/client).
+        - p
+        - e
+        - l
+        - q
+        - d
+        - s
+        - c
+        # Idiomatic double-letter abbreviations.
+        - sb
+        - id
+        - js
       ignore-type-assert-ok: true
   exclusions:
     generated: lax

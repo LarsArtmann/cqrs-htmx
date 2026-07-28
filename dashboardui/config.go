@@ -249,7 +249,7 @@ type pageData struct {
 // StreamRefFromID constructs an id.StreamRef from type + ID strings.
 // Used by handlers that parse path parameters.
 func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
-	st, err := id.ParseStreamType(streamType)
+	parsedType, err := id.ParseStreamType(streamType)
 	if err != nil {
 		return id.StreamRef{}, errorfamily.WrapRejection(err,
 			"dashboardui.stream_ref.invalid_type", "parse stream type")
@@ -261,7 +261,7 @@ func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
 			"dashboardui.stream_ref.invalid_id", "parse stream ID")
 	}
 
-	return id.NewStreamRef(st, sid), nil
+	return id.NewStreamRef(parsedType, sid), nil
 }
 
 // journalForReplay returns the best available journal for SSE reconnect replay.
