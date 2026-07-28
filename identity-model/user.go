@@ -1,11 +1,8 @@
 package identitymodel
 
 import (
-	"encoding/json/v2"
 	"slices"
 	"time"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // User represents a registered user with authentication credentials.
@@ -62,15 +59,11 @@ func (u *User) HasCredential(credID []byte) bool {
 // MarshalJSON serializes the user with a credential_count field.
 func (u *User) MarshalJSON() ([]byte, error) {
 	type Alias User
-	data, err := json.Marshal(&struct {
+	return marshalJSONOrWrap(&struct {
 		*Alias
 		CredentialCount int `json:"credential_count"`
 	}{
 		Alias:           (*Alias)(u),
 		CredentialCount: len(u.Credentials),
-	})
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.user.marshal_failed", "marshal user")
-	}
-	return data, nil
+	}, "usermgmt.user.marshal_failed", "marshal user")
 }

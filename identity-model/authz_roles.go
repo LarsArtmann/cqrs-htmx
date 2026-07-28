@@ -20,7 +20,7 @@ func (a *Authz) ImplicitRolesForUser(userID UserID, domain TenantID) ([]Role, er
 // with the domain, and converts the raw role strings to Role values.
 func (a *Authz) rolesForUser(
 	userID UserID, domain TenantID,
-	getRoles func(string, string) ([]string, error),
+	getRoles func(string, ...string) ([]string, error),
 ) ([]Role, error) {
 	if a.enforcer == nil {
 		return nil, ErrEnforcerNotInitialized

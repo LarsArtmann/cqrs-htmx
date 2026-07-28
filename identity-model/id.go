@@ -171,12 +171,7 @@ func ParseActorID(s string) ActorID {
 
 // MarshalJSON encodes ActorID as its prefixed string form.
 func (a ActorID) MarshalJSON() ([]byte, error) {
-	data, err := json.Marshal(a.PrefixedString())
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err, "usermgmt.actor_id.marshal", "marshal ActorID")
-	}
-	return data, nil
+	return marshalJSONOrWrap(a.PrefixedString(), "usermgmt.actor_id.marshal", "marshal ActorID")
 }
 
 // UnmarshalJSON decodes ActorID from its prefixed string form.

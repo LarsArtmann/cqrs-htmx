@@ -133,11 +133,18 @@ type BotDeletedPayload struct {
 	Reason        string `json:"reason"`
 }
 
-// MarshalPayload serializes an event payload to JSON.
-func MarshalPayload(v any) ([]byte, error) {
+// marshalJSONOrWrap serializes v with encoding/json and wraps any error as
+// an Infrastructure failure with the caller's error code and human-readable
+// message. Shared by MarshalPayload, ActorID.MarshalJSON, and User.MarshalJSON.
+func marshalJSONOrWrap(v any, errCode, errMsg string) ([]byte, error) {
 	b, err := json.Marshal(v)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.payload.marshal_failed", "marshal payload")
+		return nil, errorfamily.WrapInfrastructure(err, errCode, errMsg)
 	}
 	return b, nil
+}
+
+// MarshalPayload serializes an event payload to JSON.
+func MarshalPayload(v any) ([]byte, error) {
+	return marshalJSONOrWrap(v, "usermgmt.payload.marshal_failed", "marshal payload")
 }
