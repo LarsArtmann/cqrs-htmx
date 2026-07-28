@@ -26,7 +26,7 @@ func TestMutatePolicy_Error(t *testing.T) {
 	p := Policy{Subject: RoleUser, Domain: "tenant1", Object: "resource", Action: ActionRead, Effect: EffectAllow}
 	wantErr := errors.New("casbin boom")
 	err = a.mutatePolicy(p, "add", func(...any) (bool, error) { return false, wantErr })
-	if !errorfamily.IsClass(err, event.Transient) {
+	if errorfamily.Classify(err) != event.Transient {
 		t.Fatalf("expected Transient error, got %v", err)
 	}
 	if err == nil || !errors.Is(err, wantErr) {
@@ -63,7 +63,7 @@ func TestMutateGroupPolicy_Error(t *testing.T) {
 	g := GroupPolicy{Subject: "user1", Role: RoleUser, Domain: "tenant1"}
 	wantErr := errors.New("casbin boom")
 	err = a.mutateGroupPolicy(g, "add", func(...any) (bool, error) { return false, wantErr })
-	if !errorfamily.IsClass(err, event.Transient) {
+	if errorfamily.Classify(err) != event.Transient {
 		t.Fatalf("expected Transient error, got %v", err)
 	}
 	if err == nil || !errors.Is(err, wantErr) {
@@ -98,7 +98,7 @@ func TestGetPolicies_Error(t *testing.T) {
 	}
 	wantErr := errors.New("casbin boom")
 	_, err = a.getPolicies(func() ([][]string, error) { return nil, wantErr }, "get policies")
-	if !errorfamily.IsClass(err, event.Transient) {
+	if errorfamily.Classify(err) != event.Transient {
 		t.Fatalf("expected Transient error, got %v", err)
 	}
 	if err == nil || !errors.Is(err, wantErr) {
@@ -123,7 +123,7 @@ func TestGetPolicies_Success(t *testing.T) {
 func TestRolesForUser_UninitializedEnforcer(t *testing.T) {
 	a := &Authz{}
 	uid := GenerateUserID()
-	tid := GenerateTenantID()
+	tid := NewTenantID("tenant1")
 	_, err := a.rolesForUser(uid, tid, func(string, ...string) ([]string, error) { return nil, nil })
 	if !errors.Is(err, ErrEnforcerNotInitialized) {
 		t.Fatalf("expected ErrEnforcerNotInitialized, got %v", err)
@@ -136,7 +136,7 @@ func TestRolesForUser_ConvertsAndFilters(t *testing.T) {
 		t.Fatalf("NewAuthz: %v", err)
 	}
 	uid := GenerateUserID()
-	tid := GenerateTenantID()
+	tid := NewTenantID("tenant1")
 	roles, err := a.rolesForUser(uid, tid, func(string, ...string) ([]string, error) {
 		return []string{"admin", "viewer", "unknown-role"}, nil
 	})
@@ -163,10 +163,10 @@ func TestRolesForUser_Error(t *testing.T) {
 		t.Fatalf("NewAuthz: %v", err)
 	}
 	uid := GenerateUserID()
-	tid := GenerateTenantID()
+	tid := NewTenantID("tenant1")
 	wantErr := errors.New("casbin boom")
 	_, err = a.rolesForUser(uid, tid, func(string, ...string) ([]string, error) { return nil, wantErr })
-	if !errorfamily.IsClass(err, event.Transient) {
+	if errorfamily.Classify(err) != event.Transient {
 		t.Fatalf("expected Transient error, got %v", err)
 	}
 	if err == nil || !errors.Is(err, wantErr) {
@@ -193,7 +193,7 @@ func TestMarshalJSONOrWrap_Error(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for unmarshalable value")
 	}
-	if !errorfamily.IsClass(err, event.Infrastructure) {
+	if errorfamily.Classify(err) != event.Infrastructure {
 		t.Fatalf("expected Infrastructure error, got %v", err)
 	}
 }
