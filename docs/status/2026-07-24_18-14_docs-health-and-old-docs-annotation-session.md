@@ -193,15 +193,15 @@ In restructuring the CHANGELOG, I condensed several entries significantly. For e
 
 ### P0 — Critical (blocks consumers)
 
-1. Fix `examples/dashboard-demo/go.mod` zero pseudo-version for dashboardui
-2. Fix inter-module version refs: usermgmt/adminui/loginpage → root `v4.5.0`
-3. Fix identity-model pseudo-version in usermgmt → `v4.1.0`
-4. Fix `batch-release.sh` to re-resolve requires after stripping replaces
-5. Re-tag v4.5.0 after version ref fixes (or cut v4.5.1)
-6. Push tags to remote
+1. ~~Fix `examples/dashboard-demo/go.mod` zero pseudo-version for dashboardui~~ DONE: e274540;
+2. ~~Fix inter-module version refs: usermgmt/adminui/loginpage → root `v4.5.0`~~ DONE: e274540;
+3. ~~Fix identity-model pseudo-version in usermgmt → `v4.1.0`~~ DONE: e274540;
+4. ~~Fix `batch-release.sh` to re-resolve requires after stripping replaces~~ DONE: e274540;
+5. ~~Re-tag v4.5.0 after version ref fixes (or cut v4.5.1)~~ DONE: v4.6.0 + v4.6.1 tagged and pushed;
+6. ~~Push tags to remote~~ DONE: v4.6.0 + v4.6.1;
 7. Create GitHub Releases for all 9 module tags
-8. Delete `examples/dashboard-demo/dashboard-demo` binary from git (12.6 MB)
-9. Add `examples/dashboard-demo/dashboard-demo` to `.gitignore`
+8. ~~Delete `examples/dashboard-demo/dashboard-demo` binary from git (12.6 MB)~~ DONE: f25599a;
+9. ~~Add `examples/dashboard-demo/dashboard-demo` to `.gitignore`~~ DONE: f25599a;
 
 ### P1 — High impact
 
