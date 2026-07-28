@@ -12,16 +12,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
-	defaultBasePath            = "/dashboard"
-	defaultTitle               = "CQRS Dashboard"
-	defaultAccentColor         = "#4f46e5"
-	defaultPageSize            = 50
-	maxPageSize                = 200
+	defaultBasePath             = "/dashboard"
+	defaultTitle                = "CQRS Dashboard"
+	defaultAccentColor          = "#4f46e5"
+	defaultPageSize             = 50
+	maxPageSize                 = 200
 	defaultSSEHeartbeatInterval = 15 * time.Second
 )
 
