@@ -15,7 +15,7 @@ import (
 func TestScenario_RegisterUser_New(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewRegisterUserCmd(aggID, "user@test.com", "Test User", []Role{"admin"})
 
 	// Adapter: scenario.DecideFunc is (state, cmd) → events.
@@ -37,7 +37,7 @@ func TestScenario_RegisterUser_New(t *testing.T) {
 func TestScenario_RegisterUser_AlreadyExists(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewRegisterUserCmd(aggID, "user@test.com", "Test User", nil)
 
 	existing, err := event.NewEvent(
@@ -68,7 +68,7 @@ func TestScenario_RegisterUser_AlreadyExists(t *testing.T) {
 func TestScenario_ChangeEmail_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewChangeEmailCmd(aggID, "new@test.com")
 
 	registered, err := event.NewEvent(

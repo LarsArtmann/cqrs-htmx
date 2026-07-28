@@ -11,7 +11,7 @@ type (
 )
 
 func NewRegisterBotCmd(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	name string,
 	ownerID UserID,
 	tokenHash []byte,
@@ -20,6 +20,6 @@ func NewRegisterBotCmd(
 	return identitymodel.NewRegisterBotCmd(aggID, name, ownerID, tokenHash, scopes)
 }
 
-func NewDeleteBotCmd(aggID id.AggregateID, reason string) *DeleteBotCmd {
+func NewDeleteBotCmd(aggID id.StreamID, reason string) *DeleteBotCmd {
 	return identitymodel.NewDeleteBotCmd(aggID, reason)
 }

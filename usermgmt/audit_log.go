@@ -16,7 +16,7 @@ import (
 // with other string-typed identifiers. Both serialize as JSON strings.
 type AuditEntry struct {
 	EventType   event.Type     `json:"event_type"`
-	AggregateID id.AggregateID `json:"aggregate_id"`
+	AggregateID id.StreamID `json:"aggregate_id"`
 	OccurredAt  time.Time      `json:"occurred_at"`
 	UserID      UserID         `json:"user_id,omitzero"`
 	Email       string         `json:"email,omitempty"`
@@ -109,8 +109,8 @@ func (a *AuditLog) Entries() []AuditEntry {
 }
 
 // EntriesFor returns audit entries for a specific user (by aggregate ID).
-// Use id.ParseAggregateID(user.ID.Get()) to convert a usermgmt.UserID.
-func (a *AuditLog) EntriesFor(aggregateID id.AggregateID) []AuditEntry {
+// Use id.ParseStreamID(user.ID.Get()) to convert a usermgmt.UserID.
+func (a *AuditLog) EntriesFor(aggregateID id.StreamID) []AuditEntry {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	var result []AuditEntry

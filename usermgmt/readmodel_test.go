@@ -30,7 +30,7 @@ func TestUserReadModel_AllUsers(t *testing.T) {
 
 	// Mutating returned users must not affect the read model.
 	all[0].Email = "mutated@test.com"
-	aggID, err := id.ParseAggregateID(reg1.User.ID.Get().String())
+	aggID, err := id.ParseStreamID(reg1.User.ID.Get().String())
 	if err != nil {
 		t.Fatalf("parse aggregate id: %v", err)
 	}
@@ -46,8 +46,8 @@ func TestUserReadModel_AllUsers(t *testing.T) {
 func TestUserReadModel_AllUsersSorted(t *testing.T) {
 	m := NewUserReadModel()
 	now := nowUTC()
-	m.users[id.NewAggregateID()] = &User{ID: NewUserID("z"), CreatedAt: now}
-	m.users[id.NewAggregateID()] = &User{ID: NewUserID("a"), CreatedAt: now.Add(-1)}
+	m.users[id.NewStreamID()] = &User{ID: NewUserID("z"), CreatedAt: now}
+	m.users[id.NewStreamID()] = &User{ID: NewUserID("a"), CreatedAt: now.Add(-1)}
 
 	all := m.AllUsers()
 	if len(all) != 2 {

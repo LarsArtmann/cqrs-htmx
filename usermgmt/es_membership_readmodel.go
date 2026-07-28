@@ -15,8 +15,8 @@ import (
 // actor ID for "what tenants is this actor a member of?" queries.
 type MembershipReadModel struct {
 	readModelCore[*MembershipReadModel]
-	memberships map[id.AggregateID]*Membership
-	byActor     map[string][]id.AggregateID
+	memberships map[id.StreamID]*Membership
+	byActor     map[string][]id.StreamID
 }
 
 // NewMembershipReadModel creates an empty MembershipReadModel.
@@ -29,8 +29,8 @@ func NewMembershipReadModel() *MembershipReadModel {
 				eventMemberRemoved:      (*MembershipReadModel).handleMemberRemoved,
 			},
 		},
-		memberships: make(map[id.AggregateID]*Membership),
-		byActor:     make(map[string][]id.AggregateID),
+		memberships: make(map[id.StreamID]*Membership),
+		byActor:     make(map[string][]id.StreamID),
 	}
 }
 
@@ -42,7 +42,7 @@ func (m *MembershipReadModel) Handle(_ context.Context, evt event.Event) error {
 	return m.handleEvent(m, evt)
 }
 
-func (m *MembershipReadModel) handleMemberRolesChanged(aggID id.AggregateID, evt event.Event) error {
+func (m *MembershipReadModel) handleMemberRolesChanged(aggID id.StreamID, evt event.Event) error {
 	p, err := unmarshalPayload[MemberRolesChangedPayload](evt)
 	if err != nil {
 		return errorfamily.WrapCorruption(
@@ -61,12 +61,12 @@ func (m *MembershipReadModel) handleMemberRolesChanged(aggID id.AggregateID, evt
 	return nil
 }
 
-func (m *MembershipReadModel) handleMemberRemoved(aggID id.AggregateID, _ event.Event) error {
+func (m *MembershipReadModel) handleMemberRemoved(aggID id.StreamID, _ event.Event) error {
 	m.removeMembership(aggID)
 	return nil
 }
 
-func (m *MembershipReadModel) applyMemberAdded(aggID id.AggregateID, evt event.Event) error {
+func (m *MembershipReadModel) applyMemberAdded(aggID id.StreamID, evt event.Event) error {
 	p, err := unmarshalPayload[MemberAddedPayload](evt)
 	if err != nil {
 		return errorfamily.WrapCorruption(
@@ -96,7 +96,7 @@ func (m *MembershipReadModel) applyMemberAdded(aggID id.AggregateID, evt event.E
 }
 
 // FindByAggregateID returns the membership for the given aggregate ID.
-func (m *MembershipReadModel) FindByAggregateID(aggID id.AggregateID) (*Membership, bool) {
+func (m *MembershipReadModel) FindByAggregateID(aggID id.StreamID) (*Membership, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	mem, ok := m.memberships[aggID]
@@ -130,7 +130,7 @@ func (m *MembershipReadModel) FindByTenant(tenantID string) []*Membership {
 	return result
 }
 
-func removeAggID(slice []id.AggregateID, target id.AggregateID) []id.AggregateID {
+func removeAggID(slice []id.StreamID, target id.StreamID) []id.StreamID {
 	for i, v := range slice {
 		if v == target {
 			return append(slice[:i], slice[i+1:]...)
@@ -140,7 +140,7 @@ func removeAggID(slice []id.AggregateID, target id.AggregateID) []id.AggregateID
 }
 
 // removeMembership removes a membership from both indexes.
-func (m *MembershipReadModel) removeMembership(aggID id.AggregateID) {
+func (m *MembershipReadModel) removeMembership(aggID id.StreamID) {
 	mem, ok := m.memberships[aggID]
 	if !ok {
 		return

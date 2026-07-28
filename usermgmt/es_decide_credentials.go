@@ -9,7 +9,7 @@ import (
 )
 
 func decideAddCredential(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	cred WebAuthnCredential,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
@@ -63,7 +63,7 @@ func decideAddCredential(
 }
 
 func decideRemoveCredential(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	credentialID []byte,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {

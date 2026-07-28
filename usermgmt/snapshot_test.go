@@ -17,7 +17,7 @@ func TestMemorySnapshotStore_SaveLoadDelete(t *testing.T) {
 
 	store := NewMemorySnapshotStore()
 	ctx := context.Background()
-	aggID, _ := id.ParseAggregateID("user-1")
+	aggID, _ := id.ParseStreamID("user-1")
 	ref := id.AggregateRef{Type: "User", ID: aggID}
 
 	// Load on empty store returns (nil, nil) — the "no snapshot" convention.

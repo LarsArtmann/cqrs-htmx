@@ -17,7 +17,7 @@ import (
 func TestAllCommandsHaveNonZeroID(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	userID := NewUserID("01JXTESTUSERID00000000")
 	actorID := ActorIDFromUser(userID)
 	tenantID := NewTenantID("01JXTESTTENANTID00000000")
@@ -73,7 +73,7 @@ func TestAllCommandsHaveNonZeroID(t *testing.T) {
 func TestCommandIDsAreUnique(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd1 := NewChangeEmailCmd(aggID, "a@test.com")
 	cmd2 := NewChangeEmailCmd(aggID, "b@test.com")
 
@@ -89,7 +89,7 @@ func TestCommandIDsAreUnique(t *testing.T) {
 func TestAllCommandsProduceDifferentIDs(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	userID := NewUserID("01JXTESTUSERID00000000")
 	actorID := ActorIDFromUser(userID)
 	tenantID := NewTenantID("01JXTESTTENANTID00000000")
@@ -154,7 +154,7 @@ func TestMustCommand_PanicsOnZeroAggregateID(t *testing.T) {
 		}
 	}()
 
-	_ = mustCommand(cmdRegisterUser, id.AggregateID{})
+	_ = mustCommand(cmdRegisterUser, id.StreamID{})
 }
 
 // TestMustCommand_PanicsOnEmptyCommandType verifies that mustCommand panics
@@ -170,5 +170,5 @@ func TestMustCommand_PanicsOnEmptyCommandType(t *testing.T) {
 		}
 	}()
 
-	_ = mustCommand("", id.NewAggregateID())
+	_ = mustCommand("", id.NewStreamID())
 }

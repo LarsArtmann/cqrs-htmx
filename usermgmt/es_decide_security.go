@@ -7,7 +7,7 @@ import (
 )
 
 func decideEnableTOTP(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	secret []byte,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
@@ -48,7 +48,7 @@ func decideEnableTOTP(
 }
 
 func decideDisableTOTP(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
 		if err := requireExists(state, "disable_totp"); err != nil {

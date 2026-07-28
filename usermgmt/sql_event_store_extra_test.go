@@ -13,7 +13,7 @@ import (
 func TestSQLEventStore_LoadToTimestamp(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := id.StreamRef{ID: aggID, Type: aggregateTypeUser}
 
 	p1, _ := marshalPayload(UserRegisteredPayload{Email: "ts@test.com"})
@@ -56,7 +56,7 @@ func TestSQLEventStore_LoadToTimestamp(t *testing.T) {
 func TestSQLEventStore_EmptyInputsAreNoOps(t *testing.T) {
 	store := newTestSQLiteStore(t)
 	ctx := context.Background()
-	ref := id.StreamRef{ID: id.NewAggregateID(), Type: aggregateTypeUser}
+	ref := id.StreamRef{ID: id.NewStreamID(), Type: aggregateTypeUser}
 
 	if err := store.Save(ctx, ref, nil, 0); err != nil {
 		t.Fatalf("Save(nil) should be a no-op, got: %v", err)

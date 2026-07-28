@@ -85,7 +85,7 @@ func TestDefaultEventSourcedSetup_Success(t *testing.T) {
 
 func TestEmailFromEvent_UserNotFound(t *testing.T) {
 	svc := newTestService(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent(eventUserRegistered, aggID, aggregateTypeUser, 1,
 		mustMarshal(t, UserRegisteredPayload{
 			Email: "ghost@test.com",
@@ -259,7 +259,7 @@ func TestRegisterCommands_AllWired(t *testing.T) {
 	}
 
 	// Dispatch a RegisterUser command to verify wiring works end-to-end
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	err = disp.Dispatch(context.Background(), NewRegisterUserCmd(aggID, "wire@test.com", "Wire", []Role{RoleUser}))
 	if err != nil {
 		t.Fatalf("dispatch RegisterUser: %v", err)

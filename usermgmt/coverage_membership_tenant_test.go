@@ -301,7 +301,7 @@ func TestTenantState_IsValid(t *testing.T) {
 // TestTenantState_FoldDeleteClearsSuspended verifies the fold invariant:
 // deleting a suspended tenant clears the Suspended flag.
 func TestTenantState_FoldDeleteClearsSuspended(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	suspended := makeEventFor(t, eventTenantSuspended, 2, aggID, aggregateTypeTenant, TenantSuspendedPayload{
 		SchemaVersion: currentSchemaVersion,
 		Reason:        "test",

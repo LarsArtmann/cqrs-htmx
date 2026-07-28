@@ -23,6 +23,6 @@ func NewRemoveMemberCmd(actorID ActorID, tenantID TenantID) *RemoveMemberCmd {
 	return identitymodel.NewRemoveMemberCmd(actorID, tenantID)
 }
 
-func deriveMembershipID(actorID ActorID, tenantID TenantID) id.AggregateID {
+func deriveMembershipID(actorID ActorID, tenantID TenantID) id.StreamID {
 	return identitymodel.DeriveMembershipID(actorID, tenantID)
 }

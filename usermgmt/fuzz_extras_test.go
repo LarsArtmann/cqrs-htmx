@@ -7,7 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func newFuzzTenantEvent(aggID id.AggregateID, payload []byte) (event.Event, error) {
+func newFuzzTenantEvent(aggID id.StreamID, payload []byte) (event.Event, error) {
 	return event.NewEvent(eventTenantCreated, aggID, aggregateTypeTenant, 1, payload)
 }
 
@@ -74,7 +74,7 @@ func FuzzFoldTenant(f *testing.F) {
 			}
 		}()
 
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		evt, err := newFuzzTenantEvent(aggID, payload)
 		if err != nil {
 			return

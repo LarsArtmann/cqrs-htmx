@@ -136,7 +136,7 @@ func (s *Service) matchOrCreateUser(
 	}
 
 	// 3. Auto-register a new user
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	userID := NewUserID(aggID.String())
 	displayName := info.DisplayName
 	if displayName == "" {
@@ -206,7 +206,7 @@ func (s *Service) isExternalAccountLinkedToOther(provider, subject string, userI
 	return ok && existing.ID.Get() != userID.Get()
 }
 
-func (s *Service) markEmailVerifiedIfMatch(ctx context.Context, aggID id.AggregateID, userID UserID, email string) {
+func (s *Service) markEmailVerifiedIfMatch(ctx context.Context, aggID id.StreamID, userID UserID, email string) {
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok || user.EmailVerified || !strings.EqualFold(user.Email, email) {
 		return

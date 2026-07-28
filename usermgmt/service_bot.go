@@ -106,10 +106,10 @@ func (s *Service) ResolveBotByToken(token string) (*Bot, bool) {
 	return s.botReadModel.FindByTokenHash(hash)
 }
 
-func aggIDFromBot(botID BotID) (id.AggregateID, error) {
-	aggID, err := id.ParseAggregateID(botID.Get())
+func aggIDFromBot(botID BotID) (id.StreamID, error) {
+	aggID, err := id.ParseStreamID(botID.Get())
 	if err != nil {
-		return id.AggregateID{}, errorfamily.Wrapf(
+		return id.StreamID{}, errorfamily.Wrapf(
 			err,
 			event.Infrastructure,
 			"usermgmt.invalid_bot_id",

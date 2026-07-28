@@ -78,7 +78,7 @@ func makeRegistrationEvents(n int) []event.Event {
 	for i := range n {
 		evt, _ := event.NewEvent(
 			"UserRegistered",
-			id.NewAggregateID(),
+			id.NewStreamID(),
 			"User",
 			1,
 			[]byte(fmt.Sprintf(`{"email":"user%d@example.com"}`, i)),

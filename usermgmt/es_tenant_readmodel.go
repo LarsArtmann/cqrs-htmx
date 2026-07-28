@@ -21,7 +21,7 @@ type Tenant struct {
 // TenantReadModel is the projection-side store for tenants.
 type TenantReadModel struct {
 	readModelCore[*TenantReadModel]
-	tenants map[id.AggregateID]*Tenant
+	tenants map[id.StreamID]*Tenant
 }
 
 // NewTenantReadModel creates an empty TenantReadModel.
@@ -35,7 +35,7 @@ func NewTenantReadModel() *TenantReadModel {
 				eventTenantDeleted:     (*TenantReadModel).handleTenantDeleted,
 			},
 		},
-		tenants: make(map[id.AggregateID]*Tenant),
+		tenants: make(map[id.StreamID]*Tenant),
 	}
 }
 
@@ -47,7 +47,7 @@ func (m *TenantReadModel) Handle(_ context.Context, evt event.Event) error {
 	return m.handleEvent(m, evt)
 }
 
-func (m *TenantReadModel) handleTenantCreated(aggID id.AggregateID, evt event.Event) error {
+func (m *TenantReadModel) handleTenantCreated(aggID id.StreamID, evt event.Event) error {
 	p, err := unmarshalPayload[TenantCreatedPayload](evt)
 	if err != nil {
 		return errorfamily.WrapCorruption(
@@ -65,27 +65,27 @@ func (m *TenantReadModel) handleTenantCreated(aggID id.AggregateID, evt event.Ev
 	return nil
 }
 
-func (m *TenantReadModel) handleTenantSuspended(aggID id.AggregateID, _ event.Event) error {
+func (m *TenantReadModel) handleTenantSuspended(aggID id.StreamID, _ event.Event) error {
 	if t, ok := m.tenants[aggID]; ok {
 		t.Suspended = true
 	}
 	return nil
 }
 
-func (m *TenantReadModel) handleTenantReactivated(aggID id.AggregateID, _ event.Event) error {
+func (m *TenantReadModel) handleTenantReactivated(aggID id.StreamID, _ event.Event) error {
 	if t, ok := m.tenants[aggID]; ok {
 		t.Suspended = false
 	}
 	return nil
 }
 
-func (m *TenantReadModel) handleTenantDeleted(aggID id.AggregateID, _ event.Event) error {
+func (m *TenantReadModel) handleTenantDeleted(aggID id.StreamID, _ event.Event) error {
 	delete(m.tenants, aggID)
 	return nil
 }
 
 // FindByID returns the tenant for the given aggregate ID.
-func (m *TenantReadModel) FindByID(aggID id.AggregateID) (*Tenant, bool) {
+func (m *TenantReadModel) FindByID(aggID id.StreamID) (*Tenant, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	t, ok := m.tenants[aggID]

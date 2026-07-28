@@ -59,7 +59,7 @@ func TestSQLEventStore_OperationsAfterClose(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	ref := id.StreamRef{ID: id.NewAggregateID(), Type: aggregateTypeUser}
+	ref := id.StreamRef{ID: id.NewStreamID(), Type: aggregateTypeUser}
 
 	// Upstream storage.SQLEventStore checks closed-state before the nil-input
 	// short-circuit, so even nil inputs return an error on a closed store.

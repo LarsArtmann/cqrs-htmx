@@ -7,7 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-var tenantTestAggID = id.NewAggregateID() //nolint:gochecknoglobals // test fixture
+var tenantTestAggID = id.NewStreamID() //nolint:gochecknoglobals // test fixture
 
 func makeTenantEvent(t *testing.T, eventType event.Type, version event.Version, payload any) event.Event {
 	t.Helper()

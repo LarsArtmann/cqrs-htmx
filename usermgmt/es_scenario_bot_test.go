@@ -14,7 +14,7 @@ import (
 func TestScenario_RegisterBot_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ownerID := NewUserID("bot-owner")
 	tokenHash := []byte{0x01, 0x02, 0x03}
 	cmd := NewRegisterBotCmd(aggID, "ci-bot", ownerID, tokenHash, []string{"read", "write"})
@@ -34,7 +34,7 @@ func TestScenario_RegisterBot_HappyPath(t *testing.T) {
 func TestScenario_RegisterBot_AlreadyExists(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ownerID := NewUserID("bot-owner")
 	tokenHash := []byte{0x01, 0x02, 0x03}
 	cmd := NewRegisterBotCmd(aggID, "ci-bot", ownerID, tokenHash, []string{"read"})
@@ -68,7 +68,7 @@ func TestScenario_RegisterBot_AlreadyExists(t *testing.T) {
 func TestScenario_RegisterBot_NameRequired(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ownerID := NewUserID("bot-owner")
 	tokenHash := []byte{0x01}
 	cmd := NewRegisterBotCmd(aggID, "", ownerID, tokenHash, nil)
@@ -88,7 +88,7 @@ func TestScenario_RegisterBot_NameRequired(t *testing.T) {
 func TestScenario_RegisterBot_OwnerRequired(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	tokenHash := []byte{0x01}
 	cmd := NewRegisterBotCmd(aggID, "ci-bot", NewUserID(""), tokenHash, nil)
 
@@ -107,7 +107,7 @@ func TestScenario_RegisterBot_OwnerRequired(t *testing.T) {
 func TestScenario_DeleteBot_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ownerID := NewUserID("bot-owner")
 	tokenHash := []byte{0x01, 0x02, 0x03}
 	cmd := NewDeleteBotCmd(aggID, "decommissioned")
@@ -139,7 +139,7 @@ func TestScenario_DeleteBot_HappyPath(t *testing.T) {
 func TestScenario_DeleteBot_NotFound(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewDeleteBotCmd(aggID, "reason")
 
 	decide := func(state BotState, _ *DeleteBotCmd) ([]event.Event, error) {

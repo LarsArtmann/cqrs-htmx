@@ -12,8 +12,8 @@ import (
 // Verifies key invariants with random inputs.
 
 var (
-	propTenantAggID = id.NewAggregateID() //nolint:gochecknoglobals // test fixture
-	propBotAggID    = id.NewAggregateID() //nolint:gochecknoglobals // test fixture
+	propTenantAggID = id.NewStreamID() //nolint:gochecknoglobals // test fixture
+	propBotAggID    = id.NewStreamID() //nolint:gochecknoglobals // test fixture
 )
 
 // --- foldTenant property tests ---
@@ -155,7 +155,7 @@ func mustPropMembershipEvent(eventType event.Type, version event.Version, payloa
 	if err != nil {
 		panic(err)
 	}
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent(eventType, aggID, aggregateTypeMembership, version, b)
 	if err != nil {
 		panic(err)

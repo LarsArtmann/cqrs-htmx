@@ -15,7 +15,7 @@ import (
 func TestScenario_CreateTenant_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewCreateTenantCmd(aggID, "acme", "Acme Corp")
 
 	decide := func(state TenantState, _ *CreateTenantCmd) ([]event.Event, error) {
@@ -31,7 +31,7 @@ func TestScenario_CreateTenant_HappyPath(t *testing.T) {
 func TestScenario_CreateTenant_AlreadyExists(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewCreateTenantCmd(aggID, "acme", "Acme Corp")
 
 	existing, err := event.NewEvent(
@@ -59,7 +59,7 @@ func TestScenario_CreateTenant_AlreadyExists(t *testing.T) {
 func TestScenario_CreateTenant_NameRequired(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewCreateTenantCmd(aggID, "", "Display")
 
 	decide := func(state TenantState, _ *CreateTenantCmd) ([]event.Event, error) {
@@ -75,7 +75,7 @@ func TestScenario_CreateTenant_NameRequired(t *testing.T) {
 func TestScenario_SuspendTenant_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewSuspendTenantCmd(aggID, "policy violation")
 
 	created, err := event.NewEvent(
@@ -103,7 +103,7 @@ func TestScenario_SuspendTenant_HappyPath(t *testing.T) {
 func TestScenario_SuspendTenant_NotFound(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewSuspendTenantCmd(aggID, "reason")
 
 	decide := func(state TenantState, _ *SuspendTenantCmd) ([]event.Event, error) {
@@ -119,7 +119,7 @@ func TestScenario_SuspendTenant_NotFound(t *testing.T) {
 func TestScenario_ReactivateTenant_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewReactivateTenantCmd(aggID)
 
 	created, err := event.NewEvent(
@@ -157,7 +157,7 @@ func TestScenario_ReactivateTenant_HappyPath(t *testing.T) {
 func TestScenario_DeleteTenant_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewDeleteTenantCmd(aggID, "shutdown")
 
 	created, err := event.NewEvent(
@@ -185,7 +185,7 @@ func TestScenario_DeleteTenant_HappyPath(t *testing.T) {
 func TestScenario_DeleteTenant_NotFound(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd := NewDeleteTenantCmd(aggID, "reason")
 
 	decide := func(state TenantState, _ *DeleteTenantCmd) ([]event.Event, error) {

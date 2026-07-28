@@ -269,7 +269,7 @@ func genBotEventStream() *rapid.Generator[[]event.Event] {
 			mustPropBotEvent(eventBotRegistered, 1, BotRegisteredPayload{
 				SchemaVersion: currentSchemaVersion,
 				Name:          name,
-				OwnerID:       NewUserID(id.NewAggregateID().String()),
+				OwnerID:       NewUserID(id.NewStreamID().String()),
 				TokenHash:     []byte{0x01, 0x02, 0x03},
 				Scopes:        scopes,
 			}),

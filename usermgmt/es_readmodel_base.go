@@ -8,7 +8,7 @@ import (
 )
 
 // eventHandler dispatches a single event type to a read-model method.
-type eventHandler[T any] func(m T, aggID id.AggregateID, evt event.Event) error
+type eventHandler[T any] func(m T, aggID id.StreamID, evt event.Event) error
 
 // readModelCore provides thread-safe event dispatch for in-memory read models.
 // Embed this struct to get mutex-protected handler-map dispatch: register

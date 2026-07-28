@@ -243,7 +243,7 @@ func TestNewEventSourcedSetup_SecurityHooks(t *testing.T) {
 	t.Cleanup(func() { closeBus(setup.Bus) })
 
 	// Publish through the bus to verify middleware fires.
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, evtErr := event.New(eventUserRegistered, aggID, "User", 1, []byte(`{}`))
 	if evtErr != nil {
 		t.Fatalf("event.New: %v", evtErr)
@@ -353,9 +353,9 @@ func TestService_StoreWrapper_TransformationRoundTrip(t *testing.T) {
 	}
 }
 
-func mustParseAggIDSvc(t *testing.T, s string) id.AggregateID {
+func mustParseAggIDSvc(t *testing.T, s string) id.StreamID {
 	t.Helper()
-	a, err := id.ParseAggregateID(s)
+	a, err := id.ParseStreamID(s)
 	if err != nil {
 		t.Fatalf("ParseAggregateID(%q): %v", s, err)
 	}
