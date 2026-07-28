@@ -120,7 +120,7 @@ func TestSnapshotsIndexHandler_NoStreamReader(t *testing.T) {
 
 func TestSnapshotsIndexHandler_WithListings(t *testing.T) {
 	d := mustTestDashboardWithConfig(t, Config{
-		Journal:      &stubJournal{},
+		Journal: &stubJournal{},
 		StreamReader: &fakeStreamReader{items: []listing.StreamListing{
 			{
 				ID: id.NewStreamID(), Type: "user", Version: event.Version(5),
@@ -150,7 +150,7 @@ func TestSnapshotsIndexHandler_WithListings(t *testing.T) {
 
 func TestSnapshotsIndexHandler_RendersVersion(t *testing.T) {
 	d := mustTestDashboardWithConfig(t, Config{
-		Journal:      &stubJournal{},
+		Journal: &stubJournal{},
 		StreamReader: &fakeStreamReader{items: []listing.StreamListing{
 			{
 				ID: id.NewStreamID(), Type: "order", Version: event.Version(42),
