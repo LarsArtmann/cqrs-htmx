@@ -98,7 +98,7 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 	})
 
 	Describe("QueryTyped", func() {
-		It("dispatches a typed query and renders a typed result", func() {
+		It("dispatches a typed query and renders a typed result", func() { //nolint:dupl // self-contained test setup
 			disp := query.NewDispatcher()
 			err := query.RegisterTyped(
 				disp, "Sum",
@@ -347,7 +347,7 @@ var _ = Describe("Integration: Typed CQRS handlers", func() {
 			Expect(w.Body.String()).To(ContainSubstring("decode"))
 		})
 
-		It("dispatches with zero values from explicit JSON body", func() {
+		It("dispatches with zero values from explicit JSON body", func() { //nolint:dupl // self-contained test setup
 			disp := query.NewDispatcher()
 			err := query.RegisterTyped(
 				disp, "Sum",
