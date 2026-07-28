@@ -171,6 +171,17 @@ linters:
         - .+\.JournalSSEStore$
         - .+\.sseReadResult$
         - .+\.lockedRecorder$
+        # sse.Event has optional ID/Retry/Event/Data fields; partial init (zero-value = unset) is intended.
+        - github\.com/larsartmann/go-sse\.Event$
+        # dashboardui structs mirror root's optional-config / internal-init pattern.
+        - github\.com/larsartmann/cqrs-htmx/dashboardui/v4\.(Config|Dashboard|overviewStats|navItem)$
+        # External structs with optional/zero-value-default fields where partial init is intended.
+        - net/http\.Request$
+        - .+\.ListOptions$
+        - .+\.StreamRef$
+        - .+\.StatCardProps$
+        # Test fixtures with intentionally partial fields.
+        - .+\.fakeSerializer$
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true
