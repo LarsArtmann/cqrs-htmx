@@ -20,9 +20,8 @@ func (h *AuthHandler) handleOAuth2Begin(w http.ResponseWriter, r *http.Request) 
 	if !h.checkRateLimit(w, r, h.oauthLimiter, "too many OAuth2 requests") {
 		return
 	}
-	provider := r.PathValue("provider")
-	if provider == "" {
-		writeError(w, http.StatusBadRequest, "provider is required")
+	provider, ok := requirePathValue(w, r, "provider", "provider is required")
+	if !ok {
 		return
 	}
 
@@ -72,13 +71,8 @@ func (h *AuthHandler) handleOAuth2Callback(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *AuthHandler) handleOAuth2Unlink(w http.ResponseWriter, r *http.Request) {
-	user, ok := h.currentUser(w, r)
+	user, provider, ok := h.currentUserWithPathValue(w, r, "provider", "provider is required")
 	if !ok {
-		return
-	}
-	provider := r.PathValue("provider")
-	if provider == "" {
-		writeError(w, http.StatusBadRequest, "provider is required")
 		return
 	}
 

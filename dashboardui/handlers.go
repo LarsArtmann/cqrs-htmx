@@ -31,6 +31,11 @@ func (d *Dashboard) loadStreamFromRequest(
 
 	return ref, events, true
 }
+
+// streamTitlePath renders a "type/truncated-id" path for page titles.
+func streamTitlePath(ref id.StreamRef) string {
+	return string(ref.Type) + "/" + truncate(ref.ID.String(), titleIDWidth)
+}
 // latestVersion returns the last event version, or "0" for an empty stream.
 func latestVersion(events []event.Event) string {
 	if len(events) == 0 {

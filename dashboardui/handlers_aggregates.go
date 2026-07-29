@@ -38,9 +38,7 @@ func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	streamType, streamID := string(ref.Type), ref.ID.String()
-
-	p := d.page("Aggregate: "+streamType+"/"+truncate(streamID, titleIDWidth), "/aggregates", r)
+	p := d.page("Aggregate: "+streamTitlePath(ref), "/aggregates", r)
 
 	link := func(href, label string) string {
 		return fmt.Sprintf(`<a href="%s" style="color:var(--accent);text-decoration:none">%s</a>`, href, label)

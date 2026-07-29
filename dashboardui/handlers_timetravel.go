@@ -66,10 +66,8 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	streamType, streamID := string(ref.Type), ref.ID.String()
-
 	if len(allEvents) == 0 {
-		p := d.page("Time Travel: "+streamType, "/time-travel", r)
+		p := d.page("Time Travel: "+string(ref.Type), "/time-travel", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
 			return `<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No events</h3></div>`
 		}))
@@ -100,7 +98,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	p := d.page("Time Travel: "+streamType+"/"+truncate(streamID, titleIDWidth), "/time-travel", r)
+	p := d.page("Time Travel: "+streamTitlePath(ref), "/time-travel", r)
 	html := d.renderTimeTravelDetail(p, ref, eventsToVersion, requestedVersion, maxVersion)
 	renderPage(w, r, html)
 }
