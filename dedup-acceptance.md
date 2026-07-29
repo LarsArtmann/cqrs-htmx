@@ -92,7 +92,7 @@ Production code is factored into `es_setup_core.go`.
 - `dashboardui`: extracted `renderStreamIndex(title, basePath, render)` shared
   by `aggregatesIndexHandler`, `snapshotsIndexHandler`, `timeTravelIndexHandler`.
 - `adminui`: extracted templ `stateBadge(cond, labelIf, kindIf, labelElse,
-  kindElse)` shared by `verifiedBadge` and `totpBadge`.
+kindElse)` shared by `verifiedBadge` and `totpBadge`.
 - `usermgmt`: extracted `buildSQLUserReadModel`, `buildSQLMembershipReadModel`,
   `buildSQLTenantReadModel`, `buildSQLBotReadModel` (each backing the
   SQLite/generic SQL constructor pair).
