@@ -12,6 +12,12 @@ build_mode: full
 parallel: true
 max_concurrency: 2
 
+# Retry profile: conservative retries transiently-failing steps with backoff.
+# This auto-recovers the known govalid-generate flake (go/packages loader race
+# documented above) instead of hard-failing and requiring a manual re-run.
+# conservative avoids masking real failures the way aggressive might.
+retry_profile: BOGUS_VALUE
+
 # File settings
 max_file_size: 350 # lines
 dupl_threshold: 30 # tokens
