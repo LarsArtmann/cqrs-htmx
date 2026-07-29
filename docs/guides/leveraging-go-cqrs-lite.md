@@ -20,7 +20,7 @@ cqrs-htmx already leans heavily on go-cqrs-lite for the event-sourced core (`eve
 | `scenario` (BDD testing) | 🟢 **Used in usermgmt tests** | [§6](#6-scenario-based-testing) |
 | `transport/http` (SSE broker) | ⚪ **Intentionally not adopted** | [§7](#7-transporthttp-sse-broker) |
 | `deriver` (reactive sagas) | 🔴 **Not used** | [§8](#8-reactive-sagas-deriver) |
-| `schema` (store-layer upcasters) | 🟡 **Partial** (decode-time only) | [§9](#9-schema-evolution-store-layer-upcasting) |
+| `schema` (store-layer upcasters) | 🟢 **Covered** (decode-time, all paths) | [§9](#9-schema-evolution-store-layer-upcasting) |
 | `graph` / `metaengine` | ⚪ **Niche** | [§10](#10-niche-modules) |
 
 Legend: 🟢 exposed · 🟡 usable but under-documented · 🔴 available, not wired · ⚪ deliberately out of scope.
@@ -228,9 +228,9 @@ bus.SubscribeAll(d.Filter("UserDeleted").Idempotent().AsHandler(cmdDispatcher))
 
 ## 9. Schema evolution — store-layer upcasting
 
-identity-model ships its own `UpcasterRegistry` that upcasts event payloads **at decode time** (inside fold functions / read models). This works regardless of store, including in-memory. But it does **not** cover the projection path: projections reading raw events from a `SeekableJournal` via `projectionhost` bypass the fold functions and therefore bypass identity-model's upcasters.
+identity-model ships its own `UpcasterRegistry` that upcasts event payloads **at decode time** via the shared `UnmarshalPayload[T]` helper. This covers every decode path — fold functions (`FoldUser`, `FoldMembership`, etc.), read models, and projections — because all of them route through `UnmarshalPayload`, which calls `applyUpcasters` as its first step. There is **no gap**: the `SetUpcasterRegistry` doc comment confirms it is *"used by all event decode paths (FoldUser, read models, projections)"*.
 
-go-cqrs-lite's `schema.VersionedSeekableJournal` wraps any journal and upcasts **at the store boundary**, so projections benefit automatically:
+go-cqrs-lite also offers `schema.VersionedSeekableJournal`, which upcasts **at the store boundary** instead. This is an alternative approach (not complementary for cqrs-htmx's needs):
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/schema/v4"
@@ -245,7 +245,7 @@ if err != nil { /* handle */ }
 // pass `vs` to projectionhost.New(...) instead of the raw journal
 ```
 
-> **Opportunity:** the decode-time and store-layer approaches are complementary, not redundant. Wiring `schema.VersionedSeekableJournal` into the projection setup would close the gap so that upcasters run consistently across the read model and the projection host.
+> **Assessment:** decode-time upcasting already covers every projection path in cqrs-htmx (confirmed: `CasbinProjection`, `UserReadModel`, and `MembershipReadModel` all route through `UnmarshalPayload` → `applyUpcasters`). Store-layer upcasting via `schema.VersionedSeekableJournal` is an alternative, not a complement — it would only matter for consumers that decode raw `evt.Payload()` bytes directly, and no such consumer exists in the current projection path.
 
 ---
 
@@ -269,6 +269,5 @@ if err != nil { /* handle */ }
 | **Use `scenario` for new aggregate unit tests** | Low | Medium |
 | cqrs-htmx: **document the middleware path** (this guide + `examples/middleware-demo`) | Done ✅ | High |
 | cqrs-htmx: **durable scheduling** for usermgmt expiry | Medium | Medium-High |
-| cqrs-htmx: **`schema.VersionedSeekableJournal`** for projection upcasting | Medium | Medium |
 
 The single highest-leverage change an **app developer** can make today is the one-line `dispatcher.Use(...)` in [§1](#1-dispatch-middleware--the-1-undocumented-capability). The single highest-leverage change **inside cqrs-htmx itself** is making that capability discoverable — which this guide and `examples/middleware-demo` now do.

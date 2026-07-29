@@ -71,9 +71,7 @@ func (s *flakyService) ping(msg string) error {
 	return nil
 }
 
-func main() {
-	logger := slog.Default()
-
+func newHandler() http.Handler {
 	service := &flakyService{}
 
 	cmdDisp := command.NewDispatcher()
@@ -83,9 +81,9 @@ func main() {
 	// outermost so panics never escape; retry sits inside recovery so it can
 	// re-dispatch retryable errors; logging is innermost to log each attempt.
 	cmdDisp.Use(middleware.CommandRecovery())
-	cmdDisp.Use(middleware.CommandRetry(middleware.DefaultRetryConfig(), middleware.WithLogger(logger)))
+	cmdDisp.Use(middleware.CommandRetry(middleware.DefaultRetryConfig(), middleware.WithLogger(slog.Default())))
 	cmdDisp.Use(middleware.CommandCircuitBreaker(middleware.DefaultCircuitBreakerConfig()))
-	cmdDisp.Use(middleware.CommandLogging(logger))
+	cmdDisp.Use(middleware.CommandLogging(slog.Default()))
 
 	_ = command.RegisterTyped(cmdDisp, "Ping",
 		func(_ context.Context, c *pingCmd) error {
@@ -103,13 +101,19 @@ func main() {
 		cqrshtmx.WithSuccessStatus(http.StatusNoContent),
 	))
 
+	return cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware)(mux)
+}
+
+func main() {
+	handler := newHandler()
+
 	addr := ":8098"
 	fmt.Printf("middleware-demo on http://localhost%s/ping (POST {\"msg\":...})\n", addr)
 	fmt.Println("First request retries twice (transient failures) then succeeds with 204.")
 
 	server := &http.Server{
 		Addr:              addr,
-		Handler:           cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware)(mux),
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	_ = server.ListenAndServe()
