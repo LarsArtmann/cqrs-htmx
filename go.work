@@ -11,6 +11,7 @@ use (
 	./examples/dashboard-demo
 	./examples/datastar-demo
 	./examples/middleware-demo
+	./examples/observability-demo
 	./identity-model
 	./integration_test
 	./loginpage
