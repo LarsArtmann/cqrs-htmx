@@ -66,6 +66,19 @@ app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: cmdDisp, Queries: qryDisp})
 
 `RetryConfig` and `CircuitBreakerConfig` default to sane values and classify retry/failure via the shared `errorfamily` taxonomy — so a `Transient` error (HTTP 503) is automatically retried, while a `Rejection` (400) is not.
 
+> **⚠️ Published-version hazard:** go-cqrs-lite submodule tags currently have broken zero pseudo-versions (see `AGENTS.md` → "go-cqrs-lite publish bug"). If you are NOT using the local `go.work` replaces, pin `middleware/v4` to `v4.2.0` explicitly and verify `go build` succeeds before committing. The go-cqrs-lite local replaces in this repo's `go.work` are required until upstream cuts a clean consolidated release.
+
+### Two recovery layers (HTTP vs dispatch)
+
+You need **both** `cqrshtmx.RecoveryMiddleware` (HTTP layer) and `middleware.CommandRecovery()` (dispatch layer). They catch panics at different call sites:
+
+| Layer | Middleware | Catches panics in |
+|---|---|---|
+| HTTP | `cqrshtmx.RecoveryMiddleware` | HTTP handler, decode, response writing |
+| Dispatch | `middleware.CommandRecovery()` | Command handler body, domain logic |
+
+Neither is redundant. If a panic occurs inside the command handler (e.g. nil dereference in domain logic), the dispatch recovery catches it and converts it to a `Transient` error. If a panic occurs during JSON decoding or response writing, the HTTP recovery catches it. Using only one leaves a gap.
+
 ### Runnable proof
 
 `examples/middleware-demo/` mounts a command whose handler fails transiently twice then recovers. The retry middleware makes the HTTP request still return **204**. Verified:
