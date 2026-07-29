@@ -482,7 +482,14 @@
 
       if (data.type === "bye") {
         const tabId = portTabId.get(port);
-        if (tabId) ports.delete(tabId);
+        if (tabId) {
+          ports.delete(tabId);
+          // Clear originating-tab mappings so retries fall through to
+          // round-robin instead of targeting a dead port.
+          originatingTab.forEach((tId, cmdId) => {
+            if (tId === tabId) originatingTab.delete(cmdId);
+          });
+        }
         portTabId.delete(port);
         return;
       }
@@ -502,11 +509,11 @@
 
         persistCommand(data.commandId, data.envelope).then(() => {
           broadcastPendingCount();
-          // If already online, immediately attempt retry so commands
-          // enqueued during a brief connectivity blip are re-flown.
-          if (online) {
-            flush();
-          }
+          // Do NOT flush here — the online variable may be stale in some
+          // browser contexts, causing premature retries that burn through
+          // MAX_RETRIES before the user reconnects. Retries are triggered by:
+          // (1) the "online" connectivity event, (2) tab connect (hello),
+          // (3) the enqueue-after-online-immediate-retry path below.
         });
         return;
       }
