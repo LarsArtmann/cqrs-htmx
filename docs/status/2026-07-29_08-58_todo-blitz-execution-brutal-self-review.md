@@ -9,14 +9,14 @@
 
 ## a) FULLY DONE (verified: nix run .#test PASS, nix run .#lint PASS, nix run .#coverage-gate PASS)
 
-| # | Task | Evidence |
-|---|------|----------|
-| 1 | **Critical production bug fixed: FormData serialization in sync-client.js** | HTMX 2.x `requestConfig.parameters` is a `FormData` object. `postMessage` cannot clone `FormData` (structured clone algorithm). ALL offline HTMX form submissions were silently dropping commands. Fixed: convert FormData to plain `{key: value}` before postMessage. syncVersion bumped 1.1.0 → 1.2.0. Test `TestSyncVersionMatchesJSConstants` passes. |
-| 2 | **TODO_LIST split brains fixed** | 3 of 5 TODO items were already done but still listed as open: identity-model coverage gate (in flake.nix:657 since prior session), .golangci.yml exclusion audit (confirmed zero masked bugs), dashboardui write-operation handler tests (16 tests added in prior session). Removed all three from TODO_LIST, added to CHANGELOG. |
-| 3 | **dashboardui index handler tests added** (`handlers_index_test.go`) | 5 new tests covering `timeTravelIndexHandler` and `snapshotsIndexHandler` (the last untested handlers). Tests: empty state with no StreamReader, listings with multiple streams, version rendering. dashboardui coverage: 66.5% → **72.5%**. |
-| 4 | **Code quality fixes** | (a) `payload.go:82` unused parameter `r` → `_` in csrfMeta stub. (b) `es_projection_setup.go:168` removed `//nolint:exhaustive` by listing all 7 `WorkerStatus` cases explicitly instead of relying on default. (c) `service_register.go:130` added safety-net comment to the unreachable-looking `default:` case explaining why it prevents nil dereference. |
-| 5 | **Canonical nix gates run for the FIRST TIME** | `nix run .#test` — all 11 module groups PASS. `nix run .#coverage-gate` — all 9 gated modules PASS. `nix run .#lint` — 0 issues across all 15 modules. `nix fmt` — 0 files changed. This resolves the #1 recurring failure across 10+ prior status reports. |
-| 6 | **Documentation reconciled** | TODO_LIST.md rebuilt (5→3 open items, 2 done this session). CHANGELOG.md updated (FormData fix, coverage numbers, dashboardui index tests). AGENTS.md updated (syncVersion 1.1.0→1.2.0, coverage 93.4%→93.7%, dashboardui 66.5%→72.5%, identity-model "no gate"→"gate 70%"). |
+| #   | Task                                                                        | Evidence                                                                                                                                                                                                                                                                                                                                                      |
+| --- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Critical production bug fixed: FormData serialization in sync-client.js** | HTMX 2.x `requestConfig.parameters` is a `FormData` object. `postMessage` cannot clone `FormData` (structured clone algorithm). ALL offline HTMX form submissions were silently dropping commands. Fixed: convert FormData to plain `{key: value}` before postMessage. syncVersion bumped 1.1.0 → 1.2.0. Test `TestSyncVersionMatchesJSConstants` passes.     |
+| 2   | **TODO_LIST split brains fixed**                                            | 3 of 5 TODO items were already done but still listed as open: identity-model coverage gate (in flake.nix:657 since prior session), .golangci.yml exclusion audit (confirmed zero masked bugs), dashboardui write-operation handler tests (16 tests added in prior session). Removed all three from TODO_LIST, added to CHANGELOG.                             |
+| 3   | **dashboardui index handler tests added** (`handlers_index_test.go`)        | 5 new tests covering `timeTravelIndexHandler` and `snapshotsIndexHandler` (the last untested handlers). Tests: empty state with no StreamReader, listings with multiple streams, version rendering. dashboardui coverage: 66.5% → **72.5%**.                                                                                                                  |
+| 4   | **Code quality fixes**                                                      | (a) `payload.go:82` unused parameter `r` → `_` in csrfMeta stub. (b) `es_projection_setup.go:168` removed `//nolint:exhaustive` by listing all 7 `WorkerStatus` cases explicitly instead of relying on default. (c) `service_register.go:130` added safety-net comment to the unreachable-looking `default:` case explaining why it prevents nil dereference. |
+| 5   | **Canonical nix gates run for the FIRST TIME**                              | `nix run .#test` — all 11 module groups PASS. `nix run .#coverage-gate` — all 9 gated modules PASS. `nix run .#lint` — 0 issues across all 15 modules. `nix fmt` — 0 files changed. This resolves the #1 recurring failure across 10+ prior status reports.                                                                                                   |
+| 6   | **Documentation reconciled**                                                | TODO_LIST.md rebuilt (5→3 open items, 2 done this session). CHANGELOG.md updated (FormData fix, coverage numbers, dashboardui index tests). AGENTS.md updated (syncVersion 1.1.0→1.2.0, coverage 93.4%→93.7%, dashboardui 66.5%→72.5%, identity-model "no gate"→"gate 70%").                                                                                  |
 
 **Final verification:** build PASS, test PASS (all 11 modules), lint PASS (0 issues), coverage-gate PASS (all 9 modules), nix fmt clean.
 
@@ -25,27 +25,30 @@
 ## b) PARTIALLY DONE
 
 ### 1. Offline sync E2E browser testing — FormData bug FIXED but tests NOT re-run in browser
+
 The FormData serialization bug was identified, root-caused, and fixed. But the 4 Playwright E2E tests in `e2e/tests/sync.spec.ts` were NOT re-run in a browser to verify the fix actually resolves the enqueue failure. The fix is logically correct (converts FormData to plain object before postMessage) and the Go-side sync version test passes, but browser verification is the real proof.
 
 ### 2. FEATURES.md and ROADMAP.md — coverage numbers STILL STALE
+
 FEATURES.md line 7 says "93.4% root, 55% dashboardui". ROADMAP.md line 8 says "93.4% root". Both need updating to the verified numbers (93.7% root, 72.5% dashboardui). The 2026-07-28_23-34 report explicitly flagged FEATURES.md as needing updates and I didn't do it.
 
 ### 3. dashboardui test coverage — improved but more handlers remain
+
 Coverage went from 66.5% → 72.5% (+6pp). The write-operation handlers and index handlers are now tested. But per the 2026-07-29_00-05 report, these remain untested: SSE handler, overview handler with journal fallback, aggregate detail handler with events, events index handler with pagination, command/query audit handlers, route registration, ReadOnly mode, Authorizer configuration, Mount with prefix stripping, guard middleware.
 
 ---
 
 ## c) NOT STARTED
 
-| # | Task | Why | Source |
-|---|------|-----|--------|
-| 1 | **Planning doc with mermaid graph** | The user's `paste_1.txt` explicitly asked for a `docs/planning/<date>_SUPERB-NAME.md` with a mermaid.js execution graph. I created a todo list internally but NEVER wrote the planning doc to disk. This was step 6 of the explicit instructions. | paste_1.txt step 6 |
-| 2 | **`git push`** | The user's `paste_1.txt` step 8 explicitly asked to `git push`. The branch is 21 commits ahead of origin/master. I never pushed. | paste_1.txt step 8 |
-| 3 | **FEATURES.md freshness** | Coverage numbers, test counts, and the dashboardui row are stale. Line 354 still says "29 tests" and "Still missing: DLQ replay/delete/purge handler tests" — those are now done. Line 379 metrics table shows "55% (gate)" for dashboardui. | 2026-07-28_23-34 report §c.9 |
-| 4 | **ROADMAP.md freshness** | Line 8 and 13 show stale coverage numbers (93.4%, "identity-model no gate", dashboardui "at gate threshold"). | Same |
-| 5 | **E2E test verification** | Playwright tests not run after FormData fix. | 2026-07-29_00-17 report |
-| 6 | **`nix flake check`** | Never run. Another canonical gate. | AGENTS.md |
-| 7 | **`nix run .#check-docs-freshness`** | Never run. May catch version-string drift I missed. | Multiple reports |
+| #   | Task                                 | Why                                                                                                                                                                                                                                               | Source                       |
+| --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| 1   | **Planning doc with mermaid graph**  | The user's `paste_1.txt` explicitly asked for a `docs/planning/<date>_SUPERB-NAME.md` with a mermaid.js execution graph. I created a todo list internally but NEVER wrote the planning doc to disk. This was step 6 of the explicit instructions. | paste_1.txt step 6           |
+| 2   | **`git push`**                       | The user's `paste_1.txt` step 8 explicitly asked to `git push`. The branch is 21 commits ahead of origin/master. I never pushed.                                                                                                                  | paste_1.txt step 8           |
+| 3   | **FEATURES.md freshness**            | Coverage numbers, test counts, and the dashboardui row are stale. Line 354 still says "29 tests" and "Still missing: DLQ replay/delete/purge handler tests" — those are now done. Line 379 metrics table shows "55% (gate)" for dashboardui.      | 2026-07-28_23-34 report §c.9 |
+| 4   | **ROADMAP.md freshness**             | Line 8 and 13 show stale coverage numbers (93.4%, "identity-model no gate", dashboardui "at gate threshold").                                                                                                                                     | Same                         |
+| 5   | **E2E test verification**            | Playwright tests not run after FormData fix.                                                                                                                                                                                                      | 2026-07-29_00-17 report      |
+| 6   | **`nix flake check`**                | Never run. Another canonical gate.                                                                                                                                                                                                                | AGENTS.md                    |
+| 7   | **`nix run .#check-docs-freshness`** | Never run. May catch version-string drift I missed.                                                                                                                                                                                               | Multiple reports             |
 
 ---
 

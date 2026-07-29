@@ -14,11 +14,13 @@ Built the complete E2E test infrastructure (Go test server + Playwright + 4 test
 ## a) FULLY DONE
 
 ### Go E2E Test Server (`e2e/server/`)
+
 - **`e2e/server/main.go`** — Minimal HTTP server serving HTMX + sync-client.js + sync-worker.js + SSE + POST command endpoint + debug endpoint. All endpoints verified working.
 - **`e2e/server/go.mod`** — Separate Go module (`github.com/larsartmann/cqrs-htmx/e2e/server`), added to `go.work`.
 - Builds clean with `GOEXPERIMENT=jsonv2 go build`. Server starts, serves all routes, handles POST commands, broadcasts SSE ACK events.
 
 ### Playwright Infrastructure
+
 - **`e2e/package.json`** — Playwright + TypeScript devDependencies. Installed via bun.
 - **`e2e/playwright.config.ts`** — Configured with auto-starting Go server via `webServer`, NixOS Chromium workaround (`E2E_BROWSER_PATH` env var → `launchOptions.executablePath`), single-worker (SharedWorker state is per-origin), HTML reporter.
 - **`e2e/tsconfig.json`** — Strict TypeScript config.
@@ -26,6 +28,7 @@ Built the complete E2E test infrastructure (Go test server + Playwright + 4 test
 - **`e2e/tests/sync.spec.ts`** — 4 E2E tests written, all discovered by Playwright.
 
 ### Key Discovery: Playwright + Bun + NixOS Gotchas
+
 - Bun is the JS runtime (`bun x playwright test`). npm not available.
 - Playwright's downloaded Chromium cannot run on NixOS (no FHS dynamic linker). Must use system Chromium via `E2E_BROWSER_PATH` env var → `launchOptions.executablePath` in config.
 - **Critical Playwright transformer limitation:** TypeScript type assertions (`as any[]`, `import('@playwright/test').Page` in function signatures) inside test files cause silent build failures ("No tests found"). Must use string-based `page.evaluate()` or parameterless functions. This cost ~2 hours of debugging.
@@ -35,15 +38,18 @@ Built the complete E2E test infrastructure (Go test server + Playwright + 4 test
 ## b) PARTIALLY DONE
 
 ### E2E Tests (4 written, all fail at enqueue step)
+
 - **Test 1:** Offline enqueue persists command envelope to IndexedDB — FAILS (queue depth stays 0)
 - **Test 2:** Online flush delivers queued command to server — FAILS (depends on test 1)
 - **Test 3:** Cross-session rebuildAndRetry delivers and cleans up — FAILS (depends on test 1)
 - **Test 4:** Multiple offline commands queued and delivered — FAILS (depends on test 1)
 
 ### Root Cause Identified (fix not applied)
+
 **`sync-client.js` line 388-396** captures `cfg.parameters` from the HTMX `sendError` event detail and passes it directly as `envelope.values` to `postMessage`. In HTMX 2.x, `cfg.parameters` is a **`FormData`** object, not a plain `{key: value}` object. `postMessage` throws `Failed to execute 'postMessage' on 'MessagePort': #<FormData> could not be cloned.` — the command never reaches the SharedWorker.
 
 Proven via debug trace:
+
 ```
 htmx:beforeRequest: elt=FORM closestCmdId=NONE closestSyncState=NONE
 htmx:sendError: elt=FORM closestCmdId=<uuid> closestSyncState=pending
@@ -53,19 +59,22 @@ PAGEERROR: Failed to execute 'postMessage' on 'MessagePort': #<FormData> could n
 Direct SharedWorker enqueue (bypassing sync-client) works perfectly — IndexedDB receives the entry, the worker sends retry messages, everything functions.
 
 **Fix:** Convert `FormData` to plain object before postMessage:
+
 ```javascript
 // In sync-client.js, htmx:sendError handler:
 var params = cfg.parameters;
 if (params instanceof FormData) {
-  var plain = {};
-  params.forEach(function(val, key) { plain[key] = val; });
-  params = plain;
+	var plain = {};
+	params.forEach(function (val, key) {
+		plain[key] = val;
+	});
+	params = plain;
 }
 envelope = {
-  verb: cfg.verb || "",
-  url: cfg.path || "",
-  values: params,
-  headers: cfg.headers || null,
+	verb: cfg.verb || "",
+	url: cfg.path || "",
+	values: params,
+	headers: cfg.headers || null,
 };
 ```
 
@@ -83,7 +92,9 @@ envelope = {
 ## d) TOTALLY FUCKED UP
 
 ### The Playwright Transformer Debugging Odyssey (~2 hours wasted)
+
 Spent far too long isolating why `sync.spec.ts` produced "No tests found" while individual test patterns worked in isolation. Root cause was Playwright's esbuild-based transformer silently rejecting TypeScript type annotations in specific positions:
+
 - `as any[]` type assertions on `page.evaluate()` results → build fails
 - `import('@playwright/test').Page` inline type imports in function params → build fails
 - Module-level arrow functions with DOM type casts (`e.target as IDBOpenDBRequest`) → build fails
@@ -91,6 +102,7 @@ Spent far too long isolating why `sync.spec.ts` produced "No tests found" while 
 Should have checked Playwright's known issues / docs for transformer limitations immediately instead of binary-searching through 17 test file variants.
 
 ### IndexedDB Inspection Approach
+
 The string-based `page.evaluate()` scripts for reading IndexedDB from the page context are fragile. Each test opens a separate IDB connection, which can race with the SharedWorker's own IDB transactions. A better approach would be a dedicated debug endpoint on the server or a SharedWorker-to-test bridge.
 
 ---
@@ -108,12 +120,14 @@ The string-based `page.evaluate()` scripts for reading IndexedDB from the page c
 ## f) NEXT 50 THINGS TO DO
 
 ### Immediate (blocking)
+
 1. Fix FormData serialization bug in `sync-client.js` (convert FormData to plain object before postMessage)
 2. Re-run E2E tests — should go green after the fix
 3. Add `FormData` conversion for the `rebuildAndRetry` path too (envelope.values → FormData reconstruction on retry)
 4. Clean up `e2e/test-results/` and verify tests pass from clean state
 
 ### Short-term
+
 5. Write `e2e/README.md` with setup instructions and NixOS Chromium workaround
 6. Add `nix run .#e2e` flake app (Chromium + Playwright + Go server)
 7. Add Chromium to flake.nix devShell or as a separate `e2e` devShell
@@ -123,6 +137,7 @@ The string-based `page.evaluate()` scripts for reading IndexedDB from the page c
 11. Test: dead command after MAX_RETRIES
 
 ### Sync Stack Hardening
+
 12. Evaluate LiveStore approach for replacing IndexedDB persistence entirely
 13. Investigate OPFS (Origin Private File System) as IDB alternative — synchronous, simpler API
 14. Add `FormData` round-trip test (envelope.values → rebuildAndRetry → server receives correct form data)
@@ -135,6 +150,7 @@ The string-based `page.evaluate()` scripts for reading IndexedDB from the page c
 21. Test: SharedWorker unavailable graceful degradation (Safari < 16, private browsing)
 
 ### CI / Infrastructure
+
 22. Add E2E to `buildflow` pre-commit hook (or separate `e2e` mode)
 23. Add E2E to CI pipeline (needs Chromium in CI runner)
 24. Add coverage gate concept for JS files (currently only Go has coverage gates)
@@ -144,6 +160,7 @@ The string-based `page.evaluate()` scripts for reading IndexedDB from the page c
 28. Add Playwright trace files to CI artifacts on failure
 
 ### sync-client.js / sync-worker.js Improvements
+
 29. Add `FormData` → plain object conversion utility (shared by enqueue + rebuildAndRetry)
 30. Add `structuredClone` polyfill check (older browsers)
 31. Fix: `rebuildAndRetry` uses `htmx.ajax()` which may not reconstruct FormData correctly
@@ -160,6 +177,7 @@ The string-based `page.evaluate()` scripts for reading IndexedDB from the page c
 42. Test: port death detection (broadcast() catch block)
 
 ### Documentation
+
 43. Document the Playwright + Bun + NixOS setup in `e2e/README.md`
 44. Document the FormData serialization bug as a CHANGELOG entry when fixed
 45. Update `docs/recipes/offline-command-sync.md` with the `data-sync-target` requirement
@@ -184,21 +202,23 @@ The string-based `page.evaluate()` scripts for reading IndexedDB from the page c
 ## File Inventory
 
 ### Created this session
-| File | Purpose | Status |
-|------|---------|--------|
-| `e2e/server/main.go` | Go test server (HTMX + sync handlers + SSE + POST endpoint) | Working |
-| `e2e/server/go.mod` | Separate Go module for the test server | Working |
-| `e2e/package.json` | Playwright + TypeScript dependencies | Installed |
-| `e2e/playwright.config.ts` | Playwright config with webServer + NixOS Chromium workaround | Working |
-| `e2e/tsconfig.json` | TypeScript strict config | Working |
-| `e2e/.gitignore` | Ignores node_modules, test-results | Working |
-| `e2e/tests/sync.spec.ts` | 4 E2E tests (offline enqueue, online flush, cross-session, multi) | All fail (FormData bug) |
-| `go.work` (modified) | Added `./e2e/server` to workspace | Done |
+
+| File                       | Purpose                                                           | Status                  |
+| -------------------------- | ----------------------------------------------------------------- | ----------------------- |
+| `e2e/server/main.go`       | Go test server (HTMX + sync handlers + SSE + POST endpoint)       | Working                 |
+| `e2e/server/go.mod`        | Separate Go module for the test server                            | Working                 |
+| `e2e/package.json`         | Playwright + TypeScript dependencies                              | Installed               |
+| `e2e/playwright.config.ts` | Playwright config with webServer + NixOS Chromium workaround      | Working                 |
+| `e2e/tsconfig.json`        | TypeScript strict config                                          | Working                 |
+| `e2e/.gitignore`           | Ignores node_modules, test-results                                | Working                 |
+| `e2e/tests/sync.spec.ts`   | 4 E2E tests (offline enqueue, online flush, cross-session, multi) | All fail (FormData bug) |
+| `go.work` (modified)       | Added `./e2e/server` to workspace                                 | Done                    |
 
 ### Root cause artifacts
-| Finding | Evidence |
-|---------|----------|
-| `FormData` cannot be cloned via postMessage | `PAGEERROR: Failed to execute 'postMessage' on 'MessagePort': #<FormData> could not be cloned.` |
-| Direct SharedWorker enqueue works | Debug test 14 proved IndexedDB receives entries when bypassing sync-client |
-| Manual sendError dispatch works | Debug test 16 proved enqueue works when `values` is a plain object |
-| HTMX 2.x `requestConfig.parameters` is FormData | Debug test 17 traced the full event lifecycle |
+
+| Finding                                         | Evidence                                                                                        |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `FormData` cannot be cloned via postMessage     | `PAGEERROR: Failed to execute 'postMessage' on 'MessagePort': #<FormData> could not be cloned.` |
+| Direct SharedWorker enqueue works               | Debug test 14 proved IndexedDB receives entries when bypassing sync-client                      |
+| Manual sendError dispatch works                 | Debug test 16 proved enqueue works when `values` is a plain object                              |
+| HTMX 2.x `requestConfig.parameters` is FormData | Debug test 17 traced the full event lifecycle                                                   |

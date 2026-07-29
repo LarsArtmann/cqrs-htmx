@@ -19,7 +19,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/httputil v0.6.1
+	github.com/larsartmann/httputil v0.7.0
 	modernc.org/sqlite v1.54.0
 	pgregory.net/rapid v1.3.0
 )
