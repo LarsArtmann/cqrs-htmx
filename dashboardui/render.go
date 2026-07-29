@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
